@@ -35,45 +35,6 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 		#endregion
 
 		#region Guild Menu
-		private readonly Grid _FileLayout = new Grid
-		{
-			Visibility = Visibility.Collapsed,
-		};
-		private readonly RichTextBox _FileOutput = new AdvobotRichTextBox
-		{
-			IsReadOnly = true,
-			IsDocumentEnabled = true,
-			FontResizeValue = .022,
-		};
-		private readonly TreeView _FileTreeView = new TreeView();
-		private readonly Button _FileSearchButton = new AdvobotButton
-		{
-			Content = "Search Guilds",
-		};
-
-		private readonly Grid _SpecificFileLayout = new Grid
-		{
-			Visibility = Visibility.Collapsed,
-		};
-		private readonly MenuItem _SpecificFileContextMenuSave = new MenuItem
-		{
-			Header = "Save File",
-		};
-		private readonly TextEditor _SpecificFileDisplay = new AdvobotTextEditor
-		{
-			Background = null,
-			Foreground = null,
-			BorderBrush = null,
-			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
-			WordWrap = true,
-			ShowLineNumbers = true,
-			FontResizeValue = .022,
-		};
-		private readonly Button _SpecificFileCloseButton = new AdvobotButton
-		{
-			Content = "Close Menu",
-		};
-
 		private readonly Grid _GuildSearchLayout = new Grid
 		{
 			//Background = UIModification.MakeBrush("#BF000000"),

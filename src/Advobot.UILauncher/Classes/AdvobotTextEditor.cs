@@ -16,5 +16,12 @@ namespace Advobot.UILauncher.Classes
 				_FRV = value;
 			}
 		}
+
+		public AdvobotTextEditor()
+		{
+			this.Background = null;
+			this.Foreground = null;
+			this.BorderBrush = null;
+		}
 	}
 }

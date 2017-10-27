@@ -1,4 +1,5 @@
-﻿using Advobot.UILauncher.Enums;
+﻿using Advobot.UILauncher.Actions;
+using Advobot.UILauncher.Enums;
 using System.IO;
 
 namespace Advobot.UILauncher.Classes
@@ -11,9 +12,9 @@ namespace Advobot.UILauncher.Classes
 		public FileType FileType { get; }
 		public FileInfo FileInfo { get; }
 
-		public FileInformation(FileType fileType, FileInfo fileInfo)
+		public FileInformation(FileInfo fileInfo)
 		{
-			FileType = fileType;
+			FileType = UIBotWindowLogic.GetFileType(Path.GetFileNameWithoutExtension(fileInfo?.Name ?? ""));
 			FileInfo = fileInfo;
 		}
 	}

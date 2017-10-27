@@ -41,7 +41,7 @@ namespace Advobot.Core.Classes
 				else if (t.IsNested)
 				{
 #if DEBUG
-					AssertAllAliasesAreDifferent(t);
+					VerifyAllAliasesAreDifferent(t);
 #endif
 					continue;
 				}
@@ -57,12 +57,12 @@ namespace Advobot.Core.Classes
 #if DEBUG
 				//These are basically only here so I won't forget something.
 				//Without them the bot should work fine, but may have tiny bugs.
-				AssertNoDuplicateCommandNamesOrAliases(temp, name, aliases);
-				AssertDefaultValueEnabledAttributeExists(t);
-				AssertClassIsPublic(t);
-				AssertAllCommandsHaveCommandAttribute(t);
-				AssertAllAliasesAreDifferent(t);
-				AssertShortAliasAttribute(t);
+				VerifyNoDuplicateCommandNamesOrAliases(temp, name, aliases);
+				VerifyDefaultValueEnabledAttributeExists(t);
+				VerifyClassIsPublic(t);
+				VerifyAllCommandsHaveCommandAttribute(t);
+				VerifyAllAliasesAreDifferent(t);
+				VerifyShortAliasAttribute(t);
 #endif
 
 				temp.Add(new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, aliases, category, defaultEnabled));
@@ -70,7 +70,7 @@ namespace Advobot.Core.Classes
 			_Source = temp.ToImmutableList();
 		}
 
-		private void AssertNoDuplicateCommandNamesOrAliases(IEnumerable<HelpEntry> alreadyUsed, string name, string[] aliases)
+		private void VerifyNoDuplicateCommandNamesOrAliases(IEnumerable<HelpEntry> alreadyUsed, string name, string[] aliases)
 		{
 			var similarCmds = alreadyUsed.Where(x => x.Name.CaseInsEquals(name) || (x.Aliases != null && aliases != null && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any()));
 			if (similarCmds.Any())
@@ -78,21 +78,21 @@ namespace Advobot.Core.Classes
 				throw new ArgumentException($"The following commands have conflicts: {String.Join(" + ", similarCmds.Select(x => x.Name))} + {name}");
 			}
 		}
-		private void AssertDefaultValueEnabledAttributeExists(Type classType)
+		private void VerifyDefaultValueEnabledAttributeExists(Type classType)
 		{
 			if (classType.GetCustomAttribute<DefaultEnabledAttribute>() == null)
 			{
 				throw new ArgumentException($"{classType.Name} does not have a default enabled value set.");
 			}
 		}
-		private void AssertClassIsPublic(Type classType)
+		private void VerifyClassIsPublic(Type classType)
 		{
 			if (classType.IsNotPublic)
 			{
 				throw new ArgumentException($"{classType.Name} is not public and commands will not execute from it.");
 			}
 		}
-		private void AssertAllCommandsHaveCommandAttribute(Type classType)
+		private void VerifyAllCommandsHaveCommandAttribute(Type classType)
 		{
 			var methods = classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
 			if (methods.Any(x => x.GetCustomAttribute<CommandAttribute>() == null))
@@ -100,7 +100,7 @@ namespace Advobot.Core.Classes
 				throw new ArgumentException($"{classType.Name} has a command missing the command attribute.");
 			}
 		}
-		private void AssertAllAliasesAreDifferent(Type classType)
+		private void VerifyAllAliasesAreDifferent(Type classType)
 		{
 			var nestedAliases = classType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Public)
 				.Select(x => x.GetCustomAttribute<AliasAttribute>()?.Aliases).Where(x => x != null);
@@ -119,7 +119,7 @@ namespace Advobot.Core.Classes
 				}
 			}
 		}
-		private void AssertShortAliasAttribute(Type classType)
+		private void VerifyShortAliasAttribute(Type classType)
 		{
 			if (classType.GetCustomAttribute<TopLevelShortAliasAttribute>() == null)
 			{

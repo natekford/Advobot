@@ -55,6 +55,10 @@ namespace Advobot.UILauncher.Actions
 			Grid.SetColumn(item, Math.Max(0, start));
 			Grid.SetColumnSpan(item, Math.Max(1, length));
 		}
+		public static void SetRowSpan(UIElement item, int length)
+		{
+			Grid.SetRowSpan(item, Math.Max(1, length));
+		}
 		public static void SetColSpan(UIElement item, int length)
 		{
 			Grid.SetColumnSpan(item, Math.Max(1, length));
@@ -117,7 +121,16 @@ namespace Advobot.UILauncher.Actions
 
 		public static void ToggleToolTip(ToolTip ttip)
 		{
-			ttip.IsOpen = !ttip.IsOpen;
+			if (ttip.IsOpen)
+			{
+				ttip.IsOpen = false;
+				ttip.Visibility = Visibility.Collapsed;
+			}
+			else
+			{
+				ttip.IsOpen = true;
+				ttip.Visibility = Visibility.Visible;
+			}
 		}
 
 		public static int[][] FigureOutWhereToPutBG(Grid parent, UIElement child)
@@ -233,23 +246,16 @@ namespace Advobot.UILauncher.Actions
 			return ancestorLevel > 0;
 		}
 
-		public static TreeView MakeGuildTreeView(TreeView tv, IEnumerable<IGuild> guilds)
+		public static IEnumerable<TreeViewItem> MakeGuildTreeViewItemsSource(IEnumerable<IGuild> guilds)
 		{
 			var directoryInfo = GetActions.GetBaseBotDirectory();
 			if (directoryInfo == null || !directoryInfo.Exists)
 			{
-				return tv;
-			}
-			//Remove this treeview from its parent if it has one
-			else if (tv.Parent != null && tv.Parent is InlineUIContainer parent)
-			{
-				parent.Child = null;
+				return null;
 			}
 
-			tv.BorderThickness = new Thickness(0);
-			tv.Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground];
-			tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground];
-			tv.ItemsSource = directoryInfo.GetDirectories().Select(dir =>
+			var r = Application.Current.MainWindow.Resources;
+			return directoryInfo.GetDirectories().Select(dir =>
 			{
 				//Make sure the id leads to a valid non null guild
 				if (!ulong.TryParse(dir.Name, out ulong Id) || !(guilds.FirstOrDefault(x => x.Id == Id) is SocketGuild guild))
@@ -259,89 +265,40 @@ namespace Advobot.UILauncher.Actions
 
 				var items = dir.GetFiles().Select(file =>
 				{
-					var fileType = UIBotWindowLogic.GetFileType(Path.GetFileNameWithoutExtension(file.Name));
-					return fileType == default ? null : new TreeViewItem
+					return new TreeViewItem
 					{
 						Header = file.Name,
-						Tag = new FileInformation(fileType, file),
-						Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground],
-						Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground],
+						Tag = new FileInformation(file),
+						Background = (Brush)r[ColorTarget.BaseBackground],
+						Foreground = (Brush)r[ColorTarget.BaseForeground],
 					};
-				}).Where(x => x != null);
+				}).Where(x => x.Tag is FileInformation fi && fi.FileType != default);
 
 				return !items.Any() ? null : new TreeViewItem
 				{
 					Header = guild.FormatGuild(),
-					Tag = new GuildFileInformation(guild.Id, guild.Name, guild.MemberCount),
-					Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground],
-					Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground],
+					Tag = guild,
+					Background = (Brush)r[ColorTarget.BaseBackground],
+					Foreground = (Brush)r[ColorTarget.BaseForeground],
 					ItemsSource = items,
 				};
-			})
-			.Where(x => x != null)
-			.OrderByDescending(x => x.Tag is GuildFileInformation gfi ? gfi.MemberCount : 0);
-
-			return tv;
+			}).Where(x => x != null).OrderByDescending(x => x.Tag is SocketGuild g ? g.MemberCount : 0);
 		}
 
-		public static IEnumerable<TextBox> MakeGuildTreeViewItemsSource(IEnumerable<IGuild> guilds)
+		public static bool TryToAppendText(TextEditor display, object sender)
 		{
-			return null;
-			/*
-			var directoryInfo = GetActions.GetBaseBotDirectory();
-			if (directoryInfo == null || !directoryInfo.Exists)
+			if (true 
+				&& sender is FrameworkElement element 
+				&& element.Tag is FileInformation fi 
+				&& fi.FileInfo != null && fi.FileInfo.Exists)
 			{
-				return tv;
-			}
-
-			tv.ItemsSource = directoryInfo.GetDirectories().Select(dir =>
-			{
-				//Make sure the id leads to a valid non null guild
-				if (!ulong.TryParse(dir.Name, out ulong Id) || !(guilds.FirstOrDefault(x => x.Id == Id) is SocketGuild guild))
+				display.Clear();
+				display.Tag = fi.FileInfo;
+				using (var reader = new StreamReader(fi.FileInfo.FullName))
 				{
-					return null;
+					display.AppendText(reader.ReadToEnd());
 				}
-
-				var items = dir.GetFiles().Select(file =>
-				{
-					var fileType = UIBotWindowLogic.GetFileType(Path.GetFileNameWithoutExtension(file.Name));
-					return fileType == default ? null : new TreeViewItem
-					{
-						Header = file.Name,
-						Tag = new FileInformation(fileType, file),
-						Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground],
-						Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground],
-					};
-				}).Where(x => x != null);
-
-				return !items.Any() ? null : new TreeViewItem
-				{
-					Header = guild.FormatGuild(),
-					Tag = new GuildFileInformation(guild.Id, guild.Name, guild.MemberCount),
-					Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground],
-					Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground],
-					ItemsSource = items,
-				};
-			})
-			.Where(x => x != null)
-			.OrderByDescending(x => x.Tag is GuildFileInformation gfi ? gfi.MemberCount : 0);*/
-		}
-
-		public static bool AppendTextToTextEditorIfPathExists(TextEditor display, TreeViewItem treeItem)
-		{
-			if (treeItem.Tag is FileInformation fi)
-			{
-				var fileInfo = fi.FileInfo;
-				if (fileInfo != null && fileInfo.Exists)
-				{
-					display.Clear();
-					display.Tag = fileInfo;
-					using (var reader = new StreamReader(fileInfo.FullName))
-					{
-						display.AppendText(reader.ReadToEnd());
-					}
-					return true;
-				}
+				return true;
 			}
 
 			ConsoleActions.WriteLine("Unable to bring up the file.");

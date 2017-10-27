@@ -57,6 +57,7 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 		}
 		private void SearchForFile(object sender, RoutedEventArgs e)
 		{
+			/*
 			var tb = (TextBox)_GuildSearchFileComboBox.SelectedItem;
 			if (tb == null)
 				return;
@@ -78,7 +79,7 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 					return;
 				}
 
-				guild = _FileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x => ((GuildFileInformation)x.Tag).Id == guildID);
+				guild = _FileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x => ((GuildInformation)x.Tag).Id == guildID);
 				if (guild == null)
 				{
 					ConsoleActions.WriteLine($"No guild could be found with the ID '{guildID}'.");
@@ -87,7 +88,7 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 			}
 			else if (!String.IsNullOrWhiteSpace(nameStr))
 			{
-				var guilds = _FileTreeView.Items.Cast<TreeViewItem>().Where(x => ((GuildFileInformation)x.Tag).Name.CaseInsEquals(nameStr));
+				var guilds = _FileTreeView.Items.Cast<TreeViewItem>().Where(x => ((GuildInformation)x.Tag).Name.CaseInsEquals(nameStr));
 				if (guilds.Count() == 0)
 				{
 					ConsoleActions.WriteLine($"No guild could be found with the name '{nameStr}'.");
@@ -111,36 +112,7 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 				{
 					OpenSpecificFileLayout(item, e);
 				}
-			}
+			}*/
 		}
-
-		private void OpenSpecificFileLayout(object sender, RoutedEventArgs e)
-		{
-			if (UIModification.AppendTextToTextEditorIfPathExists(_SpecificFileDisplay, (TreeViewItem)sender))
-			{
-				UIModification.SetRowAndSpan(_FileLayout, 0, 100);
-				_SpecificFileLayout.Visibility = Visibility.Visible;
-				_FileSearchButton.Visibility = Visibility.Collapsed;
-			}
-		}
-		private void CloseSpecificFileLayout(object sender, RoutedEventArgs e)
-		{
-			switch (MessageBox.Show("Are you sure you want to close the edit window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
-			{
-				case MessageBoxResult.OK:
-				{
-					UIModification.SetRowAndSpan(_FileLayout, 0, 87);
-					_SpecificFileDisplay.Tag = null;
-					_SpecificFileLayout.Visibility = Visibility.Collapsed;
-					_FileSearchButton.Visibility = Visibility.Visible;
-					return;
-				}
-			}
-		}
-		/*
-		private async void SaveSpecificFile(object sender, RoutedEventArgs e)
-		{
-			await UIModification.MakeFollowingToolTip(_Layout, _ToolTip, UIBotWindowLogic.SaveFile(_SpecificFileDisplay).GetReason());
-		}*/
 	}
 }

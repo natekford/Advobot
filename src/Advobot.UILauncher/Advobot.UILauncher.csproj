@@ -27,6 +27,7 @@
     <WarningLevel>4</WarningLevel>
     <LangVersion>latest</LangVersion>
     <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -102,8 +103,8 @@
     <Compile Include="Actions\EntityModification.cs" />
     <Compile Include="Actions\Logic.cs" />
     <Compile Include="Actions\SettingModification.cs" />
-    <Compile Include="AdvobotApplication.xaml.cs">
-      <DependentUpon>AdvobotApplication.xaml</DependentUpon>
+    <Compile Include="AdvobotWindow.xaml.cs">
+      <DependentUpon>AdvobotWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Classes\AdvobotButton.cs" />
     <Compile Include="Classes\AdvobotComboBox.cs" />
@@ -119,8 +120,8 @@
     <Compile Include="Classes\BrushTargetAndValue.cs" />
     <Compile Include="Classes\Converters\FontResizeConverter.cs" />
     <Compile Include="Classes\FileInformation.cs" />
-    <Compile Include="Classes\GuildInformation.cs" />
     <Compile Include="Classes\Converters\NavigateUriConverter.cs" />
+    <Compile Include="Classes\Holder.cs" />
     <Compile Include="Classes\TextBoxStreamWriter.cs" />
     <Compile Include="Classes\ColorSettings.cs" />
     <Compile Include="Enums\ColorTarget.cs" />
@@ -172,7 +173,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="AdvobotApplication.xaml">
+    <Page Include="AdvobotWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

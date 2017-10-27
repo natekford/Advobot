@@ -106,7 +106,7 @@ namespace Advobot.UILauncher.Classes
 		}
 		private static void SetClassicTheme()
 		{
-			var r = Application.Current.Resources;
+			var r = Application.Current.MainWindow.Resources;
 			r[ColorTarget.BaseBackground] = LightModeBackground;
 			r[ColorTarget.BaseForeground] = LightModeForeground;
 			r[ColorTarget.BaseBorder] = LightModeBorder;
@@ -120,7 +120,7 @@ namespace Advobot.UILauncher.Classes
 		}
 		private static void SetDarkModeTheme()
 		{
-			var r = Application.Current.Resources;
+			var r = Application.Current.MainWindow.Resources;
 			r[ColorTarget.BaseBackground] = DarkModeBackground;
 			r[ColorTarget.BaseForeground] = DarkModeForeground;
 			r[ColorTarget.BaseBorder] = DarkModeBorder;
@@ -134,7 +134,7 @@ namespace Advobot.UILauncher.Classes
 		}
 		private void SetCustomTheme()
 		{
-			var r = Application.Current.Resources;
+			var r = Application.Current.MainWindow.Resources;
 			foreach (var kvp in ColorTargets)
 			{
 				r[kvp.Key] = kvp.Value;
@@ -194,7 +194,7 @@ namespace Advobot.UILauncher.Classes
 				}
 			}
 		}
-		public static ColorSettings LoadUISettings(bool loaded)
+		public static ColorSettings LoadUISettings()
 		{
 			ColorSettings UISettings = null;
 			var fileInfo = GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
@@ -213,7 +213,7 @@ namespace Advobot.UILauncher.Classes
 					ConsoleActions.ExceptionToConsole(e);
 				}
 			}
-			else if (loaded)
+			else
 			{
 				ConsoleActions.WriteLine("The bot UI information file could not be found; using default.");
 			}

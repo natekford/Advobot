@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace Advobot.UILauncher.Classes
@@ -17,7 +19,9 @@ namespace Advobot.UILauncher.Classes
 
 		private void Validate(object sender, TextCompositionEventArgs e)
 		{
-			e.Handled = !char.IsDigit(e.Text, e.Text.Length - 1);
+			e.Handled = true
+				&& !String.IsNullOrWhiteSpace(e.Text) 
+				&& !char.IsDigit(e.Text, Math.Min(0, e.Text.Length - 1));
 		}
 		private void Validate(object sender, DataObjectPastingEventArgs e)
 		{
@@ -26,11 +30,30 @@ namespace Advobot.UILauncher.Classes
 				return;
 			}
 
-			var textBeingPasted = e.SourceDataObject.GetData(DataFormats.UnicodeText).ToString();
-			var onlyNums = _NumberRegex.Replace(textBeingPasted, "");
-			e.DataObject = new DataObject(onlyNums.Substring(0, Math.Min(this.MaxLength - this.Text.Length, onlyNums.Length)));
-			e.Handled = true;
-			//TODO: fix this that got messed up by me
+			var source = e.Source as TextBox;
+			var input = e.SourceDataObject.GetData(DataFormats.UnicodeText).ToString();
+			var nums = _NumberRegex.Replace(input, "");
+
+			var sb = new StringBuilder();
+			for (int i = 0; i < source.MaxLength; ++i)
+			{
+				if (i < source.CaretIndex)
+				{
+					sb.Append(source.Text[i]);
+				}
+				else if (i < source.CaretIndex + nums.Length)
+				{
+					sb.Append(nums[i - source.CaretIndex]);
+				}
+				else if (i < source.Text.Length + nums.Length)
+				{
+					sb.Append(source.Text[i - nums.Length]);
+				}
+			}
+			source.Text = sb.ToString();
+			source.CaretIndex = source.Text.Length;
+
+			e.CancelCommand();
 		}
 	}
 }

@@ -3,23 +3,34 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:coresettings="clr-namespace:Advobot.Core.Classes.Settings;assembly=Advobot.Core"
+        xmlns:coreenums="clr-namespace:Advobot.Core.Enums;assembly=Advobot.Core"
         xmlns:constants="clr-namespace:Advobot.Core;assembly=Advobot.Core"
         xmlns:classes="clr-namespace:Advobot.UILauncher.Classes"
         xmlns:converters="clr-namespace:Advobot.UILauncher.Classes.Converters"
         xmlns:extensions="clr-namespace:Advobot.UILauncher.Classes.Extensions"
         xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
-        xmlns:local="clr-namespace:Advobot.UILauncher"
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
-        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Height="280" Width="500" WindowState="Maximized" FontFamily="Courier New" Title="AdvobotWindow" Loaded="AttemptToLogIn" DataContext="{Binding RelativeSource={RelativeSource Self}}">
-
+        Height="280" Width="500" WindowState="Maximized" FontFamily="Courier New" 
+        Title="Advobot" Loaded="AttemptToLogIn" DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    
     <Window.Resources>
         <converters:UriConverter x:Key="UriConverter"/>
+        <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseBackground}">#FFFFFFFF</SolidColorBrush>
+        <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseForeground}">#000000</SolidColorBrush>
+        <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseBorder}">#ABADB3</SolidColorBrush>
+        <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonBackground}">#DDDDDD</SolidColorBrush>
+        <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonBorder}">#707070</SolidColorBrush>
+        <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonDisabledBackground}">#F4F4F4</SolidColorBrush>
+        <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonDisabledForeground}">#888888</SolidColorBrush>
+        <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonDisabledBorder}">#ADB2B5</SolidColorBrush>
+        <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonMouseOverBackground}">#BEE6FD</SolidColorBrush>
     </Window.Resources>
 
     <Grid x:Name="Layout">
+        <Grid.ToolTip>
+            <ToolTip x:Name="ActualToolTip" IsEnabled="False" Visibility="Collapsed"/>
+        </Grid.ToolTip>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
             <ColumnDefinition Width="1*"/>
@@ -32,7 +43,8 @@
         </Grid.RowDefinitions>
 
         <!-- Output -->
-        <classes:AdvobotTextBox x:Name="Output" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" FontResizeValue=".022" VerticalScrollBarVisibility="Visible" TextWrapping="Wrap" IsReadOnly="True">
+        <classes:AdvobotTextBox x:Name="Output" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" FontResizeValue=".022"
+                                VerticalScrollBarVisibility="Visible" TextWrapping="Wrap" IsReadOnly="True">
             <classes:AdvobotTextBox.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Search For..."/>
@@ -49,16 +61,30 @@
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
 
-            <classes:AdvobotTextBox x:Name="InputBox" Grid.Column="0" Grid.Row="0" MaxLength="250" MaxLines="5" MaxHeight="1000" FontResizeValue=".040" TextWrapping="Wrap" KeyUp="AcceptInput"/>
-            <classes:AdvobotButton x:Name="InputButton" Grid.Column="1" Grid.Row="0" FontResizeValue=".015" IsEnabled="False" Content="Enter" Click="AcceptInput"/>
+            <classes:AdvobotTextBox x:Name="InputBox" Grid.Column="0" Grid.Row="0" MaxLength="250" MaxLines="5" MaxHeight="1000" 
+                                            FontResizeValue=".040" TextWrapping="Wrap" KeyUp="AcceptInput"/>
+            <classes:AdvobotButton x:Name="InputButton" Grid.Column="1" Grid.Row="0" 
+                                           FontResizeValue=".015" IsEnabled="False" Content="Enter" Click="AcceptInput"/>
         </Grid>
 
-        <!-- File Viewer -->
-        <!--
-        <classes:AdvobotTextEditor Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" FontResizeValue=".022" VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True" Background="{x:Null}" Foreground="{x:Null}" BorderBrush="{x:Null}">
+        <!-- Application Info Bar -->
+        <classes:AdvobotGrid x:Name="ApplicationInfoBar" Grid.Column="0" Grid.Row="1" FontResizeValue=".020">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
 
-        </classes:AdvobotTextEditor>
-        -->
+            <classes:AdvobotTextBox x:Name="Uptime" Grid.Column="0" Grid.Row="0"
+                                    BorderThickness="1,.5,0,.5" TBType="CenterCentered"/>
+            <classes:AdvobotTextBox x:Name="Latency" Grid.Column="1" Grid.Row="0" 
+                                    BorderThickness="0,.5,0,.5" TBType="CenterCentered"/>
+            <classes:AdvobotTextBox x:Name="Memory" Grid.Column="2" Grid.Row="0"
+                                    BorderThickness="0,.5,0,.5" TBType="CenterCentered"/>
+            <classes:AdvobotTextBox x:Name="ThreadCount" Grid.Column="3" Grid.Row="0"
+                                    BorderThickness="0,.5,0,.5" TBType="CenterCentered"/>
+        </classes:AdvobotGrid>
 
         <!-- Menu Buttons -->
         <classes:AdvobotGrid x:Name="ButtonMenu" Grid.Column="1" Grid.Row="1" FontResizeValue=".015" Grid.RowSpan="3">
@@ -73,15 +99,21 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <classes:AdvobotButton x:Name="MainMenuButton" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Content="{extensions:NameOf Member=Main, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Main}" Click="OpenMenu"/>
-            <classes:AdvobotButton x:Name="InfoMenuButton" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" Content="{extensions:NameOf Member=Info, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Info}" Click="OpenMenu"/>
-            <classes:AdvobotButton x:Name="SettingsMenuButton" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" Content="{extensions:NameOf Member=Settings, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Settings}" Click="OpenMenu"/>
-            <classes:AdvobotButton x:Name="ColorsMenuButton" Grid.Column="3" Grid.Row="0" Grid.RowSpan="1" Content="{extensions:NameOf Member=Colors, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Colors}" Click="OpenMenu"/>
-            <classes:AdvobotButton x:Name="FilesMenuButton" Grid.Column="3" Grid.Row="1" Grid.RowSpan="1" Content="{extensions:NameOf Member=Files, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Files}" Click="OpenMenu"/>
+            <classes:AdvobotButton x:Name="MainMenuButton" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" 
+                                   Content="{extensions:NameOf Member=Main, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Main}" Click="OpenMenu"/>
+            <classes:AdvobotButton x:Name="InfoMenuButton" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" 
+                                   Content="{extensions:NameOf Member=Info, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Info}" Click="OpenMenu"/>
+            <classes:AdvobotButton x:Name="SettingsMenuButton" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" 
+                                   Content="{extensions:NameOf Member=Settings, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Settings}" Click="OpenMenu"/>
+            <classes:AdvobotButton x:Name="ColorsMenuButton" Grid.Column="3" Grid.Row="0" Grid.RowSpan="1" 
+                                   Content="{extensions:NameOf Member=Colors, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Colors}" Click="OpenMenu"/>
+            <classes:AdvobotButton x:Name="FilesMenuButton" Grid.Column="3" Grid.Row="1" Grid.RowSpan="1" 
+                                   Content="{extensions:NameOf Member=Files, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Files}" Click="OpenMenu"/>
         </classes:AdvobotGrid>
 
         <!-- Main Menu -->
-        <classes:AdvobotGrid x:Name="MainMenu" Grid.Column="1" Grid.Row="0" FontResizeValue=".015" Visibility="Collapsed" Tag="{x:Static enums:MenuType.Main}">
+        <classes:AdvobotGrid x:Name="MainMenu" Tag="{x:Static enums:MenuType.Main}" Grid.Column="1" Grid.Row="0" 
+                             FontResizeValue=".015" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -111,11 +143,13 @@
                         <classes:AdvobotRun UnescapedText="{x:Static constants:Constants.BOT_VERSION}"/>
                         <LineBreak/>
                         <LineBreak/>
-                        <Hyperlink IsEnabled="True" RequestNavigate="OpenHyperLink" NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static constants:Constants.REPO}}">
+                        <Hyperlink IsEnabled="True" RequestNavigate="OpenHyperLink" 
+                                   NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static constants:Constants.REPO}}">
                             GitHub repository for Advobot
                         </Hyperlink>
                         <LineBreak/>
-                        <Hyperlink IsEnabled="True" RequestNavigate="OpenHyperLink" NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static constants:Constants.DISCORD_INV}}">
+                        <Hyperlink IsEnabled="True" RequestNavigate="OpenHyperLink" 
+                                   NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static constants:Constants.DISCORD_INV}}">
                             Join the Discord server for additional help.
                         </Hyperlink>
                     </Paragraph>
@@ -127,7 +161,8 @@
         </classes:AdvobotGrid>
 
         <!-- Info Menu -->
-        <classes:AdvobotGrid x:Name="InfoMenu" Grid.Column="1" Grid.Row="0" FontResizeValue=".022" Visibility="Collapsed" Tag="{x:Static enums:MenuType.Info}">
+        <classes:AdvobotGrid x:Name="InfoMenu" Tag="{x:Static enums:MenuType.Info}" Grid.Column="1" Grid.Row="0" 
+                             FontResizeValue=".018" Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
@@ -152,41 +187,55 @@
             </Grid.ColumnDefinitions>
 
             <!-- Background -->
-            <classes:AdvobotRichTextBox x:Name="InfoBackground" Grid.ColumnSpan="4" Grid.RowSpan="14" BorderThickness="0,1,0,1" IsReadOnly="True"/>
+            <classes:AdvobotTextBox x:Name="InfoBackground" Grid.ColumnSpan="4" Grid.RowSpan="14" TBType="Background"/>
 
             <!-- Titles -->
-            <classes:AdvobotTitleBox x:Name="GuildsTitle" Grid.Column="1" Grid.Row="0"/>
-            <classes:AdvobotTitleBox x:Name="UsersTitle" Grid.Column="1" Grid.Row="1"/>
-            <classes:AdvobotTitleBox x:Name="AttemptedCommandsTitle" Grid.Column="1" Grid.Row="2"/>
-            <classes:AdvobotTitleBox x:Name="SuccessfulCommandsTitle" Grid.Column="1" Grid.Row="3"/>
-            <classes:AdvobotTitleBox x:Name="FailedCommandsTitle" Grid.Column="1" Grid.Row="4"/>
-            <classes:AdvobotTitleBox x:Name="UserJoinsTitle" Grid.Column="1" Grid.Row="5"/>
-            <classes:AdvobotTitleBox x:Name="UserLeavesTitle" Grid.Column="1" Grid.Row="6"/>
-            <classes:AdvobotTitleBox x:Name="UserChangesTitle" Grid.Column="1" Grid.Row="7"/>
-            <classes:AdvobotTitleBox x:Name="MessageEditsTitle" Grid.Column="1" Grid.Row="8"/>
-            <classes:AdvobotTitleBox x:Name="MessageDeletesTitle" Grid.Column="1" Grid.Row="9"/>
-            <classes:AdvobotTitleBox x:Name="ImagesTitle" Grid.Column="1" Grid.Row="10"/>
-            <classes:AdvobotTitleBox x:Name="GifsTitle" Grid.Column="1" Grid.Row="11"/>
-            <classes:AdvobotTitleBox x:Name="FilesTitle" Grid.Column="1" Grid.Row="12"/>
+            <classes:AdvobotTextBox x:Name="GuildsTitle" Grid.Column="1" Grid.Row="0" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="UsersTitle" Grid.Column="1" Grid.Row="1" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="AttemptedCommandsTitle" Grid.Column="1" Grid.Row="2" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="SuccessfulCommandsTitle" Grid.Column="1" Grid.Row="3" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="FailedCommandsTitle" Grid.Column="1" Grid.Row="4" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="UserJoinsTitle" Grid.Column="1" Grid.Row="5" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="UserLeavesTitle" Grid.Column="1" Grid.Row="6" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="UserChangesTitle" Grid.Column="1" Grid.Row="7" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="MessageEditsTitle" Grid.Column="1" Grid.Row="8" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="MessageDeletesTitle" Grid.Column="1" Grid.Row="9" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="ImagesTitle" Grid.Column="1" Grid.Row="10" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="GifsTitle" Grid.Column="1" Grid.Row="11" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="FilesTitle" Grid.Column="1" Grid.Row="12" TBType="Title"/>
 
             <!-- Output -->
-            <classes:AdvobotTextBox x:Name="Guilds" Grid.Column="2" Grid.Row="0" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="Users" Grid.Column="2" Grid.Row="1" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="AttemptedCommands" Grid.Column="2" Grid.Row="2" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="SuccessfulCommands" Grid.Column="2" Grid.Row="3" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="FailedCommands" Grid.Column="2" Grid.Row="4" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="UserJoins" Grid.Column="2" Grid.Row="5" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="UserLeaves" Grid.Column="2" Grid.Row="6" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="UserChanges" Grid.Column="2" Grid.Row="7" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="MessageEdits" Grid.Column="2" Grid.Row="8" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="MessageDeletes" Grid.Column="2" Grid.Row="9" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="Images" Grid.Column="2" Grid.Row="10" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="Gifs" Grid.Column="2" Grid.Row="11" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="Files" Grid.Column="2" Grid.Row="12" BorderThickness="0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsReadOnly="True"/>
+            <classes:AdvobotTextBox x:Name="Guilds" Grid.Column="2" Grid.Row="0" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.TotalGuilds.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="Users" Grid.Column="2" Grid.Row="1" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.TotalUsers.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="AttemptedCommands" Grid.Column="2" Grid.Row="2" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.AttemptedCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="SuccessfulCommands" Grid.Column="2" Grid.Row="3" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.SuccessfulCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="FailedCommands" Grid.Column="2" Grid.Row="4" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.FailedCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="UserJoins" Grid.Column="2" Grid.Row="5" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.UserJoins.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="UserLeaves" Grid.Column="2" Grid.Row="6" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.UserLeaves.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="UserChanges" Grid.Column="2" Grid.Row="7" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.UserChanges.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="MessageEdits" Grid.Column="2" Grid.Row="8" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.MessageEdits.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="MessageDeletes" Grid.Column="2" Grid.Row="9" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.MessageDeletes.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="Images" Grid.Column="2" Grid.Row="10" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.Images.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="Gifs" Grid.Column="2" Grid.Row="11" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.Gifs.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <classes:AdvobotTextBox x:Name="Files" Grid.Column="2" Grid.Row="12" TBType="RightCentered" BorderThickness="0"
+                                    Text="{Binding LogHolder.HeldObject.Files.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
         </classes:AdvobotGrid>
 
         <!-- Settings Menu -->
-        <classes:AdvobotGrid x:Name="SettingsMenu" Grid.Column="1" Grid.Row="0" FontResizeValue=".018" Visibility="Collapsed" Tag="{x:Static enums:MenuType.Settings}">
+        <classes:AdvobotGrid x:Name="SettingsMenu" Tag="{x:Static enums:MenuType.Settings}" Grid.Column="1" Grid.Row="0" 
+                             FontResizeValue=".018" Visibility="Collapsed" KeyUp="SaveSettingsWithCtrlS">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
@@ -210,39 +259,57 @@
             </Grid.ColumnDefinitions>
 
             <!-- Background -->
-            <classes:AdvobotTextBox x:Name="SettingsBackground" Grid.ColumnSpan="4" Grid.RowSpan="21" IsReadOnly="True"/>
+            <classes:AdvobotTextBox x:Name="SettingsBackground" Grid.ColumnSpan="4" Grid.RowSpan="21" TBType="Background"/>
 
             <!-- Titles -->
-            <classes:AdvobotTitleBox x:Name="AlwaysDownloadUsersTitle" Grid.Column="1" Grid.Row="0"  Summary="Whether or not to gather all users in a guild when the bot joins."/>
-            <classes:AdvobotTitleBox x:Name="PrefixTitle" Grid.Column="1" Grid.Row="1"  Summary="The text before a command."/>
-            <classes:AdvobotTitleBox x:Name="GameTitle" Grid.Column="1" Grid.Row="2"  Summary="The text saying what the bot is playing or streaming."/>
-            <classes:AdvobotTitleBox x:Name="StreamTitle" Grid.Column="1" Grid.Row="3"  Summary="Links to a Twitch.TV stream."/>
-            <classes:AdvobotTitleBox x:Name="ShardCountTitle" Grid.Column="1" Grid.Row="4"  Summary="Limit of 2500 guilds per shard."/>
-            <classes:AdvobotTitleBox x:Name="MessageCacheCountTitle" Grid.Column="1" Grid.Row="5"  Summary="How many messages the bot should keep in storage at a time."/>
-            <classes:AdvobotTitleBox x:Name="UserGatherCountTitle" Grid.Column="1" Grid.Row="6"  Summary="How many users multi user targetting commands should target by default."/>
-            <classes:AdvobotTitleBox x:Name="MessageGatherCountTitle" Grid.Column="1" Grid.Row="7"  Summary="How many messages downloadmessages should gather at maximum."/>
-            <classes:AdvobotTitleBox x:Name="LogLevelTitle" Grid.Column="1" Grid.Row="8"  Summary="Prints out items with an equal to or higher log severity to the console."/>
-            <classes:AdvobotTitleBox x:Name="TrustedUsersTitle" Grid.Column="1" Grid.Row="9"  Summary="Users in here can use some commands only the bot owner can use otherwise."/>
+            <classes:AdvobotTextBox x:Name="AlwaysDownloadUsersTitle" Grid.Column="1" Grid.Row="0" TBType="Title"
+                                    Summary="Whether or not to gather all users in a guild when the bot joins."/>
+            <classes:AdvobotTextBox x:Name="PrefixTitle" Grid.Column="1" Grid.Row="1" TBType="Title"
+                                    Summary="The text before a command."/>
+            <classes:AdvobotTextBox x:Name="GameTitle" Grid.Column="1" Grid.Row="2" TBType="Title"
+                                    Summary="The text saying what the bot is playing or streaming."/>
+            <classes:AdvobotTextBox x:Name="StreamTitle" Grid.Column="1" Grid.Row="3" TBType="Title"
+                                    Summary="Links to a Twitch.TV stream."/>
+            <classes:AdvobotTextBox x:Name="ShardCountTitle" Grid.Column="1" Grid.Row="4" TBType="Title"
+                                    Summary="Limit of 2500 guilds per shard."/>
+            <classes:AdvobotTextBox x:Name="MessageCacheCountTitle" Grid.Column="1" Grid.Row="5" TBType="Title"
+                                    Summary="How many messages the bot should keep in storage at a time."/>
+            <classes:AdvobotTextBox x:Name="UserGatherCountTitle" Grid.Column="1" Grid.Row="6" TBType="Title"
+                                    Summary="How many users multi user targetting commands should target by default."/>
+            <classes:AdvobotTextBox x:Name="MessageGatherCountTitle" Grid.Column="1" Grid.Row="7" TBType="Title"
+                                    Summary="How many messages downloadmessages should gather at maximum."/>
+            <classes:AdvobotTextBox x:Name="LogLevelTitle" Grid.Column="1" Grid.Row="8" TBType="Title"
+                                    Summary="Prints out items with an equal to or higher log severity to the console."/>
+            <classes:AdvobotTextBox x:Name="TrustedUsersTitle" Grid.Column="1" Grid.Row="9" TBType="Title"
+                                    Summary="Users in here can use some commands only the bot owner can use otherwise."/>
 
             <!-- Settings -->
             <Viewbox x:Name="AlwaysDownloadUsersViewBox" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center">
-                <CheckBox x:Name="AlwaysDownloadUsers" Tag="{extensions:NameOf Member=AlwaysDownloadUsers, Type={x:Type coresettings:BotSettings}}"/>
+                <CheckBox x:Name="AlwaysDownloadUsers" Tag="{x:Static coreenums:BotSetting.AlwaysDownloadUsers}"/>
             </Viewbox>
-            <classes:AdvobotTextBox x:Name="Prefix" Grid.Column="2" Grid.Row="1" MaxLength="10" VerticalContentAlignment="Center" Tag="{extensions:NameOf Member=Prefix, Type={x:Type coresettings:BotSettings}}"/>
-            <classes:AdvobotTextBox x:Name="Game" Grid.Column="2" Grid.Row="2" MaxLength="100" VerticalContentAlignment="Center" Tag="{extensions:NameOf Member=Game, Type={x:Type coresettings:BotSettings}}"/>
-            <classes:AdvobotTextBox x:Name="Stream" Grid.Column="2" Grid.Row="3" MaxLength="25" VerticalContentAlignment="Center" Tag="{extensions:NameOf Member=Stream, Type={x:Type coresettings:BotSettings}}"/>
-            <classes:AdvobotTextBox x:Name="ShardCount" Grid.Column="2" Grid.Row="4" MaxLength="3" VerticalContentAlignment="Center" Tag="{extensions:NameOf Member=ShardCount, Type={x:Type coresettings:BotSettings}}"/>
-            <classes:AdvobotTextBox x:Name="MessageCacheCount" Grid.Column="2" Grid.Row="5" MaxLength="6" VerticalContentAlignment="Center" Tag="{extensions:NameOf Member=MessageCacheCount, Type={x:Type coresettings:BotSettings}}"/>
-            <classes:AdvobotTextBox x:Name="MaxUserGatherCount" Grid.Column="2" Grid.Row="6" MaxLength="5" VerticalContentAlignment="Center" Tag="{extensions:NameOf Member=MaxUserGatherCount, Type={x:Type coresettings:BotSettings}}"/>
-            <classes:AdvobotTextBox x:Name="MaxMessageGatherSize" Grid.Column="2" Grid.Row="7" MaxLength="7" VerticalContentAlignment="Center" Tag="{extensions:NameOf Member=MaxMessageGatherSize, Type={x:Type coresettings:BotSettings}}"/>
-            <classes:AdvobotComboBox x:Name="LogLevel" Grid.Column="2" Grid.Row="8"  SourceEnumType="{x:Type discordenums:LogSeverity}"  Tag="{extensions:NameOf Member=LogLevel, Type={x:Type coresettings:BotSettings}}"/>
+            <classes:AdvobotTextBox x:Name="Prefix" Tag="{x:Static coreenums:BotSetting.Prefix}"
+                                    Grid.Column="2" Grid.Row="1" MaxLength="10" VerticalContentAlignment="Center"/>
+            <classes:AdvobotTextBox x:Name="Game" Tag="{x:Static coreenums:BotSetting.Game}"
+                                    Grid.Column="2" Grid.Row="2" MaxLength="100" VerticalContentAlignment="Center"/>
+            <classes:AdvobotTextBox x:Name="Stream" Tag="{x:Static coreenums:BotSetting.Stream}"
+                                    Grid.Column="2" Grid.Row="3" MaxLength="25" VerticalContentAlignment="Center"/>
+            <classes:AdvobotNumberBox x:Name="ShardCount" Tag="{x:Static coreenums:BotSetting.ShardCount}"
+                                      Grid.Column="2" Grid.Row="4" MaxLength="3" VerticalContentAlignment="Center"/>
+            <classes:AdvobotNumberBox x:Name="MessageCacheCount" Tag="{x:Static coreenums:BotSetting.MessageCacheCount}"
+                                      Grid.Column="2" Grid.Row="5" MaxLength="6" VerticalContentAlignment="Center"/>
+            <classes:AdvobotNumberBox x:Name="MaxUserGatherCount" Tag="{x:Static coreenums:BotSetting.MaxUserGatherCount}"
+                                      Grid.Column="2" Grid.Row="6" MaxLength="5" VerticalContentAlignment="Center"/>
+            <classes:AdvobotNumberBox x:Name="MaxMessageGatherSize" Tag="{x:Static coreenums:BotSetting.MaxMessageGatherSize}"
+                                      Grid.Column="2" Grid.Row="7" MaxLength="7" VerticalContentAlignment="Center"/>
+            <classes:AdvobotComboBox x:Name="LogLevel" Tag="{x:Static coreenums:BotSetting.LogLevel}"
+                                     Grid.Column="2" Grid.Row="8" SourceEnumType="{x:Type discordenums:LogSeverity}"/>
             <classes:AdvobotGrid x:Name="AddTrustedUsersGrid" Grid.Column="2" Grid.Row="9">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="8*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
-                <classes:AdvobotTextBox x:Name="TrustedUsersBox" Grid.Column="0" Grid.Row="0" MaxLength="18" VerticalContentAlignment="Center"/>
+                <classes:AdvobotNumberBox x:Name="TrustedUsersBox" Grid.Column="0" Grid.Row="0" MaxLength="18" VerticalContentAlignment="Center"/>
                 <classes:AdvobotButton x:Name="AddTrustedUserButton" Grid.Column="1" Grid.Row="0" Content="+" Click="AddTrustedUser"/>
             </classes:AdvobotGrid>
             <classes:AdvobotGrid x:Name="RemoveTrustedUsersGrid" Grid.Column="2" Grid.Row="10">
@@ -251,7 +318,8 @@
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
-                <classes:AdvobotComboBox x:Name="TrustedUsers" Grid.Column="0" Grid.Row="0" Tag="{extensions:NameOf Member=TrustedUsers, Type={x:Type coresettings:BotSettings}}"/>
+                <classes:AdvobotComboBox x:Name="TrustedUsers" Tag="{x:Static coreenums:BotSetting.TrustedUsers}"
+                                         Grid.Column="0" Grid.Row="0"/>
                 <classes:AdvobotButton x:Name="RemoveTrustedUserButton" Grid.Column="1" Grid.Row="0" Content="-" Click="RemoveTrustedUser"/>
             </classes:AdvobotGrid>
 
@@ -259,7 +327,8 @@
         </classes:AdvobotGrid>
 
         <!-- Colors Menu -->
-        <classes:AdvobotGrid x:Name="ColorsMenu" Grid.Column="1" Grid.Row="0" FontResizeValue=".018" Visibility="Collapsed" Tag="{x:Static enums:MenuType.Colors}">
+        <classes:AdvobotGrid x:Name="ColorsMenu" Tag="{x:Static enums:MenuType.Colors}" Grid.Column="1" Grid.Row="0" 
+                             FontResizeValue=".018" Visibility="Collapsed" KeyUp="SaveColorsWithCtrlS">
             <Grid.RowDefinitions>
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
@@ -271,7 +340,7 @@
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
-                <RowDefinition Height="6*"/>
+                <RowDefinition Height="11*"/>
                 <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -282,56 +351,78 @@
             </Grid.ColumnDefinitions>
 
             <!-- Background -->
-            <classes:AdvobotTextBox x:Name="ColorsBackground" Grid.ColumnSpan="4" Grid.RowSpan="21" IsReadOnly="True"/>
+            <classes:AdvobotTextBox x:Name="ColorsBackground" Grid.ColumnSpan="4" Grid.RowSpan="21" TBType="Background"/>
 
             <!-- Titles -->
-            <classes:AdvobotTitleBox x:Name="ThemesTitle" Grid.Column="1" Grid.Row="0"/>
-            <classes:AdvobotTitleBox x:Name="BaseBackgroundTitle" Grid.Column="1" Grid.Row="1"/>
-            <classes:AdvobotTitleBox x:Name="BaseForeGroundTitle" Grid.Column="1" Grid.Row="2"/>
-            <classes:AdvobotTitleBox x:Name="BaseBorderTitle" Grid.Column="1" Grid.Row="3"/>
-            <classes:AdvobotTitleBox x:Name="ButtonBackgroundTitle" Grid.Column="1" Grid.Row="4"/>
-            <classes:AdvobotTitleBox x:Name="ButtonBorderTitle" Grid.Column="1" Grid.Row="5"/>
-            <classes:AdvobotTitleBox x:Name="ButtonDisabledBackgroundTitle" Grid.Column="1" Grid.Row="6"/>
-            <classes:AdvobotTitleBox x:Name="ButtonDisabledForegroundTitle" Grid.Column="1" Grid.Row="7"/>
-            <classes:AdvobotTitleBox x:Name="ButtonDisabledBorderTitle" Grid.Column="1" Grid.Row="8"/>
-            <classes:AdvobotTitleBox x:Name="ButtonMouseOverBackgroundTitle" Grid.Column="1" Grid.Row="9"/>
+            <classes:AdvobotTextBox x:Name="ThemesTitle" Grid.Column="1" Grid.Row="0" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="BaseBackgroundTitle" Grid.Column="1" Grid.Row="1" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="BaseForeGroundTitle" Grid.Column="1" Grid.Row="2" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="BaseBorderTitle" Grid.Column="1" Grid.Row="3" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="ButtonBackgroundTitle" Grid.Column="1" Grid.Row="4" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="ButtonBorderTitle" Grid.Column="1" Grid.Row="5" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="ButtonDisabledBackgroundTitle" Grid.Column="1" Grid.Row="6" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="ButtonDisabledForegroundTitle" Grid.Column="1" Grid.Row="7" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="ButtonDisabledBorderTitle" Grid.Column="1" Grid.Row="8" TBType="Title"/>
+            <classes:AdvobotTextBox x:Name="ButtonMouseOverBackgroundTitle" Grid.Column="1" Grid.Row="9" TBType="Title"/>
 
             <!-- Settings -->
-            <classes:AdvobotComboBox x:Name="ThemesComboBox" Grid.Column="2" Grid.Row="0" SourceEnumType="{x:Type enums:ColorTheme}"/>
-            <classes:AdvobotTextBox x:Name="BaseBackground" Grid.Column="2" Grid.Row="1" MaxLength="15" VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.BaseBackground}"/>
-            <classes:AdvobotTextBox x:Name="BaseForeground" Grid.Column="2" Grid.Row="2" MaxLength="15" VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.BaseForeground}"/>
-            <classes:AdvobotTextBox x:Name="BaseBorder" Grid.Column="2" Grid.Row="3" MaxLength="15" VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.BaseBorder}"/>
-            <classes:AdvobotTextBox x:Name="ButtonBackground" Grid.Column="2" Grid.Row="4" MaxLength="15" VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonBackground}"/>
-            <classes:AdvobotTextBox x:Name="ButtonBorder" Grid.Column="2" Grid.Row="5" MaxLength="15" VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonBorder}"/>
-            <classes:AdvobotTextBox x:Name="ButtonDisabledBackground" Grid.Column="2" Grid.Row="6" MaxLength="15" VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonDisabledBackground}"/>
-            <classes:AdvobotTextBox x:Name="ButtonDisabledForeground" Grid.Column="2" Grid.Row="7" MaxLength="15" VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonDisabledForeground}"/>
-            <classes:AdvobotTextBox x:Name="ButtonDisabledBorder" Grid.Column="2" Grid.Row="8" MaxLength="15" VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonDisabledBorder}"/>
-            <classes:AdvobotTextBox x:Name="ButtonMouseOverBackground" Grid.Column="2" Grid.Row="9" MaxLength="15" VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonMouseOverBackground}"/>
+            <classes:AdvobotComboBox x:Name="ThemesComboBox" Grid.Column="2" Grid.Row="0" 
+                                     SourceEnumType="{x:Type enums:ColorTheme}"/>
+            <classes:AdvobotTextBox x:Name="BaseBackground" Grid.Column="2" Grid.Row="1" MaxLength="15" 
+                                    VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.BaseBackground}"/>
+            <classes:AdvobotTextBox x:Name="BaseForeground" Grid.Column="2" Grid.Row="2" MaxLength="15" 
+                                    VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.BaseForeground}"/>
+            <classes:AdvobotTextBox x:Name="BaseBorder" Grid.Column="2" Grid.Row="3" MaxLength="15" 
+                                    VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.BaseBorder}"/>
+            <classes:AdvobotTextBox x:Name="ButtonBackground" Grid.Column="2" Grid.Row="4" MaxLength="15" 
+                                    VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonBackground}"/>
+            <classes:AdvobotTextBox x:Name="ButtonBorder" Grid.Column="2" Grid.Row="5" MaxLength="15" 
+                                    VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonBorder}"/>
+            <classes:AdvobotTextBox x:Name="ButtonDisabledBackground" Grid.Column="2" Grid.Row="6" MaxLength="15" 
+                                    VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonDisabledBackground}"/>
+            <classes:AdvobotTextBox x:Name="ButtonDisabledForeground" Grid.Column="2" Grid.Row="7" MaxLength="15" 
+                                    VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonDisabledForeground}"/>
+            <classes:AdvobotTextBox x:Name="ButtonDisabledBorder" Grid.Column="2" Grid.Row="8" MaxLength="15" 
+                                    VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonDisabledBorder}"/>
+            <classes:AdvobotTextBox x:Name="ButtonMouseOverBackground" Grid.Column="2" Grid.Row="9" MaxLength="15" 
+                                    VerticalContentAlignment="Center" Tag="{x:Static enums:ColorTarget.ButtonMouseOverBackground}"/>
 
-            <classes:AdvobotButton x:Name="SaveColorsButton" Grid.Column="0" Grid.Row="11" Grid.ColumnSpan="4" Content="Save Colors" Click="SaveColors"/>
+            <classes:AdvobotButton x:Name="SaveColorsButton" Grid.Column="0" Grid.Row="11" Grid.ColumnSpan="4" 
+                                   Content="Save Colors" Click="SaveColors"/>
         </classes:AdvobotGrid>
 
         <!-- Files Menu -->
-        <classes:AdvobotGrid x:Name="FilesMenu" Grid.Column="1" Grid.Row="0" Visibility="Collapsed" Tag="{x:Static enums:MenuType.Files}">
-            <TreeView x:Name="FilesTreeView" Background="{DynamicResource {x:Static enums:ColorTarget.BaseBackground}}">
-
-            </TreeView>
-        </classes:AdvobotGrid>
-
-        <!-- Application Info Bar -->
-        <classes:AdvobotGrid x:Name="ApplicationInfoBar" Grid.Column="0" Grid.Row="1" FontResizeValue=".020">
+        <classes:AdvobotGrid x:Name="FilesMenu" Tag="{x:Static enums:MenuType.Files}" Grid.Column="1" Grid.Row="0" 
+                             FontResizeValue=".018" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="21*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-
-            <!-- Viewboxes weren't working with these at some point, so I just made them act like viewboxes instead -->
-            <classes:AdvobotTextBox x:Name="Uptime" Grid.Column="0" Grid.Row="0" BorderThickness="1,.5,0,.5" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="Latency" Grid.Column="1" Grid.Row="0" BorderThickness="0,.5,0,.5" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="Memory" Grid.Column="2" Grid.Row="0" BorderThickness="0,.5,0,.5" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsReadOnly="True"/>
-            <classes:AdvobotTextBox x:Name="ThreadCount" Grid.Column="3" Grid.Row="0" BorderThickness="0,.5,0,.5" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsReadOnly="True"/>
+            
+            <TreeView x:Name="FilesTreeView" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="1"
+                      Foreground="{DynamicResource {x:Static enums:ColorTarget.BaseForeground}}" 
+                      Background="{DynamicResource {x:Static enums:ColorTarget.BaseBackground}}"/>
+            <classes:AdvobotButton x:Name="FileSearchButton" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="Search Files" Click="SearchForFile"/>
+            <classes:AdvobotButton x:Name="SaveFileButton" Grid.Row="1" Grid.Column="0" Visibility="Collapsed"
+                                   Content="Save File" Click="SaveFile"/>
+            <classes:AdvobotButton x:Name="CloseFileButton" Grid.Row="1" Grid.Column="1" Visibility="Collapsed"
+                                   Content="Close File" Click="CloseFile"/>
         </classes:AdvobotGrid>
+
+        <!-- File Viewer -->
+        <classes:AdvobotTextEditor x:Name="SpecificFileOutput" Grid.Column="0" Grid.Row="0" Grid.RowSpan="4" FontResizeValue=".022"
+                                   Visibility="Collapsed" VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True"
+                                   KeyUp="SaveFileWithCtrlS">
+            <classes:AdvobotTextEditor.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Save File" Click="SaveFile"/>
+                    <MenuItem Header="Close File" Click="CloseFile"/>
+                </ContextMenu>
+            </classes:AdvobotTextEditor.ContextMenu>
+        </classes:AdvobotTextEditor>
     </Grid>
 </Window>
