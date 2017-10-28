@@ -4,18 +4,12 @@ using System.Windows.Data;
 
 namespace Advobot.UILauncher.Classes.Converters
 {
-	internal class FontResizeConverter : IValueConverter
+	public class NullToBoolConverter : IValueConverter
 	{
-		private double _ConvertFactor;
-
-		public FontResizeConverter(double convertFactor)
-		{
-			_ConvertFactor = convertFactor;
-		}
-
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return Math.Max((int)(System.Convert.ToInt16(value) * _ConvertFactor), 1);
+			//Extremely complex converter
+			return value != null;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{

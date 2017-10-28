@@ -23,11 +23,18 @@ namespace Advobot.UILauncher.Classes
 		{
 			foreach (var child in parent.GetChildren())
 			{
-				if (child.GetChildren().Count() > 0)
+				if (child.GetChildren().Any())
 				{
 					SetAllChildrenToFontSizeProperty(child);
 				}
-				if (child is Control c)
+
+				//Don't set on things that it can't be set on
+				if (child is CheckBox)
+				{
+					continue;
+				}
+				//Don't set it on controls with it already set
+				else if (child is Control c && c.GetBindingExpression(Control.FontSizeProperty) == null)
 				{
 					UIModification.SetFontResizeProperty(c, _FRV);
 				}

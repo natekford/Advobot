@@ -14,7 +14,7 @@ namespace Advobot.UILauncher.Classes
 
 		public FileInformation(FileInfo fileInfo)
 		{
-			FileType = UIBotWindowLogic.GetFileType(Path.GetFileNameWithoutExtension(fileInfo?.Name ?? ""));
+			FileType = SavingActions.GetFileType(Path.GetFileNameWithoutExtension(fileInfo?.Name ?? ""));
 			FileInfo = fileInfo;
 		}
 	}

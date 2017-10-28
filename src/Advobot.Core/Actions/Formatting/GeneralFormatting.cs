@@ -80,7 +80,7 @@ namespace Advobot.Core.Actions.Formatting
 		/// <returns></returns>
 		public static string EscapeBackTicks(this string input)
 		{
-			return input.Replace("`", "\\`");
+			return input?.Replace("`", "\\`");
 		}
 		/// <summary>
 		/// Returns the input string without `, *, and _.

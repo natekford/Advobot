@@ -41,8 +41,8 @@ namespace Advobot.UILauncher.Classes
 			{
 				_S = value;
 				this.ToolTip = new ToolTip { Content = _S, };
-				this.MouseEnter += (sender, e) => UIModification.ToggleToolTip((ToolTip)this.ToolTip);
-				this.MouseLeave += (sender, e) => UIModification.ToggleToolTip((ToolTip)this.ToolTip);
+				this.MouseEnter += (sender, e) => ToolTipActions.ToggleToolTip((ToolTip)this.ToolTip);
+				this.MouseLeave += (sender, e) => ToolTipActions.ToggleToolTip((ToolTip)this.ToolTip);
 			}
 		}
 

@@ -29,32 +29,8 @@ using Advobot.UILauncher.Classes.Converters;
 
 namespace Advobot.UILauncher.Actions
 {
-	internal class UIModification
+	internal static class UIModification
 	{
-		public static void AddRows(Grid grid, int amount)
-		{
-			for (int i = 0; i < amount; ++i)
-			{
-				grid.RowDefinitions.Add(new RowDefinition());
-			}
-		}
-		public static void AddCols(Grid grid, int amount)
-		{
-			for (int i = 0; i < amount; ++i)
-			{
-				grid.ColumnDefinitions.Add(new ColumnDefinition());
-			}
-		}
-		public static void SetRowAndSpan(UIElement item, int start = 0, int length = 1)
-		{
-			Grid.SetRow(item, Math.Max(0, start));
-			Grid.SetRowSpan(item, Math.Max(1, length));
-		}
-		public static void SetColAndSpan(UIElement item, int start = 0, int length = 1)
-		{
-			Grid.SetColumn(item, Math.Max(0, start));
-			Grid.SetColumnSpan(item, Math.Max(1, length));
-		}
 		public static void SetRowSpan(UIElement item, int length)
 		{
 			Grid.SetRowSpan(item, Math.Max(1, length));
@@ -63,26 +39,22 @@ namespace Advobot.UILauncher.Actions
 		{
 			Grid.SetColumnSpan(item, Math.Max(1, length));
 		}
-		public static void AddElement(Grid parent, Grid child, int rowStart, int rowLength, int columnStart, int columnLength, int setRows = 0, int setColumns = 0)
+		public static void SetFontResizeProperty(Control control, double size)
 		{
-			AddRows(child, setRows);
-			AddCols(child, setColumns);
-			parent.Children.Add(child);
-			SetRowAndSpan(child, rowStart, rowLength);
-			SetColAndSpan(child, columnStart, columnLength);
-		}
-		public static void AddElement(Grid parent, UIElement child, int rowStart, int rowLength, int columnStart, int columnLength)
-		{
-			parent.Children.Add(child);
-			SetRowAndSpan(child, rowStart, rowLength);
-			SetColAndSpan(child, columnStart, columnLength);
-		}
-		public static void AddPlaceHolderTB(Grid parent, int rowStart, int rowLength, int columnStart, int columnLength)
-		{
-			AddElement(parent, new AdvobotTextBox { IsReadOnly = true, }, rowStart, rowLength, columnStart, columnLength);
+			if (!GetTopMostParent(control, out Grid parent, out int ancestorLevel))
+			{
+				throw new ArgumentException($"{control.Name} must be inside a grid if {nameof(IFontResizeValue.FontResizeValue)} is set.");
+			}
+
+			control.SetBinding(Control.FontSizeProperty, new Binding
+			{
+				Path = new PropertyPath("ActualHeight"),
+				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), ancestorLevel),
+				Converter = new FontResizeConverter(size),
+			});
 		}
 
-		public static bool TryMakeBrush(string input, out SolidColorBrush brush)
+		public static bool TryCreateBrush(string input, out SolidColorBrush brush)
 		{
 			var split = input.Split('/');
 			if (split.Length == 3 && byte.TryParse(split[0], out var r) && byte.TryParse(split[1], out var g) && byte.TryParse(split[2], out var b))
@@ -100,7 +72,7 @@ namespace Advobot.UILauncher.Actions
 				}
 				try
 				{
-					brush = MakeSolidColorBrush(input);
+					brush = CreateBrush(input);
 				}
 				catch
 				{
@@ -110,108 +82,15 @@ namespace Advobot.UILauncher.Actions
 			}
 			return true;
 		}
-		public static SolidColorBrush MakeSolidColorBrush(string input)
+		public static SolidColorBrush CreateBrush(string input)
 		{
 			return (SolidColorBrush)new BrushConverter().ConvertFrom(input);
 		}
-		public static bool CheckIfTwoBrushesAreTheSame(SolidColorBrush b1, SolidColorBrush b2)
+		public static bool CheckIfSameBrush(this SolidColorBrush b1, SolidColorBrush b2)
 		{
 			return b1.Color == b2.Color && b1.Opacity == b2.Opacity;
 		}
 
-		public static void ToggleToolTip(ToolTip ttip)
-		{
-			if (ttip.IsOpen)
-			{
-				ttip.IsOpen = false;
-				ttip.Visibility = Visibility.Collapsed;
-			}
-			else
-			{
-				ttip.IsOpen = true;
-				ttip.Visibility = Visibility.Visible;
-			}
-		}
-
-		public static int[][] FigureOutWhereToPutBG(Grid parent, UIElement child)
-		{
-			var rowTotal = parent.RowDefinitions.Count;
-			var columnTotal = parent.ColumnDefinitions.Count;
-
-			var rowStart = Grid.GetRow(child);
-			var rowSpan = Grid.GetRowSpan(child);
-			var columnStart = Grid.GetColumn(child);
-			var columnSpan = Grid.GetColumnSpan(child);
-
-			var start = 0;
-			var temp = new int[4][];
-
-			/* Example:
-				* Row start		  0		10		 90		10
-				* Row span			 10		80		 10		80
-				* Column start		  0		 0		  0		90
-				* Column span		100		10		100		10
-				*/
-
-			var a1p1 = start;
-			var a1p2 = rowStart;
-			var a1p3 = start;
-			var a1p4 = columnTotal;
-			temp[0] = new[] { a1p1, a1p2, a1p3, a1p4, };
-
-			var a2p1 = rowStart;
-			var a2p2 = rowSpan;
-			var a2p3 = start;
-			var a2p4 = columnStart;
-			temp[1] = new[] { a2p1, a2p2, a2p3, a2p4, };
-
-			var a3p1 = rowStart + rowSpan;
-			var a3p2 = rowTotal - a3p1;
-			var a3p3 = start;
-			var a3p4 = columnTotal;
-			temp[2] = new[] { a3p1, a3p2, a3p3, a3p4, };
-
-			var a4p1 = rowStart;
-			var a4p2 = rowSpan;
-			var a4p3 = columnStart + columnSpan;
-			var a4p4 = columnTotal - a4p3;
-			temp[3] = new[] { a4p1, a4p2, a4p3, a4p4, };
-
-			return temp;
-		}
-		public static void PutInBG(Grid parent, UIElement child, Brush brush)
-		{
-			PutInBGWithMouseUpEvent(parent, child, brush);
-		}
-		public static void PutInBGWithMouseUpEvent(Grid parent, UIElement child, Brush brush = null, MouseButtonEventHandler handler = null)
-		{
-			//Because setting the entire layout with the MouseUp event meant the empty combobox when clicked would trigger it even when IsHitTestVisible = True. No idea why, but this is the workaround.
-			var BGPoints = FigureOutWhereToPutBG(parent, child);
-			for (int i = 0; i < BGPoints[0].Length; ++i)
-			{
-				var temp = new Grid { Background = brush ?? Brushes.Transparent, SnapsToDevicePixels = true, };
-				if (handler != null)
-				{
-					temp.MouseUp += handler;
-				}
-				AddElement(parent, temp, BGPoints[i][0], BGPoints[i][1], BGPoints[i][2], BGPoints[i][3]);
-			}
-		}
-
-		public static void SetFontResizeProperty(Control control, double size)
-		{
-			if (!GetTopMostParent(control, out Grid parent, out int ancestorLevel))
-			{
-				throw new ArgumentException($"{control.Name} must be inside a grid if {nameof(IFontResizeValue.FontResizeValue)} is set.");
-			}
-
-			control.SetBinding(Control.FontSizeProperty, new Binding
-			{
-				Path = new PropertyPath("ActualHeight"),
-				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), ancestorLevel),
-				Converter = new FontResizeConverter(size),
-			});
-		}
 		/// <summary>
 		/// Returns true if the supplied type is any parent of the supplied element.
 		/// </summary>
@@ -220,30 +99,40 @@ namespace Advobot.UILauncher.Actions
 		/// <param name="parent"></param>
 		/// <param name="ancestorLevel"></param>
 		/// <returns></returns>
-		public static bool GetTopMostParent<T>(FrameworkElement element, out T parent, out int ancestorLevel) where T : FrameworkElement
+		public static bool GetTopMostParent<T>(this DependencyObject element, out T parent, out int ancestorLevel) where T : DependencyObject
 		{
-			parent = default;
+			parent = null;
 			ancestorLevel = 0;
 
+			var currElement = element;
 			var currLevel = 0;
-			while (element.Parent != null)
+			while (true)
 			{
 				++currLevel;
-				if (element.Parent is T tParent)
+				currElement = VisualTreeHelper.GetParent(currElement);
+				if (currElement is T tParent)
 				{
 					parent = tParent;
 					ancestorLevel = currLevel;
 				}
-
-				if (!(element.Parent is FrameworkElement p))
+				else if (currElement == null)
 				{
-					//If grid is in weird object then just use the inside grid and
-					//don't bother going higher
 					break;
 				}
-				element = p;
 			}
 			return ancestorLevel > 0;
+		}
+		/// <summary>
+		/// Returns every child <paramref name="parent"/> has.
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		public static IEnumerable<DependencyObject> GetChildren(this DependencyObject parent)
+		{
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); ++i)
+			{
+				yield return VisualTreeHelper.GetChild(parent, i);
+			}
 		}
 
 		public static IEnumerable<TreeViewItem> MakeGuildTreeViewItemsSource(IEnumerable<IGuild> guilds)
@@ -258,7 +147,7 @@ namespace Advobot.UILauncher.Actions
 			return directoryInfo.GetDirectories().Select(dir =>
 			{
 				//Make sure the id leads to a valid non null guild
-				if (!ulong.TryParse(dir.Name, out ulong Id) || !(guilds.FirstOrDefault(x => x.Id == Id) is SocketGuild guild))
+				if (!ulong.TryParse(dir.Name, out ulong Id) || !(guilds.SingleOrDefault(x => x.Id == Id) is SocketGuild guild))
 				{
 					return null;
 				}
@@ -271,6 +160,9 @@ namespace Advobot.UILauncher.Actions
 						Tag = new FileInformation(file),
 						Background = (Brush)r[ColorTarget.BaseBackground],
 						Foreground = (Brush)r[ColorTarget.BaseForeground],
+						//No idea why these are needed, but the bindinglistener throws exceptions when they're not
+						HorizontalContentAlignment = HorizontalAlignment.Left,
+						VerticalContentAlignment = VerticalAlignment.Center,
 					};
 				}).Where(x => x.Tag is FileInformation fi && fi.FileType != default);
 
@@ -285,18 +177,16 @@ namespace Advobot.UILauncher.Actions
 			}).Where(x => x != null).OrderByDescending(x => x.Tag is SocketGuild g ? g.MemberCount : 0);
 		}
 
-		public static bool TryToAppendText(TextEditor display, object sender)
+		public static bool TryGetFileText(object sender, out string text, out FileInfo fileInfo)
 		{
-			if (true 
-				&& sender is FrameworkElement element 
-				&& element.Tag is FileInformation fi 
-				&& fi.FileInfo != null && fi.FileInfo.Exists)
+			text = null;
+			fileInfo = null;
+			if (sender is FrameworkElement element && element.Tag is FileInformation fi && (fi.FileInfo?.Exists ?? false))
 			{
-				display.Clear();
-				display.Tag = fi.FileInfo;
 				using (var reader = new StreamReader(fi.FileInfo.FullName))
 				{
-					display.AppendText(reader.ReadToEnd());
+					text = reader.ReadToEnd();
+					fileInfo = fi.FileInfo;
 				}
 				return true;
 			}

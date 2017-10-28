@@ -1,8 +1,15 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core;
+using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using Advobot.UILauncher.Classes;
+using Advobot.UILauncher.Enums;
 using Discord;
+using ICSharpCode.AvalonEdit;
+using Newtonsoft.Json;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,8 +17,54 @@ using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Actions
 {
-	internal static class SettingModification
+	internal static class SavingActions
 	{
+		public static ToolTipReason SaveFile(TextEditor editor)
+		{
+			return SaveFile(editor, editor.Text);
+		}
+		public static ToolTipReason SaveFile(TextBox tb)
+		{
+			return SaveFile(tb, tb.Text);
+		}
+		private static ToolTipReason SaveFile(Control control, string text)
+		{
+			//If no valid tag just save to a new file with its name being the control's name
+			var tag = control.Tag
+				?? new FileInfo($"{control.Name}_{TimeFormatting.FormatDateTimeForSaving()}{Constants.GENERAL_FILE_EXTENSION}");
+			if (!(tag is FileInformation fi))
+			{
+				return ToolTipReason.InvalidFilePath;
+			}
+			else if (fi.FileInfo.Name == Constants.GUILD_SETTINGS_LOCATION)
+			{
+				//Make sure the guild info stays valid
+				try
+				{
+					var throwaway = JsonConvert.DeserializeObject(text, Constants.GUILD_SETTINGS_TYPE);
+				}
+				catch (Exception e)
+				{
+					ConsoleActions.ExceptionToConsole(e);
+					return ToolTipReason.FileSavingFailure;
+				}
+			}
+
+			try
+			{
+				SavingAndLoadingActions.OverWriteFile(fi.FileInfo, text);
+				return ToolTipReason.FileSavingSuccess;
+			}
+			catch
+			{
+				return ToolTipReason.FileSavingFailure;
+			}
+		}
+		public static FileType GetFileType(string file)
+		{
+			return Enum.TryParse(file, true, out FileType type) ? type : default;
+		}
+
 		public static async Task SaveSettings(Grid parent, IDiscordClient client, IBotSettings botSettings)
 		{
 			foreach (var child in parent.GetChildren())

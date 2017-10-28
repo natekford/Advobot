@@ -31,6 +31,7 @@ using System.Runtime.CompilerServices;
 using System.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.IO;
 
 namespace Advobot.UILauncher
 {
@@ -42,93 +43,47 @@ namespace Advobot.UILauncher
 		public Holder<IDiscordClient> Client { get; private set; } = new Holder<IDiscordClient>();
 		public Holder<IBotSettings> BotSettings { get; private set; } = new Holder<IBotSettings>();
 		public Holder<ILogService> LogHolder { get; private set; } = new Holder<ILogService>();
-		internal Holder<ColorSettings> Colors { get; private set; } = new Holder<ColorSettings>();
 
-		private DispatcherTimer _Timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, 500) };
-		private CancellationTokenSource _ToolTipCancellationTokenSource;
+		private ColorSettings _Colors = new ColorSettings();
+		private LoginHandler _LoginHandler = new LoginHandler();
 		private MenuType _LastButtonClicked;
+		private BindingListener _Listener;
 
 		public AdvobotWindow()
 		{
+			_Listener = new BindingListener(0);
 			InitializeComponent();
-#if DEBUG
-			VerifyEveryBindingPathIsValid(this.Layout);
-#endif
 
+			_LoginHandler.AbleToStart += Start;
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
 			ColorSettings.SwitchElementColorOfChildren(this.Layout);
 		}
 
-		private static Dictionary<Type, DependencyProperty[]> _Props = new Dictionary<Type, DependencyProperty[]>();
-		private void VerifyEveryBindingPathIsValid(DependencyObject obj)
+		private async void Start(object sender, RoutedEventArgs e)
 		{
-			foreach (var child in obj.GetChildren())
+			if (!(sender is LoginHandler lh))
 			{
-				var t = child.GetType();
-				if (!_Props.TryGetValue(t, out var dependencyProperties))
-				{
-					var p = t.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy).Where(x => x.FieldType == typeof(DependencyProperty));
-					_Props.Add(t, (dependencyProperties = p.Select(x => x.GetValue(null)).Cast<DependencyProperty>().ToArray()));
-				}
-
-				if (child is FrameworkElement fe)
-				{
-					foreach (var dependencyProperty in dependencyProperties)
-					{
-						var binding = fe.GetBindingExpression(dependencyProperty);
-						if (false
-							|| binding == null 
-							|| binding.ParentBinding.Path.Path == null
-							|| binding.Status != BindingStatus.PathError)
-						{
-							continue;
-						}
-
-						var pathParts = binding.ParentBinding.Path.Path.Split('.');
-						var potentialSources = new[] { fe.DataContext, binding.ParentBinding.Source, binding.ParentBinding.RelativeSource, binding.ResolvedSource };
-						if (true
-							&& !VerifyPathIsOnObject(fe.DataContext, pathParts)
-							&& !VerifyPathIsOnObject(binding.ParentBinding.Source, pathParts)
-							&& !VerifyPathIsOnObject(binding.ParentBinding.RelativeSource, pathParts)
-							&& !VerifyPathIsOnObject(binding.ResolvedSource, pathParts))
-						{
-							throw new ArgumentException($"Invalid path supplied on {fe.Name ?? fe.GetType().Name}: {binding.ParentBinding.Path.Path}");
-						}
-					}
-				}
-				VerifyEveryBindingPathIsValid(child);
+				throw new ArgumentException($"This event must be triggered by a {nameof(LoginHandler)}.");
 			}
+
+			Client.HeldObject = lh.GetRequiredService<IDiscordClient>();
+			BotSettings.HeldObject = lh.GetRequiredService<IBotSettings>();
+			LogHolder.HeldObject = lh.GetRequiredService<ILogService>();
+			_Colors = ColorSettings.LoadUISettings();
+
+			//Has to be started after the client due to the latency tab
+			((DispatcherTimer)this.Resources["ApplicationInformationTimer"]).Start();
+			await ClientActions.StartAsync(Client.HeldObject);
 		}
-		private bool VerifyPathIsOnObject(object obj, string[] pathParts)
+		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
-			if (obj == null)
+			//Send null once to check if a path is set in the config
+			await _LoginHandler.AttemptToStart(null);
+			//If it is set, then send null again to check for the bot key
+			if (_LoginHandler.GotPath)
 			{
-				return false;
+				await _LoginHandler.AttemptToStart(null);
 			}
-
-			var currentType = obj.GetType();
-			for (int i = 0; i < pathParts.Length; ++i)
-			{
-				var properties = currentType.GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-				var targettedProperty = properties.SingleOrDefault(x => x.Name == pathParts[i]);
-				if (targettedProperty == null)
-				{
-					return false;
-				}
-				else if (i == pathParts.Length - 1)
-				{
-					return true;
-				}
-
-				currentType = targettedProperty.PropertyType;
-			}
-			return false;
-		}
-
-		private async void AttemptToLogIn(object sender, RoutedEventArgs e)
-		{
-			await HandleInput(null);
-			await HandleInput(null);
 		}
 		private async void OpenMenu(object sender, RoutedEventArgs e)
 		{
@@ -193,7 +148,7 @@ namespace Advobot.UILauncher
 					}
 					case MenuType.Colors:
 					{
-						var c = Colors.HeldObject;
+						var c = _Colors;
 						var tcbSelected = this.ThemesComboBox.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
 
@@ -267,8 +222,7 @@ namespace Advobot.UILauncher
 		}
 		private async void AcceptInput(object sender, KeyEventArgs e)
 		{
-			var text = this.InputBox.Text;
-			if (String.IsNullOrWhiteSpace(text))
+			if (String.IsNullOrWhiteSpace(this.InputBox.Text))
 			{
 				this.InputButton.IsEnabled = false;
 				return;
@@ -276,7 +230,11 @@ namespace Advobot.UILauncher
 
 			if (e.Key == Key.Enter || e.Key == Key.Return)
 			{
-				await HandleInput(UICommandHandler.GatherInput(this.InputBox, this.InputButton));
+				var input = UICommandHandler.GatherInput(this.InputBox, this.InputButton);
+				if (!_LoginHandler.CanLogin)
+				{
+					await _LoginHandler.AttemptToStart(input);
+				}
 			}
 			else
 			{
@@ -285,7 +243,11 @@ namespace Advobot.UILauncher
 		}
 		private async void AcceptInput(object sender, RoutedEventArgs e)
 		{
-			await HandleInput(UICommandHandler.GatherInput(this.InputBox, this.InputButton));
+			var input = UICommandHandler.GatherInput(this.InputBox, this.InputButton);
+			if (!_LoginHandler.CanLogin)
+			{
+				await _LoginHandler.AttemptToStart(input);
+			}
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
@@ -296,7 +258,8 @@ namespace Advobot.UILauncher
 		}
 		private async void SaveOutput(object sender, RoutedEventArgs e)
 		{
-			await MakeFollowingToolTip(UIBotWindowLogic.SaveOutput(this.Output).GetReason());
+			var response = SavingActions.SaveFile(this.Output);
+			await ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
 		}
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
@@ -340,7 +303,7 @@ namespace Advobot.UILauncher
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
-			var c = Colors.HeldObject;
+			var c = _Colors;
 			foreach (var child in this.ColorsMenu.GetChildren())
 			{
 				if (child is AdvobotTextBox tb && tb.Tag is ColorTarget target)
@@ -350,13 +313,13 @@ namespace Advobot.UILauncher
 					{
 						continue;
 					}
-					if (!UIModification.TryMakeBrush(childText, out var brush))
+					if (!UIModification.TryCreateBrush(childText, out var brush))
 					{
 						ConsoleActions.WriteLine($"Invalid color supplied for {target.EnumName()}.");
 						continue;
 					}
 
-					if (!UIModification.CheckIfTwoBrushesAreTheSame(c[target], brush))
+					if (!c[target].CheckIfSameBrush(brush))
 					{
 						tb.Text = (c[target] = brush).ToString();
 						ConsoleActions.WriteLine($"Successfully updated the color for {target.EnumName()}.");
@@ -376,111 +339,18 @@ namespace Advobot.UILauncher
 		}
 		private async void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			await SettingModification.SaveSettings(this.SettingsMenu, Client.HeldObject, BotSettings.HeldObject);
+			await SavingActions.SaveSettings(this.SettingsMenu, Client.HeldObject, BotSettings.HeldObject);
 		}
-
 		private void OpenSpecificFileLayout(object sender, RoutedEventArgs e)
 		{
-			if (UIModification.TryToAppendText(this.SpecificFileOutput, sender))
+			if (UIModification.TryGetFileText(sender, out var text, out var fileInfo))
 			{
-				UIModification.SetRowSpan(this.FilesMenu, Grid.GetRowSpan(this.FilesMenu) + (this.Layout.RowDefinitions.Count - 1));
-				this.SpecificFileOutput.Visibility = Visibility.Visible;
-				this.SaveFileButton.Visibility = Visibility.Visible;
-				this.CloseFileButton.Visibility = Visibility.Visible;
-				this.FileSearchButton.Visibility = Visibility.Collapsed;
+				OpenSpecificFileLayout(text, fileInfo);
 			}
-		}
-
-		//TODO: Fix this entire terrible method
-		private static bool _StartUp = true;
-		private static bool _GotPath;
-		private static bool _GotKey;
-		private async Task HandleInput(string input)
-		{
-			if (!_GotPath)
+			else
 			{
-				var provider = await UIBotWindowLogic.GetPath(input, _StartUp);
-				if (provider != null)
-				{
-					_StartUp = true;
-					_GotPath = true;
-					Client.HeldObject = provider.GetRequiredService<IDiscordClient>();
-					BotSettings.HeldObject = provider.GetRequiredService<IBotSettings>();
-					LogHolder.HeldObject = provider.GetRequiredService<ILogService>();
-					Colors.HeldObject = ColorSettings.LoadUISettings();
-				}
-				else
-				{
-					_StartUp = false;
-				}
+				ConsoleActions.WriteLine($"Unable to open the file.");
 			}
-			else if (!_GotKey)
-			{
-				if (await Config.ValidateBotKey(Client.HeldObject, input, _StartUp))
-				{
-					_StartUp = true;
-					_GotKey = true;
-				}
-				else
-				{
-					_StartUp = false;
-				}
-			}
-
-			if (!_GotKey && _StartUp)
-			{
-				if (await Config.ValidateBotKey(Client.HeldObject, null, _StartUp))
-				{
-					_StartUp = true;
-					_GotKey = true;
-				}
-				else
-				{
-					_StartUp = false;
-				}
-			}
-
-			if (_GotPath && _GotKey && _StartUp)
-			{
-				_Timer.Tick += UpdateApplicationInfo;
-				_Timer.Start();
-				_StartUp = false;
-				await ClientActions.StartAsync(Client.HeldObject);
-			}
-		}
-
-		public async Task MakeFollowingToolTip(string text, int timeInMS = 2500)
-		{
-			this.ActualToolTip.Content = text;
-			this.Layout.MouseMove += (sender, e) =>
-			{
-				var point = System.Windows.Forms.Control.MousePosition;
-				this.ActualToolTip.HorizontalOffset = point.X;
-				this.ActualToolTip.VerticalOffset = point.Y;
-			};
-			UIModification.ToggleToolTip(this.ActualToolTip);
-
-			_ToolTipCancellationTokenSource?.Cancel();
-			_ToolTipCancellationTokenSource = new CancellationTokenSource();
-
-			await this.Layout.Dispatcher.InvokeAsync(async () =>
-			{
-				try
-				{
-					await Task.Delay(timeInMS, _ToolTipCancellationTokenSource.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					return;
-				}
-
-				UIModification.ToggleToolTip(this.ActualToolTip);
-			});
-		}
-
-		public static bool IsCtrlS(KeyEventArgs e)
-		{
-			return e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -503,28 +373,33 @@ namespace Advobot.UILauncher
 				SaveFile(sender, e);
 			}
 		}
+		private void OpenModal(object sender, RoutedEventArgs e)
+		{
+			if (!(sender is FrameworkElement ele) || !(ele.Tag is Modal m))
+			{
+				return;
+			}
 
-		private void OpenOutputSearch(object sender, RoutedEventArgs e)
-		{
+			//Make the screen look dark and then bring up the modal
+			this.Opacity = .25;
+			switch (m)
+			{
+				case Modal.FileSearch:
+				{
+					new FileSearchWindow(this).ShowDialog();
+					break;
+				}
+				case Modal.OutputSearch:
+				{
+					new OutputSearchWindow(this).ShowDialog();
+					break;
+				}
+				default:
+				{
+					throw new ArgumentException($"Invalid modal type supplied: {m.EnumName()}");
+				}
+			}
 		}
-		private void CloseOutputSearch(object sender, RoutedEventArgs e)
-		{
-		}
-		private void SearchOutput(object sender, RoutedEventArgs e)
-		{
-		}
-
-		private void OpenFileSearch(object sender, RoutedEventArgs e)
-		{
-		}
-		private void CloseFileSearch(object sender, RoutedEventArgs e)
-		{
-		}
-		private void SearchForFile(object sender, RoutedEventArgs e)
-		{
-
-		}
-
 		private void CloseFile(object sender, RoutedEventArgs e)
 		{
 			switch (MessageBox.Show("Are you sure you want to close the file window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
@@ -543,8 +418,46 @@ namespace Advobot.UILauncher
 		}
 		private async void SaveFile(object sender, RoutedEventArgs e)
 		{
-			var fileSaveStatus = UIBotWindowLogic.SaveFile(this.SpecificFileOutput).GetReason();
-			await MakeFollowingToolTip(fileSaveStatus);
+			var response = SavingActions.SaveFile(this.SpecificFileOutput);
+			await ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
+		}
+		private void MoveToolTip(object sender, MouseEventArgs e)
+		{
+			if (!(sender is FrameworkElement fe) || !(fe.ToolTip is ToolTip tt))
+			{
+				return;
+			}
+
+			var pos = e.GetPosition(fe);
+			tt.HorizontalOffset = pos.X + 10;
+			tt.VerticalOffset = pos.Y + 10;
+		}
+
+		private void OpenOutputSearch(object sender, RoutedEventArgs e)
+		{
+		}
+		private void CloseOutputSearch(object sender, RoutedEventArgs e)
+		{
+		}
+		private void SearchOutput(object sender, RoutedEventArgs e)
+		{
+		}
+
+		public void OpenSpecificFileLayout(string text, FileInfo fileInfo)
+		{
+			this.SpecificFileOutput.Tag = fileInfo;
+			this.SpecificFileOutput.Clear();
+			this.SpecificFileOutput.AppendText(text);
+			UIModification.SetRowSpan(this.FilesMenu, Grid.GetRowSpan(this.FilesMenu) + (this.Layout.RowDefinitions.Count - 1));
+
+			this.SpecificFileOutput.Visibility = Visibility.Visible;
+			this.SaveFileButton.Visibility = Visibility.Visible;
+			this.CloseFileButton.Visibility = Visibility.Visible;
+			this.FileSearchButton.Visibility = Visibility.Collapsed;
+		}
+		public static bool IsCtrlS(KeyEventArgs e)
+		{
+			return e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
 		}
 	}
 }

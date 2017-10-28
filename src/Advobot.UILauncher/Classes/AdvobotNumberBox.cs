@@ -34,6 +34,7 @@ namespace Advobot.UILauncher.Classes
 			var input = e.SourceDataObject.GetData(DataFormats.UnicodeText).ToString();
 			var nums = _NumberRegex.Replace(input, "");
 
+			//Append the text in the correct part of the string
 			var sb = new StringBuilder();
 			for (int i = 0; i < source.MaxLength; ++i)
 			{

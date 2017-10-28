@@ -10,12 +10,15 @@
         xmlns:extensions="clr-namespace:Advobot.UILauncher.Classes.Extensions"
         xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
+        xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
         mc:Ignorable="d"
-        Height="280" Width="500" WindowState="Maximized" FontFamily="Courier New" 
-        Title="Advobot" Loaded="AttemptToLogIn" DataContext="{Binding RelativeSource={RelativeSource Self}}">
+        WindowState="Maximized" FontFamily="Courier New" 
+        Title="Advobot" Name="AdvobotWin" Loaded="AttemptToLogin" DataContext="{Binding RelativeSource={RelativeSource Self}}">
     
     <Window.Resources>
+        <threading:DispatcherTimer x:Key="ApplicationInformationTimer" Interval="00:00:00:00.500" Tick="UpdateApplicationInfo"/>
         <converters:UriConverter x:Key="UriConverter"/>
+        <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
         <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseBackground}">#FFFFFFFF</SolidColorBrush>
         <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseForeground}">#000000</SolidColorBrush>
         <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseBorder}">#ABADB3</SolidColorBrush>
@@ -27,9 +30,9 @@
         <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonMouseOverBackground}">#BEE6FD</SolidColorBrush>
     </Window.Resources>
 
-    <Grid x:Name="Layout">
+    <Grid x:Name="Layout" MouseMove="MoveToolTip">
         <Grid.ToolTip>
-            <ToolTip x:Name="ActualToolTip" IsEnabled="False" Visibility="Collapsed"/>
+            <ToolTip x:Name="ActualToolTip" IsOpen="False" Visibility="Collapsed" Placement="Relative"/>
         </Grid.ToolTip>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*"/>
@@ -47,15 +50,18 @@
                                 VerticalScrollBarVisibility="Visible" TextWrapping="Wrap" IsReadOnly="True">
             <classes:AdvobotTextBox.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Search For..."/>
-                    <MenuItem Header="Save Output Log" Click="SaveOutput"/>
-                    <MenuItem Header="Clear Output Log" Click="ClearOutput"/>
+                    <MenuItem Header="Search For..." 
+                              IsEnabled="{Binding LogHolder.HeldObject, Converter={StaticResource NullToBoolConverter}}"/>
+                    <MenuItem Header="Save Output Log" Click="SaveOutput" 
+                              IsEnabled="{Binding LogHolder.HeldObject, Converter={StaticResource NullToBoolConverter}}"/>
+                    <MenuItem Header="Clear Output Log" Click="ClearOutput" 
+                              IsEnabled="{Binding LogHolder.HeldObject, Converter={StaticResource NullToBoolConverter}}"/>
                 </ContextMenu>
             </classes:AdvobotTextBox.ContextMenu>
         </classes:AdvobotTextBox>
 
         <!-- Input -->
-        <Grid x:Name="Input" Grid.Column="0" Grid.Row="2" Grid.RowSpan="2">
+        <classes:AdvobotGrid x:Name="Input" Grid.Column="0" Grid.Row="2" Grid.RowSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="8*"/>
                 <ColumnDefinition Width="1*"/>
@@ -65,7 +71,7 @@
                                             FontResizeValue=".040" TextWrapping="Wrap" KeyUp="AcceptInput"/>
             <classes:AdvobotButton x:Name="InputButton" Grid.Column="1" Grid.Row="0" 
                                            FontResizeValue=".015" IsEnabled="False" Content="Enter" Click="AcceptInput"/>
-        </Grid>
+        </classes:AdvobotGrid>
 
         <!-- Application Info Bar -->
         <classes:AdvobotGrid x:Name="ApplicationInfoBar" Grid.Column="0" Grid.Row="1" FontResizeValue=".020">
@@ -99,16 +105,27 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <classes:AdvobotButton x:Name="MainMenuButton" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" 
-                                   Content="{extensions:NameOf Member=Main, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Main}" Click="OpenMenu"/>
-            <classes:AdvobotButton x:Name="InfoMenuButton" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" 
-                                   Content="{extensions:NameOf Member=Info, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Info}" Click="OpenMenu"/>
-            <classes:AdvobotButton x:Name="SettingsMenuButton" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" 
-                                   Content="{extensions:NameOf Member=Settings, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Settings}" Click="OpenMenu"/>
+            <!-- These buttons have this binding so the menus can't be gotten to when the bot's not loaded -->
+            <classes:AdvobotButton x:Name="MainMenuButton" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+                                   IsEnabled="{Binding LogHolder.HeldObject, Converter={StaticResource NullToBoolConverter}}"
+                                   Content="{extensions:NameOf Member=Main, Type={x:Type enums:MenuType}}" 
+                                   Tag="{x:Static enums:MenuType.Main}" Click="OpenMenu"/>
+            <classes:AdvobotButton x:Name="InfoMenuButton" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"
+                                   IsEnabled="{Binding LogHolder.HeldObject, Converter={StaticResource NullToBoolConverter}}"
+                                   Content="{extensions:NameOf Member=Info, Type={x:Type enums:MenuType}}" 
+                                   Tag="{x:Static enums:MenuType.Info}" Click="OpenMenu"/>
+            <classes:AdvobotButton x:Name="SettingsMenuButton" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2"
+                                   IsEnabled="{Binding LogHolder.HeldObject, Converter={StaticResource NullToBoolConverter}}"
+                                   Content="{extensions:NameOf Member=Settings, Type={x:Type enums:MenuType}}" 
+                                   Tag="{x:Static enums:MenuType.Settings}" Click="OpenMenu"/>
             <classes:AdvobotButton x:Name="ColorsMenuButton" Grid.Column="3" Grid.Row="0" Grid.RowSpan="1" 
-                                   Content="{extensions:NameOf Member=Colors, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Colors}" Click="OpenMenu"/>
+                                   IsEnabled="{Binding LogHolder.HeldObject, Converter={StaticResource NullToBoolConverter}}"
+                                   Content="{extensions:NameOf Member=Colors, Type={x:Type enums:MenuType}}" 
+                                   Tag="{x:Static enums:MenuType.Colors}" Click="OpenMenu"/>
             <classes:AdvobotButton x:Name="FilesMenuButton" Grid.Column="3" Grid.Row="1" Grid.RowSpan="1" 
-                                   Content="{extensions:NameOf Member=Files, Type={x:Type enums:MenuType}}" Tag="{x:Static enums:MenuType.Files}" Click="OpenMenu"/>
+                                   IsEnabled="{Binding LogHolder.HeldObject, Converter={StaticResource NullToBoolConverter}}"
+                                   Content="{extensions:NameOf Member=Files, Type={x:Type enums:MenuType}}" 
+                                   Tag="{x:Static enums:MenuType.Files}" Click="OpenMenu"/>
         </classes:AdvobotGrid>
 
         <!-- Main Menu -->
@@ -406,7 +423,8 @@
             <TreeView x:Name="FilesTreeView" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="1"
                       Foreground="{DynamicResource {x:Static enums:ColorTarget.BaseForeground}}" 
                       Background="{DynamicResource {x:Static enums:ColorTarget.BaseBackground}}"/>
-            <classes:AdvobotButton x:Name="FileSearchButton" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Content="Search Files" Click="SearchForFile"/>
+            <classes:AdvobotButton x:Name="FileSearchButton" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                                   Content="Search Files" Click="OpenModal" Tag="{x:Static enums:Modal.FileSearch}"/>
             <classes:AdvobotButton x:Name="SaveFileButton" Grid.Row="1" Grid.Column="0" Visibility="Collapsed"
                                    Content="Save File" Click="SaveFile"/>
             <classes:AdvobotButton x:Name="CloseFileButton" Grid.Row="1" Grid.Column="1" Visibility="Collapsed"

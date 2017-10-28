@@ -1,0 +1,42 @@
+﻿<Window x:Class="Advobot.UILauncher.OutputSearchWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:coreenums="clr-namespace:Advobot.Core.Enums;assembly=Advobot.Core"
+        xmlns:constants="clr-namespace:Advobot.Core;assembly=Advobot.Core"
+        xmlns:classes="clr-namespace:Advobot.UILauncher.Classes"
+        xmlns:converters="clr-namespace:Advobot.UILauncher.Classes.Converters"
+        xmlns:extensions="clr-namespace:Advobot.UILauncher.Classes.Extensions"
+        xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
+        xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
+        xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
+        mc:Ignorable="d"
+        x:Name="OutputSearchWin" FontFamily="Courier New" Title="Output Search" 
+        Closed="WindowClosed" DataContext="{Binding RelativeSource={RelativeSource Self}}">
+
+    <Grid x:Name="Layout">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="7*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="20*"/>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="3*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Background -->
+        <classes:AdvobotTextBox x:Name="LayoutBackground" Grid.ColumnSpan="2" Grid.RowSpan="4" TBType="Background"/>
+
+        <classes:AdvobotTextEditor x:Name="Output" Grid.Column="0" Grid.Row="0" Grid.RowSpan="4"
+                                   VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True">
+            <classes:AdvobotTextEditor.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Save Output" Click="Save"/>
+                </ContextMenu>
+            </classes:AdvobotTextEditor.ContextMenu>
+        </classes:AdvobotTextEditor>
+    </Grid>
+</Window>

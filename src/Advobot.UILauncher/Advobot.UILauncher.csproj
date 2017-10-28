@@ -101,11 +101,13 @@
   <ItemGroup>
     <Compile Include="Actions\CommandHandler.cs" />
     <Compile Include="Actions\EntityModification.cs" />
-    <Compile Include="Actions\Logic.cs" />
-    <Compile Include="Actions\SettingModification.cs" />
+    <Compile Include="Actions\SavingActions.cs" />
+    <Compile Include="Actions\ToolTipActions.cs" />
     <Compile Include="AdvobotWindow.xaml.cs">
       <DependentUpon>AdvobotWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="BindingListener.cs" />
+    <Compile Include="AdvobotApplication.cs" />
     <Compile Include="Classes\AdvobotButton.cs" />
     <Compile Include="Classes\AdvobotComboBox.cs" />
     <Compile Include="Classes\AdvobotGrid.cs" />
@@ -114,26 +116,32 @@
     <Compile Include="Classes\AdvobotRun.cs" />
     <Compile Include="Classes\AdvobotTextBox.cs" />
     <Compile Include="Classes\AdvobotTextEditor.cs" />
-    <Compile Include="Classes\AdvobotWindow\Events.cs" />
-    <Compile Include="Classes\AdvobotWindow\Fields.cs" />
-    <Compile Include="Classes\AdvobotWindow\Initialization.cs" />
-    <Compile Include="Classes\BrushTargetAndValue.cs" />
+    <Compile Include="RemainderOfAdvobotWindow.cs" />
     <Compile Include="Classes\Converters\FontResizeConverter.cs" />
+    <Compile Include="Classes\Converters\NullToBoolConverter.cs" />
     <Compile Include="Classes\FileInformation.cs" />
     <Compile Include="Classes\Converters\NavigateUriConverter.cs" />
     <Compile Include="Classes\Holder.cs" />
+    <Compile Include="Classes\LoginHandler.cs" />
     <Compile Include="Classes\TextBoxStreamWriter.cs" />
     <Compile Include="Classes\ColorSettings.cs" />
     <Compile Include="Enums\ColorTarget.cs" />
     <Compile Include="Enums\ColorTheme.cs" />
     <Compile Include="Enums\FileType.cs" />
     <Compile Include="Enums\MenuType.cs" />
+    <Compile Include="Enums\Modal.cs" />
     <Compile Include="Enums\OtherTarget.cs" />
     <Compile Include="Classes\Extensions\NameOfExtension.cs" />
     <Compile Include="Enums\TBType.cs" />
+    <Compile Include="FileSearchWindow.xaml.cs">
+      <DependentUpon>FileSearchWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Interfaces\IFontResizeValue.cs" />
     <Compile Include="Interfaces\ISummary.cs" />
     <Compile Include="Interfaces\IUnescapedText.cs" />
+    <Compile Include="OutputSearchWindow.xaml.cs">
+      <DependentUpon>OutputSearchWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -174,6 +182,14 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="AdvobotWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="FileSearchWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OutputSearchWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
