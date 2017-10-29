@@ -1,16 +1,18 @@
 ﻿using Advobot.Core.Actions;
+using Advobot.UILauncher.Classes.Controls;
 using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Advobot.UILauncher.Classes.AdvobotWindow
+namespace Advobot.UILauncher.Classes
 {
-	public partial class AdvobotWindow : Window
+	public partial class Test : Window
 	{
 		private void OpenOutputSearch(object sender, RoutedEventArgs e)
 		{
-			_OutputSearchComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleActions.GetWrittenLines().Keys.ToArray());
+			_OutputSearchComboBox.ItemsSource = 
+				AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleActions.GetWrittenLines().Keys.ToArray());
 		}
 		private void CloseOutputSearch(object sender, RoutedEventArgs e)
 		{
@@ -23,7 +25,8 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 			if (selectedItem != null)
 			{
 				_OutputSearchResults.Text = null;
-				ConsoleActions.GetWrittenLines()[selectedItem.Text].ForEach(x => _OutputSearchResults.AppendText(x + Environment.NewLine));
+				ConsoleActions.GetWrittenLines()[selectedItem.Text].ForEach(x => 
+				_OutputSearchResults.AppendText(x + Environment.NewLine));
 			}
 		}
 

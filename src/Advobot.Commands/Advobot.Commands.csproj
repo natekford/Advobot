@@ -16,8 +16,12 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.0.0-alpha-build-00839" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-alpha-build-00840" />
   </ItemGroup>
 
   <ItemGroup>

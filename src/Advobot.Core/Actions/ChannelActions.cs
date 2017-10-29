@@ -99,9 +99,8 @@ namespace Advobot.Core.Actions
 					}
 				}
 
-				var readMessages = ChannelPerms.ConvertToValue(new[] { nameof(ChannelPermission.ReadMessages) });
-				var allowBits = overwrite.Permissions.AllowValue & ~readMessages;
-				var denyBits = overwrite.Permissions.DenyValue | readMessages;
+				var allowBits = overwrite.Permissions.AllowValue & ~(ulong)ChannelPermission.ReadMessages;
+				var denyBits = overwrite.Permissions.DenyValue | (ulong)ChannelPermission.ReadMessages;
 				await OverwriteActions.ModifyOverwriteAsync(channel, obj, allowBits, denyBits, reason).CAF();
 			}
 

@@ -121,7 +121,7 @@ namespace Advobot.Core.Actions.Formatting
 			for (int i = 0; i < title.Length; ++i)
 			{
 				var c = title[i];
-				if (Char.IsUpper(c) && (i == 0 || !Char.IsWhiteSpace(title[i - 1])))
+				if (Char.IsUpper(c) && (i > 0 && !Char.IsWhiteSpace(title[i - 1])))
 				{
 					sb.Append(' ');
 				}

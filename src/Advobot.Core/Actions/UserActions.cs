@@ -138,7 +138,7 @@ namespace Advobot.Core.Actions
 				}
 				case ObjectVerification.CanModifyPermissions:
 				{
-					return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManagePermissions;
+					return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManageRoles;
 				}
 				case ObjectVerification.CanBeReordered:
 				{

@@ -156,11 +156,11 @@ namespace Advobot.Core.Actions
 			//Select the name as the key, then select the permvalue for its value
 			return ChannelPerms.Permissions.ToDictionary(x => x.Name, x =>
 			{
-				if ((overwrite.Permissions.AllowValue & x.Value) != 0)
+				if ((overwrite.Permissions.AllowValue & (ulong)x.Value) != 0)
 				{
 					return nameof(PermValue.Allow);
 				}
-				else if ((overwrite.Permissions.DenyValue & x.Value) != 0)
+				else if ((overwrite.Permissions.DenyValue & (ulong)x.Value) != 0)
 				{
 					return nameof(PermValue.Deny);
 				}

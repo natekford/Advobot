@@ -12,29 +12,47 @@ namespace Advobot.Core.Classes.Permissions
 	/// </summary>
 	public static class ChannelPerms
 	{
-		private const ulong GENERAL_BITS = 0
-			| (1UL << (int)ChannelPermission.CreateInstantInvite)
-			| (1UL << (int)ChannelPermission.ManageChannel)
-			| (1UL << (int)ChannelPermission.ManagePermissions)
-			| (1UL << (int)ChannelPermission.ManageWebhooks);
-		private const ulong TEXT_BITS = 0
-			| (1UL << (int)ChannelPermission.ReadMessages)
-			| (1UL << (int)ChannelPermission.SendMessages)
-			| (1UL << (int)ChannelPermission.SendTTSMessages)
-			| (1UL << (int)ChannelPermission.ManageMessages)
-			| (1UL << (int)ChannelPermission.EmbedLinks)
-			| (1UL << (int)ChannelPermission.AttachFiles)
-			| (1UL << (int)ChannelPermission.ReadMessageHistory)
-			| (1UL << (int)ChannelPermission.MentionEveryone)
-			| (1UL << (int)ChannelPermission.UseExternalEmojis)
-			| (1UL << (int)ChannelPermission.AddReactions);
-		private const ulong VOICE_BITS = 0
-			| (1UL << (int)ChannelPermission.Connect)
-			| (1UL << (int)ChannelPermission.Speak)
-			| (1UL << (int)ChannelPermission.MuteMembers)
-			| (1UL << (int)ChannelPermission.DeafenMembers)
-			| (1UL << (int)ChannelPermission.MoveMembers)
-			| (1UL << (int)ChannelPermission.UseVAD);
+		private const ChannelPermission GENERAL_BITS = 0
+			| ChannelPermission.CreateInstantInvite
+			| ChannelPermission.ManageChannels
+			| ChannelPermission.ManageRoles
+			| ChannelPermission.ManageWebhooks;
+		private const ChannelPermission TEXT_BITS = 0
+			| ChannelPermission.ReadMessages
+			| ChannelPermission.SendMessages
+			| ChannelPermission.SendTTSMessages
+			| ChannelPermission.ManageMessages
+			| ChannelPermission.EmbedLinks
+			| ChannelPermission.AttachFiles
+			| ChannelPermission.ReadMessageHistory
+			| ChannelPermission.MentionEveryone
+			| ChannelPermission.UseExternalEmojis
+			| ChannelPermission.AddReactions;
+		private const ChannelPermission VOICE_BITS = 0
+			| ChannelPermission.Connect
+			| ChannelPermission.Speak
+			| ChannelPermission.MuteMembers
+			| ChannelPermission.DeafenMembers
+			| ChannelPermission.MoveMembers
+			| ChannelPermission.UseVAD;
+
+		public const ChannelPermission MUTE_ROLE_TEXT_PERMS = 0
+			| ChannelPermission.CreateInstantInvite
+			| ChannelPermission.ManageChannels
+			| ChannelPermission.ManageRoles
+			| ChannelPermission.ManageWebhooks
+			| ChannelPermission.SendMessages
+			| ChannelPermission.ManageMessages
+			| ChannelPermission.AddReactions;
+		public const ChannelPermission MUTE_ROLE_VOICE_PERMS = 0
+			| ChannelPermission.CreateInstantInvite
+			| ChannelPermission.ManageChannels
+			| ChannelPermission.ManageRoles
+			| ChannelPermission.ManageWebhooks
+			| ChannelPermission.Speak
+			| ChannelPermission.MuteMembers
+			| ChannelPermission.DeafenMembers
+			| ChannelPermission.MoveMembers;
 
 		public static ImmutableList<ChannelPerm> Permissions = ImmutableList.Create(CreateChannelPermList());
 
@@ -54,7 +72,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <returns></returns>
 		public static ChannelPerm GetByExactValue(ulong value)
 		{
-			return Permissions.FirstOrDefault(x => x.Value == value);
+			return Permissions.FirstOrDefault(x => (ulong)x.Value == value);
 		}
 		/// <summary>
 		/// Returns the first <see cref="ChannelPerm"/> to not have its value ANDed together with the argument equal zero.
@@ -63,7 +81,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <returns></returns>
 		public static ChannelPerm GetByIncludedValue(ulong value)
 		{
-			return Permissions.FirstOrDefault(x => (x.Value & value) != 0);
+			return Permissions.FirstOrDefault(x => ((ulong)x.Value & value) != 0);
 		}
 		/// <summary>
 		/// Returns the first <see cref="ChannelPerm"/> to equal 1 shifted to the left with the passed in number.
@@ -72,7 +90,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <returns></returns>
 		public static ChannelPerm GetByBit(int bit)
 		{
-			return Permissions.FirstOrDefault(x => x.Value == (1UL << bit));
+			return Permissions.FirstOrDefault(x => (ulong)x.Value == (1UL << bit));
 		}
 
 		/// <summary>
@@ -82,7 +100,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <returns></returns>
 		public static ChannelPerm[] ConvertToPermissions(ulong value)
 		{
-			return Permissions.Where(x => (x.Value & value) != 0).ToArray();
+			return Permissions.Where(x => ((ulong)x.Value & value) != 0).ToArray();
 		}
 		/// <summary>
 		/// Returns the channel permissions which can be found with the passed in names.
@@ -99,9 +117,9 @@ namespace Advobot.Core.Classes.Permissions
 		/// </summary>
 		/// <param name="permissions"></param>
 		/// <returns></returns>
-		public static ulong ConvertToValue(IEnumerable<ChannelPerm> permissions)
+		public static ChannelPermission ConvertToValue(IEnumerable<ChannelPerm> permissions)
 		{
-			var value = 0UL;
+			ChannelPermission value = 0UL;
 			foreach (var permission in permissions)
 			{
 				value |= permission.Value;
@@ -113,7 +131,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// </summary>
 		/// <param name="permissionNames"></param>
 		/// <returns></returns>
-		public static ulong ConvertToValue(IEnumerable<string> permissionNames)
+		public static ChannelPermission ConvertToValue(IEnumerable<string> permissionNames)
 		{
 			return ConvertToValue(ConvertToPermissions(permissionNames));
 		}
@@ -147,23 +165,24 @@ namespace Advobot.Core.Classes.Permissions
 			var temp = new List<ChannelPerm>();
 			for (int i = 0; i < 64; ++i)
 			{
-				var name = Enum.GetName(typeof(ChannelPermission), i);
+				var val = (ChannelPermission)(1UL << i);
+				var name = Enum.GetName(typeof(ChannelPermission), val);
 				if (name == null)
 				{
 					continue;
 				}
 
-				if ((GENERAL_BITS & (1UL << i)) != 0)
+				if ((GENERAL_BITS & val) != 0)
 				{
-					temp.Add(new ChannelPerm(name, i, gen: true));
+					temp.Add(new ChannelPerm(name, val, gen: true));
 				}
-				if ((TEXT_BITS & (1UL << i)) != 0)
+				if ((TEXT_BITS & val) != 0)
 				{
-					temp.Add(new ChannelPerm(name, i, text: true));
+					temp.Add(new ChannelPerm(name, val, text: true));
 				}
-				if ((VOICE_BITS & (1UL << i)) != 0)
+				if ((VOICE_BITS & val) != 0)
 				{
-					temp.Add(new ChannelPerm(name, i, voice: true));
+					temp.Add(new ChannelPerm(name, val, voice: true));
 				}
 			}
 			return temp.ToArray();
@@ -175,15 +194,15 @@ namespace Advobot.Core.Classes.Permissions
 		public struct ChannelPerm
 		{
 			public string Name { get; }
-			public ulong Value { get; }
+			public ChannelPermission Value { get; }
 			public bool General { get; }
 			public bool Text { get; }
 			public bool Voice { get; }
 
-			public ChannelPerm(string name, int position, bool gen = false, bool text = false, bool voice = false)
+			public ChannelPerm(string name, ChannelPermission value, bool gen = false, bool text = false, bool voice = false)
 			{
 				Name = name;
-				Value = (1UL << position);
+				Value = value;
 				General = gen;
 				Text = text;
 				Voice = voice;

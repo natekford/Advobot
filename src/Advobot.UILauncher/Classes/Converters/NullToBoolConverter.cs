@@ -8,7 +8,10 @@ namespace Advobot.UILauncher.Classes.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			//Extremely complex converter
+			if (value is string s)
+			{
+				return !String.IsNullOrWhiteSpace(s);
+			}
 			return value != null;
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

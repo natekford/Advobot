@@ -1,7 +1,6 @@
 ﻿using Advobot.Core.Actions;
+using Advobot.UILauncher.Classes;
 using System;
-using System.Windows;
-using System.Windows.Threading;
 
 namespace Advobot.UILauncher
 {
@@ -11,8 +10,7 @@ namespace Advobot.UILauncher
 		private static void Main()
 		{
 			AppDomain.CurrentDomain.UnhandledException += SavingAndLoadingActions.LogUncaughtException;
-			var application = new AdvobotApplication();
-			application.Run(application.MainWindow);
+			new AdvobotApplication().Run();
 		}
 	}
 }

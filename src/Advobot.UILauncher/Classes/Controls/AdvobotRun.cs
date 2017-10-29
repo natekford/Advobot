@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Windows.Documents;
 
-namespace Advobot.UILauncher.Classes
+namespace Advobot.UILauncher.Classes.Controls
 {
 	/// <summary>
 	/// Because you can't use \n, \r, \t etc. in XAML without them being escaped.

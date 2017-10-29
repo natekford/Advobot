@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace Advobot.UILauncher.Classes
+namespace Advobot.UILauncher.Classes.Controls
 {
 	internal class AdvobotNumberBox : AdvobotTextBox
 	{

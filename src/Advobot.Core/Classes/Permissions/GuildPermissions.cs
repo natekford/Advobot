@@ -12,6 +12,23 @@ namespace Advobot.Core.Classes.Permissions
 	/// </summary>
 	public static class GuildPerms
 	{
+		//Permissions that would generally indicate the user can be somewhat trusted
+		//with semi spammy commands that generally can't cause much harm
+		public const GuildPermission USER_HAS_A_PERMISSION_PERMS = 0
+			| GuildPermission.Administrator
+			| GuildPermission.BanMembers
+			| GuildPermission.DeafenMembers
+			| GuildPermission.KickMembers
+			| GuildPermission.ManageChannels
+			| GuildPermission.ManageEmojis
+			| GuildPermission.ManageGuild
+			| GuildPermission.ManageMessages
+			| GuildPermission.ManageNicknames
+			| GuildPermission.ManageRoles
+			| GuildPermission.ManageWebhooks
+			| GuildPermission.MoveMembers
+			| GuildPermission.MuteMembers;
+
 		public static ImmutableList<GuildPerm> Permissions = ImmutableList.Create(CreateGuildPermList());
 
 		/// <summary>
@@ -30,7 +47,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <returns></returns>
 		public static GuildPerm GetByExactValue(ulong value)
 		{
-			return Permissions.FirstOrDefault(x => x.Value == value);
+			return Permissions.FirstOrDefault(x => (ulong)x.Value == value);
 		}
 		/// <summary>
 		/// Returns the first <see cref="GuildPerm"/> to not have its value ANDed together with the argument equal zero.
@@ -39,7 +56,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <returns></returns>
 		public static GuildPerm GetByIncludedValue(ulong value)
 		{
-			return Permissions.FirstOrDefault(x => (x.Value & value) != 0);
+			return Permissions.FirstOrDefault(x => ((ulong)x.Value & value) != 0);
 		}
 		/// <summary>
 		/// Returns the first <see cref="GuildPerm"/> to equal 1 shifted to the left with the passed in number.
@@ -48,7 +65,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <returns></returns>
 		public static GuildPerm GetByBit(int bit)
 		{
-			return Permissions.FirstOrDefault(x => x.Value == (1UL << bit));
+			return Permissions.FirstOrDefault(x => (ulong)x.Value == (1UL << bit));
 		}
 
 		/// <summary>
@@ -58,7 +75,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <returns></returns>
 		public static GuildPerm[] ConvertToPermissions(ulong value)
 		{
-			return Permissions.Where(x => (x.Value & value) != 0).ToArray();
+			return Permissions.Where(x => ((ulong)x.Value & value) != 0).ToArray();
 		}
 		/// <summary>
 		/// Returns the guild permissions which can be found with the passed in names.
@@ -75,9 +92,9 @@ namespace Advobot.Core.Classes.Permissions
 		/// </summary>
 		/// <param name="permissions"></param>
 		/// <returns></returns>
-		public static ulong ConvertToValue(IEnumerable<GuildPerm> permissions)
+		public static GuildPermission ConvertToValue(IEnumerable<GuildPerm> permissions)
 		{
-			var value = 0UL;
+			GuildPermission value = 0UL;
 			foreach (var permission in permissions)
 			{
 				value |= permission.Value;
@@ -89,7 +106,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// </summary>
 		/// <param name="permissionNames"></param>
 		/// <returns></returns>
-		public static ulong ConvertToValue(IEnumerable<string> permissionNames)
+		public static GuildPermission ConvertToValue(IEnumerable<string> permissionNames)
 		{
 			return ConvertToValue(ConvertToPermissions(permissionNames));
 		}
@@ -123,13 +140,14 @@ namespace Advobot.Core.Classes.Permissions
 			var temp = new List<GuildPerm>();
 			for (int i = 0; i < 64; ++i)
 			{
-				var name = Enum.GetName(typeof(GuildPermission), i);
+				var val = (GuildPermission)(1UL << i);
+				var name = Enum.GetName(typeof(GuildPermission), val);
 				if (name == null)
 				{
 					continue;
 				}
 
-				temp.Add(new GuildPerm(name, i));
+				temp.Add(new GuildPerm(name, val));
 			}
 			return temp.ToArray();
 		}
@@ -140,12 +158,12 @@ namespace Advobot.Core.Classes.Permissions
 		public struct GuildPerm
 		{
 			public string Name { get; }
-			public ulong Value { get; }
+			public GuildPermission Value { get; }
 
-			public GuildPerm(string name, int position)
+			public GuildPerm(string name, GuildPermission value)
 			{
 				Name = name;
-				Value = (1UL << position);
+				Value = value;
 			}
 		}
 	}

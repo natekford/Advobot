@@ -86,8 +86,17 @@ namespace Advobot.UILauncher.Actions
 		{
 			return (SolidColorBrush)new BrushConverter().ConvertFrom(input);
 		}
-		public static bool CheckIfSameBrush(this SolidColorBrush b1, SolidColorBrush b2)
+		public static bool CheckIfSameBrush(SolidColorBrush b1, SolidColorBrush b2)
 		{
+			if (b1 == null)
+			{
+				return b2 == null;
+			}
+			else if (b2 == null)
+			{
+				return false;
+			}
+
 			return b1.Color == b2.Color && b1.Opacity == b2.Opacity;
 		}
 
@@ -135,58 +144,16 @@ namespace Advobot.UILauncher.Actions
 			}
 		}
 
-		public static IEnumerable<TreeViewItem> MakeGuildTreeViewItemsSource(IEnumerable<IGuild> guilds)
-		{
-			var directoryInfo = GetActions.GetBaseBotDirectory();
-			if (directoryInfo == null || !directoryInfo.Exists)
-			{
-				return null;
-			}
-
-			var r = Application.Current.MainWindow.Resources;
-			return directoryInfo.GetDirectories().Select(dir =>
-			{
-				//Make sure the id leads to a valid non null guild
-				if (!ulong.TryParse(dir.Name, out ulong Id) || !(guilds.SingleOrDefault(x => x.Id == Id) is SocketGuild guild))
-				{
-					return null;
-				}
-
-				var items = dir.GetFiles().Select(file =>
-				{
-					return new TreeViewItem
-					{
-						Header = file.Name,
-						Tag = new FileInformation(file),
-						Background = (Brush)r[ColorTarget.BaseBackground],
-						Foreground = (Brush)r[ColorTarget.BaseForeground],
-						//No idea why these are needed, but the bindinglistener throws exceptions when they're not
-						HorizontalContentAlignment = HorizontalAlignment.Left,
-						VerticalContentAlignment = VerticalAlignment.Center,
-					};
-				}).Where(x => x.Tag is FileInformation fi && fi.FileType != default);
-
-				return !items.Any() ? null : new TreeViewItem
-				{
-					Header = guild.FormatGuild(),
-					Tag = guild,
-					Background = (Brush)r[ColorTarget.BaseBackground],
-					Foreground = (Brush)r[ColorTarget.BaseForeground],
-					ItemsSource = items,
-				};
-			}).Where(x => x != null).OrderByDescending(x => x.Tag is SocketGuild g ? g.MemberCount : 0);
-		}
-
 		public static bool TryGetFileText(object sender, out string text, out FileInfo fileInfo)
 		{
 			text = null;
 			fileInfo = null;
-			if (sender is FrameworkElement element && element.Tag is FileInformation fi && (fi.FileInfo?.Exists ?? false))
+			if (sender is FrameworkElement element && element.Tag is FileInfo fi && fi.Exists)
 			{
-				using (var reader = new StreamReader(fi.FileInfo.FullName))
+				using (var reader = new StreamReader(fi.FullName))
 				{
 					text = reader.ReadToEnd();
-					fileInfo = fi.FileInfo;
+					fileInfo = fi;
 				}
 				return true;
 			}

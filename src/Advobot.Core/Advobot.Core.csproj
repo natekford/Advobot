@@ -39,7 +39,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.0.0-alpha-build-00839" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-alpha-build-00840" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
   </ItemGroup>

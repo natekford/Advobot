@@ -1,39 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Advobot.Core;
+using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Interfaces;
+using Advobot.UILauncher.Actions;
+using Advobot.UILauncher.Classes;
+using Advobot.UILauncher.Classes.Controls;
+using Advobot.UILauncher.Enums;
+using Discord;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using Advobot.UILauncher.Enums;
-using Advobot.UILauncher.Classes;
-using Advobot.UILauncher.Actions;
-using System.Windows.Threading;
-using Advobot.Core.Interfaces;
-using Discord;
 using System.Windows.Navigation;
-using System.Diagnostics;
-using Advobot.Core;
-using Advobot.Core.Actions;
-using Microsoft.Extensions.DependencyInjection;
-using Advobot.UILauncher.Classes.Converters;
-using Advobot.Core.Actions.Formatting;
-using Advobot.Core.Classes;
-using System.Threading;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Dynamic;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.IO;
+using System.Windows.Threading;
 
-namespace Advobot.UILauncher
+namespace Advobot.UILauncher.Windows
 {
 	/// <summary>
 	/// Interaction logic for AdvobotApplication.xaml
@@ -43,6 +29,7 @@ namespace Advobot.UILauncher
 		public Holder<IDiscordClient> Client { get; private set; } = new Holder<IDiscordClient>();
 		public Holder<IBotSettings> BotSettings { get; private set; } = new Holder<IBotSettings>();
 		public Holder<ILogService> LogHolder { get; private set; } = new Holder<ILogService>();
+		public ILogService Logging { get; private set; } = null;
 
 		private ColorSettings _Colors = new ColorSettings();
 		private LoginHandler _LoginHandler = new LoginHandler();
@@ -51,7 +38,7 @@ namespace Advobot.UILauncher
 
 		public AdvobotWindow()
 		{
-			_Listener = new BindingListener(0);
+			_Listener = new BindingListener();
 			InitializeComponent();
 
 			_LoginHandler.AbleToStart += Start;
@@ -69,6 +56,7 @@ namespace Advobot.UILauncher
 			Client.HeldObject = lh.GetRequiredService<IDiscordClient>();
 			BotSettings.HeldObject = lh.GetRequiredService<IBotSettings>();
 			LogHolder.HeldObject = lh.GetRequiredService<ILogService>();
+			Logging = lh.GetRequiredService<ILogService>();
 			_Colors = ColorSettings.LoadUISettings();
 
 			//Has to be started after the client due to the latency tab
@@ -168,7 +156,7 @@ namespace Advobot.UILauncher
 					}
 					case MenuType.Files:
 					{
-						this.FilesTreeView.ItemsSource = UIModification.MakeGuildTreeViewItemsSource(await Client.HeldObject.GetGuildsAsync());
+						this.FilesTreeView.ItemsSource = AdvobotTreeView.MakeGuildTreeViewItemsSource(await Client.HeldObject.GetGuildsAsync());
 						foreach (var item in this.FilesTreeView.Items.Cast<TreeViewItem>().SelectMany(x => x.Items.Cast<TreeViewItem>()))
 						{
 							item.MouseDoubleClick += OpenSpecificFileLayout;
@@ -319,7 +307,7 @@ namespace Advobot.UILauncher
 						continue;
 					}
 
-					if (!c[target].CheckIfSameBrush(brush))
+					if (!UIModification.CheckIfSameBrush(c[target], brush))
 					{
 						tb.Text = (c[target] = brush).ToString();
 						ConsoleActions.WriteLine($"Successfully updated the color for {target.EnumName()}.");
@@ -330,7 +318,7 @@ namespace Advobot.UILauncher
 					if (c.Theme != theme)
 					{
 						c.Theme = theme;
-						ConsoleActions.WriteLine("Successfully updated the theme type.");
+						ConsoleActions.WriteLine($"Successfully updated the theme to {theme.EnumName().FormatTitle().ToLower()}.");
 					}
 				}
 			}
@@ -354,21 +342,21 @@ namespace Advobot.UILauncher
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (IsCtrlS(e))
+			if (SavingActions.IsCtrlS(e))
 			{
 				SaveSettings(sender, e);
 			}
 		}
 		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (IsCtrlS(e))
+			if (SavingActions.IsCtrlS(e))
 			{
 				SaveColors(sender, e);
 			}
 		}
 		private void SaveFileWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (IsCtrlS(e))
+			if (SavingActions.IsCtrlS(e))
 			{
 				SaveFile(sender, e);
 			}
@@ -399,6 +387,8 @@ namespace Advobot.UILauncher
 					throw new ArgumentException($"Invalid modal type supplied: {m.EnumName()}");
 				}
 			}
+			//Reset the opacity
+			this.Opacity = 100;
 		}
 		private void CloseFile(object sender, RoutedEventArgs e)
 		{
@@ -454,10 +444,6 @@ namespace Advobot.UILauncher
 			this.SaveFileButton.Visibility = Visibility.Visible;
 			this.CloseFileButton.Visibility = Visibility.Visible;
 			this.FileSearchButton.Visibility = Visibility.Collapsed;
-		}
-		public static bool IsCtrlS(KeyEventArgs e)
-		{
-			return e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
 		}
 	}
 }

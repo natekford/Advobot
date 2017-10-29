@@ -1,65 +1,38 @@
 ﻿using Advobot.Core.Actions;
 using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Classes;
-using Advobot.UILauncher.Classes.Converters;
+using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Enums;
 using Discord.WebSocket;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
-namespace Advobot.UILauncher
+namespace Advobot.UILauncher.Windows
 {
-    /// <summary>
-    /// Interaction logic for FileSearch.xaml
-    /// </summary>
-    public partial class FileSearchWindow : Window
+	/// <summary>
+	/// Interaction logic for FileSearch.xaml
+	/// </summary>
+	public partial class FileSearchWindow : ModalWindow
 	{
-		public FileSearchWindow(Window mainWindow) : this()
+		public FileSearchWindow(Window mainWindow) : base(mainWindow)
 		{
-			this.Owner = mainWindow;
-			this.Resources = mainWindow.Resources;
-			this.Height = mainWindow.Height / 2;
-			this.Width = mainWindow.Width / 2;
-		}
-        public FileSearchWindow()
-        {
-            InitializeComponent();
+			InitializeComponent();
 			ColorSettings.SwitchElementColorOfChildren(this.Layout);
+			this.FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(new[] { "GuildSettings" });
 		}
+		public FileSearchWindow() : this(null) { }
 
-		private void WindowClosed(object sender, EventArgs e)
-		{
-			//Restore opacity and return false, indicating the user did not search
-			this.Owner.Opacity = 100;
-			if (this.DialogResult == null)
-			{
-				this.DialogResult = false;
-			}
-		}
-		private void Close(object sender, RoutedEventArgs e)
-		{
-			this.Close();
-		}
 		private void Search(object sender, RoutedEventArgs e)
 		{
 			var selected = this.FileTypeComboBox.SelectedItem;
 			var name = this.GuildNameInput.Text;
 			var id = this.GuildIdInput.Text;
-			if (false
-				|| !(this.Owner is AdvobotWindow win)
-				|| !(selected is TextBox tb)
-				|| !(tb.Tag is FileType ft))
+			if (!(this.Owner is AdvobotWindow win) ||
+				!(selected is TextBox tb) ||
+				!(tb.Tag is string s))
 			{
 				return;
 			}
@@ -97,7 +70,7 @@ namespace Advobot.UILauncher
 
 			if (item != null)
 			{
-				var file = item.Items.OfType<TreeViewItem>().FirstOrDefault(x => x.Tag is FileInformation fi && fi.FileType == ft);
+				var file = item.Items.OfType<TreeViewItem>().FirstOrDefault(x => x.Tag is FileInfo fi && fi.Name.CaseInsContains(s));
 				if (item != null && UIModification.TryGetFileText(file, out var text, out var fileInfo))
 				{
 					//Open the result in the window and set dialogresult to true indicating a file was found

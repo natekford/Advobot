@@ -85,36 +85,20 @@ namespace Advobot.Core.Actions
 				guildSettings.SaveSettings();
 			}
 
-			const ulong TEXT_PERMS = 0
-				| (1UL << (int)ChannelPermission.CreateInstantInvite)
-				| (1UL << (int)ChannelPermission.ManageChannel)
-				| (1UL << (int)ChannelPermission.ManagePermissions)
-				| (1UL << (int)ChannelPermission.ManageWebhooks)
-				| (1UL << (int)ChannelPermission.SendMessages)
-				| (1UL << (int)ChannelPermission.ManageMessages)
-				| (1UL << (int)ChannelPermission.AddReactions);
 			foreach (var textChannel in await context.Guild.GetTextChannelsAsync().CAF())
 			{
 				if (textChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, TEXT_PERMS)).CAF();
+					var perms = (ulong)ChannelPerms.MUTE_ROLE_TEXT_PERMS;
+					await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, perms)).CAF();
 				}
 			}
-
-			const ulong VOICE_PERMS = 0
-				| (1UL << (int)ChannelPermission.CreateInstantInvite)
-				| (1UL << (int)ChannelPermission.ManageChannel)
-				| (1UL << (int)ChannelPermission.ManagePermissions)
-				| (1UL << (int)ChannelPermission.ManageWebhooks)
-				| (1UL << (int)ChannelPermission.Speak)
-				| (1UL << (int)ChannelPermission.MuteMembers)
-				| (1UL << (int)ChannelPermission.DeafenMembers)
-				| (1UL << (int)ChannelPermission.MoveMembers);
 			foreach (var voiceChannel in await context.Guild.GetVoiceChannelsAsync().CAF())
 			{
 				if (voiceChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, VOICE_PERMS)).CAF();
+					var perms = (ulong)ChannelPerms.MUTE_ROLE_VOICE_PERMS;
+					await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, perms)).CAF();
 				}
 			}
 

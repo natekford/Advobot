@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes.Permissions;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Discord;
@@ -16,20 +17,6 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class OtherRequirementAttribute : PreconditionAttribute
 	{
-		private const ulong PERMISSION_BITS = 0
-			| (1UL << (int)GuildPermission.Administrator)
-			| (1UL << (int)GuildPermission.BanMembers)
-			| (1UL << (int)GuildPermission.DeafenMembers)
-			| (1UL << (int)GuildPermission.KickMembers)
-			| (1UL << (int)GuildPermission.ManageChannels)
-			| (1UL << (int)GuildPermission.ManageEmojis)
-			| (1UL << (int)GuildPermission.ManageGuild)
-			| (1UL << (int)GuildPermission.ManageMessages)
-			| (1UL << (int)GuildPermission.ManageNicknames)
-			| (1UL << (int)GuildPermission.ManageRoles)
-			| (1UL << (int)GuildPermission.ManageWebhooks)
-			| (1UL << (int)GuildPermission.MoveMembers)
-			| (1UL << (int)GuildPermission.MuteMembers);
 		public readonly Precondition Requirements;
 
 		public OtherRequirementAttribute(Precondition requirements)
@@ -53,7 +40,7 @@ namespace Advobot.Core.Classes.Attributes
 					var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 
 					var userPerms = guildBits | botBits;
-					if ((userPerms & PERMISSION_BITS) != 0)
+					if ((userPerms & (ulong)GuildPerms.USER_HAS_A_PERMISSION_PERMS) != 0)
 					{
 						return PreconditionResult.FromSuccess();
 					}

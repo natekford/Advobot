@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace Advobot.UILauncher.Classes
+namespace Advobot.UILauncher.Classes.Controls
 {
 	internal class AdvobotComboBox : ComboBox, IFontResizeValue
 	{

@@ -1,15 +1,17 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core;
+using Advobot.Core.Actions;
+using Advobot.UILauncher.Actions;
+using Advobot.UILauncher.Classes.Controls;
+using Advobot.UILauncher.Enums;
+using Advobot.UILauncher.Windows;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Media;
-using Advobot.UILauncher.Actions;
-using Advobot.UILauncher.Enums;
 using System.Windows.Controls;
-using Advobot.Core;
+using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes
 {
@@ -24,16 +26,6 @@ namespace Advobot.UILauncher.Classes
 		public static SolidColorBrush LightModeButtonDisabledForeground => UIModification.CreateBrush("#888888");
 		public static SolidColorBrush LightModeButtonDisabledBorder => UIModification.CreateBrush("#ADB2B5");
 		public static SolidColorBrush LightModeButtonMouseOver => UIModification.CreateBrush("#BEE6FD");
-		public static Style LightModeButtonStyle => AdvobotButton.MakeButtonStyle
-		(
-			LightModeButtonBackground,
-			LightModeForeground,
-			LightModeButtonBorder,
-			LightModeButtonDisabledBackground,
-			LightModeButtonDisabledForeground,
-			LightModeButtonDisabledBorder,
-			LightModeButtonMouseOver
-		);
 
 		public static SolidColorBrush DarkModeBackground => UIModification.CreateBrush("#1C1C1C");
 		public static SolidColorBrush DarkModeForeground => UIModification.CreateBrush("#E1E1E1");
@@ -44,16 +36,6 @@ namespace Advobot.UILauncher.Classes
 		public static SolidColorBrush DarkModeButtonDisabledForeground => UIModification.CreateBrush("#A0A0A0");
 		public static SolidColorBrush DarkModeButtonDisabledBorder => UIModification.CreateBrush("#ADB2B5");
 		public static SolidColorBrush DarkModeButtonMouseOver => UIModification.CreateBrush("#303333");
-		public static Style DarkModeButtonStyle => AdvobotButton.MakeButtonStyle
-		(
-			DarkModeButtonBackground,
-			DarkModeForeground,
-			DarkModeButtonBorder,
-			DarkModeButtonDisabledBackground,
-			DarkModeButtonDisabledForeground,
-			DarkModeButtonDisabledBorder,
-			DarkModeButtonMouseOver
-		);
 
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;
@@ -106,7 +88,7 @@ namespace Advobot.UILauncher.Classes
 		}
 		private static void SetClassicTheme()
 		{
-			var r = Application.Current.MainWindow.Resources;
+			var r = Application.Current.Resources;
 			r[ColorTarget.BaseBackground] = LightModeBackground;
 			r[ColorTarget.BaseForeground] = LightModeForeground;
 			r[ColorTarget.BaseBorder] = LightModeBorder;
@@ -116,11 +98,10 @@ namespace Advobot.UILauncher.Classes
 			r[ColorTarget.ButtonDisabledForeground] = LightModeButtonDisabledForeground;
 			r[ColorTarget.ButtonDisabledBorder] = LightModeButtonDisabledBorder;
 			r[ColorTarget.ButtonMouseOverBackground] = LightModeButtonMouseOver;
-			r[OtherTarget.ButtonStyle] = LightModeButtonStyle;
 		}
 		private static void SetDarkModeTheme()
 		{
-			var r = Application.Current.MainWindow.Resources;
+			var r = Application.Current.Resources;
 			r[ColorTarget.BaseBackground] = DarkModeBackground;
 			r[ColorTarget.BaseForeground] = DarkModeForeground;
 			r[ColorTarget.BaseBorder] = DarkModeBorder;
@@ -130,25 +111,14 @@ namespace Advobot.UILauncher.Classes
 			r[ColorTarget.ButtonDisabledForeground] = DarkModeButtonDisabledForeground;
 			r[ColorTarget.ButtonDisabledBorder] = DarkModeButtonDisabledBorder;
 			r[ColorTarget.ButtonMouseOverBackground] = DarkModeButtonMouseOver;
-			r[OtherTarget.ButtonStyle] = DarkModeButtonStyle;
 		}
 		private void SetCustomTheme()
 		{
-			var r = Application.Current.MainWindow.Resources;
+			var r = Application.Current.Resources;
 			foreach (var kvp in ColorTargets)
 			{
 				r[kvp.Key] = kvp.Value;
 			}
-			r[OtherTarget.ButtonStyle] = AdvobotButton.MakeButtonStyle
-			(
-				ColorTargets[ColorTarget.BaseBackground],
-				ColorTargets[ColorTarget.BaseForeground],
-				ColorTargets[ColorTarget.BaseBorder],
-				ColorTargets[ColorTarget.ButtonDisabledBackground],
-				ColorTargets[ColorTarget.ButtonDisabledForeground],
-				ColorTargets[ColorTarget.ButtonDisabledBorder],
-				ColorTargets[ColorTarget.ButtonMouseOverBackground]
-			);
 		}
 		public void SaveSettings()
 		{
@@ -159,7 +129,7 @@ namespace Advobot.UILauncher.Classes
 
 		public static void SwitchElementColorOfChildren(DependencyObject parent)
 		{
-			if (parent is Advobot.UILauncher.AdvobotWindow)
+			if (parent is AdvobotWindow)
 			{
 				SetClassicTheme();
 			}

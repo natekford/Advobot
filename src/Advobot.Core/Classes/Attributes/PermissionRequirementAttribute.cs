@@ -15,24 +15,11 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
-		private ulong _AllFlags;
-		private ulong _AnyFlags;
+		private GuildPermission _AllFlags;
+		private GuildPermission _AnyFlags;
 
 		//This doesn't have default values for the parameters since that makes it harder to potentially provide the wrong permissions
 		public PermissionRequirementAttribute(GuildPermission[] anyOfTheListedPerms, GuildPermission[] allOfTheListedPerms)
-		{
-			_AnyFlags |= (1UL << (int)GuildPermission.Administrator);
-			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
-			{
-				_AnyFlags |= (1UL << (int)perm);
-			}
-			foreach (var perm in allOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
-			{
-				_AllFlags |= (1UL << (int)perm);
-			}
-		}
-		/* For when/if GuildPermission values get put as bits
-		public PermissionRequirementAttribute(GuildPermission anyOfTheListedPerms, GuildPermission allOfTheListedPerms)
 		{
 			_AnyFlags |= GuildPermission.Administrator;
 			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
@@ -44,7 +31,6 @@ namespace Advobot.Core.Classes.Attributes
 				_AllFlags |= perm;
 			}
 		}
-		*/
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
@@ -55,8 +41,8 @@ namespace Advobot.Core.Classes.Attributes
 				var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 				var userPerms = guildBits | botBits;
 
-				var all = _AllFlags != 0 && (userPerms & _AllFlags) == _AllFlags;
-				var any = userPerms != 0 && _AnyFlags != 0 && (userPerms & _AnyFlags) != 0;
+				var all = _AllFlags != 0 && ((GuildPermission)userPerms & _AllFlags) == _AllFlags;
+				var any = userPerms != 0 && _AnyFlags != 0 && ((GuildPermission)userPerms & _AnyFlags) != 0;
 				if (all || any)
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
@@ -65,8 +51,8 @@ namespace Advobot.Core.Classes.Attributes
 			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 
-		public string AllText => String.Join(" & ", GuildPerms.ConvertValueToNames(_AllFlags));
-		public string AnyText => String.Join(" | ", GuildPerms.ConvertValueToNames(_AnyFlags));
+		public string AllText => String.Join(" & ", GuildPerms.ConvertValueToNames((ulong)_AllFlags));
+		public string AnyText => String.Join(" | ", GuildPerms.ConvertValueToNames((ulong)_AnyFlags));
 
 		public override string ToString()
 		{

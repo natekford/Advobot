@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Advobot.UILauncher.Classes
+namespace Advobot.UILauncher.Classes.Controls
 {
 	internal class AdvobotGrid : Grid, IFontResizeValue
 	{

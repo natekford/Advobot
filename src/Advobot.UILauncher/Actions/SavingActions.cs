@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Advobot.UILauncher.Actions
 {
@@ -30,13 +31,12 @@ namespace Advobot.UILauncher.Actions
 		private static ToolTipReason SaveFile(Control control, string text)
 		{
 			//If no valid tag just save to a new file with its name being the control's name
-			var tag = control.Tag
-				?? new FileInfo($"{control.Name}_{TimeFormatting.FormatDateTimeForSaving()}{Constants.GENERAL_FILE_EXTENSION}");
-			if (!(tag is FileInformation fi))
+			var tag = control.Tag ?? CreateFileInfo(control);
+			if (!(tag is FileInfo fi))
 			{
 				return ToolTipReason.InvalidFilePath;
 			}
-			else if (fi.FileInfo.Name == Constants.GUILD_SETTINGS_LOCATION)
+			else if (fi.Name == Constants.GUILD_SETTINGS_LOCATION)
 			{
 				//Make sure the guild info stays valid
 				try
@@ -52,7 +52,7 @@ namespace Advobot.UILauncher.Actions
 
 			try
 			{
-				SavingAndLoadingActions.OverWriteFile(fi.FileInfo, text);
+				SavingAndLoadingActions.OverWriteFile(fi, text);
 				return ToolTipReason.FileSavingSuccess;
 			}
 			catch
@@ -60,9 +60,11 @@ namespace Advobot.UILauncher.Actions
 				return ToolTipReason.FileSavingFailure;
 			}
 		}
-		public static FileType GetFileType(string file)
+		private static FileInfo CreateFileInfo(Control control)
 		{
-			return Enum.TryParse(file, true, out FileType type) ? type : default;
+			var baseDir = GetActions.GetBaseBotDirectory().FullName;
+			var fileName = $"{control.Name}_{TimeFormatting.FormatDateTimeForSaving()}{Constants.GENERAL_FILE_EXTENSION}";
+			return new FileInfo(Path.Combine(baseDir, fileName));
 		}
 
 		public static async Task SaveSettings(Grid parent, IDiscordClient client, IBotSettings botSettings)
@@ -232,6 +234,11 @@ namespace Advobot.UILauncher.Actions
 			}
 
 			throw new ArgumentException($"Invalid object provided when attempting to save settings for a {obj.GetType().Name}.");
+		}
+
+		public static bool IsCtrlS(KeyEventArgs e)
+		{
+			return e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
 		}
 	}
 }
