@@ -19,6 +19,12 @@ namespace Advobot.UILauncher.Classes.Controls
 			}
 		}
 
+		public override void EndInit()
+		{
+			SetAllChildrenToFontSizeProperty(this);
+			base.EndInit();
+		}
+
 		private void SetAllChildrenToFontSizeProperty(DependencyObject parent)
 		{
 			foreach (var child in parent.GetChildren())
@@ -36,15 +42,9 @@ namespace Advobot.UILauncher.Classes.Controls
 				//Don't set it on controls with it already set
 				else if (child is Control c && c.GetBindingExpression(Control.FontSizeProperty) == null)
 				{
-					UIModification.SetFontResizeProperty(c, _FRV);
+					EntityActions.SetFontResizeProperty(c, _FRV);
 				}
 			}
-		}
-
-		public override void EndInit()
-		{
-			SetAllChildrenToFontSizeProperty(this);
-			base.EndInit();
 		}
 	}
 }

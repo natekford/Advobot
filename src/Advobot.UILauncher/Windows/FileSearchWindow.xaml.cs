@@ -1,8 +1,8 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core;
+using Advobot.Core.Actions;
 using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Classes.Controls;
-using Advobot.UILauncher.Enums;
 using Discord.WebSocket;
 using System;
 using System.IO;
@@ -17,11 +17,17 @@ namespace Advobot.UILauncher.Windows
 	/// </summary>
 	public partial class FileSearchWindow : ModalWindow
 	{
+		private string[] _Files = new[]
+		{
+			Constants.GUILD_SETTINGS_LOCATION.Split('.')[0],
+		};
+
+		//TODO: figure out the file search crash bug with drop down selected and some text in left box, and hit red x
 		public FileSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
 			ColorSettings.SwitchElementColorOfChildren(this.Layout);
-			this.FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(new[] { "GuildSettings" });
+			this.FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(_Files);
 		}
 		public FileSearchWindow() : this(null) { }
 
@@ -71,7 +77,7 @@ namespace Advobot.UILauncher.Windows
 			if (item != null)
 			{
 				var file = item.Items.OfType<TreeViewItem>().FirstOrDefault(x => x.Tag is FileInfo fi && fi.Name.CaseInsContains(s));
-				if (item != null && UIModification.TryGetFileText(file, out var text, out var fileInfo))
+				if (item != null && SavingActions.TryGetFileText(file, out var text, out var fileInfo))
 				{
 					//Open the result in the window and set dialogresult to true indicating a file was found
 					win.OpenSpecificFileLayout(text, fileInfo);

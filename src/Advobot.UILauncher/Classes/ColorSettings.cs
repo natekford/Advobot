@@ -17,25 +17,27 @@ namespace Advobot.UILauncher.Classes
 {
 	internal class ColorSettings
 	{
-		public static SolidColorBrush LightModeBackground => UIModification.CreateBrush("#FFFFFF");
-		public static SolidColorBrush LightModeForeground => UIModification.CreateBrush("#000000");
-		public static SolidColorBrush LightModeBorder => UIModification.CreateBrush("#ABADB3");
-		public static SolidColorBrush LightModeButtonBackground => UIModification.CreateBrush("#DDDDDD");
-		public static SolidColorBrush LightModeButtonBorder => UIModification.CreateBrush("#707070");
-		public static SolidColorBrush LightModeButtonDisabledBackground => UIModification.CreateBrush("#F4F4F4");
-		public static SolidColorBrush LightModeButtonDisabledForeground => UIModification.CreateBrush("#888888");
-		public static SolidColorBrush LightModeButtonDisabledBorder => UIModification.CreateBrush("#ADB2B5");
-		public static SolidColorBrush LightModeButtonMouseOver => UIModification.CreateBrush("#BEE6FD");
+		public static SolidColorBrush LightModeBackground => AdvobotColor.CreateBrush("#FFFFFF");
+		public static SolidColorBrush LightModeForeground => AdvobotColor.CreateBrush("#000000");
+		public static SolidColorBrush LightModeBorder => AdvobotColor.CreateBrush("#ABADB3");
+		public static SolidColorBrush LightModeButtonBackground => AdvobotColor.CreateBrush("#DDDDDD");
+		public static SolidColorBrush LightModeButtonForeground => AdvobotColor.CreateBrush("#0E0E0E");
+		public static SolidColorBrush LightModeButtonBorder => AdvobotColor.CreateBrush("#707070");
+		public static SolidColorBrush LightModeButtonDisabledBackground => AdvobotColor.CreateBrush("#F4F4F4");
+		public static SolidColorBrush LightModeButtonDisabledForeground => AdvobotColor.CreateBrush("#888888");
+		public static SolidColorBrush LightModeButtonDisabledBorder => AdvobotColor.CreateBrush("#ADB2B5");
+		public static SolidColorBrush LightModeButtonMouseOver => AdvobotColor.CreateBrush("#BEE6FD");
 
-		public static SolidColorBrush DarkModeBackground => UIModification.CreateBrush("#1C1C1C");
-		public static SolidColorBrush DarkModeForeground => UIModification.CreateBrush("#E1E1E1");
-		public static SolidColorBrush DarkModeBorder => UIModification.CreateBrush("#ABADB3");
-		public static SolidColorBrush DarkModeButtonBackground => UIModification.CreateBrush("#151515");
-		public static SolidColorBrush DarkModeButtonBorder => UIModification.CreateBrush("#ABADB3");
-		public static SolidColorBrush DarkModeButtonDisabledBackground => UIModification.CreateBrush("#343434");
-		public static SolidColorBrush DarkModeButtonDisabledForeground => UIModification.CreateBrush("#A0A0A0");
-		public static SolidColorBrush DarkModeButtonDisabledBorder => UIModification.CreateBrush("#ADB2B5");
-		public static SolidColorBrush DarkModeButtonMouseOver => UIModification.CreateBrush("#303333");
+		public static SolidColorBrush DarkModeBackground => AdvobotColor.CreateBrush("#1C1C1C");
+		public static SolidColorBrush DarkModeForeground => AdvobotColor.CreateBrush("#E1E1E1");
+		public static SolidColorBrush DarkModeBorder => AdvobotColor.CreateBrush("#ABADB3");
+		public static SolidColorBrush DarkModeButtonBackground => AdvobotColor.CreateBrush("#151515");
+		public static SolidColorBrush DarkModeButtonForeground => AdvobotColor.CreateBrush("#E1E1E1");
+		public static SolidColorBrush DarkModeButtonBorder => AdvobotColor.CreateBrush("#ABADB3");
+		public static SolidColorBrush DarkModeButtonDisabledBackground => AdvobotColor.CreateBrush("#343434");
+		public static SolidColorBrush DarkModeButtonDisabledForeground => AdvobotColor.CreateBrush("#A0A0A0");
+		public static SolidColorBrush DarkModeButtonDisabledBorder => AdvobotColor.CreateBrush("#ADB2B5");
+		public static SolidColorBrush DarkModeButtonMouseOver => AdvobotColor.CreateBrush("#303333");
 
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;
@@ -93,6 +95,7 @@ namespace Advobot.UILauncher.Classes
 			r[ColorTarget.BaseForeground] = LightModeForeground;
 			r[ColorTarget.BaseBorder] = LightModeBorder;
 			r[ColorTarget.ButtonBackground] = LightModeButtonBackground;
+			r[ColorTarget.ButtonForeground] = LightModeButtonForeground;
 			r[ColorTarget.ButtonBorder] = LightModeButtonBorder;
 			r[ColorTarget.ButtonDisabledBackground] = LightModeButtonDisabledBackground;
 			r[ColorTarget.ButtonDisabledForeground] = LightModeButtonDisabledForeground;
@@ -106,6 +109,7 @@ namespace Advobot.UILauncher.Classes
 			r[ColorTarget.BaseForeground] = DarkModeForeground;
 			r[ColorTarget.BaseBorder] = DarkModeBorder;
 			r[ColorTarget.ButtonBackground] = DarkModeButtonBackground;
+			r[ColorTarget.ButtonForeground] = DarkModeButtonForeground;
 			r[ColorTarget.ButtonBorder] = DarkModeButtonBorder;
 			r[ColorTarget.ButtonDisabledBackground] = DarkModeButtonDisabledBackground;
 			r[ColorTarget.ButtonDisabledForeground] = DarkModeButtonDisabledForeground;
@@ -144,7 +148,7 @@ namespace Advobot.UILauncher.Classes
 					}
 					if (button.Foreground == null)
 					{
-						button.SetResourceReference(Button.ForegroundProperty, ColorTarget.BaseForeground);
+						button.SetResourceReference(Button.ForegroundProperty, ColorTarget.ButtonForeground);
 					}
 				}
 				else if (child is Control control)

@@ -73,16 +73,15 @@ namespace Advobot.Core.Actions
 		/// <summary>
 		/// Writes an uncaught exception to a log file.
 		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		public static void LogUncaughtException(object sender, UnhandledExceptionEventArgs e)
+		/// <param name="exeption"></param>
+		public static void LogUncaughtException(object exception)
 		{
 			var crashLogPath = GetActions.GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOCATION);
 			CreateFile(crashLogPath);
 			//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
 			using (var writer = crashLogPath.AppendText())
 			{
-				writer.WriteLine($"{TimeFormatting.FormatReadableDateTime(DateTime.UtcNow)}: {e.ExceptionObject.ToString()}\n");
+				writer.WriteLine($"{TimeFormatting.FormatReadableDateTime(DateTime.UtcNow)}: {exception.ToString()}\n");
 			}
 		}
 	}

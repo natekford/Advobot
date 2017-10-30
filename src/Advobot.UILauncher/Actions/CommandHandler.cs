@@ -1,36 +1,46 @@
-﻿using Advobot.Core;
-using Advobot.Core.Actions;
+﻿using Advobot.Core.Actions;
 using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Actions
 {
-	internal static class UICommandHandler
+	internal static class CommandHandler
 	{
-		public static string GatherInput(TextBox tb, Button b)
+		/// <summary>
+		/// Returns the text of the textbox and clears the textbox.
+		/// </summary>
+		/// <param name="tb"></param>
+		/// <returns></returns>
+		public static string GatherInput(TextBox tb)
 		{
 			var text = tb.Text.Trim(new[] { '\r', '\n' });
-			if (text.Contains("﷽"))
-			{
-				text += "This program really doesn't like that long Arabic character for some reason. Whenever there are a lot of them it crashes the program completely.";
-			}
-
-			tb.Text = "";
-			b.IsEnabled = false;
-			ConsoleActions.WriteLine(text);
+			tb.Text = null;
 			return text;
 		}
+		/// <summary>
+		/// Attemts to invoke a command if one can be found. Otherwise writes that no command could be found.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="prefix"></param>
 		public static void HandleCommand(string input, string prefix)
 		{
-			if (input.CaseInsStartsWith(prefix))
+			if (!input.CaseInsStartsWith(prefix))
 			{
-				var inputArray = input.Substring(prefix.Length)?.Split(new[] { ' ' }, 2);
-				if (!FindCommand(inputArray[0], inputArray.Length > 1 ? inputArray[1] : null))
-				{
-					ConsoleActions.WriteLine("No command could be found with that name.");
-				}
+				return;
+			}
+
+			var inputArray = input.Substring(prefix.Length)?.Split(new[] { ' ' }, 2);
+			if (!FindCommand(inputArray[0], inputArray.Length > 1 ? inputArray[1] : null))
+			{
+				ConsoleActions.WriteLine("No command could be found with that name.");
 			}
 		}
-		public static bool FindCommand(string cmd, string args)
+		/// <summary>
+		/// Attempts to find a command with the supplied name and that can accept the supplied args.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		public static bool FindCommand(string name, string args)
 		{
 			return false;
 		}

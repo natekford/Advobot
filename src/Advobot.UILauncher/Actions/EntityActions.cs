@@ -1,44 +1,39 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Interfaces;
-using Advobot.UILauncher.Enums;
-using Advobot.UILauncher.Classes;
-using Discord;
-using ICSharpCode.AvalonEdit;
-using Newtonsoft.Json;
+﻿using Advobot.UILauncher.Classes.Converters;
+using Advobot.UILauncher.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Media;
-using System.Reflection;
-using Advobot.Core.Actions.Formatting;
-using System.Text;
-using Advobot.Core.Classes;
-using System.Windows.Input;
-using Discord.WebSocket;
-using Advobot.UILauncher.Interfaces;
-using Advobot.Core;
-using Advobot.UILauncher.Classes.Converters;
 
 namespace Advobot.UILauncher.Actions
 {
-	internal static class UIModification
+	internal static class EntityActions
 	{
+		/// <summary>
+		/// Sets the <see cref="Grid.RowSpanProperty"/> to either 1 or the supplied length.
+		/// </summary>
+		/// <param name="item"></param>
+		/// <param name="length"></param>
 		public static void SetRowSpan(UIElement item, int length)
 		{
 			Grid.SetRowSpan(item, Math.Max(1, length));
 		}
+		/// <summary>
+		/// Sets the <see cref="Grid.ColumnSpanProperty"/> to either 1 or the supplied length.
+		/// </summary>
+		/// <param name="item"></param>
+		/// <param name="length"></param>
 		public static void SetColSpan(UIElement item, int length)
 		{
 			Grid.SetColumnSpan(item, Math.Max(1, length));
 		}
+		/// <summary>
+		/// Sets the <see cref="Control.FontSizeProperty"/> to a number that changes based off of the top most grid's height.
+		/// </summary>
+		/// <param name="control"></param>
+		/// <param name="size"></param>
 		public static void SetFontResizeProperty(Control control, double size)
 		{
 			if (!GetTopMostParent(control, out Grid parent, out int ancestorLevel))
@@ -52,52 +47,6 @@ namespace Advobot.UILauncher.Actions
 				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), ancestorLevel),
 				Converter = new FontResizeConverter(size),
 			});
-		}
-
-		public static bool TryCreateBrush(string input, out SolidColorBrush brush)
-		{
-			var split = input.Split('/');
-			if (split.Length == 3 && byte.TryParse(split[0], out var r) && byte.TryParse(split[1], out var g) && byte.TryParse(split[2], out var b))
-			{
-				r = Math.Min(r, (byte)255);
-				g = Math.Min(g, (byte)255);
-				b = Math.Min(b, (byte)255);
-				brush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, r, g, b));
-			}
-			else
-			{
-				if (!input.StartsWith("#"))
-				{
-					input = "#" + input;
-				}
-				try
-				{
-					brush = CreateBrush(input);
-				}
-				catch
-				{
-					brush = null;
-					return false;
-				}
-			}
-			return true;
-		}
-		public static SolidColorBrush CreateBrush(string input)
-		{
-			return (SolidColorBrush)new BrushConverter().ConvertFrom(input);
-		}
-		public static bool CheckIfSameBrush(SolidColorBrush b1, SolidColorBrush b2)
-		{
-			if (b1 == null)
-			{
-				return b2 == null;
-			}
-			else if (b2 == null)
-			{
-				return false;
-			}
-
-			return b1.Color == b2.Color && b1.Opacity == b2.Opacity;
 		}
 
 		/// <summary>
@@ -142,24 +91,6 @@ namespace Advobot.UILauncher.Actions
 			{
 				yield return VisualTreeHelper.GetChild(parent, i);
 			}
-		}
-
-		public static bool TryGetFileText(object sender, out string text, out FileInfo fileInfo)
-		{
-			text = null;
-			fileInfo = null;
-			if (sender is FrameworkElement element && element.Tag is FileInfo fi && fi.Exists)
-			{
-				using (var reader = new StreamReader(fi.FullName))
-				{
-					text = reader.ReadToEnd();
-					fileInfo = fi;
-				}
-				return true;
-			}
-
-			ConsoleActions.WriteLine("Unable to bring up the file.");
-			return false;
 		}
 	}
 }

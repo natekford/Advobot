@@ -13,7 +13,7 @@ namespace Advobot.ConsoleLauncher
 	{
 		private static async Task Main()
 		{
-			AppDomain.CurrentDomain.UnhandledException += SavingAndLoadingActions.LogUncaughtException;
+			AppDomain.CurrentDomain.UnhandledException += (sender, e) => SavingAndLoadingActions.LogUncaughtException(e.ExceptionObject);
 
 			//Get the save path
 			var savePath = true;

@@ -15,7 +15,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 
@@ -29,16 +31,14 @@ namespace Advobot.UILauncher.Windows
 		public Holder<IDiscordClient> Client { get; private set; } = new Holder<IDiscordClient>();
 		public Holder<IBotSettings> BotSettings { get; private set; } = new Holder<IBotSettings>();
 		public Holder<ILogService> LogHolder { get; private set; } = new Holder<ILogService>();
-		public ILogService Logging { get; private set; } = null;
 
 		private ColorSettings _Colors = new ColorSettings();
 		private LoginHandler _LoginHandler = new LoginHandler();
+		private BindingListener _Listener = new BindingListener();
 		private MenuType _LastButtonClicked;
-		private BindingListener _Listener;
 
 		public AdvobotWindow()
 		{
-			_Listener = new BindingListener();
 			InitializeComponent();
 
 			_LoginHandler.AbleToStart += Start;
@@ -56,7 +56,6 @@ namespace Advobot.UILauncher.Windows
 			Client.HeldObject = lh.GetRequiredService<IDiscordClient>();
 			BotSettings.HeldObject = lh.GetRequiredService<IBotSettings>();
 			LogHolder.HeldObject = lh.GetRequiredService<ILogService>();
-			Logging = lh.GetRequiredService<ILogService>();
 			_Colors = ColorSettings.LoadUISettings();
 
 			//Has to be started after the client due to the latency tab
@@ -71,6 +70,20 @@ namespace Advobot.UILauncher.Windows
 			if (_LoginHandler.GotPath)
 			{
 				await _LoginHandler.AttemptToStart(null);
+			}
+		}
+		private async void AcceptInput(object sender, RoutedEventArgs e)
+		{
+			var input = CommandHandler.GatherInput(this.InputBox);
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				return;
+			}
+			ConsoleActions.WriteLine(input);
+
+			if (!_LoginHandler.CanLogin)
+			{
+				await _LoginHandler.AttemptToStart(input);
 			}
 		}
 		private async void OpenMenu(object sender, RoutedEventArgs e)
@@ -91,13 +104,13 @@ namespace Advobot.UILauncher.Windows
 			if (type == _LastButtonClicked)
 			{
 				//If clicking the same button then resize the output window to the regular size
-				UIModification.SetColSpan(this.Output, Grid.GetColumnSpan(this.Output) + (this.Layout.ColumnDefinitions.Count - 1));
+				EntityActions.SetColSpan(this.Output, Grid.GetColumnSpan(this.Output) + (this.Layout.ColumnDefinitions.Count - 1));
 				_LastButtonClicked = default;
 			}
 			else
 			{
 				//Resize the regular output window and have the menubox appear
-				UIModification.SetColSpan(this.Output, Grid.GetColumnSpan(this.Output) - (this.Layout.ColumnDefinitions.Count - 1));
+				EntityActions.SetColSpan(this.Output, Grid.GetColumnSpan(this.Output) - (this.Layout.ColumnDefinitions.Count - 1));
 				_LastButtonClicked = type;
 
 				switch (type)
@@ -140,15 +153,16 @@ namespace Advobot.UILauncher.Windows
 						var tcbSelected = this.ThemesComboBox.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
 
-						this.BaseBackground.Text = c[ColorTarget.BaseBackground]?.ToString() ?? "";
-						this.BaseForeground.Text = c[ColorTarget.BaseForeground]?.ToString() ?? "";
-						this.BaseBorder.Text = c[ColorTarget.BaseBorder]?.ToString() ?? "";
-						this.ButtonBackground.Text = c[ColorTarget.ButtonBackground]?.ToString() ?? "";
-						this.ButtonBorder.Text = c[ColorTarget.ButtonBorder]?.ToString() ?? "";
-						this.ButtonDisabledBackground.Text = c[ColorTarget.ButtonDisabledBackground]?.ToString() ?? "";
-						this.ButtonDisabledForeground.Text = c[ColorTarget.ButtonDisabledForeground]?.ToString() ?? "";
-						this.ButtonDisabledBorder.Text = c[ColorTarget.ButtonDisabledBorder]?.ToString() ?? "";
-						this.ButtonMouseOverBackground.Text = c[ColorTarget.ButtonMouseOverBackground]?.ToString() ?? "";
+						this.BaseBackground.Text = c[ColorTarget.BaseBackground]?.ToString();
+						this.BaseForeground.Text = c[ColorTarget.BaseForeground]?.ToString();
+						this.BaseBorder.Text = c[ColorTarget.BaseBorder]?.ToString();
+						this.ButtonBackground.Text = c[ColorTarget.ButtonBackground]?.ToString();
+						this.ButtonForeground.Text = c[ColorTarget.ButtonForeground]?.ToString();
+						this.ButtonBorder.Text = c[ColorTarget.ButtonBorder]?.ToString();
+						this.ButtonDisabledBackground.Text = c[ColorTarget.ButtonDisabledBackground]?.ToString();
+						this.ButtonDisabledForeground.Text = c[ColorTarget.ButtonDisabledForeground]?.ToString();
+						this.ButtonDisabledBorder.Text = c[ColorTarget.ButtonDisabledBorder]?.ToString();
+						this.ButtonMouseOverBackground.Text = c[ColorTarget.ButtonMouseOverBackground]?.ToString();
 						this.ThemesComboBox.SelectedItem = tcbSelected;
 
 						this.ColorsMenu.Visibility = Visibility.Visible;
@@ -166,6 +180,42 @@ namespace Advobot.UILauncher.Windows
 					}
 				}
 			}
+		}
+		private async void AddTrustedUser(object sender, RoutedEventArgs e)
+		{
+			var input = this.TrustedUsersBox.Text;
+			if (!ulong.TryParse(input, out ulong userId))
+			{
+				ConsoleActions.WriteLine($"The given input '{input}' is not a valid ID.");
+			}
+			else if (this.TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
+			{
+				return;
+			}
+
+			var tb = AdvobotTextBox.CreateUserBox(await Client.HeldObject.GetUserAsync(userId));
+			if (tb != null)
+			{
+				this.TrustedUsers.ItemsSource = this.TrustedUsers.ItemsSource.OfType<TextBox>()
+					.Concat(new[] { tb }).Where(x => x != null);
+			}
+
+			this.TrustedUsersBox.Text = null;
+		}
+		private async void SaveSettings(object sender, RoutedEventArgs e)
+		{
+			SavingActions.SaveSettings(this.SettingsMenu, BotSettings.HeldObject);
+			await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject);
+		}
+		private async void SaveFile(object sender, RoutedEventArgs e)
+		{
+			var response = SavingActions.SaveFile(this.SpecificFileOutput);
+			await ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
+		}
+		private async void SaveOutput(object sender, RoutedEventArgs e)
+		{
+			var response = SavingActions.SaveFile(this.Output);
+			await ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
 		}
 		private void OpenHyperLink(object sender, RequestNavigateEventArgs e)
 		{
@@ -208,33 +258,11 @@ namespace Advobot.UILauncher.Windows
 			}
 			BotSettings.HeldObject.TogglePause();
 		}
-		private async void AcceptInput(object sender, KeyEventArgs e)
+		private void AcceptInputWithKey(object sender, KeyEventArgs e)
 		{
-			if (String.IsNullOrWhiteSpace(this.InputBox.Text))
-			{
-				this.InputButton.IsEnabled = false;
-				return;
-			}
-
 			if (e.Key == Key.Enter || e.Key == Key.Return)
 			{
-				var input = UICommandHandler.GatherInput(this.InputBox, this.InputButton);
-				if (!_LoginHandler.CanLogin)
-				{
-					await _LoginHandler.AttemptToStart(input);
-				}
-			}
-			else
-			{
-				this.InputButton.IsEnabled = true;
-			}
-		}
-		private async void AcceptInput(object sender, RoutedEventArgs e)
-		{
-			var input = UICommandHandler.GatherInput(this.InputBox, this.InputButton);
-			if (!_LoginHandler.CanLogin)
-			{
-				await _LoginHandler.AttemptToStart(input);
+				AcceptInput(sender, e);
 			}
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
@@ -243,11 +271,6 @@ namespace Advobot.UILauncher.Windows
 			this.Latency.Text = $"Latency: {ClientActions.GetLatency(Client.HeldObject)}ms";
 			this.Memory.Text = $"Memory: {GetActions.GetMemory().ToString("0.00")}MB";
 			this.ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
-		}
-		private async void SaveOutput(object sender, RoutedEventArgs e)
-		{
-			var response = SavingActions.SaveFile(this.Output);
-			await ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
 		}
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
@@ -268,70 +291,61 @@ namespace Advobot.UILauncher.Windows
 					.Except(new[] { this.TrustedUsers.SelectedItem }).Where(x => x != null);
 			}
 		}
-		private async void AddTrustedUser(object sender, RoutedEventArgs e)
-		{
-			var input = this.TrustedUsersBox.Text;
-			if (!ulong.TryParse(input, out ulong userId))
-			{
-				ConsoleActions.WriteLine($"The given input '{input}' is not a valid ID.");
-			}
-			else if (this.TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
-			{
-				return;
-			}
-
-			var tb = AdvobotTextBox.CreateUserBox(await Client.HeldObject.GetUserAsync(userId));
-			if (tb != null)
-			{
-				this.TrustedUsers.ItemsSource = this.TrustedUsers.ItemsSource.OfType<TextBox>()
-					.Concat(new[] { tb }).Where(x => x != null);
-			}
-
-			this.TrustedUsersBox.Text = null;
-		}
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
 			var c = _Colors;
-			foreach (var child in this.ColorsMenu.GetChildren())
+			var children = this.ColorsMenu.GetChildren();
+			foreach (var tb in children.OfType<AdvobotTextBox>())
 			{
-				if (child is AdvobotTextBox tb && tb.Tag is ColorTarget target)
+				if (tb.Tag is ColorTarget target)
 				{
 					var childText = tb.Text;
+					var name = target.EnumName().FormatTitle().ToLower();
 					if (String.IsNullOrWhiteSpace(childText))
 					{
+						if (c[target] != null)
+						{
+							c[target] = null;
+							ConsoleActions.WriteLine($"Successfully updated the color for {name}.");
+						}
 						continue;
 					}
-					if (!UIModification.TryCreateBrush(childText, out var brush))
+					if (!AdvobotColor.TryCreateColor(childText, out var color))
 					{
-						ConsoleActions.WriteLine($"Invalid color supplied for {target.EnumName()}.");
+						ConsoleActions.WriteLine($"Invalid color supplied for {name}: '{childText}'.");
 						continue;
 					}
 
-					if (!UIModification.CheckIfSameBrush(c[target], brush))
+					var brush = color.CreateBrush();
+					if (!AdvobotColor.CheckIfSameBrush(c[target], brush))
 					{
-						tb.Text = (c[target] = brush).ToString();
-						ConsoleActions.WriteLine($"Successfully updated the color for {target.EnumName()}.");
+						c[target] = brush;
+						ConsoleActions.WriteLine($"Successfully updated the color for {name}: '{childText} ({brush.ToString()})'.");
 					}
+
+					//Update the text here because if someone has the hex value for yellow but they put in Yellow as a string 
+					//It won't update in the above if statement since they produce the same value
+					tb.Text = c[target].ToString();
 				}
-				else if (child is ComboBox cb && cb.SelectedItem is AdvobotTextBox tb2 && tb2.Tag is ColorTheme theme)
+			}
+			//Has to go after the textboxes so the theme will be applied
+			foreach (var cb in children.OfType<AdvobotComboBox>())
+			{
+				if (cb.SelectedItem is AdvobotTextBox tb && tb.Tag is ColorTheme theme)
 				{
 					if (c.Theme != theme)
 					{
-						c.Theme = theme;
 						ConsoleActions.WriteLine($"Successfully updated the theme to {theme.EnumName().FormatTitle().ToLower()}.");
 					}
+					c.Theme = theme;
 				}
 			}
 
 			c.SaveSettings();
 		}
-		private async void SaveSettings(object sender, RoutedEventArgs e)
-		{
-			await SavingActions.SaveSettings(this.SettingsMenu, Client.HeldObject, BotSettings.HeldObject);
-		}
 		private void OpenSpecificFileLayout(object sender, RoutedEventArgs e)
 		{
-			if (UIModification.TryGetFileText(sender, out var text, out var fileInfo))
+			if (SavingActions.TryGetFileText(sender, out var text, out var fileInfo))
 			{
 				OpenSpecificFileLayout(text, fileInfo);
 			}
@@ -396,7 +410,7 @@ namespace Advobot.UILauncher.Windows
 			{
 				case MessageBoxResult.OK:
 				{
-					UIModification.SetRowSpan(this.FilesMenu, Grid.GetRowSpan(this.FilesMenu) - (this.Layout.RowDefinitions.Count - 1));
+					EntityActions.SetRowSpan(this.FilesMenu, Grid.GetRowSpan(this.FilesMenu) - (this.Layout.RowDefinitions.Count - 1));
 					this.SpecificFileOutput.Tag = null;
 					this.SpecificFileOutput.Visibility = Visibility.Collapsed;
 					this.SaveFileButton.Visibility = Visibility.Collapsed;
@@ -405,11 +419,6 @@ namespace Advobot.UILauncher.Windows
 					return;
 				}
 			}
-		}
-		private async void SaveFile(object sender, RoutedEventArgs e)
-		{
-			var response = SavingActions.SaveFile(this.SpecificFileOutput);
-			await ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)
 		{
@@ -423,22 +432,12 @@ namespace Advobot.UILauncher.Windows
 			tt.VerticalOffset = pos.Y + 10;
 		}
 
-		private void OpenOutputSearch(object sender, RoutedEventArgs e)
-		{
-		}
-		private void CloseOutputSearch(object sender, RoutedEventArgs e)
-		{
-		}
-		private void SearchOutput(object sender, RoutedEventArgs e)
-		{
-		}
-
 		public void OpenSpecificFileLayout(string text, FileInfo fileInfo)
 		{
 			this.SpecificFileOutput.Tag = fileInfo;
 			this.SpecificFileOutput.Clear();
 			this.SpecificFileOutput.AppendText(text);
-			UIModification.SetRowSpan(this.FilesMenu, Grid.GetRowSpan(this.FilesMenu) + (this.Layout.RowDefinitions.Count - 1));
+			EntityActions.SetRowSpan(this.FilesMenu, Grid.GetRowSpan(this.FilesMenu) + (this.Layout.RowDefinitions.Count - 1));
 
 			this.SpecificFileOutput.Visibility = Visibility.Visible;
 			this.SaveFileButton.Visibility = Visibility.Visible;

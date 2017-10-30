@@ -30,7 +30,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			set
 			{
 				_FRV = value;
-				UIModification.SetFontResizeProperty(this, _FRV);
+				EntityActions.SetFontResizeProperty(this, _FRV);
 			}
 		}
 		private string _S;
@@ -41,8 +41,8 @@ namespace Advobot.UILauncher.Classes.Controls
 			{
 				_S = value;
 				this.ToolTip = new ToolTip { Content = _S, };
-				this.MouseEnter += (sender, e) => ToolTipActions.ToggleToolTip((ToolTip)this.ToolTip);
-				this.MouseLeave += (sender, e) => ToolTipActions.ToggleToolTip((ToolTip)this.ToolTip);
+				this.MouseEnter += (sender, e) => ((ToolTip)this.ToolTip).EnableToolTip();
+				this.MouseLeave += (sender, e) => ((ToolTip)this.ToolTip).DisableToolTip();
 			}
 		}
 

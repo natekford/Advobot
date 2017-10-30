@@ -44,9 +44,9 @@
 
             <!-- Titles -->
             <controls:AdvobotTextBox x:Name="GuildNameTitle" Grid.Column="0" Grid.Row="0" FontResizeValue=".110"
-                                    TBType="Title" VerticalContentAlignment="Bottom"/>
+                                     TBType="Title" VerticalContentAlignment="Bottom"/>
             <controls:AdvobotTextBox x:Name="GuildIdTitle" Grid.Column="2" Grid.Row="0" FontResizeValue=".110"
-                                    TBType="Title" VerticalContentAlignment="Bottom"/>
+                                     TBType="Title" VerticalContentAlignment="Bottom"/>
 
             <!-- Input -->
             <controls:AdvobotTextBox x:Name="GuildNameInput" Grid.Column="0" Grid.Row="1" MaxLength="100" TextWrapping="Wrap"/>
@@ -54,7 +54,7 @@
             <controls:AdvobotComboBox x:Name="FileTypeComboBox" Grid.Column="0" Grid.Row="3"/>
 
             <controls:AdvobotButton x:Name="SearchButton" Grid.Column="2" Grid.Row="3" Content="Search For File" Click="Search"
-                                   Style="{DynamicResource EnableSearchStyle}"/>
+                                    Style="{DynamicResource EnableSearchStyle}"/>
             <controls:AdvobotButton x:Name="CloseButton" Grid.Column="2" Grid.Row="4" Content="Close Window" Click="Close"/>
         </controls:AdvobotGrid>
     </Grid>

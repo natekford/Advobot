@@ -2,7 +2,6 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                    xmlns:converters="clr-namespace:Advobot.UILauncher.Classes.Converters"
                     xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
                     mc:Ignorable="d">
 
@@ -11,15 +10,16 @@
     <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseForeground}">#000000</SolidColorBrush>
     <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseBorder}">#ABADB3</SolidColorBrush>
     <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonBackground}">#DDDDDD</SolidColorBrush>
+    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonForeground}">#0E0E0E</SolidColorBrush>
     <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonBorder}">#707070</SolidColorBrush>
     <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonDisabledBackground}">#F4F4F4</SolidColorBrush>
     <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonDisabledForeground}">#888888</SolidColorBrush>
     <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonDisabledBorder}">#ADB2B5</SolidColorBrush>
     <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonMouseOverBackground}">#BEE6FD</SolidColorBrush>
     <Style x:Key="{x:Static enums:OtherTarget.ButtonStyle}" TargetType="Button">
-        <Setter Property="Background" Value="{DynamicResource {x:Static enums:ColorTarget.BaseBackground}}"/>
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static enums:ColorTarget.BaseForeground}}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}"/>
+        <Setter Property="Background" Value="{DynamicResource {x:Static enums:ColorTarget.ButtonBackground}}"/>
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static enums:ColorTarget.ButtonForeground}}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static enums:ColorTarget.ButtonBorder}}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="FocusVisualStyle">
@@ -43,8 +43,8 @@
             <Setter.Value>
                 <ControlTemplate x:Name="ButtonControlTemplate" TargetType="Button">
                     <Border Name="CTBorder" BorderThickness="1"
-                            Background="{DynamicResource {x:Static enums:ColorTarget.BaseBackground}}"
-                            BorderBrush="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}">
+                            Background="{DynamicResource {x:Static enums:ColorTarget.ButtonBackground}}"
+                            BorderBrush="{DynamicResource {x:Static enums:ColorTarget.ButtonBorder}}">
                         <ContentPresenter Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
                     </Border>
 

@@ -101,9 +101,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Actions\CommandHandler.cs" />
-    <Compile Include="Actions\EntityModification.cs" />
+    <Compile Include="Actions\EntityActions.cs" />
     <Compile Include="Actions\SavingActions.cs" />
     <Compile Include="Actions\ToolTipActions.cs" />
+    <Compile Include="Classes\AdvobotColor.cs" />
     <Compile Include="Windows\AdvobotWindow.xaml.cs">
       <DependentUpon>AdvobotWindow.xaml</DependentUpon>
     </Compile>
@@ -119,7 +120,6 @@
     <Compile Include="Classes\Controls\AdvobotTextEditor.cs" />
     <Compile Include="Classes\Controls\AdvobotTreeView.cs" />
     <Compile Include="Classes\Controls\ModalWindow.cs" />
-    <Compile Include="RemainderOfAdvobotWindow.cs" />
     <Compile Include="Classes\Converters\FontResizeConverter.cs" />
     <Compile Include="Classes\Converters\NullToBoolConverter.cs" />
     <Compile Include="Classes\Converters\NavigateUriConverter.cs" />

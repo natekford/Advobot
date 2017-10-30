@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace Advobot.UILauncher.Actions
 {
@@ -22,11 +21,11 @@ namespace Advobot.UILauncher.Actions
 		{
 			if (!(element.ToolTip is ToolTip tt))
 			{
-				element.ToolTip = tt = new ToolTip { Placement = PlacementMode.Relative };
+				return;
 			}
 
 			tt.Content = text;
-			ToggleToolTip(tt);
+			tt.EnableToolTip();
 
 			_ToolTipCancellationTokenSource?.Cancel();
 			_ToolTipCancellationTokenSource = new CancellationTokenSource();
@@ -42,22 +41,32 @@ namespace Advobot.UILauncher.Actions
 					return;
 				}
 
-				ToggleToolTip(tt);
+				tt.DisableToolTip();
 			});
 		}
-		public static void ToggleToolTip(ToolTip ttip)
+		/// <summary>
+		/// Opens the tooltip and makes it visible.
+		/// </summary>
+		/// <param name="tt"></param>
+		public static void EnableToolTip(this ToolTip tt)
 		{
-			if (ttip.IsOpen)
-			{
-				ttip.IsOpen = false;
-				ttip.Visibility = Visibility.Collapsed;
-			}
-			else
-			{
-				ttip.IsOpen = true;
-				ttip.Visibility = Visibility.Visible;
-			}
+			tt.IsOpen = true;
+			tt.Visibility = Visibility.Visible;
 		}
+		/// <summary>
+		/// Closes the tooltip and makes it collapsed.
+		/// </summary>
+		/// <param name="tt"></param>
+		public static void DisableToolTip(this ToolTip tt)
+		{
+			tt.IsOpen = false;
+			tt.Visibility = Visibility.Collapsed;
+		}
+		/// <summary>
+		/// Gets a more verbose explanation.
+		/// </summary>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public static string GetReason(this ToolTipReason reason)
 		{
 			return _ToolTipReasons[reason];

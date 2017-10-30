@@ -24,7 +24,8 @@ namespace Advobot.UILauncher.Classes
 
 		public override void Write(char value)
 		{
-			//Done because crashes program without exception. Could not for the life of me figure out why; something in outside .dlls.
+			//Done because crashes program without exception.
+			//Could not for the life of me figure out why.
 			if (value.Equals('﷽'))
 			{
 				return;
@@ -49,6 +50,6 @@ namespace Advobot.UILauncher.Classes
 				_Output.AppendText(value);
 			}));
 		}
-		public override Encoding Encoding => Encoding.UTF8;
+		public override Encoding Encoding => Encoding.UTF32;
 	}
 }

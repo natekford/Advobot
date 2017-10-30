@@ -4,6 +4,7 @@
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       xmlns:controls="clr-namespace:Advobot.UILauncher.Classes.Controls"
+                      xmlns:extensions="clr-namespace:Advobot.UILauncher.Classes.Extensions"
                       mc:Ignorable="d"
                       x:Name="OutputSearchWin" Title="Output Search" FontFamily="Courier New" 
                       Closed="WindowClosed" DataContext="{Binding RelativeSource={RelativeSource Self}}">
@@ -12,7 +13,10 @@
         <ResourceDictionary Source="/Advobot.UILauncher;component/Resources/WindowResources.xaml"/>
     </Window.Resources>
 
-    <controls:AdvobotGrid x:Name="Layout" FontResizeValue=".022">
+    <controls:AdvobotGrid x:Name="Layout" FontResizeValue=".022" KeyUp="SaveWithCtrlS" MouseMove="MoveToolTip">
+        <Grid.ToolTip>
+            <ToolTip x:Name="ActualToolTip" IsOpen="False" Visibility="Collapsed" Placement="Relative"/>
+        </Grid.ToolTip>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="7*"/>
             <ColumnDefinition Width="1*"/>
@@ -28,10 +32,13 @@
         <controls:AdvobotTextBox x:Name="LayoutBackground" Grid.ColumnSpan="2" Grid.RowSpan="4" TBType="Background"/>
 
         <controls:AdvobotTextEditor x:Name="ConsoleSearchOutput" Grid.Column="0" Grid.Row="0" Grid.RowSpan="4"
-                                   VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True" IsReadOnly="True">
+                                    VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True" IsReadOnly="True">
             <controls:AdvobotTextEditor.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Save Output" Click="Save"/>
+                    <MenuItem Header="Save Output" Click="Save"
+                              IsEnabled="{Binding PlacementTarget.Text,
+                                          RelativeSource={RelativeSource AncestorType=ContextMenu},
+                                          Converter={StaticResource NullToBoolConverter}}"/>
                 </ContextMenu>
             </controls:AdvobotTextEditor.ContextMenu>
         </controls:AdvobotTextEditor>

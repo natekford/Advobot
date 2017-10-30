@@ -16,7 +16,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			get => _FRV;
 			set
 			{
-				UIModification.SetFontResizeProperty(this, value);
+				EntityActions.SetFontResizeProperty(this, value);
 				_FRV = value;
 			}
 		}
@@ -34,29 +34,23 @@ namespace Advobot.UILauncher.Classes.Controls
 		public AdvobotComboBox()
 		{
 			this.VerticalContentAlignment = VerticalAlignment.Center;
+			this.HorizontalContentAlignment = HorizontalAlignment.Center;
 		}
 
+		/// <summary>
+		/// Returns the values of <see cref="CreateItemsSourceOutOfEnum(Type)"/> by passing in <typeparamref name="T"/>.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
 		public static IEnumerable<TextBox> CreateItemsSourceOutOfEnum<T>() where T : struct, IConvertible, IComparable, IFormattable
 		{
-			if (!typeof(T).IsEnum)
-			{
-				throw new ArgumentException($"{typeof(T).Name} must be an enum.");
-			}
-
-			foreach (T e in Enum.GetValues(typeof(T)))
-			{
-				yield return new AdvobotTextBox
-				{
-					Text = Enum.GetName(typeof(T), e),
-					Tag = e,
-					IsReadOnly = true,
-					IsHitTestVisible = false,
-					BorderThickness = new Thickness(0),
-					Background = Brushes.Transparent,
-					Foreground = Brushes.Black,
-				};
-			}
+			return CreateItemsSourceOutOfEnum(typeof(T));
 		}
+		/// <summary>
+		/// Returns textboxes with the text as the enum name and the tag as the enum.
+		/// </summary>
+		/// <param name="enumType"></param>
+		/// <returns></returns>
 		public static IEnumerable<TextBox> CreateItemsSourceOutOfEnum(Type enumType)
 		{
 			if (!enumType.IsEnum)
@@ -66,33 +60,34 @@ namespace Advobot.UILauncher.Classes.Controls
 
 			foreach (var e in Enum.GetValues(enumType))
 			{
-				yield return new AdvobotTextBox
-				{
-					Text = Enum.GetName(enumType, e),
-					Tag = e,
-					IsReadOnly = true,
-					IsHitTestVisible = false,
-					BorderThickness = new Thickness(0),
-					Background = Brushes.Transparent,
-					Foreground = Brushes.Black,
-				};
+				yield return CreateItem(Enum.GetName(enumType, e), e);
 			}
 		}
+		/// <summary>
+		/// Returns textboxes with the text as the string and the tag as the string too.
+		/// </summary>
+		/// <param name="strings"></param>
+		/// <returns></returns>
 		public static IEnumerable<TextBox> CreateComboBoxSourceOutOfStrings(params string[] strings)
 		{
 			foreach (var s in strings)
 			{
-				yield return new AdvobotTextBox
-				{
-					Text = s,
-					Tag = s,
-					IsReadOnly = true,
-					IsHitTestVisible = false,
-					BorderThickness = new Thickness(0),
-					Background = Brushes.Transparent,
-					Foreground = Brushes.Black,
-				};
+				yield return CreateItem(s, s);
 			}
+		}
+		private static TextBox CreateItem(string text, object tag)
+		{
+			return new AdvobotTextBox
+			{
+				FontFamily = new FontFamily("Courier New"),
+				Text = text,
+				Tag = tag,
+				IsReadOnly = true,
+				IsHitTestVisible = false,
+				BorderThickness = new Thickness(0),
+				Background = Brushes.Transparent,
+				Foreground = Brushes.Black,
+			};
 		}
 	}
 }

@@ -3,7 +3,6 @@ using Advobot.Core.Actions;
 using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
-using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Enums;
 using Discord;
 using ICSharpCode.AvalonEdit;
@@ -20,10 +19,20 @@ namespace Advobot.UILauncher.Actions
 {
 	internal static class SavingActions
 	{
+		/// <summary>
+		/// Saves the text of <paramref name="editor"/> to file.
+		/// </summary>
+		/// <param name="editor"></param>
+		/// <returns></returns>
 		public static ToolTipReason SaveFile(TextEditor editor)
 		{
 			return SaveFile(editor, editor.Text);
 		}
+		/// <summary>
+		/// Saves the text of <paramref name="tb"/> to file.
+		/// </summary>
+		/// <param name="tb"></param>
+		/// <returns></returns>
 		public static ToolTipReason SaveFile(TextBox tb)
 		{
 			return SaveFile(tb, tb.Text);
@@ -67,34 +76,33 @@ namespace Advobot.UILauncher.Actions
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}
 
-		public static async Task SaveSettings(Grid parent, IDiscordClient client, IBotSettings botSettings)
+		/// <summary>
+		/// Saves every setting that is a child of <paramref name="parent"/>.
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="botSettings"></param>
+		public static void SaveSettings(Grid parent, IBotSettings botSettings)
 		{
-			foreach (var child in parent.GetChildren())
+			foreach (var child in parent.GetChildren().OfType<FrameworkElement>())
 			{
-				if (child is FrameworkElement ele && !SaveSetting(ele, botSettings))
+				if (!SaveSetting(child, botSettings))
 				{
-					ConsoleActions.WriteLine($"Failed to save: {ele.Name}");
+					ConsoleActions.WriteLine($"Failed to save: {child.Name}");
 				}
 			}
-			await ClientActions.UpdateGameAsync(client, botSettings);
 		}
-		private static bool SaveSetting(object obj, IBotSettings botSettings)
+		private static bool SaveSetting(FrameworkElement ele, IBotSettings botSettings)
 		{
 			//Go through children and not the actual object
-			if (obj is Grid g)
+			if (ele is Grid g)
 			{
 				return !g.Children.OfType<FrameworkElement>().Select(x => SaveSetting(x, botSettings)).Any(x => !x);
 			}
-			else if (obj is Viewbox vb)
+			else if (ele is Viewbox vb && vb.Child is FrameworkElement vbc)
 			{
-				return SaveSetting(vb.Child, botSettings);
+				return SaveSetting(vbc, botSettings);
 			}
-			//If object isn't a frameworkele or has no tag then it's not a setting
-			else if (!(obj is FrameworkElement f) || f.Tag == null)
-			{
-				return true;
-			}
-			else if (obj is TextBox tb && tb.Tag is BotSetting tbs)
+			else if (ele is TextBox tb && tb.Tag is BotSetting tbs)
 			{
 				if (tb.IsReadOnly)
 				{
@@ -190,7 +198,7 @@ namespace Advobot.UILauncher.Actions
 					}
 				}
 			}
-			else if (obj is CheckBox cb && cb.Tag is BotSetting cbs)
+			else if (ele is CheckBox cb && cb.Tag is BotSetting cbs)
 			{
 				var isChecked = cb.IsChecked.Value;
 				switch (cbs)
@@ -205,7 +213,7 @@ namespace Advobot.UILauncher.Actions
 					}
 				}
 			}
-			else if (obj is ComboBox cmb && cmb.Tag is BotSetting cmbs)
+			else if (ele is ComboBox cmb && cmb.Tag is BotSetting cmbs)
 			{
 				switch (cmbs)
 				{
@@ -233,12 +241,41 @@ namespace Advobot.UILauncher.Actions
 				return true;
 			}
 
-			throw new ArgumentException($"Invalid object provided when attempting to save settings for a {obj.GetType().Name}.");
+			throw new ArgumentException($"Invalid object provided when attempting to save settings for a {ele.Name ?? ele.GetType().Name}.");
 		}
 
+		/// <summary>
+		/// Returns true if the key from <paramref name="e"/> is <see cref="Key.S"/> and control is pressed.
+		/// </summary>
+		/// <param name="e"></param>
+		/// <returns></returns>
 		public static bool IsCtrlS(KeyEventArgs e)
 		{
 			return e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
+		}
+		/// <summary>
+		/// Attempts to get a text file from an element's tag.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="text"></param>
+		/// <param name="fileInfo"></param>
+		/// <returns></returns>
+		public static bool TryGetFileText(object sender, out string text, out FileInfo fileInfo)
+		{
+			text = null;
+			fileInfo = null;
+			if (sender is FrameworkElement element && element.Tag is FileInfo fi && fi.Exists)
+			{
+				using (var reader = new StreamReader(fi.FullName))
+				{
+					text = reader.ReadToEnd();
+					fileInfo = fi;
+				}
+				return true;
+			}
+
+			ConsoleActions.WriteLine("Unable to bring up the file.");
+			return false;
 		}
 	}
 }

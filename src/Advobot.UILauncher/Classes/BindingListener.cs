@@ -70,12 +70,12 @@ namespace Advobot.UILauncher.Classes
 				PresentationTraceSources.DataBindingSource.Listeners.Remove(this);
 
 				var exceptionMessage = $"{Message}\n" +
-					$"Callstack: {Callstack}\n" +
 					$"Time: {DateTime}\n" +
 					$"Logical Operation Stack: {LogicalOperationStack}\n" +
 					$"Process Id: {ProcessId}\n" +
 					$"Thread Id: {ThreadId}\n" +
-					$"Timestamp: {Timestamp}";
+					$"Timestamp: {Timestamp}\n" +
+					$"Callstack: {Callstack}";
 				throw new Exception(exceptionMessage);
 			}
 		}
