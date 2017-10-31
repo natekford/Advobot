@@ -4,6 +4,9 @@ using ICSharpCode.AvalonEdit;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
+	/// <summary>
+	/// A <see cref="TextEditor"/> which implements some other useful properties and accepts custom colors easily.
+	/// </summary>
 	internal class AdvobotTextEditor : TextEditor, IFontResizeValue
 	{
 		private double _FRV;

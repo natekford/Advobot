@@ -26,7 +26,7 @@ namespace Advobot.UILauncher.Windows
 		public FileSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
-			ColorSettings.SwitchElementColorOfChildren(this.Layout);
+			ColorSettings.SetAllColorBindingsOnChildren(this.Layout);
 			this.FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(_Files);
 		}
 		public FileSearchWindow() : this(null) { }

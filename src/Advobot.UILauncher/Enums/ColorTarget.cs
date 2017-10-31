@@ -15,5 +15,8 @@ namespace Advobot.UILauncher.Enums
 		ButtonDisabledForeground = (1U << 7),
 		ButtonDisabledBorder = (1U << 8),
 		ButtonMouseOverBackground = (1U << 9),
+		JsonDigits = (1U << 10),
+		JsonValue = (1U << 11),
+		JsonParamName = (1U << 12),
 	}
 }

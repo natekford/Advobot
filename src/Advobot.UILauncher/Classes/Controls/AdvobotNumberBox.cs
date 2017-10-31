@@ -7,6 +7,9 @@ using System.Windows.Input;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
+	/// <summary>
+	/// A <see cref="AdvobotTextBox"/> which only accepts numbers as input.
+	/// </summary>
 	internal class AdvobotNumberBox : AdvobotTextBox
 	{
 		private static Regex _NumberRegex = new Regex(@"[^\d]", RegexOptions.Compiled);
@@ -19,40 +22,37 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		private void Validate(object sender, TextCompositionEventArgs e)
 		{
-			e.Handled = true
-				&& !String.IsNullOrWhiteSpace(e.Text) 
-				&& !char.IsDigit(e.Text, Math.Min(0, e.Text.Length - 1));
+			e.Handled = !String.IsNullOrWhiteSpace(e.Text) && !char.IsDigit(e.Text, Math.Min(0, e.Text.Length - 1));
 		}
 		private void Validate(object sender, DataObjectPastingEventArgs e)
 		{
-			if (!e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true))
+			if (!e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true) || !(e.Source is TextBox tb))
 			{
 				return;
 			}
 
-			var source = e.Source as TextBox;
 			var input = e.SourceDataObject.GetData(DataFormats.UnicodeText).ToString();
 			var nums = _NumberRegex.Replace(input, "");
 
 			//Append the text in the correct part of the string
 			var sb = new StringBuilder();
-			for (int i = 0; i < source.MaxLength; ++i)
+			for (int i = 0; i < tb.MaxLength; ++i)
 			{
-				if (i < source.CaretIndex)
+				if (i < tb.CaretIndex)
 				{
-					sb.Append(source.Text[i]);
+					sb.Append(tb.Text[i]);
 				}
-				else if (i < source.CaretIndex + nums.Length)
+				else if (i < tb.CaretIndex + nums.Length)
 				{
-					sb.Append(nums[i - source.CaretIndex]);
+					sb.Append(nums[i - tb.CaretIndex]);
 				}
-				else if (i < source.Text.Length + nums.Length)
+				else if (i < tb.Text.Length + nums.Length)
 				{
-					sb.Append(source.Text[i - nums.Length]);
+					sb.Append(tb.Text[i - nums.Length]);
 				}
 			}
-			source.Text = sb.ToString();
-			source.CaretIndex = source.Text.Length;
+			tb.Text = sb.ToString();
+			tb.CaretIndex = tb.Text.Length;
 
 			e.CancelCommand();
 		}

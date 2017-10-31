@@ -58,7 +58,7 @@ namespace Advobot.Core.Actions
 		/// <param name="name"></param>
 		public static void ExceptionToConsole(Exception e, [CallerMemberName] string name = "")
 		{
-			WriteLine($"EXCEPTION: {e}", name, ConsoleColor.Red);
+			WriteLine($"{Environment.NewLine}EXCEPTION: {e}{Environment.NewLine}", name, ConsoleColor.Red);
 		}
 	}
 }

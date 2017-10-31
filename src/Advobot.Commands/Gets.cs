@@ -324,7 +324,7 @@ namespace Advobot.Commands.Gets
 			var count = 0;
 			for (count = 0; count < m.Length; ++count)
 			{
-				var text = m[count].FormatMessage().RemoveAllMarkdown().RemoveDuplicateNewLines();
+				var text = new FormattedMessage(m[count]).ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
 				if (formattedMessagesBuilder.Length + text.Length < Context.BotSettings.MaxMessageGatherSize)
 				{
 					formattedMessagesBuilder.AppendLineFeed(text);

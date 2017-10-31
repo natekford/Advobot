@@ -8,6 +8,9 @@ using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
+	/// <summary>
+	/// A <see cref="ComboBox"/> which implements some other useful properties and accepts custom colors easily.
+	/// </summary>
 	internal class AdvobotComboBox : ComboBox, IFontResizeValue
 	{
 		private double _FRV;

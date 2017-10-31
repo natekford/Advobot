@@ -6,6 +6,9 @@ using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
+	/// <summary>
+	/// A <see cref="Grid"/> which implements some other useful properties and accepts custom colors easily.
+	/// </summary>
 	internal class AdvobotGrid : Grid, IFontResizeValue
 	{
 		private double _FRV;
@@ -34,15 +37,10 @@ namespace Advobot.UILauncher.Classes.Controls
 					SetAllChildrenToFontSizeProperty(child);
 				}
 
-				//Don't set on things that it can't be set on
-				if (child is CheckBox)
-				{
-					continue;
-				}
 				//Don't set it on controls with it already set
-				else if (child is Control c && c.GetBindingExpression(Control.FontSizeProperty) == null)
+				if (child is Control c && c.GetBindingExpression(Control.FontSizeProperty) == null && c is IFontResizeValue frv)
 				{
-					EntityActions.SetFontResizeProperty(c, _FRV);
+					frv.FontResizeValue = _FRV;
 				}
 			}
 		}

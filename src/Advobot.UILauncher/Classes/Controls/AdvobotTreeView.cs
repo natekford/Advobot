@@ -1,6 +1,8 @@
 ﻿using Advobot.Core.Actions;
 using Advobot.Core.Actions.Formatting;
+using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Enums;
+using Advobot.UILauncher.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;
@@ -11,8 +13,22 @@ using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
-	internal class AdvobotTreeView : TreeView
+	/// <summary>
+	/// A <see cref="TreeView"/> which implements some other useful properties and accepts custom colors easily.
+	/// </summary>
+	internal class AdvobotTreeView : TreeView, IFontResizeValue
 	{
+		private double _FRV;
+		public double FontResizeValue
+		{
+			get => _FRV;
+			set
+			{
+				EntityActions.SetFontResizeProperty(this, value);
+				_FRV = value;
+			}
+		}
+
 		public AdvobotTreeView()
 		{
 			this.Background = null;
@@ -22,14 +38,8 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public static IEnumerable<TreeViewItem> MakeGuildTreeViewItemsSource(IEnumerable<IGuild> guilds)
 		{
-			var directoryInfo = GetActions.GetBaseBotDirectory();
-			if (directoryInfo == null || !directoryInfo.Exists)
-			{
-				return null;
-			}
-
 			var r = Application.Current.Resources;
-			return directoryInfo.GetDirectories().Select(dir =>
+			return GetActions.GetBaseBotDirectory().GetDirectories().Select(dir =>
 			{
 				//Make sure the id leads to a valid non null guild
 				if (!ulong.TryParse(dir.Name, out ulong Id) || !(guilds.SingleOrDefault(x => x.Id == Id) is SocketGuild guild))
@@ -49,7 +59,7 @@ namespace Advobot.UILauncher.Classes.Controls
 						HorizontalContentAlignment = HorizontalAlignment.Left,
 						VerticalContentAlignment = VerticalAlignment.Center,
 					};
-				}).Where(x => x.Tag != null);
+				}).Where(x => x?.Tag != null);
 
 				return !items.Any() ? null : new TreeViewItem
 				{
@@ -59,7 +69,7 @@ namespace Advobot.UILauncher.Classes.Controls
 					Foreground = (Brush)r[ColorTarget.BaseForeground],
 					ItemsSource = items,
 				};
-			}).Where(x => x != null).OrderByDescending(x => x.Tag is SocketGuild g ? g.MemberCount : 0);
+			}).Where(x => x?.Tag != null).OrderByDescending(x => x.Tag is SocketGuild g ? g.MemberCount : 0);
 		}
 	}
 }

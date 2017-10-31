@@ -18,7 +18,7 @@ namespace Advobot.UILauncher.Windows
 		public OutputSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
-			ColorSettings.SwitchElementColorOfChildren(this.Layout);
+			ColorSettings.SetAllColorBindingsOnChildren(this.Layout);
 			this.OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleActions.GetWrittenLines().Keys.ToArray());
 		}
 		public OutputSearchWindow() : this(null) { }

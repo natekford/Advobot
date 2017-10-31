@@ -17,7 +17,7 @@ namespace Advobot.UILauncher.Classes
 			{
 				var c = (System.Drawing.Color)p.GetValue(null, null);
 				return CreateColorFromARGB(c.A, c.R, c.G, c.B);
-			}, StringComparer.OrdinalIgnoreCase).ToImmutableDictionary();
+			}).ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 
 		public int A { get; }
 		public int R { get; }

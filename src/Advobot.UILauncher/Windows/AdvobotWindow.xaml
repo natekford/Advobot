@@ -10,6 +10,7 @@
         xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
         xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
+        xmlns:avalon="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008"
         mc:Ignorable="d"
         x:Name="AdvobotWin" Title="Advobot" WindowState="Maximized" FontFamily="Courier New"
         Loaded="AttemptToLogin" DataContext="{Binding RelativeSource={RelativeSource Self}}">
@@ -25,19 +26,20 @@
     </Window.Resources>
 
     <Grid x:Name="Layout" MouseMove="MoveToolTip">
-        <Grid.ToolTip>
-            <ToolTip x:Name="ActualToolTip" IsOpen="False" Visibility="Collapsed" Placement="Relative"/>
-        </Grid.ToolTip>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition Width="1*"/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="20*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.ToolTip>
+            <ToolTip x:Name="ActualToolTip" IsOpen="False" Visibility="Collapsed" Placement="Relative"/>
+        </Grid.ToolTip>
 
         <!-- Output -->
         <controls:AdvobotTextBox x:Name="Output" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" FontResizeValue=".022"
@@ -89,16 +91,16 @@
 
         <!-- Menu Buttons -->
         <controls:AdvobotGrid x:Name="ButtonMenu" Grid.Column="1" Grid.Row="1" FontResizeValue=".015" Grid.RowSpan="3">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
 
             <!-- These buttons have this binding so the menus can't be gotten to when the bot's not loaded -->
             <controls:AdvobotButton x:Name="MainMenuButton" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
@@ -126,15 +128,15 @@
         <!-- Main Menu -->
         <controls:AdvobotGrid x:Name="MainMenu" Tag="{x:Static enums:MenuType.Main}" Grid.Column="1" Grid.Row="0" 
                               FontResizeValue=".015" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="21*"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="14*"/>
-                <RowDefinition Height="1*"/>
-            </Grid.RowDefinitions>
 
             <controls:AdvobotRichTextBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" IsReadOnly="True" IsDocumentEnabled="True">
                 <FlowDocument>
@@ -202,7 +204,7 @@
             <controls:AdvobotTextBox x:Name="InfoBackground" Grid.ColumnSpan="4" Grid.RowSpan="14" TBType="Background"/>
 
             <!-- Titles -->
-            <controls:AdvobotTextBox x:Name="GuildsTitle" Grid.Column="1" Grid.Row="0" TBType="Title"/>
+            <controls:AdvobotTextBox x:Name="GuildsTitle" Grid.Column="1" Grid.Row="0" TBType="Title" BorderThickness="0,1,0,0"/>
             <controls:AdvobotTextBox x:Name="UsersTitle" Grid.Column="1" Grid.Row="1" TBType="Title"/>
             <controls:AdvobotTextBox x:Name="AttemptedCommandsTitle" Grid.Column="1" Grid.Row="2" TBType="Title"/>
             <controls:AdvobotTextBox x:Name="SuccessfulCommandsTitle" Grid.Column="1" Grid.Row="3" TBType="Title"/>
@@ -217,7 +219,7 @@
             <controls:AdvobotTextBox x:Name="FilesTitle" Grid.Column="1" Grid.Row="12" TBType="Title"/>
 
             <!-- Output -->
-            <controls:AdvobotTextBox x:Name="Guilds" Grid.Column="2" Grid.Row="0" TBType="RightCentered" BorderThickness="0"
+            <controls:AdvobotTextBox x:Name="Guilds" Grid.Column="2" Grid.Row="0" TBType="RightCentered" BorderThickness="0,1,0,0"
                                      Text="{Binding LogHolder.HeldObject.TotalGuilds.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
             <controls:AdvobotTextBox x:Name="Users" Grid.Column="2" Grid.Row="1" TBType="RightCentered" BorderThickness="0"
                                      Text="{Binding LogHolder.HeldObject.TotalUsers.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"/>
@@ -274,7 +276,7 @@
             <controls:AdvobotTextBox x:Name="SettingsBackground" Grid.ColumnSpan="4" Grid.RowSpan="21" TBType="Background"/>
 
             <!-- Titles -->
-            <controls:AdvobotTextBox x:Name="AlwaysDownloadUsersTitle" Grid.Column="1" Grid.Row="0" TBType="Title"
+            <controls:AdvobotTextBox x:Name="AlwaysDownloadUsersTitle" Grid.Column="1" Grid.Row="0" TBType="Title" BorderThickness="0,1,0,0"
                                      Summary="Whether or not to gather all users in a guild when the bot joins."/>
             <controls:AdvobotTextBox x:Name="PrefixTitle" Grid.Column="1" Grid.Row="1" TBType="Title"
                                      Summary="The text before a command."/>
@@ -353,7 +355,7 @@
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="5*"/>
-                <RowDefinition Height="1*"/>
+                <RowDefinition Height=".75*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
@@ -366,7 +368,7 @@
             <controls:AdvobotTextBox x:Name="ColorsBackground" Grid.ColumnSpan="4" Grid.RowSpan="21" TBType="Background"/>
 
             <!-- Titles -->
-            <controls:AdvobotTextBox x:Name="ThemesTitle" Grid.Column="1" Grid.Row="0" TBType="Title"/>
+            <controls:AdvobotTextBox x:Name="ThemesTitle" Grid.Column="1" Grid.Row="0" TBType="Title" BorderThickness="0,1,0,0"/>
             <controls:AdvobotTextBox x:Name="BaseBackgroundTitle" Grid.Column="1" Grid.Row="1" TBType="Title"/>
             <controls:AdvobotTextBox x:Name="BaseForegroundTitle" Grid.Column="1" Grid.Row="2" TBType="Title"/>
             <controls:AdvobotTextBox x:Name="BaseBorderTitle" Grid.Column="1" Grid.Row="3" TBType="Title"/>
@@ -428,9 +430,10 @@
         </controls:AdvobotGrid>
 
         <!-- File Viewer -->
-        <controls:AdvobotTextEditor x:Name="SpecificFileOutput" Grid.Column="0" Grid.Row="0" Grid.RowSpan="4" FontResizeValue=".022"
+        <controls:AdvobotTextEditor x:Name="SpecificFileOutput" Grid.Column="0" Grid.Row="0" Grid.RowSpan="4"
+                                    FontResizeValue=".022" BorderThickness="1,1,1,1"
                                     Visibility="Collapsed" VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True"
-                                    KeyUp="SaveFileWithCtrlS">
+                                    SyntaxHighlighting="JSON" KeyUp="SaveFileWithCtrlS">
             <controls:AdvobotTextEditor.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Save File" Click="SaveFile"/>

@@ -7,6 +7,7 @@ using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Enums;
 using Discord;
+using ICSharpCode.AvalonEdit.Highlighting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
@@ -15,9 +16,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 
@@ -40,10 +39,11 @@ namespace Advobot.UILauncher.Windows
 		public AdvobotWindow()
 		{
 			InitializeComponent();
-
-			_LoginHandler.AbleToStart += Start;
+			var hl = HighlightingManager.Inst‌​ance.GetDefinition("JSON");
+			var names = hl.NamedHighlightingColors;
+			ColorSettings.SetAllColorBindingsOnChildren(this.Layout);
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
-			ColorSettings.SwitchElementColorOfChildren(this.Layout);
+			_LoginHandler.AbleToStart += Start;
 		}
 
 		private async void Start(object sender, RoutedEventArgs e)

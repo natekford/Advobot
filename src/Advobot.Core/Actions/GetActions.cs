@@ -1,17 +1,13 @@
-﻿using Advobot.Core.Actions.Formatting;
-using Advobot.Core.Classes;
-using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Discord;
-using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 
 namespace Advobot.Core.Actions

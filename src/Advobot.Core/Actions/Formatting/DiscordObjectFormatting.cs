@@ -101,44 +101,6 @@ namespace Advobot.Core.Actions.Formatting
 			}
 		}
 		/// <summary>
-		/// Returns a string of a message's content/embeds, what time it was sent at, the author, and the channel.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public static string FormatMessage(this IMessage message)
-		{
-			var messageContent = new StringBuilder((String.IsNullOrEmpty(message.Content) ? "Empty message content" : message.Content) + "\n");
-			if (message.Embeds.Any())
-			{
-				var validEmbeds = message.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue);
-				var formattedDescriptions = validEmbeds.Select((x, index) =>
-				{
-					var tempSb = new StringBuilder($"Embed {index + 1}: {x.Description ?? "No description"}");
-					if (x.Url != null)
-					{
-						tempSb.Append($" URL: {x.Url}");
-					}
-					if (x.Image.HasValue)
-					{
-						tempSb.Append($" IURL: {x.Image.Value.Url}");
-					}
-					return tempSb.ToString();
-				});
-
-				messageContent.AppendLineFeed(String.Join("\n", formattedDescriptions));
-			}
-			if (message.Attachments.Any())
-			{
-				messageContent.Append($" + {String.Join(" + ", message.Attachments.Select(x => x.Filename))}");
-			}
-
-			var time = message.CreatedAt.ToString("HH:mm:ss");
-			var author = message.Author.FormatUser();
-			var channel = message.Channel.FormatChannel();
-			var text = messageContent.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
-			return $"`[{time}]` `{author}` **IN** `{channel}`\n```\n{text}```";
-		}
-		/// <summary>
 		/// Replaces everyone/here mentions with a non pinging version and removes \tts.
 		/// </summary>
 		/// <param name="guild"></param>
@@ -151,7 +113,7 @@ namespace Advobot.Core.Actions.Formatting
 				.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE)
 				.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE)
 				.CaseInsReplace("@here", Constants.FAKE_HERE)
-				.CaseInsReplace("\tts", Constants.FAKE_TTS);
+				.CaseInsReplace("\tts", Constants.FAKE_TTS); //Probably not needed due to the zero width char anyways
 		}
 		/// <summary>
 		/// Returns the game's name or stream name/url.

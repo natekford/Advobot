@@ -3,62 +3,43 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
+                    xmlns:classes="clr-namespace:Advobot.UILauncher.Classes"
                     mc:Ignorable="d">
 
     <!-- Application wide resources, mainly colors -->
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseBackground}">#FFFFFF</SolidColorBrush>
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseForeground}">#000000</SolidColorBrush>
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.BaseBorder}">#ABADB3</SolidColorBrush>
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonBackground}">#DDDDDD</SolidColorBrush>
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonForeground}">#0E0E0E</SolidColorBrush>
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonBorder}">#707070</SolidColorBrush>
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonDisabledBackground}">#F4F4F4</SolidColorBrush>
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonDisabledForeground}">#888888</SolidColorBrush>
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonDisabledBorder}">#ADB2B5</SolidColorBrush>
-    <SolidColorBrush x:Key="{x:Static enums:ColorTarget.ButtonMouseOverBackground}">#BEE6FD</SolidColorBrush>
+    <x:Static x:Key="{x:Static enums:ColorTarget.BaseBackground}" Member="classes:ColorSettings.LightModeBaseBackground"/>
+    <x:Static x:Key="{x:Static enums:ColorTarget.BaseForeground}" Member="classes:ColorSettings.LightModeBaseForeground"/>
+    <x:Static x:Key="{x:Static enums:ColorTarget.BaseBorder}" Member="classes:ColorSettings.LightModeBaseBorder"/>
+    <x:Static x:Key="{x:Static enums:ColorTarget.ButtonBackground}" Member="classes:ColorSettings.LightModeButtonBackground"/>
+    <x:Static x:Key="{x:Static enums:ColorTarget.ButtonForeground}" Member="classes:ColorSettings.LightModeButtonForeground"/>
+    <x:Static x:Key="{x:Static enums:ColorTarget.ButtonBorder}" Member="classes:ColorSettings.LightModeButtonBorder"/>
+    <x:Static x:Key="{x:Static enums:ColorTarget.ButtonDisabledBackground}" Member="classes:ColorSettings.LightModeButtonDisabledBackground"/>
+    <x:Static x:Key="{x:Static enums:ColorTarget.ButtonDisabledForeground}" Member="classes:ColorSettings.LightModeButtonDisabledForeground"/>
+    <x:Static x:Key="{x:Static enums:ColorTarget.ButtonDisabledBorder}" Member="classes:ColorSettings.LightModeButtonDisabledBorder"/>
+    <x:Static x:Key="{x:Static enums:ColorTarget.ButtonMouseOverBackground}" Member="classes:ColorSettings.LightModeButtonMouseOverBackground"/>
     <Style x:Key="{x:Static enums:OtherTarget.ButtonStyle}" TargetType="Button">
-        <Setter Property="Background" Value="{DynamicResource {x:Static enums:ColorTarget.ButtonBackground}}"/>
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static enums:ColorTarget.ButtonForeground}}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static enums:ColorTarget.ButtonBorder}}"/>
-        <Setter Property="SnapsToDevicePixels" Value="True"/>
-        <Setter Property="OverridesDefaultStyle" Value="True"/>
-        <Setter Property="FocusVisualStyle">
-            <Setter.Value>
-                <Style TargetType="Button">
-                    <Style.Setters>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="Button">
-                                    <Border>
-                                        <Rectangle Margin="2" StrokeThickness="1.0" Stroke="#60000000" StrokeDashArray="1.0,2.0"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style.Setters>
-                </Style>
-            </Setter.Value>
-        </Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate x:Name="ButtonControlTemplate" TargetType="Button">
-                    <Border Name="CTBorder" BorderThickness="1"
+                    <Border Name="ButtonControlTemplateBorder" BorderThickness="1"
                             Background="{DynamicResource {x:Static enums:ColorTarget.ButtonBackground}}"
                             BorderBrush="{DynamicResource {x:Static enums:ColorTarget.ButtonBorder}}">
-                        <ContentPresenter Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                        <ContentPresenter x:Name="ButtonControlTemplateBorderContentPresenter" Margin="2"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"
+                                          TextBlock.Foreground="{DynamicResource {x:Static enums:ColorTarget.ButtonForeground}}"/>
                     </Border>
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="CTBorder" Property="Background"
+                            <Setter TargetName="ButtonControlTemplateBorder" Property="Background"
                                     Value="{DynamicResource {x:Static enums:ColorTarget.ButtonMouseOverBackground}}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="CTBorder" Property="Background" 
+                            <Setter TargetName="ButtonControlTemplateBorder" Property="Background" 
                                     Value="{DynamicResource {x:Static enums:ColorTarget.ButtonDisabledBackground}}"/>
-                            <Setter TargetName="CTBorder" Property="BorderBrush" 
+                            <Setter TargetName="ButtonControlTemplateBorder" Property="BorderBrush" 
                                     Value="{DynamicResource {x:Static enums:ColorTarget.ButtonDisabledBorder}}"/>
-                            <Setter TargetName="CTBorder" Property="Button.Foreground"
+                            <Setter TargetName="ButtonControlTemplateBorderContentPresenter" Property="TextBlock.Foreground"
                                     Value="{DynamicResource {x:Static enums:ColorTarget.ButtonDisabledForeground}}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -70,6 +51,7 @@
     <Style x:Key="EnableSearchStyle" TargetType="Button" BasedOn="{StaticResource {x:Static enums:OtherTarget.ButtonStyle}}">
         <Style.Triggers>
             <MultiDataTrigger>
+                <!-- If both textboxes are null, keep the button disabled -->
                 <MultiDataTrigger.Conditions>
                     <Condition Binding="{Binding Text.Length, ElementName=GuildNameInput}" Value="0"/>
                     <Condition Binding="{Binding Text.Length, ElementName=GuildIdInput}" Value="0"/>
@@ -79,6 +61,7 @@
                     <Setter Property="IsEnabled" Value="False"/>
                 </MultiDataTrigger.Setters>
             </MultiDataTrigger>
+            <!-- If there is no value in the combobox, keep the button disabled -->
             <DataTrigger Binding="{Binding SelectedItem, ElementName=FileTypeComboBox}" Value="{x:Null}">
                 <Setter Property="IsEnabled" Value="False"/>
             </DataTrigger>

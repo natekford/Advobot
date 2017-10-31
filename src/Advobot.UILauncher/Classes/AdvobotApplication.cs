@@ -1,7 +1,11 @@
 ﻿using Advobot.Core.Actions;
 using Advobot.UILauncher.Windows;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using System;
+using System.Reflection;
 using System.Windows;
+using System.Xml;
 
 namespace Advobot.UILauncher.Classes
 {
@@ -17,6 +21,21 @@ namespace Advobot.UILauncher.Classes
 		/// </summary>
 		public AdvobotApplication()
 		{
+			//Add in the JSON highlighter for the file output
+			using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("Advobot.UILauncher.Resources.JSONSyntaxHighlighting.xshd"))
+			{
+				if (s == null)
+				{
+					throw new InvalidOperationException("JSONSyntaxHighlighting is missing.");
+				}
+
+				using (var r = new XmlTextReader(s))
+				{
+					var highlighting = HighlightingLoader.Load(r, HighlightingManager.Instance);
+					HighlightingManager.Inst‌​ance.RegisterHighlighting("JSON", new[] { ".json" }, highlighting);
+				}
+			}
+
 			this.MainWindow = new AdvobotWindow();
 			this.Resources = new ResourceDictionary
 			{

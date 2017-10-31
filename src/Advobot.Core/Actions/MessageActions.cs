@@ -130,34 +130,6 @@ namespace Advobot.Core.Actions
 			return msg;
 		}
 		/// <summary>
-		/// Sends a formatted list of deleted messages to the given channel.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="inputList"></param>
-		/// <returns></returns>
-		public static async Task<IUserMessage> SendMessageContainingFormattedDeletedMessagesAsync(IMessageChannel channel, IEnumerable<string> inputList)
-		{
-			var guild = channel.GetGuild();
-			if (guild == null)
-			{
-				return null;
-			}
-
-			var text = String.Join("\n", inputList).RemoveDuplicateNewLines();
-			if (inputList.Count() <= 5 && text.Length < Constants.MAX_MESSAGE_LENGTH_LONG)
-			{
-				var embed = new AdvobotEmbed("Deleted Messages", text, Constants.MDEL)
-					.AddFooter("Deleted Messages");
-				return await SendEmbedMessageAsync(channel, embed).CAF();
-			}
-			else
-			{
-				var name = "Deleted_Messages_";
-				var content = $"{inputList.Count()} Deleted Messages";
-				return await SendTextFileAsync(channel, text.RemoveAllMarkdown(), name, content).CAF();
-			}
-		}
-		/// <summary>
 		/// Waits a few seconds then deletes the newly created message and the context message.
 		/// </summary>
 		/// <param name="context"></param>

@@ -7,7 +7,9 @@ using Discord;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -108,48 +110,73 @@ namespace Advobot.Core.Services.Log.Loggers
 			{
 				return Task.FromResult(0);
 			}
-			
-			//Get the list of deleted messages it contains
+
+			_Logging.MessageDeletes.Increment();
+
 			var msgDeletion = logInstanceInfo.GuildSettings.MessageDeletion;
-			lock (msgDeletion)
-			{
-				msgDeletion.AddToList(message);
-				_Logging.MessageDeletes.Increment();
-			}
-
-			//Use a token so the messages do not get sent prematurely
+			msgDeletion.Messages.Add(message);
+			//The old cancel token gets cancled in the getter of this
 			var cancelToken = msgDeletion.CancelToken;
-			if (cancelToken != null)
-			{
-				cancelToken.Cancel();
-			}
-			msgDeletion.SetCancelToken(cancelToken = new CancellationTokenSource());
 
-			//I don't know why, but this doesn't run correctly when awaited
-			//It also doesn't work correctly when this method is made async. (sends messages one by one)
+			//Has to run on completely separate thread, else prints early
 			Task.Run(async () =>
 			{
-				try
+				const string TITLE = "Deleted Messages";
+
+				//Wait three seconds. If a new message comes in then the token will be canceled and this won't continue.
+				//If more than 25 messages just start printing them out so people can't stall the messages forever.
+				var inEmbed = msgDeletion.Messages.Count < 10; //Needs very few messages to fit in an embed
+				if (msgDeletion.Messages.Count < 25)
 				{
-					await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken.Token).CAF();
-				}
-				catch (Exception)
-				{
-					return;
+					try
+					{
+						await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken.Token).CAF();
+					}
+					catch
+					{
+						return;
+					}
 				}
 
 				//Give the messages to a new list so they can be removed from the old one
-				List<IMessage> deletedMessages;
-				lock (msgDeletion)
+				var deletedMessages = new List<IMessage>(msgDeletion.Messages);
+				msgDeletion.ClearBag();
+
+				var serverLog = logInstanceInfo.GuildSettings.ServerLog;
+				var messages = deletedMessages.OrderBy(x => x?.CreatedAt.Ticks).Select(x => new FormattedMessage(x)).ToArray();
+
+				var sb = new StringBuilder();
+				while (inEmbed)
 				{
-					deletedMessages = new List<IMessage>(msgDeletion.GetList() ?? new List<IMessage>());
-					msgDeletion.ClearList();
+					foreach (var m in messages)
+					{
+						sb.AppendLineFeed(m.ToString(true));
+						//Can only stay in an embed if the description length is less than the max length
+						//and if the line numbers are less than 20
+						var validDesc = sb.Length < Constants.MAX_DESCRIPTION_LENGTH;
+						var validLines = sb.ToString().RemoveDuplicateNewLines().CountLineBreaks() < Constants.MAX_DESCRIPTION_LINES;
+						inEmbed = validDesc && validLines;
+					}
+					break;
 				}
 
-				//Put the message content into a list of strings for easy usage
-				var formattedMessages = deletedMessages.OrderBy(x => x?.CreatedAt.Ticks).Select(x => x.FormatMessage());
-				var serverLog = logInstanceInfo.GuildSettings.ServerLog;
-				await MessageActions.SendMessageContainingFormattedDeletedMessagesAsync(serverLog, formattedMessages).CAF();
+				if (inEmbed)
+				{
+					var embed = new AdvobotEmbed(TITLE, sb.ToString().RemoveDuplicateNewLines(), Constants.MDEL)
+						.AddFooter(TITLE);
+					await MessageActions.SendEmbedMessageAsync(serverLog, embed).CAF();
+				}
+				else
+				{
+					sb.Clear();
+					foreach (var m in messages)
+					{
+						sb.AppendLineFeed(m.ToString(false));
+					}
+
+					var text = sb.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
+					await MessageActions.SendTextFileAsync(serverLog, text, TITLE, $"{messages.Count()} {TITLE}").CAF();
+				}
 			});
 
 			return Task.FromResult(0);

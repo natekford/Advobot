@@ -4,6 +4,9 @@ using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
+	/// <summary>
+	/// A <see cref="RichTextBox"/> which implements some other useful properties and accepts custom colors easily.
+	/// </summary>
 	internal class AdvobotRichTextBox : RichTextBox, IFontResizeValue
 	{
 		private double _FRV;
