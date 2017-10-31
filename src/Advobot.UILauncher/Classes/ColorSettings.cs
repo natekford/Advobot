@@ -22,7 +22,7 @@ namespace Advobot.UILauncher.Classes
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> LightModeProperties { get; private set; } = GetColorProperties("LightMode");
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> DarkModeProperties { get; private set; } = GetColorProperties("DarkMode");
 
-		public static SolidColorBrush LightModeBaseBackground { get; private set; } = AdvobotColor.CreateBrush("#FFFFFF");
+		public static SolidColorBrush LightModeBaseBackground => AdvobotColor.CreateBrush("#FFFFFF");
 		public static SolidColorBrush LightModeBaseForeground => AdvobotColor.CreateBrush("#000000");
 		public static SolidColorBrush LightModeBaseBorder => AdvobotColor.CreateBrush("#ABADB3");
 		public static SolidColorBrush LightModeButtonBackground => AdvobotColor.CreateBrush("#DDDDDD");
