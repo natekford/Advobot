@@ -9,10 +9,6 @@
                       x:Name="FileSearchWin" Title="File Search" FontFamily="Courier New"
                       Closed="WindowClosed" DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
-    <Window.Resources>
-        <ResourceDictionary Source="/Advobot.UILauncher;component/Resources/WindowResources.xaml"/>
-    </Window.Resources>
-
     <Grid x:Name="Layout">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>

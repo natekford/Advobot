@@ -19,6 +19,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using System.Windows.Threading;
+using Discord.WebSocket;
 
 namespace Advobot.UILauncher.Windows
 {
@@ -39,8 +40,6 @@ namespace Advobot.UILauncher.Windows
 		public AdvobotWindow()
 		{
 			InitializeComponent();
-			var hl = HighlightingManager.Inst‌​ance.GetDefinition("JSON");
-			var names = hl.NamedHighlightingColors;
 			ColorSettings.SetAllColorBindingsOnChildren(this.Layout);
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
 			_LoginHandler.AbleToStart += Start;
@@ -58,9 +57,31 @@ namespace Advobot.UILauncher.Windows
 			LogHolder.HeldObject = lh.GetRequiredService<ILogService>();
 			_Colors = ColorSettings.LoadUISettings();
 
+			if (Client.HeldObject is DiscordSocketClient socket)
+			{
+				socket.Connected += EnableButtons;
+			}
+			else if (Client.HeldObject is DiscordShardedClient sharded)
+			{
+				sharded.Shards.LastOrDefault().Connected += EnableButtons;
+			}
+
 			//Has to be started after the client due to the latency tab
 			((DispatcherTimer)this.Resources["ApplicationInformationTimer"]).Start();
 			await ClientActions.StartAsync(Client.HeldObject);
+		}
+		private Task EnableButtons()
+		{
+			this.Dispatcher.Invoke(() =>
+			{
+				this.MainMenuButton.IsEnabled = true;
+				this.InfoMenuButton.IsEnabled = true;
+				this.FilesMenuButton.IsEnabled = true;
+				this.ColorsMenuButton.IsEnabled = true;
+				this.SettingsMenuButton.IsEnabled = true;
+				this.OutputContextMenu.IsEnabled = true;
+			});
+			return Task.FromResult(0);
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
@@ -153,6 +174,7 @@ namespace Advobot.UILauncher.Windows
 						var tcbSelected = this.ThemesComboBox.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
 
+						this.ThemesComboBox.SelectedItem = tcbSelected;
 						this.BaseBackground.Text = c[ColorTarget.BaseBackground]?.ToString();
 						this.BaseForeground.Text = c[ColorTarget.BaseForeground]?.ToString();
 						this.BaseBorder.Text = c[ColorTarget.BaseBorder]?.ToString();
@@ -163,7 +185,9 @@ namespace Advobot.UILauncher.Windows
 						this.ButtonDisabledForeground.Text = c[ColorTarget.ButtonDisabledForeground]?.ToString();
 						this.ButtonDisabledBorder.Text = c[ColorTarget.ButtonDisabledBorder]?.ToString();
 						this.ButtonMouseOverBackground.Text = c[ColorTarget.ButtonMouseOverBackground]?.ToString();
-						this.ThemesComboBox.SelectedItem = tcbSelected;
+						this.JsonDigits.Text = c[ColorTarget.JsonDigits]?.ToString();
+						this.JsonValue.Text = c[ColorTarget.JsonValue]?.ToString();
+						this.JsonParamName.Text = c[ColorTarget.JsonParamName]?.ToString();
 
 						this.ColorsMenu.Visibility = Visibility.Visible;
 						return;
@@ -204,7 +228,7 @@ namespace Advobot.UILauncher.Windows
 		}
 		private async void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			SavingActions.SaveSettings(this.SettingsMenu, BotSettings.HeldObject);
+			SavingActions.SaveSettings(this.SettingsMenuDisplay, BotSettings.HeldObject);
 			await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject);
 		}
 		private async void SaveFile(object sender, RoutedEventArgs e)
@@ -294,7 +318,7 @@ namespace Advobot.UILauncher.Windows
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
 			var c = _Colors;
-			var children = this.ColorsMenu.GetChildren();
+			var children = this.ColorsMenuDisplay.GetChildren();
 			foreach (var tb in children.OfType<AdvobotTextBox>())
 			{
 				if (tb.Tag is ColorTarget target)

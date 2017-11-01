@@ -9,12 +9,14 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public ModalWindow(Window mainWindow)
 		{
-			if (mainWindow != null)
+			if (mainWindow == null)
 			{
-				_MainWindow = mainWindow;
+				throw new ArgumentException($"{nameof(mainWindow)} cannot be null.");
 			}
+
+			_MainWindow = mainWindow;
 		}
-		public ModalWindow() { }
+		public ModalWindow() : this(null) { }
 
 		//Set the owner so this acts as a modal
 		public override void EndInit()

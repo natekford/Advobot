@@ -22,7 +22,6 @@ namespace Advobot.UILauncher.Windows
 			Constants.GUILD_SETTINGS_LOCATION.Split('.')[0],
 		};
 
-		//TODO: figure out the file search crash bug with drop down selected and some text in left box, and hit red x
 		public FileSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();

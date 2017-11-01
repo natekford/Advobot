@@ -4,6 +4,7 @@ using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Windows;
+using ICSharpCode.AvalonEdit.Highlighting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,7 @@ namespace Advobot.UILauncher.Classes
 		public static SolidColorBrush DarkModeButtonDisabledBorder => AdvobotColor.CreateBrush("#ADB2B5");
 		public static SolidColorBrush DarkModeButtonMouseOverBackground => AdvobotColor.CreateBrush("#303333");
 		public static SolidColorBrush DarkModeJsonDigits => AdvobotColor.CreateBrush("#8700FF");
-		public static SolidColorBrush DarkModeJsonValue => AdvobotColor.CreateBrush("#000CFF");
+		public static SolidColorBrush DarkModeJsonValue => AdvobotColor.CreateBrush("#0051FF");
 		public static SolidColorBrush DarkModeJsonParamName => AdvobotColor.CreateBrush("#057500");
 
 		[JsonIgnore]
@@ -72,10 +73,15 @@ namespace Advobot.UILauncher.Classes
 				ColorTargets.Add(target, null);
 			}
 		}
+
 		public SolidColorBrush this[ColorTarget target]
 		{
 			get => ColorTargets[target];
 			set => ColorTargets[target] = value;
+		}
+		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush)
+		{
+			return ColorTargets.TryGetValue(target, out brush);
 		}
 
 		private void ActivateTheme()
@@ -99,21 +105,23 @@ namespace Advobot.UILauncher.Classes
 				}
 			}
 		}
-		private static void SetClassicTheme()
+		private void SetClassicTheme()
 		{
 			var r = Application.Current.Resources;
 			foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
 			{
 				r[ct] = LightModeProperties[ct];
 			}
+			SetSyntaxHighlightingColors("JSON");
 		}
-		private static void SetDarkModeTheme()
+		private void SetDarkModeTheme()
 		{
 			var r = Application.Current.Resources;
 			foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
 			{
 				r[ct] = DarkModeProperties[ct];
 			}
+			SetSyntaxHighlightingColors("JSON");
 		}
 		private void SetCustomTheme()
 		{
@@ -121,6 +129,32 @@ namespace Advobot.UILauncher.Classes
 			foreach (var kvp in ColorTargets)
 			{
 				r[kvp.Key] = kvp.Value;
+			}
+			SetSyntaxHighlightingColors("JSON");
+		}
+		public void SetSyntaxHighlightingColors(params string[] names)
+		{
+			foreach (var name in names)
+			{
+				var highlighting = HighlightingManager.Instance.GetDefinition(name);
+				if (highlighting is null)
+				{
+					throw new ArgumentException($"{name} is not a valid highlighting.");
+				}
+
+				foreach (var namedColor in highlighting.NamedHighlightingColors)
+				{
+					//E.G.: Highlighting name is JSON, color name is Param, searches for JSONParam
+					var colorName = highlighting.Name + namedColor.Name;
+					if (!Enum.TryParse(colorName, true, out ColorTarget target))
+					{
+						continue;
+					}
+
+					//Get the set color, if one doesn't exist, use the default light mode
+					var color = ((SolidColorBrush)Application.Current.Resources[target])?.Color ?? LightModeProperties[target].Color;
+					namedColor.Foreground = new SimpleHighlightingBrush(color);
+				}
 			}
 		}
 		public void SaveSettings()
@@ -144,7 +178,7 @@ namespace Advobot.UILauncher.Classes
 		{
 			if (parent is AdvobotWindow)
 			{
-				SetClassicTheme();
+				new ColorSettings().SetClassicTheme();
 			}
 
 			foreach (var child in parent.GetChildren())

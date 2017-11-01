@@ -1,12 +1,15 @@
-﻿namespace Advobot.UILauncher.Enums
+﻿using System;
+
+namespace Advobot.UILauncher.Enums
 {
-	public enum TBType
+	[Flags]
+	public enum TBType : uint
 	{
-		Nothing,
-		Title,
-		RightCentered,
-		LeftCentered,
-		CenterCentered,
-		Background,
+		Nothing = 0,
+		Title = (1U << 0),
+		RightCentered = (1U << 1),
+		LeftCentered = (1U << 2),
+		CenterCentered = (1U << 3),
+		Background = (1U << 4),
 	}
 }

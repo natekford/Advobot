@@ -1,6 +1,5 @@
 ﻿using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Interfaces;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -24,7 +23,10 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public override void EndInit()
 		{
-			SetAllChildrenToFontSizeProperty(this);
+			if (_FRV > 0)
+			{
+				SetAllChildrenToFontSizeProperty(this);
+			}
 			base.EndInit();
 		}
 
@@ -32,16 +34,12 @@ namespace Advobot.UILauncher.Classes.Controls
 		{
 			foreach (var child in parent.GetChildren())
 			{
-				if (child.GetChildren().Any())
-				{
-					SetAllChildrenToFontSizeProperty(child);
-				}
-
 				//Don't set it on controls with it already set
-				if (child is Control c && c.GetBindingExpression(Control.FontSizeProperty) == null && c is IFontResizeValue frv)
+				if (child is IFontResizeValue frv && frv.FontResizeValue == default)
 				{
 					frv.FontResizeValue = _FRV;
 				}
+				SetAllChildrenToFontSizeProperty(child);
 			}
 		}
 	}

@@ -9,10 +9,6 @@
                       x:Name="OutputSearchWin" Title="Output Search" FontFamily="Courier New" 
                       Closed="WindowClosed" DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
-    <Window.Resources>
-        <ResourceDictionary Source="/Advobot.UILauncher;component/Resources/WindowResources.xaml"/>
-    </Window.Resources>
-
     <controls:AdvobotGrid x:Name="Layout" FontResizeValue=".022" KeyUp="SaveWithCtrlS" MouseMove="MoveToolTip">
         <Grid.ToolTip>
             <ToolTip x:Name="ActualToolTip" IsOpen="False" Visibility="Collapsed" Placement="Relative"/>

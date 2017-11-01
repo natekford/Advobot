@@ -104,12 +104,15 @@
     <Compile Include="Actions\EntityActions.cs" />
     <Compile Include="Actions\SavingActions.cs" />
     <Compile Include="Actions\ToolTipActions.cs" />
+    <Compile Include="AdvobotApp.xaml.cs">
+      <DependentUpon>AdvobotApp.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Classes\AdvobotColor.cs" />
+    <Compile Include="Classes\SyntaxHighlighting.cs" />
     <Compile Include="Windows\AdvobotWindow.xaml.cs">
       <DependentUpon>AdvobotWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Classes\BindingListener.cs" />
-    <Compile Include="Classes\AdvobotApplication.cs" />
     <Compile Include="Classes\Controls\AdvobotButton.cs" />
     <Compile Include="Classes\Controls\AdvobotComboBox.cs" />
     <Compile Include="Classes\Controls\AdvobotGrid.cs" />
@@ -143,7 +146,6 @@
     <Compile Include="Windows\OutputSearchWindow.xaml.cs">
       <DependentUpon>OutputSearchWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -182,6 +184,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ApplicationDefinition Include="AdvobotApp.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </ApplicationDefinition>
     <Page Include="Windows\AdvobotWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -191,14 +197,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\OutputSearchWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Resources\ApplicationResources.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Resources\WindowResources.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

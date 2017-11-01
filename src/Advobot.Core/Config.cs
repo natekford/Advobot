@@ -115,8 +115,9 @@ namespace Advobot.Core
 		/// <returns></returns>
 		private static string CeateSavePath()
 		{
-			//Start by grabbing the executing assembly location then cutting out everything but the file name
-			var currentName = Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location);
+			//Start by grabbing the entry assembly location then cutting out everything but the file name
+			//Use entry so console and ui applications can have diff configs
+			var currentName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
 			//Count how many exist with that name so they can be saved as Advobot1, Advobot2, etc.
 			var count = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length;
 			//Add the config file into the local application data folder under Advobot

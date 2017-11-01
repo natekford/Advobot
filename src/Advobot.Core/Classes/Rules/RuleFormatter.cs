@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.Rules
 {
-	//TODO: finish rule implementation
 	public class RuleFormatter
 	{
 		private static Dictionary<RuleFormat, MarkDownFormat> _DefaultTitleFormats = new Dictionary<RuleFormat, MarkDownFormat>
