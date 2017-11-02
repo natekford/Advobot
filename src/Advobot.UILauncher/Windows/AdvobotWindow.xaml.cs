@@ -20,6 +20,7 @@ using System.Windows.Input;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 using Discord.WebSocket;
+using System.Collections.Generic;
 
 namespace Advobot.UILauncher.Windows
 {
@@ -35,6 +36,7 @@ namespace Advobot.UILauncher.Windows
 		private ColorSettings _Colors = new ColorSettings();
 		private LoginHandler _LoginHandler = new LoginHandler();
 		private BindingListener _Listener = new BindingListener();
+		private List<FileSystemWatcher> _TreeViewUpdaters = new List<FileSystemWatcher>();
 		private MenuType _LastButtonClicked;
 
 		public AdvobotWindow()
@@ -60,6 +62,7 @@ namespace Advobot.UILauncher.Windows
 			if (Client.HeldObject is DiscordSocketClient socket)
 			{
 				socket.Connected += EnableButtons;
+				socket.GuildAvailable += AddGuildToTreeView;
 			}
 			else if (Client.HeldObject is DiscordShardedClient sharded)
 			{
@@ -70,9 +73,9 @@ namespace Advobot.UILauncher.Windows
 			((DispatcherTimer)this.Resources["ApplicationInformationTimer"]).Start();
 			await ClientActions.StartAsync(Client.HeldObject);
 		}
-		private Task EnableButtons()
+		private async Task EnableButtons()
 		{
-			this.Dispatcher.Invoke(() =>
+			await this.Dispatcher.InvokeAsync(() =>
 			{
 				this.MainMenuButton.IsEnabled = true;
 				this.InfoMenuButton.IsEnabled = true;
@@ -81,7 +84,96 @@ namespace Advobot.UILauncher.Windows
 				this.SettingsMenuButton.IsEnabled = true;
 				this.OutputContextMenu.IsEnabled = true;
 			});
-			return Task.FromResult(0);
+		}
+		private async Task AddGuildToTreeView(SocketGuild guild)
+		{
+			await this.Dispatcher.InvokeAsync(() =>
+			{
+				//Make sure the guild isn't already in the treeview
+				var items = this.FilesTreeView.Items.OfType<TreeViewItem>();
+				var item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.Guild.Id == guild.Id);
+				if (item != null)
+				{
+					item.Visibility = Visibility.Visible;
+					return;
+				}
+
+				//Make sure the guild currently has a directory
+				//If not, create it
+				var directories = GetActions.GetBaseBotDirectory().GetDirectories();
+				var guildDir = directories.SingleOrDefault(x => x.Name == guild.Id.ToString());
+				if (!guildDir.Exists)
+				{
+					Directory.CreateDirectory(guildDir.FullName);
+				}
+
+				//Create the treeview item
+				var header = AdvobotTreeView.CreateGuildHeader(guild, guildDir);
+				header.ItemsSource = guildDir.GetFiles().Select(x =>
+				{
+					var file = AdvobotTreeView.CreateGuildFile(guild, x);
+					file.MouseDoubleClick += OpenSpecificFileLayout;
+					return file;
+				});
+
+				//If any files get updated or deleted then modify
+				//the guild files in the treeview
+				var guildDirWatcher = new FileSystemWatcher(guildDir.FullName);
+				guildDirWatcher.Deleted += OnFileChangeInGuildDirectory;
+				guildDirWatcher.Renamed += OnFileChangeInGuildDirectory;
+				guildDirWatcher.Created += OnFileChangeInGuildDirectory;
+				guildDirWatcher.EnableRaisingEvents = true;
+				_TreeViewUpdaters.Add(guildDirWatcher);
+
+				//Add to tree view then resort based on member count
+				var currentTreeViewItems = this.FilesTreeView.Items.OfType<TreeViewItem>().ToList();
+				currentTreeViewItems.Add(header);
+				this.FilesTreeView.ItemsSource = currentTreeViewItems.OrderBy(x => (x.Tag as GuildHeaderInfo?)?.Guild?.MemberCount ?? 0);
+			}, DispatcherPriority.Background);
+		}
+		private async Task RemoveGuildFromTreeView(SocketGuild guild)
+		{
+			await this.Dispatcher.InvokeAsync(() =>
+			{
+				//Just make the item invisible so if need be it can be made visible instead of having to recreate it.
+				var items = this.FilesTreeView.Items.OfType<TreeViewItem>();
+				var item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.Guild.Id == guild.Id);
+				if (item != null)
+				{
+					item.Visibility = Visibility.Collapsed;
+				}
+			}, DispatcherPriority.Background);
+		}
+		private void ExportFile(object sender, RoutedEventArgs e)
+		{
+
+		}
+		private async void OnFileChangeInGuildDirectory(object sender, FileSystemEventArgs e)
+		{
+			await this.Dispatcher.InvokeAsync(() =>
+			{
+				var items = this.FilesTreeView.Items.OfType<TreeViewItem>();
+				var item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.DirectoryInfo.FullName == Path.GetDirectoryName(e.FullPath));
+				var headerInfo = (GuildHeaderInfo)item.Tag;
+				item.ItemsSource = headerInfo.DirectoryInfo.GetFiles().Select(x =>
+				{
+					var file = AdvobotTreeView.CreateGuildFile(headerInfo.Guild, x);
+					file.MouseDoubleClick += OpenSpecificFileLayout;
+					return file;
+				});
+			}, DispatcherPriority.Background);
+		}
+		private void UpdateGuildFiles(object sender, RoutedEventArgs e)
+		{
+
+		}
+		private void DeleteGuildTreeViewFile(object sender, RoutedEventArgs e)
+		{
+
+		}
+		private void ExportGuildTreeViewFile(object sender, RoutedEventArgs e)
+		{
+
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
@@ -194,11 +286,6 @@ namespace Advobot.UILauncher.Windows
 					}
 					case MenuType.Files:
 					{
-						this.FilesTreeView.ItemsSource = AdvobotTreeView.MakeGuildTreeViewItemsSource(await Client.HeldObject.GetGuildsAsync());
-						foreach (var item in this.FilesTreeView.Items.Cast<TreeViewItem>().SelectMany(x => x.Items.Cast<TreeViewItem>()))
-						{
-							item.MouseDoubleClick += OpenSpecificFileLayout;
-						}
 						this.FilesMenu.Visibility = Visibility.Visible;
 						return;
 					}

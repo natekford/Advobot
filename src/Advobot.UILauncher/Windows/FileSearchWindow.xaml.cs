@@ -46,7 +46,7 @@ namespace Advobot.UILauncher.Windows
 			TreeViewItem item = null;
 			if (!String.IsNullOrWhiteSpace(id))
 			{
-				item = items.SingleOrDefault(x => x.Tag is SocketGuild g && g.Id.ToString() == id);
+				item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.Guild.Id.ToString() == id);
 				if (item == null)
 				{
 					ConsoleActions.WriteLine($"No guild could be found with the ID '{id}'.");
@@ -54,7 +54,7 @@ namespace Advobot.UILauncher.Windows
 			}
 			else if (!String.IsNullOrWhiteSpace(name))
 			{
-				var guilds = items.Where(x => x.Tag is SocketGuild g && g.Name.CaseInsEquals(name));
+				var guilds = items.Where(x => x.Tag is GuildHeaderInfo ghi && ghi.Guild.Name.CaseInsEquals(name));
 				if (guilds.Count() == 0)
 				{
 					ConsoleActions.WriteLine($"No guild could be found with the name '{name}'.");

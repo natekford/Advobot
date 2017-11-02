@@ -45,10 +45,7 @@ namespace Advobot.UILauncher.Classes
 				return;
 			}
 
-			_Output.Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
-			{
-				_Output.AppendText(value);
-			}));
+			_Output.Dispatcher.InvokeAsync(() => _Output.AppendText(value), DispatcherPriority.ContextIdle);
 		}
 		public override Encoding Encoding => Encoding.UTF32;
 	}
