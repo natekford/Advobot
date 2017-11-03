@@ -21,6 +21,7 @@ using System.Windows.Navigation;
 using System.Windows.Threading;
 using Discord.WebSocket;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Advobot.UILauncher.Windows
 {
@@ -98,8 +99,7 @@ namespace Advobot.UILauncher.Windows
 					return;
 				}
 
-				//Make sure the guild currently has a directory
-				//If not, create it
+				//Make sure the guild currently has a directory. If not, create it
 				var directories = GetActions.GetBaseBotDirectory().GetDirectories();
 				var guildDir = directories.SingleOrDefault(x => x.Name == guild.Id.ToString());
 				if (!guildDir.Exists)
@@ -109,26 +109,19 @@ namespace Advobot.UILauncher.Windows
 
 				//Create the treeview item
 				var header = AdvobotTreeView.CreateGuildHeader(guild, guildDir);
-				header.ItemsSource = guildDir.GetFiles().Select(x =>
-				{
-					var file = AdvobotTreeView.CreateGuildFile(guild, x);
-					file.MouseDoubleClick += OpenSpecificFileLayout;
-					return file;
-				});
+				header.ItemsSource = guildDir.GetFiles().Select(x => CreateGuildFile(guild, x));
 
-				//If any files get updated or deleted then modify
-				//the guild files in the treeview
+				//If any files get updated or deleted then modify the guild files in the treeview
 				var guildDirWatcher = new FileSystemWatcher(guildDir.FullName);
 				guildDirWatcher.Deleted += OnFileChangeInGuildDirectory;
 				guildDirWatcher.Renamed += OnFileChangeInGuildDirectory;
 				guildDirWatcher.Created += OnFileChangeInGuildDirectory;
 				guildDirWatcher.EnableRaisingEvents = true;
-				_TreeViewUpdaters.Add(guildDirWatcher);
 
 				//Add to tree view then resort based on member count
-				var currentTreeViewItems = this.FilesTreeView.Items.OfType<TreeViewItem>().ToList();
-				currentTreeViewItems.Add(header);
-				this.FilesTreeView.ItemsSource = currentTreeViewItems.OrderBy(x => (x.Tag as GuildHeaderInfo?)?.Guild?.MemberCount ?? 0);
+				//TODO: make this work as intended
+				this.FilesTreeView.Items.Add(header);
+				this.FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
 			}, DispatcherPriority.Background);
 		}
 		private async Task RemoveGuildFromTreeView(SocketGuild guild)
@@ -144,26 +137,34 @@ namespace Advobot.UILauncher.Windows
 				}
 			}, DispatcherPriority.Background);
 		}
-		private void ExportFile(object sender, RoutedEventArgs e)
-		{
-
-		}
 		private async void OnFileChangeInGuildDirectory(object sender, FileSystemEventArgs e)
 		{
 			await this.Dispatcher.InvokeAsync(() =>
 			{
+				var dirPath = Path.GetDirectoryName(e.FullPath);
 				var items = this.FilesTreeView.Items.OfType<TreeViewItem>();
-				var item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.DirectoryInfo.FullName == Path.GetDirectoryName(e.FullPath));
+				var item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.DirectoryInfo.FullName == dirPath);
+
 				var headerInfo = (GuildHeaderInfo)item.Tag;
-				item.ItemsSource = headerInfo.DirectoryInfo.GetFiles().Select(x =>
-				{
-					var file = AdvobotTreeView.CreateGuildFile(headerInfo.Guild, x);
-					file.MouseDoubleClick += OpenSpecificFileLayout;
-					return file;
-				});
+				item.ItemsSource = headerInfo.DirectoryInfo.GetFiles().Select(x => CreateGuildFile(headerInfo.Guild, x));
 			}, DispatcherPriority.Background);
 		}
-		private void UpdateGuildFiles(object sender, RoutedEventArgs e)
+		private TreeViewItem CreateGuildFile(SocketGuild guild, FileInfo fileInfo)
+		{
+			var file = new TreeViewItem
+			{
+				Header = fileInfo.Name,
+				Tag = fileInfo,
+				ContextMenu = (ContextMenu)this.Resources["TreeViewFileContextMenu"],
+				HorizontalContentAlignment = HorizontalAlignment.Left,
+				VerticalContentAlignment = VerticalAlignment.Center,
+			};
+			file.SetResourceReference(TreeViewItem.BackgroundProperty, ColorTarget.BaseBackground);
+			file.SetResourceReference(TreeViewItem.ForegroundProperty, ColorTarget.BaseForeground);
+			file.MouseDoubleClick += OpenSpecificFileLayout;
+			return file;
+		}
+		private async void UpdateGuildFiles(object sender, RoutedEventArgs e)
 		{
 
 		}

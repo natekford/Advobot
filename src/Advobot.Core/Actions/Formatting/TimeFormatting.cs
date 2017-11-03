@@ -41,7 +41,9 @@ namespace Advobot.Core.Actions.Formatting
 		/// <returns></returns>
 		public static string FormatDateTimeForCreatedAtMessage(DateTime? dt)
 		{
-			return $"**Created:** `{FormatReadableDateTime(dt ?? DateTime.UtcNow)}` (`{DateTime.UtcNow.Subtract(dt ?? DateTime.UtcNow).TotalDays}` days ago)";
+			var time = FormatReadableDateTime(dt ?? DateTime.UtcNow);
+			var diff = DateTime.UtcNow.Subtract(dt ?? DateTime.UtcNow).Days;
+			return $"**Created:** `{time}` (`{diff}` days ago)";
 		}
 	}
 }

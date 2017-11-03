@@ -10,13 +10,16 @@
         xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
         xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
-        xmlns:avalon="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008"
         mc:Ignorable="d"
         x:Name="AdvobotWin" Title="Advobot" WindowState="Maximized" FontFamily="Courier New"
         Loaded="AttemptToLogin" DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
     <Window.Resources>
         <threading:DispatcherTimer x:Key="ApplicationInformationTimer" Interval="00:00:00:00.500" Tick="UpdateApplicationInfo"/>
+        <ContextMenu x:Key="TreeViewFileContextMenu">
+            <MenuItem Header="Delete File" Click="DeleteGuildTreeViewFile"/>
+            <MenuItem Header="Export File" Click="ExportGuildTreeViewFile"/>
+        </ContextMenu>
     </Window.Resources>
 
     <Grid x:Name="Layout" MouseMove="MoveToolTip">

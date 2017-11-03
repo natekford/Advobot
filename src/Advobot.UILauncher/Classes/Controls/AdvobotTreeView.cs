@@ -50,19 +50,6 @@ namespace Advobot.UILauncher.Classes.Controls
 			header.SetResourceReference(TreeViewItem.ForegroundProperty, ColorTarget.BaseForeground);
 			return header;
 		}
-		public static TreeViewItem CreateGuildFile(SocketGuild guild, FileInfo fileInfo)
-		{
-			var file = new TreeViewItem
-			{
-				Header = fileInfo.Name,
-				Tag = fileInfo,
-				HorizontalContentAlignment = HorizontalAlignment.Left,
-				VerticalContentAlignment = VerticalAlignment.Center,
-			};
-			file.SetResourceReference(TreeViewItem.BackgroundProperty, ColorTarget.BaseBackground);
-			file.SetResourceReference(TreeViewItem.ForegroundProperty, ColorTarget.BaseForeground);
-			return file;
-		}
 
 		public static IEnumerable<TreeViewItem> MakeGuildTreeViewItemsSource(IEnumerable<IGuild> guilds)
 		{
