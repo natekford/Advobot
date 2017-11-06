@@ -25,7 +25,6 @@ namespace Advobot.UILauncher.Windows
 		public FileSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
-			ColorSettings.SetAllColorBindingsOnChildren(this.Layout);
 			this.FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(_Files);
 		}
 		public FileSearchWindow() : this(null) { }
@@ -42,11 +41,11 @@ namespace Advobot.UILauncher.Windows
 				return;
 			}
 
-			var items = win.FilesTreeView.Items.OfType<TreeViewItem>();
+			var items = win.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>();
 			TreeViewItem item = null;
 			if (!String.IsNullOrWhiteSpace(id))
 			{
-				item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.Guild.Id.ToString() == id);
+				item = items.SingleOrDefault(x => x.Guild.Id.ToString() == id);
 				if (item == null)
 				{
 					ConsoleActions.WriteLine($"No guild could be found with the ID '{id}'.");
@@ -54,7 +53,7 @@ namespace Advobot.UILauncher.Windows
 			}
 			else if (!String.IsNullOrWhiteSpace(name))
 			{
-				var guilds = items.Where(x => x.Tag is GuildHeaderInfo ghi && ghi.Guild.Name.CaseInsEquals(name));
+				var guilds = items.Where(x => x.Guild.Name.CaseInsEquals(name));
 				if (guilds.Count() == 0)
 				{
 					ConsoleActions.WriteLine($"No guild could be found with the name '{name}'.");
@@ -75,7 +74,7 @@ namespace Advobot.UILauncher.Windows
 
 			if (item != null)
 			{
-				var file = item.Items.OfType<TreeViewItem>().FirstOrDefault(x => x.Tag is FileInfo fi && fi.Name.CaseInsContains(s));
+				var file = item.Items.OfType<AdvobotTreeViewFile>().FirstOrDefault(x => x.FileInfo.Name.CaseInsContains(s));
 				if (item != null && SavingActions.TryGetFileText(file, out var text, out var fileInfo))
 				{
 					//Open the result in the window and set dialogresult to true indicating a file was found

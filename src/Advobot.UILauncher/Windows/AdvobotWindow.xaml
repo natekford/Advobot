@@ -10,16 +10,13 @@
         xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
         xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
+        xmlns:syscompmodel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d"
         x:Name="AdvobotWin" Title="Advobot" WindowState="Maximized" FontFamily="Courier New"
         Loaded="AttemptToLogin" DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
     <Window.Resources>
         <threading:DispatcherTimer x:Key="ApplicationInformationTimer" Interval="00:00:00:00.500" Tick="UpdateApplicationInfo"/>
-        <ContextMenu x:Key="TreeViewFileContextMenu">
-            <MenuItem Header="Delete File" Click="DeleteGuildTreeViewFile"/>
-            <MenuItem Header="Export File" Click="ExportGuildTreeViewFile"/>
-        </ContextMenu>
     </Window.Resources>
 
     <Grid x:Name="Layout" MouseMove="MoveToolTip">
@@ -434,7 +431,7 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            
+
             <controls:AdvobotTreeView x:Name="FilesTreeView" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="1"/>
             <controls:AdvobotButton x:Name="FileSearchButton" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
                                     Content="Search Files" Click="OpenModal" Tag="{x:Static enums:Modal.FileSearch}"/>

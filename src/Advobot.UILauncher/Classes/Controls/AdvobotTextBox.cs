@@ -14,7 +14,7 @@ namespace Advobot.UILauncher.Classes.Controls
 	/// <summary>
 	/// A <see cref="TextBox"/> which implements some other useful properties and accepts custom colors easily.
 	/// </summary>
-	internal class AdvobotTextBox : TextBox, IFontResizeValue
+	internal class AdvobotTextBox : TextBox, IFontResizeValue, IAdvobotControl
 	{
 		private TBType _T;
 		public TBType TBType
@@ -51,15 +51,13 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public AdvobotTextBox()
 		{
-			this.Background = null;
-			this.Foreground = null;
-			this.BorderBrush = null;
+			SetResourceReferences();
 		}
 
 		public override void EndInit()
 		{
-			ActivateTitle();
 			base.EndInit();
+			ActivateTitle();
 		}
 		private void ActivateTBType()
 		{
@@ -127,22 +125,11 @@ namespace Advobot.UILauncher.Classes.Controls
 				}
 			}
 		}
-
-		public static AdvobotTextBox CreateUserBox(IUser user)
+		public void SetResourceReferences()
 		{
-			return user == null ? null : new AdvobotTextBox
-			{
-				Text = String.Format("'{0}#{1}' ({2})",
-					user.Username.AllCharactersAreWithinUpperLimit() ? user.Username : "Non-Standard Name",
-					user.Discriminator,
-					user.Id),
-				Tag = user.Id,
-				IsReadOnly = true,
-				IsHitTestVisible = false,
-				BorderThickness = new Thickness(0),
-				Background = Brushes.Transparent,
-				Foreground = Brushes.Black,
-			};
+			this.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
+			this.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
+			this.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 	}
 }

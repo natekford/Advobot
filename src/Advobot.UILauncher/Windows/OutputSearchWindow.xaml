@@ -39,7 +39,7 @@
             </controls:AdvobotTextEditor.ContextMenu>
         </controls:AdvobotTextEditor>
 
-        <controls:AdvobotComboBox x:Name="OutputNamesComboBox" Grid.Column="1" Grid.Row="0" IsEditable="True"/>
+        <controls:AdvobotComboBox x:Name="OutputNamesComboBox" Grid.Column="1" Grid.Row="0" IsEditable="True" Foreground="Black"/>
         <controls:AdvobotButton x:Name="SearchButton" Grid.Column="1" Grid.Row="2" Content="Search" Click="Search"
                                 IsEnabled="{Binding SelectedItem, ElementName=OutputNamesComboBox, Converter={StaticResource NullToBoolConverter}}"/>
         <controls:AdvobotButton x:Name="CloseButton" Grid.Column="1" Grid.Row="3" Content="Close" Click="Close"/>

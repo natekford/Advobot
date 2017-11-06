@@ -108,7 +108,11 @@
       <DependentUpon>AdvobotApp.xaml</DependentUpon>
     </Compile>
     <Compile Include="Classes\AdvobotColor.cs" />
+    <Compile Include="Classes\Controls\AdvobotTreeViewFile.cs" />
+    <Compile Include="Classes\Controls\AdvobotTreeViewHeader.cs" />
+    <Compile Include="Classes\Controls\AdvobotUserBox.cs" />
     <Compile Include="Classes\SyntaxHighlighting.cs" />
+    <Compile Include="Interfaces\IAdvobotControl.cs" />
     <Compile Include="Windows\AdvobotWindow.xaml.cs">
       <DependentUpon>AdvobotWindow.xaml</DependentUpon>
     </Compile>
@@ -122,7 +126,7 @@
     <Compile Include="Classes\Controls\AdvobotTextBox.cs" />
     <Compile Include="Classes\Controls\AdvobotTextEditor.cs" />
     <Compile Include="Classes\Controls\AdvobotTreeView.cs" />
-    <Compile Include="Classes\Controls\ModalWindow.cs" />
+    <Compile Include="Classes\ModalWindow.cs" />
     <Compile Include="Classes\Converters\FontResizeConverter.cs" />
     <Compile Include="Classes\Converters\NullToBoolConverter.cs" />
     <Compile Include="Classes\Converters\NavigateUriConverter.cs" />

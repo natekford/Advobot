@@ -43,7 +43,6 @@ namespace Advobot.UILauncher.Windows
 		public AdvobotWindow()
 		{
 			InitializeComponent();
-			ColorSettings.SetAllColorBindingsOnChildren(this.Layout);
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
 			_LoginHandler.AbleToStart += Start;
 		}
@@ -91,36 +90,17 @@ namespace Advobot.UILauncher.Windows
 			await this.Dispatcher.InvokeAsync(() =>
 			{
 				//Make sure the guild isn't already in the treeview
-				var items = this.FilesTreeView.Items.OfType<TreeViewItem>();
-				var item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.Guild.Id == guild.Id);
+				var items = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>();
+				var item = items.SingleOrDefault(x => x.Guild.Id == guild.Id);
 				if (item != null)
 				{
 					item.Visibility = Visibility.Visible;
 					return;
 				}
 
-				//Make sure the guild currently has a directory. If not, create it
-				var directories = GetActions.GetBaseBotDirectory().GetDirectories();
-				var guildDir = directories.SingleOrDefault(x => x.Name == guild.Id.ToString());
-				if (!guildDir.Exists)
-				{
-					Directory.CreateDirectory(guildDir.FullName);
-				}
-
-				//Create the treeview item
-				var header = AdvobotTreeView.CreateGuildHeader(guild, guildDir);
-				header.ItemsSource = guildDir.GetFiles().Select(x => CreateGuildFile(guild, x));
-
-				//If any files get updated or deleted then modify the guild files in the treeview
-				var guildDirWatcher = new FileSystemWatcher(guildDir.FullName);
-				guildDirWatcher.Deleted += OnFileChangeInGuildDirectory;
-				guildDirWatcher.Renamed += OnFileChangeInGuildDirectory;
-				guildDirWatcher.Created += OnFileChangeInGuildDirectory;
-				guildDirWatcher.EnableRaisingEvents = true;
-
 				//Add to tree view then resort based on member count
-				//TODO: make this work as intended
-				this.FilesTreeView.Items.Add(header);
+				this.FilesTreeView.Items.Add(new AdvobotTreeViewHeader(guild));
+				this.FilesTreeView.Items.SortDescriptions.Clear();
 				this.FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
 			}, DispatcherPriority.Background);
 		}
@@ -129,52 +109,13 @@ namespace Advobot.UILauncher.Windows
 			await this.Dispatcher.InvokeAsync(() =>
 			{
 				//Just make the item invisible so if need be it can be made visible instead of having to recreate it.
-				var items = this.FilesTreeView.Items.OfType<TreeViewItem>();
-				var item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.Guild.Id == guild.Id);
+				var items = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>();
+				var item = items.SingleOrDefault(x => x.Guild.Id == guild.Id);
 				if (item != null)
 				{
 					item.Visibility = Visibility.Collapsed;
 				}
 			}, DispatcherPriority.Background);
-		}
-		private async void OnFileChangeInGuildDirectory(object sender, FileSystemEventArgs e)
-		{
-			await this.Dispatcher.InvokeAsync(() =>
-			{
-				var dirPath = Path.GetDirectoryName(e.FullPath);
-				var items = this.FilesTreeView.Items.OfType<TreeViewItem>();
-				var item = items.SingleOrDefault(x => x.Tag is GuildHeaderInfo ghi && ghi.DirectoryInfo.FullName == dirPath);
-
-				var headerInfo = (GuildHeaderInfo)item.Tag;
-				item.ItemsSource = headerInfo.DirectoryInfo.GetFiles().Select(x => CreateGuildFile(headerInfo.Guild, x));
-			}, DispatcherPriority.Background);
-		}
-		private TreeViewItem CreateGuildFile(SocketGuild guild, FileInfo fileInfo)
-		{
-			var file = new TreeViewItem
-			{
-				Header = fileInfo.Name,
-				Tag = fileInfo,
-				ContextMenu = (ContextMenu)this.Resources["TreeViewFileContextMenu"],
-				HorizontalContentAlignment = HorizontalAlignment.Left,
-				VerticalContentAlignment = VerticalAlignment.Center,
-			};
-			file.SetResourceReference(TreeViewItem.BackgroundProperty, ColorTarget.BaseBackground);
-			file.SetResourceReference(TreeViewItem.ForegroundProperty, ColorTarget.BaseForeground);
-			file.MouseDoubleClick += OpenSpecificFileLayout;
-			return file;
-		}
-		private async void UpdateGuildFiles(object sender, RoutedEventArgs e)
-		{
-
-		}
-		private void DeleteGuildTreeViewFile(object sender, RoutedEventArgs e)
-		{
-
-		}
-		private void ExportGuildTreeViewFile(object sender, RoutedEventArgs e)
-		{
-
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
@@ -245,7 +186,7 @@ namespace Advobot.UILauncher.Windows
 						var llSelected = this.LogLevel.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is LogSeverity ls && ls == s.LogLevel);
 						var tuSource = await Task.WhenAll(s.TrustedUsers
-							.Select(async x => AdvobotTextBox.CreateUserBox(await Client.HeldObject.GetUserAsync(x))));
+							.Select(async x => new AdvobotUserBox(await Client.HeldObject.GetUserAsync(x))));
 
 						this.AlwaysDownloadUsers.IsChecked = s.AlwaysDownloadUsers;
 						this.Prefix.Text = s.Prefix;
@@ -305,9 +246,10 @@ namespace Advobot.UILauncher.Windows
 				return;
 			}
 
-			var tb = AdvobotTextBox.CreateUserBox(await Client.HeldObject.GetUserAsync(userId));
+			var tb = new AdvobotUserBox(await Client.HeldObject.GetUserAsync(userId));
 			if (tb != null)
 			{
+				//TODO: see if can just add 
 				this.TrustedUsers.ItemsSource = this.TrustedUsers.ItemsSource.OfType<TextBox>()
 					.Concat(new[] { tb }).Where(x => x != null);
 			}
@@ -510,7 +452,7 @@ namespace Advobot.UILauncher.Windows
 				}
 				default:
 				{
-					throw new ArgumentException($"Invalid modal type supplied: {m.EnumName()}");
+					throw new ArgumentException($"Invalid modal type supplied: {m}");
 				}
 			}
 			//Reset the opacity
@@ -518,9 +460,9 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void CloseFile(object sender, RoutedEventArgs e)
 		{
-			switch (MessageBox.Show("Are you sure you want to close the file window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
+			switch (MessageBox.Show("Are you sure you want to close the file window?", Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
 			{
-				case MessageBoxResult.OK:
+				case MessageBoxResult.Yes:
 				{
 					EntityActions.SetRowSpan(this.FilesMenu, Grid.GetRowSpan(this.FilesMenu) - (this.Layout.RowDefinitions.Count - 1));
 					this.SpecificFileOutput.Tag = null;

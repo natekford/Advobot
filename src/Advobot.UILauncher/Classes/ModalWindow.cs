@@ -9,12 +9,7 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public ModalWindow(Window mainWindow)
 		{
-			if (mainWindow == null)
-			{
-				throw new ArgumentException($"{nameof(mainWindow)} cannot be null.");
-			}
-
-			_MainWindow = mainWindow;
+			_MainWindow = mainWindow ?? throw new ArgumentException($"{nameof(mainWindow)} cannot be null.");
 		}
 		public ModalWindow() : this(null) { }
 

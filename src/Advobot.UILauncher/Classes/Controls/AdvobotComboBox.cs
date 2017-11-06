@@ -1,4 +1,5 @@
 ﻿using Advobot.UILauncher.Actions;
+using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Advobot.UILauncher.Classes.Controls
 	/// <summary>
 	/// A <see cref="ComboBox"/> which implements some other useful properties and accepts custom colors easily.
 	/// </summary>
-	internal class AdvobotComboBox : ComboBox, IFontResizeValue
+	internal class AdvobotComboBox : ComboBox, IFontResizeValue, IAdvobotControl
 	{
 		private double _FRV;
 		public double FontResizeValue
@@ -38,6 +39,13 @@ namespace Advobot.UILauncher.Classes.Controls
 		{
 			this.VerticalContentAlignment = VerticalAlignment.Center;
 			this.HorizontalContentAlignment = HorizontalAlignment.Center;
+			SetResourceReferences();
+		}
+		public void SetResourceReferences()
+		{
+			this.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
+			this.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
+			this.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 
 		/// <summary>

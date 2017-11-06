@@ -39,7 +39,7 @@ namespace Advobot.UILauncher.Actions
 		/// <exception cref="ArgumentException">If <paramref name="size"/> is less than zero.</exception>
 		public static void SetFontResizeProperty(Control control, double size)
 		{
-			if (!GetTopMostParent(control, out Grid parent, out int ancestorLevel))
+			if (!TryGetTopMostParent(control, out Grid parent, out int ancestorLevel))
 			{
 				throw new ArgumentException($"{control.Name} must be inside a grid if {nameof(IFontResizeValue.FontResizeValue)} is set.");
 			}
@@ -69,7 +69,7 @@ namespace Advobot.UILauncher.Actions
 		/// <param name="parent"></param>
 		/// <param name="ancestorLevel"></param>
 		/// <returns></returns>
-		public static bool GetTopMostParent<T>(this DependencyObject element, out T parent, out int ancestorLevel) where T : DependencyObject
+		public static bool TryGetTopMostParent<T>(this DependencyObject element, out T parent, out int ancestorLevel) where T : DependencyObject
 		{
 			parent = null;
 			ancestorLevel = 0;

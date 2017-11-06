@@ -86,49 +86,33 @@ namespace Advobot.UILauncher.Classes
 
 		private void ActivateTheme()
 		{
+			var r = Application.Current.Resources;
 			switch (Theme)
 			{
 				case ColorTheme.Classic:
 				{
-					SetClassicTheme();
-					return;
+					foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
+					{
+						r[ct] = LightModeProperties[ct];
+					}
+					break;
 				}
 				case ColorTheme.DarkMode:
 				{
-					SetDarkModeTheme();
-					return;
+					foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
+					{
+						r[ct] = DarkModeProperties[ct];
+					}
+					break;
 				}
 				case ColorTheme.UserMade:
 				{
-					SetCustomTheme();
-					return;
+					foreach (var kvp in ColorTargets)
+					{
+						r[kvp.Key] = kvp.Value;
+					}
+					break;
 				}
-			}
-		}
-		private void SetClassicTheme()
-		{
-			var r = Application.Current.Resources;
-			foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
-			{
-				r[ct] = LightModeProperties[ct];
-			}
-			SetSyntaxHighlightingColors("JSON");
-		}
-		private void SetDarkModeTheme()
-		{
-			var r = Application.Current.Resources;
-			foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
-			{
-				r[ct] = DarkModeProperties[ct];
-			}
-			SetSyntaxHighlightingColors("JSON");
-		}
-		private void SetCustomTheme()
-		{
-			var r = Application.Current.Resources;
-			foreach (var kvp in ColorTargets)
-			{
-				r[kvp.Key] = kvp.Value;
 			}
 			SetSyntaxHighlightingColors("JSON");
 		}
@@ -173,44 +157,6 @@ namespace Advobot.UILauncher.Classes
 					x => (ColorTarget)Enum.Parse(typeof(ColorTarget), x.Name.Replace(prefix, "")),
 					x => (SolidColorBrush)x.GetValue(null)
 				).ToImmutableDictionary();
-		}
-		public static void SetAllColorBindingsOnChildren(DependencyObject parent)
-		{
-			if (parent is AdvobotWindow)
-			{
-				new ColorSettings().SetClassicTheme();
-			}
-
-			foreach (var child in parent.GetChildren())
-			{
-				if (child is AdvobotButton button)
-				{
-					if (button.Style == null)
-					{
-						button.SetResourceReference(Button.StyleProperty, OtherTarget.ButtonStyle);
-					}
-				}
-				else if (child is Control control)
-				{
-					if (control.Background == null)
-					{
-						control.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
-					}
-					if (control.Foreground == null)
-					{
-						control.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
-					}
-					if (control.BorderBrush == null)
-					{
-						control.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
-					}
-				}
-
-				if (child.GetChildren().Any())
-				{
-					SetAllColorBindingsOnChildren(child);
-				}
-			}
 		}
 		public static ColorSettings LoadUISettings()
 		{

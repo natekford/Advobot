@@ -1,4 +1,5 @@
 ﻿using Advobot.UILauncher.Actions;
+using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,7 +9,7 @@ namespace Advobot.UILauncher.Classes.Controls
 	/// <summary>
 	/// A <see cref="Grid"/> which implements some other useful properties and accepts custom colors easily.
 	/// </summary>
-	internal class AdvobotGrid : Grid, IFontResizeValue
+	internal class AdvobotGrid : Grid, IFontResizeValue, IAdvobotControl
 	{
 		private double _FRV;
 		public double FontResizeValue
@@ -21,13 +22,24 @@ namespace Advobot.UILauncher.Classes.Controls
 			}
 		}
 
+		public AdvobotGrid()
+		{
+			SetResourceReferences();
+		}
+
 		public override void EndInit()
 		{
+			base.EndInit();
 			if (_FRV > 0)
 			{
 				SetAllChildrenToFontSizeProperty(this);
 			}
-			base.EndInit();
+		}
+		public void SetResourceReferences()
+		{
+			this.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
+			this.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
+			this.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 
 		private void SetAllChildrenToFontSizeProperty(DependencyObject parent)
