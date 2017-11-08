@@ -249,9 +249,7 @@ namespace Advobot.UILauncher.Windows
 			var tb = new AdvobotUserBox(await Client.HeldObject.GetUserAsync(userId));
 			if (tb != null)
 			{
-				//TODO: see if can just add 
-				this.TrustedUsers.ItemsSource = this.TrustedUsers.ItemsSource.OfType<TextBox>()
-					.Concat(new[] { tb }).Where(x => x != null);
+				this.TrustedUsers.AddItem(tb);
 			}
 
 			this.TrustedUsersBox.Text = null;
@@ -339,10 +337,11 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
 		{
-			if (this.TrustedUsers.SelectedItem != null)
+			var item = this.TrustedUsers.SelectedItem;
+			if (item != null)
 			{
-				this.TrustedUsers.ItemsSource = this.TrustedUsers.ItemsSource.OfType<TextBox>()
-					.Except(new[] { this.TrustedUsers.SelectedItem }).Where(x => x != null);
+				//TODO: make this work
+				this.TrustedUsers.RemoveItem(item);
 			}
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)

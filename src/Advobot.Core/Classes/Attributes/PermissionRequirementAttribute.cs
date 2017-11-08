@@ -32,7 +32,7 @@ namespace Advobot.Core.Classes.Attributes
 			}
 		}
 
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
+		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
 			if (context is IAdvobotCommandContext advobotCommandContext)
 			{

@@ -12,9 +12,12 @@ namespace Advobot.UILauncher.Classes.Controls
 	{
 		public AdvobotUserBox(IUser user)
 		{
-			var name = user.Username.AllCharactersAreWithinUpperLimit() ? user.Username : "Non-Standard Name";
-			Text = $"'{name}#{user.Discriminator}' ({user.Id})";
-			Tag = user.Id;
+			if (user != null)
+			{
+				var name = user.Username.AllCharactersAreWithinUpperLimit() ? user.Username : "Non-Standard Name";
+				Text = $"'{name}#{user.Discriminator}' ({user.Id})";
+				Tag = user.Id;
+			}
 			IsReadOnly = true;
 			IsHitTestVisible = false;
 			BorderThickness = new Thickness(0);

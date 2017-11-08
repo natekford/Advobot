@@ -27,7 +27,7 @@ namespace Advobot.Core.Classes.TypeReaders
 		/// <param name="services"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">If a class name isn't in the settings dictionary.</exception>
-		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			if (!_Settings.TryGetValue(GetType().Name, out var dict))
 			{

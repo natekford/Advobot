@@ -25,7 +25,7 @@ namespace Advobot.Core.Classes.Attributes
 			Checks = checks.ToImmutableList();
 		}
 
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (value == null)
 			{

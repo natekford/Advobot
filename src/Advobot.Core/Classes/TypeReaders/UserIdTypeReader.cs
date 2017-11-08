@@ -18,7 +18,7 @@ namespace Advobot.Core.Classes.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			if (!ulong.TryParse(input, out ulong id))
 			{

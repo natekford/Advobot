@@ -1,11 +1,8 @@
 ﻿using Advobot.Core;
 using Advobot.Core.Actions;
 using Advobot.UILauncher.Actions;
-using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Classes.Controls;
-using Discord.WebSocket;
 using System;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;

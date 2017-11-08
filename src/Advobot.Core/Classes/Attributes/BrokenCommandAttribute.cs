@@ -10,7 +10,7 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 	public class BrokenCommandAttribute : PreconditionAttribute
 	{
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			return Task.FromResult(PreconditionResult.FromError("This command is currently disabled."));
 		}

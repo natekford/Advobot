@@ -3,7 +3,6 @@ using Advobot.Core.Actions.Formatting;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Discord.WebSocket;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;

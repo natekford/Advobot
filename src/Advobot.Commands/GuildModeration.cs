@@ -134,7 +134,7 @@ namespace Advobot.Commands.GuildModeration
 	public sealed class ModifyGuildAFKTimer : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyNumber(60, 300, 900, 1800, 3600)] uint time)
+		public async Task Command([VerifyNumber(new[] { 60, 300, 900, 1800, 3600 })] uint time)
 		{
 			await GuildActions.ModifyGuildAFKTimeAsync(Context.Guild, (int)time, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully set the guild's AFK timeout to `{time}`.";

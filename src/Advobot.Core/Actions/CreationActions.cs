@@ -100,11 +100,8 @@ namespace Advobot.Core.Actions
 			var fields = GetActions.GetBotSettings().ToList();
 			foreach (BotSetting e in Enum.GetValues(typeof(BotSetting)))
 			{
-				var matchingField = fields.SingleOrDefault(x => e.EnumName() == x.Name);
-				if (matchingField == null)
-				{
-					throw new Exception($"{nameof(BotSetting)} has an invalid enum {e.EnumName()}.");
-				}
+				var matchingField = fields.SingleOrDefault(x => e.EnumName() == x.Name)
+					?? throw new Exception($"{nameof(BotSetting)} has an invalid enum {e.EnumName()}.");
 				fields.Remove(matchingField);
 			}
 			if (fields.Any())

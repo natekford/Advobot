@@ -15,7 +15,7 @@ namespace Advobot.Core.Classes.Attributes
 		public readonly ImmutableList<int> ValidNumbers;
 		public readonly bool Range;
 
-		public VerifyNumberAttribute(params int[] numbers)
+		public VerifyNumberAttribute(int[] numbers)
 		{
 			if (numbers.Length > 10)
 			{
@@ -25,18 +25,13 @@ namespace Advobot.Core.Classes.Attributes
 			ValidNumbers = numbers.OrderBy(x => x).ToImmutableList();
 			Range = false;
 		}
-		public VerifyNumberAttribute(bool soDiffOverloads, int start, int end)
+		public VerifyNumberAttribute(int start, int end)
 		{
-			if (!soDiffOverloads)
-			{
-				throw new ArgumentException($"Make the bool in a {nameof(VerifyNumberAttribute)} true instead of false.");
-			}
-
 			ValidNumbers = Enumerable.Range(start, end - start).ToImmutableList();
 			Range = true;
 		}
 
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
 			if (value == null)
@@ -44,13 +39,11 @@ namespace Advobot.Core.Classes.Attributes
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
 
-			var nullableNum = value as int?;
-			if (nullableNum == null)
+			if (!(value is int num))
 			{
 				throw new NotSupportedException($"{nameof(VerifyNumberAttribute)} only supports {nameof(UInt32)}.");
 			}
 
-			var num = nullableNum.Value;
 			return ValidNumbers.Contains(num)
 				? Task.FromResult(PreconditionResult.FromSuccess())
 				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{String.Join("`, `", ValidNumbers)}`"));

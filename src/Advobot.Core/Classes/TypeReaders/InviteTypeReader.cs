@@ -19,7 +19,7 @@ namespace Advobot.Core.Classes.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			IInvite invite = (await context.Guild.GetInvitesAsync().CAF()).FirstOrDefault(x => x.Code.CaseInsEquals(input));
 			if (invite == null)

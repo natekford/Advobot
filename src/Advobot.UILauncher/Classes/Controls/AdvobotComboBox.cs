@@ -3,6 +3,8 @@ using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -14,6 +16,7 @@ namespace Advobot.UILauncher.Classes.Controls
 	/// </summary>
 	internal class AdvobotComboBox : ComboBox, IFontResizeValue, IAdvobotControl
 	{
+		private ObservableCollection<object> _Items;
 		private double _FRV;
 		public double FontResizeValue
 		{
@@ -37,6 +40,9 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public AdvobotComboBox()
 		{
+			this.ItemsSource = _Items = new ObservableCollection<object>();
+			//Sort alphabetically
+			this.Items.SortDescriptions.Add(new SortDescription("Text", ListSortDirection.Ascending));
 			this.VerticalContentAlignment = VerticalAlignment.Center;
 			this.HorizontalContentAlignment = HorizontalAlignment.Center;
 			SetResourceReferences();
@@ -46,6 +52,15 @@ namespace Advobot.UILauncher.Classes.Controls
 			this.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
 			this.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
 			this.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
+		}
+
+		public void AddItem(object obj)
+		{
+			_Items.Add(obj);
+		}
+		public void RemoveItem(object obj)
+		{
+			_Items.Remove(obj);
 		}
 
 		/// <summary>

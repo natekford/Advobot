@@ -61,7 +61,7 @@ namespace Advobot.Core.Classes.Attributes
 		/// <param name="services"></param>
 		/// <returns></returns>
 		/// <exception cref="NotSupportedException">This class only works on strings.</exception>
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
 			if (value == null)

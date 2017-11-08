@@ -138,7 +138,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class PruneUsers : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyNumber(1, 7, 30)] uint days, [Optional, OverrideTypeReader(typeof(PruneTypeReader))] bool simulate)
+		public async Task Command([VerifyNumber(new[] { 1, 7, 30 })] uint days, [Optional, OverrideTypeReader(typeof(PruneTypeReader))] bool simulate)
 		{
 			var amt = await GuildActions.PruneUsersAsync(Context.Guild, (int)days, !simulate, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"`{amt}` members{(!simulate ? " would" : "")} have been pruned with a prune period of `{days}` days.";
@@ -336,7 +336,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class ModifySlowmode : SavingModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
-		public async Task Create([VerifyNumber(true, 1, 5)] uint messages, [VerifyNumber(true, 1, 30)] uint interval, [Optional] params IRole[] immuneRoles)
+		public async Task Create([VerifyNumber(1, 5)] uint messages, [VerifyNumber(1, 30)] uint interval, [Optional] params IRole[] immuneRoles)
 		{
 			Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
 			var resp = $"Successfully setup slowmode.\n{Context.GuildSettings.Slowmode.ToString()}";

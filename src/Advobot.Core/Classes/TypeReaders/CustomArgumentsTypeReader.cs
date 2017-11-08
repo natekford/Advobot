@@ -16,7 +16,7 @@ namespace Advobot.Core.Classes.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			return Task.FromResult(TypeReaderResult.FromSuccess(new CustomArguments<T>(input)));
 		}

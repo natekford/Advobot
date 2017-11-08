@@ -19,7 +19,7 @@ namespace Advobot.Core.Classes.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			IEmote emote = null;
 			if (Emote.TryParse(input, out Emote tempEmote))
