@@ -39,12 +39,12 @@ namespace Advobot.UILauncher.Windows
 				Save(sender, e);
 			}
 		}
-		private async void Save(object sender, RoutedEventArgs e)
+		private void Save(object sender, RoutedEventArgs e)
 		{
 			if (this.ConsoleSearchOutput.Text.Length > 0)
 			{
 				var response = SavingActions.SaveFile(this.ConsoleSearchOutput);
-				await ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
+				ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
 			}
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)

@@ -141,7 +141,42 @@ namespace Advobot.UILauncher.Windows
 				await _LoginHandler.AttemptToStart(input);
 			}
 		}
-		private async void OpenMenu(object sender, RoutedEventArgs e)
+		private async void AddTrustedUser(object sender, RoutedEventArgs e)
+		{
+			var input = this.TrustedUsersBox.Text;
+			if (!ulong.TryParse(input, out ulong userId))
+			{
+				ConsoleActions.WriteLine($"The given input '{input}' is not a valid ID.");
+			}
+			else if (this.TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
+			{
+				return;
+			}
+
+			var tb = new AdvobotUserBox(await Client.HeldObject.GetUserAsync(userId));
+			if (tb != null)
+			{
+				this.TrustedUsers.AddItem(tb);
+			}
+
+			this.TrustedUsersBox.Text = null;
+		}
+		private async void SaveSettings(object sender, RoutedEventArgs e)
+		{
+			SavingActions.SaveSettings(this.SettingsMenuDisplay, BotSettings.HeldObject);
+			await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject);
+		}
+		private void SaveFile(object sender, RoutedEventArgs e)
+		{
+			var response = SavingActions.SaveFile(this.SpecificFileOutput);
+			ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
+		}
+		private void SaveOutput(object sender, RoutedEventArgs e)
+		{
+			var response = SavingActions.SaveFile(this.Output);
+			ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
+		}
+		private void OpenMenu(object sender, RoutedEventArgs e)
 		{
 			if (!(sender is Button button))
 			{
@@ -185,8 +220,6 @@ namespace Advobot.UILauncher.Windows
 						var s = BotSettings.HeldObject;
 						var llSelected = this.LogLevel.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is LogSeverity ls && ls == s.LogLevel);
-						var tuSource = await Task.WhenAll(s.TrustedUsers
-							.Select(async x => new AdvobotUserBox(await Client.HeldObject.GetUserAsync(x))));
 
 						this.AlwaysDownloadUsers.IsChecked = s.AlwaysDownloadUsers;
 						this.Prefix.Text = s.Prefix;
@@ -197,7 +230,6 @@ namespace Advobot.UILauncher.Windows
 						this.MaxUserGatherCount.Text = s.MaxUserGatherCount.ToString();
 						this.MaxMessageGatherSize.Text = s.MaxMessageGatherSize.ToString();
 						this.LogLevel.SelectedItem = llSelected;
-						this.TrustedUsers.ItemsSource = tuSource;
 
 						this.SettingsMenu.Visibility = Visibility.Visible;
 						return;
@@ -233,41 +265,6 @@ namespace Advobot.UILauncher.Windows
 					}
 				}
 			}
-		}
-		private async void AddTrustedUser(object sender, RoutedEventArgs e)
-		{
-			var input = this.TrustedUsersBox.Text;
-			if (!ulong.TryParse(input, out ulong userId))
-			{
-				ConsoleActions.WriteLine($"The given input '{input}' is not a valid ID.");
-			}
-			else if (this.TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
-			{
-				return;
-			}
-
-			var tb = new AdvobotUserBox(await Client.HeldObject.GetUserAsync(userId));
-			if (tb != null)
-			{
-				this.TrustedUsers.AddItem(tb);
-			}
-
-			this.TrustedUsersBox.Text = null;
-		}
-		private async void SaveSettings(object sender, RoutedEventArgs e)
-		{
-			SavingActions.SaveSettings(this.SettingsMenuDisplay, BotSettings.HeldObject);
-			await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject);
-		}
-		private async void SaveFile(object sender, RoutedEventArgs e)
-		{
-			var response = SavingActions.SaveFile(this.SpecificFileOutput);
-			await ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
-		}
-		private async void SaveOutput(object sender, RoutedEventArgs e)
-		{
-			var response = SavingActions.SaveFile(this.Output);
-			await ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
 		}
 		private void OpenHyperLink(object sender, RequestNavigateEventArgs e)
 		{
@@ -337,12 +334,7 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
 		{
-			var item = this.TrustedUsers.SelectedItem;
-			if (item != null)
-			{
-				//TODO: make this work
-				this.TrustedUsers.RemoveItem(item);
-			}
+			this.TrustedUsers.RemoveItem(this.TrustedUsers.SelectedItem);
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{

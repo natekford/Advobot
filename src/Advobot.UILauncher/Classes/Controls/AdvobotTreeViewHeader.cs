@@ -24,6 +24,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			set
 			{
 				_G = value;
+
 				//Make sure the guild currently has a directory. If not, create it
 				var directories = GetActions.GetBaseBotDirectory().GetDirectories();
 				var guildDir = directories.SingleOrDefault(x => x.Name == _G.Id.ToString());
@@ -31,7 +32,14 @@ namespace Advobot.UILauncher.Classes.Controls
 				{
 					Directory.CreateDirectory(guildDir.FullName);
 				}
+
+				//Use the correct directory and files
 				_DI = guildDir;
+				_Files.Clear();
+				foreach (var file in _DI.GetFiles())
+				{
+					_Files.Add(new AdvobotTreeViewFile(file));
+				}
 
 				//If any files get updated or deleted then modify the guild files in the treeview
 				_FSW?.Dispose();
@@ -42,20 +50,19 @@ namespace Advobot.UILauncher.Classes.Controls
 				_FSW.EnableRaisingEvents = true;
 			}
 		}
-		private ObservableCollection<AdvobotTreeViewFile> _Files;
+		private ObservableCollection<AdvobotTreeViewFile> _Files = new ObservableCollection<AdvobotTreeViewFile>();
 
 		public AdvobotTreeViewHeader(SocketGuild guild)
 		{
 			this.Guild = guild;
 			this.Header = guild.FormatGuild();
-			this.ItemsSource = _Files = new ObservableCollection<AdvobotTreeViewFile>(_DI.GetFiles().Select(x => new AdvobotTreeViewFile(x)));
+			this.ItemsSource = _Files;
 			//Sort alphabetically
 			this.Items.SortDescriptions.Add(new SortDescription("Header", ListSortDirection.Ascending));
 			this.HorizontalContentAlignment = System.Windows.HorizontalAlignment.Left;
 			this.VerticalContentAlignment = System.Windows.VerticalAlignment.Center;
 			SetResourceReferences();
 		}
-
 		public void SetResourceReferences()
 		{
 			this.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
@@ -79,18 +86,18 @@ namespace Advobot.UILauncher.Classes.Controls
 					case WatcherChangeTypes.Created:
 					{
 						_Files.Add(new AdvobotTreeViewFile(new FileInfo(e.FullPath)));
-						break;
+						return;
 					}
 					case WatcherChangeTypes.Deleted:
 					{
 						_Files.Remove(_Files.FirstOrDefault(x => x.FileInfo.FullName == e.FullPath));
-						break;
+						return;
 					}
 					case WatcherChangeTypes.Renamed:
 					{
-						_Files.Remove(_Files.FirstOrDefault(x => x.FileInfo.FullName == ((RenamedEventArgs)e).OldFullPath));
-						_Files.Add(new AdvobotTreeViewFile(new FileInfo(e.FullPath)));
-						break;
+						var renamed = (RenamedEventArgs)e;
+						_Files.FirstOrDefault(x => x.FileInfo.FullName == renamed.OldFullPath)?.Update(renamed);
+						return;
 					}
 				}
 			});

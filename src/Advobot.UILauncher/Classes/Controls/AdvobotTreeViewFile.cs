@@ -4,6 +4,8 @@ using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Advobot.UILauncher.Windows;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,20 +16,18 @@ namespace Advobot.UILauncher.Classes.Controls
 	{
 		private FileInfo _FI;
 		public FileInfo FileInfo => _FI;
-		private AdvobotWindow _W;
 
 		public AdvobotTreeViewFile(FileInfo fileInfo)
 		{
 			this._FI = fileInfo;
-			EntityActions.TryGetTopMostParent(this, out AdvobotWindow _W, out var ancestorLevel);
 			this.Header = _FI.Name;
+			this.Tag = _FI;
 			this.ContextMenu = CreateContextMenu();
 			this.HorizontalContentAlignment = HorizontalAlignment.Left;
 			this.VerticalContentAlignment = VerticalAlignment.Center;
 			this.MouseDoubleClick += OpenFile;
 			SetResourceReferences();
 		}
-
 		private ContextMenu CreateContextMenu()
 		{
 			var delete = new MenuItem
@@ -46,18 +46,26 @@ namespace Advobot.UILauncher.Classes.Controls
 			export.Click += ExportFile;
 			return new ContextMenu { ItemsSource = new[] { delete, export } };
 		}
-
 		public void SetResourceReferences()
 		{
 			this.SetResourceReference(TreeViewItem.BackgroundProperty, ColorTarget.BaseBackground);
 			this.SetResourceReference(TreeViewItem.ForegroundProperty, ColorTarget.BaseForeground);
 		}
+		public void Update(RenamedEventArgs e)
+		{
+			this._FI = new FileInfo(e.FullPath);
+			this.Header = _FI.Name;
+		}
 
 		private void OpenFile(object sender, RoutedEventArgs e)
 		{
-			if (SavingActions.TryGetFileText(_FI, out var text, out var fileInfo))
+			if (!EntityActions.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
 			{
-				_W.OpenSpecificFileLayout(text, fileInfo);
+				throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
+			}
+			else if (SavingActions.TryGetFileText(this, out var text, out var fileInfo))
+			{
+				window.OpenSpecificFileLayout(text, fileInfo);
 			}
 		}
 		private void DeleteFile(object sender, RoutedEventArgs e)
@@ -74,7 +82,23 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 		private void ExportFile(object sender, RoutedEventArgs e)
 		{
+			using (var dialog = new CommonOpenFileDialog { IsFolderPicker = true })
+			{
+				switch (dialog.ShowDialog())
+				{
+					case CommonFileDialogResult.Ok:
+					{
+						if (!EntityActions.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
+						{
+							throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
+						}
 
+						this._FI.CopyTo(Path.Combine(dialog.FileName, _FI.Name));
+						ToolTipActions.EnableTimedToolTip(window.Layout, $"Successfully copied {this._FI.Name} to {dialog.FileName}.");
+						break;
+					}
+				}
+			}
 		}
 	}
 }

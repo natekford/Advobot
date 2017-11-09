@@ -17,7 +17,7 @@ namespace Advobot.UILauncher.Actions
 		};
 		private static CancellationTokenSource _ToolTipCancellationTokenSource;
 
-		public static async Task EnableTimedToolTip(FrameworkElement element, string text, int timeInMS = 2500)
+		public static void EnableTimedToolTip(FrameworkElement element, string text, int timeInMS = 2500)
 		{
 			if (!(element.ToolTip is ToolTip tt))
 			{
@@ -30,18 +30,21 @@ namespace Advobot.UILauncher.Actions
 			_ToolTipCancellationTokenSource?.Cancel();
 			_ToolTipCancellationTokenSource = new CancellationTokenSource();
 
-			await element.Dispatcher.InvokeAsync(async () =>
+			Task.Run(async () =>
 			{
-				try
+				await element.Dispatcher.InvokeAsync(async () =>
 				{
-					await Task.Delay(timeInMS, _ToolTipCancellationTokenSource.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					return;
-				}
+					try
+					{
+						await Task.Delay(timeInMS, _ToolTipCancellationTokenSource.Token);
+					}
+					catch (TaskCanceledException)
+					{
+						return;
+					}
 
-				tt.DisableToolTip();
+					tt.DisableToolTip();
+				});
 			});
 		}
 		/// <summary>

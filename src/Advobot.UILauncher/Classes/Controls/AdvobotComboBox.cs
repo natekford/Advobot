@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -16,7 +17,6 @@ namespace Advobot.UILauncher.Classes.Controls
 	/// </summary>
 	internal class AdvobotComboBox : ComboBox, IFontResizeValue, IAdvobotControl
 	{
-		private ObservableCollection<object> _Items;
 		private double _FRV;
 		public double FontResizeValue
 		{
@@ -37,10 +37,11 @@ namespace Advobot.UILauncher.Classes.Controls
 				_SET = value;
 			}
 		}
+		private ObservableCollection<object> _Items = new ObservableCollection<object>();
 
 		public AdvobotComboBox()
 		{
-			this.ItemsSource = _Items = new ObservableCollection<object>();
+			this.ItemsSource = _Items;
 			//Sort alphabetically
 			this.Items.SortDescriptions.Add(new SortDescription("Text", ListSortDirection.Ascending));
 			this.VerticalContentAlignment = VerticalAlignment.Center;
