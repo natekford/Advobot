@@ -1,6 +1,5 @@
 ﻿using Advobot.Core;
 using Advobot.Core.Actions;
-using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Classes.Controls;
 using System;
 using System.Linq;
@@ -12,19 +11,19 @@ namespace Advobot.UILauncher.Windows
 	/// <summary>
 	/// Interaction logic for FileSearch.xaml
 	/// </summary>
-	public partial class FileSearchWindow : ModalWindow
+	internal partial class FileSearchWindow : ModalWindow
 	{
 		private string[] _Files = new[]
 		{
 			Constants.GUILD_SETTINGS_LOCATION.Split('.')[0],
 		};
 
+		public FileSearchWindow() : this(null) { }
 		public FileSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
 			this.FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(_Files);
 		}
-		public FileSearchWindow() : this(null) { }
 
 		private void Search(object sender, RoutedEventArgs e)
 		{
@@ -71,17 +70,9 @@ namespace Advobot.UILauncher.Windows
 
 			if (item != null)
 			{
-				var file = item.Items.OfType<AdvobotTreeViewFile>().FirstOrDefault(x => x.FileInfo.Name.CaseInsContains(s));
-				if (item != null && SavingActions.TryGetFileText(file, out var text, out var fileInfo))
-				{
-					//Open the result in the window and set dialogresult to true indicating a file was found
-					win.OpenSpecificFileLayout(text, fileInfo);
-					this.DialogResult = true;
-				}
-				else
-				{
-					ConsoleActions.WriteLine($"Unable to open the file.");
-				}
+				this.DialogResult = true;
+				this.Hide();
+				item.Items.OfType<AdvobotTreeViewFile>().FirstOrDefault(x => x.FileInfo.Name.CaseInsContains(s))?.OpenFile();
 			}
 
 			//Close the modal

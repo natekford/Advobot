@@ -1,0 +1,47 @@
+﻿<controls:ModalWindow x:Class="Advobot.UILauncher.Windows.FileViewingWindow"
+                      x:ClassModifier="internal"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      xmlns:controls="clr-namespace:Advobot.UILauncher.Classes.Controls"
+                      mc:Ignorable="d"
+                      x:Name="FileViewingWin" Title="File Viewing" FontFamily="Courier New"
+                      Closed="WindowClosed" DataContext="{Binding RelativeSource={RelativeSource Self}}">
+
+    <controls:AdvobotGrid x:Name="Layout" MouseMove="MoveToolTip">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <controls:AdvobotTextEditor x:Name="SpecificFileOutput" Grid.Column="0" Grid.Row="0" Grid.RowSpan="5"
+                                    FontResizeValue=".022" BorderThickness="1,1,1,1"
+                                    VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True"
+                                    SyntaxHighlighting="JSON" KeyUp="SaveFileWithCtrlS">
+            <controls:AdvobotTextEditor.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Save File" Click="SaveFile"/>
+                    <MenuItem Header="Copy File" Click="CopyFile"/>
+                    <MenuItem Header="Close File" Click="CloseFile"/>
+                    <MenuItem Header="Delete File" Click="DeleteFile"/>
+                </ContextMenu>
+            </controls:AdvobotTextEditor.ContextMenu>
+        </controls:AdvobotTextEditor>
+        <controls:AdvobotButton x:Name="SaveFileButton" Grid.Row="1" Grid.Column="1"
+                                FontResizeValue=".018" Content="Save File" Click="SaveFile"/>
+        <controls:AdvobotButton x:Name="CopyFileButton" Grid.Row="2" Grid.Column="1"
+                                FontResizeValue=".018" Content="Copy File" Click="CopyFile"/>
+        <controls:AdvobotButton x:Name="CloseFileButton" Grid.Row="3" Grid.Column="1"
+                                FontResizeValue=".018" Content="Close File" Click="CloseFile"/>
+        <controls:AdvobotButton x:Name="DeleteFileButton" Grid.Row="4" Grid.Column="1"
+                                FontResizeValue=".018" Content="Delete File" Click="DeleteFile"/>
+    </controls:AdvobotGrid>
+</controls:ModalWindow>

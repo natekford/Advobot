@@ -5,11 +5,12 @@ namespace Advobot.UILauncher.Classes.Controls
 {
 	public class ModalWindow : Window
 	{
-		private Window _MainWindow;
+		protected Window _MainWindow;
 
 		public ModalWindow(Window mainWindow)
 		{
 			_MainWindow = mainWindow ?? throw new ArgumentException($"{nameof(mainWindow)} cannot be null.");
+			_MainWindow.Opacity = .25;
 		}
 		public ModalWindow() : this(null) { }
 
@@ -29,6 +30,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			{
 				this.DialogResult = false;
 			}
+			_MainWindow.Opacity = 100;
 		}
 		protected void Close(object sender, RoutedEventArgs e)
 		{

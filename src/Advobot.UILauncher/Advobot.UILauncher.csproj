@@ -153,6 +153,9 @@
     <Compile Include="Interfaces\IFontResizeValue.cs" />
     <Compile Include="Interfaces\ISummary.cs" />
     <Compile Include="Interfaces\IUnescapedText.cs" />
+    <Compile Include="Windows\FileViewingWindow.xaml.cs">
+      <DependentUpon>FileViewingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\OutputSearchWindow.xaml.cs">
       <DependentUpon>OutputSearchWindow.xaml</DependentUpon>
     </Compile>
@@ -203,6 +206,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\FileSearchWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\FileViewingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

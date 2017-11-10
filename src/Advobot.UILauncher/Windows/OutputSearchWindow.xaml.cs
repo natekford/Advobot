@@ -12,14 +12,14 @@ namespace Advobot.UILauncher.Windows
 	/// <summary>
 	/// Interaction logic for OutputSearchWindow.xaml
 	/// </summary>
-	public partial class OutputSearchWindow : ModalWindow
+	internal partial class OutputSearchWindow : ModalWindow
 	{
+		public OutputSearchWindow() : this(null) { }
 		public OutputSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
 			this.OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleActions.GetWrittenLines().Keys.ToArray());
 		}
-		public OutputSearchWindow() : this(null) { }
 
 		private void Search(object sender, RoutedEventArgs e)
 		{

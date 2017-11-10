@@ -7,9 +7,11 @@ using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Enums;
 using Discord;
-using ICSharpCode.AvalonEdit.Highlighting;
+using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -19,9 +21,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using System.Windows.Threading;
-using Discord.WebSocket;
-using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace Advobot.UILauncher.Windows
 {
@@ -165,11 +164,6 @@ namespace Advobot.UILauncher.Windows
 		{
 			SavingActions.SaveSettings(this.SettingsMenuDisplay, BotSettings.HeldObject);
 			await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject);
-		}
-		private void SaveFile(object sender, RoutedEventArgs e)
-		{
-			var response = SavingActions.SaveFile(this.SpecificFileOutput);
-			ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
@@ -392,7 +386,7 @@ namespace Advobot.UILauncher.Windows
 		{
 			if (SavingActions.TryGetFileText(sender, out var text, out var fileInfo))
 			{
-				OpenSpecificFileLayout(text, fileInfo);
+				//OpenSpecificFileLayout(text, fileInfo);
 			}
 			else
 			{
@@ -413,13 +407,6 @@ namespace Advobot.UILauncher.Windows
 				SaveColors(sender, e);
 			}
 		}
-		private void SaveFileWithCtrlS(object sender, KeyEventArgs e)
-		{
-			if (SavingActions.IsCtrlS(e))
-			{
-				SaveFile(sender, e);
-			}
-		}
 		private void OpenModal(object sender, RoutedEventArgs e)
 		{
 			if (!(sender is FrameworkElement ele) || !(ele.Tag is Modal m))
@@ -427,8 +414,6 @@ namespace Advobot.UILauncher.Windows
 				return;
 			}
 
-			//Make the screen look dark and then bring up the modal
-			this.Opacity = .25;
 			switch (m)
 			{
 				case Modal.FileSearch:
@@ -441,27 +426,16 @@ namespace Advobot.UILauncher.Windows
 					new OutputSearchWindow(this).ShowDialog();
 					break;
 				}
+				case Modal.FileViewing:
+				{
+					//This modal should not be opened through this method.
+					//Opened instead on double click on a treeview file item
+					//or through guild search
+					return;
+				}
 				default:
 				{
 					throw new ArgumentException($"Invalid modal type supplied: {m}");
-				}
-			}
-			//Reset the opacity
-			this.Opacity = 100;
-		}
-		private void CloseFile(object sender, RoutedEventArgs e)
-		{
-			switch (MessageBox.Show("Are you sure you want to close the file window?", Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
-			{
-				case MessageBoxResult.Yes:
-				{
-					EntityActions.SetRowSpan(this.FilesMenu, Grid.GetRowSpan(this.FilesMenu) - (this.Layout.RowDefinitions.Count - 1));
-					this.SpecificFileOutput.Tag = null;
-					this.SpecificFileOutput.Visibility = Visibility.Collapsed;
-					this.SaveFileButton.Visibility = Visibility.Collapsed;
-					this.CloseFileButton.Visibility = Visibility.Collapsed;
-					this.FileSearchButton.Visibility = Visibility.Visible;
-					return;
 				}
 			}
 		}
@@ -475,19 +449,6 @@ namespace Advobot.UILauncher.Windows
 			var pos = e.GetPosition(fe);
 			tt.HorizontalOffset = pos.X + 10;
 			tt.VerticalOffset = pos.Y + 10;
-		}
-
-		public void OpenSpecificFileLayout(string text, FileInfo fileInfo)
-		{
-			this.SpecificFileOutput.Tag = fileInfo;
-			this.SpecificFileOutput.Clear();
-			this.SpecificFileOutput.AppendText(text);
-			EntityActions.SetRowSpan(this.FilesMenu, Grid.GetRowSpan(this.FilesMenu) + (this.Layout.RowDefinitions.Count - 1));
-
-			this.SpecificFileOutput.Visibility = Visibility.Visible;
-			this.SaveFileButton.Visibility = Visibility.Visible;
-			this.CloseFileButton.Visibility = Visibility.Visible;
-			this.FileSearchButton.Visibility = Visibility.Collapsed;
 		}
 	}
 }

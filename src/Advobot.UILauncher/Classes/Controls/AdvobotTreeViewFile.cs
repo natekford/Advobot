@@ -37,14 +37,14 @@ namespace Advobot.UILauncher.Classes.Controls
 				VerticalContentAlignment = VerticalAlignment.Center,
 			};
 			delete.Click += DeleteFile;
-			var export = new MenuItem
+			var copy = new MenuItem
 			{
-				Header = "Export File",
+				Header = "Copy File",
 				HorizontalContentAlignment = HorizontalAlignment.Center,
 				VerticalContentAlignment = VerticalAlignment.Center,
 			};
-			export.Click += ExportFile;
-			return new ContextMenu { ItemsSource = new[] { delete, export } };
+			copy.Click += CopyFile;
+			return new ContextMenu { ItemsSource = new[] { delete, copy } };
 		}
 		public void SetResourceReferences()
 		{
@@ -57,30 +57,27 @@ namespace Advobot.UILauncher.Classes.Controls
 			this.Header = _FI.Name;
 		}
 
+		public void OpenFile()
+		{
+			OpenFile(null, null);
+		}
+		public void CopyFile()
+		{
+			CopyFile(null, null);
+		}
+		public void DeleteFile()
+		{
+			DeleteFile(null, null);
+		}
 		private void OpenFile(object sender, RoutedEventArgs e)
 		{
 			if (!EntityActions.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
 			{
 				throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
 			}
-			else if (SavingActions.TryGetFileText(this, out var text, out var fileInfo))
-			{
-				window.OpenSpecificFileLayout(text, fileInfo);
-			}
+			new FileViewingWindow(window, this).ShowDialog();
 		}
-		private void DeleteFile(object sender, RoutedEventArgs e)
-		{
-			var text = $"Are you sure you want to delete the file {_FI.Name}?";
-			switch (MessageBox.Show(text, Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
-			{
-				case MessageBoxResult.Yes:
-				{
-					SavingAndLoadingActions.DeleteFile(_FI);
-					return;
-				}
-			}
-		}
-		private void ExportFile(object sender, RoutedEventArgs e)
+		private void CopyFile(object sender, RoutedEventArgs e)
 		{
 			using (var dialog = new CommonOpenFileDialog { IsFolderPicker = true })
 			{
@@ -93,10 +90,22 @@ namespace Advobot.UILauncher.Classes.Controls
 							throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
 						}
 
-						this._FI.CopyTo(Path.Combine(dialog.FileName, _FI.Name));
+						this._FI.CopyTo(Path.Combine(dialog.FileName, _FI.Name), true);
 						ToolTipActions.EnableTimedToolTip(window.Layout, $"Successfully copied {this._FI.Name} to {dialog.FileName}.");
 						break;
 					}
+				}
+			}
+		}
+		private void DeleteFile(object sender, RoutedEventArgs e)
+		{
+			var text = $"Are you sure you want to delete the file {_FI.Name}?";
+			switch (MessageBox.Show(text, Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
+			{
+				case MessageBoxResult.Yes:
+				{
+					SavingAndLoadingActions.DeleteFile(_FI);
+					return;
 				}
 			}
 		}

@@ -10,7 +10,6 @@
         xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
         xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
-        xmlns:syscompmodel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d"
         x:Name="AdvobotWin" Title="Advobot" WindowState="Maximized" FontFamily="Courier New"
         Loaded="AttemptToLogin" DataContext="{Binding RelativeSource={RelativeSource Self}}">
@@ -19,7 +18,7 @@
         <threading:DispatcherTimer x:Key="ApplicationInformationTimer" Interval="00:00:00:00.500" Tick="UpdateApplicationInfo"/>
     </Window.Resources>
 
-    <Grid x:Name="Layout" MouseMove="MoveToolTip">
+    <controls:AdvobotGrid x:Name="Layout" MouseMove="MoveToolTip">
         <Grid.RowDefinitions>
             <RowDefinition Height="20*"/>
             <RowDefinition Height="1*"/>
@@ -435,23 +434,6 @@
             <controls:AdvobotTreeView x:Name="FilesTreeView" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="1"/>
             <controls:AdvobotButton x:Name="FileSearchButton" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
                                     Content="Search Files" Click="OpenModal" Tag="{x:Static enums:Modal.FileSearch}"/>
-            <controls:AdvobotButton x:Name="SaveFileButton" Grid.Row="1" Grid.Column="0" Visibility="Collapsed"
-                                    Content="Save File" Click="SaveFile"/>
-            <controls:AdvobotButton x:Name="CloseFileButton" Grid.Row="1" Grid.Column="1" Visibility="Collapsed"
-                                    Content="Close File" Click="CloseFile"/>
         </controls:AdvobotGrid>
-
-        <!-- File Viewer -->
-        <controls:AdvobotTextEditor x:Name="SpecificFileOutput" Grid.Column="0" Grid.Row="0" Grid.RowSpan="4"
-                                    FontResizeValue=".022" BorderThickness="1,1,1,1"
-                                    Visibility="Collapsed" VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True"
-                                    SyntaxHighlighting="JSON" KeyUp="SaveFileWithCtrlS">
-            <controls:AdvobotTextEditor.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Save File" Click="SaveFile"/>
-                    <MenuItem Header="Close File" Click="CloseFile"/>
-                </ContextMenu>
-            </controls:AdvobotTextEditor.ContextMenu>
-        </controls:AdvobotTextEditor>
-    </Grid>
+    </controls:AdvobotGrid>
 </Window>
