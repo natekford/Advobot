@@ -47,7 +47,7 @@ namespace Advobot.Core.Classes
 				if (Char.IsUpper(c))
 				{
 					initialism.Append(c);
-					parts.Add(new StringBuilder(c.ToString()));
+					parts.Add(new StringBuilder(c));
 				}
 				else
 				{

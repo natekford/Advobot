@@ -39,8 +39,7 @@ namespace Advobot.Core.Classes.Rules
 		private RuleFormat _Format;
 		private MarkDownFormat _TitleFormat;
 		private MarkDownFormat _RuleFormat;
-		private bool _NumbersSameLength;
-		private bool _ExtraLines;
+		private RuleFormatOption _Options;
 		private char _CharAfterNumbers;
 
 		[CustomArgumentConstructor]
@@ -55,9 +54,7 @@ namespace Advobot.Core.Classes.Rules
 			_TitleFormat = titleFormat;
 			_RuleFormat = ruleFormat;
 			_CharAfterNumbers = charAfterNumbers;
-
-			_NumbersSameLength = formatOptions.Contains(RuleFormatOption.NumbersSameLength);
-			_ExtraLines = formatOptions.Contains(RuleFormatOption.ExtraLines);
+			formatOptions.ToList().ForEach(x => _Options |= x);
 		}
 
 		public void SetRulesAndCategories(RuleHolder rules)
@@ -94,10 +91,11 @@ namespace Advobot.Core.Classes.Rules
 				}
 			}
 
-			n = _ExtraLines
-				? $"{n}\n"
-				: $"{n}";
 			n = n.Trim(' ');
+			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
+			{
+				n = n + "\n";
+			}
 			return AddFormattingOptions(_TitleFormat == default ? _DefaultTitleFormats[_Format] : _TitleFormat, n);
 		}
 		public string FormatRule(Rule rule, int index, int rulesInCategory)
@@ -108,9 +106,14 @@ namespace Advobot.Core.Classes.Rules
 				case RuleFormat.Numbers:
 				case RuleFormat.Bold:
 				{
-					r = _NumbersSameLength
-						? $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLengthOfNumber(), '0')}"
-						: $"`{index + 1}`";
+					if (_Options.HasFlag(RuleFormatOption.NumbersSameLength))
+					{
+						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLengthOfNumber(), '0')}";
+					}
+					else
+					{
+						r = $"`{index + 1}`";
+					}
 					break;
 				}
 				case RuleFormat.Dashes:
@@ -134,10 +137,11 @@ namespace Advobot.Core.Classes.Rules
 			r = _CharAfterNumbers != default
 				? AddCharAfterNumbers(r, _CharAfterNumbers)
 				: r;
-			r = _ExtraLines
-				? $"{r}\n"
-				: $"{r}";
 			r = r.Trim(' ');
+			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
+			{
+				r = r + "\n";
+			}
 			return AddFormattingOptions(_RuleFormat == default ? _DefaultRuleFormats[_Format] : _RuleFormat, r);
 		}
 

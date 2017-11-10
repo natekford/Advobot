@@ -36,13 +36,13 @@ namespace Advobot.UILauncher.Windows
 		private ColorSettings _Colors = new ColorSettings();
 		private LoginHandler _LoginHandler = new LoginHandler();
 		private BindingListener _Listener = new BindingListener();
-		private List<FileSystemWatcher> _TreeViewUpdaters = new List<FileSystemWatcher>();
 		private MenuType _LastButtonClicked;
 
 		public AdvobotWindow()
 		{
 			InitializeComponent();
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
+			((DispatcherTimer)this.Resources["ApplicationInformationTimer"]).Start();
 			_LoginHandler.AbleToStart += Start;
 		}
 
@@ -66,10 +66,8 @@ namespace Advobot.UILauncher.Windows
 			else if (Client.HeldObject is DiscordShardedClient sharded)
 			{
 				sharded.Shards.LastOrDefault().Connected += EnableButtons;
+				sharded.GuildAvailable += AddGuildToTreeView;
 			}
-
-			//Has to be started after the client due to the latency tab
-			((DispatcherTimer)this.Resources["ApplicationInformationTimer"]).Start();
 			await ClientActions.StartAsync(Client.HeldObject);
 		}
 		private async Task EnableButtons()
@@ -99,8 +97,10 @@ namespace Advobot.UILauncher.Windows
 
 				//Add to tree view then resort based on member count
 				this.FilesTreeView.Items.Add(new AdvobotTreeViewHeader(guild));
-				this.FilesTreeView.Items.SortDescriptions.Clear();
-				this.FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
+				if (!this.FilesTreeView.Items.SortDescriptions.Any())
+				{
+					this.FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
+				}
 			}, DispatcherPriority.Background);
 		}
 		private async Task RemoveGuildFromTreeView(SocketGuild guild)
@@ -146,9 +146,11 @@ namespace Advobot.UILauncher.Windows
 			if (!ulong.TryParse(input, out ulong userId))
 			{
 				ConsoleActions.WriteLine($"The given input '{input}' is not a valid ID.");
+				return;
 			}
 			else if (this.TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
 			{
+				ConsoleActions.WriteLine($"The given input '{input}' is already a trusted user.");
 				return;
 			}
 
@@ -311,7 +313,7 @@ namespace Advobot.UILauncher.Windows
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
 			this.Uptime.Text = $"Uptime: {TimeFormatting.FormatUptime()}";
-			this.Latency.Text = $"Latency: {ClientActions.GetLatency(Client.HeldObject)}ms";
+			this.Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientActions.GetLatency(Client.HeldObject))}ms";
 			this.Memory.Text = $"Memory: {GetActions.GetMemory().ToString("0.00")}MB";
 			this.ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
 		}
