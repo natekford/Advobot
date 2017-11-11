@@ -3,6 +3,7 @@ using Advobot.Core.Actions.Formatting;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Discord.WebSocket;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -11,6 +12,33 @@ using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
+	internal class CompGuild : IComparable, IComparable<SocketGuild>
+	{
+		private SocketGuild _Guild;
+		public CompGuild(SocketGuild guild)
+		{
+			_Guild = guild;
+		}
+
+		public int CompareTo(object obj)
+		{
+			return obj is SocketGuild g ? CompareTo(g) : 1;
+		}
+		public int CompareTo(SocketGuild other)
+		{
+			if (_Guild.MemberCount < other.MemberCount)
+			{
+				return -1;
+			}
+			else if (_Guild.MemberCount > other.MemberCount)
+			{
+				return 1;
+			}
+
+			return _Guild.Name.CompareTo(other.Name);
+		}
+	}
+
 	internal class AdvobotTreeViewHeader : TreeViewItem, IAdvobotControl
 	{
 		private FileSystemWatcher _FSW;
@@ -54,11 +82,10 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public AdvobotTreeViewHeader(SocketGuild guild)
 		{
-			this.Guild = guild;
 			this.Header = guild.FormatGuild();
+			this.Guild = guild;
+			this.Tag = new CompGuild(guild);
 			this.ItemsSource = _Files;
-			//Sort alphabetically
-			this.Items.SortDescriptions.Add(new SortDescription("Header", ListSortDirection.Ascending));
 			this.HorizontalContentAlignment = System.Windows.HorizontalAlignment.Left;
 			this.VerticalContentAlignment = System.Windows.VerticalAlignment.Center;
 			SetResourceReferences();
@@ -86,20 +113,22 @@ namespace Advobot.UILauncher.Classes.Controls
 					case WatcherChangeTypes.Created:
 					{
 						_Files.Add(new AdvobotTreeViewFile(new FileInfo(e.FullPath)));
-						return;
+						break;
 					}
 					case WatcherChangeTypes.Deleted:
 					{
 						_Files.Remove(_Files.FirstOrDefault(x => x.FileInfo.FullName == e.FullPath));
-						return;
+						break;
 					}
 					case WatcherChangeTypes.Renamed:
 					{
 						var renamed = (RenamedEventArgs)e;
 						_Files.FirstOrDefault(x => x.FileInfo.FullName == renamed.OldFullPath)?.Update(renamed);
-						return;
+						break;
 					}
 				}
+				this.Items.SortDescriptions.Clear();
+				this.Items.SortDescriptions.Add(new SortDescription("Header", ListSortDirection.Ascending));
 			});
 		}
 	}

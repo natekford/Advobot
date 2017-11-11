@@ -157,9 +157,9 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 
-                <controls:AdvobotButton Grid.Column="0" Grid.Row="0" Content="Disconnect" Click="Disconnect"/>
-                <controls:AdvobotButton Grid.Column="1" Grid.Row="0" Content="Restart" Click="Restart"/>
-                <controls:AdvobotButton Grid.Column="2" Grid.Row="0" Content="Pause" Click="Pause"/>
+                <controls:AdvobotButton x:Name="DisconnectButton" Grid.Column="0" Grid.Row="0" Content="Disconnect" Click="Disconnect"/>
+                <controls:AdvobotButton x:Name="RestartButton" Grid.Column="1" Grid.Row="0" Content="Restart" Click="Restart"/>
+                <controls:AdvobotButton x:Name="PauseButton" Grid.Column="2" Grid.Row="0" Content="Pause" Click="Pause"/>
             </controls:AdvobotGrid>
         </controls:AdvobotGrid>
 

@@ -41,35 +41,13 @@ namespace Advobot.UILauncher.Windows
 		public AdvobotWindow()
 		{
 			InitializeComponent();
+			//Make console output show up in the window
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
+			//Start the timer that shows latency, memory usage, etc.
 			((DispatcherTimer)this.Resources["ApplicationInformationTimer"]).Start();
 			_LoginHandler.AbleToStart += Start;
 		}
 
-		private async void Start(object sender, RoutedEventArgs e)
-		{
-			if (!(sender is LoginHandler lh))
-			{
-				throw new ArgumentException($"This event must be triggered by a {nameof(LoginHandler)}.");
-			}
-
-			Client.HeldObject = lh.GetRequiredService<IDiscordClient>();
-			BotSettings.HeldObject = lh.GetRequiredService<IBotSettings>();
-			LogHolder.HeldObject = lh.GetRequiredService<ILogService>();
-			_Colors = ColorSettings.LoadUISettings();
-
-			if (Client.HeldObject is DiscordSocketClient socket)
-			{
-				socket.Connected += EnableButtons;
-				socket.GuildAvailable += AddGuildToTreeView;
-			}
-			else if (Client.HeldObject is DiscordShardedClient sharded)
-			{
-				sharded.Shards.LastOrDefault().Connected += EnableButtons;
-				sharded.GuildAvailable += AddGuildToTreeView;
-			}
-			await ClientActions.StartAsync(Client.HeldObject);
-		}
 		private async Task EnableButtons()
 		{
 			await this.Dispatcher.InvokeAsync(() =>
@@ -87,8 +65,7 @@ namespace Advobot.UILauncher.Windows
 			await this.Dispatcher.InvokeAsync(() =>
 			{
 				//Make sure the guild isn't already in the treeview
-				var items = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>();
-				var item = items.SingleOrDefault(x => x.Guild.Id == guild.Id);
+				var item = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
 				if (item != null)
 				{
 					item.Visibility = Visibility.Visible;
@@ -97,10 +74,9 @@ namespace Advobot.UILauncher.Windows
 
 				//Add to tree view then resort based on member count
 				this.FilesTreeView.Items.Add(new AdvobotTreeViewHeader(guild));
-				if (!this.FilesTreeView.Items.SortDescriptions.Any())
-				{
-					this.FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
-				}
+				//Not sure why the two lines below have to be used instead of Items.Refresh
+				this.FilesTreeView.Items.SortDescriptions.Clear();
+				this.FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
 			}, DispatcherPriority.Background);
 		}
 		private async Task RemoveGuildFromTreeView(SocketGuild guild)
@@ -108,20 +84,37 @@ namespace Advobot.UILauncher.Windows
 			await this.Dispatcher.InvokeAsync(() =>
 			{
 				//Just make the item invisible so if need be it can be made visible instead of having to recreate it.
-				var items = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>();
-				var item = items.SingleOrDefault(x => x.Guild.Id == guild.Id);
+				var item = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
 				if (item != null)
 				{
 					item.Visibility = Visibility.Collapsed;
 				}
 			}, DispatcherPriority.Background);
 		}
+		private async Task Start()
+		{
+			Client.HeldObject = _LoginHandler.GetRequiredService<IDiscordClient>();
+			BotSettings.HeldObject = _LoginHandler.GetRequiredService<IBotSettings>();
+			LogHolder.HeldObject = _LoginHandler.GetRequiredService<ILogService>();
+			_Colors = ColorSettings.LoadUISettings();
+
+			if (Client.HeldObject is DiscordSocketClient socket)
+			{
+				socket.Connected += EnableButtons;
+				socket.GuildAvailable += AddGuildToTreeView;
+			}
+			else if (Client.HeldObject is DiscordShardedClient sharded)
+			{
+				sharded.Shards.LastOrDefault().Connected += EnableButtons;
+				sharded.GuildAvailable += AddGuildToTreeView;
+			}
+			await ClientActions.StartAsync(Client.HeldObject);
+		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
 			//Send null once to check if a path is set in the config
-			await _LoginHandler.AttemptToStart(null);
 			//If it is set, then send null again to check for the bot key
-			if (_LoginHandler.GotPath)
+			if (await _LoginHandler.AttemptToStart(null))
 			{
 				await _LoginHandler.AttemptToStart(null);
 			}
@@ -140,7 +133,14 @@ namespace Advobot.UILauncher.Windows
 				await _LoginHandler.AttemptToStart(input);
 			}
 		}
-		private async void AddTrustedUser(object sender, RoutedEventArgs e)
+		private void AcceptInputWithKey(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Enter || e.Key == Key.Return)
+			{
+				AcceptInput(sender, e);
+			}
+		}
+		private void AddTrustedUser(object sender, RoutedEventArgs e)
 		{
 			var input = this.TrustedUsersBox.Text;
 			if (!ulong.TryParse(input, out ulong userId))
@@ -154,27 +154,153 @@ namespace Advobot.UILauncher.Windows
 				return;
 			}
 
-			var tb = new AdvobotUserBox(await Client.HeldObject.GetUserAsync(userId));
-			if (tb != null)
+			IUser user;
+			if (Client.HeldObject is DiscordSocketClient socket)
 			{
-				this.TrustedUsers.AddItem(tb);
+				user = socket.GetUser(userId);
+			}
+			else if (Client.HeldObject is DiscordShardedClient sharded)
+			{
+				user = sharded.GetUser(userId);
+			}
+			else
+			{
+				throw new ArgumentException($"Invalid {nameof(IDiscordClient)} passed into {nameof(AddTrustedUser)}");
 			}
 
 			this.TrustedUsersBox.Text = null;
+			if (user != null)
+			{
+				this.TrustedUsers.Items.Add(new AdvobotUserBox(user));
+				this.TrustedUsers.Items.SortDescriptions.Clear();
+				this.TrustedUsers.Items.SortDescriptions.Add(new SortDescription("Text", ListSortDirection.Ascending));
+			}
 		}
-		private async void SaveSettings(object sender, RoutedEventArgs e)
+		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
+		{
+			this.TrustedUsers.Items.Remove(this.TrustedUsers.SelectedItem);
+		}
+		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			SavingActions.SaveSettings(this.SettingsMenuDisplay, BotSettings.HeldObject);
-			await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject);
+			//In a task.run since the result is unimportant and unused
+			Task.Run(async () => await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject));
+		}
+		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
+		{
+			if (SavingActions.IsCtrlS(e))
+			{
+				SaveSettings(sender, e);
+			}
+		}
+		private void SaveColors(object sender, RoutedEventArgs e)
+		{
+			var c = _Colors;
+			var children = this.ColorsMenuDisplay.GetChildren();
+			foreach (var tb in children.OfType<AdvobotTextBox>())
+			{
+				if (tb.Tag is ColorTarget target)
+				{
+					var childText = tb.Text;
+					var name = target.EnumName().FormatTitle().ToLower();
+					if (String.IsNullOrWhiteSpace(childText))
+					{
+						if (c[target] != null)
+						{
+							c[target] = null;
+							ConsoleActions.WriteLine($"Successfully updated the color for {name}.");
+						}
+						continue;
+					}
+					if (!AdvobotColor.TryCreateColor(childText, out var color))
+					{
+						ConsoleActions.WriteLine($"Invalid color supplied for {name}: '{childText}'.");
+						continue;
+					}
+
+					var brush = color.CreateBrush();
+					if (!AdvobotColor.CheckIfSameBrush(c[target], brush))
+					{
+						c[target] = brush;
+						ConsoleActions.WriteLine($"Successfully updated the color for {name}: '{childText} ({brush.ToString()})'.");
+					}
+
+					//Update the text here because if someone has the hex value for yellow but they put in Yellow as a string 
+					//It won't update in the above if statement since they produce the same value
+					tb.Text = c[target].ToString();
+				}
+			}
+			//Has to go after the textboxes so the theme will be applied
+			foreach (var cb in children.OfType<AdvobotComboBox>())
+			{
+				if (cb.SelectedItem is AdvobotTextBox tb && tb.Tag is ColorTheme theme)
+				{
+					if (c.Theme != theme)
+					{
+						ConsoleActions.WriteLine($"Successfully updated the theme to {theme.EnumName().FormatTitle().ToLower()}.");
+					}
+					c.Theme = theme;
+				}
+			}
+
+			c.SaveSettings();
+		}
+		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
+		{
+			if (SavingActions.IsCtrlS(e))
+			{
+				SaveColors(sender, e);
+			}
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
-			var response = SavingActions.SaveFile(this.Output);
-			ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
+			ToolTipActions.EnableTimedToolTip(this.Layout, SavingActions.SaveFile(this.Output).GetReason());
+		}
+		private void ClearOutput(object sender, RoutedEventArgs e)
+		{
+			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
+			{
+				case MessageBoxResult.OK:
+				{
+					this.Output.Clear();
+					return;
+				}
+			}
+		}
+		private void OpenModal(object sender, RoutedEventArgs e)
+		{
+			if (!(sender is FrameworkElement ele) || !(ele.Tag is Modal m))
+			{
+				return;
+			}
+
+			switch (m)
+			{
+				case Modal.FileSearch:
+				{
+					new FileSearchWindow(this).ShowDialog();
+					break;
+				}
+				case Modal.OutputSearch:
+				{
+					new OutputSearchWindow(this).ShowDialog();
+					break;
+				}
+				case Modal.FileViewing:
+				{
+					//This modal should not be opened through this method.
+					//Opened instead on double click on a treeview file item or through guild search
+					return;
+				}
+				default:
+				{
+					throw new ArgumentException($"Invalid modal type supplied: {m}");
+				}
+			}
 		}
 		private void OpenMenu(object sender, RoutedEventArgs e)
 		{
-			if (!(sender is Button button))
+			if (!(sender is FrameworkElement ele))
 			{
 				return;
 			}
@@ -186,7 +312,7 @@ namespace Advobot.UILauncher.Windows
 			this.InfoMenu.Visibility = Visibility.Collapsed;
 			this.FilesMenu.Visibility = Visibility.Collapsed;
 
-			var type = button.Tag as MenuType? ?? default;
+			var type = ele.Tag as MenuType? ?? default;
 			if (type == _LastButtonClicked)
 			{
 				//If clicking the same button then resize the output window to the regular size
@@ -293,22 +419,15 @@ namespace Advobot.UILauncher.Windows
 		{
 			if (BotSettings.HeldObject.Pause)
 			{
-				(e.Source as Button).Content = "Pause";
+				this.PauseButton.Content = "Pause";
 				ConsoleActions.WriteLine("The bot is now unpaused.");
 			}
 			else
 			{
-				(e.Source as Button).Content = "Unpause";
+				this.PauseButton.Content = "Unpause";
 				ConsoleActions.WriteLine("The bot is now paused.");
 			}
 			BotSettings.HeldObject.TogglePause();
-		}
-		private void AcceptInputWithKey(object sender, KeyEventArgs e)
-		{
-			if (e.Key == Key.Enter || e.Key == Key.Return)
-			{
-				AcceptInput(sender, e);
-			}
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
@@ -316,130 +435,6 @@ namespace Advobot.UILauncher.Windows
 			this.Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientActions.GetLatency(Client.HeldObject))}ms";
 			this.Memory.Text = $"Memory: {GetActions.GetMemory().ToString("0.00")}MB";
 			this.ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
-		}
-		private void ClearOutput(object sender, RoutedEventArgs e)
-		{
-			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
-			{
-				case MessageBoxResult.OK:
-				{
-					this.Output.Text = null;
-					return;
-				}
-			}
-		}
-		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
-		{
-			this.TrustedUsers.RemoveItem(this.TrustedUsers.SelectedItem);
-		}
-		private void SaveColors(object sender, RoutedEventArgs e)
-		{
-			var c = _Colors;
-			var children = this.ColorsMenuDisplay.GetChildren();
-			foreach (var tb in children.OfType<AdvobotTextBox>())
-			{
-				if (tb.Tag is ColorTarget target)
-				{
-					var childText = tb.Text;
-					var name = target.EnumName().FormatTitle().ToLower();
-					if (String.IsNullOrWhiteSpace(childText))
-					{
-						if (c[target] != null)
-						{
-							c[target] = null;
-							ConsoleActions.WriteLine($"Successfully updated the color for {name}.");
-						}
-						continue;
-					}
-					if (!AdvobotColor.TryCreateColor(childText, out var color))
-					{
-						ConsoleActions.WriteLine($"Invalid color supplied for {name}: '{childText}'.");
-						continue;
-					}
-
-					var brush = color.CreateBrush();
-					if (!AdvobotColor.CheckIfSameBrush(c[target], brush))
-					{
-						c[target] = brush;
-						ConsoleActions.WriteLine($"Successfully updated the color for {name}: '{childText} ({brush.ToString()})'.");
-					}
-
-					//Update the text here because if someone has the hex value for yellow but they put in Yellow as a string 
-					//It won't update in the above if statement since they produce the same value
-					tb.Text = c[target].ToString();
-				}
-			}
-			//Has to go after the textboxes so the theme will be applied
-			foreach (var cb in children.OfType<AdvobotComboBox>())
-			{
-				if (cb.SelectedItem is AdvobotTextBox tb && tb.Tag is ColorTheme theme)
-				{
-					if (c.Theme != theme)
-					{
-						ConsoleActions.WriteLine($"Successfully updated the theme to {theme.EnumName().FormatTitle().ToLower()}.");
-					}
-					c.Theme = theme;
-				}
-			}
-
-			c.SaveSettings();
-		}
-		private void OpenSpecificFileLayout(object sender, RoutedEventArgs e)
-		{
-			if (SavingActions.TryGetFileText(sender, out var text, out var fileInfo))
-			{
-				//OpenSpecificFileLayout(text, fileInfo);
-			}
-			else
-			{
-				ConsoleActions.WriteLine($"Unable to open the file.");
-			}
-		}
-		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
-		{
-			if (SavingActions.IsCtrlS(e))
-			{
-				SaveSettings(sender, e);
-			}
-		}
-		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
-		{
-			if (SavingActions.IsCtrlS(e))
-			{
-				SaveColors(sender, e);
-			}
-		}
-		private void OpenModal(object sender, RoutedEventArgs e)
-		{
-			if (!(sender is FrameworkElement ele) || !(ele.Tag is Modal m))
-			{
-				return;
-			}
-
-			switch (m)
-			{
-				case Modal.FileSearch:
-				{
-					new FileSearchWindow(this).ShowDialog();
-					break;
-				}
-				case Modal.OutputSearch:
-				{
-					new OutputSearchWindow(this).ShowDialog();
-					break;
-				}
-				case Modal.FileViewing:
-				{
-					//This modal should not be opened through this method.
-					//Opened instead on double click on a treeview file item
-					//or through guild search
-					return;
-				}
-				default:
-				{
-					throw new ArgumentException($"Invalid modal type supplied: {m}");
-				}
-			}
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)
 		{

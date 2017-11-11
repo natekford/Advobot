@@ -90,6 +90,13 @@ namespace Advobot.Core.Services.Log.Loggers
 			{
 				ConsoleActions.WriteLine($"The bot currently has {guilds} out of {curMax} possible spots for servers filled. Increase the shard count soon.");
 			}
+
+			if (!_GuildSettings.ContainsGuild(guild.Id))
+			{
+				_Logging.TotalUsers.Add(guild.MemberCount);
+				_Logging.TotalGuilds.Increment();
+				await _GuildSettings.GetOrCreateSettings(guild).CAF();
+			}
 		}
 		/// <summary>
 		/// Writes to the console telling that the guild has kicked the bot. Removes the guild's settings.

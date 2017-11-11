@@ -130,7 +130,13 @@ namespace Advobot.Core.Actions
 			{
 				ConsoleActions.WriteLine("The bot information file could not be found; using default.");
 			}
-			return (botSettings ?? (IBotSettings)Activator.CreateInstance(Constants.BOT_SETTINGS_TYPE));
+
+			if (botSettings == null)
+			{
+				botSettings = (IBotSettings)Activator.CreateInstance(Constants.BOT_SETTINGS_TYPE);
+				botSettings.SaveSettings();
+			}
+			return botSettings;
 		}
 		/// <summary>
 		/// Creates settings that guilds on the bot use.
@@ -161,7 +167,13 @@ namespace Advobot.Core.Actions
 			{
 				ConsoleActions.WriteLine($"The guild information file for {guild.FormatGuild()} could not be found; using default.");
 			}
-			return await (guildSettings ?? (IGuildSettings)Activator.CreateInstance(Constants.GUILD_SETTINGS_TYPE)).PostDeserialize(guild).CAF();
+
+			if (guildSettings == null)
+			{
+				guildSettings = (IGuildSettings)Activator.CreateInstance(Constants.GUILD_SETTINGS_TYPE);
+				guildSettings.SaveSettings();
+			}
+			return await guildSettings.PostDeserialize(guild).CAF();
 		}
 	}
 }

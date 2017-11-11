@@ -37,13 +37,9 @@ namespace Advobot.UILauncher.Classes.Controls
 				_SET = value;
 			}
 		}
-		private ObservableCollection<object> _Items = new ObservableCollection<object>();
 
 		public AdvobotComboBox()
 		{
-			this.ItemsSource = _Items;
-			//Sort alphabetically
-			this.Items.SortDescriptions.Add(new SortDescription("Text", ListSortDirection.Ascending));
 			this.VerticalContentAlignment = VerticalAlignment.Center;
 			this.HorizontalContentAlignment = HorizontalAlignment.Center;
 			SetResourceReferences();
@@ -53,15 +49,6 @@ namespace Advobot.UILauncher.Classes.Controls
 			this.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
 			this.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
 			this.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
-		}
-
-		public void AddItem(object obj)
-		{
-			_Items.Add(obj);
-		}
-		public void RemoveItem(object obj)
-		{
-			_Items.Remove(obj);
 		}
 
 		/// <summary>

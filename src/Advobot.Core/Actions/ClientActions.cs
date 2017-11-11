@@ -173,7 +173,6 @@ namespace Advobot.Core.Actions
 		/// <exception cref="ArgumentException"></exception>
 		public static async Task UpdateGameAsync(IDiscordClient client, IBotSettings botSettings)
 		{
-			var prefix = botSettings.Prefix;
 			var game = botSettings.Game;
 			var stream = botSettings.Stream;
 

@@ -16,9 +16,14 @@ namespace Advobot.UILauncher.Classes
 		public bool GotPath { get; private set; }
 		public bool GotKey { get; private set; }
 		public bool CanLogin { get; private set; }
-		public event RoutedEventHandler AbleToStart;
+		public event Func<Task> AbleToStart;
 
-		public async Task AttemptToStart(string input)
+		/// <summary>
+		/// Attempts to first set the save path, then the bot's key. Returns true if either get set.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public async Task<bool> AttemptToStart(string input)
 		{
 			if (!GotPath)
 			{
@@ -33,11 +38,13 @@ namespace Advobot.UILauncher.Classes
 				_StartUp = GotKey = await Config.ValidateBotKey(_Provider.GetRequiredService<IDiscordClient>(), input, _StartUp);
 			}
 
+			var somethingWasSet = _StartUp;
 			if (_StartUp && (CanLogin = GotKey && GotPath))
 			{
 				_StartUp = false;
-				AbleToStart?.Invoke(this, new RoutedEventArgs());
+				AbleToStart?.Invoke();
 			}
+			return somethingWasSet;
 		}
 		private static async Task<IServiceProvider> GetPath(string path, bool startup)
 		{
