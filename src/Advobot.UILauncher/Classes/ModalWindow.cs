@@ -32,9 +32,6 @@ namespace Advobot.UILauncher.Classes.Controls
 			}
 			_MainWindow.Opacity = 100;
 		}
-		protected void Close(object sender, RoutedEventArgs e)
-		{
-			this.Close();
-		}
+		protected void Close(object sender, RoutedEventArgs e) => this.Close();
 	}
 }

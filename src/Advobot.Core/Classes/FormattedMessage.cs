@@ -40,8 +40,7 @@ namespace Advobot.Core.Classes
 		}
 
 		private ImmutableList<string> FormatEmbeds()
-		{
-			return Message.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue).Select((x, index) =>
+			=> Message.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue).Select((x, index) =>
 			{
 				var sb = new StringBuilder($"Embed {index + 1}: {x.Description ?? "No description"}");
 				if (x.Url != null)
@@ -54,11 +53,7 @@ namespace Advobot.Core.Classes
 				}
 				return sb.ToString();
 			}).ToImmutableList();
-		}
-		private ImmutableList<string> FormatAttachments()
-		{
-			return Message.Attachments.Select(x => x.Filename).ToImmutableList();
-		}
+		private ImmutableList<string> FormatAttachments() => Message.Attachments.Select(x => x.Filename).ToImmutableList();
 		private string FormatHeader(bool withMentions)
 		{
 			var user = withMentions ? UserMention : User;
@@ -79,9 +74,6 @@ namespace Advobot.Core.Classes
 			return sb.Append("```").ToString();
 		}
 
-		public string ToString(bool withMentions)
-		{
-			return $"{(withMentions ? Header : FormatHeader(false))}\n{Content}";
-		}
+		public string ToString(bool withMentions) => $"{(withMentions ? Header : FormatHeader(false))}\n{Content}";
 	}
 }

@@ -251,20 +251,14 @@ namespace Advobot.Core.Actions
 		/// </summary>
 		/// <param name="e"></param>
 		/// <returns></returns>
-		public static string EnumName(this Enum e)
-		{
-			return Enum.GetName(e.GetType(), e);
-		}
+		public static string EnumName(this Enum e) => Enum.GetName(e.GetType(), e);
 
 		/// <summary>
 		/// Returns the count of characters equal to \r or \n.
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static int CountLineBreaks(this string str)
-		{
-			return str?.Count(x => x == '\r' || x == '\n') ?? 0;
-		}
+		public static int CountLineBreaks(this string str) => str?.Count(x => x == '\r' || x == '\n') ?? 0;
 		/// <summary>
 		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
 		/// </summary>
@@ -326,10 +320,7 @@ namespace Advobot.Core.Actions
 		/// </summary>
 		/// <param name="num"></param>
 		/// <returns></returns>
-		public static int GetLengthOfNumber(this int num)
-		{
-			return num == 0 ? 1 : (int)Math.Log10(Math.Abs(num)) + 1;
-		}
+		public static int GetLengthOfNumber(this int num) => num == 0 ? 1 : (int)Math.Log10(Math.Abs(num)) + 1;
 
 		/// <summary>
 		/// Takes a variable number of integers and cuts the list the smallest one (including the list's length).
@@ -339,9 +330,7 @@ namespace Advobot.Core.Actions
 		/// <param name="x"></param>
 		/// <returns></returns>
 		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
-		{
-			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
-		}
+			=> list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
 
 		/// <summary>
 		/// Short way to write <see cref="Task.ConfigureAwait(false)"/>.
@@ -349,18 +338,12 @@ namespace Advobot.Core.Actions
 		/// <typeparam name="T"></typeparam>
 		/// <param name="task"></param>
 		/// <returns></returns>
-		public static async Task<T> CAF<T>(this Task<T> task)
-		{
-			return await task.ConfigureAwait(false);
-		}
+		public static async Task<T> CAF<T>(this Task<T> task) => await task.ConfigureAwait(false);
 		/// <summary>
 		/// Short way to write <see cref="Task.ConfigureAwait(false)"/>.
 		/// </summary>
 		/// <param name="task"></param>
 		/// <returns></returns>
-		public static async Task CAF(this Task task)
-		{
-			await task.ConfigureAwait(false);
-		}
+		public static async Task CAF(this Task task) => await task.ConfigureAwait(false);
 	}
 }

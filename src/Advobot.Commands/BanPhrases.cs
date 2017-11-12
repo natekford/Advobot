@@ -92,9 +92,7 @@ namespace Advobot.Commands.BanPhrases
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
-			{
-				await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseRegex, nameof(Regex)).CAF();
-			}
+				=> await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseRegex, nameof(Regex)).CAF();
 			[Command(nameof(Add)), ShortAlias(nameof(Add))]
 			public async Task Add([Optional] uint position)
 			{
@@ -126,14 +124,10 @@ namespace Advobot.Commands.BanPhrases
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
-				{
-					await Remove(Context, Context.GuildSettings.BannedPhraseRegex, (int)position, nameof(Regex)).CAF();
-				}
+					=> await Remove(Context, Context.GuildSettings.BannedPhraseRegex, (int)position, nameof(Regex)).CAF();
 				[Command]
 				public async Task Command(string text)
-				{
-					await Remove(Context, Context.GuildSettings.BannedPhraseRegex, text, nameof(Regex)).CAF();
-				}
+					=> await Remove(Context, Context.GuildSettings.BannedPhraseRegex, text, nameof(Regex)).CAF();
 			}
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
@@ -141,27 +135,19 @@ namespace Advobot.Commands.BanPhrases
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
-			{
-				await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseStrings, nameof(String)).CAF();
-			}
+				=> await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseStrings, nameof(String)).CAF();
 			[Command(nameof(Add)), ShortAlias(nameof(Add))]
 			public async Task Add(string text)
-			{
-				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), Constants.MAX_BANNED_STRINGS).CAF();
-			}
+				=> await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), Constants.MAX_BANNED_STRINGS).CAF();
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
 			public sealed class Remove : SavingModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
-				{
-					await Remove(Context, Context.GuildSettings.BannedPhraseStrings, (int)position, nameof(String)).CAF();
-				}
+					=> await Remove(Context, Context.GuildSettings.BannedPhraseStrings, (int)position, nameof(String)).CAF();
 				[Command]
 				public async Task Command(string text)
-				{
-					await Remove(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String)).CAF();
-				}
+					=> await Remove(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String)).CAF();
 			}
 		}
 		[Group(nameof(Name)), ShortAlias(nameof(Name))]
@@ -169,27 +155,19 @@ namespace Advobot.Commands.BanPhrases
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
-			{
-				await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseNames, nameof(Name)).CAF();
-			}
+				=> await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseNames, nameof(Name)).CAF();
 			[Command(nameof(Add)), ShortAlias(nameof(Add))]
 			public async Task Add(string text)
-			{
-				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseNames, text, nameof(Name), Constants.MAX_BANNED_NAMES).CAF();
-			}
+				=> await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseNames, text, nameof(Name), Constants.MAX_BANNED_NAMES).CAF();
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
 			public sealed class Remove : SavingModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
-				{
-					await Remove(Context, Context.GuildSettings.BannedPhraseNames, (int)position, nameof(Name)).CAF();
-				}
+					=> await Remove(Context, Context.GuildSettings.BannedPhraseNames, (int)position, nameof(Name)).CAF();
 				[Command]
 				public async Task Command(string text)
-				{
-					await Remove(Context, Context.GuildSettings.BannedPhraseNames, text, nameof(Name)).CAF();
-				}
+					=> await Remove(Context, Context.GuildSettings.BannedPhraseNames, text, nameof(Name)).CAF();
 			}
 		}
 
@@ -250,38 +228,26 @@ namespace Advobot.Commands.BanPhrases
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
-			{
-				await ModifyPunishmentType.Show(Context, Context.GuildSettings.BannedPhraseRegex, nameof(Regex)).CAF();
-			}
+				=> await ModifyPunishmentType.Show(Context, Context.GuildSettings.BannedPhraseRegex, nameof(Regex)).CAF();
 			[Command, Priority(1)]
 			public async Task Command(uint position, PunishmentType punishment)
-			{
-				await Modify(Context, Context.GuildSettings.BannedPhraseRegex, (int)position, nameof(Regex), punishment).CAF();
-			}
+				=> await Modify(Context, Context.GuildSettings.BannedPhraseRegex, (int)position, nameof(Regex), punishment).CAF();
 			[Command]
 			public async Task Command(string text, PunishmentType punishment)
-			{
-				await Modify(Context, Context.GuildSettings.BannedPhraseRegex, text, nameof(Regex), punishment).CAF();
-			}
+				=> await Modify(Context, Context.GuildSettings.BannedPhraseRegex, text, nameof(Regex), punishment).CAF();
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
 		public sealed class String : SavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
-			{
-				await ModifyPunishmentType.Show(Context, Context.GuildSettings.BannedPhraseStrings, nameof(String)).CAF();
-			}
+				=> await ModifyPunishmentType.Show(Context, Context.GuildSettings.BannedPhraseStrings, nameof(String)).CAF();
 			[Command, Priority(1)]
 			public async Task Command(uint position, PunishmentType punishment)
-			{
-				await Modify(Context, Context.GuildSettings.BannedPhraseStrings, (int)position, nameof(String), punishment).CAF();
-			}
+				=> await Modify(Context, Context.GuildSettings.BannedPhraseStrings, (int)position, nameof(String), punishment).CAF();
 			[Command]
 			public async Task Command(string text, PunishmentType punishment)
-			{
-				await Modify(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), punishment).CAF();
-			}
+				=> await Modify(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), punishment).CAF();
 		}
 
 		private static async Task Show<T>(IAdvobotCommandContext context, List<T> list, string type) where T : BannedPhrase

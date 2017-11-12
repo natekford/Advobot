@@ -24,10 +24,7 @@ namespace Advobot.Core.Classes.CloseWords
 			_Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
 		}
 
-		public DateTime GetTime()
-		{
-			return _Time;
-		}
+		public DateTime GetTime() => _Time;
 
 		protected abstract int FindCloseness(T obj, string input);
 		protected List<CloseWord<T>> GetObjectsWithSimilarNames(IEnumerable<T> suppliedObjects, string input)

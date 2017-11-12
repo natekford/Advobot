@@ -20,13 +20,7 @@ namespace Advobot.Core.Classes
 			Description = description;
 		}
 
-		public override string ToString()
-		{
-			return $"`{Name}`";
-		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+		public override string ToString() => $"`{Name}`";
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

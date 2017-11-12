@@ -154,14 +154,10 @@ namespace Advobot.Commands.UserModeration
 	{
 		[Command, Priority(1)]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
-		{
-			await CommandRunner(user.Id, reason).CAF();
-		}
+			=> await CommandRunner(user.Id, reason).CAF();
 		[Command, Priority(0)]
 		public async Task Command(ulong userId, [Optional, Remainder] string reason)
-		{
-			await CommandRunner(userId, reason).CAF();
-		}
+			=> await CommandRunner(userId, reason).CAF();
 
 		private async Task CommandRunner(ulong userId, string reason)
 		{
@@ -179,15 +175,12 @@ namespace Advobot.Commands.UserModeration
 	public sealed class Ban : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, [Optional] uint time, [Optional, Remainder] string reason)
-		{
-			await CommandRunner(user, time, reason).CAF();
-		}
+		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, [Optional] uint time,
+			[Optional, Remainder] string reason)
+			=> await CommandRunner(user, time, reason).CAF();
 		[Command]
 		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, [Optional, Remainder] string reason)
-		{
-			await CommandRunner(user, 0, reason).CAF();
-		}
+			=> await CommandRunner(user, 0, reason).CAF();
 
 		private async Task CommandRunner(ulong userId, uint time, string reason)
 		{
@@ -275,15 +268,13 @@ namespace Advobot.Commands.UserModeration
 	public sealed class RemoveMessages : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel)
-		{
-			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
-		}
+		public async Task Command(uint requestCount, [Optional] IGuildUser user,
+			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel)
+			=> await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
 		[Command]
-		public async Task Command(uint requestCount, [Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
-		{
-			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
-		}
+		public async Task Command(uint requestCount,
+			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
+			=> await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
 
 		private async Task CommandRunner(int requestCount, IGuildUser user, ITextChannel channel)
 		{

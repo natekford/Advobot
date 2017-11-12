@@ -21,10 +21,7 @@ namespace Advobot.Core.Classes.Rules
 			Name = name;
 		}
 
-		public void AddRule(Rule rule)
-		{
-			_Rules.Add(rule);
-		}
+		public void AddRule(Rule rule) => _Rules.Add(rule);
 		public bool RemoveRule(int index)
 		{
 			if (index >= 0 && index < _Rules.Count)
@@ -34,14 +31,8 @@ namespace Advobot.Core.Classes.Rules
 			}
 			return false;
 		}
-		public bool RemoveRule(Rule rule)
-		{
-			return _Rules.Remove(rule);
-		}
-		public void ChangeName(string name)
-		{
-			Name = name;
-		}
+		public bool RemoveRule(Rule rule) => _Rules.Remove(rule);
+		public void ChangeName(string name) => Name = name;
 		public void ChangeRule(int index, string text)
 		{
 			if (index >= 0 && index < Rules.Count)
@@ -50,10 +41,7 @@ namespace Advobot.Core.Classes.Rules
 			}
 		}
 
-		public override string ToString()
-		{
-			return ToString(new RuleFormatter(), 0).ToString();
-		}
+		public override string ToString() => ToString(new RuleFormatter(), 0);
 		public string ToString(RuleFormatter formatter, int index)
 		{
 			var sb = new StringBuilder();
@@ -64,9 +52,6 @@ namespace Advobot.Core.Classes.Rules
 			}
 			return sb.ToString();
 		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

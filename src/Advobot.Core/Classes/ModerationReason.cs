@@ -1,17 +1,6 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
-using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Actions.Formatting;
 using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace Advobot.Core.Classes
 {
@@ -28,10 +17,7 @@ namespace Advobot.Core.Classes
 			IsAutomatic = true;
 		}
 
-		public override string ToString()
-		{
-			return $"Automatic action. Trigger: {Reason}.";
-		}
+		public override string ToString() => $"Automatic action. Trigger: {Reason}.";
 	}
 
 	/// <summary>
@@ -52,14 +38,8 @@ namespace Advobot.Core.Classes
 			IsAutomatic = false;
 		}
 
-		public RequestOptions CreateRequestOptions()
-		{
-			return new RequestOptions { AuditLogReason = this.ToString(), };
-		}
+		public RequestOptions CreateRequestOptions() => new RequestOptions { AuditLogReason = this.ToString(), };
 
-		public override string ToString()
-		{
-			return $"Action by {User.FormatUser()}. Reason: {Reason}.";
-		}
+		public override string ToString() => $"Action by {User.FormatUser()}. Reason: {Reason}.";
 	}
 }

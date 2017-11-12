@@ -57,9 +57,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
 		public static IEnumerable<TextBox> CreateItemsSourceOutOfEnum<T>() where T : struct, IConvertible, IComparable, IFormattable
-		{
-			return CreateItemsSourceOutOfEnum(typeof(T));
-		}
+			=> CreateItemsSourceOutOfEnum(typeof(T));
 		/// <summary>
 		/// Returns textboxes with the text as the enum name and the tag as the enum.
 		/// </summary>
@@ -67,12 +65,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		/// <returns></returns>
 		public static IEnumerable<TextBox> CreateItemsSourceOutOfEnum(Type enumType)
 		{
-			if (!enumType.IsEnum)
-			{
-				throw new ArgumentException($"{nameof(enumType)} must be an enum.");
-			}
-
-			foreach (var e in Enum.GetValues(enumType))
+			foreach (var e in Enum.GetValues(enumType) ?? throw new ArgumentException($"{nameof(enumType)} must be an enum."))
 			{
 				yield return CreateItem(Enum.GetName(enumType, e), e);
 			}
@@ -90,8 +83,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			}
 		}
 		private static TextBox CreateItem(string text, object tag)
-		{
-			return new AdvobotTextBox
+			=> new AdvobotTextBox
 			{
 				FontFamily = new FontFamily("Courier New"),
 				Text = text,
@@ -102,6 +94,5 @@ namespace Advobot.UILauncher.Classes.Controls
 				Background = Brushes.Transparent,
 				Foreground = Brushes.Black,
 			};
-		}
 	}
 }

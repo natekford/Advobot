@@ -54,10 +54,7 @@ namespace Advobot.Core.Classes
 		/// Sets <see cref="Keywords"/> to <paramref name="keywords"/>.
 		/// </summary>
 		/// <param name="keywords"></param>
-		public void UpdateKeywords(IEnumerable<string> keywords)
-		{
-			Keywords = keywords.ToList().AsReadOnly();
-		}
+		public void UpdateKeywords(IEnumerable<string> keywords) => Keywords = keywords.ToList().AsReadOnly();
 		/// <summary>
 		/// Sets <see cref="LastBumped"/> to <see cref="DateTime.UtcNow"/> and checks for global emotes.
 		/// </summary>
@@ -77,16 +74,9 @@ namespace Advobot.Core.Classes
 		}
 
 		public override string ToString()
-		{
-			if (String.IsNullOrWhiteSpace(Code))
-			{
-				return null;
-			}
-			return $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", Keywords)}`" : "")}";
-		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+			=> String.IsNullOrWhiteSpace(Code)
+			? null
+			: $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", Keywords)}`" : "")}";
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

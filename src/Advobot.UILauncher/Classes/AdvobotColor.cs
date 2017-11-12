@@ -78,10 +78,7 @@ namespace Advobot.UILauncher.Classes
 			color = default;
 			return false;
 		}
-		private static bool TryCreateColorFromStringName(string name, out Color color)
-		{
-			return _Colors.TryGetValue(name, out color);
-		}
+		private static bool TryCreateColorFromStringName(string name, out Color color) => _Colors.TryGetValue(name, out color);
 		private static bool TryCreateColorFromStringHex(string hex, out Color color)
 		{
 			if (uint.TryParse(hex.TrimStart(new[] { '&', 'h', '#', '0', 'x' }), NumberStyles.HexNumber, null, out uint h))
@@ -111,17 +108,8 @@ namespace Advobot.UILauncher.Classes
 			color = new AdvobotColor(input);
 			return color.IsValid;
 		}
-		public SolidColorBrush CreateBrush()
-		{
-			return new SolidColorBrush(Color);
-		}
-		public static SolidColorBrush CreateBrush(string input)
-		{
-			return _Converter.ConvertFrom(input) as SolidColorBrush;
-		}
-		public static bool CheckIfSameBrush(SolidColorBrush b1, SolidColorBrush b2)
-		{
-			return b1?.Color == b2?.Color && b1?.Opacity == b2?.Opacity;
-		}
+		public SolidColorBrush CreateBrush() => new SolidColorBrush(Color);
+		public static SolidColorBrush CreateBrush(string input) => _Converter.ConvertFrom(input) as SolidColorBrush;
+		public static bool CheckIfSameBrush(SolidColorBrush b1, SolidColorBrush b2) => b1?.Color == b2?.Color && b1?.Opacity == b2?.Opacity;
 	}
 }

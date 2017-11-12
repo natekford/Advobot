@@ -19,10 +19,7 @@ namespace Advobot.Core.Actions.Formatting
 		/// Returns the current time in a year, month, day, hour, minute, second format. E.G: 20170815_053645
 		/// </summary>
 		/// <returns></returns>
-		public static string FormatDateTimeForSaving()
-		{
-			return DateTime.UtcNow.ToString("yyyyMMdd_hhmmss");
-		}
+		public static string FormatDateTimeForSaving() => DateTime.UtcNow.ToString("yyyyMMdd_hhmmss");
 		/// <summary>
 		/// Returns the passed in time as a human readable time.
 		/// </summary>

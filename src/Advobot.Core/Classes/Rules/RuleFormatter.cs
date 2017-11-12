@@ -62,10 +62,7 @@ namespace Advobot.Core.Classes.Rules
 			_Rules = rules.ToString(this);
 			_Categories.AddRange(rules.Categories.Select((x, index) => x.ToString(this, index)));
 		}
-		public void SetCategory(RuleCategory category, int index)
-		{
-			_Categories.Add(category.ToString(this, index));
-		}
+		public void SetCategory(RuleCategory category, int index) => _Categories.Add(category.ToString(this, index));
 
 		public string FormatName(RuleCategory category, int index)
 		{

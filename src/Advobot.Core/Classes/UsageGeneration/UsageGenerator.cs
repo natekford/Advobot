@@ -138,15 +138,11 @@ namespace Advobot.Core.Classes.UsageGeneration
 			}
 		}
 		private IEnumerable<Type> GetNestedCommandClasses(Type classType)
-		{
-			return classType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Public)
-				.Where(x => x.GetCustomAttribute<GroupAttribute>() != null);
-		}
+			=> classType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Public)
+			.Where(x => x.GetCustomAttribute<GroupAttribute>() != null);
 		private IEnumerable<MethodInfo> GetCommands(Type classType)
-		{
-			return classType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
-				.Where(x => x.GetCustomAttribute<CommandAttribute>() != null);
-		}
+			=> classType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+			.Where(x => x.GetCustomAttribute<CommandAttribute>() != null);
 
 		private void RemoveDuplicateClasses(ref List<ClassDetails> classes)
 		{
@@ -214,21 +210,17 @@ namespace Advobot.Core.Classes.UsageGeneration
 		}
 
 		private int GetMaximumUpperBounds(IEnumerable<MethodDetails> methods, IEnumerable<ParameterDetails> parameters)
-		{
-			return new[]
+			=> new[]
 			{
 				methods.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
 				parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
 			}.Max();
-		}
 		private int GetMinimumUpperBounds(IEnumerable<MethodDetails> methods, IEnumerable<ParameterDetails> parameters)
-		{
-			return new[]
+			=> new[]
 			{
 				methods.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
 				parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
 			}.Min();
-		}
 
 		private void StartArgument(StringBuilder sb, bool optional)
 		{

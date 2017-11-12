@@ -14,22 +14,10 @@ namespace Advobot.Core.Classes.Rules
 			Text = text;
 		}
 
-		public void ChangeText(string text)
-		{
-			Text = text;
-		}
+		public void ChangeText(string text) => Text = text;
 
-		public override string ToString()
-		{
-			return ToString(new RuleFormatter(), 0, 0).ToString();
-		}
-		public string ToString(RuleFormatter formatter, int index, int rulesInCategory)
-		{
-			return formatter.FormatRule(this, index, rulesInCategory);
-		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+		public override string ToString() => ToString(new RuleFormatter(), 0, 0).ToString();
+		public string ToString(RuleFormatter formatter, int index, int rules) => formatter.FormatRule(this, index, rules);
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

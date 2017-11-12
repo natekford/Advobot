@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -20,6 +21,7 @@ namespace Advobot.Core.Classes.Settings
 	/// </summary>
 	public class BotSettings : IBotSettings, INotifyPropertyChanged
 	{
+		private static FileInfo LOC => GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
 		private const string MY_BOT_PREFIX = "&&";
 
 		[JsonProperty("TrustedUsers")]
@@ -170,29 +172,22 @@ namespace Advobot.Core.Classes.Settings
 		[JsonIgnore]
 		public bool Pause { get; private set; }
 
-		public event PropertyChangedEventHandler PropertyChanged;
 		public BotSettings()
 		{
-			PropertyChanged += SaveSettings;
+			PropertyChanged += this.SaveSettings;
 		}
 
+		public event PropertyChangedEventHandler PropertyChanged;
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
+			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		private void SaveSettings(object sender, PropertyChangedEventArgs e)
 		{
 			ConsoleActions.WriteLine($"Successfully saved: {e.PropertyName}");
 			SaveSettings();
 		}
 		public void SaveSettings()
-		{
-			SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
-		}
-		public void TogglePause()
-		{
-			Pause = !Pause;
-		}
+			=> SavingAndLoadingActions.OverWriteFile(LOC, SavingAndLoadingActions.Serialize(this));
+		public void TogglePause() => Pause = !Pause;
 
 		public async Task<string> Format(IDiscordClient client)
 		{
@@ -218,9 +213,7 @@ namespace Advobot.Core.Classes.Settings
 			return sb.ToString();
 		}
 		public async Task<string> Format(IDiscordClient client, PropertyInfo property)
-		{
-			return await FormatObjectAsync(client, property.GetValue(this)).CAF();
-		}
+			=> await FormatObjectAsync(client, property.GetValue(this)).CAF();
 		private async Task<string> FormatObjectAsync(IDiscordClient client, object value)
 		{
 			if (value == null)

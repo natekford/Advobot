@@ -45,12 +45,11 @@ namespace Advobot.UILauncher.Windows
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
 			//Start the timer that shows latency, memory usage, etc.
 			((DispatcherTimer)this.Resources["ApplicationInformationTimer"]).Start();
-			_LoginHandler.AbleToStart += Start;
+			_LoginHandler.AbleToStart += this.Start;
 		}
 
 		private async Task EnableButtons()
-		{
-			await this.Dispatcher.InvokeAsync(() =>
+			=> await this.Dispatcher.InvokeAsync(() =>
 			{
 				this.MainMenuButton.IsEnabled = true;
 				this.InfoMenuButton.IsEnabled = true;
@@ -59,10 +58,8 @@ namespace Advobot.UILauncher.Windows
 				this.SettingsMenuButton.IsEnabled = true;
 				this.OutputContextMenu.IsEnabled = true;
 			});
-		}
 		private async Task AddGuildToTreeView(SocketGuild guild)
-		{
-			await this.Dispatcher.InvokeAsync(() =>
+			=> await this.Dispatcher.InvokeAsync(() =>
 			{
 				//Make sure the guild isn't already in the treeview
 				var item = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
@@ -78,10 +75,8 @@ namespace Advobot.UILauncher.Windows
 				this.FilesTreeView.Items.SortDescriptions.Clear();
 				this.FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
 			}, DispatcherPriority.Background);
-		}
 		private async Task RemoveGuildFromTreeView(SocketGuild guild)
-		{
-			await this.Dispatcher.InvokeAsync(() =>
+			=> await this.Dispatcher.InvokeAsync(() =>
 			{
 				//Just make the item invisible so if need be it can be made visible instead of having to recreate it.
 				var item = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
@@ -90,7 +85,6 @@ namespace Advobot.UILauncher.Windows
 					item.Visibility = Visibility.Collapsed;
 				}
 			}, DispatcherPriority.Background);
-		}
 		private async Task Start()
 		{
 			Client.HeldObject = _LoginHandler.GetRequiredService<IDiscordClient>();
@@ -100,13 +94,13 @@ namespace Advobot.UILauncher.Windows
 
 			if (Client.HeldObject is DiscordSocketClient socket)
 			{
-				socket.Connected += EnableButtons;
-				socket.GuildAvailable += AddGuildToTreeView;
+				socket.Connected += this.EnableButtons;
+				socket.GuildAvailable += this.AddGuildToTreeView;
 			}
 			else if (Client.HeldObject is DiscordShardedClient sharded)
 			{
-				sharded.Shards.LastOrDefault().Connected += EnableButtons;
-				sharded.GuildAvailable += AddGuildToTreeView;
+				sharded.Shards.LastOrDefault().Connected += this.EnableButtons;
+				sharded.GuildAvailable += this.AddGuildToTreeView;
 			}
 			await ClientActions.StartAsync(Client.HeldObject);
 		}
@@ -177,9 +171,7 @@ namespace Advobot.UILauncher.Windows
 			}
 		}
 		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
-		{
-			this.TrustedUsers.Items.Remove(this.TrustedUsers.SelectedItem);
-		}
+			=> this.TrustedUsers.Items.Remove(this.TrustedUsers.SelectedItem);
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			SavingActions.SaveSettings(this.SettingsMenuDisplay, BotSettings.HeldObject);
@@ -253,9 +245,7 @@ namespace Advobot.UILauncher.Windows
 			}
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
-		{
-			ToolTipActions.EnableTimedToolTip(this.Layout, SavingActions.SaveFile(this.Output).GetReason());
-		}
+			=> ToolTipActions.EnableTimedToolTip(this.Layout, SavingActions.SaveFile(this.Output).GetReason());
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
 			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))

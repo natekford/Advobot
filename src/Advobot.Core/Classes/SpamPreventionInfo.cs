@@ -1,8 +1,10 @@
 ﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace Advobot.Core.Classes.SpamPrevention
 {
@@ -130,25 +132,15 @@ namespace Advobot.Core.Classes.SpamPrevention
 			return true;
 		}
 
-		public void Enable()
-		{
-			Enabled = true;
-		}
-		public void Disable()
-		{
-			Enabled = false;
-		}
+		public void Enable() => Enabled = true;
+		public void Disable() => Enabled = false;
 
 		public override string ToString()
-		{
-			return $"**Punishment:** `{PunishmentType.EnumName()}`\n" +
-					$"**Spam Instances:** `{RequiredSpamInstances}`\n" +
-					$"**Votes For Punishment:** `{VotesForKick}`\n" +
-					$"**Spam Amt/Time Interval:** `{RequiredSpamPerMessageOrTimeInterval}`";
-		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+			=> new StringBuilder()
+			.AppendLineFeed($"**Punishment:** `{PunishmentType.EnumName()}`")
+			.AppendLineFeed($"**Spam Instances:** `{RequiredSpamInstances}`")
+			.AppendLineFeed($"**Votes For Punishment:** `{VotesForKick}`")
+			.Append($"**Spam Amt/Time Interval:** `{RequiredSpamPerMessageOrTimeInterval}`").ToString();
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

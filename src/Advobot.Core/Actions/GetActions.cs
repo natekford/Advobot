@@ -41,37 +41,28 @@ namespace Advobot.Core.Actions
 		/// </summary>
 		/// <returns></returns>
 		public static ImmutableDictionary<string, Color> GetColorDictionary()
-		{
-			return typeof(Color).GetFields(BindingFlags.Public | BindingFlags.Static).ToDictionary(
-				x => x.Name,
-				x => (Color)x.GetValue(new Color()),
-				StringComparer.OrdinalIgnoreCase).ToImmutableDictionary();
-		}
+			=> typeof(Color).GetFields(BindingFlags.Public | BindingFlags.Static).ToDictionary(
+			x => x.Name,
+			x => (Color)x.GetValue(new Color()),
+			StringComparer.OrdinalIgnoreCase).ToImmutableDictionary();
 		/// <summary>
 		/// Returns all names of commands that are in specific category.
 		/// </summary>
 		/// <param name="category"></param>
 		/// <returns></returns>
-		public static string[] GetCommandNames(CommandCategory category)
-		{
-			return Constants.HELP_ENTRIES[category].Select(x => x.Name).ToArray();
-		}
+		public static string[] GetCommandNames(CommandCategory category) => Constants.HELP_ENTRIES[category].Select(x => x.Name).ToArray();
 		/// <summary>
 		/// Returns nothing if equal to 1. Returns "s" if not. Double allows most, if not all, number types in: https://stackoverflow.com/a/828963.
 		/// </summary>
 		/// <param name="i"></param>
 		/// <returns></returns>
-		public static string GetPlural(double i)
-		{
-			return i == 1 ? "" : "s";
-		}
+		public static string GetPlural(double i) => i == 1 ? "" : "s";
 		/// <summary>
 		/// Returns the guild's prefix if one is set. Returns the bot prefix if not.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		public static string GetPrefix(IAdvobotCommandContext context)
-			=> GetPrefix(context.BotSettings, context.GuildSettings);
+		public static string GetPrefix(IAdvobotCommandContext context) => GetPrefix(context.BotSettings, context.GuildSettings);
 		/// <summary>
 		/// Returns the guild prefix if one is set. Returns the bot prefix if not.
 		/// </summary>
@@ -79,9 +70,7 @@ namespace Advobot.Core.Actions
 		/// <param name="guildSettings"></param>
 		/// <returns></returns>
 		public static string GetPrefix(IBotSettings botSettings, IGuildSettings guildSettings)
-		{
-			return String.IsNullOrWhiteSpace(guildSettings.Prefix) ? botSettings.Prefix : guildSettings.Prefix;
-		}
+			=> String.IsNullOrWhiteSpace(guildSettings.Prefix) ? botSettings.Prefix : guildSettings.Prefix;
 		/// <summary>
 		/// Returns true if the passed in string is a valid Url.
 		/// </summary>
@@ -115,9 +104,7 @@ namespace Advobot.Core.Actions
 		/// <param name="bypass"></param>
 		/// <returns></returns>
 		public static int GetMaxAmountOfUsersToGather(IBotSettings botSettings, bool bypass)
-		{
-			return bypass ? int.MaxValue : botSettings.MaxUserGatherCount;
-		}
+			=> bypass ? int.MaxValue : botSettings.MaxUserGatherCount;
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
 		/// </summary>
@@ -195,39 +182,31 @@ namespace Advobot.Core.Actions
 		/// Returns all public properties from IGuildSettings that have a set method.
 		/// </summary>
 		/// <returns></returns>
-		public static IEnumerable<PropertyInfo> GetGuildSettings()
-		{
-			return GetSettings(typeof(IGuildSettings));
-		}
+		public static IEnumerable<PropertyInfo> GetGuildSettings() => GetSettings(typeof(IGuildSettings));
 		/// <summary>
 		/// Returns all public properties from IBotSettings that have a set method. Will not return SavePath and BotKey since those
 		/// are saved via <see cref="Properties.Settings.Default"/>.
 		/// </summary>
 		/// <returns></returns>
-		public static IEnumerable<PropertyInfo> GetBotSettings()
-		{
-			return GetSettings(typeof(IBotSettings));
-		}
+		public static IEnumerable<PropertyInfo> GetBotSettings() => GetSettings(typeof(IBotSettings));
 		/// <summary>
 		/// Returns the values of <see cref="GetBotSettings"/> which either are strings or do not implement the generic IEnumerable.
 		/// </summary>
 		/// <returns></returns>
 		public static IEnumerable<PropertyInfo> GetBotSettingsThatArentIEnumerables()
-		{
-			return GetBotSettings().Where(x =>
+			=> GetBotSettings().Where(x =>
 			{
 				return x.PropertyType == typeof(string) || !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 			});
-		}
 		/// <summary>
 		/// Returns all public properties 
 		/// </summary>
 		/// <param name="settingHolderType"></param>
 		/// <returns></returns>
 		public static IEnumerable<PropertyInfo> GetSettings(Type settingHolderType)
-		{
-			var properties = settingHolderType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-			return properties.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic);
-		}
+			=> settingHolderType.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(x =>
+			{
+				return x.CanWrite && x.GetSetMethod(true).IsPublic;
+			});
 	}
 }

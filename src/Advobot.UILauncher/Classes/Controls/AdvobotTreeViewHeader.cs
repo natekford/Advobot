@@ -3,7 +3,6 @@ using Advobot.Core.Actions.Formatting;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Discord.WebSocket;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -12,33 +11,6 @@ using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
-	internal class CompGuild : IComparable, IComparable<SocketGuild>
-	{
-		private SocketGuild _Guild;
-		public CompGuild(SocketGuild guild)
-		{
-			_Guild = guild;
-		}
-
-		public int CompareTo(object obj)
-		{
-			return obj is SocketGuild g ? CompareTo(g) : 1;
-		}
-		public int CompareTo(SocketGuild other)
-		{
-			if (_Guild.MemberCount < other.MemberCount)
-			{
-				return -1;
-			}
-			else if (_Guild.MemberCount > other.MemberCount)
-			{
-				return 1;
-			}
-
-			return _Guild.Name.CompareTo(other.Name);
-		}
-	}
-
 	internal class AdvobotTreeViewHeader : TreeViewItem, IAdvobotControl
 	{
 		private FileSystemWatcher _FSW;
@@ -72,9 +44,9 @@ namespace Advobot.UILauncher.Classes.Controls
 				//If any files get updated or deleted then modify the guild files in the treeview
 				_FSW?.Dispose();
 				_FSW = new FileSystemWatcher(_DI.FullName);
-				_FSW.Deleted += OnFileChangeInGuildDirectory;
-				_FSW.Renamed += OnFileChangeInGuildDirectory;
-				_FSW.Created += OnFileChangeInGuildDirectory;
+				_FSW.Deleted += this.OnFileChangeInGuildDirectory;
+				_FSW.Renamed += this.OnFileChangeInGuildDirectory;
+				_FSW.Created += this.OnFileChangeInGuildDirectory;
 				_FSW.EnableRaisingEvents = true;
 			}
 		}

@@ -19,8 +19,8 @@ namespace Advobot.UILauncher
 
 		public void OnStartup(object sender, StartupEventArgs e)
 		{
-			this.DispatcherUnhandledException += OnDispatcherUnHandledException;
-			AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+			this.DispatcherUnhandledException += this.OnDispatcherUnHandledException;
+			AppDomain.CurrentDomain.UnhandledException += this.OnUnhandledException;
 
 			SyntaxHighlighting.LoadJSONHighlighting();
 			this.MainWindow = new AdvobotWindow();
@@ -35,8 +35,6 @@ namespace Advobot.UILauncher
 			this.Shutdown();
 		}
 		private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
-		{
-			SavingAndLoadingActions.LogUncaughtException(e.ExceptionObject);
-		}
+			=> SavingAndLoadingActions.LogUncaughtException(e.ExceptionObject);
 	}
 }

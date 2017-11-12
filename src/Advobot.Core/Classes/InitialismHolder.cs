@@ -73,9 +73,6 @@ namespace Advobot.Core.Classes
 			Initialism = newInitialism.ToString().ToLower();
 		}
 
-		public override string ToString()
-		{
-			return Initialism;
-		}
+		public override string ToString() => Initialism;
 	}
 }

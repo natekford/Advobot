@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
@@ -7,6 +8,8 @@ using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.SpamPrevention
@@ -26,34 +29,22 @@ namespace Advobot.Core.Classes.SpamPrevention
 		[JsonProperty]
 		public int UserCount { get; }
 		[JsonProperty]
-		public bool Enabled { get; private set; }
+		public bool Enabled { get; private set; } = true;
 		[JsonIgnore]
-		public ConcurrentQueue<BasicTimeInterface> TimeList { get; }
+		public ConcurrentQueue<BasicTimeInterface> _TimeList = new ConcurrentQueue<BasicTimeInterface>();
+		[JsonIgnore]
+		public ConcurrentQueue<BasicTimeInterface> TimeList => _TimeList;
 
 		private RaidPreventionInfo(PunishmentType punishmentType, int userCount, int interval)
 		{
 			PunishmentType = punishmentType;
 			UserCount = userCount;
 			Interval = interval;
-			TimeList = new ConcurrentQueue<BasicTimeInterface>();
-			Enabled = true;
 		}
 
-		public int GetSpamCount()
-		{
-			return TimeList.CountItemsInTimeFrame(Interval);
-		}
-		public void Add(DateTime time)
-		{
-			TimeList.Enqueue(new BasicTimeInterface(time));
-		}
-		public void Reset()
-		{
-			while (!TimeList.IsEmpty)
-			{
-				TimeList.TryDequeue(out var dequeueResult);
-			}
-		}
+		public int GetSpamCount() => TimeList.CountItemsInTimeFrame(Interval);
+		public void Add(DateTime time) => TimeList.Enqueue(new BasicTimeInterface(time));
+		public void Reset() => Interlocked.Exchange(ref _TimeList, new ConcurrentQueue<BasicTimeInterface>());
 		public async Task PunishAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
 			var giver = new AutomaticPunishmentGiver(0, null);
@@ -85,25 +76,15 @@ namespace Advobot.Core.Classes.SpamPrevention
 			return true;
 		}
 
-		public void Enable()
-		{
-			Enabled = true;
-		}
-		public void Disable()
-		{
-			Enabled = false;
-		}
+		public void Enable() => Enabled = true;
+		public void Disable() => Enabled = false;
 
 		public override string ToString()
-		{
-			return $"**Enabled:** `{Enabled}`\n" +
-					$"**Users:** `{UserCount}`\n" +
-					$"**Time Interval:** `{Interval}`\n" +
-					$"**Punishment:** `{PunishmentType.EnumName()}`";
-		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+			=> new StringBuilder()
+			.AppendLineFeed($"**Enabled:** `{Enabled}`")
+			.AppendLineFeed($"**Users:** `{UserCount}`")
+			.AppendLineFeed($"**Time Interval:** `{Interval}`")
+			.Append($"**Punishment:** `{PunishmentType.EnumName()}`").ToString();
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

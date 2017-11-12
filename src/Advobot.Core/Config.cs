@@ -151,9 +151,7 @@ namespace Advobot.Core
 		/// Writes the current <see cref="ConfigDict"/> to file.
 		/// </summary>
 		public static void Save()
-		{
-			SavingAndLoadingActions.OverWriteFile(new FileInfo(_SavePath), SavingAndLoadingActions.Serialize(Configuration));
-		}
+			=> SavingAndLoadingActions.OverWriteFile(new FileInfo(_SavePath), SavingAndLoadingActions.Serialize(Configuration));
 
 		/// <summary>
 		/// Creates a dictionary which only holds the values for <see cref="ConfigKeys"/> to be modified.

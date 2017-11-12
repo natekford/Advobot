@@ -307,28 +307,12 @@ namespace Advobot.Core.Classes.Settings
 		[JsonIgnore]
 		public bool Loaded { get; private set; } = false;
 
-		public CommandSwitch[] GetCommands(CommandCategory category)
-		{
-			return CommandSwitches.Where(x => x.Category == category).ToArray();
-		}
+		public CommandSwitch[] GetCommands(CommandCategory category) => CommandSwitches.Where(x => x.Category == category).ToArray();
 		public CommandSwitch GetCommand(string commandNameOrAlias)
-		{
-			return CommandSwitches.FirstOrDefault(x =>
+			=> CommandSwitches.FirstOrDefault(x =>
 			{
-				if (x.Name.CaseInsEquals(commandNameOrAlias))
-				{
-					return true;
-				}
-				else if (x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias))
-				{
-					return true;
-				}
-				else
-				{
-					return false;
-				}
+				return x.Name.CaseInsEquals(commandNameOrAlias) || x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias);
 			});
-		}
 		public bool SetLogChannel(LogChannelType logChannelType, ITextChannel channel)
 		{
 			switch (logChannelType)
@@ -483,10 +467,7 @@ namespace Advobot.Core.Classes.Settings
 			}
 			return sb.ToString();
 		}
-		public string Format(PropertyInfo property)
-		{
-			return FormatObject(property.GetValue(this));
-		}
+		public string Format(PropertyInfo property) => FormatObject(property.GetValue(this));
 		private string FormatObject(object value)
 		{
 			if (value == null)

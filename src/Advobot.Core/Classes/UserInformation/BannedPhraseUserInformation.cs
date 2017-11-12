@@ -27,22 +27,10 @@ namespace Advobot.Core.Classes.UserInformation
 			get => _PunishmentVals[value];
 		}
 
-		public int GetValue(PunishmentType value)
-		{
-			return _PunishmentVals[value];
-		}
-		public int IncrementValue(PunishmentType value)
-		{
-			return ++_PunishmentVals[value];
-		}
-		public void ResetValue(PunishmentType value)
-		{
-			_PunishmentVals[value] = 0;
-		}
+		public int GetValue(PunishmentType value) => _PunishmentVals[value];
+		public int IncrementValue(PunishmentType value) => ++_PunishmentVals[value];
+		public void ResetValue(PunishmentType value) => _PunishmentVals[value] = 0;
 
-		public override string ToString()
-		{
-			return String.Join("/", _PunishmentVals.Select(x => $"{x.Value}{x.Key.EnumName()[0]}"));
-		}
+		public override string ToString() => String.Join("/", _PunishmentVals.Select(x => $"{x.Value}{x.Key.EnumName()[0]}"));
 	}
 }

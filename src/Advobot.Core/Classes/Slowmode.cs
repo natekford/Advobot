@@ -1,9 +1,11 @@
-﻿using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using System.Text;
 
 namespace Advobot.Core.Classes
 {
@@ -19,34 +21,27 @@ namespace Advobot.Core.Classes
 		[JsonProperty]
 		public readonly ulong[] ImmuneRoleIds;
 		[JsonIgnore]
-		public bool Enabled { get; private set; }
+		public bool Enabled { get; private set; } = false;
 
 		public Slowmode(int baseMessages, int interval, IRole[] immuneRoles)
 		{
 			BaseMessages = baseMessages;
 			Interval = interval;
 			ImmuneRoleIds = immuneRoles.Select(x => x.Id).Distinct().ToArray();
-			Enabled = false;
 		}
 
-		public void Disable()
-		{
-			Enabled = false;
-		}
-		public void Enable()
-		{
-			Enabled = true;
-		}
+		public void Disable() => Enabled = false;
+		public void Enable() => Enabled = true;
 
 		public override string ToString()
-		{
-			return $"**Base messages:** `{BaseMessages}`\n" +
-					$"**Time interval:** `{Interval}`\n" +
-					$"**Immune Role Ids:** `{String.Join("`, `", ImmuneRoleIds)}`";
-		}
+			=> new StringBuilder()
+			.AppendLineFeed($"**Base messages:** `{BaseMessages}`")
+			.AppendLineFeed($"**Time interval:** `{Interval}`")
+			.Append($"**Immune Role Ids:** `{String.Join("`, `", ImmuneRoleIds)}`").ToString();
 		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+			=> new StringBuilder()
+			.AppendLineFeed($"**Base messages:** `{BaseMessages}`")
+			.AppendLineFeed($"**Time interval:** `{Interval}`")
+			.Append($"**Immune Roles:** `{String.Join("`, `", ImmuneRoleIds.Select(x => guild.GetRole(x).FormatRole()))}`").ToString();
 	}
 }

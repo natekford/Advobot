@@ -36,14 +36,11 @@ namespace Advobot.Core.Classes
 		}
 
 		public override string ToString()
-		{
-			return new StringBuilder()
-				.AppendLineFeed($"**Aliases:** {String.Join(", ", Aliases)}")
-				.AppendLineFeed($"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}")
-				.AppendLineFeed($"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}")
-				.AppendLineFeed($"\n**Base Permission(s):**\n{BasePerm}")
-				.AppendLineFeed($"\n**Description:**\n{Description}")
-				.ToString();
-		}
+			=> new StringBuilder()
+			.AppendLineFeed($"**Aliases:** {String.Join(", ", Aliases)}")
+			.AppendLineFeed($"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}")
+			.AppendLineFeed($"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}")
+			.AppendLineFeed($"\n**Base Permission(s):**\n{BasePerm}")
+			.AppendLineFeed($"\n**Description:**\n{Description}").ToString();
 	}
 }

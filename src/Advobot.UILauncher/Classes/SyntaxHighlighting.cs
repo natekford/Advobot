@@ -9,9 +9,7 @@ namespace Advobot.UILauncher.Classes
 	internal static class SyntaxHighlighting
 	{
 		public static void LoadJSONHighlighting()
-		{
-			LoadSyntaxHighlighting("Advobot.UILauncher.Resources.JSONSyntaxHighlighting.xshd", "JSON", new[] { ".json" });
-		}
+			=> LoadSyntaxHighlighting("Advobot.UILauncher.Resources.JSONSyntaxHighlighting.xshd", "JSON", new[] { ".json" });
 		public static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
 		{
 			using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream(loc)

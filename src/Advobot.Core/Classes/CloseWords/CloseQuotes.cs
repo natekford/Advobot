@@ -7,9 +7,6 @@ namespace Advobot.Core.Classes.CloseWords
 		public CloseQuotes(IEnumerable<Quote> suppliedObjects, string input)
 			: base(suppliedObjects, input) { }
 
-		protected override int FindCloseness(Quote obj, string input)
-		{
-			return FindCloseName(obj.Name, input);
-		}
+		protected override int FindCloseness(Quote obj, string input) => FindCloseName(obj.Name, input);
 	}
 }

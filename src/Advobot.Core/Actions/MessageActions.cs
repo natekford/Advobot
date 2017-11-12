@@ -137,9 +137,7 @@ namespace Advobot.Core.Actions
 		/// <param name="time"></param>
 		/// <returns></returns>
 		public static async Task MakeAndDeleteSecondaryMessageAsync(IAdvobotCommandContext context, string secondStr, int time = -1)
-		{
-			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, secondStr, time, context.Timers).CAF();
-		}
+			=> await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, secondStr, time, context.Timers).CAF();
 		/// <summary>
 		/// Waits a few seconds then deletes the newly created message and the given message.
 		/// </summary>
@@ -186,9 +184,7 @@ namespace Advobot.Core.Actions
 		/// <param name="requestCount"></param>
 		/// <returns></returns>
 		public static async Task<List<IMessage>> GetMessagesAsync(IMessageChannel channel, int requestCount)
-		{
-			return (await channel.GetMessagesAsync(requestCount).Flatten().CAF()).ToList();
-		}
+			=> (await channel.GetMessagesAsync(requestCount).Flatten().CAF()).ToList();
 		/// <summary>
 		/// Removes the given count of messages from a channel.
 		/// </summary>

@@ -46,9 +46,7 @@ namespace Advobot.Core.Actions.Formatting
 		/// <param name="toJoin"></param>
 		/// <returns></returns>
 		public static string JoinNonNullStrings(string joining, params string[] toJoin)
-		{
-			return String.Join(joining, toJoin.Where(x => !String.IsNullOrWhiteSpace(x)));
-		}
+			=> String.Join(joining, toJoin.Where(x => !String.IsNullOrWhiteSpace(x)));
 		/// <summary>
 		/// Returns a string which is a numbered list of the passed in objects. The format is for the passed in arguments; the counter is added by default.
 		/// </summary>
@@ -69,46 +67,31 @@ namespace Advobot.Core.Actions.Formatting
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string EscapeAllMarkdown(this string input)
-		{
-			return input.Replace("`", "\\`").Replace("*", "\\*").Replace("_", "\\_");
-		}
+		public static string EscapeAllMarkdown(this string input) => input.Replace("`", "\\`").Replace("*", "\\*").Replace("_", "\\_");
 		/// <summary>
 		/// Returns the input string with ` escaped.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string EscapeBackTicks(this string input)
-		{
-			return input?.Replace("`", "\\`");
-		}
+		public static string EscapeBackTicks(this string input) => input?.Replace("`", "\\`");
 		/// <summary>
 		/// Returns the input string without `, *, and _.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string RemoveAllMarkdown(this string input)
-		{
-			return input.Replace("`", "").Replace("*", "").Replace("_", "");
-		}
+		public static string RemoveAllMarkdown(this string input) => input.Replace("`", "").Replace("*", "").Replace("_", "");
 		/// <summary>
 		/// Returns the input string with no duplicate new lines.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string RemoveDuplicateNewLines(this string input)
-		{
-			return _RemoveDuplicateSpaces.Replace(input, "\n");
-		}
+		public static string RemoveDuplicateNewLines(this string input) => _RemoveDuplicateSpaces.Replace(input, "\n");
 		/// <summary>
 		/// Returns the input string with no new lines.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string RemoveAllNewLines(this string input)
-		{
-			return input.Replace("\r", "").Replace("\n", "");
-		}
+		public static string RemoveAllNewLines(this string input) => input.Replace("\r", "").Replace("\n", "");
 
 		/// <summary>
 		/// Adds in spaces between each capital letter.
@@ -137,9 +120,6 @@ namespace Advobot.Core.Actions.Formatting
 		/// <param name="sb"></param>
 		/// <param name="text"></param>
 		/// <returns></returns>
-		public static StringBuilder AppendLineFeed(this StringBuilder sb, string value = "")
-		{
-			return sb.Append(value + "\n");
-		}
+		public static StringBuilder AppendLineFeed(this StringBuilder sb, string value = "") => sb.Append(value + "\n");
 	}
 }

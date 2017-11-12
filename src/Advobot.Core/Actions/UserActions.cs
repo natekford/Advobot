@@ -193,9 +193,7 @@ namespace Advobot.Core.Actions
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		public static async Task ChangeNicknameAsync(IGuildUser user, string newNickname, ModerationReason reason)
-		{
-			await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, reason.CreateRequestOptions()).CAF();
-		}
+			=> await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, reason.CreateRequestOptions()).CAF();
 		/// <summary>
 		/// Moves the user to the supplied channel then says the supplied reason in the audit log.
 		/// </summary>
@@ -204,8 +202,6 @@ namespace Advobot.Core.Actions
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		public static async Task MoveUserAsync(IGuildUser user, IVoiceChannel channel, ModerationReason reason)
-		{
-			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), reason.CreateRequestOptions()).CAF();
-		}
+			=> await user.ModifyAsync(x => x.Channel = Optional.Create(channel), reason.CreateRequestOptions()).CAF();
 	}
 }

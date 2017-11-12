@@ -75,9 +75,7 @@ namespace Advobot.Core.Actions
 		/// <param name="client"></param>
 		/// <returns></returns>
 		public static async Task<IUser> GetBotOwnerAsync(IDiscordClient client)
-		{
-			return (await client.GetApplicationInfoAsync().CAF()).Owner;
-		}
+			=> (await client.GetApplicationInfoAsync().CAF()).Owner;
 		/// <summary>
 		/// Returns the shard id for a <see cref="DiscordSocketClient"/> else returns -1.
 		/// </summary>

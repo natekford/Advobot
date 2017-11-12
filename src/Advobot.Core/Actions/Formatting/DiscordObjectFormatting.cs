@@ -107,14 +107,11 @@ namespace Advobot.Core.Actions.Formatting
 		/// <param name="content"></param>
 		/// <returns></returns>
 		public static string FormatMessageContentForNotBeingAnnoying(IGuild guild, string content)
-		{
-			//Everyone and Here have the same role.
-			return content
-				.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE)
+			=> content
+				.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE) //Everyone and Here have the same role.
 				.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE)
 				.CaseInsReplace("@here", Constants.FAKE_HERE)
-				.CaseInsReplace("\tts", Constants.FAKE_TTS); //Probably not needed due to the zero width char anyways
-		}
+				.CaseInsReplace("\tts", Constants.FAKE_TTS);
 		/// <summary>
 		/// Returns the game's name or stream name/url.
 		/// </summary>

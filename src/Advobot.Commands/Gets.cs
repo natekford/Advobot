@@ -24,34 +24,22 @@ namespace Advobot.Commands.Gets
 	{
 		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
 		public async Task Bot()
-		{
-			await MessageActions.SendMessageAsync(Context.Channel, $"The bot has the ID `{Context.Client.CurrentUser.Id}`.").CAF();
-		}
+			=> await MessageActions.SendMessageAsync(Context.Channel, $"The bot has the ID `{Context.Client.CurrentUser.Id}`.").CAF();
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
-		{
-			await MessageActions.SendMessageAsync(Context.Channel, $"The guild has the ID `{Context.Guild.Id}`.").CAF();
-		}
+			=> await MessageActions.SendMessageAsync(Context.Channel, $"The guild has the ID `{Context.Guild.Id}`.").CAF();
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel(IGuildChannel channel)
-		{
-			await MessageActions.SendMessageAsync(Context.Channel, $"The channel `{channel.Name}` has the ID `{channel.Id}`.").CAF();
-		}
+			=> await MessageActions.SendMessageAsync(Context.Channel, $"The channel `{channel.Name}` has the ID `{channel.Id}`.").CAF();
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
 		public async Task Role(IRole role)
-		{
-			await MessageActions.SendMessageAsync(Context.Channel, $"The role `{role.Name}` has the ID `{role.Id}`.").CAF();
-		}
+			=> await MessageActions.SendMessageAsync(Context.Channel, $"The role `{role.Name}` has the ID `{role.Id}`.").CAF();
 		[Command(nameof(User)), ShortAlias(nameof(User))]
 		public async Task User(IUser user)
-		{
-			await MessageActions.SendMessageAsync(Context.Channel, $"The user `{user.Username}` has the ID `{user.Id}`.").CAF();
-		}
+			=> await MessageActions.SendMessageAsync(Context.Channel, $"The user `{user.Username}` has the ID `{user.Id}`.").CAF();
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
 		public async Task Emote(Emote emote)
-		{
-			await MessageActions.SendMessageAsync(Context.Channel, $"The emote `{emote.Name}` has the ID `{emote.Id}`.").CAF();
-		}
+			=> await MessageActions.SendMessageAsync(Context.Channel, $"The emote `{emote.Name}` has the ID `{emote.Id}`.").CAF();
 	}
 
 	[Group(nameof(GetInfo)), TopLevelShortAlias(typeof(GetInfo))]
@@ -123,24 +111,16 @@ namespace Advobot.Commands.Gets
 	{
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
 		public async Task Role(IRole role, params GUWRSearchOption[] additionalSearchOptions)
-		{
-			await CommandRunner(Target.Role, role, additionalSearchOptions).CAF();
-		}
+			=> await CommandRunner(Target.Role, role, additionalSearchOptions).CAF();
 		[Command(nameof(Name)), ShortAlias(nameof(Name))]
 		public async Task Name(string name, params GUWRSearchOption[] additionalSearchOptions)
-		{
-			await CommandRunner(Target.Name, name, additionalSearchOptions).CAF();
-		}
+			=> await CommandRunner(Target.Name, name, additionalSearchOptions).CAF();
 		[Command(nameof(Game)), ShortAlias(nameof(Game))]
 		public async Task Game(string game, params GUWRSearchOption[] additionalSearchOptions)
-		{
-			await CommandRunner(Target.Game, game, additionalSearchOptions).CAF();
-		}
+			=> await CommandRunner(Target.Game, game, additionalSearchOptions).CAF();
 		[Command(nameof(Stream)), ShortAlias(nameof(Stream))]
 		public async Task Stream(params GUWRSearchOption[] additionalSearchOptions)
-		{
-			await CommandRunner(Target.Stream, null as string, additionalSearchOptions).CAF();
-		}
+			=> await CommandRunner(Target.Stream, null as string, additionalSearchOptions).CAF();
 
 		private async Task CommandRunner(Target targetType, object obj, GUWRSearchOption[] additionalSearchOptions)
 		{
@@ -201,19 +181,10 @@ namespace Advobot.Commands.Gets
 	{
 		[Command, Priority(0)]
 		public async Task Command(ImageFormat format, [Optional] IUser user, [Optional] ushort size)
-		{
-			await CommandRunner(user, size, format).CAF();
-		}
+			=> await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl(format, size == 0 ? (ushort)128 : size)).CAF();
 		[Command, Priority(1)]
 		public async Task Command(ImageFormat format, [Optional] ushort size, [Optional] IUser user)
-		{
-			await CommandRunner(user, size, format).CAF();
-		}
-
-		private async Task CommandRunner(IUser user, ushort size = 128, ImageFormat format = ImageFormat.Auto)
-		{
-			await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl(format, size)).CAF();
-		}
+			=> await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl(format, size == 0 ? (ushort)128 : size)).CAF();
 	}
 
 	[Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(typeof(GetUserJoinedAt))]

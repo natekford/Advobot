@@ -51,14 +51,8 @@ namespace Advobot.Core.Classes.UserInformation
 				UsersWhoHaveAlreadyVoted.Add(id);
 			}
 		}
-		public void ChangeVotesRequired(int newVotesRequired)
-		{
-			VotesRequired = Math.Min(newVotesRequired, VotesRequired);
-		}
-		public void EnablePunishable()
-		{
-			PotentialPunishment = true;
-		}
+		public void ChangeVotesRequired(int newVotesRequired) => VotesRequired = Math.Min(newVotesRequired, VotesRequired);
+		public void EnablePunishable() => PotentialPunishment = true;
 		public void ChangePunishmentType(PunishmentType newPunishment)
 		{
 			if (_PunishmentSeverity[newPunishment] > _PunishmentSeverity[Punishment])
@@ -83,9 +77,7 @@ namespace Advobot.Core.Classes.UserInformation
 			Punishment = default;
 		}
 		public bool CheckIfAllowedToPunish(SpamPreventionInfo spamPrev, SpamType spamType)
-		{
-			return SpamLists[spamType].CountItemsInTimeFrame(spamPrev.RequiredSpamPerMessageOrTimeInterval) >= spamPrev.RequiredSpamInstances;
-		}
+			=> SpamLists[spamType].CountItemsInTimeFrame(spamPrev.RequiredSpamPerMessageOrTimeInterval) >= spamPrev.RequiredSpamInstances;
 		public async Task PunishAsync(IGuildSettings guildSettings)
 		{
 			var giver = new AutomaticPunishmentGiver(0, null);

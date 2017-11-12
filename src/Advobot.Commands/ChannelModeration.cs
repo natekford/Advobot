@@ -180,17 +180,13 @@ namespace Advobot.Commands.ChannelModeration
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 			IRole role,
 			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
-		{
-			await CommandRunner(action, channel, role, permissions).CAF();
-		}
+			=> await CommandRunner(action, channel, role, permissions).CAF();
 		[Command]
 		public async Task Command(PermValue action,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 			IGuildUser user,
 			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
-		{
-			await CommandRunner(action, channel, user, permissions).CAF();
-		}
+			=> await CommandRunner(action, channel, user, permissions).CAF();
 
 		private async Task CommandRunner(PermValue action, IGuildChannel channel, object discordObject, ulong permissions)
 		{
@@ -233,22 +229,16 @@ namespace Advobot.Commands.ChannelModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
 			IRole role)
-		{
-			await CommandRunner(inputChannel, outputChannel, role).CAF();
-		}
+			=> await CommandRunner(inputChannel, outputChannel, role).CAF();
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
 			IGuildUser user)
-		{
-			await CommandRunner(inputChannel, outputChannel, user).CAF();
-		}
+			=> await CommandRunner(inputChannel, outputChannel, user).CAF();
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel)
-		{
-			await CommandRunner(inputChannel, outputChannel, null).CAF();
-		}
+			=> await CommandRunner(inputChannel, outputChannel, null).CAF();
 
 		private async Task CommandRunner(IGuildChannel inputChannel, IGuildChannel outputChannel, object discordObject)
 		{

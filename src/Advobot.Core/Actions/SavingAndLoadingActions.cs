@@ -55,9 +55,7 @@ namespace Advobot.Core.Actions
 		/// <param name="obj"></param>
 		/// <returns></returns>
 		public static string Serialize(object obj)
-		{
-			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new StringEnumConverter());
-		}
+			=> JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new StringEnumConverter());
 		/// <summary>
 		/// Creates an object of type <typeparamref name="T"/> with the supplied string and type.
 		/// </summary>
@@ -66,9 +64,7 @@ namespace Advobot.Core.Actions
 		/// <param name="type"></param>
 		/// <returns></returns>
 		public static T Deserialize<T>(string value, Type type)
-		{
-			return (T)JsonConvert.DeserializeObject(value, type, new StringEnumConverter());
-		}
+			=> (T)JsonConvert.DeserializeObject(value, type, new StringEnumConverter());
 
 		/// <summary>
 		/// Writes an uncaught exception to a log file.

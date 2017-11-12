@@ -77,9 +77,6 @@ namespace Advobot.Core.Classes.Punishments
 			_Actions.Add(sb.ToString());
 		}
 
-		public override string ToString()
-		{
-			return String.Join("\n", _Actions);
-		}
+		public override string ToString() => String.Join("\n", _Actions);
 	}
 }

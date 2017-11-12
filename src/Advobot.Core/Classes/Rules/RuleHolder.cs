@@ -14,10 +14,7 @@ namespace Advobot.Core.Classes.Rules
 		[JsonIgnore]
 		public IReadOnlyList<RuleCategory> Categories => _Categories.AsReadOnly();
 
-		public void AddCategory(RuleCategory category)
-		{
-			_Categories.Add(category);
-		}
+		public void AddCategory(RuleCategory category) => _Categories.Add(category);
 		public bool RemoveCategory(int index)
 		{
 			if (index >= 0 && index < _Categories.Count)
@@ -27,10 +24,7 @@ namespace Advobot.Core.Classes.Rules
 			}
 			return false;
 		}
-		public bool RemoveCategory(RuleCategory category)
-		{
-			return _Categories.Remove(category);
-		}
+		public bool RemoveCategory(RuleCategory category) => _Categories.Remove(category);
 		public void ChangeCategory(int index, RuleCategory category)
 		{
 			if (index >= 0 && index < _Categories.Count)
@@ -39,10 +33,7 @@ namespace Advobot.Core.Classes.Rules
 			}
 		}
 
-		public override string ToString()
-		{
-			return ToString(new RuleFormatter()).ToString();
-		}
+		public override string ToString() => ToString(new RuleFormatter());
 		public string ToString(RuleFormatter formatter)
 		{
 			var sb = new StringBuilder();
@@ -52,9 +43,6 @@ namespace Advobot.Core.Classes.Rules
 			}
 			return sb.ToString();
 		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

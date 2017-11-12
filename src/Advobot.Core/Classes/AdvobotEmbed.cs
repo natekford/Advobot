@@ -93,9 +93,7 @@ namespace Advobot.Core.Classes
 		/// <param name="URL"></param>
 		/// <returns></returns>
 		public AdvobotEmbed AddAuthor(IUser user, string URL = null)
-		{
-			return this.AddAuthor(user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
-		}
+			=> this.AddAuthor(user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
 		/// <summary>
 		/// Adds a footer to the embed. Verifies the Url exists and cuts the text to the appropriate length.
 		/// </summary>

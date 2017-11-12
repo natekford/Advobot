@@ -1,9 +1,6 @@
 ﻿using Advobot.Core;
 using Advobot.Core.Actions;
-using Advobot.UILauncher.Actions;
-using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Enums;
-using Advobot.UILauncher.Windows;
 using ICSharpCode.AvalonEdit.Highlighting;
 using Newtonsoft.Json;
 using System;
@@ -13,13 +10,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes
 {
 	internal class ColorSettings
 	{
+		private static FileInfo LOC => GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> LightModeProperties { get; private set; } = GetColorProperties("LightMode");
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> DarkModeProperties { get; private set; } = GetColorProperties("DarkMode");
 
@@ -79,10 +76,7 @@ namespace Advobot.UILauncher.Classes
 			get => ColorTargets[target];
 			set => ColorTargets[target] = value;
 		}
-		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush)
-		{
-			return ColorTargets.TryGetValue(target, out brush);
-		}
+		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush) => ColorTargets.TryGetValue(target, out brush);
 
 		private void ActivateTheme()
 		{
@@ -141,23 +135,18 @@ namespace Advobot.UILauncher.Classes
 				}
 			}
 		}
-		public void SaveSettings()
-		{
-			//Only needs to save custom colors and the theme
-			//Current set colors aren't important
-			SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION), SavingAndLoadingActions.Serialize(this));
-		}
+		/// <summary>
+		/// Saves custom colors and the current theme.
+		/// </summary>
+		public void SaveSettings() => SavingAndLoadingActions.OverWriteFile(LOC, SavingAndLoadingActions.Serialize(this));
 
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
-		{
-			return typeof(ColorSettings)
-				.GetProperties(BindingFlags.Public | BindingFlags.Static)
+			=> typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
 				.Where(x => x.PropertyType == typeof(SolidColorBrush) && x.Name.Contains(prefix))
 				.ToDictionary(
 					x => (ColorTarget)Enum.Parse(typeof(ColorTarget), x.Name.Replace(prefix, "")),
 					x => (SolidColorBrush)x.GetValue(null)
 				).ToImmutableDictionary();
-		}
 		public static ColorSettings LoadUISettings()
 		{
 			ColorSettings UISettings = null;

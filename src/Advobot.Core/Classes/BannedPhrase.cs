@@ -31,10 +31,7 @@ namespace Advobot.Core.Classes.BannedPhrases
 		/// Sets <see cref="Punishment"/> to <paramref name="punishment"/>.
 		/// </summary>
 		/// <param name="punishment"></param>
-		public void ChangePunishment(PunishmentType punishment)
-		{
-			Punishment = punishment;
-		}
+		public void ChangePunishment(PunishmentType punishment) => Punishment = punishment;
 
 		/// <summary>
 		/// Deletes the message then checks if the user should be punished.
@@ -70,9 +67,6 @@ namespace Advobot.Core.Classes.BannedPhrases
 			var punishmentChar = Punishment == default ? "N" : Punishment.EnumName().Substring(0, 1);
 			return $"`{punishmentChar}` `{Phrase}`";
 		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

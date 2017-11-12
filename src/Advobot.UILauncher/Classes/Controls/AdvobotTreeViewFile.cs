@@ -25,7 +25,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			this.ContextMenu = CreateContextMenu();
 			this.HorizontalContentAlignment = HorizontalAlignment.Left;
 			this.VerticalContentAlignment = VerticalAlignment.Center;
-			this.MouseDoubleClick += OpenFile;
+			this.MouseDoubleClick += this.OpenFile;
 			SetResourceReferences();
 		}
 		private ContextMenu CreateContextMenu()
@@ -36,14 +36,14 @@ namespace Advobot.UILauncher.Classes.Controls
 				HorizontalContentAlignment = HorizontalAlignment.Center,
 				VerticalContentAlignment = VerticalAlignment.Center,
 			};
-			delete.Click += DeleteFile;
+			delete.Click += this.DeleteFile;
 			var copy = new MenuItem
 			{
 				Header = "Copy File",
 				HorizontalContentAlignment = HorizontalAlignment.Center,
 				VerticalContentAlignment = VerticalAlignment.Center,
 			};
-			copy.Click += CopyFile;
+			copy.Click += this.CopyFile;
 			return new ContextMenu { ItemsSource = new[] { delete, copy } };
 		}
 		public void SetResourceReferences()
@@ -57,18 +57,9 @@ namespace Advobot.UILauncher.Classes.Controls
 			this.Header = _FI.Name;
 		}
 
-		public void OpenFile()
-		{
-			OpenFile(null, null);
-		}
-		public void CopyFile()
-		{
-			CopyFile(null, null);
-		}
-		public void DeleteFile()
-		{
-			DeleteFile(null, null);
-		}
+		public void OpenFile() => OpenFile(null, null);
+		public void CopyFile() => CopyFile(null, null);
+		public void DeleteFile() => DeleteFile(null, null);
 		private void OpenFile(object sender, RoutedEventArgs e)
 		{
 			if (!EntityActions.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))

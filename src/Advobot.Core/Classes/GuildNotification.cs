@@ -6,6 +6,7 @@ using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes
@@ -66,10 +67,7 @@ namespace Advobot.Core.Classes
 		/// Changes the channel the notification gets sent to.
 		/// </summary>
 		/// <param name="channel"></param>
-		public void ChangeChannel(ITextChannel channel)
-		{
-			Channel = channel;
-		}
+		public void ChangeChannel(ITextChannel channel) => Channel = channel;
 		/// <summary>
 		/// Sends the notification to the channel.
 		/// </summary>
@@ -95,18 +93,15 @@ namespace Advobot.Core.Classes
 		/// Sets <see cref="Channel"/> to whichever text channel on <paramref name="guild"/> has the Id <see cref="ChannelId"/>.
 		/// </summary>
 		/// <param name="guild"></param>
-		public void PostDeserialize(SocketGuild guild)
-		{
-			Channel = guild.GetTextChannel(ChannelId);
-		}
+		public void PostDeserialize(SocketGuild guild) => Channel = guild.GetTextChannel(ChannelId);
 
 		public override string ToString()
-		{
-			return $"**Channel:** `{Channel.FormatChannel()}`\n**Content:** `{Content}`\n**Title:** `{Title}`\n**Description:** `{Description}`\n**Thumbnail:** `{ThumbUrl}`";
-		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+			=> new StringBuilder()
+			.AppendLineFeed($"**Channel:** `{Channel.FormatChannel()}`")
+			.AppendLineFeed($"**Content:** `{Content}`")
+			.AppendLineFeed($"**Title:** `{Title}`")
+			.AppendLineFeed($"**Description:** `{Description}`")
+			.AppendLineFeed($"**Thumbnail:** `{ThumbUrl}`").ToString();
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

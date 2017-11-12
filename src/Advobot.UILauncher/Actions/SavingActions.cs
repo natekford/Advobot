@@ -24,19 +24,19 @@ namespace Advobot.UILauncher.Actions
 		/// </summary>
 		/// <param name="editor"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextEditor editor)
-		{
-			return SaveFile(editor, editor.Text);
-		}
+		public static ToolTipReason SaveFile(TextEditor editor) => SaveFile(editor, editor.Text);
 		/// <summary>
 		/// Saves the text of <paramref name="tb"/> to file.
 		/// </summary>
 		/// <param name="tb"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextBox tb)
-		{
-			return SaveFile(tb, tb.Text);
-		}
+		public static ToolTipReason SaveFile(TextBox tb) => SaveFile(tb, tb.Text);
+		/// <summary>
+		/// Attempts to save a file and returns a value indicating the result.
+		/// </summary>
+		/// <param name="control"></param>
+		/// <param name="text"></param>
+		/// <returns></returns>
 		private static ToolTipReason SaveFile(Control control, string text)
 		{
 			//If no valid tag just save to a new file with its name being the control's name
@@ -69,6 +69,11 @@ namespace Advobot.UILauncher.Actions
 				return ToolTipReason.FileSavingFailure;
 			}
 		}
+		/// <summary>
+		/// Creates a <see cref="FileInfo"/> based off of <paramref name="control"/> name.
+		/// </summary>
+		/// <param name="control"></param>
+		/// <returns></returns>
 		private static FileInfo CreateFileInfo(Control control)
 		{
 			var baseDir = GetActions.GetBaseBotDirectory().FullName;
@@ -98,19 +103,20 @@ namespace Advobot.UILauncher.Actions
 			{
 				return !g.Children.OfType<FrameworkElement>().Select(x => SaveSetting(x, botSettings)).Any(x => !x);
 			}
-			else if (ele is Viewbox vb && vb.Child is FrameworkElement vbc)
+			else if (ele is Viewbox vb)
 			{
-				return SaveSetting(vbc, botSettings);
+				return vb.Child is FrameworkElement vbc ? SaveSetting(vbc, botSettings) : true;
 			}
-			else if (ele is TextBox tb && tb.Tag is BotSetting tbs)
-			{
-				if (tb.IsReadOnly)
-				{
-					return true;
-				}
 
+			object value = null;
+			if (!(ele.Tag is BotSetting setting))
+			{
+				return false;
+			}
+			else if (ele is TextBox tb)
+			{
 				var text = tb.Text;
-				switch (tbs)
+				switch (setting)
 				{
 					case BotSetting.Prefix:
 					{
@@ -118,19 +124,13 @@ namespace Advobot.UILauncher.Actions
 						{
 							return false;
 						}
-						else if (botSettings.Prefix != text)
-						{
-							botSettings.Prefix = text;
-						}
-						return true;
+						value = text;
+						break;
 					}
 					case BotSetting.Game:
 					{
-						if (botSettings.Game != text)
-						{
-							botSettings.Game = text;
-						}
-						return true;
+						value = text ?? "";
+						break;
 					}
 					case BotSetting.Stream:
 					{
@@ -138,11 +138,8 @@ namespace Advobot.UILauncher.Actions
 						{
 							return false;
 						}
-						else if (botSettings.Stream != text)
-						{
-							botSettings.Stream = text;
-						}
-						return true;
+						value = text;
+						break;
 					}
 					case BotSetting.ShardCount:
 					{
@@ -150,11 +147,8 @@ namespace Advobot.UILauncher.Actions
 						{
 							return false;
 						}
-						else if (botSettings.ShardCount != num)
-						{
-							botSettings.ShardCount = (int)num;
-						}
-						return true;
+						value = (int)num;
+						break;
 					}
 					case BotSetting.MessageCacheCount:
 					{
@@ -162,11 +156,8 @@ namespace Advobot.UILauncher.Actions
 						{
 							return false;
 						}
-						else if (botSettings.MessageCacheCount != num)
-						{
-							botSettings.MessageCacheCount = (int)num;
-						}
-						return true;
+						value = (int)num;
+						break;
 					}
 					case BotSetting.MaxUserGatherCount:
 					{
@@ -174,11 +165,8 @@ namespace Advobot.UILauncher.Actions
 						{
 							return false;
 						}
-						else if (botSettings.MaxUserGatherCount != num)
-						{
-							botSettings.MaxUserGatherCount = (int)num;
-						}
-						return true;
+						value = (int)num;
+						break;
 					}
 					case BotSetting.MaxMessageGatherSize:
 					{
@@ -186,62 +174,51 @@ namespace Advobot.UILauncher.Actions
 						{
 							return false;
 						}
-						else if (botSettings.MaxMessageGatherSize != num)
-						{
-							botSettings.MaxMessageGatherSize = (int)num;
-						}
-						return true;
-					}
-					case BotSetting.TrustedUsers:
-					{
-						return true;
+						value = (int)num;
+						break;
 					}
 				}
 			}
-			else if (ele is CheckBox cb && cb.Tag is BotSetting cbs)
+			else if (ele is CheckBox cb)
 			{
-				var isChecked = cb.IsChecked.Value;
-				switch (cbs)
-				{
-					case BotSetting.AlwaysDownloadUsers:
-					{
-						if (botSettings.AlwaysDownloadUsers != isChecked)
-						{
-							botSettings.AlwaysDownloadUsers = isChecked;
-						}
-						return true;
-					}
-				}
+				value = cb.IsChecked.Value;
 			}
-			else if (ele is ComboBox cmb && cmb.Tag is BotSetting cmbs)
+			else if (ele is ComboBox cmb)
 			{
-				switch (cmbs)
+				switch (setting)
 				{
 					case BotSetting.LogLevel:
 					{
-						if (cmb.SelectedItem is TextBox cmbtb && cmbtb.Tag is LogSeverity ls && botSettings.LogLevel != ls)
+						if (cmb.SelectedItem is TextBox cmbtb && cmbtb.Tag is LogSeverity ls)
 						{
-							botSettings.LogLevel = ls;
+							value = ls;
 						}
-						return true;
+						break;
 					}
 					case BotSetting.TrustedUsers:
 					{
 						var updated = cmb.Items.OfType<TextBox>().Select(x => x?.Tag as ulong? ?? 0).Where(x => x != 0);
 						if (botSettings.TrustedUsers.Except(updated).Any() || updated.Except(botSettings.TrustedUsers).Any())
 						{
-							botSettings.TrustedUsers = updated.ToList();
+							value = updated.ToList();
 						}
-						return true;
+						break;
 					}
 				}
 			}
 			else
 			{
-				return true;
+				var name = ele.Name ?? ele.GetType().Name;
+				throw new ArgumentException($"Invalid object provided when attempting to save settings for a {name}.");
 			}
 
-			throw new ArgumentException($"Invalid object provided when attempting to save settings for a {ele.Name ?? ele.GetType().Name}.");
+			var field = typeof(IBotSettings).GetProperty(setting.EnumName());
+			//Make sure value isn't null 
+			if (value != null && value.GetType() == field.PropertyType && !field.GetValue(botSettings).Equals(value))
+			{
+				field.SetValue(botSettings, value);
+			}
+			return true;
 		}
 
 		/// <summary>
@@ -249,10 +226,7 @@ namespace Advobot.UILauncher.Actions
 		/// </summary>
 		/// <param name="e"></param>
 		/// <returns></returns>
-		public static bool IsCtrlS(KeyEventArgs e)
-		{
-			return e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
-		}
+		public static bool IsCtrlS(KeyEventArgs e) => e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
 		/// <summary>
 		/// Attempts to get a text file from an element's tag.
 		/// </summary>

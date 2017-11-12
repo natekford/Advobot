@@ -21,9 +21,6 @@ namespace Advobot.Core.Services.Timers
 			Message = message;
 		}
 
-		public DateTime GetTime()
-		{
-			return CloseWords.GetTime();
-		}
+		public DateTime GetTime() => CloseWords.GetTime();
 	}
 }

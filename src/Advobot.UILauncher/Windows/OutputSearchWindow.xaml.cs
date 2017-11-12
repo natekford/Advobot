@@ -18,7 +18,7 @@ namespace Advobot.UILauncher.Windows
 		public OutputSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
-			this.OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleActions.GetWrittenLines().Keys.ToArray());
+			this.OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleActions.GetOrCreateWrittenLines().Keys.ToArray());
 		}
 
 		private void Search(object sender, RoutedEventArgs e)
@@ -26,7 +26,7 @@ namespace Advobot.UILauncher.Windows
 			if (this.OutputNamesComboBox.SelectedItem is TextBox tb)
 			{
 				this.ConsoleSearchOutput.Clear();
-				foreach (var line in ConsoleActions.GetWrittenLines()[tb.Text])
+				foreach (var line in ConsoleActions.GetOrCreateWrittenLines()[tb.Text])
 				{
 					this.ConsoleSearchOutput.AppendText($"{line}{Environment.NewLine}");
 				}

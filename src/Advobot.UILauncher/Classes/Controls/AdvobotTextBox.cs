@@ -3,11 +3,9 @@ using Advobot.Core.Actions.Formatting;
 using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
-using Discord;
 using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes.Controls
 {

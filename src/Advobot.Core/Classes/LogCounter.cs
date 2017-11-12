@@ -12,7 +12,7 @@ namespace Advobot.Core.Classes
 	public class LogCounter : INotifyPropertyChanged
 	{
 		public string Title { get; private set; }
-		private int _Count;
+		private int _Count = 0;
 		public int Count
 		{
 			get => _Count;
@@ -26,31 +26,16 @@ namespace Advobot.Core.Classes
 		public LogCounter([CallerMemberName] string title = "")
 		{
 			Title = title.FormatTitle().Trim();
-			Count = 0;
 		}
 
-		public void Add(int count)
-		{
-			Count += count;
-		}
-		public void Remove(int count)
-		{
-			Count -= count;
-		}
-		public void Increment()
-		{
-			Add(1);
-		}
-		public void Decrement()
-		{
-			Remove(1);
-		}
+		public void Add(int count) => Count += count;
+		public void Remove(int count) => Count -= count;
+		public void Increment() => Add(1);
+		public void Decrement() => Remove(1);
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
+			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 		/// <summary>
 		/// Return a formatted string in which the format is each <see cref="ActionCount.ToString()"/> on a new line, or if 
@@ -90,9 +75,6 @@ namespace Advobot.Core.Classes
 			}
 		}
 
-		public override string ToString()
-		{
-			return $"**{Title}:** {Count}";
-		}
+		public override string ToString() => $"**{Title}:** {Count}";
 	}
 }

@@ -16,7 +16,7 @@ namespace Advobot.UILauncher.Classes
 
 		public TextBoxStreamWriter(TextBoxBase output)
 		{
-			ConsoleActions.CreateWrittenLines();
+			ConsoleActions.GetOrCreateWrittenLines();
 			_Output = output;
 			//RTB will have extra new lines if they are printed out
 			_IgnoreNewLines = output is RichTextBox;

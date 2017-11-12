@@ -6,13 +6,8 @@ namespace Advobot.UILauncher.Classes.Converters
 {
 	public class UriConverter : IValueConverter
 	{
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return new Uri(value as string);
-		}
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => new Uri(value as string);
 		public object ConvertBack(object value, Type targetTypes, object parameter, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
+			=> throw new NotImplementedException();
 	}
 }

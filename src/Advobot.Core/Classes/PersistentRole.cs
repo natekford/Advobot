@@ -24,15 +24,9 @@ namespace Advobot.Core.Classes
 			RoleId = role.Id;
 		}
 
-		public IRole GetRole(SocketGuild guild)
-		{
-			return _Role ?? (_Role = guild.GetRole(RoleId));
-		}
+		public IRole GetRole(SocketGuild guild) => _Role ?? (_Role = guild.GetRole(RoleId));
 
-		public override string ToString()
-		{
-			return $"**User Id:** `{UserId}`\n**Role Id:&& `{RoleId}`";
-		}
+		public override string ToString() => $"**User Id:** `{UserId}`\n**Role Id:&& `{RoleId}`";
 		public string ToString(SocketGuild guild)
 		{
 			var user = guild.GetUser(UserId).FormatUser() ?? UserId.ToString();

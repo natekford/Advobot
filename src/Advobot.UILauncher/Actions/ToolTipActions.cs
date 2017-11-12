@@ -83,9 +83,6 @@ namespace Advobot.UILauncher.Actions
 		/// </summary>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static string GetReason(this ToolTipReason reason)
-		{
-			return _ToolTipReasons[reason];
-		}
+		public static string GetReason(this ToolTipReason reason) => _ToolTipReasons[reason];
 	}
 }

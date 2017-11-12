@@ -26,9 +26,6 @@ namespace Advobot.Core.Classes
 		private ConcurrentBag<IMessage> _Messages = new ConcurrentBag<IMessage>();
 		public ConcurrentBag<IMessage> Messages => _Messages;
 
-		public void ClearBag()
-		{
-			Interlocked.Exchange(ref _Messages, new ConcurrentBag<IMessage>());
-		}
+		public void ClearBag() => Interlocked.Exchange(ref _Messages, new ConcurrentBag<IMessage>());
 	}
 }

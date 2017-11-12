@@ -17,14 +17,12 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public AdvobotNumberBox()
 		{
-			this.PreviewTextInput += Validate;
-			DataObject.AddPastingHandler(this, Validate);
+			this.PreviewTextInput += this.Validate;
+			DataObject.AddPastingHandler(this, this.Validate);
 		}
 
 		private void Validate(object sender, TextCompositionEventArgs e)
-		{
-			e.Handled = !String.IsNullOrWhiteSpace(e.Text) && !char.IsDigit(e.Text, Math.Min(0, e.Text.Length - 1));
-		}
+			=> e.Handled = !String.IsNullOrWhiteSpace(e.Text) && !char.IsDigit(e.Text, Math.Min(0, e.Text.Length - 1));
 		private void Validate(object sender, DataObjectPastingEventArgs e)
 		{
 			if (!e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true) || !(e.Source is TextBox tb))

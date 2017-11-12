@@ -16,13 +16,7 @@ namespace Advobot.Core.Classes.UserInformation
 			_Time = DateTime.UtcNow.AddSeconds(interval);
 		}
 
-		public void DecrementMessages()
-		{
-			--CurrentMessagesLeft;
-		}
-		public void UpdateTime(int interval)
-		{
-			_Time = DateTime.UtcNow.AddSeconds(interval);
-		}
+		public void DecrementMessages() => --CurrentMessagesLeft;
+		public void UpdateTime(int interval) => _Time = DateTime.UtcNow.AddSeconds(interval);
 	}
 }

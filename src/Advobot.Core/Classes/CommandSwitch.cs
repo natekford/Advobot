@@ -3,7 +3,6 @@ using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Advobot.Core.Classes
 {
@@ -21,7 +20,7 @@ namespace Advobot.Core.Classes
 		[JsonIgnore]
 		public CommandCategory Category { get; }
 		[JsonIgnore]
-		public string ValueAsString { get => Value ? "ON" : "OFF"; }
+		public string ValueAsString => Value ? "ON" : "OFF";
 
 		public CommandSwitch(string name, bool value)
 		{
@@ -41,18 +40,9 @@ namespace Advobot.Core.Classes
 		/// <summary>
 		/// Sets <see cref="Value"/> to its opposite.
 		/// </summary>
-		public void ToggleEnabled()
-		{
-			Value = !Value;
-		}
+		public void ToggleEnabled() => Value = !Value;
 
-		public override string ToString()
-		{
-			return $"`{ValueAsString.PadRight(3)}` `{Name}`";
-		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+		public override string ToString() => $"`{ValueAsString.PadRight(3)}` `{Name}`";
+		public string ToString(SocketGuild guild) => ToString();
 	}
 }

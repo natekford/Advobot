@@ -16,8 +16,6 @@ namespace Advobot.Core.Classes.CloseWords
 			return Math.Min(nameCloseness, aliasCloseness);
 		}
 		private int FindCloseAlias(string[] aliases, string input)
-		{
-			return aliases.Select(x => FindCloseName(x, input)).DefaultIfEmpty(int.MaxValue).Min();
-		}
+			=> aliases.Select(x => FindCloseName(x, input)).DefaultIfEmpty(int.MaxValue).Min();
 	}
 }

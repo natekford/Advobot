@@ -29,19 +29,10 @@ namespace Advobot.UILauncher.Windows
 			}
 		}
 
-		private void CopyFile(object sender, RoutedEventArgs e)
-		{
-			_TreeViewFile.CopyFile();
-		}
-		private void DeleteFile(object sender, RoutedEventArgs e)
-		{
-			_TreeViewFile.DeleteFile();
-		}
+		private void CopyFile(object sender, RoutedEventArgs e) => _TreeViewFile.CopyFile();
+		private void DeleteFile(object sender, RoutedEventArgs e) => _TreeViewFile.DeleteFile();
 		private void SaveFile(object sender, RoutedEventArgs e)
-		{
-			var response = SavingActions.SaveFile(this.SpecificFileOutput);
-			ToolTipActions.EnableTimedToolTip(this.Layout, response.GetReason());
-		}
+			=> ToolTipActions.EnableTimedToolTip(this.Layout, SavingActions.SaveFile(this.SpecificFileOutput).GetReason());
 		private void SaveFileWithCtrlS(object sender, KeyEventArgs e)
 		{
 			if (SavingActions.IsCtrlS(e))

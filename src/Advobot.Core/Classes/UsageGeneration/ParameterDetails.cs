@@ -130,19 +130,10 @@ namespace Advobot.Core.Classes.UsageGeneration
 			}
 		}
 
-		private string CapitalizeFirstLetter(string n)
-		{
-			return n[0].ToString().ToUpper() + n.Substring(1, n.Length - 1);
-		}
+		private string CapitalizeFirstLetter(string n) => n[0].ToString().ToUpper() + n.Substring(1, n.Length - 1);
 
-		public void SetDeepness(int deepness)
-		{
-			Deepness = deepness;
-		}
-		public void IncrementOccurences()
-		{
-			++Occurences;
-		}
+		public void SetDeepness(int deepness) => Deepness = deepness;
+		public void IncrementOccurences() => ++Occurences;
 
 		public override string ToString()
 		{

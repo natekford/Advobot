@@ -31,10 +31,7 @@ namespace Advobot.Core.Services.Timers
 		}
 		public UserKey(UserInfo info) : this(info.User, info.GetTime().Ticks) { }
 
-		public override string ToString()
-		{
-			return $"{GuildId}:{UserId}:{Ticks}";
-		}
+		public override string ToString() => $"{GuildId}:{UserId}:{Ticks}";
 	}
 
 	internal sealed class ChannelKey : DictKey
@@ -48,9 +45,6 @@ namespace Advobot.Core.Services.Timers
 			ChannelId = channel.Id;
 		}
 
-		public override string ToString()
-		{
-			return $"{GuildId}:{ChannelId}:{Ticks}";
-		}
+		public override string ToString() => $"{GuildId}:{ChannelId}:{Ticks}";
 	}
 }

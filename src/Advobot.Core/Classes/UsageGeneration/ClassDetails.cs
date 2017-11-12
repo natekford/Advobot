@@ -19,9 +19,6 @@ namespace Advobot.Core.Classes.UsageGeneration
 			Name = classType.GetCustomAttribute<GroupAttribute>()?.Prefix;
 		}
 
-		public override string ToString()
-		{
-			return Name;
-		}
+		public override string ToString() => Name;
 	}
 }
