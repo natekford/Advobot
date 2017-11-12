@@ -90,18 +90,24 @@ namespace Advobot.UILauncher.Actions
 		{
 			foreach (var child in parent.GetChildren().OfType<FrameworkElement>())
 			{
-				if (!SaveSetting(child, botSettings))
+				var result = SaveSetting(child, botSettings);
+				if (result == null)
+				{
+					continue;
+				}
+				else if (!result.Value)
 				{
 					ConsoleActions.WriteLine($"Failed to save: {child.Name}");
 				}
 			}
 		}
-		private static bool SaveSetting(FrameworkElement ele, IBotSettings botSettings)
+		private static bool? SaveSetting(FrameworkElement ele, IBotSettings botSettings)
 		{
 			//Go through children and not the actual object
 			if (ele is Grid g)
 			{
-				return !g.Children.OfType<FrameworkElement>().Select(x => SaveSetting(x, botSettings)).Any(x => !x);
+				//If any are false then return false indicating one failed
+				return !g.Children.OfType<FrameworkElement>().Select(x => SaveSetting(x, botSettings)).Any(x => x == false);
 			}
 			else if (ele is Viewbox vb)
 			{
@@ -111,7 +117,7 @@ namespace Advobot.UILauncher.Actions
 			object value = null;
 			if (!(ele.Tag is BotSetting setting))
 			{
-				return false;
+				return null;
 			}
 			else if (ele is TextBox tb)
 			{
