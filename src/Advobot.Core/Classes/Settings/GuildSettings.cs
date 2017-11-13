@@ -2,6 +2,7 @@
 using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Classes.BannedPhrases;
 using Advobot.Core.Classes.Permissions;
+using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.SpamPrevention;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
@@ -16,7 +17,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Advobot.Core.Classes.Rules;
 
 namespace Advobot.Core.Classes.Settings
 {

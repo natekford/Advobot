@@ -3,7 +3,6 @@ using Advobot.Core.Interfaces;
 using Discord;
 using System;
 
-
 namespace Advobot.Core.Services.Timers
 {
 	/// <summary>

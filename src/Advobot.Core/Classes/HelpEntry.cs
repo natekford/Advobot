@@ -1,8 +1,8 @@
-﻿using Advobot.Core.Enums;
+﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using System;
 using System.Text;
-using Advobot.Core.Actions.Formatting;
 
 namespace Advobot.Core.Classes
 {

@@ -1,7 +1,4 @@
 ﻿using Discord;
-using System;
-using System.Linq;
-using System.Text;
 
 namespace Advobot.Core.Actions.Formatting
 {
@@ -41,65 +38,36 @@ namespace Advobot.Core.Actions.Formatting
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public static string FormatUser(this IUser user)
-		{
-			if (user != null)
-			{
-				var userName = user.Username.EscapeBackTicks().CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK);
-				return $"'{userName}#{user.Discriminator}' ({user.Id})";
-			}
-			else
-			{
-				return "Irretrievable User";
-			}
-		}
+			=> user != null
+			? $"'{user.Username.EscapeBackTicks().CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK)}#{user.Discriminator}' ({user.Id})"
+			: "Irretrievable User";
 		/// <summary>
 		/// Returns a string with the role's name and id.
 		/// </summary>
 		/// <param name="role"></param>
 		/// <returns></returns>
 		public static string FormatRole(this IRole role)
-		{
-			if (role != null)
-			{
-				return $"'{role.Name.EscapeBackTicks()}' ({role.Id})";
-			}
-			else
-			{
-				return "Irretrievable Role";
-			}
-		}
+			=> role != null
+			? $"'{role.Name.EscapeBackTicks()}' ({role.Id})"
+			: "Irretrievable Role";
 		/// <summary>
 		/// Returns a string with the channel's name and id.
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <returns></returns>
 		public static string FormatChannel(this IChannel channel)
-		{
-			if (channel != null)
-			{
-				return $"'{channel.Name.EscapeBackTicks()}' ({(channel is IMessageChannel ? "text" : "voice")}) ({channel.Id})";
-			}
-			else
-			{
-				return "Irretrievable Channel";
-			}
-		}
+			=> channel != null
+			? $"'{channel.Name.EscapeBackTicks()}' ({(channel is IMessageChannel ? "text" : "voice")}) ({channel.Id})"
+			: "Irretrievable Channel";
 		/// <summary>
 		/// Returns a string with the guild's name and id.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public static string FormatGuild(this IGuild guild)
-		{
-			if (guild != null)
-			{
-				return $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})";
-			}
-			else
-			{
-				return "Irretrievable Guild";
-			}
-		}
+			=> guild != null
+			? $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})"
+			: "Irretrievable Guild";
 		/// <summary>
 		/// Replaces everyone/here mentions with a non pinging version and removes \tts.
 		/// </summary>
@@ -108,10 +76,10 @@ namespace Advobot.Core.Actions.Formatting
 		/// <returns></returns>
 		public static string FormatMessageContentForNotBeingAnnoying(IGuild guild, string content)
 			=> content
-				.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE) //Everyone and Here have the same role.
-				.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE)
-				.CaseInsReplace("@here", Constants.FAKE_HERE)
-				.CaseInsReplace("\tts", Constants.FAKE_TTS);
+			.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE) //Everyone and Here have the same role.
+			.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE)
+			.CaseInsReplace("@here", Constants.FAKE_HERE)
+			.CaseInsReplace("\tts", Constants.FAKE_TTS);
 		/// <summary>
 		/// Returns the game's name or stream name/url.
 		/// </summary>

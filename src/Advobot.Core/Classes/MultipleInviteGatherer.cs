@@ -2,7 +2,6 @@
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Discord;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 

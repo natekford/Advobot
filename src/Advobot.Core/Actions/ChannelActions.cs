@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Classes;
-using Advobot.Core.Classes.Permissions;
 using Advobot.Core.Classes.Results;
 using Advobot.Core.Enums;
 using Discord;
