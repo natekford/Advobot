@@ -5,6 +5,10 @@ using System;
 using System.Windows;
 using System.Windows.Threading;
 
+//Note about System.Net.Http: upgrading the discord library requires this assembly to be added to references.
+//Otherwise the wrapper fails to install and uninstalls itself because of that.
+//It's removed from this project because on both computers I work on it gives a warning saying that the reference
+//to System.Net.Http "could not be found." However, this project compiles completely fine with or without it.
 namespace Advobot.UILauncher
 {
 	/// <summary>
