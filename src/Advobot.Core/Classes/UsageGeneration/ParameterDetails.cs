@@ -54,12 +54,12 @@ namespace Advobot.Core.Classes.UsageGeneration
 
 		public ParameterDetails(int deepness, System.Reflection.ParameterInfo parameter)
 		{
-			Deepness = deepness;
-			Name = CapitalizeFirstLetter(parameter.Name);
-			IsOptional = parameter.GetCustomAttribute<OptionalAttribute>() != null;
-			IsParams = parameter.GetCustomAttribute<ParamArrayAttribute>() != null;
-			IsRemainder = parameter.GetCustomAttribute<RemainderAttribute>() != null;
-			Occurences = 1;
+			this.Deepness = deepness;
+			this.Name = CapitalizeFirstLetter(parameter.Name);
+			this.IsOptional = parameter.GetCustomAttribute<OptionalAttribute>() != null;
+			this.IsParams = parameter.GetCustomAttribute<ParamArrayAttribute>() != null;
+			this.IsRemainder = parameter.GetCustomAttribute<RemainderAttribute>() != null;
+			this.Occurences = 1;
 
 			SetType(parameter);
 			SetText(parameter);
@@ -75,22 +75,22 @@ namespace Advobot.Core.Classes.UsageGeneration
 			{
 				if (_TypeSwitcher.TryGetValue(typeReader, out var value))
 				{
-					Type = value;
+					this.Type = value;
 				}
 				else if (typeReader.IsGenericType)
 				{
-					Type = typeReader.GetGenericArguments()[0];
+					this.Type = typeReader.GetGenericArguments()[0];
 				}
 
 				if (_NameSwitcher.TryGetValue(typeReader, out var name))
 				{
-					Name = name;
+					this.Name = name;
 				}
 			}
 			else if (pType != typeof(string) && pType.GetInterfaces().Contains(typeof(IEnumerable)))
 			{
-				Type = pType.GetElementType();
-				TypeName = $"List of {Type.Name}";
+				this.Type = pType.GetElementType();
+				this.TypeName = $"List of {this.Type.Name}";
 			}
 			/* Not sure if needed right now
 			else if (pType.IsGenericType)
@@ -100,52 +100,53 @@ namespace Advobot.Core.Classes.UsageGeneration
 			}*/
 			else
 			{
-				Type = pType;
+				this.Type = pType;
 			}
 
-			TypeName = (TypeName ?? Type.Name).TrimEnd('`', '1');
+			var n = this.TypeName ?? this.Type.Name;
+			this.TypeName = n.Substring(0, n.IndexOf('`') + 1);
 		}
 		private void SetText(System.Reflection.ParameterInfo parameter)
 		{
 			var verifyNumberAttr = parameter.GetCustomAttribute<VerifyNumberAttribute>();
 			if (verifyNumberAttr != null)
 			{
-				Text += $" {verifyNumberAttr.ToString()}";
+				this.Text += $" {verifyNumberAttr.ToString()}";
 			}
 			var verifyStringLengthAttr = parameter.GetCustomAttribute<VerifyStringLengthAttribute>();
 			if (verifyStringLengthAttr != null)
 			{
-				Text += $" {verifyStringLengthAttr.ToString()}";
+				this.Text += $" {verifyStringLengthAttr.ToString()}";
 			}
-			if (Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(CustomArguments<>))
+			if (this.Type.IsGenericType && this.Type.GetGenericTypeDefinition() == typeof(CustomArguments<>))
 			{
-				if (!IsRemainder)
+				if (!this.IsRemainder)
 				{
-					throw new ArgumentException($"{Type.Name} requires {nameof(RemainderAttribute)}.");
+					throw new ArgumentException($"{this.Type.Name} requires {nameof(RemainderAttribute)}.");
 				}
 
-				var result = Type.GetProperty(nameof(CustomArguments<object>.ArgNames)).GetValue(null);
+				var result = this.Type.GetProperty(nameof(CustomArguments<object>.ArgNames)).GetValue(null);
 				var argNames = ((IEnumerable)result).Cast<string>().Select(x => CapitalizeFirstLetter(x));
-				Text += $" ({String.Join("|", argNames)})";
+				this.Text += $" ({String.Join("|", argNames)})";
 			}
 		}
 
 		private string CapitalizeFirstLetter(string n) => n[0].ToString().ToUpper() + n.Substring(1, n.Length - 1);
 
-		public void SetDeepness(int deepness) => Deepness = deepness;
-		public void IncrementOccurences() => ++Occurences;
+		public void SetDeepness(int deepness) => this.Deepness = deepness;
+		public void SetOccurences(int occurences) => this.Occurences = occurences;
 
 		public override string ToString()
 		{
-			if (Type.IsEnum)
+			if (this.Type.IsEnum)
 			{
-				var names = Enum.GetNames(Type);
+				var names = Enum.GetNames(this.Type);
 				if (names.Length <= 7)
 				{
-					return $"{TypeName}: {String.Join("|", names)}{Text}";
+					return $"{this.TypeName}: {String.Join("|", names)}{this.Text}";
 				}
 			}
-			return $"{TypeName}: {Name}{Text}";
+			return $"{this.TypeName}: {this.Name}{this.Text}";
 		}
 	}
 }

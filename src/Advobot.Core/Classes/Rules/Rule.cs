@@ -11,10 +11,10 @@ namespace Advobot.Core.Classes.Rules
 
 		public Rule(string text)
 		{
-			Text = text;
+			this.Text = text;
 		}
 
-		public void ChangeText(string text) => Text = text;
+		public void ChangeText(string text) => this.Text = text;
 
 		public override string ToString() => ToString(new RuleFormatter(), 0, 0).ToString();
 		public string ToString(RuleFormatter formatter, int index, int rules) => formatter.FormatRule(this, index, rules);

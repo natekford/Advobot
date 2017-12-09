@@ -15,10 +15,10 @@ namespace Advobot.Core.Classes.UsageGeneration
 
 		public ClassDetails(int deepness, Type classType)
 		{
-			Deepness = deepness;
-			Name = classType.GetCustomAttribute<GroupAttribute>()?.Prefix;
+			this.Deepness = deepness;
+			this.Name = classType.GetCustomAttribute<GroupAttribute>()?.Prefix;
 		}
 
-		public override string ToString() => Name;
+		public override string ToString() => this.Name;
 	}
 }

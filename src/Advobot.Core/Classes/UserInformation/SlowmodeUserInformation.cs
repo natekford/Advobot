@@ -12,11 +12,11 @@ namespace Advobot.Core.Classes.UserInformation
 
 		public SlowmodeUserInformation(IGuildUser user, int baseMessages, int interval) : base(user)
 		{
-			CurrentMessagesLeft = baseMessages;
-			_Time = DateTime.UtcNow.AddSeconds(interval);
+			this.CurrentMessagesLeft = baseMessages;
+			this._Time = DateTime.UtcNow.AddSeconds(interval);
 		}
 
-		public void DecrementMessages() => --CurrentMessagesLeft;
-		public void UpdateTime(int interval) => _Time = DateTime.UtcNow.AddSeconds(interval);
+		public void DecrementMessages() => --this.CurrentMessagesLeft;
+		public void UpdateTime(int interval) => this._Time = DateTime.UtcNow.AddSeconds(interval);
 	}
 }

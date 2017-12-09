@@ -15,13 +15,13 @@ namespace Advobot.UILauncher.Classes.Controls
 	internal class AdvobotTreeViewFile : TreeViewItem, IAdvobotControl
 	{
 		private FileInfo _FI;
-		public FileInfo FileInfo => _FI;
+		public FileInfo FileInfo => this._FI;
 
 		public AdvobotTreeViewFile(FileInfo fileInfo)
 		{
 			this._FI = fileInfo;
-			this.Header = _FI.Name;
-			this.Tag = _FI;
+			this.Header = this._FI.Name;
+			this.Tag = this._FI;
 			this.ContextMenu = CreateContextMenu();
 			this.HorizontalContentAlignment = HorizontalAlignment.Left;
 			this.VerticalContentAlignment = VerticalAlignment.Center;
@@ -54,7 +54,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		public void Update(RenamedEventArgs e)
 		{
 			this._FI = new FileInfo(e.FullPath);
-			this.Header = _FI.Name;
+			this.Header = this._FI.Name;
 		}
 
 		public void OpenFile() => OpenFile(null, null);
@@ -81,7 +81,7 @@ namespace Advobot.UILauncher.Classes.Controls
 							throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
 						}
 
-						this._FI.CopyTo(Path.Combine(dialog.FileName, _FI.Name), true);
+						this._FI.CopyTo(Path.Combine(dialog.FileName, this._FI.Name), true);
 						ToolTipActions.EnableTimedToolTip(window.Layout, $"Successfully copied {this._FI.Name} to {dialog.FileName}.");
 						break;
 					}
@@ -90,12 +90,12 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 		private void DeleteFile(object sender, RoutedEventArgs e)
 		{
-			var text = $"Are you sure you want to delete the file {_FI.Name}?";
+			var text = $"Are you sure you want to delete the file {this._FI.Name}?";
 			switch (MessageBox.Show(text, Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
 			{
 				case MessageBoxResult.Yes:
 				{
-					SavingAndLoadingActions.DeleteFile(_FI);
+					SavingAndLoadingActions.DeleteFile(this._FI);
 					return;
 				}
 			}

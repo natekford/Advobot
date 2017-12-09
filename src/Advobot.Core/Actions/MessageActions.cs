@@ -41,7 +41,7 @@ namespace Advobot.Core.Actions
 		/// <param name="embed"></param>
 		/// <param name="content"></param>
 		/// <returns></returns>
-		public static async Task<IUserMessage> SendEmbedMessageAsync(IMessageChannel channel, AdvobotEmbed embed, string content = null)
+		public static async Task<IUserMessage> SendEmbedMessageAsync(IMessageChannel channel, EmbedWrapper embed, string content = null)
 		{
 			var guild = channel.GetGuild();
 			if (guild == null)
@@ -62,7 +62,7 @@ namespace Advobot.Core.Actions
 			if (!embed.CheckIfValidDescription(charCount, out string badDescription, out string error))
 			{
 				embed.WithDescription(error);
-				overflowText.AppendLineFeed($"Description: {badDescription}");
+				overflowText.AppendLineFeed($"Description:\n{badDescription}");
 			}
 			charCount += embed.Description?.Length ?? 0;
 
@@ -94,6 +94,11 @@ namespace Advobot.Core.Actions
 				message = await SendMessageAsync(channel, new ErrorReason(e.Message).ToString()).CAF();
 			}
 
+			//Add in the errors from the embed
+			foreach (var e in embed.Errors)
+			{
+				overflowText.Append($"{e.Property}:\n{e.Text}{Environment.NewLine + Environment.NewLine}{e.Exception}");
+			}
 			//Upload the overflow
 			if (overflowText.Length != 0)
 			{

@@ -3,9 +3,6 @@ using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -24,7 +21,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			set
 			{
 				EntityActions.SetFontResizeProperty(this, value);
-				_FRV = value;
+				this._FRV = value;
 			}
 		}
 		private Type _SET;
@@ -34,7 +31,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			set
 			{
 				this.ItemsSource = CreateItemsSourceOutOfEnum(value);
-				_SET = value;
+				this._SET = value;
 			}
 		}
 

@@ -24,14 +24,14 @@ namespace Advobot.Core.Classes
 
 		public MultiUserAction(IAdvobotCommandContext context, IEnumerable<IGuildUser> users, bool bypass)
 		{
-			_CancelToken = new CancellationTokenSource();
-			_CancelTokens.AddOrUpdate(context.Guild.Id, _CancelToken, (oldKey, oldValue) =>
+			this._CancelToken = new CancellationTokenSource();
+			_CancelTokens.AddOrUpdate(context.Guild.Id, this._CancelToken, (oldKey, oldValue) =>
 			{
 				oldValue.Cancel();
-				return _CancelToken;
+				return this._CancelToken;
 			});
-			_Context = context;
-			_Users = users.ToList().GetUpToAndIncludingMinNum(GetActions.GetMaxAmountOfUsersToGather(context.BotSettings, bypass));
+			this._Context = context;
+			this._Users = users.ToList().GetUpToAndIncludingMinNum(GetActions.GetMaxAmountOfUsersToGather(context.BotSettings, bypass));
 
 			if (new Random().NextDouble() > .98)
 			{
@@ -66,19 +66,19 @@ namespace Advobot.Core.Classes
 
 		private async Task DoActionAsync(Action action, object obj, string presentTense, string pastTense, ModerationReason reason)
 		{
-			var text = $"Attempting to {presentTense} `{_Users.Count}` users.";
-			var msg = await MessageActions.SendMessageAsync(_Context.Channel, text).CAF();
+			var text = $"Attempting to {presentTense} `{this._Users.Count}` users.";
+			var msg = await MessageActions.SendMessageAsync(this._Context.Channel, text).CAF();
 
 			var successCount = 0;
-			for (int i = 0; i < _Users.Count; ++i)
+			for (int i = 0; i < this._Users.Count; ++i)
 			{
-				if (_CancelToken.IsCancellationRequested)
+				if (this._CancelToken.IsCancellationRequested)
 				{
 					break;
 				}
 				else if (i % 10 == 0)
 				{
-					var amtLeft = _Users.Count - i;
+					var amtLeft = this._Users.Count - i;
 					var time = (int)(amtLeft * 1.2);
 					var newText = $"Attempting to {presentTense} `{amtLeft}` people. ETA on completion: `{time}`.";
 					await msg.ModifyAsync(x => x.Content = newText).CAF();
@@ -89,22 +89,22 @@ namespace Advobot.Core.Classes
 				{
 					case Action.GiveRole:
 					{
-						await RoleActions.GiveRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
+						await RoleActions.GiveRolesAsync(this._Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
 					}
 					case Action.TakeRole:
 					{
-						await RoleActions.TakeRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
+						await RoleActions.TakeRolesAsync(this._Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
 					}
 					case Action.Nickname:
 					{
-						await UserActions.ChangeNicknameAsync(_Users[i], obj as string, reason).CAF();
+						await UserActions.ChangeNicknameAsync(this._Users[i], obj as string, reason).CAF();
 						continue;
 					}
 					case Action.Move:
 					{
-						await UserActions.MoveUserAsync(_Users[i], obj as IVoiceChannel, reason).CAF();
+						await UserActions.MoveUserAsync(this._Users[i], obj as IVoiceChannel, reason).CAF();
 						continue;
 					}
 				}
@@ -112,7 +112,7 @@ namespace Advobot.Core.Classes
 
 			await MessageActions.DeleteMessageAsync(msg, new AutomaticModerationReason("multi user action")).CAF();
 			var response = $"Successfully {pastTense} `{successCount}` users.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(_Context, response).CAF();
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(this._Context, response).CAF();
 		}
 
 		private enum Action

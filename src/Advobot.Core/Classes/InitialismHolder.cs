@@ -21,7 +21,7 @@ namespace Advobot.Core.Classes
 		public ImmutableList<string> Parts { get; private set; }
 		public string Initialism { get; private set; }
 		private string[] _OtherAliases;
-		public string[] Aliases => _OtherAliases.Concat(new[] { Initialism }).ToArray();
+		public string[] Aliases => this._OtherAliases.Concat(new[] { this.Initialism }).ToArray();
 
 		public InitialismHolder(string name, string[] otherAliases, bool topLevel)
 		{
@@ -55,24 +55,24 @@ namespace Advobot.Core.Classes
 				}
 			}
 
-			Original = name;
-			Parts = parts.Select(x => x.ToString()).ToImmutableList();
-			Initialism = initialism.ToString().ToLower();
-			_OtherAliases = otherAliases;
+			this.Original = name;
+			this.Parts = parts.Select(x => x.ToString()).ToImmutableList();
+			this.Initialism = initialism.ToString().ToLower();
+			this._OtherAliases = otherAliases;
 		}
 
 		public void AppendToInitialismByPart(int index, int length)
 		{
 			var newInitialism = new StringBuilder();
-			for (int i = 0; i < Parts.Count; ++i)
+			for (int i = 0; i < this.Parts.Count; ++i)
 			{
-				var p = Parts[i];
+				var p = this.Parts[i];
 				var l = i == index ? length : 1;
 				newInitialism.Append(p.Substring(0, l));
 			}
-			Initialism = newInitialism.ToString().ToLower();
+			this.Initialism = newInitialism.ToString().ToLower();
 		}
 
-		public override string ToString() => Initialism;
+		public override string ToString() => this.Initialism;
 	}
 }

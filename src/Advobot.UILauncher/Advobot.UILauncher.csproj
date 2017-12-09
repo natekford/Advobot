@@ -113,7 +113,7 @@
     <Compile Include="AdvobotApp.xaml.cs">
       <DependentUpon>AdvobotApp.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Classes\AdvobotColor.cs" />
+    <Compile Include="Classes\ColorWrapper.cs" />
     <Compile Include="Classes\CompGuild.cs" />
     <Compile Include="Classes\Controls\AdvobotTreeViewFile.cs" />
     <Compile Include="Classes\Controls\AdvobotTreeViewHeader.cs" />

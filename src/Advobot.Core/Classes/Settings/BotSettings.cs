@@ -55,7 +55,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _TrustedUsers.AsReadOnly() ?? (_TrustedUsers = new List<ulong>()).AsReadOnly();
 			set
 			{
-				_TrustedUsers = value.ToList();
+				this._TrustedUsers = value.ToList();
 				OnPropertyChanged();
 			}
 		}
@@ -65,7 +65,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _UsersUnableToDMOwner.AsReadOnly() ?? (_UsersUnableToDMOwner = new List<ulong>()).AsReadOnly();
 			set
 			{
-				_UsersUnableToDMOwner = value.ToList();
+				this._UsersUnableToDMOwner = value.ToList();
 				OnPropertyChanged();
 			}
 		}
@@ -75,7 +75,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _UsersIgnoredFromCommands.AsReadOnly() ?? (_UsersIgnoredFromCommands = new List<ulong>()).AsReadOnly();
 			set
 			{
-				_UsersIgnoredFromCommands = value.ToList();
+				this._UsersIgnoredFromCommands = value.ToList();
 				OnPropertyChanged();
 			}
 		}
@@ -85,7 +85,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _ShardCount > 1 ? _ShardCount : (_ShardCount = 1);
 			set
 			{
-				_ShardCount = value;
+				this._ShardCount = value;
 				OnPropertyChanged();
 			}
 		}
@@ -95,7 +95,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _MessageCacheCount > 0 ? _MessageCacheCount : (_MessageCacheCount = 1000);
 			set
 			{
-				_MessageCacheCount = value;
+				this._MessageCacheCount = value;
 				OnPropertyChanged();
 			}
 		}
@@ -105,7 +105,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _MaxUserGatherCount > 0 ? _MaxUserGatherCount : (_MaxUserGatherCount = 100);
 			set
 			{
-				_MaxUserGatherCount = value;
+				this._MaxUserGatherCount = value;
 				OnPropertyChanged();
 			}
 		}
@@ -115,7 +115,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _MaxMessageGatherSize > 0 ? _MaxMessageGatherSize : (_MaxMessageGatherSize = 500000);
 			set
 			{
-				_MaxMessageGatherSize = value;
+				this._MaxMessageGatherSize = value;
 				OnPropertyChanged();
 			}
 		}
@@ -125,7 +125,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _Prefix ?? (_Prefix = MY_BOT_PREFIX);
 			set
 			{
-				_Prefix = value;
+				this._Prefix = value;
 				OnPropertyChanged();
 			}
 		}
@@ -135,7 +135,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _Game ?? (_Game = $"type \"{Prefix}help\" for help.");
 			set
 			{
-				_Game = value;
+				this._Game = value;
 				OnPropertyChanged();
 			}
 		}
@@ -145,7 +145,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _Stream;
 			set
 			{
-				_Stream = value;
+				this._Stream = value;
 				OnPropertyChanged();
 			}
 		}
@@ -155,7 +155,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _AlwaysDownloadUsers;
 			set
 			{
-				_AlwaysDownloadUsers = value;
+				this._AlwaysDownloadUsers = value;
 				OnPropertyChanged();
 			}
 		}
@@ -165,7 +165,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _LogLevel;
 			set
 			{
-				_LogLevel = value;
+				this._LogLevel = value;
 				OnPropertyChanged();
 			}
 		}
@@ -187,7 +187,7 @@ namespace Advobot.Core.Classes.Settings
 		}
 		public void SaveSettings()
 			=> SavingAndLoadingActions.OverWriteFile(LOC, SavingAndLoadingActions.Serialize(this));
-		public void TogglePause() => Pause = !Pause;
+		public void TogglePause() => this.Pause = !this.Pause;
 
 		public async Task<string> Format(IDiscordClient client)
 		{

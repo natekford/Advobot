@@ -101,7 +101,7 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Show()
 		{
 			var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions;
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Region IDs", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Region IDs", desc)).CAF();
 		}
 		[Command(nameof(Current)), ShortAlias(nameof(Current)), Priority(1)]
 		public async Task Current()

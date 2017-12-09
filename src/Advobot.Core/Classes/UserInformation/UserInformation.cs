@@ -14,9 +14,9 @@ namespace Advobot.Core.Classes.UserInformation
 
 		public UserInfo(IGuildUser user)
 		{
-			User = user;
+			this.User = user;
 		}
 
-		public DateTime GetTime() => _Time;
+		public DateTime GetTime() => this._Time;
 	}
 }

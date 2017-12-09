@@ -17,7 +17,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			set
 			{
 				EntityActions.SetFontResizeProperty(this, value);
-				_FRV = value;
+				this._FRV = value;
 			}
 		}
 
@@ -26,9 +26,6 @@ namespace Advobot.UILauncher.Classes.Controls
 			SetResourceReferences();
 		}
 
-		public void SetResourceReferences()
-		{
-			this.SetResourceReference(Button.StyleProperty, OtherTarget.ButtonStyle);
-		}
+		public void SetResourceReferences() => this.SetResourceReference(Button.StyleProperty, OtherTarget.ButtonStyle);
 	}
 }

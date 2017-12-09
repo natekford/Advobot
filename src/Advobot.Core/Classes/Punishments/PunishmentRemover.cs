@@ -22,8 +22,8 @@ namespace Advobot.Core.Classes.Punishments
 
 		public PunishmentRemover(ITimersService timers)
 		{
-			_Timers = timers;
-			_HasValidTimers = timers != null;
+			this._Timers = timers;
+			this._HasValidTimers = timers != null;
 		}
 
 		public async Task UnbanAsync(IGuild guild, ulong userId, ModerationReason reason)
@@ -51,7 +51,7 @@ namespace Advobot.Core.Classes.Punishments
 		private void FollowupActions(PunishmentType punishmentType, IUser user, ModerationReason reason)
 		{
 			var sb = new StringBuilder($"Successfully {_Removal[punishmentType]} {user.FormatUser()}. ");
-			if (_HasValidTimers && _Timers.RemovePunishments(user.Id, punishmentType) > 0)
+			if (this._HasValidTimers && this._Timers.RemovePunishments(user.Id, punishmentType) > 0)
 			{
 				sb.Append($"Removed all timed {punishmentType.EnumName().FormatTitle().ToLower()} punishments on them. ");
 			}
@@ -59,9 +59,9 @@ namespace Advobot.Core.Classes.Punishments
 			{
 				sb.Append($"The provided reason is `{reason.Reason.EscapeBackTicks()}`. ");
 			}
-			_Actions.Add(sb.ToString());
+			this._Actions.Add(sb.ToString());
 		}
 
-		public override string ToString() => String.Join("\n", _Actions);
+		public override string ToString() => String.Join("\n", this._Actions);
 	}
 }

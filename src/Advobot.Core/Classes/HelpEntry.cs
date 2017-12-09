@@ -26,21 +26,21 @@ namespace Advobot.Core.Classes
 				throw new ArgumentException("Invalid name.");
 			}
 
-			Name = name;
-			Usage = usage ?? "";
-			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? "N/A" : basePerm;
-			Description = String.IsNullOrWhiteSpace(description) ? "N/A" : description;
-			Aliases = aliases ?? new[] { "N/A" };
-			Category = category;
-			DefaultEnabled = defaultEnabled;
+			this.Name = name;
+			this.Usage = usage ?? "";
+			this.BasePerm = String.IsNullOrWhiteSpace(basePerm) ? "N/A" : basePerm;
+			this.Description = String.IsNullOrWhiteSpace(description) ? "N/A" : description;
+			this.Aliases = aliases ?? new[] { "N/A" };
+			this.Category = category;
+			this.DefaultEnabled = defaultEnabled;
 		}
 
 		public override string ToString()
 			=> new StringBuilder()
-			.AppendLineFeed($"**Aliases:** {String.Join(", ", Aliases)}")
-			.AppendLineFeed($"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}")
-			.AppendLineFeed($"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}")
-			.AppendLineFeed($"\n**Base Permission(s):**\n{BasePerm}")
-			.AppendLineFeed($"\n**Description:**\n{Description}").ToString();
+			.AppendLineFeed($"**Aliases:** {String.Join(", ", this.Aliases)}")
+			.AppendLineFeed($"**Usage:** {Constants.PLACEHOLDER_PREFIX}{this.Name} {this.Usage}")
+			.AppendLineFeed($"**Enabled By Default:** {(this.DefaultEnabled ? "Yes" : "No")}")
+			.AppendLineFeed($"\n**Base Permission(s):**\n{this.BasePerm}")
+			.AppendLineFeed($"\n**Description:**\n{this.Description}").ToString();
 	}
 }

@@ -177,11 +177,11 @@ namespace Advobot.Core.Classes.Permissions
 
 			public ChannelPerm(string name, ChannelPermission value, bool gen = false, bool text = false, bool voice = false)
 			{
-				Name = name;
-				Value = value;
-				General = gen;
-				Text = text;
-				Voice = voice;
+				this.Name = name;
+				this.Value = value;
+				this.General = gen;
+				this.Text = text;
+				this.Voice = voice;
 			}
 		}
 	}

@@ -14,40 +14,40 @@ namespace Advobot.UILauncher.Classes.Controls
 	internal class AdvobotTreeViewHeader : TreeViewItem, IAdvobotControl
 	{
 		private FileSystemWatcher _FSW;
-		public FileSystemWatcher FileSystemWatcher => _FSW;
+		public FileSystemWatcher FileSystemWatcher => this._FSW;
 		private DirectoryInfo _DI;
-		public DirectoryInfo GuildDirectory => _DI;
+		public DirectoryInfo GuildDirectory => this._DI;
 		private SocketGuild _G;
 		public SocketGuild Guild
 		{
 			get => _G;
 			set
 			{
-				_G = value;
+				this._G = value;
 
 				//Make sure the guild currently has a directory. If not, create it
 				var directories = GetActions.GetBaseBotDirectory().GetDirectories();
-				var guildDir = directories.SingleOrDefault(x => x.Name == _G.Id.ToString());
+				var guildDir = directories.SingleOrDefault(x => x.Name == this._G.Id.ToString());
 				if (!guildDir.Exists)
 				{
 					Directory.CreateDirectory(guildDir.FullName);
 				}
 
 				//Use the correct directory and files
-				_DI = guildDir;
-				_Files.Clear();
-				foreach (var file in _DI.GetFiles())
+				this._DI = guildDir;
+				this._Files.Clear();
+				foreach (var file in this._DI.GetFiles())
 				{
-					_Files.Add(new AdvobotTreeViewFile(file));
+					this._Files.Add(new AdvobotTreeViewFile(file));
 				}
 
 				//If any files get updated or deleted then modify the guild files in the treeview
-				_FSW?.Dispose();
-				_FSW = new FileSystemWatcher(_DI.FullName);
-				_FSW.Deleted += this.OnFileChangeInGuildDirectory;
-				_FSW.Renamed += this.OnFileChangeInGuildDirectory;
-				_FSW.Created += this.OnFileChangeInGuildDirectory;
-				_FSW.EnableRaisingEvents = true;
+				this._FSW?.Dispose();
+				this._FSW = new FileSystemWatcher(this._DI.FullName);
+				this._FSW.Deleted += this.OnFileChangeInGuildDirectory;
+				this._FSW.Renamed += this.OnFileChangeInGuildDirectory;
+				this._FSW.Created += this.OnFileChangeInGuildDirectory;
+				this._FSW.EnableRaisingEvents = true;
 			}
 		}
 		private ObservableCollection<AdvobotTreeViewFile> _Files = new ObservableCollection<AdvobotTreeViewFile>();
@@ -57,7 +57,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			this.Header = guild.FormatGuild();
 			this.Guild = guild;
 			this.Tag = new CompGuild(guild);
-			this.ItemsSource = _Files;
+			this.ItemsSource = this._Files;
 			this.HorizontalContentAlignment = System.Windows.HorizontalAlignment.Left;
 			this.VerticalContentAlignment = System.Windows.VerticalAlignment.Center;
 			SetResourceReferences();
@@ -84,18 +84,18 @@ namespace Advobot.UILauncher.Classes.Controls
 				{
 					case WatcherChangeTypes.Created:
 					{
-						_Files.Add(new AdvobotTreeViewFile(new FileInfo(e.FullPath)));
+						this._Files.Add(new AdvobotTreeViewFile(new FileInfo(e.FullPath)));
 						break;
 					}
 					case WatcherChangeTypes.Deleted:
 					{
-						_Files.Remove(_Files.FirstOrDefault(x => x.FileInfo.FullName == e.FullPath));
+						this._Files.Remove(this._Files.FirstOrDefault(x => x.FileInfo.FullName == e.FullPath));
 						break;
 					}
 					case WatcherChangeTypes.Renamed:
 					{
 						var renamed = (RenamedEventArgs)e;
-						_Files.FirstOrDefault(x => x.FileInfo.FullName == renamed.OldFullPath)?.Update(renamed);
+						this._Files.FirstOrDefault(x => x.FileInfo.FullName == renamed.OldFullPath)?.Update(renamed);
 						break;
 					}
 				}

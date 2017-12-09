@@ -34,7 +34,7 @@ namespace Advobot.Commands.InviteModeration
 				x => x.Code.PadRight(lenForCode),
 				x => x.Uses.ToString().PadRight(lenForUses),
 				x => x.Inviter.FormatUser()));
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Instant Invite List", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Instant Invite List", desc)).CAF();
 		}
 	}
 

@@ -9,9 +9,9 @@
 
 		public ErrorReason(string reason)
 		{
-			Reason = reason;
+			this.Reason = reason;
 		}
 
-		public override string ToString() => $"**ERROR:** {Reason}";
+		public override string ToString() => $"**ERROR:** {this.Reason}";
 	}
 }

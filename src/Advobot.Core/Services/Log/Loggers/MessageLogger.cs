@@ -73,7 +73,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				var afterMsgContent = (message.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
 				if (!beforeMsgContent.Equals(afterMsgContent))
 				{
-					var embed = new AdvobotEmbed(null, null, Constants.MEDT)
+					var embed = new EmbedWrapper(null, null, Constants.MEDT)
 						.AddAuthor(message.Author)
 						.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
 						.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
@@ -160,7 +160,7 @@ namespace Advobot.Core.Services.Log.Loggers
 
 				if (inEmbed)
 				{
-					var embed = new AdvobotEmbed(TITLE, sb.ToString().RemoveDuplicateNewLines(), Constants.MDEL)
+					var embed = new EmbedWrapper(TITLE, sb.ToString().RemoveDuplicateNewLines(), Constants.MDEL)
 						.AddFooter(TITLE);
 					await MessageActions.SendEmbedMessageAsync(serverLog, embed).CAF();
 				}

@@ -188,7 +188,7 @@ namespace Advobot.Commands.BotSettings
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetBotSettings().Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Setting Names", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All))]
 		public async Task All()
@@ -202,7 +202,7 @@ namespace Advobot.Commands.BotSettings
 			var desc = await Context.BotSettings.Format(Context.Client, settingName).CAF();
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(settingName.Name, desc)).CAF();
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(settingName.Name, desc)).CAF();
 			}
 			else
 			{

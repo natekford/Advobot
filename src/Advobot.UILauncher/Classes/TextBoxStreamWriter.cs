@@ -1,5 +1,4 @@
 ﻿using Advobot.Core.Actions;
-using System;
 using System.IO;
 using System.Text;
 using System.Windows.Controls;
@@ -17,9 +16,9 @@ namespace Advobot.UILauncher.Classes
 		public TextBoxStreamWriter(TextBoxBase output)
 		{
 			ConsoleActions.GetOrCreateWrittenLines();
-			_Output = output;
+			this._Output = output;
 			//RTB will have extra new lines if they are printed out
-			_IgnoreNewLines = output is RichTextBox;
+			this._IgnoreNewLines = output is RichTextBox;
 		}
 
 		public override void Write(char value)
@@ -32,20 +31,20 @@ namespace Advobot.UILauncher.Classes
 			}
 			else if (value.Equals('\n'))
 			{
-				Write(_CurrentLineText);
-				_CurrentLineText = null;
+				Write(this._CurrentLineText);
+				this._CurrentLineText = null;
 			}
 
-			_CurrentLineText += value;
+			this._CurrentLineText += value;
 		}
 		public override void Write(string value)
 		{
-			if (value == null || (_IgnoreNewLines && value.Equals('\n')))
+			if (value == null || (this._IgnoreNewLines && value.Equals('\n')))
 			{
 				return;
 			}
 
-			_Output.Dispatcher.InvokeAsync(() => _Output.AppendText(value), DispatcherPriority.ContextIdle);
+			this._Output.Dispatcher.InvokeAsync(() => this._Output.AppendText(value), DispatcherPriority.ContextIdle);
 		}
 		public override Encoding Encoding => Encoding.UTF32;
 	}

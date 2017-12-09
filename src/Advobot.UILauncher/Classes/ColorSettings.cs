@@ -20,33 +20,33 @@ namespace Advobot.UILauncher.Classes
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> LightModeProperties { get; private set; } = GetColorProperties("LightMode");
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> DarkModeProperties { get; private set; } = GetColorProperties("DarkMode");
 
-		public static SolidColorBrush LightModeBaseBackground => AdvobotColor.CreateBrush("#FFFFFF");
-		public static SolidColorBrush LightModeBaseForeground => AdvobotColor.CreateBrush("#000000");
-		public static SolidColorBrush LightModeBaseBorder => AdvobotColor.CreateBrush("#ABADB3");
-		public static SolidColorBrush LightModeButtonBackground => AdvobotColor.CreateBrush("#DDDDDD");
-		public static SolidColorBrush LightModeButtonForeground => AdvobotColor.CreateBrush("#0E0E0E");
-		public static SolidColorBrush LightModeButtonBorder => AdvobotColor.CreateBrush("#707070");
-		public static SolidColorBrush LightModeButtonDisabledBackground => AdvobotColor.CreateBrush("#F4F4F4");
-		public static SolidColorBrush LightModeButtonDisabledForeground => AdvobotColor.CreateBrush("#888888");
-		public static SolidColorBrush LightModeButtonDisabledBorder => AdvobotColor.CreateBrush("#ADB2B5");
-		public static SolidColorBrush LightModeButtonMouseOverBackground => AdvobotColor.CreateBrush("#BEE6FD");
-		public static SolidColorBrush LightModeJsonDigits => AdvobotColor.CreateBrush("#8700FF");
-		public static SolidColorBrush LightModeJsonValue => AdvobotColor.CreateBrush("#000CFF");
-		public static SolidColorBrush LightModeJsonParamName => AdvobotColor.CreateBrush("#057500");
+		public static SolidColorBrush LightModeBaseBackground => ColorWrapper.CreateBrush("#FFFFFF");
+		public static SolidColorBrush LightModeBaseForeground => ColorWrapper.CreateBrush("#000000");
+		public static SolidColorBrush LightModeBaseBorder => ColorWrapper.CreateBrush("#ABADB3");
+		public static SolidColorBrush LightModeButtonBackground => ColorWrapper.CreateBrush("#DDDDDD");
+		public static SolidColorBrush LightModeButtonForeground => ColorWrapper.CreateBrush("#0E0E0E");
+		public static SolidColorBrush LightModeButtonBorder => ColorWrapper.CreateBrush("#707070");
+		public static SolidColorBrush LightModeButtonDisabledBackground => ColorWrapper.CreateBrush("#F4F4F4");
+		public static SolidColorBrush LightModeButtonDisabledForeground => ColorWrapper.CreateBrush("#888888");
+		public static SolidColorBrush LightModeButtonDisabledBorder => ColorWrapper.CreateBrush("#ADB2B5");
+		public static SolidColorBrush LightModeButtonMouseOverBackground => ColorWrapper.CreateBrush("#BEE6FD");
+		public static SolidColorBrush LightModeJsonDigits => ColorWrapper.CreateBrush("#8700FF");
+		public static SolidColorBrush LightModeJsonValue => ColorWrapper.CreateBrush("#000CFF");
+		public static SolidColorBrush LightModeJsonParamName => ColorWrapper.CreateBrush("#057500");
 
-		public static SolidColorBrush DarkModeBaseBackground => AdvobotColor.CreateBrush("#1C1C1C");
-		public static SolidColorBrush DarkModeBaseForeground => AdvobotColor.CreateBrush("#E1E1E1");
-		public static SolidColorBrush DarkModeBaseBorder => AdvobotColor.CreateBrush("#ABADB3");
-		public static SolidColorBrush DarkModeButtonBackground => AdvobotColor.CreateBrush("#151515");
-		public static SolidColorBrush DarkModeButtonForeground => AdvobotColor.CreateBrush("#E1E1E1");
-		public static SolidColorBrush DarkModeButtonBorder => AdvobotColor.CreateBrush("#ABADB3");
-		public static SolidColorBrush DarkModeButtonDisabledBackground => AdvobotColor.CreateBrush("#343434");
-		public static SolidColorBrush DarkModeButtonDisabledForeground => AdvobotColor.CreateBrush("#A0A0A0");
-		public static SolidColorBrush DarkModeButtonDisabledBorder => AdvobotColor.CreateBrush("#ADB2B5");
-		public static SolidColorBrush DarkModeButtonMouseOverBackground => AdvobotColor.CreateBrush("#303333");
-		public static SolidColorBrush DarkModeJsonDigits => AdvobotColor.CreateBrush("#8700FF");
-		public static SolidColorBrush DarkModeJsonValue => AdvobotColor.CreateBrush("#0051FF");
-		public static SolidColorBrush DarkModeJsonParamName => AdvobotColor.CreateBrush("#057500");
+		public static SolidColorBrush DarkModeBaseBackground => ColorWrapper.CreateBrush("#1C1C1C");
+		public static SolidColorBrush DarkModeBaseForeground => ColorWrapper.CreateBrush("#E1E1E1");
+		public static SolidColorBrush DarkModeBaseBorder => ColorWrapper.CreateBrush("#ABADB3");
+		public static SolidColorBrush DarkModeButtonBackground => ColorWrapper.CreateBrush("#151515");
+		public static SolidColorBrush DarkModeButtonForeground => ColorWrapper.CreateBrush("#E1E1E1");
+		public static SolidColorBrush DarkModeButtonBorder => ColorWrapper.CreateBrush("#ABADB3");
+		public static SolidColorBrush DarkModeButtonDisabledBackground => ColorWrapper.CreateBrush("#343434");
+		public static SolidColorBrush DarkModeButtonDisabledForeground => ColorWrapper.CreateBrush("#A0A0A0");
+		public static SolidColorBrush DarkModeButtonDisabledBorder => ColorWrapper.CreateBrush("#ADB2B5");
+		public static SolidColorBrush DarkModeButtonMouseOverBackground => ColorWrapper.CreateBrush("#303333");
+		public static SolidColorBrush DarkModeJsonDigits => ColorWrapper.CreateBrush("#8700FF");
+		public static SolidColorBrush DarkModeJsonValue => ColorWrapper.CreateBrush("#0051FF");
+		public static SolidColorBrush DarkModeJsonParamName => ColorWrapper.CreateBrush("#057500");
 
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;
@@ -56,7 +56,7 @@ namespace Advobot.UILauncher.Classes
 			get => _Theme;
 			set
 			{
-				_Theme = value;
+				this._Theme = value;
 				ActivateTheme();
 			}
 		}
@@ -67,7 +67,7 @@ namespace Advobot.UILauncher.Classes
 		{
 			foreach (var target in Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>())
 			{
-				ColorTargets.Add(target, null);
+				this.ColorTargets.Add(target, null);
 			}
 		}
 
@@ -76,12 +76,12 @@ namespace Advobot.UILauncher.Classes
 			get => ColorTargets[target];
 			set => ColorTargets[target] = value;
 		}
-		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush) => ColorTargets.TryGetValue(target, out brush);
+		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush) => this.ColorTargets.TryGetValue(target, out brush);
 
 		private void ActivateTheme()
 		{
 			var r = Application.Current.Resources;
-			switch (Theme)
+			switch (this.Theme)
 			{
 				case ColorTheme.Classic:
 				{
@@ -101,7 +101,7 @@ namespace Advobot.UILauncher.Classes
 				}
 				case ColorTheme.UserMade:
 				{
-					foreach (var kvp in ColorTargets)
+					foreach (var kvp in this.ColorTargets)
 					{
 						r[kvp.Key] = kvp.Value;
 					}

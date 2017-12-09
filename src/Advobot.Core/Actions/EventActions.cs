@@ -133,7 +133,7 @@ namespace Advobot.Core.Actions
 					var help = helpEntries.List.ElementAt(number).Word;
 					var prefix = GetActions.GetPrefix(botSettings, settings);
 					var desc = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix);
-					var embed = new AdvobotEmbed(help.Name, desc)
+					var embed = new EmbedWrapper(help.Name, desc)
 						.AddFooter("Help");
 					await MessageActions.SendEmbedMessageAsync(message.Channel, embed).CAF();
 				}

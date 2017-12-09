@@ -27,8 +27,8 @@ namespace Advobot.Core.Classes
 
 		public LoggedCommand()
 		{
-			Stopwatch = new Stopwatch();
-			Stopwatch.Start();
+			this.Stopwatch = new Stopwatch();
+			this.Stopwatch.Start();
 		}
 
 		/// <summary>
@@ -37,11 +37,11 @@ namespace Advobot.Core.Classes
 		/// <param name="context"></param>
 		public void SetContext(ICommandContext context)
 		{
-			Guild = context.Guild.FormatGuild();
-			Channel = context.Channel.FormatChannel();
-			User = context.User.FormatUser();
-			Time = TimeFormatting.FormatReadableDateTime(context.Message.CreatedAt.UtcDateTime);
-			Text = context.Message.Content;
+			this.Guild = context.Guild.FormatGuild();
+			this.Channel = context.Channel.FormatChannel();
+			this.User = context.User.FormatUser();
+			this.Time = TimeFormatting.FormatReadableDateTime(context.Message.CreatedAt.UtcDateTime);
+			this.Text = context.Message.Content;
 		}
 		/// <summary>
 		/// Attempts to get an error reason if the <paramref name="result"/> has <see cref="IResult.IsSuccess"/> false.
@@ -51,8 +51,8 @@ namespace Advobot.Core.Classes
 		{
 			if (TryGetErrorReason(result, out string errorReason))
 			{
-				ErrorReason = errorReason;
-				WriteColor = ConsoleColor.Red;
+				this.ErrorReason = errorReason;
+				this.WriteColor = ConsoleColor.Red;
 			}
 		}
 		/// <summary>
@@ -62,12 +62,12 @@ namespace Advobot.Core.Classes
 		{
 			SetContext(context);
 			SetError(result);
-			Stopwatch.Stop();
+			this.Stopwatch.Stop();
 		}
 		/// <summary>
 		/// Writes this to the console in whatever color <see cref="WriteColor"/> is.
 		/// </summary>
-		public void Write() => ConsoleActions.WriteLine(this.ToString(), nameof(LoggedCommand), WriteColor);
+		public void Write() => ConsoleActions.WriteLine(this.ToString(), nameof(LoggedCommand), this.WriteColor);
 		/// <summary>
 		/// Returns true if there is a valid error reason. Returns false if the command executed without errors.
 		/// </summary>
@@ -114,17 +114,17 @@ namespace Advobot.Core.Classes
 				var guildSettings = context.GuildSettings;
 				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
-					var embed = new AdvobotEmbed(null, context.Message.Content)
+					var embed = new EmbedWrapper(null, context.Message.Content)
 						.AddAuthor(context.User)
 						.AddFooter("Mod Log");
 					await MessageActions.SendEmbedMessageAsync(guildSettings.ModLog, embed).CAF();
 				}
 			}
 			//Failure in a valid fail way
-			else if (ErrorReason != null)
+			else if (this.ErrorReason != null)
 			{
 				logging.FailedCommands.Increment();
-				await MessageActions.SendErrorMessageAsync(context, new ErrorReason(ErrorReason)).CAF();
+				await MessageActions.SendErrorMessageAsync(context, new ErrorReason(this.ErrorReason)).CAF();
 			}
 			//Failure in a way that doesn't need to get logged (unknown command, etc)
 			else
@@ -140,15 +140,15 @@ namespace Advobot.Core.Classes
 		public override string ToString()
 		{
 			var response = new StringBuilder()
-				.Append($"Guild: {Guild}")
-				.Append($"{_Joiner}Channel: {Channel}")
-				.Append($"{_Joiner}User: {User}")
-				.Append($"{_Joiner}Time: {Time}")
-				.Append($"{_Joiner}Text: {Text}")
-				.Append($"{_Joiner}Time taken: {Stopwatch.ElapsedMilliseconds}ms");
-			if (ErrorReason != null)
+				.Append($"Guild: {this.Guild}")
+				.Append($"{_Joiner}Channel: {this.Channel}")
+				.Append($"{_Joiner}User: {this.User}")
+				.Append($"{_Joiner}Time: {this.Time}")
+				.Append($"{_Joiner}Text: {this.Text}")
+				.Append($"{_Joiner}Time taken: {this.Stopwatch.ElapsedMilliseconds}ms");
+			if (this.ErrorReason != null)
 			{
-				response.Append($"{_Joiner}Error: {ErrorReason}");
+				response.Append($"{_Joiner}Error: {this.ErrorReason}");
 			}
 			return response.ToString();
 		}

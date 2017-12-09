@@ -22,7 +22,7 @@ namespace Advobot.UILauncher.Windows
 		public FileSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
-			this.FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(_Files);
+			this.FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(this._Files);
 		}
 
 		private void Search(object sender, RoutedEventArgs e)

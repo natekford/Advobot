@@ -7,7 +7,7 @@ using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes
 {
-	internal class AdvobotColor
+	internal class ColorWrapper
 	{
 		private static BrushConverter _Converter = new BrushConverter();
 		private static ImmutableDictionary<string, Color> _Colors = typeof(System.Drawing.Color)
@@ -26,46 +26,46 @@ namespace Advobot.UILauncher.Classes
 		public Color Color { get; }
 		public bool IsValid { get; } = true;
 
-		private AdvobotColor(string input)
+		private ColorWrapper(string input)
 		{
 			var split = input.Split('/');
 			if (split.Length == 3 && TryCreateColorFromStringRGB(split, out Color rgb))
 			{
-				Color = rgb;
+				this.Color = rgb;
 			}
 			else if (TryCreateColorFromStringName(input, out Color name))
 			{
-				Color = name;
+				this.Color = name;
 			}
 			else if (TryCreateColorFromStringHex(input, out Color hex))
 			{
-				Color = hex;
+				this.Color = hex;
 			}
 			else
 			{
-				IsValid = false;
+				this.IsValid = false;
 			}
-			A = Color.A;
-			R = Color.R;
-			G = Color.G;
-			B = Color.B;
+			this.A = this.Color.A;
+			this.R = this.Color.R;
+			this.G = this.Color.G;
+			this.B = this.Color.B;
 		}
-		public AdvobotColor(int value)
+		public ColorWrapper(int value)
 		{
-			Color = CreateColorFromInt(value);
-			A = Color.A;
-			R = Color.R;
-			G = Color.G;
-			B = Color.B;
+			this.Color = CreateColorFromInt(value);
+			this.A = this.Color.A;
+			this.R = this.Color.R;
+			this.G = this.Color.G;
+			this.B = this.Color.B;
 		}
-		public AdvobotColor(byte r, byte g, byte b) : this(255, r, g, b) { }
-		public AdvobotColor(byte a, byte r, byte g, byte b)
+		public ColorWrapper(byte r, byte g, byte b) : this(255, r, g, b) { }
+		public ColorWrapper(byte a, byte r, byte g, byte b)
 		{
-			Color = CreateColorFromARGB(a, r, g, b);
-			A = Color.A;
-			R = Color.R;
-			G = Color.G;
-			B = Color.B;
+			this.Color = CreateColorFromARGB(a, r, g, b);
+			this.A = this.Color.A;
+			this.R = this.Color.R;
+			this.G = this.Color.G;
+			this.B = this.Color.B;
 		}
 
 		private static bool TryCreateColorFromStringRGB(string[] rgb, out Color color)
@@ -103,12 +103,12 @@ namespace Advobot.UILauncher.Classes
 			return Color.FromArgb(a, r, g, b);
 		}
 
-		public static bool TryCreateColor(string input, out AdvobotColor color)
+		public static bool TryCreateColor(string input, out ColorWrapper color)
 		{
-			color = new AdvobotColor(input);
+			color = new ColorWrapper(input);
 			return color.IsValid;
 		}
-		public SolidColorBrush CreateBrush() => new SolidColorBrush(Color);
+		public SolidColorBrush CreateBrush() => new SolidColorBrush(this.Color);
 		public static SolidColorBrush CreateBrush(string input) => _Converter.ConvertFrom(input) as SolidColorBrush;
 		public static bool CheckIfSameBrush(SolidColorBrush b1, SolidColorBrush b2) => b1?.Color == b2?.Color && b1?.Opacity == b2?.Opacity;
 	}

@@ -22,13 +22,13 @@ namespace Advobot.Core.Classes.Attributes
 				throw new ArgumentException($"Don't input more than 10 numbers in a {nameof(VerifyNumberAttribute)}.");
 			}
 
-			ValidNumbers = numbers.OrderBy(x => x).ToImmutableList();
-			Range = false;
+			this.ValidNumbers = numbers.OrderBy(x => x).ToImmutableList();
+			this.Range = false;
 		}
 		public VerifyNumberAttribute(int start, int end)
 		{
-			ValidNumbers = Enumerable.Range(start, end - start).ToImmutableList();
-			Range = true;
+			this.ValidNumbers = Enumerable.Range(start, end - start).ToImmutableList();
+			this.Range = true;
 		}
 
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
@@ -44,21 +44,21 @@ namespace Advobot.Core.Classes.Attributes
 				throw new NotSupportedException($"{nameof(VerifyNumberAttribute)} only supports {nameof(UInt32)}.");
 			}
 
-			return ValidNumbers.Contains(num)
+			return this.ValidNumbers.Contains(num)
 				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{String.Join("`, `", ValidNumbers)}`"));
+				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{String.Join("`, `", this.ValidNumbers)}`"));
 		}
 
 		public override string ToString()
 		{
-			if (!Range)
+			if (!this.Range)
 			{
-				return $"({String.Join(", ", ValidNumbers)})";
+				return $"({String.Join(", ", this.ValidNumbers)})";
 			}
 			else
 			{
-				var first = ValidNumbers.First();
-				var last = ValidNumbers.Last();
+				var first = this.ValidNumbers.First();
+				var last = this.ValidNumbers.Last();
 				return $"({first} to {last})";
 			}
 		}

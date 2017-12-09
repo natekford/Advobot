@@ -25,37 +25,39 @@ namespace Advobot.Core.Classes
 			[CustomArgument] CountTarget userCountTarget,
 			[CustomArgument] params string[] keywords)
 		{
-			_Code = code;
-			_Name = name;
-			_HasGlobalEmotes = hasGlobalEmotes;
-			_UserCount = userCount;
-			_UserCountTarget = userCountTarget;
-			_Keywords = keywords;
+			this._Code = code;
+			this._Name = name;
+			this._HasGlobalEmotes = hasGlobalEmotes;
+			this._UserCount = userCount;
+			this._UserCountTarget = userCountTarget;
+			this._Keywords = keywords;
 		}
 
 		public IEnumerable<ListedInvite> GatherInvites(IInviteListService inviteListService)
 		{
-			var invites = (_Keywords.Any() ? inviteListService.GetInvites(_Keywords) : inviteListService.GetInvites()).AsEnumerable();
+			var invites = this._Keywords.Any()
+				? inviteListService.GetInvites(this._Keywords)
+				: inviteListService.GetInvites().AsEnumerable();
 
 			var wentIntoAny = false;
-			if (_Code != null)
+			if (this._Code != null)
 			{
-				invites = invites.Where(x => x.Code == _Code);
+				invites = invites.Where(x => x.Code == this._Code);
 				wentIntoAny = true;
 			}
-			if (_Name != null)
+			if (this._Name != null)
 			{
-				invites = invites.Where(x => x.Guild.Name.CaseInsEquals(_Name));
+				invites = invites.Where(x => x.Guild.Name.CaseInsEquals(this._Name));
 				wentIntoAny = true;
 			}
-			if (_HasGlobalEmotes)
+			if (this._HasGlobalEmotes)
 			{
 				invites = invites.Where(x => x.HasGlobalEmotes);
 				wentIntoAny = true;
 			}
-			if (_UserCount != null)
+			if (this._UserCount != null)
 			{
-				invites = GetActions.GetObjectsInListBasedOffOfCount(invites, _UserCountTarget, _UserCount, x => x.Guild.Users.Count);
+				invites = GetActions.GetObjectsInListBasedOffOfCount(invites, this._UserCountTarget, this._UserCount, x => x.Guild.Users.Count);
 				wentIntoAny = true;
 			}
 			return wentIntoAny ? Enumerable.Empty<ListedInvite>() : invites;

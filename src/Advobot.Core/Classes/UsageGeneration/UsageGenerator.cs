@@ -22,6 +22,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 		 *		public class Nested
 		 *		{
 		 *			[Command("q")]
+		 *			public async Task QAsync()
 		 *			{
 		 *				...
 		 *			}
@@ -41,9 +42,6 @@ namespace Advobot.Core.Classes.UsageGeneration
 		 */
 
 		public string Text { get; }
-		private List<ClassDetails> _Classes = new List<ClassDetails>();
-		private List<MethodDetails> _Methods = new List<MethodDetails>();
-		private List<ParameterDetails> _Params = new List<ParameterDetails>();
 
 		public UsageGenerator(Type classType)
 		{
@@ -52,67 +50,15 @@ namespace Advobot.Core.Classes.UsageGeneration
 				throw new ArgumentException("Only use this method on a non nested class.");
 			}
 
-			var sb = new StringBuilder();
-			GetAllNestedClassesAndMethods(classType, _Classes, _Methods, _Params);
-			RemoveDuplicateClasses(ref _Classes);
-			RemoveDuplicateMethods(ref _Methods);
-			RemoveDuplicateParameters(ref _Params);
+			var classes = new List<ClassDetails>();
+			var methods = new List<MethodDetails>();
+			var parameters = new List<ParameterDetails>();
+			GetAllNestedClassesAndMethods(classType, classes, methods, parameters);
+			RemoveDuplicateClasses(ref classes);
+			RemoveDuplicateMethods(ref methods);
+			RemoveDuplicateParameters(ref parameters);
 
-			//Don't include classes because they will always be 1 behind deepest methods at minimum.
-			var maximumUpperBounds = GetMaximumUpperBounds(_Methods, _Params); //Highest of the two highs
-			var minimumUpperBounds = GetMinimumUpperBounds(_Methods, _Params); //Lowest of the two highs
-			for (int i = 0; i <= maximumUpperBounds; ++i)
-			{
-				//t = thisIteration
-				var tClasses = _Classes.Where(x => x.Deepness == i).ToList();
-				var tMethods = _Methods.Where(x => x.Deepness == i).ToList();
-				var tParams = _Params.Where(x => x.Deepness == i).ToList();
-
-				var optional = false;
-				if (i >= minimumUpperBounds)
-				{
-					//Methods from before this iteration with no arguments means that anything after is optional
-					var mNoName = _Methods.Where(x => x.Deepness <= i - minimumUpperBounds)
-						.Any(x => x.Name == null && x.HasNoArgs);
-					//Additional -1 to account for method names
-					var mName = _Methods.Where(x => x.Deepness <= i - minimumUpperBounds - 1)
-						.Any(x => x.Name != null && x.HasNoArgs);
-					var m = mNoName || mName;
-
-					//Any decrease in total arg count from an increment of i indicates that a command could
-					//be used at position i - 1 with x args but at position i with x - y args
-					//meaning that x - y args are optional
-					var pCnt = _Params.Where(x => x.Deepness < i).GroupBy(x => x.Deepness)
-						.Select(x => x.Sum(y => y.Occurences)).DefaultIfEmpty(0)
-						.Min() > tParams.Sum(x => x.Occurences);
-					//Parameters marked with the optional attribute are optional
-					var pOpt = tParams.Any(x => x.IsOptional);
-					var p = pCnt || pOpt;
-
-					//Both methods and params needed because if a method has no args and no name it means it
-					//needs nothing more to fire but if there are args that means the args could be said instead
-					//and thus are optional
-					var bT = tParams.Any() && tMethods.Any(x => x.Name == null && x.HasNoArgs);
-					//Additional -1 to account for method names
-					var bL = tParams.Any() && _Methods.Where(x => x.Deepness == i - 1).Any(x => x.Name != null && x.HasNoArgs);
-					var b = bT || bL;
-
-					optional = m || p || b;
-				}
-
-				if (tClasses.Any() || tMethods.Any(x => x.Name != null) || tParams.Any())
-				{
-					tClasses.RemoveAll(c => tMethods.Any(m => m.Name.CaseInsEquals(c.Name)));
-
-					StartArgument(sb, optional);
-					AddOptions(sb, tClasses);
-					AddOptions(sb, tMethods);
-					AddOptions(sb, tParams);
-					CloseArgument(sb, optional);
-				}
-			}
-
-			Text = sb.ToString().Trim();
+			this.Text = CreateText(classes, methods, parameters);
 		}
 
 		private void GetAllNestedClassesAndMethods(Type classType, List<ClassDetails> classes, List<MethodDetails> methods, List<ParameterDetails> parameters, int deepness = 0)
@@ -122,12 +68,10 @@ namespace Advobot.Core.Classes.UsageGeneration
 				var m = new MethodDetails(deepness, method);
 				methods.Add(m);
 
-				var weNeedToGoDeeper = m.Name != null ? 1 : 0;
-
 				var p = method.GetParameters();
 				for (int i = 0; i < p.Length; ++i)
 				{
-					parameters.Add(new ParameterDetails(weNeedToGoDeeper + deepness + i, p[i]));
+					parameters.Add(new ParameterDetails((m.Name != null ? 1 : 0) + deepness + i, p[i]));
 				}
 			}
 
@@ -143,102 +87,99 @@ namespace Advobot.Core.Classes.UsageGeneration
 		private IEnumerable<MethodInfo> GetCommands(Type classType)
 			=> classType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
 			.Where(x => x.GetCustomAttribute<CommandAttribute>() != null);
-
 		private void RemoveDuplicateClasses(ref List<ClassDetails> classes)
 		{
-			var tempList = new List<ClassDetails>();
-			foreach (var c in classes)
-			{
-				//Don't allow duplicate methods with the same name and deepness
-				//Different deepnesses are find though, because they help affect things being marked
-				//as optional while they won't be printed out usually because they have a null name
-				var matchingNameAndDeepness = tempList.SingleOrDefault(x => x.Name == c.Name && x.Deepness == c.Deepness);
-				if (matchingNameAndDeepness == null)
-				{
-					tempList.Add(c);
-				}
-			}
-			classes = tempList;
+			var grouped = classes.GroupBy(x => new { x.Name, x.Deepness });
+			classes = grouped.Select(x => x.First()).ToList();
 		}
 		private void RemoveDuplicateMethods(ref List<MethodDetails> methods)
 		{
-			var tempList = new List<MethodDetails>();
-			foreach (var m in methods)
-			{
-				//Don't allow duplicate methods with the same name and deepness
-				//Different deepnesses are find though, because they help affect things being marked
-				//as optional while they won't be printed out usually because they have a null name
-				var matchingNameAndDeepness = tempList.SingleOrDefault(x => x.Name == m.Name && x.Deepness == m.Deepness);
-				if (matchingNameAndDeepness == null)
-				{
-					tempList.Add(m);
-				}
-				else if (matchingNameAndDeepness != null && matchingNameAndDeepness.ArgCount > m.ArgCount)
-				{
-					tempList.Remove(matchingNameAndDeepness);
-					tempList.Add(m);
-				}
-			}
-			methods = tempList;
+			var grouped = methods.GroupBy(x => new { x.Name, x.Deepness });
+			methods = grouped.Select(x => x.OrderByDescending(y => y.ArgCount).First()).ToList();
 		}
 		private void RemoveDuplicateParameters(ref List<ParameterDetails> parameters)
 		{
-			/* Do remainder parameters need to have their deepness changed?
-			//If there are any remainders they have the same effective
-			//deepeness as the deepest non remainder since they're basically infinite
-			var deepest = parameters.Where(x => !x.IsRemainder).DefaultIfEmpty().Max(x => x?.Deepness ?? 0);
-			foreach (var p in parameters.Where(x => x.IsRemainder))
-			{
-				p.SetDeepness(Math.Min(p.Deepness, deepest));
-			}
-			*/
-
-			var tempList = new List<ParameterDetails>();
-			foreach (var p in parameters)
-			{
-				var matchingNameAndDeepness = tempList.SingleOrDefault(x => x.Name == p.Name && x.Deepness == p.Deepness);
-				if (matchingNameAndDeepness == null)
-				{
-					tempList.Add(p);
-				}
-				else
-				{
-					matchingNameAndDeepness.IncrementOccurences();
-				}
-			}
-			parameters = tempList;
+			var grouped = parameters
+				.GroupBy(x => new { x.Name, x.Deepness })
+				.Select(x => (Param: x.First(), Occurences: x.Count())).ToList();
+			grouped.ForEach(x => x.Param.SetOccurences(x.Occurences));
+			parameters = grouped.Select(x => x.Param).ToList();
 		}
 
-		private int GetMaximumUpperBounds(IEnumerable<MethodDetails> methods, IEnumerable<ParameterDetails> parameters)
-			=> new[]
+		private string CreateText(List<ClassDetails> classes, List<MethodDetails> methods, List<ParameterDetails> parameters)
+		{
+			//Don't include classes because they will always be 1 behind deepest methods at minimum.
+			var upperBounds = new[]
 			{
 				methods.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
 				parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
-			}.Max();
-		private int GetMinimumUpperBounds(IEnumerable<MethodDetails> methods, IEnumerable<ParameterDetails> parameters)
-			=> new[]
-			{
-				methods.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
-				parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
-			}.Min();
+			};
+			var maximumUpperBounds = upperBounds.Max(); //Highest of the two highs
+			var minimumUpperBounds = upperBounds.Min(); //Lowest of the two highs
 
-		private void StartArgument(StringBuilder sb, bool optional)
-		{
-			while (sb.Length > 0 && sb[0] == '|')
+			var sb = new StringBuilder();
+			for (int i = 0; i <= maximumUpperBounds; ++i)
 			{
-				sb.Remove(1, sb.Length - 2);
+				//t = thisIteration
+				var tClasses = classes.Where(x => x.Deepness == i).ToList();
+				var tMethods = methods.Where(x => x.Deepness == i).ToList();
+				var tParams = parameters.Where(x => x.Deepness == i).ToList();
+
+				var optional = false;
+				if (i >= minimumUpperBounds)
+				{
+					//Methods from before this iteration with no arguments means that anything after is optional
+					var mNoName = methods.Where(x => x.Deepness <= i - minimumUpperBounds)
+						.Any(x => x.Name == null && x.HasNoArgs);
+					//Additional -1 to account for method names
+					var mName = methods.Where(x => x.Deepness <= i - minimumUpperBounds - 1)
+						.Any(x => x.Name != null && x.HasNoArgs);
+					var m = mNoName || mName;
+
+					//Any decrease in total arg count from an increment of i indicates that a command could
+					//be used at position i - 1 with x args but at position i with x - y args
+					//meaning that x - y args are optional
+					var pCnt = parameters.Where(x => x.Deepness < i).GroupBy(x => x.Deepness)
+						.Select(x => x.Sum(y => y.Occurences)).DefaultIfEmpty(0)
+						.Min() > tParams.Sum(x => x.Occurences);
+					//Parameters marked with the optional attribute are optional
+					var pOpt = tParams.Any(x => x.IsOptional);
+					var p = pCnt || pOpt;
+
+					//Both methods and params needed because if a method has no args and no name it means it
+					//needs nothing more to fire but if there are args that means the args could be said instead
+					//and thus are optional
+					var bT = tParams.Any() && tMethods.Any(x => x.Name == null && x.HasNoArgs);
+					//Additional -1 to account for method names
+					var bL = tParams.Any() && methods.Where(x => x.Deepness == i - 1).Any(x => x.Name != null && x.HasNoArgs);
+					var b = bT || bL;
+
+					optional = m || p || b;
+				}
+
+				if (tClasses.Any() || tMethods.Any(x => x.Name != null) || tParams.Any())
+				{
+					tClasses.RemoveAll(c => tMethods.Any(m => m.Name.CaseInsEquals(c.Name)));
+
+					while (sb.Length > 0 && sb[0] == '|')
+					{
+						sb.Remove(1, sb.Length - 2);
+					}
+					sb.Append(optional ? "<" : "[");
+
+					AddOptions(sb, tClasses);
+					AddOptions(sb, tMethods);
+					AddOptions(sb, tParams);
+
+					while (sb.Length > 0 && sb[sb.Length - 1] == '|')
+					{
+						sb.Remove(sb.Length - 1, 1);
+					}
+					sb.Append(optional ? "> " : "] ");
+				}
 			}
 
-			sb.Append(optional ? "<" : "[");
-		}
-		private void CloseArgument(StringBuilder sb, bool optional)
-		{
-			while (sb.Length > 0 && sb[sb.Length - 1] == '|')
-			{
-				sb.Remove(sb.Length - 1, 1);
-			}
-
-			sb.Append(optional ? "> " : "] ");
+			return sb.ToString().Trim();
 		}
 		private void AddOptions<T>(StringBuilder sb, IEnumerable<T> options) where T : IArgument
 		{

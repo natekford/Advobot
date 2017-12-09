@@ -67,12 +67,12 @@ namespace Advobot.Core.Actions
 		{
 			var cmds = new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, });
 
-			cmds.AddTypeReader(typeof(IInvite), new InviteTypeReader());
-			cmds.AddTypeReader(typeof(IBan), new BanTypeReader());
-			cmds.AddTypeReader(typeof(Emote), new EmoteTypeReader());
-			cmds.AddTypeReader(typeof(Color), new ColorTypeReader());
-			cmds.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
-			cmds.AddTypeReader(typeof(RuleCategory), new RuleCategoryTypeReader());
+			cmds.AddTypeReader<IInvite>(new InviteTypeReader());
+			cmds.AddTypeReader<IBan>(new BanTypeReader());
+			cmds.AddTypeReader<Emote>(new EmoteTypeReader());
+			cmds.AddTypeReader<Color>(new ColorTypeReader());
+			cmds.AddTypeReader<CommandSwitch>(new CommandSwitchTypeReader());
+			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(CustomArguments<>)).GetTypes()
 				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance)

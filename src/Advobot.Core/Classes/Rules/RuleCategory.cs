@@ -14,30 +14,30 @@ namespace Advobot.Core.Classes.Rules
 		[JsonProperty("Rules")]
 		private List<Rule> _Rules = new List<Rule>();
 		[JsonIgnore]
-		public IReadOnlyList<Rule> Rules => _Rules.AsReadOnly();
+		public IReadOnlyList<Rule> Rules => this._Rules.AsReadOnly();
 
 		public RuleCategory(string name)
 		{
-			Name = name;
+			this.Name = name;
 		}
 
-		public void AddRule(Rule rule) => _Rules.Add(rule);
+		public void AddRule(Rule rule) => this._Rules.Add(rule);
 		public bool RemoveRule(int index)
 		{
-			if (index >= 0 && index < _Rules.Count)
+			if (index >= 0 && index < this._Rules.Count)
 			{
-				_Rules.RemoveAt(index);
+				this._Rules.RemoveAt(index);
 				return true;
 			}
 			return false;
 		}
-		public bool RemoveRule(Rule rule) => _Rules.Remove(rule);
-		public void ChangeName(string name) => Name = name;
+		public bool RemoveRule(Rule rule) => this._Rules.Remove(rule);
+		public void ChangeName(string name) => this.Name = name;
 		public void ChangeRule(int index, string text)
 		{
-			if (index >= 0 && index < Rules.Count)
+			if (index >= 0 && index < this.Rules.Count)
 			{
-				_Rules[index].ChangeText(text);
+				this._Rules[index].ChangeText(text);
 			}
 		}
 
@@ -46,9 +46,9 @@ namespace Advobot.Core.Classes.Rules
 		{
 			var sb = new StringBuilder();
 			sb.AppendLineFeed(formatter.FormatName(this, 0));
-			for (int r = 0; r < Rules.Count; ++r)
+			for (int r = 0; r < this.Rules.Count; ++r)
 			{
-				sb.AppendLineFeed(Rules[r].ToString(formatter, r, Rules.Count));
+				sb.AppendLineFeed(this.Rules[r].ToString(formatter, r, this.Rules.Count));
 			}
 			return sb.ToString();
 		}

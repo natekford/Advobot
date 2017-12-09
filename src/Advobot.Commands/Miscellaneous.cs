@@ -38,7 +38,7 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task Command()
 		{
 			var desc = _GeneralHelp.Replace(Constants.PLACEHOLDER_PREFIX, GetActions.GetPrefix(Context));
-			var embed = new AdvobotEmbed("General Help", desc)
+			var embed = new EmbedWrapper("General Help", desc)
 				.AddField("Basic Syntax", _BasicSyntax)
 				.AddField("Mention Syntax", _MentionSyntax)
 				.AddField("Links", _Links)
@@ -52,7 +52,7 @@ namespace Advobot.Commands.Miscellaneous
 			if (helpEntry != null)
 			{
 				var desc = helpEntry.ToString().Replace(Constants.PLACEHOLDER_PREFIX, GetActions.GetPrefix(Context));
-				var embed = new AdvobotEmbed(helpEntry.Name, desc)
+				var embed = new EmbedWrapper(helpEntry.Name, desc)
 					.AddFooter("Help");
 				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 				return;
@@ -85,19 +85,19 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task All()
 		{
 			var desc = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetCommandNames())}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("All Commands", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("All Commands", desc)).CAF();
 		}
 		[Command]
 		public async Task Command(CommandCategory category)
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetCommandNames(category))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(category.EnumName(), desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(category.EnumName(), desc)).CAF();
 		}
 		[Command]
 		public async Task Command()
 		{
 			var desc = _CommandCategories.Replace(Constants.PLACEHOLDER_PREFIX, GetActions.GetPrefix(Context));
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Categories", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Categories", desc)).CAF();
 		}
 	}
 

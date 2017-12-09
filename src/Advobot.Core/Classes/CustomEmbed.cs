@@ -17,7 +17,7 @@ namespace Advobot.Core.Classes
 		private static char _SplitChar = SPLIT_CHAR[0];
 		public const string FORMAT = FIELD_NAME + ":Name" + SPLIT_CHAR + FIELD_TEXT + ":Text" + SPLIT_CHAR + FIELD_INLINE + ":True|False";
 
-		public AdvobotEmbed Embed { get; }
+		public EmbedWrapper Embed { get; }
 
 		[CustomArgumentConstructor]
 		public CustomEmbed(
@@ -34,7 +34,7 @@ namespace Advobot.Core.Classes
 			[CustomArgument] string footerIconUrl,
 			[CustomArgument(25)] params string[] fieldInfo)
 		{
-			Embed = new AdvobotEmbed(title, description, ColorTypeReader.GetColor(color), imageUrl, url, thumbUrl)
+			this.Embed = new EmbedWrapper(title, description, ColorTypeReader.GetColor(color), imageUrl, url, thumbUrl)
 				.AddAuthor(authorName, authorIconUrl, authorUrl)
 				.AddFooter(footer, footerIconUrl);
 
@@ -73,7 +73,7 @@ namespace Advobot.Core.Classes
 
 				//Finally try to parse if the inline is a bool or not
 				bool.TryParse(dict[FIELD_INLINE], out bool inline);
-				Embed.AddField(dict[FIELD_NAME], dict[FIELD_TEXT], inline);
+				this.Embed.AddField(dict[FIELD_NAME], dict[FIELD_TEXT], inline);
 			}
 		}
 	}

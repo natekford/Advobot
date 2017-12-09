@@ -104,14 +104,14 @@ namespace Advobot.Commands.ChannelModeration
 		{
 			var channels = (await Context.Guild.GetTextChannelsAsync().CAF()).OrderBy(x => x.Position);
 			var desc = String.Join("\n", channels.Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Text Channel Positions", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Text Channel Positions", desc)).CAF();
 		}
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice()
 		{
 			var channels = (await Context.Guild.GetVoiceChannelsAsync().CAF()).OrderBy(x => x.Position);
 			var desc = String.Join("\n", channels.Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Voice Channel Positions", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Voice Channel Positions", desc)).CAF();
 		}
 	}
 
@@ -131,7 +131,7 @@ namespace Advobot.Commands.ChannelModeration
 			public async Task Command()
 			{
 				var desc = $"`{String.Join("`, `", ChannelPerms.Permissions.Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Channel Permission Types", desc)).CAF();
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Channel Permission Types", desc)).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel)
@@ -141,7 +141,7 @@ namespace Advobot.Commands.ChannelModeration
 				var roleNames = roleOverwrites.Select(x => Context.Guild.GetRole(x.TargetId).Name);
 				var userNames = userOverwrites.Select(x => ((Context.Guild as SocketGuild).GetUser(x.TargetId)).Username);
 
-				var embed = new AdvobotEmbed(channel.FormatChannel())
+				var embed = new EmbedWrapper(channel.FormatChannel())
 					.AddField("Role", $"`{(roleNames.Any() ? String.Join("`, `", roleNames) : "None")}`")
 					.AddField("User", $"`{(userNames.Any() ? String.Join("`, `", userNames) : "None")}`");
 				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
@@ -157,7 +157,7 @@ namespace Advobot.Commands.ChannelModeration
 				}
 
 				var desc = $"Role:** `{role.FormatRole()}`\n```{OverwriteActions.GetFormattedPermsFromOverwrite(channel, role)}```";
-				var embed = new AdvobotEmbed($"Overwrite On {channel.FormatChannel()}", desc);
+				var embed = new EmbedWrapper($"Overwrite On {channel.FormatChannel()}", desc);
 				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			[Command]
@@ -171,7 +171,7 @@ namespace Advobot.Commands.ChannelModeration
 				}
 
 				var desc = $"User:** `{user.FormatUser()}`\n```{OverwriteActions.GetFormattedPermsFromOverwrite(channel, user)}```";
-				var embed = new AdvobotEmbed($"Overwrite On {channel.FormatChannel()}", desc);
+				var embed = new EmbedWrapper($"Overwrite On {channel.FormatChannel()}", desc);
 				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}

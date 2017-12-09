@@ -20,29 +20,29 @@ namespace Advobot.Core.Classes
 		[JsonIgnore]
 		public CommandCategory Category { get; }
 		[JsonIgnore]
-		public string ValueAsString => Value ? "ON" : "OFF";
+		public string ValueAsString => this.Value ? "ON" : "OFF";
 
 		public CommandSwitch(string name, bool value)
 		{
 			var helpEntry = Constants.HELP_ENTRIES[name];
 			if (helpEntry == null)
 			{
-				Category = default;
+				this.Category = default;
 				return;
 			}
 
-			Name = name;
-			Value = value;
-			Category = helpEntry.Category;
-			Aliases = helpEntry.Aliases.ToImmutableList();
+			this.Name = name;
+			this.Value = value;
+			this.Category = helpEntry.Category;
+			this.Aliases = helpEntry.Aliases.ToImmutableList();
 		}
 
 		/// <summary>
 		/// Sets <see cref="Value"/> to its opposite.
 		/// </summary>
-		public void ToggleEnabled() => Value = !Value;
+		public void ToggleEnabled() => this.Value = !this.Value;
 
-		public override string ToString() => $"`{ValueAsString.PadRight(3)}` `{Name}`";
+		public override string ToString() => $"`{this.ValueAsString.PadRight(3)}` `{this.Name}`";
 		public string ToString(SocketGuild guild) => ToString();
 	}
 }

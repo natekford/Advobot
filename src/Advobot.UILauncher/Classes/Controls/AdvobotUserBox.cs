@@ -13,13 +13,13 @@ namespace Advobot.UILauncher.Classes.Controls
 		public AdvobotUserBox(IUser user)
 		{
 			var name = user.Username.AllCharactersAreWithinUpperLimit() ? user.Username : "Non-Standard Name";
-			Text = $"'{name}#{user.Discriminator}' ({user.Id})";
-			Tag = user.Id;
-			IsReadOnly = true;
-			IsHitTestVisible = false;
-			BorderThickness = new Thickness(0);
-			Background = Brushes.Transparent;
-			Foreground = Brushes.Black;
+			this.Text = $"'{name}#{user.Discriminator}' ({user.Id})";
+			this.Tag = user.Id;
+			this.IsReadOnly = true;
+			this.IsHitTestVisible = false;
+			this.BorderThickness = new Thickness(0);
+			this.Background = Brushes.Transparent;
+			this.Foreground = Brushes.Black;
 		}
 	}
 }

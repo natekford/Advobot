@@ -32,9 +32,9 @@ namespace Advobot.Core.Classes.Rules
 		};
 
 		private string _Rules;
-		public string Rules => _Rules;
+		public string Rules => this._Rules;
 		private List<string> _Categories = new List<string>();
-		public ImmutableList<string> Categories => _Categories.ToImmutableList();
+		public ImmutableList<string> Categories => this._Categories.ToImmutableList();
 			 
 		private RuleFormat _Format;
 		private MarkDownFormat _TitleFormat;
@@ -50,24 +50,24 @@ namespace Advobot.Core.Classes.Rules
 			[CustomArgument] char charAfterNumbers = '.',
 			[CustomArgument(10)] params RuleFormatOption[] formatOptions)
 		{
-			_Format = format == default ? RuleFormat.Numbers : format;
-			_TitleFormat = titleFormat;
-			_RuleFormat = ruleFormat;
-			_CharAfterNumbers = charAfterNumbers;
-			formatOptions.ToList().ForEach(x => _Options |= x);
+			this._Format = format == default ? RuleFormat.Numbers : format;
+			this._TitleFormat = titleFormat;
+			this._RuleFormat = ruleFormat;
+			this._CharAfterNumbers = charAfterNumbers;
+			formatOptions.ToList().ForEach(x => this._Options |= x);
 		}
 
 		public void SetRulesAndCategories(RuleHolder rules)
 		{
-			_Rules = rules.ToString(this);
-			_Categories.AddRange(rules.Categories.Select((x, index) => x.ToString(this, index)));
+			this._Rules = rules.ToString(this);
+			this._Categories.AddRange(rules.Categories.Select((x, index) => x.ToString(this, index)));
 		}
-		public void SetCategory(RuleCategory category, int index) => _Categories.Add(category.ToString(this, index));
+		public void SetCategory(RuleCategory category, int index) => this._Categories.Add(category.ToString(this, index));
 
 		public string FormatName(RuleCategory category, int index)
 		{
 			var n = "";
-			switch (_Format)
+			switch (this._Format)
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bullets:
@@ -89,21 +89,21 @@ namespace Advobot.Core.Classes.Rules
 			}
 
 			n = n.Trim(' ');
-			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
+			if (this._Options.HasFlag(RuleFormatOption.ExtraLines))
 			{
 				n = n + "\n";
 			}
-			return AddFormattingOptions(_TitleFormat == default ? _DefaultTitleFormats[_Format] : _TitleFormat, n);
+			return AddFormattingOptions(this._TitleFormat == default ? _DefaultTitleFormats[this._Format] : this._TitleFormat, n);
 		}
 		public string FormatRule(Rule rule, int index, int rulesInCategory)
 		{
 			var r = "";
-			switch (_Format)
+			switch (this._Format)
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bold:
 				{
-					if (_Options.HasFlag(RuleFormatOption.NumbersSameLength))
+					if (this._Options.HasFlag(RuleFormatOption.NumbersSameLength))
 					{
 						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLengthOfNumber(), '0')}";
 					}
@@ -131,15 +131,15 @@ namespace Advobot.Core.Classes.Rules
 			}
 
 			r = $"{r}{rule.Text}";
-			r = _CharAfterNumbers != default
-				? AddCharAfterNumbers(r, _CharAfterNumbers)
+			r = this._CharAfterNumbers != default
+				? AddCharAfterNumbers(r, this._CharAfterNumbers)
 				: r;
 			r = r.Trim(' ');
-			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
+			if (this._Options.HasFlag(RuleFormatOption.ExtraLines))
 			{
 				r = r + "\n";
 			}
-			return AddFormattingOptions(_RuleFormat == default ? _DefaultRuleFormats[_Format] : _RuleFormat, r);
+			return AddFormattingOptions(this._RuleFormat == default ? _DefaultRuleFormats[this._Format] : this._RuleFormat, r);
 		}
 
 		private string AddCharAfterNumbers(string text, char charToAdd)
@@ -197,14 +197,14 @@ namespace Advobot.Core.Classes.Rules
 		{
 			var messages = new List<IUserMessage>();
 			//If all of the rules can be sent in one message, do that.
-			if (_Rules != null && _Rules.Length <= 2000)
+			if (this._Rules != null && this._Rules.Length <= 2000)
 			{
-				messages.Add(await MessageActions.SendMessageAsync(channel, _Rules).CAF());
+				messages.Add(await MessageActions.SendMessageAsync(channel, this._Rules).CAF());
 				return messages.AsReadOnly();
 			}
 
 			//If not, go by category
-			foreach (var category in _Categories)
+			foreach (var category in this._Categories)
 			{
 				if (category == null)
 				{

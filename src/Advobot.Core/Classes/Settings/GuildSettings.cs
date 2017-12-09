@@ -140,8 +140,8 @@ namespace Advobot.Core.Classes.Settings
 			get => _ServerLog ?? (_ServerLog = Guild.GetTextChannel(_ServerLogId));
 			set
 			{
-				_ServerLogId = value?.Id ?? 0;
-				_ServerLog = value;
+				this._ServerLogId = value?.Id ?? 0;
+				this._ServerLog = value;
 			}
 		}
 		[JsonIgnore]
@@ -150,8 +150,8 @@ namespace Advobot.Core.Classes.Settings
 			get => _ModLog ?? (_ModLog = Guild.GetTextChannel(_ModLogId));
 			set
 			{
-				_ModLogId = value?.Id ?? 0;
-				_ModLog = value;
+				this._ModLogId = value?.Id ?? 0;
+				this._ModLog = value;
 			}
 		}
 		[JsonIgnore]
@@ -160,8 +160,8 @@ namespace Advobot.Core.Classes.Settings
 			get => _ImageLog ?? (_ImageLog = Guild.GetTextChannel(_ImageLogId));
 			set
 			{
-				_ImageLogId = value?.Id ?? 0;
-				_ImageLog = value;
+				this._ImageLogId = value?.Id ?? 0;
+				this._ImageLog = value;
 			}
 		}
 		[JsonIgnore]
@@ -170,8 +170,8 @@ namespace Advobot.Core.Classes.Settings
 			get => _MuteRole ?? (_MuteRole = Guild.GetRole(_MuteRoleId));
 			set
 			{
-				_MuteRoleId = value?.Id ?? 0;
-				_MuteRole = value;
+				this._MuteRoleId = value?.Id ?? 0;
+				this._MuteRole = value;
 			}
 		}
 		[JsonIgnore]
@@ -307,9 +307,10 @@ namespace Advobot.Core.Classes.Settings
 		[JsonIgnore]
 		public bool Loaded { get; private set; } = false;
 
-		public CommandSwitch[] GetCommands(CommandCategory category) => CommandSwitches.Where(x => x.Category == category).ToArray();
+		public CommandSwitch[] GetCommands(CommandCategory category)
+			=> this.CommandSwitches.Where(x => x.Category == category).ToArray();
 		public CommandSwitch GetCommand(string commandNameOrAlias)
-			=> CommandSwitches.FirstOrDefault(x =>
+			=> this.CommandSwitches.FirstOrDefault(x =>
 			{
 				return x.Name.CaseInsEquals(commandNameOrAlias) || x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias);
 			});
@@ -319,32 +320,32 @@ namespace Advobot.Core.Classes.Settings
 			{
 				case LogChannelType.Server:
 				{
-					if (_ServerLogId == channel.Id)
+					if (this._ServerLogId == channel.Id)
 					{
 						return false;
 					}
 
-					ServerLog = channel;
+					this.ServerLog = channel;
 					return true;
 				}
 				case LogChannelType.Mod:
 				{
-					if (_ModLogId == channel.Id)
+					if (this._ModLogId == channel.Id)
 					{
 						return false;
 					}
 
-					ModLog = channel;
+					this.ModLog = channel;
 					return true;
 				}
 				case LogChannelType.Image:
 				{
-					if (_ImageLogId == channel.Id)
+					if (this._ImageLogId == channel.Id)
 					{
 						return false;
 					}
 
-					ImageLog = channel;
+					this.ImageLog = channel;
 					return true;
 				}
 				default:
@@ -359,32 +360,32 @@ namespace Advobot.Core.Classes.Settings
 			{
 				case LogChannelType.Server:
 				{
-					if (_ServerLogId == 0)
+					if (this._ServerLogId == 0)
 					{
 						return false;
 					}
 
-					ServerLog = null;
+					this.ServerLog = null;
 					return true;
 				}
 				case LogChannelType.Mod:
 				{
-					if (_ModLogId == 0)
+					if (this._ModLogId == 0)
 					{
 						return false;
 					}
 
-					ModLog = null;
+					this.ModLog = null;
 					return true;
 				}
 				case LogChannelType.Image:
 				{
-					if (_ImageLogId == 0)
+					if (this._ImageLogId == 0)
 					{
 						return false;
 					}
 
-					ImageLog = null;
+					this.ImageLog = null;
 					return true;
 				}
 				default:
@@ -397,50 +398,50 @@ namespace Advobot.Core.Classes.Settings
 
 		public void SaveSettings()
 		{
-			if (Guild != null)
+			if (this.Guild != null)
 			{
-				SavingAndLoadingActions.OverWriteFile(GetActions.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
+				SavingAndLoadingActions.OverWriteFile(GetActions.GetServerDirectoryFile(this.Guild.Id, Constants.GUILD_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
 			}
 		}
 		public async Task<IGuildSettings> PostDeserialize(IGuild guild)
 		{
-			Guild = guild as SocketGuild;
+			this.Guild = guild as SocketGuild;
 
 			//Add in the default values for commands that aren't set
-			var unsetCmds = Constants.HELP_ENTRIES.GetUnsetCommands(CommandSwitches.Select(x => x.Name));
-			CommandSwitches.AddRange(unsetCmds.Select(x => new CommandSwitch(x.Name, x.DefaultEnabled)));
+			var unsetCmds = Constants.HELP_ENTRIES.GetUnsetCommands(this.CommandSwitches.Select(x => x.Name));
+			this.CommandSwitches.AddRange(unsetCmds.Select(x => new CommandSwitch(x.Name, x.DefaultEnabled)));
 			//Remove all that have no name/aren't commands anymore
-			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name) || Constants.HELP_ENTRIES[x.Name] == null);
-			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			Invites.AddRange((await InviteActions.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
+			this.CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name) || Constants.HELP_ENTRIES[x.Name] == null);
+			this.CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			this.CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			this.CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			this.Invites.AddRange((await InviteActions.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
 
-			if (_ListedInvite != null)
+			if (this._ListedInvite != null)
 			{
-				_ListedInvite.PostDeserialize(Guild);
+				this._ListedInvite.PostDeserialize(this.Guild);
 			}
-			if (_WelcomeMessage != null)
+			if (this._WelcomeMessage != null)
 			{
-				_WelcomeMessage.PostDeserialize(Guild);
+				this._WelcomeMessage.PostDeserialize(this.Guild);
 			}
-			if (_GoodbyeMessage != null)
+			if (this._GoodbyeMessage != null)
 			{
-				_GoodbyeMessage.PostDeserialize(Guild);
+				this._GoodbyeMessage.PostDeserialize(this.Guild);
 			}
-			if (_SelfAssignableGroups != null)
+			if (this._SelfAssignableGroups != null)
 			{
-				foreach (var group in _SelfAssignableGroups)
+				foreach (var group in this._SelfAssignableGroups)
 				{
-					group.Roles.RemoveAll(x => x == null || x.GetRole(Guild) == null);
+					group.Roles.RemoveAll(x => x == null || x.GetRole(this.Guild) == null);
 				}
 			}
-			if (_PersistentRoles != null)
+			if (this._PersistentRoles != null)
 			{
-				_PersistentRoles.RemoveAll(x => x.GetRole(Guild) == null);
+				this._PersistentRoles.RemoveAll(x => x.GetRole(this.Guild) == null);
 			}
 
-			Loaded = true;
+			this.Loaded = true;
 			return this;
 		}
 
@@ -480,19 +481,19 @@ namespace Advobot.Core.Classes.Settings
 			}
 			else if (value is ulong tempUlong)
 			{
-				var chan = Guild.GetChannel(tempUlong);
+				var chan = this.Guild.GetChannel(tempUlong);
 				if (chan != null)
 				{
 					return $"`{chan.FormatChannel()}`";
 				}
 
-				var role = Guild.GetRole(tempUlong);
+				var role = this.Guild.GetRole(tempUlong);
 				if (role != null)
 				{
 					return $"`{role.FormatRole()}`";
 				}
 
-				var user = Guild.GetUser(tempUlong);
+				var user = this.Guild.GetUser(tempUlong);
 				if (user != null)
 				{
 					return $"`{user.FormatUser()}`";

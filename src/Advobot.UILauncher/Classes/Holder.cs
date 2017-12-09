@@ -11,7 +11,7 @@ namespace Advobot.UILauncher.Classes
 			get => _HeldObject;
 			internal set
 			{
-				_HeldObject = value;
+				this._HeldObject = value;
 				NotifyPropertyChanged();
 			}
 		}

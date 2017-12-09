@@ -9,8 +9,8 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public ModalWindow(Window mainWindow)
 		{
-			_MainWindow = mainWindow ?? throw new ArgumentException($"{nameof(mainWindow)} cannot be null.");
-			_MainWindow.Opacity = .25;
+			this._MainWindow = mainWindow ?? throw new ArgumentException($"{nameof(mainWindow)} cannot be null.");
+			this._MainWindow.Opacity = .25;
 		}
 		public ModalWindow() : this(null) { }
 
@@ -18,9 +18,9 @@ namespace Advobot.UILauncher.Classes.Controls
 		public override void EndInit()
 		{
 			base.EndInit();
-			this.Owner = _MainWindow;
-			this.Height = _MainWindow.Height / 2;
-			this.Width = _MainWindow.Width / 2;
+			this.Owner = this._MainWindow;
+			this.Height = this._MainWindow.Height / 2;
+			this.Width = this._MainWindow.Width / 2;
 		}
 
 		protected void WindowClosed(object sender, EventArgs e)
@@ -30,7 +30,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			{
 				this.DialogResult = false;
 			}
-			_MainWindow.Opacity = 100;
+			this._MainWindow.Opacity = 100;
 		}
 		protected void Close(object sender, RoutedEventArgs e) => this.Close();
 	}

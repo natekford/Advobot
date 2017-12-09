@@ -170,7 +170,7 @@ namespace Advobot.Commands.Gets
 			var desc = count
 				? $"**Count:** `{users.Count()}`"
 				: users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(title, desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(title, desc)).CAF();
 		}
 	}
 
@@ -217,7 +217,7 @@ namespace Advobot.Commands.Gets
 			var guilds = await Context.Client.GetGuildsAsync().CAF();
 			if (guilds.Count() <= 10)
 			{
-				var embed = new AdvobotEmbed("Guilds");
+				var embed = new EmbedWrapper("Guilds");
 				foreach (var guild in guilds)
 				{
 					embed.AddField(guild.FormatGuild(), $"**Owner:** `{(await guild.GetOwnerAsync().CAF()).FormatUser()}`");
@@ -229,7 +229,7 @@ namespace Advobot.Commands.Gets
 			{
 				var guildsAndOwners = await Task.WhenAll(guilds.Select(async x => (Guild: x, Owner: await x.GetOwnerAsync().CAF())));
 				var desc = guildsAndOwners.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Guild.FormatGuild(), x => x.Owner.FormatUser());
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Guilds", desc)).CAF();
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Guilds", desc)).CAF();
 			}
 		}
 	}
@@ -264,7 +264,7 @@ namespace Advobot.Commands.Gets
 			var desc = emotes.Any()
 				? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name)
 				: $"This guild has no global emotes.";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Emotes", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Emotes", desc)).CAF();
 		}
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
@@ -273,7 +273,7 @@ namespace Advobot.Commands.Gets
 			var desc = emotes.Any()
 				? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name)
 				: $"This guild has no guild emotes.";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Emotes", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Emotes", desc)).CAF();
 		}
 	}
 
@@ -358,7 +358,7 @@ namespace Advobot.Commands.Gets
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", _Enums.Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Enums", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Enums", desc)).CAF();
 		}
 		[Command]
 		public async Task Command(string enumName)
@@ -377,7 +377,7 @@ namespace Advobot.Commands.Gets
 
 			var e = matchingNames.Single();
 			var desc = $"`{String.Join("`, `", Enum.GetNames(e))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(e.Name, desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(e.Name, desc)).CAF();
 		}
 
 		public static ImmutableList<Type> SetEnums()

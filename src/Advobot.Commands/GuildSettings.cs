@@ -268,7 +268,7 @@ namespace Advobot.Commands.GuildSettings
 			public async Task Command()
 			{
 				var desc = $"`{String.Join("`, `", GuildPerms.Permissions.Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Bot Permission Types", desc)).CAF();
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Bot Permission Types", desc)).CAF();
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -282,7 +282,7 @@ namespace Advobot.Commands.GuildSettings
 				}
 
 				var desc = $"`{String.Join("`, `", GuildPerms.ConvertValueToNames(botUser.Permissions))}`";
-				var embed = new AdvobotEmbed($"Permissions for {user.FormatUser()}", desc);
+				var embed = new EmbedWrapper($"Permissions for {user.FormatUser()}", desc);
 				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
@@ -345,7 +345,7 @@ namespace Advobot.Commands.GuildSettings
 				}
 
 				var desc = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild));
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Persistent Roles", desc)).CAF();
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Persistent Roles", desc)).CAF();
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -359,7 +359,7 @@ namespace Advobot.Commands.GuildSettings
 				}
 
 				var desc = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild));
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Persistent Roles", desc)).CAF();
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Persistent Roles", desc)).CAF();
 			}
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
@@ -507,7 +507,7 @@ namespace Advobot.Commands.GuildSettings
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetGuildSettings().Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Setting Names", desc)).CAF();
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
@@ -521,7 +521,7 @@ namespace Advobot.Commands.GuildSettings
 			var desc = Context.GuildSettings.Format(settingName);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(settingName.Name, desc)).CAF();
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(settingName.Name, desc)).CAF();
 			}
 			else
 			{

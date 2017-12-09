@@ -20,7 +20,7 @@ namespace Advobot.Core.Classes
 		{
 			GetUrl(context, text);
 			VerifyUrl();
-			HasErrors = ErrorReason != null;
+			this.HasErrors = this.ErrorReason != null;
 		}
 
 		private void GetUrl(ICommandContext context, string text)
@@ -29,57 +29,57 @@ namespace Advobot.Core.Classes
 			{
 				if (!Uri.IsWellFormedUriString(text, UriKind.Absolute))
 				{
-					ErrorReason = new ErrorReason("Invalid Url provided.");
+					this.ErrorReason = new ErrorReason("Invalid Url provided.");
 				}
 				else
 				{
-					Url = new Uri(text);
+					this.Url = new Uri(text);
 				}
 			}
 
-			if (Url == null)
+			if (this.Url == null)
 			{
 				var attach = context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
 				var embeds = context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
 				var imageUrls = attach.Concat(embeds);
 				if (!imageUrls.Any())
 				{
-					Url = null;
+					this.Url = null;
 				}
 				else if (imageUrls.Count() == 1)
 				{
-					Url = new Uri(imageUrls.First());
+					this.Url = new Uri(imageUrls.First());
 				}
 				else
 				{
-					ErrorReason = new ErrorReason("Too many attached or embedded images.");
+					this.ErrorReason = new ErrorReason("Too many attached or embedded images.");
 				}
 			}
 		}
 		private void VerifyUrl()
 		{
-			if (Url != null)
+			if (this.Url != null)
 			{
-				var req = WebRequest.Create(Url);
+				var req = WebRequest.Create(this.Url);
 				req.Method = WebRequestMethods.Http.Head;
 				using (var resp = req.GetResponse())
 				{
-					if (!Constants.VALID_IMAGE_EXTENSIONS.Contains(FileType = "." + resp.Headers.Get("Content-Type").Split('/').Last()))
+					if (!Constants.VALID_IMAGE_EXTENSIONS.Contains(this.FileType = "." + resp.Headers.Get("Content-Type").Split('/').Last()))
 					{
-						ErrorReason = new ErrorReason("Image must be a png or jpg.");
+						this.ErrorReason = new ErrorReason("Image must be a png or jpg.");
 					}
 					else if (!int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
 					{
-						ErrorReason = new ErrorReason("Unable to get the image's file size.");
+						this.ErrorReason = new ErrorReason("Unable to get the image's file size.");
 					}
 					else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
 					{
 						var maxSize = (double)Constants.MAX_ICON_FILE_SIZE / 1000 * 1000;
-						ErrorReason = new ErrorReason($"Image is bigger than {maxSize:0.0}MB. Manually upload instead.");
+						this.ErrorReason = new ErrorReason($"Image is bigger than {maxSize:0.0}MB. Manually upload instead.");
 					}
 					else
 					{
-						ErrorReason = null;
+						this.ErrorReason = null;
 					}
 				}
 			}

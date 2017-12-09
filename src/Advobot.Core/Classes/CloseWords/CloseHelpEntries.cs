@@ -6,8 +6,7 @@ namespace Advobot.Core.Classes.CloseWords
 {
 	public class CloseHelpEntries : CloseWords<HelpEntry>
     {
-		public CloseHelpEntries(IEnumerable<HelpEntry> suppliedObjects, string input)
-			: base(suppliedObjects, input) { }
+		public CloseHelpEntries(IEnumerable<HelpEntry> suppliedObjects, string input) : base(suppliedObjects, input) { }
 
 		protected override int FindCloseness(HelpEntry obj, string input)
 		{

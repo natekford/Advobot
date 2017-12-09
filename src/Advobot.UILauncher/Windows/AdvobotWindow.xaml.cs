@@ -10,10 +10,8 @@ using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -45,7 +43,7 @@ namespace Advobot.UILauncher.Windows
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
 			//Start the timer that shows latency, memory usage, etc.
 			((DispatcherTimer)this.Resources["ApplicationInformationTimer"]).Start();
-			_LoginHandler.AbleToStart += this.Start;
+			this._LoginHandler.AbleToStart += this.Start;
 		}
 
 		private async Task EnableButtons()
@@ -87,30 +85,30 @@ namespace Advobot.UILauncher.Windows
 			}, DispatcherPriority.Background);
 		private async Task Start()
 		{
-			Client.HeldObject = _LoginHandler.GetRequiredService<IDiscordClient>();
-			BotSettings.HeldObject = _LoginHandler.GetRequiredService<IBotSettings>();
-			LogHolder.HeldObject = _LoginHandler.GetRequiredService<ILogService>();
-			_Colors = ColorSettings.LoadUISettings();
+			this.Client.HeldObject = this._LoginHandler.GetRequiredService<IDiscordClient>();
+			this.BotSettings.HeldObject = this._LoginHandler.GetRequiredService<IBotSettings>();
+			this.LogHolder.HeldObject = this._LoginHandler.GetRequiredService<ILogService>();
+			this._Colors = ColorSettings.LoadUISettings();
 
-			if (Client.HeldObject is DiscordSocketClient socket)
+			if (this.Client.HeldObject is DiscordSocketClient socket)
 			{
 				socket.Connected += this.EnableButtons;
 				socket.GuildAvailable += this.AddGuildToTreeView;
 			}
-			else if (Client.HeldObject is DiscordShardedClient sharded)
+			else if (this.Client.HeldObject is DiscordShardedClient sharded)
 			{
 				sharded.Shards.LastOrDefault().Connected += this.EnableButtons;
 				sharded.GuildAvailable += this.AddGuildToTreeView;
 			}
-			await ClientActions.StartAsync(Client.HeldObject);
+			await ClientActions.StartAsync(this.Client.HeldObject);
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
 			//Send null once to check if a path is set in the config
 			//If it is set, then send null again to check for the bot key
-			if (await _LoginHandler.AttemptToStart(null))
+			if (await this._LoginHandler.AttemptToStart(null))
 			{
-				await _LoginHandler.AttemptToStart(null);
+				await this._LoginHandler.AttemptToStart(null);
 			}
 		}
 		private async void AcceptInput(object sender, RoutedEventArgs e)
@@ -122,9 +120,9 @@ namespace Advobot.UILauncher.Windows
 			}
 			ConsoleActions.WriteLine(input);
 
-			if (!_LoginHandler.CanLogin)
+			if (!this._LoginHandler.CanLogin)
 			{
-				await _LoginHandler.AttemptToStart(input);
+				await this._LoginHandler.AttemptToStart(input);
 			}
 		}
 		private void AcceptInputWithKey(object sender, KeyEventArgs e)
@@ -149,11 +147,11 @@ namespace Advobot.UILauncher.Windows
 			}
 
 			IUser user;
-			if (Client.HeldObject is DiscordSocketClient socket)
+			if (this.Client.HeldObject is DiscordSocketClient socket)
 			{
 				user = socket.GetUser(userId);
 			}
-			else if (Client.HeldObject is DiscordShardedClient sharded)
+			else if (this.Client.HeldObject is DiscordShardedClient sharded)
 			{
 				user = sharded.GetUser(userId);
 			}
@@ -174,9 +172,9 @@ namespace Advobot.UILauncher.Windows
 			=> this.TrustedUsers.Items.Remove(this.TrustedUsers.SelectedItem);
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			SavingActions.SaveSettings(this.SettingsMenuDisplay, BotSettings.HeldObject);
+			SavingActions.SaveSettings(this.SettingsMenuDisplay, this.BotSettings.HeldObject);
 			//In a task.run since the result is unimportant and unused
-			Task.Run(async () => await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject));
+			Task.Run(async () => await ClientActions.UpdateGameAsync(this.Client.HeldObject, this.BotSettings.HeldObject));
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -187,7 +185,7 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
-			var c = _Colors;
+			var c = this._Colors;
 			var children = this.ColorsMenuDisplay.GetChildren();
 			foreach (var tb in children.OfType<AdvobotTextBox>())
 			{
@@ -204,14 +202,14 @@ namespace Advobot.UILauncher.Windows
 						}
 						continue;
 					}
-					if (!AdvobotColor.TryCreateColor(childText, out var color))
+					if (!ColorWrapper.TryCreateColor(childText, out var color))
 					{
 						ConsoleActions.WriteLine($"Invalid color supplied for {name}: '{childText}'.");
 						continue;
 					}
 
 					var brush = color.CreateBrush();
-					if (!AdvobotColor.CheckIfSameBrush(c[target], brush))
+					if (!ColorWrapper.CheckIfSameBrush(c[target], brush))
 					{
 						c[target] = brush;
 						ConsoleActions.WriteLine($"Successfully updated the color for {name}: '{childText} ({brush.ToString()})'.");
@@ -303,17 +301,17 @@ namespace Advobot.UILauncher.Windows
 			this.FilesMenu.Visibility = Visibility.Collapsed;
 
 			var type = ele.Tag as MenuType? ?? default;
-			if (type == _LastButtonClicked)
+			if (type == this._LastButtonClicked)
 			{
 				//If clicking the same button then resize the output window to the regular size
 				EntityActions.SetColSpan(this.Output, Grid.GetColumnSpan(this.Output) + (this.Layout.ColumnDefinitions.Count - 1));
-				_LastButtonClicked = default;
+				this._LastButtonClicked = default;
 			}
 			else
 			{
 				//Resize the regular output window and have the menubox appear
 				EntityActions.SetColSpan(this.Output, Grid.GetColumnSpan(this.Output) - (this.Layout.ColumnDefinitions.Count - 1));
-				_LastButtonClicked = type;
+				this._LastButtonClicked = type;
 
 				switch (type)
 				{
@@ -329,7 +327,7 @@ namespace Advobot.UILauncher.Windows
 					}
 					case MenuType.Settings:
 					{
-						var s = BotSettings.HeldObject;
+						var s = this.BotSettings.HeldObject;
 						var llSelected = this.LogLevel.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is LogSeverity ls && ls == s.LogLevel);
 
@@ -348,7 +346,7 @@ namespace Advobot.UILauncher.Windows
 					}
 					case MenuType.Colors:
 					{
-						var c = _Colors;
+						var c = this._Colors;
 						var tcbSelected = this.ThemesComboBox.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
 
@@ -389,7 +387,7 @@ namespace Advobot.UILauncher.Windows
 			{
 				case MessageBoxResult.OK:
 				{
-					ClientActions.DisconnectBot(Client.HeldObject);
+					ClientActions.DisconnectBot(this.Client.HeldObject);
 					return;
 				}
 			}
@@ -407,7 +405,7 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void Pause(object sender, RoutedEventArgs e)
 		{
-			if (BotSettings.HeldObject.Pause)
+			if (this.BotSettings.HeldObject.Pause)
 			{
 				this.PauseButton.Content = "Pause";
 				ConsoleActions.WriteLine("The bot is now unpaused.");
@@ -417,12 +415,12 @@ namespace Advobot.UILauncher.Windows
 				this.PauseButton.Content = "Unpause";
 				ConsoleActions.WriteLine("The bot is now paused.");
 			}
-			BotSettings.HeldObject.TogglePause();
+			this.BotSettings.HeldObject.TogglePause();
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
 			this.Uptime.Text = $"Uptime: {TimeFormatting.FormatUptime()}";
-			this.Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientActions.GetLatency(Client.HeldObject))}ms";
+			this.Latency.Text = $"Latency: {(this.Client.HeldObject == null ? -1 : ClientActions.GetLatency(this.Client.HeldObject))}ms";
 			this.Memory.Text = $"Memory: {GetActions.GetMemory().ToString("0.00")}MB";
 			this.ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
 		}

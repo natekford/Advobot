@@ -23,7 +23,7 @@ namespace Advobot.Core.Classes.BannedPhrases
 
 		public BannedPhrase(string phrase, PunishmentType punishment = default)
 		{
-			Phrase = phrase;
+			this.Phrase = phrase;
 			ChangePunishment(punishment);
 		}
 
@@ -31,7 +31,7 @@ namespace Advobot.Core.Classes.BannedPhrases
 		/// Sets <see cref="Punishment"/> to <paramref name="punishment"/>.
 		/// </summary>
 		/// <param name="punishment"></param>
-		public void ChangePunishment(PunishmentType punishment) => Punishment = punishment;
+		public void ChangePunishment(PunishmentType punishment) => this.Punishment = punishment;
 
 		/// <summary>
 		/// Deletes the message then checks if the user should be punished.
@@ -50,22 +50,22 @@ namespace Advobot.Core.Classes.BannedPhrases
 				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUserInformation(message.Author as IGuildUser));
 			}
 
-			var count = user.IncrementValue(Punishment);
-			var punishment = guildSettings.BannedPhrasePunishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
+			var count = user.IncrementValue(this.Punishment);
+			var punishment = guildSettings.BannedPhrasePunishments.SingleOrDefault(x => x.Punishment == this.Punishment && x.NumberOfRemoves == count);
 			if (punishment == null)
 			{
 				return;
 			}
 
 			var giver = new AutomaticPunishmentGiver(punishment.PunishmentTime, timers);
-			await giver.AutomaticallyPunishAsync(Punishment, user.User, punishment.GetRole(guildSettings.Guild)).CAF();
-			user.ResetValue(Punishment);
+			await giver.AutomaticallyPunishAsync(this.Punishment, user.User, punishment.GetRole(guildSettings.Guild)).CAF();
+			user.ResetValue(this.Punishment);
 		}
 
 		public override string ToString()
 		{
-			var punishmentChar = Punishment == default ? "N" : Punishment.EnumName().Substring(0, 1);
-			return $"`{punishmentChar}` `{Phrase}`";
+			var punishmentChar = this.Punishment == default ? "N" : this.Punishment.EnumName().Substring(0, 1);
+			return $"`{punishmentChar}` `{this.Phrase}`";
 		}
 		public string ToString(SocketGuild guild) => ToString();
 	}

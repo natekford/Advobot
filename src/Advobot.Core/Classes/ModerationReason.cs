@@ -11,13 +11,13 @@ namespace Advobot.Core.Classes
 	{
 		public AutomaticModerationReason(string reason) : base(null, reason)
 		{
-			User = null;
-			Reason = reason == null ? "not specified" : reason.TrimEnd('.');
-			HasReason = !String.IsNullOrWhiteSpace(reason);
-			IsAutomatic = true;
+			this.User = null;
+			this.Reason = reason == null ? "not specified" : reason.TrimEnd('.');
+			this.HasReason = !String.IsNullOrWhiteSpace(reason);
+			this.IsAutomatic = true;
 		}
 
-		public override string ToString() => $"Automatic action. Trigger: {Reason}.";
+		public override string ToString() => $"Automatic action. Trigger: {this.Reason}.";
 	}
 
 	/// <summary>
@@ -32,14 +32,14 @@ namespace Advobot.Core.Classes
 
 		public ModerationReason(IUser user, string reason)
 		{
-			User = user;
-			Reason = reason == null ? "not specified" : reason.TrimEnd('.');
-			HasReason = !String.IsNullOrWhiteSpace(reason);
-			IsAutomatic = false;
+			this.User = user;
+			this.Reason = reason == null ? "not specified" : reason.TrimEnd('.');
+			this.HasReason = !String.IsNullOrWhiteSpace(reason);
+			this.IsAutomatic = false;
 		}
 
 		public RequestOptions CreateRequestOptions() => new RequestOptions { AuditLogReason = this.ToString(), };
 
-		public override string ToString() => $"Action by {User.FormatUser()}. Reason: {Reason}.";
+		public override string ToString() => $"Action by {this.User.FormatUser()}. Reason: {this.Reason}.";
 	}
 }

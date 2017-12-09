@@ -1,6 +1,7 @@
 ﻿using Advobot.Core.Actions;
 using Discord;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -9,10 +10,13 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Mostly functionally identical to <see cref="EmbedBuilder"/> except this implementation prioritizes this implementation's methods.
 	/// </summary>
-	public class AdvobotEmbed : EmbedBuilder
+	public class EmbedWrapper : EmbedBuilder
 	{
-		public AdvobotEmbed(string title = null, string description = null, Color? color = null, string imageUrl = null,
-			string url = null, string thumbnailUrl = null)
+		private List<EmbedError> _Errors = new List<EmbedError>();
+		public IReadOnlyList<EmbedError> Errors => this._Errors.AsReadOnly();
+
+		public EmbedWrapper(string title = null, string description = null, Color? color = null,
+			string imageUrl = null, string url = null, string thumbnailUrl = null)
 		{
 			imageUrl = GetActions.GetIfStringIsValidUrl(imageUrl) ? imageUrl : null;
 			url = GetActions.GetIfStringIsValidUrl(url) ? url : null;
@@ -32,6 +36,8 @@ namespace Advobot.Core.Classes
 				catch (Exception e)
 				{
 					ConsoleActions.ExceptionToConsole(e);
+					this._Errors.Add(new EmbedError("Description", description, e));
+					this.WithDescription(e.Message);
 				}
 			}
 			if (color != null)
@@ -59,7 +65,7 @@ namespace Advobot.Core.Classes
 		/// <param name="iconUrl"></param>
 		/// <param name="url"></param>
 		/// <returns></returns>
-		public AdvobotEmbed AddAuthor(string name = null, string iconUrl = null, string url = null)
+		public EmbedWrapper AddAuthor(string name = null, string iconUrl = null, string url = null)
 		{
 			if (String.IsNullOrWhiteSpace(name) && String.IsNullOrWhiteSpace(iconUrl) && String.IsNullOrWhiteSpace(url))
 			{
@@ -92,7 +98,7 @@ namespace Advobot.Core.Classes
 		/// <param name="user"></param>
 		/// <param name="URL"></param>
 		/// <returns></returns>
-		public AdvobotEmbed AddAuthor(IUser user, string URL = null)
+		public EmbedWrapper AddAuthor(IUser user, string URL = null)
 			=> this.AddAuthor(user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
 		/// <summary>
 		/// Adds a footer to the embed. Verifies the Url exists and cuts the text to the appropriate length.
@@ -100,7 +106,7 @@ namespace Advobot.Core.Classes
 		/// <param name="text"></param>
 		/// <param name="iconUrl"></param>
 		/// <returns></returns>
-		public AdvobotEmbed AddFooter([CallerMemberName] string text = null, string iconUrl = null)
+		public EmbedWrapper AddFooter([CallerMemberName] string text = null, string iconUrl = null)
 		{
 			if (String.IsNullOrWhiteSpace(text) && String.IsNullOrWhiteSpace(iconUrl))
 			{
@@ -129,7 +135,7 @@ namespace Advobot.Core.Classes
 		/// <param name="value"></param>
 		/// <param name="isInline"></param>
 		/// <returns></returns>
-		public AdvobotEmbed AddField( string name, string value, bool isInline = true)
+		public EmbedWrapper AddField( string name, string value, bool isInline = true)
 		{
 			if (String.IsNullOrWhiteSpace(name) || String.IsNullOrWhiteSpace(value))
 			{

@@ -17,7 +17,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			set
 			{
 				EntityActions.SetFontResizeProperty(this, value);
-				_FRV = value;
+				this._FRV = value;
 			}
 		}
 

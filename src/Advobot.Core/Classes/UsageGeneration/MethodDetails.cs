@@ -17,12 +17,12 @@ namespace Advobot.Core.Classes.UsageGeneration
 
 		public MethodDetails(int deepness, MethodInfo method)
 		{
-			Deepness = deepness;
-			Name = method.GetCustomAttribute<CommandAttribute>()?.Text;
-			ArgCount = method.GetParameters().Count();
-			HasNoArgs = ArgCount == 0;
+			this.Deepness = deepness;
+			this.Name = method.GetCustomAttribute<CommandAttribute>()?.Text;
+			this.ArgCount = method.GetParameters().Count();
+			this.HasNoArgs = this.ArgCount == 0;
 		}
 
-		public override string ToString() => Name;
+		public override string ToString() => this.Name;
 	}
 }

@@ -19,9 +19,9 @@ namespace Advobot.UILauncher.Windows
 		public FileViewingWindow(AdvobotWindow mainWindow, AdvobotTreeViewFile treeViewFile) : base(mainWindow)
 		{
 			InitializeComponent();
-			_AdvoWin = mainWindow;
-			_TreeViewFile = treeViewFile;
-			if (SavingActions.TryGetFileText(_TreeViewFile, out var text, out var fileInfo))
+			this._AdvoWin = mainWindow;
+			this._TreeViewFile = treeViewFile;
+			if (SavingActions.TryGetFileText(this._TreeViewFile, out var text, out var fileInfo))
 			{
 				this.SpecificFileOutput.Tag = fileInfo;
 				this.SpecificFileOutput.Clear();
@@ -29,8 +29,8 @@ namespace Advobot.UILauncher.Windows
 			}
 		}
 
-		private void CopyFile(object sender, RoutedEventArgs e) => _TreeViewFile.CopyFile();
-		private void DeleteFile(object sender, RoutedEventArgs e) => _TreeViewFile.DeleteFile();
+		private void CopyFile(object sender, RoutedEventArgs e) => this._TreeViewFile.CopyFile();
+		private void DeleteFile(object sender, RoutedEventArgs e) => this._TreeViewFile.DeleteFile();
 		private void SaveFile(object sender, RoutedEventArgs e)
 			=> ToolTipActions.EnableTimedToolTip(this.Layout, SavingActions.SaveFile(this.SpecificFileOutput).GetReason());
 		private void SaveFileWithCtrlS(object sender, KeyEventArgs e)

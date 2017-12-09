@@ -8,7 +8,7 @@ namespace Advobot.Core.Actions.Formatting
 {
 	public static class GeneralFormatting
 	{
-		private static readonly Regex _RemoveDuplicateSpaces = new Regex(@"[\r\n]+", RegexOptions.Compiled);
+		private static readonly Regex _RemoveDuplicateLines = new Regex(@"[\r\n]+", RegexOptions.Compiled);
 
 		/// <summary>
 		/// Returns a string with the given number of spaces minus the length of the second object padded onto the right side of the first object.
@@ -65,7 +65,7 @@ namespace Advobot.Core.Actions.Formatting
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string EscapeAllMarkdown(this string input) => input.Replace("`", "\\`").Replace("*", "\\*").Replace("_", "\\_");
+		public static string EscapeAllMarkdown(this string input) => input?.Replace("`", "\\`")?.Replace("*", "\\*")?.Replace("_", "\\_");
 		/// <summary>
 		/// Returns the input string with ` escaped.
 		/// </summary>
@@ -77,19 +77,19 @@ namespace Advobot.Core.Actions.Formatting
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string RemoveAllMarkdown(this string input) => input.Replace("`", "").Replace("*", "").Replace("_", "");
+		public static string RemoveAllMarkdown(this string input) => input?.Replace("`", "")?.Replace("*", "")?.Replace("_", "");
 		/// <summary>
 		/// Returns the input string with no duplicate new lines.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string RemoveDuplicateNewLines(this string input) => _RemoveDuplicateSpaces.Replace(input, "\n");
+		public static string RemoveDuplicateNewLines(this string input) => _RemoveDuplicateLines.Replace(input, "\n");
 		/// <summary>
 		/// Returns the input string with no new lines.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string RemoveAllNewLines(this string input) => input.Replace("\r", "").Replace("\n", "");
+		public static string RemoveAllNewLines(this string input) => input?.Replace("\r", "")?.Replace("\n", "");
 
 		/// <summary>
 		/// Adds in spaces between each capital letter.

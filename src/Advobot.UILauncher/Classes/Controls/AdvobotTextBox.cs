@@ -20,7 +20,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			get => _T;
 			set
 			{
-				_T = value;
+				this._T = value;
 				ActivateTBType();
 			}
 		}
@@ -30,8 +30,8 @@ namespace Advobot.UILauncher.Classes.Controls
 			get => _FRV;
 			set
 			{
-				_FRV = value;
-				EntityActions.SetFontResizeProperty(this, _FRV);
+				this._FRV = value;
+				EntityActions.SetFontResizeProperty(this, this._FRV);
 			}
 		}
 		private string _S;
@@ -40,8 +40,8 @@ namespace Advobot.UILauncher.Classes.Controls
 			get => _S;
 			set
 			{
-				_S = value;
-				this.ToolTip = new ToolTip { Content = _S, };
+				this._S = value;
+				this.ToolTip = new ToolTip { Content = this._S, };
 				this.MouseEnter += (sender, e) => ((ToolTip)this.ToolTip).EnableToolTip();
 				this.MouseLeave += (sender, e) => ((ToolTip)this.ToolTip).DisableToolTip();
 			}
@@ -59,7 +59,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 		private void ActivateTBType()
 		{
-			switch (_T)
+			switch (this._T)
 			{
 				case TBType.Title:
 				{
@@ -105,7 +105,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 		private void ActivateTitle()
 		{
-			switch (_T)
+			switch (this._T)
 			{
 				case TBType.Title:
 				{

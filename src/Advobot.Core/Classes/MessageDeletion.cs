@@ -17,13 +17,13 @@ namespace Advobot.Core.Classes
 		{
 			get
 			{
-				_CancelToken?.Cancel();
-				return _CancelToken = new CancellationTokenSource();
+				this._CancelToken?.Cancel();
+				return this._CancelToken = new CancellationTokenSource();
 			}
 		}
 		private ConcurrentBag<IMessage> _Messages = new ConcurrentBag<IMessage>();
-		public ConcurrentBag<IMessage> Messages => _Messages;
+		public ConcurrentBag<IMessage> Messages => this._Messages;
 
-		public void ClearBag() => Interlocked.Exchange(ref _Messages, new ConcurrentBag<IMessage>());
+		public void ClearBag() => Interlocked.Exchange(ref this._Messages, new ConcurrentBag<IMessage>());
 	}
 }

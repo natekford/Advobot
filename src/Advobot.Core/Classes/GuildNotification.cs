@@ -30,26 +30,21 @@ namespace Advobot.Core.Classes
 		[JsonProperty]
 		public ulong ChannelId { get; }
 		[JsonIgnore]
-		public AdvobotEmbed Embed { get; }
+		public EmbedWrapper Embed { get; }
 		[JsonIgnore]
 		public ITextChannel Channel { get; private set; }
 
 		[JsonConstructor]
-		internal GuildNotification(
-			string content,
-			string title,
-			string description,
-			string thumbUrl,
-			ulong channelID)
+		internal GuildNotification(string content, string title, string description, string thumbUrl, ulong channelID)
 		{
-			Content = content;
-			Title = title;
-			Description = description;
-			ThumbUrl = thumbUrl;
-			ChannelId = channelID;
+			this.Content = content;
+			this.Title = title;
+			this.Description = description;
+			this.ThumbUrl = thumbUrl;
+			this.ChannelId = channelID;
 			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbUrl)))
 			{
-				Embed = new AdvobotEmbed(title, description, null, null, null, thumbUrl);
+				this.Embed = new EmbedWrapper(title, description, null, null, null, thumbUrl);
 			}
 		}
 		[CustomArgumentConstructor]
@@ -60,14 +55,14 @@ namespace Advobot.Core.Classes
 			[CustomArgument] string thumbURL,
 			ITextChannel channel) : this(content, title, description, thumbURL, channel.Id)
 		{
-			Channel = channel;
+			this.Channel = channel;
 		}
 
 		/// <summary>
 		/// Changes the channel the notification gets sent to.
 		/// </summary>
 		/// <param name="channel"></param>
-		public void ChangeChannel(ITextChannel channel) => Channel = channel;
+		public void ChangeChannel(ITextChannel channel) => this.Channel = channel;
 		/// <summary>
 		/// Sends the notification to the channel.
 		/// </summary>
@@ -75,33 +70,32 @@ namespace Advobot.Core.Classes
 		/// <returns></returns>
 		public async Task SendAsync(IUser user)
 		{
-			var content = Content
+			var content = this.Content
 				.CaseInsReplace(USER_MENTION, user != null ? user.Mention : "Invalid User")
 				.CaseInsReplace(USER_STRING, user != null ? user.FormatUser() : "Invalid User");
 			//Put a zero length character in between invite links for names so the invite links will no longer embed
 
-			if (Embed != null)
+			if (this.Embed != null)
 			{
-				await MessageActions.SendEmbedMessageAsync(Channel, Embed, content).CAF();
+				await MessageActions.SendEmbedMessageAsync(this.Channel, this.Embed, content).CAF();
 			}
 			else
 			{
-				await MessageActions.SendMessageAsync(Channel, content).CAF();
+				await MessageActions.SendMessageAsync(this.Channel, content).CAF();
 			}
 		}
 		/// <summary>
 		/// Sets <see cref="Channel"/> to whichever text channel on <paramref name="guild"/> has the Id <see cref="ChannelId"/>.
 		/// </summary>
 		/// <param name="guild"></param>
-		public void PostDeserialize(SocketGuild guild) => Channel = guild.GetTextChannel(ChannelId);
+		public void PostDeserialize(SocketGuild guild) => this.Channel = guild.GetTextChannel(this.ChannelId);
 
-		public override string ToString()
-			=> new StringBuilder()
-			.AppendLineFeed($"**Channel:** `{Channel.FormatChannel()}`")
-			.AppendLineFeed($"**Content:** `{Content}`")
-			.AppendLineFeed($"**Title:** `{Title}`")
-			.AppendLineFeed($"**Description:** `{Description}`")
-			.AppendLineFeed($"**Thumbnail:** `{ThumbUrl}`").ToString();
+		public override string ToString() => new StringBuilder()
+			.AppendLineFeed($"**Channel:** `{this.Channel.FormatChannel()}`")
+			.AppendLineFeed($"**Content:** `{this.Content}`")
+			.AppendLineFeed($"**Title:** `{this.Title}`")
+			.AppendLineFeed($"**Description:** `{this.Description}`")
+			.AppendLineFeed($"**Thumbnail:** `{this.ThumbUrl}`").ToString();
 		public string ToString(SocketGuild guild) => ToString();
 	}
 }

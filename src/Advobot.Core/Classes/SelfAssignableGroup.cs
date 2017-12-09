@@ -21,16 +21,16 @@ namespace Advobot.Core.Classes
 
 		public SelfAssignableGroup(int group)
 		{
-			Group = group;
+			this.Group = group;
 		}
 
-		public void AddRoles(IEnumerable<SelfAssignableRole> roles) => Roles.AddRange(roles);
-		public void RemoveRoles(IEnumerable<ulong> roleIDs) => Roles.RemoveAll(x => roleIDs.Contains(x.RoleId));
+		public void AddRoles(IEnumerable<SelfAssignableRole> roles) => this.Roles.AddRange(roles);
+		public void RemoveRoles(IEnumerable<ulong> roleIDs) => this.Roles.RemoveAll(x => roleIDs.Contains(x.RoleId));
 
 		public override string ToString()
 			=> new StringBuilder()
-			.AppendLineFeed($"`Group: {Group}`")
-			.Append(String.Join("\n", Roles.Select(x => x.ToString()))).ToString();
+			.AppendLineFeed($"`Group: {this.Group}`")
+			.Append(String.Join("\n", this.Roles.Select(x => x.ToString()))).ToString();
 		public string ToString(SocketGuild guild) => ToString();
 	}
 }

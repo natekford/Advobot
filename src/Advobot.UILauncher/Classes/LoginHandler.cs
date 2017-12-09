@@ -5,7 +5,6 @@ using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
-using System.Windows;
 
 namespace Advobot.UILauncher.Classes
 {
@@ -25,23 +24,23 @@ namespace Advobot.UILauncher.Classes
 		/// <returns></returns>
 		public async Task<bool> AttemptToStart(string input)
 		{
-			if (!GotPath)
+			if (!this.GotPath)
 			{
 				//Null means it's from the loaded event, which is start up so it's telling the bot to look up the config value
-				_StartUp = input == null;
+				this._StartUp = input == null;
 				//Set startup to whatever returned value is so it can be used in GotKey, and then after GotKey in the last if statement
-				_StartUp = GotPath = (_Provider = await GetPath(input, _StartUp)) != null;
+				this._StartUp = this.GotPath = (this._Provider = await GetPath(input, this._StartUp)) != null;
 			}
-			else if (!GotKey)
+			else if (!this.GotKey)
 			{
-				_StartUp = input == null;
-				_StartUp = GotKey = await Config.ValidateBotKey(_Provider.GetRequiredService<IDiscordClient>(), input, _StartUp);
+				this._StartUp = input == null;
+				this._StartUp = this.GotKey = await Config.ValidateBotKey(this._Provider.GetRequiredService<IDiscordClient>(), input, this._StartUp);
 			}
 
-			var somethingWasSet = _StartUp;
-			if (_StartUp && (CanLogin = GotKey && GotPath))
+			var somethingWasSet = this._StartUp;
+			if (this._StartUp && (this.CanLogin = this.GotKey && this.GotPath))
 			{
-				_StartUp = false;
+				this._StartUp = false;
 				AbleToStart?.Invoke();
 			}
 			return somethingWasSet;
@@ -59,6 +58,6 @@ namespace Advobot.UILauncher.Classes
 		private static async Task<bool> GetKey(IDiscordClient client, string key, bool startup)
 			=> await Config.ValidateBotKey(client, key, startup);
 
-		public object GetService(Type serviceType) => _Provider.GetService(serviceType);
+		public object GetService(Type serviceType) => this._Provider.GetService(serviceType);
 	}
 }

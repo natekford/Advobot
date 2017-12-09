@@ -96,7 +96,7 @@ namespace Advobot.Commands.GuildList
 			}
 			else if (invites.Count() <= 5)
 			{
-				var embed = new AdvobotEmbed("Guilds");
+				var embed = new EmbedWrapper("Guilds");
 				invites.ToList().ForEach(x =>
 				{
 					var e = x.HasGlobalEmotes ? "**Has global emotes**" : "";

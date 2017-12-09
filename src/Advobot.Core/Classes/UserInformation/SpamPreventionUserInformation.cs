@@ -40,31 +40,31 @@ namespace Advobot.Core.Classes.UserInformation
 		{
 			foreach (SpamType spamType in Enum.GetValues(typeof(SpamType)))
 			{
-				SpamLists.TryAdd(spamType, new ConcurrentQueue<BasicTimeInterface>());
+				this.SpamLists.TryAdd(spamType, new ConcurrentQueue<BasicTimeInterface>());
 			}
 		}
 
 		public void IncreaseVotesToKick(ulong id)
 		{
-			if (!UsersWhoHaveAlreadyVoted.Any(x => x == id))
+			if (!this.UsersWhoHaveAlreadyVoted.Any(x => x == id))
 			{
-				UsersWhoHaveAlreadyVoted.Add(id);
+				this.UsersWhoHaveAlreadyVoted.Add(id);
 			}
 		}
-		public void ChangeVotesRequired(int newVotesRequired) => VotesRequired = Math.Min(newVotesRequired, VotesRequired);
-		public void EnablePunishable() => PotentialPunishment = true;
+		public void ChangeVotesRequired(int newVotesRequired) => this.VotesRequired = Math.Min(newVotesRequired, this.VotesRequired);
+		public void EnablePunishable() => this.PotentialPunishment = true;
 		public void ChangePunishmentType(PunishmentType newPunishment)
 		{
-			if (_PunishmentSeverity[newPunishment] > _PunishmentSeverity[Punishment])
+			if (_PunishmentSeverity[newPunishment] > _PunishmentSeverity[this.Punishment])
 			{
-				Punishment = newPunishment;
+				this.Punishment = newPunishment;
 			}
 		}
 
 		public void ResetSpamUser()
 		{
-			UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
-			foreach (var kvp in SpamLists)
+			this.UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
+			foreach (var kvp in this.SpamLists)
 			{
 				while (!kvp.Value.IsEmpty)
 				{
@@ -72,16 +72,16 @@ namespace Advobot.Core.Classes.UserInformation
 				}
 			}
 
-			VotesRequired = int.MaxValue;
-			PotentialPunishment = false;
-			Punishment = default;
+			this.VotesRequired = int.MaxValue;
+			this.PotentialPunishment = false;
+			this.Punishment = default;
 		}
 		public bool CheckIfAllowedToPunish(SpamPreventionInfo spamPrev, SpamType spamType)
-			=> SpamLists[spamType].CountItemsInTimeFrame(spamPrev.RequiredSpamPerMessageOrTimeInterval) >= spamPrev.RequiredSpamInstances;
+			=> this.SpamLists[spamType].CountItemsInTimeFrame(spamPrev.RequiredSpamPerMessageOrTimeInterval) >= spamPrev.RequiredSpamInstances;
 		public async Task PunishAsync(IGuildSettings guildSettings)
 		{
 			var giver = new AutomaticPunishmentGiver(0, null);
-			await giver.AutomaticallyPunishAsync(Punishment, User, guildSettings.MuteRole).CAF();
+			await giver.AutomaticallyPunishAsync(this.Punishment, this.User, guildSettings.MuteRole).CAF();
 		}
 	}
 }
