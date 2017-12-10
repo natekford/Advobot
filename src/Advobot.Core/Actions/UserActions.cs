@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions done on an <see cref="IUser"/>.
+	/// </summary>
 	public static class UserActions
 	{
 		/// <summary>
@@ -19,7 +22,8 @@ namespace Advobot.Core.Actions
 		/// <param name="target"></param>
 		/// <param name="checks"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult VerifyUserMeetsRequirements(this IGuildUser target, ICommandContext context, IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult VerifyUserMeetsRequirements(this IGuildUser target, ICommandContext context,
+			IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{
@@ -51,13 +55,7 @@ namespace Advobot.Core.Actions
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public static int GetPosition(this IUser user)
-		{
-			if (user is SocketGuildUser socketGuildUser)
-			{
-				return socketGuildUser.Hierarchy;
-			}
-			return -1;
-		}
+			=> user is SocketGuildUser socket ? socket.Hierarchy : -1;
 		/// <summary>
 		/// Returns true if the invoking user's position is greater than the target user's position.
 		/// </summary>
@@ -65,16 +63,8 @@ namespace Advobot.Core.Actions
 		/// <param name="target"></param>
 		/// <returns></returns>
 		public static bool GetIfCanModifyUser(this IUser invokingUser, IUser target)
-		{
-			if (target.Id == invokingUser.Id && invokingUser.Id.ToString() == Config.Configuration[ConfigKey.BotId])
-			{
-				return true;
-			}
-
-			var modifierPosition = invokingUser.GetPosition();
-			var modifieePosition = target.GetPosition();
-			return modifierPosition > modifieePosition;
-		}
+			=> (target.Id == invokingUser.Id && target.Id.ToString() == Config.Configuration[ConfigKey.BotId])
+			|| invokingUser.GetPosition() > target.GetPosition();
 		/// <summary>
 		/// Returns true if the user can edit the user in the specified way.
 		/// </summary>

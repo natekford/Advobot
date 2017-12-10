@@ -220,7 +220,7 @@ namespace Advobot.Commands.GuildModeration
 				{
 					await GuildActions.ModifyGuildIconAsync(Context.Guild, fileInfo, new ModerationReason(Context.User, null)).CAF();
 					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully changed the guild's icon.").CAF();
-					SavingAndLoadingActions.DeleteFile(fileInfo);
+					IOActions.DeleteFile(fileInfo);
 				};
 			}
 		}

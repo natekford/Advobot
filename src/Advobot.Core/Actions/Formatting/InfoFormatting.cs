@@ -9,6 +9,9 @@ using System.Text;
 
 namespace Advobot.Core.Actions.Formatting
 {
+	/// <summary>
+	/// Formatting for information about Discord objects.
+	/// </summary>
 	public static class InfoFormatting
 	{
 		/// <summary>

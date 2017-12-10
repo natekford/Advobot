@@ -3,6 +3,9 @@ using System.Diagnostics;
 
 namespace Advobot.Core.Actions.Formatting
 {
+	/// <summary>
+	/// Formatting for time.
+	/// </summary>
 	public static class TimeFormatting
 	{
 		/// <summary>
@@ -27,19 +30,19 @@ namespace Advobot.Core.Actions.Formatting
 		/// <returns></returns>
 		public static string FormatReadableDateTime(DateTime dt)
 		{
-			var ndt = dt.ToUniversalTime();
-			var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(ndt.Month);
-			return $"{monthName} {ndt.Day}, {ndt.Year} at {ndt.ToLongTimeString()}";
+			var utc = dt.ToUniversalTime();
+			var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(utc.Month);
+			return $"{monthName} {utc.Day}, {utc.Year} at {utc.ToLongTimeString()}";
 		}
 		/// <summary>
 		/// Returns the passed in time as a human readable time and says how many days ago it was.
 		/// </summary>
 		/// <param name="dt"></param>
 		/// <returns></returns>
-		public static string FormatDateTimeForCreatedAtMessage(DateTime? dt)
+		public static string FormatDateTimeForCreatedAtMessage(DateTime dt)
 		{
-			var time = FormatReadableDateTime(dt ?? DateTime.UtcNow);
-			var diff = DateTime.UtcNow.Subtract(dt ?? DateTime.UtcNow).Days;
+			var time = FormatReadableDateTime(dt);
+			var diff = DateTime.UtcNow.Subtract(dt).Days;
 			return $"**Created:** `{time}` (`{diff}` days ago)";
 		}
 	}

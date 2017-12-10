@@ -54,7 +54,7 @@ namespace Advobot.Core.Classes.Permissions
 			| ChannelPermission.DeafenMembers
 			| ChannelPermission.MoveMembers;
 
-		public static ImmutableList<ChannelPerm> Permissions = ImmutableList.Create(CreateChannelPermList());
+		public static ImmutableList<ChannelPerm> Permissions = ImmutableList.Create(CreatePermList());
 
 		/// <summary>
 		/// Returns the first <see cref="ChannelPerm"/> to have the given name. (Case insensitive)
@@ -128,7 +128,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <param name="validPerms"></param>
 		/// <param name="invalidPerms"></param>
 		/// <returns>Boolean representing true if all permissions are valid, false if any are invalid.</returns>
-		public static bool TryGetValidChannelPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
+		public static bool TryGetValidPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
 		{
 			var permissions = input.Split('/', ' ').Select(x => x.Trim(','));
 			validPerms = permissions.Where(x => Permissions.Select(y => y.Name).CaseInsContains(x));
@@ -136,7 +136,7 @@ namespace Advobot.Core.Classes.Permissions
 			return !invalidPerms.Any();
 		}
 
-		private static ChannelPerm[] CreateChannelPermList()
+		private static ChannelPerm[] CreatePermList()
 		{
 			var temp = new List<ChannelPerm>();
 			for (int i = 0; i < 64; ++i)

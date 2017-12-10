@@ -65,7 +65,7 @@ namespace Advobot.Core.Classes.CloseWords
 		protected int FindCloseName(string source, string target, int threshold = 10)
 		{
 			/* Damerau Levenshtein Distance: https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
-			 * Copied verbatim from: https://stackoverflow.com/a/9454016 
+			 * Copied nearly verbatim from: https://stackoverflow.com/a/9454016 
 			 */
 			int length1 = source.Length;
 			int length2 = target.Length;
@@ -120,7 +120,9 @@ namespace Advobot.Core.Classes.CloseWords
 					int min = (del > ins) ? (ins > sub ? sub : ins) : (del > sub ? sub : del);
 
 					if (i > 1 && j > 1 && source[im2] == target[jm1] && source[im1] == target[j - 2])
+					{
 						min = Math.Min(min, dMinus2[im2] + cost);
+					}
 
 					dCurrent[i] = min;
 					if (min < minDistance) { minDistance = min; }

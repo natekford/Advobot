@@ -7,37 +7,32 @@ using System.Text;
 
 namespace Advobot.Core.Classes.Rules
 {
+	/// <summary>
+	/// Holds a bunch of strings representing rules.
+	/// </summary>
 	public class RuleCategory : ISetting
 	{
 		[JsonProperty]
 		public string Name { get; private set; }
 		[JsonProperty("Rules")]
-		private List<Rule> _Rules = new List<Rule>();
+		private List<string> _Rules = new List<string>();
 		[JsonIgnore]
-		public IReadOnlyList<Rule> Rules => this._Rules.AsReadOnly();
+		public IReadOnlyList<string> Rules => this._Rules.AsReadOnly();
 
 		public RuleCategory(string name)
 		{
 			this.Name = name;
 		}
 
-		public void AddRule(Rule rule) => this._Rules.Add(rule);
-		public bool RemoveRule(int index)
-		{
-			if (index >= 0 && index < this._Rules.Count)
-			{
-				this._Rules.RemoveAt(index);
-				return true;
-			}
-			return false;
-		}
-		public bool RemoveRule(Rule rule) => this._Rules.Remove(rule);
+		public void AddRule(string rule) => this._Rules.Add(rule);
+		public bool RemoveRule(int index) => index >= 0 && index < this._Rules.Count && this._Rules.Remove(this._Rules[index]);
+		public bool RemoveRule(string rule) => this._Rules.Remove(rule);
 		public void ChangeName(string name) => this.Name = name;
 		public void ChangeRule(int index, string text)
 		{
 			if (index >= 0 && index < this.Rules.Count)
 			{
-				this._Rules[index].ChangeText(text);
+				this._Rules[index] = text;
 			}
 		}
 
@@ -45,10 +40,10 @@ namespace Advobot.Core.Classes.Rules
 		public string ToString(RuleFormatter formatter, int index)
 		{
 			var sb = new StringBuilder();
-			sb.AppendLineFeed(formatter.FormatName(this, 0));
+			sb.AppendLineFeed(formatter.FormatName(this.Name, 0));
 			for (int r = 0; r < this.Rules.Count; ++r)
 			{
-				sb.AppendLineFeed(this.Rules[r].ToString(formatter, r, this.Rules.Count));
+				sb.AppendLineFeed(formatter.FormatRule(this.Rules[r], r, this.Rules.Count));
 			}
 			return sb.ToString();
 		}

@@ -8,77 +8,11 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions which are extensions to other classes.
+	/// </summary>
 	public static class ExtendedActions
 	{
-		/// <summary>
-		/// Locks the list then adds the object.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="list"></param>
-		/// <param name="obj"></param>
-		public static void ThreadSafeAdd<T>(this List<T> list, T obj)
-		{
-			lock (list)
-			{
-				list.Add(obj);
-			}
-		}
-		/// <summary>
-		/// Locks the input list then concats the second list to it.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="list"></param>
-		/// <param name="objs"></param>
-		/// <returns></returns>
-		public static IEnumerable<T> ThreadSafeConcat<T>(this List<T> list, IEnumerable<T> objs)
-		{
-			lock (list)
-			{
-				return list.Concat(objs);
-			}
-		}
-		/// <summary>
-		/// Locks the input list then adds the second list to it.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="list"></param>
-		/// <param name="objs"></param>
-		public static void ThreadSafeAddRange<T>(this List<T> list, IEnumerable<T> objs)
-		{
-			lock (list)
-			{
-				list.AddRange(objs);
-			}
-		}
-		/// <summary>
-		/// Locks the list then removes the object from the list.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="list"></param>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static bool ThreadSafeRemove<T>(this List<T> list, T obj)
-		{
-			lock (list)
-			{
-				return list.Remove(obj);
-			}
-		}
-		/// <summary>
-		/// Locks the list then removes all objects which match the predicate.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="list"></param>
-		/// <param name="match"></param>
-		/// <returns></returns>
-		public static int ThreadSafeRemoveAll<T>(this List<T> list, Predicate<T> match)
-		{
-			lock (list)
-			{
-				return list.RemoveAll(match);
-			}
-		}
-
 		/// <summary>
 		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if two strings are the same.
 		/// </summary>
@@ -86,23 +20,7 @@ namespace Advobot.Core.Actions
 		/// <param name="str2"></param>
 		/// <returns></returns>
 		public static bool CaseInsEquals(this string str1, string str2)
-		{
-			//null == null
-			if (str1 == null)
-			{
-				return str2 == null;
-			}
-			//x != null
-			else if (str2 == null)
-			{
-				return false;
-			}
-			//x ?= x
-			else
-			{
-				return str1.Equals(str2, StringComparison.OrdinalIgnoreCase);
-			}
-		}
+			=> String.Equals(str1, str2, StringComparison.OrdinalIgnoreCase);
 		/// <summary>
 		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if a string contains a search string.
 		/// </summary>
@@ -110,16 +28,7 @@ namespace Advobot.Core.Actions
 		/// <param name="search"></param>
 		/// <returns></returns>
 		public static bool CaseInsContains(this string source, string search)
-		{
-			if (source == null || search == null)
-			{
-				return false;
-			}
-			else
-			{
-				return source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
-			}
-		}
+			=> source != null && search != null && source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
 		/// <summary>
 		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to return the index of a search string.
 		/// </summary>
@@ -129,15 +38,8 @@ namespace Advobot.Core.Actions
 		/// <returns></returns>
 		public static bool CaseInsIndexOf(this string source, string search, out int position)
 		{
-			position = -1;
-			if (source == null || search == null)
-			{
-				return false;
-			}
-			else
-			{
-				return (position = source.IndexOf(search, StringComparison.OrdinalIgnoreCase)) >= 0;
-			}
+			position = source == null || search == null ? -1 : source.IndexOf(search, StringComparison.OrdinalIgnoreCase);
+			return position >= 0;
 		}
 		/// <summary>
 		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if a string ends with a search string.
@@ -146,16 +48,7 @@ namespace Advobot.Core.Actions
 		/// <param name="search"></param>
 		/// <returns></returns>
 		public static bool CaseInsStartsWith(this string source, string search)
-		{
-			if (source == null || search == null)
-			{
-				return false;
-			}
-			else
-			{
-				return source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
-			}
-		}
+			=> source != null && search != null && source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
 		/// <summary>
 		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if a string ends with a search string.
 		/// </summary>
@@ -163,16 +56,7 @@ namespace Advobot.Core.Actions
 		/// <param name="search"></param>
 		/// <returns></returns>
 		public static bool CaseInsEndsWith(this string source, string search)
-		{
-			if (source == null || search == null)
-			{
-				return false;
-			}
-			else
-			{
-				return source.EndsWith(search, StringComparison.OrdinalIgnoreCase);
-			}
-		}
+			=> source != null && search != null && source.EndsWith(search, StringComparison.OrdinalIgnoreCase);
 		/// <summary>
 		/// Returns the string with the oldValue replaced with the newValue case insensitively.
 		/// </summary>
@@ -220,13 +104,8 @@ namespace Advobot.Core.Actions
 		/// <param name="search"></param>
 		/// <returns></returns>
 		public static bool CaseInsContains(this IEnumerable<string> enumerable, string search)
-		{
-			if (enumerable.Any())
-			{
-				return enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
-			}
-			return false;
-		}
+			=> enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
+
 		/// <summary>
 		/// Verifies all characters in the string have a value of a less than the upperlimit.
 		/// </summary>
@@ -234,31 +113,21 @@ namespace Advobot.Core.Actions
 		/// <param name="upperLimit"></param>
 		/// <returns></returns>
 		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit = -1)
-		{
-			upperLimit = upperLimit < 0 ? Constants.MAX_UTF16_VAL_FOR_NAMES : upperLimit;
-			foreach (var c in str ?? String.Empty)
-			{
-				if (c > upperLimit)
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-
+			=> !str.Any(x => x > (upperLimit < 0 ? Constants.MAX_UTF16_VAL_FOR_NAMES : upperLimit));
 		/// <summary>
 		/// Returns the enum's name as a string.
 		/// </summary>
 		/// <param name="e"></param>
 		/// <returns></returns>
-		public static string EnumName(this Enum e) => Enum.GetName(e.GetType(), e);
-
+		public static string EnumName(this Enum e)
+			=> Enum.GetName(e.GetType(), e);
 		/// <summary>
 		/// Returns the count of characters equal to \r or \n.
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static int CountLineBreaks(this string str) => str?.Count(x => x == '\r' || x == '\n') ?? 0;
+		public static int CountLineBreaks(this string str)
+			=> str?.Count(x => x == '\r' || x == '\n') ?? 0;
 		/// <summary>
 		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
 		/// </summary>
@@ -296,8 +165,7 @@ namespace Advobot.Core.Actions
 			}
 
 			//Remove all that are older than the given timeframe (with an added 1 second margin)
-			//Do this because if they're too old then they cannot affect any spam prevention
-			//that relies on a timeframe
+			//Do this because if they're too old then they cannot affect any spam prevention that relies on a timeframe
 			var nowTime = DateTime.UtcNow;
 			for (int i = listLength - 1; i >= 0; --i)
 			{
@@ -320,8 +188,8 @@ namespace Advobot.Core.Actions
 		/// </summary>
 		/// <param name="num"></param>
 		/// <returns></returns>
-		public static int GetLengthOfNumber(this int num) => num == 0 ? 1 : (int)Math.Log10(Math.Abs(num)) + 1;
-
+		public static int GetLengthOfNumber(this int num)
+			=> num == 0 ? 1 : (int)Math.Log10(Math.Abs(num)) + 1;
 		/// <summary>
 		/// Takes a variable number of integers and cuts the list the smallest one (including the list's length).
 		/// </summary>

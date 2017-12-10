@@ -26,22 +26,48 @@ namespace Advobot.Core.Classes.Punishments
 			this._HasValidTimers = timers != null;
 		}
 
+		/// <summary>
+		/// Removes a user from the ban list.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="userId"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public async Task UnbanAsync(IGuild guild, ulong userId, ModerationReason reason)
 		{
 			var ban = (await guild.GetBansAsync().CAF()).SingleOrDefault(x => x.User.Id == userId);
 			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions()).CAF();
 			FollowupActions(PunishmentType.Ban, ban.User, reason);
 		}
+		/// <summary>
+		/// Removes the mute role from the user.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="role"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public async Task UnrolemuteAsync(IGuildUser user, IRole role, ModerationReason reason)
 		{
 			await RoleActions.TakeRolesAsync(user, new[] { role }, reason).CAF();
 			FollowupActions(PunishmentType.RoleMute, user, reason);
 		}
+		/// <summary>
+		/// Unmutes a user from voice chat.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public async Task UnvoicemuteAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Mute = false, reason.CreateRequestOptions()).CAF();
 			FollowupActions(PunishmentType.VoiceMute, user, reason);
 		}
+		/// <summary>
+		/// Undeafens a user from voice chat.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public async Task UndeafenAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Deaf = false, reason.CreateRequestOptions()).CAF();
@@ -59,7 +85,7 @@ namespace Advobot.Core.Classes.Punishments
 			{
 				sb.Append($"The provided reason is `{reason.Reason.EscapeBackTicks()}`. ");
 			}
-			this._Actions.Add(sb.ToString());
+			this._Actions.Add(sb.ToString().Trim());
 		}
 
 		public override string ToString() => String.Join("\n", this._Actions);

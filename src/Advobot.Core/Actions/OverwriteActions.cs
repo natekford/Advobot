@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions which are done on an <see cref="Overwrite"/>.
+	/// </summary>
 	public static class OverwriteActions
     {
 		/// <summary>

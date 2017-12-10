@@ -5,6 +5,9 @@ using System.Runtime.CompilerServices;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions involving the console.
+	/// </summary>
 	public static class ConsoleActions
 	{
 		private static object _MessageLock = new object();
@@ -29,17 +32,18 @@ namespace Advobot.Core.Actions
 
 			lock (_MessageLock)
 			{
-				if (_WrittenLines != null)
-				{
-					if (!_WrittenLines.TryGetValue(name, out List<string> list))
-					{
-						_WrittenLines.Add(name, list = new List<string>());
-					}
-					list.Add(line);
-				}
-
 				Console.ForegroundColor = color;
 				Console.WriteLine(line);
+
+				if (_WrittenLines == null)
+				{
+					return;
+				}
+				if (!_WrittenLines.TryGetValue(name, out var list))
+				{
+					_WrittenLines.Add(name, list = new List<string>());
+				}
+				list.Add(line);
 			}
 		}
 		/// <summary>

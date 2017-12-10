@@ -4,6 +4,9 @@ using System.Text.RegularExpressions;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions which are done on a <see cref="Regex"/>.
+	/// </summary>
 	public static class RegexActions
 	{
 		private static readonly Regex _TwitchRegex = new Regex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled);

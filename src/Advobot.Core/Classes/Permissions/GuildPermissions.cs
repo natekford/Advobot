@@ -12,8 +12,7 @@ namespace Advobot.Core.Classes.Permissions
 	/// </summary>
 	public static class GuildPerms
 	{
-		//Permissions that would generally indicate the user can be somewhat trusted
-		//with semi spammy commands that generally can't cause much harm
+		//Permissions that indicate the user can generally be trusted with semi spammy commands
 		public const GuildPermission USER_HAS_A_PERMISSION_PERMS = 0
 			| GuildPermission.Administrator
 			| GuildPermission.BanMembers
@@ -29,7 +28,7 @@ namespace Advobot.Core.Classes.Permissions
 			| GuildPermission.MoveMembers
 			| GuildPermission.MuteMembers;
 
-		public static ImmutableList<GuildPerm> Permissions = ImmutableList.Create(CreateGuildPermList());
+		public static ImmutableList<GuildPerm> Permissions = ImmutableList.Create(CreatePermList());
 
 		/// <summary>
 		/// Returns the first <see cref="GuildPerm"/> to have the given name. (Case insensitive)
@@ -104,7 +103,7 @@ namespace Advobot.Core.Classes.Permissions
 		/// <param name="validPerms"></param>
 		/// <param name="invalidPerms"></param>
 		/// <returns>Boolean representing true if all permissions are valid, false if any are invalid.</returns>
-		public static bool TryGetValidGuildPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
+		public static bool TryGetValidPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
 		{
 			var permissions = input.Split('/', ' ').Select(x => x.Trim(','));
 			validPerms = permissions.Where(x => Permissions.Select(y => y.Name).CaseInsContains(x));
@@ -112,7 +111,7 @@ namespace Advobot.Core.Classes.Permissions
 			return !invalidPerms.Any();
 		}
 
-		private static GuildPerm[] CreateGuildPermList()
+		private static GuildPerm[] CreatePermList()
 		{
 			var temp = new List<GuildPerm>();
 			for (int i = 0; i < 64; ++i)

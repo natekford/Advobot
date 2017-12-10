@@ -257,7 +257,7 @@ namespace Advobot.Commands.BotSettings
 				{
 					await ClientActions.ModifyBotIconAsync(Context.Client, fileInfo).CAF();
 					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully changed the bot's icon.").CAF();
-					SavingAndLoadingActions.DeleteFile(fileInfo);
+					IOActions.DeleteFile(fileInfo);
 				};
 			}
 		}

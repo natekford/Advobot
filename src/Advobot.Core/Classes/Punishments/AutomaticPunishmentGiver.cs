@@ -14,9 +14,11 @@ namespace Advobot.Core.Classes.Punishments
 	{
 		public AutomaticPunishmentGiver(int time, ITimersService timers) : base(time, timers) { }
 
-		public virtual async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IUser user, IRole role, [CallerMemberName] string reason = "")
+		public virtual async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IUser user, IRole role,
+			[CallerMemberName] string reason = "")
 			=> await AutomaticallyPunishAsync(punishmentType, user as IGuildUser, role, reason).CAF();
-		public virtual async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IGuildUser user, IRole role, [CallerMemberName] string reason = "")
+		public virtual async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IGuildUser user, IRole role,
+			[CallerMemberName] string reason = "")
 		{
 			var guild = user.GetGuild();
 			var bot = guild.GetBot();

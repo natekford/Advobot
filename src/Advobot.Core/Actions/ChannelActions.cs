@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions done on an <see cref="IChannel"/>.
+	/// </summary>
 	public static class ChannelActions
 	{
 		/// <summary>
@@ -20,7 +23,8 @@ namespace Advobot.Core.Actions
 		/// <param name="target"></param>
 		/// <param name="checkingTypes"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult VerifyChannelMeetsRequirements(this IGuildChannel target, ICommandContext context, IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult VerifyChannelMeetsRequirements(this IGuildChannel target, ICommandContext context,
+			IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{

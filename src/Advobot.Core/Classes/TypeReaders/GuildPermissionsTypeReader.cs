@@ -27,7 +27,7 @@ namespace Advobot.Core.Classes.TypeReaders
 				return Task.FromResult(TypeReaderResult.FromSuccess(rawValue));
 			}
 			//Then check permission names
-			else if (!GuildPerms.TryGetValidGuildPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
+			else if (!GuildPerms.TryGetValidPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
 			{
 				var str = $"Invalid permission{GetActions.GetPlural(invalidPerms.Count())} provided: `{String.Join("`, `", invalidPerms)}`.";
 				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, str));

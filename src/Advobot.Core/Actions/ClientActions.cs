@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions done on an <see cref="IDiscordClient"/>.
+	/// </summary>
 	public static class ClientActions
 	{
 		/// <summary>
@@ -201,6 +204,7 @@ namespace Advobot.Core.Actions
 		/// <returns></returns>
 		public static async Task ModifyBotIconAsync(IDiscordClient client, FileInfo fileInfo)
 		{
+			//Needs to be a stream, otherwise will lock the file and then can't delete
 			using (var stream = new StreamReader(fileInfo.FullName))
 			{
 				await client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream.BaseStream)).CAF();

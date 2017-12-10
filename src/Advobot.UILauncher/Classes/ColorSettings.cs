@@ -138,7 +138,7 @@ namespace Advobot.UILauncher.Classes
 		/// <summary>
 		/// Saves custom colors and the current theme.
 		/// </summary>
-		public void SaveSettings() => SavingAndLoadingActions.OverWriteFile(LOC, SavingAndLoadingActions.Serialize(this));
+		public void SaveSettings() => IOActions.OverWriteFile(LOC, IOActions.Serialize(this));
 
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
 			=> typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)

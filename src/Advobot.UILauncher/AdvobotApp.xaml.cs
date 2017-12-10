@@ -34,11 +34,11 @@ namespace Advobot.UILauncher
 		{
 			//Display to the user what happened and also log it
 			MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{e.Exception.ToString()}", "UNHANDLED EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
-			SavingAndLoadingActions.LogUncaughtException(e.Exception);
+			IOActions.LogUncaughtException(e.Exception);
 			e.Handled = true;
 			this.Shutdown();
 		}
 		private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
-			=> SavingAndLoadingActions.LogUncaughtException(e.ExceptionObject);
+			=> IOActions.LogUncaughtException(e.ExceptionObject);
 	}
 }

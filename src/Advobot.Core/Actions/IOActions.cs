@@ -6,7 +6,10 @@ using System.IO;
 
 namespace Advobot.Core.Actions
 {
-	public static class SavingAndLoadingActions
+	/// <summary>
+	/// Actions involving saving and loading.
+	/// </summary>
+	public static class IOActions
 	{
 		/// <summary>
 		/// Creates a file if it does not already exist.
@@ -28,7 +31,7 @@ namespace Advobot.Core.Actions
 		public static void OverWriteFile(FileInfo fileInfo, string text)
 		{
 			CreateFile(fileInfo);
-			using (var writer = new StreamWriter(fileInfo.FullName))
+			using (var writer = new StreamWriter(fileInfo.OpenWrite()))
 			{
 				writer.Write(text);
 			}

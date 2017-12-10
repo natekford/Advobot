@@ -6,6 +6,9 @@ using System.Text.RegularExpressions;
 
 namespace Advobot.Core.Actions.Formatting
 {
+	/// <summary>
+	/// Formatting for basic things, such as escaping characters or removing new lines.
+	/// </summary>
 	public static class GeneralFormatting
 	{
 		private static readonly Regex _RemoveDuplicateLines = new Regex(@"[\r\n]+", RegexOptions.Compiled);

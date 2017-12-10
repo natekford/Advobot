@@ -400,7 +400,7 @@ namespace Advobot.Core.Classes.Settings
 		{
 			if (this.Guild != null)
 			{
-				SavingAndLoadingActions.OverWriteFile(GetActions.GetServerDirectoryFile(this.Guild.Id, Constants.GUILD_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
+				IOActions.OverWriteFile(GetActions.GetServerDirectoryFile(this.Guild.Id, Constants.GUILD_SETTINGS_LOCATION), IOActions.Serialize(this));
 			}
 		}
 		public async Task<IGuildSettings> PostDeserialize(IGuild guild)

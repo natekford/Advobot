@@ -10,10 +10,9 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
+//Something has to be referenced in this assembly so the attribute gets noticed
+//So that's why commandhandler is in this assembly
 [assembly: CommandAssembly]
-//Something has to be referenced in this assembly so that the attribute
-//gets picked up and can then be used to get the commands out of this
-//assembly, so that's why the commandhandler is in here and not in core.
 namespace Advobot.Commands
 {
 	public static class CommandHandler
@@ -103,9 +102,8 @@ namespace Advobot.Commands
 
 			//Prefix
 			var argPos = -1;
-			if (true
-				&& !userMessage.HasMentionPrefix(_Client.CurrentUser, ref argPos)
-				&& !userMessage.HasStringPrefix(GetActions.GetPrefix(_BotSettings, guildSettings), ref argPos))
+			if (!userMessage.HasStringPrefix(GetActions.GetPrefix(_BotSettings, guildSettings), ref argPos) &&
+				!userMessage.HasMentionPrefix(_Client.CurrentUser, ref argPos))
 			{
 				return;
 			}

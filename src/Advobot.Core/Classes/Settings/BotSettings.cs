@@ -186,7 +186,7 @@ namespace Advobot.Core.Classes.Settings
 			SaveSettings();
 		}
 		public void SaveSettings()
-			=> SavingAndLoadingActions.OverWriteFile(LOC, SavingAndLoadingActions.Serialize(this));
+			=> IOActions.OverWriteFile(LOC, IOActions.Serialize(this));
 		public void TogglePause() => this.Pause = !this.Pause;
 
 		public async Task<string> Format(IDiscordClient client)

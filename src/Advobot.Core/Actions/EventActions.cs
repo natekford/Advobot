@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Events which are in this separate class to make the classes that use them smaller.
+	/// </summary>
 	public static class EventActions
 	{
 		/// <summary>
@@ -31,9 +34,9 @@ namespace Advobot.Core.Actions
 
 			await ClientActions.UpdateGameAsync(client, botSettings).CAF();
 
+			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
 			ConsoleActions.WriteLine($"Current version: {Version.VersionNumber}");
 			ConsoleActions.WriteLine($"Current bot prefix is: {botSettings.Prefix}");
-			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
 			ConsoleActions.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
 		}
 		/// <summary>
@@ -126,11 +129,11 @@ namespace Advobot.Core.Actions
 
 				if (validQuote)
 				{
-					await MessageActions.SendMessageAsync(message.Channel, quotes.List.ElementAt(number).Word.Description).CAF();
+					await MessageActions.SendMessageAsync(message.Channel, quotes.List[number].Word.Description).CAF();
 				}
 				if (validHelpEntry)
 				{
-					var help = helpEntries.List.ElementAt(number).Word;
+					var help = helpEntries.List[number].Word;
 					var prefix = GetActions.GetPrefix(botSettings, settings);
 					var desc = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix);
 					var embed = new EmbedWrapper(help.Name, desc)

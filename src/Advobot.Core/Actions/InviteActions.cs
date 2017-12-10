@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions done on an <see cref="IInvite"/>.
+	/// </summary>
 	public static class InviteActions
 	{
 		/// <summary>
@@ -15,14 +18,9 @@ namespace Advobot.Core.Actions
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public static async Task<IReadOnlyList<IInviteMetadata>> GetInvitesAsync(IGuild guild)
-		{
-			if (!guild.GetBot().GuildPermissions.ManageGuild)
-			{
-				return new List<IInviteMetadata>();
-			}
-
-			return (await guild.GetInvitesAsync().CAF()).ToList().AsReadOnly();
-		}
+			=> guild.GetBot().GuildPermissions.ManageGuild
+			? new List<IInviteMetadata>().AsReadOnly()
+			: (await guild.GetInvitesAsync().CAF()).ToList().AsReadOnly();
 		/// <summary>
 		/// Tries to find the invite a user joined on.
 		/// </summary>
@@ -47,7 +45,10 @@ namespace Advobot.Core.Actions
 			}
 
 			//Find invites where the cached invite uses are not the same as the current ones.
-			var updatedInvites = cachedInvites.Where(cached => currentInvites.Any(current => cached.Code == current.Code && cached.Uses != current.Uses));
+			var updatedInvites = cachedInvites.Where(cached =>
+			{
+				return currentInvites.Any(current => cached.Code == current.Code && cached.Uses != current.Uses);
+			});
 			//If only one then treat it as the joining invite
 			if (updatedInvites.Count() == 1)
 			{

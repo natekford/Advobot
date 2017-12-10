@@ -21,6 +21,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions creating the services for the main <see cref="IServiceProvider"/>.
+	/// </summary>
 	public static class CreationActions
 	{
 		/// <summary>
@@ -117,7 +120,7 @@ namespace Advobot.Core.Actions
 				{
 					using (var reader = new StreamReader(fileInfo.FullName))
 					{
-						botSettings = SavingAndLoadingActions.Deserialize<IBotSettings>(reader.ReadToEnd(), Constants.BOT_SETTINGS_TYPE);
+						botSettings = IOActions.Deserialize<IBotSettings>(reader.ReadToEnd(), Constants.BOT_SETTINGS_TYPE);
 					}
 					ConsoleActions.WriteLine("The bot information has successfully been loaded.");
 				}
@@ -154,7 +157,7 @@ namespace Advobot.Core.Actions
 				{
 					using (var reader = new StreamReader(fileInfo.FullName))
 					{
-						guildSettings = SavingAndLoadingActions.Deserialize<IGuildSettings>(reader.ReadToEnd(), Constants.GUILD_SETTINGS_TYPE);
+						guildSettings = IOActions.Deserialize<IGuildSettings>(reader.ReadToEnd(), Constants.GUILD_SETTINGS_TYPE);
 					}
 					ConsoleActions.WriteLine($"The guild information for {guild.FormatGuild()} has successfully been loaded.");
 				}

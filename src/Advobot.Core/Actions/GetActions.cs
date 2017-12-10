@@ -12,6 +12,9 @@ using System.Reflection;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Basic actions which get something.
+	/// </summary>
 	public static class GetActions
 	{
 		/// <summary>
@@ -41,28 +44,30 @@ namespace Advobot.Core.Actions
 		/// </summary>
 		/// <returns></returns>
 		public static ImmutableDictionary<string, Color> GetColorDictionary()
-			=> typeof(Color).GetFields(BindingFlags.Public | BindingFlags.Static).ToDictionary(
-			x => x.Name,
-			x => (Color)x.GetValue(new Color()),
-			StringComparer.OrdinalIgnoreCase).ToImmutableDictionary();
+			=> typeof(Color).GetFields(BindingFlags.Public | BindingFlags.Static)
+			.ToDictionary(x => x.Name, x => (Color)x.GetValue(new Color()), StringComparer.OrdinalIgnoreCase)
+			.ToImmutableDictionary();
 		/// <summary>
 		/// Returns all names of commands that are in specific category.
 		/// </summary>
 		/// <param name="category"></param>
 		/// <returns></returns>
-		public static string[] GetCommandNames(CommandCategory category) => Constants.HELP_ENTRIES[category].Select(x => x.Name).ToArray();
+		public static string[] GetCommandNames(CommandCategory category)
+			=> Constants.HELP_ENTRIES[category].Select(x => x.Name).ToArray();
 		/// <summary>
 		/// Returns nothing if equal to 1. Returns "s" if not. Double allows most, if not all, number types in: https://stackoverflow.com/a/828963.
 		/// </summary>
 		/// <param name="i"></param>
 		/// <returns></returns>
-		public static string GetPlural(double i) => i == 1 ? "" : "s";
+		public static string GetPlural(double i)
+			=> i == 1 ? "" : "s";
 		/// <summary>
 		/// Returns the guild's prefix if one is set. Returns the bot prefix if not.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		public static string GetPrefix(IAdvobotCommandContext context) => GetPrefix(context.BotSettings, context.GuildSettings);
+		public static string GetPrefix(IAdvobotCommandContext context)
+			=> GetPrefix(context.BotSettings, context.GuildSettings);
 		/// <summary>
 		/// Returns the guild prefix if one is set. Returns the bot prefix if not.
 		/// </summary>
@@ -77,14 +82,9 @@ namespace Advobot.Core.Actions
 		/// <param name="input"></param>
 		/// <returns></returns>
 		public static bool GetIfStringIsValidUrl(string input)
-		{
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				return false;
-			}
-
-			return Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-		}
+			=> !String.IsNullOrWhiteSpace(input)
+			&& Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult)
+			&& (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 		/// <summary>
 		/// Returns the <see cref="Process.WorkingSet64"/> value divided by a MB.
 		/// </summary>
@@ -114,7 +114,8 @@ namespace Advobot.Core.Actions
 		/// <param name="count"></param>
 		/// <param name="f"></param>
 		/// <returns></returns>
-		public static IEnumerable<T> GetObjectsInListBasedOffOfCount<T>(IEnumerable<T> objects, CountTarget target, uint? count, Func<T, int?> f)
+		public static IEnumerable<T> GetObjectsInListBasedOffOfCount<T>(IEnumerable<T> objects, CountTarget target, uint? count,
+			Func<T, int?> f)
 		{
 			switch (target)
 			{
@@ -143,10 +144,7 @@ namespace Advobot.Core.Actions
 		/// <param name="guildId"></param>
 		/// <returns></returns>
 		public static DirectoryInfo GetServerDirectory(ulong guildId)
-		{
-			var path = Path.Combine(GetBaseBotDirectory().FullName, guildId.ToString());
-			return Directory.CreateDirectory(path);
-		}
+			=> Directory.CreateDirectory(Path.Combine(GetBaseBotDirectory().FullName, guildId.ToString()));
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId\File
 		/// </summary>
@@ -154,41 +152,35 @@ namespace Advobot.Core.Actions
 		/// <param name="fileName"></param>
 		/// <returns></returns>
 		public static FileInfo GetServerDirectoryFile(ulong guildId, string fileName)
-		{
-			var path = Path.Combine(GetServerDirectory(guildId).FullName, fileName);
-			return new FileInfo(path);
-		}
+			=> new FileInfo(Path.Combine(GetServerDirectory(guildId).FullName, fileName));
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId
 		/// </summary>
 		/// <returns></returns>
 		public static DirectoryInfo GetBaseBotDirectory()
-		{
-			var path = Path.Combine(Config.Configuration[ConfigKey.SavePath], $"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKey.BotId]}");
-			return Directory.CreateDirectory(path);
-		}
+			=> Directory.CreateDirectory(Path.Combine(Config.Configuration[ConfigKey.SavePath],
+				$"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKey.BotId]}"));
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\File
 		/// </summary>
 		/// <param name="fileName"></param>
 		/// <returns></returns>
 		public static FileInfo GetBaseBotDirectoryFile(string fileName)
-		{
-			var path = Path.Combine(GetBaseBotDirectory().FullName, fileName);
-			return new FileInfo(path);
-		}
+			=> new FileInfo(Path.Combine(GetBaseBotDirectory().FullName, fileName));
 
 		/// <summary>
 		/// Returns all public properties from IGuildSettings that have a set method.
 		/// </summary>
 		/// <returns></returns>
-		public static IEnumerable<PropertyInfo> GetGuildSettings() => GetSettings(typeof(IGuildSettings));
+		public static IEnumerable<PropertyInfo> GetGuildSettings()
+			=> GetSettings(typeof(IGuildSettings));
 		/// <summary>
 		/// Returns all public properties from IBotSettings that have a set method. Will not return SavePath and BotKey since those
 		/// are saved via <see cref="Properties.Settings.Default"/>.
 		/// </summary>
 		/// <returns></returns>
-		public static IEnumerable<PropertyInfo> GetBotSettings() => GetSettings(typeof(IBotSettings));
+		public static IEnumerable<PropertyInfo> GetBotSettings()
+			=> GetSettings(typeof(IBotSettings));
 		/// <summary>
 		/// Returns the values of <see cref="GetBotSettings"/> which either are strings or do not implement the generic IEnumerable.
 		/// </summary>
@@ -196,7 +188,8 @@ namespace Advobot.Core.Actions
 		public static IEnumerable<PropertyInfo> GetBotSettingsThatArentIEnumerables()
 			=> GetBotSettings().Where(x =>
 			{
-				return x.PropertyType == typeof(string) || !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+				return x.PropertyType == typeof(string)
+				|| !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 			});
 		/// <summary>
 		/// Returns all public properties 

@@ -92,7 +92,7 @@ namespace Advobot.Commands.Quotes
 				return;
 			}
 
-			var closeQuotes = new CloseQuotes(quotes, name);
+			var closeQuotes = new CloseQuotes(Context.GuildSettings, name);
 			if (closeQuotes.List.Any())
 			{
 				var text = $"Did you mean any of the following:\n{closeQuotes.List.FormatNumberedList("{0}", x => x.Word.Name)}";

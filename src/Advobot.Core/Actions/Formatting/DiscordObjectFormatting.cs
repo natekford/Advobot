@@ -2,6 +2,9 @@
 
 namespace Advobot.Core.Actions.Formatting
 {
+	/// <summary>
+	/// Formatting for various Discord objects.
+	/// </summary>
 	public static class DiscordObjectFormatting
     {
 		/// <summary>

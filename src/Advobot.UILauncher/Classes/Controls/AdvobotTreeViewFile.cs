@@ -95,7 +95,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			{
 				case MessageBoxResult.Yes:
 				{
-					SavingAndLoadingActions.DeleteFile(this._FI);
+					IOActions.DeleteFile(this._FI);
 					return;
 				}
 			}

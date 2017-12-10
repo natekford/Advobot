@@ -58,7 +58,7 @@ namespace Advobot.Commands.Miscellaneous
 				return;
 			}
 
-			var closeHelps = new CloseHelpEntries(Constants.HELP_ENTRIES.GetHelpEntries(), commandName);
+			var closeHelps = new CloseHelpEntries(commandName);
 			if (closeHelps.List.Any())
 			{
 				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name)}";

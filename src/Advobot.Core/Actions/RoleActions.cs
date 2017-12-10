@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions which are done on an <see cref="IRole"/>.
+	/// </summary>
 	public static class RoleActions
 	{
 		/// <summary>
@@ -22,7 +25,8 @@ namespace Advobot.Core.Actions
 		/// <param name="target"></param>
 		/// <param name="checks"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult VerifyRoleMeetsRequirements(this IRole target, ICommandContext context, IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult VerifyRoleMeetsRequirements(this IRole target, ICommandContext context,
+			IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{
@@ -50,7 +54,8 @@ namespace Advobot.Core.Actions
 					{
 						if (context.Guild.EveryoneRole.Id != target.Id)
 						{
-							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition, "The everyone role cannot be modified in that way.");
+							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
+								"The everyone role cannot be modified in that way.");
 						}
 						break;
 					}
@@ -58,7 +63,8 @@ namespace Advobot.Core.Actions
 					{
 						if (!target.IsManaged)
 						{
-							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition, "Managed roles cannot be modified in that way.");
+							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
+								"Managed roles cannot be modified in that way.");
 						}
 						break;
 					}
@@ -149,7 +155,8 @@ namespace Advobot.Core.Actions
 		/// <param name="changeValue"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static async Task<IEnumerable<string>> ModifyRolePermissionsAsync(IRole role, PermValue permValue, ulong changeValue, IGuildUser user)
+		public static async Task<IEnumerable<string>> ModifyRolePermissionsAsync(IRole role, PermValue permValue, ulong changeValue,
+			IGuildUser user)
 		{
 			var roleBits = role.Permissions.RawValue;
 			switch (permValue)
@@ -188,7 +195,9 @@ namespace Advobot.Core.Actions
 				return -1;
 			}
 
-			var roles = role.Guild.Roles.Where(x => x.Id != role.Id && x.Position < role.Guild.GetBot().GetPosition()).OrderBy(x => x.Position).ToArray();
+			var roles = role.Guild.Roles
+				.Where(x => x.Id != role.Id && x.Position < role.Guild.GetBot().GetPosition())
+				.OrderBy(x => x.Position).ToArray();
 			position = Math.Max(1, Math.Min(position, roles.Length));
 
 			var reorderProperties = new ReorderRoleProperties[roles.Length + 1];

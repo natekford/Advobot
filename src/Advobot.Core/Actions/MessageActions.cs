@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Actions
 {
+	/// <summary>
+	/// Actions which are done on an <see cref="IMessage"/>.
+	/// </summary>
 	public static class MessageActions
 	{
 		/// <summary>
@@ -129,9 +132,9 @@ namespace Advobot.Core.Actions
 			var fullFileName = fileName + TimeFormatting.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
 			var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, fullFileName);
 
-			SavingAndLoadingActions.OverWriteFile(fileInfo, text.RemoveAllMarkdown());
+			IOActions.OverWriteFile(fileInfo, text.RemoveAllMarkdown());
 			var msg = await channel.SendFileAsync(fileInfo.FullName, String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**").CAF();
-			SavingAndLoadingActions.DeleteFile(fileInfo);
+			IOActions.DeleteFile(fileInfo);
 			return msg;
 		}
 		/// <summary>

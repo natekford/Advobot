@@ -137,7 +137,7 @@ namespace Advobot.Core
 				{
 					using (var reader = new StreamReader(_SavePath))
 					{
-						tempDict = SavingAndLoadingActions.Deserialize<ConfigDict>(reader.ReadToEnd(), typeof(ConfigDict));
+						tempDict = IOActions.Deserialize<ConfigDict>(reader.ReadToEnd(), typeof(ConfigDict));
 					}
 				}
 				catch (Exception e)
@@ -151,7 +151,7 @@ namespace Advobot.Core
 		/// Writes the current <see cref="ConfigDict"/> to file.
 		/// </summary>
 		public static void Save()
-			=> SavingAndLoadingActions.OverWriteFile(new FileInfo(_SavePath), SavingAndLoadingActions.Serialize(Configuration));
+			=> IOActions.OverWriteFile(new FileInfo(_SavePath), IOActions.Serialize(Configuration));
 
 		/// <summary>
 		/// Creates a dictionary which only holds the values for <see cref="ConfigKeys"/> to be modified.
