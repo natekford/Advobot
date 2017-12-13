@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace Advobot.Core.Actions.Formatting
+namespace Advobot.Core.Utilities.Formatting
 {
 	/// <summary>
 	/// Formatting for various Discord objects.

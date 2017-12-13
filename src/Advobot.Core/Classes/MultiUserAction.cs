@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Interfaces;
 using Discord;
 using System;
@@ -35,7 +35,7 @@ namespace Advobot.Core.Classes
 
 			if (new Random().NextDouble() > .98)
 			{
-				ConsoleActions.WriteLine("Multi-user drifting!!");
+				ConsoleUtils.WriteLine("Multi-user drifting!!");
 			}
 		}
 
@@ -67,7 +67,7 @@ namespace Advobot.Core.Classes
 		private async Task DoActionAsync(Action action, object obj, string presentTense, string pastTense, ModerationReason reason)
 		{
 			var text = $"Attempting to {presentTense} `{_Users.Count}` users.";
-			var msg = await MessageActions.SendMessageAsync(_Context.Channel, text).CAF();
+			var msg = await MessageUtils.SendMessageAsync(_Context.Channel, text).CAF();
 
 			var successCount = 0;
 			for (int i = 0; i < _Users.Count; ++i)
@@ -89,30 +89,30 @@ namespace Advobot.Core.Classes
 				{
 					case Action.GiveRole:
 					{
-						await RoleActions.GiveRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
+						await RoleUtils.GiveRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
 					}
 					case Action.TakeRole:
 					{
-						await RoleActions.TakeRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
+						await RoleUtils.TakeRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
 					}
 					case Action.Nickname:
 					{
-						await UserActions.ChangeNicknameAsync(_Users[i], obj as string, reason).CAF();
+						await UserUtils.ChangeNicknameAsync(_Users[i], obj as string, reason).CAF();
 						continue;
 					}
 					case Action.Move:
 					{
-						await UserActions.MoveUserAsync(_Users[i], obj as IVoiceChannel, reason).CAF();
+						await UserUtils.MoveUserAsync(_Users[i], obj as IVoiceChannel, reason).CAF();
 						continue;
 					}
 				}
 			}
 
-			await MessageActions.DeleteMessageAsync(msg, new AutomaticModerationReason("multi user action")).CAF();
+			await MessageUtils.DeleteMessageAsync(msg, new AutomaticModerationReason("multi user action")).CAF();
 			var response = $"Successfully {pastTense} `{successCount}` users.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(_Context, response).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(_Context, response).CAF();
 		}
 
 		private enum Action

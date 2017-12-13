@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
@@ -78,7 +78,7 @@ namespace Advobot.Core.Services.Log.Loggers
 						.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
 						.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
 						.AddFooter("Message Updated");
-					await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 					edited = true;
 				}
 			}
@@ -162,7 +162,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				{
 					var embed = new EmbedWrapper(TITLE, sb.ToString().RemoveDuplicateNewLines(), Constants.MDEL)
 						.AddFooter(TITLE);
-					await MessageActions.SendEmbedMessageAsync(serverLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(serverLog, embed).CAF();
 				}
 				else
 				{
@@ -173,7 +173,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					}
 
 					var text = sb.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
-					await MessageActions.SendTextFileAsync(serverLog, text, TITLE, $"{messages.Count()} {TITLE}").CAF();
+					await MessageUtils.SendTextFileAsync(serverLog, text, TITLE, $"{messages.Count()} {TITLE}").CAF();
 				}
 			});
 

@@ -1,6 +1,6 @@
 ﻿using Advobot.Commands;
 using Advobot.Core;
-using Advobot.Core.Actions;
+using Advobot.Core.Utilities;
 using System;
 using System.Threading.Tasks;
 
@@ -13,7 +13,7 @@ namespace Advobot.ConsoleLauncher
 	{
 		private static async Task Main()
 		{
-			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOActions.LogUncaughtException(e.ExceptionObject);
+			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
 
 			//Get the save path
 			var savePath = true;
@@ -22,7 +22,7 @@ namespace Advobot.ConsoleLauncher
 				savePath = false;
 			}
 
-			var provider = await CreationActions.CreateServiceProvider().CAF();
+			var provider = await ServiceProviderCreationUtils.CreateServiceProvider().CAF();
 			var client = CommandHandler.Install(provider);
 
 			//Get the bot key
@@ -32,7 +32,7 @@ namespace Advobot.ConsoleLauncher
 				botKey = false;
 			}
 
-			await ClientActions.StartAsync(client).CAF();
+			await ClientUtils.StartAsync(client).CAF();
 		}
 	}
 }

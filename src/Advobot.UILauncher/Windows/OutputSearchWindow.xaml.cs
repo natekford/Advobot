@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.UILauncher.Actions;
+﻿using Advobot.Core.Utilities;
+using Advobot.UILauncher.Utilities;
 using Advobot.UILauncher.Classes.Controls;
 using System;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace Advobot.UILauncher.Windows
 		public OutputSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
-			OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleActions.GetOrCreateWrittenLines().Keys.ToArray());
+			OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleUtils.GetOrCreateWrittenLines().Keys.ToArray());
 		}
 
 		private void Search(object sender, RoutedEventArgs e)
@@ -26,7 +26,7 @@ namespace Advobot.UILauncher.Windows
 			if (OutputNamesComboBox.SelectedItem is TextBox tb)
 			{
 				ConsoleSearchOutput.Clear();
-				foreach (var line in ConsoleActions.GetOrCreateWrittenLines()[tb.Text])
+				foreach (var line in ConsoleUtils.GetOrCreateWrittenLines()[tb.Text])
 				{
 					ConsoleSearchOutput.AppendText($"{line}{Environment.NewLine}");
 				}
@@ -34,7 +34,7 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void SaveWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (SavingActions.IsCtrlS(e))
+			if (IOUtils.IsCtrlS(e))
 			{
 				Save(sender, e);
 			}
@@ -43,8 +43,8 @@ namespace Advobot.UILauncher.Windows
 		{
 			if (ConsoleSearchOutput.Text.Length > 0)
 			{
-				var response = SavingActions.SaveFile(ConsoleSearchOutput);
-				ToolTipActions.EnableTimedToolTip(Layout, response.GetReason());
+				var response = IOUtils.SaveFile(ConsoleSearchOutput);
+				ToolTipUtils.EnableTimedToolTip(Layout, response.GetReason());
 			}
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)

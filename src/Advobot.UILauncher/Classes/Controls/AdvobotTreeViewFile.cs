@@ -1,6 +1,6 @@
 ﻿using Advobot.Core;
-using Advobot.Core.Actions;
-using Advobot.UILauncher.Actions;
+using Advobot.Core.Utilities;
+using Advobot.UILauncher.Utilities;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Advobot.UILauncher.Windows;
@@ -62,7 +62,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		public void DeleteFile() => DeleteFile(null, null);
 		private void OpenFile(object sender, RoutedEventArgs e)
 		{
-			if (!EntityActions.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
+			if (!ElementUtils.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
 			{
 				throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
 			}
@@ -76,13 +76,13 @@ namespace Advobot.UILauncher.Classes.Controls
 				{
 					case CommonFileDialogResult.Ok:
 					{
-						if (!EntityActions.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
+						if (!ElementUtils.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
 						{
 							throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
 						}
 
 						_FI.CopyTo(Path.Combine(dialog.FileName, _FI.Name), true);
-						ToolTipActions.EnableTimedToolTip(window.Layout, $"Successfully copied {_FI.Name} to {dialog.FileName}.");
+						ToolTipUtils.EnableTimedToolTip(window.Layout, $"Successfully copied {_FI.Name} to {dialog.FileName}.");
 						break;
 					}
 				}
@@ -95,7 +95,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			{
 				case MessageBoxResult.Yes:
 				{
-					IOActions.DeleteFile(_FI);
+					Core.Utilities.IOUtils.DeleteFile(_FI);
 					return;
 				}
 			}

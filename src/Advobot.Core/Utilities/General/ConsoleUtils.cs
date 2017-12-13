@@ -1,14 +1,14 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions involving the console.
 	/// </summary>
-	public static class ConsoleActions
+	public static class ConsoleUtils
 	{
 		private static object _MessageLock = new object();
 		private static SortedDictionary<string, List<string>> _WrittenLines;

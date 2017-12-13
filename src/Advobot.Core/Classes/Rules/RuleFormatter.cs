@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Discord;
@@ -192,7 +192,7 @@ namespace Advobot.Core.Classes.Rules
 			//If all of the rules can be sent in one message, do that.
 			if (!String.IsNullOrWhiteSpace(formattedRules) && formattedRules.Length <= 2000)
 			{
-				messages.Add(await MessageActions.SendMessageAsync(channel, formattedRules).CAF());
+				messages.Add(await MessageUtils.SendMessageAsync(channel, formattedRules).CAF());
 				return messages.AsReadOnly();
 			}
 
@@ -220,7 +220,7 @@ namespace Advobot.Core.Classes.Rules
 			//Short enough categories just get sent on their own
 			else if (formattedCategory.Length <= 2000)
 			{
-				messages.Add(await MessageActions.SendMessageAsync(channel, formattedCategory).CAF());
+				messages.Add(await MessageUtils.SendMessageAsync(channel, formattedCategory).CAF());
 				return messages;
 			}
 
@@ -231,7 +231,7 @@ namespace Advobot.Core.Classes.Rules
 				//Then start building new stored text to send
 				if (sb.Length + part.Length >= 2000)
 				{
-					messages.Add(await MessageActions.SendMessageAsync(channel, sb.ToString()).CAF());
+					messages.Add(await MessageUtils.SendMessageAsync(channel, sb.ToString()).CAF());
 					sb.Clear();
 				}
 				sb.Append(part);
@@ -239,7 +239,7 @@ namespace Advobot.Core.Classes.Rules
 			//Send the last remaining text
 			if (sb.Length > 0)
 			{
-				messages.Add(await MessageActions.SendMessageAsync(channel, sb.ToString()).CAF());
+				messages.Add(await MessageUtils.SendMessageAsync(channel, sb.ToString()).CAF());
 			}
 			return messages;
 		}

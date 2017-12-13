@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Enums;
 using Discord;
 using Newtonsoft.Json;
@@ -42,7 +42,7 @@ namespace Advobot.Core
 					return true;
 				}
 
-				ConsoleActions.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
+				ConsoleUtils.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
 				return false;
 			}
 
@@ -53,13 +53,13 @@ namespace Advobot.Core
 
 			if (Directory.Exists(path))
 			{
-				ConsoleActions.WriteLine("Successfully set the save path as " + path);
+				ConsoleUtils.WriteLine("Successfully set the save path as " + path);
 				Configuration[ConfigKey.SavePath] = path;
 				Save();
 				return true;
 			}
 
-			ConsoleActions.WriteLine("Invalid directory. Please enter a valid directory:");
+			ConsoleUtils.WriteLine("Invalid directory. Please enter a valid directory:");
 			return false;
 		}
 		/// <summary>
@@ -79,32 +79,32 @@ namespace Advobot.Core
 				{
 					try
 					{
-						await ClientActions.LoginAsync(client, key).CAF();
+						await ClientUtils.LoginAsync(client, key).CAF();
 						return true;
 					}
 					catch (Exception)
 					{
-						ConsoleActions.WriteLine("The given key is no longer valid. Please enter a new valid key:");
+						ConsoleUtils.WriteLine("The given key is no longer valid. Please enter a new valid key:");
 						return false;
 					}
 				}
 
-				ConsoleActions.WriteLine("Please enter the bot's key:");
+				ConsoleUtils.WriteLine("Please enter the bot's key:");
 				return false;
 			}
 
 			try
 			{
-				await ClientActions.LoginAsync(client, key).CAF();
+				await ClientUtils.LoginAsync(client, key).CAF();
 
-				ConsoleActions.WriteLine("Succesfully logged in via the given bot key.");
+				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
 				Configuration[ConfigKey.BotKey] = key;
 				Save();
 				return true;
 			}
 			catch (Exception)
 			{
-				ConsoleActions.WriteLine("The given key is invalid. Please enter a valid key:");
+				ConsoleUtils.WriteLine("The given key is invalid. Please enter a valid key:");
 				return false;
 			}
 		}
@@ -137,12 +137,12 @@ namespace Advobot.Core
 				{
 					using (var reader = new StreamReader(_SavePath))
 					{
-						tempDict = IOActions.Deserialize<ConfigDict>(reader.ReadToEnd(), typeof(ConfigDict));
+						tempDict = IOUtils.Deserialize<ConfigDict>(reader.ReadToEnd(), typeof(ConfigDict));
 					}
 				}
 				catch (Exception e)
 				{
-					ConsoleActions.ExceptionToConsole(e);
+					ConsoleUtils.ExceptionToConsole(e);
 				}
 			}
 			return tempDict ?? new ConfigDict();
@@ -151,7 +151,7 @@ namespace Advobot.Core
 		/// Writes the current <see cref="ConfigDict"/> to file.
 		/// </summary>
 		public static void Save()
-			=> IOActions.OverWriteFile(new FileInfo(_SavePath), IOActions.Serialize(Configuration));
+			=> IOUtils.OverWriteFile(new FileInfo(_SavePath), IOUtils.Serialize(Configuration));
 
 		/// <summary>
 		/// Creates a dictionary which only holds the values for <see cref="ConfigKeys"/> to be modified.

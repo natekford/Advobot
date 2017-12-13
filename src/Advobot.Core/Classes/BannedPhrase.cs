@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
@@ -42,7 +42,7 @@ namespace Advobot.Core.Classes.BannedPhrases
 		/// <returns></returns>
 		public async Task PunishAsync(IGuildSettings guildSettings, IMessage message, ITimersService timers = null)
 		{
-			await MessageActions.DeleteMessageAsync(message, new AutomaticModerationReason("banned phrase")).CAF();
+			await MessageUtils.DeleteMessageAsync(message, new AutomaticModerationReason("banned phrase")).CAF();
 
 			var user = guildSettings.BannedPhraseUsers.SingleOrDefault(x => x.User.Id == message.Author.Id);
 			if (user == null)

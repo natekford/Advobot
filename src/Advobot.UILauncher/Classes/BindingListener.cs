@@ -14,6 +14,10 @@ namespace Advobot.UILauncher.Classes
 			| TraceOptions.ProcessId
 			| TraceOptions.ThreadId
 			| TraceOptions.Timestamp;
+		private const BindingFlags PROPERTY_FLAGS = 0
+			| BindingFlags.IgnoreCase
+			| BindingFlags.NonPublic
+			| BindingFlags.Instance;
 
 		private int InformationPropertyCount { get; set; }
 		private string Callstack { get; set; }
@@ -57,8 +61,7 @@ namespace Advobot.UILauncher.Classes
 				}
 				else
 				{
-					var flags = BindingFlags.IgnoreCase | BindingFlags.NonPublic | BindingFlags.Instance;
-					GetType().GetProperty(propertyInformation[0], flags).SetValue(this, propertyInformation[1], null);
+					GetType().GetProperty(propertyInformation[0], PROPERTY_FLAGS).SetValue(this, propertyInformation[1], null);
 				}
 
 				--InformationPropertyCount;

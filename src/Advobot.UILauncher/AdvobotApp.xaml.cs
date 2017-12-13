@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Windows;
 using System;
@@ -16,6 +16,8 @@ namespace Advobot.UILauncher
 	/// </summary>
 	public partial class AdvobotApp : Application
 	{
+		private BindingListener _Listener = new BindingListener();
+
 		public AdvobotApp()
 		{
 			InitializeComponent();
@@ -34,11 +36,11 @@ namespace Advobot.UILauncher
 		{
 			//Display to the user what happened and also log it
 			MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{e.Exception.ToString()}", "UNHANDLED EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
-			IOActions.LogUncaughtException(e.Exception);
+			IOUtils.LogUncaughtException(e.Exception);
 			e.Handled = true;
 			Shutdown();
 		}
 		private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
-			=> IOActions.LogUncaughtException(e.ExceptionObject);
+			=> IOUtils.LogUncaughtException(e.ExceptionObject);
 	}
 }

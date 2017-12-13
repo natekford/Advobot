@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Rules;
@@ -20,12 +20,12 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions creating the services for the main <see cref="IServiceProvider"/>.
 	/// </summary>
-	public static class CreationActions
+	public static class ServiceProviderCreationUtils
 	{
 		/// <summary>
 		/// Creates services the bot uses. Such as <see cref="IBotSettings"/>, <see cref="IGuildSettingsService"/>, <see cref="IDiscordClient"/>,
@@ -114,25 +114,25 @@ namespace Advobot.Core.Actions
 			}
 
 			IBotSettings botSettings = null;
-			var fileInfo = IOActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
+			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
 			if (fileInfo.Exists)
 			{
 				try
 				{
 					using (var reader = new StreamReader(fileInfo.FullName))
 					{
-						botSettings = IOActions.Deserialize<IBotSettings>(reader.ReadToEnd(), Constants.BOT_SETTINGS_TYPE);
+						botSettings = IOUtils.Deserialize<IBotSettings>(reader.ReadToEnd(), Constants.BOT_SETTINGS_TYPE);
 					}
-					ConsoleActions.WriteLine("The bot information has successfully been loaded.");
+					ConsoleUtils.WriteLine("The bot information has successfully been loaded.");
 				}
 				catch (Exception e)
 				{
-					ConsoleActions.ExceptionToConsole(e);
+					ConsoleUtils.ExceptionToConsole(e);
 				}
 			}
 			else
 			{
-				ConsoleActions.WriteLine("The bot information file could not be found; using default.");
+				ConsoleUtils.WriteLine("The bot information file could not be found; using default.");
 			}
 
 			if (botSettings == null)
@@ -151,25 +151,25 @@ namespace Advobot.Core.Actions
 		internal static async Task<IGuildSettings> CreateGuildSettingsAsync(IGuild guild)
 		{
 			IGuildSettings guildSettings = null;
-			var fileInfo = IOActions.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+			var fileInfo = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
 			if (fileInfo.Exists)
 			{
 				try
 				{
 					using (var reader = new StreamReader(fileInfo.FullName))
 					{
-						guildSettings = IOActions.Deserialize<IGuildSettings>(reader.ReadToEnd(), Constants.GUILD_SETTINGS_TYPE);
+						guildSettings = IOUtils.Deserialize<IGuildSettings>(reader.ReadToEnd(), Constants.GUILD_SETTINGS_TYPE);
 					}
-					ConsoleActions.WriteLine($"The guild information for {guild.FormatGuild()} has successfully been loaded.");
+					ConsoleUtils.WriteLine($"The guild information for {guild.FormatGuild()} has successfully been loaded.");
 				}
 				catch (Exception e)
 				{
-					ConsoleActions.ExceptionToConsole(e);
+					ConsoleUtils.ExceptionToConsole(e);
 				}
 			}
 			else
 			{
-				ConsoleActions.WriteLine($"The guild information file for {guild.FormatGuild()} could not be found; using default.");
+				ConsoleUtils.WriteLine($"The guild information file for {guild.FormatGuild()} could not be found; using default.");
 			}
 
 			if (guildSettings == null)

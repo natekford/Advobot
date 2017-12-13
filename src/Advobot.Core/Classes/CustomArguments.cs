@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Classes.Attributes;
 using System;
 using System.Collections.Generic;
@@ -171,7 +171,7 @@ namespace Advobot.Core.Classes
 			}
 			catch (MissingMethodException e)
 			{
-				ConsoleActions.ExceptionToConsole(e);
+				ConsoleUtils.ExceptionToConsole(e);
 				return (T)Activator.CreateInstance(typeof(T));
 			}
 		}

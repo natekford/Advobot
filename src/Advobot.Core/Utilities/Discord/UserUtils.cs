@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Results;
 using Advobot.Core.Enums;
@@ -8,12 +8,12 @@ using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions done on an <see cref="IUser"/>.
 	/// </summary>
-	public static class UserActions
+	public static class UserUtils
 	{
 		/// <summary>
 		/// Verifies that the user can be edited in specific ways.

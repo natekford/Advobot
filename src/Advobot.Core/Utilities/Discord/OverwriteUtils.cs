@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions which are done on an <see cref="Overwrite"/>.
 	/// </summary>
-	public static class OverwriteActions
+	public static class OverwriteUtils
     {
 		/// <summary>
 		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.

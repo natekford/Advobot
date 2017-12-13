@@ -1,6 +1,6 @@
 ﻿using Advobot.Core;
-using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.UILauncher.Enums;
@@ -14,9 +14,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace Advobot.UILauncher.Actions
+namespace Advobot.UILauncher.Utilities
 {
-	internal static class SavingActions
+	internal static class IOUtils
 	{
 		/// <summary>
 		/// Saves the text of <paramref name="editor"/> to file.
@@ -53,14 +53,14 @@ namespace Advobot.UILauncher.Actions
 				}
 				catch (Exception e)
 				{
-					ConsoleActions.ExceptionToConsole(e);
+					ConsoleUtils.ExceptionToConsole(e);
 					return ToolTipReason.FileSavingFailure;
 				}
 			}
 
 			try
 			{
-				IOActions.OverWriteFile(fi, text);
+				Core.Utilities.IOUtils.OverWriteFile(fi, text);
 				return ToolTipReason.FileSavingSuccess;
 			}
 			catch
@@ -75,7 +75,7 @@ namespace Advobot.UILauncher.Actions
 		/// <returns></returns>
 		private static FileInfo CreateFileInfo(Control control)
 		{
-			var baseDir = IOActions.GetBaseBotDirectory().FullName;
+			var baseDir = Core.Utilities.IOUtils.GetBaseBotDirectory().FullName;
 			var fileName = $"{control.Name}_{TimeFormatting.FormatDateTimeForSaving()}{Constants.GENERAL_FILE_EXTENSION}";
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}
@@ -96,7 +96,7 @@ namespace Advobot.UILauncher.Actions
 				}
 				else if (!result.Value)
 				{
-					ConsoleActions.WriteLine($"Failed to save: {child.Name}");
+					ConsoleUtils.WriteLine($"Failed to save: {child.Name}");
 				}
 			}
 		}
@@ -139,7 +139,7 @@ namespace Advobot.UILauncher.Actions
 					}
 					case BotSetting.Stream:
 					{
-						if (!RegexActions.CheckIfInputIsAValidTwitchName(text))
+						if (!RegexUtils.CheckIfInputIsAValidTwitchName(text))
 						{
 							return false;
 						}
@@ -253,7 +253,7 @@ namespace Advobot.UILauncher.Actions
 				return true;
 			}
 
-			ConsoleActions.WriteLine("Unable to bring up the file.");
+			ConsoleUtils.WriteLine("Unable to bring up the file.");
 			return false;
 		}
 	}

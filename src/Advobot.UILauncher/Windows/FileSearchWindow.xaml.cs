@@ -1,5 +1,5 @@
 ﻿using Advobot.Core;
-using Advobot.Core.Actions;
+using Advobot.Core.Utilities;
 using Advobot.UILauncher.Classes.Controls;
 using System;
 using System.Linq;
@@ -44,7 +44,7 @@ namespace Advobot.UILauncher.Windows
 				item = items.SingleOrDefault(x => x.Guild.Id.ToString() == id);
 				if (item == null)
 				{
-					ConsoleActions.WriteLine($"No guild could be found with the ID '{id}'.");
+					ConsoleUtils.WriteLine($"No guild could be found with the ID '{id}'.");
 				}
 			}
 			else if (!String.IsNullOrWhiteSpace(name))
@@ -52,7 +52,7 @@ namespace Advobot.UILauncher.Windows
 				var guilds = items.Where(x => x.Guild.Name.CaseInsEquals(name));
 				if (guilds.Count() == 0)
 				{
-					ConsoleActions.WriteLine($"No guild could be found with the name '{name}'.");
+					ConsoleUtils.WriteLine($"No guild could be found with the name '{name}'.");
 				}
 				else if (guilds.Count() == 1)
 				{
@@ -60,7 +60,7 @@ namespace Advobot.UILauncher.Windows
 				}
 				else
 				{
-					ConsoleActions.WriteLine($"More than one guild has the name '{name}'.");
+					ConsoleUtils.WriteLine($"More than one guild has the name '{name}'.");
 				}
 			}
 			else

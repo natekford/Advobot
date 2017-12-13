@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Discord;
@@ -121,7 +121,7 @@ namespace Advobot.Core.Classes.Settings
 		{
 			if (Guild != null)
 			{
-				IOActions.OverWriteFile(IOActions.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOCATION), IOActions.Serialize(this));
+				IOUtils.OverWriteFile(IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOCATION), IOUtils.Serialize(this));
 			}
 		}
 		public async Task<IGuildSettings> PostDeserialize(IGuild guild)
@@ -136,7 +136,7 @@ namespace Advobot.Core.Classes.Settings
 			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			Invites.AddRange((await InviteActions.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
+			Invites.AddRange((await InviteUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
 
 			if (_ListedInvite != null)
 			{

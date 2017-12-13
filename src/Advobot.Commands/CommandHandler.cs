@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Interfaces;
@@ -73,16 +73,16 @@ namespace Advobot.Commands
 		{
 			if (!_Loaded)
 			{
-				await EventActions.OnConnected(_Client, _BotSettings).CAF();
+				await UnloggedDiscordEvents.OnConnected(_Client, _BotSettings).CAF();
 				_Loaded = true;
 			}
 		}
 		private static async Task OnUserJoined(SocketGuildUser user)
-			=> await EventActions.OnUserJoined(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
+			=> await UnloggedDiscordEvents.OnUserJoined(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
 		private static async Task OnUserLeft(SocketGuildUser user)
-			=> await EventActions.OnUserLeft(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
+			=> await UnloggedDiscordEvents.OnUserLeft(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
 		private static async Task OnMessageReceived(SocketMessage message)
-			=> await EventActions.OnMessageReceived(message, _BotSettings, await _GuildSettings.GetOrCreateSettings(message.GetGuild()), _Timers).CAF();
+			=> await UnloggedDiscordEvents.OnMessageReceived(message, _BotSettings, await _GuildSettings.GetOrCreateSettings(message.GetGuild()), _Timers).CAF();
 
 		private static async Task HandleCommand(SocketMessage message)
 		{

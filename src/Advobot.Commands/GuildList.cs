@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
@@ -22,30 +22,30 @@ namespace Advobot.Commands.GuildList
 		{
 			if (Context.GuildSettings.ListedInvite != null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild is already listed.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("This guild is already listed.")).CAF();
 				return;
 			}
 			else if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Don't provide invites that expire.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Don't provide invites that expire.")).CAF();
 				return;
 			}
 
 			Context.GuildSettings.ListedInvite = new ListedInvite(invite, keywords);
 			var resp = $"Successfully set the listed invite to the following:\n{Context.GuildSettings.ListedInvite}.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
 			if (Context.GuildSettings.ListedInvite == null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild is already unlisted.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("This guild is already unlisted.")).CAF();
 				return;
 			}
 
 			Context.GuildSettings.ListedInvite = null;
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the listed invite.").CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the listed invite.").CAF();
 		}
 	}
 
@@ -60,17 +60,17 @@ namespace Advobot.Commands.GuildList
 		{
 			if (Context.GuildSettings.ListedInvite == null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There is no invite to bump.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("There is no invite to bump.")).CAF();
 				return;
 			}
 			else if ((DateTime.UtcNow - Context.GuildSettings.ListedInvite.LastBumped).TotalHours < 1)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Last bump is too recent.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Last bump is too recent.")).CAF();
 				return;
 			}
 
 			Context.GuildSettings.ListedInvite.UpdateLastBumped();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully bumped the invite.").CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully bumped the invite.").CAF();
 		}
 	}
 
@@ -91,7 +91,7 @@ namespace Advobot.Commands.GuildList
 			if (!invites.Any())
 			{
 				var error = new ErrorReason("No guild could be found that matches the given specifications.");
-				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 			else if (invites.Count() <= 5)
@@ -103,7 +103,7 @@ namespace Advobot.Commands.GuildList
 					var text = $"**URL:** {x.Url}\n**Members:** {x.Guild.MemberCount}\n{e}";
 					embed.AddField(x.Guild.Name, text);
 				});
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else if (invites.Count() <= 15)
 			{
@@ -116,12 +116,12 @@ namespace Advobot.Commands.GuildList
 					return $"{n}{u}{m}{e}";
 				});
 				var text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{String.Join("\n", formatted)}";
-				await MessageActions.SendTextFileAsync(Context.Channel, text, "Guilds_").CAF();
+				await MessageUtils.SendTextFileAsync(Context.Channel, text, "Guilds_").CAF();
 			}
 			else
 			{
 				var resp = $"`{invites.Count()}` results returned. Please narrow your search.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 				return;
 			}
 		}

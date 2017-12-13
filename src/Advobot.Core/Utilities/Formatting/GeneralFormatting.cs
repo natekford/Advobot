@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Advobot.Core.Actions.Formatting
+namespace Advobot.Core.Utilities.Formatting
 {
 	/// <summary>
 	/// Formatting for basic things, such as escaping characters or removing new lines.

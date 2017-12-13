@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

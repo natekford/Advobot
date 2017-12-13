@@ -1,4 +1,4 @@
-﻿using Advobot.UILauncher.Actions;
+﻿using Advobot.UILauncher.Utilities;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using System.Windows.Controls;
@@ -16,7 +16,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			get => _FRV;
 			set
 			{
-				EntityActions.SetFontResizeProperty(this, value);
+				ElementUtils.SetFontResizeProperty(this, value);
 				_FRV = value;
 			}
 		}

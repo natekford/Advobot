@@ -6,12 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions done on an <see cref="IGuild"/>.
 	/// </summary>
-	public static class GuildActions
+	public static class GuildUtils
 	{
 		/// <summary>
 		/// Attempts to get a guild from a message.

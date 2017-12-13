@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Settings;
@@ -137,13 +137,13 @@ namespace Advobot.Core
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null);
 			if (!assemblies.Any())
 			{
-				ConsoleActions.WriteLine($"Unable to find any command assemblies. Press any key to close the program.");
+				ConsoleUtils.WriteLine($"Unable to find any command assemblies. Press any key to close the program.");
 				Console.ReadKey();
 				throw new DllNotFoundException("Unable to find any command assemblies.");
 			}
 			else if (assemblies.Count() > 1)
 			{
-				ConsoleActions.WriteLine("Too many command assemblies found. Press any key to close the program.");
+				ConsoleUtils.WriteLine("Too many command assemblies found. Press any key to close the program.");
 				Console.ReadKey();
 				throw new InvalidOperationException("Too many command assemblies found.");
 			}

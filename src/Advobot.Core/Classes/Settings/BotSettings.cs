@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Interfaces;
 using Discord;
 using System;
@@ -50,11 +50,11 @@ namespace Advobot.Core.Classes.Settings
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		private void SaveSettings(object sender, PropertyChangedEventArgs e)
 		{
-			ConsoleActions.WriteLine($"Successfully saved: {e.PropertyName}");
+			ConsoleUtils.WriteLine($"Successfully saved: {e.PropertyName}");
 			SaveSettings();
 		}
 		public void SaveSettings()
-			=> IOActions.OverWriteFile(IOActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), IOActions.Serialize(this));
+			=> IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), IOUtils.Serialize(this));
 		public void TogglePause() => Pause = !Pause;
 		public int GetMaxAmountOfUsersToGather(bool bypass)
 			=> bypass ? int.MaxValue : MaxUserGatherCount;

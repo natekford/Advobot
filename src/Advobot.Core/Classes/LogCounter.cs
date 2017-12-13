@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;

@@ -1,6 +1,6 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
-using Advobot.UILauncher.Actions;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Advobot.UILauncher.Utilities;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using System;
@@ -31,7 +31,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			set
 			{
 				_FRV = value;
-				EntityActions.SetFontResizeProperty(this, _FRV);
+				ElementUtils.SetFontResizeProperty(this, _FRV);
 			}
 		}
 		private string _S;

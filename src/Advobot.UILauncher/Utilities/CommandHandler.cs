@@ -1,7 +1,7 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using System.Windows.Controls;
 
-namespace Advobot.UILauncher.Actions
+namespace Advobot.UILauncher.Utilities
 {
 	internal static class CommandHandler
 	{
@@ -31,7 +31,7 @@ namespace Advobot.UILauncher.Actions
 			var inputArray = input.Substring(prefix.Length)?.Split(new[] { ' ' }, 2);
 			if (!FindCommand(inputArray[0], inputArray.Length > 1 ? inputArray[1] : null))
 			{
-				ConsoleActions.WriteLine("No command could be found with that name.");
+				ConsoleUtils.WriteLine("No command could be found with that name.");
 			}
 		}
 		/// <summary>

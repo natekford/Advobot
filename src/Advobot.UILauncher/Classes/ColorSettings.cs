@@ -1,5 +1,5 @@
 ﻿using Advobot.Core;
-using Advobot.Core.Actions;
+using Advobot.Core.Utilities;
 using Advobot.UILauncher.Enums;
 using ICSharpCode.AvalonEdit.Highlighting;
 using Newtonsoft.Json;
@@ -138,7 +138,7 @@ namespace Advobot.UILauncher.Classes
 		/// Saves custom colors and the current theme.
 		/// </summary>
 		public void SaveSettings()
-			=> IOActions.OverWriteFile(IOActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION), IOActions.Serialize(this));
+			=> IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION), IOUtils.Serialize(this));
 
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
 			=> typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
@@ -150,7 +150,7 @@ namespace Advobot.UILauncher.Classes
 		public static ColorSettings LoadUISettings()
 		{
 			ColorSettings UISettings = null;
-			var fileInfo = IOActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
+			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
 			if (fileInfo.Exists)
 			{
 				try
@@ -159,16 +159,16 @@ namespace Advobot.UILauncher.Classes
 					{
 						UISettings = JsonConvert.DeserializeObject<ColorSettings>(reader.ReadToEnd());
 					}
-					ConsoleActions.WriteLine("The bot UI information has successfully been loaded.");
+					ConsoleUtils.WriteLine("The bot UI information has successfully been loaded.");
 				}
 				catch (Exception e)
 				{
-					ConsoleActions.ExceptionToConsole(e);
+					ConsoleUtils.ExceptionToConsole(e);
 				}
 			}
 			else
 			{
-				ConsoleActions.WriteLine("The bot UI information file could not be found; using default.");
+				ConsoleUtils.WriteLine("The bot UI information file could not be found; using default.");
 			}
 			return UISettings ?? new ColorSettings();
 		}

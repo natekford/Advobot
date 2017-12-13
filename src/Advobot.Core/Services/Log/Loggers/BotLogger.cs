@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Interfaces;
 using Discord;
 using System;
@@ -19,7 +19,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		{
 			if (!String.IsNullOrWhiteSpace(message.Message))
 			{
-				ConsoleActions.WriteLine(message.Message, message.Source);
+				ConsoleUtils.WriteLine(message.Message, message.Source);
 			}
 			return Task.CompletedTask;
 		}

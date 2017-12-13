@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Interfaces;
 using Discord.Commands;
 using System;
@@ -67,7 +67,7 @@ namespace Advobot.Core.Classes
 		/// <summary>
 		/// Writes this to the console in whatever color <see cref="WriteColor"/> is.
 		/// </summary>
-		public void Write() => ConsoleActions.WriteLine(ToString(), nameof(LoggedCommand), WriteColor);
+		public void Write() => ConsoleUtils.WriteLine(ToString(), nameof(LoggedCommand), WriteColor);
 		/// <summary>
 		/// Returns true if there is a valid error reason. Returns false if the command executed without errors.
 		/// </summary>
@@ -109,7 +109,7 @@ namespace Advobot.Core.Classes
 			if (result.IsSuccess)
 			{
 				logging.SuccessfulCommands.Increment();
-				await MessageActions.DeleteMessageAsync(context.Message, new AutomaticModerationReason("logged command")).CAF();
+				await MessageUtils.DeleteMessageAsync(context.Message, new AutomaticModerationReason("logged command")).CAF();
 
 				var guildSettings = context.GuildSettings;
 				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
@@ -117,14 +117,14 @@ namespace Advobot.Core.Classes
 					var embed = new EmbedWrapper(null, context.Message.Content)
 						.AddAuthor(context.User)
 						.AddFooter("Mod Log");
-					await MessageActions.SendEmbedMessageAsync(guildSettings.ModLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(guildSettings.ModLog, embed).CAF();
 				}
 			}
 			//Failure in a valid fail way
 			else if (ErrorReason != null)
 			{
 				logging.FailedCommands.Increment();
-				await MessageActions.SendErrorMessageAsync(context, new ErrorReason(ErrorReason)).CAF();
+				await MessageUtils.SendErrorMessageAsync(context, new ErrorReason(ErrorReason)).CAF();
 			}
 			//Failure in a way that doesn't need to get logged (unknown command, etc)
 			else

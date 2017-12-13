@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 using System;
@@ -19,8 +19,8 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnGuildAvailable(SocketGuild guild)
 		{
-			ConsoleActions.WriteLine($"{guild.FormatGuild()} is now online on shard {ClientActions.GetShardIdFor(_Client, guild)}.");
-			ConsoleActions.WriteLine($"Current memory usage is: {IOActions.GetMemory().ToString("0.00")}MB.");
+			ConsoleUtils.WriteLine($"{guild.FormatGuild()} is now online on shard {ClientUtils.GetShardIdFor(_Client, guild)}.");
+			ConsoleUtils.WriteLine($"Current memory usage is: {IOUtils.GetMemory().ToString("0.00")}MB.");
 
 			if (!_GuildSettings.ContainsGuild(guild.Id))
 			{
@@ -36,7 +36,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public Task OnGuildUnavailable(SocketGuild guild)
 		{
-			ConsoleActions.WriteLine($"Guild is now offline {guild.FormatGuild()}.");
+			ConsoleUtils.WriteLine($"Guild is now offline {guild.FormatGuild()}.");
 			return Task.CompletedTask;
 		}
 		/// <summary>
@@ -46,7 +46,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnJoinedGuild(SocketGuild guild)
 		{
-			ConsoleActions.WriteLine($"Bot has joined {guild.FormatGuild()}.");
+			ConsoleUtils.WriteLine($"Bot has joined {guild.FormatGuild()}.");
 
 			//Determine what percentage of bot users to leave at
 			var users = guild.MemberCount;
@@ -80,15 +80,15 @@ namespace Advobot.Core.Services.Log.Loggers
 
 			//Warn if at the maximum else leave
 			var guilds = (await _Client.GetGuildsAsync().CAF()).Count;
-			var curMax = ClientActions.GetShardCount(_Client) * 2500;
+			var curMax = ClientUtils.GetShardCount(_Client) * 2500;
 			if (guilds > curMax)
 			{
 				await guild.LeaveAsync().CAF();
-				ConsoleActions.WriteLine($"Left the guild {guild.FormatGuild()} due to having too many guilds on the client and not enough shards.");
+				ConsoleUtils.WriteLine($"Left the guild {guild.FormatGuild()} due to having too many guilds on the client and not enough shards.");
 			}
 			else if (guilds + 100 >= curMax)
 			{
-				ConsoleActions.WriteLine($"The bot currently has {guilds} out of {curMax} possible spots for servers filled. Increase the shard count soon.");
+				ConsoleUtils.WriteLine($"The bot currently has {guilds} out of {curMax} possible spots for servers filled. Increase the shard count soon.");
 			}
 
 			if (!_GuildSettings.ContainsGuild(guild.Id))
@@ -105,7 +105,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnLeftGuild(SocketGuild guild)
 		{
-			ConsoleActions.WriteLine($"Bot has left {guild.FormatGuild()}.");
+			ConsoleUtils.WriteLine($"Bot has left {guild.FormatGuild()}.");
 
 			_Logging.TotalUsers.Remove(guild.MemberCount);
 			_Logging.TotalGuilds.Decrement();

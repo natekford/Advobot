@@ -106,10 +106,10 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Actions\CommandHandler.cs" />
-    <Compile Include="Actions\EntityActions.cs" />
-    <Compile Include="Actions\SavingActions.cs" />
-    <Compile Include="Actions\ToolTipActions.cs" />
+    <Compile Include="Utilities\CommandHandler.cs" />
+    <Compile Include="Utilities\ElementUtils.cs" />
+    <Compile Include="Utilities\IOUtils.cs" />
+    <Compile Include="Utilities\ToolTipUtils.cs" />
     <Compile Include="AdvobotApp.xaml.cs">
       <DependentUpon>AdvobotApp.xaml</DependentUpon>
     </Compile>

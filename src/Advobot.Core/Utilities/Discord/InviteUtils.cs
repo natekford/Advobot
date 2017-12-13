@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions done on an <see cref="IInvite"/>.
 	/// </summary>
-	public static class InviteActions
+	public static class InviteUtils
 	{
 		/// <summary>
 		/// Checks if the bot can get invites before trying to get invites.

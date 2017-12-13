@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using System.IO;
 using System.Text;
 using System.Windows.Controls;
@@ -15,7 +15,7 @@ namespace Advobot.UILauncher.Classes
 
 		public TextBoxStreamWriter(TextBoxBase output)
 		{
-			ConsoleActions.GetOrCreateWrittenLines();
+			ConsoleUtils.GetOrCreateWrittenLines();
 			_Output = output;
 			//RTB will have extra new lines if they are printed out
 			_IgnoreNewLines = output is RichTextBox;

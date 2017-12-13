@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
@@ -102,7 +102,7 @@ namespace Advobot.Core.Services.Log
 					var embed = new EmbedWrapper(null, desc, Constants.ATCH, attachmentURL)
 						.AddAuthor(_LogInstance.User, attachmentURL)
 						.AddFooter("Attached Image");
-					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 				}
 				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Gif
 				{
@@ -110,7 +110,7 @@ namespace Advobot.Core.Services.Log
 					var embed = new EmbedWrapper(null, desc, Constants.ATCH, attachmentURL)
 						.AddAuthor(_LogInstance.User, attachmentURL)
 						.AddFooter("Attached Gif");
-					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 				}
 				else //Random file
 				{
@@ -118,7 +118,7 @@ namespace Advobot.Core.Services.Log
 					var embed = new EmbedWrapper(null, desc, Constants.ATCH, attachmentURL)
 						.AddAuthor(_LogInstance.User, attachmentURL)
 						.AddFooter("Attached File");
-					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 				}
 			}
 			foreach (var embedURL in embedURLs.Distinct()) //Images
@@ -127,7 +127,7 @@ namespace Advobot.Core.Services.Log
 				var embed = new EmbedWrapper(null, desc, Constants.ATCH, embedURL)
 					.AddAuthor(_LogInstance.User, embedURL)
 					.AddFooter("Embedded Image");
-				await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 			}
 			foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First())) //Videos/Gifs
 			{
@@ -135,7 +135,7 @@ namespace Advobot.Core.Services.Log
 				var embed = new EmbedWrapper(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url)
 					.AddAuthor(_LogInstance.User, videoEmbed.Url)
 					.AddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
-				await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 			}
 		}
 		/// <summary>
@@ -173,7 +173,7 @@ namespace Advobot.Core.Services.Log
 			}
 			else
 			{
-				await MessageActions.DeleteMessageAsync(_LogInstance.Message, new AutomaticModerationReason("slowmode")).CAF();
+				await MessageUtils.DeleteMessageAsync(_LogInstance.Message, new AutomaticModerationReason("slowmode")).CAF();
 			}
 		}
 		/// <summary>
@@ -231,8 +231,8 @@ namespace Advobot.Core.Services.Log
 					var votesReq = spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count;
 					var content = $"The user `{_LogInstance.User.FormatUser()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					var channel = _LogInstance.Channel as ITextChannel;
-					await MessageActions.MakeAndDeleteSecondaryMessageAsync(channel, null, content, 10, _Timers).CAF();
-					await MessageActions.DeleteMessageAsync(_LogInstance.Message, new AutomaticModerationReason("spam prevention")).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(channel, null, content, 10, _Timers).CAF();
+					await MessageUtils.DeleteMessageAsync(_LogInstance.Message, new AutomaticModerationReason("spam prevention")).CAF();
 				}
 			}
 
@@ -290,7 +290,7 @@ namespace Advobot.Core.Services.Log
 			}
 
 			var regex = _LogInstance.GuildSettings.BannedPhraseRegex.FirstOrDefault(x =>
-				RegexActions.CheckIfRegexMatch(_LogInstance.Message.Content, x.Phrase));
+				RegexUtils.CheckIfRegexMatch(_LogInstance.Message.Content, x.Phrase));
 			if (regex != null)
 			{
 				await regex.PunishAsync(_LogInstance.GuildSettings, _LogInstance.Message, _Timers).CAF();

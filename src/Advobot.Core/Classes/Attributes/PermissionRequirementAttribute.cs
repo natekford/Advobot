@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes.Permissions;
 using Advobot.Core.Interfaces;
 using Discord;

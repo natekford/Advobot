@@ -2,12 +2,12 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions which are done on a <see cref="Regex"/>.
 	/// </summary>
-	public static class RegexActions
+	public static class RegexUtils
 	{
 		private static readonly Regex _TwitchRegex = new Regex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled);
 

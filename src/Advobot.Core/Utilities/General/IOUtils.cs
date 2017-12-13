@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -6,12 +6,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions involving saving and loading.
 	/// </summary>
-	public static class IOActions
+	public static class IOUtils
 	{
 		/// <summary>
 		/// Returns the <see cref="Process.WorkingSet64"/> value divided by a MB.
@@ -93,7 +93,7 @@ namespace Advobot.Core.Actions
 			}
 			catch (Exception e)
 			{
-				ConsoleActions.ExceptionToConsole(e);
+				ConsoleUtils.ExceptionToConsole(e);
 			}
 		}
 

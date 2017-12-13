@@ -1,6 +1,6 @@
 ﻿using Advobot.Core;
-using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
@@ -43,7 +43,7 @@ namespace Advobot.Commands.Miscellaneous
 				.AddField("Mention Syntax", _MentionSyntax)
 				.AddField("Links", _Links)
 				.AddFooter("Help");
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command]
 		public async Task Command(string commandName)
@@ -54,7 +54,7 @@ namespace Advobot.Commands.Miscellaneous
 				var desc = helpEntry.ToString().Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix());
 				var embed = new EmbedWrapper(helpEntry.Name, desc)
 					.AddFooter("Help");
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 				return;
 			}
 
@@ -62,12 +62,12 @@ namespace Advobot.Commands.Miscellaneous
 			if (closeHelps.List.Any())
 			{
 				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name)}";
-				var msg = await MessageActions.SendMessageAsync(Context.Channel, text).CAF();
+				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
 				await Context.Timers.AddActiveCloseHelp(Context.User as IGuildUser, msg, closeHelps).CAF();
 				return;
 			}
 
-			await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Nonexistent command.")).CAF();
+			await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Nonexistent command.")).CAF();
 		}
 	}
 
@@ -85,19 +85,19 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task All()
 		{
 			var desc = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetCommandNames())}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("All Commands", desc)).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("All Commands", desc)).CAF();
 		}
 		[Command]
 		public async Task Command(CommandCategory category)
 		{
 			var desc = $"`{String.Join("`, `", Constants.HELP_ENTRIES[category].Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(category.EnumName(), desc)).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(category.EnumName(), desc)).CAF();
 		}
 		[Command]
 		public async Task Command()
 		{
 			var desc = _CommandCategories.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix());
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Categories", desc)).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Categories", desc)).CAF();
 		}
 	}
 
@@ -113,7 +113,7 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task Command([Remainder] CustomArguments<CustomEmbed> arguments)
 		{
 			var embed = arguments.CreateObject().Embed;
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 
@@ -128,14 +128,14 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			if (role.IsMentionable)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("You can already mention this role.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("You can already mention this role.")).CAF();
 			}
 			else
 			{
 				var cutText = $"From `{Context.User.FormatUser()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
 				await role.ModifyAsync(x => x.Mentionable = true, new ModerationReason(Context.User, null).CreateRequestOptions()).CAF();
-				await MessageActions.SendMessageAsync(Context.Channel, cutText).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, cutText).CAF();
 				await role.ModifyAsync(x => x.Mentionable = false, new ModerationReason(Context.User, null).CreateRequestOptions()).CAF();
 			}
 		}
@@ -154,14 +154,14 @@ namespace Advobot.Commands.Miscellaneous
 			var cut = message.Substring(0, Math.Min(message.Length, 250));
 			var newMsg = $"From `{Context.User.FormatUser()}` in `{Context.Guild.FormatGuild()}`:\n```\n{cut}```";
 
-			var owner = await ClientActions.GetBotOwnerAsync(Context.Client).CAF();
+			var owner = await ClientUtils.GetBotOwnerAsync(Context.Client).CAF();
 			if (owner != null)
 			{
 				await owner.SendMessageAsync(newMsg).CAF();
 			}
 			else
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("The owner is unable to be gotten.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The owner is unable to be gotten.")).CAF();
 			}
 		}
 	}
@@ -174,6 +174,6 @@ namespace Advobot.Commands.Miscellaneous
 	{
 		[Command]
 		public async Task Command()
-			=> await MessageActions.SendMessageAsync(Context.Channel, "test").CAF();
+			=> await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
 	}
 }

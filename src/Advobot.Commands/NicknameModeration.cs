@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.TypeReaders;
@@ -23,11 +23,11 @@ namespace Advobot.Commands.NicknameModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user,
 			[Optional, VerifyStringLength(Target.Nickname)] string nickname)
 		{
-			await UserActions.ChangeNicknameAsync(user, nickname, new ModerationReason(Context.User, null)).CAF();
+			await UserUtils.ChangeNicknameAsync(user, nickname, new ModerationReason(Context.User, null)).CAF();
 			var response = nickname == null
 				? $"Successfully removed the nickname from `{user.FormatUser()}`."
 				: $"Successfully gave `{user.FormatUser()}` the nickname `{nickname}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, response).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, response).CAF();
 		}
 	}
 

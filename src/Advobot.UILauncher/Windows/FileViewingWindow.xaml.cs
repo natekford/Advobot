@@ -1,5 +1,5 @@
 ﻿using Advobot.Core;
-using Advobot.UILauncher.Actions;
+using Advobot.UILauncher.Utilities;
 using Advobot.UILauncher.Classes.Controls;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,7 +21,7 @@ namespace Advobot.UILauncher.Windows
 			InitializeComponent();
 			_AdvoWin = mainWindow;
 			_TreeViewFile = treeViewFile;
-			if (SavingActions.TryGetFileText(_TreeViewFile, out var text, out var fileInfo))
+			if (IOUtils.TryGetFileText(_TreeViewFile, out var text, out var fileInfo))
 			{
 				SpecificFileOutput.Tag = fileInfo;
 				SpecificFileOutput.Clear();
@@ -32,10 +32,10 @@ namespace Advobot.UILauncher.Windows
 		private void CopyFile(object sender, RoutedEventArgs e) => _TreeViewFile.CopyFile();
 		private void DeleteFile(object sender, RoutedEventArgs e) => _TreeViewFile.DeleteFile();
 		private void SaveFile(object sender, RoutedEventArgs e)
-			=> ToolTipActions.EnableTimedToolTip(Layout, SavingActions.SaveFile(SpecificFileOutput).GetReason());
+			=> ToolTipUtils.EnableTimedToolTip(Layout, IOUtils.SaveFile(SpecificFileOutput).GetReason());
 		private void SaveFileWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (SavingActions.IsCtrlS(e))
+			if (IOUtils.IsCtrlS(e))
 			{
 				SaveFile(sender, e);
 			}

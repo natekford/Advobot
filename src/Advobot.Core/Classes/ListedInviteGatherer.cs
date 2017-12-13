@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;

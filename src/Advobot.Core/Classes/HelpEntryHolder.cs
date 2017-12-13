@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.UsageGeneration;
 using Advobot.Core.Enums;
@@ -24,7 +24,7 @@ namespace Advobot.Core.Classes
 			var types = Constants.COMMAND_ASSEMBLY.GetTypes().Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
 			if (!types.Any())
 			{
-				ConsoleActions.WriteLine($"The assembly {Constants.COMMAND_ASSEMBLY.GetName().Name} has no commands. Press any key to close the program.");
+				ConsoleUtils.WriteLine($"The assembly {Constants.COMMAND_ASSEMBLY.GetName().Name} has no commands. Press any key to close the program.");
 				Console.ReadKey();
 				throw new TypeLoadException($"The assembly {Constants.COMMAND_ASSEMBLY.GetName().Name} has no commands.");
 			}

@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Classes.Punishments;
@@ -101,12 +101,12 @@ namespace Advobot.Core.Services.Timers
 				var messages = group.SelectMany(x => x.Messages);
 				if (messages.Count() == 1)
 				{
-					await MessageActions.DeleteMessageAsync(messages.Single(), reason).CAF();
+					await MessageUtils.DeleteMessageAsync(messages.Single(), reason).CAF();
 				}
 				else
 				{
 					var channel = group.First().Channel;
-					await MessageActions.DeleteMessagesAsync(channel, messages, reason).CAF();
+					await MessageUtils.DeleteMessagesAsync(channel, messages, reason).CAF();
 				}
 			}
 		}
@@ -114,14 +114,14 @@ namespace Advobot.Core.Services.Timers
 		{
 			foreach (var helpEntries in GetOutTimedObjects(_ActiveCloseHelp))
 			{
-				await MessageActions.DeleteMessageAsync(helpEntries.Message, new AutomaticModerationReason("removing active close help")).CAF();
+				await MessageUtils.DeleteMessageAsync(helpEntries.Message, new AutomaticModerationReason("removing active close help")).CAF();
 			}
 		}
 		private async Task RemoveActiveCloseQuotes()
 		{
 			foreach (var quotes in GetOutTimedObjects(_ActiveCloseQuotes))
 			{
-				await MessageActions.DeleteMessageAsync(quotes.Message, new AutomaticModerationReason("removing active close quotes")).CAF();
+				await MessageUtils.DeleteMessageAsync(quotes.Message, new AutomaticModerationReason("removing active close quotes")).CAF();
 			}
 		}
 		private void RemoveSlowmodeUsers() => RemoveTimedObjects(_SlowmodeUsers);
@@ -135,7 +135,7 @@ namespace Advobot.Core.Services.Timers
 			//Remove all older ones; only one can be active at a given time.
 			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.UserId == user.Id))
 			{
-				await MessageActions.DeleteMessageAsync(Remove(_ActiveCloseHelp, kvp.Key).Message, new AutomaticModerationReason("removing active close help")).CAF();
+				await MessageUtils.DeleteMessageAsync(Remove(_ActiveCloseHelp, kvp.Key).Message, new AutomaticModerationReason("removing active close help")).CAF();
 			}
 			Add(_ActiveCloseHelp, new UserKey(user, helpEntries.GetTime().Ticks), new CloseWordsWrapper<HelpEntry>(helpEntries, msg));
 		}
@@ -144,7 +144,7 @@ namespace Advobot.Core.Services.Timers
 			///Remove all older ones; only one can be active at a given time.
 			foreach (var kvp in _ActiveCloseQuotes.Where(x => x.Key.UserId == user.Id))
 			{
-				await MessageActions.DeleteMessageAsync(Remove(_ActiveCloseQuotes, kvp.Key).Message, new AutomaticModerationReason("removing active close quotes")).CAF();
+				await MessageUtils.DeleteMessageAsync(Remove(_ActiveCloseQuotes, kvp.Key).Message, new AutomaticModerationReason("removing active close quotes")).CAF();
 			}
 			Add(_ActiveCloseQuotes, new UserKey(user, quotes.GetTime().Ticks), new CloseWordsWrapper<Quote>(quotes, msg));
 		}
@@ -171,7 +171,7 @@ namespace Advobot.Core.Services.Timers
 			if (kvp.Key != null)
 			{
 				var value = Remove(_ActiveCloseHelp, kvp.Key);
-				await MessageActions.DeleteMessageAsync(value.Message, new AutomaticModerationReason("removing active close help")).CAF();
+				await MessageUtils.DeleteMessageAsync(value.Message, new AutomaticModerationReason("removing active close help")).CAF();
 				return value.CloseWords;
 			}
 			return null;
@@ -183,7 +183,7 @@ namespace Advobot.Core.Services.Timers
 			if (kvp.Key != null)
 			{
 				var value = Remove(_ActiveCloseQuotes, kvp.Key);
-				await MessageActions.DeleteMessageAsync(value.Message, new AutomaticModerationReason("removing active close quotes")).CAF();
+				await MessageUtils.DeleteMessageAsync(value.Message, new AutomaticModerationReason("removing active close quotes")).CAF();
 				return value.CloseWords;
 			}
 			return null;
@@ -249,7 +249,7 @@ namespace Advobot.Core.Services.Timers
 		{
 			if (EqualityComparer<TKey>.Default.Equals(key, default) || EqualityComparer<TValue>.Default.Equals(value, default) || !concDic.TryAdd(key, value))
 			{
-				ConsoleActions.WriteLine($"Failed to add the object at {key} in {caller}.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Failed to add the object at {key} in {caller}.", color: ConsoleColor.Red);
 			}
 		}
 		/// <summary>
@@ -265,7 +265,7 @@ namespace Advobot.Core.Services.Timers
 			TValue value = default;
 			if (EqualityComparer<TKey>.Default.Equals(key, default) || !concDic.TryRemove(key, out value))
 			{
-				ConsoleActions.WriteLine($"Failed to remove the object at {key} in {caller}.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Failed to remove the object at {key} in {caller}.", color: ConsoleColor.Red);
 			}
 			return value;
 		}

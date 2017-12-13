@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Interfaces;
@@ -9,12 +9,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions which are done on an <see cref="IMessage"/>.
 	/// </summary>
-	public static class MessageActions
+	public static class MessageUtils
 	{
 		/// <summary>
 		/// Sends a message to the given channel with the given content.
@@ -93,7 +93,7 @@ namespace Advobot.Core.Actions
 			}
 			catch (Exception e)
 			{
-				ConsoleActions.ExceptionToConsole(e);
+				ConsoleUtils.ExceptionToConsole(e);
 				message = await SendMessageAsync(channel, new ErrorReason(e.Message).ToString()).CAF();
 			}
 
@@ -130,11 +130,11 @@ namespace Advobot.Core.Actions
 				fileName += "_";
 			}
 			var fullFileName = fileName + TimeFormatting.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
-			var fileInfo = IOActions.GetServerDirectoryFile(guild.Id, fullFileName);
+			var fileInfo = IOUtils.GetServerDirectoryFile(guild.Id, fullFileName);
 
-			IOActions.OverWriteFile(fileInfo, text.RemoveAllMarkdown());
+			IOUtils.OverWriteFile(fileInfo, text.RemoveAllMarkdown());
 			var msg = await channel.SendFileAsync(fileInfo.FullName, String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**").CAF();
-			IOActions.DeleteFile(fileInfo);
+			IOUtils.DeleteFile(fileInfo);
 			return msg;
 		}
 		/// <summary>
@@ -265,7 +265,7 @@ namespace Advobot.Core.Actions
 			}
 			catch
 			{
-				ConsoleActions.WriteLine($"Unable to delete {youngMessages.Count()} messages on the guild {channel.GetGuild().FormatGuild()} on channel {channel.FormatChannel()}.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Unable to delete {youngMessages.Count()} messages on the guild {channel.GetGuild().FormatGuild()} on channel {channel.FormatChannel()}.", color: ConsoleColor.Red);
 				return 0;
 			}
 		}
@@ -288,7 +288,7 @@ namespace Advobot.Core.Actions
 			}
 			catch
 			{
-				ConsoleActions.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.FormatChannel()}.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.FormatChannel()}.", color: ConsoleColor.Red);
 				return 0;
 			}
 		}

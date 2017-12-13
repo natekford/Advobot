@@ -6,9 +6,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
-namespace Advobot.UILauncher.Actions
+namespace Advobot.UILauncher.Utilities
 {
-	internal static class ToolTipActions
+	internal static class ToolTipUtils
 	{
 		private static Dictionary<ToolTipReason, string> _ToolTipReasons = new Dictionary<ToolTipReason, string>
 		{

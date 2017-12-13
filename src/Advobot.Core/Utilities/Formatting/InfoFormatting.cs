@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Advobot.Core.Actions.Formatting
+namespace Advobot.Core.Utilities.Formatting
 {
 	/// <summary>
 	/// Formatting for information about Discord objects.
@@ -209,9 +209,9 @@ namespace Advobot.Core.Actions.Formatting
 			var desc = new StringBuilder()
 				.AppendLineFeed($"**Online Since:** `{TimeFormatting.FormatReadableDateTime(Process.GetCurrentProcess().StartTime)}` (`{TimeFormatting.FormatUptime()}`)")
 				.AppendLineFeed($"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`")
-				.AppendLineFeed($"**Current Shard:** `{ClientActions.GetShardIdFor(client, guild)}`")
-				.AppendLineFeed($"**Latency:** `{ClientActions.GetLatency(client)}ms`")
-				.AppendLineFeed($"**Memory Usage:** `{IOActions.GetMemory().ToString("0.00")}MB`")
+				.AppendLineFeed($"**Current Shard:** `{ClientUtils.GetShardIdFor(client, guild)}`")
+				.AppendLineFeed($"**Latency:** `{ClientUtils.GetLatency(client)}ms`")
+				.AppendLineFeed($"**Memory Usage:** `{IOUtils.GetMemory().ToString("0.00")}MB`")
 				.AppendLineFeed($"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`");
 
 			var firstField = logModule.FormatLoggedUserActions(true, false).Trim('\n', '\r');

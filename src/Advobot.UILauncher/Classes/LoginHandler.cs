@@ -1,6 +1,6 @@
 ﻿using Advobot.Commands;
 using Advobot.Core;
-using Advobot.Core.Actions;
+using Advobot.Core.Utilities;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -49,7 +49,7 @@ namespace Advobot.UILauncher.Classes
 		{
 			if (Config.ValidatePath(path, startup))
 			{
-				var provider = await CreationActions.CreateServiceProvider().CAF();
+				var provider = await ServiceProviderCreationUtils.CreateServiceProvider().CAF();
 				CommandHandler.Install(provider);
 				return provider;
 			}

@@ -7,9 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace Advobot.UILauncher.Actions
+namespace Advobot.UILauncher.Utilities
 {
-	internal static class EntityActions
+	internal static class ElementUtils
 	{
 		/// <summary>
 		/// Sets the <see cref="Grid.RowSpanProperty"/> to either 1 or the supplied length.

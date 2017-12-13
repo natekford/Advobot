@@ -7,12 +7,12 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions done on an <see cref="IDiscordClient"/>.
 	/// </summary>
-	public static class ClientActions
+	public static class ClientUtils
 	{
 		/// <summary>
 		/// Tries to start the bot.
@@ -31,16 +31,16 @@ namespace Advobot.Core.Actions
 				}
 				case ConnectionState.Disconnected:
 				{
-					ConsoleActions.WriteLine("Connecting the client...");
+					ConsoleUtils.WriteLine("Connecting the client...");
 
 					try
 					{
 						await client.StartAsync().CAF();
-						ConsoleActions.WriteLine("Successfully connected the client.");
+						ConsoleUtils.WriteLine("Successfully connected the client.");
 					}
 					catch (Exception e)
 					{
-						ConsoleActions.ExceptionToConsole(e);
+						ConsoleUtils.ExceptionToConsole(e);
 					}
 
 					await Task.Delay(-1).CAF();
@@ -225,7 +225,7 @@ namespace Advobot.Core.Actions
 				FileName = "dotnet",
 				Arguments = $@"""{Assembly.GetEntryAssembly().Location}""",
 			});
-			ConsoleActions.WriteLine($"Restarted the bot.{Environment.NewLine}");
+			ConsoleUtils.WriteLine($"Restarted the bot.{Environment.NewLine}");
 			Process.GetCurrentProcess().Kill();
 		}
 		/// <summary>

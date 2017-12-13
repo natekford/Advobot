@@ -1,6 +1,6 @@
 ﻿using Advobot.Core;
-using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Permissions;
@@ -26,14 +26,14 @@ namespace Advobot.Commands.GuildSettings
 		public async Task Clear()
 		{
 			Context.GuildSettings.Prefix = null;
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully cleared the guild's prefix.").CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully cleared the guild's prefix.").CAF();
 		}
 		[Command]
 		public async Task Command([VerifyStringLength(Target.Prefix)] string newPrefix)
 		{
 			Context.GuildSettings.Prefix = newPrefix;
 			var resp = $"Successfully set this guild's prefix to: `{Context.GuildSettings.Prefix}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -63,24 +63,24 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
 			}
 			[Command]
 			public async Task Command(CommandSwitch command)
 			{
 				if (command.Value)
 				{
-					await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This command is already enabled.")).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("This command is already enabled.")).CAF();
 					return;
 				}
 				else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
 				{
-					await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Please don't try to edit that command.")).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Please don't try to edit that command.")).CAF();
 					return;
 				}
 
 				command.ToggleEnabled();
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully enabled `{command.Name}`.").CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully enabled `{command.Name}`.").CAF();
 			}
 			[Command]
 			public async Task Command(CommandCategory category)
@@ -95,7 +95,7 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
@@ -114,24 +114,24 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
 			}
 			[Command]
 			public async Task Command(CommandSwitch command)
 			{
 				if (!command.Value)
 				{
-					await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This command is already disabled.")).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("This command is already disabled.")).CAF();
 					return;
 				}
 				else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
 				{
-					await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Please don't try to edit that command.")).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Please don't try to edit that command.")).CAF();
 					return;
 				}
 
 				command.ToggleEnabled();
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully disabled `{command.Name}`.").CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully disabled `{command.Name}`.").CAF();
 			}
 			[Command]
 			public async Task Command(CommandCategory category)
@@ -146,7 +146,7 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
 			}
 		}
 	}
@@ -169,13 +169,13 @@ namespace Advobot.Commands.GuildSettings
 				if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
 					var error = new ErrorReason($"`{channel.FormatChannel()}` is already ignoring commands.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				Context.GuildSettings.IgnoredCommandChannels.Add(channel.Id);
 				var resp = $"Successfully added `{channel.FormatChannel()}` to the ignored command channels list.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
@@ -183,13 +183,13 @@ namespace Advobot.Commands.GuildSettings
 				if (Context.GuildSettings.CommandsDisabledOnChannel.Any(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name)))
 				{
 					var error = new ErrorReason($"`{command.Name}` is already ignored on `{channel.FormatChannel()}`.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				Context.GuildSettings.CommandsDisabledOnChannel.Add(new CommandOverride(command.Name, channel.Id));
 				var resp = $"Successfully started ignoring the command `{command.Name}` on `{channel.FormatChannel()}`.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
@@ -203,7 +203,7 @@ namespace Advobot.Commands.GuildSettings
 
 				var cmdNames = String.Join("`, `", commands.Select(x => x.Name));
 				var resp = $"Successfully started ignoring the following commands on `{channel.FormatChannel()}`: `{cmdNames}`.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
@@ -215,13 +215,13 @@ namespace Advobot.Commands.GuildSettings
 				if (!Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
 					var error = new ErrorReason($"`{channel.FormatChannel()}` is already allowing commands.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				Context.GuildSettings.IgnoredCommandChannels.RemoveAll(x => x == channel.Id);
 				var resp = $"Successfully removed `{channel.FormatChannel()}` from the ignored command channels list.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
@@ -230,12 +230,12 @@ namespace Advobot.Commands.GuildSettings
 				if (cmd == null)
 				{
 					var error = new ErrorReason($"`{command.Name}` is already unignored on `{channel.FormatChannel()}`.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				var resp = $"Successfully stopped ignoring the command `{command.Name}` on `{channel.FormatChannel()}`.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
@@ -248,7 +248,7 @@ namespace Advobot.Commands.GuildSettings
 
 				var cmdNames = String.Join("`, `", commands.Select(x => x.Name));
 				var resp = $"Successfully stopped ignoring the following commands on `{channel.FormatChannel()}`: `{cmdNames}`.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 	}
@@ -268,7 +268,7 @@ namespace Advobot.Commands.GuildSettings
 			public async Task Command()
 			{
 				var desc = $"`{String.Join("`, `", GuildPerms.Permissions.Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Bot Permission Types", desc)).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Bot Permission Types", desc)).CAF();
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -277,13 +277,13 @@ namespace Advobot.Commands.GuildSettings
 				if (botUser == null || botUser.Permissions == 0)
 				{
 					var error = new ErrorReason("That user has no extra permissions from the bot.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				var desc = $"`{String.Join("`, `", GuildPerms.ConvertValueToNames(botUser.Permissions))}`";
 				var embed = new EmbedWrapper($"Permissions for {user.FormatUser()}", desc);
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
@@ -300,7 +300,7 @@ namespace Advobot.Commands.GuildSettings
 
 			var givenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(permissions));
 			var resp = $"Successfully gave `{user.FormatUser()}` the following bot permissions: `{givenPerms}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
@@ -311,14 +311,14 @@ namespace Advobot.Commands.GuildSettings
 			if (botUser == null)
 			{
 				var error = new ErrorReason($"`{user.FormatUser()}` does not have any bot permissions to remove");
-				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 			botUser.RemovePermissions(permissions);
 
 			var takenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(permissions));
 			var resp = $"Successfully removed the following bot permissions from `{user.FormatUser()}`: `{takenPerms}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -340,12 +340,12 @@ namespace Advobot.Commands.GuildSettings
 				if (!roles.Any())
 				{
 					var error = new ErrorReason("The guild does not have any persistent roles.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				var desc = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild));
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Persistent Roles", desc)).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Persistent Roles", desc)).CAF();
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -354,12 +354,12 @@ namespace Advobot.Commands.GuildSettings
 				if (!roles.Any())
 				{
 					var error = new ErrorReason($"The user `{user.FormatUser()}` does not have any persistent roles.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				var desc = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild));
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Persistent Roles", desc)).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Persistent Roles", desc)).CAF();
 			}
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
@@ -380,13 +380,13 @@ namespace Advobot.Commands.GuildSettings
 				if (match == null)
 				{
 					var error = new ErrorReason($"A persistent role already exists for the user id {userId} with the role {role.FormatRole()}.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				Context.GuildSettings.PersistentRoles.Add(new PersistentRole(userId, role));
 				var resp = $"Successfully added a persistent role for the user id {userId} with the role {role.FormatRole()}.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
@@ -407,13 +407,13 @@ namespace Advobot.Commands.GuildSettings
 				if (match == null)
 				{
 					var error = new ErrorReason($"No persistent role exists for the user id {userId} with the role {role.FormatRole()}.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				Context.GuildSettings.PersistentRoles.Remove(match);
 				var resp = $"Successfully removed the persistent role for the user id {userId} with the role {role.FormatRole()}.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 	}
@@ -432,13 +432,13 @@ namespace Advobot.Commands.GuildSettings
 			{
 				Context.GuildSettings.ImageOnlyChannels.Remove(channel.Id);
 				var resp = $"Successfully removed the channel `{channel.FormatChannel()}` from the image only list.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			else
 			{
 				Context.GuildSettings.ImageOnlyChannels.Add(channel.Id);
 				var resp = $"Successfully added the channel `{channel.FormatChannel()}` to the image only list.";
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 	}
@@ -455,13 +455,13 @@ namespace Advobot.Commands.GuildSettings
 		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] CustomArguments<GuildNotification> arguments)
 		{
 			Context.GuildSettings.WelcomeMessage = arguments.CreateObject(channel);
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the welcome message.").CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the welcome message.").CAF();
 		}
 		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
 		public async Task Goodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] CustomArguments<GuildNotification> arguments)
 		{
 			Context.GuildSettings.GoodbyeMessage = arguments.CreateObject(channel);
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the goodbye message.").CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the goodbye message.").CAF();
 		}
 	}
 
@@ -477,7 +477,7 @@ namespace Advobot.Commands.GuildSettings
 			var notif = Context.GuildSettings.WelcomeMessage;
 			if (notif == null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("The welcome notification does not exist.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The welcome notification does not exist.")).CAF();
 				return;
 			}
 
@@ -489,7 +489,7 @@ namespace Advobot.Commands.GuildSettings
 			var notif = Context.GuildSettings.GoodbyeMessage;
 			if (notif == null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("The goodbye notification does not exist.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The goodbye notification does not exist.")).CAF();
 				return;
 			}
 
@@ -507,13 +507,13 @@ namespace Advobot.Commands.GuildSettings
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", Core.Classes.Settings.GuildSettings.GetSettings().Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
 		{
 			var text = Context.GuildSettings.ToString();
-			await MessageActions.SendTextFileAsync(Context.Channel, text, "Guild_Settings", "Guild Settings").CAF();
+			await MessageUtils.SendTextFileAsync(Context.Channel, text, "Guild_Settings", "Guild Settings").CAF();
 		}
 		[Command]
 		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.GuildSettingTypeReader))] PropertyInfo settingName)
@@ -521,11 +521,11 @@ namespace Advobot.Commands.GuildSettings
 			var desc = Context.GuildSettings.Format(settingName);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(settingName.Name, desc)).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(settingName.Name, desc)).CAF();
 			}
 			else
 			{
-				await MessageActions.SendTextFileAsync(Context.Channel, desc, settingName.Name, settingName.Name).CAF();
+				await MessageUtils.SendTextFileAsync(Context.Channel, desc, settingName.Name, settingName.Name).CAF();
 			}
 		}
 	}
@@ -539,10 +539,10 @@ namespace Advobot.Commands.GuildSettings
 		[Command]
 		public async Task Command()
 		{
-			var file = IOActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+			var file = IOUtils.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
 			if (!file.Exists)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("The guild settings file does not exist.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The guild settings file does not exist.")).CAF();
 				return;
 			}
 			await Context.Channel.SendFileAsync(file.FullName).CAF();

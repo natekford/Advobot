@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Punishments;
@@ -23,18 +23,18 @@ namespace Advobot.Commands.UserModeration
 		[Command]
 		public async Task Command(IGuildUser user, [Optional] uint time, [Optional, Remainder] string reason)
 		{
-			var muteRole = await RoleActions.GetMuteRoleAsync(Context, Context.GuildSettings).CAF();
+			var muteRole = await RoleUtils.GetMuteRoleAsync(Context, Context.GuildSettings).CAF();
 			if (user.RoleIds.Contains(muteRole.Id))
 			{
 				var remover = new PunishmentRemover(Context.Timers);
 				await remover.UnrolemuteAsync(user, muteRole, new ModerationReason(Context.User, reason)).CAF();
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
 				return;
 			}
 
 			var giver = new PunishmentGiver((int)time, Context.Timers);
 			await giver.RoleMuteAsync(user, muteRole, new ModerationReason(Context.User, reason)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, giver.ToString()).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, giver.ToString()).CAF();
 		}
 	}
 
@@ -52,13 +52,13 @@ namespace Advobot.Commands.UserModeration
 			{
 				var remover = new PunishmentRemover(Context.Timers);
 				await remover.UnvoicemuteAsync(user, new ModerationReason(Context.User, null)).CAF();
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
 				return;
 			}
 
 			var giver = new PunishmentGiver((int)time, Context.Timers);
 			await giver.VoiceMuteAsync(user, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, giver.ToString()).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, giver.ToString()).CAF();
 		}
 	}
 
@@ -76,13 +76,13 @@ namespace Advobot.Commands.UserModeration
 			{
 				var remover = new PunishmentRemover(Context.Timers);
 				await remover.UndeafenAsync(user, new ModerationReason(Context.User, null)).CAF();
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
 				return;
 			}
 
 			var giver = new PunishmentGiver((int)time, Context.Timers);
 			await giver.DeafenAsync(user, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, giver.ToString()).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, giver.ToString()).CAF();
 		}
 	}
 
@@ -97,18 +97,18 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (user.VoiceChannel == null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("User is not in a voice channel.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("User is not in a voice channel.")).CAF();
 				return;
 			}
 			else if (user.VoiceChannel == channel)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("User is already in that channel.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("User is already in that channel.")).CAF();
 				return;
 			}
 
-			await UserActions.MoveUserAsync(user, channel, new ModerationReason(Context.User, null)).CAF();
+			await UserUtils.MoveUserAsync(user, channel, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully moved `{user.FormatUser()}` to `{channel.FormatChannel()}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -139,9 +139,9 @@ namespace Advobot.Commands.UserModeration
 		[Command]
 		public async Task Command([VerifyNumber(new[] { 1, 7, 30 })] uint days, [Optional, OverrideTypeReader(typeof(PruneTypeReader))] bool simulate)
 		{
-			var amt = await GuildActions.PruneUsersAsync(Context.Guild, (int)days, !simulate, new ModerationReason(Context.User, null)).CAF();
+			var amt = await GuildUtils.PruneUsersAsync(Context.Guild, (int)days, !simulate, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"`{amt}` members{(!simulate ? " would" : "")} have been pruned with a prune period of `{days}` days.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -162,7 +162,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			var giver = new PunishmentGiver(0, Context.Timers);
 			await giver.SoftbanAsync(Context.Guild, userId, new ModerationReason(Context.User, reason)).CAF();
-			await MessageActions.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
 	}
 
@@ -185,13 +185,13 @@ namespace Advobot.Commands.UserModeration
 		{
 			if ((await Context.Guild.GetBansAsync().CAF()).Select(x => x.User.Id).Contains(userId))
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("That user is already banned.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("That user is already banned.")).CAF();
 				return;
 			}
 
 			var giver = new PunishmentGiver((int)time, Context.Timers);
 			await giver.BanAsync(Context.Guild, userId, new ModerationReason(Context.User, reason), 1).CAF();
-			await MessageActions.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
 	}
 
@@ -206,7 +206,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			var remover = new PunishmentRemover(Context.Timers);
 			await remover.UnbanAsync(Context.Guild, ban.User.Id, new ModerationReason(Context.User, reason)).CAF();
-			await MessageActions.SendMessageAsync(Context.Channel, remover.ToString()).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, remover.ToString()).CAF();
 		}
 	}
 
@@ -220,7 +220,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command(IBan ban)
 		{
 			var embed = new EmbedWrapper($"Ban reason for {ban.User.FormatUser()}", ban.Reason);
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 
@@ -235,7 +235,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			var giver = new PunishmentGiver(0, Context.Timers);
 			await giver.KickAsync(user, new ModerationReason(Context.User, reason)).CAF();
-			await MessageActions.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
 	}
 
@@ -251,12 +251,12 @@ namespace Advobot.Commands.UserModeration
 			var bans = await Context.Guild.GetBansAsync().CAF();
 			if (!bans.Any())
 			{
-				await MessageActions.SendMessageAsync(Context.Channel, "This guild has no bans.").CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, "This guild has no bans.").CAF();
 				return;
 			}
 
 			var desc = bans.FormatNumberedList("`{0}`", x => x.User.FormatUser());
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Current Bans", desc)).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Current Bans", desc)).CAF();
 		}
 	}
 
@@ -297,14 +297,14 @@ namespace Advobot.Commands.UserModeration
 
 			//If there is a non null user then delete messages specifically from that user
 			var deletedAmt = user == null
-				? await MessageActions.RemoveMessagesAsync(channel, messageToStartAt, requestCount, reason).CAF()
-				: await MessageActions.RemoveMessagesFromUserAsync(channel, messageToStartAt, requestCount, user, reason).CAF();
+				? await MessageUtils.RemoveMessagesAsync(channel, messageToStartAt, requestCount, reason).CAF()
+				: await MessageUtils.RemoveMessagesFromUserAsync(channel, messageToStartAt, requestCount, user, reason).CAF();
 
 			//If the context channel isn't the targetted channel then delete the start message
 			//Increase by one to account for it not being targetted.
 			if (Context.Message.Channel.Id != channel.Id)
 			{
-				await MessageActions.DeleteMessageAsync(messageToStartAt, reason).CAF();
+				await MessageUtils.DeleteMessageAsync(messageToStartAt, reason).CAF();
 				deletedAmt++;
 			}
 
@@ -312,7 +312,7 @@ namespace Advobot.Commands.UserModeration
 			var userResp = user != null ? $" from `{user.FormatUser()}`" : null;
 			var chanResp = channel != null ? $" on `{channel.FormatChannel()}`" : null;
 			var resp = $"{GeneralFormatting.JoinNonNullStrings(" ", response, userResp, chanResp)}.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -330,7 +330,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
 			var resp = $"Successfully setup slowmode.\n{Context.GuildSettings.Slowmode.ToString()}";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public async Task Enable()
@@ -338,13 +338,13 @@ namespace Advobot.Commands.UserModeration
 			if (Context.GuildSettings.Slowmode == null)
 			{
 				var error = new ErrorReason("There must be a slowmode set up before one can be enabled or disabled.");
-				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
 			Context.GuildSettings.Slowmode.Enable();
 			var resp = $"Successfully enabled slowmode.\n{Context.GuildSettings.Slowmode.ToString()}";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public async Task Disable()
@@ -352,12 +352,12 @@ namespace Advobot.Commands.UserModeration
 			if (Context.GuildSettings.Slowmode == null)
 			{
 				var error = new ErrorReason("There must be a slowmode set up before one can be enabled or disabled.");
-				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
 			Context.GuildSettings.Slowmode.Disable();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled slowmode.").CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled slowmode.").CAF();
 		}
 	}
 
@@ -375,7 +375,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (targetRole.Id == givenRole.Id)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Cannot give the role being gathered.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Cannot give the role being gathered.")).CAF();
 				return;
 			}
 

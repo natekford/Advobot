@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Classes;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
@@ -32,7 +32,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			if (logInstanceInfo.HasServerLog)
 			{
 				var invite = "";
-				var inviteUserJoinedOn = await InviteActions.GetInviteUserJoinedOnAsync(logInstanceInfo.GuildSettings, user).CAF();
+				var inviteUserJoinedOn = await InviteUtils.GetInviteUserJoinedOnAsync(logInstanceInfo.GuildSettings, user).CAF();
 				if (inviteUserJoinedOn != null)
 				{
 					invite = $"**Invite:** {inviteUserJoinedOn.Code}";
@@ -48,7 +48,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				var embed = new EmbedWrapper(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Constants.JOIN)
 					.AddAuthor(user)
 					.AddFooter(user.IsBot ? "Bot Joined" : "User Joined");
-				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 			}
 		}
 		/// <summary>
@@ -79,7 +79,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				var embed = new EmbedWrapper(null, $"**ID:** {user.Id}\n{userStayLength}", Constants.LEAV)
 					.AddAuthor(user)
 					.AddFooter(user.IsBot ? "Bot Left" : "User Left");
-				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 			}
 		}
 		/// <summary>
@@ -114,7 +114,7 @@ namespace Advobot.Core.Services.Log.Loggers
 						.AddField("Before:", "`" + beforeUser.Username + "`")
 						.AddField("After:", "`" + afterUser.Username + "`", false)
 						.AddFooter("Name Changed");
-					await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 				}
 			}
 		}

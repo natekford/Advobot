@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Permissions;
 using Advobot.Core.Classes.Results;
@@ -11,12 +11,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions which are done on an <see cref="IRole"/>.
 	/// </summary>
-	public static class RoleActions
+	public static class RoleUtils
 	{
 		/// <summary>
 		/// Verifies that the role can be edited in specific ways.
@@ -37,12 +37,12 @@ namespace Advobot.Core.Actions
 			var bot = context.Guild.GetBot();
 			foreach (var check in checks)
 			{
-				if (!UserActions.GetIfUserCanDoActionOnRole(invokingUser, target, check))
+				if (!UserUtils.GetIfUserCanDoActionOnRole(invokingUser, target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"You are unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
-				else if (!UserActions.GetIfUserCanDoActionOnRole(bot, target, check))
+				else if (!UserUtils.GetIfUserCanDoActionOnRole(bot, target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"I am unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");

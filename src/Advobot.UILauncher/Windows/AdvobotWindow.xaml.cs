@@ -1,8 +1,8 @@
 ﻿using Advobot.Core;
-using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Interfaces;
-using Advobot.UILauncher.Actions;
+using Advobot.UILauncher.Utilities;
 using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Enums;
@@ -33,7 +33,6 @@ namespace Advobot.UILauncher.Windows
 
 		private ColorSettings _Colors = new ColorSettings();
 		private LoginHandler _LoginHandler = new LoginHandler();
-		private BindingListener _Listener = new BindingListener();
 		private MenuType _LastButtonClicked;
 
 		public AdvobotWindow()
@@ -100,7 +99,7 @@ namespace Advobot.UILauncher.Windows
 				sharded.Shards.LastOrDefault().Connected += EnableButtons;
 				sharded.GuildAvailable += AddGuildToTreeView;
 			}
-			await ClientActions.StartAsync(Client.HeldObject);
+			await ClientUtils.StartAsync(Client.HeldObject);
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
@@ -118,7 +117,7 @@ namespace Advobot.UILauncher.Windows
 			{
 				return;
 			}
-			ConsoleActions.WriteLine(input);
+			ConsoleUtils.WriteLine(input);
 
 			if (!_LoginHandler.CanLogin)
 			{
@@ -137,12 +136,12 @@ namespace Advobot.UILauncher.Windows
 			var input = TrustedUsersBox.Text;
 			if (!ulong.TryParse(input, out ulong userId))
 			{
-				ConsoleActions.WriteLine($"The given input '{input}' is not a valid ID.");
+				ConsoleUtils.WriteLine($"The given input '{input}' is not a valid ID.");
 				return;
 			}
 			else if (TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
 			{
-				ConsoleActions.WriteLine($"The given input '{input}' is already a trusted user.");
+				ConsoleUtils.WriteLine($"The given input '{input}' is already a trusted user.");
 				return;
 			}
 
@@ -172,13 +171,13 @@ namespace Advobot.UILauncher.Windows
 			=> TrustedUsers.Items.Remove(TrustedUsers.SelectedItem);
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			SavingActions.SaveSettings(SettingsMenuDisplay, BotSettings.HeldObject);
+			Utilities.IOUtils.SaveSettings(SettingsMenuDisplay, BotSettings.HeldObject);
 			//In a task.run since the result is unimportant and unused
-			Task.Run(async () => await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject));
+			Task.Run(async () => await ClientUtils.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject));
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (SavingActions.IsCtrlS(e))
+			if (Utilities.IOUtils.IsCtrlS(e))
 			{
 				SaveSettings(sender, e);
 			}
@@ -198,13 +197,13 @@ namespace Advobot.UILauncher.Windows
 						if (c[target] != null)
 						{
 							c[target] = null;
-							ConsoleActions.WriteLine($"Successfully updated the color for {name}.");
+							ConsoleUtils.WriteLine($"Successfully updated the color for {name}.");
 						}
 						continue;
 					}
 					if (!ColorWrapper.TryCreateColor(childText, out var color))
 					{
-						ConsoleActions.WriteLine($"Invalid color supplied for {name}: '{childText}'.");
+						ConsoleUtils.WriteLine($"Invalid color supplied for {name}: '{childText}'.");
 						continue;
 					}
 
@@ -212,7 +211,7 @@ namespace Advobot.UILauncher.Windows
 					if (!ColorWrapper.CheckIfSameBrush(c[target], brush))
 					{
 						c[target] = brush;
-						ConsoleActions.WriteLine($"Successfully updated the color for {name}: '{childText} ({brush.ToString()})'.");
+						ConsoleUtils.WriteLine($"Successfully updated the color for {name}: '{childText} ({brush.ToString()})'.");
 					}
 
 					//Update the text here because if someone has the hex value for yellow but they put in Yellow as a string 
@@ -227,7 +226,7 @@ namespace Advobot.UILauncher.Windows
 				{
 					if (c.Theme != theme)
 					{
-						ConsoleActions.WriteLine($"Successfully updated the theme to {theme.EnumName().FormatTitle().ToLower()}.");
+						ConsoleUtils.WriteLine($"Successfully updated the theme to {theme.EnumName().FormatTitle().ToLower()}.");
 					}
 					c.Theme = theme;
 				}
@@ -237,13 +236,13 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (SavingActions.IsCtrlS(e))
+			if (Utilities.IOUtils.IsCtrlS(e))
 			{
 				SaveColors(sender, e);
 			}
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
-			=> ToolTipActions.EnableTimedToolTip(Layout, SavingActions.SaveFile(Output).GetReason());
+			=> ToolTipUtils.EnableTimedToolTip(Layout, IOUtils.SaveFile(Output).GetReason());
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
 			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
@@ -304,13 +303,13 @@ namespace Advobot.UILauncher.Windows
 			if (type == _LastButtonClicked)
 			{
 				//If clicking the same button then resize the output window to the regular size
-				EntityActions.SetColSpan(Output, Grid.GetColumnSpan(Output) + (Layout.ColumnDefinitions.Count - 1));
+				ElementUtils.SetColSpan(Output, Grid.GetColumnSpan(Output) + (Layout.ColumnDefinitions.Count - 1));
 				_LastButtonClicked = default;
 			}
 			else
 			{
 				//Resize the regular output window and have the menubox appear
-				EntityActions.SetColSpan(Output, Grid.GetColumnSpan(Output) - (Layout.ColumnDefinitions.Count - 1));
+				ElementUtils.SetColSpan(Output, Grid.GetColumnSpan(Output) - (Layout.ColumnDefinitions.Count - 1));
 				_LastButtonClicked = type;
 
 				switch (type)
@@ -387,7 +386,7 @@ namespace Advobot.UILauncher.Windows
 			{
 				case MessageBoxResult.OK:
 				{
-					ClientActions.DisconnectBot(Client.HeldObject);
+					ClientUtils.DisconnectBot(Client.HeldObject);
 					return;
 				}
 			}
@@ -398,7 +397,7 @@ namespace Advobot.UILauncher.Windows
 			{
 				case MessageBoxResult.OK:
 				{
-					ClientActions.RestartBot();
+					ClientUtils.RestartBot();
 					return;
 				}
 			}
@@ -408,20 +407,20 @@ namespace Advobot.UILauncher.Windows
 			if (BotSettings.HeldObject.Pause)
 			{
 				PauseButton.Content = "Pause";
-				ConsoleActions.WriteLine("The bot is now unpaused.");
+				ConsoleUtils.WriteLine("The bot is now unpaused.");
 			}
 			else
 			{
 				PauseButton.Content = "Unpause";
-				ConsoleActions.WriteLine("The bot is now paused.");
+				ConsoleUtils.WriteLine("The bot is now paused.");
 			}
 			BotSettings.HeldObject.TogglePause();
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
 			Uptime.Text = $"Uptime: {TimeFormatting.FormatUptime()}";
-			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientActions.GetLatency(Client.HeldObject))}ms";
-			Memory.Text = $"Memory: {IOActions.GetMemory().ToString("0.00")}MB";
+			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientUtils.GetLatency(Client.HeldObject))}ms";
+			Memory.Text = $"Memory: {Core.Utilities.IOUtils.GetMemory().ToString("0.00")}MB";
 			ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)

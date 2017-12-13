@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Interfaces;
 using Discord;
@@ -77,11 +77,11 @@ namespace Advobot.Core.Classes
 
 			if (Embed != null)
 			{
-				await MessageActions.SendEmbedMessageAsync(Channel, Embed, content).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Channel, Embed, content).CAF();
 			}
 			else
 			{
-				await MessageActions.SendMessageAsync(Channel, content).CAF();
+				await MessageUtils.SendMessageAsync(Channel, content).CAF();
 			}
 		}
 		/// <summary>

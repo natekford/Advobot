@@ -1,6 +1,6 @@
 ﻿using Advobot.Core;
-using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Permissions;
@@ -28,18 +28,18 @@ namespace Advobot.Commands.ChannelModeration
 		{
 			if (name.Contains(' '))
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No spaces are allowed in a text channel name.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("No spaces are allowed in a text channel name.")).CAF();
 				return;
 			}
 
-			var channel = await ChannelActions.CreateTextChannelAsync(Context.Guild, name, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.FormatChannel()}`.").CAF();
+			var channel = await ChannelUtils.CreateTextChannelAsync(Context.Guild, name, new ModerationReason(Context.User, null)).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.FormatChannel()}`.").CAF();
 		}
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice([Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
-			var channel = await ChannelActions.CreateVoiceChannelAsync(Context.Guild, name, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.FormatChannel()}`.").CAF();
+			var channel = await ChannelUtils.CreateVoiceChannelAsync(Context.Guild, name, new ModerationReason(Context.User, null)).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.FormatChannel()}`.").CAF();
 		}
 	}
 
@@ -52,8 +52,8 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel)
 		{
-			await ChannelActions.SoftDeleteChannelAsync(channel, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully softdeleted `{channel.FormatChannel()}`.").CAF();
+			await ChannelUtils.SoftDeleteChannelAsync(channel, new ModerationReason(Context.User, null)).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully softdeleted `{channel.FormatChannel()}`.").CAF();
 		}
 	}
 
@@ -66,8 +66,8 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel)
 		{
-			await ChannelActions.DeleteChannelAsync(channel, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted `{channel.FormatChannel()}`.").CAF();
+			await ChannelUtils.DeleteChannelAsync(channel, new ModerationReason(Context.User, null)).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted `{channel.FormatChannel()}`.").CAF();
 		}
 	}
 
@@ -82,14 +82,14 @@ namespace Advobot.Commands.ChannelModeration
 		public async Task Command(IGuildChannel channel)
 		{
 			var resp = $"The channel `{channel.FormatChannel()}` has the position `{channel.Position}`.";
-			await MessageActions.SendMessageAsync(Context.Channel, resp).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeReordered)] IGuildChannel channel, uint position)
 		{
-			await ChannelActions.ModifyPositionAsync(channel, (int)position, new ModerationReason(Context.User, null)).CAF();
+			await ChannelUtils.ModifyPositionAsync(channel, (int)position, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully moved `{channel.FormatChannel()}` to position `{position}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -104,14 +104,14 @@ namespace Advobot.Commands.ChannelModeration
 		{
 			var channels = (await Context.Guild.GetTextChannelsAsync().CAF()).OrderBy(x => x.Position);
 			var desc = String.Join("\n", channels.Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Text Channel Positions", desc)).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Text Channel Positions", desc)).CAF();
 		}
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice()
 		{
 			var channels = (await Context.Guild.GetVoiceChannelsAsync().CAF()).OrderBy(x => x.Position);
 			var desc = String.Join("\n", channels.Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Voice Channel Positions", desc)).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Voice Channel Positions", desc)).CAF();
 		}
 	}
 
@@ -131,7 +131,7 @@ namespace Advobot.Commands.ChannelModeration
 			public async Task Command()
 			{
 				var desc = $"`{String.Join("`, `", ChannelPerms.Permissions.Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Channel Permission Types", desc)).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Channel Permission Types", desc)).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel)
@@ -144,7 +144,7 @@ namespace Advobot.Commands.ChannelModeration
 				var embed = new EmbedWrapper(channel.FormatChannel())
 					.AddField("Role", $"`{(roleNames.Any() ? String.Join("`, `", roleNames) : "None")}`")
 					.AddField("User", $"`{(userNames.Any() ? String.Join("`, `", userNames) : "None")}`");
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel, IRole role)
@@ -152,13 +152,13 @@ namespace Advobot.Commands.ChannelModeration
 				if (!channel.PermissionOverwrites.Any())
 				{
 					var error = new ErrorReason($"Unable to show permissions for `{role.FormatRole()}` on `{channel.FormatChannel()}`.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
-				var desc = $"Role:** `{role.FormatRole()}`\n```{OverwriteActions.GetFormattedPermsFromOverwrite(channel, role)}```";
+				var desc = $"Role:** `{role.FormatRole()}`\n```{OverwriteUtils.GetFormattedPermsFromOverwrite(channel, role)}```";
 				var embed = new EmbedWrapper($"Overwrite On {channel.FormatChannel()}", desc);
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user)
@@ -166,13 +166,13 @@ namespace Advobot.Commands.ChannelModeration
 				if (!channel.PermissionOverwrites.Any())
 				{
 					var error = new ErrorReason($"Unable to show permissions for `{user.FormatUser()}` on `{channel.FormatChannel()}`.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
-				var desc = $"User:** `{user.FormatUser()}`\n```{OverwriteActions.GetFormattedPermsFromOverwrite(channel, user)}```";
+				var desc = $"User:** `{user.FormatUser()}`\n```{OverwriteUtils.GetFormattedPermsFromOverwrite(channel, user)}```";
 				var embed = new EmbedWrapper($"Overwrite On {channel.FormatChannel()}", desc);
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
 		[Command]
@@ -210,10 +210,10 @@ namespace Advobot.Commands.ChannelModeration
 				}
 			}
 
-			var givenPerms = OverwriteActions.ModifyOverwritePermissionsAsync(action, channel, discordObject, permissions, Context.User as IGuildUser);
+			var givenPerms = OverwriteUtils.ModifyOverwritePermissionsAsync(action, channel, discordObject, permissions, Context.User as IGuildUser);
 			var fObj = DiscordObjectFormatting.FormatDiscordObject(discordObject);
 			var response = $"Successfully {actionStr} `{String.Join("`, `", givenPerms)}` for `{fObj}` on `{channel.FormatChannel()}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, response).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, response).CAF();
 		}
 	}
 
@@ -245,7 +245,7 @@ namespace Advobot.Commands.ChannelModeration
 			//Make sure channels are the same type
 			if (inputChannel.GetType() != outputChannel.GetType())
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Channels must be the same type.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Channels must be the same type.")).CAF();
 				return;
 			}
 
@@ -263,7 +263,7 @@ namespace Advobot.Commands.ChannelModeration
 							var role = Context.Guild.GetRole(overwrite.TargetId);
 							var allowBits = overwrite.Permissions.AllowValue;
 							var denyBits = overwrite.Permissions.DenyValue;
-							await OverwriteActions.ModifyOverwriteAsync(outputChannel, role, allowBits, denyBits, reason).CAF();
+							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, role, allowBits, denyBits, reason).CAF();
 							break;
 						}
 						case PermissionTarget.User:
@@ -271,7 +271,7 @@ namespace Advobot.Commands.ChannelModeration
 							var user = await Context.Guild.GetUserAsync(overwrite.TargetId).CAF();
 							var allowBits = overwrite.Permissions.AllowValue;
 							var denyBits = overwrite.Permissions.DenyValue;
-							await OverwriteActions.ModifyOverwriteAsync(outputChannel, user, allowBits, denyBits, reason).CAF();
+							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, user, allowBits, denyBits, reason).CAF();
 							break;
 						}
 					}
@@ -284,17 +284,17 @@ namespace Advobot.Commands.ChannelModeration
 				if (!overwrite.HasValue)
 				{
 					var error = new ErrorReason($"A permission overwrite for {target} does not exist to copy over.");
-					await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 
 				var allowBits = overwrite?.AllowValue ?? 0;
 				var denyBits = overwrite?.DenyValue ?? 0;
-				await OverwriteActions.ModifyOverwriteAsync(outputChannel, discordObject, allowBits, denyBits, reason).CAF();
+				await OverwriteUtils.ModifyOverwriteAsync(outputChannel, discordObject, allowBits, denyBits, reason).CAF();
 			}
 
 			var resp = $"Successfully copied `{target}` from `{inputChannel.FormatChannel()}` to `{outputChannel.FormatChannel()}`";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -307,9 +307,9 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel)
 		{
-			await OverwriteActions.ClearOverwritesAsync(channel, new ModerationReason(Context.User, null)).CAF();
+			await OverwriteUtils.ClearOverwritesAsync(channel, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully removed all channel permission overwrites from `{channel.FormatChannel()}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -325,7 +325,7 @@ namespace Advobot.Commands.ChannelModeration
 			var isNsfw = channel.IsNsfw;
 			await channel.ModifyAsync(x => x.IsNsfw = !isNsfw).CAF();
 			var resp = $"Successfully {(isNsfw ? "un" : "")}marked `{channel.FormatChannel()}` as NSFW.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -341,13 +341,13 @@ namespace Advobot.Commands.ChannelModeration
 		{
 			if (channel is ITextChannel && name.Contains(' '))
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Spaces are not allowed in text channel names.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Spaces are not allowed in text channel names.")).CAF();
 				return;
 			}
 
-			await ChannelActions.ModifyNameAsync(channel, name, new ModerationReason(Context.User, null)).CAF();
+			await ChannelUtils.ModifyNameAsync(channel, name, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command]
 		public async Task CommandByPosition([OverrideTypeReader(typeof(ObjectByPositionTypeReader<IGuildChannel>)), VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel,
@@ -355,13 +355,13 @@ namespace Advobot.Commands.ChannelModeration
 		{
 			if (channel is ITextChannel && name.Contains(' '))
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Spaces are not allowed in text channel names.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Spaces are not allowed in text channel names.")).CAF();
 				return;
 			}
 
-			await ChannelActions.ModifyNameAsync(channel, name, new ModerationReason(Context.User, null)).CAF();
+			await ChannelUtils.ModifyNameAsync(channel, name, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -376,9 +376,9 @@ namespace Advobot.Commands.ChannelModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] ITextChannel channel, [Optional, Remainder, VerifyStringLength(Target.Topic)] string topic)
 		{
 			var oldTopic = channel.Topic ?? "Nothing";
-			await ChannelActions.ModifyTopicAsync(channel, topic, new ModerationReason(Context.User, null)).CAF();
+			await ChannelUtils.ModifyTopicAsync(channel, topic, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully changed the topic in `{channel.FormatChannel()}` from `{oldTopic}` to `{(topic ?? "Nothing")}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -395,12 +395,12 @@ namespace Advobot.Commands.ChannelModeration
 			if (limit > Constants.MAX_VOICE_CHANNEL_USER_LIMIT)
 			{
 				var error = new ErrorReason($"The highest a voice channel user limit can be is `{Constants.MAX_VOICE_CHANNEL_USER_LIMIT}`.");
-				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 			}
 
-			await ChannelActions.ModifyLimitAsync(channel, (int)limit, new ModerationReason(Context.User, null)).CAF();
+			await ChannelUtils.ModifyLimitAsync(channel, (int)limit, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully set the user limit for `{channel.FormatChannel()}` to `{limit}`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -417,26 +417,26 @@ namespace Advobot.Commands.ChannelModeration
 			if (bitrate < Constants.MIN_BITRATE)
 			{
 				var error = new ErrorReason($"The bitrate must be above or equal to `{Constants.MIN_BITRATE}`.");
-				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 			else if (!Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && bitrate > Constants.MAX_BITRATE)
 			{
 				var error = new ErrorReason($"The bitrate must be below or equal to `{Constants.MAX_BITRATE}`.");
-				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 			else if (bitrate > Constants.VIP_BITRATE)
 			{
 				var error = new ErrorReason($"The bitrate must be below or equal to `{Constants.VIP_BITRATE}`.");
-				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
 			//Have to multiply by 1000 because in bps and for some reason treats, say, 50 as 50bps and not 50kbps
-			await ChannelActions.ModifyBitrateAsync(channel, (int)bitrate * 1000, new ModerationReason(Context.User, null)).CAF();
+			await ChannelUtils.ModifyBitrateAsync(channel, (int)bitrate * 1000, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully set the user limit for `{channel.FormatChannel()}` to `{bitrate}kbps`.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 }

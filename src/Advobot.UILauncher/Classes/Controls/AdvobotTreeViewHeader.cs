@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Discord.WebSocket;
@@ -26,7 +26,7 @@ namespace Advobot.UILauncher.Classes.Controls
 				_G = value;
 
 				//Make sure the guild currently has a directory. If not, create it
-				var directories = IOActions.GetBaseBotDirectory().GetDirectories();
+				var directories = IOUtils.GetBaseBotDirectory().GetDirectories();
 				var guildDir = directories.SingleOrDefault(x => x.Name == _G.Id.ToString());
 				if (!guildDir.Exists)
 				{

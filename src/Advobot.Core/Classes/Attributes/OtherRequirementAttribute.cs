@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Classes.Permissions;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
@@ -53,7 +53,7 @@ namespace Advobot.Core.Classes.Attributes
 				{
 					return PreconditionResult.FromSuccess();
 				}
-				if (botOwner && (await ClientActions.GetBotOwnerAsync(advobotCommandContext.Client).CAF()).Id == user.Id)
+				if (botOwner && (await ClientUtils.GetBotOwnerAsync(advobotCommandContext.Client).CAF()).Id == user.Id)
 				{
 					return PreconditionResult.FromSuccess();
 				}

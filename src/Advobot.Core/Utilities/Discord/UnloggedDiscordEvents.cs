@@ -9,12 +9,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Events which are in this separate class to make the classes that use them smaller.
 	/// </summary>
-	public static class EventActions
+	public static class UnloggedDiscordEvents
 	{
 		/// <summary>
 		/// Checks if this is the first instance of the bot starting, updates the game, says some start up messages.
@@ -28,16 +28,16 @@ namespace Advobot.Core.Actions
 			{
 				Config.Configuration[ConfigKey.BotId] = client.CurrentUser.Id.ToString();
 				Config.Save();
-				ConsoleActions.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-				ClientActions.RestartBot();
+				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
+				ClientUtils.RestartBot();
 			}
 
-			await ClientActions.UpdateGameAsync(client, botSettings).CAF();
+			await ClientUtils.UpdateGameAsync(client, botSettings).CAF();
 
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
-			ConsoleActions.WriteLine($"Current version: {Version.VersionNumber}");
-			ConsoleActions.WriteLine($"Current bot prefix is: {botSettings.Prefix}");
-			ConsoleActions.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
+			ConsoleUtils.WriteLine($"Current version: {Version.VersionNumber}");
+			ConsoleUtils.WriteLine($"Current bot prefix is: {botSettings.Prefix}");
+			ConsoleUtils.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
 		}
 		/// <summary>
 		/// Checks banned names, antiraid, persistent roles, and welcome messages.
@@ -80,7 +80,7 @@ namespace Advobot.Core.Actions
 			var roles = settings.PersistentRoles.Where(x => x.UserId == user.Id).Select(x => x.GetRole(user.Guild)).Where(x => x != null);
 			if (roles.Any())
 			{
-				await RoleActions.GiveRolesAsync(user, roles, new AutomaticModerationReason("persistent roles")).CAF();
+				await RoleUtils.GiveRolesAsync(user, roles, new AutomaticModerationReason("persistent roles")).CAF();
 			}
 
 			//Welcome message
@@ -129,7 +129,7 @@ namespace Advobot.Core.Actions
 
 				if (validQuote)
 				{
-					await MessageActions.SendMessageAsync(message.Channel, quotes.List[number].Word.Description).CAF();
+					await MessageUtils.SendMessageAsync(message.Channel, quotes.List[number].Word.Description).CAF();
 				}
 				if (validHelpEntry)
 				{
@@ -138,12 +138,12 @@ namespace Advobot.Core.Actions
 					var desc = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix);
 					var embed = new EmbedWrapper(help.Name, desc)
 						.AddFooter("Help");
-					await MessageActions.SendEmbedMessageAsync(message.Channel, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
 				}
 
 				if (validQuote || validHelpEntry)
 				{
-					await MessageActions.DeleteMessageAsync(message, new AutomaticModerationReason("help entry or quote")).CAF();
+					await MessageUtils.DeleteMessageAsync(message, new AutomaticModerationReason("help entry or quote")).CAF();
 				}
 			}
 		}

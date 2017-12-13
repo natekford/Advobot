@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
@@ -24,7 +24,7 @@ namespace Advobot.Commands.InviteModeration
 			var invites = (await Context.Guild.GetInvitesAsync().CAF()).OrderByDescending(x => x.Uses);
 			if (!invites.Any())
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild has no invites.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("This guild has no invites.")).CAF();
 				return;
 			}
 
@@ -34,7 +34,7 @@ namespace Advobot.Commands.InviteModeration
 				x => x.Code.PadRight(lenForCode),
 				x => x.Uses.ToString().PadRight(lenForUses),
 				x => x.Inviter.FormatUser()));
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Instant Invite List", desc)).CAF();
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Instant Invite List", desc)).CAF();
 		}
 	}
 
@@ -55,7 +55,7 @@ namespace Advobot.Commands.InviteModeration
 		{
 			var nullableTime = time != 0 ? time as int? : 86400;
 			var nullableUses = uses != 0 ? uses as int? : null;
-			var inv = await InviteActions.CreateInviteAsync(channel, nullableTime, nullableUses, tempMem, false, new ModerationReason(Context.User, null)).CAF();
+			var inv = await InviteUtils.CreateInviteAsync(channel, nullableTime, nullableUses, tempMem, false, new ModerationReason(Context.User, null)).CAF();
 
 			var timeOutputStr = nullableTime.HasValue
 				? $"It will last for this amount of time: `{nullableTime}`." 
@@ -68,7 +68,7 @@ namespace Advobot.Commands.InviteModeration
 				: "Users will not be kicked when they go offline and do not have a role.";
 			var joined = GeneralFormatting.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr);
 			var resp = $"Here is your invite for `{channel.FormatChannel()}`: {joined}";
-			await MessageActions.SendMessageAsync(Context.Channel, resp).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 	}
 
@@ -81,8 +81,8 @@ namespace Advobot.Commands.InviteModeration
 		[Command]
 		public async Task Command(IInvite invite)
 		{
-			await InviteActions.DeleteInviteAsync(invite, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the invite `{invite.Code}`.").CAF();
+			await InviteUtils.DeleteInviteAsync(invite, new ModerationReason(Context.User, null)).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the invite `{invite.Code}`.").CAF();
 		}
 	}
 
@@ -100,17 +100,17 @@ namespace Advobot.Commands.InviteModeration
 			var invites = gatherer.CreateObject().GatherInvites(await Context.Guild.GetInvitesAsync().CAF());
 			if (!invites.Any())
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No invites satisfied the given conditions.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("No invites satisfied the given conditions.")).CAF();
 				return;
 			}
 
 			foreach (var invite in invites)
 			{
-				await InviteActions.DeleteInviteAsync(invite, new ModerationReason(Context.User, null)).CAF();
+				await InviteUtils.DeleteInviteAsync(invite, new ModerationReason(Context.User, null)).CAF();
 			}
 
 			var resp = $"Successfully deleted `{invites.Count()}` instant invites.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 }

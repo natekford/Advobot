@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Advobot.Core.Actions.Formatting
+namespace Advobot.Core.Utilities.Formatting
 {
 	/// <summary>
 	/// Formatting for time.

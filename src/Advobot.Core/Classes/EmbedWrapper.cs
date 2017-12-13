@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Discord;
 using System;
 using System.Collections.Generic;
@@ -35,7 +35,7 @@ namespace Advobot.Core.Classes
 				}
 				catch (Exception e)
 				{
-					ConsoleActions.ExceptionToConsole(e);
+					ConsoleUtils.ExceptionToConsole(e);
 					_Errors.Add(new EmbedError("Description", description, e));
 					WithDescription(e.Message);
 				}

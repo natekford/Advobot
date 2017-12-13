@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core.Utilities;
 using Advobot.Core.Interfaces;
 using Discord;
 using System;
@@ -18,7 +18,7 @@ namespace Advobot.Core.Services.GuildSettings
 		{
 			if (_GuildSettings.ContainsKey(guildId) && !_GuildSettings.TryRemove(guildId, out var value))
 			{
-				ConsoleActions.WriteLine($"Failed to remove {guildId} from the guild settings holder.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Failed to remove {guildId} from the guild settings holder.", color: ConsoleColor.Red);
 			}
 			return Task.FromResult(0);
 		}
@@ -30,9 +30,9 @@ namespace Advobot.Core.Services.GuildSettings
 			}
 
 			if (!_GuildSettings.TryGetValue(guild.Id, out var settings) &&
-				!_GuildSettings.TryAdd(guild.Id, settings = await CreationActions.CreateGuildSettingsAsync(guild).CAF()))
+				!_GuildSettings.TryAdd(guild.Id, settings = await ServiceProviderCreationUtils.CreateGuildSettingsAsync(guild).CAF()))
 			{
-				ConsoleActions.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
 			}
 			return settings;
 		}

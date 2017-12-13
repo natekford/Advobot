@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Results;
 using Advobot.Core.Enums;
@@ -9,12 +9,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Actions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Actions done on an <see cref="IChannel"/>.
 	/// </summary>
-	public static class ChannelActions
+	public static class ChannelUtils
 	{
 		/// <summary>
 		/// Verifies that the channel can be edited in specific ways.
@@ -100,7 +100,7 @@ namespace Advobot.Core.Actions
 
 				var allowBits = overwrite.Permissions.AllowValue & ~(ulong)ChannelPermission.ReadMessages;
 				var denyBits = overwrite.Permissions.DenyValue | (ulong)ChannelPermission.ReadMessages;
-				await OverwriteActions.ModifyOverwriteAsync(channel, obj, allowBits, denyBits, reason).CAF();
+				await OverwriteUtils.ModifyOverwriteAsync(channel, obj, allowBits, denyBits, reason).CAF();
 			}
 
 			//Double check the everyone role has the correct perms
