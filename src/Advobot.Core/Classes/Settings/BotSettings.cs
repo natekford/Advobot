@@ -55,14 +55,14 @@ namespace Advobot.Core.Classes.Settings
 		}
 		public void SaveSettings()
 			=> IOActions.OverWriteFile(IOActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), IOActions.Serialize(this));
-		public void TogglePause() => this.Pause = !this.Pause;
+		public void TogglePause() => Pause = !Pause;
 		public int GetMaxAmountOfUsersToGather(bool bypass)
-			=> bypass ? int.MaxValue : this.MaxUserGatherCount;
+			=> bypass ? int.MaxValue : MaxUserGatherCount;
 
 		public async Task<string> Format(IDiscordClient client)
 		{
 			var sb = new StringBuilder();
-			foreach (var property in this.GetType().GetProperties())
+			foreach (var property in GetType().GetProperties())
 			{
 				//Only get public editable properties
 				if (property.GetGetMethod() == null || property.GetSetMethod() == null)

@@ -21,8 +21,8 @@ namespace Advobot.Core.Classes.Attributes
 
 		public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
 		{
-			this.IfNullCheckFromContext = ifNullCheckFromContext;
-			this.Checks = checks.ToImmutableList();
+			IfNullCheckFromContext = ifNullCheckFromContext;
+			Checks = checks.ToImmutableList();
 		}
 
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
@@ -30,7 +30,7 @@ namespace Advobot.Core.Classes.Attributes
 			if (value == null)
 			{
 				//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-				if (!this.IfNullCheckFromContext)
+				if (!IfNullCheckFromContext)
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
@@ -71,15 +71,15 @@ namespace Advobot.Core.Classes.Attributes
 			}
 			else if (value is IGuildChannel guildChannel)
 			{
-				result = guildChannel.VerifyChannelMeetsRequirements(context, this.Checks);
+				result = guildChannel.VerifyChannelMeetsRequirements(context, Checks);
 			}
 			else if (value is IGuildUser guildUser)
 			{
-				result = guildUser.VerifyUserMeetsRequirements(context, this.Checks);
+				result = guildUser.VerifyUserMeetsRequirements(context, Checks);
 			}
 			else if (value is IRole role)
 			{
-				result = role.VerifyRoleMeetsRequirements(context, this.Checks);
+				result = role.VerifyRoleMeetsRequirements(context, Checks);
 			}
 			else
 			{

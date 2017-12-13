@@ -8,11 +8,11 @@ namespace Advobot.UILauncher.Classes
 		private SocketGuild _G;
 		public CompGuild(SocketGuild guild)
 		{
-			this._G = guild;
+			_G = guild;
 		}
 
 		public int CompareTo(object obj) => obj is SocketGuild g ? CompareTo(g) : 1;
 		public int CompareTo(SocketGuild other)
-			=> this._G.MemberCount == other.MemberCount ? this._G.Name.CompareTo(other.Name) : this._G.MemberCount.CompareTo(other.MemberCount);
+			=> _G.MemberCount == other.MemberCount ? _G.Name.CompareTo(other.Name) : _G.MemberCount.CompareTo(other.MemberCount);
 	}
 }

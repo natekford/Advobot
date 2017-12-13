@@ -19,7 +19,7 @@ namespace Advobot.Core.Classes.Attributes
 		/// <param name="length"></param>
 		public CustomArgumentAttribute(int length = 0)
 		{
-			this.Length = length;
+			Length = length;
 		}
 	}
 }

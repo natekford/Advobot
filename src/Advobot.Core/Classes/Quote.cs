@@ -16,11 +16,11 @@ namespace Advobot.Core.Classes
 
 		public Quote(string name, string description)
 		{
-			this.Name = name;
-			this.Description = description;
+			Name = name;
+			Description = description;
 		}
 
-		public override string ToString() => $"`{this.Name}`";
+		public override string ToString() => $"`{Name}`";
 		public string ToString(SocketGuild guild) => ToString();
 	}
 }

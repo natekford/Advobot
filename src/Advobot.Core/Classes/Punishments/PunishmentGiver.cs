@@ -23,9 +23,9 @@ namespace Advobot.Core.Classes.Punishments
 
 		public PunishmentGiver(int time, ITimersService timers)
 		{
-			this._Time = time;
-			this._Timers = timers;
-			this._HasValidTimers = time > 0 && timers != null;
+			_Time = time;
+			_Timers = timers;
+			_HasValidTimers = time > 0 && timers != null;
 		}
 
 		/// <summary>
@@ -105,19 +105,19 @@ namespace Advobot.Core.Classes.Punishments
 		private void FollowupActions(PunishmentType punishmentType, IGuild guild, IUser user, ModerationReason reason)
 		{
 			var sb = new StringBuilder($"Successfully {_Given[punishmentType]} {user.FormatUser()}. ");
-			if (this._HasValidTimers)
+			if (_HasValidTimers)
 			{
 				//Removing the punishments via the timers in whatever time is set
-				this._Timers.AddRemovablePunishment(new RemovablePunishment(punishmentType, guild, user, this._Time));
-				sb.Append($"They will be {_Removal[punishmentType]} in {this._Time} minutes. ");
+				_Timers.AddRemovablePunishment(new RemovablePunishment(punishmentType, guild, user, _Time));
+				sb.Append($"They will be {_Removal[punishmentType]} in {_Time} minutes. ");
 			}
 			if (reason.HasReason)
 			{
 				sb.Append($"The provided reason is `{reason.Reason.EscapeBackTicks()}`. ");
 			}
-			this._Actions.Add(sb.ToString().Trim());
+			_Actions.Add(sb.ToString().Trim());
 		}
 
-		public override string ToString() => String.Join("\n", this._Actions);
+		public override string ToString() => String.Join("\n", _Actions);
 	}
 }

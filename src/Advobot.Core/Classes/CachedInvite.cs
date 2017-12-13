@@ -10,10 +10,10 @@
 
 		public CachedInvite(string code, int uses)
 		{
-			this.Code = code;
-			this.Uses = uses;
+			Code = code;
+			Uses = uses;
 		}
 
-		public void IncrementUses() => ++this.Uses;
+		public void IncrementUses() => ++Uses;
 	}
 }

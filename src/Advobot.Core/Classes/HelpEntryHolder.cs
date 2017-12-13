@@ -67,7 +67,7 @@ namespace Advobot.Core.Classes
 
 				temp.Add(new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, aliases, category, defaultEnabled));
 			}
-			this._Source = temp.ToImmutableList();
+			_Source = temp.ToImmutableList();
 		}
 
 		private void VerifyNoDuplicateCommandNamesOrAliases(IEnumerable<HelpEntry> alreadyUsed, string name, string[] aliases)
@@ -131,19 +131,19 @@ namespace Advobot.Core.Classes
 		/// Returns all the names of every command.
 		/// </summary>
 		/// <returns></returns>
-		public string[] GetCommandNames() => this._Source.Select(x => x.Name).ToArray();
+		public string[] GetCommandNames() => _Source.Select(x => x.Name).ToArray();
 		/// <summary>
 		/// Retrurns an array of <see cref="HelpEntry"/> which have not had their values set in guild settings.
 		/// </summary>
 		/// <param name="setCommands"></param>
 		/// <returns></returns>
 		public HelpEntry[] GetUnsetCommands(IEnumerable<string> setCommands) =>
-			this._Source.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
+			_Source.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
 		/// <summary>
 		/// Returns an array of every <see cref="HelpEntry"/>.
 		/// </summary>
 		/// <returns></returns>
-		public HelpEntry[] GetHelpEntries() => this._Source.ToArray();
+		public HelpEntry[] GetHelpEntries() => _Source.ToArray();
 
 		public HelpEntry this[string nameOrAlias]
 		{

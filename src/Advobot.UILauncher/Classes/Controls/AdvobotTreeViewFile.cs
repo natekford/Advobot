@@ -15,17 +15,17 @@ namespace Advobot.UILauncher.Classes.Controls
 	internal class AdvobotTreeViewFile : TreeViewItem, IAdvobotControl
 	{
 		private FileInfo _FI;
-		public FileInfo FileInfo => this._FI;
+		public FileInfo FileInfo => _FI;
 
 		public AdvobotTreeViewFile(FileInfo fileInfo)
 		{
-			this._FI = fileInfo;
-			this.Header = this._FI.Name;
-			this.Tag = this._FI;
-			this.ContextMenu = CreateContextMenu();
-			this.HorizontalContentAlignment = HorizontalAlignment.Left;
-			this.VerticalContentAlignment = VerticalAlignment.Center;
-			this.MouseDoubleClick += this.OpenFile;
+			_FI = fileInfo;
+			Header = _FI.Name;
+			Tag = _FI;
+			ContextMenu = CreateContextMenu();
+			HorizontalContentAlignment = HorizontalAlignment.Left;
+			VerticalContentAlignment = VerticalAlignment.Center;
+			MouseDoubleClick += OpenFile;
 			SetResourceReferences();
 		}
 		private ContextMenu CreateContextMenu()
@@ -36,25 +36,25 @@ namespace Advobot.UILauncher.Classes.Controls
 				HorizontalContentAlignment = HorizontalAlignment.Center,
 				VerticalContentAlignment = VerticalAlignment.Center,
 			};
-			delete.Click += this.DeleteFile;
+			delete.Click += DeleteFile;
 			var copy = new MenuItem
 			{
 				Header = "Copy File",
 				HorizontalContentAlignment = HorizontalAlignment.Center,
 				VerticalContentAlignment = VerticalAlignment.Center,
 			};
-			copy.Click += this.CopyFile;
+			copy.Click += CopyFile;
 			return new ContextMenu { ItemsSource = new[] { delete, copy } };
 		}
 		public void SetResourceReferences()
 		{
-			this.SetResourceReference(TreeViewItem.BackgroundProperty, ColorTarget.BaseBackground);
-			this.SetResourceReference(TreeViewItem.ForegroundProperty, ColorTarget.BaseForeground);
+			SetResourceReference(TreeViewItem.BackgroundProperty, ColorTarget.BaseBackground);
+			SetResourceReference(TreeViewItem.ForegroundProperty, ColorTarget.BaseForeground);
 		}
 		public void Update(RenamedEventArgs e)
 		{
-			this._FI = new FileInfo(e.FullPath);
-			this.Header = this._FI.Name;
+			_FI = new FileInfo(e.FullPath);
+			Header = _FI.Name;
 		}
 
 		public void OpenFile() => OpenFile(null, null);
@@ -81,8 +81,8 @@ namespace Advobot.UILauncher.Classes.Controls
 							throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
 						}
 
-						this._FI.CopyTo(Path.Combine(dialog.FileName, this._FI.Name), true);
-						ToolTipActions.EnableTimedToolTip(window.Layout, $"Successfully copied {this._FI.Name} to {dialog.FileName}.");
+						_FI.CopyTo(Path.Combine(dialog.FileName, _FI.Name), true);
+						ToolTipActions.EnableTimedToolTip(window.Layout, $"Successfully copied {_FI.Name} to {dialog.FileName}.");
 						break;
 					}
 				}
@@ -90,12 +90,12 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 		private void DeleteFile(object sender, RoutedEventArgs e)
 		{
-			var text = $"Are you sure you want to delete the file {this._FI.Name}?";
+			var text = $"Are you sure you want to delete the file {_FI.Name}?";
 			switch (MessageBox.Show(text, Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
 			{
 				case MessageBoxResult.Yes:
 				{
-					IOActions.DeleteFile(this._FI);
+					IOActions.DeleteFile(_FI);
 					return;
 				}
 			}

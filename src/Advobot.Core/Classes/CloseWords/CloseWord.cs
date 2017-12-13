@@ -13,8 +13,8 @@ namespace Advobot.Core.Classes.CloseWords
 
 		public CloseWord(T word, int closeness)
 		{
-			this.Word = word;
-			this.Closeness = closeness;
+			Word = word;
+			Closeness = closeness;
 		}
 	}
 }

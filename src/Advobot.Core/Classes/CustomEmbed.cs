@@ -34,7 +34,7 @@ namespace Advobot.Core.Classes
 			[CustomArgument] string footerIconUrl,
 			[CustomArgument(25)] params string[] fieldInfo)
 		{
-			this.Embed = new EmbedWrapper(title, description, ColorTypeReader.GetColor(color), imageUrl, url, thumbUrl)
+			Embed = new EmbedWrapper(title, description, ColorTypeReader.GetColor(color), imageUrl, url, thumbUrl)
 				.AddAuthor(authorName, authorIconUrl, authorUrl)
 				.AddFooter(footer, footerIconUrl);
 
@@ -73,7 +73,7 @@ namespace Advobot.Core.Classes
 
 				//Finally try to parse if the inline is a bool or not
 				bool.TryParse(dict[FIELD_INLINE], out bool inline);
-				this.Embed.AddField(dict[FIELD_NAME], dict[FIELD_TEXT], inline);
+				Embed.AddField(dict[FIELD_NAME], dict[FIELD_TEXT], inline);
 			}
 		}
 	}

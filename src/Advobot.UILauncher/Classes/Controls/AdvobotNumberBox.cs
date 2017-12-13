@@ -16,8 +16,8 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public AdvobotNumberBox()
 		{
-			this.PreviewTextInput += this.Validate;
-			DataObject.AddPastingHandler(this, this.Validate);
+			PreviewTextInput += Validate;
+			DataObject.AddPastingHandler(this, Validate);
 		}
 
 		private void Validate(object sender, TextCompositionEventArgs e)

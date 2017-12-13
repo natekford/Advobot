@@ -9,7 +9,7 @@ namespace Advobot.Core.Classes
 	{
 		protected override void AfterExecute(CommandInfo command)
 		{
-			this.Context.GuildSettings.SaveSettings();
+			Context.GuildSettings.SaveSettings();
 			base.AfterExecute(command);
 		}
 	}

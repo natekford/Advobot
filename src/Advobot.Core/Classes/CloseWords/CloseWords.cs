@@ -20,11 +20,11 @@ namespace Advobot.Core.Classes.CloseWords
 
 		public CloseWords(IEnumerable<T> suppliedObjects, string input)
 		{
-			this.List = GetObjectsWithSimilarNames(suppliedObjects, input).ToImmutableList();
-			this._Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
+			List = GetObjectsWithSimilarNames(suppliedObjects, input).ToImmutableList();
+			_Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
 		}
 
-		public DateTime GetTime() => this._Time;
+		public DateTime GetTime() => _Time;
 
 		protected abstract int FindCloseness(T obj, string input);
 		protected List<CloseWord<T>> GetObjectsWithSimilarNames(IEnumerable<T> suppliedObjects, string input)
@@ -34,29 +34,29 @@ namespace Advobot.Core.Classes.CloseWords
 			foreach (var word in suppliedObjects)
 			{
 				var closeness = FindCloseness(word, input);
-				if (closeness > this._MaxAllowedCloseness)
+				if (closeness > _MaxAllowedCloseness)
 				{
 					continue;
 				}
 
 				closeWords.Add(new CloseWord<T>(word, closeness));
-				if (closeWords.Count > this._MaxOutput)
+				if (closeWords.Count > _MaxOutput)
 				{
 					closeWords = closeWords.OrderBy(x => x.Closeness).ToList();
-					closeWords.RemoveRange(this._MaxOutput, closeWords.Count - this._MaxOutput);
+					closeWords.RemoveRange(_MaxOutput, closeWords.Count - _MaxOutput);
 				}
 			}
 
 			//Second loop around to find words that have the search term in them
 			foreach (var word in suppliedObjects.Where(x => x.Name.CaseInsContains(input)))
 			{
-				if (closeWords.Count >= this._MaxOutput)
+				if (closeWords.Count >= _MaxOutput)
 				{
 					break;
 				}
 				else if (!closeWords.Any(x => x.Word.Name.CaseInsEquals(word.Name)))
 				{
-					closeWords.Add(new CloseWord<T>(word, this._MaxAllowedCloseness + 1));
+					closeWords.Add(new CloseWord<T>(word, _MaxAllowedCloseness + 1));
 				}
 			}
 

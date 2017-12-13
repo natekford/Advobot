@@ -34,15 +34,15 @@ namespace Advobot.Core.Classes
 			[CustomArgument] bool neverExpires,
 			[CustomArgument] bool noMaxUses)
 		{
-			this._UserId = userId;
-			this._ChannelId = channelId;
-			this._Uses = uses;
-			this._UsesCountTarget = usesCountTarget;
-			this._Age = age;
-			this._AgeCountTarget = ageCountTarget;
-			this._IsTemporary = isTemporary;
-			this._NeverExpires = neverExpires;
-			this._NoMaxUses = noMaxUses;
+			_UserId = userId;
+			_ChannelId = channelId;
+			_Uses = uses;
+			_UsesCountTarget = usesCountTarget;
+			_Age = age;
+			_AgeCountTarget = ageCountTarget;
+			_IsTemporary = isTemporary;
+			_NeverExpires = neverExpires;
+			_NoMaxUses = noMaxUses;
 		}
 
 		/// <summary>
@@ -53,37 +53,37 @@ namespace Advobot.Core.Classes
 		public IEnumerable<IInviteMetadata> GatherInvites(IEnumerable<IInviteMetadata> invites)
 		{
 			var wentIntoAny = false;
-			if (this._UserId != null)
+			if (_UserId != null)
 			{
-				invites = invites.Where(x => x.Inviter.Id == this._UserId);
+				invites = invites.Where(x => x.Inviter.Id == _UserId);
 				wentIntoAny = true;
 			}
-			if (this._ChannelId != null)
+			if (_ChannelId != null)
 			{
-				invites = invites.Where(x => x.ChannelId == this._ChannelId);
+				invites = invites.Where(x => x.ChannelId == _ChannelId);
 				wentIntoAny = true;
 			}
-			if (this._Uses != null)
+			if (_Uses != null)
 			{
-				invites = invites.GetObjectsInListBasedOffOfCount(this._UsesCountTarget, this._Uses, x => x.Uses);
+				invites = invites.GetObjectsInListBasedOffOfCount(_UsesCountTarget, _Uses, x => x.Uses);
 				wentIntoAny = true;
 			}
-			if (this._Age != null)
+			if (_Age != null)
 			{
-				invites = invites.GetObjectsInListBasedOffOfCount(this._AgeCountTarget, this._Age, x => x.MaxAge);
+				invites = invites.GetObjectsInListBasedOffOfCount(_AgeCountTarget, _Age, x => x.MaxAge);
 				wentIntoAny = true;
 			}
-			if (this._IsTemporary)
+			if (_IsTemporary)
 			{
 				invites = invites.Where(x => x.IsTemporary);
 				wentIntoAny = true;
 			}
-			if (this._NeverExpires)
+			if (_NeverExpires)
 			{
 				invites = invites.Where(x => x.MaxAge == null);
 				wentIntoAny = true;
 			}
-			if (this._NoMaxUses)
+			if (_NoMaxUses)
 			{
 				invites = invites.Where(x => x.MaxUses == null);
 				wentIntoAny = true;

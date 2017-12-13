@@ -138,8 +138,8 @@ namespace Advobot.Core.Classes.Permissions
 
 			public GuildPerm(string name, GuildPermission value)
 			{
-				this.Name = name;
-				this.Value = value;
+				Name = name;
+				Value = value;
 			}
 		}
 	}

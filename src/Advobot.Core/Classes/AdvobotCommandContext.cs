@@ -19,13 +19,13 @@ namespace Advobot.Core.Classes
 
 		public AdvobotCommandContext(IServiceProvider provider, IGuildSettings guildSettings, IDiscordClient client, IUserMessage msg) : base(client, msg)
 		{
-			this.BotSettings = provider.GetRequiredService<IBotSettings>();
-			this.Logging = provider.GetRequiredService<ILogService>();
-			this.Timers = provider.GetRequiredService<ITimersService>();
-			this.InviteList = provider.GetRequiredService<IInviteListService>();
-			this.GuildSettings = guildSettings;
+			BotSettings = provider.GetRequiredService<IBotSettings>();
+			Logging = provider.GetRequiredService<ILogService>();
+			Timers = provider.GetRequiredService<ITimersService>();
+			InviteList = provider.GetRequiredService<IInviteListService>();
+			GuildSettings = guildSettings;
 		}
 
-		public string GetPrefix() => this.GuildSettings.GetPrefix(this.BotSettings);
+		public string GetPrefix() => GuildSettings.GetPrefix(BotSettings);
 	}
 }

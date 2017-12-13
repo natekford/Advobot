@@ -13,9 +13,9 @@ namespace Advobot.Core.Classes
 
 		public EmbedError(string property, string text, Exception exception)
 		{
-			this.Property = property;
-			this.Text = text;
-			this.Exception = exception;
+			Property = property;
+			Text = text;
+			Exception = exception;
 		}
 	}
 }

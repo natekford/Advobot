@@ -21,7 +21,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			set
 			{
 				EntityActions.SetFontResizeProperty(this, value);
-				this._FRV = value;
+				_FRV = value;
 			}
 		}
 		private Type _SET;
@@ -30,22 +30,22 @@ namespace Advobot.UILauncher.Classes.Controls
 			get => _SET;
 			set
 			{
-				this.ItemsSource = CreateItemsSourceOutOfEnum(value);
-				this._SET = value;
+				ItemsSource = CreateItemsSourceOutOfEnum(value);
+				_SET = value;
 			}
 		}
 
 		public AdvobotComboBox()
 		{
-			this.VerticalContentAlignment = VerticalAlignment.Center;
-			this.HorizontalContentAlignment = HorizontalAlignment.Center;
+			VerticalContentAlignment = VerticalAlignment.Center;
+			HorizontalContentAlignment = HorizontalAlignment.Center;
 			SetResourceReferences();
 		}
 		public void SetResourceReferences()
 		{
-			this.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
-			this.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
-			this.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
+			SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
+			SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
+			SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 
 		/// <summary>

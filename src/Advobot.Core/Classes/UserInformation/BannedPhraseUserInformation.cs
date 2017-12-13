@@ -18,7 +18,7 @@ namespace Advobot.Core.Classes.UserInformation
 		{
 			foreach (PunishmentType type in Enum.GetValues(typeof(PunishmentType)))
 			{
-				this._PunishmentVals.Add(type, 0);
+				_PunishmentVals.Add(type, 0);
 			}
 		}
 
@@ -27,10 +27,10 @@ namespace Advobot.Core.Classes.UserInformation
 			get => _PunishmentVals[value];
 		}
 
-		public int GetValue(PunishmentType value) => this._PunishmentVals[value];
-		public int IncrementValue(PunishmentType value) => ++this._PunishmentVals[value];
-		public void ResetValue(PunishmentType value) => this._PunishmentVals[value] = 0;
+		public int GetValue(PunishmentType value) => _PunishmentVals[value];
+		public int IncrementValue(PunishmentType value) => ++_PunishmentVals[value];
+		public void ResetValue(PunishmentType value) => _PunishmentVals[value] = 0;
 
-		public override string ToString() => String.Join("/", this._PunishmentVals.Select(x => $"{x.Value}{x.Key.EnumName()[0]}"));
+		public override string ToString() => String.Join("/", _PunishmentVals.Select(x => $"{x.Value}{x.Key.EnumName()[0]}"));
 	}
 }

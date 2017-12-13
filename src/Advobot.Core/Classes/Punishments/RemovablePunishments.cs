@@ -20,18 +20,18 @@ namespace Advobot.Core.Classes.Punishments
 
 		public RemovablePunishment(PunishmentType punishment, IGuild guild, IUser user, int minutes)
 		{
-			this.PunishmentType = punishment;
-			this.Guild = guild;
-			this.User = user;
-			this.Role = null;
-			this._Time = DateTime.UtcNow.AddMinutes(minutes);
+			PunishmentType = punishment;
+			Guild = guild;
+			User = user;
+			Role = null;
+			_Time = DateTime.UtcNow.AddMinutes(minutes);
 		}
 		public RemovablePunishment(PunishmentType punishment, IGuild guild, IUser user, IRole role, int minutes) : this(punishment, guild, user, minutes)
 		{
-			this.Role = role;
+			Role = role;
 		}
 
-		public DateTime GetTime() => this._Time;
+		public DateTime GetTime() => _Time;
 	}
 
 	/// <summary>
@@ -45,11 +45,11 @@ namespace Advobot.Core.Classes.Punishments
 
 		public RemovableMessage(int seconds, params IMessage[] messages)
 		{
-			this.Messages = messages.ToList().AsReadOnly();
-			this.Channel = messages.FirstOrDefault().Channel as ITextChannel;
-			this._Time = DateTime.UtcNow.AddSeconds(seconds);
+			Messages = messages.ToList().AsReadOnly();
+			Channel = messages.FirstOrDefault().Channel as ITextChannel;
+			_Time = DateTime.UtcNow.AddSeconds(seconds);
 		}
 
-		public DateTime GetTime() => this._Time;
+		public DateTime GetTime() => _Time;
 	}
 }

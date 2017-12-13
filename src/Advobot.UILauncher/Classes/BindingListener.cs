@@ -30,22 +30,22 @@ namespace Advobot.UILauncher.Classes
 			PresentationTraceSources.DataBindingSource.Listeners.Add(this);
 			PresentationTraceSources.DataBindingSource.Switch.Level = SourceLevels.Error;
 
-			this.TraceOutputOptions = OPTIONS;
+			TraceOutputOptions = OPTIONS;
 			foreach (TraceOptions traceOption in Enum.GetValues(typeof(TraceOptions)))
 			{
 				if (traceOption == TraceOptions.None)
 				{
 					continue;
 				}
-				this.InformationPropertyCount += (this.TraceOutputOptions.HasFlag(traceOption) ? 1 : 0);
+				InformationPropertyCount += (TraceOutputOptions.HasFlag(traceOption) ? 1 : 0);
 			}
 		}
 
 		public override void WriteLine(string message)
 		{
-			if (this.Message == null)
+			if (Message == null)
 			{
-				this.Message = message;
+				Message = message;
 			}
 			else
 			{
@@ -53,7 +53,7 @@ namespace Advobot.UILauncher.Classes
 
 				if (propertyInformation.Length == 1)
 				{
-					this.LogicalOperationStack = propertyInformation[0];
+					LogicalOperationStack = propertyInformation[0];
 				}
 				else
 				{
@@ -61,21 +61,21 @@ namespace Advobot.UILauncher.Classes
 					GetType().GetProperty(propertyInformation[0], flags).SetValue(this, propertyInformation[1], null);
 				}
 
-				--this.InformationPropertyCount;
+				--InformationPropertyCount;
 			}
 
 			Flush();
-			if (this.InformationPropertyCount == 0)
+			if (InformationPropertyCount == 0)
 			{
 				PresentationTraceSources.DataBindingSource.Listeners.Remove(this);
 
-				var exceptionMessage = $"{this.Message}\n" +
-					$"Time: {this.DateTime}\n" +
-					$"Logical Operation Stack: {this.LogicalOperationStack}\n" +
-					$"Process Id: {this.ProcessId}\n" +
-					$"Thread Id: {this.ThreadId}\n" +
-					$"Timestamp: {this.Timestamp}\n" +
-					$"Callstack: {this.Callstack}";
+				var exceptionMessage = $"{Message}\n" +
+					$"Time: {DateTime}\n" +
+					$"Logical Operation Stack: {LogicalOperationStack}\n" +
+					$"Process Id: {ProcessId}\n" +
+					$"Thread Id: {ThreadId}\n" +
+					$"Timestamp: {Timestamp}\n" +
+					$"Callstack: {Callstack}";
 				throw new Exception(exceptionMessage);
 			}
 		}

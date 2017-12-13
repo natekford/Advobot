@@ -48,17 +48,17 @@ namespace Advobot.Core.Classes.Rules
 			[CustomArgument] char charAfterNumbers = '.',
 			[CustomArgument(10)] params RuleFormatOption[] formatOptions)
 		{
-			this.Format = format == default ? RuleFormat.Numbers : format;
-			this.TitleMarkDownFormat = titleFormat;
-			this.RuleMarkDownFormat = ruleFormat;
-			this.CharAfterNumbers = charAfterNumbers;
-			formatOptions.ToList().ForEach(x => this.Options |= x);
+			Format = format == default ? RuleFormat.Numbers : format;
+			TitleMarkDownFormat = titleFormat;
+			RuleMarkDownFormat = ruleFormat;
+			CharAfterNumbers = charAfterNumbers;
+			formatOptions.ToList().ForEach(x => Options |= x);
 		}
 
 		public string FormatName(string name, int index)
 		{
 			var n = "";
-			switch (this.Format)
+			switch (Format)
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bullets:
@@ -80,21 +80,21 @@ namespace Advobot.Core.Classes.Rules
 			}
 
 			n = n.Trim(' ');
-			if (this.Options.HasFlag(RuleFormatOption.ExtraLines))
+			if (Options.HasFlag(RuleFormatOption.ExtraLines))
 			{
 				n = n + "\n";
 			}
-			return AddMarkDown(this.TitleMarkDownFormat == default ? _DefaultTitleFormats[this.Format] : this.TitleMarkDownFormat, n);
+			return AddMarkDown(TitleMarkDownFormat == default ? _DefaultTitleFormats[Format] : TitleMarkDownFormat, n);
 		}
 		public string FormatRule(string rule, int index, int rulesInCategory)
 		{
 			var r = "";
-			switch (this.Format)
+			switch (Format)
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bold:
 				{
-					if (this.Options.HasFlag(RuleFormatOption.NumbersSameLength))
+					if (Options.HasFlag(RuleFormatOption.NumbersSameLength))
 					{
 						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLengthOfNumber(), '0')}";
 					}
@@ -122,15 +122,15 @@ namespace Advobot.Core.Classes.Rules
 			}
 
 			r = $"{r}{rule}";
-			r = this.CharAfterNumbers != default
-				? AddCharAfterNumbers(r, this.CharAfterNumbers)
+			r = CharAfterNumbers != default
+				? AddCharAfterNumbers(r, CharAfterNumbers)
 				: r;
 			r = r.Trim(' ');
-			if (this.Options.HasFlag(RuleFormatOption.ExtraLines))
+			if (Options.HasFlag(RuleFormatOption.ExtraLines))
 			{
 				r = r + "\n";
 			}
-			return AddMarkDown(this.RuleMarkDownFormat == default ? _DefaultRuleFormats[this.Format] : this.RuleMarkDownFormat, r);
+			return AddMarkDown(RuleMarkDownFormat == default ? _DefaultRuleFormats[Format] : RuleMarkDownFormat, r);
 		}
 		private string AddCharAfterNumbers(string text, char charToAdd)
 		{

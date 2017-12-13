@@ -21,7 +21,7 @@ namespace Advobot.Core.Classes.Attributes
 
 		public OtherRequirementAttribute(Precondition requirements)
 		{
-			this.Requirements = requirements;
+			Requirements = requirements;
 		}
 
 		public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider map)
@@ -29,10 +29,10 @@ namespace Advobot.Core.Classes.Attributes
 			if (context is IAdvobotCommandContext advobotCommandContext)
 			{
 				var user = context.User as IGuildUser;
-				var permissions = (this.Requirements & Precondition.UserHasAPerm) != 0;
-				var guildOwner = (this.Requirements & Precondition.GuildOwner) != 0;
-				var trustedUser = (this.Requirements & Precondition.TrustedUser) != 0;
-				var botOwner = (this.Requirements & Precondition.BotOwner) != 0;
+				var permissions = (Requirements & Precondition.UserHasAPerm) != 0;
+				var guildOwner = (Requirements & Precondition.GuildOwner) != 0;
+				var trustedUser = (Requirements & Precondition.TrustedUser) != 0;
+				var botOwner = (Requirements & Precondition.BotOwner) != 0;
 
 				if (permissions)
 				{
@@ -64,19 +64,19 @@ namespace Advobot.Core.Classes.Attributes
 		public override string ToString()
 		{
 			var text = new List<string>();
-			if ((this.Requirements & Precondition.UserHasAPerm) != 0)
+			if ((Requirements & Precondition.UserHasAPerm) != 0)
 			{
 				text.Add("Administrator | Any perm ending with 'Members' | Any perm starting with 'Manage'");
 			}
-			if ((this.Requirements & Precondition.GuildOwner) != 0)
+			if ((Requirements & Precondition.GuildOwner) != 0)
 			{
 				text.Add("Guild Owner");
 			}
-			if ((this.Requirements & Precondition.TrustedUser) != 0)
+			if ((Requirements & Precondition.TrustedUser) != 0)
 			{
 				text.Add("Trusted User");
 			}
-			if ((this.Requirements & Precondition.BotOwner) != 0)
+			if ((Requirements & Precondition.BotOwner) != 0)
 			{
 				text.Add("Bot Owner");
 			}

@@ -21,14 +21,14 @@ namespace Advobot.Core.Classes.Attributes
 		//This doesn't have default values for the parameters since that makes it harder to potentially provide the wrong permissions
 		public PermissionRequirementAttribute(GuildPermission[] anyOfTheListedPerms, GuildPermission[] allOfTheListedPerms)
 		{
-			this._AnyFlags |= GuildPermission.Administrator;
+			_AnyFlags |= GuildPermission.Administrator;
 			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
 			{
-				this._AnyFlags |= perm;
+				_AnyFlags |= perm;
 			}
 			foreach (var perm in allOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
 			{
-				this._AllFlags |= perm;
+				_AllFlags |= perm;
 			}
 		}
 
@@ -41,8 +41,8 @@ namespace Advobot.Core.Classes.Attributes
 				var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 				var userPerms = guildBits | botBits;
 
-				var all = this._AllFlags != 0 && ((GuildPermission)userPerms & this._AllFlags) == this._AllFlags;
-				var any = userPerms != 0 && this._AnyFlags != 0 && ((GuildPermission)userPerms & this._AnyFlags) != 0;
+				var all = _AllFlags != 0 && ((GuildPermission)userPerms & _AllFlags) == _AllFlags;
+				var any = userPerms != 0 && _AnyFlags != 0 && ((GuildPermission)userPerms & _AnyFlags) != 0;
 				if (all || any)
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
@@ -51,9 +51,9 @@ namespace Advobot.Core.Classes.Attributes
 			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 
-		public string AllText => String.Join(" & ", GuildPerms.ConvertValueToNames((ulong)this._AllFlags));
-		public string AnyText => String.Join(" | ", GuildPerms.ConvertValueToNames((ulong)this._AnyFlags));
+		public string AllText => String.Join(" & ", GuildPerms.ConvertValueToNames((ulong)_AllFlags));
+		public string AnyText => String.Join(" | ", GuildPerms.ConvertValueToNames((ulong)_AnyFlags));
 
-		public override string ToString() => $"[{GeneralFormatting.JoinNonNullStrings(" | ", this.AllText, this.AnyText)}]";
+		public override string ToString() => $"[{GeneralFormatting.JoinNonNullStrings(" | ", AllText, AnyText)}]";
 	}
 }

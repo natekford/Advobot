@@ -30,15 +30,15 @@ namespace Advobot.Core.Classes
 		[JsonConstructor]
 		public ListedInvite(IInvite invite, IEnumerable<string> keywords)
 		{
-			this.LastBumped = DateTime.UtcNow;
-			this.Code = invite.Code;
-			this.Url = "https://www.discord.gg/" + this.Code;
-			this.Keywords = (keywords ?? Enumerable.Empty<string>()).ToList();
+			LastBumped = DateTime.UtcNow;
+			Code = invite.Code;
+			Url = "https://www.discord.gg/" + Code;
+			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList();
 		}
 		public ListedInvite(SocketGuild guild, IInvite invite, IEnumerable<string> keywords) : this(invite, keywords)
 		{
-			this.Guild = guild;
-			this.HasGlobalEmotes = this.Guild.HasGlobalEmotes();
+			Guild = guild;
+			HasGlobalEmotes = Guild.HasGlobalEmotes();
 		}
 
 		/// <summary>
@@ -47,21 +47,21 @@ namespace Advobot.Core.Classes
 		/// <param name="code"></param>
 		public void UpdateCode(string code)
 		{
-			this.Code = code;
-			this.Url = "https://www.discord.gg/" + this.Code;
+			Code = code;
+			Url = "https://www.discord.gg/" + Code;
 		}
 		/// <summary>
 		/// Sets <see cref="Keywords"/> to <paramref name="keywords"/>.
 		/// </summary>
 		/// <param name="keywords"></param>
-		public void UpdateKeywords(IEnumerable<string> keywords) => this.Keywords = keywords.ToList().AsReadOnly();
+		public void UpdateKeywords(IEnumerable<string> keywords) => Keywords = keywords.ToList().AsReadOnly();
 		/// <summary>
 		/// Sets <see cref="LastBumped"/> to <see cref="DateTime.UtcNow"/> and checks for global emotes.
 		/// </summary>
 		public void UpdateLastBumped()
 		{
-			this.LastBumped = DateTime.UtcNow;
-			this.HasGlobalEmotes = this.Guild.HasGlobalEmotes();
+			LastBumped = DateTime.UtcNow;
+			HasGlobalEmotes = Guild.HasGlobalEmotes();
 		}
 		/// <summary>
 		/// Sets the <see cref="Guild"/> property and checks for global emotes.
@@ -69,14 +69,14 @@ namespace Advobot.Core.Classes
 		/// <param name="guild"></param>
 		public void PostDeserialize(SocketGuild guild)
 		{
-			this.Guild = guild;
-			this.HasGlobalEmotes = this.Guild.HasGlobalEmotes();
+			Guild = guild;
+			HasGlobalEmotes = Guild.HasGlobalEmotes();
 		}
 
 		public override string ToString()
-			=> String.IsNullOrWhiteSpace(this.Code)
+			=> String.IsNullOrWhiteSpace(Code)
 			? null
-			: $"**Code:** `{this.Code}`{(this.Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", this.Keywords)}`" : "")}";
+			: $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", Keywords)}`" : "")}";
 		public string ToString(SocketGuild guild) => ToString();
 	}
 }

@@ -85,7 +85,7 @@ namespace Advobot.Core.Classes
 		/// <param name="input"></param>
 		public CustomArguments(string input)
 		{
-			ArgNames.ForEach(x => this._Args.Add(x, null));
+			ArgNames.ForEach(x => _Args.Add(x, null));
 
 			//Split by spaces except when in quotes
 			var split = input.Split('"').Select((x, index) =>
@@ -111,15 +111,15 @@ namespace Advobot.Core.Classes
 				{
 					//Keep this inside here so that if there are too many
 					//params args it won't potentially go into the else if
-					if (this._ParamArgs.Count() < _ParamsLength)
+					if (_ParamArgs.Count() < _ParamsLength)
 					{
-						this._ParamArgs.Add(arg.Value);
+						_ParamArgs.Add(arg.Value);
 					}
 				}
 				//If the args dictionary has the value as a key, set it.
-				else if (this._Args.ContainsKey(arg.Key))
+				else if (_Args.ContainsKey(arg.Key))
 				{
-					this._Args[arg.Key] = arg.Value;
+					_Args[arg.Key] = arg.Value;
 				}
 			}
 		}
@@ -141,13 +141,13 @@ namespace Advobot.Core.Classes
 				{
 					//Convert all from string to whatever type they need to be
 					//NEEDS TO BE AN ARRAY SINCE PARAMS IS AN ARRAY!
-					var convertedArgs = this._ParamArgs.Select(x => ConvertValue(t, x)).ToArray();
+					var convertedArgs = _ParamArgs.Select(x => ConvertValue(t, x)).ToArray();
 					//Have to use this method otherwise create instance throws exception
 					//because this will send object[] instead of T[] when empty
 					return convertedArgs.Any() ? convertedArgs : Array.CreateInstance(t, 0);
 				}
 				//Checking against the attribute again in case arguments have duplicate names
-				else if (p.GetCustomAttribute<CustomArgumentAttribute>() != null && this._Args.TryGetValue(p.Name, out var arg))
+				else if (p.GetCustomAttribute<CustomArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))
 				{
 					return ConvertValue(t, arg);
 				}

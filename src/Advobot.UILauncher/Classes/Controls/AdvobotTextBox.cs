@@ -20,7 +20,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			get => _T;
 			set
 			{
-				this._T = value;
+				_T = value;
 				ActivateTBType();
 			}
 		}
@@ -30,8 +30,8 @@ namespace Advobot.UILauncher.Classes.Controls
 			get => _FRV;
 			set
 			{
-				this._FRV = value;
-				EntityActions.SetFontResizeProperty(this, this._FRV);
+				_FRV = value;
+				EntityActions.SetFontResizeProperty(this, _FRV);
 			}
 		}
 		private string _S;
@@ -40,10 +40,10 @@ namespace Advobot.UILauncher.Classes.Controls
 			get => _S;
 			set
 			{
-				this._S = value;
-				this.ToolTip = new ToolTip { Content = this._S, };
-				this.MouseEnter += (sender, e) => ((ToolTip)this.ToolTip).EnableToolTip();
-				this.MouseLeave += (sender, e) => ((ToolTip)this.ToolTip).DisableToolTip();
+				_S = value;
+				ToolTip = new ToolTip { Content = _S, };
+				MouseEnter += (sender, e) => ((ToolTip)ToolTip).EnableToolTip();
+				MouseLeave += (sender, e) => ((ToolTip)ToolTip).DisableToolTip();
 			}
 		}
 
@@ -59,41 +59,41 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 		private void ActivateTBType()
 		{
-			switch (this._T)
+			switch (_T)
 			{
 				case TBType.Title:
 				{
-					this.IsReadOnly = true;
-					this.BorderThickness = new Thickness(0);
-					this.VerticalContentAlignment = VerticalAlignment.Center;
-					this.TextWrapping = TextWrapping.WrapWithOverflow;
+					IsReadOnly = true;
+					BorderThickness = new Thickness(0);
+					VerticalContentAlignment = VerticalAlignment.Center;
+					TextWrapping = TextWrapping.WrapWithOverflow;
 					return;
 				}
 				case TBType.RightCentered:
 				{
-					this.IsReadOnly = true;
-					this.HorizontalContentAlignment = HorizontalAlignment.Right;
-					this.VerticalContentAlignment = VerticalAlignment.Center;
+					IsReadOnly = true;
+					HorizontalContentAlignment = HorizontalAlignment.Right;
+					VerticalContentAlignment = VerticalAlignment.Center;
 					return;
 				}
 				case TBType.LeftCentered:
 				{
-					this.IsReadOnly = true;
-					this.HorizontalContentAlignment = HorizontalAlignment.Left;
-					this.VerticalContentAlignment = VerticalAlignment.Center;
+					IsReadOnly = true;
+					HorizontalContentAlignment = HorizontalAlignment.Left;
+					VerticalContentAlignment = VerticalAlignment.Center;
 					return;
 				}
 				case TBType.CenterCentered:
 				{
-					this.IsReadOnly = true;
-					this.HorizontalContentAlignment = HorizontalAlignment.Center;
-					this.VerticalContentAlignment = VerticalAlignment.Center;
+					IsReadOnly = true;
+					HorizontalContentAlignment = HorizontalAlignment.Center;
+					VerticalContentAlignment = VerticalAlignment.Center;
 					return;
 				}
 				case TBType.Background:
 				{
-					this.IsReadOnly = true;
-					this.BorderThickness = new Thickness(1, 1, 1, 1);
+					IsReadOnly = true;
+					BorderThickness = new Thickness(1, 1, 1, 1);
 					return;
 				}
 				case TBType.Nothing:
@@ -105,13 +105,13 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 		private void ActivateTitle()
 		{
-			switch (this._T)
+			switch (_T)
 			{
 				case TBType.Title:
 				{
-					this.Text = String.IsNullOrWhiteSpace(this.Text)
-						? this.Name.FormatTitle().CaseInsReplace("title", "").Trim() + ":"
-						: this.Text;
+					Text = String.IsNullOrWhiteSpace(Text)
+						? Name.FormatTitle().CaseInsReplace("title", "").Trim() + ":"
+						: Text;
 					return;
 				}
 				case TBType.RightCentered:
@@ -125,9 +125,9 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 		public void SetResourceReferences()
 		{
-			this.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
-			this.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
-			this.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
+			SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
+			SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
+			SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 	}
 }

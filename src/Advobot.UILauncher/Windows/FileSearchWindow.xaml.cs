@@ -22,14 +22,14 @@ namespace Advobot.UILauncher.Windows
 		public FileSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
-			this.FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(this._Files);
+			FileTypeComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(_Files);
 		}
 
 		private void Search(object sender, RoutedEventArgs e)
 		{
-			var selected = this.FileTypeComboBox.SelectedItem;
-			var name = this.GuildNameInput.Text;
-			var id = this.GuildIdInput.Text;
+			var selected = FileTypeComboBox.SelectedItem;
+			var name = GuildNameInput.Text;
+			var id = GuildIdInput.Text;
 			if (!(this.Owner is AdvobotWindow win) ||
 				!(selected is TextBox tb) ||
 				!(tb.Tag is string s))
@@ -70,8 +70,8 @@ namespace Advobot.UILauncher.Windows
 
 			if (item != null)
 			{
-				this.DialogResult = true;
-				this.Hide();
+				DialogResult = true;
+				Hide();
 				item.Items.OfType<AdvobotTreeViewFile>().FirstOrDefault(x => x.FileInfo.Name.CaseInsContains(s))?.OpenFile();
 			}
 

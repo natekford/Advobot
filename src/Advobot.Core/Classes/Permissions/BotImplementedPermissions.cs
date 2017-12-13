@@ -17,16 +17,16 @@ namespace Advobot.Core.Classes.Permissions
 
 		public BotImplementedPermissions(ulong userID, ulong permissions)
 		{
-			this.UserId = userID;
-			this.Permissions = permissions;
+			UserId = userID;
+			Permissions = permissions;
 		}
 
-		public void AddPermissions(ulong flags) => this.Permissions |= flags;
-		public void RemovePermissions(ulong flags) => this.Permissions &= ~flags;
+		public void AddPermissions(ulong flags) => Permissions |= flags;
+		public void RemovePermissions(ulong flags) => Permissions &= ~flags;
 
 		public override string ToString()
-			=> $"**User:** `{this.UserId}`\n**Permissions:** `{this.Permissions}`";
+			=> $"**User:** `{UserId}`\n**Permissions:** `{Permissions}`";
 		public string ToString(SocketGuild guild)
-			=> $"**User:** `{guild.GetUser(this.UserId).FormatUser()}`\n**Permissions:** `{this.Permissions}`";
+			=> $"**User:** `{guild.GetUser(UserId).FormatUser()}`\n**Permissions:** `{Permissions}`";
 	}
 }

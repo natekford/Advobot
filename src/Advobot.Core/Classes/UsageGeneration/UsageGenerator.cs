@@ -58,7 +58,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 			RemoveDuplicateMethods(ref methods);
 			RemoveDuplicateParameters(ref parameters);
 
-			this.Text = CreateText(classes, methods, parameters);
+			Text = CreateText(classes, methods, parameters);
 		}
 
 		private void GetAllNestedClassesAndMethods(Type classType, List<ClassDetails> classes, List<MethodDetails> methods, List<ParameterDetails> parameters, int deepness = 0)

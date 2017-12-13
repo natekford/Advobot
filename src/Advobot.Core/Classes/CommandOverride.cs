@@ -16,11 +16,11 @@ namespace Advobot.Core.Classes
 
 		public CommandOverride(string name, ulong id)
 		{
-			this.Name = name;
-			this.Id = id;
+			Name = name;
+			Id = id;
 		}
 
-		public override string ToString() => $"**Command:** `{this.Name}`\n**ID:** `{this.Id}`";
+		public override string ToString() => $"**Command:** `{Name}`\n**ID:** `{Id}`";
 		public string ToString(SocketGuild guild) => ToString();
 	}
 }

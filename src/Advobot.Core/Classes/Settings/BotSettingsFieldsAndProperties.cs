@@ -43,7 +43,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _TrustedUsers.AsReadOnly() ?? (_TrustedUsers = new List<ulong>()).AsReadOnly();
 			set
 			{
-				this._TrustedUsers = value.ToList();
+				_TrustedUsers = value.ToList();
 				OnPropertyChanged();
 			}
 		}
@@ -53,7 +53,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _UsersUnableToDMOwner.AsReadOnly() ?? (_UsersUnableToDMOwner = new List<ulong>()).AsReadOnly();
 			set
 			{
-				this._UsersUnableToDMOwner = value.ToList();
+				_UsersUnableToDMOwner = value.ToList();
 				OnPropertyChanged();
 			}
 		}
@@ -63,7 +63,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _UsersIgnoredFromCommands.AsReadOnly() ?? (_UsersIgnoredFromCommands = new List<ulong>()).AsReadOnly();
 			set
 			{
-				this._UsersIgnoredFromCommands = value.ToList();
+				_UsersIgnoredFromCommands = value.ToList();
 				OnPropertyChanged();
 			}
 		}
@@ -73,7 +73,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _ShardCount > 1 ? _ShardCount : (_ShardCount = 1);
 			set
 			{
-				this._ShardCount = value;
+				_ShardCount = value;
 				OnPropertyChanged();
 			}
 		}
@@ -83,7 +83,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _MessageCacheCount > 0 ? _MessageCacheCount : (_MessageCacheCount = 1000);
 			set
 			{
-				this._MessageCacheCount = value;
+				_MessageCacheCount = value;
 				OnPropertyChanged();
 			}
 		}
@@ -93,7 +93,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _MaxUserGatherCount > 0 ? _MaxUserGatherCount : (_MaxUserGatherCount = 100);
 			set
 			{
-				this._MaxUserGatherCount = value;
+				_MaxUserGatherCount = value;
 				OnPropertyChanged();
 			}
 		}
@@ -103,7 +103,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _MaxMessageGatherSize > 0 ? _MaxMessageGatherSize : (_MaxMessageGatherSize = 500000);
 			set
 			{
-				this._MaxMessageGatherSize = value;
+				_MaxMessageGatherSize = value;
 				OnPropertyChanged();
 			}
 		}
@@ -113,7 +113,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _Prefix ?? (_Prefix = DEFAULT_PREFIX);
 			set
 			{
-				this._Prefix = value;
+				_Prefix = value;
 				OnPropertyChanged();
 			}
 		}
@@ -123,7 +123,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _Game ?? (_Game = $"type \"{Prefix}help\" for help.");
 			set
 			{
-				this._Game = value;
+				_Game = value;
 				OnPropertyChanged();
 			}
 		}
@@ -133,7 +133,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _Stream;
 			set
 			{
-				this._Stream = value;
+				_Stream = value;
 				OnPropertyChanged();
 			}
 		}
@@ -143,7 +143,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _AlwaysDownloadUsers;
 			set
 			{
-				this._AlwaysDownloadUsers = value;
+				_AlwaysDownloadUsers = value;
 				OnPropertyChanged();
 			}
 		}
@@ -153,7 +153,7 @@ namespace Advobot.Core.Classes.Settings
 			get => _LogLevel;
 			set
 			{
-				this._LogLevel = value;
+				_LogLevel = value;
 				OnPropertyChanged();
 			}
 		}

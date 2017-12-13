@@ -25,18 +25,18 @@ namespace Advobot.Core.Classes.BannedPhrases
 
 		public BannedPhrasePunishment(PunishmentType punishment, int numberOfRemoves, int punishmentTime)
 		{
-			this.Punishment = punishment;
-			this.NumberOfRemoves = numberOfRemoves;
-			this.PunishmentTime = punishmentTime;
-			this.RoleId = 0;
+			Punishment = punishment;
+			NumberOfRemoves = numberOfRemoves;
+			PunishmentTime = punishmentTime;
+			RoleId = 0;
 		}
 		public BannedPhrasePunishment(IRole role, int numberOfRemobes, int punishmentTime)
 		{
-			this.Punishment = PunishmentType.RoleMute;
-			this.NumberOfRemoves = numberOfRemobes;
-			this.PunishmentTime = punishmentTime;
-			this.RoleId = role.Id;
-			this._Role = role;
+			Punishment = PunishmentType.RoleMute;
+			NumberOfRemoves = numberOfRemobes;
+			PunishmentTime = punishmentTime;
+			RoleId = role.Id;
+			_Role = role;
 		}
 
 		/// <summary>
@@ -44,19 +44,19 @@ namespace Advobot.Core.Classes.BannedPhrases
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public IRole GetRole(SocketGuild guild) => this._Role ?? (this._Role = guild.GetRole(this.RoleId));
+		public IRole GetRole(SocketGuild guild) => _Role ?? (_Role = guild.GetRole(RoleId));
 
 		public override string ToString()
 		{
-			var punishment = this.RoleId == 0 ? this.Punishment.EnumName() : this.RoleId.ToString();
-			var time = this.PunishmentTime == 0 ? "" : $" `{this.PunishmentTime} minutes`";
-			return $"`{this.NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
+			var punishment = RoleId == 0 ? Punishment.EnumName() : RoleId.ToString();
+			var time = PunishmentTime == 0 ? "" : $" `{PunishmentTime} minutes`";
+			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}
 		public string ToString(SocketGuild guild)
 		{
-			var punishment = this.RoleId == 0 ? this.Punishment.EnumName() : GetRole(guild).Name;
-			var time = this.PunishmentTime == 0 ? "" : $" `{this.PunishmentTime} minutes`";
-			return $"`{this.NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
+			var punishment = RoleId == 0 ? Punishment.EnumName() : GetRole(guild).Name;
+			var time = PunishmentTime == 0 ? "" : $" `{PunishmentTime} minutes`";
+			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}
 	}
 }

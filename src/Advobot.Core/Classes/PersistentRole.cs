@@ -20,17 +20,17 @@ namespace Advobot.Core.Classes
 
 		public PersistentRole(ulong userId, IRole role)
 		{
-			this.UserId = userId;
-			this.RoleId = role.Id;
+			UserId = userId;
+			RoleId = role.Id;
 		}
 
-		public IRole GetRole(SocketGuild guild) => this._Role ?? (this._Role = guild.GetRole(this.RoleId));
+		public IRole GetRole(SocketGuild guild) => _Role ?? (_Role = guild.GetRole(RoleId));
 
-		public override string ToString() => $"**User Id:** `{this.UserId}`\n**Role Id:&& `{this.RoleId}`";
+		public override string ToString() => $"**User Id:** `{UserId}`\n**Role Id:&& `{RoleId}`";
 		public string ToString(SocketGuild guild)
 		{
-			var user = guild.GetUser(this.UserId).FormatUser() ?? this.UserId.ToString();
-			var role = guild.GetRole(this.RoleId).FormatRole() ?? this.RoleId.ToString();
+			var user = guild.GetUser(UserId).FormatUser() ?? UserId.ToString();
+			var role = guild.GetRole(RoleId).FormatRole() ?? RoleId.ToString();
 			return $"**User:** `{user}`\n**Role:** `{role}`";
 		}
 	}

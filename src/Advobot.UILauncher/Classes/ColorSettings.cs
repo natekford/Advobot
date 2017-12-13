@@ -55,7 +55,7 @@ namespace Advobot.UILauncher.Classes
 			get => _Theme;
 			set
 			{
-				this._Theme = value;
+				_Theme = value;
 				ActivateTheme();
 			}
 		}
@@ -66,7 +66,7 @@ namespace Advobot.UILauncher.Classes
 		{
 			foreach (var target in Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>())
 			{
-				this.ColorTargets.Add(target, null);
+				ColorTargets.Add(target, null);
 			}
 		}
 
@@ -75,12 +75,12 @@ namespace Advobot.UILauncher.Classes
 			get => ColorTargets[target];
 			set => ColorTargets[target] = value;
 		}
-		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush) => this.ColorTargets.TryGetValue(target, out brush);
+		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush) => ColorTargets.TryGetValue(target, out brush);
 
 		private void ActivateTheme()
 		{
 			var r = Application.Current.Resources;
-			switch (this.Theme)
+			switch (Theme)
 			{
 				case ColorTheme.Classic:
 				{
@@ -100,7 +100,7 @@ namespace Advobot.UILauncher.Classes
 				}
 				case ColorTheme.UserMade:
 				{
-					foreach (var kvp in this.ColorTargets)
+					foreach (var kvp in ColorTargets)
 					{
 						r[kvp.Key] = kvp.Value;
 					}

@@ -18,7 +18,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			set
 			{
 				SetAllChildrenToFontSizeProperty(this);
-				this._FRV = value;
+				_FRV = value;
 			}
 		}
 
@@ -30,16 +30,16 @@ namespace Advobot.UILauncher.Classes.Controls
 		public override void EndInit()
 		{
 			base.EndInit();
-			if (this._FRV > 0)
+			if (_FRV > 0)
 			{
 				SetAllChildrenToFontSizeProperty(this);
 			}
 		}
 		public void SetResourceReferences()
 		{
-			this.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
-			this.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
-			this.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
+			SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
+			SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
+			SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 
 		private void SetAllChildrenToFontSizeProperty(DependencyObject parent)
@@ -49,7 +49,7 @@ namespace Advobot.UILauncher.Classes.Controls
 				//Don't set it on controls with it already set
 				if (child is IFontResizeValue frv && frv.FontResizeValue == default)
 				{
-					frv.FontResizeValue = this._FRV;
+					frv.FontResizeValue = _FRV;
 				}
 				SetAllChildrenToFontSizeProperty(child);
 			}

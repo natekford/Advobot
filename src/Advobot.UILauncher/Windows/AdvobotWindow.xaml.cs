@@ -40,27 +40,27 @@ namespace Advobot.UILauncher.Windows
 		{
 			InitializeComponent();
 			//Make console output show up in the window
-			Console.SetOut(new TextBoxStreamWriter(this.Output));
+			Console.SetOut(new TextBoxStreamWriter(Output));
 			//Start the timer that shows latency, memory usage, etc.
-			((DispatcherTimer)this.Resources["ApplicationInformationTimer"]).Start();
-			this._LoginHandler.AbleToStart += this.Start;
+			((DispatcherTimer)Resources["ApplicationInformationTimer"]).Start();
+			_LoginHandler.AbleToStart += Start;
 		}
 
 		private async Task EnableButtons()
-			=> await this.Dispatcher.InvokeAsync(() =>
+			=> await Dispatcher.InvokeAsync(() =>
 			{
-				this.MainMenuButton.IsEnabled = true;
-				this.InfoMenuButton.IsEnabled = true;
-				this.FilesMenuButton.IsEnabled = true;
-				this.ColorsMenuButton.IsEnabled = true;
-				this.SettingsMenuButton.IsEnabled = true;
-				this.OutputContextMenu.IsEnabled = true;
+				MainMenuButton.IsEnabled = true;
+				InfoMenuButton.IsEnabled = true;
+				FilesMenuButton.IsEnabled = true;
+				ColorsMenuButton.IsEnabled = true;
+				SettingsMenuButton.IsEnabled = true;
+				OutputContextMenu.IsEnabled = true;
 			});
 		private async Task AddGuildToTreeView(SocketGuild guild)
-			=> await this.Dispatcher.InvokeAsync(() =>
+			=> await Dispatcher.InvokeAsync(() =>
 			{
 				//Make sure the guild isn't already in the treeview
-				var item = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
+				var item = FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
 				if (item != null)
 				{
 					item.Visibility = Visibility.Visible;
@@ -68,16 +68,16 @@ namespace Advobot.UILauncher.Windows
 				}
 
 				//Add to tree view then resort based on member count
-				this.FilesTreeView.Items.Add(new AdvobotTreeViewHeader(guild));
+				FilesTreeView.Items.Add(new AdvobotTreeViewHeader(guild));
 				//Not sure why the two lines below have to be used instead of Items.Refresh
-				this.FilesTreeView.Items.SortDescriptions.Clear();
-				this.FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
+				FilesTreeView.Items.SortDescriptions.Clear();
+				FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
 			}, DispatcherPriority.Background);
 		private async Task RemoveGuildFromTreeView(SocketGuild guild)
-			=> await this.Dispatcher.InvokeAsync(() =>
+			=> await Dispatcher.InvokeAsync(() =>
 			{
 				//Just make the item invisible so if need be it can be made visible instead of having to recreate it.
-				var item = this.FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
+				var item = FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
 				if (item != null)
 				{
 					item.Visibility = Visibility.Collapsed;
@@ -85,44 +85,44 @@ namespace Advobot.UILauncher.Windows
 			}, DispatcherPriority.Background);
 		private async Task Start()
 		{
-			this.Client.HeldObject = this._LoginHandler.GetRequiredService<IDiscordClient>();
-			this.BotSettings.HeldObject = this._LoginHandler.GetRequiredService<IBotSettings>();
-			this.LogHolder.HeldObject = this._LoginHandler.GetRequiredService<ILogService>();
-			this._Colors = ColorSettings.LoadUISettings();
+			Client.HeldObject = _LoginHandler.GetRequiredService<IDiscordClient>();
+			BotSettings.HeldObject = _LoginHandler.GetRequiredService<IBotSettings>();
+			LogHolder.HeldObject = _LoginHandler.GetRequiredService<ILogService>();
+			_Colors = ColorSettings.LoadUISettings();
 
-			if (this.Client.HeldObject is DiscordSocketClient socket)
+			if (Client.HeldObject is DiscordSocketClient socket)
 			{
-				socket.Connected += this.EnableButtons;
-				socket.GuildAvailable += this.AddGuildToTreeView;
+				socket.Connected += EnableButtons;
+				socket.GuildAvailable += AddGuildToTreeView;
 			}
-			else if (this.Client.HeldObject is DiscordShardedClient sharded)
+			else if (Client.HeldObject is DiscordShardedClient sharded)
 			{
-				sharded.Shards.LastOrDefault().Connected += this.EnableButtons;
-				sharded.GuildAvailable += this.AddGuildToTreeView;
+				sharded.Shards.LastOrDefault().Connected += EnableButtons;
+				sharded.GuildAvailable += AddGuildToTreeView;
 			}
-			await ClientActions.StartAsync(this.Client.HeldObject);
+			await ClientActions.StartAsync(Client.HeldObject);
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
 			//Send null once to check if a path is set in the config
 			//If it is set, then send null again to check for the bot key
-			if (await this._LoginHandler.AttemptToStart(null))
+			if (await _LoginHandler.AttemptToStart(null))
 			{
-				await this._LoginHandler.AttemptToStart(null);
+				await _LoginHandler.AttemptToStart(null);
 			}
 		}
 		private async void AcceptInput(object sender, RoutedEventArgs e)
 		{
-			var input = CommandHandler.GatherInput(this.InputBox);
+			var input = CommandHandler.GatherInput(InputBox);
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				return;
 			}
 			ConsoleActions.WriteLine(input);
 
-			if (!this._LoginHandler.CanLogin)
+			if (!_LoginHandler.CanLogin)
 			{
-				await this._LoginHandler.AttemptToStart(input);
+				await _LoginHandler.AttemptToStart(input);
 			}
 		}
 		private void AcceptInputWithKey(object sender, KeyEventArgs e)
@@ -134,24 +134,24 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void AddTrustedUser(object sender, RoutedEventArgs e)
 		{
-			var input = this.TrustedUsersBox.Text;
+			var input = TrustedUsersBox.Text;
 			if (!ulong.TryParse(input, out ulong userId))
 			{
 				ConsoleActions.WriteLine($"The given input '{input}' is not a valid ID.");
 				return;
 			}
-			else if (this.TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
+			else if (TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
 			{
 				ConsoleActions.WriteLine($"The given input '{input}' is already a trusted user.");
 				return;
 			}
 
 			IUser user;
-			if (this.Client.HeldObject is DiscordSocketClient socket)
+			if (Client.HeldObject is DiscordSocketClient socket)
 			{
 				user = socket.GetUser(userId);
 			}
-			else if (this.Client.HeldObject is DiscordShardedClient sharded)
+			else if (Client.HeldObject is DiscordShardedClient sharded)
 			{
 				user = sharded.GetUser(userId);
 			}
@@ -160,21 +160,21 @@ namespace Advobot.UILauncher.Windows
 				throw new ArgumentException($"Invalid {nameof(IDiscordClient)} passed into {nameof(AddTrustedUser)}");
 			}
 
-			this.TrustedUsersBox.Text = null;
+			TrustedUsersBox.Text = null;
 			if (user != null)
 			{
-				this.TrustedUsers.Items.Add(new AdvobotUserBox(user));
-				this.TrustedUsers.Items.SortDescriptions.Clear();
-				this.TrustedUsers.Items.SortDescriptions.Add(new SortDescription("Text", ListSortDirection.Ascending));
+				TrustedUsers.Items.Add(new AdvobotUserBox(user));
+				TrustedUsers.Items.SortDescriptions.Clear();
+				TrustedUsers.Items.SortDescriptions.Add(new SortDescription("Text", ListSortDirection.Ascending));
 			}
 		}
 		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
-			=> this.TrustedUsers.Items.Remove(this.TrustedUsers.SelectedItem);
+			=> TrustedUsers.Items.Remove(TrustedUsers.SelectedItem);
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			SavingActions.SaveSettings(this.SettingsMenuDisplay, this.BotSettings.HeldObject);
+			SavingActions.SaveSettings(SettingsMenuDisplay, BotSettings.HeldObject);
 			//In a task.run since the result is unimportant and unused
-			Task.Run(async () => await ClientActions.UpdateGameAsync(this.Client.HeldObject, this.BotSettings.HeldObject));
+			Task.Run(async () => await ClientActions.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject));
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -185,8 +185,8 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
-			var c = this._Colors;
-			var children = this.ColorsMenuDisplay.GetChildren();
+			var c = _Colors;
+			var children = ColorsMenuDisplay.GetChildren();
 			foreach (var tb in children.OfType<AdvobotTextBox>())
 			{
 				if (tb.Tag is ColorTarget target)
@@ -243,14 +243,14 @@ namespace Advobot.UILauncher.Windows
 			}
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
-			=> ToolTipActions.EnableTimedToolTip(this.Layout, SavingActions.SaveFile(this.Output).GetReason());
+			=> ToolTipActions.EnableTimedToolTip(Layout, SavingActions.SaveFile(Output).GetReason());
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
 			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
 				{
-					this.Output.Clear();
+					Output.Clear();
 					return;
 				}
 			}
@@ -294,83 +294,83 @@ namespace Advobot.UILauncher.Windows
 			}
 
 			//Hide everything so stuff doesn't overlap
-			this.MainMenu.Visibility = Visibility.Collapsed;
-			this.SettingsMenu.Visibility = Visibility.Collapsed;
-			this.ColorsMenu.Visibility = Visibility.Collapsed;
-			this.InfoMenu.Visibility = Visibility.Collapsed;
-			this.FilesMenu.Visibility = Visibility.Collapsed;
+			MainMenu.Visibility = Visibility.Collapsed;
+			SettingsMenu.Visibility = Visibility.Collapsed;
+			ColorsMenu.Visibility = Visibility.Collapsed;
+			InfoMenu.Visibility = Visibility.Collapsed;
+			FilesMenu.Visibility = Visibility.Collapsed;
 
 			var type = ele.Tag as MenuType? ?? default;
-			if (type == this._LastButtonClicked)
+			if (type == _LastButtonClicked)
 			{
 				//If clicking the same button then resize the output window to the regular size
-				EntityActions.SetColSpan(this.Output, Grid.GetColumnSpan(this.Output) + (this.Layout.ColumnDefinitions.Count - 1));
-				this._LastButtonClicked = default;
+				EntityActions.SetColSpan(Output, Grid.GetColumnSpan(Output) + (Layout.ColumnDefinitions.Count - 1));
+				_LastButtonClicked = default;
 			}
 			else
 			{
 				//Resize the regular output window and have the menubox appear
-				EntityActions.SetColSpan(this.Output, Grid.GetColumnSpan(this.Output) - (this.Layout.ColumnDefinitions.Count - 1));
-				this._LastButtonClicked = type;
+				EntityActions.SetColSpan(Output, Grid.GetColumnSpan(Output) - (Layout.ColumnDefinitions.Count - 1));
+				_LastButtonClicked = type;
 
 				switch (type)
 				{
 					case MenuType.Main:
 					{
-						this.MainMenu.Visibility = Visibility.Visible;
+						MainMenu.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Info:
 					{
-						this.InfoMenu.Visibility = Visibility.Visible;
+						InfoMenu.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Settings:
 					{
-						var s = this.BotSettings.HeldObject;
-						var llSelected = this.LogLevel.Items.OfType<TextBox>()
+						var s = BotSettings.HeldObject;
+						var llSelected = LogLevel.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is LogSeverity ls && ls == s.LogLevel);
 
-						this.AlwaysDownloadUsers.IsChecked = s.AlwaysDownloadUsers;
-						this.Prefix.Text = s.Prefix;
-						this.Game.Text = s.Game;
-						this.Stream.Text = s.Stream;
-						this.ShardCount.Text = s.ShardCount.ToString();
-						this.MessageCacheCount.Text = s.MessageCacheCount.ToString();
-						this.MaxUserGatherCount.Text = s.MaxUserGatherCount.ToString();
-						this.MaxMessageGatherSize.Text = s.MaxMessageGatherSize.ToString();
-						this.LogLevel.SelectedItem = llSelected;
+						AlwaysDownloadUsers.IsChecked = s.AlwaysDownloadUsers;
+						Prefix.Text = s.Prefix;
+						Game.Text = s.Game;
+						Stream.Text = s.Stream;
+						ShardCount.Text = s.ShardCount.ToString();
+						MessageCacheCount.Text = s.MessageCacheCount.ToString();
+						MaxUserGatherCount.Text = s.MaxUserGatherCount.ToString();
+						MaxMessageGatherSize.Text = s.MaxMessageGatherSize.ToString();
+						LogLevel.SelectedItem = llSelected;
 
-						this.SettingsMenu.Visibility = Visibility.Visible;
+						SettingsMenu.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Colors:
 					{
-						var c = this._Colors;
-						var tcbSelected = this.ThemesComboBox.Items.OfType<TextBox>()
+						var c = _Colors;
+						var tcbSelected = ThemesComboBox.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
 
-						this.ThemesComboBox.SelectedItem = tcbSelected;
-						this.BaseBackground.Text = c[ColorTarget.BaseBackground]?.ToString();
-						this.BaseForeground.Text = c[ColorTarget.BaseForeground]?.ToString();
-						this.BaseBorder.Text = c[ColorTarget.BaseBorder]?.ToString();
-						this.ButtonBackground.Text = c[ColorTarget.ButtonBackground]?.ToString();
-						this.ButtonForeground.Text = c[ColorTarget.ButtonForeground]?.ToString();
-						this.ButtonBorder.Text = c[ColorTarget.ButtonBorder]?.ToString();
-						this.ButtonDisabledBackground.Text = c[ColorTarget.ButtonDisabledBackground]?.ToString();
-						this.ButtonDisabledForeground.Text = c[ColorTarget.ButtonDisabledForeground]?.ToString();
-						this.ButtonDisabledBorder.Text = c[ColorTarget.ButtonDisabledBorder]?.ToString();
-						this.ButtonMouseOverBackground.Text = c[ColorTarget.ButtonMouseOverBackground]?.ToString();
-						this.JsonDigits.Text = c[ColorTarget.JsonDigits]?.ToString();
-						this.JsonValue.Text = c[ColorTarget.JsonValue]?.ToString();
-						this.JsonParamName.Text = c[ColorTarget.JsonParamName]?.ToString();
+						ThemesComboBox.SelectedItem = tcbSelected;
+						BaseBackground.Text = c[ColorTarget.BaseBackground]?.ToString();
+						BaseForeground.Text = c[ColorTarget.BaseForeground]?.ToString();
+						BaseBorder.Text = c[ColorTarget.BaseBorder]?.ToString();
+						ButtonBackground.Text = c[ColorTarget.ButtonBackground]?.ToString();
+						ButtonForeground.Text = c[ColorTarget.ButtonForeground]?.ToString();
+						ButtonBorder.Text = c[ColorTarget.ButtonBorder]?.ToString();
+						ButtonDisabledBackground.Text = c[ColorTarget.ButtonDisabledBackground]?.ToString();
+						ButtonDisabledForeground.Text = c[ColorTarget.ButtonDisabledForeground]?.ToString();
+						ButtonDisabledBorder.Text = c[ColorTarget.ButtonDisabledBorder]?.ToString();
+						ButtonMouseOverBackground.Text = c[ColorTarget.ButtonMouseOverBackground]?.ToString();
+						JsonDigits.Text = c[ColorTarget.JsonDigits]?.ToString();
+						JsonValue.Text = c[ColorTarget.JsonValue]?.ToString();
+						JsonParamName.Text = c[ColorTarget.JsonParamName]?.ToString();
 
-						this.ColorsMenu.Visibility = Visibility.Visible;
+						ColorsMenu.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Files:
 					{
-						this.FilesMenu.Visibility = Visibility.Visible;
+						FilesMenu.Visibility = Visibility.Visible;
 						return;
 					}
 				}
@@ -387,7 +387,7 @@ namespace Advobot.UILauncher.Windows
 			{
 				case MessageBoxResult.OK:
 				{
-					ClientActions.DisconnectBot(this.Client.HeldObject);
+					ClientActions.DisconnectBot(Client.HeldObject);
 					return;
 				}
 			}
@@ -405,24 +405,24 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void Pause(object sender, RoutedEventArgs e)
 		{
-			if (this.BotSettings.HeldObject.Pause)
+			if (BotSettings.HeldObject.Pause)
 			{
-				this.PauseButton.Content = "Pause";
+				PauseButton.Content = "Pause";
 				ConsoleActions.WriteLine("The bot is now unpaused.");
 			}
 			else
 			{
-				this.PauseButton.Content = "Unpause";
+				PauseButton.Content = "Unpause";
 				ConsoleActions.WriteLine("The bot is now paused.");
 			}
-			this.BotSettings.HeldObject.TogglePause();
+			BotSettings.HeldObject.TogglePause();
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
-			this.Uptime.Text = $"Uptime: {TimeFormatting.FormatUptime()}";
-			this.Latency.Text = $"Latency: {(this.Client.HeldObject == null ? -1 : ClientActions.GetLatency(this.Client.HeldObject))}ms";
-			this.Memory.Text = $"Memory: {IOActions.GetMemory().ToString("0.00")}MB";
-			this.ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
+			Uptime.Text = $"Uptime: {TimeFormatting.FormatUptime()}";
+			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientActions.GetLatency(Client.HeldObject))}ms";
+			Memory.Text = $"Memory: {IOActions.GetMemory().ToString("0.00")}MB";
+			ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)
 		{

@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes
 	public class EmbedWrapper : EmbedBuilder
 	{
 		private List<EmbedError> _Errors = new List<EmbedError>();
-		public IReadOnlyList<EmbedError> Errors => this._Errors.AsReadOnly();
+		public IReadOnlyList<EmbedError> Errors => _Errors.AsReadOnly();
 
 		public EmbedWrapper(string title = null, string description = null, Color? color = null,
 			string imageUrl = null, string url = null, string thumbnailUrl = null)
@@ -22,39 +22,39 @@ namespace Advobot.Core.Classes
 			url = GetIfStringIsValidUrl(url) ? url : null;
 			thumbnailUrl = GetIfStringIsValidUrl(thumbnailUrl) ? thumbnailUrl : null;
 
-			this.WithColor(Constants.BASE);
+			WithColor(Constants.BASE);
 			if (title != null)
 			{
-				this.WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));
+				WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));
 			}
 			if (description != null)
 			{
 				try
 				{
-					this.WithDescription(description);
+					WithDescription(description);
 				}
 				catch (Exception e)
 				{
 					ConsoleActions.ExceptionToConsole(e);
-					this._Errors.Add(new EmbedError("Description", description, e));
-					this.WithDescription(e.Message);
+					_Errors.Add(new EmbedError("Description", description, e));
+					WithDescription(e.Message);
 				}
 			}
 			if (color != null)
 			{
-				this.WithColor(color.Value);
+				WithColor(color.Value);
 			}
 			if (imageUrl != null)
 			{
-				this.WithImageUrl(imageUrl);
+				WithImageUrl(imageUrl);
 			}
 			if (url != null)
 			{
-				this.WithUrl(url);
+				WithUrl(url);
 			}
 			if (thumbnailUrl != null)
 			{
-				this.WithThumbnailUrl(thumbnailUrl);
+				WithThumbnailUrl(thumbnailUrl);
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace Advobot.Core.Classes
 			iconUrl = GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
 			url = GetIfStringIsValidUrl(url) ? url : null;
 
-			this.WithAuthor(x =>
+			WithAuthor(x =>
 			{
 				if (name != null)
 				{
@@ -99,7 +99,7 @@ namespace Advobot.Core.Classes
 		/// <param name="URL"></param>
 		/// <returns></returns>
 		public EmbedWrapper AddAuthor(IUser user, string URL = null)
-			=> this.AddAuthor(user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
+			=> AddAuthor(user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
 		/// <summary>
 		/// Adds a footer to the embed. Verifies the Url exists and cuts the text to the appropriate length.
 		/// </summary>
@@ -115,7 +115,7 @@ namespace Advobot.Core.Classes
 
 			iconUrl = GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
 
-			this.WithFooter(x =>
+			WithFooter(x =>
 			{
 				if (text != null)
 				{
@@ -141,7 +141,7 @@ namespace Advobot.Core.Classes
 			{
 				return this;
 			}
-			else if (this.Build().Fields.Count() >= Constants.MAX_FIELDS)
+			else if (Build().Fields.Count() >= Constants.MAX_FIELDS)
 			{
 				return this;
 			}
@@ -149,7 +149,7 @@ namespace Advobot.Core.Classes
 			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.MAX_FIELD_NAME_LENGTH, name.Length));
 			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Substring(0, Math.Min(Constants.MAX_FIELD_VALUE_LENGTH, value.Length));
 
-			this.AddField(x =>
+			AddField(x =>
 			{
 				x.Name = name;
 				x.Value = value;
@@ -169,17 +169,17 @@ namespace Advobot.Core.Classes
 		{
 			if (charCount > Constants.MAX_EMBED_TOTAL_LENGTH - 1250)
 			{
-				badDescription = this.Description;
+				badDescription = Description;
 				error = $"`{Constants.MAX_EMBED_TOTAL_LENGTH}` char limit close.";
 			}
-			else if (this.Description?.Length > Constants.MAX_DESCRIPTION_LENGTH)
+			else if (Description?.Length > Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				badDescription = this.Description;
+				badDescription = Description;
 				error = $"Over `{Constants.MAX_DESCRIPTION_LENGTH}` chars.";
 			}
-			else if (this.Description.CountLineBreaks() > Constants.MAX_DESCRIPTION_LINES)
+			else if (Description.CountLineBreaks() > Constants.MAX_DESCRIPTION_LINES)
 			{
-				badDescription = this.Description;
+				badDescription = Description;
 				error = $"Over `{Constants.MAX_DESCRIPTION_LINES}` lines.";
 			}
 			else

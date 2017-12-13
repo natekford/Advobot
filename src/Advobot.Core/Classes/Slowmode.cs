@@ -25,23 +25,23 @@ namespace Advobot.Core.Classes
 
 		public Slowmode(int baseMessages, int interval, IRole[] immuneRoles)
 		{
-			this.BaseMessages = baseMessages;
-			this.Interval = interval;
-			this.ImmuneRoleIds = immuneRoles.Select(x => x.Id).Distinct().ToArray();
+			BaseMessages = baseMessages;
+			Interval = interval;
+			ImmuneRoleIds = immuneRoles.Select(x => x.Id).Distinct().ToArray();
 		}
 
-		public void Disable() => this.Enabled = false;
-		public void Enable() => this.Enabled = true;
+		public void Disable() => Enabled = false;
+		public void Enable() => Enabled = true;
 
 		public override string ToString()
 			=> new StringBuilder()
-			.AppendLineFeed($"**Base messages:** `{this.BaseMessages}`")
-			.AppendLineFeed($"**Time interval:** `{this.Interval}`")
-			.Append($"**Immune Role Ids:** `{String.Join("`, `", this.ImmuneRoleIds)}`").ToString();
+			.AppendLineFeed($"**Base messages:** `{BaseMessages}`")
+			.AppendLineFeed($"**Time interval:** `{Interval}`")
+			.Append($"**Immune Role Ids:** `{String.Join("`, `", ImmuneRoleIds)}`").ToString();
 		public string ToString(SocketGuild guild)
 			=> new StringBuilder()
-			.AppendLineFeed($"**Base messages:** `{this.BaseMessages}`")
-			.AppendLineFeed($"**Time interval:** `{this.Interval}`")
-			.Append($"**Immune Roles:** `{String.Join("`, `", this.ImmuneRoleIds.Select(x => guild.GetRole(x).FormatRole()))}`").ToString();
+			.AppendLineFeed($"**Base messages:** `{BaseMessages}`")
+			.AppendLineFeed($"**Time interval:** `{Interval}`")
+			.Append($"**Immune Roles:** `{String.Join("`, `", ImmuneRoleIds.Select(x => guild.GetRole(x).FormatRole()))}`").ToString();
 	}
 }

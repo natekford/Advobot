@@ -12,9 +12,9 @@ namespace Advobot.Core.Classes
 
 		public BasicTimeInterface(DateTime time)
 		{
-			this._Time = time.ToUniversalTime();
+			_Time = time.ToUniversalTime();
 		}
 
-		public DateTime GetTime() => this._Time;
+		public DateTime GetTime() => _Time;
 	}
 }

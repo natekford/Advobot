@@ -19,17 +19,17 @@ namespace Advobot.Core.Classes
 		[JsonConstructor]
 		public SelfAssignableRole(ulong roleID)
 		{
-			this.RoleId = roleID;
+			RoleId = roleID;
 		}
 		public SelfAssignableRole(IRole role)
 		{
-			this.RoleId = role.Id;
-			this._Role = role;
+			RoleId = role.Id;
+			_Role = role;
 		}
 
-		public IRole GetRole(SocketGuild guild) => this._Role ?? (this._Role = guild.GetRole(this.RoleId));
+		public IRole GetRole(SocketGuild guild) => _Role ?? (_Role = guild.GetRole(RoleId));
 
-		public override string ToString() => $"**Role:** `{this._Role?.FormatRole() ?? this.RoleId.ToString()}`";
-		public string ToString(SocketGuild guild) => $"**Role:** `{GetRole(guild)?.FormatRole() ?? this.RoleId.ToString()}`";
+		public override string ToString() => $"**Role:** `{_Role?.FormatRole() ?? RoleId.ToString()}`";
+		public string ToString(SocketGuild guild) => $"**Role:** `{GetRole(guild)?.FormatRole() ?? RoleId.ToString()}`";
 	}
 }

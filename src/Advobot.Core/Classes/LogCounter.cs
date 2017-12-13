@@ -18,18 +18,18 @@ namespace Advobot.Core.Classes
 			get => _Count;
 			private set
 			{
-				this._Count = value;
+				_Count = value;
 				NotifyPropertyChanged();
 			}
 		}
 
 		public LogCounter([CallerMemberName] string title = "")
 		{
-			this.Title = title.FormatTitle().Trim();
+			Title = title.FormatTitle().Trim();
 		}
 
-		public void Add(int count) => this.Count += count;
-		public void Remove(int count) => this.Count -= count;
+		public void Add(int count) => Count += count;
+		public void Remove(int count) => Count -= count;
 		public void Increment() => Add(1);
 		public void Decrement() => Remove(1);
 
@@ -75,6 +75,6 @@ namespace Advobot.Core.Classes
 			}
 		}
 
-		public override string ToString() => $"**{this.Title}:** {this.Count}";
+		public override string ToString() => $"**{Title}:** {Count}";
 	}
 }

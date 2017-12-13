@@ -132,8 +132,8 @@ namespace Advobot.Core.Classes.Settings
 			get => _ServerLog ?? (_ServerLog = Guild.GetTextChannel(_ServerLogId));
 			set
 			{
-				this._ServerLogId = value?.Id ?? 0;
-				this._ServerLog = value;
+				_ServerLogId = value?.Id ?? 0;
+				_ServerLog = value;
 			}
 		}
 		[JsonIgnore]
@@ -142,8 +142,8 @@ namespace Advobot.Core.Classes.Settings
 			get => _ModLog ?? (_ModLog = Guild.GetTextChannel(_ModLogId));
 			set
 			{
-				this._ModLogId = value?.Id ?? 0;
-				this._ModLog = value;
+				_ModLogId = value?.Id ?? 0;
+				_ModLog = value;
 			}
 		}
 		[JsonIgnore]
@@ -152,8 +152,8 @@ namespace Advobot.Core.Classes.Settings
 			get => _ImageLog ?? (_ImageLog = Guild.GetTextChannel(_ImageLogId));
 			set
 			{
-				this._ImageLogId = value?.Id ?? 0;
-				this._ImageLog = value;
+				_ImageLogId = value?.Id ?? 0;
+				_ImageLog = value;
 			}
 		}
 		[JsonIgnore]
@@ -162,8 +162,8 @@ namespace Advobot.Core.Classes.Settings
 			get => _MuteRole ?? (_MuteRole = Guild.GetRole(_MuteRoleId));
 			set
 			{
-				this._MuteRoleId = value?.Id ?? 0;
-				this._MuteRole = value;
+				_MuteRoleId = value?.Id ?? 0;
+				_MuteRole = value;
 			}
 		}
 		[JsonIgnore]

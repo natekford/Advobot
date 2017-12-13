@@ -12,7 +12,7 @@ namespace Advobot.Core.Classes.Attributes
 
 		public DefaultEnabledAttribute(bool enabled)
 		{
-			this.Enabled = enabled;
+			Enabled = enabled;
 		}
 	}
 }

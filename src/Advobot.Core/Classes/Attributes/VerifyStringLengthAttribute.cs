@@ -43,8 +43,8 @@ namespace Advobot.Core.Classes.Attributes
 		{
 			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var minAndMaxAndError))
 			{
-				this.TooShort = $"A {minAndMaxAndError.Name} must be at least `{(this.Min = minAndMaxAndError.Min)}` characters long.";
-				this.TooLong = $"A {minAndMaxAndError.Name} must be at most `{(this.Max = minAndMaxAndError.Max)}` characters long.";
+				TooShort = $"A {minAndMaxAndError.Name} must be at least `{(Min = minAndMaxAndError.Min)}` characters long.";
+				TooLong = $"A {minAndMaxAndError.Name} must be at most `{(Max = minAndMaxAndError.Max)}` characters long.";
 			}
 			else
 			{
@@ -70,13 +70,13 @@ namespace Advobot.Core.Classes.Attributes
 			}
 			else if (value is string str)
 			{
-				if (str.Length < this.Min)
+				if (str.Length < Min)
 				{
-					return Task.FromResult(PreconditionResult.FromError(this.TooShort));
+					return Task.FromResult(PreconditionResult.FromError(TooShort));
 				}
-				else if (str.Length > this.Max)
+				else if (str.Length > Max)
 				{
-					return Task.FromResult(PreconditionResult.FromError(this.TooLong));
+					return Task.FromResult(PreconditionResult.FromError(TooLong));
 				}
 				else
 				{
@@ -89,6 +89,6 @@ namespace Advobot.Core.Classes.Attributes
 			}
 		}
 
-		public override string ToString() => $"({this.Min} to {this.Max} chars)";
+		public override string ToString() => $"({Min} to {Max} chars)";
 	}
 }

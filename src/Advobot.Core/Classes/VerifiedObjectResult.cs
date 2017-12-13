@@ -14,10 +14,10 @@ namespace Advobot.Core.Classes.Results
 
 		public VerifiedObjectResult(object value, CommandError? error, string errorReason)
 		{
-			this.Value = value;
-			this.Error = error;
-			this.ErrorReason = errorReason;
-			this.IsSuccess = this.Error == null;
+			Value = value;
+			Error = error;
+			ErrorReason = errorReason;
+			IsSuccess = Error == null;
 		}
 	}
 }

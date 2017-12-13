@@ -35,11 +35,11 @@ namespace Advobot.Core.Classes.SpamPrevention
 
 		private SpamPreventionInfo(PunishmentType punishmentType, int requiredSpamInstances, int requiredSpamPerMessageOrTimeInterval, int votesForKick)
 		{
-			this.PunishmentType = punishmentType;
-			this.RequiredSpamInstances = requiredSpamInstances;
-			this.RequiredSpamPerMessageOrTimeInterval = requiredSpamPerMessageOrTimeInterval;
-			this.VotesForKick = votesForKick;
-			this.Enabled = false;
+			PunishmentType = punishmentType;
+			RequiredSpamInstances = requiredSpamInstances;
+			RequiredSpamPerMessageOrTimeInterval = requiredSpamPerMessageOrTimeInterval;
+			VotesForKick = votesForKick;
+			Enabled = false;
 		}
 
 		public static bool TryCreateSpamPreventionInfo(SpamType spamType,
@@ -132,15 +132,15 @@ namespace Advobot.Core.Classes.SpamPrevention
 			return true;
 		}
 
-		public void Enable() => this.Enabled = true;
-		public void Disable() => this.Enabled = false;
+		public void Enable() => Enabled = true;
+		public void Disable() => Enabled = false;
 
 		public override string ToString()
 			=> new StringBuilder()
-			.AppendLineFeed($"**Punishment:** `{this.PunishmentType.EnumName()}`")
-			.AppendLineFeed($"**Spam Instances:** `{this.RequiredSpamInstances}`")
-			.AppendLineFeed($"**Votes For Punishment:** `{this.VotesForKick}`")
-			.Append($"**Spam Amt/Time Interval:** `{this.RequiredSpamPerMessageOrTimeInterval}`").ToString();
+			.AppendLineFeed($"**Punishment:** `{PunishmentType.EnumName()}`")
+			.AppendLineFeed($"**Spam Instances:** `{RequiredSpamInstances}`")
+			.AppendLineFeed($"**Votes For Punishment:** `{VotesForKick}`")
+			.Append($"**Spam Amt/Time Interval:** `{RequiredSpamPerMessageOrTimeInterval}`").ToString();
 		public string ToString(SocketGuild guild) => ToString();
 	}
 }
