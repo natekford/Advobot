@@ -35,6 +35,12 @@ namespace Advobot.Core.Interfaces
 		/// Switches the value of <see cref="Pause"/>.
 		/// </summary>
 		void TogglePause();
+		/// <summary>
+		/// Returns <see cref="Int32.MaxValue"/> is bypass is true, otherwise returns whatever botSettings has for MaxUserGatherCount.
+		/// </summary>
+		/// <param name="bypass"></param>
+		/// <returns></returns>
+		int GetMaxAmountOfUsersToGather(bool bypass);
 
 		/// <summary>
 		/// Returns a string of all the bot's settings in a human readable format.

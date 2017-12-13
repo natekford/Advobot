@@ -102,7 +102,7 @@ namespace Advobot.Commands
 
 			//Prefix
 			var argPos = -1;
-			if (!userMessage.HasStringPrefix(GetActions.GetPrefix(_BotSettings, guildSettings), ref argPos) &&
+			if (!userMessage.HasStringPrefix(guildSettings.GetPrefix(_BotSettings), ref argPos) &&
 				!userMessage.HasMentionPrefix(_Client.CurrentUser, ref argPos))
 			{
 				return;

@@ -1,4 +1,5 @@
-﻿using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -199,6 +200,37 @@ namespace Advobot.Core.Actions
 		/// <returns></returns>
 		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
 			=> list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
+		/// <summary>
+		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="objects"></param>
+		/// <param name="target"></param>
+		/// <param name="count"></param>
+		/// <param name="f"></param>
+		/// <returns></returns>
+		public static IEnumerable<T> GetObjectsInListBasedOffOfCount<T>(this IEnumerable<T> objects, CountTarget target, uint? count, Func<T, int?> f)
+		{
+			switch (target)
+			{
+				case CountTarget.Equal:
+				{
+					objects = objects.Where(x => f(x) != null && f(x) == count);
+					break;
+				}
+				case CountTarget.Below:
+				{
+					objects = objects.Where(x => f(x) != null && f(x) < count);
+					break;
+				}
+				case CountTarget.Above:
+				{
+					objects = objects.Where(x => f(x) != null && f(x) > count);
+					break;
+				}
+			}
+			return objects;
+		}
 
 		/// <summary>
 		/// Short way to write <see cref="Task.ConfigureAwait(false)"/>.

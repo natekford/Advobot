@@ -25,5 +25,7 @@ namespace Advobot.Core.Classes
 			this.InviteList = provider.GetRequiredService<IInviteListService>();
 			this.GuildSettings = guildSettings;
 		}
+
+		public string GetPrefix() => this.GuildSettings.GetPrefix(this.BotSettings);
 	}
 }

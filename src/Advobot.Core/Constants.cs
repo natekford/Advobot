@@ -1,9 +1,11 @@
 ﻿using Advobot.Core.Actions;
 using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Settings;
 using Discord;
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 
 namespace Advobot.Core
@@ -113,9 +115,9 @@ namespace Advobot.Core
 		private static HelpEntryHolder _HELP;
 		public static HelpEntryHolder HELP_ENTRIES => _HELP ?? (_HELP = new HelpEntryHolder());
 		private static Assembly _CMD_ASSEMBLY;
-		public static Assembly COMMAND_ASSEMBLY => _CMD_ASSEMBLY ?? (_CMD_ASSEMBLY = GetActions.GetCommandAssembly());
+		public static Assembly COMMAND_ASSEMBLY => _CMD_ASSEMBLY ?? (_CMD_ASSEMBLY = GetCommandAssembly());
 		private static ImmutableDictionary<string, Color> _COLORS;
-		public static ImmutableDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = GetActions.GetColorDictionary());
+		public static ImmutableDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = GetColorDictionary());
 
 		//Colors for logging embeds
 		public static Color BASE => new Color(255, 100, 000);
@@ -129,5 +131,28 @@ namespace Advobot.Core
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
 		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(GuildSettings); //IGuildSettings
 		public static Type BOT_SETTINGS_TYPE { get; } = typeof(BotSettings); //IBotSettings
+
+		private static Assembly GetCommandAssembly()
+		{
+			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null);
+			if (!assemblies.Any())
+			{
+				ConsoleActions.WriteLine($"Unable to find any command assemblies. Press any key to close the program.");
+				Console.ReadKey();
+				throw new DllNotFoundException("Unable to find any command assemblies.");
+			}
+			else if (assemblies.Count() > 1)
+			{
+				ConsoleActions.WriteLine("Too many command assemblies found. Press any key to close the program.");
+				Console.ReadKey();
+				throw new InvalidOperationException("Too many command assemblies found.");
+			}
+
+			return assemblies.Single();
+		}
+		private static ImmutableDictionary<string, Color> GetColorDictionary() => typeof(Color)
+			.GetFields(BindingFlags.Public | BindingFlags.Static)
+			.ToDictionary(x => x.Name, x => (Color)x.GetValue(new Color()), StringComparer.OrdinalIgnoreCase)
+			.ToImmutableDictionary();
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes.Settings;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -15,8 +16,8 @@ namespace Advobot.Core.Classes.TypeReaders
 	{
 		private static Dictionary<string, Dictionary<string, PropertyInfo>> _Settings = new Dictionary<string, Dictionary<string, PropertyInfo>>
 		{
-			{ nameof(GuildSettingTypeReader), GetActions.GetGuildSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
-			{ nameof(BotSettingTypeReader), GetActions.GetBotSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
+			{ nameof(GuildSettingTypeReader), GuildSettings.GetSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
+			{ nameof(BotSettingTypeReader), GuildSettings.GetSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
 		};
 
 		/// <summary>

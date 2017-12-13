@@ -113,6 +113,13 @@ namespace Advobot.Core.Actions.Formatting
 			}
 			return sb.ToString();
 		}
+		/// <summary>
+		/// Returns nothing if equal to 1. Returns "s" if not. Double allows most, if not all, number types in: https://stackoverflow.com/a/828963.
+		/// </summary>
+		/// <param name="i"></param>
+		/// <returns></returns>
+		public static string FormatPlural(double i)
+			=> i == 1 ? "" : "s";
 
 		/// <summary>
 		/// Only appends a \n after the value. On Windows <see cref="StringBuilder.AppendLine(string)"/> appends \r\n (which isn't

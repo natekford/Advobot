@@ -2,6 +2,7 @@
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Rules;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
@@ -100,7 +101,7 @@ namespace Advobot.Core.Actions
 		internal static IBotSettings CreateBotSettings()
 		{
 			//Make sure every enum value in botsettings is accurate
-			var fields = GetActions.GetBotSettings().ToList();
+			var fields = BotSettings.GetSettings().ToList();
 			foreach (BotSetting e in Enum.GetValues(typeof(BotSetting)))
 			{
 				var matchingField = fields.SingleOrDefault(x => e.EnumName() == x.Name)
@@ -113,7 +114,7 @@ namespace Advobot.Core.Actions
 			}
 
 			IBotSettings botSettings = null;
-			var fileInfo = GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
+			var fileInfo = IOActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
 			if (fileInfo.Exists)
 			{
 				try
@@ -150,7 +151,7 @@ namespace Advobot.Core.Actions
 		internal static async Task<IGuildSettings> CreateGuildSettingsAsync(IGuild guild)
 		{
 			IGuildSettings guildSettings = null;
-			var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+			var fileInfo = IOActions.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
 			if (fileInfo.Exists)
 			{
 				try

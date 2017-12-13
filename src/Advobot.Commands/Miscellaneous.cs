@@ -37,7 +37,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command()
 		{
-			var desc = _GeneralHelp.Replace(Constants.PLACEHOLDER_PREFIX, GetActions.GetPrefix(Context));
+			var desc = _GeneralHelp.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix());
 			var embed = new EmbedWrapper("General Help", desc)
 				.AddField("Basic Syntax", _BasicSyntax)
 				.AddField("Mention Syntax", _MentionSyntax)
@@ -51,7 +51,7 @@ namespace Advobot.Commands.Miscellaneous
 			var helpEntry = Constants.HELP_ENTRIES[commandName];
 			if (helpEntry != null)
 			{
-				var desc = helpEntry.ToString().Replace(Constants.PLACEHOLDER_PREFIX, GetActions.GetPrefix(Context));
+				var desc = helpEntry.ToString().Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix());
 				var embed = new EmbedWrapper(helpEntry.Name, desc)
 					.AddFooter("Help");
 				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
@@ -90,13 +90,13 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command(CommandCategory category)
 		{
-			var desc = $"`{String.Join("`, `", GetActions.GetCommandNames(category))}`";
+			var desc = $"`{String.Join("`, `", Constants.HELP_ENTRIES[category].Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(category.EnumName(), desc)).CAF();
 		}
 		[Command]
 		public async Task Command()
 		{
-			var desc = _CommandCategories.Replace(Constants.PLACEHOLDER_PREFIX, GetActions.GetPrefix(Context));
+			var desc = _CommandCategories.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix());
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Categories", desc)).CAF();
 		}
 	}

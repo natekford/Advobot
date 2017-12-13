@@ -506,7 +506,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
-			var desc = $"`{String.Join("`, `", GetActions.GetGuildSettings().Select(x => x.Name))}`";
+			var desc = $"`{String.Join("`, `", Core.Classes.Settings.GuildSettings.GetSettings().Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
@@ -539,7 +539,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command]
 		public async Task Command()
 		{
-			var file = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+			var file = IOActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
 			if (!file.Exists)
 			{
 				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("The guild settings file does not exist.")).CAF();

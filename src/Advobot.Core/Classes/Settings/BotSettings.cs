@@ -2,7 +2,6 @@
 using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Interfaces;
 using Discord;
-using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,163 +18,33 @@ namespace Advobot.Core.Classes.Settings
 	/// <summary>
 	/// Holds settings for the bot. Settings are saved through property setters or calling <see cref="SaveSettings()"/>.
 	/// </summary>
-	public class BotSettings : IBotSettings, INotifyPropertyChanged
+	public partial class BotSettings : IBotSettings, INotifyPropertyChanged
 	{
-		private static FileInfo LOC => GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
+		private static FileInfo LOC => IOActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
 		private const string MY_BOT_PREFIX = "&&";
-
-		[JsonProperty("TrustedUsers")]
-		private List<ulong> _TrustedUsers;
-		[JsonProperty("UsersUnableToDMOwner")]
-		private List<ulong> _UsersUnableToDMOwner;
-		[JsonProperty("UsersIgnoredFromCommands")]
-		private List<ulong> _UsersIgnoredFromCommands;
-		[JsonProperty("ShardCount")]
-		private int _ShardCount;
-		[JsonProperty("MessageCacheCount")]
-		private int _MessageCacheCount;
-		[JsonProperty("MaxUserGatherCount")]
-		private int _MaxUserGatherCount;
-		[JsonProperty("MaxMessageGatherSize")]
-		private int _MaxMessageGatherSize;
-		[JsonProperty("Prefix")]
-		private string _Prefix;
-		[JsonProperty("Game")]
-		private string _Game;
-		[JsonProperty("Stream")]
-		private string _Stream;
-		[JsonProperty("AlwaysDownloadUsers")]
-		private bool _AlwaysDownloadUsers = true;
-		[JsonProperty("LogLevel")]
-		private LogSeverity _LogLevel = LogSeverity.Warning;
-
-		[JsonIgnore]
-		public IReadOnlyList<ulong> TrustedUsers
-		{
-			get => _TrustedUsers.AsReadOnly() ?? (_TrustedUsers = new List<ulong>()).AsReadOnly();
-			set
-			{
-				this._TrustedUsers = value.ToList();
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public IReadOnlyList<ulong> UsersUnableToDMOwner
-		{
-			get => _UsersUnableToDMOwner.AsReadOnly() ?? (_UsersUnableToDMOwner = new List<ulong>()).AsReadOnly();
-			set
-			{
-				this._UsersUnableToDMOwner = value.ToList();
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public IReadOnlyList<ulong> UsersIgnoredFromCommands
-		{
-			get => _UsersIgnoredFromCommands.AsReadOnly() ?? (_UsersIgnoredFromCommands = new List<ulong>()).AsReadOnly();
-			set
-			{
-				this._UsersIgnoredFromCommands = value.ToList();
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public int ShardCount
-		{
-			get => _ShardCount > 1 ? _ShardCount : (_ShardCount = 1);
-			set
-			{
-				this._ShardCount = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public int MessageCacheCount
-		{
-			get => _MessageCacheCount > 0 ? _MessageCacheCount : (_MessageCacheCount = 1000);
-			set
-			{
-				this._MessageCacheCount = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public int MaxUserGatherCount
-		{
-			get => _MaxUserGatherCount > 0 ? _MaxUserGatherCount : (_MaxUserGatherCount = 100);
-			set
-			{
-				this._MaxUserGatherCount = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public int MaxMessageGatherSize
-		{
-			get => _MaxMessageGatherSize > 0 ? _MaxMessageGatherSize : (_MaxMessageGatherSize = 500000);
-			set
-			{
-				this._MaxMessageGatherSize = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public string Prefix
-		{
-			get => _Prefix ?? (_Prefix = MY_BOT_PREFIX);
-			set
-			{
-				this._Prefix = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public string Game
-		{
-			get => _Game ?? (_Game = $"type \"{Prefix}help\" for help.");
-			set
-			{
-				this._Game = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public string Stream
-		{
-			get => _Stream;
-			set
-			{
-				this._Stream = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public bool AlwaysDownloadUsers
-		{
-			get => _AlwaysDownloadUsers;
-			set
-			{
-				this._AlwaysDownloadUsers = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public LogSeverity LogLevel
-		{
-			get => _LogLevel;
-			set
-			{
-				this._LogLevel = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public bool Pause { get; private set; }
 
 		public BotSettings()
 		{
-			PropertyChanged += this.SaveSettings;
+			PropertyChanged += SaveSettings;
 		}
+
+		/// <summary>
+		/// Returns all public properties that have a set method. Will not return SavePath and BotKey since those
+		/// are saved via <see cref="Properties.Settings.Default"/>.
+		/// </summary>
+		/// <returns></returns>
+		public static PropertyInfo[] GetSettings() => typeof(IBotSettings)
+			.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+			.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic).ToArray();
+		/// <summary>
+		/// Returns the values of <see cref="GetBotSettings"/> which either are strings or do not implement the generic IEnumerable.
+		/// </summary>
+		/// <returns></returns>
+		public static PropertyInfo[] GetNonEnumerableSettings() => GetSettings()
+			.Where(x => false
+			|| x.PropertyType == typeof(string)
+			|| !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+			.ToArray();
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
@@ -188,6 +57,8 @@ namespace Advobot.Core.Classes.Settings
 		public void SaveSettings()
 			=> IOActions.OverWriteFile(LOC, IOActions.Serialize(this));
 		public void TogglePause() => this.Pause = !this.Pause;
+		public int GetMaxAmountOfUsersToGather(bool bypass)
+			=> bypass ? int.MaxValue : this.MaxUserGatherCount;
 
 		public async Task<string> Format(IDiscordClient client)
 		{

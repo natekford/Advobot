@@ -11,5 +11,11 @@ namespace Advobot.Core.Interfaces
 		IGuildSettings GuildSettings { get; }
 		ILogService Logging { get; }
 		ITimersService Timers { get; }
+
+		/// <summary>
+		/// Returns the prefix.
+		/// </summary>
+		/// <returns></returns>
+		string GetPrefix();
 	}
 }

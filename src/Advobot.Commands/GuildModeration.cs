@@ -212,7 +212,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + imageUrl.FileType);
+			var fileInfo = IOActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + imageUrl.FileType);
 			using (var webClient = new WebClient())
 			{
 				webClient.DownloadFileAsync(imageUrl.Url, fileInfo.FullName);

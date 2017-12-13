@@ -134,7 +134,7 @@ namespace Advobot.Core.Actions
 				if (validHelpEntry)
 				{
 					var help = helpEntries.List[number].Word;
-					var prefix = GetActions.GetPrefix(botSettings, settings);
+					var prefix = settings.GetPrefix(botSettings);
 					var desc = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix);
 					var embed = new EmbedWrapper(help.Name, desc)
 						.AddFooter("Help");

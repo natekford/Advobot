@@ -82,6 +82,12 @@ namespace Advobot.Core.Interfaces
 		/// </summary>
 		/// <param name="logChannelType"></param>
 		bool RemoveLogChannel(LogChannelType type);
+		/// <summary>
+		/// Returns the prefix from the guild settings or bot settings.
+		/// </summary>
+		/// <param name="botSettings"></param>
+		/// <returns></returns>
+		string GetPrefix(IBotSettings botSettings);
 
 		/// <summary>
 		/// Saves the settings to a JSON file.

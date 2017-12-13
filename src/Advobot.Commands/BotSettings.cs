@@ -187,7 +187,7 @@ namespace Advobot.Commands.BotSettings
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
-			var desc = $"`{String.Join("`, `", GetActions.GetBotSettings().Select(x => x.Name))}`";
+			var desc = $"`{String.Join("`, `", Core.Classes.Settings.BotSettings.GetSettings().Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All))]
@@ -249,7 +249,7 @@ namespace Advobot.Commands.BotSettings
 				return;
 			}
 
-			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.BOT_ICON_LOCATION + imageUrl.FileType);
+			var fileInfo = IOActions.GetServerDirectoryFile(Context.Guild.Id, Constants.BOT_ICON_LOCATION + imageUrl.FileType);
 			using (var webClient = new WebClient())
 			{
 				webClient.DownloadFileAsync(imageUrl.Url, fileInfo.FullName);

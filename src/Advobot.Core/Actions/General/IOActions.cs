@@ -1,7 +1,9 @@
 ﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Advobot.Core.Actions
@@ -11,6 +13,49 @@ namespace Advobot.Core.Actions
 	/// </summary>
 	public static class IOActions
 	{
+		/// <summary>
+		/// Returns the <see cref="Process.WorkingSet64"/> value divided by a MB.
+		/// </summary>
+		/// <returns></returns>
+		public static double GetMemory()
+		{
+			using (var process = Process.GetCurrentProcess())
+			{
+				process.Refresh();
+				return process.PrivateMemorySize64 / (1024.0 * 1024.0);
+			}
+		}
+
+		/// <summary>
+		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId
+		/// </summary>
+		/// <param name="guildId"></param>
+		/// <returns></returns>
+		public static DirectoryInfo GetServerDirectory(ulong guildId)
+			=> Directory.CreateDirectory(Path.Combine(GetBaseBotDirectory().FullName, guildId.ToString()));
+		/// <summary>
+		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId\File
+		/// </summary>
+		/// <param name="guildId"></param>
+		/// <param name="fileName"></param>
+		/// <returns></returns>
+		public static FileInfo GetServerDirectoryFile(ulong guildId, string fileName)
+			=> new FileInfo(Path.Combine(GetServerDirectory(guildId).FullName, fileName));
+		/// <summary>
+		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId
+		/// </summary>
+		/// <returns></returns>
+		public static DirectoryInfo GetBaseBotDirectory()
+			=> Directory.CreateDirectory(Path.Combine(Config.Configuration[ConfigKey.SavePath],
+				$"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKey.BotId]}"));
+		/// <summary>
+		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\File
+		/// </summary>
+		/// <param name="fileName"></param>
+		/// <returns></returns>
+		public static FileInfo GetBaseBotDirectoryFile(string fileName)
+			=> new FileInfo(Path.Combine(GetBaseBotDirectory().FullName, fileName));
+
 		/// <summary>
 		/// Creates a file if it does not already exist.
 		/// </summary>
@@ -75,7 +120,7 @@ namespace Advobot.Core.Actions
 		/// <param name="exeption"></param>
 		public static void LogUncaughtException(object exception)
 		{
-			var crashLogPath = GetActions.GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOCATION);
+			var crashLogPath = GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOCATION);
 			CreateFile(crashLogPath);
 			//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
 			using (var writer = crashLogPath.AppendText())

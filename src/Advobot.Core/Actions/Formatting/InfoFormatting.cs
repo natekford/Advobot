@@ -155,7 +155,7 @@ namespace Advobot.Core.Actions.Formatting
 				.AppendLineFeed($"**Users In Voice:** `{voiceCount}`\n")
 				.AppendLineFeed($"**Role Count:** `{guild.Roles.Count}`")
 				.AppendLineFeed($"**Channel Count:** `{guild.Channels.Count}` (`{guild.TextChannels.Count}` text, `{guild.VoiceChannels.Count}` voice)")
-				.AppendLineFeed($"**AFK Channel:** `{guild.AFKChannel.FormatChannel()}` (`{guild.AFKTimeout / 60}` minute{GetActions.GetPlural(guild.AFKTimeout / 60)})");
+				.AppendLineFeed($"**AFK Channel:** `{guild.AFKChannel.FormatChannel()}` (`{guild.AFKTimeout / 60}` minute{GeneralFormatting.FormatPlural(guild.AFKTimeout / 60)})");
 
 			var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
 			return new EmbedWrapper(null, desc.ToString(), color, thumbnailUrl: guild.IconUrl)

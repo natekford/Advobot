@@ -31,7 +31,7 @@ namespace Advobot.Core.Classes
 				return this._CancelToken;
 			});
 			this._Context = context;
-			this._Users = users.ToList().GetUpToAndIncludingMinNum(GetActions.GetMaxAmountOfUsersToGather(context.BotSettings, bypass));
+			this._Users = users.ToList().GetUpToAndIncludingMinNum(context.BotSettings.GetMaxAmountOfUsersToGather(bypass));
 
 			if (new Random().NextDouble() > .98)
 			{

@@ -308,7 +308,7 @@ namespace Advobot.Commands.UserModeration
 				deletedAmt++;
 			}
 
-			var response = $"Successfully deleted `{deletedAmt}` message{GetActions.GetPlural(deletedAmt)}";
+			var response = $"Successfully deleted `{deletedAmt}` message{GeneralFormatting.FormatPlural(deletedAmt)}";
 			var userResp = user != null ? $" from `{user.FormatUser()}`" : null;
 			var chanResp = channel != null ? $" on `{channel.FormatChannel()}`" : null;
 			var resp = $"{GeneralFormatting.JoinNonNullStrings(" ", response, userResp, chanResp)}.";

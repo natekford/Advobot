@@ -18,9 +18,9 @@ namespace Advobot.Core.Classes
 		public EmbedWrapper(string title = null, string description = null, Color? color = null,
 			string imageUrl = null, string url = null, string thumbnailUrl = null)
 		{
-			imageUrl = GetActions.GetIfStringIsValidUrl(imageUrl) ? imageUrl : null;
-			url = GetActions.GetIfStringIsValidUrl(url) ? url : null;
-			thumbnailUrl = GetActions.GetIfStringIsValidUrl(thumbnailUrl) ? thumbnailUrl : null;
+			imageUrl = GetIfStringIsValidUrl(imageUrl) ? imageUrl : null;
+			url = GetIfStringIsValidUrl(url) ? url : null;
+			thumbnailUrl = GetIfStringIsValidUrl(thumbnailUrl) ? thumbnailUrl : null;
 
 			this.WithColor(Constants.BASE);
 			if (title != null)
@@ -72,8 +72,8 @@ namespace Advobot.Core.Classes
 				return this;
 			}
 
-			iconUrl = GetActions.GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
-			url = GetActions.GetIfStringIsValidUrl(url) ? url : null;
+			iconUrl = GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
+			url = GetIfStringIsValidUrl(url) ? url : null;
 
 			this.WithAuthor(x =>
 			{
@@ -113,7 +113,7 @@ namespace Advobot.Core.Classes
 				return this;
 			}
 
-			iconUrl = GetActions.GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
+			iconUrl = GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
 
 			this.WithFooter(x =>
 			{
@@ -224,5 +224,14 @@ namespace Advobot.Core.Classes
 
 			return error == null;
 		}
+
+		/// <summary>
+		/// Returns true if the passed in string is a valid Url.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		private bool GetIfStringIsValidUrl(string input) => !String.IsNullOrWhiteSpace(input)
+			&& Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult)
+			&& (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 	}
 }

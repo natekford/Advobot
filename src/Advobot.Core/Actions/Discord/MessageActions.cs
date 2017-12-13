@@ -130,7 +130,7 @@ namespace Advobot.Core.Actions
 				fileName += "_";
 			}
 			var fullFileName = fileName + TimeFormatting.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
-			var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, fullFileName);
+			var fileInfo = IOActions.GetServerDirectoryFile(guild.Id, fullFileName);
 
 			IOActions.OverWriteFile(fileInfo, text.RemoveAllMarkdown());
 			var msg = await channel.SendFileAsync(fileInfo.FullName, String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**").CAF();

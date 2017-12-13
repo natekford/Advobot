@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Classes.Permissions;
 using Discord.Commands;
 using System;
@@ -29,7 +30,7 @@ namespace Advobot.Core.Classes.TypeReaders
 			//Then check permission names
 			else if (!ChannelPerms.TryGetValidPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
 			{
-				var str = $"Invalid permission{GetActions.GetPlural(invalidPerms.Count())} provided: `{String.Join("`, `", invalidPerms)}`.";
+				var str = $"Invalid permission{GeneralFormatting.FormatPlural(invalidPerms.Count())} provided: `{String.Join("`, `", invalidPerms)}`.";
 				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, str));
 			}
 			else
