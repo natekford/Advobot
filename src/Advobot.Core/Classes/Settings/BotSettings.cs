@@ -20,8 +20,7 @@ namespace Advobot.Core.Classes.Settings
 	/// </summary>
 	public partial class BotSettings : IBotSettings, INotifyPropertyChanged
 	{
-		private static FileInfo LOC => IOActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
-		private const string MY_BOT_PREFIX = "&&";
+		private const string DEFAULT_PREFIX = "&&";
 
 		public BotSettings()
 		{
@@ -55,7 +54,7 @@ namespace Advobot.Core.Classes.Settings
 			SaveSettings();
 		}
 		public void SaveSettings()
-			=> IOActions.OverWriteFile(LOC, IOActions.Serialize(this));
+			=> IOActions.OverWriteFile(IOActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), IOActions.Serialize(this));
 		public void TogglePause() => this.Pause = !this.Pause;
 		public int GetMaxAmountOfUsersToGather(bool bypass)
 			=> bypass ? int.MaxValue : this.MaxUserGatherCount;

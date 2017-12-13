@@ -75,7 +75,7 @@ namespace Advobot.UILauncher.Actions
 		/// <returns></returns>
 		private static FileInfo CreateFileInfo(Control control)
 		{
-			var baseDir = GetActions.GetBaseBotDirectory().FullName;
+			var baseDir = IOActions.GetBaseBotDirectory().FullName;
 			var fileName = $"{control.Name}_{TimeFormatting.FormatDateTimeForSaving()}{Constants.GENERAL_FILE_EXTENSION}";
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}

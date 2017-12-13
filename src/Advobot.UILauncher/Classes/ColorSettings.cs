@@ -16,7 +16,6 @@ namespace Advobot.UILauncher.Classes
 {
 	internal class ColorSettings
 	{
-		private static FileInfo LOC => GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> LightModeProperties { get; private set; } = GetColorProperties("LightMode");
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> DarkModeProperties { get; private set; } = GetColorProperties("DarkMode");
 
@@ -138,7 +137,8 @@ namespace Advobot.UILauncher.Classes
 		/// <summary>
 		/// Saves custom colors and the current theme.
 		/// </summary>
-		public void SaveSettings() => IOActions.OverWriteFile(LOC, IOActions.Serialize(this));
+		public void SaveSettings()
+			=> IOActions.OverWriteFile(IOActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION), IOActions.Serialize(this));
 
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
 			=> typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
@@ -150,7 +150,7 @@ namespace Advobot.UILauncher.Classes
 		public static ColorSettings LoadUISettings()
 		{
 			ColorSettings UISettings = null;
-			var fileInfo = GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
+			var fileInfo = IOActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
 			if (fileInfo.Exists)
 			{
 				try

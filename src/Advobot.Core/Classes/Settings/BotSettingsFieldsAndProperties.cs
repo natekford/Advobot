@@ -110,7 +110,7 @@ namespace Advobot.Core.Classes.Settings
 		[JsonIgnore]
 		public string Prefix
 		{
-			get => _Prefix ?? (_Prefix = MY_BOT_PREFIX);
+			get => _Prefix ?? (_Prefix = DEFAULT_PREFIX);
 			set
 			{
 				this._Prefix = value;

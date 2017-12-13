@@ -26,7 +26,7 @@ namespace Advobot.UILauncher.Classes.Controls
 				this._G = value;
 
 				//Make sure the guild currently has a directory. If not, create it
-				var directories = GetActions.GetBaseBotDirectory().GetDirectories();
+				var directories = IOActions.GetBaseBotDirectory().GetDirectories();
 				var guildDir = directories.SingleOrDefault(x => x.Name == this._G.Id.ToString());
 				if (!guildDir.Exists)
 				{

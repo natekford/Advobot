@@ -421,7 +421,7 @@ namespace Advobot.UILauncher.Windows
 		{
 			this.Uptime.Text = $"Uptime: {TimeFormatting.FormatUptime()}";
 			this.Latency.Text = $"Latency: {(this.Client.HeldObject == null ? -1 : ClientActions.GetLatency(this.Client.HeldObject))}ms";
-			this.Memory.Text = $"Memory: {GetActions.GetMemory().ToString("0.00")}MB";
+			this.Memory.Text = $"Memory: {IOActions.GetMemory().ToString("0.00")}MB";
 			this.ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)

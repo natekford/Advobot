@@ -65,12 +65,12 @@ namespace Advobot.Core.Classes
 			}
 			if (this._Uses != null)
 			{
-				invites = GetActions.GetObjectsInListBasedOffOfCount(invites, this._UsesCountTarget, this._Uses, x => x.Uses);
+				invites = invites.GetObjectsInListBasedOffOfCount(this._UsesCountTarget, this._Uses, x => x.Uses);
 				wentIntoAny = true;
 			}
 			if (this._Age != null)
 			{
-				invites = GetActions.GetObjectsInListBasedOffOfCount(invites, this._AgeCountTarget, this._Age, x => x.MaxAge);
+				invites = invites.GetObjectsInListBasedOffOfCount(this._AgeCountTarget, this._Age, x => x.MaxAge);
 				wentIntoAny = true;
 			}
 			if (this._IsTemporary)

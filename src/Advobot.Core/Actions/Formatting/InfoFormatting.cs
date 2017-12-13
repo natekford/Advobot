@@ -211,7 +211,7 @@ namespace Advobot.Core.Actions.Formatting
 				.AppendLineFeed($"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`")
 				.AppendLineFeed($"**Current Shard:** `{ClientActions.GetShardIdFor(client, guild)}`")
 				.AppendLineFeed($"**Latency:** `{ClientActions.GetLatency(client)}ms`")
-				.AppendLineFeed($"**Memory Usage:** `{GetActions.GetMemory().ToString("0.00")}MB`")
+				.AppendLineFeed($"**Memory Usage:** `{IOActions.GetMemory().ToString("0.00")}MB`")
 				.AppendLineFeed($"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`");
 
 			var firstField = logModule.FormatLoggedUserActions(true, false).Trim('\n', '\r');

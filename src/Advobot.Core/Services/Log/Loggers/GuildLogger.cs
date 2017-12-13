@@ -20,7 +20,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		public async Task OnGuildAvailable(SocketGuild guild)
 		{
 			ConsoleActions.WriteLine($"{guild.FormatGuild()} is now online on shard {ClientActions.GetShardIdFor(_Client, guild)}.");
-			ConsoleActions.WriteLine($"Current memory usage is: {GetActions.GetMemory().ToString("0.00")}MB.");
+			ConsoleActions.WriteLine($"Current memory usage is: {IOActions.GetMemory().ToString("0.00")}MB.");
 
 			if (!_GuildSettings.ContainsGuild(guild.Id))
 			{
