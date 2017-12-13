@@ -16,7 +16,7 @@ using System.Windows.Input;
 
 namespace Advobot.UILauncher.Utilities
 {
-	internal static class IOUtils
+	internal static class SavingUtils
 	{
 		/// <summary>
 		/// Saves the text of <paramref name="editor"/> to file.
@@ -60,7 +60,7 @@ namespace Advobot.UILauncher.Utilities
 
 			try
 			{
-				Core.Utilities.IOUtils.OverWriteFile(fi, text);
+				IOUtils.OverWriteFile(fi, text);
 				return ToolTipReason.FileSavingSuccess;
 			}
 			catch
@@ -75,7 +75,7 @@ namespace Advobot.UILauncher.Utilities
 		/// <returns></returns>
 		private static FileInfo CreateFileInfo(Control control)
 		{
-			var baseDir = Core.Utilities.IOUtils.GetBaseBotDirectory().FullName;
+			var baseDir = IOUtils.GetBaseBotDirectory().FullName;
 			var fileName = $"{control.Name}_{TimeFormatting.FormatDateTimeForSaving()}{Constants.GENERAL_FILE_EXTENSION}";
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}

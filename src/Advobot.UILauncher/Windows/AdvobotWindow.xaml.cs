@@ -171,13 +171,13 @@ namespace Advobot.UILauncher.Windows
 			=> TrustedUsers.Items.Remove(TrustedUsers.SelectedItem);
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			Utilities.IOUtils.SaveSettings(SettingsMenuDisplay, BotSettings.HeldObject);
+			SavingUtils.SaveSettings(SettingsMenuDisplay, BotSettings.HeldObject);
 			//In a task.run since the result is unimportant and unused
 			Task.Run(async () => await ClientUtils.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject));
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (Utilities.IOUtils.IsCtrlS(e))
+			if (SavingUtils.IsCtrlS(e))
 			{
 				SaveSettings(sender, e);
 			}
@@ -197,21 +197,19 @@ namespace Advobot.UILauncher.Windows
 						if (c[target] != null)
 						{
 							c[target] = null;
-							ConsoleUtils.WriteLine($"Successfully updated the color for {name}.");
+							ConsoleUtils.WriteLine($"Successfully removed the custom color for {name}.");
 						}
 						continue;
 					}
-					if (!ColorWrapper.TryCreateColor(childText, out var color))
+					else if (!BrushUtils.TryCreateBrush(childText, out var brush))
 					{
-						ConsoleUtils.WriteLine($"Invalid color supplied for {name}: '{childText}'.");
+						ConsoleUtils.WriteLine($"Invalid custom color supplied for {name}: '{childText}'.");
 						continue;
 					}
-
-					var brush = color.CreateBrush();
-					if (!ColorWrapper.CheckIfSameBrush(c[target], brush))
+					else if (!BrushUtils.CheckIfSameBrush(c[target], brush))
 					{
 						c[target] = brush;
-						ConsoleUtils.WriteLine($"Successfully updated the color for {name}: '{childText} ({brush.ToString()})'.");
+						ConsoleUtils.WriteLine($"Successfully updated the custom color for {name}: '{childText} ({brush.ToString()})'.");
 					}
 
 					//Update the text here because if someone has the hex value for yellow but they put in Yellow as a string 
@@ -236,13 +234,13 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (Utilities.IOUtils.IsCtrlS(e))
+			if (SavingUtils.IsCtrlS(e))
 			{
 				SaveColors(sender, e);
 			}
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
-			=> ToolTipUtils.EnableTimedToolTip(Layout, Utilities.IOUtils.SaveFile(Output).GetReason());
+			=> ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(Output).GetReason());
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
 			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
@@ -420,7 +418,7 @@ namespace Advobot.UILauncher.Windows
 		{
 			Uptime.Text = $"Uptime: {TimeFormatting.FormatUptime()}";
 			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientUtils.GetLatency(Client.HeldObject))}ms";
-			Memory.Text = $"Memory: {Core.Utilities.IOUtils.GetMemory().ToString("0.00")}MB";
+			Memory.Text = $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB";
 			ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)

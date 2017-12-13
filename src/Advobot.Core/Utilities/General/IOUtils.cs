@@ -76,7 +76,9 @@ namespace Advobot.Core.Utilities
 		public static void OverWriteFile(FileInfo fileInfo, string text)
 		{
 			CreateFile(fileInfo);
-			using (var writer = new StreamWriter(fileInfo.OpenWrite()))
+			//Have to use this open method because fileInfo.OpenWrite() occasionally
+			//let the last character get written twice which would mess up JSON
+			using (var writer = new StreamWriter(fileInfo.Open(FileMode.Truncate)))
 			{
 				writer.Write(text);
 			}

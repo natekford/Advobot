@@ -109,12 +109,12 @@
     <Compile Include="Classes\DpiDecorator.cs" />
     <Compile Include="Utilities\CommandHandler.cs" />
     <Compile Include="Utilities\ElementUtils.cs" />
-    <Compile Include="Utilities\IOUtils.cs" />
+    <Compile Include="Utilities\SavingUtils.cs" />
     <Compile Include="Utilities\ToolTipUtils.cs" />
     <Compile Include="AdvobotApp.xaml.cs">
       <DependentUpon>AdvobotApp.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Classes\ColorWrapper.cs" />
+    <Compile Include="Utilities\BrushUtils.cs" />
     <Compile Include="Classes\CompGuild.cs" />
     <Compile Include="Classes\Controls\AdvobotTreeViewFile.cs" />
     <Compile Include="Classes\Controls\AdvobotTreeViewHeader.cs" />

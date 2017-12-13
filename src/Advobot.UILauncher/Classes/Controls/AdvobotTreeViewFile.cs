@@ -95,7 +95,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			{
 				case MessageBoxResult.Yes:
 				{
-					Core.Utilities.IOUtils.DeleteFile(_FI);
+					IOUtils.DeleteFile(_FI);
 					return;
 				}
 			}
