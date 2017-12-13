@@ -72,12 +72,11 @@ namespace Advobot.UILauncher.Utilities
 			var currLevel = 0;
 			while (true)
 			{
-				++currLevel;
 				currElement = VisualTreeHelper.GetParent(currElement);
 				if (currElement is T tParent)
 				{
 					parent = tParent;
-					ancestorLevel = currLevel;
+					ancestorLevel = ++currLevel;
 				}
 				else if (currElement == null)
 				{

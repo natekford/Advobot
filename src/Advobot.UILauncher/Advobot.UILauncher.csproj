@@ -106,6 +106,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\DpiDecorator.cs" />
     <Compile Include="Utilities\CommandHandler.cs" />
     <Compile Include="Utilities\ElementUtils.cs" />
     <Compile Include="Utilities\IOUtils.cs" />

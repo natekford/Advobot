@@ -6,87 +6,90 @@
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       xmlns:controls="clr-namespace:Advobot.UILauncher.Classes.Controls"
+                      xmlns:classes="clr-namespace:Advobot.UILauncher.Classes"
                       mc:Ignorable="d"
                       Title="File Search"
                       FontFamily="Courier New"
                       Closed="WindowClosed"
                       DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
-    <controls:AdvobotGrid x:Name="Layout">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*" />
-            <ColumnDefinition Width="8*" />
-            <ColumnDefinition Width="1*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="1*" />
-            <RowDefinition Height="8*" />
-            <RowDefinition Height="1*" />
-        </Grid.RowDefinitions>
-
-        <!-- Background -->
-        <controls:AdvobotTextBox x:Name="LayoutBackground"
-                                 Grid.ColumnSpan="4"
-                                 Grid.RowSpan="3"
-                                 TBType="Background" />
-
-        <controls:AdvobotGrid x:Name="InnerLayout"
-                              Grid.Row="1"
-                              Grid.Column="1"
-                              FontResizeValue=".040">
+    <classes:DpiDecorator x:Name="DpiDecorator">
+        <controls:AdvobotGrid x:Name="Layout">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="10*" />
                 <ColumnDefinition Width="1*" />
-                <ColumnDefinition Width="10*" />
+                <ColumnDefinition Width="8*" />
+                <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="4*" />
-                <RowDefinition Height="2*" />
-                <RowDefinition Height=".5*" />
-                <RowDefinition Height="2*" />
-                <RowDefinition Height="2*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="8*" />
+                <RowDefinition Height="1*" />
             </Grid.RowDefinitions>
 
-            <!-- Titles -->
-            <controls:AdvobotTextBox x:Name="GuildNameTitle"
-                                     Grid.Column="0"
-                                     Grid.Row="0"
-                                     FontResizeValue=".110"
-                                     TBType="Title"
-                                     VerticalContentAlignment="Bottom" />
-            <controls:AdvobotTextBox x:Name="GuildIdTitle"
-                                     Grid.Column="2"
-                                     Grid.Row="0"
-                                     FontResizeValue=".110"
-                                     TBType="Title"
-                                     VerticalContentAlignment="Bottom" />
+            <!-- Background -->
+            <controls:AdvobotTextBox x:Name="LayoutBackground"
+                                     Grid.ColumnSpan="4"
+                                     Grid.RowSpan="3"
+                                     TBType="Background" />
 
-            <!-- Input -->
-            <controls:AdvobotTextBox x:Name="GuildNameInput"
-                                     Grid.Column="0"
-                                     Grid.Row="1"
-                                     MaxLength="100"
-                                     TextWrapping="Wrap" />
-            <controls:AdvobotNumberBox x:Name="GuildIdInput"
-                                       Grid.Column="2"
-                                       Grid.Row="1"
-                                       MaxLength="18"
-                                       TextWrapping="Wrap" />
-            <controls:AdvobotComboBox x:Name="FileTypeComboBox"
-                                      Grid.Column="0"
-                                      Grid.Row="3" />
+            <controls:AdvobotGrid x:Name="InnerLayout"
+                                  Grid.Row="1"
+                                  Grid.Column="1"
+                                  FontResizeValue=".040">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="10*" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="10*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="4*" />
+                    <RowDefinition Height="2*" />
+                    <RowDefinition Height=".5*" />
+                    <RowDefinition Height="2*" />
+                    <RowDefinition Height="2*" />
+                </Grid.RowDefinitions>
 
-            <controls:AdvobotButton x:Name="SearchButton"
-                                    Grid.Column="2"
-                                    Grid.Row="3"
-                                    Content="Search For File"
-                                    Click="Search"
-                                    Style="{DynamicResource EnableSearchStyle}" />
-            <controls:AdvobotButton x:Name="CloseButton"
-                                    Grid.Column="2"
-                                    Grid.Row="4"
-                                    Content="Close Window"
-                                    Click="Close" />
+                <!-- Titles -->
+                <controls:AdvobotTextBox x:Name="GuildNameTitle"
+                                         Grid.Column="0"
+                                         Grid.Row="0"
+                                         FontResizeValue=".110"
+                                         TBType="Title"
+                                         VerticalContentAlignment="Bottom" />
+                <controls:AdvobotTextBox x:Name="GuildIdTitle"
+                                         Grid.Column="2"
+                                         Grid.Row="0"
+                                         FontResizeValue=".110"
+                                         TBType="Title"
+                                         VerticalContentAlignment="Bottom" />
+
+                <!-- Input -->
+                <controls:AdvobotTextBox x:Name="GuildNameInput"
+                                         Grid.Column="0"
+                                         Grid.Row="1"
+                                         MaxLength="100"
+                                         TextWrapping="Wrap" />
+                <controls:AdvobotNumberBox x:Name="GuildIdInput"
+                                           Grid.Column="2"
+                                           Grid.Row="1"
+                                           MaxLength="18"
+                                           TextWrapping="Wrap" />
+                <controls:AdvobotComboBox x:Name="FileTypeComboBox"
+                                          Grid.Column="0"
+                                          Grid.Row="3" />
+
+                <controls:AdvobotButton x:Name="SearchButton"
+                                        Grid.Column="2"
+                                        Grid.Row="3"
+                                        Content="Search For File"
+                                        Click="Search"
+                                        Style="{DynamicResource EnableSearchStyle}" />
+                <controls:AdvobotButton x:Name="CloseButton"
+                                        Grid.Column="2"
+                                        Grid.Row="4"
+                                        Content="Close Window"
+                                        Click="Close" />
+            </controls:AdvobotGrid>
         </controls:AdvobotGrid>
-    </controls:AdvobotGrid>
+    </classes:DpiDecorator>
 </controls:ModalWindow>

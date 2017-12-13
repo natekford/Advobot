@@ -34,7 +34,7 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void SaveWithCtrlS(object sender, KeyEventArgs e)
 		{
-			if (IOUtils.IsCtrlS(e))
+			if (Utilities.IOUtils.IsCtrlS(e))
 			{
 				Save(sender, e);
 			}
@@ -43,7 +43,7 @@ namespace Advobot.UILauncher.Windows
 		{
 			if (ConsoleSearchOutput.Text.Length > 0)
 			{
-				var response = IOUtils.SaveFile(ConsoleSearchOutput);
+				var response = Utilities.IOUtils.SaveFile(ConsoleSearchOutput);
 				ToolTipUtils.EnableTimedToolTip(Layout, response.GetReason());
 			}
 		}

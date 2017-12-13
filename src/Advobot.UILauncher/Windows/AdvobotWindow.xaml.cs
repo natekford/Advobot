@@ -242,7 +242,7 @@ namespace Advobot.UILauncher.Windows
 			}
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
-			=> ToolTipUtils.EnableTimedToolTip(Layout, IOUtils.SaveFile(Output).GetReason());
+			=> ToolTipUtils.EnableTimedToolTip(Layout, Utilities.IOUtils.SaveFile(Output).GetReason());
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
 			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))

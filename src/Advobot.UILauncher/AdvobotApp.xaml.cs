@@ -25,14 +25,14 @@ namespace Advobot.UILauncher
 
 		public void OnStartup(object sender, StartupEventArgs e)
 		{
-			DispatcherUnhandledException += OnDispatcherUnHandledException;
+			DispatcherUnhandledException += OnDispatcherUnhandledException;
 			AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
 			SyntaxHighlighting.LoadJSONHighlighting();
 			MainWindow = new AdvobotWindow();
 			MainWindow.Show();
 		}
-		private void OnDispatcherUnHandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+		private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
 		{
 			//Display to the user what happened and also log it
 			MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{e.Exception.ToString()}", "UNHANDLED EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
