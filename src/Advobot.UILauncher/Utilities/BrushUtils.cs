@@ -71,7 +71,13 @@ namespace Advobot.UILauncher.Utilities
 		private static bool TryCreateBrushFromStringHex(string hex, out SolidColorBrush color)
 		{
 			//Make sure it will always have an opacity of 255 if one isn't passed in
-			var trimmed = hex.TrimStart(new[] { '&', 'h', '#', 'x' });
+			var trimmed = hex.Replace("0x", "").TrimStart(new[] { '&', 'h', '#', 'x' });
+			//If not 6 wide add in more 0's so the call right below doesn't mess with the colors, only the alpha channel
+			while (trimmed.Length < 6)
+			{
+				trimmed = "0" + trimmed;
+			}
+			//If not 8 wide then add in more F's to make the alpha channel opaque
 			while (trimmed.Length < 8)
 			{
 				trimmed = "F" + trimmed;
@@ -93,7 +99,7 @@ namespace Advobot.UILauncher.Utilities
 				Array.Reverse(bytes);
 			}
 
-			return CreateBrushFromARGB(bytes[3], bytes[0], bytes[1], bytes[2]);
+			return CreateBrushFromARGB(bytes[3], bytes[2], bytes[1], bytes[0]);
 		}
 		private static SolidColorBrush CreateBrushFromARGB(byte a, byte r, byte g, byte b)
 		{

@@ -188,29 +188,34 @@ namespace Advobot.UILauncher.Windows
 			var children = ColorsMenuDisplay.GetChildren();
 			foreach (var tb in children.OfType<AdvobotTextBox>())
 			{
-				if (tb.Tag is ColorTarget target)
+				if (!(tb.Tag is ColorTarget target))
 				{
-					var childText = tb.Text;
-					var name = target.EnumName().FormatTitle().ToLower();
-					if (String.IsNullOrWhiteSpace(childText))
+					continue;
+				}
+
+				var childText = tb.Text;
+				var name = target.EnumName().FormatTitle().ToLower();
+				//Removing a brush
+				if (String.IsNullOrWhiteSpace(childText))
+				{
+					if (c[target] != null)
 					{
-						if (c[target] != null)
-						{
-							c[target] = null;
-							ConsoleUtils.WriteLine($"Successfully removed the custom color for {name}.");
-						}
-						continue;
+						c[target] = null;
+						ConsoleUtils.WriteLine($"Successfully removed the custom color for {name}.");
 					}
-					else if (!BrushUtils.TryCreateBrush(childText, out var brush))
-					{
-						ConsoleUtils.WriteLine($"Invalid custom color supplied for {name}: '{childText}'.");
-						continue;
-					}
-					else if (!BrushUtils.CheckIfSameBrush(c[target], brush))
-					{
-						c[target] = brush;
-						ConsoleUtils.WriteLine($"Successfully updated the custom color for {name}: '{childText} ({brush.ToString()})'.");
-					}
+					continue;
+				}
+				//Failed to add a brush
+				else if (!BrushUtils.TryCreateBrush(childText, out var brush))
+				{
+					ConsoleUtils.WriteLine($"Invalid custom color supplied for {name}: '{childText}'.");
+					continue;
+				}
+				//Succeeding in adding a brush
+				else if (!BrushUtils.CheckIfSameBrush(c[target], brush))
+				{
+					c[target] = brush;
+					ConsoleUtils.WriteLine($"Successfully updated the custom color for {name}: '{childText} ({c[target].ToString()})'.");
 
 					//Update the text here because if someone has the hex value for yellow but they put in Yellow as a string 
 					//It won't update in the above if statement since they produce the same value
@@ -220,14 +225,17 @@ namespace Advobot.UILauncher.Windows
 			//Has to go after the textboxes so the theme will be applied
 			foreach (var cb in children.OfType<AdvobotComboBox>())
 			{
-				if (cb.SelectedItem is AdvobotTextBox tb && tb.Tag is ColorTheme theme)
+				if (!(cb.SelectedItem is AdvobotTextBox tb) || !(tb.Tag is ColorTheme theme))
 				{
-					if (c.Theme != theme)
-					{
-						ConsoleUtils.WriteLine($"Successfully updated the theme to {theme.EnumName().FormatTitle().ToLower()}.");
-					}
-					c.Theme = theme;
+					continue;
 				}
+				else if (c.Theme == theme)
+				{
+					continue;
+				}
+
+				c.Theme = theme;
+				ConsoleUtils.WriteLine($"Successfully updated the theme to {c.Theme.EnumName().FormatTitle().ToLower()}.");
 			}
 
 			c.SaveSettings();
