@@ -151,14 +151,20 @@ namespace Advobot.Commands.Gets
 				{
 					var str = obj.ToString();
 					title = $"Users With Games Containing '{obj}'";
-					users = users.Where(x => exact ? x.Game.HasValue && x.Game.Value.Name.CaseInsEquals(str)
-												   : x.Game.HasValue && x.Game.Value.Name.CaseInsContains(str));
+					users = users.Where(x =>
+					{
+						if (!(x.Activity is Game g))
+						{
+							return false;
+						}
+						return exact ? g.Name.CaseInsEquals(str) : g.Name.CaseInsContains(str);
+					});
 					break;
 				}
 				case Target.Stream:
 				{
 					title = "Users Who Are Streaming";
-					users = users.Where(x => x.Game.HasValue && x.Game.Value.StreamType != StreamType.NotStreaming);
+					users = users.Where(x => x.Activity is StreamingGame);
 					break;
 				}
 				default:

@@ -90,21 +90,22 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string FormatGame(IUser user)
 		{
-			switch (user.Game?.StreamType)
+			if (user.Activity is StreamingGame sg)
 			{
-				case StreamType.NotStreaming:
+				switch (sg.StreamType)
 				{
-					return $"**Current Game:** `{user.Game?.Name.EscapeBackTicks()}`";
-				}
-				case StreamType.Twitch:
-				{
-					return $"**Current Stream:** [{user.Game?.Name.EscapeBackTicks()}]({user.Game?.StreamUrl})";
-				}
-				default:
-				{
-					return "**Current Game:** `N/A`";
+					case StreamType.Twitch:
+					{
+						return $"**Current Stream:** [{sg.Name.EscapeBackTicks()}]({sg.Url})";
+					}
 				}
 			}
+			else if (user.Activity is Game g)
+			{
+				return $"**Current Game:** `{g.Name.EscapeBackTicks()}`";
+			}
+
+			return "**Current Game:** `N/A`";
 		}
 	}
 }

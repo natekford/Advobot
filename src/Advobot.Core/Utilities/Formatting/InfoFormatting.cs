@@ -138,7 +138,7 @@ namespace Advobot.Core.Utilities.Formatting
 			var owner = guild.Owner;
 			var onlineCount = guild.Users.Where(x => x.Status != UserStatus.Offline).Count();
 			var nicknameCount = guild.Users.Where(x => x.Nickname != null).Count();
-			var gameCount = guild.Users.Where(x => x.Game.HasValue).Count();
+			var gameCount = guild.Users.Where(x => x.Activity is Game).Count();
 			var botCount = guild.Users.Where(x => x.IsBot).Count();
 			var voiceCount = guild.Users.Where(x => x.VoiceChannel != null).Count();
 			var localECount = guild.Emotes.Where(x => !x.IsManaged).Count();
