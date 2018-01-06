@@ -3,6 +3,7 @@ using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using ICSharpCode.AvalonEdit;
 using System.Windows.Controls;
+using System.Windows;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -11,15 +12,11 @@ namespace Advobot.UILauncher.Classes.Controls
 	/// </summary>
 	internal class AdvobotTextEditor : TextEditor, IFontResizeValue, IAdvobotControl
 	{
-		private double _FRV;
+		public static readonly DependencyProperty FontResizeValueProperty = DependencyProperty.Register("FontResizeValue", typeof(double), typeof(AdvobotTextEditor), new PropertyMetadata(ElementUtils.SetFontResizeProperty));
 		public double FontResizeValue
 		{
-			get => _FRV;
-			set
-			{
-				ElementUtils.SetFontResizeProperty(this, value);
-				_FRV = value;
-			}
+			get => (double)GetValue(FontResizeValueProperty);
+			set => SetValue(FontResizeValueProperty, value);
 		}
 
 		public AdvobotTextEditor()

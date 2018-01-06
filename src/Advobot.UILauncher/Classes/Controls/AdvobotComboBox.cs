@@ -14,25 +14,17 @@ namespace Advobot.UILauncher.Classes.Controls
 	/// </summary>
 	internal class AdvobotComboBox : ComboBox, IFontResizeValue, IAdvobotControl
 	{
-		private double _FRV;
+		public static readonly DependencyProperty FontResizeValueProperty = DependencyProperty.Register("FontResizeValue", typeof(double), typeof(AdvobotComboBox), new PropertyMetadata(ElementUtils.SetFontResizeProperty));
 		public double FontResizeValue
 		{
-			get => _FRV;
-			set
-			{
-				ElementUtils.SetFontResizeProperty(this, value);
-				_FRV = value;
-			}
+			get => (double)GetValue(FontResizeValueProperty);
+			set => SetValue(FontResizeValueProperty, value);
 		}
-		private Type _SET;
-		public Type SourceEnumType
+		public static readonly DependencyProperty SourceEnumProperty = DependencyProperty.Register("SourceEnum", typeof(Type), typeof(AdvobotComboBox), new PropertyMetadata(SourceEnumCallback));
+		public Type SourceEnum
 		{
-			get => _SET;
-			set
-			{
-				ItemsSource = CreateItemsSourceOutOfEnum(value);
-				_SET = value;
-			}
+			get => (Type)GetValue(SourceEnumProperty);
+			set => SetValue(SourceEnumProperty, value);
 		}
 
 		public AdvobotComboBox()
@@ -48,24 +40,17 @@ namespace Advobot.UILauncher.Classes.Controls
 			SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 
-		/// <summary>
-		/// Returns the values of <see cref="CreateItemsSourceOutOfEnum(Type)"/> by passing in <typeparamref name="T"/>.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
-		public static IEnumerable<TextBox> CreateItemsSourceOutOfEnum<T>() where T : struct, IConvertible, IComparable, IFormattable
-			=> CreateItemsSourceOutOfEnum(typeof(T));
-		/// <summary>
-		/// Returns textboxes with the text as the enum name and the tag as the enum.
-		/// </summary>
-		/// <param name="enumType"></param>
-		/// <returns></returns>
-		public static IEnumerable<TextBox> CreateItemsSourceOutOfEnum(Type enumType)
+		private static void SourceEnumCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			foreach (var e in Enum.GetValues(enumType) ?? throw new ArgumentException($"{nameof(enumType)} must be an enum."))
+			var enumType = (Type)e.NewValue;
+
+			var source = new List<object>();
+			foreach (var enumVal in Enum.GetValues(enumType) ?? throw new ArgumentException($"{nameof(enumType)} must be an enum."))
 			{
-				yield return CreateItem(Enum.GetName(enumType, e), e);
+				source.Add(AdvobotTextBox.CreateComboBoxItem(Enum.GetName(enumType, enumVal), enumVal));
 			}
+
+			((AdvobotComboBox)d).ItemsSource = source;
 		}
 		/// <summary>
 		/// Returns textboxes with the text as the string and the tag as the string too.
@@ -76,20 +61,8 @@ namespace Advobot.UILauncher.Classes.Controls
 		{
 			foreach (var s in strings)
 			{
-				yield return CreateItem(s, s);
+				yield return AdvobotTextBox.CreateComboBoxItem(s, s);
 			}
 		}
-		private static TextBox CreateItem(string text, object tag)
-			=> new AdvobotTextBox
-			{
-				FontFamily = new FontFamily("Courier New"),
-				Text = text,
-				Tag = tag,
-				IsReadOnly = true,
-				IsHitTestVisible = false,
-				BorderThickness = new Thickness(0),
-				Background = Brushes.Transparent,
-				Foreground = Brushes.Black,
-			};
 	}
 }

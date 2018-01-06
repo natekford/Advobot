@@ -15,7 +15,8 @@
 
     <classes:DpiDecorator x:Name="DpiDecorator">
         <controls:AdvobotGrid x:Name="Layout"
-                              MouseMove="MoveToolTip">
+                              MouseMove="MoveToolTip"
+                              FontResizeValue=".018">
             <Grid.RowDefinitions>
                 <RowDefinition Height="20*" />
                 <RowDefinition Height="1*" />
@@ -29,11 +30,9 @@
             </Grid.ColumnDefinitions>
 
             <controls:AdvobotTextEditor x:Name="SpecificFileOutput"
-                                        Grid.Column="0"
-                                        Grid.Row="0"
                                         Grid.RowSpan="5"
                                         FontResizeValue=".022"
-                                        BorderThickness="1,1,1,1"
+                                        BorderThickness="1"
                                         VerticalScrollBarVisibility="Visible"
                                         ShowLineNumbers="True"
                                         WordWrap="True"
@@ -55,25 +54,21 @@
             <controls:AdvobotButton x:Name="SaveFileButton"
                                     Grid.Row="1"
                                     Grid.Column="1"
-                                    FontResizeValue=".018"
                                     Content="Save File"
                                     Click="SaveFile" />
             <controls:AdvobotButton x:Name="CopyFileButton"
                                     Grid.Row="2"
                                     Grid.Column="1"
-                                    FontResizeValue=".018"
                                     Content="Copy File"
                                     Click="CopyFile" />
             <controls:AdvobotButton x:Name="CloseFileButton"
                                     Grid.Row="3"
                                     Grid.Column="1"
-                                    FontResizeValue=".018"
                                     Content="Close File"
                                     Click="CloseFile" />
             <controls:AdvobotButton x:Name="DeleteFileButton"
                                     Grid.Row="4"
                                     Grid.Column="1"
-                                    FontResizeValue=".018"
                                     Content="Delete File"
                                     Click="DeleteFile" />
         </controls:AdvobotGrid>

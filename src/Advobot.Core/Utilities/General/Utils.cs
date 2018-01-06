@@ -189,8 +189,8 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <param name="num"></param>
 		/// <returns></returns>
-		public static int GetLengthOfNumber(this int num)
-			=> num == 0 ? 1 : (int)Math.Log10(Math.Abs(num)) + 1;
+		public static int GetLength(this int num)
+			=> num.ToString().Length;
 		/// <summary>
 		/// Takes a variable number of integers and cuts the list the smallest one (including the list's length).
 		/// </summary>

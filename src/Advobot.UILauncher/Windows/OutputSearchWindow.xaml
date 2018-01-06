@@ -35,12 +35,6 @@
                 <RowDefinition Height="3*" />
             </Grid.RowDefinitions>
 
-            <!-- Background -->
-            <controls:AdvobotTextBox x:Name="LayoutBackground"
-                                     Grid.ColumnSpan="2"
-                                     Grid.RowSpan="4"
-                                     TBType="Background" />
-
             <controls:AdvobotTextEditor x:Name="ConsoleSearchOutput"
                                         Grid.Column="0"
                                         Grid.Row="0"
@@ -62,7 +56,6 @@
 
             <controls:AdvobotComboBox x:Name="OutputNamesComboBox"
                                       Grid.Column="1"
-                                      Grid.Row="0"
                                       IsEditable="True"
                                       Foreground="Black" />
             <controls:AdvobotButton x:Name="SearchButton"

@@ -96,7 +96,7 @@ namespace Advobot.Core.Classes.Rules
 				{
 					if (Options.HasFlag(RuleFormatOption.NumbersSameLength))
 					{
-						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLengthOfNumber(), '0')}";
+						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLength(), '0')}";
 					}
 					else
 					{

@@ -48,11 +48,7 @@ namespace Advobot.UILauncher.Windows
 		private async Task EnableButtons()
 			=> await Dispatcher.InvokeAsync(() =>
 			{
-				MainMenuButton.IsEnabled = true;
-				InfoMenuButton.IsEnabled = true;
-				FilesMenuButton.IsEnabled = true;
-				ColorsMenuButton.IsEnabled = true;
-				SettingsMenuButton.IsEnabled = true;
+				ButtonMenu.IsEnabled = true;
 				OutputContextMenu.IsEnabled = true;
 			});
 		private async Task AddGuildToTreeView(SocketGuild guild)
@@ -162,7 +158,7 @@ namespace Advobot.UILauncher.Windows
 			TrustedUsersBox.Text = null;
 			if (user != null)
 			{
-				TrustedUsers.Items.Add(new AdvobotUserBox(user));
+				TrustedUsers.Items.Add(AdvobotTextBox.CreateUserBox(user));
 				TrustedUsers.Items.SortDescriptions.Clear();
 				TrustedUsers.Items.SortDescriptions.Add(new SortDescription("Text", ListSortDirection.Ascending));
 			}

@@ -1,11 +1,11 @@
 ﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.UILauncher.Utilities;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
-using System;
+using Advobot.UILauncher.Utilities;
+using Discord;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -14,37 +14,11 @@ namespace Advobot.UILauncher.Classes.Controls
 	/// </summary>
 	internal class AdvobotTextBox : TextBox, IFontResizeValue, IAdvobotControl
 	{
-		private TBType _T;
-		public TBType TBType
-		{
-			get => _T;
-			set
-			{
-				_T = value;
-				ActivateTBType();
-			}
-		}
-		private double _FRV;
+		public static readonly DependencyProperty FontResizeValueProperty = DependencyProperty.Register("FontResizeValue", typeof(double), typeof(AdvobotTextBox), new PropertyMetadata(ElementUtils.SetFontResizeProperty));
 		public double FontResizeValue
 		{
-			get => _FRV;
-			set
-			{
-				_FRV = value;
-				ElementUtils.SetFontResizeProperty(this, _FRV);
-			}
-		}
-		private string _S;
-		public string Summary
-		{
-			get => _S;
-			set
-			{
-				_S = value;
-				ToolTip = new ToolTip { Content = _S, };
-				MouseEnter += (sender, e) => ((ToolTip)ToolTip).EnableToolTip();
-				MouseLeave += (sender, e) => ((ToolTip)ToolTip).DisableToolTip();
-			}
+			get => (double)GetValue(FontResizeValueProperty);
+			set => SetValue(FontResizeValueProperty, value);
 		}
 
 		public AdvobotTextBox()
@@ -52,82 +26,30 @@ namespace Advobot.UILauncher.Classes.Controls
 			SetResourceReferences();
 		}
 
-		public override void EndInit()
-		{
-			base.EndInit();
-			ActivateTitle();
-		}
-		private void ActivateTBType()
-		{
-			switch (_T)
-			{
-				case TBType.Title:
-				{
-					IsReadOnly = true;
-					BorderThickness = new Thickness(0);
-					VerticalContentAlignment = VerticalAlignment.Center;
-					TextWrapping = TextWrapping.WrapWithOverflow;
-					return;
-				}
-				case TBType.RightCentered:
-				{
-					IsReadOnly = true;
-					HorizontalContentAlignment = HorizontalAlignment.Right;
-					VerticalContentAlignment = VerticalAlignment.Center;
-					return;
-				}
-				case TBType.LeftCentered:
-				{
-					IsReadOnly = true;
-					HorizontalContentAlignment = HorizontalAlignment.Left;
-					VerticalContentAlignment = VerticalAlignment.Center;
-					return;
-				}
-				case TBType.CenterCentered:
-				{
-					IsReadOnly = true;
-					HorizontalContentAlignment = HorizontalAlignment.Center;
-					VerticalContentAlignment = VerticalAlignment.Center;
-					return;
-				}
-				case TBType.Background:
-				{
-					IsReadOnly = true;
-					BorderThickness = new Thickness(1, 1, 1, 1);
-					return;
-				}
-				case TBType.Nothing:
-				default:
-				{
-					return;
-				}
-			}
-		}
-		private void ActivateTitle()
-		{
-			switch (_T)
-			{
-				case TBType.Title:
-				{
-					Text = String.IsNullOrWhiteSpace(Text)
-						? Name.FormatTitle().CaseInsReplace("title", "").Trim() + ":"
-						: Text;
-					return;
-				}
-				case TBType.RightCentered:
-				case TBType.LeftCentered:
-				case TBType.Nothing:
-				default:
-				{
-					return;
-				}
-			}
-		}
 		public void SetResourceReferences()
 		{
 			SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
 			SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
 			SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
+		}
+
+		public static AdvobotTextBox CreateComboBoxItem(string text, object tag)
+			=> new AdvobotTextBox
+			{
+				FontFamily = new FontFamily("Courier New"),
+				Text = text,
+				Tag = tag,
+				IsReadOnly = true,
+				IsHitTestVisible = false,
+				BorderThickness = new Thickness(0),
+				Background = Brushes.Transparent,
+				Foreground = Brushes.Black,
+			};
+		public static AdvobotTextBox CreateUserBox(IUser user)
+		{
+			var name = user.Username.AllCharactersAreWithinUpperLimit() ? user.Username : "Non-Standard Name";
+			var text = $"'{name}#{user.Discriminator}' ({user.Id})";
+			return CreateComboBoxItem(text, user.Id);
 		}
 	}
 }

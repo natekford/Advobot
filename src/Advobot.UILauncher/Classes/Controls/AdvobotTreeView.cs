@@ -2,6 +2,7 @@
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using System.Windows.Controls;
+using System.Windows;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -10,15 +11,11 @@ namespace Advobot.UILauncher.Classes.Controls
 	/// </summary>
 	internal class AdvobotTreeView : TreeView, IFontResizeValue, IAdvobotControl
 	{
-		private double _FRV;
+		public static readonly DependencyProperty FontResizeValueProperty = DependencyProperty.Register("FontResizeValue", typeof(double), typeof(AdvobotTreeView), new PropertyMetadata(ElementUtils.SetFontResizeProperty));
 		public double FontResizeValue
 		{
-			get => _FRV;
-			set
-			{
-				ElementUtils.SetFontResizeProperty(this, value);
-				_FRV = value;
-			}
+			get => (double)GetValue(FontResizeValueProperty);
+			set => SetValue(FontResizeValueProperty, value);
 		}
 
 		public AdvobotTreeView()

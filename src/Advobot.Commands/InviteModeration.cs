@@ -29,7 +29,7 @@ namespace Advobot.Commands.InviteModeration
 			}
 
 			var lenForCode = invites.Max(x => x.Code.Length);
-			var lenForUses = invites.Max(x => x.Uses).GetLengthOfNumber();
+			var lenForUses = invites.Max(x => x.Uses).GetLength();
 			var desc = String.Join("\n", invites.FormatNumberedList("`{0}` `{1}` `{2}`",
 				x => x.Code.PadRight(lenForCode),
 				x => x.Uses.ToString().PadRight(lenForUses),
