@@ -4,6 +4,7 @@ This is a bot I've been working on since October 2016. I don't really know how t
 The non-UI version should run on any OS that supports .Net Core 2.0. The UI version only runs on Windows since it's created in WPF.
 
 **Regular Features**
+* **Help:** Help command lists a short description of a command and how to use it.
 * **Servers:** Change names, regions, afk channels, default message notification, verification, and icons. Set guild specific prefixes.
 * **Channels:** Create, delete, softdelete, list positions, and list permissions; change positions, permission overwrites, names, topics, bitrates, and user limits.
 * **Roles:** Create, delete, softdelete, give, take, list positions, and list permissions; change positions, permissions, names, colors, mentionability, and hoisted statuses.
@@ -12,6 +13,7 @@ The non-UI version should run on any OS that supports .Net Core 2.0. The UI vers
 * **Invites:** Create, delete, delete multiple with given variable, list all.
 * **Information:** Get ID of servers, channels, roles, and users. Get information about the bot, users, emojis, and invites. Get users with specified names and with specified roles. Get a list of users who have joined, membercount, and users who joined at a given position.
 * **Miscellaneous:** User made embeds, mention unmentionable roles.
+* **Named Arguments:** Some commands support a format of 'name:argument value' for input.
 
 I've tried to make a lot of the bot as configurable as possible meaning there are a lot of settings. Some settings can only be changed via certain commands so things can be labyrinthian at times.
 
@@ -27,8 +29,6 @@ I've tried to make a lot of the bot as configurable as possible meaning there ar
 * **Banned Phrases:** Ban a specific word or you can try your luck at writing a RegEx and hope it doesn't delete every message.
 * **Slowmode:** Set slowmodes, variable times, variable message counts, exempt roles.
 * **Spam Prevention:** Prevent message, long message, links, images, and mention spam; prevent raid spam.
-* **Named Arguments:** Some commands support a format of 'name:argument value' for input.
-* **Help:** Help command lists a short description of a command and how to use it.
 * **Quotes:** Save a quote to be recalled with a keyword.
 * **Rule Formatting:** Save rules via the bot with specific formatting instructions so you can easily reprint them if lost.
 
