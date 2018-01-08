@@ -14,6 +14,7 @@ The non-UI version should run on any OS that supports .Net Core 2.0. The UI vers
 * **Miscellaneous:** User made embeds, mention unmentionable roles.
 
 I've tried to make a lot of the bot as configurable as possible meaning there are a lot of settings. Some settings can only be changed via certain commands so things can be labyrinthian at times.
+
 **Settings**
 * **Customizable Prefix:** Set it to whatever you want in your server between 1 and 10 characters long.
 * **Command Configuration:** Enable/disable commands on servers and channels.
