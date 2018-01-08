@@ -336,10 +336,10 @@ namespace Advobot.UILauncher.Windows
 						Prefix.Text = s.Prefix;
 						Game.Text = s.Game;
 						Stream.Text = s.Stream;
-						ShardCount.Text = s.ShardCount.ToString();
-						MessageCacheCount.Text = s.MessageCacheCount.ToString();
-						MaxUserGatherCount.Text = s.MaxUserGatherCount.ToString();
-						MaxMessageGatherSize.Text = s.MaxMessageGatherSize.ToString();
+						ShardCount.StoredValue = s.ShardCount;
+						MessageCacheCount.StoredValue = s.MessageCacheCount;
+						MaxUserGatherCount.StoredValue = s.MaxUserGatherCount;
+						MaxMessageGatherSize.StoredValue = s.MaxMessageGatherSize;
 						LogLevel.SelectedItem = llSelected;
 
 						SettingsMenu.Visibility = Visibility.Visible;

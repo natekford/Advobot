@@ -56,7 +56,7 @@ namespace Advobot.Core
 		public static string BOT_VERSION => Version.VersionNumber;
 		public static string API_VERSION => Assembly.GetAssembly(typeof(IDiscordClient)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
 		public static string PROGRAM_NAME => "Advobot";
-		public static string IGNORE_ERROR => "Cx";
+		public static string IGNORE_ERROR => "xd";
 		public static string DISCORD_INV => "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server
 		public static string TWITCH_URL => "https://www.twitch.tv/";
 		public static string REPO => "https://github.com/advorange/Advobot";

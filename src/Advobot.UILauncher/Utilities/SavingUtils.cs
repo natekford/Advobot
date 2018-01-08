@@ -13,6 +13,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Advobot.UILauncher.Classes.Controls;
 
 namespace Advobot.UILauncher.Utilities
 {
@@ -118,6 +119,10 @@ namespace Advobot.UILauncher.Utilities
 			{
 				return null;
 			}
+			else if (ele is AdvobotNumberBox nb)
+			{
+				value = nb.StoredValue;
+			}
 			else if (ele is TextBox tb)
 			{
 				var text = tb.Text;
@@ -144,42 +149,6 @@ namespace Advobot.UILauncher.Utilities
 							return false;
 						}
 						value = text;
-						break;
-					}
-					case BotSetting.ShardCount:
-					{
-						if (!uint.TryParse(text, out uint num))
-						{
-							return false;
-						}
-						value = (int)num;
-						break;
-					}
-					case BotSetting.MessageCacheCount:
-					{
-						if (!uint.TryParse(text, out uint num))
-						{
-							return false;
-						}
-						value = (int)num;
-						break;
-					}
-					case BotSetting.MaxUserGatherCount:
-					{
-						if (!uint.TryParse(text, out uint num))
-						{
-							return false;
-						}
-						value = (int)num;
-						break;
-					}
-					case BotSetting.MaxMessageGatherSize:
-					{
-						if (!uint.TryParse(text, out uint num))
-						{
-							return false;
-						}
-						value = (int)num;
 						break;
 					}
 				}

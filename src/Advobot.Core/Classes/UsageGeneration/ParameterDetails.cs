@@ -104,7 +104,8 @@ namespace Advobot.Core.Classes.UsageGeneration
 			}
 
 			var n = TypeName ?? Type.Name;
-			TypeName = n.Substring(0, n.IndexOf('`') + 1);
+			//Generics have `1, `2, etc for each instance of them in use
+			TypeName = n.Contains('`') ? n.Substring(0, n.IndexOf('`') + 1) : n;
 		}
 		private void SetText(System.Reflection.ParameterInfo parameter)
 		{

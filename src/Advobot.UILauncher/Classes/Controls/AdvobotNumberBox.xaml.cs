@@ -38,7 +38,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		public int StoredValue
 		{
 			get => (int)GetValue(StoredValueProperty);
-			private set => SetValue(StoredValuePropertyKey, value);
+			set => SetValue(StoredValuePropertyKey, value);
 		}
 
 		public AdvobotNumberBox()
