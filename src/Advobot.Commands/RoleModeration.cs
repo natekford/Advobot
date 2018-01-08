@@ -242,7 +242,7 @@ namespace Advobot.Commands.RoleModeration
 	[DefaultEnabled(true)]
 	public sealed class ModifyRoleName : AdvobotModuleBase
 	{
-		[Command]
+		[Command, Priority(1)]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role,
 			[Remainder, VerifyStringLength(Target.Role)] string name)
 		{
@@ -250,10 +250,28 @@ namespace Advobot.Commands.RoleModeration
 			var resp = $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
-		[Command]
-		public async Task CommandByPosition([OverrideTypeReader(typeof(ObjectByPositionTypeReader<IRole>)), VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role,
-			[Remainder, VerifyStringLength(Target.Role)] string name)
+		[Command(nameof(Position))]
+		public async Task Position(uint rolePosition, [Remainder, VerifyStringLength(Target.Role)] string name)
 		{
+			var roles = Context.Guild.Roles.Where(x => x.Position == rolePosition);
+			if (!roles.Any())
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"No object has the position `{rolePosition}`."));
+				return;
+			}
+			else if (roles.Count() > 1)
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"Multiple objects have the position `{rolePosition}`."));
+				return;
+			}
+
+			var role = roles.First();
+			var result = role.VerifyRoleMeetsRequirements(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsEveryone });
+			if (!result.IsSuccess)
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason(result.ErrorReason));
+			}
+
 			await RoleUtils.ModifyRoleNameAsync(role, name, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();

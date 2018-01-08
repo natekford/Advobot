@@ -13,6 +13,8 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Advobot.Core.Interfaces;
+using System.Collections.Generic;
 
 namespace Advobot.Commands.ChannelModeration
 {
@@ -335,7 +337,7 @@ namespace Advobot.Commands.ChannelModeration
 	[DefaultEnabled(true)]
 	public sealed class ModifyChannelName : AdvobotModuleBase
 	{
-		[Command]
+		[Command, Priority(1)]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel,
 			[Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
@@ -349,14 +351,40 @@ namespace Advobot.Commands.ChannelModeration
 			var resp = $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
-		[Command]
-		public async Task CommandByPosition([OverrideTypeReader(typeof(ObjectByPositionTypeReader<IGuildChannel>)), VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel,
-			[Remainder, VerifyStringLength(Target.Role)] string name)
+		[Command(nameof(VoicePosition))]
+		public async Task VoicePosition(uint channelPosition, [Remainder, VerifyStringLength(Target.Channel)] string name)
+			=> await ChangeByPosition(Context, (Context.Guild as SocketGuild).VoiceChannels, channelPosition, name);
+		[Command(nameof(TextPosition))]
+		public async Task TextPosition(uint channelPosition, [Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
-			if (channel is ITextChannel && name.Contains(' '))
+			if (name.Contains(' '))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Spaces are not allowed in text channel names.")).CAF();
 				return;
+			}
+
+			await ChangeByPosition(Context, (Context.Guild as SocketGuild).TextChannels, channelPosition, name);
+		}
+
+		private async Task ChangeByPosition(IAdvobotCommandContext context, IEnumerable<IGuildChannel> channels, uint channelPos, string name)
+		{
+			channels = channels.Where(x => x.Position == channelPos);
+			if (!channels.Any())
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"No object has the position `{channelPos}`."));
+				return;
+			}
+			else if (channels.Count() > 1)
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"Multiple objects have the position `{channelPos}`."));
+				return;
+			}
+
+			var channel = channels.First();
+			var result = channel.VerifyChannelMeetsRequirements(context, new[] { ObjectVerification.CanBeManaged });
+			if (!result.IsSuccess)
+			{
+				await MessageUtils.SendErrorMessageAsync(context, new ErrorReason(result.ErrorReason));
 			}
 
 			await ChannelUtils.ModifyNameAsync(channel, name, new ModerationReason(Context.User, null)).CAF();

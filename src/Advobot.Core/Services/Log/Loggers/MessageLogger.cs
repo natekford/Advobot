@@ -24,6 +24,17 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnMessageReceived(SocketMessage message)
 		{
+			//For some meme server
+			var guild = message.GetGuild();
+			if (guild.Id == 294173126697418752)
+			{
+				var author = message.Author as IGuildUser;
+				if (author.Username != "jeff" && author.Nickname != "jeff" && guild.GetBot().GetIfCanModifyUser(author))
+				{
+					await UserUtils.ChangeNicknameAsync(author, "jeff", new AutomaticModerationReason("my nama jeff"));
+				}
+			}
+
 			var logInstanceInfo = new LogInstance(_BotSettings, _GuildSettings, message, LogAction.MessageReceived);
 			if (!logInstanceInfo.IsValid)
 			{

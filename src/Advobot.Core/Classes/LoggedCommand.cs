@@ -58,7 +58,7 @@ namespace Advobot.Core.Classes
 		/// <summary>
 		/// Sets <see cref="TimeCompleted"/> to <see cref="DateTime.UtcNow"/>.
 		/// </summary>
-		public void Finalize(ICommandContext context, IResult result)
+		public void Complete(ICommandContext context, IResult result)
 		{
 			SetContext(context);
 			SetError(result);
@@ -105,7 +105,7 @@ namespace Advobot.Core.Classes
 		/// <returns></returns>
 		public async Task LogCommand(IAdvobotCommandContext context, IResult result, ILogService logging)
 		{
-			Finalize(context, result);
+			Complete(context, result);
 			if (result.IsSuccess)
 			{
 				logging.SuccessfulCommands.Increment();
