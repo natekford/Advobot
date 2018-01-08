@@ -47,7 +47,8 @@ namespace Advobot.Core.Classes
 				if (Char.IsUpper(c))
 				{
 					initialism.Append(c);
-					parts.Add(new StringBuilder(c));
+					//ToString HAS to be called here or else it uses the capacity int constructor
+					parts.Add(new StringBuilder(c.ToString()));
 				}
 				else
 				{

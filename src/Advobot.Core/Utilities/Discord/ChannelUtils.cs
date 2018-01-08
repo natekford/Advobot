@@ -69,6 +69,15 @@ namespace Advobot.Core.Utilities
 		public static async Task<IVoiceChannel> CreateVoiceChannelAsync(IGuild guild, string name, ModerationReason reason)
 			=> await guild.CreateVoiceChannelAsync(name, reason.CreateRequestOptions()).CAF();
 		/// <summary>
+		/// Creates a category with the given name.
+		/// </summary>
+		/// <param name="guild">The guild to create the category on.</param>
+		/// <param name="name">The name to use for the category.</param>
+		/// <param name="reason">The reason to say in the audit log.</param>
+		/// <returns>The newly created category.</returns>
+		public static async Task<ICategoryChannel> CreateCategoryAsync(IGuild guild, string name, ModerationReason reason)
+			=> await guild.CreateCategoryAsync(name, reason.CreateRequestOptions()).CAF();
+		/// <summary>
 		/// Modifies a channel so only admins can read it and puts the channel to the bottom of the channel list.
 		/// </summary>
 		/// <param name="channel">The channel to softdelete.</param>

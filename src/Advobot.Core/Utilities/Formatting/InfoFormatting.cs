@@ -119,7 +119,7 @@ namespace Advobot.Core.Utilities.Formatting
 
 			var desc = new StringBuilder()
 				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(channel.CreatedAt.UtcDateTime))
-				.AppendLineFeed($"**User Count:** `{channel.Users.Count}`\n")
+				.AppendLineFeed($"**User Count:** `{channel.Users.Count}`")
 				.AppendLineFeed($"\n**Ignored From Log:** `{(ignoredFromLog ? "Yes" : "No")}`")
 				.AppendLineFeed($"**Ignored From Commands:** `{(ignoredFromCmd ? "Yes" : "No")}`")
 				.AppendLineFeed($"**Image Only:** `{(imageOnly ? "Yes" : "No")}`")

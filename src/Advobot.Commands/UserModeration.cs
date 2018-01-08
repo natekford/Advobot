@@ -277,6 +277,8 @@ namespace Advobot.Commands.UserModeration
 
 		private async Task CommandRunner(int requestCount, IGuildUser user, ITextChannel channel)
 		{
+			/* I don't know if anyone actually cares about this. 
+			 * If someone ever does I guess I can uncomment it or make it a setting.
 			var serverLog = Context.GuildSettings.ServerLog?.Id == channel.Id;
 			var modLog = Context.GuildSettings.ModLog?.Id == channel.Id;
 			var imageLog = Context.GuildSettings.ImageLog?.Id == channel.Id;
@@ -286,7 +288,7 @@ namespace Advobot.Commands.UserModeration
 				var m = $"`{Context.User.FormatUser()}` is trying to delete messages from a log channel: `{channel.FormatChannel()}`.";
 				await owner.SendMessageAsync(m).CAF();
 				return;
-			}
+			}*/
 
 			var reason = new ModerationReason(Context.User, "message deletion");
 

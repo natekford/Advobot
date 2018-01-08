@@ -12,14 +12,13 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class TopLevelShortAliasAttribute : AliasAttribute
 	{
-		private static List<InitialismHolder> _AlreadyUsedInUpperMostClasses = new List<InitialismHolder>();
+		private static Dictionary<Type, InitialismHolder> _AlreadyUsedInUpperMostClasses = new Dictionary<Type, InitialismHolder>();
 
 		public TopLevelShortAliasAttribute(Type classType, params string[] otherAliases) : base(Shorten(classType, otherAliases)) { }
 
 		private static string[] Shorten(Type classType, string[] otherAliases)
 		{
-			var alreadyCreated = _AlreadyUsedInUpperMostClasses.SingleOrDefault(x => x.Original == classType.Name);
-			if (alreadyCreated != null)
+			if (_AlreadyUsedInUpperMostClasses.TryGetValue(classType, out var alreadyCreated))
 			{
 				return alreadyCreated.Aliases;
 			}
@@ -29,7 +28,7 @@ namespace Advobot.Core.Classes.Attributes
 			}
 
 			var initialism = new InitialismHolder(classType.Name, otherAliases, true);
-			if (String.IsNullOrWhiteSpace(initialism.ToString()))
+			if (String.IsNullOrWhiteSpace(initialism.Initialism))
 			{
 				throw new ArgumentException("Invalid alias provided. Must have at least one capital letter.");
 			}
@@ -37,7 +36,7 @@ namespace Advobot.Core.Classes.Attributes
 			//Example with:
 			//ChangeChannelPosition
 			//ChangeChannelPerms
-			var matchingInitialisms = _AlreadyUsedInUpperMostClasses.Where(x => x.Initialism.CaseInsEquals(initialism.ToString()));
+			var matchingInitialisms = _AlreadyUsedInUpperMostClasses.Values.Where(x => x.Initialism.CaseInsEquals(initialism.Initialism));
 			if (matchingInitialisms.Any())
 			{
 				//ChangeChannel is in both at the start, so would match with ChangeChannelPosition.
@@ -64,18 +63,18 @@ namespace Advobot.Core.Classes.Attributes
 
 				//Would do one loop and change ChangeChannelPerms' initialism from ccp to ccpe
 				var length = 1;
-				while (_AlreadyUsedInUpperMostClasses.Select(x => x.Initialism).CaseInsContains(initialism.Initialism))
+				while (_AlreadyUsedInUpperMostClasses.Values.Select(x => x.Initialism).CaseInsContains(initialism.Initialism))
 				{
 					initialism.AppendToInitialismByPart(indexToAddAt, length);
 					++length;
 				}
 
-#if false
-				ConsoleActions.WriteLine($"Changed the alias of {initialism.Original} to {initialism.Initialism}.", color: ConsoleColor.DarkYellow);
+#if DEBUG
+				ConsoleUtils.WriteLine($"Changed the alias of {initialism.Original} to {initialism.Initialism}.", color: ConsoleColor.DarkYellow);
 #endif
 			}
 
-			_AlreadyUsedInUpperMostClasses.Add(initialism);
+			_AlreadyUsedInUpperMostClasses.Add(classType, initialism);
 			return initialism.Aliases;
 		}
 	}

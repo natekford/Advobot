@@ -26,7 +26,8 @@ namespace Advobot.Core.Classes.Attributes
 			{ Target.Prefix, (Constants.MIN_PREFIX_LENGTH, Constants.MAX_PREFIX_LENGTH, "bot prefix") },
 			{ Target.Regex, (Constants.MIN_REGEX_LENGTH, Constants.MAX_REGEX_LENGTH, "regex") },
 			{ Target.RuleCategory, (Constants.MIN_RULE_CATEGORY_LENGTH, Constants.MAX_RULE_CATEGORY_LENGTH, "rule category") },
-			{ Target.Rule, (Constants.MIN_RULE_LENGTH, Constants.MAX_RULE_LENGTH, "regex") },
+			{ Target.Rule, (Constants.MIN_RULE_LENGTH, Constants.MAX_RULE_LENGTH, "rule") },
+			{ Target.Category, (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "category") },
 		};
 
 		public readonly int Min;
