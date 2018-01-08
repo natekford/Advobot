@@ -95,7 +95,7 @@ namespace Advobot.Commands.InviteModeration
 	public sealed class DeleteMultipleInvites : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command([Remainder] CustomArguments<MultipleInviteGatherer> gatherer)
+		public async Task Command([Remainder] NamedArguments<MultipleInviteGatherer> gatherer)
 		{
 			var invites = gatherer.CreateObject().GatherInvites(await Context.Guild.GetInvitesAsync().CAF());
 			if (!invites.Any())

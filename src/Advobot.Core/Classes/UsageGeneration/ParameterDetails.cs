@@ -119,14 +119,14 @@ namespace Advobot.Core.Classes.UsageGeneration
 			{
 				Text += $" {verifyStringLengthAttr.ToString()}";
 			}
-			if (Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(CustomArguments<>))
+			if (Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(NamedArguments<>))
 			{
 				if (!IsRemainder)
 				{
 					throw new ArgumentException($"{Type.Name} requires {nameof(RemainderAttribute)}.");
 				}
 
-				var result = Type.GetProperty(nameof(CustomArguments<object>.ArgNames)).GetValue(null);
+				var result = Type.GetProperty(nameof(NamedArguments<object>.ArgNames)).GetValue(null);
 				var argNames = ((IEnumerable)result).Cast<string>().Select(x => CapitalizeFirstLetter(x));
 				Text += $" ({String.Join("|", argNames)})";
 			}

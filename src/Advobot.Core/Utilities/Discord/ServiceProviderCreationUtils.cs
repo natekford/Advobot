@@ -78,12 +78,12 @@ namespace Advobot.Core.Utilities
 			cmds.AddTypeReader<CommandSwitch>(new CommandSwitchTypeReader());
 			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
 			//Add in generic custom argument type readers
-			var customArgumentsClasses = Assembly.GetAssembly(typeof(CustomArguments<>)).GetTypes()
+			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()
 				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
 				.Any(c => c.GetCustomAttribute<CustomArgumentConstructorAttribute>() != null));
 			foreach (var c in customArgumentsClasses)
 			{
-				var t = typeof(CustomArguments<>).MakeGenericType(c);
+				var t = typeof(NamedArguments<>).MakeGenericType(c);
 				var tr = (TypeReader)Activator.CreateInstance(typeof(CustomArgumentsTypeReader<>).MakeGenericType(c));
 				cmds.AddTypeReader(t, tr);
 			}

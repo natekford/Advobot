@@ -85,7 +85,7 @@ namespace Advobot.Commands.GuildList
 		private static string _EHeader = "Global Emotes";
 
 		[Command]
-		public async Task Command([Remainder] CustomArguments<ListedInviteGatherer> gatherer)
+		public async Task Command([Remainder] NamedArguments<ListedInviteGatherer> gatherer)
 		{
 			var invites = gatherer.CreateObject().GatherInvites(Context.InviteList);
 			if (!invites.Any())

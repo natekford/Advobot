@@ -1,5 +1,8 @@
 # Advobot
-This is a bot I've been working on for four months or so. I don't really know how to code and thought it would be fun to learn via this. 
+This is a bot I've been working on since October 2016. I don't really know how to program and thought it would be fun to learn via this.
+The non-UI version should run on any OS that supports .Net Core 2.0. The UI version only runs on Windows since it's created in WPF.
+
+I've tried to make a lot of the bot as configurable as possible too, meaning there are a lot of settings. Some settings can only be changed via certain commands so things can be labyrinthian at times.
 
 **Regular Features**
 * **Guilds:** Change names, regions, afk channels, default message notification, verification, and icons. Set guild specific prefixes.
@@ -13,12 +16,27 @@ This is a bot I've been working on for four months or so. I don't really know ho
 * **Self Roles:** Assign roles to groups giving them exclusivity and the ability for regular users to assign them to themselves.
 * **Slowmode:** Set slowmodes, variable times, variable message counts, exempt roles.
 * **Bot Users:** Give permissions to users via the bot instead of on Discord itself.
-* **Reminds:** Save snippets of text to later have the bot recall.
 * **Server/Mod Log:** Set channels to be the server and mod log. Ignore channels and specific logging actions.
 * **Spam Prevention:** Prevent message, long message, links, images, and mention spam; prevent raid spam.
 * **Command Configuration:** Enable/disable commands on guilds and channels.
+* **Named Arguments:** Some commands support a format of 'name:argument value' for input.
+* **Help:** Help command lists a short description of a command and how to use it.
+* **Quotes:** Save a quote to be recalled with a keyword.
+* **Rule Formatting:** Save rules via the bot with specific formatting instructions so you can easily reprint them if lost.
+* **Settings:** Welcome/goodbye messages, slowmode, rule formatting, prefix, error verbosity, server/mod/image log, mute role, spam/raid prevention, persistent roles, bot users, self assignable roles, quotes, log actions, banned phrases, command toggling.
 
 **Owner Only Features**
 * **Guilds:** Create, delete.
 * **Bot User:** Change icon, game, stream, name.
-* **Bot Client:** Disconnect, restart, list guilds. Change save path, global prefix, bot owner, and shard count.
+* **Bot Client:** Disconnect, restart, list guilds.
+* **Bot Settings:** Change save path, global prefix, bot owner, shard count, and more.
+
+**UI Features**
+* **Stats:** Lists stats about various things. Latency, memory usage, thread usage, bot actions on users.
+* **Files:** Searching, editing, copying, deleting. (Because who doesn't need a really bad text editor in their Discord bot?)
+* **Colors:** Fully customizable colors. Want a fully #FF0000FF program? You can have it for as long as your eyes can stand it.
+* **Themes:** Two themes if you don't want to spend time killing your eyes. Light and dark.
+* **Settings:** Setting menu so you can change global bot settings easily.
+* **A useless text box:** It used to have a use for command input, but then those uses got put into actual menus.
+
+**+ many more features.**

@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes
 	/// Allows named arguments to be used via an overly complex system of attributes and reflection.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class CustomArguments<T> where T : class
+	public class NamedArguments<T> where T : class
 	{
 		protected static Dictionary<Type, Func<string, object>> _TryParses = new Dictionary<Type, Func<string, object>>
 		{
@@ -41,7 +41,7 @@ namespace Advobot.Core.Classes
 		/// <summary>
 		/// Sets the constructor, argnames, and params information.
 		/// </summary>
-		static CustomArguments()
+		static NamedArguments()
 		{
 			_Constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance)
 				.Single(x => x.GetCustomAttribute<CustomArgumentConstructorAttribute>() != null);
@@ -83,7 +83,7 @@ namespace Advobot.Core.Classes
 		/// or a list of params arguments.
 		/// </summary>
 		/// <param name="input"></param>
-		public CustomArguments(string input)
+		public NamedArguments(string input)
 		{
 			ArgNames.ForEach(x => _Args.Add(x, null));
 

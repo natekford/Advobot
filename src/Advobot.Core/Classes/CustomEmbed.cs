@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Advobot.Core.Classes
 {
 	/// <summary>
-	/// Allows a user to make an embed through the use of <see cref="CustomArguments{T}"/>.
+	/// Allows a user to make an embed through the use of <see cref="NamedArguments{T}"/>.
 	/// </summary>
 	public class CustomEmbed
 	{

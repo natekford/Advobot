@@ -110,7 +110,7 @@ namespace Advobot.Commands.Miscellaneous
 	public sealed class MakeAnEmbed : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([Remainder] CustomArguments<CustomEmbed> arguments)
+		public async Task Command([Remainder] NamedArguments<CustomEmbed> arguments)
 		{
 			var embed = arguments.CreateObject().Embed;
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();

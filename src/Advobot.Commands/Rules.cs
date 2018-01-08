@@ -94,14 +94,14 @@ namespace Advobot.Commands.Rules
 	public sealed class PrintOutRules : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(RuleCategory category, [Optional, Remainder] CustomArguments<RuleFormatter> formatter)
+		public async Task Command(RuleCategory category, [Optional, Remainder] NamedArguments<RuleFormatter> formatter)
 		{
 			var obj = formatter?.CreateObject() ?? new RuleFormatter();
 			var index = Array.IndexOf(Context.GuildSettings.Rules.Categories.ToArray(), category);
 			await obj.SendCategoryAsync(category.ToString(obj, index), Context.Channel).CAF();
 		}
 		[Command]
-		public async Task Command([Optional, Remainder] CustomArguments<RuleFormatter> formatter)
+		public async Task Command([Optional, Remainder] NamedArguments<RuleFormatter> formatter)
 		{
 			if (Context.GuildSettings.Rules.Categories.Count == 0)
 			{
