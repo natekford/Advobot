@@ -124,7 +124,7 @@ namespace Advobot.Commands.UserModeration
 			[VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = await inputChannel.GetUsersAsync().Flatten().CAF();
+			var users = await inputChannel.GetUsersAsync().FlattenAsync().CAF();
 			await new MultiUserAction(Context, users, bypass).MoveManyUsersAsync(outputChannel, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
@@ -293,7 +293,7 @@ namespace Advobot.Commands.UserModeration
 			//If not the context channel then get the first message in that channel
 			var messageToStartAt = Context.Message.Channel.Id == channel.Id
 				? Context.Message
-				: (await channel.GetMessagesAsync(1).Flatten().CAF()).FirstOrDefault();
+				: (await channel.GetMessagesAsync(1).FlattenAsync().CAF()).FirstOrDefault();
 
 			//If there is a non null user then delete messages specifically from that user
 			var deletedAmt = user == null

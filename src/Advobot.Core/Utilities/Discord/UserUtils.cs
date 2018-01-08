@@ -115,27 +115,27 @@ namespace Advobot.Core.Utilities
 			{
 				case ObjectVerification.CanBeRead:
 				{
-					return channelPerms.ReadMessages;
+					return channelPerms.ViewChannel;
 				}
 				case ObjectVerification.CanCreateInstantInvite:
 				{
-					return channelPerms.ReadMessages && channelPerms.CreateInstantInvite;
+					return channelPerms.ViewChannel && channelPerms.CreateInstantInvite;
 				}
 				case ObjectVerification.CanBeManaged:
 				{
-					return channelPerms.ReadMessages && channelPerms.ManageChannel;
+					return channelPerms.ViewChannel && channelPerms.ManageChannel;
 				}
 				case ObjectVerification.CanModifyPermissions:
 				{
-					return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManageRoles;
+					return channelPerms.ViewChannel && channelPerms.ManageChannel && channelPerms.ManageRoles;
 				}
 				case ObjectVerification.CanBeReordered:
 				{
-					return channelPerms.ReadMessages && guildPerms.ManageChannels;
+					return channelPerms.ViewChannel && guildPerms.ManageChannels;
 				}
 				case ObjectVerification.CanDeleteMessages:
 				{
-					return channelPerms.ReadMessages && channelPerms.ManageMessages;
+					return channelPerms.ViewChannel && channelPerms.ManageMessages;
 				}
 				case ObjectVerification.CanMoveUsers:
 				{

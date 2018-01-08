@@ -13,12 +13,12 @@ namespace Advobot.Core.Classes.Permissions
 	public static class ChannelPerms
 	{
 		private const ChannelPermission GENERAL_BITS = 0
+			| ChannelPermission.ViewChannel
 			| ChannelPermission.CreateInstantInvite
 			| ChannelPermission.ManageChannels
 			| ChannelPermission.ManageRoles
 			| ChannelPermission.ManageWebhooks;
 		private const ChannelPermission TEXT_BITS = 0
-			| ChannelPermission.ReadMessages
 			| ChannelPermission.SendMessages
 			| ChannelPermission.SendTTSMessages
 			| ChannelPermission.ManageMessages

@@ -23,8 +23,12 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static EmbedWrapper FormatUserInfo(SocketGuild guild, SocketGuildUser user)
 		{
-			var textChannels = guild.TextChannels.Where(x => user.GetPermissions(x).ReadMessages).OrderBy(x => x.Position).Select(x => x.Name);
-			var voiceChannels = guild.VoiceChannels.Where(x => user.GetPermissions(x).Connect).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)");
+			var textChannels = guild.TextChannels.Where(x => user.GetPermissions(x).ViewChannel).OrderBy(x => x.Position).Select(x => x.Name);
+			var voiceChannels = guild.VoiceChannels.Where(x =>
+			{
+				var perms = user.GetPermissions(x);
+				return perms.ViewChannel && perms.Connect;
+			}).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)");
 			var channels = textChannels.Concat(voiceChannels);
 			var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 			var roles = user.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);

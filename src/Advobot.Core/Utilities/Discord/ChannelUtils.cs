@@ -98,8 +98,8 @@ namespace Advobot.Core.Utilities
 					}
 				}
 
-				var allowBits = overwrite.Permissions.AllowValue & ~(ulong)ChannelPermission.ReadMessages;
-				var denyBits = overwrite.Permissions.DenyValue | (ulong)ChannelPermission.ReadMessages;
+				var allowBits = overwrite.Permissions.AllowValue & ~(ulong)ChannelPermission.ViewChannel;
+				var denyBits = overwrite.Permissions.DenyValue | (ulong)ChannelPermission.ViewChannel;
 				await OverwriteUtils.ModifyOverwriteAsync(channel, obj, allowBits, denyBits, reason).CAF();
 			}
 

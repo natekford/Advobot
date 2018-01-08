@@ -192,7 +192,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="requestCount"></param>
 		/// <returns></returns>
 		public static async Task<List<IMessage>> GetMessagesAsync(IMessageChannel channel, int requestCount)
-			=> (await channel.GetMessagesAsync(requestCount).Flatten().CAF()).ToList();
+			=> (await channel.GetMessagesAsync(requestCount).FlattenAsync().CAF()).ToList();
 		/// <summary>
 		/// Removes the given count of messages from a channel.
 		/// </summary>
@@ -203,7 +203,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<int> RemoveMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason)
 		{
-			var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).Flatten().CAF();
+			var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).FlattenAsync().CAF();
 			return await DeleteMessagesAsync(channel, messages, reason).CAF();
 		}
 		/// <summary>
@@ -220,7 +220,7 @@ namespace Advobot.Core.Utilities
 			var deletedCount = 0;
 			while (requestCount > 0)
 			{
-				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).Flatten().CAF();
+				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF();
 				if (!messages.Any())
 				{
 					break;
