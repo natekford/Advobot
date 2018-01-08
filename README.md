@@ -1,35 +1,41 @@
 # Advobot
 This is a bot I've been working on since October 2016. I don't really know how to program and thought it would be fun to learn via this.
+
 The non-UI version should run on any OS that supports .Net Core 2.0. The UI version only runs on Windows since it's created in WPF.
 
-I've tried to make a lot of the bot as configurable as possible too, meaning there are a lot of settings. Some settings can only be changed via certain commands so things can be labyrinthian at times.
-
 **Regular Features**
-* **Guilds:** Change names, regions, afk channels, default message notification, verification, and icons. Set guild specific prefixes.
+* **Servers:** Change names, regions, afk channels, default message notification, verification, and icons. Set guild specific prefixes.
 * **Channels:** Create, delete, softdelete, list positions, and list permissions; change positions, permission overwrites, names, topics, bitrates, and user limits.
 * **Roles:** Create, delete, softdelete, give, take, list positions, and list permissions; change positions, permissions, names, colors, mentionability, and hoisted statuses.
 * **Users:** Text mute, voice mute, deafen, move, ban, softban, unban, kick, remove messages, prune members, list current bans, do an action on all users with a role.
 * **Nicknames:** Change nicknames, remove all nicknames, replace words in nicknames and usernames.
 * **Invites:** Create, delete, delete multiple with given variable, list all.
-* **Information:** Get ID of guilds, channels, roles, and users. Get information about the bot, users, emojis, and invites. Get users with specified names and with specified roles. Get a list of users who have joined, membercount, and users who joined at a given position.
+* **Information:** Get ID of servers, channels, roles, and users. Get information about the bot, users, emojis, and invites. Get users with specified names and with specified roles. Get a list of users who have joined, membercount, and users who joined at a given position.
 * **Miscellaneous:** User made embeds, mention unmentionable roles.
-* **Self Roles:** Assign roles to groups giving them exclusivity and the ability for regular users to assign them to themselves.
-* **Slowmode:** Set slowmodes, variable times, variable message counts, exempt roles.
+
+I've tried to make a lot of the bot as configurable as possible meaning there are a lot of settings. Some settings can only be changed via certain commands so things can be labyrinthian at times.
+**Settings**
+* **Customizable Prefix:** Set it to whatever you want in your server between 1 and 10 characters long.
+* **Command Configuration:** Enable/disable commands on servers and channels.
+* **Welcome/Goodbye Messages:** Have the bot say something in a designated channel when users join/leave.
+* **Self Assignable Roles:** Assign roles to groups giving them exclusivity and the ability for regular users to assign them to themselves.
+* **Persistent Roles:** Give a user a role so hard they'll be unable to remove it even if they leave and rejoin the server.
 * **Bot Users:** Give permissions to users via the bot instead of on Discord itself.
-* **Server/Mod Log:** Set channels to be the server and mod log. Ignore channels and specific logging actions.
+* **Server/Mod/Image Log:** Set channels to be their respective log. Ignore channels and specific logging actions.
+* **Mute Role:** Set the mute role yourself, or let the bot create it. 
+* **Banned Phrases:** Ban a specific word or you can try your luck at writing a RegEx and hope it doesn't delete every message.
+* **Slowmode:** Set slowmodes, variable times, variable message counts, exempt roles.
 * **Spam Prevention:** Prevent message, long message, links, images, and mention spam; prevent raid spam.
-* **Command Configuration:** Enable/disable commands on guilds and channels.
 * **Named Arguments:** Some commands support a format of 'name:argument value' for input.
 * **Help:** Help command lists a short description of a command and how to use it.
 * **Quotes:** Save a quote to be recalled with a keyword.
 * **Rule Formatting:** Save rules via the bot with specific formatting instructions so you can easily reprint them if lost.
-* **Settings:** Welcome/goodbye messages, slowmode, rule formatting, prefix, error verbosity, server/mod/image log, mute role, spam/raid prevention, persistent roles, bot users, self assignable roles, quotes, log actions, banned phrases, command toggling.
 
 **Owner Only Features**
-* **Guilds:** Create, delete.
+* **Servers:** Create, delete.
 * **Bot User:** Change icon, game, stream, name.
-* **Bot Client:** Disconnect, restart, list guilds.
-* **Bot Settings:** Change save path, global prefix, bot owner, shard count, and more.
+* **Bot Client:** Disconnect, restart, list servers.
+* **Bot Settings:** Trusted users, ban users from commands, custom prefix, game, stream, log level.
 
 **UI Features**
 * **Stats:** Lists stats about various things. Latency, memory usage, thread usage, bot actions on users.
