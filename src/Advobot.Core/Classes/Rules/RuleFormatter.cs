@@ -199,7 +199,7 @@ namespace Advobot.Core.Classes.Rules
 			//If not, go by category
 			foreach (var category in formattedCategories)
 			{
-				messages.AddRange(await SendCategoryAsync(category, channel));
+				messages.AddRange(await SendCategoryAsync(category, channel).CAF());
 			}
 			return messages.AsReadOnly();
 		}

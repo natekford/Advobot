@@ -43,6 +43,12 @@ namespace Advobot.Commands.ChannelModeration
 			var channel = await ChannelUtils.CreateVoiceChannelAsync(Context.Guild, name, new ModerationReason(Context.User, null)).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.FormatChannel()}`.").CAF();
 		}
+		[Command(nameof(Category)), ShortAlias(nameof(Category))]
+		public async Task Category([Remainder, VerifyStringLength(Target.Category)] string name)
+		{
+			var channel = await ChannelUtils.CreateCategoryAsync(Context.Guild, name, new ModerationReason(Context.User, null)).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.FormatChannel()}`.").CAF();
+		}
 	}
 
 	[Group(nameof(SoftDeleteChannel)), TopLevelShortAlias(typeof(SoftDeleteChannel))]
@@ -112,6 +118,13 @@ namespace Advobot.Commands.ChannelModeration
 		public async Task Voice()
 		{
 			var channels = (await Context.Guild.GetVoiceChannelsAsync().CAF()).OrderBy(x => x.Position);
+			var desc = String.Join("\n", channels.Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Voice Channel Positions", desc)).CAF();
+		}
+		[Command(nameof(Category)),ShortAlias(nameof(Category))]
+		public async Task Category()
+		{
+			var channels = (await Context.Guild.GetCategoriesAsync().CAF()).OrderBy(x => x.Position);
 			var desc = String.Join("\n", channels.Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Voice Channel Positions", desc)).CAF();
 		}
@@ -229,18 +242,16 @@ namespace Advobot.Commands.ChannelModeration
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
-			IRole role)
+			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel)
+			=> await CommandRunner(inputChannel, outputChannel, null).CAF();
+		[Command]
+		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
+			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel, IRole role)
 			=> await CommandRunner(inputChannel, outputChannel, role).CAF();
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
-			IGuildUser user)
+			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel, IGuildUser user)
 			=> await CommandRunner(inputChannel, outputChannel, user).CAF();
-		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel)
-			=> await CommandRunner(inputChannel, outputChannel, null).CAF();
 
 		private async Task CommandRunner(IGuildChannel inputChannel, IGuildChannel outputChannel, object discordObject)
 		{
@@ -351,11 +362,11 @@ namespace Advobot.Commands.ChannelModeration
 			var resp = $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
-		[Command(nameof(VoicePosition))]
-		public async Task VoicePosition(uint channelPosition, [Remainder, VerifyStringLength(Target.Channel)] string name)
-			=> await ChangeByPosition(Context, (Context.Guild as SocketGuild).VoiceChannels, channelPosition, name);
-		[Command(nameof(TextPosition))]
-		public async Task TextPosition(uint channelPosition, [Remainder, VerifyStringLength(Target.Channel)] string name)
+		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
+		public async Task Voice(uint channelPosition, [Remainder, VerifyStringLength(Target.Channel)] string name)
+			=> await ChangeByPosition(Context, (Context.Guild as SocketGuild).VoiceChannels, channelPosition, name).CAF();
+		[Command(nameof(Text)), ShortAlias(nameof(Text))]
+		public async Task Text(uint channelPosition, [Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
 			if (name.Contains(' '))
 			{
@@ -363,20 +374,23 @@ namespace Advobot.Commands.ChannelModeration
 				return;
 			}
 
-			await ChangeByPosition(Context, (Context.Guild as SocketGuild).TextChannels, channelPosition, name);
+			await ChangeByPosition(Context, (Context.Guild as SocketGuild).TextChannels, channelPosition, name).CAF();
 		}
+		[Command(nameof(Category)), ShortAlias(nameof(Category))]
+		public async Task Category(uint channelPosition, [Remainder, VerifyStringLength(Target.Category)] string name)
+			=> await ChangeByPosition(Context, (Context.Guild as SocketGuild).CategoryChannels, channelPosition, name).CAF();
 
 		private async Task ChangeByPosition(IAdvobotCommandContext context, IEnumerable<IGuildChannel> channels, uint channelPos, string name)
 		{
 			channels = channels.Where(x => x.Position == channelPos);
 			if (!channels.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"No object has the position `{channelPos}`."));
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"No channel has the position `{channelPos}`.")).CAF();
 				return;
 			}
 			else if (channels.Count() > 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"Multiple objects have the position `{channelPos}`."));
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"Multiple channels have the position `{channelPos}`.")).CAF();
 				return;
 			}
 
@@ -384,7 +398,7 @@ namespace Advobot.Commands.ChannelModeration
 			var result = channel.VerifyChannelMeetsRequirements(context, new[] { ObjectVerification.CanBeManaged });
 			if (!result.IsSuccess)
 			{
-				await MessageUtils.SendErrorMessageAsync(context, new ErrorReason(result.ErrorReason));
+				await MessageUtils.SendErrorMessageAsync(context, new ErrorReason(result.ErrorReason)).CAF();
 			}
 
 			await ChannelUtils.ModifyNameAsync(channel, name, new ModerationReason(Context.User, null)).CAF();

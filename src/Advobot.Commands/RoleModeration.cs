@@ -256,12 +256,12 @@ namespace Advobot.Commands.RoleModeration
 			var roles = Context.Guild.Roles.Where(x => x.Position == rolePosition);
 			if (!roles.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"No object has the position `{rolePosition}`."));
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"No object has the position `{rolePosition}`.")).CAF();
 				return;
 			}
 			else if (roles.Count() > 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"Multiple objects have the position `{rolePosition}`."));
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"Multiple objects have the position `{rolePosition}`.")).CAF();
 				return;
 			}
 
@@ -269,7 +269,7 @@ namespace Advobot.Commands.RoleModeration
 			var result = role.VerifyRoleMeetsRequirements(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsEveryone });
 			if (!result.IsSuccess)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason(result.ErrorReason));
+				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason(result.ErrorReason)).CAF();
 			}
 
 			await RoleUtils.ModifyRoleNameAsync(role, name, new ModerationReason(Context.User, null)).CAF();
