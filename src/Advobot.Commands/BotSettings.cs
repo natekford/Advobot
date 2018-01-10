@@ -236,23 +236,23 @@ namespace Advobot.Commands.BotSettings
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, Remainder] string url)
 		{
-			var imageUrl = new ImageUrl(Context, url);
-			if (imageUrl.HasErrors)
+			var success = MessageUtils.GetImageUrl(Context, url, out var imageUrl, out var error);
+			if (!success)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, imageUrl.ErrorReason).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-			else if (imageUrl.Url == null)
+			else if (imageUrl == null)
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot's icon.").CAF();
 				return;
 			}
 
-			var fileInfo = IOUtils.GetServerDirectoryFile(Context.Guild.Id, Constants.BOT_ICON_LOCATION + imageUrl.FileType);
+			var fileInfo = IOUtils.GetServerDirectoryFile(Context.Guild.Id, Constants.BOT_ICON_LOCATION + ".png");
 			using (var webClient = new WebClient())
 			{
-				webClient.DownloadFileAsync(imageUrl.Url, fileInfo.FullName);
+				webClient.DownloadFileAsync(imageUrl, fileInfo.FullName);
 				webClient.DownloadFileCompleted += async (sender, e) =>
 				{
 					await ClientUtils.ModifyBotIconAsync(Context.Client, fileInfo).CAF();

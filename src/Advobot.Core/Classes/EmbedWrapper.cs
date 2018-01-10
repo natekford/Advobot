@@ -96,10 +96,10 @@ namespace Advobot.Core.Classes
 		/// Does the same thing as <see cref="AddAuthor(string, string, string)"/> except uses username and avatar Url.
 		/// </summary>
 		/// <param name="user"></param>
-		/// <param name="URL"></param>
+		/// <param name="url"></param>
 		/// <returns></returns>
-		public EmbedWrapper AddAuthor(IUser user, string URL = null)
-			=> AddAuthor(user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
+		public EmbedWrapper AddAuthor(IUser user, string url = null)
+			=> AddAuthor(user.Username, user.GetAvatarUrl(), url ?? user.GetAvatarUrl());
 		/// <summary>
 		/// Adds a footer to the embed. Verifies the Url exists and cuts the text to the appropriate length.
 		/// </summary>
@@ -135,13 +135,13 @@ namespace Advobot.Core.Classes
 		/// <param name="value"></param>
 		/// <param name="isInline"></param>
 		/// <returns></returns>
-		public EmbedWrapper AddField( string name, string value, bool isInline = true)
+		public EmbedWrapper AddField(string name, string value, bool isInline = true)
 		{
 			if (String.IsNullOrWhiteSpace(name) || String.IsNullOrWhiteSpace(value))
 			{
 				return this;
 			}
-			else if (Build().Fields.Count() >= Constants.MAX_FIELDS)
+			else if (Fields.Count() >= Constants.MAX_FIELDS)
 			{
 				return this;
 			}
@@ -165,26 +165,22 @@ namespace Advobot.Core.Classes
 		/// <param name="badDescription"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public bool CheckIfValidDescription(int charCount, out string badDescription, out string error)
+		public bool CheckIfValidDescription(int charCount, out string error)
 		{
 			if (charCount > Constants.MAX_EMBED_TOTAL_LENGTH - 1250)
 			{
-				badDescription = Description;
 				error = $"`{Constants.MAX_EMBED_TOTAL_LENGTH}` char limit close.";
 			}
 			else if (Description?.Length > Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				badDescription = Description;
 				error = $"Over `{Constants.MAX_DESCRIPTION_LENGTH}` chars.";
 			}
 			else if (Description.CountLineBreaks() > Constants.MAX_DESCRIPTION_LINES)
 			{
-				badDescription = Description;
 				error = $"Over `{Constants.MAX_DESCRIPTION_LINES}` lines.";
 			}
 			else
 			{
-				badDescription = null;
 				error = null;
 			}
 
@@ -198,27 +194,23 @@ namespace Advobot.Core.Classes
 		/// <param name="badValue"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public bool CheckIfValidField(EmbedFieldBuilder field, int charCount, out string badValue, out string error)
+		public bool CheckIfValidField(EmbedFieldBuilder field, int charCount, out string error)
 		{
 			var value = field.Value.ToString();
 			if (charCount > Constants.MAX_EMBED_TOTAL_LENGTH - 1500)
 			{
-				badValue = value;
 				error = $"`{Constants.MAX_EMBED_TOTAL_LENGTH}` char limit close.";
 			}
 			else if (value?.Length > Constants.MAX_FIELD_VALUE_LENGTH)
 			{
-				badValue = value;
 				error = $"Over `{Constants.MAX_FIELD_VALUE_LENGTH}` chars.";
 			}
 			else if (value.CountLineBreaks() > Constants.MAX_FIELD_LINES)
 			{
-				badValue = value;
 				error = $"Over `{Constants.MAX_FIELD_LINES}` lines.";
 			}
 			else
 			{
-				badValue = null;
 				error = null;
 			}
 

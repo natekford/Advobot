@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord.Commands;
+using System.Net;
 
 namespace Advobot.Core.Utilities
 {
@@ -44,14 +46,8 @@ namespace Advobot.Core.Utilities
 		/// <param name="embed"></param>
 		/// <param name="content"></param>
 		/// <returns></returns>
-		public static async Task<IUserMessage> SendEmbedMessageAsync(IMessageChannel channel, EmbedWrapper embed, string content = null)
+		public static async Task<IEnumerable<IUserMessage>> SendEmbedMessageAsync(IMessageChannel channel, EmbedWrapper embed, string content = null)
 		{
-			var guild = channel.GetGuild();
-			if (guild == null)
-			{
-				return null;
-			}
-
 			//Embeds have a global limit of 6000 characters
 			var charCount = 0
 				+ embed.Author?.Name?.Length
@@ -62,10 +58,10 @@ namespace Advobot.Core.Utilities
 			var overflowText = new StringBuilder();
 
 			//Descriptions can only be 2048 characters max and mobile can only show up to 20 line breaks
-			if (!embed.CheckIfValidDescription(charCount, out string badDescription, out string error))
+			if (!embed.CheckIfValidDescription(charCount, out string error))
 			{
+				overflowText.AppendLineFeed($"Description:\n{embed.Description}");
 				embed.WithDescription(error);
-				overflowText.AppendLineFeed($"Description:\n{badDescription}");
 			}
 			charCount += embed.Description?.Length ?? 0;
 
@@ -73,11 +69,11 @@ namespace Advobot.Core.Utilities
 			for (int i = 0; i < embed.Fields.Count; ++i)
 			{
 				var field = embed.Fields[i];
-				if (!embed.CheckIfValidField(field, charCount, out string badValue, out string fieldError))
+				if (!embed.CheckIfValidField(field, charCount, out string fieldError))
 				{
+					overflowText.AppendLineFeed($"Field {i}; {field.Name}\n{field.Value}");
 					field.WithName($"Field {i}");
 					field.WithValue(fieldError);
-					overflowText.AppendLineFeed($"Field {i}:\n{badValue}");
 				}
 
 				charCount += field.Value?.ToString()?.Length ?? 0;
@@ -85,16 +81,16 @@ namespace Advobot.Core.Utilities
 			}
 
 			//Catches length errors and nsfw filter errors if an avatar has nsfw content and filtering is enabled
-			IUserMessage message;
+			var messages = new List<IUserMessage>();
 			try
 			{
 				content = Constants.ZERO_LENGTH_CHAR + (content ?? "");
-				message = await channel.SendMessageAsync(content, embed: embed.WithCurrentTimestamp().Build()).CAF();
+				messages.Add(await channel.SendMessageAsync(content, embed: embed.WithCurrentTimestamp().Build()).CAF());
 			}
 			catch (Exception e)
 			{
 				ConsoleUtils.ExceptionToConsole(e);
-				message = await SendMessageAsync(channel, new ErrorReason(e.Message).ToString()).CAF();
+				messages.Add(await SendMessageAsync(channel, new ErrorReason(e.Message).ToString()).CAF());
 			}
 
 			//Add in the errors from the embed
@@ -105,9 +101,9 @@ namespace Advobot.Core.Utilities
 			//Upload the overflow
 			if (overflowText.Length != 0)
 			{
-				await SendTextFileAsync(channel as ITextChannel, overflowText.ToString(), "Embed_").CAF();
+				messages.Add(await SendTextFileAsync(channel as ITextChannel, overflowText.ToString(), "Embed_").CAF());
 			}
-			return message;
+			return messages;
 		}
 		/// <summary>
 		/// Sends a text file to the given channel with the given content.
@@ -119,18 +115,12 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IUserMessage> SendTextFileAsync(IMessageChannel channel, string text, string fileName, string content = null)
 		{
-			var guild = channel.GetGuild();
-			if (guild == null)
-			{
-				return null;
-			}
-
 			if (!fileName.EndsWith("_"))
 			{
 				fileName += "_";
 			}
 			var fullFileName = fileName + TimeFormatting.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
-			var fileInfo = IOUtils.GetServerDirectoryFile(guild.Id, fullFileName);
+			var fileInfo = IOUtils.GetServerDirectoryFile(channel.GetGuild()?.Id ?? 0, fullFileName);
 
 			IOUtils.OverWriteFile(fileInfo, text.RemoveAllMarkdown());
 			var msg = await channel.SendFileAsync(fileInfo.FullName, String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**").CAF();
@@ -183,6 +173,64 @@ namespace Advobot.Core.Utilities
 			}
 
 			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, reason.ToString(), time, context.Timers).CAF();
+		}
+
+		/// <summary>
+		/// Returns true if no error occur.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="text"></param>
+		/// <param name="url"></param>
+		/// <param name="error"></param>
+		/// <returns></returns>
+		public static bool GetImageUrl(ICommandContext context, string text, out Uri url, out ErrorReason error)
+		{
+			url = null;
+			error = default;
+
+			if (text != null && !Uri.TryCreate(text, UriKind.Absolute, out url))
+			{
+				error = new ErrorReason("Invalid Url provided.");
+			}
+
+			if (url == null)
+			{
+				var attach = context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
+				var embeds = context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
+				var imageUrls = attach.Concat(embeds);
+				if (imageUrls.Count() == 1)
+				{
+					url = new Uri(imageUrls.First());
+				}
+				else if (imageUrls.Count() > 1)
+				{
+					error = new ErrorReason("Too many attached or embedded images.");
+				}
+			}
+
+			if (url != null)
+			{
+				var req = WebRequest.Create(url);
+				req.Method = WebRequestMethods.Http.Head;
+				using (var resp = req.GetResponse())
+				{
+					if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
+					{
+						error = new ErrorReason("Image must be a png or jpg.");
+					}
+					else if (!int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
+					{
+						error = new ErrorReason("Unable to get the image's file size.");
+					}
+					else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
+					{
+						var maxSize = (double)Constants.MAX_ICON_FILE_SIZE / 1000 * 1000;
+						error = new ErrorReason($"Image is bigger than {maxSize:0.0}MB. Manually upload instead.");
+					}
+				}
+			}
+
+			return error.Reason == null;
 		}
 
 		/// <summary>

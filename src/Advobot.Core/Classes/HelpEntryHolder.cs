@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using Advobot.Core.Interfaces;
 
 namespace Advobot.Core.Classes
 {
@@ -152,6 +153,43 @@ namespace Advobot.Core.Classes
 		public HelpEntry[] this[CommandCategory category]
 		{
 			get => _Source.Where(x => x.Category == category).ToArray();
+		}
+
+		/// <summary>
+		/// Holds information about a command, such as its name, aliases, usage, base permissions, description, category, and default enabled value.
+		/// </summary>
+		public class HelpEntry : IDescription
+		{
+			public string Name { get; }
+			public string Usage { get; }
+			public string BasePerm { get; }
+			public string Description { get; }
+			public string[] Aliases { get; }
+			public CommandCategory Category { get; }
+			public bool DefaultEnabled { get; }
+
+			internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases, CommandCategory category, bool defaultEnabled)
+			{
+				if (String.IsNullOrWhiteSpace(name))
+				{
+					throw new ArgumentException("Invalid name.");
+				}
+
+				Name = name;
+				Usage = usage ?? "";
+				BasePerm = String.IsNullOrWhiteSpace(basePerm) ? "N/A" : basePerm;
+				Description = String.IsNullOrWhiteSpace(description) ? "N/A" : description;
+				Aliases = aliases ?? new[] { "N/A" };
+				Category = category;
+				DefaultEnabled = defaultEnabled;
+			}
+
+			public override string ToString() =>
+				$"**Aliases:** {String.Join(", ", Aliases)}\n" +
+				$"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n" +
+				$"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n\n" +
+				$"**Base Permission(s):**\n{BasePerm}\n\n" +
+				$"**Description:**\n{Description}";
 		}
 	}
 }

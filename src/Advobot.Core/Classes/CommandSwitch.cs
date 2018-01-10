@@ -16,7 +16,7 @@ namespace Advobot.Core.Classes
 		[JsonProperty]
 		public bool Value { get; private set; }
 		[JsonIgnore]
-		public ImmutableList<string> Aliases { get; }
+		public ImmutableArray<string> Aliases { get; }
 		[JsonIgnore]
 		public CommandCategory Category { get; }
 		[JsonIgnore]
@@ -34,7 +34,7 @@ namespace Advobot.Core.Classes
 			Name = name;
 			Value = value;
 			Category = helpEntry.Category;
-			Aliases = helpEntry.Aliases.ToImmutableList();
+			Aliases = helpEntry.Aliases.ToImmutableArray();
 		}
 
 		/// <summary>

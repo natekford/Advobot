@@ -7,73 +7,57 @@ using System.Text;
 
 namespace Advobot.Core.Classes
 {
-	public class FormattedMessage
+	public struct FormattedMessage
 	{
 		public readonly IMessage Message;
-		public readonly ImmutableList<string> Embeds;
-		public readonly ImmutableList<string> Attachments;
-		public readonly string Text;
-		public readonly string Time;
-		public readonly string User;
-		public readonly string UserMention;
-		public readonly string Channel;
-		public readonly string ChannelMention;
-		public readonly string MessageId;
-		public readonly string Header;
+		public readonly ImmutableArray<string> Embeds;
+		public readonly ImmutableArray<string> Attachments;
+		public readonly string HeaderWithNoMentions;
+		public readonly string HeaderWithMentions;
 		public readonly string Content;
 
 		public FormattedMessage(IMessage message)
 		{
 			Message = message;
-			Embeds = FormatEmbeds();
-			Attachments = FormatAttachments();
-			Text = String.IsNullOrEmpty(message.Content) ? "Empty message content" : message.Content;
-			Time = message.CreatedAt.ToString("HH:mm:ss");
-			User = message.Author.FormatUser();
-			UserMention = message.Author.Mention;
-			Channel = message.Channel.FormatChannel();
-			ChannelMention = (message.Channel as ITextChannel).Mention;
-			MessageId = message.Id.ToString();
-
-			Header = FormatHeader(true);
-			Content = FormatContent();
-		}
-
-		private ImmutableList<string> FormatEmbeds()
-			=> Message.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue).Select((x, index) =>
+			Embeds = Message.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue).Select((x, index) =>
 			{
-				var sb = new StringBuilder($"Embed {index + 1}: {x.Description ?? "No description"}");
+				var embed = new StringBuilder($"Embed {index + 1}: {x.Description ?? "No description"}");
 				if (x.Url != null)
 				{
-					sb.Append($" URL: {x.Url}");
+					embed.Append($" URL: {x.Url}");
 				}
 				if (x.Image.HasValue)
 				{
-					sb.Append($" IURL: {x.Image.Value.Url}");
+					embed.Append($" IURL: {x.Image.Value.Url}");
 				}
-				return sb.ToString();
-			}).ToImmutableList();
-		private ImmutableList<string> FormatAttachments() => Message.Attachments.Select(x => x.Filename).ToImmutableList();
-		private string FormatHeader(bool withMentions)
-		{
-			var user = withMentions ? UserMention : User;
-			var channel = withMentions ? ChannelMention : Channel;
-			return $"`[{Time}]` `{MessageId}` {user.EscapeBackTicks()} IN {channel.EscapeBackTicks()}";
-		}
-		private string FormatContent()
-		{
-			var sb = new StringBuilder($"```\n{Text.EscapeBackTicks()}");
+				return embed.ToString();
+			}).ToImmutableArray();
+			Attachments = Message.Attachments.Select(x => x.Filename).ToImmutableArray();
+
+			var text = String.IsNullOrEmpty(message.Content) ? "Empty message content" : message.Content;
+			var time = message.CreatedAt.ToString("HH:mm:ss");
+
+			var user = message.Author.FormatUser();
+			var channel = message.Channel.FormatChannel();
+			HeaderWithNoMentions = $"`[{time}]` `{message.Id}` {user} IN {channel}".EscapeBackTicks();
+
+			var userMention = message.Author.Mention;
+			var channelMention = (message.Channel as ITextChannel).Mention;
+			HeaderWithMentions = $"`[{time}]` `{message.Id}` {userMention} IN {channelMention}".EscapeBackTicks();
+
+			var content = new StringBuilder($"```\n{text.EscapeBackTicks()}");
 			foreach (var embed in Embeds)
 			{
-				sb.AppendLineFeed(embed.EscapeBackTicks());
+				content.AppendLineFeed(embed.EscapeBackTicks());
 			}
 			if (Attachments.Any())
 			{
-				sb.AppendLineFeed($" + {String.Join(" + ", Attachments).EscapeBackTicks()}");
+				content.AppendLineFeed($" + {String.Join(" + ", Attachments).EscapeBackTicks()}");
 			}
-			return sb.Append("```").ToString();
+			Content = content.Append("```").ToString();
 		}
 
-		public string ToString(bool withMentions) => $"{(withMentions ? Header : FormatHeader(false))}\n{Content}";
+		public override string ToString() => ToString(true);
+		public string ToString(bool withMentions) => $"{(withMentions ? HeaderWithMentions : HeaderWithNoMentions)}\n{Content}";
 	}
 }

@@ -28,20 +28,20 @@ namespace Advobot.Core.Classes
 		[JsonProperty]
 		public string ThumbUrl { get; }
 		[JsonProperty]
-		public ulong ChannelId { get; }
+		public ulong ChannelId { get; private set; }
 		[JsonIgnore]
 		public EmbedWrapper Embed { get; }
 		[JsonIgnore]
 		public ITextChannel Channel { get; private set; }
 
 		[JsonConstructor]
-		internal GuildNotification(string content, string title, string description, string thumbUrl, ulong channelID)
+		internal GuildNotification(string content, string title, string description, string thumbUrl, ulong channelId)
 		{
 			Content = content;
 			Title = title;
 			Description = description;
 			ThumbUrl = thumbUrl;
-			ChannelId = channelID;
+			ChannelId = channelId;
 			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbUrl)))
 			{
 				Embed = new EmbedWrapper(title, description, null, null, null, thumbUrl);
@@ -62,7 +62,11 @@ namespace Advobot.Core.Classes
 		/// Changes the channel the notification gets sent to.
 		/// </summary>
 		/// <param name="channel"></param>
-		public void ChangeChannel(ITextChannel channel) => Channel = channel;
+		public void ChangeChannel(ITextChannel channel)
+		{
+			Channel = channel;
+			ChannelId = Channel.Id;
+		}
 		/// <summary>
 		/// Sends the notification to the channel.
 		/// </summary>

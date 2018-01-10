@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Wrapper for an error reason.
 	/// </summary>
-	public class ErrorReason
+	public struct ErrorReason
 	{
 		public string Reason { get; private set; }
 

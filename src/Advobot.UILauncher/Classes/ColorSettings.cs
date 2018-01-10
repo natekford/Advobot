@@ -29,7 +29,6 @@ namespace Advobot.UILauncher.Classes
 		public static SolidColorBrush LightModeButtonDisabledBackground => BrushUtils.CreateBrush("#F4F4F4");
 		public static SolidColorBrush LightModeButtonDisabledForeground => BrushUtils.CreateBrush("#888888");
 		public static SolidColorBrush LightModeButtonDisabledBorder => BrushUtils.CreateBrush("#ADB2B5");
-		//TODO: figure out why this became yellow
 		public static SolidColorBrush LightModeButtonMouseOverBackground => BrushUtils.CreateBrush("#BEE6FD");
 		public static SolidColorBrush LightModeJsonDigits => BrushUtils.CreateBrush("#8700FF");
 		public static SolidColorBrush LightModeJsonValue => BrushUtils.CreateBrush("#000CFF");

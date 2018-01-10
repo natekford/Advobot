@@ -21,7 +21,7 @@ namespace Advobot.Core.Utilities
 		public static bool TryCreateRegex(string pattern, out Regex regexOutput, out ErrorReason errorReason)
 		{
 			regexOutput = null;
-			errorReason = null;
+			errorReason = default;
 			if (pattern == null)
 			{
 				errorReason = new ErrorReason("The pattern cannot be null.");
