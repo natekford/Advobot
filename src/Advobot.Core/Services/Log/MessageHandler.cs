@@ -173,7 +173,7 @@ namespace Advobot.Core.Services.Log
 			}
 			else
 			{
-				await MessageUtils.DeleteMessageAsync(_LogInstance.Message, new AutomaticModerationReason("slowmode")).CAF();
+				await MessageUtils.DeleteMessageAsync(_LogInstance.Message, new ModerationReason("slowmode")).CAF();
 			}
 		}
 		/// <summary>
@@ -232,7 +232,7 @@ namespace Advobot.Core.Services.Log
 					var content = $"The user `{_LogInstance.User.FormatUser()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					var channel = _LogInstance.Channel as ITextChannel;
 					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(channel, null, content, 10, _Timers).CAF();
-					await MessageUtils.DeleteMessageAsync(_LogInstance.Message, new AutomaticModerationReason("spam prevention")).CAF();
+					await MessageUtils.DeleteMessageAsync(_LogInstance.Message, new ModerationReason("spam prevention")).CAF();
 				}
 			}
 

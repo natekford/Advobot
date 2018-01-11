@@ -27,7 +27,7 @@ namespace Advobot.Core.Classes.Punishments
 				return;
 			}
 
-			var autoModReason = new AutomaticModerationReason(reason);
+			var autoModReason = new ModerationReason(reason);
 			switch (punishmentType)
 			{
 				case PunishmentType.Kick:

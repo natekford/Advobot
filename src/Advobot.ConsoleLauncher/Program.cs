@@ -1,5 +1,6 @@
 ﻿using Advobot.Commands;
 using Advobot.Core;
+using Advobot.Core.Classes;
 using Advobot.Core.Utilities;
 using System;
 using System.Threading.Tasks;

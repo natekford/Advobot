@@ -56,7 +56,7 @@ namespace Advobot.Commands.SelfRoles
 						return;
 					}
 
-					selfAssignableGroups.Add(new SelfAssignableGroup((int)groupNum));
+					selfAssignableGroups.Add(new SelfAssignableRoles((int)groupNum));
 					break;
 				}
 				case nameof(Delete):
@@ -104,14 +104,13 @@ namespace Advobot.Commands.SelfRoles
 
 			var rolesModified = new List<IRole>();
 			var rolesNotModified = new List<IRole>();
-			var alreadyUsedRoles = selfAssignableGroups.SelectMany(x => x.Roles.Select(y => y.RoleId));
 			switch (caller)
 			{
 				case nameof(Add):
 				{
 					foreach (var role in roles)
 					{
-						if (!alreadyUsedRoles.Contains(role.Id))
+						if (!selfAssignableGroups.Any(x => x.TryGetRole(role.Id, out var temp)))
 						{
 							rolesModified.Add(role);
 						}
@@ -120,14 +119,14 @@ namespace Advobot.Commands.SelfRoles
 							rolesNotModified.Add(role);
 						}
 					}
-					group.AddRoles(rolesModified.Select(x => new SelfAssignableRole(x)));
+					group.AddRoles(rolesModified);
 					break;
 				}
 				case nameof(Remove):
 				{
 					foreach (var role in roles)
 					{
-						if (alreadyUsedRoles.Contains(role.Id))
+						if (selfAssignableGroups.Any(x => x.TryGetRole(role.Id, out var temp)))
 						{
 							rolesModified.Add(role);
 						}
@@ -136,7 +135,7 @@ namespace Advobot.Commands.SelfRoles
 							rolesNotModified.Add(role);
 						}
 					}
-					group.RemoveRoles(rolesModified.Select(x => x.Id));
+					group.RemoveRoles(rolesModified);
 					break;
 				}
 				default:
@@ -166,7 +165,7 @@ namespace Advobot.Commands.SelfRoles
 		[Command]
 		public async Task Command(IRole role)
 		{
-			var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.RoleId).Contains(role.Id));
+			var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.TryGetRole(role.Id, out var temp));
 			if (group == null)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("There is no self assignable role by that name.")).CAF();
@@ -176,7 +175,7 @@ namespace Advobot.Commands.SelfRoles
 			var user = Context.User as IGuildUser;
 			if (user.RoleIds.Contains(role.Id))
 			{
-				await RoleUtils.TakeRolesAsync(user, new[] { role }, new AutomaticModerationReason("self role removal")).CAF();
+				await RoleUtils.TakeRolesAsync(user, new[] { role }, new ModerationReason("self role removal")).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed `{role.FormatRole()}`.").CAF();
 				return;
 			}
@@ -185,16 +184,15 @@ namespace Advobot.Commands.SelfRoles
 			var removedRoles = "";
 			if (group.Group != 0)
 			{
-				var otherRoles = group.Roles.Where(x => user.RoleIds.Contains(x?.RoleId ?? 0))
-					.Select(x => x.GetRole(Context.Guild as SocketGuild));
+				var otherRoles = user.RoleIds.Select(x => group.TryGetRole(x, out var temp) ? temp : null).Where(x => x != null);
 				if (otherRoles.Any())
 				{
-					await RoleUtils.TakeRolesAsync(user, otherRoles, new AutomaticModerationReason("self role removal")).CAF();
+					await RoleUtils.TakeRolesAsync(user, otherRoles, new ModerationReason("self role removal")).CAF();
 					removedRoles = $", and removed `{String.Join("`, `", otherRoles.Select(x => x.FormatRole()))}`";
 				}
 			}
 
-			await RoleUtils.GiveRolesAsync(user, new[] { role }, new AutomaticModerationReason("self role giving")).CAF();
+			await RoleUtils.GiveRolesAsync(user, new[] { role }, new ModerationReason("self role giving")).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully gave `{role.Name}`{removedRoles}.").CAF();
 		}
 	}
@@ -229,9 +227,7 @@ namespace Advobot.Commands.SelfRoles
 				return;
 			}
 
-			var desc = group.Roles.Any()
-				? $"`{String.Join("`, `", group.Roles.Select(x => x.GetRole(Context.Guild as SocketGuild)?.Name ?? "null"))}`"
-				: "`Nothing`";
+			var desc = group.Roles.Any() ? group.ToString() : "`Nothing`";
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper($"Self Roles Group {groupNum}", desc)).CAF();
 		}
 	}

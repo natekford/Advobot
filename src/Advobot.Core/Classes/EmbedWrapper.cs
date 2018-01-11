@@ -35,7 +35,7 @@ namespace Advobot.Core.Classes
 				}
 				catch (Exception e)
 				{
-					ConsoleUtils.ExceptionToConsole(e);
+					e.Write();
 					_Errors.Add(new EmbedError("Description", description, e));
 					WithDescription(e.Message);
 				}

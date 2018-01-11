@@ -109,7 +109,7 @@ namespace Advobot.Core.Classes
 			if (result.IsSuccess)
 			{
 				logging.SuccessfulCommands.Increment();
-				await MessageUtils.DeleteMessageAsync(context.Message, new AutomaticModerationReason("logged command")).CAF();
+				await MessageUtils.DeleteMessageAsync(context.Message, new ModerationReason("logged command")).CAF();
 
 				var guildSettings = context.GuildSettings;
 				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
@@ -139,18 +139,13 @@ namespace Advobot.Core.Classes
 
 		public override string ToString()
 		{
-			var response = new StringBuilder()
-				.Append($"Guild: {Guild}")
-				.Append($"{_Joiner}Channel: {Channel}")
-				.Append($"{_Joiner}User: {User}")
-				.Append($"{_Joiner}Time: {Time}")
-				.Append($"{_Joiner}Text: {Text}")
-				.Append($"{_Joiner}Time taken: {Stopwatch.ElapsedMilliseconds}ms");
-			if (ErrorReason != null)
-			{
-				response.Append($"{_Joiner}Error: {ErrorReason}");
-			}
-			return response.ToString();
+			var response = $"Guild: {Guild}" +
+				$"{_Joiner}Channel: {Channel}" +
+				$"{_Joiner}User: {User}" +
+				$"{_Joiner}Time: {Time}" +
+				$"{_Joiner}Text: {Text}" +
+				$"{_Joiner}Time taken: {Stopwatch.ElapsedMilliseconds}ms";
+			return ErrorReason == null ? response : response + $"{_Joiner}Error: {ErrorReason}";
 		}
 	}
 }

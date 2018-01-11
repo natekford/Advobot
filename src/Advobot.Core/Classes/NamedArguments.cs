@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.ComponentModel;
 
 namespace Advobot.Core.Classes
 {
@@ -15,19 +16,6 @@ namespace Advobot.Core.Classes
 	/// <typeparam name="T"></typeparam>
 	public class NamedArguments<T> where T : class
 	{
-		protected static Dictionary<Type, Func<string, object>> _TryParses = new Dictionary<Type, Func<string, object>>
-		{
-			{ typeof(bool), (value) => bool.TryParse(value, out var result) ? result : false },
-			{ typeof(int), (value) => int.TryParse(value, out var result) ? result : default },
-			{ typeof(int?), (value) => int.TryParse(value, out var result) ? result as int? : null },
-			{ typeof(uint), (value) => uint.TryParse(value, out var result) ? result : default },
-			{ typeof(uint?), (value) => uint.TryParse(value, out var result) ? result as uint? : null },
-			{ typeof(long), (value) => long.TryParse(value, out var result) ? result : default },
-			{ typeof(long?), (value) => long.TryParse(value, out var result) ? result as long? : null },
-			{ typeof(ulong), (value) => ulong.TryParse(value, out var result) ? result : default },
-			{ typeof(ulong?), (value) => ulong.TryParse(value, out var result) ? result as ulong? : null },
-		};
-
 		public static ImmutableList<string> ArgNames { get; }
 
 		private static ConstructorInfo _Constructor;
@@ -134,6 +122,7 @@ namespace Advobot.Core.Classes
 			var additionalArgsList = new List<object>(additionalArgs);
 			var parameters = _Constructor.GetParameters().Select(p =>
 			{
+				//For arrays get the underlying type
 				var t = p.ParameterType.IsArray ? p.ParameterType.GetElementType() : p.ParameterType;
 
 				//Check params first otherwise will go into the middle else if
@@ -161,8 +150,7 @@ namespace Advobot.Core.Classes
 						return value;
 					}
 				}
-
-				return t.IsValueType ? Activator.CreateInstance(t) : null;
+				return CreateInstance(t);
 			}).ToArray();
 
 			try
@@ -171,8 +159,8 @@ namespace Advobot.Core.Classes
 			}
 			catch (MissingMethodException e)
 			{
-				ConsoleUtils.ExceptionToConsole(e);
-				return (T)Activator.CreateInstance(typeof(T));
+				e.Write();
+				return (T)CreateInstance(typeof(T));
 			}
 		}
 		/// <summary>
@@ -181,46 +169,42 @@ namespace Advobot.Core.Classes
 		/// <param name="type"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		private object ConvertValue(Type type, string value)
+		public static object ConvertValue(Type type, string value)
 		{
 			var t = Nullable.GetUnderlyingType(type) ?? type;
 
-			//If no argument then return the default value
 			if (String.IsNullOrWhiteSpace(value))
 			{
-				return Activator.CreateInstance(type);
+				//If the type is nullable then 
+				return Nullable.GetUnderlyingType(type) == null ? CreateInstance(type) : null;
 			}
 			//If the type is an enum see if it's a valid name
 			//If invalid then return default
 			else if (t.IsEnum)
 			{
-				return ConvertEnum(type, value);
+				return ConvertEnum(t, value);
 			}
-			//If a type in the tryparses dictionary then return the tryparse's value
-			else if(_TryParses.TryGetValue(t, out var f))
-			{
-				return f(value);
-			}
-			//If not then throw it into a final try catch of changetype
-			else
-			{
-				try
-				{
-					return Convert.ChangeType(value, t, CultureInfo.InvariantCulture);
-				}
-				catch
-				{
-					return Activator.CreateInstance(type);
-				}
-			}
+
+			//Converters should work for primitives. Not sure what else it works for.
+			var converter = TypeDescriptor.GetConverter(t);
+			//I think ConvertFromInvariantString works with commas, but only if the computer's culture is set to one that uses it. 
+			//Can't really test that easily because I CBA to switch my computer's language.
+			return converter != null && converter.IsValid(value) ? converter.ConvertFromInvariantString(value) : CreateInstance(t);
 		}
+		/// <summary>
+		/// Value types and classes with parameterless constructors can be created with no parameters.
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static object CreateInstance(Type t)
+			=> t.IsValueType || t.GetConstructors().Any(x => !x.GetParameters().Any()) ? Activator.CreateInstance(t) : null;
 		/// <summary>
 		/// Converts a string to an enum value.
 		/// </summary>
 		/// <param name="type"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		private object ConvertEnum(Type type, string value)
+		public static object ConvertEnum(Type type, string value)
 		{
 			if (type.GetCustomAttribute<FlagsAttribute>() == null)
 			{

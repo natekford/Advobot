@@ -56,7 +56,7 @@ namespace Advobot.Core.Classes.Settings
 		[JsonProperty("BotUsers")]
 		private List<BotImplementedPermissions> _BotUsers;
 		[JsonProperty("SelfAssignableGroups")]
-		private List<SelfAssignableGroup> _SelfAssignableGroups;
+		private List<SelfAssignableRoles> _SelfAssignableGroups;
 		[JsonProperty("Quotes")]
 		private List<Quote> _Quotes;
 		[JsonProperty("LogActions")]
@@ -202,9 +202,9 @@ namespace Advobot.Core.Classes.Settings
 			set => _BotUsers = value;
 		}
 		[JsonIgnore]
-		public List<SelfAssignableGroup> SelfAssignableGroups
+		public List<SelfAssignableRoles> SelfAssignableGroups
 		{
-			get => _SelfAssignableGroups ?? (_SelfAssignableGroups = new List<SelfAssignableGroup>());
+			get => _SelfAssignableGroups ?? (_SelfAssignableGroups = new List<SelfAssignableRoles>());
 			set => _SelfAssignableGroups = value;
 		}
 		[JsonIgnore]

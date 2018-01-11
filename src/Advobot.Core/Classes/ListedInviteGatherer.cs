@@ -35,9 +35,7 @@ namespace Advobot.Core.Classes
 
 		public IEnumerable<ListedInvite> GatherInvites(IInviteListService inviteListService)
 		{
-			var invites = _Keywords.Any()
-				? inviteListService.GetInvites(_Keywords)
-				: inviteListService.GetInvites().AsEnumerable();
+			IEnumerable<ListedInvite> invites = _Keywords.Any() ? inviteListService.GetInvites(_Keywords) : inviteListService.GetInvites();
 
 			var wentIntoAny = false;
 			if (_Code != null)

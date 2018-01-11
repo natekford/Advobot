@@ -89,7 +89,7 @@ namespace Advobot.Core.Utilities
 			}
 			catch (Exception e)
 			{
-				ConsoleUtils.ExceptionToConsole(e);
+				e.Write();
 				messages.Add(await SendMessageAsync(channel, new ErrorReason(e.Message).ToString()).CAF());
 			}
 

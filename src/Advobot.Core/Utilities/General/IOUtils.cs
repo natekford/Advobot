@@ -5,6 +5,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Advobot.Core.Utilities
 {
@@ -95,7 +96,7 @@ namespace Advobot.Core.Utilities
 			}
 			catch (Exception e)
 			{
-				ConsoleUtils.ExceptionToConsole(e);
+				e.Write();
 			}
 		}
 
@@ -115,6 +116,43 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static T Deserialize<T>(string value, Type type)
 			=> (T)JsonConvert.DeserializeObject(value, type, new StringEnumConverter());
+		/// <summary>
+		/// Creates an object from JSON stored in a file.
+		/// </summary>
+		/// <typeparam name="T">The general type to deserialize. Can be an abstraction of <paramref name="type"/> but has to be a type where it can be converted to <typeparamref name="T"/>.</typeparam>
+		/// <param name="file">The file to read from.</param>
+		/// <param name="type">The type of object to create.</param>
+		/// <param name="create">If true, unable to deserialize an object from the file, and the type has a parameterless constructor, then uses that constructor.</param>
+		/// <param name="callback">An action to do after the object has been deserialized.</param>
+		/// <returns></returns>
+		public static T DeserializeFromFile<T>(FileInfo file, Type type, bool create = false)
+		{
+			T obj = default;
+			var stillDef = true;
+
+			if (file.Exists)
+			{
+				try
+				{
+					using (var reader = new StreamReader(file.FullName))
+					{
+						obj = Deserialize<T>(reader.ReadToEnd(), type);
+						stillDef = false;
+					}
+					ConsoleUtils.WriteLine($"The {type.Name} file has successfully been loaded.");
+				}
+				catch (JsonReaderException jre)
+				{
+					jre.Write();
+				}
+			}
+			else
+			{
+				ConsoleUtils.WriteLine($"The {type.Name} file could not be found; using default.");
+			}
+
+			return create && stillDef && type.GetConstructors().Any(x => !x.GetParameters().Any()) ? (T)Activator.CreateInstance(type) : obj;
+		}
 
 		/// <summary>
 		/// Writes an uncaught exception to a log file.

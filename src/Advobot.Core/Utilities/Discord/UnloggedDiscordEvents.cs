@@ -80,7 +80,7 @@ namespace Advobot.Core.Utilities
 			var roles = settings.PersistentRoles.Where(x => x.UserId == user.Id).Select(x => x.GetRole(user.Guild)).Where(x => x != null);
 			if (roles.Any())
 			{
-				await RoleUtils.GiveRolesAsync(user, roles, new AutomaticModerationReason("persistent roles")).CAF();
+				await RoleUtils.GiveRolesAsync(user, roles, new ModerationReason("persistent roles")).CAF();
 			}
 
 			//Welcome message
@@ -143,7 +143,7 @@ namespace Advobot.Core.Utilities
 
 				if (validQuote || validHelpEntry)
 				{
-					await MessageUtils.DeleteMessageAsync(message, new AutomaticModerationReason("help entry or quote")).CAF();
+					await MessageUtils.DeleteMessageAsync(message, new ModerationReason("help entry or quote")).CAF();
 				}
 			}
 		}

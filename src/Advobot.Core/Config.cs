@@ -129,24 +129,7 @@ namespace Advobot.Core
 		/// </summary>
 		/// <returns></returns>
 		private static ConfigDict LoadConfigDictionary()
-		{
-			ConfigDict tempDict = null;
-			if (File.Exists(_SavePath))
-			{
-				try
-				{
-					using (var reader = new StreamReader(_SavePath))
-					{
-						tempDict = IOUtils.Deserialize<ConfigDict>(reader.ReadToEnd(), typeof(ConfigDict));
-					}
-				}
-				catch (Exception e)
-				{
-					ConsoleUtils.ExceptionToConsole(e);
-				}
-			}
-			return tempDict ?? new ConfigDict();
-		}
+			=> IOUtils.DeserializeFromFile<ConfigDict>(new FileInfo(_SavePath), typeof(ConfigDict), true);
 		/// <summary>
 		/// Writes the current <see cref="ConfigDict"/> to file.
 		/// </summary>

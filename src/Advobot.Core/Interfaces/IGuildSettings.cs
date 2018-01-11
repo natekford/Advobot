@@ -34,7 +34,7 @@ namespace Advobot.Core.Interfaces
 		Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; set; }
 		List<PersistentRole> PersistentRoles { get; set; }
 		List<BotImplementedPermissions> BotUsers { get; set; }
-		List<SelfAssignableGroup> SelfAssignableGroups { get; set; }
+		List<SelfAssignableRoles> SelfAssignableGroups { get; set; }
 		List<Quote> Quotes { get; set; }
 		List<LogAction> LogActions { get; set; }
 		List<ulong> IgnoredCommandChannels { get; set; }

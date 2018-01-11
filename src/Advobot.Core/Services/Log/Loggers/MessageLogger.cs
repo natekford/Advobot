@@ -31,7 +31,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				var author = message.Author as IGuildUser;
 				if (author.Username != "jeff" && author.Nickname != "jeff" && guild.GetBot().GetIfCanModifyUser(author))
 				{
-					await UserUtils.ChangeNicknameAsync(author, "jeff", new AutomaticModerationReason("my nama jeff")).CAF();
+					await UserUtils.ChangeNicknameAsync(author, "jeff", new ModerationReason("my nama jeff")).CAF();
 				}
 			}
 

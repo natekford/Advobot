@@ -154,7 +154,7 @@ namespace Advobot.Core.Classes.Settings
 			{
 				foreach (var group in _SelfAssignableGroups)
 				{
-					group.Roles.RemoveAll(x => x == null || x.GetRole(Guild) == null);
+					group.PostDeserialize(Guild);
 				}
 			}
 			if (_PersistentRoles != null)

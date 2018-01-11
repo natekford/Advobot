@@ -121,7 +121,7 @@ namespace Advobot.Commands.SpamPrevention
 				return;
 			}
 
-			raidPrev.Enable();
+			raidPrev.Enabled = true;
 			if (raidType == RaidType.Regular)
 			{
 				//Mute the newest joining users
@@ -145,7 +145,7 @@ namespace Advobot.Commands.SpamPrevention
 				return;
 			}
 
-			raidPrev.Disable();
+			raidPrev.Enabled = false;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled the given raid prevention.").CAF();
 		}
 	}

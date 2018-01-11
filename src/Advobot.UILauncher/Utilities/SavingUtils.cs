@@ -54,7 +54,7 @@ namespace Advobot.UILauncher.Utilities
 				}
 				catch (Exception e)
 				{
-					ConsoleUtils.ExceptionToConsole(e);
+					e.Write();
 					return ToolTipReason.FileSavingFailure;
 				}
 			}

@@ -42,7 +42,7 @@ namespace Advobot.Core.Classes.BannedPhrases
 		/// <returns></returns>
 		public async Task PunishAsync(IGuildSettings guildSettings, IMessage message, ITimersService timers = null)
 		{
-			await MessageUtils.DeleteMessageAsync(message, new AutomaticModerationReason("banned phrase")).CAF();
+			await MessageUtils.DeleteMessageAsync(message, new ModerationReason("banned phrase")).CAF();
 
 			var user = guildSettings.BannedPhraseUsers.SingleOrDefault(x => x.User.Id == message.Author.Id);
 			if (user == null)

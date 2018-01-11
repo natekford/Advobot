@@ -81,7 +81,7 @@ namespace Advobot.Core.Classes.Punishments
 			{
 				sb.Append($"Removed all timed {punishmentType.EnumName().FormatTitle().ToLower()} punishments on them. ");
 			}
-			if (reason.HasReason)
+			if (reason.Reason != null)
 			{
 				sb.Append($"The provided reason is `{reason.Reason.EscapeBackTicks()}`. ");
 			}

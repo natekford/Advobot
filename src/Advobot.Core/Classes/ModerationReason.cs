@@ -5,41 +5,27 @@ using System;
 namespace Advobot.Core.Classes
 {
 	/// <summary>
-	/// Explains why the bot is doing something.
-	/// </summary>
-	public class AutomaticModerationReason : ModerationReason
-	{
-		public AutomaticModerationReason(string reason) : base(null, reason)
-		{
-			User = null;
-			Reason = reason == null ? "not specified" : reason.TrimEnd('.');
-			HasReason = !String.IsNullOrWhiteSpace(reason);
-			IsAutomatic = true;
-		}
-
-		public override string ToString() => $"Automatic action. Trigger: {Reason}.";
-	}
-
-	/// <summary>
 	/// Explains why a mod is doing something.
 	/// </summary>
 	public class ModerationReason
 	{
 		public IUser User { get; protected set; }
 		public string Reason { get; protected set; }
-		public bool HasReason { get; protected set; }
-		public bool IsAutomatic { get; protected set; }
 
+		public ModerationReason(string reason)
+		{
+			Reason = (reason ?? "not specified").TrimEnd('.');
+		}
 		public ModerationReason(IUser user, string reason)
 		{
-			User = user;
-			Reason = reason == null ? "not specified" : reason.TrimEnd('.');
-			HasReason = !String.IsNullOrWhiteSpace(reason);
-			IsAutomatic = false;
+			User = user ?? throw new ArgumentException("should not be null if passed in", nameof(user));
+			Reason = (reason ?? "not specified").TrimEnd('.');
 		}
 
 		public RequestOptions CreateRequestOptions() => new RequestOptions { AuditLogReason = ToString(), };
 
-		public override string ToString() => $"Action by {User.FormatUser()}. Reason: {Reason}.";
+		public override string ToString() => User == null
+			? $"Automatic action. Trigger: {Reason}."
+			: $"Action by {User.FormatUser()}. Reason: {Reason}.";
 	}
 }

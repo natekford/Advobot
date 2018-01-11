@@ -40,7 +40,7 @@ namespace Advobot.Core.Utilities
 					}
 					catch (Exception e)
 					{
-						ConsoleUtils.ExceptionToConsole(e);
+						e.Write();
 					}
 
 					await Task.Delay(-1).CAF();

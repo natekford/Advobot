@@ -111,7 +111,7 @@ namespace Advobot.Core.Classes.Punishments
 				_Timers.AddRemovablePunishment(new RemovablePunishment(punishmentType, guild, user, _Time));
 				sb.Append($"They will be {_Removal[punishmentType]} in {_Time} minutes. ");
 			}
-			if (reason.HasReason)
+			if (reason.Reason != null)
 			{
 				sb.Append($"The provided reason is `{reason.Reason.EscapeBackTicks()}`. ");
 			}

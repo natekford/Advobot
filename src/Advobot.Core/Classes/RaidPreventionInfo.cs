@@ -23,15 +23,15 @@ namespace Advobot.Core.Classes.SpamPrevention
 		private const int MAX_TIME = 60;
 
 		[JsonProperty]
-		public PunishmentType PunishmentType { get; }
+		public readonly PunishmentType PunishmentType;
 		[JsonProperty]
-		public int Interval { get; }
+		public readonly int Interval;
 		[JsonProperty]
-		public int UserCount { get; }
+		public readonly int UserCount;
 		[JsonProperty]
-		public bool Enabled { get; private set; } = true;
+		public bool Enabled = true;
 		[JsonIgnore]
-		public ConcurrentQueue<BasicTimeInterface> _TimeList = new ConcurrentQueue<BasicTimeInterface>();
+		private ConcurrentQueue<BasicTimeInterface> _TimeList = new ConcurrentQueue<BasicTimeInterface>();
 		[JsonIgnore]
 		public ConcurrentQueue<BasicTimeInterface> TimeList => _TimeList;
 
@@ -76,15 +76,10 @@ namespace Advobot.Core.Classes.SpamPrevention
 			return true;
 		}
 
-		public void Enable() => Enabled = true;
-		public void Disable() => Enabled = false;
-
-		public override string ToString()
-			=> new StringBuilder()
-			.AppendLineFeed($"**Enabled:** `{Enabled}`")
-			.AppendLineFeed($"**Users:** `{UserCount}`")
-			.AppendLineFeed($"**Time Interval:** `{Interval}`")
-			.Append($"**Punishment:** `{PunishmentType.EnumName()}`").ToString();
+		public override string ToString() => $"**Enabled:** `{Enabled}`\n" +
+			$"**Users:** `{UserCount}`\n" +
+			$"**Time Interval:** `{Interval}`\n" +
+			$"**Punishment:** `{PunishmentType.EnumName()}`";
 		public string ToString(SocketGuild guild) => ToString();
 	}
 }

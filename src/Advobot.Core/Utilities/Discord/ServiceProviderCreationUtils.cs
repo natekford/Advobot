@@ -113,33 +113,9 @@ namespace Advobot.Core.Utilities
 				throw new Exception($"The fields {String.Join(", ", fields.Select(x => x.Name))} are not set in {nameof(BotSetting)}.");
 			}
 
-			IBotSettings botSettings = null;
-			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
-			if (fileInfo.Exists)
-			{
-				try
-				{
-					using (var reader = new StreamReader(fileInfo.FullName))
-					{
-						botSettings = IOUtils.Deserialize<IBotSettings>(reader.ReadToEnd(), Constants.BOT_SETTINGS_TYPE);
-					}
-					ConsoleUtils.WriteLine("The bot information has successfully been loaded.");
-				}
-				catch (Exception e)
-				{
-					ConsoleUtils.ExceptionToConsole(e);
-				}
-			}
-			else
-			{
-				ConsoleUtils.WriteLine("The bot information file could not be found; using default.");
-			}
-
-			if (botSettings == null)
-			{
-				botSettings = (IBotSettings)Activator.CreateInstance(Constants.BOT_SETTINGS_TYPE);
-				botSettings.SaveSettings();
-			}
+			var path = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
+			var botSettings = IOUtils.DeserializeFromFile<IBotSettings>(path, Constants.BOT_SETTINGS_TYPE, true);
+			botSettings.SaveSettings();
 			return botSettings;
 		}
 		/// <summary>
@@ -150,34 +126,11 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		internal static async Task<IGuildSettings> CreateGuildSettingsAsync(IGuild guild)
 		{
-			IGuildSettings guildSettings = null;
-			var fileInfo = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
-			if (fileInfo.Exists)
-			{
-				try
-				{
-					using (var reader = new StreamReader(fileInfo.FullName))
-					{
-						guildSettings = IOUtils.Deserialize<IGuildSettings>(reader.ReadToEnd(), Constants.GUILD_SETTINGS_TYPE);
-					}
-					ConsoleUtils.WriteLine($"The guild information for {guild.FormatGuild()} has successfully been loaded.");
-				}
-				catch (Exception e)
-				{
-					ConsoleUtils.ExceptionToConsole(e);
-				}
-			}
-			else
-			{
-				ConsoleUtils.WriteLine($"The guild information file for {guild.FormatGuild()} could not be found; using default.");
-			}
-
-			if (guildSettings == null)
-			{
-				guildSettings = (IGuildSettings)Activator.CreateInstance(Constants.GUILD_SETTINGS_TYPE);
-				guildSettings.SaveSettings();
-			}
-			return await guildSettings.PostDeserialize(guild).CAF();
+			var path = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+			var guildSettings = IOUtils.DeserializeFromFile<IGuildSettings>(path, Constants.GUILD_SETTINGS_TYPE, true);
+			guildSettings.SaveSettings();
+			await guildSettings.PostDeserialize(guild).CAF();
+			return guildSettings;
 		}
 	}
 }

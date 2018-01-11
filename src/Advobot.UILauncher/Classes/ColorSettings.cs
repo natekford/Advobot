@@ -164,7 +164,7 @@ namespace Advobot.UILauncher.Classes
 				}
 				catch (Exception e)
 				{
-					ConsoleUtils.ExceptionToConsole(e);
+					e.Write();
 				}
 			}
 			else
