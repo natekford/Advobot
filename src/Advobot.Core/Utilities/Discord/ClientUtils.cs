@@ -67,7 +67,7 @@ namespace Advobot.Core.Utilities
 			}
 			else
 			{
-				throw new ArgumentException("Invalid client provided.");
+				throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 
@@ -96,7 +96,7 @@ namespace Advobot.Core.Utilities
 			}
 			else
 			{
-				throw new ArgumentException("Invalid client provided.");
+				throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 		/// <summary>
@@ -117,7 +117,7 @@ namespace Advobot.Core.Utilities
 			}
 			else
 			{
-				throw new ArgumentException("Invalid client provided.");
+				throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 		/// <summary>
@@ -138,7 +138,7 @@ namespace Advobot.Core.Utilities
 			}
 			else
 			{
-				throw new ArgumentException("Invalid client provided.");
+				throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 		/// <summary>
@@ -160,7 +160,7 @@ namespace Advobot.Core.Utilities
 			}
 			else
 			{
-				throw new ArgumentException("Invalid client provided.");
+				throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 
@@ -193,7 +193,7 @@ namespace Advobot.Core.Utilities
 			}
 			else
 			{
-				throw new ArgumentException("Invalid client provided.");
+				throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 		/// <summary>

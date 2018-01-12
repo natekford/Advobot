@@ -15,7 +15,7 @@ namespace Advobot.UILauncher.Windows
 	{
 		private string[] _Files = new[]
 		{
-			Constants.GUILD_SETTINGS_LOCATION.Split('.')[0],
+			Constants.GUILD_SETTINGS_LOC.Split('.')[0],
 		};
 
 		public FileSearchWindow() : this(null) { }

@@ -92,7 +92,7 @@ namespace Advobot.Core.Services.Log
 			}
 			else
 			{
-				throw new ArgumentException("Invalid client supplied.");
+				throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 

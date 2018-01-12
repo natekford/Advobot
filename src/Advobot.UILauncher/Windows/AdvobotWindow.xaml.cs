@@ -152,7 +152,7 @@ namespace Advobot.UILauncher.Windows
 			}
 			else
 			{
-				throw new ArgumentException($"Invalid {nameof(IDiscordClient)} passed into {nameof(AddTrustedUser)}");
+				throw new ArgumentException($"invalid passed into {nameof(AddTrustedUser)}", "client");
 			}
 
 			TrustedUsersBox.Text = null;
@@ -283,7 +283,7 @@ namespace Advobot.UILauncher.Windows
 				}
 				default:
 				{
-					throw new ArgumentException($"Invalid modal type supplied: {m}");
+					throw new ArgumentException("invalid type supplied", nameof(m));
 				}
 			}
 		}

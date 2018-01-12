@@ -19,7 +19,7 @@ namespace Advobot.Core.Classes.Attributes
 		{
 			if (numbers.Length > 10)
 			{
-				throw new ArgumentException($"Don't input more than 10 numbers in a {nameof(VerifyNumberAttribute)}.");
+				throw new ArgumentException("don't input more than 10 numbers", nameof(numbers));
 			}
 
 			ValidNumbers = numbers.OrderBy(x => x).ToImmutableList();

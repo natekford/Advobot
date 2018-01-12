@@ -174,7 +174,7 @@ namespace Advobot.Core.Utilities
 				}
 				default:
 				{
-					throw new ArgumentException("Invalid ActionType provided.");
+					throw new ArgumentException("invalid value provided", nameof(permValue));
 				}
 			}
 

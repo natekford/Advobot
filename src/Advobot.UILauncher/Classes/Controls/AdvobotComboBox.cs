@@ -45,7 +45,7 @@ namespace Advobot.UILauncher.Classes.Controls
 			var enumType = (Type)e.NewValue;
 
 			var source = new List<object>();
-			foreach (var enumVal in Enum.GetValues(enumType) ?? throw new ArgumentException($"{nameof(enumType)} must be an enum."))
+			foreach (var enumVal in Enum.GetValues(enumType) ?? throw new ArgumentException("must be an enum.", nameof(enumType)))
 			{
 				source.Add(AdvobotTextBox.CreateComboBoxItem(Enum.GetName(enumType, enumVal), enumVal));
 			}

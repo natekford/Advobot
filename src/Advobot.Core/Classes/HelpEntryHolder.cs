@@ -36,7 +36,7 @@ namespace Advobot.Core.Classes
 				var innerMostNameSpace = t.Namespace.Substring(t.Namespace.LastIndexOf('.') + 1);
 				if (!Enum.TryParse(innerMostNameSpace, true, out CommandCategory category))
 				{
-					throw new ArgumentException($"{innerMostNameSpace} is not currently in the CommandCategory enum.");
+					throw new ArgumentException($"is not currently in the {nameof(CommandCategory)} enum", innerMostNameSpace);
 				}
 				//Nested commands don't need to be added since they're added under the class they're nested in
 				else if (t.IsNested)
@@ -76,21 +76,21 @@ namespace Advobot.Core.Classes
 			var similarCmds = alreadyUsed.Where(x => x.Name.CaseInsEquals(name) || (x.Aliases != null && aliases != null && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any()));
 			if (similarCmds.Any())
 			{
-				throw new ArgumentException($"The following commands have conflicts: {String.Join(" + ", similarCmds.Select(x => x.Name))} + {name}");
+				throw new InvalidOperationException($"The following commands have conflicts: {String.Join(" + ", similarCmds.Select(x => x.Name))} + {name}");
 			}
 		}
 		private void VerifyDefaultValueEnabledAttributeExists(Type classType)
 		{
 			if (classType.GetCustomAttribute<DefaultEnabledAttribute>() == null)
 			{
-				throw new ArgumentException($"{classType.Name} does not have a default enabled value set.");
+				throw new InvalidOperationException($"{classType.FullName} does not have a default enabled value set.");
 			}
 		}
 		private void VerifyClassIsPublic(Type classType)
 		{
 			if (classType.IsNotPublic)
 			{
-				throw new ArgumentException($"{classType.Name} is not public and commands will not execute from it.");
+				throw new InvalidOperationException($"{classType.FullName} is not public and commands will not execute from it.");
 			}
 		}
 		private void VerifyAllCommandsHaveCommandAttribute(Type classType)
@@ -98,7 +98,7 @@ namespace Advobot.Core.Classes
 			var methods = classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
 			if (methods.Any(x => x.GetCustomAttribute<CommandAttribute>() == null))
 			{
-				throw new ArgumentException($"{classType.Name} has a command missing the command attribute.");
+				throw new InvalidOperationException($"{classType.FullName} has a command missing the command attribute.");
 			}
 		}
 		private void VerifyAllAliasesAreDifferent(Type classType)
@@ -115,7 +115,7 @@ namespace Advobot.Core.Classes
 					var intersected = both[i].Intersect(both[j], StringComparer.OrdinalIgnoreCase);
 					if (intersected.Any())
 					{
-						throw new ArgumentException($"The following aliases in {classType.Name} have conflicts: {String.Join(" + ", intersected)}");
+						throw new InvalidOperationException($"The following aliases in {classType.FullName} have conflicts: {String.Join(" + ", intersected)}");
 					}
 				}
 			}
@@ -124,7 +124,7 @@ namespace Advobot.Core.Classes
 		{
 			if (classType.GetCustomAttribute<TopLevelShortAliasAttribute>() == null)
 			{
-				throw new ArgumentException($"The class {classType.Name} needs to have the {nameof(TopLevelShortAliasAttribute)} attribute.");
+				throw new InvalidOperationException($"The class {classType.FullName} needs to have the {nameof(TopLevelShortAliasAttribute)} attribute.");
 			}
 		}
 
@@ -172,7 +172,7 @@ namespace Advobot.Core.Classes
 			{
 				if (String.IsNullOrWhiteSpace(name))
 				{
-					throw new ArgumentException("Invalid name.");
+					throw new ArgumentException("cant be null or whitespace", nameof(name));
 				}
 
 				Name = name;

@@ -114,11 +114,8 @@ namespace Advobot.UILauncher.Classes
 		{
 			foreach (var name in names)
 			{
-				var highlighting = HighlightingManager.Instance.GetDefinition(name);
-				if (highlighting is null)
-				{
-					throw new ArgumentException($"{name} is not a valid highlighting.");
-				}
+				var highlighting = HighlightingManager.Instance.GetDefinition(name)
+					?? throw new ArgumentException("not a valid highlighting.", name);
 
 				foreach (var namedColor in highlighting.NamedHighlightingColors)
 				{
@@ -139,7 +136,7 @@ namespace Advobot.UILauncher.Classes
 		/// Saves custom colors and the current theme.
 		/// </summary>
 		public void SaveSettings()
-			=> IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION), IOUtils.Serialize(this));
+			=> IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC), IOUtils.Serialize(this));
 
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
 			=> typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
@@ -151,7 +148,7 @@ namespace Advobot.UILauncher.Classes
 		public static ColorSettings LoadUISettings()
 		{
 			ColorSettings UISettings = null;
-			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
+			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC);
 			if (fileInfo.Exists)
 			{
 				try

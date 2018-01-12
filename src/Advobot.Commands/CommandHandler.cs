@@ -63,7 +63,7 @@ namespace Advobot.Commands
 			}
 			else
 			{
-				throw new ArgumentException($"Invalid client supplied. Must be {nameof(DiscordSocketClient)} or {nameof(DiscordShardedClient)}.");
+				throw new ArgumentException("invalid type", nameof(_Client));
 			}
 
 			return _Client;

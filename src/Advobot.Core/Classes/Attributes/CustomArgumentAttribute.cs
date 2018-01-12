@@ -6,7 +6,7 @@ namespace Advobot.Core.Classes.Attributes
 	/// Only use on primitives (nullable allowed) or enums.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
-	public class CustomArgumentAttribute : Attribute
+	public class NamedArgumentAttribute : Attribute
 	{
 		/// <summary>
 		/// Specifies the acceptable amount of objects in the params array.
@@ -17,7 +17,7 @@ namespace Advobot.Core.Classes.Attributes
 		/// <paramref name="length"/>is used for params arguments.
 		/// </summary>
 		/// <param name="length"></param>
-		public CustomArgumentAttribute(int length = 0)
+		public NamedArgumentAttribute(int length = 0)
 		{
 			Length = length;
 		}

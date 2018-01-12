@@ -64,7 +64,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		{
 			if (!ElementUtils.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
 			{
-				throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
+				throw new ArgumentException("unable to get a parent", nameof(AdvobotWindow));
 			}
 			new FileViewingWindow(window, this).ShowDialog();
 		}
@@ -78,7 +78,7 @@ namespace Advobot.UILauncher.Classes.Controls
 					{
 						if (!ElementUtils.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
 						{
-							throw new ArgumentException($"Unable to get a parent {nameof(AdvobotWindow)}.");
+							throw new ArgumentException("unable to get a parent", nameof(AdvobotWindow));
 						}
 
 						_FI.CopyTo(Path.Combine(dialog.FileName, _FI.Name), true);

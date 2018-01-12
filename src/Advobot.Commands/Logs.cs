@@ -36,7 +36,7 @@ namespace Advobot.Commands.Logs
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public async Task Disable(LogChannelType logChannelType)
 		{
-			if (!Context.GuildSettings.RemoveLogChannel(logChannelType))
+			if (!Context.GuildSettings.SetLogChannel(logChannelType, null))
 			{
 				var error = new ErrorReason($"The {logChannelType.EnumName().ToLower()} log is already off.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();

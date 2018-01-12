@@ -6,8 +6,8 @@ namespace Advobot.Core.Classes.Attributes
 	/// Use on the constructor intended to be used by custom arguments.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Constructor)]
-	public class CustomArgumentConstructorAttribute : Attribute
+	public class NamedArgumentConstructorAttribute : Attribute
 	{
-		public CustomArgumentConstructorAttribute() { }
+		public NamedArgumentConstructorAttribute() { }
 	}
 }

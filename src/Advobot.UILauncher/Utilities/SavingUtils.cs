@@ -45,7 +45,7 @@ namespace Advobot.UILauncher.Utilities
 			{
 				return ToolTipReason.InvalidFilePath;
 			}
-			else if (fi.Name == Constants.GUILD_SETTINGS_LOCATION)
+			else if (fi.Name == Constants.GUILD_SETTINGS_LOC)
 			{
 				//Make sure the guild info stays valid
 				try
@@ -182,8 +182,7 @@ namespace Advobot.UILauncher.Utilities
 			}
 			else
 			{
-				var name = ele.Name ?? ele.GetType().Name;
-				throw new ArgumentException($"Invalid object provided when attempting to save settings for a {name}.");
+				throw new ArgumentException("invalid object when attempting to save settings", ele.Name ?? ele.GetType().Name);
 			}
 
 			var field = typeof(IBotSettings).GetProperty(setting.EnumName());

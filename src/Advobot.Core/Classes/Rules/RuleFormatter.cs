@@ -40,13 +40,14 @@ namespace Advobot.Core.Classes.Rules
 		public RuleFormatOption Options;
 		public char CharAfterNumbers;
 
-		[CustomArgumentConstructor]
+		public RuleFormatter() : this(default, default, default, '.') { }
+		[NamedArgumentConstructor]
 		public RuleFormatter(
-			[CustomArgument] RuleFormat format = default,
-			[CustomArgument] MarkDownFormat titleFormat = default,
-			[CustomArgument] MarkDownFormat ruleFormat = default,
-			[CustomArgument] char charAfterNumbers = '.',
-			[CustomArgument(10)] params RuleFormatOption[] formatOptions)
+			[NamedArgument] RuleFormat format = default,
+			[NamedArgument] MarkDownFormat titleFormat = default,
+			[NamedArgument] MarkDownFormat ruleFormat = default,
+			[NamedArgument] char charAfterNumbers = '.',
+			[NamedArgument(10)] params RuleFormatOption[] formatOptions)
 		{
 			Format = format == default ? RuleFormat.Numbers : format;
 			TitleMarkDownFormat = titleFormat;

@@ -13,10 +13,10 @@ namespace Advobot.Core.Classes.Attributes
 
 		private static string[] Shorten(string name, string[] otherAliases)
 		{
-			var initialism = new InitialismHolder(name, otherAliases, false);
+			var initialism = new Initialism(name, otherAliases, false);
 			if (String.IsNullOrWhiteSpace(initialism.ToString()))
 			{
-				throw new ArgumentException("Invalid alias provided. Must have at least one capital letter.");
+				throw new ArgumentException("must have at least one capital letter", nameof(name));
 			}
 
 			return initialism.Aliases;

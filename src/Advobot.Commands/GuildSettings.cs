@@ -539,7 +539,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command]
 		public async Task Command()
 		{
-			var file = IOUtils.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+			var file = IOUtils.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOC);
 			if (!file.Exists)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The guild settings file does not exist.")).CAF();

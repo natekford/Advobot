@@ -19,20 +19,21 @@ namespace Advobot.Core.Classes
 
 		public EmbedWrapper Embed { get; }
 
-		[CustomArgumentConstructor]
+		public CustomEmbed() : this(null, null, null, null, null, null, null, null, null, null, null) { }
+		[NamedArgumentConstructor]
 		public CustomEmbed(
-			[CustomArgument] string title,
-			[CustomArgument] string description,
-			[CustomArgument] string imageUrl,
-			[CustomArgument] string url,
-			[CustomArgument] string thumbUrl,
-			[CustomArgument] string color,
-			[CustomArgument] string authorName,
-			[CustomArgument] string authorIconUrl,
-			[CustomArgument] string authorUrl,
-			[CustomArgument] string footer,
-			[CustomArgument] string footerIconUrl,
-			[CustomArgument(25)] params string[] fieldInfo)
+			[NamedArgument] string title,
+			[NamedArgument] string description,
+			[NamedArgument] string imageUrl,
+			[NamedArgument] string url,
+			[NamedArgument] string thumbUrl,
+			[NamedArgument] string color,
+			[NamedArgument] string authorName,
+			[NamedArgument] string authorIconUrl,
+			[NamedArgument] string authorUrl,
+			[NamedArgument] string footer,
+			[NamedArgument] string footerIconUrl,
+			[NamedArgument(25)] params string[] fieldInfo)
 		{
 			Embed = new EmbedWrapper(title, description, ColorTypeReader.GetColor(color), imageUrl, url, thumbUrl)
 				.AddAuthor(authorName, authorIconUrl, authorUrl)

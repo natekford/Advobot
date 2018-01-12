@@ -22,17 +22,18 @@ namespace Advobot.Core.Classes
 		private bool _NeverExpires;
 		private bool _NoMaxUses;
 
-		[CustomArgumentConstructor]
+		public MultipleInviteGatherer() : this(null, null, null, default, null, default, false, false, false) { }
+		[NamedArgumentConstructor]
 		public MultipleInviteGatherer(
-			[CustomArgument] ulong? userId,
-			[CustomArgument] ulong? channelId,
-			[CustomArgument] uint? uses,
-			[CustomArgument] CountTarget usesCountTarget,
-			[CustomArgument] uint? age,
-			[CustomArgument] CountTarget ageCountTarget,
-			[CustomArgument] bool isTemporary,
-			[CustomArgument] bool neverExpires,
-			[CustomArgument] bool noMaxUses)
+			[NamedArgument] ulong? userId,
+			[NamedArgument] ulong? channelId,
+			[NamedArgument] uint? uses,
+			[NamedArgument] CountTarget usesCountTarget,
+			[NamedArgument] uint? age,
+			[NamedArgument] CountTarget ageCountTarget,
+			[NamedArgument] bool isTemporary,
+			[NamedArgument] bool neverExpires,
+			[NamedArgument] bool noMaxUses)
 		{
 			_UserId = userId;
 			_ChannelId = channelId;

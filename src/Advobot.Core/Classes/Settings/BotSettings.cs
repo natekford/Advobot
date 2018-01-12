@@ -40,10 +40,11 @@ namespace Advobot.Core.Classes.Settings
 		/// </summary>
 		/// <returns></returns>
 		public static PropertyInfo[] GetNonEnumerableSettings() => GetSettings()
-			.Where(x => false
-			|| x.PropertyType == typeof(string)
-			|| !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
-			.ToArray();
+			.Where(x =>
+			{
+				return x.PropertyType == typeof(string)
+				|| !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+			}).ToArray();
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
@@ -54,7 +55,7 @@ namespace Advobot.Core.Classes.Settings
 			SaveSettings();
 		}
 		public void SaveSettings()
-			=> IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), IOUtils.Serialize(this));
+			=> IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
 		public void TogglePause() => Pause = !Pause;
 		public int GetMaxAmountOfUsersToGather(bool bypass)
 			=> bypass ? int.MaxValue : MaxUserGatherCount;

@@ -32,7 +32,7 @@ namespace Advobot.Core.Utilities
 			}
 			else
 			{
-				throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
+				throw new ArgumentException("invalid type", nameof(obj));
 			}
 		}
 		/// <summary>
@@ -114,7 +114,7 @@ namespace Advobot.Core.Utilities
 			}
 			else
 			{
-				throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
+				throw new ArgumentException("invalid type", nameof(obj));
 			}
 		}
 		/// <summary>

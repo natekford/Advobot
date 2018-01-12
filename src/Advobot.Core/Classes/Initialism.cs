@@ -10,7 +10,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Creates an initialism out of the passed in name. Keeps track of the parts and original.
 	/// </summary>
-	public class InitialismHolder
+	public class Initialism
 	{
 		private static Dictionary<string, string> _ShortenedPhrases = new Dictionary<string, string>
 		{
@@ -19,11 +19,11 @@ namespace Advobot.Core.Classes
 
 		public string Original { get; private set; }
 		public ImmutableList<string> Parts { get; private set; }
-		public string Initialism { get; private set; }
+		public string Edited { get; private set; }
 		private string[] _OtherAliases;
-		public string[] Aliases => _OtherAliases.Concat(new[] { Initialism }).ToArray();
+		public string[] Aliases => _OtherAliases.Concat(new[] { Edited }).ToArray();
 
-		public InitialismHolder(string name, string[] otherAliases, bool topLevel)
+		public Initialism(string name, string[] otherAliases, bool topLevel)
 		{
 			var edittingName = name;
 			var parts = new List<StringBuilder>();
@@ -58,7 +58,7 @@ namespace Advobot.Core.Classes
 
 			Original = name;
 			Parts = parts.Select(x => x.ToString()).ToImmutableList();
-			Initialism = initialism.ToString().ToLower();
+			Edited = initialism.ToString().ToLower();
 			_OtherAliases = otherAliases;
 		}
 
@@ -71,9 +71,9 @@ namespace Advobot.Core.Classes
 				var l = i == index ? length : 1;
 				newInitialism.Append(p.Substring(0, l));
 			}
-			Initialism = newInitialism.ToString().ToLower();
+			Edited = newInitialism.ToString().ToLower();
 		}
 
-		public override string ToString() => Initialism;
+		public override string ToString() => Edited;
 	}
 }

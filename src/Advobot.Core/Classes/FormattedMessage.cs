@@ -7,6 +7,7 @@ using System.Text;
 
 namespace Advobot.Core.Classes
 {
+	//TODO: remove and put back into static method
 	public struct FormattedMessage
 	{
 		public readonly IMessage Message;

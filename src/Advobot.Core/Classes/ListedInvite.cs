@@ -12,7 +12,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Lists an invite for use in <see cref="IInviteListService"/>.
 	/// </summary>
-	public class ListedInvite : ISetting
+	public class ListedInvite : ISetting, IPostDeserialize
 	{
 		[JsonProperty]
 		public string Code { get; private set; }
@@ -33,7 +33,7 @@ namespace Advobot.Core.Classes
 			LastBumped = DateTime.UtcNow;
 			Code = invite.Code;
 			Url = "https://www.discord.gg/" + Code;
-			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList();
+			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList().AsReadOnly();
 		}
 		public ListedInvite(SocketGuild guild, IInvite invite, IEnumerable<string> keywords) : this(invite, keywords)
 		{
@@ -73,8 +73,7 @@ namespace Advobot.Core.Classes
 			HasGlobalEmotes = Guild.HasGlobalEmotes();
 		}
 
-		public override string ToString()
-			=> String.IsNullOrWhiteSpace(Code)
+		public override string ToString() => String.IsNullOrWhiteSpace(Code)
 			? null
 			: $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", Keywords)}`" : "")}";
 		public string ToString(SocketGuild guild) => ToString();

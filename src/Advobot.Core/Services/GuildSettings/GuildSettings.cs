@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Discord.WebSocket;
 
 namespace Advobot.Core.Services.GuildSettings
 {
@@ -22,7 +23,7 @@ namespace Advobot.Core.Services.GuildSettings
 			}
 			return Task.FromResult(0);
 		}
-		public async Task<IGuildSettings> GetOrCreateSettings(IGuild guild)
+		public Task<IGuildSettings> GetOrCreateSettings(IGuild guild)
 		{
 			if (guild == null)
 			{
@@ -30,11 +31,11 @@ namespace Advobot.Core.Services.GuildSettings
 			}
 
 			if (!_GuildSettings.TryGetValue(guild.Id, out var settings) &&
-				!_GuildSettings.TryAdd(guild.Id, settings = await ServiceProviderCreationUtils.CreateGuildSettingsAsync(guild).CAF()))
+				!_GuildSettings.TryAdd(guild.Id, settings = ServiceProviderCreationUtils.CreateGuildSettingsAsync(guild as SocketGuild)))
 			{
 				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
 			}
-			return settings;
+			return Task.FromResult(settings);
 		}
 		public IEnumerable<IGuildSettings> GetAllSettings() => _GuildSettings.Values;
 		public bool TryGetSettings(ulong guildId, out IGuildSettings settings) => _GuildSettings.TryGetValue(guildId, out settings);

@@ -9,14 +9,13 @@ using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Holds guild settings and some readonly information.
 	/// </summary>
-	public interface IGuildSettings
+	public interface IGuildSettings : IPostDeserialize
 	{
 		//Saved settings
 		GuildNotification WelcomeMessage { get; set; }
@@ -78,11 +77,6 @@ namespace Advobot.Core.Interfaces
 		/// <param name="channel"></param>
 		bool SetLogChannel(LogChannelType type, ITextChannel channel);
 		/// <summary>
-		/// Removes the specified log type's channel.
-		/// </summary>
-		/// <param name="logChannelType"></param>
-		bool RemoveLogChannel(LogChannelType type);
-		/// <summary>
 		/// Returns the prefix from the guild settings or bot settings.
 		/// </summary>
 		/// <param name="botSettings"></param>
@@ -93,13 +87,6 @@ namespace Advobot.Core.Interfaces
 		/// Saves the settings to a JSON file.
 		/// </summary>
 		void SaveSettings();
-		/// <summary>
-		/// Removes some potential null values and sets channels/roles for some settings.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		Task<IGuildSettings> PostDeserialize(IGuild guild);
-
 		/// <summary>
 		/// Returns a string of all the guild's settings in human readable format.
 		/// </summary>

@@ -1,12 +1,11 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.ComponentModel;
 
 namespace Advobot.Core.Classes
 {
@@ -14,16 +13,16 @@ namespace Advobot.Core.Classes
 	/// Allows named arguments to be used via an overly complex system of attributes and reflection.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class NamedArguments<T> where T : class
+	public class NamedArguments<T> where T : new()
 	{
-		public static ImmutableList<string> ArgNames { get; }
+		public static ImmutableArray<string> ArgNames { get; }
 
 		private static ConstructorInfo _Constructor;
 		private static bool _HasParams;
 		private static int _ParamsLength;
 		private static string _ParamsName;
 
-		private Dictionary<string, string> _Args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		private Dictionary<string, string> _Args = ArgNames.ToDictionary(x => x, x => default(string), StringComparer.OrdinalIgnoreCase);
 		private List<string> _ParamArgs = new List<string>();
 
 		/// <summary>
@@ -32,13 +31,13 @@ namespace Advobot.Core.Classes
 		static NamedArguments()
 		{
 			_Constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance)
-				.Single(x => x.GetCustomAttribute<CustomArgumentConstructorAttribute>() != null);
+				.Single(x => x.GetCustomAttribute<NamedArgumentConstructorAttribute>() != null);
 
 			//Make sure no invalid types have CustomArgumentAttribute
 			var argNames = new List<string>();
 			foreach (var p in _Constructor.GetParameters())
 			{
-				var customArgumentAttr = p.GetCustomAttribute<CustomArgumentAttribute>();
+				var customArgumentAttr = p.GetCustomAttribute<NamedArgumentAttribute>();
 				if (customArgumentAttr == null)
 				{
 					continue;
@@ -51,7 +50,11 @@ namespace Advobot.Core.Classes
 				//Only allow primitives, enums, and string
 				if (!t.IsPrimitive && !t.IsEnum && t != typeof(string))
 				{
-					throw new ArgumentException($"Do not use {nameof(CustomArgumentAttribute)} on anything other than primitives, enums, and strings.");
+					throw new ArgumentException("don't use on anything other than primitives/enums/strings", nameof(NamedArgumentAttribute));
+				}
+				else if (argNames.CaseInsContains(p.Name))
+				{
+					throw new InvalidOperationException("Argument names are case insensitive, so don't have duplicates.");
 				}
 				else if (p.GetCustomAttribute<ParamArrayAttribute>() != null)
 				{
@@ -63,7 +66,7 @@ namespace Advobot.Core.Classes
 				//Let params name fall down to here so that it can be shown when ArgNames gets accessed by UsageGenerator
 				argNames.Add(p.Name);
 			}
-			ArgNames = argNames.ToImmutableList();
+			ArgNames = argNames.ToImmutableArray();
 		}
 
 		/// <summary>
@@ -73,8 +76,6 @@ namespace Advobot.Core.Classes
 		/// <param name="input"></param>
 		public NamedArguments(string input)
 		{
-			ArgNames.ForEach(x => _Args.Add(x, null));
-
 			//Split by spaces except when in quotes
 			var split = input.Split('"').Select((x, index) =>
 			{
@@ -92,28 +93,29 @@ namespace Advobot.Core.Classes
 					: (Key: null, Value: null);
 			}).Where(x => x.Key != null && x.Value != null);
 
-			foreach (var arg in argKvps)
+			foreach (var argKvp in argKvps)
 			{
 				//If the params name is the arg name then add to params
-				if (_HasParams && _ParamsName.CaseInsEquals(arg.Key))
+				if (_HasParams && _ParamsName.CaseInsEquals(argKvp.Key))
 				{
 					//Keep this inside here so that if there are too many
 					//params args it won't potentially go into the else if
 					if (_ParamArgs.Count() < _ParamsLength)
 					{
-						_ParamArgs.Add(arg.Value);
+						_ParamArgs.Add(argKvp.Value);
 					}
 				}
 				//If the args dictionary has the value as a key, set it.
-				else if (_Args.ContainsKey(arg.Key))
+				else if (_Args.ContainsKey(argKvp.Key))
 				{
-					_Args[arg.Key] = arg.Value;
+					_Args[argKvp.Key] = argKvp.Value;
 				}
 			}
 		}
 
 		/// <summary>
-		/// Creates whatever <see cref="T"/> is with the gathered arguments. 
+		/// Creates whatever <see cref="T"/> is with the gathered arguments.
+		/// <paramref name="additionalArgs"/> 
 		/// </summary>
 		/// <param name="additionalArgs"></param>
 		/// <returns></returns>
@@ -133,10 +135,19 @@ namespace Advobot.Core.Classes
 					var convertedArgs = _ParamArgs.Select(x => ConvertValue(t, x)).ToArray();
 					//Have to use this method otherwise create instance throws exception
 					//because this will send object[] instead of T[] when empty
-					return convertedArgs.Any() ? convertedArgs : Array.CreateInstance(t, 0);
+					if (!convertedArgs.Any())
+					{
+						return Array.CreateInstance(t, 0);
+					}
+
+					//Have to use create instance here so the array will be the correct type
+					//Wish there was a better way to cast the array but not sure
+					var correctTypeArray = Array.CreateInstance(t, convertedArgs.Length);
+					Array.Copy(convertedArgs, correctTypeArray, convertedArgs.Length);
+					return correctTypeArray;
 				}
 				//Checking against the attribute again in case arguments have duplicate names
-				else if (p.GetCustomAttribute<CustomArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))
+				else if (p.GetCustomAttribute<NamedArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))
 				{
 					return ConvertValue(t, arg);
 				}
@@ -150,37 +161,37 @@ namespace Advobot.Core.Classes
 						return value;
 					}
 				}
-				return CreateInstance(t);
+				return CreateDefault(t);
 			}).ToArray();
 
 			try
 			{
-				return (T)Activator.CreateInstance(typeof(T), parameters);
+				return (T)_Constructor.Invoke(parameters);
 			}
 			catch (MissingMethodException e)
 			{
 				e.Write();
-				return (T)CreateInstance(typeof(T));
+				return new T();
 			}
 		}
 		/// <summary>
 		/// Converts the string into the given <paramref name="type"/>.
+		/// Null or whitespace strings will return default values.
 		/// </summary>
 		/// <param name="type"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static object ConvertValue(Type type, string value)
 		{
-			var t = Nullable.GetUnderlyingType(type) ?? type;
-
 			if (String.IsNullOrWhiteSpace(value))
 			{
-				//If the type is nullable then 
-				return Nullable.GetUnderlyingType(type) == null ? CreateInstance(type) : null;
+				//If the type is nullable and value is null then allowed to return null, otherwise try to make not null 
+				return Nullable.GetUnderlyingType(type) != null ? null : CreateDefault(type);
 			}
-			//If the type is an enum see if it's a valid name
-			//If invalid then return default
-			else if (t.IsEnum)
+
+			var t = Nullable.GetUnderlyingType(type) ?? type;
+			//If the type is an enum see if it's a valid name. If invalid then return default
+			if (t.IsEnum)
 			{
 				return ConvertEnum(t, value);
 			}
@@ -189,15 +200,30 @@ namespace Advobot.Core.Classes
 			var converter = TypeDescriptor.GetConverter(t);
 			//I think ConvertFromInvariantString works with commas, but only if the computer's culture is set to one that uses it. 
 			//Can't really test that easily because I CBA to switch my computer's language.
-			return converter != null && converter.IsValid(value) ? converter.ConvertFromInvariantString(value) : CreateInstance(t);
+			if (converter != null && converter.IsValid(value))
+			{
+				return converter.ConvertFromInvariantString(value);
+			}
+
+			//If there's only one constructor that accepts strings, use that one
+			//Method signatures mean there will only be one constructor that accepts 1 string if it does exist
+			var constructor = t.GetConstructors().SingleOrDefault(x =>
+			{
+				var parameters = x.GetParameters();
+				return parameters.Length == 1 && parameters[0].ParameterType == typeof(string);
+			});
+			return constructor != null ? constructor.Invoke(new object[] { value }) : CreateDefault(t);
 		}
 		/// <summary>
 		/// Value types and classes with parameterless constructors can be created with no parameters.
 		/// </summary>
-		/// <param name="t"></param>
+		/// <param name="type"></param>
 		/// <returns></returns>
-		public static object CreateInstance(Type t)
-			=> t.IsValueType || t.GetConstructors().Any(x => !x.GetParameters().Any()) ? Activator.CreateInstance(t) : null;
+		public static object CreateDefault(Type type, bool createNonValueTypeParameterless = false)
+		{
+			var valid = type.IsValueType || (createNonValueTypeParameterless && type.GetConstructors().Any(x => !x.GetParameters().Any()));
+			return valid ? Activator.CreateInstance(type) : null;
+		}
 		/// <summary>
 		/// Converts a string to an enum value.
 		/// </summary>

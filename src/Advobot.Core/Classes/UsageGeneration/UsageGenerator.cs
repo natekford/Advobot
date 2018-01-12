@@ -47,7 +47,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 		{
 			if (classType.IsNested)
 			{
-				throw new ArgumentException("Only use this method on a non nested class.");
+				throw new ArgumentException("only use this method on a non nested class", nameof(classType));
 			}
 
 			var classes = new List<ClassDetails>();

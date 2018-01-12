@@ -32,7 +32,7 @@ namespace Advobot.Core.Classes.TypeReaders
 		{
 			if (!_Settings.TryGetValue(GetType().Name, out var dict))
 			{
-				throw new ArgumentException($"{GetType().Name} is not in the settings dictionary.");
+				throw new ArgumentException("not in the settings dictionary", GetType().FullName);
 			}
 			else if (dict.TryGetValue(input, out PropertyInfo value))
 			{

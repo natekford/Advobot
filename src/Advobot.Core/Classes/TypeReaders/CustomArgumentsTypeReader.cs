@@ -7,7 +7,7 @@ namespace Advobot.Core.Classes.TypeReaders
 	/// <summary>
 	/// Returns custom arguments.
 	/// </summary>
-	public sealed class CustomArgumentsTypeReader<T> : TypeReader where T : class
+	public sealed class CustomArgumentsTypeReader<T> : TypeReader where T : new()
 	{
 		/// <summary>
 		/// Creates custom arguments from the given input.

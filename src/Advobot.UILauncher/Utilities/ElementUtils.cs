@@ -33,18 +33,22 @@ namespace Advobot.UILauncher.Utilities
 		/// <exception cref="ArgumentException">If <paramref name="size"/> is less than zero.</exception>
 		public static void SetFontResizeProperty(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			if (!(d is FrameworkElement element) || !(e.NewValue is double size))
+			if (!(d is FrameworkElement element))
 			{
-				throw new ArgumentException($"Invalid arguments. {nameof(d)} is not a FrameworkElement or {nameof(e.NewValue)} is not a double.");
+				throw new ArgumentException("is not a FrameworkElement", nameof(d));
+			}
+			if (!(e.NewValue is double size))
+			{
+				throw new ArgumentException("is not a double", nameof(e.NewValue));
 			}
 
 			if (!TryGetTopMostParent(element, out Grid parent, out int ancestorLevel))
 			{
-				throw new ArgumentException($"{element.Name} must be inside a grid if {nameof(IFontResizeValue.FontResizeValue)} is set.");
+				throw new ArgumentException($"must be inside a grid if {nameof(IFontResizeValue.FontResizeValue)} is set", element.Name);
 			}
 			else if (size < 0)
 			{
-				throw new ArgumentException($"{nameof(size)} must be greater than or equal to 0.");
+				throw new ArgumentException("must be greater than or equal to 0", nameof(size));
 			}
 			else if (size == 0)
 			{

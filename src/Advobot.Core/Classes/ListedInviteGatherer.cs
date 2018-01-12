@@ -16,14 +16,15 @@ namespace Advobot.Core.Classes
 		private CountTarget _UserCountTarget;
 		private string[] _Keywords;
 
-		[CustomArgumentConstructor]
+		public ListedInviteGatherer() : this(null, null, false, null, default) { }
+		[NamedArgumentConstructor]
 		public ListedInviteGatherer(
-			[CustomArgument] string code,
-			[CustomArgument] string name,
-			[CustomArgument] bool hasGlobalEmotes,
-			[CustomArgument] uint? userCount, 
-			[CustomArgument] CountTarget userCountTarget,
-			[CustomArgument] params string[] keywords)
+			[NamedArgument] string code,
+			[NamedArgument] string name,
+			[NamedArgument] bool hasGlobalEmotes,
+			[NamedArgument] uint? userCount, 
+			[NamedArgument] CountTarget userCountTarget,
+			[NamedArgument] params string[] keywords)
 		{
 			_Code = code;
 			_Name = name;

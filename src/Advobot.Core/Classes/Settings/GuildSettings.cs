@@ -39,7 +39,7 @@ namespace Advobot.Core.Classes.Settings
 			{
 				case LogChannelType.Server:
 				{
-					if (_ServerLogId == channel.Id)
+					if (_ServerLogId == (channel?.Id ?? 0))
 					{
 						return false;
 					}
@@ -49,7 +49,7 @@ namespace Advobot.Core.Classes.Settings
 				}
 				case LogChannelType.Mod:
 				{
-					if (_ModLogId == channel.Id)
+					if (_ModLogId == (channel?.Id ?? 0))
 					{
 						return false;
 					}
@@ -59,7 +59,7 @@ namespace Advobot.Core.Classes.Settings
 				}
 				case LogChannelType.Image:
 				{
-					if (_ImageLogId == channel.Id)
+					if (_ImageLogId == (channel?.Id ?? 0))
 					{
 						return false;
 					}
@@ -69,64 +69,26 @@ namespace Advobot.Core.Classes.Settings
 				}
 				default:
 				{
-					throw new ArgumentException("Invalid channel type supplied.");
+					throw new ArgumentException("invalid type", nameof(channel));
 				}
 			}
-		}
-		public bool RemoveLogChannel(LogChannelType logChannelType)
-		{
-			switch (logChannelType)
-			{
-				case LogChannelType.Server:
-				{
-					if (_ServerLogId == 0)
-					{
-						return false;
-					}
-
-					ServerLog = null;
-					return true;
-				}
-				case LogChannelType.Mod:
-				{
-					if (_ModLogId == 0)
-					{
-						return false;
-					}
-
-					ModLog = null;
-					return true;
-				}
-				case LogChannelType.Image:
-				{
-					if (_ImageLogId == 0)
-					{
-						return false;
-					}
-
-					ImageLog = null;
-					return true;
-				}
-				default:
-				{
-					throw new ArgumentException("Invalid channel type supplied.");
-				}
-			}
-
 		}
 		public string GetPrefix(IBotSettings botSettings)
 			=> String.IsNullOrWhiteSpace(Prefix) ? botSettings.Prefix : Prefix;
 
 		public void SaveSettings()
 		{
-			if (Guild != null)
+			if (Guild == null)
 			{
-				IOUtils.OverWriteFile(IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOCATION), IOUtils.Serialize(this));
+				return;
 			}
+
+			IOUtils.OverWriteFile(IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOC), IOUtils.Serialize(this));
 		}
-		public async Task<IGuildSettings> PostDeserialize(IGuild guild)
+		//TODO: refactor this method and command settings
+		public void PostDeserialize(SocketGuild guild)
 		{
-			Guild = guild as SocketGuild;
+			Guild = guild;
 
 			//Add in the default values for commands that aren't set
 			var unsetCmds = Constants.HELP_ENTRIES.GetUnsetCommands(CommandSwitches.Select(x => x.Name));
@@ -136,7 +98,18 @@ namespace Advobot.Core.Classes.Settings
 			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			Invites.AddRange((await InviteUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
+			Task.Run(async () =>
+			{
+				var invites = await InviteUtils.GetInvitesAsync(guild).CAF();
+				var cached = invites.Select(x => new CachedInvite(x.Code, x.Uses));
+				lock (Invites)
+				{
+					Invites.AddRange(cached);
+				}
+#if DEBUG
+				ConsoleUtils.WriteLine($"Invites for {guild.Name} have been gotten.");
+#endif
+			});
 
 			if (_ListedInvite != null)
 			{
@@ -163,9 +136,7 @@ namespace Advobot.Core.Classes.Settings
 			}
 
 			Loaded = true;
-			return this;
 		}
-
 		public string Format()
 		{
 			var sb = new StringBuilder();

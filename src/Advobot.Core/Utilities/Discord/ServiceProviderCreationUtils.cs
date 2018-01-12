@@ -80,7 +80,7 @@ namespace Advobot.Core.Utilities
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()
 				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
-				.Any(c => c.GetCustomAttribute<CustomArgumentConstructorAttribute>() != null));
+				.Any(c => c.GetCustomAttribute<NamedArgumentConstructorAttribute>() != null));
 			foreach (var c in customArgumentsClasses)
 			{
 				var t = typeof(NamedArguments<>).MakeGenericType(c);
@@ -113,7 +113,7 @@ namespace Advobot.Core.Utilities
 				throw new Exception($"The fields {String.Join(", ", fields.Select(x => x.Name))} are not set in {nameof(BotSetting)}.");
 			}
 
-			var path = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
+			var path = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
 			var botSettings = IOUtils.DeserializeFromFile<IBotSettings>(path, Constants.BOT_SETTINGS_TYPE, true);
 			botSettings.SaveSettings();
 			return botSettings;
@@ -124,12 +124,12 @@ namespace Advobot.Core.Utilities
 		/// <param name="guildSettingsType"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal static async Task<IGuildSettings> CreateGuildSettingsAsync(IGuild guild)
+		internal static IGuildSettings CreateGuildSettingsAsync(SocketGuild guild)
 		{
-			var path = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+			var path = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOC);
 			var guildSettings = IOUtils.DeserializeFromFile<IGuildSettings>(path, Constants.GUILD_SETTINGS_TYPE, true);
 			guildSettings.SaveSettings();
-			await guildSettings.PostDeserialize(guild).CAF();
+			guildSettings.PostDeserialize(guild);
 			return guildSettings;
 		}
 	}

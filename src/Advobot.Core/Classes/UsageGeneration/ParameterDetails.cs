@@ -123,7 +123,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 			{
 				if (!IsRemainder)
 				{
-					throw new ArgumentException($"{Type.Name} requires {nameof(RemainderAttribute)}.");
+					throw new ArgumentException($"requires {nameof(RemainderAttribute)}", Type.FullName);
 				}
 
 				var result = Type.GetProperty(nameof(NamedArguments<object>.ArgNames)).GetValue(null);

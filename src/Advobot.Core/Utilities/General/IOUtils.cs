@@ -160,7 +160,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="exeption"></param>
 		public static void LogUncaughtException(object exception)
 		{
-			var crashLogPath = GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOCATION);
+			var crashLogPath = GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOC);
 			CreateFile(crashLogPath);
 			//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
 			using (var writer = crashLogPath.AppendText())

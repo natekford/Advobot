@@ -14,7 +14,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Notification that gets sent whenever certain events happen depending on what <see cref="GuildNotificationType"/> is linked to this notification.
 	/// </summary>
-	public class GuildNotification : ISetting
+	public class GuildNotification : ISetting, IPostDeserialize
 	{
 		public const string USER_MENTION = "%USERMENTION%";
 		public const string USER_STRING = "%USER%";
@@ -47,12 +47,13 @@ namespace Advobot.Core.Classes
 				Embed = new EmbedWrapper(title, description, null, null, null, thumbUrl);
 			}
 		}
-		[CustomArgumentConstructor]
+		public GuildNotification() : this(null, null, null, null, 0) { }
+		[NamedArgumentConstructor]
 		public GuildNotification(
-			[CustomArgument] string content,
-			[CustomArgument] string title,
-			[CustomArgument] string description,
-			[CustomArgument] string thumbURL,
+			[NamedArgument] string content,
+			[NamedArgument] string title,
+			[NamedArgument] string description,
+			[NamedArgument] string thumbURL,
 			ITextChannel channel) : this(content, title, description, thumbURL, channel.Id)
 		{
 			Channel = channel;
