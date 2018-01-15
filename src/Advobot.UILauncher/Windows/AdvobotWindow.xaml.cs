@@ -46,13 +46,16 @@ namespace Advobot.UILauncher.Windows
 		}
 
 		private async Task EnableButtons()
-			=> await Dispatcher.InvokeAsync(() =>
+		{
+			await Dispatcher.InvokeAsync(() =>
 			{
 				ButtonMenu.IsEnabled = true;
 				OutputContextMenu.IsEnabled = true;
 			});
+		}
 		private async Task AddGuildToTreeView(SocketGuild guild)
-			=> await Dispatcher.InvokeAsync(() =>
+		{
+			await Dispatcher.InvokeAsync(() =>
 			{
 				//Make sure the guild isn't already in the treeview
 				var item = FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
@@ -66,10 +69,12 @@ namespace Advobot.UILauncher.Windows
 				FilesTreeView.Items.Add(new AdvobotTreeViewHeader(guild));
 				//Not sure why the two lines below have to be used instead of Items.Refresh
 				FilesTreeView.Items.SortDescriptions.Clear();
-				FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
+							FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
 			}, DispatcherPriority.Background);
+		}
 		private async Task RemoveGuildFromTreeView(SocketGuild guild)
-			=> await Dispatcher.InvokeAsync(() =>
+		{
+			await Dispatcher.InvokeAsync(() =>
 			{
 				//Just make the item invisible so if need be it can be made visible instead of having to recreate it.
 				var item = FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
@@ -78,6 +83,7 @@ namespace Advobot.UILauncher.Windows
 					item.Visibility = Visibility.Collapsed;
 				}
 			}, DispatcherPriority.Background);
+		}
 		private async Task Start()
 		{
 			Client.HeldObject = _LoginHandler.GetRequiredService<IDiscordClient>();
@@ -164,7 +170,10 @@ namespace Advobot.UILauncher.Windows
 			}
 		}
 		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
-			=> TrustedUsers.Items.Remove(TrustedUsers.SelectedItem);
+		{
+			TrustedUsers.Items.Remove(TrustedUsers.SelectedItem);
+		}
+
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			SavingUtils.SaveSettings(SettingsMenuDisplay, BotSettings.HeldObject);
@@ -244,7 +253,10 @@ namespace Advobot.UILauncher.Windows
 			}
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
-			=> ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(Output).GetReason());
+		{
+			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(Output).GetReason());
+		}
+
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
 			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))

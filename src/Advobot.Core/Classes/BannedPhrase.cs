@@ -31,7 +31,10 @@ namespace Advobot.Core.Classes.BannedPhrases
 		/// Sets <see cref="Punishment"/> to <paramref name="punishment"/>.
 		/// </summary>
 		/// <param name="punishment"></param>
-		public void ChangePunishment(PunishmentType punishment) => Punishment = punishment;
+		public void ChangePunishment(PunishmentType punishment)
+		{
+			Punishment = punishment;
+		}
 
 		/// <summary>
 		/// Deletes the message then checks if the user should be punished.
@@ -47,7 +50,7 @@ namespace Advobot.Core.Classes.BannedPhrases
 			var user = guildSettings.BannedPhraseUsers.SingleOrDefault(x => x.User.Id == message.Author.Id);
 			if (user == null)
 			{
-				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUserInformation(message.Author as IGuildUser));
+				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUserInfo(message.Author as IGuildUser));
 			}
 
 			var count = user.IncrementValue(Punishment);
@@ -57,8 +60,8 @@ namespace Advobot.Core.Classes.BannedPhrases
 				return;
 			}
 
-			var giver = new AutomaticPunishmentGiver(punishment.PunishmentTime, timers);
-			await giver.AutomaticallyPunishAsync(Punishment, user.User, punishment.GetRole(guildSettings.Guild)).CAF();
+			var giver = new PunishmentGiver(punishment.PunishmentTime, timers);
+			await giver.PunishAsync(Punishment, user.User, punishment.GetRole(guildSettings.Guild), new ModerationReason("banned phrase")).CAF();
 			user.ResetValue(Punishment);
 		}
 
@@ -67,6 +70,9 @@ namespace Advobot.Core.Classes.BannedPhrases
 			var punishmentChar = Punishment == default ? "N" : Punishment.EnumName().Substring(0, 1);
 			return $"`{punishmentChar}` `{Phrase}`";
 		}
-		public string ToString(SocketGuild guild) => ToString();
+		public string ToString(SocketGuild guild)
+		{
+			return ToString();
+		}
 	}
 }

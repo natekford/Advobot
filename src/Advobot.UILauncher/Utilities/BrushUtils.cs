@@ -67,7 +67,11 @@ namespace Advobot.UILauncher.Utilities
 			color = default;
 			return false;
 		}
-		private static bool TryCreateBrushFromStringName(string name, out SolidColorBrush color) => _Brushes.TryGetValue(name, out color);
+		private static bool TryCreateBrushFromStringName(string name, out SolidColorBrush color)
+		{
+			return _Brushes.TryGetValue(name, out color);
+		}
+
 		private static bool TryCreateBrushFromStringHex(string hex, out SolidColorBrush color)
 		{
 			//Make sure it will always have an opacity of 255 if one isn't passed in
@@ -110,6 +114,9 @@ namespace Advobot.UILauncher.Utilities
 			return new SolidColorBrush(Color.FromArgb(a, r, g, b));
 		}
 
-		public static bool CheckIfSameBrush(SolidColorBrush b1, SolidColorBrush b2) => b1?.Color == b2?.Color && b1?.Opacity == b2?.Opacity;
+		public static bool CheckIfSameBrush(SolidColorBrush b1, SolidColorBrush b2)
+		{
+			return b1?.Color == b2?.Color && b1?.Opacity == b2?.Opacity;
+		}
 	}
 }

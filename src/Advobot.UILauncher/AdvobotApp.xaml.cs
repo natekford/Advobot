@@ -41,6 +41,8 @@ namespace Advobot.UILauncher
 			Shutdown();
 		}
 		private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
-			=> IOUtils.LogUncaughtException(e.ExceptionObject);
+		{
+			IOUtils.LogUncaughtException(e.ExceptionObject);
+		}
 	}
 }

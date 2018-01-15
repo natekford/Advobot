@@ -20,7 +20,14 @@ namespace Advobot.Core.Classes
 			Id = id;
 		}
 
-		public override string ToString() => $"**Command:** `{Name}`\n**ID:** `{Id}`";
-		public string ToString(SocketGuild guild) => ToString();
+		public override string ToString()
+		{
+			return $"**Command:** `{Name}`\n**ID:** `{Id}`";
+		}
+
+		public string ToString(SocketGuild guild)
+		{
+			return ToString();
+		}
 	}
 }

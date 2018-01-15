@@ -32,33 +32,52 @@ namespace Advobot.Core.Classes.Settings
 		/// are saved via <see cref="Properties.Settings.Default"/>.
 		/// </summary>
 		/// <returns></returns>
-		public static PropertyInfo[] GetSettings() => typeof(IBotSettings)
-			.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-			.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic).ToArray();
+		public static PropertyInfo[] GetSettings()
+		{
+			return typeof(IBotSettings)
+.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic).ToArray();
+		}
+
 		/// <summary>
 		/// Returns the values of <see cref="GetBotSettings"/> which either are strings or do not implement the generic IEnumerable.
 		/// </summary>
 		/// <returns></returns>
-		public static PropertyInfo[] GetNonEnumerableSettings() => GetSettings()
-			.Where(x =>
-			{
-				return x.PropertyType == typeof(string)
-				|| !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-			}).ToArray();
+		public static PropertyInfo[] GetNonEnumerableSettings()
+		{
+			return GetSettings()
+.Where(x =>
+{
+return x.PropertyType == typeof(string)
+|| !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+}).ToArray();
+		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
 		private void SaveSettings(object sender, PropertyChangedEventArgs e)
 		{
 			ConsoleUtils.WriteLine($"Successfully saved: {e.PropertyName}");
 			SaveSettings();
 		}
 		public void SaveSettings()
-			=> IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
-		public void TogglePause() => Pause = !Pause;
+		{
+			IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
+		}
+
+		public void TogglePause()
+		{
+			Pause = !Pause;
+		}
+
 		public int GetMaxAmountOfUsersToGather(bool bypass)
-			=> bypass ? int.MaxValue : MaxUserGatherCount;
+		{
+			return bypass ? int.MaxValue : MaxUserGatherCount;
+		}
 
 		public async Task<string> Format(IDiscordClient client)
 		{
@@ -84,7 +103,10 @@ namespace Advobot.Core.Classes.Settings
 			return sb.ToString();
 		}
 		public async Task<string> Format(IDiscordClient client, PropertyInfo property)
-			=> await FormatObjectAsync(client, property.GetValue(this)).CAF();
+		{
+			return await FormatObjectAsync(client, property.GetValue(this)).CAF();
+		}
+
 		private async Task<string> FormatObjectAsync(IDiscordClient client, object value)
 		{
 			if (value == null)

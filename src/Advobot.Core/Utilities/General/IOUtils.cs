@@ -33,7 +33,10 @@ namespace Advobot.Core.Utilities
 		/// <param name="guildId"></param>
 		/// <returns></returns>
 		public static DirectoryInfo GetServerDirectory(ulong guildId)
-			=> Directory.CreateDirectory(Path.Combine(GetBaseBotDirectory().FullName, guildId.ToString()));
+		{
+			return Directory.CreateDirectory(Path.Combine(GetBaseBotDirectory().FullName, guildId.ToString()));
+		}
+
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId\File
 		/// </summary>
@@ -41,21 +44,29 @@ namespace Advobot.Core.Utilities
 		/// <param name="fileName"></param>
 		/// <returns></returns>
 		public static FileInfo GetServerDirectoryFile(ulong guildId, string fileName)
-			=> new FileInfo(Path.Combine(GetServerDirectory(guildId).FullName, fileName));
+		{
+			return new FileInfo(Path.Combine(GetServerDirectory(guildId).FullName, fileName));
+		}
+
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId
 		/// </summary>
 		/// <returns></returns>
 		public static DirectoryInfo GetBaseBotDirectory()
-			=> Directory.CreateDirectory(Path.Combine(Config.Configuration[ConfigKey.SavePath],
-				$"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKey.BotId]}"));
+		{
+			return Directory.CreateDirectory(Path.Combine(Config.Configuration[ConfigKey.SavePath],
+						   $"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKey.BotId]}"));
+		}
+
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\File
 		/// </summary>
 		/// <param name="fileName"></param>
 		/// <returns></returns>
 		public static FileInfo GetBaseBotDirectoryFile(string fileName)
-			=> new FileInfo(Path.Combine(GetBaseBotDirectory().FullName, fileName));
+		{
+			return new FileInfo(Path.Combine(GetBaseBotDirectory().FullName, fileName));
+		}
 
 		/// <summary>
 		/// Creates a file if it does not already exist.
@@ -106,7 +117,10 @@ namespace Advobot.Core.Utilities
 		/// <param name="obj"></param>
 		/// <returns></returns>
 		public static string Serialize(object obj)
-			=> JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new StringEnumConverter());
+		{
+			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new StringEnumConverter());
+		}
+
 		/// <summary>
 		/// Creates an object of type <typeparamref name="T"/> with the supplied string and type.
 		/// </summary>
@@ -115,7 +129,10 @@ namespace Advobot.Core.Utilities
 		/// <param name="type"></param>
 		/// <returns></returns>
 		public static T Deserialize<T>(string value, Type type)
-			=> (T)JsonConvert.DeserializeObject(value, type, new StringEnumConverter());
+		{
+			return (T)JsonConvert.DeserializeObject(value, type, new StringEnumConverter());
+		}
+
 		/// <summary>
 		/// Creates an object from JSON stored in a file.
 		/// </summary>

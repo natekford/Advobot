@@ -31,9 +31,9 @@ namespace Advobot.Core.Classes.SpamPrevention
 		[JsonProperty]
 		public bool Enabled = true;
 		[JsonIgnore]
-		private ConcurrentQueue<BasicTimeInterface> _TimeList = new ConcurrentQueue<BasicTimeInterface>();
+		private ConcurrentQueue<TimeWrapper> _TimeList = new ConcurrentQueue<TimeWrapper>();
 		[JsonIgnore]
-		public ConcurrentQueue<BasicTimeInterface> TimeList => _TimeList;
+		public ConcurrentQueue<TimeWrapper> TimeList => _TimeList;
 
 		private RaidPreventionInfo(PunishmentType punishmentType, int userCount, int interval)
 		{
@@ -42,13 +42,25 @@ namespace Advobot.Core.Classes.SpamPrevention
 			Interval = interval;
 		}
 
-		public int GetSpamCount() => TimeList.CountItemsInTimeFrame(Interval);
-		public void Add(DateTime time) => TimeList.Enqueue(new BasicTimeInterface(time));
-		public void Reset() => Interlocked.Exchange(ref _TimeList, new ConcurrentQueue<BasicTimeInterface>());
+		public int GetSpamCount()
+		{
+			return TimeList.CountItemsInTimeFrame(Interval);
+		}
+
+		public void Add(DateTime time)
+		{
+			TimeList.Enqueue(new TimeWrapper(time));
+		}
+
+		public void Reset()
+		{
+			Interlocked.Exchange(ref _TimeList, new ConcurrentQueue<TimeWrapper>());
+		}
+
 		public async Task PunishAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
-			var giver = new AutomaticPunishmentGiver(0, null);
-			await giver.AutomaticallyPunishAsync(PunishmentType, user, guildSettings.MuteRole).CAF();
+			var giver = new PunishmentGiver(0, null);
+			await giver.PunishAsync(PunishmentType, user, guildSettings.MuteRole, new ModerationReason("raid prevention")).CAF();
 		}
 
 		public static bool TryCreateRaidPreventionInfo(RaidType raidType,
@@ -76,10 +88,16 @@ namespace Advobot.Core.Classes.SpamPrevention
 			return true;
 		}
 
-		public override string ToString() => $"**Enabled:** `{Enabled}`\n" +
-			$"**Users:** `{UserCount}`\n" +
-			$"**Time Interval:** `{Interval}`\n" +
-			$"**Punishment:** `{PunishmentType.EnumName()}`";
-		public string ToString(SocketGuild guild) => ToString();
+		public override string ToString()
+		{
+			return $"**Enabled:** `{Enabled}`\n" +
+				$"**Users:** `{UserCount}`\n" +
+				$"**Time Interval:** `{Interval}`\n" +
+				$"**Punishment:** `{PunishmentType.EnumName()}`";
+		}
+		public string ToString(SocketGuild guild)
+		{
+			return ToString();
+		}
 	}
 }

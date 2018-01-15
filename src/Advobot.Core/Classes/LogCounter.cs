@@ -28,14 +28,31 @@ namespace Advobot.Core.Classes
 			Title = title.FormatTitle().Trim();
 		}
 
-		public void Add(int count) => Count += count;
-		public void Remove(int count) => Count -= count;
-		public void Increment() => Add(1);
-		public void Decrement() => Remove(1);
+		public void Add(int count)
+		{
+			Count += count;
+		}
+
+		public void Remove(int count)
+		{
+			Count -= count;
+		}
+
+		public void Increment()
+		{
+			Add(1);
+		}
+
+		public void Decrement()
+		{
+			Remove(1);
+		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 
 		/// <summary>
 		/// Return a formatted string in which the format is each <see cref="ActionCount.ToString()"/> on a new line, or if 
@@ -75,6 +92,9 @@ namespace Advobot.Core.Classes
 			}
 		}
 
-		public override string ToString() => $"**{Title}:** {Count}";
+		public override string ToString()
+		{
+			return $"**{Title}:** {Count}";
+		}
 	}
 }

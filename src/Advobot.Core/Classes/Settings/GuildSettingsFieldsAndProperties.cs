@@ -287,7 +287,7 @@ namespace Advobot.Core.Classes.Settings
 		}
 
 		[JsonIgnore]
-		public List<BannedPhraseUserInformation> BannedPhraseUsers { get; } = new List<BannedPhraseUserInformation>();
+		public List<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
 		[JsonIgnore]
 		public List<CachedInvite> Invites { get; } = new List<CachedInvite>();
 		[JsonIgnore]

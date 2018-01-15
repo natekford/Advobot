@@ -77,7 +77,10 @@ namespace Advobot.Core.Utilities
 		/// <param name="client"></param>
 		/// <returns></returns>
 		public static async Task<IUser> GetBotOwnerAsync(IDiscordClient client)
-			=> (await client.GetApplicationInfoAsync().CAF()).Owner;
+		{
+			return (await client.GetApplicationInfoAsync().CAF()).Owner;
+		}
+
 		/// <summary>
 		/// Returns the shard id for a <see cref="DiscordSocketClient"/> else returns -1.
 		/// </summary>
@@ -176,20 +179,20 @@ namespace Advobot.Core.Utilities
 			var game = botSettings.Game;
 			var stream = botSettings.Stream;
 
-			var streamType = StreamType.NotStreaming;
+			var activityType = ActivityType.Playing;
 			if (!String.IsNullOrWhiteSpace(stream))
 			{
 				stream = Constants.TWITCH_URL + stream.Substring(stream.LastIndexOf('/') + 1);
-				streamType = StreamType.Twitch;
+				activityType = ActivityType.Streaming;
 			}
 
 			if (client is DiscordSocketClient socketClient)
 			{
-				await socketClient.SetGameAsync(game, stream, streamType).CAF();
+				await socketClient.SetGameAsync(game, stream, activityType).CAF();
 			}
 			else if (client is DiscordShardedClient shardedClient)
 			{
-				await shardedClient.SetGameAsync(game, stream, streamType).CAF();
+				await shardedClient.SetGameAsync(game, stream, activityType).CAF();
 			}
 			else
 			{

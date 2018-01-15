@@ -61,39 +61,61 @@ namespace Advobot.Core.Classes.Permissions
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		public static ChannelPerm GetByName(string name) => Permissions.FirstOrDefault(x => x.Name.CaseInsEquals(name));
+		public static ChannelPerm GetByName(string name)
+		{
+			return Permissions.FirstOrDefault(x => x.Name.CaseInsEquals(name));
+		}
+
 		/// <summary>
 		/// Returns the first <see cref="ChannelPerm"/> to have the given value.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static ChannelPerm GetByExactValue(ulong value) => Permissions.FirstOrDefault(x => (ulong)x.Value == value);
+		public static ChannelPerm GetByExactValue(ulong value)
+		{
+			return Permissions.FirstOrDefault(x => (ulong)x.Value == value);
+		}
+
 		/// <summary>
 		/// Returns the first <see cref="ChannelPerm"/> to not have its value ANDed together with the argument equal zero.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static ChannelPerm GetByIncludedValue(ulong value) => Permissions.FirstOrDefault(x => ((ulong)x.Value & value) != 0);
+		public static ChannelPerm GetByIncludedValue(ulong value)
+		{
+			return Permissions.FirstOrDefault(x => ((ulong)x.Value & value) != 0);
+		}
+
 		/// <summary>
 		/// Returns the first <see cref="ChannelPerm"/> to equal 1 shifted to the left with the passed in number.
 		/// </summary>
 		/// <param name="bit"></param>
 		/// <returns></returns>
-		public static ChannelPerm GetByBit(int bit) => Permissions.FirstOrDefault(x => (ulong)x.Value == (1UL << bit));
+		public static ChannelPerm GetByBit(int bit)
+		{
+			return Permissions.FirstOrDefault(x => (ulong)x.Value == (1UL << bit));
+		}
+
 		/// <summary>
 		/// Returns the channel permissions that are set within the passed in ulong.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static ChannelPerm[] ConvertToPermissions(ulong value)
-			=> Permissions.Where(x => ((ulong)x.Value & value) != 0).ToArray();
+		{
+			return Permissions.Where(x => ((ulong)x.Value & value) != 0).ToArray();
+		}
+
 		/// <summary>
 		/// Returns the channel permissions which can be found with the passed in names.
 		/// </summary>
 		/// <param name="permissionNames"></param>
 		/// <returns></returns>
 		public static ChannelPerm[] ConvertToPermissions(IEnumerable<string> permissionNames)
-			=> Permissions.Where(x => permissionNames.CaseInsContains(x.Name)).ToArray();
+		{
+			return Permissions.Where(x => permissionNames.CaseInsContains(x.Name)).ToArray();
+		}
+
 		/// <summary>
 		/// Returns a ulong which is every permission ORed together.
 		/// </summary>
@@ -114,13 +136,20 @@ namespace Advobot.Core.Classes.Permissions
 		/// <param name="permissionNames"></param>
 		/// <returns></returns>
 		public static ChannelPermission ConvertToValue(IEnumerable<string> permissionNames)
-			=> ConvertToValue(ConvertToPermissions(permissionNames));
+		{
+			return ConvertToValue(ConvertToPermissions(permissionNames));
+		}
+
 		/// <summary>
 		/// Returns the names of channel permissions that are set within the passed in ulong.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static string[] ConvertValueToNames(ulong value) => ConvertToPermissions(value).Select(x => x.Name).ToArray();
+		public static string[] ConvertValueToNames(ulong value)
+		{
+			return ConvertToPermissions(value).Select(x => x.Name).ToArray();
+		}
+
 		/// <summary>
 		/// Returns a bool indicating true if all perms are valid. Out values of valid perms and invalid perms.
 		/// </summary>

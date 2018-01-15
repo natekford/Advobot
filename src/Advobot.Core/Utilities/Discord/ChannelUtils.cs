@@ -49,7 +49,6 @@ namespace Advobot.Core.Utilities
 
 			return new VerifiedObjectResult(target, null, null);
 		}
-
 		/// <summary>
 		/// Creates a text channel with the given name.
 		/// </summary>
@@ -58,7 +57,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason">The reason for creation to say in the audit log.</param>
 		/// <returns>The newly created text channel.</returns>
 		public static async Task<ITextChannel> CreateTextChannelAsync(IGuild guild, string name, ModerationReason reason)
-			=> await guild.CreateTextChannelAsync(name, reason.CreateRequestOptions()).CAF();
+		{
+			return await guild.CreateTextChannelAsync(name, reason.CreateRequestOptions()).CAF();
+		}
 		/// <summary>
 		/// Creates a voice channel with the given name.
 		/// </summary>
@@ -67,7 +68,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason">The reason for creation to say in the audit log.</param>
 		/// <returns>The newly created voice channel</returns>
 		public static async Task<IVoiceChannel> CreateVoiceChannelAsync(IGuild guild, string name, ModerationReason reason)
-			=> await guild.CreateVoiceChannelAsync(name, reason.CreateRequestOptions()).CAF();
+		{
+			return await guild.CreateVoiceChannelAsync(name, reason.CreateRequestOptions()).CAF();
+		}
 		/// <summary>
 		/// Creates a category with the given name.
 		/// </summary>
@@ -76,7 +79,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns>The newly created category.</returns>
 		public static async Task<ICategoryChannel> CreateCategoryAsync(IGuild guild, string name, ModerationReason reason)
-			=> await guild.CreateCategoryAsync(name, reason.CreateRequestOptions()).CAF();
+		{
+			return await guild.CreateCategoryAsync(name, reason.CreateRequestOptions()).CAF();
+		}
 		/// <summary>
 		/// Modifies a channel so only admins can read it and puts the channel to the bottom of the channel list.
 		/// </summary>
@@ -128,8 +133,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
 		public static async Task DeleteChannelAsync(IGuildChannel channel, ModerationReason reason)
-			=> await channel.DeleteAsync(reason.CreateRequestOptions()).CAF();
-
+		{
+			await channel.DeleteAsync(reason.CreateRequestOptions()).CAF();
+		}
 		/// <summary>
 		/// Modifies a channel's position.
 		/// </summary>
@@ -177,7 +183,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
 		public static async Task ModifyNameAsync(IGuildChannel channel, string name, ModerationReason reason)
-			=> await channel.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
+		{
+			await channel.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
+		}
 		/// <summary>
 		/// Modifies a text channel's topic.
 		/// </summary>
@@ -186,7 +194,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
 		public static async Task ModifyTopicAsync(ITextChannel channel, string topic, ModerationReason reason)
-			=> await channel.ModifyAsync(x => x.Topic = topic, reason.CreateRequestOptions()).CAF();
+		{
+			await channel.ModifyAsync(x => x.Topic = topic, reason.CreateRequestOptions()).CAF();
+		}
 		/// <summary>
 		/// Modifies a voice channel's limit.
 		/// </summary>
@@ -195,7 +205,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
 		public static async Task ModifyLimitAsync(IVoiceChannel channel, int limit, ModerationReason reason)
-			=> await channel.ModifyAsync(x => x.UserLimit = limit, reason.CreateRequestOptions()).CAF();
+		{
+			await channel.ModifyAsync(x => x.UserLimit = limit, reason.CreateRequestOptions()).CAF();
+		}
 		/// <summary>
 		/// Modifies a voice channel's bitrate.
 		/// </summary>
@@ -204,6 +216,8 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
 		public static async Task ModifyBitrateAsync(IVoiceChannel channel, int bitrate, ModerationReason reason)
-			=> await channel.ModifyAsync(x => x.Bitrate = bitrate, reason.CreateRequestOptions()).CAF();
+		{
+			await channel.ModifyAsync(x => x.Bitrate = bitrate, reason.CreateRequestOptions()).CAF();
+		}
 	}
 }

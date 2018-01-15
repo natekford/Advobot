@@ -151,9 +151,12 @@ namespace Advobot.Core
 
 			return assemblies.Single();
 		}
-		private static ImmutableDictionary<string, Color> GetColorDictionary() => typeof(Color)
-			.GetFields(BindingFlags.Public | BindingFlags.Static)
-			.ToDictionary(x => x.Name, x => (Color)x.GetValue(new Color()), StringComparer.OrdinalIgnoreCase)
-			.ToImmutableDictionary();
+		private static ImmutableDictionary<string, Color> GetColorDictionary()
+		{
+			return typeof(Color)
+.GetFields(BindingFlags.Public | BindingFlags.Static)
+.ToDictionary(x => x.Name, x => (Color)x.GetValue(new Color()), StringComparer.OrdinalIgnoreCase)
+.ToImmutableDictionary();
+		}
 	}
 }

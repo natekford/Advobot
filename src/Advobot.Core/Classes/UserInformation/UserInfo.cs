@@ -17,6 +17,9 @@ namespace Advobot.Core.Classes.UserInformation
 			User = user;
 		}
 
-		public DateTime GetTime() => _Time;
+		public DateTime GetTime()
+		{
+			return _Time;
+		}
 	}
 }

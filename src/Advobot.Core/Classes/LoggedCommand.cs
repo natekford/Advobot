@@ -67,7 +67,11 @@ namespace Advobot.Core.Classes
 		/// <summary>
 		/// Writes this to the console in whatever color <see cref="WriteColor"/> is.
 		/// </summary>
-		public void Write() => ConsoleUtils.WriteLine(ToString(), nameof(LoggedCommand), WriteColor);
+		public void Write()
+		{
+			ConsoleUtils.WriteLine(ToString(), nameof(LoggedCommand), WriteColor);
+		}
+
 		/// <summary>
 		/// Returns true if there is a valid error reason. Returns false if the command executed without errors.
 		/// </summary>

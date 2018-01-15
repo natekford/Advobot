@@ -46,14 +46,18 @@ namespace Advobot.Core.Utilities
 		/// <param name="pattern"></param>
 		/// <returns></returns>
 		public static bool CheckIfRegexMatch(string input, string pattern)
-			=> Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.TICKS_REGEX_TIMEOUT));
+		{
+			return Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.TICKS_REGEX_TIMEOUT));
+		}
+
 		/// <summary>
 		/// Returns true if the name is null, empty, or matches the <see cref="Regex"/> from https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
 		public static bool CheckIfInputIsAValidTwitchName(string input)
-			//In the bot's case if it's a null name then that just means to not show a stream
-			=> String.IsNullOrEmpty(input) ? true : _TwitchRegex.IsMatch(input);
+		{
+			return String.IsNullOrEmpty(input) ? true : _TwitchRegex.IsMatch(input);
+		}
 	}
 }

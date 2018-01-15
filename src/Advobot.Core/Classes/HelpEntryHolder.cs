@@ -132,19 +132,29 @@ namespace Advobot.Core.Classes
 		/// Returns all the names of every command.
 		/// </summary>
 		/// <returns></returns>
-		public string[] GetCommandNames() => _Source.Select(x => x.Name).ToArray();
+		public string[] GetCommandNames()
+		{
+			return _Source.Select(x => x.Name).ToArray();
+		}
+
 		/// <summary>
 		/// Retrurns an array of <see cref="HelpEntry"/> which have not had their values set in guild settings.
 		/// </summary>
 		/// <param name="setCommands"></param>
 		/// <returns></returns>
-		public HelpEntry[] GetUnsetCommands(IEnumerable<string> setCommands) =>
-			_Source.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
+		public HelpEntry[] GetUnsetCommands(IEnumerable<string> setCommands)
+		{
+			return _Source.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
+		}
+
 		/// <summary>
 		/// Returns an array of every <see cref="HelpEntry"/>.
 		/// </summary>
 		/// <returns></returns>
-		public HelpEntry[] GetHelpEntries() => _Source.ToArray();
+		public HelpEntry[] GetHelpEntries()
+		{
+			return _Source.ToArray();
+		}
 
 		public HelpEntry this[string nameOrAlias]
 		{
@@ -184,12 +194,14 @@ namespace Advobot.Core.Classes
 				DefaultEnabled = defaultEnabled;
 			}
 
-			public override string ToString() =>
-				$"**Aliases:** {String.Join(", ", Aliases)}\n" +
-				$"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n" +
-				$"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n\n" +
-				$"**Base Permission(s):**\n{BasePerm}\n\n" +
-				$"**Description:**\n{Description}";
+			public override string ToString()
+			{
+				return $"**Aliases:** {String.Join(", ", Aliases)}\n" +
+$"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n" +
+$"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n\n" +
+$"**Base Permission(s):**\n{BasePerm}\n\n" +
+$"**Description:**\n{Description}";
+			}
 		}
 	}
 }

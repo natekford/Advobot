@@ -82,11 +82,17 @@ namespace Advobot.Core.Classes.UsageGeneration
 			}
 		}
 		private IEnumerable<Type> GetNestedCommandClasses(Type classType)
-			=> classType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Public)
-			.Where(x => x.GetCustomAttribute<GroupAttribute>() != null);
+		{
+			return classType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Public)
+					   .Where(x => x.GetCustomAttribute<GroupAttribute>() != null);
+		}
+
 		private IEnumerable<MethodInfo> GetCommands(Type classType)
-			=> classType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
-			.Where(x => x.GetCustomAttribute<CommandAttribute>() != null);
+		{
+			return classType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+					   .Where(x => x.GetCustomAttribute<CommandAttribute>() != null);
+		}
+
 		private void RemoveDuplicateClasses(ref List<ClassDetails> classes)
 		{
 			var grouped = classes.GroupBy(x => new { x.Name, x.Deepness });

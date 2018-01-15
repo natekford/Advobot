@@ -125,7 +125,7 @@ namespace Advobot.Commands.UserModeration
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = await inputChannel.GetUsersAsync().FlattenAsync().CAF();
-			await new MultiUserAction(Context, users, bypass).MoveManyUsersAsync(outputChannel, new ModerationReason(Context.User, null)).CAF();
+			await new MultiUserAction(Context, users, bypass).MoveUsersAsync(outputChannel, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
 
@@ -153,10 +153,14 @@ namespace Advobot.Commands.UserModeration
 	{
 		[Command, Priority(1)]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
-			=> await CommandRunner(user.Id, reason).CAF();
+		{
+			await CommandRunner(user.Id, reason).CAF();
+		}
 		[Command, Priority(0)]
 		public async Task Command(ulong userId, [Optional, Remainder] string reason)
-			=> await CommandRunner(userId, reason).CAF();
+		{
+			await CommandRunner(userId, reason).CAF();
+		}
 
 		private async Task CommandRunner(ulong userId, string reason)
 		{
@@ -176,10 +180,14 @@ namespace Advobot.Commands.UserModeration
 		[Command]
 		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, [Optional] uint time,
 			[Optional, Remainder] string reason)
-			=> await CommandRunner(user, time, reason).CAF();
+		{
+			await CommandRunner(user, time, reason).CAF();
+		}
 		[Command]
 		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, [Optional, Remainder] string reason)
-			=> await CommandRunner(user, 0, reason).CAF();
+		{
+			await CommandRunner(user, 0, reason).CAF();
+		}
 
 		private async Task CommandRunner(ulong userId, uint time, string reason)
 		{
@@ -267,13 +275,17 @@ namespace Advobot.Commands.UserModeration
 	public sealed class RemoveMessages : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(uint requestCount, [Optional] IGuildUser user,
+		public async Task Command(uint requestCount, [Optional] IGuildUser user, 
 			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel)
-			=> await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
+		{
+			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
+		}
 		[Command]
-		public async Task Command(uint requestCount,
+		public async Task Command(uint requestCount, 
 			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
-			=> await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
+		{
+			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
+		}
 
 		private async Task CommandRunner(int requestCount, IGuildUser user, ITextChannel channel)
 		{
@@ -382,7 +394,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => x.RoleIds.Contains(targetRole.Id));
-			await new MultiUserAction(Context, users, bypass).GiveRoleToManyUsersAsync(givenRole, new ModerationReason(Context.User, null)).CAF();
+			await new MultiUserAction(Context, users, bypass).GiveRolesAsync(givenRole, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
 		public async Task TakeRole(IRole targetRole,
@@ -390,7 +402,7 @@ namespace Advobot.Commands.UserModeration
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => x.RoleIds.Contains(targetRole.Id));
-			await new MultiUserAction(Context, users, bypass).TakeRoleFromManyUsersAsync(takenRole, new ModerationReason(Context.User, null)).CAF();
+			await new MultiUserAction(Context, users, bypass).TakeRolesAsync(takenRole, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
 		public async Task GiveNickname([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
@@ -398,14 +410,14 @@ namespace Advobot.Commands.UserModeration
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => x.RoleIds.Contains(targetRole.Id));
-			await new MultiUserAction(Context, users, bypass).NicknameManyUsersAsync(nickname, new ModerationReason(Context.User, null)).CAF();
+			await new MultiUserAction(Context, users, bypass).ModifyNicknamesAsync(nickname, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(TakeNickname)), ShortAlias(nameof(TakeNickname))]
 		public async Task TakeNickname([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => x.RoleIds.Contains(targetRole.Id));
-			await new MultiUserAction(Context, users, bypass).NicknameManyUsersAsync(null, new ModerationReason(Context.User, null)).CAF();
+			await new MultiUserAction(Context, users, bypass).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
 }

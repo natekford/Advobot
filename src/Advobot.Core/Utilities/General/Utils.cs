@@ -21,7 +21,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="str2"></param>
 		/// <returns></returns>
 		public static bool CaseInsEquals(this string str1, string str2)
-			=> String.Equals(str1, str2, StringComparison.OrdinalIgnoreCase);
+		{
+			return String.Equals(str1, str2, StringComparison.OrdinalIgnoreCase);
+		}
 		/// <summary>
 		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if a string contains a search string.
 		/// </summary>
@@ -29,7 +31,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="search"></param>
 		/// <returns></returns>
 		public static bool CaseInsContains(this string source, string search)
-			=> source != null && search != null && source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
+		{
+			return source != null && search != null && source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
+		}
 		/// <summary>
 		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to return the index of a search string.
 		/// </summary>
@@ -49,7 +53,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="search"></param>
 		/// <returns></returns>
 		public static bool CaseInsStartsWith(this string source, string search)
-			=> source != null && search != null && source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
+		{
+			return source != null && search != null && source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
+		}
 		/// <summary>
 		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if a string ends with a search string.
 		/// </summary>
@@ -57,7 +63,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="search"></param>
 		/// <returns></returns>
 		public static bool CaseInsEndsWith(this string source, string search)
-			=> source != null && search != null && source.EndsWith(search, StringComparison.OrdinalIgnoreCase);
+		{
+			return source != null && search != null && source.EndsWith(search, StringComparison.OrdinalIgnoreCase);
+		}
 		/// <summary>
 		/// Returns the string with the oldValue replaced with the newValue case insensitively.
 		/// </summary>
@@ -105,7 +113,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="search"></param>
 		/// <returns></returns>
 		public static bool CaseInsContains(this IEnumerable<string> enumerable, string search)
-			=> enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
+		{
+			return enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
+		}
 
 		/// <summary>
 		/// Verifies all characters in the string have a value of a less than the upperlimit.
@@ -114,29 +124,37 @@ namespace Advobot.Core.Utilities
 		/// <param name="upperLimit"></param>
 		/// <returns></returns>
 		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit = -1)
-			=> !str.Any(x => x > (upperLimit < 0 ? Constants.MAX_UTF16_VAL_FOR_NAMES : upperLimit));
+		{
+			return !str.Any(x => x > (upperLimit < 0 ? Constants.MAX_UTF16_VAL_FOR_NAMES : upperLimit));
+		}
 		/// <summary>
 		/// Returns the enum's name as a string.
 		/// </summary>
 		/// <param name="e"></param>
 		/// <returns></returns>
 		public static string EnumName(this Enum e)
-			=> Enum.GetName(e.GetType(), e);
+		{
+			return Enum.GetName(e.GetType(), e);
+		}
 		/// <summary>
 		/// Returns the count of characters equal to \r or \n.
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
 		public static int CountLineBreaks(this string str)
-			=> str?.Count(x => x == '\r' || x == '\n') ?? 0;
+		{
+			return str?.Count(x => x == '\r' || x == '\n') ?? 0;
+		}
 		/// <summary>
 		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
+		/// Also modifies the queue by removing instances which are too old to matter.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="queue"></param>
 		/// <param name="timeFrame"></param>
+		/// <param name="removeOldInstances"></param>
 		/// <returns></returns>
-		public static int CountItemsInTimeFrame<T>(this ConcurrentQueue<T> queue, int timeFrame = 0) where T : IHasTime
+		public static int CountItemsInTimeFrame<T>(this ConcurrentQueue<T> queue, int timeFrame = 0, bool removeOldInstances = false) where T : IHasTime
 		{
 			var timeList = new List<T>(queue);
 			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
@@ -165,21 +183,26 @@ namespace Advobot.Core.Utilities
 				}
 			}
 
-			//Remove all that are older than the given timeframe (with an added 1 second margin)
-			//Do this because if they're too old then they cannot affect any spam prevention that relies on a timeframe
-			var nowTime = DateTime.UtcNow;
-			for (int i = listLength - 1; i >= 0; --i)
+			if (removeOldInstances)
 			{
-				if ((int)(nowTime - timeList[i].GetTime()).TotalSeconds < timeFrame + 1)
+				//Remove all that are older than the given timeframe (with an added 1 second margin)
+				//Do this because if they're too old then they cannot affect any spam prevention that relies on a timeframe
+				var now = DateTime.UtcNow;
+				for (int i = listLength - 1; i >= 0; --i)
 				{
-					//Make sure the queue and the list are looking at the same object
-					if (queue.TryPeek(out var peekResult) && peekResult.GetTime() == timeList[i].GetTime())
+					if ((int)(now - timeList[i].GetTime()).TotalSeconds >= timeFrame + 1)
 					{
-						queue.TryDequeue(out var dequeueResult);
+						break;
 					}
-					continue;
+
+					//Make sure the queue and the list are looking at the same object
+					if (queue.TryPeek(out var peekResult) && peekResult.GetTime() != timeList[i].GetTime())
+					{
+						throw new InvalidOperationException($"{nameof(queue)} has had an object dequeued.");
+					}
+
+					queue.TryDequeue(out var dequeueResult);
 				}
-				break;
 			}
 
 			return count;
@@ -190,7 +213,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="num"></param>
 		/// <returns></returns>
 		public static int GetLength(this int num)
-			=> num.ToString().Length;
+		{
+			return num.ToString().Length;
+		}
 		/// <summary>
 		/// Takes a variable number of integers and cuts the list the smallest one (including the list's length).
 		/// </summary>
@@ -198,8 +223,10 @@ namespace Advobot.Core.Utilities
 		/// <param name="list"></param>
 		/// <param name="x"></param>
 		/// <returns></returns>
-		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
-			=> list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
+		public static List<T> TakeMin<T>(this List<T> list, params int[] x)
+		{
+			return list.Take(Math.Max(0, Math.Min(list.Count, x.Min()))).ToList();
+		}
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
 		/// </summary>
@@ -238,12 +265,18 @@ namespace Advobot.Core.Utilities
 		/// <typeparam name="T"></typeparam>
 		/// <param name="task"></param>
 		/// <returns></returns>
-		public static async Task<T> CAF<T>(this Task<T> task) => await task.ConfigureAwait(false);
+		public static async Task<T> CAF<T>(this Task<T> task)
+		{
+			return await task.ConfigureAwait(false);
+		}
 		/// <summary>
 		/// Short way to write <see cref="Task.ConfigureAwait(false)"/>.
 		/// </summary>
 		/// <param name="task"></param>
 		/// <returns></returns>
-		public static async Task CAF(this Task task) => await task.ConfigureAwait(false);
+		public static async Task CAF(this Task task)
+		{
+			await task.ConfigureAwait(false);
+		}
 	}
 }

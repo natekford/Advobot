@@ -132,15 +132,28 @@ namespace Advobot.Core.Classes.SpamPrevention
 			return true;
 		}
 
-		public void Enable() => Enabled = true;
-		public void Disable() => Enabled = false;
+		public void Enable()
+		{
+			Enabled = true;
+		}
+
+		public void Disable()
+		{
+			Enabled = false;
+		}
 
 		public override string ToString()
-			=> new StringBuilder()
-			.AppendLineFeed($"**Punishment:** `{PunishmentType.EnumName()}`")
-			.AppendLineFeed($"**Spam Instances:** `{RequiredSpamInstances}`")
-			.AppendLineFeed($"**Votes For Punishment:** `{VotesForKick}`")
-			.Append($"**Spam Amt/Time Interval:** `{RequiredSpamPerMessageOrTimeInterval}`").ToString();
-		public string ToString(SocketGuild guild) => ToString();
+		{
+			return new StringBuilder()
+					   .AppendLineFeed($"**Punishment:** `{PunishmentType.EnumName()}`")
+					   .AppendLineFeed($"**Spam Instances:** `{RequiredSpamInstances}`")
+					   .AppendLineFeed($"**Votes For Punishment:** `{VotesForKick}`")
+					   .Append($"**Spam Amt/Time Interval:** `{RequiredSpamPerMessageOrTimeInterval}`").ToString();
+		}
+
+		public string ToString(SocketGuild guild)
+		{
+			return ToString();
+		}
 	}
 }

@@ -31,40 +31,40 @@ namespace Advobot.Core.Classes
 				return _CancelToken;
 			});
 			_Context = context;
-			_Users = users.ToList().GetUpToAndIncludingMinNum(context.BotSettings.GetMaxAmountOfUsersToGather(bypass));
+			_Users = users.ToList().TakeMin(context.BotSettings.GetMaxAmountOfUsersToGather(bypass));
 
-			if (new Random().NextDouble() > .98)
+			if (new Random().NextDouble() > .995)
 			{
 				ConsoleUtils.WriteLine("Multi-user drifting!!");
 			}
 		}
 
-		public async Task TakeRoleFromManyUsersAsync(IRole role, ModerationReason reason)
+		public async Task TakeRolesAsync(IRole role, ModerationReason reason)
 		{
 			var presentTense = $"take the role `{role.FormatRole()}` from";
 			var pastTense = $"took the role `{role.FormatRole()} from";
-			await DoActionAsync(Action.GiveRole, role, presentTense, pastTense, reason).CAF();
+			await DoActionAsync(nameof(TakeRolesAsync), role, presentTense, pastTense, reason).CAF();
 		}
-		public async Task GiveRoleToManyUsersAsync(IRole role, ModerationReason reason)
+		public async Task GiveRolesAsync(IRole role, ModerationReason reason)
 		{
 			var presentTense = $"give the role `{role.FormatRole()}` to";
 			var pastTense = $"gave the role `{role.FormatRole()} to";
-			await DoActionAsync(Action.GiveRole, role, presentTense, pastTense, reason).CAF();
+			await DoActionAsync(nameof(GiveRolesAsync), role, presentTense, pastTense, reason).CAF();
 		}
-		public async Task NicknameManyUsersAsync(string replace, ModerationReason reason)
+		public async Task ModifyNicknamesAsync(string replace, ModerationReason reason)
 		{
 			var presentTense = "nickname";
 			var pastTense = "nicknamed";
-			await DoActionAsync(Action.Nickname, replace, presentTense, pastTense, reason).CAF();
+			await DoActionAsync(nameof(ModifyNicknamesAsync), replace, presentTense, pastTense, reason).CAF();
 		}
-		public async Task MoveManyUsersAsync(IVoiceChannel outputChannel, ModerationReason reason)
+		public async Task MoveUsersAsync(IVoiceChannel outputChannel, ModerationReason reason)
 		{
 			var presentTense = "move";
 			var pastTense = "moved";
-			await DoActionAsync(Action.Move, outputChannel, presentTense, pastTense, reason).CAF();
+			await DoActionAsync(nameof(MoveUsersAsync), outputChannel, presentTense, pastTense, reason).CAF();
 		}
 
-		private async Task DoActionAsync(Action action, object obj, string presentTense, string pastTense, ModerationReason reason)
+		private async Task DoActionAsync(string action, object obj, string presentTense, string pastTense, ModerationReason reason)
 		{
 			var text = $"Attempting to {presentTense} `{_Users.Count}` users.";
 			var msg = await MessageUtils.SendMessageAsync(_Context.Channel, text).CAF();
@@ -87,22 +87,22 @@ namespace Advobot.Core.Classes
 				++successCount;
 				switch (action)
 				{
-					case Action.GiveRole:
+					case nameof(GiveRolesAsync):
 					{
 						await RoleUtils.GiveRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
 					}
-					case Action.TakeRole:
+					case nameof(TakeRolesAsync):
 					{
 						await RoleUtils.TakeRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
 					}
-					case Action.Nickname:
+					case nameof(ModifyNicknamesAsync):
 					{
 						await UserUtils.ChangeNicknameAsync(_Users[i], obj as string, reason).CAF();
 						continue;
 					}
-					case Action.Move:
+					case nameof(MoveUsersAsync):
 					{
 						await UserUtils.MoveUserAsync(_Users[i], obj as IVoiceChannel, reason).CAF();
 						continue;
@@ -113,14 +113,6 @@ namespace Advobot.Core.Classes
 			await MessageUtils.DeleteMessageAsync(msg, new ModerationReason("multi user action")).CAF();
 			var response = $"Successfully {pastTense} `{successCount}` users.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(_Context, response).CAF();
-		}
-
-		private enum Action
-		{
-			GiveRole,
-			TakeRole,
-			Nickname,
-			Move,
 		}
 	}
 }

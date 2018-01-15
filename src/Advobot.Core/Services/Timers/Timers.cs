@@ -29,8 +29,8 @@ namespace Advobot.Core.Services.Timers
 		private readonly ConcurrentDictionary<ChannelKey, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<ChannelKey, RemovableMessage>();
 		private readonly ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntryHolder.HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntryHolder.HelpEntry>>();
 		private readonly ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>>();
-		private readonly ConcurrentDictionary<UserKey, SpamPreventionUserInformation> _SpamPreventionUsers = new ConcurrentDictionary<UserKey, SpamPreventionUserInformation>();
-		private readonly ConcurrentDictionary<UserKey, SlowmodeUserInformation> _SlowmodeUsers = new ConcurrentDictionary<UserKey, SlowmodeUserInformation>();
+		private readonly ConcurrentDictionary<UserKey, SpamPreventionUserInfo> _SpamPreventionUsers = new ConcurrentDictionary<UserKey, SpamPreventionUserInfo>();
+		private readonly ConcurrentDictionary<UserKey, SlowmodeUserInfo> _SlowmodeUsers = new ConcurrentDictionary<UserKey, SlowmodeUserInfo>();
 
 		public Timers(IServiceProvider provider)
 		{
@@ -58,7 +58,11 @@ namespace Advobot.Core.Services.Timers
 			_HalfSecondTimer.Enabled = true;
 		}
 
-		private void ClearSpamPreventionUsers() => _SpamPreventionUsers.Clear();
+		private void ClearSpamPreventionUsers()
+		{
+			_SpamPreventionUsers.Clear();
+		}
+
 		private async Task RemovePunishmentsAsync()
 		{
 			foreach (var punishment in GetOutTimedObjects(_RemovablePunishments))
@@ -124,12 +128,21 @@ namespace Advobot.Core.Services.Timers
 				await MessageUtils.DeleteMessageAsync(quotes.Message, new ModerationReason("removing active close quotes")).CAF();
 			}
 		}
-		private void RemoveSlowmodeUsers() => RemoveTimedObjects(_SlowmodeUsers);
+		private void RemoveSlowmodeUsers()
+		{
+			RemoveTimedObjects(_SlowmodeUsers);
+		}
 
 		public void AddRemovablePunishment(RemovablePunishment punishment)
-			=> Add(_RemovablePunishments, new UserKey(punishment.Guild, punishment.User, punishment.GetTime().Ticks), punishment);
+		{
+			Add(_RemovablePunishments, new UserKey(punishment.Guild, punishment.User, punishment.GetTime().Ticks), punishment);
+		}
+
 		public void AddRemovableMessage(RemovableMessage message)
-			=> Add(_RemovableMessages, new ChannelKey(message.Channel, message.GetTime().Ticks), message);
+		{
+			Add(_RemovableMessages, new ChannelKey(message.Channel, message.GetTime().Ticks), message);
+		}
+
 		public async Task AddActiveCloseHelp(IGuildUser user, IUserMessage msg, CloseWords<HelpEntryHolder.HelpEntry> helpEntries)
 		{
 			//Remove all older ones; only one can be active at a given time.
@@ -148,10 +161,15 @@ namespace Advobot.Core.Services.Timers
 			}
 			Add(_ActiveCloseQuotes, new UserKey(user, quotes.GetTime().Ticks), new CloseWordsWrapper<Quote>(quotes, msg));
 		}
-		public void AddSpamPreventionUser(SpamPreventionUserInformation user)
-			=> Add(_SpamPreventionUsers, new UserKey(user), user);
-		public void AddSlowmodeUser(SlowmodeUserInformation user)
-			=> Add(_SlowmodeUsers, new UserKey(user), user);
+		public void AddSpamPreventionUser(SpamPreventionUserInfo user)
+		{
+			Add(_SpamPreventionUsers, new UserKey(user), user);
+		}
+
+		public void AddSlowmodeUser(SlowmodeUserInfo user)
+		{
+			Add(_SlowmodeUsers, new UserKey(user), user);
+		}
 
 		public int RemovePunishments(ulong userId, PunishmentType punishment)
 		{
@@ -188,14 +206,17 @@ namespace Advobot.Core.Services.Timers
 			}
 			return null;
 		}
-		public SpamPreventionUserInformation GetSpamPreventionUser(IGuildUser user)
+		public SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user)
 		{
 			var kvp = _SpamPreventionUsers.SingleOrDefault(x => x.Key.GuildId == user.Guild.Id && x.Key.UserId == user.Id);
 			return kvp.Equals(default) ? null : kvp.Value;
 		}
-		public IEnumerable<SpamPreventionUserInformation> GetSpamPreventionUsers(IGuild guild)
-			=> new List<SpamPreventionUserInformation>(_SpamPreventionUsers.Where(x => x.Key.GuildId == guild.Id).Select(x => x.Value));
-		public SlowmodeUserInformation GetSlowmodeUser(IGuildUser user)
+		public IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild)
+		{
+			return new List<SpamPreventionUserInfo>(_SpamPreventionUsers.Where(x => x.Key.GuildId == guild.Id).Select(x => x.Value));
+		}
+
+		public SlowmodeUserInfo GetSlowmodeUser(IGuildUser user)
 		{
 			var kvp = _SlowmodeUsers.SingleOrDefault(x => x.Key.GuildId == user.Guild.Id && x.Key.UserId == user.Id);
 			return kvp.Equals(default) ? null : kvp.Value;

@@ -18,9 +18,12 @@ namespace Advobot.Core.Utilities
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public static async Task<IReadOnlyList<IInviteMetadata>> GetInvitesAsync(IGuild guild)
-			=> guild.GetBot().GuildPermissions.ManageGuild
-			? new List<IInviteMetadata>().AsReadOnly()
-			: (await guild.GetInvitesAsync().CAF()).ToList().AsReadOnly();
+		{
+			return guild.GetBot().GuildPermissions.ManageGuild
+					   ? new List<IInviteMetadata>().AsReadOnly()
+					   : (await guild.GetInvitesAsync().CAF()).ToList().AsReadOnly();
+		}
+
 		/// <summary>
 		/// Tries to find the invite a user joined on.
 		/// </summary>
@@ -90,7 +93,9 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IInviteMetadata> CreateInviteAsync(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary,
 			bool isUnique, ModerationReason reason)
-			=> await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, reason.CreateRequestOptions()).CAF();
+		{
+			return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, reason.CreateRequestOptions()).CAF();
+		}
 		/// <summary>
 		/// Deletes the invite.
 		/// </summary>
@@ -98,6 +103,8 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		public static async Task DeleteInviteAsync(IInvite invite, ModerationReason reason)
-			=> await invite.DeleteAsync(reason.CreateRequestOptions()).CAF();
+		{
+			await invite.DeleteAsync(reason.CreateRequestOptions()).CAF();
+		}
 	}
 }

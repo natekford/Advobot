@@ -195,13 +195,17 @@ namespace Advobot.Commands.ChannelModeration
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 			IRole role,
 			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
-			=> await CommandRunner(action, channel, role, permissions).CAF();
+		{
+			await CommandRunner(action, channel, role, permissions).CAF();
+		}
 		[Command]
 		public async Task Command(PermValue action,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 			IGuildUser user,
 			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
-			=> await CommandRunner(action, channel, user, permissions).CAF();
+		{
+			await CommandRunner(action, channel, user, permissions).CAF();
+		}
 
 		private async Task CommandRunner(PermValue action, IGuildChannel channel, object discordObject, ulong permissions)
 		{
@@ -243,15 +247,21 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel)
-			=> await CommandRunner(inputChannel, outputChannel, null).CAF();
+		{
+			await CommandRunner(inputChannel, outputChannel, null).CAF();
+		}
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel, IRole role)
-			=> await CommandRunner(inputChannel, outputChannel, role).CAF();
+		{
+			await CommandRunner(inputChannel, outputChannel, role).CAF();
+		}
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel, IGuildUser user)
-			=> await CommandRunner(inputChannel, outputChannel, user).CAF();
+		{
+			await CommandRunner(inputChannel, outputChannel, user).CAF();
+		}
 
 		private async Task CommandRunner(IGuildChannel inputChannel, IGuildChannel outputChannel, object discordObject)
 		{
@@ -364,7 +374,10 @@ namespace Advobot.Commands.ChannelModeration
 		}
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice(uint channelPosition, [Remainder, VerifyStringLength(Target.Channel)] string name)
-			=> await ChangeByPosition(Context, (Context.Guild as SocketGuild).VoiceChannels, channelPosition, name).CAF();
+		{
+			await ChangeByPosition(Context, (Context.Guild as SocketGuild).VoiceChannels, channelPosition, name).CAF();
+		}
+
 		[Command(nameof(Text)), ShortAlias(nameof(Text))]
 		public async Task Text(uint channelPosition, [Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
@@ -378,7 +391,9 @@ namespace Advobot.Commands.ChannelModeration
 		}
 		[Command(nameof(Category)), ShortAlias(nameof(Category))]
 		public async Task Category(uint channelPosition, [Remainder, VerifyStringLength(Target.Category)] string name)
-			=> await ChangeByPosition(Context, (Context.Guild as SocketGuild).CategoryChannels, channelPosition, name).CAF();
+		{
+			await ChangeByPosition(Context, (Context.Guild as SocketGuild).CategoryChannels, channelPosition, name).CAF();
+		}
 
 		private async Task ChangeByPosition(IAdvobotCommandContext context, IEnumerable<IGuildChannel> channels, uint channelPos, string name)
 		{

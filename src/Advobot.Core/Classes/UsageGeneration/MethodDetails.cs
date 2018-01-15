@@ -23,6 +23,9 @@ namespace Advobot.Core.Classes.UsageGeneration
 			HasNoArgs = ArgCount == 0;
 		}
 
-		public override string ToString() => Name;
+		public override string ToString()
+		{
+			return Name;
+		}
 	}
 }

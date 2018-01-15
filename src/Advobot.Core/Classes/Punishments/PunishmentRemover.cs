@@ -1,10 +1,8 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Enums;
+﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,15 +14,7 @@ namespace Advobot.Core.Classes.Punishments
 	/// </summary>
 	public class PunishmentRemover : PunishmentBase
 	{
-		private bool _HasValidTimers;
-		private ITimersService _Timers;
-		private List<string> _Actions = new List<string>();
-
-		public PunishmentRemover(ITimersService timers)
-		{
-			_Timers = timers;
-			_HasValidTimers = timers != null;
-		}
+		public PunishmentRemover(ITimersService timers) : base(timers) { }
 
 		/// <summary>
 		/// Removes a user from the ban list.
@@ -37,7 +27,7 @@ namespace Advobot.Core.Classes.Punishments
 		{
 			var ban = (await guild.GetBansAsync().CAF()).SingleOrDefault(x => x.User.Id == userId);
 			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions()).CAF();
-			FollowupActions(PunishmentType.Ban, ban.User, reason);
+			After(PunishmentType.Ban, guild, ban.User, reason);
 		}
 		/// <summary>
 		/// Removes the mute role from the user.
@@ -49,7 +39,7 @@ namespace Advobot.Core.Classes.Punishments
 		public async Task UnrolemuteAsync(IGuildUser user, IRole role, ModerationReason reason)
 		{
 			await RoleUtils.TakeRolesAsync(user, new[] { role }, reason).CAF();
-			FollowupActions(PunishmentType.RoleMute, user, reason);
+			After(PunishmentType.RoleMute, user.Guild, user, reason);
 		}
 		/// <summary>
 		/// Unmutes a user from voice chat.
@@ -60,7 +50,7 @@ namespace Advobot.Core.Classes.Punishments
 		public async Task UnvoicemuteAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Mute = false, reason.CreateRequestOptions()).CAF();
-			FollowupActions(PunishmentType.VoiceMute, user, reason);
+			After(PunishmentType.VoiceMute, user.Guild, user, reason);
 		}
 		/// <summary>
 		/// Undeafens a user from voice chat.
@@ -71,15 +61,15 @@ namespace Advobot.Core.Classes.Punishments
 		public async Task UndeafenAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Deaf = false, reason.CreateRequestOptions()).CAF();
-			FollowupActions(PunishmentType.Deafen, user, reason);
+			After(PunishmentType.Deafen, user.Guild, user, reason);
 		}
 
-		private void FollowupActions(PunishmentType punishmentType, IUser user, ModerationReason reason)
+		protected override void After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason)
 		{
-			var sb = new StringBuilder($"Successfully {_Removal[punishmentType]} {user.FormatUser()}. ");
-			if (_HasValidTimers && _Timers.RemovePunishments(user.Id, punishmentType) > 0)
+			var sb = new StringBuilder($"Successfully {_Removal[type]} {user.FormatUser()}. ");
+			if (_Timers != null && _Timers.RemovePunishments(user.Id, type) > 0)
 			{
-				sb.Append($"Removed all timed {punishmentType.EnumName().FormatTitle().ToLower()} punishments on them. ");
+				sb.Append($"Removed all timed {type.EnumName().FormatTitle().ToLower()} punishments on them. ");
 			}
 			if (reason.Reason != null)
 			{
@@ -87,7 +77,5 @@ namespace Advobot.Core.Classes.Punishments
 			}
 			_Actions.Add(sb.ToString().Trim());
 		}
-
-		public override string ToString() => String.Join("\n", _Actions);
 	}
 }

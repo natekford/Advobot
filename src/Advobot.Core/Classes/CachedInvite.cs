@@ -14,6 +14,9 @@
 			Uses = uses;
 		}
 
-		public void IncrementUses() => ++Uses;
+		public void IncrementUses()
+		{
+			++Uses;
+		}
 	}
 }

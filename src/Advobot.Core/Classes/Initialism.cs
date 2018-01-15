@@ -74,6 +74,9 @@ namespace Advobot.Core.Classes
 			Edited = newInitialism.ToString().ToLower();
 		}
 
-		public override string ToString() => Edited;
+		public override string ToString()
+		{
+			return Edited;
+		}
 	}
 }

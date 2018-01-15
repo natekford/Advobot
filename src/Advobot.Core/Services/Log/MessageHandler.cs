@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Core.Classes.Punishments;
 
 namespace Advobot.Core.Services.Log
 {
@@ -159,7 +160,7 @@ namespace Advobot.Core.Services.Log
 			var info = _Timers.GetSlowmodeUser(_LogInstance.User);
 			if (info == null)
 			{
-				_Timers.AddSlowmodeUser(info = new SlowmodeUserInformation(_LogInstance.User, slowmode.BaseMessages, slowmode.Interval));
+				_Timers.AddSlowmodeUser(info = new SlowmodeUserInfo(_LogInstance.User, slowmode.BaseMessages, slowmode.Interval));
 			}
 
 			if (info.CurrentMessagesLeft > 0)
@@ -193,73 +194,75 @@ namespace Advobot.Core.Services.Log
 				var spamUser = _Timers.GetSpamPreventionUser(_LogInstance.User);
 				if (spamUser == null)
 				{
-					_Timers.AddSpamPreventionUser(spamUser = new SpamPreventionUserInformation(_LogInstance.User));
+					_Timers.AddSpamPreventionUser(spamUser = new SpamPreventionUserInfo(_LogInstance.User));
 				}
 
 				var spam = false;
-				foreach (SpamType spamType in Enum.GetValues(typeof(SpamType)))
+				foreach (SpamType type in Enum.GetValues(typeof(SpamType)))
 				{
-					var spamPrev = _LogInstance.GuildSettings.SpamPreventionDictionary[spamType];
-					if (spamPrev == null || !spamPrev.Enabled)
+					var prev = _LogInstance.GuildSettings.SpamPreventionDictionary[type];
+					if (prev == null || !prev.Enabled)
 					{
 						continue;
 					}
 
-					//Ticks should be small enough that this will not allow duplicates of the same message, but can still allow rapidly spammed messages
-					var userSpamList = spamUser.SpamLists[spamType];
-					var spamAmount = _GetSpamNumberFuncs[spamType](_LogInstance.Message) ?? 0;
-					if (spamAmount >= spamPrev.RequiredSpamPerMessageOrTimeInterval &&
-						!userSpamList.Any(x => x.GetTime().Ticks == _LogInstance.Message.CreatedAt.UtcTicks))
+					var spamAmount = _GetSpamNumberFuncs[type](_LogInstance.Message) ?? 0;
+					if (spamAmount >= prev.RequiredSpamPerMessageOrTimeInterval)
 					{
-						userSpamList.Enqueue(new BasicTimeInterface(_LogInstance.Message.CreatedAt.UtcDateTime));
+						spamUser.AddSpamInstance(type, _LogInstance.Message);
 					}
-
-					if (!spamUser.CheckIfAllowedToPunish(spamPrev, spamType))
+					if (spamUser.GetSpamAmount(type, prev.RequiredSpamPerMessageOrTimeInterval) < prev.RequiredSpamInstances)
 					{
 						continue;
 					}
 
 					//Make sure they have the lowest vote count required to kick and the most severe punishment type
-					spamUser.ChangeVotesRequired(spamPrev.VotesForKick);
-					spamUser.ChangePunishmentType(spamPrev.PunishmentType);
-					spamUser.EnablePunishable();
+					spamUser.VotesRequired = prev.VotesForKick;
+					spamUser.Punishment = prev.PunishmentType;
 					spam = true;
 				}
 
 				if (spam)
 				{
-					var votesReq = spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count;
+					var votesReq = spamUser.VotesRequired - spamUser.Votes;
 					var content = $"The user `{_LogInstance.User.FormatUser()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					var channel = _LogInstance.Channel as ITextChannel;
 					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(channel, null, content, 10, _Timers).CAF();
 					await MessageUtils.DeleteMessageAsync(_LogInstance.Message, new ModerationReason("spam prevention")).CAF();
 				}
 			}
-
 			if (!_LogInstance.Message.MentionedUserIds.Any())
 			{
 				return;
 			}
 
 			//Get the users who are able to be punished by the spam prevention
-			var users = _Timers.GetSpamPreventionUsers(_LogInstance.Guild).Where(x => true
-				&& x.PotentialPunishment
-				&& x.User.Id != _LogInstance.User.Id
-				&& _LogInstance.Message.MentionedUserIds.Contains(x.User.Id)
-				&& !x.UsersWhoHaveAlreadyVoted.Contains(_LogInstance.User.Id));
+			var users = _Timers.GetSpamPreventionUsers(_LogInstance.Guild).Where(x =>
+			{
+				return x.PotentialPunishment
+					&& x.User.Id != _LogInstance.User.Id
+					&& _LogInstance.Message.MentionedUserIds.Contains(x.User.Id)
+					&& !x.HasUserAlreadyVoted(_LogInstance.User.Id);
+			});
+			if (!users.Any())
+			{
+				return;
+			}
 
+			var giver = new PunishmentGiver(0, null);
+			var reason = new ModerationReason("spam prevention");
 			foreach (var u in users)
 			{
-				u.IncreaseVotesToKick(_LogInstance.User.Id);
-				if (u.UsersWhoHaveAlreadyVoted.Count < u.VotesRequired)
+				u.IncreaseVotes(_LogInstance.User.Id);
+				if (u.Votes < u.VotesRequired)
 				{
 					return;
 				}
 
-				await u.PunishAsync(_LogInstance.GuildSettings).CAF();
+				await giver.PunishAsync(u.Punishment, u.User, _LogInstance.GuildSettings.MuteRole, reason).CAF();
 
 				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
-				u.ResetSpamUser();
+				u.Reset();
 			}
 		}
 		/// <summary>

@@ -20,6 +20,8 @@ namespace Advobot.Core.Classes.TypeReaders
 		/// <param name="services"></param>
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
-			=> Task.FromResult(TypeReaderResult.FromSuccess(BYPASS_STRING.CaseInsEquals(input)));
+		{
+			return Task.FromResult(TypeReaderResult.FromSuccess(BYPASS_STRING.CaseInsEquals(input)));
+		}
 	}
 }

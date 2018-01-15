@@ -23,6 +23,9 @@ namespace Advobot.UILauncher.Classes.Controls
 			SetResourceReferences();
 		}
 
-		public void SetResourceReferences() => SetResourceReference(Button.StyleProperty, OtherTarget.ButtonStyle);
+		public void SetResourceReferences()
+		{
+			SetResourceReference(Button.StyleProperty, OtherTarget.ButtonStyle);
+		}
 	}
 }

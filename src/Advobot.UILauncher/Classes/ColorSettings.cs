@@ -76,7 +76,10 @@ namespace Advobot.UILauncher.Classes
 			get => ColorTargets[target];
 			set => ColorTargets[target] = value;
 		}
-		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush) => ColorTargets.TryGetValue(target, out brush);
+		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush)
+		{
+			return ColorTargets.TryGetValue(target, out brush);
+		}
 
 		private void ActivateTheme()
 		{
@@ -136,15 +139,20 @@ namespace Advobot.UILauncher.Classes
 		/// Saves custom colors and the current theme.
 		/// </summary>
 		public void SaveSettings()
-			=> IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC), IOUtils.Serialize(this));
+		{
+			IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC), IOUtils.Serialize(this));
+		}
 
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
-			=> typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
-				.Where(x => x.PropertyType == typeof(SolidColorBrush) && x.Name.Contains(prefix))
-				.ToDictionary(
-					x => (ColorTarget)Enum.Parse(typeof(ColorTarget), x.Name.Replace(prefix, "")),
-					x => (SolidColorBrush)x.GetValue(null)
-				).ToImmutableDictionary();
+		{
+			return typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
+						   .Where(x => x.PropertyType == typeof(SolidColorBrush) && x.Name.Contains(prefix))
+						   .ToDictionary(
+							   x => (ColorTarget)Enum.Parse(typeof(ColorTarget), x.Name.Replace(prefix, "")),
+							   x => (SolidColorBrush)x.GetValue(null)
+						   ).ToImmutableDictionary();
+		}
+
 		public static ColorSettings LoadUISettings()
 		{
 			ColorSettings UISettings = null;

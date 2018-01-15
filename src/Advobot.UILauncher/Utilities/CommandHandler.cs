@@ -40,6 +40,9 @@ namespace Advobot.UILauncher.Utilities
 		/// <param name="name"></param>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public static bool FindCommand(string name, string args) => false;
+		public static bool FindCommand(string name, string args)
+		{
+			return false;
+		}
 	}
 }

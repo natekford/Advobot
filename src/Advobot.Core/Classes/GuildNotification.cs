@@ -93,14 +93,24 @@ namespace Advobot.Core.Classes
 		/// Sets <see cref="Channel"/> to whichever text channel on <paramref name="guild"/> has the Id <see cref="ChannelId"/>.
 		/// </summary>
 		/// <param name="guild"></param>
-		public void PostDeserialize(SocketGuild guild) => Channel = guild.GetTextChannel(ChannelId);
+		public void PostDeserialize(SocketGuild guild)
+		{
+			Channel = guild.GetTextChannel(ChannelId);
+		}
 
-		public override string ToString() => new StringBuilder()
-			.AppendLineFeed($"**Channel:** `{Channel.FormatChannel()}`")
-			.AppendLineFeed($"**Content:** `{Content}`")
-			.AppendLineFeed($"**Title:** `{Title}`")
-			.AppendLineFeed($"**Description:** `{Description}`")
-			.AppendLineFeed($"**Thumbnail:** `{ThumbUrl}`").ToString();
-		public string ToString(SocketGuild guild) => ToString();
+		public override string ToString()
+		{
+			return new StringBuilder()
+.AppendLineFeed($"**Channel:** `{Channel.FormatChannel()}`")
+.AppendLineFeed($"**Content:** `{Content}`")
+.AppendLineFeed($"**Title:** `{Title}`")
+.AppendLineFeed($"**Description:** `{Description}`")
+.AppendLineFeed($"**Thumbnail:** `{ThumbUrl}`").ToString();
+		}
+
+		public string ToString(SocketGuild guild)
+		{
+			return ToString();
+		}
 	}
 }

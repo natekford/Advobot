@@ -56,8 +56,13 @@ namespace Advobot.UILauncher.Classes
 			return null;
 		}
 		private static async Task<bool> GetKey(IDiscordClient client, string key, bool startup)
-			=> await Config.ValidateBotKey(client, key, startup);
+		{
+			return await Config.ValidateBotKey(client, key, startup);
+		}
 
-		public object GetService(Type serviceType) => _Provider.GetService(serviceType);
+		public object GetService(Type serviceType)
+		{
+			return _Provider.GetService(serviceType);
+		}
 	}
 }

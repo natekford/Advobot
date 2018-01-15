@@ -90,6 +90,9 @@ namespace Advobot.Core.Classes.Attributes
 			}
 		}
 
-		public override string ToString() => $"({Min} to {Max} chars)";
+		public override string ToString()
+		{
+			return $"({Min} to {Max} chars)";
+		}
 	}
 }

@@ -18,7 +18,9 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <returns></returns>
 		public static SortedDictionary<string, List<string>> GetOrCreateWrittenLines()
-			=> _WrittenLines = _WrittenLines ?? new SortedDictionary<string, List<string>>();
+		{
+			return _WrittenLines = _WrittenLines ?? new SortedDictionary<string, List<string>>();
+		}
 
 		/// <summary>
 		/// Writes the given text to the console with a timestamp and the calling method. Writes in gray by default.
@@ -52,6 +54,8 @@ namespace Advobot.Core.Utilities
 		/// <param name="e"></param>
 		/// <param name="name"></param>
 		public static void Write(this Exception e, [CallerMemberName] string name = "")
-			=> WriteLine($"{Environment.NewLine}EXCEPTION: {e}{Environment.NewLine}", name, ConsoleColor.Red);
+		{
+			WriteLine($"{Environment.NewLine}EXCEPTION: {e}{Environment.NewLine}", name, ConsoleColor.Red);
+		}
 	}
 }

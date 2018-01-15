@@ -40,9 +40,19 @@ namespace Advobot.Core.Classes
 		/// <summary>
 		/// Sets <see cref="Value"/> to its opposite.
 		/// </summary>
-		public void ToggleEnabled() => Value = !Value;
+		public void ToggleEnabled()
+		{
+			Value = !Value;
+		}
 
-		public override string ToString() => $"`{ValueAsString.PadRight(3)}` `{Name}`";
-		public string ToString(SocketGuild guild) => ToString();
+		public override string ToString()
+		{
+			return $"`{ValueAsString.PadRight(3)}` `{Name}`";
+		}
+
+		public string ToString(SocketGuild guild)
+		{
+			return ToString();
+		}
 	}
 }

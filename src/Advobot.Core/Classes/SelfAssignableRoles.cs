@@ -48,7 +48,10 @@ namespace Advobot.Core.Classes
 				_RoleIds.Remove(role.Id);
 			}
 		}
-		public bool TryGetRole(ulong id, out IRole role) => _Roles.TryGetValue(id, out role);
+		public bool TryGetRole(ulong id, out IRole role)
+		{
+			return _Roles.TryGetValue(id, out role);
+		}
 
 		public void PostDeserialize(SocketGuild guild)
 		{
@@ -66,8 +69,13 @@ namespace Advobot.Core.Classes
 		}
 
 		public override string ToString()
-			=> String.Join("\n", _Roles.Select(x => $"**Role:** `{x.Value?.FormatRole() ?? x.Key.ToString()}`"));
+		{
+			return String.Join("\n", _Roles.Select(x => $"**Role:** `{x.Value?.FormatRole() ?? x.Key.ToString()}`"));
+		}
+
 		public string ToString(SocketGuild guild)
-			=> String.Join("\n", _Roles.Select(x => $"**Role:** `{guild.GetRole(x.Key)?.FormatRole() ?? x.Key.ToString()}`"));
+		{
+			return String.Join("\n", _Roles.Select(x => $"**Role:** `{guild.GetRole(x.Key)?.FormatRole() ?? x.Key.ToString()}`"));
+		}
 	}
 }

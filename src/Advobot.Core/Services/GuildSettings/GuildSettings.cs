@@ -37,8 +37,19 @@ namespace Advobot.Core.Services.GuildSettings
 			}
 			return Task.FromResult(settings);
 		}
-		public IEnumerable<IGuildSettings> GetAllSettings() => _GuildSettings.Values;
-		public bool TryGetSettings(ulong guildId, out IGuildSettings settings) => _GuildSettings.TryGetValue(guildId, out settings);
-		public bool ContainsGuild(ulong guildId) => _GuildSettings.ContainsKey(guildId);
+		public IEnumerable<IGuildSettings> GetAllSettings()
+		{
+			return _GuildSettings.Values;
+		}
+
+		public bool TryGetSettings(ulong guildId, out IGuildSettings settings)
+		{
+			return _GuildSettings.TryGetValue(guildId, out settings);
+		}
+
+		public bool ContainsGuild(ulong guildId)
+		{
+			return _GuildSettings.ContainsKey(guildId);
+		}
 	}
 }

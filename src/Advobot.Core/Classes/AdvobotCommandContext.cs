@@ -26,6 +26,9 @@ namespace Advobot.Core.Classes
 			GuildSettings = guildSettings;
 		}
 
-		public string GetPrefix() => GuildSettings.GetPrefix(BotSettings);
+		public string GetPrefix()
+		{
+			return GuildSettings.GetPrefix(BotSettings);
+		}
 	}
 }

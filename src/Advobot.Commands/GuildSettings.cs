@@ -368,11 +368,15 @@ namespace Advobot.Commands.GuildSettings
 			[Command, Priority(1)]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
 				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
-				=> await CommandRunner(user.Id, role).CAF();
+			{
+				await CommandRunner(user.Id, role).CAF();
+			}
 			[Command]
 			public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong userId,
 				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
-				=> await CommandRunner(userId, role).CAF();
+			{
+				await CommandRunner(userId, role).CAF();
+			}
 
 			private async Task CommandRunner(ulong userId, IRole role)
 			{
@@ -395,11 +399,15 @@ namespace Advobot.Commands.GuildSettings
 			[Command, Priority(1)]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
 				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
-				=> await CommandRunner(user.Id, role).CAF();
+			{
+				await CommandRunner(user.Id, role).CAF();
+			}
 			[Command]
 			public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong userId,
 				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
-				=> await CommandRunner(userId, role).CAF();
+			{
+				await CommandRunner(userId, role).CAF();
+			}
 
 			private async Task CommandRunner(ulong userId, IRole role)
 			{

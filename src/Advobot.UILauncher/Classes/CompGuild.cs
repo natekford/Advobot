@@ -11,8 +11,14 @@ namespace Advobot.UILauncher.Classes
 			_G = guild;
 		}
 
-		public int CompareTo(object obj) => obj is SocketGuild g ? CompareTo(g) : 1;
+		public int CompareTo(object obj)
+		{
+			return obj is SocketGuild g ? CompareTo(g) : 1;
+		}
+
 		public int CompareTo(SocketGuild other)
-			=> _G.MemberCount == other.MemberCount ? _G.Name.CompareTo(other.Name) : _G.MemberCount.CompareTo(other.MemberCount);
+		{
+			return _G.MemberCount == other.MemberCount ? _G.Name.CompareTo(other.Name) : _G.MemberCount.CompareTo(other.MemberCount);
+		}
 	}
 }

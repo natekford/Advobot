@@ -18,6 +18,8 @@ namespace Advobot.UILauncher.Classes
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void NotifyPropertyChanged([CallerMemberName] string name = "")
-			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+		}
 	}
 }

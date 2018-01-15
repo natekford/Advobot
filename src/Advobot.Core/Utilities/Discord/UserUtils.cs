@@ -55,7 +55,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public static int GetPosition(this IUser user)
-			=> user is SocketGuildUser socket ? socket.Hierarchy : -1;
+		{
+			return user is SocketGuildUser socket ? socket.Hierarchy : -1;
+		}
 		/// <summary>
 		/// Returns true if the invoking user's position is greater than the target user's position.
 		/// </summary>
@@ -63,8 +65,10 @@ namespace Advobot.Core.Utilities
 		/// <param name="target"></param>
 		/// <returns></returns>
 		public static bool GetIfCanModifyUser(this IUser invokingUser, IUser target)
-			=> (target.Id == invokingUser.Id && target.Id.ToString() == Config.Configuration[ConfigKey.BotId])
-			|| invokingUser.GetPosition() > target.GetPosition();
+		{
+			return (target.Id == invokingUser.Id && target.Id.ToString() == Config.Configuration[ConfigKey.BotId])
+					   || invokingUser.GetPosition() > target.GetPosition();
+		}
 		/// <summary>
 		/// Returns true if the user can edit the user in the specified way.
 		/// </summary>
@@ -182,7 +186,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		public static async Task ChangeNicknameAsync(IGuildUser user, string newNickname, ModerationReason reason)
-			=> await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, reason.CreateRequestOptions()).CAF();
+		{
+			await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, reason.CreateRequestOptions()).CAF();
+		}
 		/// <summary>
 		/// Moves the user to the supplied channel then says the supplied reason in the audit log.
 		/// </summary>
@@ -191,6 +197,8 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		public static async Task MoveUserAsync(IGuildUser user, IVoiceChannel channel, ModerationReason reason)
-			=> await user.ModifyAsync(x => x.Channel = Optional.Create(channel), reason.CreateRequestOptions()).CAF();
+		{
+			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), reason.CreateRequestOptions()).CAF();
+		}
 	}
 }

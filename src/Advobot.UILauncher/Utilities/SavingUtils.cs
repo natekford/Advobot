@@ -24,13 +24,21 @@ namespace Advobot.UILauncher.Utilities
 		/// </summary>
 		/// <param name="editor"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextEditor editor) => SaveFile(editor, editor.Text);
+		public static ToolTipReason SaveFile(TextEditor editor)
+		{
+			return SaveFile(editor, editor.Text);
+		}
+
 		/// <summary>
 		/// Saves the text of <paramref name="tb"/> to file.
 		/// </summary>
 		/// <param name="tb"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextBox tb) => SaveFile(tb, tb.Text);
+		public static ToolTipReason SaveFile(TextBox tb)
+		{
+			return SaveFile(tb, tb.Text);
+		}
+
 		/// <summary>
 		/// Attempts to save a file and returns a value indicating the result.
 		/// </summary>
@@ -199,7 +207,11 @@ namespace Advobot.UILauncher.Utilities
 		/// </summary>
 		/// <param name="e"></param>
 		/// <returns></returns>
-		public static bool IsCtrlS(KeyEventArgs e) => e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
+		public static bool IsCtrlS(KeyEventArgs e)
+		{
+			return e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
+		}
+
 		/// <summary>
 		/// Attempts to get a text file from an element's tag.
 		/// </summary>

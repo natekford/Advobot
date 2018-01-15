@@ -9,6 +9,9 @@ namespace Advobot.Core.Classes.CloseWords
 	{
 		public CloseQuotes(IGuildSettings settings, string input) : base(settings.Quotes, input) { }
 
-		protected override int FindCloseness(Quote obj, string input) => FindCloseName(obj.Name, input);
+		protected override int FindCloseness(Quote obj, string input)
+		{
+			return FindCloseName(obj.Name, input);
+		}
 	}
 }

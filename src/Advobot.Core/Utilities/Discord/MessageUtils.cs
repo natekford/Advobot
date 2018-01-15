@@ -135,7 +135,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="time"></param>
 		/// <returns></returns>
 		public static async Task MakeAndDeleteSecondaryMessageAsync(IAdvobotCommandContext context, string secondStr, int time = -1)
-			=> await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, secondStr, time, context.Timers).CAF();
+		{
+			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, secondStr, time, context.Timers).CAF();
+		}
 		/// <summary>
 		/// Waits a few seconds then deletes the newly created message and the given message.
 		/// </summary>
@@ -240,7 +242,10 @@ namespace Advobot.Core.Utilities
 		/// <param name="requestCount"></param>
 		/// <returns></returns>
 		public static async Task<List<IMessage>> GetMessagesAsync(IMessageChannel channel, int requestCount)
-			=> (await channel.GetMessagesAsync(requestCount).FlattenAsync().CAF()).ToList();
+		{
+			return (await channel.GetMessagesAsync(requestCount).FlattenAsync().CAF()).ToList();
+		}
+
 		/// <summary>
 		/// Removes the given count of messages from a channel.
 		/// </summary>
@@ -282,7 +287,7 @@ namespace Advobot.Core.Utilities
 					break;
 				}
 
-				var cutUserMessages = userMessages.ToList().GetUpToAndIncludingMinNum(requestCount, 100);
+				var cutUserMessages = userMessages.ToList().TakeMin(requestCount, 100);
 				deletedCount += await DeleteMessagesAsync(channel, cutUserMessages, reason).CAF();
 
 				//Leave if the message count gathered implies that enough user messages have been deleted 

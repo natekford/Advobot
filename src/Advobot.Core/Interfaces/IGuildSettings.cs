@@ -49,7 +49,7 @@ namespace Advobot.Core.Interfaces
 		List<CommandOverride> CommandsDisabledOnChannel { get; set; }
 
 		//Non-saved settings
-		List<BannedPhraseUserInformation> BannedPhraseUsers { get; }
+		List<BannedPhraseUserInfo> BannedPhraseUsers { get; }
 		List<CachedInvite> Invites { get; }
 		List<string> EvaluatedRegex { get; }
 		MessageDeletion MessageDeletion { get; }

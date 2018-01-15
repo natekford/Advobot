@@ -44,7 +44,10 @@ namespace Advobot.Core.Classes.BannedPhrases
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public IRole GetRole(SocketGuild guild) => _Role ?? (_Role = guild.GetRole(RoleId));
+		public IRole GetRole(SocketGuild guild)
+		{
+			return _Role ?? (_Role = guild.GetRole(RoleId));
+		}
 
 		public override string ToString()
 		{

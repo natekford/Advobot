@@ -99,7 +99,10 @@ namespace Advobot.Core.Classes
 		/// <param name="url"></param>
 		/// <returns></returns>
 		public EmbedWrapper AddAuthor(IUser user, string url = null)
-			=> AddAuthor(user.Username, user.GetAvatarUrl(), url ?? user.GetAvatarUrl());
+		{
+			return AddAuthor(user.Username, user.GetAvatarUrl(), url ?? user.GetAvatarUrl());
+		}
+
 		/// <summary>
 		/// Adds a footer to the embed. Verifies the Url exists and cuts the text to the appropriate length.
 		/// </summary>
@@ -222,8 +225,11 @@ namespace Advobot.Core.Classes
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		private bool GetIfStringIsValidUrl(string input) => !String.IsNullOrWhiteSpace(input)
-			&& Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult)
-			&& (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+		private bool GetIfStringIsValidUrl(string input)
+		{
+			return !String.IsNullOrWhiteSpace(input)
+&& Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult)
+&& (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+		}
 	}
 }

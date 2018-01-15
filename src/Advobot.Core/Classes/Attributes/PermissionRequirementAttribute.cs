@@ -54,6 +54,9 @@ namespace Advobot.Core.Classes.Attributes
 		public string AllText => String.Join(" & ", GuildPerms.ConvertValueToNames((ulong)_AllFlags));
 		public string AnyText => String.Join(" | ", GuildPerms.ConvertValueToNames((ulong)_AnyFlags));
 
-		public override string ToString() => $"[{GeneralFormatting.JoinNonNullStrings(" | ", AllText, AnyText)}]";
+		public override string ToString()
+		{
+			return $"[{GeneralFormatting.JoinNonNullStrings(" | ", AllText, AnyText)}]";
+		}
 	}
 }

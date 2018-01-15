@@ -1,10 +1,8 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Enums;
+﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,15 +15,10 @@ namespace Advobot.Core.Classes.Punishments
 	public class PunishmentGiver : PunishmentBase
 	{
 		private int _Time;
-		private bool _HasValidTimers;
-		private ITimersService _Timers;
-		private List<string> _Actions = new List<string>();
 
-		public PunishmentGiver(int time, ITimersService timers)
+		public PunishmentGiver(int time, ITimersService timers) : base(timers)
 		{
 			_Time = time;
-			_Timers = timers;
-			_HasValidTimers = time > 0 && timers != null;
 		}
 
 		/// <summary>
@@ -40,7 +33,7 @@ namespace Advobot.Core.Classes.Punishments
 		{
 			await guild.AddBanAsync(userId, days, null, reason.CreateRequestOptions()).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
-			FollowupActions(PunishmentType.Ban, guild, ban.User, reason);
+			After(PunishmentType.Ban, guild, ban.User, reason);
 		}
 		/// <summary>
 		/// Bans then unbans a user from the guild. Deletes 1 days worth of messages.
@@ -54,7 +47,7 @@ namespace Advobot.Core.Classes.Punishments
 			await guild.AddBanAsync(userId, 1, null, reason.CreateRequestOptions()).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
 			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions()).CAF();
-			FollowupActions(PunishmentType.Softban, guild, ban.User, reason);
+			After(PunishmentType.Softban, guild, ban.User, reason);
 		}
 		/// <summary>
 		/// Kicks a user from the guild.
@@ -65,7 +58,7 @@ namespace Advobot.Core.Classes.Punishments
 		public async Task KickAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.KickAsync(null, reason.CreateRequestOptions()).CAF();
-			FollowupActions(PunishmentType.Kick, user.Guild, user, reason);
+			After(PunishmentType.Kick, user.Guild, user, reason);
 		}
 		/// <summary>
 		/// Gives a user the mute role.
@@ -77,7 +70,7 @@ namespace Advobot.Core.Classes.Punishments
 		public async Task RoleMuteAsync(IGuildUser user, IRole role, ModerationReason reason)
 		{
 			await RoleUtils.GiveRolesAsync(user, new[] { role }, reason).CAF();
-			FollowupActions(PunishmentType.RoleMute, user.Guild, user, reason);
+			After(PunishmentType.RoleMute, user.Guild, user, reason);
 		}
 		/// <summary>
 		/// Mutes a user from voice chat.
@@ -88,7 +81,7 @@ namespace Advobot.Core.Classes.Punishments
 		public async Task VoiceMuteAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Mute = true, reason.CreateRequestOptions()).CAF();
-			FollowupActions(PunishmentType.VoiceMute, user.Guild, user, reason);
+			After(PunishmentType.VoiceMute, user.Guild, user, reason);
 		}
 		/// <summary>
 		/// Deafens a user from voice chat.
@@ -99,17 +92,68 @@ namespace Advobot.Core.Classes.Punishments
 		public async Task DeafenAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Deaf = true, reason.CreateRequestOptions()).CAF();
-			FollowupActions(PunishmentType.Deafen, user.Guild, user, reason);
+			After(PunishmentType.Deafen, user.Guild, user, reason);
+		}
+		/// <summary>
+		/// Does an action on a user.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="user"></param>
+		/// <param name="role"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public async Task PunishAsync(PunishmentType type, IGuildUser user, IRole role, ModerationReason reason)
+		{
+			var guild = user.GetGuild();
+			var bot = guild.GetBot();
+			if (!bot.GetIfCanModifyUser(user))
+			{
+				return;
+			}
+
+			switch (type)
+			{
+				case PunishmentType.Kick:
+				{
+					await KickAsync(user, reason).CAF();
+					return;
+				}
+				case PunishmentType.Ban:
+				{
+					await BanAsync(guild, user.Id, reason).CAF();
+					return;
+				}
+				case PunishmentType.Deafen:
+				{
+					await DeafenAsync(user, reason).CAF();
+					return;
+				}
+				case PunishmentType.VoiceMute:
+				{
+					await VoiceMuteAsync(user, reason).CAF();
+					return;
+				}
+				case PunishmentType.Softban:
+				{
+					await SoftbanAsync(guild, user.Id, reason).CAF();
+					return;
+				}
+				case PunishmentType.RoleMute:
+				{
+					await RoleMuteAsync(user, role, reason).CAF();
+					return;
+				}
+			}
 		}
 
-		private void FollowupActions(PunishmentType punishmentType, IGuild guild, IUser user, ModerationReason reason)
+		protected override void After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason)
 		{
-			var sb = new StringBuilder($"Successfully {_Given[punishmentType]} {user.FormatUser()}. ");
-			if (_HasValidTimers)
+			var sb = new StringBuilder($"Successfully {_Given[type]} {user.FormatUser()}. ");
+			if (_Time > 0 && _Timers != null)
 			{
 				//Removing the punishments via the timers in whatever time is set
-				_Timers.AddRemovablePunishment(new RemovablePunishment(punishmentType, guild, user, _Time));
-				sb.Append($"They will be {_Removal[punishmentType]} in {_Time} minutes. ");
+				_Timers.AddRemovablePunishment(new RemovablePunishment(type, guild, user, _Time));
+				sb.Append($"They will be {_Removal[type]} in {_Time} minutes. ");
 			}
 			if (reason.Reason != null)
 			{
@@ -117,7 +161,5 @@ namespace Advobot.Core.Classes.Punishments
 			}
 			_Actions.Add(sb.ToString().Trim());
 		}
-
-		public override string ToString() => String.Join("\n", _Actions);
 	}
 }

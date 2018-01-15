@@ -7,13 +7,14 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Explains why a mod is doing something.
 	/// </summary>
-	public class ModerationReason
+	public struct ModerationReason
 	{
-		public IUser User { get; protected set; }
-		public string Reason { get; protected set; }
+		public readonly IUser User;
+		public readonly string Reason;
 
 		public ModerationReason(string reason)
 		{
+			User = null;
 			Reason = (reason ?? "not specified").TrimEnd('.');
 		}
 		public ModerationReason(IUser user, string reason)
@@ -22,10 +23,16 @@ namespace Advobot.Core.Classes
 			Reason = (reason ?? "not specified").TrimEnd('.');
 		}
 
-		public RequestOptions CreateRequestOptions() => new RequestOptions { AuditLogReason = ToString(), };
+		public RequestOptions CreateRequestOptions()
+		{
+			return new RequestOptions { AuditLogReason = ToString(), };
+		}
 
-		public override string ToString() => User == null
-			? $"Automatic action. Trigger: {Reason}."
-			: $"Action by {User.FormatUser()}. Reason: {Reason}.";
+		public override string ToString()
+		{
+			return User == null
+? $"Automatic action. Trigger: {Reason}."
+: $"Action by {User.FormatUser()}. Reason: {Reason}.";
+		}
 	}
 }

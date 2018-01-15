@@ -58,7 +58,14 @@ namespace Advobot.Core.Classes
 			Content = content.Append("```").ToString();
 		}
 
-		public override string ToString() => ToString(true);
-		public string ToString(bool withMentions) => $"{(withMentions ? HeaderWithMentions : HeaderWithNoMentions)}\n{Content}";
+		public override string ToString()
+		{
+			return ToString(true);
+		}
+
+		public string ToString(bool withMentions)
+		{
+			return $"{(withMentions ? HeaderWithMentions : HeaderWithNoMentions)}\n{Content}";
+		}
 	}
 }

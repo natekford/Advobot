@@ -56,8 +56,8 @@ namespace Advobot.Core.Utilities
 			//Banned names
 			if (settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(user.Username)))
 			{
-				var giver = new AutomaticPunishmentGiver(0, timers);
-				await giver.AutomaticallyPunishAsync(PunishmentType.Ban, user, null, "banned name").CAF();
+				var giver = new PunishmentGiver(0, timers);
+				await giver.PunishAsync(PunishmentType.Ban, user, null, new ModerationReason("banned name")).CAF();
 			}
 
 			//Antiraid

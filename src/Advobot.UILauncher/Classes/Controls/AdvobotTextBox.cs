@@ -34,7 +34,8 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 
 		public static AdvobotTextBox CreateComboBoxItem(string text, object tag)
-			=> new AdvobotTextBox
+		{
+			return new AdvobotTextBox
 			{
 				FontFamily = new FontFamily("Courier New"),
 				Text = text,
@@ -45,6 +46,8 @@ namespace Advobot.UILauncher.Classes.Controls
 				Background = Brushes.Transparent,
 				Foreground = Brushes.Black,
 			};
+		}
+
 		public static AdvobotTextBox CreateUserBox(IUser user)
 		{
 			var name = user.Username.AllCharactersAreWithinUpperLimit() ? user.Username : "Non-Standard Name";

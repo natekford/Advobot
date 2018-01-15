@@ -57,9 +57,21 @@ namespace Advobot.UILauncher.Classes.Controls
 			Header = _FI.Name;
 		}
 
-		public void OpenFile() => OpenFile(null, null);
-		public void CopyFile() => CopyFile(null, null);
-		public void DeleteFile() => DeleteFile(null, null);
+		public void OpenFile()
+		{
+			OpenFile(null, null);
+		}
+
+		public void CopyFile()
+		{
+			CopyFile(null, null);
+		}
+
+		public void DeleteFile()
+		{
+			DeleteFile(null, null);
+		}
+
 		private void OpenFile(object sender, RoutedEventArgs e)
 		{
 			if (!ElementUtils.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))

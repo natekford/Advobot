@@ -174,6 +174,8 @@ namespace Advobot.Commands.Miscellaneous
 	{
 		[Command]
 		public async Task Command()
-			=> await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
+		{
+			await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
+		}
 	}
 }

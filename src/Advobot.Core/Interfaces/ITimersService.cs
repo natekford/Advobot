@@ -18,15 +18,15 @@ namespace Advobot.Core.Interfaces
 		void AddRemovableMessage(RemovableMessage message);
 		Task AddActiveCloseHelp(IGuildUser user, IUserMessage msg, CloseWords<HelpEntryHolder.HelpEntry> help);
 		Task AddActiveCloseQuote(IGuildUser user, IUserMessage msg, CloseWords<Quote> quote);
-		void AddSpamPreventionUser(SpamPreventionUserInformation user);
-		void AddSlowmodeUser(SlowmodeUserInformation user);
+		void AddSpamPreventionUser(SpamPreventionUserInfo user);
+		void AddSlowmodeUser(SlowmodeUserInfo user);
 
 		int RemovePunishments(ulong id, PunishmentType punishment);
 		Task<CloseWords<HelpEntryHolder.HelpEntry>> GetOutActiveCloseHelp(IUser user);
 		Task<CloseWords<Quote>> GetOutActiveCloseQuote(IUser user);
 
-		SpamPreventionUserInformation GetSpamPreventionUser(IGuildUser user);
-		IEnumerable<SpamPreventionUserInformation> GetSpamPreventionUsers(IGuild guild);
-		SlowmodeUserInformation GetSlowmodeUser(IGuildUser user);
+		SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user);
+		IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild);
+		SlowmodeUserInfo GetSlowmodeUser(IGuildUser user);
 	}
 }

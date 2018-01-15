@@ -97,10 +97,18 @@ namespace Advobot.Core.Services.Log
 		}
 
 		public string FormatLoggedCommands(bool withMarkDown, bool equalSpacing)
-			=> LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedCommands);
+		{
+			return LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedCommands);
+		}
+
 		public string FormatLoggedUserActions(bool withMarkDown, bool equalSpacing)
-			=> LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedUserActions);
+		{
+			return LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedUserActions);
+		}
+
 		public string FormatLoggedMessageActions(bool withMarkDown, bool equalSpacing)
-			=> LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedMessageActions.Concat(_LoggedAttachments).ToArray());
+		{
+			return LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedMessageActions.Concat(_LoggedAttachments).ToArray());
+		}
 	}
 }

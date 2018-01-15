@@ -22,17 +22,26 @@ namespace Advobot.Core.Classes.Settings
 		/// Returns all public properties that have a set method.
 		/// </summary>
 		/// <returns></returns>
-		public static PropertyInfo[] GetSettings() => typeof(IGuildSettings)
-			.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-			.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic).ToArray();
+		public static PropertyInfo[] GetSettings()
+		{
+			return typeof(IGuildSettings)
+.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic).ToArray();
+		}
 
 		public CommandSwitch[] GetCommands(CommandCategory category)
-			=> CommandSwitches.Where(x => x.Category == category).ToArray();
+		{
+			return CommandSwitches.Where(x => x.Category == category).ToArray();
+		}
+
 		public CommandSwitch GetCommand(string commandNameOrAlias)
-			=> CommandSwitches.FirstOrDefault(x =>
-			{
-				return x.Name.CaseInsEquals(commandNameOrAlias) || x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias);
-			});
+		{
+			return CommandSwitches.FirstOrDefault(x =>
+						{
+							return x.Name.CaseInsEquals(commandNameOrAlias) || x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias);
+						});
+		}
+
 		public bool SetLogChannel(LogChannelType logChannelType, ITextChannel channel)
 		{
 			switch (logChannelType)
@@ -74,7 +83,9 @@ namespace Advobot.Core.Classes.Settings
 			}
 		}
 		public string GetPrefix(IBotSettings botSettings)
-			=> String.IsNullOrWhiteSpace(Prefix) ? botSettings.Prefix : Prefix;
+		{
+			return String.IsNullOrWhiteSpace(Prefix) ? botSettings.Prefix : Prefix;
+		}
 
 		public void SaveSettings()
 		{
@@ -160,7 +171,11 @@ namespace Advobot.Core.Classes.Settings
 			}
 			return sb.ToString();
 		}
-		public string Format(PropertyInfo property) => FormatObject(property.GetValue(this));
+		public string Format(PropertyInfo property)
+		{
+			return FormatObject(property.GetValue(this));
+		}
+
 		private string FormatObject(object value)
 		{
 			if (value == null)

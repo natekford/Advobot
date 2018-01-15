@@ -12,6 +12,9 @@
 			Reason = reason;
 		}
 
-		public override string ToString() => $"**ERROR:** {Reason}";
+		public override string ToString()
+		{
+			return $"**ERROR:** {Reason}";
+		}
 	}
 }
