@@ -1,12 +1,12 @@
-﻿using Advobot.Core.Utilities;
+﻿using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Interfaces;
 using Discord;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -18,47 +18,169 @@ namespace Advobot.Core.Classes.Settings
 	/// <summary>
 	/// Holds settings for the bot. Settings are saved through property setters or calling <see cref="SaveSettings()"/>.
 	/// </summary>
-	public partial class BotSettings : IBotSettings, INotifyPropertyChanged
+	public sealed class BotSettings : IBotSettings, INotifyPropertyChanged
 	{
-		private const string DEFAULT_PREFIX = "&&";
+		#region Fields and Properties
+		[JsonProperty("TrustedUsers")]
+		private List<ulong> _TrustedUsers;
+		[JsonProperty("UsersUnableToDMOwner")]
+		private List<ulong> _UsersUnableToDMOwner;
+		[JsonProperty("UsersIgnoredFromCommands")]
+		private List<ulong> _UsersIgnoredFromCommands;
+		[JsonProperty("ShardCount")]
+		private int _ShardCount;
+		[JsonProperty("MessageCacheCount")]
+		private int _MessageCacheCount;
+		[JsonProperty("MaxUserGatherCount")]
+		private int _MaxUserGatherCount;
+		[JsonProperty("MaxMessageGatherSize")]
+		private int _MaxMessageGatherSize;
+		[JsonProperty("Prefix")]
+		private string _Prefix;
+		[JsonProperty("Game")]
+		private string _Game;
+		[JsonProperty("Stream")]
+		private string _Stream;
+		[JsonProperty("AlwaysDownloadUsers")]
+		private bool _AlwaysDownloadUsers = true;
+		[JsonProperty("LogLevel")]
+		private LogSeverity _LogLevel = LogSeverity.Warning;
+
+		[JsonIgnore]
+		public IReadOnlyList<ulong> TrustedUsers
+		{
+			get => _TrustedUsers.AsReadOnly() ?? (_TrustedUsers = new List<ulong>()).AsReadOnly();
+			set
+			{
+				_TrustedUsers = value.ToList();
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public IReadOnlyList<ulong> UsersUnableToDMOwner
+		{
+			get => _UsersUnableToDMOwner.AsReadOnly() ?? (_UsersUnableToDMOwner = new List<ulong>()).AsReadOnly();
+			set
+			{
+				_UsersUnableToDMOwner = value.ToList();
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public IReadOnlyList<ulong> UsersIgnoredFromCommands
+		{
+			get => _UsersIgnoredFromCommands.AsReadOnly() ?? (_UsersIgnoredFromCommands = new List<ulong>()).AsReadOnly();
+			set
+			{
+				_UsersIgnoredFromCommands = value.ToList();
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int ShardCount
+		{
+			get => _ShardCount > 1 ? _ShardCount : (_ShardCount = 1);
+			set
+			{
+				_ShardCount = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MessageCacheCount
+		{
+			get => _MessageCacheCount > 0 ? _MessageCacheCount : (_MessageCacheCount = 1000);
+			set
+			{
+				_MessageCacheCount = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxUserGatherCount
+		{
+			get => _MaxUserGatherCount > 0 ? _MaxUserGatherCount : (_MaxUserGatherCount = 100);
+			set
+			{
+				_MaxUserGatherCount = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxMessageGatherSize
+		{
+			get => _MaxMessageGatherSize > 0 ? _MaxMessageGatherSize : (_MaxMessageGatherSize = 500000);
+			set
+			{
+				_MaxMessageGatherSize = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public string Prefix
+		{
+			get => _Prefix ?? (_Prefix = Constants.DEFAULT_PREFIX);
+			set
+			{
+				_Prefix = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public string Game
+		{
+			get => _Game ?? (_Game = $"type \"{Prefix}help\" for help.");
+			set
+			{
+				_Game = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public string Stream
+		{
+			get => _Stream;
+			set
+			{
+				_Stream = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public bool AlwaysDownloadUsers
+		{
+			get => _AlwaysDownloadUsers;
+			set
+			{
+				_AlwaysDownloadUsers = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public LogSeverity LogLevel
+		{
+			get => _LogLevel;
+			set
+			{
+				_LogLevel = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public bool Pause { get; set; }
+		#endregion
+
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		public BotSettings()
 		{
 			PropertyChanged += SaveSettings;
 		}
 
-		/// <summary>
-		/// Returns all public properties that have a set method. Will not return SavePath and BotKey since those
-		/// are saved via <see cref="Properties.Settings.Default"/>.
-		/// </summary>
-		/// <returns></returns>
-		public static PropertyInfo[] GetSettings()
-		{
-			return typeof(IBotSettings)
-.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic).ToArray();
-		}
-
-		/// <summary>
-		/// Returns the values of <see cref="GetBotSettings"/> which either are strings or do not implement the generic IEnumerable.
-		/// </summary>
-		/// <returns></returns>
-		public static PropertyInfo[] GetNonEnumerableSettings()
-		{
-			return GetSettings()
-.Where(x =>
-{
-return x.PropertyType == typeof(string)
-|| !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-}).ToArray();
-		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
-
 		private void SaveSettings(object sender, PropertyChangedEventArgs e)
 		{
 			ConsoleUtils.WriteLine($"Successfully saved: {e.PropertyName}");
@@ -68,17 +190,10 @@ return x.PropertyType == typeof(string)
 		{
 			IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
 		}
-
-		public void TogglePause()
-		{
-			Pause = !Pause;
-		}
-
 		public int GetMaxAmountOfUsersToGather(bool bypass)
 		{
 			return bypass ? int.MaxValue : MaxUserGatherCount;
 		}
-
 		public async Task<string> Format(IDiscordClient client)
 		{
 			var sb = new StringBuilder();
@@ -106,7 +221,6 @@ return x.PropertyType == typeof(string)
 		{
 			return await FormatObjectAsync(client, property.GetValue(this)).CAF();
 		}
-
 		private async Task<string> FormatObjectAsync(IDiscordClient client, object value)
 		{
 			if (value == null)

@@ -1,5 +1,4 @@
-﻿using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.Settings;
@@ -15,7 +14,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -101,7 +99,7 @@ namespace Advobot.Core.Utilities
 		internal static IBotSettings CreateBotSettings()
 		{
 			//Make sure every enum value in botsettings is accurate
-			var fields = BotSettings.GetSettings().ToList();
+			var fields = Utils.GetSettings(typeof(BotSettings)).ToList();
 			foreach (BotSetting e in Enum.GetValues(typeof(BotSetting)))
 			{
 				var matchingField = fields.SingleOrDefault(x => e.EnumName() == x.Name)

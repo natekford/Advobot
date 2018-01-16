@@ -1,9 +1,11 @@
 ﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -257,6 +259,32 @@ namespace Advobot.Core.Utilities
 				}
 			}
 			return objects;
+		}
+
+		/// <summary>
+		/// Returns all public properties that have a set method.
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static PropertyInfo[] GetSettings(Type t)
+		{
+			return t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic).ToArray();
+		}
+		/// <summary>
+		/// Returns all public properties that have a set method and are not <see cref="String"/> or <see cref="IEnumerable{T}"/>.
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static PropertyInfo[] GetNonEnumerableSettings(Type t)
+		{
+			return GetSettings(t).Where(p =>
+			{
+				var pt = p.PropertyType;
+				return pt != typeof(string)
+					&& pt != typeof(IEnumerable)
+					&& !pt.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+			}).ToArray();
 		}
 
 		/// <summary>

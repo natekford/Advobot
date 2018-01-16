@@ -25,16 +25,12 @@ namespace Advobot.Core.Interfaces
 		LogSeverity LogLevel { get; set; }
 
 		//Non-saved settings
-		bool Pause { get; }
+		bool Pause { get; set; }
 
 		/// <summary>
 		/// Saves the settings to a JSON file.
 		/// </summary>
 		void SaveSettings();
-		/// <summary>
-		/// Switches the value of <see cref="Pause"/>.
-		/// </summary>
-		void TogglePause();
 		/// <summary>
 		/// Returns <see cref="Int32.MaxValue"/> is bypass is true, otherwise returns whatever botSettings has for MaxUserGatherCount.
 		/// </summary>

@@ -15,6 +15,7 @@ namespace Advobot.Core
 		//Const for attributes/because they're very unlikely to change. 
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string PLACEHOLDER_PREFIX = ZERO_LENGTH_CHAR + "%PREFIX%";
+		public const string DEFAULT_PREFIX = "&&";
 		public const string FAKE_DISCORD_LINK = "discord" + ZERO_LENGTH_CHAR + ".gg";
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
 		public const string FAKE_HERE = "@" + ZERO_LENGTH_CHAR + "here";

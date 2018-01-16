@@ -2,6 +2,7 @@
 
 namespace Advobot.Core.Enums
 {
+	//TODO: remove
 	[Flags]
 	public enum BotSetting : uint
 	{

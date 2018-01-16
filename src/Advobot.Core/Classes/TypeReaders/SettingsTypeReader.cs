@@ -16,8 +16,8 @@ namespace Advobot.Core.Classes.TypeReaders
 	{
 		private static Dictionary<string, Dictionary<string, PropertyInfo>> _Settings = new Dictionary<string, Dictionary<string, PropertyInfo>>
 		{
-			{ nameof(GuildSettingTypeReader), GuildSettings.GetSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
-			{ nameof(BotSettingTypeReader), GuildSettings.GetSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
+			{ nameof(GuildSettingTypeReader), Utils.GetSettings(typeof(GuildSettings)).ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
+			{ nameof(BotSettingTypeReader), Utils.GetSettings(typeof(BotSettings)).ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
 		};
 
 		/// <summary>
