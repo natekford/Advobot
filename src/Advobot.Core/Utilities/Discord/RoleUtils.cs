@@ -1,9 +1,8 @@
-﻿using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes;
-using Advobot.Core.Classes.Permissions;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Results;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -95,7 +94,7 @@ namespace Advobot.Core.Utilities
 			{
 				if (textChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					var perms = (ulong)ChannelPerms.MUTE_ROLE_TEXT_PERMS;
+					var perms = (ulong)ChannelPermsUtils.MUTE_ROLE_TEXT_PERMS;
 					await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, perms)).CAF();
 				}
 			}
@@ -103,7 +102,7 @@ namespace Advobot.Core.Utilities
 			{
 				if (voiceChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					var perms = (ulong)ChannelPerms.MUTE_ROLE_VOICE_PERMS;
+					var perms = (ulong)ChannelPermsUtils.MUTE_ROLE_VOICE_PERMS;
 					await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, perms)).CAF();
 				}
 			}
@@ -186,7 +185,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null)).CAF();
-			return GuildPerms.ConvertValueToNames(changeValue);
+			return GuildPermsUtils.ConvertValueToNames(changeValue);
 		}
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.

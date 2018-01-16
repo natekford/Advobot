@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Core.Classes
+namespace Advobot.Core.Classes.GuildSettings
 {
 	/// <summary>
 	/// A setting on a guild that states that the command is off for whatever Discord entity has that Id.

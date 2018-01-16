@@ -1,8 +1,6 @@
 ﻿using Advobot.Core.Classes;
-using Advobot.Core.Classes.BannedPhrases;
-using Advobot.Core.Classes.Permissions;
+using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Rules;
-using Advobot.Core.Classes.SpamPrevention;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Discord;

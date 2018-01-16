@@ -187,7 +187,7 @@ namespace Advobot.Commands.BotSettings
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
-			var desc = $"`{String.Join("`, `", Core.Classes.Settings.BotSettings.GetSettings().Select(x => x.Name))}`";
+			var desc = $"`{String.Join("`, `", Utils.GetSettings(typeof(IBotSettings)).Select(x => x.Name))}`";
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All))]

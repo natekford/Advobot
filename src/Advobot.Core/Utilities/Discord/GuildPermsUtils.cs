@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Advobot.Core.Classes.Permissions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Helper class for guild permissions.
 	/// </summary>
-	public static class GuildPerms
+	public static class GuildPermsUtils
 	{
 		//Permissions that indicate the user can generally be trusted with semi spammy commands
 		public const GuildPermission USER_HAS_A_PERMISSION_PERMS = 0

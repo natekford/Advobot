@@ -1,4 +1,5 @@
-﻿using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Classes.GuildSettings;
+using Advobot.Core.Interfaces;
 
 namespace Advobot.Core.Classes.CloseWords
 {

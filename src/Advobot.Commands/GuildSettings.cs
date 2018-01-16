@@ -1,11 +1,13 @@
 ﻿using Advobot.Core;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.Permissions;
+using Advobot.Core.Classes.GuildSettings;
+using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -277,7 +279,7 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command()
 			{
-				var desc = $"`{String.Join("`, `", GuildPerms.Permissions.Select(x => x.Name))}`";
+				var desc = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`";
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Bot Permission Types", desc)).CAF();
 			}
 			[Command]
@@ -291,7 +293,7 @@ namespace Advobot.Commands.GuildSettings
 					return;
 				}
 
-				var desc = $"`{String.Join("`, `", GuildPerms.ConvertValueToNames(botUser.Permissions))}`";
+				var desc = $"`{String.Join("`, `", GuildPermsUtils.ConvertValueToNames(botUser.Permissions))}`";
 				var embed = new EmbedWrapper($"Permissions for {user.Format()}", desc);
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -308,7 +310,7 @@ namespace Advobot.Commands.GuildSettings
 			permissions |= (Context.User as IGuildUser).GuildPermissions.RawValue;
 			botUser.AddPermissions(permissions);
 
-			var givenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(permissions));
+			var givenPerms = String.Join("`, `", GuildPermsUtils.ConvertValueToNames(permissions));
 			var resp = $"Successfully gave `{user.Format()}` the following bot permissions: `{givenPerms}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -326,7 +328,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 			botUser.RemovePermissions(permissions);
 
-			var takenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(permissions));
+			var takenPerms = String.Join("`, `", GuildPermsUtils.ConvertValueToNames(permissions));
 			var resp = $"Successfully removed the following bot permissions from `{user.Format()}`: `{takenPerms}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -524,7 +526,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
-			var desc = $"`{String.Join("`, `", Core.Classes.Settings.GuildSettings.GetSettings().Select(x => x.Name))}`";
+			var desc = $"`{String.Join("`, `", Utils.GetSettings(typeof(IGuildSettings)).Select(x => x.Name))}`";
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]

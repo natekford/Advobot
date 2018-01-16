@@ -428,7 +428,7 @@ namespace Advobot.UILauncher.Windows
 				PauseButton.Content = "Unpause";
 				ConsoleUtils.WriteLine("The bot is now paused.");
 			}
-			BotSettings.HeldObject.TogglePause();
+			BotSettings.HeldObject.Pause = !BotSettings.HeldObject.Pause;
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{

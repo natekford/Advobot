@@ -1,8 +1,8 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.SpamPrevention;
+using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
 using Discord.Commands;
 using System;
 using System.Linq;

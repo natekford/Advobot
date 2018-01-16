@@ -1,7 +1,6 @@
 ﻿using Advobot.Core.Utilities;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.Settings;
 using Discord;
 using System;
 using System.Collections.Immutable;
@@ -132,8 +131,8 @@ namespace Advobot.Core
 		public static Color MDEL => new Color(255, 051, 051);
 
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
-		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(GuildSettings); //IGuildSettings
-		public static Type BOT_SETTINGS_TYPE { get; } = typeof(BotSettings); //IBotSettings
+		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(GuildSettingsWrapper); //IGuildSettings
+		public static Type BOT_SETTINGS_TYPE { get; } = typeof(BotSettingsWrapper); //IBotSettings
 
 		private static Assembly GetCommandAssembly()
 		{

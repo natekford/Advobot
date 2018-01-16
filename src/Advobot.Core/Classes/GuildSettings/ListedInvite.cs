@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Core.Classes
+namespace Advobot.Core.Classes.GuildSettings
 {
 	/// <summary>
 	/// Lists an invite for use in <see cref="IInviteListService"/>.

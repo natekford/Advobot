@@ -123,7 +123,7 @@ namespace Advobot.UILauncher.Utilities
 			}
 
 			object value = null;
-			if (!(ele.Tag is BotSetting setting))
+			if (!(ele.Tag is string settingName))
 			{
 				return null;
 			}
@@ -134,9 +134,9 @@ namespace Advobot.UILauncher.Utilities
 			else if (ele is TextBox tb)
 			{
 				var text = tb.Text;
-				switch (setting)
+				switch (settingName)
 				{
-					case BotSetting.Prefix:
+					case nameof(IBotSettings.Prefix):
 					{
 						if (String.IsNullOrWhiteSpace(text))
 						{
@@ -145,12 +145,12 @@ namespace Advobot.UILauncher.Utilities
 						value = text;
 						break;
 					}
-					case BotSetting.Game:
+					case nameof(IBotSettings.Game):
 					{
 						value = text ?? "";
 						break;
 					}
-					case BotSetting.Stream:
+					case nameof(IBotSettings.Stream):
 					{
 						if (!RegexUtils.CheckIfInputIsAValidTwitchName(text))
 						{
@@ -167,9 +167,9 @@ namespace Advobot.UILauncher.Utilities
 			}
 			else if (ele is ComboBox cmb)
 			{
-				switch (setting)
+				switch (settingName)
 				{
-					case BotSetting.LogLevel:
+					case nameof(IBotSettings.LogLevel):
 					{
 						if (cmb.SelectedItem is TextBox cmbtb && cmbtb.Tag is LogSeverity ls)
 						{
@@ -177,7 +177,7 @@ namespace Advobot.UILauncher.Utilities
 						}
 						break;
 					}
-					case BotSetting.TrustedUsers:
+					case nameof(IBotSettings.TrustedUsers):
 					{
 						var updated = cmb.Items.OfType<TextBox>().Select(x => x?.Tag as ulong? ?? 0).Where(x => x != 0);
 						if (botSettings.TrustedUsers.Except(updated).Any() || updated.Except(botSettings.TrustedUsers).Any())
@@ -193,7 +193,7 @@ namespace Advobot.UILauncher.Utilities
 				throw new ArgumentException("invalid object when attempting to save settings", ele.Name ?? ele.GetType().Name);
 			}
 
-			var field = typeof(IBotSettings).GetProperty(setting.EnumName());
+			var field = typeof(IBotSettings).GetProperty(settingName);
 			//Make sure value isn't null 
 			if (value != null && value.GetType() == field.PropertyType && !field.GetValue(botSettings).Equals(value))
 			{

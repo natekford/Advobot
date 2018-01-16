@@ -1,4 +1,6 @@
 ﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.GuildSettings;
+using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Interfaces;
 using Discord;

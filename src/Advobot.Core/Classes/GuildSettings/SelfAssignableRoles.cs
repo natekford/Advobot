@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Advobot.Core.Classes
+namespace Advobot.Core.Classes.GuildSettings
 {
 	/// <summary>
 	/// Groups self assignable roles together.

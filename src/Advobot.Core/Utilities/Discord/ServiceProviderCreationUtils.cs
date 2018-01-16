@@ -1,9 +1,8 @@
-﻿using Advobot.Core.Classes;
-using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.GuildSettings;
+using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Classes.Rules;
-using Advobot.Core.Classes.Settings;
 using Advobot.Core.Classes.TypeReaders;
-using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Services.GuildSettings;
 using Advobot.Core.Services.InviteList;
@@ -98,19 +97,6 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		internal static IBotSettings CreateBotSettings()
 		{
-			//Make sure every enum value in botsettings is accurate
-			var fields = Utils.GetSettings(typeof(BotSettings)).ToList();
-			foreach (BotSetting e in Enum.GetValues(typeof(BotSetting)))
-			{
-				var matchingField = fields.SingleOrDefault(x => e.EnumName() == x.Name)
-					?? throw new Exception($"{nameof(BotSetting)} has an invalid enum {e.EnumName()}.");
-				fields.Remove(matchingField);
-			}
-			if (fields.Any())
-			{
-				throw new Exception($"The fields {String.Join(", ", fields.Select(x => x.Name))} are not set in {nameof(BotSetting)}.");
-			}
-
 			var path = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
 			var botSettings = IOUtils.DeserializeFromFile<IBotSettings>(path, Constants.BOT_SETTINGS_TYPE, true);
 			botSettings.SaveSettings();

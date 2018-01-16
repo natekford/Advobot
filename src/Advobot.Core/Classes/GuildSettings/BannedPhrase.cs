@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Classes.BannedPhrases
+namespace Advobot.Core.Classes.GuildSettings
 {
 	/// <summary>
 	/// Holds a phrase and punishment.

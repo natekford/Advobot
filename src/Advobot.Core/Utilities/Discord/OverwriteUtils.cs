@@ -1,5 +1,4 @@
 ﻿using Advobot.Core.Classes;
-using Advobot.Core.Classes.Permissions;
 using Discord;
 using System;
 using System.Collections.Generic;
@@ -94,7 +93,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			await ModifyOverwriteAsync(channel, obj, allowBits, denyBits, new ModerationReason(invokingUser, null)).CAF();
-			return ChannelPerms.ConvertValueToNames(changeValue);
+			return ChannelPermsUtils.ConvertValueToNames(changeValue);
 		}
 		/// <summary>
 		/// Sets the overwrite on a channel for the given <paramref name="discordObject"/>.
@@ -157,7 +156,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static Dictionary<string, string> GetChannelOverwritePermissions(Overwrite overwrite)
 		{
-			return ChannelPerms.Permissions.ToDictionary(x => x.Name, x => //Name is the key, PermValue is the value
+			return ChannelPermsUtils.Permissions.ToDictionary(x => x.Name, x => //Name is the key, PermValue is the value
 			{
 				if ((overwrite.Permissions.AllowValue & (ulong)x.Value) != 0)
 				{
@@ -185,14 +184,14 @@ namespace Advobot.Core.Utilities
 			var dictionary = GetChannelOverwritePermissions(overwrite);
 			if (channel is ITextChannel)
 			{
-				foreach (var perm in ChannelPerms.Permissions.Where(x => x.Voice))
+				foreach (var perm in ChannelPermsUtils.Permissions.Where(x => x.Voice))
 				{
 					dictionary.Remove(perm.Name);
 				}
 			}
 			else
 			{
-				foreach (var perm in ChannelPerms.Permissions.Where(x => x.Text))
+				foreach (var perm in ChannelPermsUtils.Permissions.Where(x => x.Text))
 				{
 					dictionary.Remove(perm.Name);
 				}

@@ -13,12 +13,12 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Classes.Settings
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Holds settings for the bot. Settings are saved through property setters or calling <see cref="SaveSettings()"/>.
 	/// </summary>
-	public sealed class BotSettings : IBotSettings, INotifyPropertyChanged
+	public sealed class BotSettingsWrapper : IBotSettings, INotifyPropertyChanged
 	{
 		#region Fields and Properties
 		[JsonProperty("TrustedUsers")]
@@ -172,7 +172,7 @@ namespace Advobot.Core.Classes.Settings
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		public BotSettings()
+		public BotSettingsWrapper()
 		{
 			PropertyChanged += SaveSettings;
 		}

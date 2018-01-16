@@ -1,7 +1,5 @@
-﻿using Advobot.Core.Classes.BannedPhrases;
-using Advobot.Core.Classes.Permissions;
+﻿using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Rules;
-using Advobot.Core.Classes.SpamPrevention;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
@@ -18,12 +16,12 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Classes.Settings
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.
 	/// </summary>
-	public sealed class GuildSettings : IGuildSettings
+	public sealed class GuildSettingsWrapper : IGuildSettings
 	{
 		#region Fields and Properties
 		[JsonProperty("WelcomeMessage")]
@@ -316,9 +314,9 @@ namespace Advobot.Core.Classes.Settings
 		public CommandSwitch GetCommand(string commandNameOrAlias)
 		{
 			return CommandSwitches.FirstOrDefault(x =>
-						{
-							return x.Name.CaseInsEquals(commandNameOrAlias) || x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias);
-						});
+			{
+				return x.Name.CaseInsEquals(commandNameOrAlias) || x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias);
+			});
 		}
 
 		public bool SetLogChannel(LogChannelType logChannelType, ITextChannel channel)

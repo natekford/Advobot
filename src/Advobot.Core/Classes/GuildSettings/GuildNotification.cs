@@ -9,7 +9,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Classes
+namespace Advobot.Core.Classes.GuildSettings
 {
 	/// <summary>
 	/// Notification that gets sent whenever certain events happen depending on what <see cref="GuildNotificationType"/> is linked to this notification.

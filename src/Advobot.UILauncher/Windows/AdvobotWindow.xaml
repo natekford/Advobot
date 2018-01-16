@@ -12,6 +12,7 @@
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
         xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
         xmlns:classes="clr-namespace:Advobot.UILauncher.Classes"
+        xmlns:interfaces="clr-namespace:Advobot.Core.Interfaces;assembly=Advobot.Core"
         mc:Ignorable="d"
         Title="Advobot"
         WindowState="Maximized"
@@ -470,11 +471,11 @@
                             <ToolTip>How many users multi user targetting commands should target by default.</ToolTip>
                         </TextBlock.ToolTip>
                     </controls:AdvobotTitle>
-                    <controls:AdvobotTitle x:Name="MessageGatherCountTitle"
+                    <controls:AdvobotTitle x:Name="MessageGatherSizeTitle"
                                            Grid.Column="1"
                                            Grid.Row="7">
                         <TextBlock.ToolTip>
-                            <ToolTip>How many messages downloadmessages should gather at maximum.</ToolTip>
+                            <ToolTip>How many KBs worth of messages downloadmessages should gather at maximum.</ToolTip>
                         </TextBlock.ToolTip>
                     </controls:AdvobotTitle>
                     <controls:AdvobotTitle x:Name="LogLevelTitle"
@@ -499,53 +500,53 @@
                              HorizontalAlignment="Left"
                              VerticalAlignment="Center">
                         <CheckBox x:Name="AlwaysDownloadUsers"
-                                  Tag="{x:Static coreenums:BotSetting.AlwaysDownloadUsers}" />
+                                  Tag="{extensions:NameOf Member=AlwaysDownloadUsers, Type=interfaces:IBotSettings}" />
                     </Viewbox>
                     <controls:AdvobotTextBox x:Name="Prefix"
-                                             Tag="{x:Static coreenums:BotSetting.Prefix}"
+                                             Tag="{extensions:NameOf Member=Prefix, Type=interfaces:IBotSettings}"
                                              Grid.Column="2"
                                              Grid.Row="1"
                                              MaxLength="10" />
                     <controls:AdvobotTextBox x:Name="Game"
-                                             Tag="{x:Static coreenums:BotSetting.Game}"
+                                             Tag="{extensions:NameOf Member=Game, Type=interfaces:IBotSettings}"
                                              Grid.Column="2"
                                              Grid.Row="2"
                                              MaxLength="100" />
                     <controls:AdvobotTextBox x:Name="Stream"
-                                             Tag="{x:Static coreenums:BotSetting.Stream}"
+                                             Tag="{extensions:NameOf Member=Stream, Type=interfaces:IBotSettings}"
                                              Grid.Column="2"
                                              Grid.Row="3"
                                              MaxLength="25" />
                     <controls:AdvobotNumberBox x:Name="ShardCount"
-                                               Tag="{x:Static coreenums:BotSetting.ShardCount}"
+                                               Tag="{extensions:NameOf Member=ShardCount, Type=interfaces:IBotSettings}"
                                                Grid.Column="2"
                                                Grid.Row="4"
                                                MaxLength="3"
                                                MinValue="1"
                                                MaxValue="10" />
                     <controls:AdvobotNumberBox x:Name="MessageCacheCount"
-                                               Tag="{x:Static coreenums:BotSetting.MessageCacheCount}"
+                                               Tag="{extensions:NameOf Member=MessageCacheCount, Type=interfaces:IBotSettings}"
                                                Grid.Column="2"
                                                Grid.Row="5"
                                                MaxLength="6"
                                                MinValue="1"
                                                MaxValue="100000" />
                     <controls:AdvobotNumberBox x:Name="MaxUserGatherCount"
-                                               Tag="{x:Static coreenums:BotSetting.MaxUserGatherCount}"
+                                               Tag="{extensions:NameOf Member=MaxUserGatherCount, Type=interfaces:IBotSettings}"
                                                Grid.Column="2"
                                                Grid.Row="6"
                                                MaxLength="5" 
                                                MinValue="1"
                                                MaxValue="50000" />
                     <controls:AdvobotNumberBox x:Name="MaxMessageGatherSize"
-                                               Tag="{x:Static coreenums:BotSetting.MaxMessageGatherSize}"
+                                               Tag="{extensions:NameOf Member=MaxMessageGatherSize, Type=interfaces:IBotSettings}"
                                                Grid.Column="2"
                                                Grid.Row="7"
                                                MaxLength="7"
                                                MinValue="1"
                                                MaxValue="10000" />
                     <controls:AdvobotComboBox x:Name="LogLevel"
-                                              Tag="{x:Static coreenums:BotSetting.LogLevel}"
+                                              Tag="{extensions:NameOf Member=LogLevel, Type=interfaces:IBotSettings}"
                                               Grid.Column="2"
                                               Grid.Row="8"
                                               SourceEnum="{x:Type discordenums:LogSeverity}" />
@@ -574,7 +575,7 @@
                         </Grid.ColumnDefinitions>
 
                         <controls:AdvobotComboBox x:Name="TrustedUsers"
-                                                  Tag="{x:Static coreenums:BotSetting.TrustedUsers}" />
+                                                  Tag="{extensions:NameOf Member=TrustedUsers, Type=interfaces:IBotSettings}" />
                         <controls:AdvobotButton x:Name="RemoveTrustedUserButton"
                                                 Grid.Column="1"
                                                 Content="-"

@@ -1,6 +1,6 @@
-﻿using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes.Permissions;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -51,8 +51,8 @@ namespace Advobot.Core.Classes.Attributes
 			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 
-		public string AllText => String.Join(" & ", GuildPerms.ConvertValueToNames((ulong)_AllFlags));
-		public string AnyText => String.Join(" | ", GuildPerms.ConvertValueToNames((ulong)_AnyFlags));
+		public string AllText => String.Join(" & ", GuildPermsUtils.ConvertValueToNames((ulong)_AllFlags));
+		public string AnyText => String.Join(" | ", GuildPermsUtils.ConvertValueToNames((ulong)_AnyFlags));
 
 		public override string ToString()
 		{

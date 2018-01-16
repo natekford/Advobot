@@ -3,7 +3,7 @@ using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Core.Classes.Permissions
+namespace Advobot.Core.Classes.GuildSettings
 {
 	/// <summary>
 	/// Extra permissions within the bot given to a user on a guild.
@@ -25,7 +25,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			Permissions |= flags;
 		}
-
 		public void RemovePermissions(ulong flags)
 		{
 			Permissions &= ~flags;
@@ -35,7 +34,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			return $"**User:** `{UserId}`\n**Permissions:** `{Permissions}`";
 		}
-
 		public string ToString(SocketGuild guild)
 		{
 			return $"**User:** `{guild.GetUser(UserId).Format()}`\n**Permissions:** `{Permissions}`";

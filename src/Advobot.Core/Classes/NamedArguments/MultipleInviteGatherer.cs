@@ -1,11 +1,11 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
 using Discord;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Core.Classes
+namespace Advobot.Core.Classes.NamedArguments
 {
 	/// <summary>
 	/// Sets the search terms for invites and can gather invites matching those terms.

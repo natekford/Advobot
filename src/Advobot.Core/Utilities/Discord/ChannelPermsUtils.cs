@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Advobot.Core.Classes.Permissions
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Helper class for channel permissions.
 	/// </summary>
-	public static class ChannelPerms
+	public static class ChannelPermsUtils
 	{
 		private const ChannelPermission GENERAL_BITS = 0
 			| ChannelPermission.ViewChannel

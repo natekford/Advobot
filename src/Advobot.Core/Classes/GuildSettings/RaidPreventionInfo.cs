@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Classes.SpamPrevention
+namespace Advobot.Core.Classes.GuildSettings
 {
 	/// <summary>
 	/// Holds information about raid prevention such as how long the interval is, and how many users to target.

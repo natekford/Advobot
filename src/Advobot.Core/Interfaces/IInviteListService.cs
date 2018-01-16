@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes.GuildSettings;
 using Discord;
 using System.Collections.Generic;
 

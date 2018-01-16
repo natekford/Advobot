@@ -1,9 +1,8 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.Permissions;
 using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -122,31 +121,31 @@ namespace Advobot.Commands.Gets
 	public sealed class GetUsersWithReason : AdvobotModuleBase
 	{
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
-		public async Task Role(IRole role, params GUWRSearchOption[] additionalSearchOptions)
+		public async Task Role(IRole role, params SearchOptions[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Role, role, additionalSearchOptions).CAF();
 		}
 		[Command(nameof(Name)), ShortAlias(nameof(Name))]
-		public async Task Name(string name, params GUWRSearchOption[] additionalSearchOptions)
+		public async Task Name(string name, params SearchOptions[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Name, name, additionalSearchOptions).CAF();
 		}
 		[Command(nameof(Game)), ShortAlias(nameof(Game))]
-		public async Task Game(string game, params GUWRSearchOption[] additionalSearchOptions)
+		public async Task Game(string game, params SearchOptions[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Game, game, additionalSearchOptions).CAF();
 		}
 		[Command(nameof(Stream)), ShortAlias(nameof(Stream))]
-		public async Task Stream(params GUWRSearchOption[] additionalSearchOptions)
+		public async Task Stream(params SearchOptions[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Stream, null as string, additionalSearchOptions).CAF();
 		}
 
-		private async Task CommandRunner(Target targetType, object obj, GUWRSearchOption[] additionalSearchOptions)
+		private async Task CommandRunner(Target targetType, object obj, SearchOptions[] additionalSearchOptions)
 		{
-			var count = additionalSearchOptions.Contains(GUWRSearchOption.Count);
-			var nickname = additionalSearchOptions.Contains(GUWRSearchOption.Nickname);
-			var exact = additionalSearchOptions.Contains(GUWRSearchOption.Exact);
+			var count = additionalSearchOptions.Contains(SearchOptions.Count);
+			var nickname = additionalSearchOptions.Contains(SearchOptions.Nickname);
+			var exact = additionalSearchOptions.Contains(SearchOptions.Exact);
 
 			var title = "";
 			var users = (await Context.Guild.GetUsersAsync().CAF()).AsEnumerable();
@@ -197,6 +196,13 @@ namespace Advobot.Commands.Gets
 				? $"**Count:** `{users.Count()}`"
 				: users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.Format());
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(title, desc)).CAF();
+		}
+
+		public enum SearchOptions
+		{
+			Count,
+			Nickname,
+			Exact,
 		}
 	}
 
@@ -349,7 +355,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild(ulong number)
 		{
-			var perms = GuildPerms.ConvertValueToNames(number);
+			var perms = GuildPermsUtils.ConvertValueToNames(number);
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
@@ -363,7 +369,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel(ulong number)
 		{
-			var perms = ChannelPerms.ConvertValueToNames(number);
+			var perms = ChannelPermsUtils.ConvertValueToNames(number);
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();

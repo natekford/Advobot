@@ -1,7 +1,6 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Classes.Permissions;
-using Advobot.Core.Enums;
+﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
 using System;
@@ -40,7 +39,7 @@ namespace Advobot.Core.Classes.Attributes
 					var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 
 					var userPerms = guildBits | botBits;
-					if ((userPerms & (ulong)GuildPerms.USER_HAS_A_PERMISSION_PERMS) != 0)
+					if ((userPerms & (ulong)GuildPermsUtils.USER_HAS_A_PERMISSION_PERMS) != 0)
 					{
 						return PreconditionResult.FromSuccess();
 					}

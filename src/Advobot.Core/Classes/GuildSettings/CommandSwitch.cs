@@ -4,7 +4,7 @@ using Discord.WebSocket;
 using Newtonsoft.Json;
 using System.Collections.Immutable;
 
-namespace Advobot.Core.Classes
+namespace Advobot.Core.Classes.GuildSettings
 {
 	/// <summary>
 	/// A setting on guilds that states whether a command is on or off.

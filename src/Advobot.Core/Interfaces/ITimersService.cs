@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.CloseWords;
+using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;

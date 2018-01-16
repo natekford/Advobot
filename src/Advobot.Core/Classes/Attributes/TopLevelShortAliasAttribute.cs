@@ -55,7 +55,7 @@ namespace Advobot.Core.Classes.Attributes
 						}
 					}
 
-					return (Holder: x, matchingStartPartsIndex: matchingStartPartsIndex);
+					return (Holder: x, matchingStartPartsIndex);
 				}).Where(x => x.matchingStartPartsIndex > -1);
 
 				//ChangeChannel is 2 parts, so this would return 2. Add 1 to start adding from Perms instead of Channel.

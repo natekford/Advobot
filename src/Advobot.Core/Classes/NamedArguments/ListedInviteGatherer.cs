@@ -1,11 +1,12 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Core.Classes
+namespace Advobot.Core.Classes.NamedArguments
 {
 	public class ListedInviteGatherer
 	{
