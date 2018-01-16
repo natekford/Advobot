@@ -7,19 +7,14 @@ namespace Advobot.Core.Classes.UserInformation
 	/// <summary>
 	/// Holds a user and a time.
 	/// </summary>
-	public abstract class UserInfo : IHasTime
+	public abstract class UserInfo : ITime
 	{
-		public readonly IGuildUser User;
-		protected DateTime _Time;
+		public IGuildUser User { get; }
+		public DateTime Time { get; protected set; }
 
 		public UserInfo(IGuildUser user)
 		{
 			User = user;
-		}
-
-		public DateTime GetTime()
-		{
-			return _Time;
 		}
 	}
 }

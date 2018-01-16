@@ -19,18 +19,18 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class Help : AdvobotModuleBase
 	{
-		private static readonly string _GeneralHelp =
+		private static string _GeneralHelp =
 			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)}` for the list of commands.\n" +
 			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Help)} [Command]` for help with a command.";
-		private static readonly string _BasicSyntax =
+		private static string _BasicSyntax =
 			"`[]` means required.\n" +
 			"`<>` means optional.\n" +
 			"`|` means or.";
-		private static readonly string _MentionSyntax =
+		private static string _MentionSyntax =
 			"`User` means `@User|\"Username\"`.\n" +
 			"`Role` means `@Role|\"Role Name\"`.\n" +
 			"`Channel` means `#Channel|\"Channel Name\"`.";
-		private static readonly string _Links =
+		private static string _Links =
 			$"[GitHub Repository]({Constants.REPO})\n" +
 			$"[Discord Server]({Constants.DISCORD_INV})";
 
@@ -67,7 +67,7 @@ namespace Advobot.Commands.Miscellaneous
 				return;
 			}
 
-			await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Nonexistent command.")).CAF();
+			await MessageUtils.SendErrorMessageAsync(Context, new Error("Nonexistent command.")).CAF();
 		}
 	}
 
@@ -77,9 +77,9 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class Commands : AdvobotModuleBase
 	{
-		private static readonly string _Command = $"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)} [Category]` for commands from that category.\n\n";
-		private static readonly string _Categories = $"`{String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))}`";
-		private static readonly string _CommandCategories = _Command + _Categories;
+		private static string _Command = $"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)} [Category]` for commands from that category.\n\n";
+		private static string _Categories = $"`{String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))}`";
+		private static string _CommandCategories = _Command + _Categories;
 
 		[Command(nameof(All)), ShortAlias(nameof(All))]
 		public async Task All()
@@ -128,11 +128,11 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			if (role.IsMentionable)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("You can already mention this role.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("You can already mention this role.")).CAF();
 			}
 			else
 			{
-				var cutText = $"From `{Context.User.FormatUser()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
+				var cutText = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
 				await role.ModifyAsync(x => x.Mentionable = true, new ModerationReason(Context.User, null).CreateRequestOptions()).CAF();
 				await MessageUtils.SendMessageAsync(Context.Channel, cutText).CAF();
@@ -152,7 +152,7 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task Command([Remainder] string message)
 		{
 			var cut = message.Substring(0, Math.Min(message.Length, 250));
-			var newMsg = $"From `{Context.User.FormatUser()}` in `{Context.Guild.FormatGuild()}`:\n```\n{cut}```";
+			var newMsg = $"From `{Context.User.Format()}` in `{Context.Guild.Format()}`:\n```\n{cut}```";
 
 			var owner = await ClientUtils.GetBotOwnerAsync(Context.Client).CAF();
 			if (owner != null)
@@ -161,7 +161,7 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The owner is unable to be gotten.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("The owner is unable to be gotten.")).CAF();
 			}
 		}
 	}

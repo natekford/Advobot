@@ -195,7 +195,7 @@ namespace Advobot.Commands.Gets
 
 			var desc = count
 				? $"**Count:** `{users.Count()}`"
-				: users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
+				: users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.Format());
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(title, desc)).CAF();
 		}
 	}
@@ -230,7 +230,7 @@ namespace Advobot.Commands.Gets
 			var newPos = Math.Max(1, Math.Min((int)position, users.Count));
 			var user = users[newPos - 1];
 			var time = TimeFormatting.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime);
-			var text = $"`{user.FormatUser()}` is `#{newPos}` to join the guild on `{time}`.";
+			var text = $"`{user.Format()}` is `#{newPos}` to join the guild on `{time}`.";
 			await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
 		}
 	}
@@ -250,7 +250,7 @@ namespace Advobot.Commands.Gets
 				var embed = new EmbedWrapper("Guilds");
 				foreach (var guild in guilds)
 				{
-					embed.AddField(guild.FormatGuild(), $"**Owner:** `{(await guild.GetOwnerAsync().CAF()).FormatUser()}`");
+					embed.AddField(guild.Format(), $"**Owner:** `{(await guild.GetOwnerAsync().CAF()).Format()}`");
 				}
 
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
@@ -258,7 +258,7 @@ namespace Advobot.Commands.Gets
 			else
 			{
 				var guildsAndOwners = await Task.WhenAll(guilds.Select(async x => (Guild: x, Owner: await x.GetOwnerAsync().CAF())));
-				var desc = guildsAndOwners.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Guild.FormatGuild(), x => x.Owner.FormatUser());
+				var desc = guildsAndOwners.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Guild.Format(), x => x.Owner.Format());
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Guilds", desc)).CAF();
 			}
 		}
@@ -275,7 +275,7 @@ namespace Advobot.Commands.Gets
 		{
 			var users = await Context.Guild.GetUsersAndOrderByJoinAsync().CAF();
 			var text = users.FormatNumberedList("`{0}` joined on `{1}`",
-				x => x.FormatUser(),
+				x => x.Format(),
 				x => TimeFormatting.FormatReadableDateTime(x.JoinedAt.Value.UtcDateTime));
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "User_Joins_").CAF();
 		}
@@ -325,7 +325,7 @@ namespace Advobot.Commands.Gets
 			var count = 0;
 			for (count = 0; count < m.Length; ++count)
 			{
-				var text = new FormattedMessage(m[count]).ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
+				var text = m[count].Format(false).RemoveAllMarkdown().RemoveDuplicateNewLines();
 				if (formattedMessagesBuilder.Length + text.Length < Context.BotSettings.MaxMessageGatherSize)
 				{
 					formattedMessagesBuilder.AppendLineFeed(text);
@@ -352,7 +352,7 @@ namespace Advobot.Commands.Gets
 			var perms = GuildPerms.ConvertValueToNames(number);
 			if (!perms.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The given number holds no permissions.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
 			}
 			else
 			{
@@ -366,7 +366,7 @@ namespace Advobot.Commands.Gets
 			var perms = ChannelPerms.ConvertValueToNames(number);
 			if (!perms.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The given number holds no permissions.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
 			}
 			else
 			{
@@ -396,12 +396,12 @@ namespace Advobot.Commands.Gets
 			var matchingNames = _Enums.Where(x => x.Name.CaseInsEquals(enumName));
 			if (!matchingNames.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"No enum has the name `{enumName}`.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"No enum has the name `{enumName}`.")).CAF();
 				return;
 			}
 			else if (matchingNames.Count() > 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"Too many enums have the name `{enumName}`.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Too many enums have the name `{enumName}`.")).CAF();
 				return;
 			}
 

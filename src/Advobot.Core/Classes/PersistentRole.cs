@@ -33,11 +33,10 @@ namespace Advobot.Core.Classes
 		{
 			return $"**User Id:** `{UserId}`\n**Role Id:&& `{RoleId}`";
 		}
-
 		public string ToString(SocketGuild guild)
 		{
-			var user = guild.GetUser(UserId).FormatUser() ?? UserId.ToString();
-			var role = guild.GetRole(RoleId).FormatRole() ?? RoleId.ToString();
+			var user = guild.GetUser(UserId).Format() ?? UserId.ToString();
+			var role = guild.GetRole(RoleId).Format() ?? RoleId.ToString();
 			return $"**User:** `{user}`\n**Role:** `{role}`";
 		}
 	}

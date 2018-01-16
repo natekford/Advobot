@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public SlowmodeUserInfo(IGuildUser user, int baseMessages, int interval) : base(user)
 		{
 			CurrentMessagesLeft = baseMessages;
-			_Time = DateTime.UtcNow.AddSeconds(interval);
+			Time = DateTime.UtcNow.AddSeconds(interval);
 		}
 
 		public void DecrementMessages()
@@ -22,7 +22,7 @@ namespace Advobot.Core.Classes.UserInformation
 		}
 		public void UpdateTime(int interval)
 		{
-			_Time = DateTime.UtcNow.AddSeconds(interval);
+			Time = DateTime.UtcNow.AddSeconds(interval);
 		}
 	}
 }

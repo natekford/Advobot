@@ -32,17 +32,14 @@ namespace Advobot.Core.Classes
 		{
 			Count += count;
 		}
-
 		public void Remove(int count)
 		{
 			Count -= count;
 		}
-
 		public void Increment()
 		{
 			Add(1);
 		}
-
 		public void Decrement()
 		{
 			Remove(1);

@@ -66,7 +66,7 @@ namespace Advobot.Core.Classes.Punishments
 
 		protected override void After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason)
 		{
-			var sb = new StringBuilder($"Successfully {_Removal[type]} {user.FormatUser()}. ");
+			var sb = new StringBuilder($"Successfully {_Removal[type]} {user.Format()}. ");
 			if (_Timers != null && _Timers.RemovePunishments(user.Id, type) > 0)
 			{
 				sb.Append($"Removed all timed {type.EnumName().FormatTitle().ToLower()} punishments on them. ");

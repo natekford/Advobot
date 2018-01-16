@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Advobot.Core.Interfaces;
+using System.Collections.ObjectModel;
 
 namespace Advobot.Core.Classes
 {
@@ -18,7 +19,10 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public class HelpEntryHolder
 	{
-		private readonly ImmutableList<HelpEntry> _Source;
+		//Maps the name and aliases of a command to the name
+		private Dictionary<string, string> _NameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		//Maps the name to the helpentry
+		private Dictionary<string, HelpEntry> _Source = new Dictionary<string, HelpEntry>();
 
 		public HelpEntryHolder()
 		{
@@ -30,7 +34,6 @@ namespace Advobot.Core.Classes
 				throw new TypeLoadException($"The assembly {Constants.COMMAND_ASSEMBLY.GetName().Name} has no commands.");
 			}
 
-			var temp = new List<HelpEntry>();
 			foreach (var t in types)
 			{
 				var innerMostNameSpace = t.Namespace.Substring(t.Namespace.LastIndexOf('.') + 1);
@@ -58,7 +61,6 @@ namespace Advobot.Core.Classes
 #if DEBUG
 				//These are basically only here so I won't forget something.
 				//Without them the bot should work fine, but may have tiny bugs.
-				VerifyNoDuplicateCommandNamesOrAliases(temp, name, aliases);
 				VerifyDefaultValueEnabledAttributeExists(t);
 				VerifyClassIsPublic(t);
 				VerifyAllCommandsHaveCommandAttribute(t);
@@ -66,19 +68,17 @@ namespace Advobot.Core.Classes
 				VerifyShortAliasAttribute(t);
 #endif
 
-				temp.Add(new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, aliases, category, defaultEnabled));
+				var helpEntry = new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, aliases, category, defaultEnabled);
+				_NameMap.Add(name.ToLower(), name);
+				foreach (var alias in aliases ?? new string[0])
+				{
+					_NameMap.Add(alias.ToLower(), name);
+				}
+
+				_Source.Add(name, helpEntry);
 			}
-			_Source = temp.ToImmutableList();
 		}
 
-		private void VerifyNoDuplicateCommandNamesOrAliases(IEnumerable<HelpEntry> alreadyUsed, string name, string[] aliases)
-		{
-			var similarCmds = alreadyUsed.Where(x => x.Name.CaseInsEquals(name) || (x.Aliases != null && aliases != null && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any()));
-			if (similarCmds.Any())
-			{
-				throw new InvalidOperationException($"The following commands have conflicts: {String.Join(" + ", similarCmds.Select(x => x.Name))} + {name}");
-			}
-		}
 		private void VerifyDefaultValueEnabledAttributeExists(Type classType)
 		{
 			if (classType.GetCustomAttribute<DefaultEnabledAttribute>() == null)
@@ -134,9 +134,8 @@ namespace Advobot.Core.Classes
 		/// <returns></returns>
 		public string[] GetCommandNames()
 		{
-			return _Source.Select(x => x.Name).ToArray();
+			return _Source.Keys.ToArray();
 		}
-
 		/// <summary>
 		/// Retrurns an array of <see cref="HelpEntry"/> which have not had their values set in guild settings.
 		/// </summary>
@@ -144,25 +143,24 @@ namespace Advobot.Core.Classes
 		/// <returns></returns>
 		public HelpEntry[] GetUnsetCommands(IEnumerable<string> setCommands)
 		{
-			return _Source.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
+			return _Source.Values.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
 		}
-
 		/// <summary>
 		/// Returns an array of every <see cref="HelpEntry"/>.
 		/// </summary>
 		/// <returns></returns>
 		public HelpEntry[] GetHelpEntries()
 		{
-			return _Source.ToArray();
+			return _Source.Values.ToArray();
 		}
-
+	
 		public HelpEntry this[string nameOrAlias]
 		{
-			get => _Source.SingleOrDefault(x => x.Name.CaseInsEquals(nameOrAlias) || x.Aliases.CaseInsContains(nameOrAlias));
+			get => _NameMap.TryGetValue(nameOrAlias, out var name) ? _Source[name] : null;
 		}
 		public HelpEntry[] this[CommandCategory category]
 		{
-			get => _Source.Where(x => x.Category == category).ToArray();
+			get => _Source.Values.Where(x => x.Category == category).ToArray();
 		}
 
 		/// <summary>
@@ -197,10 +195,10 @@ namespace Advobot.Core.Classes
 			public override string ToString()
 			{
 				return $"**Aliases:** {String.Join(", ", Aliases)}\n" +
-$"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n" +
-$"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n\n" +
-$"**Base Permission(s):**\n{BasePerm}\n\n" +
-$"**Description:**\n{Description}";
+					$"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n" +
+					$"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n\n" +
+					$"**Base Permission(s):**\n{BasePerm}\n\n" +
+					$"**Description:**\n{Description}";
 			}
 		}
 	}

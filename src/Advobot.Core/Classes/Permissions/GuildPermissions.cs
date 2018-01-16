@@ -28,7 +28,7 @@ namespace Advobot.Core.Classes.Permissions
 			| GuildPermission.MoveMembers
 			| GuildPermission.MuteMembers;
 
-		public static ImmutableList<GuildPerm> Permissions = ImmutableList.Create(CreatePermList());
+		public static ImmutableArray<GuildPerm> Permissions = ImmutableArray.Create(CreatePermList());
 
 		/// <summary>
 		/// Returns the first <see cref="GuildPerm"/> to have the given name. (Case insensitive)
@@ -39,7 +39,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			return Permissions.FirstOrDefault(x => x.Name.CaseInsEquals(name));
 		}
-
 		/// <summary>
 		/// Returns the first <see cref="GuildPerm"/> to have the given value.
 		/// </summary>
@@ -49,7 +48,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			return Permissions.FirstOrDefault(x => (ulong)x.Value == value);
 		}
-
 		/// <summary>
 		/// Returns the first <see cref="GuildPerm"/> to not have its value ANDed together with the argument equal zero.
 		/// </summary>
@@ -59,7 +57,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			return Permissions.FirstOrDefault(x => ((ulong)x.Value & value) != 0);
 		}
-
 		/// <summary>
 		/// Returns the first <see cref="GuildPerm"/> to equal 1 shifted to the left with the passed in number.
 		/// </summary>
@@ -69,7 +66,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			return Permissions.FirstOrDefault(x => (ulong)x.Value == (1UL << bit));
 		}
-
 		/// <summary>
 		/// Returns the guild permissions that are set within the passed in ulong.
 		/// </summary>
@@ -79,7 +75,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			return Permissions.Where(x => ((ulong)x.Value & value) != 0).ToArray();
 		}
-
 		/// <summary>
 		/// Returns the guild permissions which can be found with the passed in names.
 		/// </summary>
@@ -89,7 +84,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			return Permissions.Where(x => permissionNames.CaseInsContains(x.Name)).ToArray();
 		}
-
 		/// <summary>
 		/// Returns a ulong which is every permission ORed together.
 		/// </summary>
@@ -113,7 +107,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			return ConvertToValue(ConvertToPermissions(permissionNames));
 		}
-
 		/// <summary>
 		/// Returns the names of guild permissions that are set within the passed in ulong.
 		/// </summary>
@@ -123,7 +116,6 @@ namespace Advobot.Core.Classes.Permissions
 		{
 			return ConvertToPermissions(value).Select(x => x.Name).ToArray();
 		}
-
 		/// <summary>
 		/// Returns a bool indicating true if all perms are valid. Out values of valid perms and invalid perms.
 		/// </summary>

@@ -124,7 +124,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="guildSettingsType"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal static IGuildSettings CreateGuildSettingsAsync(SocketGuild guild)
+		internal static IGuildSettings CreateGuildSettings(SocketGuild guild)
 		{
 			var path = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOC);
 			var guildSettings = IOUtils.DeserializeFromFile<IGuildSettings>(path, Constants.GUILD_SETTINGS_TYPE, true);

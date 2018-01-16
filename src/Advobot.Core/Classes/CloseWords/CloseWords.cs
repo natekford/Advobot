@@ -11,22 +11,17 @@ namespace Advobot.Core.Classes.CloseWords
 	/// Container of close words which is intended to be removed after <see cref="GetTime()"/> returns a value less than the current time.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class CloseWords<T> : IHasTime where T : IDescription
+	public abstract class CloseWords<T> : ITime where T : IDescription
 	{
-		public ImmutableList<CloseWord<T>> List { get; protected set; }
+		public ImmutableArray<CloseWord<T>> List { get; protected set; }
+		public DateTime Time { get; }
 		protected int _MaxAllowedCloseness = 4;
 		protected int _MaxOutput = 5;
-		private DateTime _Time;
 
 		public CloseWords(IEnumerable<T> suppliedObjects, string input)
 		{
-			List = GetObjectsWithSimilarNames(suppliedObjects, input).ToImmutableList();
-			_Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
-		}
-
-		public DateTime GetTime()
-		{
-			return _Time;
+			List = GetObjectsWithSimilarNames(suppliedObjects, input).ToImmutableArray();
+			Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
 		}
 
 		protected abstract int FindCloseness(T obj, string input);

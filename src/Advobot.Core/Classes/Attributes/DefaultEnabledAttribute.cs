@@ -8,7 +8,7 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class DefaultEnabledAttribute : Attribute
 	{
-		public readonly bool Enabled;
+		public bool Enabled { get; }
 
 		public DefaultEnabledAttribute(bool enabled)
 		{

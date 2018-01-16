@@ -24,7 +24,7 @@ namespace Advobot.Commands.InviteModeration
 			var invites = (await Context.Guild.GetInvitesAsync().CAF()).OrderByDescending(x => x.Uses);
 			if (!invites.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("This guild has no invites.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild has no invites.")).CAF();
 				return;
 			}
 
@@ -33,7 +33,7 @@ namespace Advobot.Commands.InviteModeration
 			var desc = String.Join("\n", invites.FormatNumberedList("`{0}` `{1}` `{2}`",
 				x => x.Code.PadRight(lenForCode),
 				x => x.Uses.ToString().PadRight(lenForUses),
-				x => x.Inviter.FormatUser()));
+				x => x.Inviter.Format()));
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Instant Invite List", desc)).CAF();
 		}
 	}
@@ -67,7 +67,7 @@ namespace Advobot.Commands.InviteModeration
 				? "Users will be kicked when they go offline unless they get a role." 
 				: "Users will not be kicked when they go offline and do not have a role.";
 			var joined = GeneralFormatting.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr);
-			var resp = $"Here is your invite for `{channel.FormatChannel()}`: {joined}";
+			var resp = $"Here is your invite for `{channel.Format()}`: {joined}";
 			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 	}
@@ -100,7 +100,7 @@ namespace Advobot.Commands.InviteModeration
 			var invites = gatherer.CreateObject().GatherInvites(await Context.Guild.GetInvitesAsync().CAF());
 			if (!invites.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("No invites satisfied the given conditions.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("No invites satisfied the given conditions.")).CAF();
 				return;
 			}
 

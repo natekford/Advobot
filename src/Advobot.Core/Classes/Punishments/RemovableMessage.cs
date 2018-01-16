@@ -1,7 +1,7 @@
 ﻿using Advobot.Core.Interfaces;
 using Discord;
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Advobot.Core.Classes.Punishments
@@ -9,22 +9,17 @@ namespace Advobot.Core.Classes.Punishments
 	/// <summary>
 	/// Messages that will get deleted after <see cref="GetTime"/> is less than <see cref="DateTime.UtcNow"/>.
 	/// </summary>
-	public struct RemovableMessage : IHasTime
+	public struct RemovableMessage : ITime
 	{
-		public readonly IReadOnlyList<IMessage> Messages;
-		public readonly ITextChannel Channel;
-		private readonly DateTime _Time;
+		public ImmutableArray<IMessage> Messages { get; }
+		public ITextChannel Channel { get; }
+		public DateTime Time { get; }
 
 		public RemovableMessage(int seconds, params IMessage[] messages)
 		{
-			Messages = messages.ToList().AsReadOnly();
+			Messages = messages.ToImmutableArray();
 			Channel = messages.FirstOrDefault().Channel as ITextChannel;
-			_Time = DateTime.UtcNow.AddSeconds(seconds);
-		}
-
-		public DateTime GetTime()
-		{
-			return _Time;
+			Time = DateTime.UtcNow.AddSeconds(seconds);
 		}
 	}
 }

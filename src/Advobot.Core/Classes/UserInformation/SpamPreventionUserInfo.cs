@@ -97,20 +97,15 @@ namespace Advobot.Core.Classes.UserInformation
 			return temp;
 		}
 
-		public struct SpamInstance : IHasTime
+		public struct SpamInstance : ITime
 		{
-			public readonly ulong MessageId;
-			private readonly DateTime _Time;
+			public ulong MessageId { get; }
+			public DateTime Time { get; }
 
 			public SpamInstance(IMessage message)
 			{
 				MessageId = message.Id;
-				_Time = message.CreatedAt.UtcDateTime;
-			}
-
-			public DateTime GetTime()
-			{
-				return _Time;
+				Time = message.CreatedAt.UtcDateTime;
 			}
 		}
 	}

@@ -1,14 +1,12 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes.Punishments;
+﻿using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,11 +21,11 @@ namespace Advobot.Core.Classes.SpamPrevention
 		private const int MAX_TIME = 60;
 
 		[JsonProperty]
-		public readonly PunishmentType PunishmentType;
+		public PunishmentType PunishmentType { get; }
 		[JsonProperty]
-		public readonly int Interval;
+		public int Interval { get; }
 		[JsonProperty]
-		public readonly int UserCount;
+		public int UserCount { get; }
 		[JsonProperty]
 		public bool Enabled = true;
 		[JsonIgnore]
@@ -46,41 +44,37 @@ namespace Advobot.Core.Classes.SpamPrevention
 		{
 			return TimeList.CountItemsInTimeFrame(Interval);
 		}
-
 		public void Add(DateTime time)
 		{
 			TimeList.Enqueue(new TimeWrapper(time));
 		}
-
 		public void Reset()
 		{
 			Interlocked.Exchange(ref _TimeList, new ConcurrentQueue<TimeWrapper>());
 		}
-
 		public async Task PunishAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
 			var giver = new PunishmentGiver(0, null);
 			await giver.PunishAsync(PunishmentType, user, guildSettings.MuteRole, new ModerationReason("raid prevention")).CAF();
 		}
-
 		public static bool TryCreateRaidPreventionInfo(RaidType raidType,
 			PunishmentType punishmentType,
 			int userCount,
 			int interval,
 			out RaidPreventionInfo raidPrevention,
-			out ErrorReason errorReason)
+			out Error errorReason)
 		{
 			raidPrevention = default;
 			errorReason = default;
 
 			if (userCount > MAX_USERS)
 			{
-				errorReason = new ErrorReason($"The user count must be less than or equal to `{MAX_USERS}`.");
+				errorReason = new Error($"The user count must be less than or equal to `{MAX_USERS}`.");
 				return false;
 			}
 			else if (interval > MAX_TIME)
 			{
-				errorReason = new ErrorReason($"The interval must be less than or equal to `{MAX_TIME}`.");
+				errorReason = new Error($"The interval must be less than or equal to `{MAX_TIME}`.");
 				return false;
 			}
 

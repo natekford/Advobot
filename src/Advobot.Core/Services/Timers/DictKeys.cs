@@ -6,7 +6,7 @@ namespace Advobot.Core.Services.Timers
 {
 	internal class DictKey
 	{
-		public readonly long Ticks;
+		public long Ticks { get; }
 
 		public DictKey(long ticks)
 		{
@@ -16,8 +16,8 @@ namespace Advobot.Core.Services.Timers
 
 	internal sealed class UserKey : DictKey
 	{
-		public readonly ulong GuildId;
-		public readonly ulong UserId;
+		public ulong GuildId { get; }
+		public ulong UserId { get; }
 
 		public UserKey(IGuildUser user, long ticks) : base(ticks)
 		{
@@ -29,7 +29,7 @@ namespace Advobot.Core.Services.Timers
 			GuildId = guild.Id;
 			UserId = user.Id;
 		}
-		public UserKey(UserInfo info) : this(info.User, info.GetTime().Ticks) { }
+		public UserKey(UserInfo info) : this(info.User, info.Time.Ticks) { }
 
 		public override string ToString()
 		{
@@ -39,8 +39,8 @@ namespace Advobot.Core.Services.Timers
 
 	internal sealed class ChannelKey : DictKey
 	{
-		public readonly ulong GuildId;
-		public readonly ulong ChannelId;
+		public ulong GuildId { get; }
+		public ulong ChannelId { get; }
 
 		public ChannelKey(IChannel channel, long ticks) : base(ticks)
 		{

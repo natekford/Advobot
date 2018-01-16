@@ -52,12 +52,12 @@ namespace Advobot.Commands.SpamPrevention
 			var spamPrev = Context.GuildSettings.SpamPreventionDictionary[spamType];
 			if (spamPrev == null)
 			{
-				var error = new ErrorReason("There must be a spam prevention of that type set up before one can be enabled or disabled.");
+				var error = new Error("There must be a spam prevention of that type set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			spamPrev.Enable();
+			spamPrev.Enabled = true;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully enabled the given spam prevention.").CAF();
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
@@ -66,12 +66,12 @@ namespace Advobot.Commands.SpamPrevention
 			var spamPrev = Context.GuildSettings.SpamPreventionDictionary[spamType];
 			if (spamPrev == null)
 			{
-				var error = new ErrorReason("There must be a spam prevention of that type set up before one can be enabled or disabled.");
+				var error = new Error("There must be a spam prevention of that type set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			spamPrev.Disable();
+			spamPrev.Enabled = false;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled the given spam prevention.").CAF();
 		}
 	}
@@ -116,7 +116,7 @@ namespace Advobot.Commands.SpamPrevention
 			var raidPrev = Context.GuildSettings.RaidPreventionDictionary[raidType];
 			if (raidPrev == null)
 			{
-				var error = new ErrorReason("There must be a raid prevention of that type set up before one can be enabled or disabled.");
+				var error = new Error("There must be a raid prevention of that type set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
@@ -140,7 +140,7 @@ namespace Advobot.Commands.SpamPrevention
 			var raidPrev = Context.GuildSettings.RaidPreventionDictionary[raidType];
 			if (raidPrev == null)
 			{
-				var error = new ErrorReason("There must be a raid prevention of that type set up before one can be enabled or disabled.");
+				var error = new Error("There must be a raid prevention of that type set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}

@@ -19,7 +19,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnGuildAvailable(SocketGuild guild)
 		{
-			ConsoleUtils.WriteLine($"{guild.FormatGuild()} is now online on shard {ClientUtils.GetShardIdFor(_Client, guild)}.");
+			ConsoleUtils.WriteLine($"{guild.Format()} is now online on shard {ClientUtils.GetShardIdFor(_Client, guild)}.");
 			ConsoleUtils.WriteLine($"Current memory usage is: {IOUtils.GetMemory().ToString("0.00")}MB.");
 
 			if (!_GuildSettings.ContainsGuild(guild.Id))
@@ -36,7 +36,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public Task OnGuildUnavailable(SocketGuild guild)
 		{
-			ConsoleUtils.WriteLine($"Guild is now offline {guild.FormatGuild()}.");
+			ConsoleUtils.WriteLine($"Guild is now offline {guild.Format()}.");
 			return Task.CompletedTask;
 		}
 		/// <summary>
@@ -46,7 +46,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnJoinedGuild(SocketGuild guild)
 		{
-			ConsoleUtils.WriteLine($"Bot has joined {guild.FormatGuild()}.");
+			ConsoleUtils.WriteLine($"Bot has joined {guild.Format()}.");
 
 			//Determine what percentage of bot users to leave at
 			var users = guild.MemberCount;
@@ -84,7 +84,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			if (guilds > curMax)
 			{
 				await guild.LeaveAsync().CAF();
-				ConsoleUtils.WriteLine($"Left the guild {guild.FormatGuild()} due to having too many guilds on the client and not enough shards.");
+				ConsoleUtils.WriteLine($"Left the guild {guild.Format()} due to having too many guilds on the client and not enough shards.");
 			}
 			else if (guilds + 100 >= curMax)
 			{
@@ -105,7 +105,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnLeftGuild(SocketGuild guild)
 		{
-			ConsoleUtils.WriteLine($"Bot has left {guild.FormatGuild()}.");
+			ConsoleUtils.WriteLine($"Bot has left {guild.Format()}.");
 
 			_Logging.TotalUsers.Remove(guild.MemberCount);
 			_Logging.TotalGuilds.Decrement();

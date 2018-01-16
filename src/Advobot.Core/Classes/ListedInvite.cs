@@ -58,7 +58,6 @@ namespace Advobot.Core.Classes
 		{
 			Keywords = keywords.ToList().AsReadOnly();
 		}
-
 		/// <summary>
 		/// Sets <see cref="LastBumped"/> to <see cref="DateTime.UtcNow"/> and checks for global emotes.
 		/// </summary>
@@ -83,7 +82,6 @@ namespace Advobot.Core.Classes
 ? null
 : $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", Keywords)}`" : "")}";
 		}
-
 		public string ToString(SocketGuild guild)
 		{
 			return ToString();

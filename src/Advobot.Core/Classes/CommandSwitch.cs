@@ -14,7 +14,7 @@ namespace Advobot.Core.Classes
 		[JsonProperty]
 		public string Name { get; }
 		[JsonProperty]
-		public bool Value { get; private set; }
+		public bool Value;
 		[JsonIgnore]
 		public ImmutableArray<string> Aliases { get; }
 		[JsonIgnore]
@@ -37,19 +37,10 @@ namespace Advobot.Core.Classes
 			Aliases = helpEntry.Aliases.ToImmutableArray();
 		}
 
-		/// <summary>
-		/// Sets <see cref="Value"/> to its opposite.
-		/// </summary>
-		public void ToggleEnabled()
-		{
-			Value = !Value;
-		}
-
 		public override string ToString()
 		{
 			return $"`{ValueAsString.PadRight(3)}` `{Name}`";
 		}
-
 		public string ToString(SocketGuild guild)
 		{
 			return ToString();

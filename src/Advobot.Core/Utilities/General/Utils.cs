@@ -154,7 +154,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="timeFrame"></param>
 		/// <param name="removeOldInstances"></param>
 		/// <returns></returns>
-		public static int CountItemsInTimeFrame<T>(this ConcurrentQueue<T> queue, int timeFrame = 0, bool removeOldInstances = false) where T : IHasTime
+		public static int CountItemsInTimeFrame<T>(this ConcurrentQueue<T> queue, int timeFrame = 0, bool removeOldInstances = false) where T : ITime
 		{
 			var timeList = new List<T>(queue);
 			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
@@ -170,12 +170,12 @@ namespace Advobot.Core.Utilities
 			{
 				for (int j = i + 1; j < listLength; ++j)
 				{
-					if ((int)(timeList[j].GetTime() - timeList[i].GetTime()).TotalSeconds < timeFrame)
+					if ((int)(timeList[j].Time - timeList[i].Time).TotalSeconds < timeFrame)
 					{
 						continue;
 					}
 					//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
-					else if ((int)(timeList[j].GetTime() - timeList[j - 1].GetTime()).TotalSeconds > timeFrame)
+					else if ((int)(timeList[j].Time - timeList[j - 1].Time).TotalSeconds > timeFrame)
 					{
 						i = j;
 					}
@@ -190,13 +190,13 @@ namespace Advobot.Core.Utilities
 				var now = DateTime.UtcNow;
 				for (int i = listLength - 1; i >= 0; --i)
 				{
-					if ((int)(now - timeList[i].GetTime()).TotalSeconds >= timeFrame + 1)
+					if ((int)(now - timeList[i].Time).TotalSeconds >= timeFrame + 1)
 					{
 						break;
 					}
 
 					//Make sure the queue and the list are looking at the same object
-					if (queue.TryPeek(out var peekResult) && peekResult.GetTime() != timeList[i].GetTime())
+					if (queue.TryPeek(out var peekResult) && peekResult.Time != timeList[i].Time)
 					{
 						throw new InvalidOperationException($"{nameof(queue)} has had an object dequeued.");
 					}

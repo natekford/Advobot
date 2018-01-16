@@ -141,25 +141,22 @@ namespace Advobot.Core.Services.Log.Loggers
 					{
 						await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken.Token).CAF();
 					}
-					catch
+					catch (TaskCanceledException)
 					{
 						return;
 					}
 				}
 
 				//Give the messages to a new list so they can be removed from the old one
-				var deletedMessages = new List<IMessage>(msgDeletion.Messages);
+				var messages = new List<IMessage>(msgDeletion.Messages).OrderBy(x => x?.CreatedAt.Ticks);
 				msgDeletion.ClearBag();
-
-				var serverLog = logInstanceInfo.GuildSettings.ServerLog;
-				var messages = deletedMessages.OrderBy(x => x?.CreatedAt.Ticks).Select(x => new FormattedMessage(x)).ToArray();
 
 				var sb = new StringBuilder();
 				while (inEmbed)
 				{
 					foreach (var m in messages)
 					{
-						sb.AppendLineFeed(m.ToString(true));
+						sb.AppendLineFeed(m.Format(true));
 						//Can only stay in an embed if the description length is less than the max length
 						//and if the line numbers are less than 20
 						var validDesc = sb.Length < Constants.MAX_DESCRIPTION_LENGTH;
@@ -169,6 +166,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					break;
 				}
 
+				var serverLog = logInstanceInfo.GuildSettings.ServerLog;
 				if (inEmbed)
 				{
 					var embed = new EmbedWrapper(TITLE, sb.ToString().RemoveDuplicateNewLines(), Constants.MDEL)
@@ -180,7 +178,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					sb.Clear();
 					foreach (var m in messages)
 					{
-						sb.AppendLineFeed(m.ToString(false));
+						sb.AppendLineFeed(m.Format(false));
 					}
 
 					var text = sb.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();

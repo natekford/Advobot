@@ -22,12 +22,12 @@ namespace Advobot.Commands.GuildList
 		{
 			if (Context.GuildSettings.ListedInvite != null)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("This guild is already listed.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild is already listed.")).CAF();
 				return;
 			}
 			else if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Don't provide invites that expire.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Don't provide invites that expire.")).CAF();
 				return;
 			}
 
@@ -40,7 +40,7 @@ namespace Advobot.Commands.GuildList
 		{
 			if (Context.GuildSettings.ListedInvite == null)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("This guild is already unlisted.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild is already unlisted.")).CAF();
 				return;
 			}
 
@@ -60,12 +60,12 @@ namespace Advobot.Commands.GuildList
 		{
 			if (Context.GuildSettings.ListedInvite == null)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("There is no invite to bump.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("There is no invite to bump.")).CAF();
 				return;
 			}
 			else if ((DateTime.UtcNow - Context.GuildSettings.ListedInvite.LastBumped).TotalHours < 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Last bump is too recent.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Last bump is too recent.")).CAF();
 				return;
 			}
 
@@ -90,7 +90,7 @@ namespace Advobot.Commands.GuildList
 			var invites = gatherer.CreateObject().GatherInvites(Context.InviteList);
 			if (!invites.Any())
 			{
-				var error = new ErrorReason("No guild could be found that matches the given specifications.");
+				var error = new Error("No guild could be found that matches the given specifications.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}

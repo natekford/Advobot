@@ -1,10 +1,9 @@
-﻿using Advobot.Core.Utilities;
+﻿using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Interfaces;
 using Discord.Commands;
 using System;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes
@@ -14,7 +13,7 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public class LoggedCommand
 	{
-		private static readonly string _Joiner = "\n" + new string(' ', 28);
+		private static string _Joiner = "\n" + new string(' ', 28);
 
 		public string Guild { get; private set; }
 		public string Channel { get; private set; }
@@ -37,9 +36,9 @@ namespace Advobot.Core.Classes
 		/// <param name="context"></param>
 		public void SetContext(ICommandContext context)
 		{
-			Guild = context.Guild.FormatGuild();
-			Channel = context.Channel.FormatChannel();
-			User = context.User.FormatUser();
+			Guild = context.Guild.Format();
+			Channel = context.Channel.Format();
+			User = context.User.Format();
 			Time = TimeFormatting.FormatReadableDateTime(context.Message.CreatedAt.UtcDateTime);
 			Text = context.Message.Content;
 		}
@@ -71,7 +70,6 @@ namespace Advobot.Core.Classes
 		{
 			ConsoleUtils.WriteLine(ToString(), nameof(LoggedCommand), WriteColor);
 		}
-
 		/// <summary>
 		/// Returns true if there is a valid error reason. Returns false if the command executed without errors.
 		/// </summary>
@@ -128,7 +126,7 @@ namespace Advobot.Core.Classes
 			else if (ErrorReason != null)
 			{
 				logging.FailedCommands.Increment();
-				await MessageUtils.SendErrorMessageAsync(context, new ErrorReason(ErrorReason)).CAF();
+				await MessageUtils.SendErrorMessageAsync(context, new Error(ErrorReason)).CAF();
 			}
 			//Failure in a way that doesn't need to get logged (unknown command, etc)
 			else

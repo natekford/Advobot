@@ -32,17 +32,8 @@ namespace Advobot.Core.Utilities
 				case ConnectionState.Disconnected:
 				{
 					ConsoleUtils.WriteLine("Connecting the client...");
-
-					try
-					{
-						await client.StartAsync().CAF();
-						ConsoleUtils.WriteLine("Successfully connected the client.");
-					}
-					catch (Exception e)
-					{
-						e.Write();
-					}
-
+					await client.StartAsync().CAF();
+					ConsoleUtils.WriteLine("Successfully connected the client.");
 					await Task.Delay(-1).CAF();
 					return;
 				}

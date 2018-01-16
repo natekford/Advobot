@@ -6,12 +6,12 @@ namespace Advobot.Core.Services.Log
 {
 	internal sealed class LogInstance
 	{
-		public readonly IUserMessage Message;
-		public readonly IGuildUser User;
-		public readonly IGuildChannel Channel;
-		public readonly IGuild Guild;
-		public readonly IGuildSettings GuildSettings;
-		public readonly LogAction Action;
+		public IUserMessage Message { get; }
+		public IGuildUser User { get; }
+		public IGuildChannel Channel { get; }
+		public IGuild Guild { get; }
+		public IGuildSettings GuildSettings { get; }
+		public LogAction Action { get; }
 
 		public bool IsValid { get; private set; }
 		public bool HasGuildSettings { get; private set; }
@@ -31,7 +31,8 @@ namespace Advobot.Core.Services.Log
 			User = message.Author as IGuildUser;
 			Channel = message.Channel as IGuildChannel;
 			Guild = User?.Guild;
-			HasGuildSettings = guildSettings.TryGetSettings(Guild?.Id ?? 0, out GuildSettings);
+			HasGuildSettings = guildSettings.TryGetSettings(Guild?.Id ?? 0, out var settings);
+			GuildSettings = settings;
 			SetBools(botSettings);
 		}
 		public LogInstance(IBotSettings botSettings, IGuildSettingsService guildSettings, IGuildUser user, LogAction action)
@@ -41,7 +42,8 @@ namespace Advobot.Core.Services.Log
 			User = user;
 			Channel = null;
 			Guild = User?.Guild;
-			HasGuildSettings = guildSettings.TryGetSettings(Guild?.Id ?? 0, out GuildSettings);
+			HasGuildSettings = guildSettings.TryGetSettings(Guild?.Id ?? 0, out var settings);
+			GuildSettings = settings;
 			SetBools(botSettings);
 		}
 		public LogInstance(IBotSettings botSettings, IGuildSettingsService guildSettings, IGuild guild, LogAction action)
@@ -51,7 +53,8 @@ namespace Advobot.Core.Services.Log
 			User = null;
 			Channel = null;
 			Guild = guild;
-			HasGuildSettings = guildSettings.TryGetSettings(Guild?.Id ?? 0, out GuildSettings);
+			HasGuildSettings = guildSettings.TryGetSettings(Guild?.Id ?? 0, out var settings);
+			GuildSettings = settings;
 			SetBools(botSettings);
 		}
 

@@ -54,7 +54,7 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public AdvobotTreeViewHeader(SocketGuild guild)
 		{
-			Header = guild.FormatGuild();
+			Header = guild.Format();
 			Guild = guild;
 			Tag = new CompGuild(guild);
 			ItemsSource = _Files;

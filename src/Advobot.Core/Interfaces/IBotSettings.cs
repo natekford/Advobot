@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Advobot.Core.Interfaces
 {
 	/// <summary>
-	/// Holds bot settings and some readonly information.
+	/// Holds bot settings.
 	/// </summary>
 	public interface IBotSettings
 	{

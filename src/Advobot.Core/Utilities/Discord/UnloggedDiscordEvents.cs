@@ -123,9 +123,9 @@ namespace Advobot.Core.Utilities
 				--number;
 
 				var quotes = await timers.GetOutActiveCloseQuote(message.Author).CAF();
-				var validQuote = quotes != null && quotes.List.Count > number;
+				var validQuote = quotes != null && quotes.List.Length > number;
 				var helpEntries = await timers.GetOutActiveCloseHelp(message.Author).CAF();
-				var validHelpEntry = helpEntries != null && helpEntries.List.Count > number;
+				var validHelpEntry = helpEntries != null && helpEntries.List.Length > number;
 
 				if (validQuote)
 				{

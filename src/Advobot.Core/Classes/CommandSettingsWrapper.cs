@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Advobot.Core.Classes
 {
+	//TODO: implement
     class CommandSettingsWrapper
     {
     }

@@ -191,19 +191,19 @@ namespace Advobot.Core.Classes.Settings
 				var chan = Guild.GetChannel(tempUlong);
 				if (chan != null)
 				{
-					return $"`{chan.FormatChannel()}`";
+					return $"`{chan.Format()}`";
 				}
 
 				var role = Guild.GetRole(tempUlong);
 				if (role != null)
 				{
-					return $"`{role.FormatRole()}`";
+					return $"`{role.Format()}`";
 				}
 
 				var user = Guild.GetUser(tempUlong);
 				if (user != null)
 				{
-					return $"`{user.FormatUser()}`";
+					return $"`{user.Format()}`";
 				}
 
 				return tempUlong.ToString();

@@ -16,13 +16,13 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
-		public readonly bool IfNullCheckFromContext;
-		public readonly ImmutableList<ObjectVerification> Checks;
+		public ImmutableArray<ObjectVerification> Checks { get; }
+		public bool IfNullCheckFromContext { get; }
 
 		public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
 		{
+			Checks = checks.ToImmutableArray();
 			IfNullCheckFromContext = ifNullCheckFromContext;
-			Checks = checks.ToImmutableList();
 		}
 
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)

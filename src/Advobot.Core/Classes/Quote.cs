@@ -24,7 +24,6 @@ namespace Advobot.Core.Classes
 		{
 			return $"`{Name}`";
 		}
-
 		public string ToString(SocketGuild guild)
 		{
 			return ToString();

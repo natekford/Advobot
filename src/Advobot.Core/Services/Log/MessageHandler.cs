@@ -94,7 +94,7 @@ namespace Advobot.Core.Services.Log
 				}
 			}
 
-			var desc = $"**Channel:** `{_LogInstance.Channel.FormatChannel()}`\n**Message Id:** `{_LogInstance.Message.Id}`";
+			var desc = $"**Channel:** `{_LogInstance.Channel.Format()}`\n**Message Id:** `{_LogInstance.Message.Id}`";
 			foreach (var attachmentURL in attachmentURLs) //Attachments
 			{
 				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Image
@@ -225,7 +225,7 @@ namespace Advobot.Core.Services.Log
 				if (spam)
 				{
 					var votesReq = spamUser.VotesRequired - spamUser.Votes;
-					var content = $"The user `{_LogInstance.User.FormatUser()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
+					var content = $"The user `{_LogInstance.User.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					var channel = _LogInstance.Channel as ITextChannel;
 					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(channel, null, content, 10, _Timers).CAF();
 					await MessageUtils.DeleteMessageAsync(_LogInstance.Message, new ModerationReason("spam prevention")).CAF();

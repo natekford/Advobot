@@ -12,8 +12,8 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public sealed class VerifyNumberAttribute : ParameterPreconditionAttribute
 	{
-		public readonly ImmutableList<int> ValidNumbers;
-		public readonly bool Range;
+		public ImmutableArray<int> ValidNumbers { get; }
+		public bool Range { get; }
 
 		public VerifyNumberAttribute(int[] numbers)
 		{
@@ -22,12 +22,12 @@ namespace Advobot.Core.Classes.Attributes
 				throw new ArgumentException("don't input more than 10 numbers", nameof(numbers));
 			}
 
-			ValidNumbers = numbers.OrderBy(x => x).ToImmutableList();
+			ValidNumbers = numbers.OrderBy(x => x).ToImmutableArray();
 			Range = false;
 		}
 		public VerifyNumberAttribute(int start, int end)
 		{
-			ValidNumbers = Enumerable.Range(start, end - start).ToImmutableList();
+			ValidNumbers = Enumerable.Range(start, end - start).ToImmutableArray();
 			Range = true;
 		}
 

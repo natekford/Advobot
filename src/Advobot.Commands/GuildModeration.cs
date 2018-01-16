@@ -33,7 +33,7 @@ namespace Advobot.Commands.GuildModeration
 				var guild = await Context.Client.GetGuildAsync(guildId).CAF();
 				if (guild == null)
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Invalid server supplied.")).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, new Error("Invalid server supplied.")).CAF();
 					return;
 				}
 
@@ -46,7 +46,7 @@ namespace Advobot.Commands.GuildModeration
 			}
 			else
 			{
-				var error = new ErrorReason("Only the bot owner can use this command targetting other guilds.");
+				var error = new Error("Only the bot owner can use this command targetting other guilds.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 			}
 		}
@@ -72,7 +72,7 @@ namespace Advobot.Commands.GuildModeration
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildRegion : AdvobotModuleBase
 	{
-		private static readonly string[] _ValidRegionIDs =
+		private static string[] _ValidRegionIDs =
 		{
 			"brazil",
 			"eu-central",
@@ -86,16 +86,16 @@ namespace Advobot.Commands.GuildModeration
 			"us-south",
 			"us-west",
 		};
-		private static readonly string[] _VIPRegionIDs =
+		private static string[] _VIPRegionIDs =
 		{
 			"vip-amsterdam",
 			"vip-us-east",
 			"vip-us-west",
 		};
 
-		private static readonly string _BaseRegions = String.Join("\n", _BaseRegions);
-		private static readonly string _VIPRegions = String.Join("\n", _VIPRegionIDs);
-		private static readonly string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
+		private static string _BaseRegions = String.Join("\n", _BaseRegions);
+		private static string _VIPRegions = String.Join("\n", _VIPRegionIDs);
+		private static string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
 
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
@@ -116,7 +116,7 @@ namespace Advobot.Commands.GuildModeration
 				&& !_ValidRegionIDs.CaseInsContains(regionId) 
 				&& !(Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(regionId)))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("No valid region ID was input.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("No valid region ID was input.")).CAF();
 				return;
 			}
 
@@ -152,7 +152,7 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Command(IVoiceChannel channel)
 		{
 			await GuildUtils.ModifyGuildAFKChannelAsync(Context.Guild, channel, new ModerationReason(Context.User, null)).CAF();
-			var resp = $"Successfully set the guild's AFK channel to `{channel.FormatChannel()}`.";
+			var resp = $"Successfully set the guild's AFK channel to `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -259,7 +259,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The bot is not the owner of the guild.")).CAF();
+			await MessageUtils.SendErrorMessageAsync(Context, new Error("The bot is not the owner of the guild.")).CAF();
 		}
 	}
 
@@ -278,7 +278,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("The bot is not the owner of the guild.")).CAF();
+			await MessageUtils.SendErrorMessageAsync(Context, new Error("The bot is not the owner of the guild.")).CAF();
 		}
 	}
 }

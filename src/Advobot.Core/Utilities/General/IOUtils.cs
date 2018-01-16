@@ -36,7 +36,6 @@ namespace Advobot.Core.Utilities
 		{
 			return Directory.CreateDirectory(Path.Combine(GetBaseBotDirectory().FullName, guildId.ToString()));
 		}
-
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId\File
 		/// </summary>
@@ -47,7 +46,6 @@ namespace Advobot.Core.Utilities
 		{
 			return new FileInfo(Path.Combine(GetServerDirectory(guildId).FullName, fileName));
 		}
-
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId
 		/// </summary>
@@ -57,7 +55,6 @@ namespace Advobot.Core.Utilities
 			return Directory.CreateDirectory(Path.Combine(Config.Configuration[ConfigKey.SavePath],
 						   $"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKey.BotId]}"));
 		}
-
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\File
 		/// </summary>
@@ -105,6 +102,7 @@ namespace Advobot.Core.Utilities
 			{
 				fileInfo.Delete();
 			}
+			//TODO: specific exception catching maybe?
 			catch (Exception e)
 			{
 				e.Write();
@@ -120,7 +118,6 @@ namespace Advobot.Core.Utilities
 		{
 			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new StringEnumConverter());
 		}
-
 		/// <summary>
 		/// Creates an object of type <typeparamref name="T"/> with the supplied string and type.
 		/// </summary>
@@ -132,7 +129,6 @@ namespace Advobot.Core.Utilities
 		{
 			return (T)JsonConvert.DeserializeObject(value, type, new StringEnumConverter());
 		}
-
 		/// <summary>
 		/// Creates an object from JSON stored in a file.
 		/// </summary>
@@ -168,6 +164,7 @@ namespace Advobot.Core.Utilities
 				ConsoleUtils.WriteLine($"The {type.Name} file could not be found; using default.");
 			}
 
+			//If want an object no matter what and the object is still default and there is a parameterless constructor then create one
 			return create && stillDef && type.GetConstructors().Any(x => !x.GetParameters().Any()) ? (T)Activator.CreateInstance(type) : obj;
 		}
 

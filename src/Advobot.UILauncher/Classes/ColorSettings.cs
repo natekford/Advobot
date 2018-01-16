@@ -146,37 +146,17 @@ namespace Advobot.UILauncher.Classes
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
 		{
 			return typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
-						   .Where(x => x.PropertyType == typeof(SolidColorBrush) && x.Name.Contains(prefix))
-						   .ToDictionary(
-							   x => (ColorTarget)Enum.Parse(typeof(ColorTarget), x.Name.Replace(prefix, "")),
-							   x => (SolidColorBrush)x.GetValue(null)
-						   ).ToImmutableDictionary();
+				.Where(x => x.PropertyType == typeof(SolidColorBrush) && x.Name.Contains(prefix))
+				.ToDictionary(
+					x => (ColorTarget)Enum.Parse(typeof(ColorTarget), x.Name.Replace(prefix, "")),
+					x => (SolidColorBrush)x.GetValue(null)
+				).ToImmutableDictionary();
 		}
 
 		public static ColorSettings LoadUISettings()
 		{
-			ColorSettings UISettings = null;
 			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC);
-			if (fileInfo.Exists)
-			{
-				try
-				{
-					using (var reader = new StreamReader(fileInfo.FullName))
-					{
-						UISettings = JsonConvert.DeserializeObject<ColorSettings>(reader.ReadToEnd());
-					}
-					ConsoleUtils.WriteLine("The bot UI information has successfully been loaded.");
-				}
-				catch (Exception e)
-				{
-					e.Write();
-				}
-			}
-			else
-			{
-				ConsoleUtils.WriteLine("The bot UI information file could not be found; using default.");
-			}
-			return UISettings ?? new ColorSettings();
+			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings), true);
 		}
 	}
 }

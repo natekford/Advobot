@@ -19,20 +19,11 @@ namespace Advobot.Core.Classes.BannedPhrases
 		[JsonProperty]
 		public string Phrase { get; }
 		[JsonProperty]
-		public PunishmentType Punishment { get; private set; }
+		public PunishmentType Punishment;
 
 		public BannedPhrase(string phrase, PunishmentType punishment = default)
 		{
 			Phrase = phrase;
-			ChangePunishment(punishment);
-		}
-
-		/// <summary>
-		/// Sets <see cref="Punishment"/> to <paramref name="punishment"/>.
-		/// </summary>
-		/// <param name="punishment"></param>
-		public void ChangePunishment(PunishmentType punishment)
-		{
 			Punishment = punishment;
 		}
 

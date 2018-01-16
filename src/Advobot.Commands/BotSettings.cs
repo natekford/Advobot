@@ -35,7 +35,7 @@ namespace Advobot.Commands.BotSettings
 				var validNum = guilds.Count / 2500 + 1;
 				if (shardCount < validNum)
 				{
-					var error = new ErrorReason($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`.");
+					var error = new Error($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
@@ -84,7 +84,7 @@ namespace Advobot.Commands.BotSettings
 			{
 				if (!RegexUtils.CheckIfInputIsAValidTwitchName(stream))
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason($"`{stream}` is not a valid Twitch stream name.")).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{stream}` is not a valid Twitch stream name.")).CAF();
 					return;
 				}
 

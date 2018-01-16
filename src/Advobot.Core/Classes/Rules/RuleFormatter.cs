@@ -188,7 +188,7 @@ namespace Advobot.Core.Classes.Rules
 		{
 			var messages = new List<IUserMessage>();
 
-			var formattedCategories = categories.Select((c, i) => c.ToString(this, i)).ToImmutableList();
+			var formattedCategories = categories.Select((c, i) => c.ToString(this, i));
 			var formattedRules = String.Join("\n", formattedCategories);
 			//If all of the rules can be sent in one message, do that.
 			if (!String.IsNullOrWhiteSpace(formattedRules) && formattedRules.Length <= 2000)

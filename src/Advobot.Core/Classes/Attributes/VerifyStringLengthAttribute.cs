@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public sealed class VerifyStringLengthAttribute : ParameterPreconditionAttribute
 	{
-		private static readonly Dictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>
+		private static Dictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>
 		{
 			{ Target.Guild, (Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
 			{ Target.Channel, (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
@@ -30,10 +30,10 @@ namespace Advobot.Core.Classes.Attributes
 			{ Target.Category, (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "category") },
 		};
 
-		public readonly int Min;
-		public readonly int Max;
-		public readonly string TooShort;
-		public readonly string TooLong;
+		public int Min { get; }
+		public int Max { get; }
+		public string TooShort { get; }
+		public string TooLong { get; }
 
 		/// <summary>
 		/// Sets the values by looking up <paramref name="target"/> in a dictionary.

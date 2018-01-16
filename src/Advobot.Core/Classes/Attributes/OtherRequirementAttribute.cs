@@ -17,7 +17,7 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class OtherRequirementAttribute : PreconditionAttribute
 	{
-		public readonly Precondition Requirements;
+		public Precondition Requirements { get; }
 
 		public OtherRequirementAttribute(Precondition requirements)
 		{

@@ -20,17 +20,17 @@ namespace Advobot.Core.Services.Timers
 	//I have absolutely no idea if this class works as intended under stress.
 	internal sealed class Timers : ITimersService
 	{
-		private readonly PunishmentRemover _PunishmentRemover;
-		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
-		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
-		private readonly Timer _HalfSecondTimer = new Timer(1000 / 2);
+		private PunishmentRemover _PunishmentRemover;
+		private Timer _HourTimer = new Timer(60 * 60 * 1000);
+		private Timer _MinuteTimer = new Timer(60 * 1000);
+		private Timer _HalfSecondTimer = new Timer(1000 / 2);
 
-		private readonly ConcurrentDictionary<UserKey, RemovablePunishment> _RemovablePunishments = new ConcurrentDictionary<UserKey, RemovablePunishment>();
-		private readonly ConcurrentDictionary<ChannelKey, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<ChannelKey, RemovableMessage>();
-		private readonly ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntryHolder.HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntryHolder.HelpEntry>>();
-		private readonly ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>>();
-		private readonly ConcurrentDictionary<UserKey, SpamPreventionUserInfo> _SpamPreventionUsers = new ConcurrentDictionary<UserKey, SpamPreventionUserInfo>();
-		private readonly ConcurrentDictionary<UserKey, SlowmodeUserInfo> _SlowmodeUsers = new ConcurrentDictionary<UserKey, SlowmodeUserInfo>();
+		private ConcurrentDictionary<UserKey, RemovablePunishment> _RemovablePunishments = new ConcurrentDictionary<UserKey, RemovablePunishment>();
+		private ConcurrentDictionary<ChannelKey, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<ChannelKey, RemovableMessage>();
+		private ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntryHolder.HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntryHolder.HelpEntry>>();
+		private ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>>();
+		private ConcurrentDictionary<UserKey, SpamPreventionUserInfo> _SpamPreventionUsers = new ConcurrentDictionary<UserKey, SpamPreventionUserInfo>();
+		private ConcurrentDictionary<UserKey, SlowmodeUserInfo> _SlowmodeUsers = new ConcurrentDictionary<UserKey, SlowmodeUserInfo>();
 
 		public Timers(IServiceProvider provider)
 		{
@@ -135,12 +135,12 @@ namespace Advobot.Core.Services.Timers
 
 		public void AddRemovablePunishment(RemovablePunishment punishment)
 		{
-			Add(_RemovablePunishments, new UserKey(punishment.Guild, punishment.User, punishment.GetTime().Ticks), punishment);
+			Add(_RemovablePunishments, new UserKey(punishment.Guild, punishment.User, punishment.Time.Ticks), punishment);
 		}
 
 		public void AddRemovableMessage(RemovableMessage message)
 		{
-			Add(_RemovableMessages, new ChannelKey(message.Channel, message.GetTime().Ticks), message);
+			Add(_RemovableMessages, new ChannelKey(message.Channel, message.Time.Ticks), message);
 		}
 
 		public async Task AddActiveCloseHelp(IGuildUser user, IUserMessage msg, CloseWords<HelpEntryHolder.HelpEntry> helpEntries)
@@ -150,7 +150,7 @@ namespace Advobot.Core.Services.Timers
 			{
 				await MessageUtils.DeleteMessageAsync(Remove(_ActiveCloseHelp, kvp.Key).Message, new ModerationReason("removing active close help")).CAF();
 			}
-			Add(_ActiveCloseHelp, new UserKey(user, helpEntries.GetTime().Ticks), new CloseWordsWrapper<HelpEntryHolder.HelpEntry>(helpEntries, msg));
+			Add(_ActiveCloseHelp, new UserKey(user, helpEntries.Time.Ticks), new CloseWordsWrapper<HelpEntryHolder.HelpEntry>(helpEntries, msg));
 		}
 		public async Task AddActiveCloseQuote(IGuildUser user, IUserMessage msg, CloseWords<Quote> quotes)
 		{
@@ -159,7 +159,7 @@ namespace Advobot.Core.Services.Timers
 			{
 				await MessageUtils.DeleteMessageAsync(Remove(_ActiveCloseQuotes, kvp.Key).Message, new ModerationReason("removing active close quotes")).CAF();
 			}
-			Add(_ActiveCloseQuotes, new UserKey(user, quotes.GetTime().Ticks), new CloseWordsWrapper<Quote>(quotes, msg));
+			Add(_ActiveCloseQuotes, new UserKey(user, quotes.Time.Ticks), new CloseWordsWrapper<Quote>(quotes, msg));
 		}
 		public void AddSpamPreventionUser(SpamPreventionUserInfo user)
 		{
@@ -229,7 +229,7 @@ namespace Advobot.Core.Services.Timers
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="concDic"></param>
 		/// <returns></returns>
-		private IEnumerable<TValue> GetOutTimedObjects<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic) where TKey : DictKey where TValue : IHasTime
+		private IEnumerable<TValue> GetOutTimedObjects<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic) where TKey : DictKey where TValue : ITime
 		{
 			var currentTicks = DateTime.UtcNow.Ticks;
 			foreach (var kvp in concDic)
@@ -246,7 +246,7 @@ namespace Advobot.Core.Services.Timers
 		/// <typeparam name="TKey"></typeparam>
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="concDic"></param>
-		private void RemoveTimedObjects<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic) where TKey : DictKey where TValue : IHasTime
+		private void RemoveTimedObjects<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic) where TKey : DictKey where TValue : ITime
 		{
 			var currentTicks = DateTime.UtcNow.Ticks;
 			foreach (var kvp in concDic)

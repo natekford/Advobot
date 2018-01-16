@@ -24,18 +24,18 @@ namespace Advobot.Commands.Quotes
 		{
 			if (Context.GuildSettings.Quotes.Count >= Constants.MAX_QUOTES)
 			{
-				var error = new ErrorReason($"You cannot have more than `{Constants.MAX_QUOTES}` quotes at a time.");
+				var error = new Error($"You cannot have more than `{Constants.MAX_QUOTES}` quotes at a time.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 			else if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("A quote already has that name.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("A quote already has that name.")).CAF();
 				return;
 			}
 			else if (String.IsNullOrWhiteSpace(text))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Adding a quote requires text.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Adding a quote requires text.")).CAF();
 				return;
 			}
 
@@ -47,7 +47,7 @@ namespace Advobot.Commands.Quotes
 		{
 			if (!Context.GuildSettings.Quotes.Any())
 			{
-				var error = new ErrorReason("There needs to be at least one quote before you can remove any.");
+				var error = new Error("There needs to be at least one quote before you can remove any.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
@@ -55,7 +55,7 @@ namespace Advobot.Commands.Quotes
 			var removed = Context.GuildSettings.Quotes.RemoveAll(x => x.Name.CaseInsEquals(name));
 			if (removed < 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("No quote has that name.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("No quote has that name.")).CAF();
 				return;
 			}
 
@@ -75,7 +75,7 @@ namespace Advobot.Commands.Quotes
 			var quotes = Context.GuildSettings.Quotes;
 			if (!quotes.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("There are no quotes.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("There are no quotes.")).CAF();
 				return;
 			}
 			else if (name == null)
@@ -101,7 +101,7 @@ namespace Advobot.Commands.Quotes
 				return;
 			}
 
-			await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Nonexistent quote.")).CAF();
+			await MessageUtils.SendErrorMessageAsync(Context, new Error("Nonexistent quote.")).CAF();
 		}
 	}
 }

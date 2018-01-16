@@ -9,8 +9,8 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public struct ModerationReason
 	{
-		public readonly IUser User;
-		public readonly string Reason;
+		public IUser User { get; }
+		public string Reason { get; }
 
 		public ModerationReason(string reason)
 		{
@@ -31,8 +31,8 @@ namespace Advobot.Core.Classes
 		public override string ToString()
 		{
 			return User == null
-? $"Automatic action. Trigger: {Reason}."
-: $"Action by {User.FormatUser()}. Reason: {Reason}.";
+				? $"Automatic action. Trigger: {Reason}."
+				: $"Action by {User.Format()}. Reason: {Reason}.";
 		}
 	}
 }

@@ -100,15 +100,16 @@ namespace Advobot.Core
 		public static int MAX_UTF16_VAL_FOR_NAMES => 1000;
 		public static int AMT_OF_DMS_TO_GATHER => 500;
 
-		private static ImmutableList<string> _IMG;
-		public static ImmutableList<string> VALID_IMAGE_EXTENSIONS => _IMG ?? (_IMG = ImmutableList.Create(new[]
+		//For some reason ?? is not usable with ImmutableArrays
+		private static ImmutableArray<string> _IMG;
+		public static ImmutableArray<string> VALID_IMAGE_EXTENSIONS => _IMG != null ? _IMG : (_IMG = ImmutableArray.Create(new[]
 		{
 			".jpeg",
 			".jpg",
 			".png",
 		}));
-		private static ImmutableList<string> _GIF;
-		public static ImmutableList<string> VALID_GIF_EXTENTIONS => _GIF ?? (_GIF = ImmutableList.Create(new[]
+		private static ImmutableArray<string> _GIF;
+		public static ImmutableArray<string> VALID_GIF_EXTENTIONS => _GIF != null ? _GIF : (_GIF = ImmutableArray.Create(new[]
 		{
 			".gif",
 			".gifv",

@@ -11,7 +11,7 @@ namespace Advobot.Core.Utilities.Formatting
 	/// </summary>
 	public static class GeneralFormatting
 	{
-		private static readonly Regex _RemoveDuplicateLines = new Regex(@"[\r\n]+", RegexOptions.Compiled);
+		private static Regex _RemoveDuplicateLines = new Regex(@"[\r\n]+", RegexOptions.Compiled);
 
 		/// <summary>
 		/// Returns a string with the given number of spaces minus the length of the second object padded onto the right side of the first object.

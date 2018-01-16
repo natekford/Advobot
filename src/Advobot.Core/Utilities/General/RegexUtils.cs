@@ -9,7 +9,7 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class RegexUtils
 	{
-		private static readonly Regex _TwitchRegex = new Regex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled);
+		private static Regex _TwitchRegex = new Regex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled);
 
 		/// <summary>
 		/// Tries to create a <see cref="Regex"/>. Returns false if unable to created a <see cref="Regex"/> with the given input.
@@ -18,13 +18,13 @@ namespace Advobot.Core.Utilities
 		/// <param name="regexOutput"></param>
 		/// <param name="stringOutput"></param>
 		/// <returns></returns>
-		public static bool TryCreateRegex(string pattern, out Regex regexOutput, out ErrorReason errorReason)
+		public static bool TryCreateRegex(string pattern, out Regex regexOutput, out Error errorReason)
 		{
 			regexOutput = null;
 			errorReason = default;
 			if (pattern == null)
 			{
-				errorReason = new ErrorReason("The pattern cannot be null.");
+				errorReason = new Error("The pattern cannot be null.");
 				return false;
 			}
 
@@ -35,7 +35,7 @@ namespace Advobot.Core.Utilities
 			}
 			catch (ArgumentException e)
 			{
-				errorReason = new ErrorReason(e.Message);
+				errorReason = new Error(e.Message);
 				return false;
 			}
 		}

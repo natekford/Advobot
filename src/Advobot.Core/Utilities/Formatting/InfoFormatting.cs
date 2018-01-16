@@ -38,7 +38,7 @@ namespace Advobot.Core.Utilities.Formatting
 				.AppendLineFeed($"**Nickname:** `{(String.IsNullOrWhiteSpace(user.Nickname) ? "No nickname" : user.Nickname.EscapeBackTicks())}`")
 				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(user.CreatedAt.UtcDateTime))
 				.AppendLineFeed($"**Joined:** `{TimeFormatting.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime)}` (`{users.IndexOf(user) + 1}` to join the guild)\n")
-				.AppendLineFeed(DiscordObjectFormatting.FormatGame(user))
+				.AppendLineFeed(user.Activity.Format())
 				.AppendLineFeed($"**Online status:** `{user.Status}`");
 
 			var color = roles.OrderBy(x => x.Position).LastOrDefault(x => x.Color.RawValue != 0)?.Color;
@@ -76,7 +76,7 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			var desc = new StringBuilder()
 				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(user.CreatedAt.UtcDateTime))
-				.AppendLineFeed(DiscordObjectFormatting.FormatGame(user))
+				.AppendLineFeed(user.Activity.Format())
 				.AppendLineFeed($"**Online status:** `{user.Status}`");
 
 			return new EmbedWrapper(null, desc.ToString(), null, thumbnailUrl: user.GetAvatarUrl())
@@ -98,7 +98,7 @@ namespace Advobot.Core.Utilities.Formatting
 				.AppendLineFeed($"**User Count:** `{guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count()}`");
 
 			return new EmbedWrapper(null, desc.ToString(), role.Color)
-				.AddAuthor(role.FormatRole())
+				.AddAuthor(role.Format())
 				.AddFooter("Role Info");
 		}
 		/// <summary>
@@ -128,7 +128,7 @@ namespace Advobot.Core.Utilities.Formatting
 				.AppendLineFeed($"**Imagelog:** `{(imageLog ? "Yes" : "No")}`");
 
 			return new EmbedWrapper(null, desc.ToString())
-				.AddAuthor(channel.FormatChannel())
+				.AddAuthor(channel.Format())
 				.AddFooter("Channel Info");
 		}
 		/// <summary>
@@ -150,7 +150,7 @@ namespace Advobot.Core.Utilities.Formatting
 
 			var desc = new StringBuilder()
 				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(guild.CreatedAt.UtcDateTime))
-				.AppendLineFeed($"**Owner:** `{owner.FormatUser()}`")
+				.AppendLineFeed($"**Owner:** `{owner.Format()}`")
 				.AppendLineFeed($"**Region:** `{guild.VoiceRegionId}`")
 				.AppendLineFeed($"**Emotes:** `{localECount + globalECount}` (`{localECount}` local, `{globalECount}` global)\n")
 				.AppendLineFeed($"**User Count:** `{guild.MemberCount}` (`{onlineCount}` online, `{botCount}` bots)")
@@ -159,11 +159,11 @@ namespace Advobot.Core.Utilities.Formatting
 				.AppendLineFeed($"**Users In Voice:** `{voiceCount}`\n")
 				.AppendLineFeed($"**Role Count:** `{guild.Roles.Count}`")
 				.AppendLineFeed($"**Channel Count:** `{guild.Channels.Count}` (`{guild.TextChannels.Count}` text, `{guild.VoiceChannels.Count}` voice)")
-				.AppendLineFeed($"**AFK Channel:** `{guild.AFKChannel.FormatChannel()}` (`{guild.AFKTimeout / 60}` minute{GeneralFormatting.FormatPlural(guild.AFKTimeout / 60)})");
+				.AppendLineFeed($"**AFK Channel:** `{guild.AFKChannel.Format()}` (`{guild.AFKTimeout / 60}` minute{GeneralFormatting.FormatPlural(guild.AFKTimeout / 60)})");
 
 			var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
 			return new EmbedWrapper(null, desc.ToString(), color, thumbnailUrl: guild.IconUrl)
-				.AddAuthor(guild.FormatGuild())
+				.AddAuthor(guild.Format())
 				.AddFooter("Guild Info");
 		}
 		/// <summary>
@@ -192,8 +192,8 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			var desc = new StringBuilder()
 				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(invite.CreatedAt.UtcDateTime))
-				.AppendLineFeed($"**Inviter:** `{invite.Inviter.FormatUser()}`")
-				.AppendLineFeed($"**Channel:** `{invite.Channel.FormatChannel()}`")
+				.AppendLineFeed($"**Inviter:** `{invite.Inviter.Format()}`")
+				.AppendLineFeed($"**Channel:** `{invite.Channel.Format()}`")
 				.AppendLineFeed($"**Uses:** `{invite.Uses}`");
 
 			return new EmbedWrapper(null, desc.ToString())

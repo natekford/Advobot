@@ -118,13 +118,13 @@ return x.PropertyType == typeof(string)
 				var user = await client.GetUserAsync(tempUlong).CAF();
 				if (user != null)
 				{
-					return $"`{user.FormatUser()}`";
+					return $"`{user.Format()}`";
 				}
 
 				var guild = await client.GetGuildAsync(tempUlong).CAF();
 				if (guild != null)
 				{
-					return $"`{guild.FormatGuild()}`";
+					return $"`{guild.Format()}`";
 				}
 
 				return tempUlong.ToString();

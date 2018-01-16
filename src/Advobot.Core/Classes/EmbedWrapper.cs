@@ -2,6 +2,7 @@
 using Discord;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -13,27 +14,27 @@ namespace Advobot.Core.Classes
 	public class EmbedWrapper : EmbedBuilder
 	{
 		private List<EmbedError> _Errors = new List<EmbedError>();
-		public IReadOnlyList<EmbedError> Errors => _Errors.AsReadOnly();
+		public ImmutableArray<EmbedError> Errors => _Errors.ToImmutableArray();
 
 		public EmbedWrapper(string title = null, string description = null, Color? color = null,
 			string imageUrl = null, string url = null, string thumbnailUrl = null)
 		{
-			imageUrl = GetIfStringIsValidUrl(imageUrl) ? imageUrl : null;
-			url = GetIfStringIsValidUrl(url) ? url : null;
-			thumbnailUrl = GetIfStringIsValidUrl(thumbnailUrl) ? thumbnailUrl : null;
+			imageUrl = CheckIfValidUrl(imageUrl) ? imageUrl : null;
+			url = CheckIfValidUrl(url) ? url : null;
+			thumbnailUrl = CheckIfValidUrl(thumbnailUrl) ? thumbnailUrl : null;
 
 			WithColor(Constants.BASE);
 			if (title != null)
 			{
-				WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));
+				Title = title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length));
 			}
 			if (description != null)
 			{
 				try
 				{
-					WithDescription(description);
+					Description = description;
 				}
-				catch (Exception e)
+				catch (ArgumentException e)
 				{
 					e.Write();
 					_Errors.Add(new EmbedError("Description", description, e));
@@ -42,19 +43,19 @@ namespace Advobot.Core.Classes
 			}
 			if (color != null)
 			{
-				WithColor(color.Value);
+				Color = color.Value;
 			}
 			if (imageUrl != null)
 			{
-				WithImageUrl(imageUrl);
+				ImageUrl = imageUrl;
 			}
 			if (url != null)
 			{
-				WithUrl(url);
+				Url = url;
 			}
 			if (thumbnailUrl != null)
 			{
-				WithThumbnailUrl(thumbnailUrl);
+				ThumbnailUrl = thumbnailUrl;
 			}
 		}
 
@@ -72,8 +73,8 @@ namespace Advobot.Core.Classes
 				return this;
 			}
 
-			iconUrl = GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
-			url = GetIfStringIsValidUrl(url) ? url : null;
+			iconUrl = CheckIfValidUrl(iconUrl) ? iconUrl : null;
+			url = CheckIfValidUrl(url) ? url : null;
 
 			WithAuthor(x =>
 			{
@@ -102,7 +103,6 @@ namespace Advobot.Core.Classes
 		{
 			return AddAuthor(user.Username, user.GetAvatarUrl(), url ?? user.GetAvatarUrl());
 		}
-
 		/// <summary>
 		/// Adds a footer to the embed. Verifies the Url exists and cuts the text to the appropriate length.
 		/// </summary>
@@ -116,7 +116,7 @@ namespace Advobot.Core.Classes
 				return this;
 			}
 
-			iconUrl = GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
+			iconUrl = CheckIfValidUrl(iconUrl) ? iconUrl : null;
 
 			WithFooter(x =>
 			{
@@ -219,17 +219,16 @@ namespace Advobot.Core.Classes
 
 			return error == null;
 		}
-
 		/// <summary>
 		/// Returns true if the passed in string is a valid Url.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		private bool GetIfStringIsValidUrl(string input)
+		private bool CheckIfValidUrl(string input)
 		{
 			return !String.IsNullOrWhiteSpace(input)
-&& Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult)
-&& (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+				&& Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult)
+				&& (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 		}
 	}
 }

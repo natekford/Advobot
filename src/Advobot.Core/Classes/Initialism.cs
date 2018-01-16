@@ -18,7 +18,7 @@ namespace Advobot.Core.Classes
 		};
 
 		public string Original { get; private set; }
-		public ImmutableList<string> Parts { get; private set; }
+		public ImmutableArray<string> Parts { get; private set; }
 		public string Edited { get; private set; }
 		private string[] _OtherAliases;
 		public string[] Aliases => _OtherAliases.Concat(new[] { Edited }).ToArray();
@@ -57,7 +57,7 @@ namespace Advobot.Core.Classes
 			}
 
 			Original = name;
-			Parts = parts.Select(x => x.ToString()).ToImmutableList();
+			Parts = parts.Select(x => x.ToString()).ToImmutableArray();
 			Edited = initialism.ToString().ToLower();
 			_OtherAliases = otherAliases;
 		}
@@ -65,18 +65,13 @@ namespace Advobot.Core.Classes
 		public void AppendToInitialismByPart(int index, int length)
 		{
 			var newInitialism = new StringBuilder();
-			for (int i = 0; i < Parts.Count; ++i)
+			for (int i = 0; i < Parts.Length; ++i)
 			{
 				var p = Parts[i];
 				var l = i == index ? length : 1;
 				newInitialism.Append(p.Substring(0, l));
 			}
 			Edited = newInitialism.ToString().ToLower();
-		}
-
-		public override string ToString()
-		{
-			return Edited;
 		}
 	}
 }

@@ -16,7 +16,7 @@ namespace Advobot.Core.Classes
 	public class SelfAssignableRoles : ISetting, IPostDeserialize
 	{
 		[JsonProperty]
-		public readonly int Group;
+		public int Group { get; }
 		[JsonProperty("Roles")]
 		private List<ulong> _RoleIds = new List<ulong>();
 		[JsonIgnore]
@@ -70,12 +70,11 @@ namespace Advobot.Core.Classes
 
 		public override string ToString()
 		{
-			return String.Join("\n", _Roles.Select(x => $"**Role:** `{x.Value?.FormatRole() ?? x.Key.ToString()}`"));
+			return String.Join("\n", _Roles.Select(x => $"**Role:** `{x.Value?.Format() ?? x.Key.ToString()}`"));
 		}
-
 		public string ToString(SocketGuild guild)
 		{
-			return String.Join("\n", _Roles.Select(x => $"**Role:** `{guild.GetRole(x.Key)?.FormatRole() ?? x.Key.ToString()}`"));
+			return String.Join("\n", _Roles.Select(x => $"**Role:** `{guild.GetRole(x.Key)?.Format() ?? x.Key.ToString()}`"));
 		}
 	}
 }

@@ -7,10 +7,10 @@ namespace Advobot.Core.Classes.Results
 	/// </summary>
 	public struct VerifiedObjectResult : IResult
 	{
-		public object Value { get; private set; }
-		public CommandError? Error { get; private set; }
-		public string ErrorReason { get; private set; }
-		public bool IsSuccess { get; private set; }
+		public object Value { get; }
+		public CommandError? Error { get; }
+		public string ErrorReason { get; }
+		public bool IsSuccess { get; }
 
 		public VerifiedObjectResult(object value, CommandError? error, string errorReason)
 		{

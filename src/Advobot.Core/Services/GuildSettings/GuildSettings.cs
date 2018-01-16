@@ -11,7 +11,7 @@ namespace Advobot.Core.Services.GuildSettings
 {
 	internal sealed class GuildSettingsHolder : IGuildSettingsService
 	{
-		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
+		private ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
 
 		public GuildSettingsHolder(IServiceProvider provider) { }
 
@@ -31,7 +31,7 @@ namespace Advobot.Core.Services.GuildSettings
 			}
 
 			if (!_GuildSettings.TryGetValue(guild.Id, out var settings) &&
-				!_GuildSettings.TryAdd(guild.Id, settings = ServiceProviderCreationUtils.CreateGuildSettingsAsync(guild as SocketGuild)))
+				!_GuildSettings.TryAdd(guild.Id, settings = ServiceProviderCreationUtils.CreateGuildSettings(guild as SocketGuild)))
 			{
 				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
 			}

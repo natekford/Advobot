@@ -148,7 +148,7 @@ namespace Advobot.Core.Classes.Punishments
 
 		protected override void After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason)
 		{
-			var sb = new StringBuilder($"Successfully {_Given[type]} {user.FormatUser()}. ");
+			var sb = new StringBuilder($"Successfully {_Given[type]} {user.Format()}. ");
 			if (_Time > 0 && _Timers != null)
 			{
 				//Removing the punishments via the timers in whatever time is set

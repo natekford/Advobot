@@ -43,7 +43,7 @@ namespace Advobot.Core.Classes.Attributes
 				var matchingStarts = matchingInitialisms.Select(x =>
 				{
 					var matchingStartPartsIndex = -1;
-					for (int i = 0; i < Math.Min(x.Parts.Count, initialism.Parts.Count); ++i)
+					for (int i = 0; i < Math.Min(x.Parts.Length, initialism.Parts.Length); ++i)
 					{
 						if (x.Parts[i].CaseInsEquals(initialism.Parts[i]))
 						{

@@ -32,7 +32,17 @@ namespace Advobot.Core.Classes
 		[JsonIgnore]
 		public EmbedWrapper Embed { get; }
 		[JsonIgnore]
-		public ITextChannel Channel { get; private set; }
+		private ITextChannel _Channel;
+		[JsonIgnore]
+		public ITextChannel Channel
+		{
+			get => _Channel;
+			set
+			{
+				_Channel = value;
+				ChannelId = value?.Id ?? 0;
+			}
+		}
 
 		[JsonConstructor]
 		internal GuildNotification(string content, string title, string description, string thumbUrl, ulong channelId)
@@ -60,15 +70,6 @@ namespace Advobot.Core.Classes
 		}
 
 		/// <summary>
-		/// Changes the channel the notification gets sent to.
-		/// </summary>
-		/// <param name="channel"></param>
-		public void ChangeChannel(ITextChannel channel)
-		{
-			Channel = channel;
-			ChannelId = Channel.Id;
-		}
-		/// <summary>
 		/// Sends the notification to the channel.
 		/// </summary>
 		/// <param name="user"></param>
@@ -77,7 +78,7 @@ namespace Advobot.Core.Classes
 		{
 			var content = Content
 				.CaseInsReplace(USER_MENTION, user != null ? user.Mention : "Invalid User")
-				.CaseInsReplace(USER_STRING, user != null ? user.FormatUser() : "Invalid User");
+				.CaseInsReplace(USER_STRING, user != null ? user.Format() : "Invalid User");
 			//Put a zero length character in between invite links for names so the invite links will no longer embed
 
 			if (Embed != null)
@@ -101,13 +102,12 @@ namespace Advobot.Core.Classes
 		public override string ToString()
 		{
 			return new StringBuilder()
-.AppendLineFeed($"**Channel:** `{Channel.FormatChannel()}`")
+.AppendLineFeed($"**Channel:** `{Channel.Format()}`")
 .AppendLineFeed($"**Content:** `{Content}`")
 .AppendLineFeed($"**Title:** `{Title}`")
 .AppendLineFeed($"**Description:** `{Description}`")
 .AppendLineFeed($"**Thumbnail:** `{ThumbUrl}`").ToString();
 		}
-
 		public string ToString(SocketGuild guild)
 		{
 			return ToString();

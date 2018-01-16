@@ -25,12 +25,12 @@ namespace Advobot.Commands.Logs
 		{
 			if (!Context.GuildSettings.SetLogChannel(logChannelType, channel))
 			{
-				var error = new ErrorReason($"That channel is already the current {logChannelType.EnumName().ToLower()} log.");
+				var error = new Error($"That channel is already the current {logChannelType.EnumName().ToLower()} log.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			var resp = $"Successfully set the {logChannelType.EnumName().ToLower()} log as `{channel.FormatChannel()}`.";
+			var resp = $"Successfully set the {logChannelType.EnumName().ToLower()} log as `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
@@ -38,7 +38,7 @@ namespace Advobot.Commands.Logs
 		{
 			if (!Context.GuildSettings.SetLogChannel(logChannelType, null))
 			{
-				var error = new ErrorReason($"The {logChannelType.EnumName().ToLower()} log is already off.");
+				var error = new Error($"The {logChannelType.EnumName().ToLower()} log is already off.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
@@ -58,14 +58,14 @@ namespace Advobot.Commands.Logs
 		public async Task Add([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
-			var resp = $"Successfully ignored the following channels: `{String.Join("`, `", channels.Select(x => x.FormatChannel()))}`.";
+			var resp = $"Successfully ignored the following channels: `{String.Join("`, `", channels.Select(x => x.Format()))}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
-			var resp = $"Successfully unignored the following channels: `{String.Join("`, `", channels.Select(x => x.FormatChannel()))}`.";
+			var resp = $"Successfully unignored the following channels: `{String.Join("`, `", channels.Select(x => x.Format()))}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -78,7 +78,7 @@ namespace Advobot.Commands.Logs
 	[DefaultEnabled(false)]
 	public sealed class ModifyLogActions : SavingModuleBase
 	{
-		private static readonly LogAction[] _DefaultLogActions = new[] 
+		private static LogAction[] _DefaultLogActions = new[] 
 		{
 			LogAction.UserJoined,
 			LogAction.UserLeft,

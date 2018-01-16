@@ -38,7 +38,7 @@ namespace Advobot.Core.Classes.Permissions
 
 		public string ToString(SocketGuild guild)
 		{
-			return $"**User:** `{guild.GetUser(UserId).FormatUser()}`\n**Permissions:** `{Permissions}`";
+			return $"**User:** `{guild.GetUser(UserId).Format()}`\n**Permissions:** `{Permissions}`";
 		}
 	}
 }

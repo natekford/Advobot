@@ -97,17 +97,17 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (user.VoiceChannel == null)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("User is not in a voice channel.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("User is not in a voice channel.")).CAF();
 				return;
 			}
 			else if (user.VoiceChannel == channel)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("User is already in that channel.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("User is already in that channel.")).CAF();
 				return;
 			}
 
 			await UserUtils.MoveUserAsync(user, channel, new ModerationReason(Context.User, null)).CAF();
-			var resp = $"Successfully moved `{user.FormatUser()}` to `{channel.FormatChannel()}`.";
+			var resp = $"Successfully moved `{user.Format()}` to `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -193,7 +193,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			if ((await Context.Guild.GetBansAsync().CAF()).Select(x => x.User.Id).Contains(userId))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("That user is already banned.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("That user is already banned.")).CAF();
 				return;
 			}
 
@@ -227,7 +227,7 @@ namespace Advobot.Commands.UserModeration
 		[Command]
 		public async Task Command(IBan ban)
 		{
-			var embed = new EmbedWrapper($"Ban reason for {ban.User.FormatUser()}", ban.Reason);
+			var embed = new EmbedWrapper($"Ban reason for {ban.User.Format()}", ban.Reason);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
@@ -263,7 +263,7 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			var desc = bans.FormatNumberedList("`{0}`", x => x.User.FormatUser());
+			var desc = bans.FormatNumberedList("`{0}`", x => x.User.Format());
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Current Bans", desc)).CAF();
 		}
 	}
@@ -323,8 +323,8 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			var response = $"Successfully deleted `{deletedAmt}` message{GeneralFormatting.FormatPlural(deletedAmt)}";
-			var userResp = user != null ? $" from `{user.FormatUser()}`" : null;
-			var chanResp = channel != null ? $" on `{channel.FormatChannel()}`" : null;
+			var userResp = user != null ? $" from `{user.Format()}`" : null;
+			var chanResp = channel != null ? $" on `{channel.Format()}`" : null;
 			var resp = $"{GeneralFormatting.JoinNonNullStrings(" ", response, userResp, chanResp)}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -351,12 +351,12 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (Context.GuildSettings.Slowmode == null)
 			{
-				var error = new ErrorReason("There must be a slowmode set up before one can be enabled or disabled.");
+				var error = new Error("There must be a slowmode set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			Context.GuildSettings.Slowmode.Enable();
+			Context.GuildSettings.Slowmode.Enabled = true;
 			var resp = $"Successfully enabled slowmode.\n{Context.GuildSettings.Slowmode.ToString()}";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -365,12 +365,12 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (Context.GuildSettings.Slowmode == null)
 			{
-				var error = new ErrorReason("There must be a slowmode set up before one can be enabled or disabled.");
+				var error = new Error("There must be a slowmode set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			Context.GuildSettings.Slowmode.Disable();
+			Context.GuildSettings.Slowmode.Enabled = false;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled slowmode.").CAF();
 		}
 	}
@@ -389,7 +389,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (targetRole.Id == givenRole.Id)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("Cannot give the role being gathered.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Cannot give the role being gathered.")).CAF();
 				return;
 			}
 

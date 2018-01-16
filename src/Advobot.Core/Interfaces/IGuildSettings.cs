@@ -13,7 +13,7 @@ using System.Reflection;
 namespace Advobot.Core.Interfaces
 {
 	/// <summary>
-	/// Holds guild settings and some readonly information.
+	/// Holds guild settings.
 	/// </summary>
 	public interface IGuildSettings : IPostDeserialize
 	{

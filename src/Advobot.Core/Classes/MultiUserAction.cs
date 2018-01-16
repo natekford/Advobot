@@ -18,9 +18,9 @@ namespace Advobot.Core.Classes
 	{
 		private static ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new ConcurrentDictionary<ulong, CancellationTokenSource>();
 
-		private readonly CancellationTokenSource _CancelToken;
-		private readonly IAdvobotCommandContext _Context;
-		private readonly IReadOnlyList<IGuildUser> _Users;
+		private CancellationTokenSource _CancelToken;
+		private IAdvobotCommandContext _Context;
+		private IReadOnlyList<IGuildUser> _Users;
 
 		public MultiUserAction(IAdvobotCommandContext context, IEnumerable<IGuildUser> users, bool bypass)
 		{
@@ -41,14 +41,14 @@ namespace Advobot.Core.Classes
 
 		public async Task TakeRolesAsync(IRole role, ModerationReason reason)
 		{
-			var presentTense = $"take the role `{role.FormatRole()}` from";
-			var pastTense = $"took the role `{role.FormatRole()} from";
+			var presentTense = $"take the role `{role.Format()}` from";
+			var pastTense = $"took the role `{role.Format()} from";
 			await DoActionAsync(nameof(TakeRolesAsync), role, presentTense, pastTense, reason).CAF();
 		}
 		public async Task GiveRolesAsync(IRole role, ModerationReason reason)
 		{
-			var presentTense = $"give the role `{role.FormatRole()}` to";
-			var pastTense = $"gave the role `{role.FormatRole()} to";
+			var presentTense = $"give the role `{role.Format()}` to";
+			var pastTense = $"gave the role `{role.Format()} to";
 			await DoActionAsync(nameof(GiveRolesAsync), role, presentTense, pastTense, reason).CAF();
 		}
 		public async Task ModifyNicknamesAsync(string replace, ModerationReason reason)

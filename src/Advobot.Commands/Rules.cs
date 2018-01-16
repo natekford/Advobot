@@ -22,7 +22,7 @@ namespace Advobot.Commands.Rules
 		{
 			if (Context.GuildSettings.Rules.Categories.Select(x => x.Name).CaseInsContains(name))
 			{
-				var error = new ErrorReason($"The category `{name}` already exists.");
+				var error = new Error($"The category `{name}` already exists.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
@@ -60,7 +60,7 @@ namespace Advobot.Commands.Rules
 		{
 			if (Context.GuildSettings.Rules.Categories.SelectMany(x => x.Rules).CaseInsContains(rule))
 			{
-				var error = new ErrorReason($"The supplied rule already exists.");
+				var error = new Error($"The supplied rule already exists.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
@@ -105,7 +105,7 @@ namespace Advobot.Commands.Rules
 		{
 			if (Context.GuildSettings.Rules.Categories.Count == 0)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new ErrorReason("This guild has no rules set up.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild has no rules set up.")).CAF();
 				return;
 			}
 

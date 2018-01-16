@@ -25,8 +25,8 @@ namespace Advobot.Commands.NicknameModeration
 		{
 			await UserUtils.ChangeNicknameAsync(user, nickname, new ModerationReason(Context.User, null)).CAF();
 			var response = nickname == null
-				? $"Successfully removed the nickname from `{user.FormatUser()}`."
-				: $"Successfully gave `{user.FormatUser()}` the nickname `{nickname}`.";
+				? $"Successfully removed the nickname from `{user.Format()}`."
+				: $"Successfully gave `{user.Format()}` the nickname `{nickname}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, response).CAF();
 		}
 	}

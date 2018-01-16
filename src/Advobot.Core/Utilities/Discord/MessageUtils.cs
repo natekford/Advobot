@@ -34,7 +34,7 @@ namespace Advobot.Core.Utilities
 				return null;
 			}
 
-			content = DiscordObjectFormatting.FormatMessageContentForNotBeingAnnoying(guild, content);
+			content = DiscordObjectFormatting.FormatMessageContent(guild, content);
 			return content.Length < Constants.MAX_MESSAGE_LENGTH_LONG
 				? await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content).CAF()
 				: await SendTextFileAsync(channel, content, "Long_Message_", LONG).CAF();
@@ -87,16 +87,17 @@ namespace Advobot.Core.Utilities
 				content = Constants.ZERO_LENGTH_CHAR + (content ?? "");
 				messages.Add(await channel.SendMessageAsync(content, embed: embed.WithCurrentTimestamp().Build()).CAF());
 			}
+			//TODO: figure out which exception to catch in specific
 			catch (Exception e)
 			{
 				e.Write();
-				messages.Add(await SendMessageAsync(channel, new ErrorReason(e.Message).ToString()).CAF());
+				messages.Add(await SendMessageAsync(channel, new Error(e.Message).ToString()).CAF());
 			}
 
 			//Add in the errors from the embed
 			foreach (var e in embed.Errors)
 			{
-				overflowText.Append($"{e.Property}:\n{e.Text}{Environment.NewLine + Environment.NewLine}{e.Exception}");
+				overflowText.Append($"{e.Property}:\n{e.Text}{Environment.NewLine + Environment.NewLine}{e.Reason}");
 			}
 			//Upload the overflow
 			if (overflowText.Length != 0)
@@ -164,17 +165,18 @@ namespace Advobot.Core.Utilities
 		/// If the guild has verbose errors enabled then this acts just like <see cref="MakeAndDeleteSecondaryMessage(IMessageChannel, IMessage, string, int, ITimersService)"/>.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="reason"></param>
+		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task SendErrorMessageAsync(IAdvobotCommandContext context, ErrorReason reason, int time = -1)
+		public static async Task SendErrorMessageAsync(IAdvobotCommandContext context, IError error, int time = -1)
 		{
 			if (context.GuildSettings.NonVerboseErrors)
 			{
 				return;
 			}
 
-			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, reason.ToString(), time, context.Timers).CAF();
+			var content = $"**ERROR:** {error.Reason}";
+			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, content, time, context.Timers).CAF();
 		}
 
 		/// <summary>
@@ -185,14 +187,14 @@ namespace Advobot.Core.Utilities
 		/// <param name="url"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public static bool GetImageUrl(ICommandContext context, string text, out Uri url, out ErrorReason error)
+		public static bool GetImageUrl(ICommandContext context, string text, out Uri url, out IError error)
 		{
 			url = null;
 			error = default;
 
 			if (text != null && !Uri.TryCreate(text, UriKind.Absolute, out url))
 			{
-				error = new ErrorReason("Invalid Url provided.");
+				error = new Error("Invalid Url provided.");
 			}
 
 			if (url == null)
@@ -206,7 +208,7 @@ namespace Advobot.Core.Utilities
 				}
 				else if (imageUrls.Count() > 1)
 				{
-					error = new ErrorReason("Too many attached or embedded images.");
+					error = new Error("Too many attached or embedded images.");
 				}
 			}
 
@@ -218,16 +220,16 @@ namespace Advobot.Core.Utilities
 				{
 					if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
 					{
-						error = new ErrorReason("Image must be a png or jpg.");
+						error = new Error("Image must be a png or jpg.");
 					}
 					else if (!int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
 					{
-						error = new ErrorReason("Unable to get the image's file size.");
+						error = new Error("Unable to get the image's file size.");
 					}
 					else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
 					{
 						var maxSize = (double)Constants.MAX_ICON_FILE_SIZE / 1000 * 1000;
-						error = new ErrorReason($"Image is bigger than {maxSize:0.0}MB. Manually upload instead.");
+						error = new Error($"Image is bigger than {maxSize:0.0}MB. Manually upload instead.");
 					}
 				}
 			}
@@ -245,7 +247,6 @@ namespace Advobot.Core.Utilities
 		{
 			return (await channel.GetMessagesAsync(requestCount).FlattenAsync().CAF()).ToList();
 		}
-
 		/// <summary>
 		/// Removes the given count of messages from a channel.
 		/// </summary>
@@ -318,7 +319,7 @@ namespace Advobot.Core.Utilities
 			}
 			catch
 			{
-				ConsoleUtils.WriteLine($"Unable to delete {youngMessages.Count()} messages on the guild {channel.GetGuild().FormatGuild()} on channel {channel.FormatChannel()}.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Unable to delete {youngMessages.Count()} messages on the guild {channel.GetGuild().Format()} on channel {channel.Format()}.", color: ConsoleColor.Red);
 				return 0;
 			}
 		}
@@ -341,7 +342,7 @@ namespace Advobot.Core.Utilities
 			}
 			catch
 			{
-				ConsoleUtils.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.FormatChannel()}.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.Format()}.", color: ConsoleColor.Red);
 				return 0;
 			}
 		}

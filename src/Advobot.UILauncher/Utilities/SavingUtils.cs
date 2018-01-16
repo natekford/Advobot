@@ -60,9 +60,9 @@ namespace Advobot.UILauncher.Utilities
 				{
 					var throwaway = JsonConvert.DeserializeObject(text, Constants.GUILD_SETTINGS_TYPE);
 				}
-				catch (Exception e)
+				catch (JsonReaderException jre)
 				{
-					e.Write();
+					jre.Write();
 					return ToolTipReason.FileSavingFailure;
 				}
 			}

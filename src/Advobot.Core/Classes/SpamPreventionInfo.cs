@@ -31,7 +31,7 @@ namespace Advobot.Core.Classes.SpamPrevention
 		[JsonProperty]
 		public int VotesForKick { get; }
 		[JsonIgnore]
-		public bool Enabled { get; private set; }
+		public bool Enabled;
 
 		private SpamPreventionInfo(PunishmentType punishmentType, int requiredSpamInstances, int requiredSpamPerMessageOrTimeInterval, int votesForKick)
 		{
@@ -48,34 +48,34 @@ namespace Advobot.Core.Classes.SpamPrevention
 			int requiredSpamPerMessageOrTimeInterval,
 			int votesForKick,
 			out SpamPreventionInfo spamPreventionInfo,
-			out ErrorReason errorReason)
+			out Error errorReason)
 		{
 			spamPreventionInfo = default;
 			errorReason = default;
 
 			if (requiredSpamInstances <= MSG_COUNT_MIN_LIM)
 			{
-				errorReason = new ErrorReason($"The message count must be greater than `{MSG_COUNT_MIN_LIM}`.");
+				errorReason = new Error($"The message count must be greater than `{MSG_COUNT_MIN_LIM}`.");
 				return false;
 			}
 			else if (requiredSpamInstances > MSG_COUNT_MAX_LIM)
 			{
-				errorReason = new ErrorReason($"The message count must be less than `{MSG_COUNT_MAX_LIM}`.");
+				errorReason = new Error($"The message count must be less than `{MSG_COUNT_MAX_LIM}`.");
 				return false;
 			}
 			else if (votesForKick <= VOTE_COUNT_MIN_LIM)
 			{
-				errorReason = new ErrorReason($"The vote count must be greater than `{VOTE_COUNT_MIN_LIM}`.");
+				errorReason = new Error($"The vote count must be greater than `{VOTE_COUNT_MIN_LIM}`.");
 				return false;
 			}
 			else if (votesForKick > VOTE_COUNT_MAX_LIM)
 			{
-				errorReason = new ErrorReason($"The vote count must be less than `{VOTE_COUNT_MAX_LIM}`.");
+				errorReason = new Error($"The vote count must be less than `{VOTE_COUNT_MAX_LIM}`.");
 				return false;
 			}
 			else if (requiredSpamPerMessageOrTimeInterval <= SPAM_TIME_AMT_MIN_LIM)
 			{
-				errorReason = new ErrorReason($"The spam amount or time interval must be greater than `{VOTE_COUNT_MIN_LIM}`.");
+				errorReason = new Error($"The spam amount or time interval must be greater than `{VOTE_COUNT_MIN_LIM}`.");
 				return false;
 			}
 
@@ -85,7 +85,7 @@ namespace Advobot.Core.Classes.SpamPrevention
 				{
 					if (requiredSpamPerMessageOrTimeInterval > TIME_INTERVAL_MAX_LIM)
 					{
-						errorReason = new ErrorReason($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`.");
+						errorReason = new Error($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`.");
 						return false;
 					}
 					break;
@@ -94,7 +94,7 @@ namespace Advobot.Core.Classes.SpamPrevention
 				{
 					if (requiredSpamPerMessageOrTimeInterval > LONG_MESSAGE_MAX_LIM)
 					{
-						errorReason = new ErrorReason($"The message length must be less than `{LONG_MESSAGE_MAX_LIM}`.");
+						errorReason = new Error($"The message length must be less than `{LONG_MESSAGE_MAX_LIM}`.");
 						return false;
 					}
 					break;
@@ -103,7 +103,7 @@ namespace Advobot.Core.Classes.SpamPrevention
 				{
 					if (requiredSpamPerMessageOrTimeInterval > OTHERS_MAX_LIM)
 					{
-						errorReason = new ErrorReason($"The link count must be less than `{OTHERS_MAX_LIM}`.");
+						errorReason = new Error($"The link count must be less than `{OTHERS_MAX_LIM}`.");
 						return false;
 					}
 					break;
@@ -112,7 +112,7 @@ namespace Advobot.Core.Classes.SpamPrevention
 				{
 					if (requiredSpamPerMessageOrTimeInterval > TIME_INTERVAL_MAX_LIM)
 					{
-						errorReason = new ErrorReason($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`.");
+						errorReason = new Error($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`.");
 						return false;
 					}
 					break;
@@ -121,7 +121,7 @@ namespace Advobot.Core.Classes.SpamPrevention
 				{
 					if (requiredSpamPerMessageOrTimeInterval > OTHERS_MAX_LIM)
 					{
-						errorReason = new ErrorReason($"The mention count must be less than `{OTHERS_MAX_LIM}`.");
+						errorReason = new Error($"The mention count must be less than `{OTHERS_MAX_LIM}`.");
 						return false;
 					}
 					break;
@@ -132,25 +132,13 @@ namespace Advobot.Core.Classes.SpamPrevention
 			return true;
 		}
 
-		public void Enable()
-		{
-			Enabled = true;
-		}
-
-		public void Disable()
-		{
-			Enabled = false;
-		}
-
 		public override string ToString()
 		{
-			return new StringBuilder()
-					   .AppendLineFeed($"**Punishment:** `{PunishmentType.EnumName()}`")
-					   .AppendLineFeed($"**Spam Instances:** `{RequiredSpamInstances}`")
-					   .AppendLineFeed($"**Votes For Punishment:** `{VotesForKick}`")
-					   .Append($"**Spam Amt/Time Interval:** `{RequiredSpamPerMessageOrTimeInterval}`").ToString();
+			return $"**Punishment:** `{PunishmentType.EnumName()}`\n" +
+					$"**Spam Instances:** `{RequiredSpamInstances}`\n" +
+					$"**Votes For Punishment:** `{VotesForKick}`\n" +
+					$"**Spam Amt/Time Interval:** `{RequiredSpamPerMessageOrTimeInterval}`";
 		}
-
 		public string ToString(SocketGuild guild)
 		{
 			return ToString();

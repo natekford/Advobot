@@ -93,22 +93,22 @@ namespace Advobot.Core.Classes
 					: (Key: null, Value: null);
 			}).Where(x => x.Key != null && x.Value != null);
 
-			foreach (var argKvp in argKvps)
+			foreach (var (Key, Value) in argKvps)
 			{
 				//If the params name is the arg name then add to params
-				if (_HasParams && _ParamsName.CaseInsEquals(argKvp.Key))
+				if (_HasParams && _ParamsName.CaseInsEquals(Key))
 				{
 					//Keep this inside here so that if there are too many
 					//params args it won't potentially go into the else if
 					if (_ParamArgs.Count() < _ParamsLength)
 					{
-						_ParamArgs.Add(argKvp.Value);
+						_ParamArgs.Add(Value);
 					}
 				}
 				//If the args dictionary has the value as a key, set it.
-				else if (_Args.ContainsKey(argKvp.Key))
+				else if (_Args.ContainsKey(Key))
 				{
-					_Args[argKvp.Key] = argKvp.Value;
+					_Args[Key] = Value;
 				}
 			}
 		}
@@ -219,10 +219,21 @@ namespace Advobot.Core.Classes
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static object CreateDefault(Type type, bool createNonValueTypeParameterless = false)
+		public static object CreateDefault(Type type, bool createParameterless = false)
 		{
-			var valid = type.IsValueType || (createNonValueTypeParameterless && type.GetConstructors().Any(x => !x.GetParameters().Any()));
-			return valid ? Activator.CreateInstance(type) : null;
+			if (type.IsValueType)
+			{
+				return Activator.CreateInstance(type);
+			}
+			else if (createParameterless)
+			{
+				var constructor = type.GetConstructors().SingleOrDefault(x => !x.GetParameters().Any());
+				if (constructor != null)
+				{
+					return constructor.Invoke(Array.Empty<object>());
+				}
+			}
+			return null;
 		}
 		/// <summary>
 		/// Converts a string to an enum value.

@@ -82,7 +82,7 @@ namespace Advobot.Core
 						await ClientUtils.LoginAsync(client, key).CAF();
 						return true;
 					}
-					catch (Exception)
+					catch
 					{
 						ConsoleUtils.WriteLine("The given key is no longer valid. Please enter a new valid key:");
 						return false;
@@ -102,7 +102,7 @@ namespace Advobot.Core
 				Save();
 				return true;
 			}
-			catch (Exception)
+			catch
 			{
 				ConsoleUtils.WriteLine("The given key is invalid. Please enter a valid key:");
 				return false;
