@@ -279,8 +279,12 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command()
 			{
-				var desc = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`";
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Bot Permission Types", desc)).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = "Bot Permissions",
+					Description = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`",
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -293,8 +297,11 @@ namespace Advobot.Commands.GuildSettings
 					return;
 				}
 
-				var desc = $"`{String.Join("`, `", GuildPermsUtils.ConvertValueToNames(botUser.Permissions))}`";
-				var embed = new EmbedWrapper($"Permissions for {user.Format()}", desc);
+				var embed = new EmbedWrapper
+				{
+					Title = $"Permissions for {user.Format()}",
+					Description = $"`{String.Join("`, `", GuildPermsUtils.ConvertValueToNames(botUser.Permissions))}`",
+				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
@@ -356,8 +363,12 @@ namespace Advobot.Commands.GuildSettings
 					return;
 				}
 
-				var desc = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild));
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Persistent Roles", desc)).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = "Persistent Roles",
+					Description = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild)),
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -370,8 +381,12 @@ namespace Advobot.Commands.GuildSettings
 					return;
 				}
 
-				var desc = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild));
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Persistent Roles", desc)).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = "Persistent Roles",
+					Description = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild)),
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
@@ -526,8 +541,12 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
-			var desc = $"`{String.Join("`, `", Utils.GetSettings(typeof(IGuildSettings)).Select(x => x.Name))}`";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Setting Names",
+				Description = $"`{String.Join("`, `", Utils.GetSettings(typeof(IGuildSettings)).Select(x => x.Name))}`",
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
@@ -539,9 +558,14 @@ namespace Advobot.Commands.GuildSettings
 		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.GuildSettingTypeReader))] PropertyInfo settingName)
 		{
 			var desc = Context.GuildSettings.Format(settingName);
-			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
+			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(settingName.Name, desc)).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = settingName.Name,
+					Description = desc,
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else
 			{

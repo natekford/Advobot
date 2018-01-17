@@ -195,7 +195,12 @@ namespace Advobot.Commands.Gets
 			var desc = count
 				? $"**Count:** `{users.Count()}`"
 				: users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.Format());
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(title, desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = title,
+				Description = desc,
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 
 		public enum SearchOptions
@@ -235,7 +240,7 @@ namespace Advobot.Commands.Gets
 			var users = await Context.Guild.GetUsersAndOrderByJoinAsync().CAF();
 			var newPos = Math.Max(1, Math.Min((int)position, users.Count));
 			var user = users[newPos - 1];
-			var time = TimeFormatting.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime);
+			var time = user.JoinedAt.Value.UtcDateTime.Readable();
 			var text = $"`{user.Format()}` is `#{newPos}` to join the guild on `{time}`.";
 			await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
 		}
@@ -253,10 +258,13 @@ namespace Advobot.Commands.Gets
 			var guilds = await Context.Client.GetGuildsAsync().CAF();
 			if (guilds.Count() <= 10)
 			{
-				var embed = new EmbedWrapper("Guilds");
+				var embed = new EmbedWrapper
+				{
+					Title = "Guilds",
+				};
 				foreach (var guild in guilds)
 				{
-					embed.AddField(guild.Format(), $"**Owner:** `{(await guild.GetOwnerAsync().CAF()).Format()}`");
+					embed.TryAddField(guild.Format(), $"**Owner:** `{(await guild.GetOwnerAsync().CAF()).Format()}`", false, out var errors);
 				}
 
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
@@ -265,7 +273,12 @@ namespace Advobot.Commands.Gets
 			{
 				var guildsAndOwners = await Task.WhenAll(guilds.Select(async x => (Guild: x, Owner: await x.GetOwnerAsync().CAF())));
 				var desc = guildsAndOwners.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Guild.Format(), x => x.Owner.Format());
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Guilds", desc)).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = "Guilds",
+					Description = desc,
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
 	}
@@ -282,7 +295,7 @@ namespace Advobot.Commands.Gets
 			var users = await Context.Guild.GetUsersAndOrderByJoinAsync().CAF();
 			var text = users.FormatNumberedList("`{0}` joined on `{1}`",
 				x => x.Format(),
-				x => TimeFormatting.FormatReadableDateTime(x.JoinedAt.Value.UtcDateTime));
+				x => TimeFormatting.Readable(x.JoinedAt.Value.UtcDateTime));
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "User_Joins_").CAF();
 		}
 	}
@@ -300,7 +313,12 @@ namespace Advobot.Commands.Gets
 			var desc = emotes.Any()
 				? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name)
 				: $"This guild has no global emotes.";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Emotes", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Emotes",
+				Description = desc,
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
@@ -309,7 +327,12 @@ namespace Advobot.Commands.Gets
 			var desc = emotes.Any()
 				? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name)
 				: $"This guild has no guild emotes.";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Emotes", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Emotes",
+				Description = desc,
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 
@@ -393,8 +416,12 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
-			var desc = $"`{String.Join("`, `", _Enums.Select(x => x.Name))}`";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Enums", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Enums",
+				Description = $"`{String.Join("`, `", _Enums.Select(x => x.Name))}`",
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command]
 		public async Task Command(string enumName)
@@ -412,8 +439,12 @@ namespace Advobot.Commands.Gets
 			}
 
 			var e = matchingNames.Single();
-			var desc = $"`{String.Join("`, `", Enum.GetNames(e))}`";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(e.Name, desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = e.Name,
+				Description = $"`{String.Join("`, `", Enum.GetNames(e))}`",
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 
 		public static ImmutableList<Type> SetEnums()

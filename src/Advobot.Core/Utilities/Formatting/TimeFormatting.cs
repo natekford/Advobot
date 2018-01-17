@@ -13,7 +13,7 @@ namespace Advobot.Core.Utilities.Formatting
 		/// </summary>
 		/// <param name="botSettings"></param>
 		/// <returns></returns>
-		public static string FormatUptime()
+		public static string Uptime()
 		{
 			var span = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime());
 			return $"{span.Days}:{span.Hours:00}:{span.Minutes:00}:{span.Seconds:00}";
@@ -22,17 +22,16 @@ namespace Advobot.Core.Utilities.Formatting
 		/// Returns the current time in a year, month, day, hour, minute, second format. E.G: 20170815_053645
 		/// </summary>
 		/// <returns></returns>
-		public static string FormatDateTimeForSaving()
+		public static string Saving()
 		{
 			return DateTime.UtcNow.ToString("yyyyMMdd_hhmmss");
 		}
-
 		/// <summary>
 		/// Returns the passed in time as a human readable time.
 		/// </summary>
 		/// <param name="dt"></param>
 		/// <returns></returns>
-		public static string FormatReadableDateTime(DateTime dt)
+		public static string Readable(this DateTime dt)
 		{
 			var utc = dt.ToUniversalTime();
 			var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(utc.Month);
@@ -43,9 +42,9 @@ namespace Advobot.Core.Utilities.Formatting
 		/// </summary>
 		/// <param name="dt"></param>
 		/// <returns></returns>
-		public static string FormatDateTimeForCreatedAtMessage(DateTime dt)
+		public static string CreatedAt(this DateTime dt)
 		{
-			var time = FormatReadableDateTime(dt);
+			var time = Readable(dt);
 			var diff = DateTime.UtcNow.Subtract(dt).Days;
 			return $"**Created:** `{time}` (`{diff}` days ago)";
 		}

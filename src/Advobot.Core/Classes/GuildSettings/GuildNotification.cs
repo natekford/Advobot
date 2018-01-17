@@ -54,7 +54,12 @@ namespace Advobot.Core.Classes.GuildSettings
 			ChannelId = channelId;
 			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbUrl)))
 			{
-				Embed = new EmbedWrapper(title, description, null, null, null, thumbUrl);
+				Embed = new EmbedWrapper
+				{
+					Title = title,
+					Description = description,
+					ThumbnailUrl = thumbUrl,
+				};
 			}
 		}
 		public GuildNotification() : this(null, null, null, null, 0) { }

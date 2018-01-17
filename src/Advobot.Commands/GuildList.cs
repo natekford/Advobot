@@ -98,13 +98,16 @@ namespace Advobot.Commands.GuildList
 			}
 			else if (invites.Count() <= 5)
 			{
-				var embed = new EmbedWrapper("Guilds");
-				invites.ToList().ForEach(x =>
+				var embed = new EmbedWrapper
 				{
-					var e = x.HasGlobalEmotes ? "**Has global emotes**" : "";
-					var text = $"**URL:** {x.Url}\n**Members:** {x.Guild.MemberCount}\n{e}";
-					embed.AddField(x.Guild.Name, text);
-				});
+					Title = "Guilds",
+				};
+				foreach (var invite in invites)
+				{
+					var e = invite.HasGlobalEmotes ? "**Has global emotes**" : "";
+					var text = $"**URL:** {invite.Url}\n**Members:** {invite.Guild.MemberCount}\n{e}";
+					embed.TryAddField(invite.Guild.Name, text, true, out var error);
+				}
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else if (invites.Count() <= 15)

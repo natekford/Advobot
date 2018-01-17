@@ -41,15 +41,6 @@ namespace Advobot.Core
 		public const int MIN_NICKNAME_LENGTH = 1;
 		public const int MAX_USERNAME_LENGTH = 32;
 		public const int MIN_USERNAME_LENGTH = 2;
-		public const int MAX_EMBED_TOTAL_LENGTH = 6000;
-		public const int MAX_TITLE_LENGTH = 256;
-		public const int MAX_FOOTER_LENGTH = 2048;
-		public const int MAX_DESCRIPTION_LINES = 20;
-		public const int MAX_DESCRIPTION_LENGTH = 2048;
-		public const int MAX_FIELDS = 25;
-		public const int MAX_FIELD_LINES = 5;
-		public const int MAX_FIELD_NAME_LENGTH = 256;
-		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
 		//Static because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
 		//Regex for checking any awaits are non ConfigureAwait(false): ^(?!.*CAF\(\)).*await.*$

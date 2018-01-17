@@ -69,14 +69,18 @@ namespace Advobot.Commands.BanPhrases
 				eval.Add(regex);
 			}
 
-			var desc = new StringBuilder()
-				.AppendLineFeed($"The given regex matches the given string: `{matchesMessage}`.")
-				.AppendLineFeed($"The given regex matches empty strings: `{matchesEmpty}`.")
-				.AppendLineFeed($"The given regex matches spaces: `{matchesSpace}`.")
-				.AppendLineFeed($"The given regex matches new lines: `{matchesNewLine}`.")
-				.AppendLineFeed($"The given regex matches random strings: `{matchesRandom}`.")
-				.AppendLineFeed($"The given regex is `{(okToUse ? "GOOD" : "BAD")}`.");
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(regex, desc.ToString())).CAF();
+			var desc = $"The given regex matches the given string: `{matchesMessage}`." +
+				$"The given regex matches empty strings: `{matchesEmpty}`." +
+				$"The given regex matches spaces: `{matchesSpace}`." +
+				$"The given regex matches new lines: `{matchesNewLine}`." +
+				$"The given regex matches random strings: `{matchesRandom}`." +
+				$"The given regex is `{(okToUse ? "GOOD" : "BAD")}`.";
+			var embed = new EmbedWrapper
+			{
+				Title = regex,
+				Description = desc,
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 
@@ -100,8 +104,12 @@ namespace Advobot.Commands.BanPhrases
 			{
 				if (position == default)
 				{
-					var desc = Context.GuildSettings.EvaluatedRegex.FormatNumberedList("`{0}`", x => x);
-					await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Evaluated Regex", desc)).CAF();
+					var embed = new EmbedWrapper
+					{
+						Title = "Evaluted Regex",
+						Description = Context.GuildSettings.EvaluatedRegex.FormatNumberedList("`{0}`", x => x)
+					};
+					await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 					return;
 				}
 				else if (position > Context.GuildSettings.EvaluatedRegex.Count)
@@ -197,8 +205,12 @@ namespace Advobot.Commands.BanPhrases
 
 		private static async Task Show<T>(IAdvobotCommandContext context, List<T> list, string type) where T : BannedPhrase
 		{
-			var desc = list.FormatNumberedList("`{0}`", x => x.Phrase);
-			await MessageUtils.SendEmbedMessageAsync(context.Channel, new EmbedWrapper($"Banned {type}", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = $"Banned {type}",
+				Description = list.FormatNumberedList("`{0}`", x => x.Phrase),
+			};
+			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
 			return;
 		}
 		private static async Task Add<T>(IAdvobotCommandContext context, List<T> list, string text, string type, int max) where T : BannedPhrase
@@ -288,8 +300,12 @@ namespace Advobot.Commands.BanPhrases
 
 		private static async Task Show<T>(IAdvobotCommandContext context, List<T> list, string type) where T : BannedPhrase
 		{
-			var desc = list.FormatNumberedList("`{0}`", x => x.ToString());
-			await MessageUtils.SendEmbedMessageAsync(context.Channel, new EmbedWrapper($"Banned {type} Punishments", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = $"Banned {type} Punishments",
+				Description = list.FormatNumberedList("`{0}`", x => x.ToString()),
+			};
+			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
 		}
 		private static async Task Modify<T>(IAdvobotCommandContext context, List<T> list, string text, string type,
 			PunishmentType punishment) where T : BannedPhrase
@@ -333,8 +349,12 @@ namespace Advobot.Commands.BanPhrases
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
-			var desc = Context.GuildSettings.BannedPhrasePunishments.FormatNumberedList("`{0}`", x => x.ToString());
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper($"Banned Phrase Punishments", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = $"Banned Phrase Punishments",
+				Description = Context.GuildSettings.BannedPhrasePunishments.FormatNumberedList("`{0}`", x => x.ToString()),
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
 		public sealed class Add : SavingModuleBase

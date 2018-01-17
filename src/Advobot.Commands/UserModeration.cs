@@ -228,7 +228,11 @@ namespace Advobot.Commands.UserModeration
 		[Command]
 		public async Task Command(IBan ban)
 		{
-			var embed = new EmbedWrapper($"Ban reason for {ban.User.Format()}", ban.Reason);
+			var embed = new EmbedWrapper
+			{
+				Title = $"Ban reason for {ban.User.Format()}",
+				Description = ban.Reason,
+			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
@@ -264,8 +268,12 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			var desc = bans.FormatNumberedList("`{0}`", x => x.User.Format());
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Current Bans", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Current Bans",
+				Description = bans.FormatNumberedList("`{0}`", x => x.User.Format()),
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 

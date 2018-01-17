@@ -48,44 +48,12 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IEnumerable<IUserMessage>> SendEmbedMessageAsync(IMessageChannel channel, EmbedWrapper embed, string content = null)
 		{
-			//Embeds have a global limit of 6000 characters
-			var charCount = 0
-				+ embed.Author?.Name?.Length
-				+ embed.Title?.Length
-				+ embed.Footer?.Text?.Length ?? 0;
-
-			//For overflow text
-			var overflowText = new StringBuilder();
-
-			//Descriptions can only be 2048 characters max and mobile can only show up to 20 line breaks
-			if (!embed.CheckIfValidDescription(charCount, out string error))
-			{
-				overflowText.AppendLineFeed($"Description:\n{embed.Description}");
-				embed.WithDescription(error);
-			}
-			charCount += embed.Description?.Length ?? 0;
-
-			//Fields can only be 1024 characters max and mobile can only show up to 5 line breaks
-			for (int i = 0; i < embed.Fields.Count; ++i)
-			{
-				var field = embed.Fields[i];
-				if (!embed.CheckIfValidField(field, charCount, out string fieldError))
-				{
-					overflowText.AppendLineFeed($"Field {i}; {field.Name}\n{field.Value}");
-					field.WithName($"Field {i}");
-					field.WithValue(fieldError);
-				}
-
-				charCount += field.Value?.ToString()?.Length ?? 0;
-				charCount += field.Name?.Length ?? 0;
-			}
-
 			//Catches length errors and nsfw filter errors if an avatar has nsfw content and filtering is enabled
 			var messages = new List<IUserMessage>();
 			try
 			{
 				content = Constants.ZERO_LENGTH_CHAR + (content ?? "");
-				messages.Add(await channel.SendMessageAsync(content, embed: embed.WithCurrentTimestamp().Build()).CAF());
+				messages.Add(await channel.SendMessageAsync(content, embed: embed.Build()).CAF());
 			}
 			//TODO: figure out which exception to catch in specific
 			catch (Exception e)
@@ -94,15 +62,10 @@ namespace Advobot.Core.Utilities
 				messages.Add(await SendMessageAsync(channel, new Error(e.Message).ToString()).CAF());
 			}
 
-			//Add in the errors from the embed
-			foreach (var e in embed.Errors)
+			//Upload any errors
+			if (embed.FailedValues.Any())
 			{
-				overflowText.Append($"{e.Property}:\n{e.Text}{Environment.NewLine + Environment.NewLine}{e.Reason}");
-			}
-			//Upload the overflow
-			if (overflowText.Length != 0)
-			{
-				messages.Add(await SendTextFileAsync(channel as ITextChannel, overflowText.ToString(), "Embed_").CAF());
+				messages.Add(await SendTextFileAsync(channel as ITextChannel, embed.ToString(), "Embed_").CAF());
 			}
 			return messages;
 		}
@@ -120,7 +83,7 @@ namespace Advobot.Core.Utilities
 			{
 				fileName += "_";
 			}
-			var fullFileName = fileName + TimeFormatting.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
+			var fullFileName = fileName + TimeFormatting.Saving() + Constants.GENERAL_FILE_EXTENSION;
 			var fileInfo = IOUtils.GetServerDirectoryFile(channel.GetGuild()?.Id ?? 0, fullFileName);
 
 			IOUtils.OverWriteFile(fileInfo, text.RemoveAllMarkdown());

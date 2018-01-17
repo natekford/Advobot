@@ -39,7 +39,7 @@ namespace Advobot.Core.Classes
 			Guild = context.Guild.Format();
 			Channel = context.Channel.Format();
 			User = context.User.Format();
-			Time = TimeFormatting.FormatReadableDateTime(context.Message.CreatedAt.UtcDateTime);
+			Time = TimeFormatting.Readable(context.Message.CreatedAt.UtcDateTime);
 			Text = context.Message.Content;
 		}
 		/// <summary>
@@ -116,9 +116,12 @@ namespace Advobot.Core.Classes
 				var guildSettings = context.GuildSettings;
 				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
-					var embed = new EmbedWrapper(null, context.Message.Content)
-						.AddAuthor(context.User)
-						.AddFooter("Mod Log");
+					var embed = new EmbedWrapper
+					{
+						Description = context.Message.Content,
+					};
+					embed.TryAddAuthor(context.User, out var authorErrors);
+					embed.TryAddFooter("Mod Log", null, out var footerErrors);
 					await MessageUtils.SendEmbedMessageAsync(guildSettings.ModLog, embed).CAF();
 				}
 			}

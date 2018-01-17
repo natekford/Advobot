@@ -21,7 +21,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.
 	/// </summary>
-	public sealed class GuildSettingsWrapper : IGuildSettings
+	public sealed class GuildSettingsWrapper : IGuildSettings, IPostDeserialize
 	{
 		#region Fields and Properties
 		[JsonProperty("WelcomeMessage")]
@@ -318,52 +318,129 @@ namespace Advobot.Core.Classes
 				return x.Name.CaseInsEquals(commandNameOrAlias) || x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias);
 			});
 		}
+		public string GetPrefix(IBotSettings botSettings)
+		{
+			return String.IsNullOrWhiteSpace(Prefix) ? botSettings.Prefix : Prefix;
+		}
+		public string Format()
+		{
+			var sb = new StringBuilder();
+			foreach (var property in GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+			{
+				//Only get public editable properties
+				if (property.GetGetMethod() == null || property.GetSetMethod() == null)
+				{
+					continue;
+				}
 
+				var formatted = Format(property);
+				if (String.IsNullOrWhiteSpace(formatted))
+				{
+					continue;
+				}
+
+				sb.AppendLineFeed($"**{property.Name}**:");
+				sb.AppendLineFeed($"{formatted}");
+				sb.AppendLineFeed("");
+			}
+			return sb.ToString();
+		}
+		public string Format(PropertyInfo property)
+		{
+			return Format(property.GetValue(this));
+		}
+		public string Format(object value)
+		{
+			if (value == null)
+			{
+				return "`Nothing`";
+			}
+			else if (value is ISetting setting)
+			{
+				return setting.ToString();
+			}
+			else if (value is ulong ul)
+			{
+				var chan = Guild.GetChannel(ul);
+				if (chan != null)
+				{
+					return $"`{chan.Format()}`";
+				}
+				var role = Guild.GetRole(ul);
+				if (role != null)
+				{
+					return $"`{role.Format()}`";
+				}
+				var user = Guild.GetUser(ul);
+				if (user != null)
+				{
+					return $"`{user.Format()}`";
+				}
+				return ul.ToString();
+			}
+			//Because strings are char[] this has to be here so it doesn't go into IEnumerable
+			else if (value is string str)
+			{
+				return String.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
+			}
+			//Has to be above IEnumerable too
+			else if (value is IDictionary dict)
+			{
+				var validKeys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
+				return String.Join("\n", validKeys.Select(x =>
+				{
+					return $"{Format(x)}: {Format(dict[x])}";
+				}));
+			}
+			else if (value is IEnumerable enumarble)
+			{
+				return String.Join("\n", enumarble.Cast<object>().Select(x => Format(x)));
+			}
+			else
+			{
+				return $"`{value.ToString()}`";
+			}
+		}
 		public bool SetLogChannel(LogChannelType logChannelType, ITextChannel channel)
 		{
 			switch (logChannelType)
 			{
 				case LogChannelType.Server:
-				{
-					if (_ServerLogId == (channel?.Id ?? 0))
 					{
-						return false;
-					}
+						if (_ServerLogId == (channel?.Id ?? 0))
+						{
+							return false;
+						}
 
-					ServerLog = channel;
-					return true;
-				}
+						ServerLog = channel;
+						return true;
+					}
 				case LogChannelType.Mod:
-				{
-					if (_ModLogId == (channel?.Id ?? 0))
 					{
-						return false;
-					}
+						if (_ModLogId == (channel?.Id ?? 0))
+						{
+							return false;
+						}
 
-					ModLog = channel;
-					return true;
-				}
+						ModLog = channel;
+						return true;
+					}
 				case LogChannelType.Image:
-				{
-					if (_ImageLogId == (channel?.Id ?? 0))
 					{
-						return false;
-					}
+						if (_ImageLogId == (channel?.Id ?? 0))
+						{
+							return false;
+						}
 
-					ImageLog = channel;
-					return true;
-				}
+						ImageLog = channel;
+						return true;
+					}
 				default:
-				{
-					throw new ArgumentException("invalid type", nameof(channel));
-				}
+					{
+						throw new ArgumentException("invalid type", nameof(channel));
+					}
 			}
 		}
-		public string GetPrefix(IBotSettings botSettings)
-		{
-			return String.IsNullOrWhiteSpace(Prefix) ? botSettings.Prefix : Prefix;
-		}
-
 		public void SaveSettings()
 		{
 			if (Guild == null)
@@ -373,7 +450,6 @@ namespace Advobot.Core.Classes
 
 			IOUtils.OverWriteFile(IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOC), IOUtils.Serialize(this));
 		}
-		//TODO: refactor this method and command settings
 		public void PostDeserialize(SocketGuild guild)
 		{
 			Guild = guild;
@@ -424,89 +500,6 @@ namespace Advobot.Core.Classes
 			}
 
 			Loaded = true;
-		}
-		public string Format()
-		{
-			var sb = new StringBuilder();
-			foreach (var property in GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
-			{
-				//Only get public editable properties
-				if (property.GetGetMethod() == null || property.GetSetMethod() == null)
-				{
-					continue;
-				}
-
-				var formatted = Format(property);
-				if (String.IsNullOrWhiteSpace(formatted))
-				{
-					continue;
-				}
-
-				sb.AppendLineFeed($"**{property.Name}**:");
-				sb.AppendLineFeed($"{formatted}");
-				sb.AppendLineFeed("");
-			}
-			return sb.ToString();
-		}
-		public string Format(PropertyInfo property)
-		{
-			return FormatObject(property.GetValue(this));
-		}
-
-		private string FormatObject(object value)
-		{
-			if (value == null)
-			{
-				return "`Nothing`";
-			}
-			else if (value is ISetting tempISetting)
-			{
-				return tempISetting.ToString();
-			}
-			else if (value is ulong tempUlong)
-			{
-				var chan = Guild.GetChannel(tempUlong);
-				if (chan != null)
-				{
-					return $"`{chan.Format()}`";
-				}
-
-				var role = Guild.GetRole(tempUlong);
-				if (role != null)
-				{
-					return $"`{role.Format()}`";
-				}
-
-				var user = Guild.GetUser(tempUlong);
-				if (user != null)
-				{
-					return $"`{user.Format()}`";
-				}
-
-				return tempUlong.ToString();
-			}
-			//Because strings are char[] this has to be here so it doesn't go into IEnumerable
-			else if (value is string tempStr)
-			{
-				return String.IsNullOrWhiteSpace(tempStr) ? "`Nothing`" : $"`{tempStr}`";
-			}
-			//Has to be above IEnumerable too
-			else if (value is IDictionary tempIDictionary)
-			{
-				var validKeys = tempIDictionary.Keys.Cast<object>().Where(x => tempIDictionary[x] != null);
-				return String.Join("\n", validKeys.Select(x =>
-				{
-					return $"{FormatObject(x)}: {FormatObject(tempIDictionary[x])}";
-				}));
-			}
-			else if (value is IEnumerable tempIEnumerable)
-			{
-				return String.Join("\n", tempIEnumerable.Cast<object>().Select(x => FormatObject(x)));
-			}
-			else
-			{
-				return $"`{value.ToString()}`";
-			}
 		}
 	}
 }

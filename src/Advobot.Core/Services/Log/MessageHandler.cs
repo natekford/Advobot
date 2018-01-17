@@ -69,73 +69,61 @@ namespace Advobot.Core.Services.Log
 				return;
 			}
 
-			var attachmentURLs = _LogInstance.Message.Attachments.Select(x => x.Url).Distinct();
-			var embedURLs = new List<string>();
-			var videoEmbeds = new List<IEmbed>();
-
-			foreach (var embed in _LogInstance.Message.Embeds)
-			{
-				if (embed.Video == null)
-				{
-					//If no video then it has to be just an image
-					if (!String.IsNullOrEmpty(embed.Thumbnail?.Url))
-					{
-						embedURLs.Add(embed.Thumbnail?.Url);
-					}
-					if (!String.IsNullOrEmpty(embed.Image?.Url))
-					{
-						embedURLs.Add(embed.Image?.Url);
-					}
-				}
-				else
-				{
-					//Add the video URL and the thumbnail URL
-					videoEmbeds.Add(embed);
-				}
-			}
-
 			var desc = $"**Channel:** `{_LogInstance.Channel.Format()}`\n**Message Id:** `{_LogInstance.Message.Id}`";
-			foreach (var attachmentURL in attachmentURLs) //Attachments
+			foreach (var attachmentUrl in _LogInstance.Message.Attachments.Select(x => x.Url).Distinct()) //Attachments
 			{
-				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Image
+				string footerText;
+				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentUrl))) //Image
 				{
 					_Logging.Images.Increment();
-					var embed = new EmbedWrapper(null, desc, Constants.ATCH, attachmentURL)
-						.AddAuthor(_LogInstance.User, attachmentURL)
-						.AddFooter("Attached Image");
-					await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
+					footerText = "Attached Image";
 				}
-				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Gif
+				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentUrl))) //Gif
 				{
 					_Logging.Gifs.Increment();
-					var embed = new EmbedWrapper(null, desc, Constants.ATCH, attachmentURL)
-						.AddAuthor(_LogInstance.User, attachmentURL)
-						.AddFooter("Attached Gif");
-					await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
+					footerText = "Attached Gif";
 				}
 				else //Random file
 				{
 					_Logging.Files.Increment();
-					var embed = new EmbedWrapper(null, desc, Constants.ATCH, attachmentURL)
-						.AddAuthor(_LogInstance.User, attachmentURL)
-						.AddFooter("Attached File");
-					await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
+					footerText = "Attached File";
 				}
-			}
-			foreach (var embedURL in embedURLs.Distinct()) //Images
-			{
-				_Logging.Images.Increment();
-				var embed = new EmbedWrapper(null, desc, Constants.ATCH, embedURL)
-					.AddAuthor(_LogInstance.User, embedURL)
-					.AddFooter("Embedded Image");
+
+				var embed = new EmbedWrapper
+				{
+					Description = desc,
+					Color = Constants.ATCH,
+					Url = attachmentUrl,
+					ImageUrl = footerText.Contains("File") ? null : attachmentUrl,
+				};
+				embed.TryAddAuthor(_LogInstance.User.Username, attachmentUrl, _LogInstance.User.GetAvatarUrl(), out var authorErrors);
+				embed.TryAddFooter(footerText, null, out var footerErrors);
 				await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 			}
-			foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First())) //Videos/Gifs
+			foreach (var imageEmbed in _LogInstance.Message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
 			{
-				_Logging.Gifs.Increment();
-				var embed = new EmbedWrapper(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url)
-					.AddAuthor(_LogInstance.User, videoEmbed.Url)
-					.AddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
+				var embed = new EmbedWrapper
+				{
+					Description = desc,
+					Color = Constants.ATCH,
+					Url = imageEmbed.Url,
+					ImageUrl = imageEmbed.Image?.Url ?? imageEmbed.Thumbnail?.Url,
+				};
+				embed.TryAddAuthor(_LogInstance.User.Username, imageEmbed.Url, _LogInstance.User.GetAvatarUrl(), out var authorErrors);
+
+				string footerText;
+				if (imageEmbed.Video != null)
+				{
+					_Logging.Gifs.Increment();
+					footerText = "Embedded Gif/Video";
+				}
+				else
+				{
+					_Logging.Images.Increment();
+					footerText = "Embedded Image";
+				}
+
+				embed.TryAddFooter(footerText, null, out var footerErrors);
 				await MessageUtils.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 			}
 		}

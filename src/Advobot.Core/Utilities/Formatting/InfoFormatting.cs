@@ -5,7 +5,6 @@ using Discord.WebSocket;
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace Advobot.Core.Utilities.Formatting
 {
@@ -15,7 +14,7 @@ namespace Advobot.Core.Utilities.Formatting
 	public static class InfoFormatting
 	{
 		/// <summary>
-		/// Returns a new <see cref="EmbedBuilder"/> containing information about a user on a guild.
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about a user on a guild.
 		/// </summary>
 		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
@@ -33,40 +32,43 @@ namespace Advobot.Core.Utilities.Formatting
 			var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 			var roles = user.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
 
-			var desc = new StringBuilder()
-				.AppendLineFeed($"**ID:** `{user.Id}`")
-				.AppendLineFeed($"**Nickname:** `{(String.IsNullOrWhiteSpace(user.Nickname) ? "No nickname" : user.Nickname.EscapeBackTicks())}`")
-				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(user.CreatedAt.UtcDateTime))
-				.AppendLineFeed($"**Joined:** `{TimeFormatting.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime)}` (`{users.IndexOf(user) + 1}` to join the guild)\n")
-				.AppendLineFeed(user.Activity.Format())
-				.AppendLineFeed($"**Online status:** `{user.Status}`");
+			var desc = $"**Id:** `{user.Id}`\n" +
+				$"**Nickname:** `{(String.IsNullOrWhiteSpace(user.Nickname) ? "No nickname" : user.Nickname.EscapeBackTicks())}`\n" +
+				$"{user.CreatedAt.UtcDateTime.CreatedAt()}\n" +
+				$"**Joined:** `{user.JoinedAt.Value.UtcDateTime.Readable()}` (`{users.IndexOf(user) + 1}` to join the guild)\n\n" +
+				$"{user.Activity.Format()}\n" +
+				$"**Online status:** `{user.Status}`\n";
 
 			var color = roles.OrderBy(x => x.Position).LastOrDefault(x => x.Color.RawValue != 0)?.Color;
-			var embed = new EmbedWrapper(null, desc.ToString(), color, thumbnailUrl: user.GetAvatarUrl())
-				.AddAuthor(user)
-				.AddFooter("User Info");
+			var embed = new EmbedWrapper
+			{
+				Description = desc,
+				Color = color,
+				ThumbnailUrl = user.GetAvatarUrl(),
+			};
+			embed.TryAddAuthor(user, out var authorErrors);
+			embed.TryAddFooter("User Info", null, out var footerErrors);
 
 			if (channels.Count() != 0)
 			{
-				embed.AddField("Channels", String.Join(", ", channels));
+				embed.TryAddField("Channels", String.Join(", ", channels), false, out var errors);
 			}
 			if (roles.Count() != 0)
 			{
-				embed.AddField("Roles", String.Join(", ", roles.Select(x => x.Name)));
+				embed.TryAddField("Roles", String.Join(", ", roles.Select(x => x.Name)), false, out var errors);
 			}
 			if (user.VoiceChannel != null)
 			{
-				var value = new StringBuilder()
-					.AppendLineFeed($"Server mute: `{user.IsMuted}`")
-					.AppendLineFeed($"Server deafen: `{user.IsDeafened}`")
-					.AppendLineFeed($"Self mute: `{user.IsSelfMuted}`")
-					.AppendLineFeed($"Self deafen: `{user.IsSelfDeafened}`");
-				embed.AddField($"Voice Channel: {user.VoiceChannel.Name}", value.ToString());
+				var value = $"Server mute: `{user.IsMuted}`\n" +
+					$"Server deafen: `{user.IsDeafened}`\n" +
+					$"Self mute: `{user.IsSelfMuted}`\n" +
+					$"Self deafen: `{user.IsSelfDeafened}`";
+				embed.TryAddField($"Voice Channel: {user.VoiceChannel.Name}", value, false, out var errors);
 			}
 			return embed;
 		}
 		/// <summary>
-		/// Returns a new <see cref="EmbedBuilder"/> containing information about a user not on a guild.
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about a user not on a guild.
 		/// </summary>
 		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
@@ -74,17 +76,21 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static EmbedWrapper FormatUserInfo(SocketGuild guild, SocketUser user)
 		{
-			var desc = new StringBuilder()
-				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(user.CreatedAt.UtcDateTime))
-				.AppendLineFeed(user.Activity.Format())
-				.AppendLineFeed($"**Online status:** `{user.Status}`");
+			var desc = $"{user.CreatedAt.UtcDateTime.CreatedAt()}\n" +
+				$"{user.Activity.Format()}\n" +
+				$"**Online status:** `{user.Status}`";
 
-			return new EmbedWrapper(null, desc.ToString(), null, thumbnailUrl: user.GetAvatarUrl())
-				.AddAuthor(user)
-				.AddFooter("User Info");
+			var embed = new EmbedWrapper
+			{
+				Description = desc,
+				ThumbnailUrl = user.GetAvatarUrl(),
+			};
+			embed.TryAddAuthor(user, out var authorErrors);
+			embed.TryAddFooter("User Info", null, out var footerErrors);
+			return embed;
 		}
 		/// <summary>
-		/// Returns a new <see cref="EmbedBuilder"/> containing information about a role.
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about a role.
 		/// </summary>
 		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
@@ -92,17 +98,21 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static EmbedWrapper FormatRoleInfo(SocketGuild guild, SocketRole role)
 		{
-			var desc = new StringBuilder()
-				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(role.CreatedAt.UtcDateTime))
-				.AppendLineFeed($"**Position:** `{role.Position}`")
-				.AppendLineFeed($"**User Count:** `{guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count()}`");
+			var desc = $"{role.CreatedAt.UtcDateTime.CreatedAt()}\n" +
+				$"**Position:** `{role.Position}`" +
+				$"**User Count:** `{guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count()}`";
 
-			return new EmbedWrapper(null, desc.ToString(), role.Color)
-				.AddAuthor(role.Format())
-				.AddFooter("Role Info");
+			var embed = new EmbedWrapper
+			{
+				Description = desc,
+				Color = role.Color,
+			};
+			embed.TryAddAuthor(role.Format(), null, null, out var authorErrors);
+			embed.TryAddFooter("Role Info", null, out var footerErrors);
+			return embed;
 		}
 		/// <summary>
-		/// Returns a new <see cref="EmbedBuilder"/> containing information about a channel.
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about a channel.
 		/// </summary>
 		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
@@ -117,22 +127,25 @@ namespace Advobot.Core.Utilities.Formatting
 			var modLog = guildSettings.ModLog?.Id == channel.Id;
 			var imageLog = guildSettings.ImageLog?.Id == channel.Id;
 
-			var desc = new StringBuilder()
-				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(channel.CreatedAt.UtcDateTime))
-				.AppendLineFeed($"**User Count:** `{channel.Users.Count}`")
-				.AppendLineFeed($"\n**Ignored From Log:** `{(ignoredFromLog ? "Yes" : "No")}`")
-				.AppendLineFeed($"**Ignored From Commands:** `{(ignoredFromCmd ? "Yes" : "No")}`")
-				.AppendLineFeed($"**Image Only:** `{(imageOnly ? "Yes" : "No")}`")
-				.AppendLineFeed($"\n**Serverlog:** `{(serverLog ? "Yes" : "No")}`")
-				.AppendLineFeed($"**Modlog:** `{(modLog ? "Yes" : "No")}`")
-				.AppendLineFeed($"**Imagelog:** `{(imageLog ? "Yes" : "No")}`");
+			var desc = $"{channel.CreatedAt.UtcDateTime.CreatedAt()}\n" +
+				$"**User Count:** `{channel.Users.Count}`\n\n" +
+				$"**Ignored From Log:** `{(ignoredFromLog ? "Yes" : "No")}`" +
+				$"**Ignored From Commands:** `{(ignoredFromCmd ? "Yes" : "No")}`" +
+				$"**Image Only:** `{(imageOnly ? "Yes" : "No")}`\n\n" +
+				$"**Serverlog:** `{(serverLog ? "Yes" : "No")}`" +
+				$"**Modlog:** `{(modLog ? "Yes" : "No")}`" +
+				$"**Imagelog:** `{(imageLog ? "Yes" : "No")}`";
 
-			return new EmbedWrapper(null, desc.ToString())
-				.AddAuthor(channel.Format())
-				.AddFooter("Channel Info");
+			var embed = new EmbedWrapper
+			{
+				Description = desc,
+			};
+			embed.TryAddAuthor(channel.Format(), null, null, out var authorErrors);
+			embed.TryAddFooter("Channel Info", null, out var footerErrors);
+			return embed;
 		}
 		/// <summary>
-		/// Returns a new <see cref="EmbedBuilder"/> containing information about a guild.
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about a guild.
 		/// </summary>
 		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
@@ -148,41 +161,50 @@ namespace Advobot.Core.Utilities.Formatting
 			var localECount = guild.Emotes.Where(x => !x.IsManaged).Count();
 			var globalECount = guild.Emotes.Where(x => x.IsManaged).Count();
 
-			var desc = new StringBuilder()
-				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(guild.CreatedAt.UtcDateTime))
-				.AppendLineFeed($"**Owner:** `{owner.Format()}`")
-				.AppendLineFeed($"**Region:** `{guild.VoiceRegionId}`")
-				.AppendLineFeed($"**Emotes:** `{localECount + globalECount}` (`{localECount}` local, `{globalECount}` global)\n")
-				.AppendLineFeed($"**User Count:** `{guild.MemberCount}` (`{onlineCount}` online, `{botCount}` bots)")
-				.AppendLineFeed($"**Users With Nickname:** `{nicknameCount}`")
-				.AppendLineFeed($"**Users Playing Games:** `{gameCount}`")
-				.AppendLineFeed($"**Users In Voice:** `{voiceCount}`\n")
-				.AppendLineFeed($"**Role Count:** `{guild.Roles.Count}`")
-				.AppendLineFeed($"**Channel Count:** `{guild.Channels.Count}` (`{guild.TextChannels.Count}` text, `{guild.VoiceChannels.Count}` voice)")
-				.AppendLineFeed($"**AFK Channel:** `{guild.AFKChannel.Format()}` (`{guild.AFKTimeout / 60}` minute{GeneralFormatting.FormatPlural(guild.AFKTimeout / 60)})");
+			var desc = $"{guild.CreatedAt.UtcDateTime.CreatedAt()}\n" +
+				$"**Owner:** `{owner.Format()}`\n" +
+				$"**Region:** `{guild.VoiceRegionId}`\n" +
+				$"**Emotes:** `{localECount + globalECount}` (`{localECount}` local, `{globalECount}` global)\n\n" +
+				$"**User Count:** `{guild.MemberCount}` (`{onlineCount}` online, `{botCount}` bots)\n" +
+				$"**Users With Nickname:** `{nicknameCount}`\n" +
+				$"**Users Playing Games:** `{gameCount}`\n" +
+				$"**Users In Voice:** `{voiceCount}`\n\n" +
+				$"**Role Count:** `{guild.Roles.Count}`\n" +
+				$"**Channel Count:** `{guild.Channels.Count}` (`{guild.TextChannels.Count}` text, `{guild.VoiceChannels.Count}` voice)\n" +
+				$"**AFK Channel:** `{guild.AFKChannel.Format()}` (`{guild.AFKTimeout / 60}` minute{GeneralFormatting.FormatPlural(guild.AFKTimeout / 60)})";
 
 			var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
-			return new EmbedWrapper(null, desc.ToString(), color, thumbnailUrl: guild.IconUrl)
-				.AddAuthor(guild.Format())
-				.AddFooter("Guild Info");
+			var embed = new EmbedWrapper
+			{
+				Description = desc,
+				Color = color,
+				ThumbnailUrl = guild.IconUrl,
+			};
+			embed.TryAddAuthor(guild.Format(), null, null, out var authorErrors);
+			embed.TryAddFooter("Guild Info", null, out var footerErrors);
+			return embed;
 		}
 		/// <summary>
-		/// Returns a new <see cref="EmbedBuilder"/> containing information about an emote.
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about an emote.
 		/// </summary>
 		/// <param name="guildSettings"></param>
 		/// <param name="emote"></param>
 		/// <returns></returns>
 		public static EmbedWrapper FormatEmoteInfo(Emote emote)
 		{
-			var desc = new StringBuilder()
-				.AppendLineFeed($"**ID:** `{emote.Id}`");
+			var desc = $"**ID:** `{emote.Id}`";
 
-			return new EmbedWrapper(null, desc.ToString(), thumbnailUrl: emote.Url)
-				.AddAuthor(emote.Name)
-				.AddFooter("Emoji Info");
+			var embed = new EmbedWrapper
+			{
+				Description = desc,
+				ThumbnailUrl = emote.Url,
+			};
+			embed.TryAddAuthor(emote.Name, null, null, out var authorErrors);
+			embed.TryAddFooter("Emote Info", null, out var footerErrors);
+			return embed;
 		}
 		/// <summary>
-		/// Returns a new <see cref="EmbedBuilder"/> containing information about an invite.
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about an invite.
 		/// </summary>
 		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
@@ -190,18 +212,21 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static EmbedWrapper FormatInviteInfo(IInviteMetadata invite)
 		{
-			var desc = new StringBuilder()
-				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(invite.CreatedAt.UtcDateTime))
-				.AppendLineFeed($"**Inviter:** `{invite.Inviter.Format()}`")
-				.AppendLineFeed($"**Channel:** `{invite.Channel.Format()}`")
-				.AppendLineFeed($"**Uses:** `{invite.Uses}`");
+			var desc = $"{invite.CreatedAt.UtcDateTime.CreatedAt()}\n" +
+				$"**Inviter:** `{invite.Inviter.Format()}`\n" +
+				$"**Channel:** `{invite.Channel.Format()}`\n" +
+				$"**Uses:** `{invite.Uses}`";
 
-			return new EmbedWrapper(null, desc.ToString())
-				.AddAuthor(invite.Code)
-				.AddFooter("Emote Info");
+			var embed = new EmbedWrapper
+			{
+				Description = desc,
+			};
+			embed.TryAddAuthor(invite.Code, null, null, out var authorErrors);
+			embed.TryAddFooter("Invite Info", null, out var footerErrors);
+			return embed;
 		}
 		/// <summary>
-		/// Returns a new <see cref="EmbedBuilder"/> containing information about the bot.
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about the bot.
 		/// </summary>
 		/// <param name="globalInfo"></param>
 		/// <param name="client"></param>
@@ -210,24 +235,27 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static EmbedWrapper FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogService logModule, IGuild guild)
 		{
-			var desc = new StringBuilder()
-				.AppendLineFeed($"**Online Since:** `{TimeFormatting.FormatReadableDateTime(Process.GetCurrentProcess().StartTime)}` (`{TimeFormatting.FormatUptime()}`)")
-				.AppendLineFeed($"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`")
-				.AppendLineFeed($"**Current Shard:** `{ClientUtils.GetShardIdFor(client, guild)}`")
-				.AppendLineFeed($"**Latency:** `{ClientUtils.GetLatency(client)}ms`")
-				.AppendLineFeed($"**Memory Usage:** `{IOUtils.GetMemory().ToString("0.00")}MB`")
-				.AppendLineFeed($"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`");
+			var desc = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.Readable()}` (`{TimeFormatting.Uptime()}`)\n" +
+				$"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`\n" +
+				$"**Current Shard:** `{ClientUtils.GetShardIdFor(client, guild)}`\n" +
+				$"**Latency:** `{ClientUtils.GetLatency(client)}ms`\n" +
+				$"**Memory Usage:** `{IOUtils.GetMemory().ToString("0.00")}MB`\n" +
+				$"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`\n";
 
 			var firstField = logModule.FormatLoggedUserActions(true, false).Trim('\n', '\r');
 			var secondField = logModule.FormatLoggedMessageActions(true, false).Trim('\n', '\r');
 			var thirdField = logModule.FormatLoggedCommands(true, false).Trim('\n', '\r');
 
-			return new EmbedWrapper(null, desc.ToString())
-				.AddAuthor(client.CurrentUser)
-				.AddField("Users", firstField)
-				.AddField("Messages", secondField)
-				.AddField("Commands", thirdField)
-				.AddFooter($"Versions [Bot: {Version.VersionNumber}] [API: {Constants.API_VERSION}]");
+			var embed = new EmbedWrapper
+			{
+				Description = desc,
+			};
+			embed.TryAddAuthor(client.CurrentUser, out var authorErrors);
+			embed.TryAddField("Users", firstField, false, out var firstFieldErrors);
+			embed.TryAddField("Messages", secondField, false, out var secondFieldErrors);
+			embed.TryAddField("Commands", thirdField, false, out var thirdFieldErrors);
+			embed.TryAddFooter($"Versions [Bot: {Version.VersionNumber}] [API: {Constants.API_VERSION}]", null, out var footerErrors);
+			return embed;
 		}
 	}
 }

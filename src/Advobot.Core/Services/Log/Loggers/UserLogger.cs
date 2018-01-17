@@ -45,9 +45,13 @@ namespace Advobot.Core.Services.Log.Loggers
 					ageWarning = $"**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
 				}
 
-				var embed = new EmbedWrapper(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Constants.JOIN)
-					.AddAuthor(user)
-					.AddFooter(user.IsBot ? "Bot Joined" : "User Joined");
+				var embed = new EmbedWrapper
+				{
+					Description = $"**ID:** {user.Id}\n{invite}\n{ageWarning}",
+					Color = Constants.JOIN,
+				};
+				embed.TryAddAuthor(user, out var authorErrors);
+				embed.TryAddFooter(user.IsBot ? "Bot Joined" : "User Joined", null, out var footerErrors);
 				await MessageUtils.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 			}
 		}
@@ -76,9 +80,13 @@ namespace Advobot.Core.Services.Log.Loggers
 					userStayLength = $"**Stayed for:** {t.Days}:{t.Hours:00}:{t.Minutes:00}:{t.Seconds:00}";
 				}
 
-				var embed = new EmbedWrapper(null, $"**ID:** {user.Id}\n{userStayLength}", Constants.LEAV)
-					.AddAuthor(user)
-					.AddFooter(user.IsBot ? "Bot Left" : "User Left");
+				var embed = new EmbedWrapper
+				{
+					Description = $"**ID:** {user.Id}\n{userStayLength}",
+					Color = Constants.LEAV,
+				};
+				embed.TryAddAuthor(user, out var authorErrors);
+				embed.TryAddFooter(user.IsBot ? "Bot Left" : "User Left", null, out var footerErrors);
 				await MessageUtils.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 			}
 		}
@@ -109,11 +117,14 @@ namespace Advobot.Core.Services.Log.Loggers
 
 				if (logInstanceInfo.HasServerLog)
 				{
-					var embed = new EmbedWrapper(null, null, Constants.UEDT)
-						.AddAuthor(afterUser)
-						.AddField("Before:", "`" + beforeUser.Username + "`")
-						.AddField("After:", "`" + afterUser.Username + "`", false)
-						.AddFooter("Name Changed");
+					var embed = new EmbedWrapper
+					{
+						Color = Constants.UEDT,
+					};
+					embed.TryAddAuthor(afterUser, out var authorErrors);
+					embed.TryAddField("Before:", $"`{beforeUser.Username}`", false, out var firstFieldErrors);
+					embed.TryAddField("After:", $"`{afterUser.Username}`", false, out var secondFieldErrors);
+					embed.TryAddFooter("Name Changed", null, out var footerErrors);
 					await MessageUtils.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 				}
 			}

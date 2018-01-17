@@ -177,19 +177,6 @@ namespace Advobot.Core.Classes
 			PropertyChanged += SaveSettings;
 		}
 
-		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
-		private void SaveSettings(object sender, PropertyChangedEventArgs e)
-		{
-			ConsoleUtils.WriteLine($"Successfully saved: {e.PropertyName}");
-			SaveSettings();
-		}
-		public void SaveSettings()
-		{
-			IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
-		}
 		public int GetMaxAmountOfUsersToGather(bool bypass)
 		{
 			return bypass ? int.MaxValue : MaxUserGatherCount;
@@ -221,7 +208,7 @@ namespace Advobot.Core.Classes
 		{
 			return await FormatObjectAsync(client, property.GetValue(this)).CAF();
 		}
-		private async Task<string> FormatObjectAsync(IDiscordClient client, object value)
+		public async Task<string> FormatObjectAsync(IDiscordClient client, object value)
 		{
 			if (value == null)
 			{
@@ -257,6 +244,19 @@ namespace Advobot.Core.Classes
 			{
 				return $"`{value.ToString()}`";
 			}
+		}
+		public void SaveSettings()
+		{
+			IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
+		}
+		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+		private void SaveSettings(object sender, PropertyChangedEventArgs e)
+		{
+			ConsoleUtils.WriteLine($"Successfully saved: {e.PropertyName}");
+			SaveSettings();
 		}
 	}
 }

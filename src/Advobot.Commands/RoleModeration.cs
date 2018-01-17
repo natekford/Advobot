@@ -133,7 +133,12 @@ namespace Advobot.Commands.RoleModeration
 					? $"`{x.Position.ToString("00")}.` {Constants.FAKE_EVERYONE}"
 					: $"`{x.Position.ToString("00")}.` {x.Name}";
 			}));
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Role Positions", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Role Positions",
+				Description = desc,
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 
@@ -151,15 +156,23 @@ namespace Advobot.Commands.RoleModeration
 			[Command]
 			public async Task Command()
 			{
-				var desc = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`";
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Guild Permission Types", desc)).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = "Guild Permission Types",
+					Description = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`",
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				var currentRolePerms = GuildPermsUtils.ConvertValueToNames(role.Permissions.RawValue);
-				var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(role.Name, $"`{permissions}`")).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = role.Name,
+					Description = $"`{(currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission")}`",
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
@@ -290,8 +303,12 @@ namespace Advobot.Commands.RoleModeration
 		{
 			if (role == null)
 			{
-				var desc = $"`{String.Join("`, `", Constants.COLORS.Keys)}`";
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Colors", desc)).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = "Colors",
+					Description = $"`{String.Join("`, `", Constants.COLORS.Keys)}`",
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 				return;
 			}
 

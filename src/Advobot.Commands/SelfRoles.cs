@@ -222,8 +222,12 @@ namespace Advobot.Commands.SelfRoles
 				return;
 			}
 
-			var desc = $"`{String.Join("`, `", groupNumbers)}`";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Self Assignable Role Groups", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Self Assignable Role Groups",
+				Description = $"`{String.Join("`, `", groupNumbers)}`",
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command]
 		public async Task Command(uint groupNum)
@@ -235,8 +239,12 @@ namespace Advobot.Commands.SelfRoles
 				return;
 			}
 
-			var desc = group.Roles.Any() ? group.ToString() : "`Nothing`";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper($"Self Roles Group {groupNum}", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = $"Self Roles Group {groupNum}",
+				Description = group.Roles.Any() ? group.ToString() : "`Nothing`",
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 }

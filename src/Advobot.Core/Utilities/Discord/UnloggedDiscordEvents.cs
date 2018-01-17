@@ -136,8 +136,12 @@ namespace Advobot.Core.Utilities
 					var help = helpEntries.List[number].Word;
 					var prefix = settings.GetPrefix(botSettings);
 					var desc = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix);
-					var embed = new EmbedWrapper(help.Name, desc)
-						.AddFooter("Help");
+					var embed = new EmbedWrapper
+					{
+						Title = help.Name,
+						Description = desc,
+					};
+					embed.TryAddFooter("Help", null, out var footerErrors);
 					await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
 				}
 

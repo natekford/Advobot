@@ -187,8 +187,12 @@ namespace Advobot.Commands.BotSettings
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
-			var desc = $"`{String.Join("`, `", Utils.GetSettings(typeof(IBotSettings)).Select(x => x.Name))}`";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Setting Names", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Setting Names",
+				Description = $"`{String.Join("`, `", Utils.GetSettings(typeof(IBotSettings)).Select(x => x.Name))}`",
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All))]
 		public async Task All()
@@ -200,9 +204,14 @@ namespace Advobot.Commands.BotSettings
 		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.BotSettingTypeReader))] PropertyInfo settingName)
 		{
 			var desc = await Context.BotSettings.Format(Context.Client, settingName).CAF();
-			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
+			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper(settingName.Name, desc)).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = settingName.Name,
+					Description = desc,
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else
 			{

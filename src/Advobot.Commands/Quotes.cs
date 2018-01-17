@@ -81,8 +81,12 @@ namespace Advobot.Commands.Quotes
 			}
 			else if (name == null)
 			{
-				var desc = $"`{String.Join("`, `", quotes.Select(x => x.Name))}`";
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Quotes", desc)).CAF();
+				var embed = new EmbedWrapper
+				{
+					Title = "Quotes",
+					Description = $"`{String.Join("`, `", quotes.Select(x => x.Name))}`",
+				};
+				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 				return;
 			}
 

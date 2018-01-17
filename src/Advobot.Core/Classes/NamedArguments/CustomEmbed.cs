@@ -35,9 +35,17 @@ namespace Advobot.Core.Classes.NamedArguments
 			[NamedArgument] string footerIconUrl,
 			[NamedArgument(25)] params string[] fieldInfo)
 		{
-			Embed = new EmbedWrapper(title, description, ColorTypeReader.GetColor(color), imageUrl, url, thumbUrl)
-				.AddAuthor(authorName, authorIconUrl, authorUrl)
-				.AddFooter(footer, footerIconUrl);
+			Embed = new EmbedWrapper
+			{
+				Title = title,
+				Description = description,
+				Color = ColorTypeReader.GetColor(color),
+				ImageUrl = imageUrl,
+				Url = url,
+				ThumbnailUrl = thumbUrl,
+			};
+			Embed.TryAddAuthor(authorName, authorUrl, authorIconUrl, out var authorErrors);
+			Embed.TryAddFooter(footer, footerIconUrl, out var footerErrors);
 
 			//Fields are done is a very gross way
 			foreach (var f in fieldInfo)
@@ -74,7 +82,7 @@ namespace Advobot.Core.Classes.NamedArguments
 
 				//Finally try to parse if the inline is a bool or not
 				bool.TryParse(dict[FIELD_INLINE], out bool inline);
-				Embed.AddField(dict[FIELD_NAME], dict[FIELD_TEXT], inline);
+				Embed.TryAddField(dict[FIELD_NAME], dict[FIELD_TEXT], inline, out var fieldErrors);
 			}
 		}
 	}

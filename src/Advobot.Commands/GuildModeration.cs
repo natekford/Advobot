@@ -100,8 +100,12 @@ namespace Advobot.Commands.GuildModeration
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
-			var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions;
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Region IDs", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Region Ids",
+				Description = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions,
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Current)), ShortAlias(nameof(Current)), Priority(1)]
 		public async Task Current()

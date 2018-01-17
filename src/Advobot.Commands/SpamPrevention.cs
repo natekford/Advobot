@@ -23,8 +23,12 @@ namespace Advobot.Commands.SpamPrevention
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
-			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Punishment Types", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Punishment Types",
+				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`",
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(SpamType spamType, PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
@@ -88,8 +92,12 @@ namespace Advobot.Commands.SpamPrevention
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
-			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, new EmbedWrapper("Punishment Types", desc)).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = "Punishment Types",
+				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`",
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(RaidType raidType, PunishmentType punishment, uint userCount, uint interval)
