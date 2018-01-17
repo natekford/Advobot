@@ -59,8 +59,6 @@ namespace Advobot.Core.Classes
 			{
 				if (TryAddUrl(value, out var errors)) { return; }
 				else if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				_Builder.Url = value;
 			}
 		}
 		public string ThumbnailUrl
@@ -70,8 +68,6 @@ namespace Advobot.Core.Classes
 			{
 				if (TryAddThumbnailUrl(value, out var errors)) { return; }
 				else if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				_Builder.ThumbnailUrl = value;
 			}
 		}
 		public string ImageUrl
@@ -81,8 +77,6 @@ namespace Advobot.Core.Classes
 			{
 				if (TryAddImageUrl(value, out var errors)) { return; }
 				else if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				_Builder.ImageUrl = value;
 			}
 		}
 		public Color? Color
@@ -104,6 +98,8 @@ namespace Advobot.Core.Classes
 				if (TryAddAuthor(value.Name, value.Url, value.IconUrl, out var errors)) { return; }
 				else if (_ThrowOnInvalid) { throw CreateException(errors); }
 
+				//No need to error check the Urls since they are going to always be valid
+				//Since Discord.Net checks them in the builder or throws
 				_Builder.Author = new EmbedAuthorBuilder
 				{
 					Name = ShortenString(errors, value.Name),
@@ -121,6 +117,8 @@ namespace Advobot.Core.Classes
 				if (TryAddFooter(value.Text, value.IconUrl, out var errors)) { return; }
 				else if (_ThrowOnInvalid) { throw CreateException(errors); }
 
+				//No need to error check the Urls since they are going to always be valid
+				//Since Discord.Net checks them in the builder or throws
 				_Builder.Footer = new EmbedFooterBuilder
 				{
 					Text = ShortenString(errors, value.Text),
