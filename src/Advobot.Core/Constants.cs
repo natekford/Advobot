@@ -122,8 +122,8 @@ namespace Advobot.Core
 		public static Color MDEL => new Color(255, 051, 051);
 
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
-		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(GuildSettingsWrapper); //IGuildSettings
-		public static Type BOT_SETTINGS_TYPE { get; } = typeof(BotSettingsWrapper); //IBotSettings
+		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(AdvobotGuildSettings); //IGuildSettings
+		public static Type BOT_SETTINGS_TYPE { get; } = typeof(AdvobotBotSettings); //IBotSettings
 
 		private static Assembly GetCommandAssembly()
 		{

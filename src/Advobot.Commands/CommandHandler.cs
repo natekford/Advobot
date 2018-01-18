@@ -73,21 +73,21 @@ namespace Advobot.Commands
 		{
 			if (!_Loaded)
 			{
-				await UnloggedDiscordEvents.OnConnected(_Client, _BotSettings).CAF();
+				await EventUtils.OnConnected(_Client, _BotSettings).CAF();
 				_Loaded = true;
 			}
 		}
 		private static async Task OnUserJoined(SocketGuildUser user)
 		{
-			await UnloggedDiscordEvents.OnUserJoined(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
+			await EventUtils.OnUserJoined(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
 		}
 		private static async Task OnUserLeft(SocketGuildUser user)
 		{
-			await UnloggedDiscordEvents.OnUserLeft(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
+			await EventUtils.OnUserLeft(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
 		}
 		private static async Task OnMessageReceived(SocketMessage message)
 		{
-			await UnloggedDiscordEvents.OnMessageReceived(message, _BotSettings, await _GuildSettings.GetOrCreateSettings(message.GetGuild()), _Timers).CAF();
+			await EventUtils.OnMessageReceived(message, _BotSettings, await _GuildSettings.GetOrCreateSettings(message.GetGuild()), _Timers).CAF();
 		}
 
 		private static async Task HandleCommand(SocketMessage message)

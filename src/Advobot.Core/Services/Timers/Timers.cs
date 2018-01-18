@@ -25,6 +25,10 @@ namespace Advobot.Core.Services.Timers
 		private Timer _HourTimer = new Timer(60 * 60 * 1000);
 		private Timer _MinuteTimer = new Timer(60 * 1000);
 		private Timer _HalfSecondTimer = new Timer(1000 / 2);
+		private ModerationReason _PunishmentReason = new ModerationReason("automatic punishment removal.");
+		private ModerationReason _MessageReason = new ModerationReason("automatic message deletion.");
+		private ModerationReason _CloseHelpReason = new ModerationReason("removing active close help");
+		private ModerationReason _CloseQuotesReason = new ModerationReason("removing active close quotes");
 
 		private ConcurrentDictionary<UserKey, RemovablePunishment> _RemovablePunishments = new ConcurrentDictionary<UserKey, RemovablePunishment>();
 		private ConcurrentDictionary<ChannelKey, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<ChannelKey, RemovableMessage>();
@@ -63,36 +67,33 @@ namespace Advobot.Core.Services.Timers
 		{
 			_SpamPreventionUsers.Clear();
 		}
-
 		private async Task RemovePunishmentsAsync()
 		{
 			foreach (var punishment in GetOutTimedObjects(_RemovablePunishments))
 			{
-				var punishmentType = punishment.PunishmentType;
-				var reason = new ModerationReason($"automatic un{punishmentType.EnumName().FormatTitle().Replace(' ', '-')}");
-				switch (punishmentType)
+				switch (punishment.PunishmentType)
 				{
 					case PunishmentType.Ban:
 					{
-						await _PunishmentRemover.UnbanAsync(punishment.Guild, punishment.User.Id, reason).CAF();
+						await _PunishmentRemover.UnbanAsync(punishment.Guild, punishment.User.Id, _PunishmentReason).CAF();
 						continue;
 					}
 					case PunishmentType.Deafen:
 					{
 						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id).CAF();
-						await _PunishmentRemover.UndeafenAsync(user, reason).CAF();
+						await _PunishmentRemover.UndeafenAsync(user, _PunishmentReason).CAF();
 						continue;
 					}
 					case PunishmentType.VoiceMute:
 					{
 						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id).CAF();
-						await _PunishmentRemover.UnvoicemuteAsync(user, reason).CAF();
+						await _PunishmentRemover.UnvoicemuteAsync(user, _PunishmentReason).CAF();
 						continue;
 					}
 					case PunishmentType.RoleMute:
 					{
 						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id).CAF();
-						await _PunishmentRemover.UnrolemuteAsync(user, punishment.Role, reason).CAF();
+						await _PunishmentRemover.UnrolemuteAsync(user, punishment.Role, _PunishmentReason).CAF();
 						continue;
 					}
 				}
@@ -100,18 +101,18 @@ namespace Advobot.Core.Services.Timers
 		}
 		private async Task DeleteTargettedMessagesAsync()
 		{
-			foreach (var group in GetOutTimedObjects(_RemovableMessages).GroupBy(x => x.Channel.Id))
+			var messages = GetOutTimedObjects(_RemovableMessages).Where(x => x.Channel != null && x.Messages != null);
+			foreach (var group in messages.GroupBy(x => x.Channel.Id))
 			{
-				var reason = new ModerationReason("automatic message deletion.");
-				var messages = group.SelectMany(x => x.Messages);
-				if (messages.Count() == 1)
+				var groupMsgs = group.SelectMany(x => x.Messages);
+				if (groupMsgs.Count() == 1)
 				{
-					await MessageUtils.DeleteMessageAsync(messages.Single(), reason).CAF();
+					await MessageUtils.DeleteMessageAsync(groupMsgs.First(), _MessageReason).CAF();
 				}
 				else
 				{
 					var channel = group.First().Channel;
-					await MessageUtils.DeleteMessagesAsync(channel, messages, reason).CAF();
+					await MessageUtils.DeleteMessagesAsync(channel, groupMsgs, _MessageReason).CAF();
 				}
 			}
 		}
@@ -119,31 +120,29 @@ namespace Advobot.Core.Services.Timers
 		{
 			foreach (var helpEntries in GetOutTimedObjects(_ActiveCloseHelp))
 			{
-				await MessageUtils.DeleteMessageAsync(helpEntries.Message, new ModerationReason("removing active close help")).CAF();
+				await MessageUtils.DeleteMessageAsync(helpEntries.Message, _CloseHelpReason).CAF();
 			}
 		}
 		private async Task RemoveActiveCloseQuotes()
 		{
 			foreach (var quotes in GetOutTimedObjects(_ActiveCloseQuotes))
 			{
-				await MessageUtils.DeleteMessageAsync(quotes.Message, new ModerationReason("removing active close quotes")).CAF();
+				await MessageUtils.DeleteMessageAsync(quotes.Message, _CloseQuotesReason).CAF();
 			}
 		}
 		private void RemoveSlowmodeUsers()
 		{
-			RemoveTimedObjects(_SlowmodeUsers);
+			GetOutTimedObjects(_SlowmodeUsers);
 		}
 
 		public void AddRemovablePunishment(RemovablePunishment punishment)
 		{
 			Add(_RemovablePunishments, new UserKey(punishment.Guild, punishment.User, punishment.Time.Ticks), punishment);
 		}
-
 		public void AddRemovableMessage(RemovableMessage message)
 		{
 			Add(_RemovableMessages, new ChannelKey(message.Channel, message.Time.Ticks), message);
 		}
-
 		public async Task AddActiveCloseHelp(IGuildUser user, IUserMessage msg, CloseWords<HelpEntryHolder.HelpEntry> helpEntries)
 		{
 			//Remove all older ones; only one can be active at a given time.
@@ -166,7 +165,6 @@ namespace Advobot.Core.Services.Timers
 		{
 			Add(_SpamPreventionUsers, new UserKey(user), user);
 		}
-
 		public void AddSlowmodeUser(SlowmodeUserInfo user)
 		{
 			Add(_SlowmodeUsers, new UserKey(user), user);
@@ -182,7 +180,6 @@ namespace Advobot.Core.Services.Timers
 			}
 			return kvps.Count();
 		}
-
 		public async Task<CloseWords<HelpEntryHolder.HelpEntry>> GetOutActiveCloseHelp(IUser user)
 		{
 			//Should only ever have one for each user at a time.
@@ -190,7 +187,7 @@ namespace Advobot.Core.Services.Timers
 			if (kvp.Key != null)
 			{
 				var value = Remove(_ActiveCloseHelp, kvp.Key);
-				await MessageUtils.DeleteMessageAsync(value.Message, new ModerationReason("removing active close help")).CAF();
+				await MessageUtils.DeleteMessageAsync(value.Message, _CloseHelpReason).CAF();
 				return value.CloseWords;
 			}
 			return null;
@@ -202,7 +199,7 @@ namespace Advobot.Core.Services.Timers
 			if (kvp.Key != null)
 			{
 				var value = Remove(_ActiveCloseQuotes, kvp.Key);
-				await MessageUtils.DeleteMessageAsync(value.Message, new ModerationReason("removing active close quotes")).CAF();
+				await MessageUtils.DeleteMessageAsync(value.Message, _CloseQuotesReason).CAF();
 				return value.CloseWords;
 			}
 			return null;
@@ -216,7 +213,6 @@ namespace Advobot.Core.Services.Timers
 		{
 			return new List<SpamPreventionUserInfo>(_SpamPreventionUsers.Where(x => x.Key.GuildId == guild.Id).Select(x => x.Value));
 		}
-
 		public SlowmodeUserInfo GetSlowmodeUser(IGuildUser user)
 		{
 			var kvp = _SlowmodeUsers.SingleOrDefault(x => x.Key.GuildId == user.Guild.Id && x.Key.UserId == user.Id);
@@ -238,23 +234,6 @@ namespace Advobot.Core.Services.Timers
 				if (kvp.Key.Ticks < currentTicks)
 				{
 					yield return Remove(concDic, kvp.Key);
-				}
-			}
-		}
-		/// <summary>
-		/// Remove old entries completely.
-		/// </summary>
-		/// <typeparam name="TKey"></typeparam>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="concDic"></param>
-		private void RemoveTimedObjects<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic) where TKey : DictKey where TValue : ITime
-		{
-			var currentTicks = DateTime.UtcNow.Ticks;
-			foreach (var kvp in concDic)
-			{
-				if (kvp.Key.Ticks < currentTicks)
-				{
-					Remove(concDic, kvp.Key);
 				}
 			}
 		}

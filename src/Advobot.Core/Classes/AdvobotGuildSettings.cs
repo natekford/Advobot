@@ -21,7 +21,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.
 	/// </summary>
-	public sealed class GuildSettingsWrapper : IGuildSettings, IPostDeserialize
+	public sealed class AdvobotGuildSettings : IGuildSettings, IPostDeserialize
 	{
 		#region Fields and Properties
 		[JsonProperty("WelcomeMessage")]

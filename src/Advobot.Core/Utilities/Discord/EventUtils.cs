@@ -14,7 +14,7 @@ namespace Advobot.Core.Utilities
 	/// <summary>
 	/// Events which are in this separate class to make the classes that use them smaller.
 	/// </summary>
-	public static class UnloggedDiscordEvents
+	public static class EventUtils
 	{
 		/// <summary>
 		/// Checks if this is the first instance of the bot starting, updates the game, says some start up messages.

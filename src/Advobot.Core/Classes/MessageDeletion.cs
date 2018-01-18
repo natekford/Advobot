@@ -9,16 +9,17 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public class MessageDeletion
 	{
-		private CancellationTokenSource _CancelToken;
+		private CancellationTokenSource _CancelTokenSource = new CancellationTokenSource();
 		/// <summary>
 		/// Accessing this cancel token cancels the old token and generates a new one.
 		/// </summary>
-		public CancellationTokenSource CancelToken
+		public CancellationToken CancelToken
 		{
 			get
 			{
-				_CancelToken?.Cancel();
-				return _CancelToken = new CancellationTokenSource();
+				_CancelTokenSource?.Cancel();
+				_CancelTokenSource?.Dispose();
+				return (_CancelTokenSource = new CancellationTokenSource()).Token;
 			}
 		}
 		private ConcurrentBag<IMessage> _Messages = new ConcurrentBag<IMessage>();

@@ -124,16 +124,16 @@ namespace Advobot.Core.Utilities.Formatting
 			{
 				var userMention = msg.Author.Mention;
 				var channelMention = (msg.Channel as ITextChannel).Mention;
-				header = $"`[{time}]` `{msg.Id}` {userMention} IN {channelMention}".EscapeBackTicks();
+				header = $"`[{time}]` {userMention} IN {channelMention} `{msg.Id}`";
 			}
 			else
 			{
 				var user = msg.Author.Format();
 				var channel = msg.Channel.Format();
-				header = $"`[{time}]` `{msg.Id}` {user} IN {channel}".EscapeBackTicks();
+				header = $"`[{time}]` `{user}` IN `{channel}` `{msg.Id}`";
 			}
 
-			var content = new StringBuilder($"```\n{text.EscapeBackTicks()}");
+			var content = new StringBuilder($"{header}\n```\n{text.EscapeBackTicks()}");
 			foreach (var embed in embeds)
 			{
 				content.AppendLineFeed(embed.EscapeBackTicks());
