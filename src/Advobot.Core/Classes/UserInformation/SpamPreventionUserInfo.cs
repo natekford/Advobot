@@ -61,7 +61,7 @@ namespace Advobot.Core.Classes.UserInformation
 		}
 		public int GetSpamAmount(SpamType type, int timeFrame)
 		{
-			return _Spam[type].CountItemsInTimeFrame(timeFrame);
+			return timeFrame < 1 ? _Spam[type].Count : _Spam[type].CountItemsInTimeFrame(timeFrame);
 		}
 		public void IncreaseVotes(ulong id)
 		{
@@ -97,7 +97,7 @@ namespace Advobot.Core.Classes.UserInformation
 			return temp;
 		}
 
-		public struct SpamInstance : ITime
+		private struct SpamInstance : ITime
 		{
 			public ulong MessageId { get; }
 			public DateTime Time { get; }

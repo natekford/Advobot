@@ -41,7 +41,6 @@ namespace Advobot.Core.Classes.TypeReaders
 		}
 
 		public sealed class GuildSettingTypeReader : SettingTypeReader { }
-
 		public sealed class BotSettingTypeReader : SettingTypeReader { }
 	}
 }

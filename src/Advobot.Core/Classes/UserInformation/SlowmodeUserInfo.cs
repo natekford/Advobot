@@ -1,5 +1,6 @@
 ﻿using Discord;
 using System;
+using System.Threading;
 
 namespace Advobot.Core.Classes.UserInformation
 {
@@ -8,21 +9,17 @@ namespace Advobot.Core.Classes.UserInformation
 	/// </summary>
 	public class SlowmodeUserInfo : UserInfo
 	{
-		public int CurrentMessagesLeft { get; private set; }
+		private int _MessagesLeft;
+		public int MessagesLeft => _MessagesLeft;
 
-		public SlowmodeUserInfo(IGuildUser user, int baseMessages, int interval) : base(user)
+		public SlowmodeUserInfo(IGuildUser user, int baseMessages, int interval) : base(user, TimeSpan.FromSeconds(interval))
 		{
-			CurrentMessagesLeft = baseMessages;
-			Time = DateTime.UtcNow.AddSeconds(interval);
+			_MessagesLeft = baseMessages;
 		}
 
-		public void DecrementMessages()
+		public int DecrementMessages()
 		{
-			--CurrentMessagesLeft;
-		}
-		public void UpdateTime(int interval)
-		{
-			Time = DateTime.UtcNow.AddSeconds(interval);
+			return Interlocked.Decrement(ref _MessagesLeft);
 		}
 	}
 }

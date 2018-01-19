@@ -3,6 +3,7 @@ using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System;
 
 namespace Advobot.Core.Classes.GuildSettings
 {
@@ -11,131 +12,111 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// </summary>
 	public class SpamPreventionInfo : ISetting
 	{
-		private const int MSG_COUNT_MIN_LIM = 0;
-		private const int MSG_COUNT_MAX_LIM = 25;
-		private const int VOTE_COUNT_MIN_LIM = 0;
-		private const int VOTE_COUNT_MAX_LIM = 50;
-		private const int SPAM_TIME_AMT_MIN_LIM = 0;
-		private const int TIME_INTERVAL_MAX_LIM = 180;
-		private const int OTHERS_MAX_LIM = 100;
-		private const int LONG_MESSAGE_MAX_LIM = 2000;
-
 		[JsonProperty]
-		public PunishmentType PunishmentType { get; }
+		public PunishmentType Punishment { get; }
+		/// <summary>
+		/// The required amount of times a user must spam before they can be voted to be kicked.
+		/// </summary>
 		[JsonProperty]
-		public int RequiredSpamInstances { get; }
-		[JsonProperty]
-		public int RequiredSpamPerMessageOrTimeInterval { get; }
+		public int SpamInstances { get; }
+		/// <summary>
+		/// The amount of votes needed to kick a user.
+		/// </summary>
 		[JsonProperty]
 		public int VotesForKick { get; }
+		/// <summary>
+		/// The required amount of content before a message is considered spam.
+		/// </summary>
+		[JsonProperty]
+		public int SpamPerMessage { get; }
+		/// <summary>
+		/// The time limit that all messages need to be sent in for them to count.
+		/// </summary>
+		[JsonProperty]
+		public int TimeInterval { get; }
 		[JsonIgnore]
 		public bool Enabled;
 
-		private SpamPreventionInfo(PunishmentType punishmentType, int requiredSpamInstances, int requiredSpamPerMessageOrTimeInterval, int votesForKick)
+		private SpamPreventionInfo(PunishmentType punishment, int instances, int votes, int timeInterval, int spamAmount)
 		{
-			PunishmentType = punishmentType;
-			RequiredSpamInstances = requiredSpamInstances;
-			RequiredSpamPerMessageOrTimeInterval = requiredSpamPerMessageOrTimeInterval;
-			VotesForKick = votesForKick;
-			Enabled = false;
+			Punishment = punishment;
+			SpamInstances = instances;
+			VotesForKick = votes;
+			TimeInterval = timeInterval;
+			SpamPerMessage = spamAmount;
 		}
 
-		public static bool TryCreateSpamPreventionInfo(SpamType spamType,
-			PunishmentType punishmentType,
-			int requiredSpamInstances,
-			int requiredSpamPerMessageOrTimeInterval,
-			int votesForKick,
-			out SpamPreventionInfo spamPreventionInfo,
-			out Error errorReason)
+		/// <summary>
+		/// Attempts to create spam prevention.
+		/// </summary>
+		/// <param name="spam"></param>
+		/// <param name="punishment"></param>
+		/// <param name="instances"></param>
+		/// <param name="votes"></param>
+		/// <param name="timeInterval"></param>
+		/// <param name="spamAmount"></param>
+		/// <param name="info"></param>
+		/// <param name="error"></param>
+		/// <returns></returns>
+		public static bool TryCreate(SpamType spam, PunishmentType punishment, int instances, int votes, int timeInterval, int spamAmount,
+			out SpamPreventionInfo info, out Error error)
 		{
-			spamPreventionInfo = default;
-			errorReason = default;
+			info = default;
+			error = default;
 
-			if (requiredSpamInstances <= MSG_COUNT_MIN_LIM)
+			if (IsError("spam instances count", instances, 1, 25, out error)
+				|| IsError("vote count", votes, 1, 50, out error)
+				|| IsError("time interval", timeInterval, 1, 180, out error))
 			{
-				errorReason = new Error($"The message count must be greater than `{MSG_COUNT_MIN_LIM}`.");
 				return false;
 			}
-			else if (requiredSpamInstances > MSG_COUNT_MAX_LIM)
+			switch (spam)
 			{
-				errorReason = new Error($"The message count must be less than `{MSG_COUNT_MAX_LIM}`.");
-				return false;
-			}
-			else if (votesForKick <= VOTE_COUNT_MIN_LIM)
-			{
-				errorReason = new Error($"The vote count must be greater than `{VOTE_COUNT_MIN_LIM}`.");
-				return false;
-			}
-			else if (votesForKick > VOTE_COUNT_MAX_LIM)
-			{
-				errorReason = new Error($"The vote count must be less than `{VOTE_COUNT_MAX_LIM}`.");
-				return false;
-			}
-			else if (requiredSpamPerMessageOrTimeInterval <= SPAM_TIME_AMT_MIN_LIM)
-			{
-				errorReason = new Error($"The spam amount or time interval must be greater than `{VOTE_COUNT_MIN_LIM}`.");
-				return false;
-			}
-
-			switch (spamType)
-			{
-				case SpamType.Message:
-				{
-					if (requiredSpamPerMessageOrTimeInterval > TIME_INTERVAL_MAX_LIM)
-					{
-						errorReason = new Error($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`.");
-						return false;
-					}
-					break;
-				}
 				case SpamType.LongMessage:
 				{
-					if (requiredSpamPerMessageOrTimeInterval > LONG_MESSAGE_MAX_LIM)
-					{
-						errorReason = new Error($"The message length must be less than `{LONG_MESSAGE_MAX_LIM}`.");
-						return false;
-					}
+					if (IsError("message length", spamAmount, 1, 2000, out error)) { return false; }
 					break;
 				}
 				case SpamType.Link:
 				{
-					if (requiredSpamPerMessageOrTimeInterval > OTHERS_MAX_LIM)
-					{
-						errorReason = new Error($"The link count must be less than `{OTHERS_MAX_LIM}`.");
-						return false;
-					}
+					if (IsError("link count", spamAmount, 1, 50, out error)) { return false; }
 					break;
 				}
 				case SpamType.Image:
 				{
-					if (requiredSpamPerMessageOrTimeInterval > TIME_INTERVAL_MAX_LIM)
-					{
-						errorReason = new Error($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`.");
-						return false;
-					}
+					if (IsError("image count", spamAmount, 1, 50, out error)) { return false; }
 					break;
 				}
 				case SpamType.Mention:
 				{
-					if (requiredSpamPerMessageOrTimeInterval > OTHERS_MAX_LIM)
-					{
-						errorReason = new Error($"The mention count must be less than `{OTHERS_MAX_LIM}`.");
-						return false;
-					}
+					if (IsError("mention count", spamAmount, 1, 200, out error)) { return false; }
 					break;
 				}
 			}
 
-			spamPreventionInfo = new SpamPreventionInfo(punishmentType, requiredSpamInstances, requiredSpamPerMessageOrTimeInterval, votesForKick);
+			info = new SpamPreventionInfo(punishment, instances, votes, timeInterval, spamAmount);
 			return true;
+		}
+		private static bool IsError(string name, int inputValue, int minValue, int maxValue, out Error error)
+		{
+			error = default;
+			if (inputValue > maxValue)
+			{
+				error = new Error($"The {name} must be less than or equal to `{maxValue}`.");
+			}
+			else if (inputValue < minValue)
+			{
+				error = new Error($"The {name} must be greater than or equal to `{minValue}`.");
+			}
+			return !String.IsNullOrWhiteSpace(error.Reason);
 		}
 
 		public override string ToString()
 		{
-			return $"**Punishment:** `{PunishmentType.EnumName()}`\n" +
-					$"**Spam Instances:** `{RequiredSpamInstances}`\n" +
+			return $"**Punishment:** `{Punishment.EnumName()}`\n" +
+					$"**Spam Instances:** `{SpamInstances}`\n" +
 					$"**Votes For Punishment:** `{VotesForKick}`\n" +
-					$"**Spam Amt/Time Interval:** `{RequiredSpamPerMessageOrTimeInterval}`";
+					(SpamPerMessage != 0 ? $"**Spam Amount:** `{SpamPerMessage}`" : $"**Time Interval:** `{TimeInterval}`");
 		}
 		public string ToString(SocketGuild guild)
 		{

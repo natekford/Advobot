@@ -160,44 +160,44 @@ namespace Advobot.Core.Classes
 		{
 			get => _Source.Values.Where(x => x.Category == category).ToArray();
 		}
+	}
 
-		/// <summary>
-		/// Holds information about a command, such as its name, aliases, usage, base permissions, description, category, and default enabled value.
-		/// </summary>
-		public class HelpEntry : IDescription
+	/// <summary>
+	/// Holds information about a command, such as its name, aliases, usage, base permissions, description, category, and default enabled value.
+	/// </summary>
+	public class HelpEntry : IDescription
+	{
+		public string Name { get; }
+		public string Usage { get; }
+		public string BasePerm { get; }
+		public string Description { get; }
+		public string[] Aliases { get; }
+		public CommandCategory Category { get; }
+		public bool DefaultEnabled { get; }
+
+		internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases, CommandCategory category, bool defaultEnabled)
 		{
-			public string Name { get; }
-			public string Usage { get; }
-			public string BasePerm { get; }
-			public string Description { get; }
-			public string[] Aliases { get; }
-			public CommandCategory Category { get; }
-			public bool DefaultEnabled { get; }
-
-			internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases, CommandCategory category, bool defaultEnabled)
+			if (String.IsNullOrWhiteSpace(name))
 			{
-				if (String.IsNullOrWhiteSpace(name))
-				{
-					throw new ArgumentException("cant be null or whitespace", nameof(name));
-				}
-
-				Name = name;
-				Usage = usage ?? "";
-				BasePerm = String.IsNullOrWhiteSpace(basePerm) ? "N/A" : basePerm;
-				Description = String.IsNullOrWhiteSpace(description) ? "N/A" : description;
-				Aliases = aliases ?? new[] { "N/A" };
-				Category = category;
-				DefaultEnabled = defaultEnabled;
+				throw new ArgumentException("cant be null or whitespace", nameof(name));
 			}
 
-			public override string ToString()
-			{
-				return $"**Aliases:** {String.Join(", ", Aliases)}\n" +
-					$"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n" +
-					$"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n\n" +
-					$"**Base Permission(s):**\n{BasePerm}\n\n" +
-					$"**Description:**\n{Description}";
-			}
+			Name = name;
+			Usage = usage ?? "";
+			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? "N/A" : basePerm;
+			Description = String.IsNullOrWhiteSpace(description) ? "N/A" : description;
+			Aliases = aliases ?? new[] { "N/A" };
+			Category = category;
+			DefaultEnabled = defaultEnabled;
+		}
+
+		public override string ToString()
+		{
+			return $"**Aliases:** {String.Join(", ", Aliases)}\n" +
+				$"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n" +
+				$"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n\n" +
+				$"**Base Permission(s):**\n{BasePerm}\n\n" +
+				$"**Description:**\n{Description}";
 		}
 	}
 }

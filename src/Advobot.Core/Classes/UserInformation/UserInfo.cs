@@ -15,6 +15,12 @@ namespace Advobot.Core.Classes.UserInformation
 		public UserInfo(IGuildUser user)
 		{
 			User = user;
+			Time = DateTime.UtcNow;
+		}
+		public UserInfo(IGuildUser user, TimeSpan timeToAdd)
+		{
+			User = user;
+			Time = DateTime.UtcNow.Add(timeToAdd);
 		}
 	}
 }

@@ -32,7 +32,7 @@ namespace Advobot.Core.Services.Timers
 
 		private ConcurrentDictionary<UserKey, RemovablePunishment> _RemovablePunishments = new ConcurrentDictionary<UserKey, RemovablePunishment>();
 		private ConcurrentDictionary<ChannelKey, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<ChannelKey, RemovableMessage>();
-		private ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntryHolder.HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntryHolder.HelpEntry>>();
+		private ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntry>>();
 		private ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>>();
 		private ConcurrentDictionary<UserKey, SpamPreventionUserInfo> _SpamPreventionUsers = new ConcurrentDictionary<UserKey, SpamPreventionUserInfo>();
 		private ConcurrentDictionary<UserKey, SlowmodeUserInfo> _SlowmodeUsers = new ConcurrentDictionary<UserKey, SlowmodeUserInfo>();
@@ -143,14 +143,14 @@ namespace Advobot.Core.Services.Timers
 		{
 			Add(_RemovableMessages, new ChannelKey(message.Channel, message.Time.Ticks), message);
 		}
-		public async Task AddActiveCloseHelp(IGuildUser user, IUserMessage msg, CloseWords<HelpEntryHolder.HelpEntry> helpEntries)
+		public async Task AddActiveCloseHelp(IGuildUser user, IUserMessage msg, CloseWords<HelpEntry> helpEntries)
 		{
 			//Remove all older ones; only one can be active at a given time.
 			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.UserId == user.Id))
 			{
 				await MessageUtils.DeleteMessageAsync(Remove(_ActiveCloseHelp, kvp.Key).Message, new ModerationReason("removing active close help")).CAF();
 			}
-			Add(_ActiveCloseHelp, new UserKey(user, helpEntries.Time.Ticks), new CloseWordsWrapper<HelpEntryHolder.HelpEntry>(helpEntries, msg));
+			Add(_ActiveCloseHelp, new UserKey(user, helpEntries.Time.Ticks), new CloseWordsWrapper<HelpEntry>(helpEntries, msg));
 		}
 		public async Task AddActiveCloseQuote(IGuildUser user, IUserMessage msg, CloseWords<Quote> quotes)
 		{
@@ -180,7 +180,7 @@ namespace Advobot.Core.Services.Timers
 			}
 			return kvps.Count();
 		}
-		public async Task<CloseWords<HelpEntryHolder.HelpEntry>> GetOutActiveCloseHelp(IUser user)
+		public async Task<CloseWords<HelpEntry>> GetOutActiveCloseHelp(IUser user)
 		{
 			//Should only ever have one for each user at a time.
 			var kvp = _ActiveCloseHelp.SingleOrDefault(x => x.Key.UserId == user.Id);

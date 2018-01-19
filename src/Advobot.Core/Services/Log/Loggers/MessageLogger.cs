@@ -319,13 +319,8 @@ namespace Advobot.Core.Services.Log.Loggers
 			{
 				_Timers.AddSlowmodeUser(info = new SlowmodeUserInfo(user, slowmode.BaseMessages, slowmode.Interval));
 			}
-			if (info.CurrentMessagesLeft > 0)
+			if (info.MessagesLeft > 0)
 			{
-				if (info.CurrentMessagesLeft == slowmode.BaseMessages)
-				{
-					info.UpdateTime(slowmode.Interval);
-				}
-
 				info.DecrementMessages();
 			}
 			else
@@ -358,18 +353,18 @@ namespace Advobot.Core.Services.Log.Loggers
 					}
 
 					var spamAmount = _GetSpamNumberFuncs[type](message) ?? 0;
-					if (spamAmount >= prev.RequiredSpamPerMessageOrTimeInterval)
+					if (spamAmount >= prev.SpamPerMessage)
 					{
 						spamUser.AddSpamInstance(type, message);
 					}
-					if (spamUser.GetSpamAmount(type, prev.RequiredSpamPerMessageOrTimeInterval) < prev.RequiredSpamInstances)
+					if (spamUser.GetSpamAmount(type, prev.TimeInterval) < prev.SpamInstances)
 					{
 						continue;
 					}
 
 					//Make sure they have the lowest vote count required to kick and the most severe punishment type
 					spamUser.VotesRequired = prev.VotesForKick;
-					spamUser.Punishment = prev.PunishmentType;
+					spamUser.Punishment = prev.Punishment;
 					spam = true;
 				}
 

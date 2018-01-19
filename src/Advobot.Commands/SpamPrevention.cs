@@ -31,23 +31,17 @@ namespace Advobot.Commands.SpamPrevention
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
-		public async Task Create(SpamType spamType, PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
+		public async Task Create(SpamType spam, PunishmentType punishment, uint messageCount, uint votes, uint timeInterval, uint spamAmount)
 		{
-			if (!SpamPreventionInfo.TryCreateSpamPreventionInfo(
-				spamType,
-				punishment,
-				(int)messageCount,
-				(int)requiredSpamAmtOrTimeInterval,
-				(int)votes,
-				out var spamPrevention,
-				out var errorReason))
+			if (!SpamPreventionInfo.TryCreate(spam, punishment, (int)messageCount, (int)votes, (int)timeInterval, (int)spamAmount,
+				out var prev, out var error))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, errorReason).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			Context.GuildSettings.SpamPreventionDictionary[spamType] = spamPrevention;
-			var resp = $"Successfully set up the spam prevention for `{spamType.EnumName().ToLower()}`.\n{spamPrevention.ToString()}";
+			Context.GuildSettings.SpamPreventionDictionary[spam] = prev;
+			var resp = $"Successfully set up the spam prevention for `{spam.EnumName().ToLower()}`.\n{prev.ToString()}";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
@@ -102,7 +96,7 @@ namespace Advobot.Commands.SpamPrevention
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(RaidType raidType, PunishmentType punishment, uint userCount, uint interval)
 		{
-			if (!RaidPreventionInfo.TryCreateRaidPreventionInfo(
+			if (!RaidPreventionInfo.TryCreate(
 				raidType, 
 				punishment, 
 				(int)userCount, 

@@ -138,12 +138,10 @@ namespace Advobot.Core.Classes.UsageGeneration
 		{
 			return n[0].ToString().ToUpper() + n.Substring(1, n.Length - 1);
 		}
-
 		public void SetDeepness(int deepness)
 		{
 			Deepness = deepness;
 		}
-
 		public void SetOccurences(int occurences)
 		{
 			Occurences = occurences;

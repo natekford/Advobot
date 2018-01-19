@@ -17,13 +17,16 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// </summary>
 	public class RaidPreventionInfo : ISetting
 	{
+		private static PunishmentGiver _Giver = new PunishmentGiver(0, null);
+		private static ModerationReason _Reason = new ModerationReason("raid prevention");
+
 		private const int MAX_USERS = 25;
 		private const int MAX_TIME = 60;
 
 		[JsonProperty]
-		public PunishmentType PunishmentType { get; }
+		public PunishmentType Punishment { get; }
 		[JsonProperty]
-		public int Interval { get; }
+		public int TimeInterval { get; }
 		[JsonProperty]
 		public int UserCount { get; }
 		[JsonProperty]
@@ -35,14 +38,14 @@ namespace Advobot.Core.Classes.GuildSettings
 
 		private RaidPreventionInfo(PunishmentType punishmentType, int userCount, int interval)
 		{
-			PunishmentType = punishmentType;
+			Punishment = punishmentType;
 			UserCount = userCount;
-			Interval = interval;
+			TimeInterval = interval;
 		}
 
 		public int GetSpamCount()
 		{
-			return TimeList.CountItemsInTimeFrame(Interval);
+			return TimeList.CountItemsInTimeFrame(TimeInterval);
 		}
 		public void Add(DateTime time)
 		{
@@ -52,33 +55,44 @@ namespace Advobot.Core.Classes.GuildSettings
 		{
 			Interlocked.Exchange(ref _TimeList, new ConcurrentQueue<TimeWrapper>());
 		}
+		/// <summary>
+		/// Punishes a user.
+		/// </summary>
+		/// <param name="guildSettings"></param>
+		/// <param name="user"></param>
+		/// <returns></returns>
 		public async Task PunishAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
-			var giver = new PunishmentGiver(0, null);
-			await giver.PunishAsync(PunishmentType, user, guildSettings.MuteRole, new ModerationReason("raid prevention")).CAF();
+			await _Giver.PunishAsync(Punishment, user, guildSettings.MuteRole, _Reason).CAF();
 		}
-		public static bool TryCreateRaidPreventionInfo(RaidType raidType,
-			PunishmentType punishmentType,
-			int userCount,
-			int interval,
-			out RaidPreventionInfo raidPrevention,
-			out Error errorReason)
+		/// <summary>
+		/// Attempts to creat raid prevention.
+		/// </summary>
+		/// <param name="raid"></param>
+		/// <param name="punishment"></param>
+		/// <param name="userCount"></param>
+		/// <param name="timeInterval"></param>
+		/// <param name="info"></param>
+		/// <param name="error"></param>
+		/// <returns></returns>
+		public static bool TryCreate(RaidType raid, PunishmentType punishment, int userCount, int timeInterval,
+			out RaidPreventionInfo info, out Error error)
 		{
-			raidPrevention = default;
-			errorReason = default;
+			info = default;
+			error = default;
 
 			if (userCount > MAX_USERS)
 			{
-				errorReason = new Error($"The user count must be less than or equal to `{MAX_USERS}`.");
+				error = new Error($"The user count must be less than or equal to `{MAX_USERS}`.");
 				return false;
 			}
-			else if (interval > MAX_TIME)
+			else if (timeInterval > MAX_TIME)
 			{
-				errorReason = new Error($"The interval must be less than or equal to `{MAX_TIME}`.");
+				error = new Error($"The interval must be less than or equal to `{MAX_TIME}`.");
 				return false;
 			}
 
-			raidPrevention = new RaidPreventionInfo(punishmentType, userCount, interval);
+			info = new RaidPreventionInfo(punishment, userCount, timeInterval);
 			return true;
 		}
 
@@ -86,8 +100,8 @@ namespace Advobot.Core.Classes.GuildSettings
 		{
 			return $"**Enabled:** `{Enabled}`\n" +
 				$"**Users:** `{UserCount}`\n" +
-				$"**Time Interval:** `{Interval}`\n" +
-				$"**Punishment:** `{PunishmentType.EnumName()}`";
+				$"**Time Interval:** `{TimeInterval}`\n" +
+				$"**Punishment:** `{Punishment.EnumName()}`";
 		}
 		public string ToString(SocketGuild guild)
 		{

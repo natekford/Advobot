@@ -142,8 +142,7 @@ namespace Advobot.Core.Classes
 				for (int i = 0; i < Math.Min(value.Count, EmbedBuilder.MaxFieldCount); ++i)
 				{
 					var f = value[i];
-					//TODO: allow null ones?
-					if (TryAddField(f.Name, f.Value.ToString(), f.IsInline, out var errors)) { continue; }
+					if (TryAddField(f?.Name, f?.Value?.ToString(), f?.IsInline ?? false, out var errors)) { continue; }
 					else if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 					var fName = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Name)), f.Name);
