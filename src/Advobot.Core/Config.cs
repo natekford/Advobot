@@ -108,7 +108,6 @@ namespace Advobot.Core
 				return false;
 			}
 		}
-
 		/// <summary>
 		/// Creates a path similar to C:/Users/User/Appdata/Local/Advobot/Advobot1.config.
 		/// </summary>
@@ -132,7 +131,6 @@ namespace Advobot.Core
 		{
 			return IOUtils.DeserializeFromFile<ConfigDict>(new FileInfo(_SavePath), typeof(ConfigDict), true);
 		}
-
 		/// <summary>
 		/// Writes the current <see cref="ConfigDict"/> to file.
 		/// </summary>

@@ -224,7 +224,6 @@ namespace Advobot.Core.Utilities
 		public static void DisconnectBot(IDiscordClient client)
 		{
 			//When this gets awaited the client hangs
-			#pragma warning disable
 			if (client is DiscordSocketClient socketClient)
 			{
 				socketClient.SetStatusAsync(UserStatus.Invisible);
@@ -234,7 +233,6 @@ namespace Advobot.Core.Utilities
 				shardedClient.SetStatusAsync(UserStatus.Invisible);
 			}
 			client.StopAsync();
-			#pragma warning restore
 			Environment.Exit(0);
 		}
 	}

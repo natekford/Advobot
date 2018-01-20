@@ -20,7 +20,6 @@ namespace Advobot.UILauncher.Utilities
 		{
 			Grid.SetRowSpan(item, Math.Max(1, length));
 		}
-
 		/// <summary>
 		/// Sets the <see cref="Grid.ColumnSpanProperty"/> to either 1 or the supplied length.
 		/// </summary>
@@ -30,7 +29,6 @@ namespace Advobot.UILauncher.Utilities
 		{
 			Grid.SetColumnSpan(item, Math.Max(1, length));
 		}
-
 		/// <summary>
 		/// Sets the <see cref="Control.FontSizeProperty"/> to a number that changes based off of the top most grid's height.
 		/// Zero removes any binding on the <see cref="Control.FontSizeProperty"/>.
@@ -71,7 +69,6 @@ namespace Advobot.UILauncher.Utilities
 				Converter = new FontResizeConverter(size),
 			});
 		}
-
 		/// <summary>
 		/// Returns true if the supplied type is any parent of the supplied element.
 		/// </summary>

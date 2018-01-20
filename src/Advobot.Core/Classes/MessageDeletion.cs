@@ -7,7 +7,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Handles deleted message collection for <see cref="Modules.Log.MyLogModule.OnMessageDeleted(Cacheable{IMessage, ulong}, ISocketMessageChannel)"/>.
 	/// </summary>
-	public class MessageDeletion
+	public sealed class MessageDeletion
 	{
 		private CancellationTokenSource _CancelTokenSource = new CancellationTokenSource();
 		/// <summary>

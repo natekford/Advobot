@@ -100,7 +100,6 @@ namespace Advobot.Core.Utilities
 			{
 				fileInfo.Delete();
 			}
-			//TODO: specific exception catching maybe?
 			catch (Exception e)
 			{
 				e.Write();

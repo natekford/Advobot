@@ -71,7 +71,6 @@ namespace Advobot.UILauncher.Utilities
 		{
 			return _Brushes.TryGetValue(name, out color);
 		}
-
 		private static bool TryCreateBrushFromStringHex(string hex, out SolidColorBrush color)
 		{
 			//Make sure it will always have an opacity of 255 if one isn't passed in

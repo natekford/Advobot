@@ -403,13 +403,13 @@ namespace Advobot.Core.Classes
 
 			if (!errors.Any())
 			{
+				_FailedValues.Remove($"Field {_Builder.Fields.Count}");
 				_Builder.Fields.Add(new EmbedFieldBuilder
 				{
 					Name = name,
 					Value = value,
 					IsInline = inline
 				});
-				_FailedValues.Remove($"Field {_Builder.Fields.Count}");
 			}
 			else
 			{

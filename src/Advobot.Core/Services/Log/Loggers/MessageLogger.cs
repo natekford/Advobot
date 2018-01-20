@@ -373,7 +373,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					var votesReq = spamUser.VotesRequired - spamUser.Votes;
 					var content = $"The user `{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					var channel = message.Channel as ITextChannel;
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(channel, null, content, 10, _Timers).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(channel, null, content, TimeSpan.FromSeconds(10), _Timers).CAF();
 					await MessageUtils.DeleteMessageAsync(message, new ModerationReason("spam prevention")).CAF();
 				}
 			}

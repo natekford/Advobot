@@ -15,7 +15,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Creates a help entry for every command and then allows those to be accessed.
 	/// </summary>
-	public class HelpEntryHolder
+	public sealed class HelpEntryHolder
 	{
 		//Maps the name and aliases of a command to the name
 		private Dictionary<string, string> _NameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

@@ -320,9 +320,7 @@ namespace Advobot.Commands.UserModeration
 				: (await channel.GetMessagesAsync(1).FlattenAsync().CAF()).FirstOrDefault();
 
 			//If there is a non null user then delete messages specifically from that user
-			var deletedAmt = user == null
-				? await MessageUtils.RemoveMessagesAsync(channel, messageToStartAt, requestCount, reason).CAF()
-				: await MessageUtils.RemoveMessagesFromUserAsync(channel, messageToStartAt, requestCount, user, reason).CAF();
+			var deletedAmt = await MessageUtils.DeleteMessagesAsync(channel, messageToStartAt, requestCount, reason, user).CAF();
 
 			//If the context channel isn't the targetted channel then delete the start message
 			//Increase by one to account for it not being targetted.

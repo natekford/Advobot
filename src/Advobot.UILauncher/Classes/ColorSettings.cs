@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
@@ -80,7 +79,51 @@ namespace Advobot.UILauncher.Classes
 		{
 			return ColorTargets.TryGetValue(target, out brush);
 		}
+		public void SetSyntaxHighlightingColors(params string[] names)
+		{
+			foreach (var name in names)
+			{
+				var highlighting = HighlightingManager.Instance.GetDefinition(name)
+					?? throw new ArgumentException("not a valid highlighting.", name);
 
+				foreach (var namedColor in highlighting.NamedHighlightingColors)
+				{
+					//E.G.: Highlighting name is JSON, color name is Param, searches for JSONParam
+					var colorName = highlighting.Name + namedColor.Name;
+					if (!Enum.TryParse(colorName, true, out ColorTarget target))
+					{
+						continue;
+					}
+
+					//Get the set color, if one doesn't exist, use the default light mode
+					var color = ((SolidColorBrush)Application.Current.Resources[target])?.Color ?? LightModeProperties[target].Color;
+					namedColor.Foreground = new SimpleHighlightingBrush(color);
+				}
+			}
+		}
+		/// <summary>
+		/// Saves custom colors and the current theme.
+		/// </summary>
+		public void SaveSettings()
+		{
+			IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC), IOUtils.Serialize(this));
+		}
+
+		public static ColorSettings LoadUISettings()
+		{
+			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC);
+			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings), true);
+		}
+
+		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
+		{
+			return typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
+				.Where(x => x.PropertyType == typeof(SolidColorBrush) && x.Name.Contains(prefix))
+				.ToDictionary(
+					x => (ColorTarget)Enum.Parse(typeof(ColorTarget), x.Name.Replace(prefix, "")),
+					x => (SolidColorBrush)x.GetValue(null)
+				).ToImmutableDictionary();
+		}
 		private void ActivateTheme()
 		{
 			var r = Application.Current.Resources;
@@ -112,51 +155,6 @@ namespace Advobot.UILauncher.Classes
 				}
 			}
 			SetSyntaxHighlightingColors("JSON");
-		}
-		public void SetSyntaxHighlightingColors(params string[] names)
-		{
-			foreach (var name in names)
-			{
-				var highlighting = HighlightingManager.Instance.GetDefinition(name)
-					?? throw new ArgumentException("not a valid highlighting.", name);
-
-				foreach (var namedColor in highlighting.NamedHighlightingColors)
-				{
-					//E.G.: Highlighting name is JSON, color name is Param, searches for JSONParam
-					var colorName = highlighting.Name + namedColor.Name;
-					if (!Enum.TryParse(colorName, true, out ColorTarget target))
-					{
-						continue;
-					}
-
-					//Get the set color, if one doesn't exist, use the default light mode
-					var color = ((SolidColorBrush)Application.Current.Resources[target])?.Color ?? LightModeProperties[target].Color;
-					namedColor.Foreground = new SimpleHighlightingBrush(color);
-				}
-			}
-		}
-		/// <summary>
-		/// Saves custom colors and the current theme.
-		/// </summary>
-		public void SaveSettings()
-		{
-			IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC), IOUtils.Serialize(this));
-		}
-
-		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
-		{
-			return typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
-				.Where(x => x.PropertyType == typeof(SolidColorBrush) && x.Name.Contains(prefix))
-				.ToDictionary(
-					x => (ColorTarget)Enum.Parse(typeof(ColorTarget), x.Name.Replace(prefix, "")),
-					x => (SolidColorBrush)x.GetValue(null)
-				).ToImmutableDictionary();
-		}
-
-		public static ColorSettings LoadUISettings()
-		{
-			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC);
-			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings), true);
 		}
 	}
 }

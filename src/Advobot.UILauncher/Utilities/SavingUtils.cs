@@ -28,7 +28,6 @@ namespace Advobot.UILauncher.Utilities
 		{
 			return SaveFile(editor, editor.Text);
 		}
-
 		/// <summary>
 		/// Saves the text of <paramref name="tb"/> to file.
 		/// </summary>
@@ -38,7 +37,6 @@ namespace Advobot.UILauncher.Utilities
 		{
 			return SaveFile(tb, tb.Text);
 		}
-
 		/// <summary>
 		/// Attempts to save a file and returns a value indicating the result.
 		/// </summary>
@@ -88,7 +86,6 @@ namespace Advobot.UILauncher.Utilities
 			var fileName = $"{control.Name}_{TimeFormatting.Saving()}{Constants.GENERAL_FILE_EXTENSION}";
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}
-
 		/// <summary>
 		/// Saves every setting that is a child of <paramref name="parent"/>.
 		/// </summary>
@@ -201,7 +198,6 @@ namespace Advobot.UILauncher.Utilities
 			}
 			return true;
 		}
-
 		/// <summary>
 		/// Returns true if the key from <paramref name="e"/> is <see cref="Key.S"/> and control is pressed.
 		/// </summary>
@@ -211,7 +207,6 @@ namespace Advobot.UILauncher.Utilities
 		{
 			return e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
 		}
-
 		/// <summary>
 		/// Attempts to get a text file from an element's tag.
 		/// </summary>

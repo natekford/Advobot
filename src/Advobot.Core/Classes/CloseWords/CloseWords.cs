@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,15 +13,17 @@ namespace Advobot.Core.Classes.CloseWords
 	/// <typeparam name="T"></typeparam>
 	public abstract class CloseWords<T> : ITime where T : IDescription
 	{
+		private static TimeSpan _DefaultTimeSpan = TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT);
+
 		public ImmutableArray<CloseWord<T>> List { get; protected set; }
 		public DateTime Time { get; }
 		protected int _MaxAllowedCloseness = 4;
 		protected int _MaxOutput = 5;
 
-		public CloseWords(IEnumerable<T> suppliedObjects, string input)
+		public CloseWords(IEnumerable<T> suppliedObjects, string input, TimeSpan time = default)
 		{
 			List = GetObjectsWithSimilarNames(suppliedObjects, input).ToImmutableArray();
-			Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
+			Time = DateTime.UtcNow.Add(time.Equals(default) ? _DefaultTimeSpan : time);
 		}
 
 		protected abstract int FindCloseness(T obj, string input);

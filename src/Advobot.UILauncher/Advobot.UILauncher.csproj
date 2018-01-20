@@ -155,7 +155,6 @@
       <DependentUpon>FileSearchWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Interfaces\IFontResizeValue.cs" />
-    <Compile Include="Interfaces\ISummary.cs" />
     <Compile Include="Interfaces\IUnescapedText.cs" />
     <Compile Include="Windows\FileViewingWindow.xaml.cs">
       <DependentUpon>FileViewingWindow.xaml</DependentUpon>

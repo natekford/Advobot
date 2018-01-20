@@ -224,9 +224,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="list"></param>
 		/// <param name="x"></param>
 		/// <returns></returns>
-		public static List<T> TakeMin<T>(this List<T> list, params int[] x)
+		public static IEnumerable<T> TakeMin<T>(this IEnumerable<T> list, params int[] x)
 		{
-			return list.Take(Math.Max(0, Math.Min(list.Count, x.Min()))).ToList();
+			return list.Take(Math.Max(0, Math.Min(list.Count(), x.Min()))).ToList();
 		}
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.

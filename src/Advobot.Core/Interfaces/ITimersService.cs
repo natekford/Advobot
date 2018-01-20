@@ -21,12 +21,13 @@ namespace Advobot.Core.Interfaces
 		Task Add(IGuildUser user, IUserMessage msg, CloseWords<Quote> quote);
 		void Add(SpamPreventionUserInfo user);
 		void Add(SlowmodeUserInfo user);
+		void Add(TimedMessage message);
 
 		int RemovePunishments(ulong id, PunishmentType punishment);
 		Task<CloseWords<HelpEntry>> GetOutActiveCloseHelp(IUser user);
 		Task<CloseWords<Quote>> GetOutActiveCloseQuote(IUser user);
-		IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild);
 		SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user);
+		IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild);
 		SlowmodeUserInfo GetSlowmodeUser(IGuildUser user);
 	}
 }

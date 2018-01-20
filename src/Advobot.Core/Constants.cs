@@ -11,7 +11,7 @@ namespace Advobot.Core
 {
 	public static class Constants
 	{
-		//Const for attributes/because they're very unlikely to change. 
+		//Const for attributes/because they're very unlikely to change.
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string PLACEHOLDER_PREFIX = ZERO_LENGTH_CHAR + "%PREFIX%";
 		public const string DEFAULT_PREFIX = "&&";
@@ -22,7 +22,7 @@ namespace Advobot.Core
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
 		public const int VIP_BITRATE = 128;
-		public const int MAX_MESSAGE_LENGTH_LONG = 1900; //Gives a little margin of error.
+		public const int MAX_MESSAGE_LENGTH_LONG = 2000; //Gives a little margin of error.
 		public const int MAX_MESSAGE_LENGTH_SHORT = 750;
 		public const int MAX_VOICE_CHANNEL_USER_LIMIT = 99;
 		public const int MAX_STREAM_LENGTH = 25; //Source: https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/
@@ -145,10 +145,9 @@ namespace Advobot.Core
 		}
 		private static ImmutableDictionary<string, Color> GetColorDictionary()
 		{
-			return typeof(Color)
-.GetFields(BindingFlags.Public | BindingFlags.Static)
-.ToDictionary(x => x.Name, x => (Color)x.GetValue(new Color()), StringComparer.OrdinalIgnoreCase)
-.ToImmutableDictionary();
+			return typeof(Color).GetFields(BindingFlags.Public | BindingFlags.Static)
+				.ToDictionary(x => x.Name, x => (Color)x.GetValue(new Color()), StringComparer.OrdinalIgnoreCase)
+				.ToImmutableDictionary();
 		}
 	}
 }

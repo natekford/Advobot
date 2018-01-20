@@ -3,6 +3,7 @@ using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
+using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,9 +15,13 @@ namespace Advobot.Core.Classes.Punishments
 	/// </summary>
 	public class PunishmentGiver : PunishmentBase
 	{
-		private int _Time;
+		private TimeSpan _Time;
 
-		public PunishmentGiver(int time, ITimersService timers) : base(timers)
+		public PunishmentGiver(int minutes, ITimersService timers) : base(timers)
+		{
+			_Time = TimeSpan.FromMinutes(minutes);
+		}
+		public PunishmentGiver(TimeSpan time, ITimersService timers) : base(timers)
 		{
 			_Time = time;
 		}
@@ -149,7 +154,7 @@ namespace Advobot.Core.Classes.Punishments
 		protected override void After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason)
 		{
 			var sb = new StringBuilder($"Successfully {_Given[type]} {user.Format()}. ");
-			if (_Time > 0 && _Timers != null)
+			if (!_Time.Equals(default) && _Timers != null)
 			{
 				//Removing the punishments via the timers in whatever time is set
 				_Timers.Add(new RemovablePunishment(type, guild, user, _Time));

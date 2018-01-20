@@ -49,23 +49,15 @@ namespace Advobot.Core.Utilities
 		public static async Task<IEnumerable<IUserMessage>> SendEmbedMessageAsync(IMessageChannel channel, EmbedWrapper embed, string content = null)
 		{
 			//Catches length errors and nsfw filter errors if an avatar has nsfw content and filtering is enabled
-			var messages = new List<IUserMessage>();
-			try
+			var messages = new List<IUserMessage>
 			{
-				content = Constants.ZERO_LENGTH_CHAR + (content ?? "");
-				messages.Add(await channel.SendMessageAsync(content, embed: embed.Build()).CAF());
-			}
-			//TODO: figure out which exception to catch in specific
-			catch (Exception e)
-			{
-				e.Write();
-				messages.Add(await SendMessageAsync(channel, new Error(e.Message).ToString()).CAF());
-			}
+				await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + (content ?? ""), embed: embed.Build()).CAF()
+			};
 
 			//Upload any errors
 			if (embed.FailedValues.Any())
 			{
-				messages.Add(await SendTextFileAsync(channel as ITextChannel, embed.ToString(), "Embed_").CAF());
+				messages.Add(await SendTextFileAsync(channel, embed.ToString(), "Embed_").CAF());
 			}
 			return messages;
 		}
@@ -79,10 +71,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IUserMessage> SendTextFileAsync(IMessageChannel channel, string text, string fileName, string content = null)
 		{
-			if (!fileName.EndsWith("_"))
-			{
-				fileName += "_";
-			}
+			if (!fileName.EndsWith("_")) { fileName += "_"; }
 			var fullFileName = fileName + TimeFormatting.Saving() + Constants.GENERAL_FILE_EXTENSION;
 			var fileInfo = IOUtils.GetServerDirectoryFile(channel.GetGuild()?.Id ?? 0, fullFileName);
 
@@ -98,7 +87,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="secondStr"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task MakeAndDeleteSecondaryMessageAsync(IAdvobotCommandContext context, string secondStr, int time = -1)
+		public static async Task MakeAndDeleteSecondaryMessageAsync(IAdvobotCommandContext context, string secondStr, TimeSpan time = default)
 		{
 			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, secondStr, time, context.Timers).CAF();
 		}
@@ -111,15 +100,15 @@ namespace Advobot.Core.Utilities
 		/// <param name="time"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task MakeAndDeleteSecondaryMessageAsync(IMessageChannel channel, IMessage message, string secondStr, int time = -1, ITimersService timers = null)
+		public static async Task MakeAndDeleteSecondaryMessageAsync(IMessageChannel channel, IMessage message, string secondStr, TimeSpan time = default, ITimersService timers = null)
 		{
-			if (time < 0)
+			if (time.Equals(default))
 			{
-				time = Constants.SECONDS_DEFAULT;
+				time = TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT);
 			}
 
 			var secondMessage = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr).CAF();
-			if (time > 0 && timers != null)
+			if (timers != null)
 			{
 				timers.Add(new RemovableMessage(time, new[] { message, secondMessage }));
 			}
@@ -131,7 +120,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task SendErrorMessageAsync(IAdvobotCommandContext context, IError error, int time = -1)
+		public static async Task SendErrorMessageAsync(IAdvobotCommandContext context, IError error, TimeSpan time = default)
 		{
 			if (context.GuildSettings.NonVerboseErrors)
 			{
@@ -216,51 +205,43 @@ namespace Advobot.Core.Utilities
 		/// <param name="requestCount"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> RemoveMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason)
+		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason, IUser fromUser = null)
 		{
-			var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).FlattenAsync().CAF();
-			return await DeleteMessagesAsync(channel, messages, reason).CAF();
-		}
-		/// <summary>
-		/// Removes the given count of messages from a channel and a specific user.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="fromMessage"></param>
-		/// <param name="requestCount"></param>
-		/// <param name="user"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task<int> RemoveMessagesFromUserAsync(ITextChannel channel, IMessage fromMessage, int requestCount, IUser user, ModerationReason reason)
-		{
-			var deletedCount = 0;
-			while (requestCount > 0)
+			if (fromUser == null)
 			{
-				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF();
-				if (!messages.Any())
-				{
-					break;
-				}
-				fromMessage = messages.Last();
-
-				//Get messages from a targetted user
-				var userMessages = messages.Where(x => x.Author.Id == user.Id);
-				if (!userMessages.Any())
-				{
-					break;
-				}
-
-				var cutUserMessages = userMessages.ToList().TakeMin(requestCount, 100);
-				deletedCount += await DeleteMessagesAsync(channel, cutUserMessages, reason).CAF();
-
-				//Leave if the message count gathered implies that enough user messages have been deleted 
-				if (cutUserMessages.Count() < userMessages.Count())
-				{
-					break;
-				}
-
-				requestCount -= cutUserMessages.Count();
+				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).FlattenAsync().CAF();
+				return await DeleteMessagesAsync(channel, messages, reason).CAF();
 			}
-			return deletedCount;
+			else
+			{
+				var deletedCount = 0;
+				while (requestCount > 0)
+				{
+					var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF();
+					if (!messages.Any())
+					{
+						break;
+					}
+					fromMessage = messages.Last();
+
+					//Get messages from a targetted user
+					var userMessages = messages.Where(x => x.Author.Id == fromUser.Id).TakeMin(requestCount, 100);
+					if (!userMessages.Any())
+					{
+						break;
+					}
+					deletedCount += await DeleteMessagesAsync(channel, userMessages, reason).CAF();
+
+					//Leave if the message count gathered implies that enough user messages have been deleted 
+					if (userMessages.Count() < userMessages.Count())
+					{
+						break;
+					}
+
+					requestCount -= userMessages.Count();
+				}
+				return deletedCount;
+			}
 		}
 		/// <summary>
 		/// Deletes the passed in messages directly. Will only delete messages under 14 days old.

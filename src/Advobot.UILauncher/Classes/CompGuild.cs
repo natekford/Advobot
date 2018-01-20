@@ -15,7 +15,6 @@ namespace Advobot.UILauncher.Classes
 		{
 			return obj is SocketGuild g ? CompareTo(g) : 1;
 		}
-
 		public int CompareTo(SocketGuild other)
 		{
 			return _G.MemberCount == other.MemberCount ? _G.Name.CompareTo(other.Name) : _G.MemberCount.CompareTo(other.MemberCount);
