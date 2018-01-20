@@ -19,7 +19,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="obj"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static OverwritePermissions? GetPermissionOverwrite(this IGuildChannel channel, object obj)
+		public static OverwritePermissions? GetPermissionOverwrite<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
 		{
 			if (obj is IRole role)
 			{
@@ -40,22 +40,20 @@ namespace Advobot.Core.Utilities
 		/// <param name="channel"></param>
 		/// <param name="obj"></param>
 		/// <returns></returns>
-		public static ulong GetPermissionOverwriteAllowValue(this IGuildChannel channel, object obj)
+		public static ulong GetPermissionOverwriteAllowValue<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
 		{
 			return channel.GetPermissionOverwrite(obj)?.AllowValue ?? 0;
 		}
-
 		/// <summary>
 		/// Gets the permision overwrite deny value for a role or user.
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="obj"></param>
 		/// <returns></returns>
-		public static ulong GetPermissionOverwriteDenyValue(this IGuildChannel channel, object obj)
+		public static ulong GetPermissionOverwriteDenyValue<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
 		{
 			return channel.GetPermissionOverwrite(obj)?.DenyValue ?? 0;
 		}
-
 		/// <summary>
 		/// Based off of the <paramref name="actionType"/> passed in will allow, inherit, or deny the given values for the <paramref name="discordObject"/> on the channel.
 		/// </summary>
@@ -65,8 +63,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="changeValue"></param>
 		/// <param name="invokingUser"></param>
 		/// <returns></returns>
-		public static async Task<IEnumerable<string>> ModifyOverwritePermissionsAsync(PermValue action, IGuildChannel channel,
-			object obj, ulong changeValue, IGuildUser invokingUser)
+		public static async Task<IEnumerable<string>> ModifyOverwritePermissionsAsync<T>(PermValue action, IGuildChannel channel, T obj, ulong changeValue, IGuildUser invokingUser) where T : ISnowflakeEntity
 		{
 			var allowBits = channel.GetPermissionOverwriteAllowValue(obj);
 			var denyBits = channel.GetPermissionOverwriteDenyValue(obj);
@@ -105,7 +102,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static async Task ModifyOverwriteAsync(IGuildChannel channel, object obj, ulong allowBits, ulong denyBits, ModerationReason reason)
+		public static async Task ModifyOverwriteAsync<T>(IGuildChannel channel, T obj, ulong allowBits, ulong denyBits, ModerationReason reason) where T : ISnowflakeEntity
 		{
 			var permissions = new OverwritePermissions(allowBits, denyBits);
 			if (obj is IRole role)
@@ -148,7 +145,6 @@ namespace Advobot.Core.Utilities
 				}
 			}
 		}
-
 		/// <summary>
 		/// Returns a dictionary of channel permissions and their values (allow, deny, inherit). Non filtered so incorrect channel type permissions will be in it.
 		/// </summary>
@@ -172,7 +168,6 @@ namespace Advobot.Core.Utilities
 				}
 			});
 		}
-
 		/// <summary>
 		/// Returns a similar dictionary to <see cref="GetChannelOverwritePermissions"/> except this method has voice permissions filtered out of text channels and vice versa.
 		/// </summary>
@@ -197,20 +192,6 @@ namespace Advobot.Core.Utilities
 				}
 			}
 			return dictionary;
-		}
-		/// <summary>
-		/// Returns the channel perms gotten from <see cref="GetFilteredChannelOverwritePermissions"/> formatted with their perm value in front of the perm name.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="channel"></param>
-		/// <param name="overwriteObj"></param>
-		/// <returns></returns>
-		public static string[] GetFormattedPermsFromOverwrite<T>(IGuildChannel channel, T overwriteObj) where T : ISnowflakeEntity
-		{
-			var obj = channel.PermissionOverwrites.FirstOrDefault(x => x.TargetId == overwriteObj.Id);
-			var perms = GetFilteredChannelOverwritePermissions(obj, channel);
-			var maxLen = perms.Keys.Max(x => x.Length);
-			return perms.Select(x => $"{x.Key.PadRight(maxLen)} {x.Value}").ToArray();
 		}
 	}
 }

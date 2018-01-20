@@ -237,7 +237,7 @@ namespace Advobot.Commands.Gets
 		[Command]
 		public async Task Command(uint position)
 		{
-			var users = await Context.Guild.GetUsersAndOrderByJoinAsync().CAF();
+			var users = await Context.Guild.GetUsersByJoinDateAsync().CAF();
 			var newPos = Math.Max(1, Math.Min((int)position, users.Count));
 			var user = users[newPos - 1];
 			var time = user.JoinedAt.Value.UtcDateTime.Readable();
@@ -292,7 +292,7 @@ namespace Advobot.Commands.Gets
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
 		{
-			var users = await Context.Guild.GetUsersAndOrderByJoinAsync().CAF();
+			var users = await Context.Guild.GetUsersByJoinDateAsync().CAF();
 			var text = users.FormatNumberedList("`{0}` joined on `{1}`",
 				x => x.Format(),
 				x => TimeFormatting.Readable(x.JoinedAt.Value.UtcDateTime));

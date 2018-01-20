@@ -49,7 +49,6 @@ namespace Advobot.Core.Utilities
 		{
 			return Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.TICKS_REGEX_TIMEOUT));
 		}
-
 		/// <summary>
 		/// Returns true if the name is null, empty, or matches the <see cref="Regex"/> from https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/.
 		/// </summary>

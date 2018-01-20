@@ -22,7 +22,6 @@ namespace Advobot.Core.Utilities
 		{
 			return (message?.Channel as IGuildChannel)?.Guild;
 		}
-
 		/// <summary>
 		/// Attempts to get a guild from a user.
 		/// </summary>
@@ -32,7 +31,6 @@ namespace Advobot.Core.Utilities
 		{
 			return (user as IGuildUser)?.Guild;
 		}
-
 		/// <summary>
 		/// Attempts to get a guild from a channel.
 		/// </summary>
@@ -42,7 +40,6 @@ namespace Advobot.Core.Utilities
 		{
 			return (channel as IGuildChannel)?.Guild;
 		}
-
 		/// <summary>
 		/// Attempts to get a guild from a role.
 		/// </summary>
@@ -52,7 +49,6 @@ namespace Advobot.Core.Utilities
 		{
 			return role?.Guild;
 		}
-
 		/// <summary>
 		/// Returns the bot's guild user.
 		/// </summary>
@@ -62,33 +58,6 @@ namespace Advobot.Core.Utilities
 		{
 			return (guild as SocketGuild).CurrentUser;
 		}
-
-		/// <summary>
-		/// Returns every user that has a non null join time in order from least to greatest.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		public static async Task<IReadOnlyList<IGuildUser>> GetUsersAndOrderByJoinAsync(this IGuild guild)
-		{
-			return (await guild.GetUsersAsync().CAF())
-					   .Where(x => x.JoinedAt != null)
-					   .OrderBy(x => x.JoinedAt.Value.Ticks)
-					   .ToList().AsReadOnly();
-		}
-
-		/// <summary>
-		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="invokingUser"></param>
-		/// <returns></returns>
-		public static async Task<IReadOnlyList<IGuildUser>> GetUsersTheBotAndUserCanEditAsync(this IGuild guild, IUser invokingUser)
-		{
-			return (await guild.GetUsersAsync().CAF())
-					   .Where(x => invokingUser.GetIfCanModifyUser(x) && guild.GetBot().GetIfCanModifyUser(x))
-					   .ToList().AsReadOnly();
-		}
-
 		/// <summary>
 		/// Returns true if the guild has any global emotes.
 		/// </summary>
@@ -98,7 +67,30 @@ namespace Advobot.Core.Utilities
 		{
 			return guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
 		}
-
+		/// <summary>
+		/// Returns every user that has a non null join time in order from least to greatest.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
+		public static async Task<IReadOnlyList<IGuildUser>> GetUsersByJoinDateAsync(this IGuild guild)
+		{
+			return (await guild.GetUsersAsync().CAF())
+					   .Where(x => x.JoinedAt != null)
+					   .OrderBy(x => x.JoinedAt.Value.Ticks)
+					   .ToList().AsReadOnly();
+		}
+		/// <summary>
+		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="invokingUser"></param>
+		/// <returns></returns>
+		public static async Task<IReadOnlyList<IGuildUser>> GetEditableUsersAsync(this IGuild guild, IUser invokingUser)
+		{
+			return (await guild.GetUsersAsync().CAF())
+					   .Where(x => invokingUser.GetIfCanModifyUser(x) && guild.GetBot().GetIfCanModifyUser(x))
+					   .ToList().AsReadOnly();
+		}
 		/// <summary>
 		/// Prunes users who haven't been active in a certain amount of days and says the supplied reason in the audit log.
 		/// </summary>
@@ -111,7 +103,6 @@ namespace Advobot.Core.Utilities
 		{
 			return await guild.PruneUsersAsync(days, simulate, reason.CreateRequestOptions()).CAF();
 		}
-
 		/// <summary>
 		/// Changes the guild's name and says the supplied reason in the audit log.
 		/// </summary>

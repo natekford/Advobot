@@ -9,9 +9,9 @@ namespace Advobot.Core.Interfaces
 	/// </summary>
 	public interface IInviteListService
 	{
-		bool AddInvite(ListedInvite invite);
-		bool RemoveInvite(IGuild guild);
-		IReadOnlyList<ListedInvite> GetInvites();
-		IReadOnlyList<ListedInvite> GetInvites(params string[] keywords);
+		bool Add(ListedInvite invite);
+		bool Remove(IGuild guild);
+		IEnumerable<ListedInvite> GetAll();
+		IEnumerable<ListedInvite> GetAll(params string[] keywords);
 	}
 }

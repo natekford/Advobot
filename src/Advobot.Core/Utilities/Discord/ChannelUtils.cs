@@ -23,8 +23,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="target"></param>
 		/// <param name="checkingTypes"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult VerifyChannelMeetsRequirements(this IGuildChannel target, ICommandContext context,
-			IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult Verify(this IGuildChannel target, ICommandContext context, IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{

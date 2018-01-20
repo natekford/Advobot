@@ -17,7 +17,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 	/// <summary>
 	/// Information about a parameter to be used in <see cref="UsageGenerator"/>.
 	/// </summary>
-	internal class ParameterDetails : IArgument
+	internal class ParameterDetails
 	{
 		private static Dictionary<Type, Type> _TypeSwitcher = new Dictionary<Type, Type>
 		{

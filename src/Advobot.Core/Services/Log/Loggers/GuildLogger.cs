@@ -22,11 +22,11 @@ namespace Advobot.Core.Services.Log.Loggers
 			ConsoleUtils.WriteLine($"{guild.Format()} is now online on shard {ClientUtils.GetShardIdFor(_Client, guild)}.");
 			ConsoleUtils.WriteLine($"Current memory usage is: {IOUtils.GetMemory().ToString("0.00")}MB.");
 
-			if (!_GuildSettings.ContainsGuild(guild.Id))
+			if (!_GuildSettings.Contains(guild.Id))
 			{
 				_Logging.TotalUsers.Add(guild.MemberCount);
 				_Logging.TotalGuilds.Increment();
-				await _GuildSettings.GetOrCreateSettings(guild).CAF();
+				await _GuildSettings.GetOrCreate(guild).CAF();
 			}
 		}
 		/// <summary>
@@ -91,11 +91,11 @@ namespace Advobot.Core.Services.Log.Loggers
 				ConsoleUtils.WriteLine($"The bot currently has {guilds} out of {curMax} possible spots for servers filled. Increase the shard count soon.");
 			}
 
-			if (!_GuildSettings.ContainsGuild(guild.Id))
+			if (!_GuildSettings.Contains(guild.Id))
 			{
 				_Logging.TotalUsers.Add(guild.MemberCount);
 				_Logging.TotalGuilds.Increment();
-				await _GuildSettings.GetOrCreateSettings(guild).CAF();
+				await _GuildSettings.GetOrCreate(guild).CAF();
 			}
 		}
 		/// <summary>
@@ -109,7 +109,7 @@ namespace Advobot.Core.Services.Log.Loggers
 
 			_Logging.TotalUsers.Remove(guild.MemberCount);
 			_Logging.TotalGuilds.Decrement();
-			await _GuildSettings.RemoveGuild(guild.Id).CAF();
+			await _GuildSettings.Remove(guild.Id).CAF();
 		}
 	}
 }

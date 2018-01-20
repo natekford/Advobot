@@ -10,7 +10,7 @@ namespace Advobot.Core.Utilities
 	/// <summary>
 	/// Helper class for channel permissions.
 	/// </summary>
-	public static class ChannelPermsUtils
+	public class ChannelPermsUtils
 	{
 		private const ChannelPermission GENERAL_BITS = 0
 			| ChannelPermission.ViewChannel

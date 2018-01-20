@@ -125,8 +125,9 @@ namespace Advobot.Commands.UserModeration
 			[VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = await inputChannel.GetUsersAsync().FlattenAsync().CAF();
-			await new MultiUserAction(Context, users, bypass).MoveUsersAsync(outputChannel, new ModerationReason(Context.User, null)).CAF();
+			var users = (await inputChannel.GetUsersAsync().FlattenAsync().CAF())
+				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+			await new MultiUserAction(Context, Context.Timers, users).MoveUsersAsync(outputChannel, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
 
@@ -346,7 +347,7 @@ namespace Advobot.Commands.UserModeration
 		"Fourth are the list of roles that are immune to slowmode.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifySlowmode : SavingModuleBase
+	public sealed class ModifySlowmode : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create([VerifyNumber(1, 5)] uint messages, [VerifyNumber(1, 30)] uint interval, [Optional] params IRole[] immuneRoles)
@@ -402,31 +403,39 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => x.RoleIds.Contains(targetRole.Id));
-			await new MultiUserAction(Context, users, bypass).GiveRolesAsync(givenRole, new ModerationReason(Context.User, null)).CAF();
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
+				.Where(x => x.RoleIds.Contains(targetRole.Id))
+				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+			await new MultiUserAction(Context, Context.Timers, users).GiveRolesAsync(givenRole, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
 		public async Task TakeRole(IRole targetRole,
 			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole takenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => x.RoleIds.Contains(targetRole.Id));
-			await new MultiUserAction(Context, users, bypass).TakeRolesAsync(takenRole, new ModerationReason(Context.User, null)).CAF();
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
+				.Where(x => x.RoleIds.Contains(targetRole.Id))
+				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+			await new MultiUserAction(Context, Context.Timers, users).TakeRolesAsync(takenRole, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
 		public async Task GiveNickname([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
 			[VerifyStringLength(Target.Nickname)] string nickname,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => x.RoleIds.Contains(targetRole.Id));
-			await new MultiUserAction(Context, users, bypass).ModifyNicknamesAsync(nickname, new ModerationReason(Context.User, null)).CAF();
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
+				.Where(x => x.RoleIds.Contains(targetRole.Id))
+				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(nickname, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(TakeNickname)), ShortAlias(nameof(TakeNickname))]
 		public async Task TakeNickname([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => x.RoleIds.Contains(targetRole.Id));
-			await new MultiUserAction(Context, users, bypass).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
+				.Where(x => x.RoleIds.Contains(targetRole.Id))
+				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
 }

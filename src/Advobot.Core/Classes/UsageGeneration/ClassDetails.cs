@@ -1,5 +1,4 @@
-﻿using Advobot.Core.Interfaces;
-using Discord.Commands;
+﻿using Discord.Commands;
 using System;
 using System.Reflection;
 
@@ -8,7 +7,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 	/// <summary>
 	/// Information about a class to be used in <see cref="UsageGenerator"/>.
 	/// </summary>
-	internal class ClassDetails : IArgument
+	internal class ClassDetails
 	{
 		public int Deepness { get; }
 		public string Name { get; }

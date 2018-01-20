@@ -15,19 +15,18 @@ namespace Advobot.Core.Interfaces
 	/// </summary>
 	public interface ITimersService
 	{
-		void AddRemovablePunishment(RemovablePunishment punishment);
-		void AddRemovableMessage(RemovableMessage message);
-		Task AddActiveCloseHelp(IGuildUser user, IUserMessage msg, CloseWords<HelpEntry> help);
-		Task AddActiveCloseQuote(IGuildUser user, IUserMessage msg, CloseWords<Quote> quote);
-		void AddSpamPreventionUser(SpamPreventionUserInfo user);
-		void AddSlowmodeUser(SlowmodeUserInfo user);
+		void Add(RemovablePunishment punishment);
+		void Add(RemovableMessage message);
+		Task Add(IGuildUser user, IUserMessage msg, CloseWords<HelpEntry> help);
+		Task Add(IGuildUser user, IUserMessage msg, CloseWords<Quote> quote);
+		void Add(SpamPreventionUserInfo user);
+		void Add(SlowmodeUserInfo user);
 
 		int RemovePunishments(ulong id, PunishmentType punishment);
 		Task<CloseWords<HelpEntry>> GetOutActiveCloseHelp(IUser user);
 		Task<CloseWords<Quote>> GetOutActiveCloseQuote(IUser user);
-
-		SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user);
 		IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild);
+		SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user);
 		SlowmodeUserInfo GetSlowmodeUser(IGuildUser user);
 	}
 }

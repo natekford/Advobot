@@ -61,7 +61,6 @@ namespace Advobot.Core.Utilities
 				throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
-
 		/// <summary>
 		/// Returns the user who owns the bot.
 		/// </summary>
@@ -71,7 +70,52 @@ namespace Advobot.Core.Utilities
 		{
 			return (await client.GetApplicationInfoAsync().CAF()).Owner;
 		}
+		/// <summary>
+		/// Updates a given client's stream and game using settings from the <paramref name="botSettings"/> parameter.
+		/// </summary>
+		/// <param name="client">The client to update.</param>
+		/// <param name="botSettings">The information to update with.</param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
+		public static async Task UpdateGameAsync(IDiscordClient client, IBotSettings botSettings)
+		{
+			var game = botSettings.Game;
+			var stream = botSettings.Stream;
 
+			var activityType = ActivityType.Playing;
+			if (!String.IsNullOrWhiteSpace(stream))
+			{
+				stream = Constants.TWITCH_URL + stream.Substring(stream.LastIndexOf('/') + 1);
+				activityType = ActivityType.Streaming;
+			}
+
+			if (client is DiscordSocketClient socketClient)
+			{
+				await socketClient.SetGameAsync(game, stream, activityType).CAF();
+			}
+			else if (client is DiscordShardedClient shardedClient)
+			{
+				await shardedClient.SetGameAsync(game, stream, activityType).CAF();
+			}
+			else
+			{
+				throw new ArgumentException("invalid type", nameof(client));
+			}
+		}
+		/// <summary>
+		/// Updates the bot's icon to the given image.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="fileInfo"></param>
+		/// <returns></returns>
+		public static async Task ModifyBotIconAsync(IDiscordClient client, FileInfo fileInfo)
+		{
+			//Needs to be a stream, otherwise will lock the file and then can't delete
+			using (var stream = new StreamReader(fileInfo.FullName))
+			{
+				await client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream.BaseStream)).CAF();
+			}
+		}
 		/// <summary>
 		/// Returns the shard id for a <see cref="DiscordSocketClient"/> else returns -1.
 		/// </summary>
@@ -157,54 +201,6 @@ namespace Advobot.Core.Utilities
 				throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
-
-		/// <summary>
-		/// Updates a given client's stream and game using settings from the <paramref name="botSettings"/> parameter.
-		/// </summary>
-		/// <param name="client">The client to update.</param>
-		/// <param name="botSettings">The information to update with.</param>
-		/// <returns></returns>
-		/// <exception cref="ArgumentException"></exception>
-		public static async Task UpdateGameAsync(IDiscordClient client, IBotSettings botSettings)
-		{
-			var game = botSettings.Game;
-			var stream = botSettings.Stream;
-
-			var activityType = ActivityType.Playing;
-			if (!String.IsNullOrWhiteSpace(stream))
-			{
-				stream = Constants.TWITCH_URL + stream.Substring(stream.LastIndexOf('/') + 1);
-				activityType = ActivityType.Streaming;
-			}
-
-			if (client is DiscordSocketClient socketClient)
-			{
-				await socketClient.SetGameAsync(game, stream, activityType).CAF();
-			}
-			else if (client is DiscordShardedClient shardedClient)
-			{
-				await shardedClient.SetGameAsync(game, stream, activityType).CAF();
-			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(client));
-			}
-		}
-		/// <summary>
-		/// Updates the bot's icon to the given image.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="fileInfo"></param>
-		/// <returns></returns>
-		public static async Task ModifyBotIconAsync(IDiscordClient client, FileInfo fileInfo)
-		{
-			//Needs to be a stream, otherwise will lock the file and then can't delete
-			using (var stream = new StreamReader(fileInfo.FullName))
-			{
-				await client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream.BaseStream)).CAF();
-			}
-		}
-
 		/// <summary>
 		/// Creates a new bot that uses the same console. The bot that starts is created using <see cref="Process.Start"/> and specifying the filename as dotnet and the arguments as the location of the .dll.
 		/// <para>

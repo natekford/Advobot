@@ -22,8 +22,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="target"></param>
 		/// <param name="checks"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult VerifyUserMeetsRequirements(this IGuildUser target, ICommandContext context,
-			IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult Verify(this IGuildUser target, ICommandContext context, IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{
@@ -48,7 +47,6 @@ namespace Advobot.Core.Utilities
 
 			return new VerifiedObjectResult(target, null, null);
 		}
-
 		/// <summary>
 		/// Returns the position in the guild the user has.
 		/// </summary>
@@ -177,7 +175,6 @@ namespace Advobot.Core.Utilities
 				}
 			}
 		}
-
 		/// <summary>
 		/// Changes the user's nickname then says the supplied reason in the audit log.
 		/// </summary>

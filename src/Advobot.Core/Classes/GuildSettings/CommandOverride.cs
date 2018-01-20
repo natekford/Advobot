@@ -7,7 +7,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// A setting on a guild that states that the command is off for whatever Discord entity has that Id.
 	/// </summary>
-	public class CommandOverride : ISetting
+	public class CommandOverride : IGuildSetting
 	{
 		[JsonProperty]
 		public string Name { get; }

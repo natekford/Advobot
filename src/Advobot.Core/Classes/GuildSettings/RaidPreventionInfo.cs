@@ -15,7 +15,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Holds information about raid prevention such as how long the interval is, and how many users to target.
 	/// </summary>
-	public class RaidPreventionInfo : ISetting
+	public class RaidPreventionInfo : IGuildSetting
 	{
 		private static PunishmentGiver _Giver = new PunishmentGiver(0, null);
 		private static ModerationReason _Reason = new ModerationReason("raid prevention");

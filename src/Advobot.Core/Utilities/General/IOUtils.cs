@@ -26,7 +26,6 @@ namespace Advobot.Core.Utilities
 				return process.PrivateMemorySize64 / (1024.0 * 1024.0);
 			}
 		}
-
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId
 		/// </summary>
@@ -64,7 +63,6 @@ namespace Advobot.Core.Utilities
 		{
 			return new FileInfo(Path.Combine(GetBaseBotDirectory().FullName, fileName));
 		}
-
 		/// <summary>
 		/// Creates a file if it does not already exist.
 		/// </summary>
@@ -108,7 +106,6 @@ namespace Advobot.Core.Utilities
 				e.Write();
 			}
 		}
-
 		/// <summary>
 		/// Converts the object to JSON.
 		/// </summary>
@@ -167,7 +164,6 @@ namespace Advobot.Core.Utilities
 			//If want an object no matter what and the object is still default and there is a parameterless constructor then create one
 			return create && stillDef && type.GetConstructors().Any(x => !x.GetParameters().Any()) ? (T)Activator.CreateInstance(type) : obj;
 		}
-
 		/// <summary>
 		/// Writes an uncaught exception to a log file.
 		/// </summary>

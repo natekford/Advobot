@@ -50,7 +50,6 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			return String.Join(joining, toJoin.Where(x => !String.IsNullOrWhiteSpace(x)));
 		}
-
 		/// <summary>
 		/// Returns a string which is a numbered list of the passed in objects. The format is for the passed in arguments; the counter is added by default.
 		/// </summary>
@@ -65,7 +64,6 @@ namespace Advobot.Core.Utilities.Formatting
 			//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
 			return String.Join("\n", list.Select((x, index) => $"`{(index + 1).ToString().PadLeft(maxLen, '0')}.` {String.Format(@format, args.Select(f => f(x)).ToArray())}"));
 		}
-
 		/// <summary>
 		/// Returns the input string with `, *, and _, escaped.
 		/// </summary>
@@ -75,7 +73,6 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			return input?.Replace("`", "\\`")?.Replace("*", "\\*")?.Replace("_", "\\_");
 		}
-
 		/// <summary>
 		/// Returns the input string with ` escaped.
 		/// </summary>
@@ -85,7 +82,6 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			return input?.Replace("`", "\\`");
 		}
-
 		/// <summary>
 		/// Returns the input string without `, *, and _.
 		/// </summary>
@@ -95,7 +91,6 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			return input?.Replace("`", "")?.Replace("*", "")?.Replace("_", "");
 		}
-
 		/// <summary>
 		/// Returns the input string with no duplicate new lines.
 		/// </summary>
@@ -105,7 +100,6 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			return _RemoveDuplicateLines.Replace(input, "\n");
 		}
-
 		/// <summary>
 		/// Returns the input string with no new lines.
 		/// </summary>
@@ -115,7 +109,6 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			return input?.Replace("\r", "")?.Replace("\n", "");
 		}
-
 		/// <summary>
 		/// Adds in spaces between each capital letter.
 		/// </summary>
@@ -144,7 +137,6 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			return i == 1 ? "" : "s";
 		}
-
 		/// <summary>
 		/// Only appends a \n after the value. On Windows <see cref="StringBuilder.AppendLine(string)"/> appends \r\n (which isn't
 		/// necessarily wanted).

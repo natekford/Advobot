@@ -2,6 +2,7 @@
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
+using Discord.Commands;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,10 +20,11 @@ namespace Advobot.Core.Classes
 		private static ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new ConcurrentDictionary<ulong, CancellationTokenSource>();
 
 		private CancellationTokenSource _CancelToken;
-		private IAdvobotCommandContext _Context;
+		private ICommandContext _Context;
+		private ITimersService _Timers;
 		private IReadOnlyList<IGuildUser> _Users;
 
-		public MultiUserAction(IAdvobotCommandContext context, IEnumerable<IGuildUser> users, bool bypass)
+		public MultiUserAction(ICommandContext context, ITimersService timers, IEnumerable<IGuildUser> users)
 		{
 			_CancelToken = new CancellationTokenSource();
 			_CancelTokens.AddOrUpdate(context.Guild.Id, _CancelToken, (oldKey, oldValue) =>
@@ -31,7 +33,8 @@ namespace Advobot.Core.Classes
 				return _CancelToken;
 			});
 			_Context = context;
-			_Users = users.ToList().TakeMin(context.BotSettings.GetMaxAmountOfUsersToGather(bypass));
+			_Timers = timers;
+			_Users = users.ToList();
 
 			if (new Random().NextDouble() > .995)
 			{
@@ -112,7 +115,7 @@ namespace Advobot.Core.Classes
 
 			await MessageUtils.DeleteMessageAsync(msg, new ModerationReason("multi user action")).CAF();
 			var response = $"Successfully {pastTense} `{successCount}` users.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(_Context, response).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(_Context.Channel, _Context.Message, response, timers: _Timers).CAF();
 		}
 	}
 }

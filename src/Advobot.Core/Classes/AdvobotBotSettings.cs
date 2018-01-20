@@ -177,7 +177,7 @@ namespace Advobot.Core.Classes
 			PropertyChanged += SaveSettings;
 		}
 
-		public int GetMaxAmountOfUsersToGather(bool bypass)
+		public int GetUserGatherCount(bool bypass)
 		{
 			return bypass ? int.MaxValue : MaxUserGatherCount;
 		}

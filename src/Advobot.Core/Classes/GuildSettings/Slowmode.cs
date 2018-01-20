@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Limits the amount of messages users are allowed to send in a given time interval. Initially created with <see cref="Enabled"/> set to false.
 	/// </summary>
-	public class Slowmode : ISetting
+	public class Slowmode : IGuildSetting
 	{
 		[JsonProperty]
 		public int BaseMessages { get; }

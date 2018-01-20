@@ -17,7 +17,7 @@ namespace Advobot.Commands.Logs
 		"Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyLogChannels : SavingModuleBase
+	public sealed class ModifyLogChannels : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public async Task Enable(LogChannelType logChannelType,
@@ -52,7 +52,7 @@ namespace Advobot.Commands.Logs
 	[Summary("Ignores all logging info that would have been gotten from a channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyIgnoredLogChannels : SavingModuleBase
+	public sealed class ModifyIgnoredLogChannels : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
@@ -76,7 +76,7 @@ namespace Advobot.Commands.Logs
 		"`Show` displays the possible actions.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyLogActions : SavingModuleBase
+	public sealed class ModifyLogActions : AdvobotSavingModuleBase
 	{
 		private static LogAction[] _DefaultLogActions = new[] 
 		{
@@ -104,7 +104,7 @@ namespace Advobot.Commands.Logs
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the log actions to the default ones.").CAF();
 		}
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
-		public sealed class Enable : SavingModuleBase
+		public sealed class Enable : AdvobotSavingModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All))]
 			public async Task All()
@@ -127,7 +127,7 @@ namespace Advobot.Commands.Logs
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
-		public sealed class Disable : SavingModuleBase
+		public sealed class Disable : AdvobotSavingModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All))]
 			public async Task All()

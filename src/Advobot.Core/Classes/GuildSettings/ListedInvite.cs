@@ -12,7 +12,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Lists an invite for use in <see cref="IInviteListService"/>.
 	/// </summary>
-	public class ListedInvite : ISetting, IPostDeserialize
+	public class ListedInvite : IGuildSetting, IPostDeserialize
 	{
 		[JsonProperty]
 		public string Code { get; private set; }

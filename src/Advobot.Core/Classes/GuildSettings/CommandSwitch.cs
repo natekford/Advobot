@@ -9,7 +9,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// A setting on guilds that states whether a command is on or off.
 	/// </summary>
-	public class CommandSwitch : ISetting
+	public class CommandSwitch : IGuildSetting
 	{
 		[JsonProperty]
 		public string Name { get; }

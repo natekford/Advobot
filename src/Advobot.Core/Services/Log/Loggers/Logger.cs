@@ -59,7 +59,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			{
 				return false;
 			}
-			if (_BotSettings.Pause || !_GuildSettings.TryGetSettings(guild.Id, out settings) || !settings.LogActions.Contains(logAction))
+			if (_BotSettings.Pause || !_GuildSettings.TryGet(guild.Id, out settings) || !settings.LogActions.Contains(logAction))
 			{
 				return false;
 			}

@@ -278,7 +278,7 @@ namespace Advobot.Commands.RoleModeration
 			}
 
 			var role = roles.First();
-			var result = role.VerifyRoleMeetsRequirements(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsEveryone });
+			var result = role.Verify(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsEveryone });
 			if (!result.IsSuccess)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error(result.ErrorReason)).CAF();

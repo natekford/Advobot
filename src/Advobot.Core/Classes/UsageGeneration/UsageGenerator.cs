@@ -187,9 +187,9 @@ namespace Advobot.Core.Classes.UsageGeneration
 
 			return sb.ToString().Trim();
 		}
-		private void AddOptions<T>(StringBuilder sb, IEnumerable<T> options) where T : IArgument
+		private void AddOptions<T>(StringBuilder sb, IEnumerable<T> options)
 		{
-			var converted = options.Where(x => !String.IsNullOrWhiteSpace(x?.Name)).Select(x => x.ToString());
+			var converted = options.Select(x => x.ToString()).Where(x => !String.IsNullOrWhiteSpace(x));
 			var addOrToEnd = converted.Any(x => !String.IsNullOrWhiteSpace(x)) ? "|" : "";
 			sb.Append(GeneralFormatting.JoinNonNullStrings("|", converted.ToArray()) + addOrToEnd);
 		}

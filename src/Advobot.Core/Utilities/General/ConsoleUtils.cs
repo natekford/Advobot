@@ -10,8 +10,8 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class ConsoleUtils
 	{
-		private static object _MessageLock = new object();
 		private static SortedDictionary<string, List<string>> _WrittenLines;
+		private static Object _MessageLock = new Object();
 
 		/// <summary>
 		/// Returns a dictionary containing lines that have been written to the console if it exists. Otherwise creates it.
@@ -21,7 +21,6 @@ namespace Advobot.Core.Utilities
 		{
 			return _WrittenLines = _WrittenLines ?? new SortedDictionary<string, List<string>>();
 		}
-
 		/// <summary>
 		/// Writes the given text to the console with a timestamp and the calling method. Writes in gray by default.
 		/// </summary>

@@ -43,10 +43,11 @@ namespace Advobot.Commands.NicknameModeration
 			[VerifyStringLength(Target.Nickname)] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => false
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF()).Where(x => false
 				|| (x.Nickname != null && x.Nickname.CaseInsContains(search))
-				|| (x.Nickname == null && x.Username.CaseInsContains(search)));
-			await new MultiUserAction(Context, users, bypass).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
+				|| (x.Nickname == null && x.Username.CaseInsContains(search)))
+				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
 
@@ -62,10 +63,11 @@ namespace Advobot.Commands.NicknameModeration
 			[VerifyStringLength(Target.Nickname)] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => false
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF()).Where(x => false
 				|| (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit))
-				|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)));
-			await new MultiUserAction(Context, users, bypass).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
+				|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)))
+				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
 
@@ -79,8 +81,9 @@ namespace Advobot.Commands.NicknameModeration
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User).CAF()).Where(x => x.Nickname != null);
-			await new MultiUserAction(Context, users, bypass).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF()).Where(x => x.Nickname != null)
+				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
 }

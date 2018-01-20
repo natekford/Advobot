@@ -152,7 +152,7 @@ namespace Advobot.Core.Classes.Punishments
 			if (_Time > 0 && _Timers != null)
 			{
 				//Removing the punishments via the timers in whatever time is set
-				_Timers.AddRemovablePunishment(new RemovablePunishment(type, guild, user, _Time));
+				_Timers.Add(new RemovablePunishment(type, guild, user, _Time));
 				sb.Append($"They will be {_Removal[type]} in {_Time} minutes. ");
 			}
 			if (reason.Reason != null)

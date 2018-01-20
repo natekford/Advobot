@@ -317,7 +317,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			var info = _Timers.GetSlowmodeUser(user);
 			if (info == null)
 			{
-				_Timers.AddSlowmodeUser(info = new SlowmodeUserInfo(user, slowmode.BaseMessages, slowmode.Interval));
+				_Timers.Add(info = new SlowmodeUserInfo(user, slowmode.BaseMessages, slowmode.Interval));
 			}
 			if (info.MessagesLeft > 0)
 			{
@@ -340,7 +340,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				var spamUser = _Timers.GetSpamPreventionUser(user);
 				if (spamUser == null)
 				{
-					_Timers.AddSpamPreventionUser(spamUser = new SpamPreventionUserInfo(user));
+					_Timers.Add(spamUser = new SpamPreventionUserInfo(user));
 				}
 
 				var spam = false;

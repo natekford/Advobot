@@ -355,7 +355,7 @@ namespace Advobot.Core.Classes
 			{
 				return "`Nothing`";
 			}
-			else if (value is ISetting setting)
+			else if (value is IGuildSetting setting)
 			{
 				return setting.ToString();
 			}

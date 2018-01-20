@@ -15,7 +15,7 @@ namespace Advobot.Core.Services.GuildSettings
 
 		public GuildSettingsHolder(IServiceProvider provider) { }
 
-		public Task RemoveGuild(ulong guildId)
+		public Task Remove(ulong guildId)
 		{
 			if (_GuildSettings.ContainsKey(guildId) && !_GuildSettings.TryRemove(guildId, out var value))
 			{
@@ -23,7 +23,7 @@ namespace Advobot.Core.Services.GuildSettings
 			}
 			return Task.FromResult(0);
 		}
-		public Task<IGuildSettings> GetOrCreateSettings(IGuild guild)
+		public Task<IGuildSettings> GetOrCreate(IGuild guild)
 		{
 			if (guild == null)
 			{
@@ -37,17 +37,17 @@ namespace Advobot.Core.Services.GuildSettings
 			}
 			return Task.FromResult(settings);
 		}
-		public IEnumerable<IGuildSettings> GetAllSettings()
+		public IEnumerable<IGuildSettings> GetAll()
 		{
 			return _GuildSettings.Values;
 		}
 
-		public bool TryGetSettings(ulong guildId, out IGuildSettings settings)
+		public bool TryGet(ulong guildId, out IGuildSettings settings)
 		{
 			return _GuildSettings.TryGetValue(guildId, out settings);
 		}
 
-		public bool ContainsGuild(ulong guildId)
+		public bool Contains(ulong guildId)
 		{
 			return _GuildSettings.ContainsKey(guildId);
 		}

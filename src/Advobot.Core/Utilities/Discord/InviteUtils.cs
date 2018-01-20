@@ -23,7 +23,6 @@ namespace Advobot.Core.Utilities
 					   ? new List<IInviteMetadata>().AsReadOnly()
 					   : (await guild.GetInvitesAsync().CAF()).ToList().AsReadOnly();
 		}
-
 		/// <summary>
 		/// Tries to find the invite a user joined on.
 		/// </summary>
@@ -80,7 +79,6 @@ namespace Advobot.Core.Utilities
 			}
 			return joinInv;
 		}
-
 		/// <summary>
 		/// Creates an invite with the supplied arguments.
 		/// </summary>
@@ -91,8 +89,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="isUnique"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<IInviteMetadata> CreateInviteAsync(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary,
-			bool isUnique, ModerationReason reason)
+		public static async Task<IInviteMetadata> CreateInviteAsync(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary, bool isUnique, ModerationReason reason)
 		{
 			return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, reason.CreateRequestOptions()).CAF();
 		}

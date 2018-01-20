@@ -184,7 +184,7 @@ namespace Advobot.Commands.ChannelModeration
 				var embed = new EmbedWrapper
 				{
 					Title = $"Overwrite On {channel.Format()}",
-					Description = $"Role:** `{role.Format()}`\n```{OverwriteUtils.GetFormattedPermsFromOverwrite(channel, role)}```",
+					Description = $"Role:** `{role.Format()}`\n```{channel.FormatOverwritePerms(role)}```",
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -201,7 +201,7 @@ namespace Advobot.Commands.ChannelModeration
 				var embed = new EmbedWrapper
 				{
 					Title = $"Overwrite On {channel.Format()}",
-					Description = $"User:** `{user.Format()}`\n```{OverwriteUtils.GetFormattedPermsFromOverwrite(channel, user)}```",
+					Description = $"User:** `{user.Format()}`\n```{channel.FormatOverwritePerms(user)}```",
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -223,7 +223,7 @@ namespace Advobot.Commands.ChannelModeration
 			await CommandRunner(action, channel, user, permissions).CAF();
 		}
 
-		private async Task CommandRunner(PermValue action, IGuildChannel channel, object discordObject, ulong permissions)
+		private async Task CommandRunner<T>(PermValue action, IGuildChannel channel, T discordObject, ulong permissions) where T : ISnowflakeEntity
 		{
 			var actionStr = "";
 			switch (action)
@@ -264,7 +264,7 @@ namespace Advobot.Commands.ChannelModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel)
 		{
-			await CommandRunner(inputChannel, outputChannel, null).CAF();
+			await CommandRunner(inputChannel, outputChannel, default(IGuildUser)).CAF();
 		}
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
@@ -279,7 +279,7 @@ namespace Advobot.Commands.ChannelModeration
 			await CommandRunner(inputChannel, outputChannel, user).CAF();
 		}
 
-		private async Task CommandRunner(IGuildChannel inputChannel, IGuildChannel outputChannel, object discordObject)
+		private async Task CommandRunner<T>(IGuildChannel inputChannel, IGuildChannel outputChannel, T discordObject) where T : ISnowflakeEntity
 		{
 			//Make sure channels are the same type
 			if (inputChannel.GetType() != outputChannel.GetType())
@@ -426,7 +426,7 @@ namespace Advobot.Commands.ChannelModeration
 			}
 
 			var channel = channels.First();
-			var result = channel.VerifyChannelMeetsRequirements(context, new[] { ObjectVerification.CanBeManaged });
+			var result = channel.Verify(context, new[] { ObjectVerification.CanBeManaged });
 			if (!result.IsSuccess)
 			{
 				await MessageUtils.SendErrorMessageAsync(context, new Error(result.ErrorReason)).CAF();

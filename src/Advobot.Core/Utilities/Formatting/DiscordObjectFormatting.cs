@@ -163,6 +163,20 @@ namespace Advobot.Core.Utilities.Formatting
 			return "**Current Game:** `N/A`";
 		}
 		/// <summary>
+		/// Returns the channel perms gotten from <see cref="GetFilteredChannelOverwritePermissions"/> formatted with their perm value in front of the perm name.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="channel"></param>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		public static string FormatOverwritePerms<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
+		{
+			var overwrite = channel.PermissionOverwrites.FirstOrDefault(x => x.TargetId == obj.Id);
+			var perms = OverwriteUtils.GetFilteredChannelOverwritePermissions(overwrite, channel);
+			var maxLen = perms.Keys.Max(x => x.Length);
+			return String.Join("\n", perms.Select(x => $"{x.Key.PadRight(maxLen)} {x.Value}"));
+		}
+		/// <summary>
 		/// Replaces everyone/here mentions with a non pinging version and removes \tts.
 		/// </summary>
 		/// <param name="guild"></param>

@@ -23,10 +23,10 @@ namespace Advobot.Commands.BotSettings
 		"Cannot modify settings through this command if they are lists.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotSettings : SavingModuleBase
+	public sealed class ModifyBotSettings : AdvobotSavingModuleBase
 	{
 		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]
-		public sealed class Modify : SavingModuleBase
+		public sealed class Modify : AdvobotSavingModuleBase
 		{
 			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task CommandShardCount(uint shardCount)
@@ -108,7 +108,7 @@ namespace Advobot.Commands.BotSettings
 			}
 		}
 		[Group(nameof(Clear)), ShortAlias(nameof(Clear))]
-		public sealed class Clear : SavingModuleBase
+		public sealed class Clear : AdvobotSavingModuleBase
 		{
 			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task CommandShardCount()

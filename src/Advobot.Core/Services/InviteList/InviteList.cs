@@ -14,25 +14,24 @@ namespace Advobot.Core.Services.InviteList
 
 		public InviteList(IServiceProvider provider) { }
 
-		public bool AddInvite(ListedInvite invite)
+		public bool Add(ListedInvite invite)
 		{
 			return _Invites.TryAdd(invite.Guild.Id, invite);
 		}
-
-		public bool RemoveInvite(IGuild guild)
+		public bool Remove(IGuild guild)
 		{
 			return _Invites.TryRemove(guild.Id, out var invite);
 		}
-
-		public IReadOnlyList<ListedInvite> GetInvites()
+		public IEnumerable<ListedInvite> GetAll()
 		{
-			return _Invites.Values.OrderByDescending(x => x.LastBumped).ToList().AsReadOnly();
+			return _Invites.Values.OrderByDescending(x => x.LastBumped);
 		}
-
-		public IReadOnlyList<ListedInvite> GetInvites(params string[] keywords)
+		public IEnumerable<ListedInvite> GetAll(params string[] keywords)
 		{
-			return _Invites.Values.Where(x => x.Keywords.Intersect(keywords, StringComparer.OrdinalIgnoreCase).Any())
-					   .OrderByDescending(x => x.LastBumped).ToList().AsReadOnly();
+			return _Invites.Values.Where(x =>
+			{
+				return x.Keywords.Intersect(keywords, StringComparer.OrdinalIgnoreCase).Any();
+			}).OrderByDescending(x => x.LastBumped);
 		}
 	}
 }

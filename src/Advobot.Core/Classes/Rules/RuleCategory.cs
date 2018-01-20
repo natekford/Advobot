@@ -10,7 +10,7 @@ namespace Advobot.Core.Classes.Rules
 	/// <summary>
 	/// Holds a bunch of strings representing rules.
 	/// </summary>
-	public class RuleCategory : ISetting
+	public class RuleCategory : IGuildSetting
 	{
 		[JsonProperty]
 		public string Name { get; private set; }

@@ -22,7 +22,7 @@ namespace Advobot.Commands.SelfRoles
 		"Add and Remove modify a single role in a group.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifySelfRoles : SavingModuleBase
+	public sealed class ModifySelfRoles : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(uint groupNumber)

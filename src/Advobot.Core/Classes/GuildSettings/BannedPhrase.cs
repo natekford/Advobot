@@ -14,7 +14,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Holds a phrase and punishment.
 	/// </summary>
-	public class BannedPhrase : ISetting
+	public class BannedPhrase : IGuildSetting
 	{
 		[JsonProperty]
 		public string Phrase { get; }

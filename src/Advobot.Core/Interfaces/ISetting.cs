@@ -5,7 +5,7 @@ namespace Advobot.Core.Interfaces
 	/// <summary>
 	/// Formatting for a class defined as a setting.
 	/// </summary>
-	public interface ISetting
+	public interface IGuildSetting
 	{
 		/// <summary>
 		/// Returns the setting in a human readable format.

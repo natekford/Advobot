@@ -14,7 +14,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Notification that gets sent whenever certain events happen depending on what <see cref="GuildNotificationType"/> is linked to this notification.
 	/// </summary>
-	public class GuildNotification : ISetting, IPostDeserialize
+	public class GuildNotification : IGuildSetting, IPostDeserialize
 	{
 		public const string USER_MENTION = "%USERMENTION%";
 		public const string USER_STRING = "%USER%";

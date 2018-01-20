@@ -45,22 +45,6 @@ namespace Advobot.Core.Utilities
 				.AddSingleton<IInviteListService>(x => new InviteList(x)));
 		}
 		/// <summary>
-		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
-		/// </summary>
-		/// <param name="botSettings">The settings to initialize the client with.</param>
-		/// <returns>A discord client.</returns>
-		internal static IDiscordClient CreateDiscordClient(IBotSettings botSettings)
-		{
-			var config = new DiscordSocketConfig
-			{
-				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
-				MessageCacheSize = botSettings.MessageCacheCount,
-				LogLevel = botSettings.LogLevel,
-				TotalShards = botSettings.ShardCount,
-			};
-			return botSettings.ShardCount > 1 ? new DiscordShardedClient(config) : (IDiscordClient)new DiscordSocketClient(config);
-		}
-		/// <summary>
 		/// Creates the <see cref="CommandService"/> for the bot. Add in typereaders and modules.
 		/// </summary>
 		/// <returns></returns>
@@ -89,6 +73,22 @@ namespace Advobot.Core.Utilities
 			await cmds.AddModulesAsync(Constants.COMMAND_ASSEMBLY).CAF();
 
 			return cmds;
+		}
+		/// <summary>
+		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
+		/// </summary>
+		/// <param name="botSettings">The settings to initialize the client with.</param>
+		/// <returns>A discord client.</returns>
+		internal static IDiscordClient CreateDiscordClient(IBotSettings botSettings)
+		{
+			var config = new DiscordSocketConfig
+			{
+				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
+				MessageCacheSize = botSettings.MessageCacheCount,
+				LogLevel = botSettings.LogLevel,
+				TotalShards = botSettings.ShardCount,
+			};
+			return botSettings.ShardCount > 1 ? new DiscordShardedClient(config) : (IDiscordClient)new DiscordSocketClient(config);
 		}
 		/// <summary>
 		/// Creates settings that the bot uses.

@@ -118,7 +118,6 @@ namespace Advobot.Core.Utilities
 		{
 			return enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
 		}
-
 		/// <summary>
 		/// Verifies all characters in the string have a value of a less than the upperlimit.
 		/// </summary>
@@ -260,7 +259,6 @@ namespace Advobot.Core.Utilities
 			}
 			return objects;
 		}
-
 		/// <summary>
 		/// Returns all public properties that have a set method.
 		/// </summary>
@@ -286,7 +284,6 @@ namespace Advobot.Core.Utilities
 					&& !pt.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 			}).ToArray();
 		}
-
 		/// <summary>
 		/// Short way to write <see cref="Task.ConfigureAwait(false)"/>.
 		/// </summary>

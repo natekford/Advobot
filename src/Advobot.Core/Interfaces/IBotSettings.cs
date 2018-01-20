@@ -36,7 +36,7 @@ namespace Advobot.Core.Interfaces
 		/// </summary>
 		/// <param name="bypass"></param>
 		/// <returns></returns>
-		int GetMaxAmountOfUsersToGather(bool bypass);
+		int GetUserGatherCount(bool bypass);
 
 		/// <summary>
 		/// Returns a string of all the bot's settings in a human readable format.

@@ -71,15 +71,15 @@ namespace Advobot.Core.Classes.Attributes
 			}
 			else if (value is IGuildChannel guildChannel)
 			{
-				result = guildChannel.VerifyChannelMeetsRequirements(context, Checks);
+				result = guildChannel.Verify(context, Checks);
 			}
 			else if (value is IGuildUser guildUser)
 			{
-				result = guildUser.VerifyUserMeetsRequirements(context, Checks);
+				result = guildUser.Verify(context, Checks);
 			}
 			else if (value is IRole role)
 			{
-				result = role.VerifyRoleMeetsRequirements(context, Checks);
+				result = role.Verify(context, Checks);
 			}
 			else
 			{

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Advobot.Core.Classes.Rules
 {
-	public class RuleHolder : ISetting
+	public class RuleHolder : IGuildSetting
 	{
 		[JsonProperty("Categories")]
 		private List<RuleCategory> _Categories = new List<RuleCategory>();

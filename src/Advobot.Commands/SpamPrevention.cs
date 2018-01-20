@@ -18,7 +18,7 @@ namespace Advobot.Commands.SpamPrevention
 		"`Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventSpam : SavingModuleBase
+	public sealed class PreventSpam : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -81,7 +81,7 @@ namespace Advobot.Commands.SpamPrevention
 		"`Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventRaid : SavingModuleBase
+	public sealed class PreventRaid : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -127,7 +127,7 @@ namespace Advobot.Commands.SpamPrevention
 			if (raidType == RaidType.Regular)
 			{
 				//Mute the newest joining users
-				var users = (await Context.Guild.GetUsersAndOrderByJoinAsync().CAF()).Reverse().ToArray();
+				var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).Reverse().ToArray();
 				for (int i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
 				{
 					await raidPrev.PunishAsync(Context.GuildSettings, users[i]).CAF();

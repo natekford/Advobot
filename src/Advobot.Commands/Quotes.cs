@@ -18,7 +18,7 @@ namespace Advobot.Commands.Quotes
 	[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyQuotes : SavingModuleBase
+	public sealed class ModifyQuotes : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(string name, [Remainder] string text)
@@ -102,7 +102,7 @@ namespace Advobot.Commands.Quotes
 			{
 				var text = $"Did you mean any of the following:\n{closeQuotes.List.FormatNumberedList("{0}", x => x.Word.Name)}";
 				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
-				await Context.Timers.AddActiveCloseQuote(Context.User as IGuildUser, msg, closeQuotes).CAF();
+				await Context.Timers.Add(Context.User as IGuildUser, msg, closeQuotes).CAF();
 				return;
 			}
 

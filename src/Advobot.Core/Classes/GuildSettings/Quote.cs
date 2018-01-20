@@ -7,7 +7,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Holds a name and description.
 	/// </summary>
-	public class Quote : ISetting, IDescription
+	public class Quote : IGuildSetting, IDescription
 	{
 		[JsonProperty]
 		public string Name { get; }

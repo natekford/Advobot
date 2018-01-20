@@ -10,7 +10,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Holds a variety of information which allows a punishment to be given for <see cref="BannedPhrase"/>.
 	/// </summary>
-	public class BannedPhrasePunishment : ISetting
+	public class BannedPhrasePunishment : IGuildSetting
 	{
 		[JsonProperty]
 		public PunishmentType Punishment { get; }

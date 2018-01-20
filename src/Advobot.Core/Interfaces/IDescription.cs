@@ -1,7 +1,7 @@
 ﻿namespace Advobot.Core.Interfaces
 {
 	/// <summary>
-	/// Signifies the object has a name and description.
+	/// An object which has a name and a description.
 	/// </summary>
 	public interface IDescription
 	{

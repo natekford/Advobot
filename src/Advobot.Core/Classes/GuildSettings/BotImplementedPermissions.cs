@@ -8,7 +8,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Extra permissions within the bot given to a user on a guild.
 	/// </summary>
-	public class BotImplementedPermissions : ISetting
+	public class BotImplementedPermissions : IGuildSetting
 	{
 		[JsonProperty]
 		public ulong UserId { get; }

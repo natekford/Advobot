@@ -9,7 +9,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Roles which are given back to users when they rejoin a guild.
 	/// </summary>
-	public class PersistentRole : ISetting
+	public class PersistentRole : IGuildSetting
 	{
 		[JsonProperty]
 		public ulong UserId { get; }

@@ -121,7 +121,7 @@ namespace Advobot.Core.Utilities
 			var secondMessage = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr).CAF();
 			if (time > 0 && timers != null)
 			{
-				timers.AddRemovableMessage(new RemovableMessage(time, new[] { message, secondMessage }));
+				timers.Add(new RemovableMessage(time, new[] { message, secondMessage }));
 			}
 		}
 		/// <summary>
@@ -141,7 +141,6 @@ namespace Advobot.Core.Utilities
 			var content = $"**ERROR:** {error.Reason}";
 			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, content, time, context.Timers).CAF();
 		}
-
 		/// <summary>
 		/// Returns true if no error occur.
 		/// </summary>
@@ -199,7 +198,6 @@ namespace Advobot.Core.Utilities
 
 			return error.Reason == null;
 		}
-
 		/// <summary>
 		/// Gets the given count of messages from a channel.
 		/// </summary>

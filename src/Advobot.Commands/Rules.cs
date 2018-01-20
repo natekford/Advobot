@@ -16,7 +16,7 @@ namespace Advobot.Commands.Rules
 	[Summary("Modifies the rule categories which hold rules.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyRuleCategories : SavingModuleBase
+	public sealed class ModifyRuleCategories : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add([VerifyStringLength(Target.RuleCategory)] string name)
@@ -54,7 +54,7 @@ namespace Advobot.Commands.Rules
 	[Summary("Modifies the rules which are saved in the bot settings.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyRules : SavingModuleBase
+	public sealed class ModifyRules : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(RuleCategory category, [VerifyStringLength(Target.Rule)] string rule)

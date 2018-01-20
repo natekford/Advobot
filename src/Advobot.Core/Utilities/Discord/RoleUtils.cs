@@ -24,8 +24,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="target"></param>
 		/// <param name="checks"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult VerifyRoleMeetsRequirements(this IRole target, ICommandContext context,
-			IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult Verify(this IRole target, ICommandContext context, IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{
@@ -72,7 +71,6 @@ namespace Advobot.Core.Utilities
 
 			return new VerifiedObjectResult(target, null, null);
 		}
-
 		/// <summary>
 		/// Makes sure the guild has a mute role, if not creates one. Also updates all the permisions on the channels so the mute
 		/// role remains effective.
@@ -83,7 +81,7 @@ namespace Advobot.Core.Utilities
 		public static async Task<IRole> GetMuteRoleAsync(ICommandContext context, IGuildSettings guildSettings)
 		{
 			var muteRole = guildSettings.MuteRole;
-			if (!VerifyRoleMeetsRequirements(muteRole, context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
+			if (!Verify(muteRole, context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
 			{
 				muteRole = await context.Guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0)).CAF();
 				guildSettings.MuteRole = muteRole;
@@ -152,7 +150,6 @@ namespace Advobot.Core.Utilities
 		{
 			await user.RemoveRolesAsync(roles, reason.CreateRequestOptions()).CAF();
 		}
-
 		/// <summary>
 		/// Changes the role's permissions by allowing or denying the supplied change value from them.
 		/// </summary>
@@ -161,8 +158,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="changeValue"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static async Task<IEnumerable<string>> ModifyRolePermissionsAsync(IRole role, PermValue permValue, ulong changeValue,
-			IGuildUser user)
+		public static async Task<IEnumerable<string>> ModifyRolePermissionsAsync(IRole role, PermValue permValue, ulong changeValue, IGuildUser user)
 		{
 			var roleBits = role.Permissions.RawValue;
 			switch (permValue)

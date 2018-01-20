@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Groups self assignable roles together.
 	/// </summary>
-	public class SelfAssignableRoles : ISetting, IPostDeserialize
+	public class SelfAssignableRoles : IGuildSetting, IPostDeserialize
 	{
 		[JsonProperty]
 		public int Group { get; }

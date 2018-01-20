@@ -135,15 +135,15 @@ namespace Advobot.Core.Services.Timers
 			GetOutTimedObjects(_SlowmodeUsers);
 		}
 
-		public void AddRemovablePunishment(RemovablePunishment punishment)
+		public void Add(RemovablePunishment punishment)
 		{
 			Add(_RemovablePunishments, new UserKey(punishment.Guild, punishment.User, punishment.Time.Ticks), punishment);
 		}
-		public void AddRemovableMessage(RemovableMessage message)
+		public void Add(RemovableMessage message)
 		{
 			Add(_RemovableMessages, new ChannelKey(message.Channel, message.Time.Ticks), message);
 		}
-		public async Task AddActiveCloseHelp(IGuildUser user, IUserMessage msg, CloseWords<HelpEntry> helpEntries)
+		public async Task Add(IGuildUser user, IUserMessage msg, CloseWords<HelpEntry> helpEntries)
 		{
 			//Remove all older ones; only one can be active at a given time.
 			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.UserId == user.Id))
@@ -152,7 +152,7 @@ namespace Advobot.Core.Services.Timers
 			}
 			Add(_ActiveCloseHelp, new UserKey(user, helpEntries.Time.Ticks), new CloseWordsWrapper<HelpEntry>(helpEntries, msg));
 		}
-		public async Task AddActiveCloseQuote(IGuildUser user, IUserMessage msg, CloseWords<Quote> quotes)
+		public async Task Add(IGuildUser user, IUserMessage msg, CloseWords<Quote> quotes)
 		{
 			///Remove all older ones; only one can be active at a given time.
 			foreach (var kvp in _ActiveCloseQuotes.Where(x => x.Key.UserId == user.Id))
@@ -161,11 +161,11 @@ namespace Advobot.Core.Services.Timers
 			}
 			Add(_ActiveCloseQuotes, new UserKey(user, quotes.Time.Ticks), new CloseWordsWrapper<Quote>(quotes, msg));
 		}
-		public void AddSpamPreventionUser(SpamPreventionUserInfo user)
+		public void Add(SpamPreventionUserInfo user)
 		{
 			Add(_SpamPreventionUsers, new UserKey(user), user);
 		}
-		public void AddSlowmodeUser(SlowmodeUserInfo user)
+		public void Add(SlowmodeUserInfo user)
 		{
 			Add(_SlowmodeUsers, new UserKey(user), user);
 		}

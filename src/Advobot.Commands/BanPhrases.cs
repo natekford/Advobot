@@ -89,10 +89,10 @@ namespace Advobot.Commands.BanPhrases
 		"Banned names ban users if they join and they have them in their name.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyBannedPhrases : SavingModuleBase
+	public sealed class ModifyBannedPhrases : AdvobotSavingModuleBase
 	{
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
-		public sealed class Regex : SavingModuleBase
+		public sealed class Regex : AdvobotSavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -130,7 +130,7 @@ namespace Advobot.Commands.BanPhrases
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added the regex `{regex}`.").CAF();
 			}
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-			public sealed class Remove : SavingModuleBase
+			public sealed class Remove : AdvobotSavingModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
@@ -145,7 +145,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
-		public sealed class String : SavingModuleBase
+		public sealed class String : AdvobotSavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -159,7 +159,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-			public sealed class Remove : SavingModuleBase
+			public sealed class Remove : AdvobotSavingModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
@@ -174,7 +174,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 		}
 		[Group(nameof(Name)), ShortAlias(nameof(Name))]
-		public sealed class Name : SavingModuleBase
+		public sealed class Name : AdvobotSavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -188,7 +188,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-			public sealed class Remove : SavingModuleBase
+			public sealed class Remove : AdvobotSavingModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
@@ -257,10 +257,10 @@ namespace Advobot.Commands.BanPhrases
 		"`Show` lists the punishments of whatever type was specified.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyPunishmentType : SavingModuleBase
+	public sealed class ModifyPunishmentType : AdvobotSavingModuleBase
 	{
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
-		public sealed class Regex : SavingModuleBase
+		public sealed class Regex : AdvobotSavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -279,7 +279,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
-		public sealed class String : SavingModuleBase
+		public sealed class String : AdvobotSavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -344,7 +344,7 @@ namespace Advobot.Commands.BanPhrases
 		"Time is in minutes.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyBannedPhrasePunishments : SavingModuleBase
+	public sealed class ModifyBannedPhrasePunishments : AdvobotSavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -357,7 +357,7 @@ namespace Advobot.Commands.BanPhrases
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
-		public sealed class Add : SavingModuleBase
+		public sealed class Add : AdvobotSavingModuleBase
 		{
 			[Command]
 			public async Task Command(PunishmentType punishment, uint position, [Optional] uint time)
