@@ -13,7 +13,8 @@ namespace Advobot.Core.Classes.Attributes
 	public sealed class VerifyNumberAttribute : ParameterPreconditionAttribute
 	{
 		public ImmutableArray<int> ValidNumbers { get; }
-		public bool Range { get; }
+		public int Start { get; }
+		public int End { get; }
 
 		public VerifyNumberAttribute(int[] numbers)
 		{
@@ -23,12 +24,19 @@ namespace Advobot.Core.Classes.Attributes
 			}
 
 			ValidNumbers = numbers.OrderBy(x => x).ToImmutableArray();
-			Range = false;
+			Start = int.MaxValue;
+			End = int.MinValue;
 		}
+		/// <summary>
+		/// Valid numbers can start at <paramref name="start"/> inclusive or end at <paramref name="end"/> inclusive.
+		/// </summary>
+		/// <param name="start"></param>
+		/// <param name="end"></param>
 		public VerifyNumberAttribute(int start, int end)
 		{
-			ValidNumbers = Enumerable.Range(start, end - start).ToImmutableArray();
-			Range = true;
+			ValidNumbers = new int[0].ToImmutableArray();
+			Start = start;
+			End = end;
 		}
 
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
@@ -38,28 +46,33 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-
-			if (!(value is int num))
+			else if (!int.TryParse(value.ToString(), out var num))
 			{
-				throw new NotSupportedException($"{nameof(VerifyNumberAttribute)} only supports {nameof(UInt32)}.");
+				throw new NotSupportedException($"{nameof(VerifyNumberAttribute)} only supports {nameof(Int32)}.");
 			}
-
-			return ValidNumbers.Contains(num)
-				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{String.Join("`, `", ValidNumbers)}`"));
+			else if (ValidNumbers.Any())
+			{
+				return ValidNumbers.Contains((int)num)
+					? Task.FromResult(PreconditionResult.FromSuccess())
+					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{String.Join("`, `", ValidNumbers)}`"));
+			}
+			else
+			{
+				return num >= Start && num <= End
+					? Task.FromResult(PreconditionResult.FromSuccess())
+					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{Start}` and `{End}`."));
+			}				
 		}
 
 		public override string ToString()
 		{
-			if (!Range)
+			if (!ValidNumbers.Any())
 			{
-				return $"({String.Join(", ", ValidNumbers)})";
+				return $"({Start} to {End})";
 			}
 			else
 			{
-				var first = ValidNumbers.First();
-				var last = ValidNumbers.Last();
-				return $"({first} to {last})";
+				return $"({String.Join(", ", ValidNumbers)}";
 			}
 		}
 	}

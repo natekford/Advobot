@@ -27,7 +27,7 @@ namespace Advobot.Core.Classes.Punishments
 		{
 			var ban = (await guild.GetBansAsync().CAF()).SingleOrDefault(x => x.User.Id == userId);
 			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions()).CAF();
-			After(PunishmentType.Ban, guild, ban.User, reason);
+			After(PunishmentType.Ban, guild, ban?.User, reason);
 		}
 		/// <summary>
 		/// Removes the mute role from the user.
@@ -39,7 +39,7 @@ namespace Advobot.Core.Classes.Punishments
 		public async Task UnrolemuteAsync(IGuildUser user, IRole role, ModerationReason reason)
 		{
 			await RoleUtils.TakeRolesAsync(user, new[] { role }, reason).CAF();
-			After(PunishmentType.RoleMute, user.Guild, user, reason);
+			After(PunishmentType.RoleMute, user?.Guild, user, reason);
 		}
 		/// <summary>
 		/// Unmutes a user from voice chat.
@@ -49,8 +49,8 @@ namespace Advobot.Core.Classes.Punishments
 		/// <returns></returns>
 		public async Task UnvoicemuteAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Mute = false, reason.CreateRequestOptions()).CAF();
-			After(PunishmentType.VoiceMute, user.Guild, user, reason);
+			await user?.ModifyAsync(x => x.Mute = false, reason.CreateRequestOptions()).CAF();
+			After(PunishmentType.VoiceMute, user?.Guild, user, reason);
 		}
 		/// <summary>
 		/// Undeafens a user from voice chat.
@@ -60,14 +60,14 @@ namespace Advobot.Core.Classes.Punishments
 		/// <returns></returns>
 		public async Task UndeafenAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Deaf = false, reason.CreateRequestOptions()).CAF();
-			After(PunishmentType.Deafen, user.Guild, user, reason);
+			await user?.ModifyAsync(x => x.Deaf = false, reason.CreateRequestOptions()).CAF();
+			After(PunishmentType.Deafen, user?.Guild, user, reason);
 		}
 
 		protected override void After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason)
 		{
-			var sb = new StringBuilder($"Successfully {_Removal[type]} {user.Format()}. ");
-			if (_Timers != null && _Timers.RemovePunishments(user.Id, type) > 0)
+			var sb = new StringBuilder($"Successfully {_Removal[type]} {user?.Format() ?? "`Unknown User`"}. ");
+			if (_Timers != null && _Timers.RemovePunishments(user?.Id ?? 0, type) > 0)
 			{
 				sb.Append($"Removed all timed {type.EnumName().FormatTitle().ToLower()} punishments on them. ");
 			}

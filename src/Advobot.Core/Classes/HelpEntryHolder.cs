@@ -24,15 +24,17 @@ namespace Advobot.Core.Classes
 
 		public HelpEntryHolder()
 		{
-			var types = Constants.COMMAND_ASSEMBLY.GetTypes().Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
-			if (!types.Any())
+			var types = Constants.COMMAND_ASSEMBLIES.SelectMany(x => x.GetTypes());
+			var commands = types.Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
+			if (!commands.Any())
 			{
-				ConsoleUtils.WriteLine($"The assembly {Constants.COMMAND_ASSEMBLY.GetName().Name} has no commands. Press any key to close the program.");
+				var assemblyNames = String.Join(", ", Constants.COMMAND_ASSEMBLIES.Select(x => x.GetName().Name));
+				ConsoleUtils.WriteLine($"The following assemblies have no commands: '{assemblyNames}'. Press any key to close the program.");
 				Console.ReadKey();
-				throw new TypeLoadException($"The assembly {Constants.COMMAND_ASSEMBLY.GetName().Name} has no commands.");
+				throw new TypeLoadException($"The following assemblies have no commands: '{assemblyNames}'.");
 			}
 
-			foreach (var t in types)
+			foreach (var t in commands)
 			{
 				var innerMostNameSpace = t.Namespace.Substring(t.Namespace.LastIndexOf('.') + 1);
 				if (!Enum.TryParse(innerMostNameSpace, true, out CommandCategory category))

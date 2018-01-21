@@ -174,7 +174,7 @@ namespace Advobot.Core.Utilities
 			//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
 			using (var writer = crashLogPath.AppendText())
 			{
-				writer.WriteLine($"{TimeFormatting.Readable(DateTime.UtcNow)}: {exception.ToString()}\n");
+				writer.WriteLine($"{DateTime.UtcNow.Readable()}: {exception.ToString()}\n");
 			}
 		}
 	}

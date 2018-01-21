@@ -22,12 +22,11 @@ namespace Advobot.Core.Classes
 		public string Text { get; private set; }
 		public string ErrorReason { get; private set; }
 		public ConsoleColor WriteColor { get; private set; } = ConsoleColor.Green;
-		private Stopwatch Stopwatch;
+		private Stopwatch _Stopwatch = new Stopwatch();
 
 		public LoggedCommand()
 		{
-			Stopwatch = new Stopwatch();
-			Stopwatch.Start();
+			_Stopwatch.Start();
 		}
 
 		/// <summary>
@@ -39,7 +38,7 @@ namespace Advobot.Core.Classes
 			Guild = context.Guild.Format();
 			Channel = context.Channel.Format();
 			User = context.User.Format();
-			Time = TimeFormatting.Readable(context.Message.CreatedAt.UtcDateTime);
+			Time = context.Message.CreatedAt.UtcDateTime.Readable();
 			Text = context.Message.Content;
 		}
 		/// <summary>
@@ -61,7 +60,7 @@ namespace Advobot.Core.Classes
 		{
 			SetContext(context);
 			SetError(result);
-			Stopwatch.Stop();
+			_Stopwatch.Stop();
 		}
 		/// <summary>
 		/// Writes this to the console in whatever color <see cref="WriteColor"/> is.
@@ -149,7 +148,7 @@ namespace Advobot.Core.Classes
 				$"{_Joiner}User: {User}" +
 				$"{_Joiner}Time: {Time}" +
 				$"{_Joiner}Text: {Text}" +
-				$"{_Joiner}Time taken: {Stopwatch.ElapsedMilliseconds}ms";
+				$"{_Joiner}Time taken: {_Stopwatch.ElapsedMilliseconds}ms";
 			return ErrorReason == null ? response : response + $"{_Joiner}Error: {ErrorReason}";
 		}
 	}

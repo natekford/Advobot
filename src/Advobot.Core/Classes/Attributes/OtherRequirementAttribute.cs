@@ -28,7 +28,7 @@ namespace Advobot.Core.Classes.Attributes
 			if (context is IAdvobotCommandContext advobotCommandContext)
 			{
 				var user = context.User as IGuildUser;
-				var permissions = (Requirements & Precondition.UserHasAPerm) != 0;
+				var permissions = (Requirements & Precondition.GenericPerms) != 0;
 				var guildOwner = (Requirements & Precondition.GuildOwner) != 0;
 				var trustedUser = (Requirements & Precondition.TrustedUser) != 0;
 				var botOwner = (Requirements & Precondition.BotOwner) != 0;
@@ -63,7 +63,7 @@ namespace Advobot.Core.Classes.Attributes
 		public override string ToString()
 		{
 			var text = new List<string>();
-			if ((Requirements & Precondition.UserHasAPerm) != 0)
+			if ((Requirements & Precondition.GenericPerms) != 0)
 			{
 				text.Add("Administrator | Any perm ending with 'Members' | Any perm starting with 'Manage'");
 			}

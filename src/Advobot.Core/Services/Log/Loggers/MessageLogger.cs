@@ -38,7 +38,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		{
 			//For some meme server
 			var guild = message.GetGuild();
-			if (guild.Id == 294173126697418752)
+			if (guild?.Id == 294173126697418752)
 			{
 				var author = message.Author as IGuildUser;
 				if (author.Username != "jeff" && author.Nickname != "jeff" && guild.GetBot().GetIfCanModifyUser(author))

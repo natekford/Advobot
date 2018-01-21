@@ -150,23 +150,23 @@ namespace Advobot.Core.Services.Timers
 		{
 			Add(_RemovableMessages, new ChannelKey(message.Channel, message.Time.Ticks), message);
 		}
-		public async Task Add(IGuildUser user, IUserMessage msg, CloseWords<HelpEntry> helpEntries)
+		public async Task Add(IGuildUser author, IUserMessage botMessage, CloseWords<HelpEntry> helpEntries)
 		{
 			//Remove all older ones; only one can be active at a given time.
-			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.UserId == user.Id))
+			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.UserId == author.Id))
 			{
 				await MessageUtils.DeleteMessageAsync(Remove(_ActiveCloseHelp, kvp.Key).Message, _CloseHelpReason).CAF();
 			}
-			Add(_ActiveCloseHelp, new UserKey(user, helpEntries.Time.Ticks), new CloseWordsWrapper<HelpEntry>(helpEntries, msg));
+			Add(_ActiveCloseHelp, new UserKey(author, helpEntries.Time.Ticks), new CloseWordsWrapper<HelpEntry>(helpEntries, botMessage));
 		}
-		public async Task Add(IGuildUser user, IUserMessage msg, CloseWords<Quote> quotes)
+		public async Task Add(IGuildUser author, IUserMessage botMessage, CloseWords<Quote> quotes)
 		{
 			///Remove all older ones; only one can be active at a given time.
-			foreach (var kvp in _ActiveCloseQuotes.Where(x => x.Key.UserId == user.Id))
+			foreach (var kvp in _ActiveCloseQuotes.Where(x => x.Key.UserId == author.Id))
 			{
 				await MessageUtils.DeleteMessageAsync(Remove(_ActiveCloseQuotes, kvp.Key).Message, _CloseQuotesReason).CAF();
 			}
-			Add(_ActiveCloseQuotes, new UserKey(user, quotes.Time.Ticks), new CloseWordsWrapper<Quote>(quotes, msg));
+			Add(_ActiveCloseQuotes, new UserKey(author, quotes.Time.Ticks), new CloseWordsWrapper<Quote>(quotes, botMessage));
 		}
 		public void Add(SpamPreventionUserInfo user)
 		{
@@ -178,6 +178,10 @@ namespace Advobot.Core.Services.Timers
 		}
 		public void Add(TimedMessage message)
 		{
+			foreach (var kvp in _TimedMessages.Where(x => x.Key.UserId == message.Author.Id))
+			{
+				Remove(_TimedMessages, kvp.Key);
+			}
 			Add(_TimedMessages, new UserKey(message.Author, message.Time.Ticks), message);
 		}
 
@@ -191,10 +195,10 @@ namespace Advobot.Core.Services.Timers
 			}
 			return kvps.Count();
 		}
-		public async Task<CloseWords<HelpEntry>> GetOutActiveCloseHelp(IUser user)
+		public async Task<CloseWords<HelpEntry>> GetOutActiveCloseHelp(IGuildUser user)
 		{
 			//Should only ever have one for each user at a time.
-			var kvp = _ActiveCloseHelp.ToList().FirstOrDefault(x => x.Key.UserId == user.Id);
+			var kvp = _ActiveCloseHelp.ToList().FirstOrDefault(x => x.Key.GuildId == user.GuildId && x.Key.UserId == user.Id);
 			if (kvp.Key != null)
 			{
 				var value = Remove(_ActiveCloseHelp, kvp.Key);
@@ -203,10 +207,10 @@ namespace Advobot.Core.Services.Timers
 			}
 			return null;
 		}
-		public async Task<CloseWords<Quote>> GetOutActiveCloseQuote(IUser user)
+		public async Task<CloseWords<Quote>> GetOutActiveCloseQuote(IGuildUser user)
 		{
 			//Should only ever have one for each user at a time.
-			var kvp = _ActiveCloseQuotes.ToList().FirstOrDefault(x => x.Key.UserId == user.Id);
+			var kvp = _ActiveCloseQuotes.ToList().FirstOrDefault(x => x.Key.GuildId == user.GuildId && x.Key.UserId == user.Id);
 			if (kvp.Key != null)
 			{
 				var value = Remove(_ActiveCloseQuotes, kvp.Key);
@@ -217,7 +221,7 @@ namespace Advobot.Core.Services.Timers
 		}
 		public SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user)
 		{
-			var kvp = _SpamPreventionUsers.ToList().FirstOrDefault(x => x.Key.UserId == user.Id);
+			var kvp = _SpamPreventionUsers.ToList().FirstOrDefault(x => x.Key.GuildId == user.GuildId && x.Key.UserId == user.Id);
 			return kvp.Equals(default) ? null : kvp.Value;
 		}
 		public IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild)
@@ -226,7 +230,7 @@ namespace Advobot.Core.Services.Timers
 		}
 		public SlowmodeUserInfo GetSlowmodeUser(IGuildUser user)
 		{
-			var kvp = _SlowmodeUsers.ToList().FirstOrDefault(x => x.Key.UserId == user.Id);
+			var kvp = _SlowmodeUsers.ToList().FirstOrDefault(x => x.Key.GuildId == user.GuildId && x.Key.UserId == user.Id);
 			return kvp.Equals(default) ? null : kvp.Value;
 		}
 

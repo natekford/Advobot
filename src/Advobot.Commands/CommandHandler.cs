@@ -87,20 +87,25 @@ namespace Advobot.Commands
 		}
 		private static async Task OnMessageReceived(SocketMessage message)
 		{
-			await EventUtils.OnMessageReceived(message, _BotSettings, await _GuildSettings.GetOrCreate(message.GetGuild()), _Timers).CAF();
+			var guild = message.GetGuild();
+			if (guild == null)
+			{
+				return;
+			}
+			await EventUtils.OnMessageReceived(message, _BotSettings, await _GuildSettings.GetOrCreate(guild), _Timers).CAF();
 		}
 
 		private static async Task HandleCommand(SocketMessage message)
 		{
 			//Bot isn't paused and the message isn't a system message
 			var loggedCommand = new LoggedCommand();
-			if (_BotSettings.Pause || !(message is SocketUserMessage userMessage))
+			if (_BotSettings.Pause || !(message is SocketUserMessage userMessage) || !(message.Channel is IGuildChannel channel))
 			{
 				return;
 			}
 
 			//Guild settings
-			var guildSettings = await _GuildSettings.GetOrCreate(message.Channel.GetGuild()).CAF();
+			var guildSettings = await _GuildSettings.GetOrCreate(channel.Guild).CAF();
 			if (guildSettings == null)
 			{
 				return;

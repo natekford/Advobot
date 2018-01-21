@@ -124,7 +124,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. " +
 		"FieldInfo can have up to 25 arguments supplied. " +
 		"Each must be formatted like the following: `" + CustomEmbed.FORMAT + "`.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class MakeAnEmbed : AdvobotModuleBase
 	{
@@ -136,11 +136,11 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(MentionRole)), TopLevelShortAlias(typeof(MentionRole))]
+	[Group(nameof(MessageRole)), TopLevelShortAlias(typeof(MessageRole))]
 	[Summary("Mention an unmentionable role with the given message.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class MentionRole : AdvobotModuleBase
+	public sealed class MessageRole : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string message)
@@ -163,25 +163,41 @@ namespace Advobot.Commands.Miscellaneous
 	[Group(nameof(MessageBotOwner)), TopLevelShortAlias(typeof(MessageBotOwner))]
 	[Summary("Sends a message to the bot owner with the given text. " +
 		"Messages will be cut down to 250 characters.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
 	public sealed class MessageBotOwner : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder] string message)
 		{
-			var cut = message.Substring(0, Math.Min(message.Length, 250));
-			var newMsg = $"From `{Context.User.Format()}` in `{Context.Guild.Format()}`:\n```\n{cut}```";
-
-			var owner = await ClientUtils.GetBotOwnerAsync(Context.Client).CAF();
-			if (owner != null)
+			if (Context.BotSettings.UsersUnableToDMOwner.Contains(Context.User.Id))
 			{
-				await owner.SendMessageAsync(newMsg).CAF();
+				return;
+			}
+
+			if (await ClientUtils.GetBotOwnerAsync(Context.Client).CAF() is IUser owner)
+			{
+				var cut = message.Substring(0, Math.Min(message.Length, 250));
+				await owner.SendMessageAsync($"From `{Context.User.Format()}` in `{Context.Guild.Format()}`:\n```\n{cut}```").CAF();
 			}
 			else
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The owner is unable to be gotten.")).CAF();
 			}
+		}
+	}
+
+	[Group(nameof(SendTimedMessage)), TopLevelShortAlias(typeof(SendTimedMessage))]
+	[Summary("Sends a message to the person who said the command after the passed in time is up. " +
+		"Potentially may take one minute longer than asked for if the command is input at certain times.")]
+	[DefaultEnabled(true)]
+	public sealed class SendTimedMessage : AdvobotModuleBase
+	{
+		[Command]
+		public async Task Command([VerifyNumber(1, 10000)] uint minutes, [Remainder] string message)
+		{
+			Context.Timers.Add(new TimedMessage(Context.User as IGuildUser, TimeSpan.FromMinutes(minutes), message));
+			await MessageUtils.SendMessageAsync(Context.Channel, $"Will send the message in around `{minutes}` minute(s).").CAF();
 		}
 	}
 
@@ -194,7 +210,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command()
 		{
-			await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, $"Test").CAF();
 		}
 	}
 }

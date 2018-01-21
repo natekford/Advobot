@@ -53,7 +53,7 @@ namespace Advobot.Commands.GuildList
 
 	[Group(nameof(BumpGuildListing)), TopLevelShortAlias(typeof(BumpGuildListing))]
 	[Summary("Bumps the invite on the guild.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
 	public sealed class BumpGuildListing : AdvobotModuleBase
 	{

@@ -105,12 +105,12 @@ namespace Advobot.Core
 			".gif",
 			".gifv",
 		}));
-		private static HelpEntryHolder _HELP;
-		public static HelpEntryHolder HELP_ENTRIES => _HELP ?? (_HELP = new HelpEntryHolder());
-		private static Assembly _CMD_ASSEMBLY;
-		public static Assembly COMMAND_ASSEMBLY => _CMD_ASSEMBLY ?? (_CMD_ASSEMBLY = GetCommandAssembly());
+		private static ImmutableArray<Assembly> _ASSEMBLIES;
+		public static ImmutableArray<Assembly> COMMAND_ASSEMBLIES => _ASSEMBLIES != null ? _ASSEMBLIES : (_ASSEMBLIES = GetCommandAssemblies());
 		private static ImmutableDictionary<string, Color> _COLORS;
 		public static ImmutableDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = GetColorDictionary());
+		private static HelpEntryHolder _HELP;
+		public static HelpEntryHolder HELP_ENTRIES => _HELP ?? (_HELP = new HelpEntryHolder());
 
 		//Colors for logging embeds
 		public static Color BASE => new Color(255, 100, 000);
@@ -125,7 +125,7 @@ namespace Advobot.Core
 		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(AdvobotGuildSettings); //IGuildSettings
 		public static Type BOT_SETTINGS_TYPE { get; } = typeof(AdvobotBotSettings); //IBotSettings
 
-		private static Assembly GetCommandAssembly()
+		private static ImmutableArray<Assembly> GetCommandAssemblies()
 		{
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null);
 			if (!assemblies.Any())
@@ -134,14 +134,8 @@ namespace Advobot.Core
 				Console.ReadKey();
 				throw new DllNotFoundException("Unable to find any command assemblies.");
 			}
-			else if (assemblies.Count() > 1)
-			{
-				ConsoleUtils.WriteLine("Too many command assemblies found. Press any key to close the program.");
-				Console.ReadKey();
-				throw new InvalidOperationException("Too many command assemblies found.");
-			}
 
-			return assemblies.Single();
+			return assemblies.ToImmutableArray();
 		}
 		private static ImmutableDictionary<string, Color> GetColorDictionary()
 		{

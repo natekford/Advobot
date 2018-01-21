@@ -58,6 +58,7 @@ namespace Advobot.Core.Utilities
 			cmds.AddTypeReader<Color>(new ColorTypeReader());
 			cmds.AddTypeReader<CommandSwitch>(new CommandSwitchTypeReader());
 			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
+
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()
 				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
@@ -70,7 +71,10 @@ namespace Advobot.Core.Utilities
 			}
 
 			//Add in commands
-			await cmds.AddModulesAsync(Constants.COMMAND_ASSEMBLY).CAF();
+			foreach (var assembly in Constants.COMMAND_ASSEMBLIES)
+			{
+				await cmds.AddModulesAsync(assembly).CAF();
+			}
 
 			return cmds;
 		}

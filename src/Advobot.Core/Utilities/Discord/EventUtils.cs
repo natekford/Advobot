@@ -118,37 +118,42 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task OnMessageReceived(SocketMessage message, IBotSettings botSettings, IGuildSettings settings, ITimersService timers)
 		{
-			if (timers != null && int.TryParse(message.Content, out int number) && number > 0 && number < 7)
+			if (timers == null || int.TryParse(message.Content, out int i) || i < 0 || i > 7 || !(message.Author is IGuildUser user))
 			{
-				--number;
+				return;
+			}
+			--i;
 
-				var quotes = await timers.GetOutActiveCloseQuote(message.Author).CAF();
-				var validQuote = quotes != null && quotes.List.Length > number;
-				var helpEntries = await timers.GetOutActiveCloseHelp(message.Author).CAF();
-				var validHelpEntry = helpEntries != null && helpEntries.List.Length > number;
+			var quotes = await timers.GetOutActiveCloseQuote(user).CAF();
+			var validQuotes = quotes != null && quotes.List.Length > i;
+			if (validQuotes)
+			{
+				var quote = quotes.List[i].Word;
+				var embed = new EmbedWrapper
+				{
+					Title = quote.Name,
+					Description = quote.Description,
+				};
+				embed.TryAddFooter("Quote", null, out var footerErrors);
+				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
+			}
+			var helpEntries = await timers.GetOutActiveCloseHelp(user).CAF();
+			var validHelpEntries = helpEntries != null && helpEntries.List.Length > i;
+			if (validHelpEntries)
+			{
+				var help = helpEntries.List[i].Word;
+				var embed = new EmbedWrapper
+				{
+					Title = help.Name,
+					Description = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, settings.GetPrefix(botSettings)),
+				};
+				embed.TryAddFooter("Help", null, out var footerErrors);
+				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
+			}
 
-				if (validQuote)
-				{
-					await MessageUtils.SendMessageAsync(message.Channel, quotes.List[number].Word.Description).CAF();
-				}
-				if (validHelpEntry)
-				{
-					var help = helpEntries.List[number].Word;
-					var prefix = settings.GetPrefix(botSettings);
-					var desc = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix);
-					var embed = new EmbedWrapper
-					{
-						Title = help.Name,
-						Description = desc,
-					};
-					embed.TryAddFooter("Help", null, out var footerErrors);
-					await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
-				}
-
-				if (validQuote || validHelpEntry)
-				{
-					await MessageUtils.DeleteMessageAsync(message, new ModerationReason("help entry or quote")).CAF();
-				}
+			if (validQuotes || validHelpEntries)
+			{
+				await MessageUtils.DeleteMessageAsync(message, new ModerationReason("help entry or quote")).CAF();
 			}
 		}
 	}

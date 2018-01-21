@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using Discord;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,19 +16,20 @@ namespace Advobot.Core.Classes.CloseWords
 	{
 		private static TimeSpan _DefaultTimeSpan = TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT);
 
-		public ImmutableArray<CloseWord<T>> List { get; protected set; }
+		public ImmutableArray<CloseWord<T>> List { get; }
 		public DateTime Time { get; }
+
 		protected int _MaxAllowedCloseness = 4;
 		protected int _MaxOutput = 5;
 
-		public CloseWords(IEnumerable<T> suppliedObjects, string input, TimeSpan time = default)
+		public CloseWords(IEnumerable<T> objects, string input, TimeSpan time = default)
 		{
-			List = GetObjectsWithSimilarNames(suppliedObjects, input).ToImmutableArray();
+			List = GetObjectsWithSimilarNames(objects, input).ToImmutableArray();
 			Time = DateTime.UtcNow.Add(time.Equals(default) ? _DefaultTimeSpan : time);
 		}
 
 		protected abstract int FindCloseness(T obj, string input);
-		protected List<CloseWord<T>> GetObjectsWithSimilarNames(IEnumerable<T> suppliedObjects, string input)
+		private List<CloseWord<T>> GetObjectsWithSimilarNames(IEnumerable<T> suppliedObjects, string input)
 		{
 			var closeWords = new List<CloseWord<T>>();
 			//First loop around to find words that are similar
@@ -136,7 +138,7 @@ namespace Advobot.Core.Classes.CloseWords
 			int result = dCurrent[maxi];
 			return (result > threshold) ? int.MaxValue : result;
 		}
-		protected void Swap<T2>(ref T2 arg1, ref T2 arg2)
+		private void Swap<T2>(ref T2 arg1, ref T2 arg2)
 		{
 			T2 temp = arg1;
 			arg1 = arg2;

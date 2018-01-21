@@ -116,7 +116,7 @@ namespace Advobot.Commands.Gets
 		"`Count` specifies if to say the count. " +
 		"`Nickname` specifies if to include nickanmes. " +
 		"`Exact` specifies if only exact matches apply.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class GetUsersWithReason : AdvobotModuleBase
 	{
@@ -230,7 +230,7 @@ namespace Advobot.Commands.Gets
 
 	[Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(typeof(GetUserJoinedAt))]
 	[Summary("Shows the user which joined the guild in that position.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class GetUserJoinedAt : AdvobotModuleBase
 	{
@@ -285,7 +285,7 @@ namespace Advobot.Commands.Gets
 
 	[Group(nameof(GetUserJoinList)), TopLevelShortAlias(typeof(GetUserJoinList))]
 	[Summary("Lists most of the users who have joined the guild.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class GetUserJoinList : AdvobotModuleBase
 	{
@@ -295,14 +295,14 @@ namespace Advobot.Commands.Gets
 			var users = await Context.Guild.GetUsersByJoinDateAsync().CAF();
 			var text = users.FormatNumberedList("`{0}` joined on `{1}`",
 				x => x.Format(),
-				x => TimeFormatting.Readable(x.JoinedAt.Value.UtcDateTime));
+				x => x.JoinedAt.Value.UtcDateTime.Readable());
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "User_Joins_").CAF();
 		}
 	}
 
 	[Group(nameof(GetEmotes)), TopLevelShortAlias(typeof(GetEmotes))]
 	[Summary("Lists the emotes in the guild.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class GetEmotes : AdvobotModuleBase
 	{
@@ -371,7 +371,7 @@ namespace Advobot.Commands.Gets
 
 	[Group(nameof(GetPermNamesFromValue)), TopLevelShortAlias(typeof(GetPermNamesFromValue))]
 	[Summary("Lists all the perms that come from the given value.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class GetPermNamesFromValue : AdvobotModuleBase
 	{
@@ -407,7 +407,7 @@ namespace Advobot.Commands.Gets
 
 	[Group(nameof(GetEnumNames)), TopLevelShortAlias(typeof(GetEnumNames))]
 	[Summary("Prints out all the options of an enum.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class GetEnumNames : AdvobotModuleBase
 	{

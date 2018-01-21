@@ -15,7 +15,7 @@ namespace Advobot.Commands.InviteModeration
 {
 	[Group(nameof(DisplayInvites)), TopLevelShortAlias(typeof(DisplayInvites))]
 	[Summary("Gives a list of all the instant invites on the guild.")]
-	[OtherRequirement(Precondition.UserHasAPerm)]
+	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayInvites : AdvobotModuleBase
 	{
