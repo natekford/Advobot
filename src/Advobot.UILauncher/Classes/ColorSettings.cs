@@ -106,13 +106,13 @@ namespace Advobot.UILauncher.Classes
 		/// </summary>
 		public void SaveSettings()
 		{
-			IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC), IOUtils.Serialize(this));
+			IOUtils.OverwriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC), IOUtils.Serialize(this));
 		}
 
 		public static ColorSettings LoadUISettings()
 		{
 			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC);
-			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings), true);
+			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings), create: true);
 		}
 
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)

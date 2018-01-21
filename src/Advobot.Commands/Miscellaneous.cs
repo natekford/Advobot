@@ -9,6 +9,7 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 

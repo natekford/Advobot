@@ -102,7 +102,7 @@ namespace Advobot.Core.Utilities
 		internal static IBotSettings CreateBotSettings()
 		{
 			var path = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
-			var botSettings = IOUtils.DeserializeFromFile<IBotSettings>(path, Constants.BOT_SETTINGS_TYPE, true);
+			var botSettings = IOUtils.DeserializeFromFile<IBotSettings>(path, Constants.BOT_SETTINGS_TYPE, create: true);
 			botSettings.SaveSettings();
 			return botSettings;
 		}
@@ -115,7 +115,7 @@ namespace Advobot.Core.Utilities
 		internal static IGuildSettings CreateGuildSettings(SocketGuild guild)
 		{
 			var path = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOC);
-			var guildSettings = IOUtils.DeserializeFromFile<IGuildSettings>(path, Constants.GUILD_SETTINGS_TYPE, true);
+			var guildSettings = IOUtils.DeserializeFromFile<IGuildSettings>(path, Constants.GUILD_SETTINGS_TYPE, create: true);
 			guildSettings.SaveSettings();
 			guildSettings.PostDeserialize(guild);
 			return guildSettings;

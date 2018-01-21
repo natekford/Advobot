@@ -247,7 +247,7 @@ namespace Advobot.Core.Classes
 		}
 		public void SaveSettings()
 		{
-			IOUtils.OverWriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
+			IOUtils.OverwriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
 		}
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{

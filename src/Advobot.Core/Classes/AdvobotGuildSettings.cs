@@ -406,39 +406,39 @@ namespace Advobot.Core.Classes
 			switch (logChannelType)
 			{
 				case LogChannelType.Server:
+				{
+					if (_ServerLogId == (channel?.Id ?? 0))
 					{
-						if (_ServerLogId == (channel?.Id ?? 0))
-						{
-							return false;
-						}
-
-						ServerLog = channel;
-						return true;
+						return false;
 					}
+
+					ServerLog = channel;
+					return true;
+				}
 				case LogChannelType.Mod:
+				{
+					if (_ModLogId == (channel?.Id ?? 0))
 					{
-						if (_ModLogId == (channel?.Id ?? 0))
-						{
-							return false;
-						}
-
-						ModLog = channel;
-						return true;
+						return false;
 					}
+
+					ModLog = channel;
+					return true;
+				}
 				case LogChannelType.Image:
+				{
+					if (_ImageLogId == (channel?.Id ?? 0))
 					{
-						if (_ImageLogId == (channel?.Id ?? 0))
-						{
-							return false;
-						}
+						return false;
+					}
 
-						ImageLog = channel;
-						return true;
-					}
+					ImageLog = channel;
+					return true;
+				}
 				default:
-					{
-						throw new ArgumentException("invalid type", nameof(channel));
-					}
+				{
+					throw new ArgumentException("invalid type", nameof(channel));
+				}
 			}
 		}
 		public void SaveSettings()
@@ -448,7 +448,7 @@ namespace Advobot.Core.Classes
 				return;
 			}
 
-			IOUtils.OverWriteFile(IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOC), IOUtils.Serialize(this));
+			IOUtils.OverwriteFile(IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOC), IOUtils.Serialize(this));
 		}
 		public void PostDeserialize(SocketGuild guild)
 		{
@@ -470,7 +470,7 @@ namespace Advobot.Core.Classes
 				{
 					Invites.AddRange(cached);
 				}
-#if DEBUG
+#if false
 				ConsoleUtils.WriteLine($"Invites for {guild.Name} have been gotten.");
 #endif
 			});

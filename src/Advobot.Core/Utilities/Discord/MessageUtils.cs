@@ -75,7 +75,7 @@ namespace Advobot.Core.Utilities
 			var fullFileName = fileName + TimeFormatting.Saving() + Constants.GENERAL_FILE_EXTENSION;
 			var fileInfo = IOUtils.GetServerDirectoryFile(channel.GetGuild()?.Id ?? 0, fullFileName);
 
-			IOUtils.OverWriteFile(fileInfo, text.RemoveAllMarkdown());
+			IOUtils.OverwriteFile(fileInfo, text.RemoveAllMarkdown());
 			var msg = await channel.SendFileAsync(fileInfo.FullName, String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**").CAF();
 			IOUtils.DeleteFile(fileInfo);
 			return msg;

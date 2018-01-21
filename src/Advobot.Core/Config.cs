@@ -129,14 +129,14 @@ namespace Advobot.Core
 		/// <returns></returns>
 		private static ConfigDict LoadConfigDictionary()
 		{
-			return IOUtils.DeserializeFromFile<ConfigDict>(new FileInfo(_SavePath), typeof(ConfigDict), true);
+			return IOUtils.DeserializeFromFile<ConfigDict>(new FileInfo(_SavePath), typeof(ConfigDict), create: true);
 		}
 		/// <summary>
 		/// Writes the current <see cref="ConfigDict"/> to file.
 		/// </summary>
 		public static void Save()
 		{
-			IOUtils.OverWriteFile(new FileInfo(_SavePath), IOUtils.Serialize(Configuration));
+			IOUtils.OverwriteFile(new FileInfo(_SavePath), IOUtils.Serialize(Configuration));
 		}
 
 		/// <summary>

@@ -67,7 +67,7 @@ namespace Advobot.UILauncher.Utilities
 
 			try
 			{
-				IOUtils.OverWriteFile(fi, text);
+				IOUtils.OverwriteFile(fi, text);
 				return ToolTipReason.FileSavingSuccess;
 			}
 			catch
