@@ -18,7 +18,7 @@ using System.Timers;
 namespace Advobot.Core.Services.Timers
 {
 	//I have absolutely no idea if this class works as intended under stress.
-	internal sealed class Timers : ITimersService
+	internal sealed class TimersSservice : ITimersService
 	{
 		private Timer _HourTimer = new Timer(60 * 60 * 1000);
 		private Timer _MinuteTimer = new Timer(60 * 1000);
@@ -37,7 +37,7 @@ namespace Advobot.Core.Services.Timers
 		private ConcurrentDictionary<UserKey, SlowmodeUserInfo> _SlowmodeUsers = new ConcurrentDictionary<UserKey, SlowmodeUserInfo>();
 		private ConcurrentDictionary<UserKey, TimedMessage> _TimedMessages = new ConcurrentDictionary<UserKey, TimedMessage>();
 
-		public Timers(IServiceProvider provider)
+		public TimersSservice(IServiceProvider provider)
 		{
 			_PunishmentRemover = new PunishmentRemover(this);
 

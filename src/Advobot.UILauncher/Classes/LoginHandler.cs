@@ -49,7 +49,7 @@ namespace Advobot.UILauncher.Classes
 		{
 			if (Config.ValidatePath(path, startup))
 			{
-				var provider = await ServiceProviderCreationUtils.CreateServiceProvider().CAF();
+				var provider = await CreationUtils.CreateServiceProvider().CAF();
 				CommandHandler.Install(provider);
 				return provider;
 			}

@@ -22,7 +22,7 @@ namespace Advobot.Core.Utilities
 	/// <summary>
 	/// Actions creating the services for the main <see cref="IServiceProvider"/>.
 	/// </summary>
-	public static class ServiceProviderCreationUtils
+	public static class CreationUtils
 	{
 		/// <summary>
 		/// Creates services the bot uses. Such as <see cref="IBotSettings"/>, <see cref="IGuildSettingsService"/>, <see cref="IDiscordClient"/>,
@@ -39,10 +39,10 @@ namespace Advobot.Core.Utilities
 				.AddSingleton<CommandService>(commandService)
 				.AddSingleton<IBotSettings>(botSettings)
 				.AddSingleton<IDiscordClient>(client)
-				.AddSingleton<IGuildSettingsService>(x => new GuildSettingsHolder(x))
-				.AddSingleton<ITimersService>(x => new Timers(x))
-				.AddSingleton<ILogService>(x => new Log(x))
-				.AddSingleton<IInviteListService>(x => new InviteList(x)));
+				.AddSingleton<IGuildSettingsService>(x => new GuildSettingsService(x))
+				.AddSingleton<ITimersService>(x => new TimersSservice(x))
+				.AddSingleton<ILogService>(x => new LogService(x))
+				.AddSingleton<IInviteListService>(x => new InviteListService(x)));
 		}
 		/// <summary>
 		/// Creates the <see cref="CommandService"/> for the bot. Add in typereaders and modules.
@@ -102,7 +102,7 @@ namespace Advobot.Core.Utilities
 		internal static IBotSettings CreateBotSettings()
 		{
 			var path = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
-			var botSettings = IOUtils.DeserializeFromFile<IBotSettings>(path, Constants.BOT_SETTINGS_TYPE, create: true);
+			var botSettings = IOUtils.DeserializeFromFile<IBotSettings>(path, Config.BotSettingsType, create: true);
 			botSettings.SaveSettings();
 			return botSettings;
 		}
@@ -115,7 +115,7 @@ namespace Advobot.Core.Utilities
 		internal static IGuildSettings CreateGuildSettings(SocketGuild guild)
 		{
 			var path = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOC);
-			var guildSettings = IOUtils.DeserializeFromFile<IGuildSettings>(path, Constants.GUILD_SETTINGS_TYPE, create: true);
+			var guildSettings = IOUtils.DeserializeFromFile<IGuildSettings>(path, Config.GuildSettingsType, create: true);
 			guildSettings.SaveSettings();
 			guildSettings.PostDeserialize(guild);
 			return guildSettings;

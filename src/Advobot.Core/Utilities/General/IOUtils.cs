@@ -1,13 +1,10 @@
-﻿using Advobot.Core.Enums;
-using Advobot.Core.Utilities.Formatting;
+﻿using Advobot.Core.Utilities.Formatting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace Advobot.Core.Utilities
 {
@@ -16,7 +13,7 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class IOUtils
 	{
-		private static JsonSerializerSettings _DefaultSerializingSettings = new JsonSerializerSettings
+		internal static JsonSerializerSettings DefaultSerializingSettings = new JsonSerializerSettings
 		{
 			//Ignores errors parsing specific invalid properties instead of throwing exceptions making the entire object null
 			//Will still make the object null if the property's type is changed to something not creatable from the text
@@ -26,7 +23,7 @@ namespace Advobot.Core.Utilities
 #if DEBUG
 				ConsoleUtils.WriteLine(e.ErrorContext.Error.Message, color: ConsoleColor.Red);
 #endif
-				e.ErrorContext.Handled = true;
+				e.ErrorContext.Handled = false;
 			},
 			Converters = new[] { new StringEnumConverter() },
 		};
@@ -68,8 +65,8 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static DirectoryInfo GetBaseBotDirectory()
 		{
-			return Directory.CreateDirectory(Path.Combine(Config.Configuration[ConfigKey.SavePath],
-						   $"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKey.BotId]}"));
+			return Directory.CreateDirectory(Path.Combine(Config.Configuration[Config.ConfigDict.ConfigKey.SavePath],
+				$"{Constants.SERVER_FOLDER}_{Config.Configuration[Config.ConfigDict.ConfigKey.BotId]}"));
 		}
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\File
@@ -129,7 +126,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static string Serialize(object obj, JsonSerializerSettings settings = null)
 		{
-			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, settings ?? _DefaultSerializingSettings);
+			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, settings ?? DefaultSerializingSettings);
 		}
 		/// <summary>
 		/// Creates an object of type <typeparamref name="T"/> with the supplied string and type.
@@ -141,7 +138,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static T Deserialize<T>(string value, Type type, JsonSerializerSettings settings = null)
 		{
-			return (T)JsonConvert.DeserializeObject(value, type, settings ?? _DefaultSerializingSettings);
+			return (T)JsonConvert.DeserializeObject(value, type, settings ?? DefaultSerializingSettings);
 		}
 		/// <summary>
 		/// Creates an object from JSON stored in a file.
@@ -165,7 +162,7 @@ namespace Advobot.Core.Utilities
 				{
 					using (var reader = new StreamReader(file.FullName))
 					{
-						obj = Deserialize<T>(reader.ReadToEnd(), type, settings ?? _DefaultSerializingSettings);
+						obj = Deserialize<T>(reader.ReadToEnd(), type, settings ?? DefaultSerializingSettings);
 						stillDef = false;
 					}
 					ConsoleUtils.WriteLine($"The {type.Name} file has successfully been loaded.");

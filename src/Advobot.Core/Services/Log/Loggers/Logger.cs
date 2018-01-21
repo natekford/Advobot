@@ -67,7 +67,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			//Only a message will have channel as not null
 			if (channel != null)
 			{
-				var isFromThisBot = user.Id.ToString() == Config.Configuration[ConfigKey.BotId];
+				var isFromThisBot = user.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId];
 				var isFromBot = !isFromThisBot && (user.IsBot || user.IsWebhook);
 				var isOnIgnoredChannel = settings.IgnoredLogChannels.Contains(channel.Id);
 				switch (logAction)
@@ -87,7 +87,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			//After a message, only a user will have user as not null
 			else if (user != null)
 			{
-				var isFromThisBot = user.Id.ToString() == Config.Configuration[ConfigKey.BotId];
+				var isFromThisBot = user.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId];
 				var isFromBot = !isFromThisBot && (user.IsBot || user.IsWebhook);
 				switch (logAction)
 				{

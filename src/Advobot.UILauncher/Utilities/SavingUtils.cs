@@ -56,7 +56,7 @@ namespace Advobot.UILauncher.Utilities
 				//Make sure the guild info stays valid
 				try
 				{
-					var throwaway = JsonConvert.DeserializeObject(text, Constants.GUILD_SETTINGS_TYPE);
+					var throwaway = JsonConvert.DeserializeObject(text, Config.GuildSettingsType);
 				}
 				catch (JsonReaderException jre)
 				{

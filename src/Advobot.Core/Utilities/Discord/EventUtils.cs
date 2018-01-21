@@ -24,9 +24,9 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task OnConnected(IDiscordClient client, IBotSettings botSettings)
 		{
-			if (Config.Configuration[ConfigKey.BotId] != client.CurrentUser.Id.ToString())
+			if (Config.Configuration[Config.ConfigDict.ConfigKey.BotId] != client.CurrentUser.Id.ToString())
 			{
-				Config.Configuration[ConfigKey.BotId] = client.CurrentUser.Id.ToString();
+				Config.Configuration[Config.ConfigDict.ConfigKey.BotId] = client.CurrentUser.Id.ToString();
 				Config.Save();
 				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
 				ClientUtils.RestartBot();
@@ -99,7 +99,7 @@ namespace Advobot.Core.Utilities
 		public static async Task OnUserLeft(SocketGuildUser user, IBotSettings botSettings, IGuildSettings settings, ITimersService timers)
 		{
 			//Check if the bot was the one that left
-			if (settings == null || user.Id.ToString() == Config.Configuration[ConfigKey.BotId])
+			if (settings == null || user.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId])
 			{
 				return;
 			}

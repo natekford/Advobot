@@ -9,11 +9,11 @@ using Discord.WebSocket;
 
 namespace Advobot.Core.Services.GuildSettings
 {
-	internal sealed class GuildSettingsHolder : IGuildSettingsService
+	internal sealed class GuildSettingsService : IGuildSettingsService
 	{
 		private ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
 
-		public GuildSettingsHolder(IServiceProvider provider) { }
+		public GuildSettingsService(IServiceProvider provider) { }
 
 		public Task Remove(ulong guildId)
 		{
@@ -31,7 +31,7 @@ namespace Advobot.Core.Services.GuildSettings
 			}
 
 			if (!_GuildSettings.TryGetValue(guild.Id, out var settings) &&
-				!_GuildSettings.TryAdd(guild.Id, settings = ServiceProviderCreationUtils.CreateGuildSettings(guild as SocketGuild)))
+				!_GuildSettings.TryAdd(guild.Id, settings = CreationUtils.CreateGuildSettings(guild as SocketGuild)))
 			{
 				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
 			}

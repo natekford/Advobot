@@ -22,7 +22,7 @@ namespace Advobot.ConsoleLauncher
 				savePath = false;
 			}
 
-			var provider = await ServiceProviderCreationUtils.CreateServiceProvider().CAF();
+			var provider = await CreationUtils.CreateServiceProvider().CAF();
 			var client = CommandHandler.Install(provider);
 
 			//Get the bot key

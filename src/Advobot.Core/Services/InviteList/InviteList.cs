@@ -8,11 +8,11 @@ using System.Linq;
 
 namespace Advobot.Core.Services.InviteList
 {
-	internal sealed class InviteList : IInviteListService
+	internal sealed class InviteListService : IInviteListService
 	{
 		private ConcurrentDictionary<ulong, ListedInvite> _Invites = new ConcurrentDictionary<ulong, ListedInvite>();
 
-		public InviteList(IServiceProvider provider) { }
+		public InviteListService(IServiceProvider provider) { }
 
 		public bool Add(ListedInvite invite)
 		{

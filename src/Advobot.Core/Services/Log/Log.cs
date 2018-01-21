@@ -16,7 +16,7 @@ namespace Advobot.Core.Services.Log
 	/// <remarks>
 	/// This is probably the second worst part of the bot, right behind the UI. Slightly ahead of saving settings though.
 	/// </remarks>
-	internal sealed class Log : ILogService
+	internal sealed class LogService : ILogService
 	{
 		private LogCounter[] _LoggedCommands;
 		private LogCounter[] _LoggedUserActions;
@@ -44,7 +44,7 @@ namespace Advobot.Core.Services.Log
 		public IUserLogger UserLogger { get; private set; }
 		public IMessageLogger MessageLogger { get; private set; }
 
-		public Log(IServiceProvider provider)
+		public LogService(IServiceProvider provider)
 		{
 			_LoggedCommands = new[] { AttemptedCommands, SuccessfulCommands, FailedCommands };
 			_LoggedUserActions = new[] { UserJoins, UserLeaves, UserChanges };

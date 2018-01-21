@@ -211,6 +211,8 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command()
 		{
+			var file = new FileInfo(@"C:\Users\Nate\Downloads\test.txt");
+			IOUtils.OverwriteFile(file, IOUtils.Serialize(Context.GuildSettings));
 			await MessageUtils.SendMessageAsync(Context.Channel, $"Test").CAF();
 		}
 	}

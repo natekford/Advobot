@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Core.Classes;
+using Advobot.Core.Interfaces;
 
 namespace Advobot.Core
 {
@@ -21,8 +23,47 @@ namespace Advobot.Core
 		/// </summary>
 		[JsonIgnore]
 		private static string _SavePath = CeateSavePath();
+		/// <summary>
+		/// Holds very low level settings: the bot id, key, and save path.
+		/// </summary>
 		[JsonProperty("Config")]
 		public static ConfigDict Configuration = LoadConfigDictionary();
+		[JsonIgnore]
+		private static Type _GuildSettingsType = typeof(AdvobotGuildSettings);
+		/// <summary>
+		/// The explicit guild settings type to create or deserialize.
+		/// </summary>
+		[JsonIgnore]
+		public static Type GuildSettingsType
+		{
+			get => _GuildSettingsType;
+			set
+			{
+				if (!typeof(IGuildSettings).IsAssignableFrom(value))
+				{
+					throw new ArgumentException($"Must inherit {nameof(IGuildSettings)}.", nameof(GuildSettingsType));
+				}
+				_GuildSettingsType = value;
+			}
+		}
+		[JsonIgnore]
+		private static Type _BotSettingsType = typeof(AdvobotBotSettings);
+		/// <summary>
+		/// The explicit bot settings type to create or deserialize.
+		/// </summary>
+		[JsonIgnore]
+		public static Type BotSettingsType
+		{
+			get => _BotSettingsType;
+			set
+			{
+				if (!typeof(IBotSettings).IsAssignableFrom(value))
+				{
+					throw new ArgumentException($"Must inherit {nameof(IBotSettings)}.", nameof(BotSettingsType));
+				}
+				_BotSettingsType = value;
+			}
+		}
 
 		/// <summary>
 		/// Attempts to set the save path with the given input. Returns a boolean signifying whether the save path is valid or not.
@@ -33,20 +74,18 @@ namespace Advobot.Core
 		/// <returns></returns>
 		public static bool ValidatePath(string input, bool startup)
 		{
-			var path = input ?? Configuration[ConfigKey.SavePath];
+			var path = input ?? Configuration[ConfigDict.ConfigKey.SavePath];
 
-			if (startup)
+			if (startup && !String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 			{
-				if (!String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
-				{
-					return true;
-				}
-
+				return true;
+			}
+			else if (startup)
+			{
 				ConsoleUtils.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
 				return false;
 			}
-
-			if ("appdata".CaseInsEquals(path))
+			else if ("appdata".CaseInsEquals(path))
 			{
 				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			}
@@ -54,7 +93,7 @@ namespace Advobot.Core
 			if (Directory.Exists(path))
 			{
 				ConsoleUtils.WriteLine("Successfully set the save path as " + path);
-				Configuration[ConfigKey.SavePath] = path;
+				Configuration[ConfigDict.ConfigKey.SavePath] = path;
 				Save();
 				return true;
 			}
@@ -71,24 +110,23 @@ namespace Advobot.Core
 		/// <returns>A boolean signifying whether the login was successful or not.</returns>
 		public static async Task<bool> ValidateBotKey(IDiscordClient client, string input, bool startup)
 		{
-			var key = input ?? Configuration[ConfigKey.BotKey];
+			var key = input ?? Configuration[ConfigDict.ConfigKey.BotKey];
 
-			if (startup)
+			if (startup && !String.IsNullOrWhiteSpace(key))
 			{
-				if (!String.IsNullOrWhiteSpace(key))
+				try
 				{
-					try
-					{
-						await ClientUtils.LoginAsync(client, key).CAF();
-						return true;
-					}
-					catch
-					{
-						ConsoleUtils.WriteLine("The given key is no longer valid. Please enter a new valid key:");
-						return false;
-					}
+					await ClientUtils.LoginAsync(client, key).CAF();
+					return true;
 				}
-
+				catch
+				{
+					ConsoleUtils.WriteLine("The given key is no longer valid. Please enter a new valid key:");
+					return false;
+				}
+			}
+			else if (startup)
+			{
 				ConsoleUtils.WriteLine("Please enter the bot's key:");
 				return false;
 			}
@@ -98,7 +136,7 @@ namespace Advobot.Core
 				await ClientUtils.LoginAsync(client, key).CAF();
 
 				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
-				Configuration[ConfigKey.BotKey] = key;
+				Configuration[ConfigDict.ConfigKey.BotKey] = key;
 				Save();
 				return true;
 			}
@@ -157,6 +195,17 @@ namespace Advobot.Core
 			{
 				get => _ConfigDict[key];
 				set => _ConfigDict[key] = value;
+			}
+
+			/// <summary>
+			/// Keys to be used in <see cref="Config.ConfigDict"/>.
+			/// </summary>
+			[Flags]
+			public enum ConfigKey : uint
+			{
+				SavePath = (1U << 0),
+				BotKey = (1U << 1),
+				BotId = (1U << 2),
 			}
 		}
 	}
