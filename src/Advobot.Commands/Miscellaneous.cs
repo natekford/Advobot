@@ -197,7 +197,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command([VerifyNumber(1, 10000)] uint minutes, [Remainder] string message)
 		{
-			Context.Timers.Add(new TimedMessage(Context.User as IGuildUser, TimeSpan.FromMinutes(minutes), message));
+			Context.Timers.Add(new TimedMessage(TimeSpan.FromMinutes(minutes), Context.User as IGuildUser, message));
 			await MessageUtils.SendMessageAsync(Context.Channel, $"Will send the message in around `{minutes}` minute(s).").CAF();
 		}
 	}

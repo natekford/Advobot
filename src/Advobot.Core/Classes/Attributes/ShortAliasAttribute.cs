@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using System;
+using System.Linq;
 
 namespace Advobot.Core.Classes.Attributes
 {
@@ -19,7 +20,7 @@ namespace Advobot.Core.Classes.Attributes
 				throw new ArgumentException("must have at least one capital letter", nameof(name));
 			}
 
-			return initialism.Aliases;
+			return initialism.Aliases.ToArray();
 		}
 	}
 }

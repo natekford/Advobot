@@ -28,7 +28,7 @@ namespace Advobot.Core.Classes
 
 		public string GetPrefix()
 		{
-			return GuildSettings.GetPrefix(BotSettings);
+			return String.IsNullOrWhiteSpace(GuildSettings.Prefix) ? BotSettings.Prefix : GuildSettings.Prefix;
 		}
 	}
 }

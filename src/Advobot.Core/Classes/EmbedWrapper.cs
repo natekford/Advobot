@@ -26,7 +26,7 @@ namespace Advobot.Core.Classes
 		private bool _ThrowOnInvalid;
 
 		private List<EmbedError> _Errors = new List<EmbedError>();
-		public ImmutableArray<EmbedError> Errors => _Errors.ToImmutableArray();
+		public ImmutableList<EmbedError> Errors => _Errors.ToImmutableList();
 		private Dictionary<string, string> _FailedValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		public ImmutableDictionary<string, string> FailedValues => _FailedValues.ToImmutableDictionary();
 

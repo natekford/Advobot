@@ -11,15 +11,15 @@ namespace Advobot.Core.Classes.Punishments
 	/// </summary>
 	public struct RemovableMessage : ITime
 	{
-		public ImmutableArray<IMessage> Messages { get; }
+		public ImmutableList<IMessage> Messages { get; }
 		public ITextChannel Channel { get; }
 		public DateTime Time { get; }
 
-		public RemovableMessage(TimeSpan timeUntilRemoval, params IMessage[] messages)
+		public RemovableMessage(TimeSpan time, params IMessage[] messages)
 		{
-			Messages = messages.ToImmutableArray();
+			Messages = messages.ToImmutableList();
 			Channel = messages.FirstOrDefault().Channel as ITextChannel;
-			Time = DateTime.UtcNow.Add(timeUntilRemoval);
+			Time = DateTime.UtcNow.Add(time);
 		}
 	}
 }

@@ -46,7 +46,7 @@ namespace Advobot.Commands.NicknameModeration
 			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF()).Where(x => false
 				|| (x.Nickname != null && x.Nickname.CaseInsContains(search))
 				|| (x.Nickname == null && x.Username.CaseInsContains(search)))
-				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
@@ -66,7 +66,7 @@ namespace Advobot.Commands.NicknameModeration
 			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF()).Where(x => false
 				|| (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit))
 				|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)))
-				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
@@ -82,7 +82,7 @@ namespace Advobot.Commands.NicknameModeration
 		public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF()).Where(x => x.Nickname != null)
-				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();
 		}
 	}

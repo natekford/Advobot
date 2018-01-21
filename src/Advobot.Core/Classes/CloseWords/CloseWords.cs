@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Discord;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,9 +13,7 @@ namespace Advobot.Core.Classes.CloseWords
 	/// <typeparam name="T"></typeparam>
 	public abstract class CloseWords<T> : ITime where T : IDescription
 	{
-		private static TimeSpan _DefaultTimeSpan = TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT);
-
-		public ImmutableArray<CloseWord<T>> List { get; }
+		public ImmutableList<CloseWord<T>> List { get; }
 		public DateTime Time { get; }
 
 		protected int _MaxAllowedCloseness = 4;
@@ -24,46 +21,11 @@ namespace Advobot.Core.Classes.CloseWords
 
 		public CloseWords(IEnumerable<T> objects, string input, TimeSpan time = default)
 		{
-			List = GetObjectsWithSimilarNames(objects, input).ToImmutableArray();
-			Time = DateTime.UtcNow.Add(time.Equals(default) ? _DefaultTimeSpan : time);
+			List = GetObjectsWithSimilarNames(objects, input).ToImmutableList();
+			Time = DateTime.UtcNow.Add(time.Equals(default) ? TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT) : time);
 		}
 
 		protected abstract int FindCloseness(T obj, string input);
-		private List<CloseWord<T>> GetObjectsWithSimilarNames(IEnumerable<T> suppliedObjects, string input)
-		{
-			var closeWords = new List<CloseWord<T>>();
-			//First loop around to find words that are similar
-			foreach (var word in suppliedObjects)
-			{
-				var closeness = FindCloseness(word, input);
-				if (closeness > _MaxAllowedCloseness)
-				{
-					continue;
-				}
-
-				closeWords.Add(new CloseWord<T>(word, closeness));
-				if (closeWords.Count > _MaxOutput)
-				{
-					closeWords = closeWords.OrderBy(x => x.Closeness).ToList();
-					closeWords.RemoveRange(_MaxOutput, closeWords.Count - _MaxOutput);
-				}
-			}
-
-			//Second loop around to find words that have the search term in them
-			foreach (var word in suppliedObjects.Where(x => x.Name.CaseInsContains(input)))
-			{
-				if (closeWords.Count >= _MaxOutput)
-				{
-					break;
-				}
-				else if (!closeWords.Any(x => x.Word.Name.CaseInsEquals(word.Name)))
-				{
-					closeWords.Add(new CloseWord<T>(word, _MaxAllowedCloseness + 1));
-				}
-			}
-
-			return closeWords;
-		}
 		protected int FindCloseName(string source, string target, int threshold = 10)
 		{
 			/* Damerau Levenshtein Distance: https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
@@ -137,6 +99,41 @@ namespace Advobot.Core.Classes.CloseWords
 
 			int result = dCurrent[maxi];
 			return (result > threshold) ? int.MaxValue : result;
+		}
+		private List<CloseWord<T>> GetObjectsWithSimilarNames(IEnumerable<T> suppliedObjects, string input)
+		{
+			var closeWords = new List<CloseWord<T>>();
+			//First loop around to find words that are similar
+			foreach (var word in suppliedObjects)
+			{
+				var closeness = FindCloseness(word, input);
+				if (closeness > _MaxAllowedCloseness)
+				{
+					continue;
+				}
+
+				closeWords.Add(new CloseWord<T>(word, closeness));
+				if (closeWords.Count > _MaxOutput)
+				{
+					closeWords = closeWords.OrderBy(x => x.Closeness).ToList();
+					closeWords.RemoveRange(_MaxOutput, closeWords.Count - _MaxOutput);
+				}
+			}
+
+			//Second loop around to find words that have the search term in them
+			foreach (var word in suppliedObjects.Where(x => x.Name.CaseInsContains(input)))
+			{
+				if (closeWords.Count >= _MaxOutput)
+				{
+					break;
+				}
+				else if (!closeWords.Any(x => x.Word.Name.CaseInsEquals(word.Name)))
+				{
+					closeWords.Add(new CloseWord<T>(word, _MaxAllowedCloseness + 1));
+				}
+			}
+
+			return closeWords;
 		}
 		private void Swap<T2>(ref T2 arg1, ref T2 arg2)
 		{

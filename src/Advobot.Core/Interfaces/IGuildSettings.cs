@@ -13,7 +13,7 @@ namespace Advobot.Core.Interfaces
 	/// <summary>
 	/// Holds guild settings.
 	/// </summary>
-	public interface IGuildSettings : IPostDeserialize
+	public interface IGuildSettings
 	{
 		//Saved settings
 		GuildNotification WelcomeMessage { get; set; }
@@ -69,23 +69,6 @@ namespace Advobot.Core.Interfaces
 		/// <returns></returns>
 		CommandSwitch GetCommand(string name);
 		/// <summary>
-		/// Sets the specified log type channel to the passed in channel.
-		/// </summary>
-		/// <param name="logChannelType"></param>
-		/// <param name="channel"></param>
-		bool SetLogChannel(LogChannelType type, ITextChannel channel);
-		/// <summary>
-		/// Returns the prefix from the guild settings or bot settings.
-		/// </summary>
-		/// <param name="botSettings"></param>
-		/// <returns></returns>
-		string GetPrefix(IBotSettings botSettings);
-
-		/// <summary>
-		/// Saves the settings to a JSON file.
-		/// </summary>
-		void SaveSettings();
-		/// <summary>
 		/// Returns a string of all the guild's settings in human readable format.
 		/// </summary>
 		/// <returns></returns>
@@ -96,5 +79,20 @@ namespace Advobot.Core.Interfaces
 		/// <param name="property"></param>
 		/// <returns></returns>
 		string Format(PropertyInfo property);
+		/// <summary>
+		/// Sets the specified log type channel to the passed in channel.
+		/// </summary>
+		/// <param name="logChannelType"></param>
+		/// <param name="channel"></param>
+		bool SetLogChannel(LogChannelType type, ITextChannel channel);
+		/// <summary>
+		/// Saves the settings to a JSON file.
+		/// </summary>
+		void SaveSettings();
+		/// <summary>
+		/// Updates certain settings which require a guild to be fully created.
+		/// </summary>
+		/// <param name="guild"></param>
+		void PostDeserialize(SocketGuild guild);
 	}
 }

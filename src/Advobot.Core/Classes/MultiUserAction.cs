@@ -36,7 +36,7 @@ namespace Advobot.Core.Classes
 			_Timers = timers;
 			_Users = users.ToList();
 
-			if (new Random().NextDouble() > .995)
+			if (new Random().NextDouble() > .997)
 			{
 				ConsoleUtils.WriteLine("Multi-user drifting!!");
 			}

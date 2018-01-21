@@ -22,7 +22,7 @@ namespace Advobot.Core.Classes.GuildSettings
 		[JsonProperty("ImmuneRoleIds")]
 		private ulong[] _ImmuneRoleIds;
 		[JsonIgnore]
-		public ImmutableArray<ulong> ImmuneRoleIds => _ImmuneRoleIds.ToImmutableArray();
+		public ImmutableList<ulong> ImmuneRoleIds => _ImmuneRoleIds.ToImmutableList();
 		[JsonIgnore]
 		public bool Enabled;
 

@@ -15,38 +15,21 @@ namespace Advobot.Core.Classes.GuildSettings
 		[JsonProperty]
 		public PunishmentType Punishment { get; }
 		[JsonProperty]
+		public ulong RoleId { get; }
+		[JsonProperty]
 		public int NumberOfRemoves { get; }
 		[JsonProperty]
 		public int PunishmentTime { get; }
-		[JsonProperty]
-		private ulong RoleId;
-		[JsonIgnore]
-		private IRole _Role;
 
-		public BannedPhrasePunishment(PunishmentType punishment, int numberOfRemoves, int punishmentTime)
+		public BannedPhrasePunishment(PunishmentType punishment, int removes, int time)
 		{
 			Punishment = punishment;
-			NumberOfRemoves = numberOfRemoves;
-			PunishmentTime = punishmentTime;
-			RoleId = 0;
+			NumberOfRemoves = removes;
+			PunishmentTime = time;
 		}
-		public BannedPhrasePunishment(IRole role, int numberOfRemobes, int punishmentTime)
+		public BannedPhrasePunishment(IRole role, int removes, int time) : this(PunishmentType.RoleMute, removes, time)
 		{
-			Punishment = PunishmentType.RoleMute;
-			NumberOfRemoves = numberOfRemobes;
-			PunishmentTime = punishmentTime;
 			RoleId = role.Id;
-			_Role = role;
-		}
-
-		/// <summary>
-		/// Gets the role if one exists.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		public IRole GetRole(SocketGuild guild)
-		{
-			return _Role ?? (_Role = guild.GetRole(RoleId));
 		}
 
 		public override string ToString()
@@ -57,7 +40,7 @@ namespace Advobot.Core.Classes.GuildSettings
 		}
 		public string ToString(SocketGuild guild)
 		{
-			var punishment = RoleId == 0 ? Punishment.EnumName() : GetRole(guild).Name;
+			var punishment = RoleId == 0 ? Punishment.EnumName() : guild.GetRole(RoleId).Name;
 			var time = PunishmentTime == 0 ? "" : $" `{PunishmentTime} minutes`";
 			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}

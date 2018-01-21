@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 
 namespace Advobot.Core.Classes
 {
@@ -13,15 +14,9 @@ namespace Advobot.Core.Classes
 	{
 		public string Title { get; private set; }
 		private int _Count = 0;
-		public int Count
-		{
-			get => _Count;
-			private set
-			{
-				_Count = value;
-				NotifyPropertyChanged();
-			}
-		}
+		public int Count => _Count;
+
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		public LogCounter([CallerMemberName] string title = "")
 		{
@@ -30,22 +25,24 @@ namespace Advobot.Core.Classes
 
 		public void Add(int count)
 		{
-			Count += count;
+			Interlocked.Add(ref _Count, count);
+			NotifyPropertyChanged(nameof(Count));
 		}
 		public void Remove(int count)
 		{
-			Count -= count;
+			Interlocked.Add(ref _Count, -count);
+			NotifyPropertyChanged(nameof(Count));
 		}
 		public void Increment()
 		{
-			Add(1);
+			Interlocked.Increment(ref _Count);
+			NotifyPropertyChanged(nameof(Count));
 		}
 		public void Decrement()
 		{
-			Remove(1);
+			Interlocked.Decrement(ref _Count);
+			NotifyPropertyChanged(nameof(Count));
 		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

@@ -28,28 +28,21 @@ namespace Advobot.Core.Interfaces
 		bool Pause { get; set; }
 
 		/// <summary>
-		/// Saves the settings to a JSON file.
-		/// </summary>
-		void SaveSettings();
-		/// <summary>
-		/// Returns <see cref="Int32.MaxValue"/> is bypass is true, otherwise returns whatever botSettings has for MaxUserGatherCount.
-		/// </summary>
-		/// <param name="bypass"></param>
-		/// <returns></returns>
-		int GetUserGatherCount(bool bypass);
-
-		/// <summary>
 		/// Returns a string of all the bot's settings in a human readable format.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		Task<string> Format(IDiscordClient client);
+		Task<string> FormatAsync(IDiscordClient client);
 		/// <summary>
 		/// Returns a string of a bot setting in human readable format.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <param name="property"></param>
 		/// <returns></returns>
-		Task<string> Format(IDiscordClient client, PropertyInfo property);
+		Task<string> FormatAsync(IDiscordClient client, PropertyInfo property);
+		/// <summary>
+		/// Saves the settings to a JSON file.
+		/// </summary>
+		void SaveSettings();
 	}
 }

@@ -34,7 +34,7 @@ namespace Advobot.Core.Classes.Punishments
 
 		protected ITimersService _Timers;
 		protected List<string> _Actions = new List<string>();
-		public ImmutableArray<string> Actions => _Actions.ToImmutableArray();
+		public ImmutableList<string> Actions => _Actions.ToImmutableList();
 
 		public PunishmentBase(ITimersService timers)
 		{

@@ -197,13 +197,13 @@ namespace Advobot.Commands.BotSettings
 		[Command(nameof(All)), ShortAlias(nameof(All))]
 		public async Task All()
 		{
-			var text = await Context.BotSettings.Format(Context.Client).CAF();
+			var text = await Context.BotSettings.FormatAsync(Context.Client).CAF();
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "Bot Settings", "Bot Settings").CAF();
 		}
 		[Command, Priority(0)]
 		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.BotSettingTypeReader))] PropertyInfo settingName)
 		{
-			var desc = await Context.BotSettings.Format(Context.Client, settingName).CAF();
+			var desc = await Context.BotSettings.FormatAsync(Context.Client, settingName).CAF();
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper

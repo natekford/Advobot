@@ -177,11 +177,7 @@ namespace Advobot.Core.Classes
 			PropertyChanged += SaveSettings;
 		}
 
-		public int GetUserGatherCount(bool bypass)
-		{
-			return bypass ? int.MaxValue : MaxUserGatherCount;
-		}
-		public async Task<string> Format(IDiscordClient client)
+		public async Task<string> FormatAsync(IDiscordClient client)
 		{
 			var sb = new StringBuilder();
 			foreach (var property in GetType().GetProperties())
@@ -192,7 +188,7 @@ namespace Advobot.Core.Classes
 					continue;
 				}
 
-				var formatted = await Format(client, property).CAF();
+				var formatted = await FormatAsync(client, property).CAF();
 				if (String.IsNullOrWhiteSpace(formatted))
 				{
 					continue;
@@ -204,50 +200,46 @@ namespace Advobot.Core.Classes
 			}
 			return sb.ToString();
 		}
-		public async Task<string> Format(IDiscordClient client, PropertyInfo property)
+		public async Task<string> FormatAsync(IDiscordClient client, PropertyInfo property)
 		{
 			return await FormatObjectAsync(client, property.GetValue(this)).CAF();
 		}
-		public async Task<string> FormatObjectAsync(IDiscordClient client, object value)
+		public void SaveSettings()
+		{
+			IOUtils.OverwriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
+		}
+
+		private async Task<string> FormatObjectAsync(IDiscordClient client, object value)
 		{
 			if (value == null)
 			{
 				return "`Nothing`";
 			}
-			else if (value is ulong tempUlong)
+			else if (value is ulong ul)
 			{
-				var user = await client.GetUserAsync(tempUlong).CAF();
+				var user = await client.GetUserAsync(ul).CAF();
 				if (user != null)
 				{
 					return $"`{user.Format()}`";
 				}
-
-				var guild = await client.GetGuildAsync(tempUlong).CAF();
+				var guild = await client.GetGuildAsync(ul).CAF();
 				if (guild != null)
 				{
 					return $"`{guild.Format()}`";
 				}
-
-				return tempUlong.ToString();
+				return ul.ToString();
 			}
 			//Because strings are char[] this pointless else if has to be here so it doesn't go into the else if directly below
-			else if (value is string tempStr)
+			else if (value is string str)
 			{
-				return String.IsNullOrWhiteSpace(tempStr) ? "`Nothing`" : $"`{tempStr}`";
+				return String.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
 			}
-			else if (value is IEnumerable tempIEnumerable)
+			else if (value is IEnumerable enumerable)
 			{
-				var text = await Task.WhenAll(tempIEnumerable.Cast<object>().Select(async x => await FormatObjectAsync(client, x).CAF()));
+				var text = await Task.WhenAll(enumerable.Cast<object>().Select(async x => await FormatObjectAsync(client, x).CAF()));
 				return String.Join("\n", text);
 			}
-			else
-			{
-				return $"`{value.ToString()}`";
-			}
-		}
-		public void SaveSettings()
-		{
-			IOUtils.OverwriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC), IOUtils.Serialize(this));
+			return $"`{value.ToString()}`";
 		}
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{

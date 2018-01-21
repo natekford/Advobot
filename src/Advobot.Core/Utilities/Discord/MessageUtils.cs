@@ -1,15 +1,14 @@
-﻿using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
+using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Discord.Commands;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {

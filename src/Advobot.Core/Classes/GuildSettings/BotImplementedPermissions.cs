@@ -15,9 +15,9 @@ namespace Advobot.Core.Classes.GuildSettings
 		[JsonProperty]
 		public ulong Permissions { get; private set; }
 
-		public BotImplementedPermissions(ulong userID, ulong permissions)
+		public BotImplementedPermissions(ulong userId, ulong permissions)
 		{
-			UserId = userID;
+			UserId = userId;
 			Permissions = permissions;
 		}
 

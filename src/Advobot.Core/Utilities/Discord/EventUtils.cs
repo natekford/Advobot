@@ -77,7 +77,8 @@ namespace Advobot.Core.Utilities
 			}
 
 			//Persistent roles
-			var roles = settings.PersistentRoles.Where(x => x.UserId == user.Id).Select(x => x.GetRole(user.Guild)).Where(x => x != null);
+			var roles = settings.PersistentRoles.Where(x => x.UserId == user.Id)
+				.Select(x => user.Guild.GetRole(x.RoleId)).Where(x => x != null);
 			if (roles.Any())
 			{
 				await RoleUtils.GiveRolesAsync(user, roles, new ModerationReason("persistent roles")).CAF();
@@ -86,7 +87,7 @@ namespace Advobot.Core.Utilities
 			//Welcome message
 			if (settings.WelcomeMessage != null)
 			{
-				await settings.WelcomeMessage.SendAsync(user).CAF();
+				await settings.WelcomeMessage.SendAsync(settings.Guild, user).CAF();
 			}
 		}
 		/// <summary>
@@ -107,7 +108,7 @@ namespace Advobot.Core.Utilities
 			//Goodbye message
 			if (settings.GoodbyeMessage != null)
 			{
-				await settings.GoodbyeMessage.SendAsync(user).CAF();
+				await settings.GoodbyeMessage.SendAsync(settings.Guild, user).CAF();
 			}
 		}
 		/// <summary>
@@ -125,7 +126,7 @@ namespace Advobot.Core.Utilities
 			--i;
 
 			var quotes = await timers.GetOutActiveCloseQuote(user).CAF();
-			var validQuotes = quotes != null && quotes.List.Length > i;
+			var validQuotes = quotes != null && quotes.List.Count > i;
 			if (validQuotes)
 			{
 				var quote = quotes.List[i].Word;
@@ -138,14 +139,15 @@ namespace Advobot.Core.Utilities
 				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
 			}
 			var helpEntries = await timers.GetOutActiveCloseHelp(user).CAF();
-			var validHelpEntries = helpEntries != null && helpEntries.List.Length > i;
+			var validHelpEntries = helpEntries != null && helpEntries.List.Count > i;
 			if (validHelpEntries)
 			{
+				var prefix = String.IsNullOrWhiteSpace(settings.Prefix) ? botSettings.Prefix : settings.Prefix;
 				var help = helpEntries.List[i].Word;
 				var embed = new EmbedWrapper
 				{
 					Title = help.Name,
-					Description = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, settings.GetPrefix(botSettings)),
+					Description = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix),
 				};
 				embed.TryAddFooter("Help", null, out var footerErrors);
 				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();

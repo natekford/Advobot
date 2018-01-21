@@ -15,18 +15,11 @@ namespace Advobot.Core.Classes.GuildSettings
 		public ulong UserId { get; }
 		[JsonProperty]
 		public ulong RoleId { get; }
-		[JsonIgnore]
-		private IRole _Role;
 
 		public PersistentRole(ulong userId, IRole role)
 		{
 			UserId = userId;
 			RoleId = role.Id;
-		}
-
-		public IRole GetRole(SocketGuild guild)
-		{
-			return _Role ?? (_Role = guild.GetRole(RoleId));
 		}
 
 		public override string ToString()
@@ -35,9 +28,8 @@ namespace Advobot.Core.Classes.GuildSettings
 		}
 		public string ToString(SocketGuild guild)
 		{
-			var user = guild.GetUser(UserId).Format() ?? UserId.ToString();
-			var role = guild.GetRole(RoleId).Format() ?? RoleId.ToString();
-			return $"**User:** `{user}`\n**Role:** `{role}`";
+			return $"**User:** `{guild.GetUser(UserId)?.Format() ?? UserId.ToString()}`\n" +
+				$"**Role:** `{guild.GetRole(RoleId)?.Format() ?? RoleId.ToString()}`";
 		}
 	}
 }

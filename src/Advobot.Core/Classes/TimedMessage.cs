@@ -12,7 +12,7 @@ namespace Advobot.Core.Classes
 		public DateTime Time { get; }
 		public string Text { get; }
 
-		public TimedMessage(IGuildUser author, TimeSpan time, string text)
+		public TimedMessage(TimeSpan time, IGuildUser author, string text)
 		{
 			Author = author;
 			Time = DateTime.UtcNow.Add(time);

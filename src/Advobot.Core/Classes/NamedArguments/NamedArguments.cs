@@ -15,7 +15,7 @@ namespace Advobot.Core.Classes.NamedArguments
 	/// <typeparam name="T"></typeparam>
 	public class NamedArguments<T> where T : new()
 	{
-		public static ImmutableArray<string> ArgNames { get; }
+		public static ImmutableList<string> ArgNames { get; }
 
 		private static ConstructorInfo _Constructor;
 		private static bool _HasParams;
@@ -66,7 +66,7 @@ namespace Advobot.Core.Classes.NamedArguments
 				//Let params name fall down to here so that it can be shown when ArgNames gets accessed by UsageGenerator
 				argNames.Add(p.Name);
 			}
-			ArgNames = argNames.ToImmutableArray();
+			ArgNames = argNames.ToImmutableList();
 		}
 
 		/// <summary>

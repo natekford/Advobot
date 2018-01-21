@@ -126,7 +126,7 @@ namespace Advobot.Commands.UserModeration
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = (await inputChannel.GetUsersAsync().FlattenAsync().CAF())
-				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).MoveUsersAsync(outputChannel, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
@@ -403,7 +403,7 @@ namespace Advobot.Commands.UserModeration
 
 			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
 				.Where(x => x.RoleIds.Contains(targetRole.Id))
-				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).GiveRolesAsync(givenRole, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
@@ -413,7 +413,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
 				.Where(x => x.RoleIds.Contains(targetRole.Id))
-				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).TakeRolesAsync(takenRole, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
@@ -423,7 +423,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
 				.Where(x => x.RoleIds.Contains(targetRole.Id))
-				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(nickname, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(TakeNickname)), ShortAlias(nameof(TakeNickname))]
@@ -432,7 +432,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
 				.Where(x => x.RoleIds.Contains(targetRole.Id))
-				.Take(Context.BotSettings.GetUserGatherCount(bypass));
+				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();
 		}
 	}

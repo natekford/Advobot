@@ -105,21 +105,21 @@ namespace Advobot.Commands
 			}
 
 			//Guild settings
-			var guildSettings = await _GuildSettings.GetOrCreate(channel.Guild).CAF();
-			if (guildSettings == null)
+			var settings = await _GuildSettings.GetOrCreate(channel.Guild).CAF();
+			if (settings == null)
 			{
 				return;
 			}
 
 			//Prefix
 			var argPos = -1;
-			if (!userMessage.HasStringPrefix(guildSettings.GetPrefix(_BotSettings), ref argPos) &&
+			if (!userMessage.HasStringPrefix(String.IsNullOrWhiteSpace(settings.Prefix) ? _BotSettings.Prefix : settings.Prefix, ref argPos) &&
 				!userMessage.HasMentionPrefix(_Client.CurrentUser, ref argPos))
 			{
 				return;
 			}
 
-			var context = new AdvobotCommandContext(_Provider, guildSettings, _Client, userMessage);
+			var context = new AdvobotCommandContext(_Provider, settings, _Client, userMessage);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 			await loggedCommand.LogCommand(context, result, _Logging).CAF();
 		}

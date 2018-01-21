@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -12,52 +12,33 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Lists an invite for use in <see cref="IInviteListService"/>.
 	/// </summary>
-	public class ListedInvite : IGuildSetting, IPostDeserialize
+	public class ListedInvite : IGuildSetting
 	{
 		[JsonProperty]
-		public string Code { get; private set; }
+		public string Code;
 		[JsonProperty]
-		public IReadOnlyList<string> Keywords { get; private set; }
-		[JsonProperty]
-		public bool HasGlobalEmotes { get; private set; }
+		public string[] Keywords;
+		[JsonIgnore]
+		public string Url => "https://www.discord.gg/" + Code;
+		[JsonIgnore]
+		public SocketGuild Guild { get; private set; }
 		[JsonIgnore]
 		public DateTime LastBumped { get; private set; }
 		[JsonIgnore]
-		public string Url { get; private set; }
-		[JsonIgnore]
-		public SocketGuild Guild { get; private set; }
+		public bool HasGlobalEmotes { get; private set; }
 
 		[JsonConstructor]
 		public ListedInvite(IInvite invite, IEnumerable<string> keywords)
 		{
 			LastBumped = DateTime.UtcNow;
 			Code = invite.Code;
-			Url = "https://www.discord.gg/" + Code;
-			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList().AsReadOnly();
+			Keywords = (keywords ?? Enumerable.Empty<string>()).ToArray();
 		}
 		public ListedInvite(SocketGuild guild, IInvite invite, IEnumerable<string> keywords) : this(invite, keywords)
 		{
 			Guild = guild;
-			HasGlobalEmotes = Guild.HasGlobalEmotes();
 		}
 
-		/// <summary>
-		/// Sets <see cref="Code"/> to <paramref name="code"/> and updates <see cref="Url"/> to have the new code.
-		/// </summary>
-		/// <param name="code"></param>
-		public void UpdateCode(string code)
-		{
-			Code = code;
-			Url = "https://www.discord.gg/" + Code;
-		}
-		/// <summary>
-		/// Sets <see cref="Keywords"/> to <paramref name="keywords"/>.
-		/// </summary>
-		/// <param name="keywords"></param>
-		public void UpdateKeywords(IEnumerable<string> keywords)
-		{
-			Keywords = keywords.ToList().AsReadOnly();
-		}
 		/// <summary>
 		/// Sets <see cref="LastBumped"/> to <see cref="DateTime.UtcNow"/> and checks for global emotes.
 		/// </summary>
@@ -79,8 +60,8 @@ namespace Advobot.Core.Classes.GuildSettings
 		public override string ToString()
 		{
 			return String.IsNullOrWhiteSpace(Code)
-? null
-: $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", Keywords)}`" : "")}";
+				? null
+				: $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", Keywords)}`" : "")}";
 		}
 		public string ToString(SocketGuild guild)
 		{

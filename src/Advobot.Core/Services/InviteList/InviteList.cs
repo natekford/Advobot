@@ -28,10 +28,8 @@ namespace Advobot.Core.Services.InviteList
 		}
 		public IEnumerable<ListedInvite> GetAll(params string[] keywords)
 		{
-			return _Invites.Values.Where(x =>
-			{
-				return x.Keywords.Intersect(keywords, StringComparer.OrdinalIgnoreCase).Any();
-			}).OrderByDescending(x => x.LastBumped);
+			return _Invites.Values.Where(x => x.Keywords.Intersect(keywords, StringComparer.OrdinalIgnoreCase).Any())
+				.OrderByDescending(x => x.LastBumped);
 		}
 	}
 }

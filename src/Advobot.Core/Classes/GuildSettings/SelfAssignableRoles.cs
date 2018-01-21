@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// <summary>
 	/// Groups self assignable roles together.
 	/// </summary>
-	public class SelfAssignableRoles : IGuildSetting, IPostDeserialize
+	public class SelfAssignableRoles : IGuildSetting
 	{
 		[JsonProperty]
 		public int Group { get; }
@@ -22,7 +22,7 @@ namespace Advobot.Core.Classes.GuildSettings
 		[JsonIgnore]
 		private Dictionary<ulong, IRole> _Roles = new Dictionary<ulong, IRole>();
 		[JsonIgnore]
-		public ImmutableArray<IRole> Roles => _Roles.Values.ToImmutableArray();
+		public ImmutableList<IRole> Roles => _Roles.Values.ToImmutableList();
 
 		public SelfAssignableRoles(int group)
 		{

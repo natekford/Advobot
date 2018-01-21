@@ -11,35 +11,26 @@ namespace Advobot.Core.Classes.GuildSettings
 	/// </summary>
 	public class CommandSwitch : IGuildSetting
 	{
-		[JsonProperty]
-		public string Name { get; }
-		[JsonProperty]
-		public bool Value;
-		[JsonIgnore]
-		public ImmutableArray<string> Aliases { get; }
 		[JsonIgnore]
 		public CommandCategory Category { get; }
+		[JsonProperty]
+		public string Name { get; }
 		[JsonIgnore]
-		public string ValueAsString => Value ? "ON" : "OFF";
+		public ImmutableList<string> Aliases { get; }
+		[JsonProperty]
+		public bool Value;
 
-		public CommandSwitch(string name, bool value)
+		public CommandSwitch(HelpEntry helpEntry, bool value)
 		{
-			var helpEntry = Constants.HELP_ENTRIES[name];
-			if (helpEntry == null)
-			{
-				Category = default;
-				return;
-			}
-
-			Name = name;
+			Name = helpEntry?.Name;
 			Value = value;
-			Category = helpEntry.Category;
-			Aliases = helpEntry.Aliases.ToImmutableArray();
+			Category = helpEntry?.Category ?? default;
+			Aliases = helpEntry?.Aliases?.ToImmutableList();
 		}
 
 		public override string ToString()
 		{
-			return $"`{ValueAsString.PadRight(3)}` `{Name}`";
+			return $"`{(Value ? "ON" : "OFF").PadRight(3)}` `{Name}`";
 		}
 		public string ToString(SocketGuild guild)
 		{

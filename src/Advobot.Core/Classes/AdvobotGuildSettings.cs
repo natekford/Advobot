@@ -22,8 +22,8 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.
 	/// </summary>
-	//[JsonConverter(typeof(AdvobotGuildSettingsFixer))] Uncomment if something needs fixing. MAKE SURE TO UPDATE THE FIXES
-	public sealed class AdvobotGuildSettings : IGuildSettings, IPostDeserialize
+	[JsonConverter(typeof(AdvobotGuildSettingsFixer))]
+	public sealed class AdvobotGuildSettings : IGuildSettings
 	{
 		#region Fields and Properties
 		[JsonProperty("WelcomeMessage")]
@@ -313,16 +313,9 @@ namespace Advobot.Core.Classes
 		{
 			return CommandSwitches.Where(x => x.Category == category).ToArray();
 		}
-		public CommandSwitch GetCommand(string commandNameOrAlias)
+		public CommandSwitch GetCommand(string name)
 		{
-			return CommandSwitches.FirstOrDefault(x =>
-			{
-				return x.Name.CaseInsEquals(commandNameOrAlias) || x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias);
-			});
-		}
-		public string GetPrefix(IBotSettings botSettings)
-		{
-			return String.IsNullOrWhiteSpace(Prefix) ? botSettings.Prefix : Prefix;
+			return CommandSwitches.FirstOrDefault(x => x.Name.CaseInsEquals(name) || (x.Aliases?.CaseInsContains(name) ?? false));
 		}
 		public string Format()
 		{
@@ -351,7 +344,82 @@ namespace Advobot.Core.Classes
 		{
 			return Format(property.GetValue(this));
 		}
-		public string Format(object value)
+		public bool SetLogChannel(LogChannelType logChannelType, ITextChannel channel)
+		{
+			switch (logChannelType)
+			{
+				case LogChannelType.Server:
+				{
+					if (_ServerLogId == (channel?.Id ?? 0))
+					{ return false; }
+					ServerLog = channel;
+					return true;
+				}
+				case LogChannelType.Mod:
+				{
+					if (_ModLogId == (channel?.Id ?? 0))
+					{ return false; }
+					ModLog = channel;
+					return true;
+				}
+				case LogChannelType.Image:
+				{
+					if (_ImageLogId == (channel?.Id ?? 0))
+					{ return false; }
+					ImageLog = channel;
+					return true;
+				}
+				default:
+				{
+					throw new ArgumentException("invalid type", nameof(channel));
+				}
+			}
+		}
+		public void SaveSettings()
+		{
+			IOUtils.OverwriteFile(IOUtils.GetServerDirectoryFile(Guild?.Id ?? 0, Constants.GUILD_SETTINGS_LOC), IOUtils.Serialize(this));
+		}
+		public void PostDeserialize(SocketGuild guild)
+		{
+			Guild = guild;
+
+			//Add in the default values for commands that aren't set
+			var unsetCmds = Constants.HELP_ENTRIES.GetUnsetCommands(CommandSwitches.Select(x => x.Name));
+			CommandSwitches.AddRange(unsetCmds.Select(x => new CommandSwitch(x, x.DefaultEnabled)));
+			//Remove all that have no name/aren't commands anymore
+			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			Task.Run(async () =>
+			{
+				var invites = await InviteUtils.GetInvitesAsync(guild).CAF();
+				var cached = invites.Select(x => new CachedInvite(x.Code, x.Uses));
+				lock (Invites)
+				{
+					Invites.AddRange(cached);
+				}
+#if false
+				ConsoleUtils.WriteLine($"Invites for {guild.Name} have been gotten.");
+#endif
+			});
+
+			if (_ListedInvite != null)
+			{
+				_ListedInvite.PostDeserialize(Guild);
+			}
+			if (_SelfAssignableGroups != null)
+			{
+				foreach (var group in _SelfAssignableGroups)
+				{
+					group.PostDeserialize(Guild);
+				}
+			}
+
+			Loaded = true;
+		}
+
+		private string Format(object value)
 		{
 			if (value == null)
 			{
@@ -388,120 +456,14 @@ namespace Advobot.Core.Classes
 			//Has to be above IEnumerable too
 			else if (value is IDictionary dict)
 			{
-				var validKeys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
-				return String.Join("\n", validKeys.Select(x =>
-				{
-					return $"{Format(x)}: {Format(dict[x])}";
-				}));
+				var keys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
+				return String.Join("\n", keys.Select(x => $"{Format(x)}: {Format(dict[x])}"));
 			}
 			else if (value is IEnumerable enumarble)
 			{
 				return String.Join("\n", enumarble.Cast<object>().Select(x => Format(x)));
 			}
-			else
-			{
-				return $"`{value.ToString()}`";
-			}
-		}
-		public bool SetLogChannel(LogChannelType logChannelType, ITextChannel channel)
-		{
-			switch (logChannelType)
-			{
-				case LogChannelType.Server:
-				{
-					if (_ServerLogId == (channel?.Id ?? 0))
-					{
-						return false;
-					}
-
-					ServerLog = channel;
-					return true;
-				}
-				case LogChannelType.Mod:
-				{
-					if (_ModLogId == (channel?.Id ?? 0))
-					{
-						return false;
-					}
-
-					ModLog = channel;
-					return true;
-				}
-				case LogChannelType.Image:
-				{
-					if (_ImageLogId == (channel?.Id ?? 0))
-					{
-						return false;
-					}
-
-					ImageLog = channel;
-					return true;
-				}
-				default:
-				{
-					throw new ArgumentException("invalid type", nameof(channel));
-				}
-			}
-		}
-		public void SaveSettings()
-		{
-			if (Guild == null)
-			{
-				return;
-			}
-
-			IOUtils.OverwriteFile(IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOC), IOUtils.Serialize(this));
-		}
-		public void PostDeserialize(SocketGuild guild)
-		{
-			Guild = guild;
-
-			//Add in the default values for commands that aren't set
-			var unsetCmds = Constants.HELP_ENTRIES.GetUnsetCommands(CommandSwitches.Select(x => x.Name));
-			CommandSwitches.AddRange(unsetCmds.Select(x => new CommandSwitch(x.Name, x.DefaultEnabled)));
-			//Remove all that have no name/aren't commands anymore
-			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name) || Constants.HELP_ENTRIES[x.Name] == null);
-			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			Task.Run(async () =>
-			{
-				var invites = await InviteUtils.GetInvitesAsync(guild).CAF();
-				var cached = invites.Select(x => new CachedInvite(x.Code, x.Uses));
-				lock (Invites)
-				{
-					Invites.AddRange(cached);
-				}
-#if false
-				ConsoleUtils.WriteLine($"Invites for {guild.Name} have been gotten.");
-#endif
-			});
-
-			if (_ListedInvite != null)
-			{
-				_ListedInvite.PostDeserialize(Guild);
-			}
-			if (_WelcomeMessage != null)
-			{
-				_WelcomeMessage.PostDeserialize(Guild);
-			}
-			if (_GoodbyeMessage != null)
-			{
-				_GoodbyeMessage.PostDeserialize(Guild);
-			}
-			if (_SelfAssignableGroups != null)
-			{
-				foreach (var group in _SelfAssignableGroups)
-				{
-					group.PostDeserialize(Guild);
-				}
-			}
-			if (_PersistentRoles != null)
-			{
-				_PersistentRoles.RemoveAll(x => x.GetRole(Guild) == null);
-			}
-
-			Loaded = true;
+			return $"`{value.ToString()}`";
 		}
 	}
 
@@ -517,12 +479,12 @@ namespace Advobot.Core.Classes
 
 		//Values to replace when building
 		//Has to be manually set, but that shouldn't be a problem since the break would have been manually created anyways
-		private List<Fix> _Fixes = new List<Fix>
+		private Fix[] _Fixes = new[]
 		{
 			new Fix
 			{
 				Path = "WelcomeMessage.Title",
-				ErrorValues = new List<string> { "[]" },
+				ErrorValues = new[] { "[]" },
 				NewValue = null,
 			}
 		};
@@ -552,30 +514,27 @@ namespace Advobot.Core.Classes
 
 			//Actually creating the object with the JSON
 			var value = Activator.CreateInstance(objectType);
-			foreach (var setting in Config.GuildSettingsType.GetMembers(FLAGS))
+			foreach (var member in Config.GuildSettingsType.GetMembers(FLAGS))
 			{
-				if (setting is EventInfo || setting is MethodInfo)
-				{
-					continue;
-				}
-				if (!(setting.GetCustomAttributes(typeof(JsonPropertyAttribute), false).SingleOrDefault() is JsonPropertyAttribute attr))
+				if (!(member.GetCustomAttributes(typeof(JsonPropertyAttribute), false).SingleOrDefault() is JsonPropertyAttribute attr))
 				{
 					continue;
 				}
 
-				var settingName = attr?.PropertyName ?? setting.Name;
-				if (String.IsNullOrWhiteSpace(settingName))
+				var name = attr?.PropertyName ?? member.Name;
+				if (String.IsNullOrWhiteSpace(name))
 				{
 					continue;
 				}
 
-				if (setting is FieldInfo field)
+				//Setting a value to null will set it to default if value type.
+				if (member is FieldInfo field)
 				{
-					field.SetValue(value, jObj[settingName].ToObject(field.FieldType, serializer));
+					field.SetValue(value, jObj[name]?.ToObject(field.FieldType, serializer));
 				}
-				else if (setting is PropertyInfo prop)
+				else if (member is PropertyInfo prop)
 				{
-					prop.SetValue(value, jObj[settingName].ToObject(prop.PropertyType, serializer));
+					prop.SetValue(value, jObj[name]?.ToObject(prop.PropertyType, serializer));
 				}
 			}
 			return value;
@@ -585,10 +544,10 @@ namespace Advobot.Core.Classes
 			throw new NotImplementedException();
 		}
 
-		private class Fix
+		private struct Fix
 		{
 			public string Path;
-			public List<string> ErrorValues;
+			public string[] ErrorValues;
 			public string NewValue;
 		}
 	}

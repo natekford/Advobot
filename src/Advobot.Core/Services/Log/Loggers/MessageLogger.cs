@@ -317,7 +317,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			var info = _Timers.GetSlowmodeUser(user);
 			if (info == null)
 			{
-				_Timers.Add(info = new SlowmodeUserInfo(user, slowmode.BaseMessages, slowmode.Interval));
+				_Timers.Add(info = new SlowmodeUserInfo(slowmode.Interval, user, slowmode.BaseMessages));
 			}
 			if (info.MessagesLeft > 0)
 			{

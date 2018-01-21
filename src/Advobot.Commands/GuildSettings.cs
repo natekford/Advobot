@@ -516,7 +516,7 @@ namespace Advobot.Commands.GuildSettings
 				return;
 			}
 
-			await notif.SendAsync(null).CAF();
+			await notif.SendAsync(Context.Guild as SocketGuild, null).CAF();
 		}
 		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
 		public async Task Goodbye()
@@ -528,7 +528,7 @@ namespace Advobot.Commands.GuildSettings
 				return;
 			}
 
-			await notif.SendAsync(null).CAF();
+			await notif.SendAsync(Context.Guild as SocketGuild, null).CAF();
 		}
 	}
 

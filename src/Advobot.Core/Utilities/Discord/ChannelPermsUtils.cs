@@ -54,7 +54,7 @@ namespace Advobot.Core.Utilities
 			| ChannelPermission.DeafenMembers
 			| ChannelPermission.MoveMembers;
 
-		public static ImmutableArray<ChannelPerm> Permissions = ImmutableArray.Create(CreatePermList());
+		public static ImmutableList<ChannelPerm> Permissions = ImmutableList.Create(CreatePermList());
 
 		/// <summary>
 		/// Returns the first <see cref="ChannelPerm"/> to have the given name. (Case insensitive)

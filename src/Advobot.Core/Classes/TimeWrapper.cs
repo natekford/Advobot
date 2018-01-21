@@ -14,5 +14,6 @@ namespace Advobot.Core.Classes
 		{
 			Time = time.ToUniversalTime();
 		}
+		public TimeWrapper(TimeSpan time) : this(DateTime.UtcNow.Add(time)) { }
 	}
 }

@@ -92,21 +92,21 @@ namespace Advobot.Core
 		public static int AMT_OF_DMS_TO_GATHER => 500;
 
 		//For some reason ?? is not usable with ImmutableArrays
-		private static ImmutableArray<string> _IMG;
-		public static ImmutableArray<string> VALID_IMAGE_EXTENSIONS => _IMG != null ? _IMG : (_IMG = ImmutableArray.Create(new[]
+		private static ImmutableList<string> _IMG;
+		public static ImmutableList<string> VALID_IMAGE_EXTENSIONS => _IMG ?? (_IMG = ImmutableList.Create(new[]
 		{
 			".jpeg",
 			".jpg",
 			".png",
 		}));
-		private static ImmutableArray<string> _GIF;
-		public static ImmutableArray<string> VALID_GIF_EXTENTIONS => _GIF != null ? _GIF : (_GIF = ImmutableArray.Create(new[]
+		private static ImmutableList<string> _GIF;
+		public static ImmutableList<string> VALID_GIF_EXTENTIONS => _GIF ?? (_GIF = ImmutableList.Create(new[]
 		{
 			".gif",
 			".gifv",
 		}));
-		private static ImmutableArray<Assembly> _ASSEMBLIES;
-		public static ImmutableArray<Assembly> COMMAND_ASSEMBLIES => _ASSEMBLIES != null ? _ASSEMBLIES : (_ASSEMBLIES = GetCommandAssemblies());
+		private static ImmutableList<Assembly> _ASSEMBLIES;
+		public static ImmutableList<Assembly> COMMAND_ASSEMBLIES => _ASSEMBLIES ?? (_ASSEMBLIES = GetCommandAssemblies());
 		private static ImmutableDictionary<string, Color> _COLORS;
 		public static ImmutableDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = GetColorDictionary());
 		private static HelpEntryHolder _HELP;
@@ -121,7 +121,7 @@ namespace Advobot.Core
 		public static Color MEDT => new Color(000, 000, 255);
 		public static Color MDEL => new Color(255, 051, 051);
 
-		private static ImmutableArray<Assembly> GetCommandAssemblies()
+		private static ImmutableList<Assembly> GetCommandAssemblies()
 		{
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null);
 			if (!assemblies.Any())
@@ -131,7 +131,7 @@ namespace Advobot.Core
 				throw new DllNotFoundException("Unable to find any command assemblies.");
 			}
 
-			return assemblies.ToImmutableArray();
+			return assemblies.ToImmutableList();
 		}
 		private static ImmutableDictionary<string, Color> GetColorDictionary()
 		{

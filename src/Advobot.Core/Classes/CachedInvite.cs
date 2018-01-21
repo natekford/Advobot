@@ -1,4 +1,6 @@
-﻿namespace Advobot.Core.Classes
+﻿using System.Threading;
+
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Holds the code and uses of an invite. Used in <see cref="Utilities.InviteUtils.GetInviteUserJoinedOnAsync(Interfaces.IGuildSettings, Discord.IGuildUser)"/>.
@@ -6,17 +8,18 @@
 	public class CachedInvite
 	{
 		public string Code { get; }
-		public int Uses { get; private set; }
+		private int _Uses;
+		public int Uses => _Uses;
 
 		public CachedInvite(string code, int uses)
 		{
 			Code = code;
-			Uses = uses;
+			_Uses = uses;
 		}
 
 		public void IncrementUses()
 		{
-			++Uses;
+			Interlocked.Increment(ref _Uses);
 		}
 	}
 }

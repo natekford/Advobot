@@ -16,16 +16,16 @@ namespace Advobot.Core.Classes.Punishments
 		public IRole Role { get; }
 		public DateTime Time { get; }
 
-		public RemovablePunishment(PunishmentType punishment, IGuild guild, IUser user, TimeSpan timeUntilRemoval)
+		public RemovablePunishment(TimeSpan time, PunishmentType punishment, IGuild guild, IUser user)
 		{
 			PunishmentType = punishment;
 			Guild = guild;
 			User = user;
 			Role = null;
-			Time = DateTime.UtcNow.Add(timeUntilRemoval);
+			Time = DateTime.UtcNow.Add(time);
 		}
-		public RemovablePunishment(PunishmentType punishment, IGuild guild, IUser user, IRole role, TimeSpan timeUntilRemoval)
-			: this(punishment, guild, user, timeUntilRemoval)
+		public RemovablePunishment(TimeSpan time, PunishmentType punishment, IGuild guild, IUser user, IRole role)
+			: this(time, punishment, guild, user)
 		{
 			Role = role;
 		}

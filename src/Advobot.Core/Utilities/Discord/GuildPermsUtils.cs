@@ -28,7 +28,7 @@ namespace Advobot.Core.Utilities
 			| GuildPermission.MoveMembers
 			| GuildPermission.MuteMembers;
 
-		public static ImmutableArray<GuildPerm> Permissions = ImmutableArray.Create(CreatePermList());
+		public static ImmutableList<GuildPerm> Permissions = ImmutableList.Create(CreatePermList());
 
 		/// <summary>
 		/// Returns the first <see cref="GuildPerm"/> to have the given name. (Case insensitive)

@@ -16,12 +16,12 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
-		public ImmutableArray<ObjectVerification> Checks { get; }
+		public ImmutableList<ObjectVerification> Checks { get; }
 		public bool IfNullCheckFromContext { get; }
 
 		public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
 		{
-			Checks = checks.ToImmutableArray();
+			Checks = checks.ToImmutableList();
 			IfNullCheckFromContext = ifNullCheckFromContext;
 		}
 
