@@ -44,64 +44,46 @@ namespace Advobot.Commands.GuildSettings
 		"Can turn all commands in a category on or off too. " +
 		"Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Miscellaneous.Help) + "`.")]
 	[PermissionRequirement(null, null)]
-	[DefaultEnabled(true)]
+	[DefaultEnabled(true, false)]
 	public sealed class ModifyCommands : AdvobotSavingModuleBase
 	{
-		private static string[] _CommandsUnableToBeTurnedOff = new[]
-		{
-			nameof(ModifyCommands),
-			nameof(ModifyIgnoredCommandChannels),
-			nameof(Miscellaneous.Help)
-		};
-
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public sealed class Enable : AdvobotSavingModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 			public async Task All()
 			{
-				//Only grab commands that are already disabled and are able to be changed.
-				var commands = Context.GuildSettings.CommandSwitches.Where(x =>
-				{
-					return !x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name);
-				}).ToArray();
-				foreach (var command in commands)
-				{
-					command.Value = true;
-				}
-				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
+				//Only grab commands that are already disabled
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommands(Constants.HELP_ENTRIES.GetHelpEntries(), true);
+				var text = commands.Any() ? String.Join("`, `", commands) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
 			}
 			[Command]
-			public async Task Command(CommandSwitch command)
+			public async Task Command(string commandName)
 			{
-				if (command.Value)
+				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new Error("This command is already enabled.")).CAF();
-					return;
+					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
-				else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
+				else if (!helpEntry.AbleToBeTurnedOff)
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new Error("Please don't try to edit that command.")).CAF();
-					return;
+					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} cannot be edited.")).CAF();
 				}
-
-				command.Value = true;
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully enabled `{command.Name}`.").CAF();
+				else if (!Context.GuildSettings.CommandSettings.ModifyCommand(helpEntry, true))
+				{
+					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is already enabled.")).CAF();
+				}
+				else
+				{
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully enabled `{commandName}`.").CAF();
+				}
 			}
 			[Command]
 			public async Task Command(CommandCategory category)
 			{
 				//Only grab commands that are already disabled and in the same category and are able to be changed.
-				var commands = Context.GuildSettings.GetCommands(category).Where(x =>
-				{
-					return !x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name);
-				}).ToArray();
-				foreach (var command in commands)
-				{
-					command.Value = true;
-				}
-				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommands(Constants.HELP_ENTRIES[category], true);
+				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x)) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
 			}
 		}
@@ -112,47 +94,36 @@ namespace Advobot.Commands.GuildSettings
 			public async Task All()
 			{
 				//Only grab commands that are already enabled and are able to be changed.
-				var commands = Context.GuildSettings.CommandSwitches.Where(x =>
-				{
-					return x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name);
-				}).ToArray();
-				foreach (var command in commands)
-				{
-					command.Value = false;
-				}
-				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommands(Constants.HELP_ENTRIES.GetHelpEntries(), false);
+				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x)) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
 			}
 			[Command]
-			public async Task Command(CommandSwitch command)
+			public async Task Command(string commandName)
 			{
-				if (!command.Value)
+				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new Error("This command is already disabled.")).CAF();
-					return;
+					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
-				else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
+				else if (!helpEntry.AbleToBeTurnedOff)
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new Error("Please don't try to edit that command.")).CAF();
-					return;
+					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} cannot be edited.")).CAF();
 				}
-
-				command.Value = false;
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully disabled `{command.Name}`.").CAF();
+				else if (!Context.GuildSettings.CommandSettings.ModifyCommand(helpEntry, false))
+				{
+					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is already disabled.")).CAF();
+				}
+				else
+				{
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully disabled `{commandName}`.").CAF();
+				}
 			}
 			[Command]
 			public async Task Command(CommandCategory category)
 			{
 				//Only grab commands that are already enabled and in the same category and are able to be changed.
-				var commands = Context.GuildSettings.GetCommands(category).Where(x =>
-				{
-					return x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name);
-				}).ToArray();
-				foreach (var command in commands)
-				{
-					command.Value = false;
-				}
-				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommands(Constants.HELP_ENTRIES[category], false);
+				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x)) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
 			}
 		}
@@ -162,64 +133,11 @@ namespace Advobot.Commands.GuildSettings
 	[Summary("The bot will ignore commands said on these channels. " +
 		"If a command is input then the bot will instead ignore only that command on the given channel.")]
 	[PermissionRequirement(null, null)]
-	[DefaultEnabled(false)]
+	[DefaultEnabled(true, false)]
 	public sealed class ModifyIgnoredCommandChannels : AdvobotSavingModuleBase
 	{
-		private static string[] _CommandsUnableToBeTurnedOff = new[]
-		{
-			nameof(ModifyCommands),
-			nameof(ModifyIgnoredCommandChannels),
-			nameof(Miscellaneous.Help)
-		};
-
-		[Group(nameof(Add)), ShortAlias(nameof(Add))]
-		public sealed class Add : AdvobotSavingModuleBase
-		{
-			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel)
-			{
-				if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
-				{
-					var error = new Error($"`{channel.Format()}` is already ignoring commands.");
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-					return;
-				}
-
-				Context.GuildSettings.IgnoredCommandChannels.Add(channel.Id);
-				var resp = $"Successfully added `{channel.Format()}` to the ignored command channels list.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-			}
-			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
-			{
-				if (Context.GuildSettings.CommandsDisabledOnChannel.Any(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name)))
-				{
-					var error = new Error($"`{command.Name}` is already ignored on `{channel.Format()}`.");
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-					return;
-				}
-
-				Context.GuildSettings.CommandsDisabledOnChannel.Add(new CommandOverride(command.Name, channel.Id));
-				var resp = $"Successfully started ignoring the command `{command.Name}` on `{channel.Format()}`.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-			}
-			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
-			{
-				var commands = Context.GuildSettings.GetCommands(category);
-				foreach (var command in commands)
-				{
-					Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
-					Context.GuildSettings.CommandsDisabledOnChannel.Add(new CommandOverride(command.Name, channel.Id));
-				}
-
-				var cmdNames = String.Join("`, `", commands.Select(x => x.Name));
-				var resp = $"Successfully started ignoring the following commands on `{channel.Format()}`: `{cmdNames}`.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-			}
-		}
-		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public sealed class Remove : AdvobotSavingModuleBase
+		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
+		public sealed class Enable : AdvobotSavingModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel)
@@ -236,30 +154,71 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, string commandName)
 			{
-				var cmd = Context.GuildSettings.CommandsDisabledOnChannel.SingleOrDefault(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
-				if (cmd == null)
+				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
 				{
-					var error = new Error($"`{command.Name}` is already unignored on `{channel.Format()}`.");
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-					return;
+					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
-
-				var resp = $"Successfully stopped ignoring the command `{command.Name}` on `{channel.Format()}`.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				else if (!Context.GuildSettings.CommandSettings.ModifyCommand(helpEntry, true, CommandOverrideTarget.Channel, channel))
+				{
+					var error = new Error($"`{commandName}` is already unignored on `{channel.Format()}`.");
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				}
+				else
+				{
+					var resp = $"Successfully stopped ignoring the command `{commandName}` on `{channel.Format()}`.";
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				}
 			}
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
 			{
-				var commands = Context.GuildSettings.GetCommands(category);
-				foreach (var command in commands)
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommands(Constants.HELP_ENTRIES[category], true, CommandOverrideTarget.Channel, channel);
+				var resp = $"Successfully stopped ignoring the following commands on `{channel.Format()}`: `{String.Join("`, `", commands)}`.";
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			}
+		}
+		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
+		public sealed class Disable : AdvobotSavingModuleBase
+		{
+			[Command]
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel)
+			{
+				if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
-					Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
+					var error = new Error($"`{channel.Format()}` is already ignoring commands.");
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+					return;
 				}
 
-				var cmdNames = String.Join("`, `", commands.Select(x => x.Name));
-				var resp = $"Successfully stopped ignoring the following commands on `{channel.Format()}`: `{cmdNames}`.";
+				Context.GuildSettings.IgnoredCommandChannels.Add(channel.Id);
+				var resp = $"Successfully added `{channel.Format()}` to the ignored command channels list.";
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			}
+			[Command]
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, string commandName)
+			{
+				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
+				{
+					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
+				}
+				else if (!Context.GuildSettings.CommandSettings.ModifyCommand(helpEntry, false, CommandOverrideTarget.Channel, channel))
+				{
+					var error = new Error($"`{commandName}` is already ignored on `{channel.Format()}`.");
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				}
+				else
+				{
+					var resp = $"Successfully started ignoring the command `{commandName}` on `{channel.Format()}`.";
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				}
+			}
+			[Command]
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
+			{
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommands(Constants.HELP_ENTRIES[category], false, CommandOverrideTarget.Channel, channel);
+				var resp = $"Successfully started disabled the following commands on `{channel.Format()}`: `{String.Join("`, `", commands)}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}

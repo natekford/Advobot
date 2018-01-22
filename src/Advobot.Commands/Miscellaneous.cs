@@ -18,7 +18,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Group(nameof(Help)), TopLevelShortAlias(typeof(Help))]
 	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 		"If left blank will provide general help.")]
-	[DefaultEnabled(true)]
+	[DefaultEnabled(true, false)]
 	public sealed class Help : AdvobotModuleBase
 	{
 		private static string _GeneralHelp =

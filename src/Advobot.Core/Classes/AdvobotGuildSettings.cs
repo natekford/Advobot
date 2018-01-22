@@ -8,7 +8,6 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,7 +21,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.
 	/// </summary>
-	[JsonConverter(typeof(AdvobotGuildSettingsFixer))]
+	[JsonConverter(typeof(JSONBreakingChangeFixer))]
 	public sealed class AdvobotGuildSettings : IGuildSettings
 	{
 		#region Fields and Properties
@@ -84,14 +83,8 @@ namespace Advobot.Core.Classes
 		private List<BannedPhrase> _BannedPhraseNames;
 		[JsonProperty("BannedPhrasePunishments")]
 		private List<BannedPhrasePunishment> _BannedPhrasePunishments;
-		[JsonProperty("CommandsDisabledOnUser")]
-		private List<CommandOverride> _CommandsDisabledOnUser;
-		[JsonProperty("CommandsDisabledOnRole")]
-		private List<CommandOverride> _CommandsDisabledOnRole;
-		[JsonProperty("CommandsDisabledOnChannel")]
-		private List<CommandOverride> _CommandsDisabledOnChannel;
-		[JsonProperty("CommandSwitches")]
-		private List<CommandSwitch> _CommandSwitches;
+		[JsonProperty("CommandSettings")]
+		private CommandSettings _CommandSettings;
 
 		[JsonIgnore]
 		public GuildNotification WelcomeMessage
@@ -271,28 +264,10 @@ namespace Advobot.Core.Classes
 			set => _BannedPhrasePunishments = value;
 		}
 		[JsonIgnore]
-		public List<CommandOverride> CommandsDisabledOnUser
+		public CommandSettings CommandSettings
 		{
-			get => _CommandsDisabledOnUser ?? (_CommandsDisabledOnUser = new List<CommandOverride>());
-			set => _CommandsDisabledOnUser = value;
-		}
-		[JsonIgnore]
-		public List<CommandOverride> CommandsDisabledOnRole
-		{
-			get => _CommandsDisabledOnRole ?? (_CommandsDisabledOnRole = new List<CommandOverride>());
-			set => _CommandsDisabledOnRole = value;
-		}
-		[JsonIgnore]
-		public List<CommandOverride> CommandsDisabledOnChannel
-		{
-			get => _CommandsDisabledOnChannel ?? (_CommandsDisabledOnChannel = new List<CommandOverride>());
-			set => _CommandsDisabledOnChannel = value;
-		}
-		[JsonIgnore]
-		public List<CommandSwitch> CommandSwitches
-		{
-			get => _CommandSwitches ?? (_CommandSwitches = new List<CommandSwitch>());
-			set => _CommandSwitches = value;
+			get => _CommandSettings ?? (_CommandSettings = new CommandSettings());
+			set => _CommandSettings = value;
 		}
 
 		[JsonIgnore]
@@ -309,14 +284,6 @@ namespace Advobot.Core.Classes
 		public bool Loaded { get; private set; } = false;
 		#endregion
 
-		public CommandSwitch[] GetCommands(CommandCategory category)
-		{
-			return CommandSwitches.Where(x => x.Category == category).ToArray();
-		}
-		public CommandSwitch GetCommand(string name)
-		{
-			return CommandSwitches.FirstOrDefault(x => x.Name.CaseInsEquals(name) || (x.Aliases?.CaseInsContains(name) ?? false));
-		}
 		public string Format()
 		{
 			var sb = new StringBuilder();
@@ -383,14 +350,6 @@ namespace Advobot.Core.Classes
 		{
 			Guild = guild;
 
-			//Add in the default values for commands that aren't set
-			var unsetCmds = Constants.HELP_ENTRIES.GetUnsetCommands(CommandSwitches.Select(x => x.Name));
-			CommandSwitches.AddRange(unsetCmds.Select(x => new CommandSwitch(x, x.DefaultEnabled)));
-			//Remove all that have no name/aren't commands anymore
-			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			Task.Run(async () =>
 			{
 				var invites = await InviteUtils.GetInvitesAsync(guild).CAF();
@@ -464,91 +423,6 @@ namespace Advobot.Core.Classes
 				return String.Join("\n", enumarble.Cast<object>().Select(x => Format(x)));
 			}
 			return $"`{value.ToString()}`";
-		}
-	}
-
-	/// <summary>
-	/// A converter to help manually fix guild settings if they get broken by a new change.
-	/// </summary>
-	internal class AdvobotGuildSettingsFixer : JsonConverter
-	{
-		private const BindingFlags FLAGS = 0
-			| BindingFlags.Instance
-			| BindingFlags.NonPublic
-			| BindingFlags.Public;
-
-		//Values to replace when building
-		//Has to be manually set, but that shouldn't be a problem since the break would have been manually created anyways
-		private Fix[] _Fixes = new[]
-		{
-			new Fix
-			{
-				Path = "WelcomeMessage.Title",
-				ErrorValues = new[] { "[]" },
-				NewValue = null,
-			}
-		};
-
-		public override bool CanRead => true;
-		public override bool CanWrite => false;
-		public override bool CanConvert(Type objectType)
-		{
-			return typeof(IGuildSettings).IsAssignableFrom(objectType);
-		}
-
-		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-		{
-			//Fixing the JSON
-			var jObj = JObject.Load(reader);
-			foreach (var fix in _Fixes)
-			{
-				if (!(jObj.SelectToken(fix.Path)?.Parent is JProperty jProp))
-				{
-					continue;
-				}
-				else if (fix.ErrorValues.Any(x => x.CaseInsEquals(jProp.Value.ToString())))
-				{
-					jProp.Value = fix.NewValue;
-				}
-			}
-
-			//Actually creating the object with the JSON
-			var value = Activator.CreateInstance(objectType);
-			foreach (var member in Config.GuildSettingsType.GetMembers(FLAGS))
-			{
-				if (!(member.GetCustomAttributes(typeof(JsonPropertyAttribute), false).SingleOrDefault() is JsonPropertyAttribute attr))
-				{
-					continue;
-				}
-
-				var name = attr?.PropertyName ?? member.Name;
-				if (String.IsNullOrWhiteSpace(name))
-				{
-					continue;
-				}
-
-				//Setting a value to null will set it to default if value type.
-				if (member is FieldInfo field)
-				{
-					field.SetValue(value, jObj[name]?.ToObject(field.FieldType, serializer));
-				}
-				else if (member is PropertyInfo prop)
-				{
-					prop.SetValue(value, jObj[name]?.ToObject(prop.PropertyType, serializer));
-				}
-			}
-			return value;
-		}
-		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-		{
-			throw new NotImplementedException();
-		}
-
-		private struct Fix
-		{
-			public string Path;
-			public string[] ErrorValues;
-			public string NewValue;
 		}
 	}
 }

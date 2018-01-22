@@ -7,6 +7,7 @@ using Advobot.Core.Utilities.Formatting;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 
@@ -57,6 +58,7 @@ namespace Advobot.Core.Classes
 				var permReqs = t.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
 				var otherReqs = t.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
 				var defaultEnabled = t.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
+				var unableToBeTurnedOff = t.GetCustomAttribute<DefaultEnabledAttribute>()?.AbleToBeTurnedOff ?? true;
 
 #if DEBUG
 				//These are basically only here so I won't forget something.
@@ -68,7 +70,8 @@ namespace Advobot.Core.Classes
 				VerifyShortAliasAttribute(t);
 #endif
 
-				var helpEntry = new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, aliases, category, defaultEnabled);
+				var helpEntry = new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }),
+					summary, aliases, category, defaultEnabled, unableToBeTurnedOff);
 				_NameMap.Add(name.ToLower(), name);
 				foreach (var alias in aliases ?? new string[0])
 				{
@@ -173,11 +176,12 @@ namespace Advobot.Core.Classes
 		public string Usage { get; }
 		public string BasePerm { get; }
 		public string Description { get; }
-		public string[] Aliases { get; }
+		public ImmutableList<string> Aliases { get; }
 		public CommandCategory Category { get; }
 		public bool DefaultEnabled { get; }
+		public bool AbleToBeTurnedOff { get; }
 
-		internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases, CommandCategory category, bool defaultEnabled)
+		internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases, CommandCategory category, bool defaultEnabled, bool ableToBeTurnedOff)
 		{
 			if (String.IsNullOrWhiteSpace(name))
 			{
@@ -188,9 +192,10 @@ namespace Advobot.Core.Classes
 			Usage = usage ?? "";
 			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? "N/A" : basePerm;
 			Description = String.IsNullOrWhiteSpace(description) ? "N/A" : description;
-			Aliases = aliases ?? new[] { "N/A" };
+			Aliases = (aliases ?? new[] { "N/A" }).ToImmutableList();
 			Category = category;
 			DefaultEnabled = defaultEnabled;
+			AbleToBeTurnedOff = ableToBeTurnedOff;
 		}
 
 		public override string ToString()

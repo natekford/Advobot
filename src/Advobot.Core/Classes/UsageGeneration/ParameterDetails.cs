@@ -25,7 +25,6 @@ namespace Advobot.Core.Classes.UsageGeneration
 			{ typeof(BypassUserLimitTypeReader), typeof(string) },
 			{ typeof(ChannelPermissionsTypeReader), typeof(ChannelPermissions) },
 			{ typeof(ColorTypeReader), typeof(Color) },
-			{ typeof(CommandSwitchTypeReader), typeof(CommandSwitch) },
 			{ typeof(EmoteTypeReader), typeof(IEmote) },
 			{ typeof(GuildPermissionsTypeReader), typeof(GuildPermissions) },
 			{ typeof(InviteTypeReader), typeof(IInvite) },

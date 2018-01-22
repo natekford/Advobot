@@ -9,10 +9,12 @@ namespace Advobot.Core.Classes.Attributes
 	public class DefaultEnabledAttribute : Attribute
 	{
 		public bool Enabled { get; }
+		public bool AbleToBeTurnedOff { get; }
 
-		public DefaultEnabledAttribute(bool enabled)
+		public DefaultEnabledAttribute(bool enabled, bool ableToBeTurnedOff = true)
 		{
 			Enabled = enabled;
+			AbleToBeTurnedOff = ableToBeTurnedOff;
 		}
 	}
 }

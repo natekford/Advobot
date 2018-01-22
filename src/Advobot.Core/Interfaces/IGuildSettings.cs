@@ -41,10 +41,7 @@ namespace Advobot.Core.Interfaces
 		List<BannedPhrase> BannedPhraseRegex { get; set; }
 		List<BannedPhrase> BannedPhraseNames { get; set; }
 		List<BannedPhrasePunishment> BannedPhrasePunishments { get; set; }
-		List<CommandSwitch> CommandSwitches { get; set; }
-		List<CommandOverride> CommandsDisabledOnUser { get; set; }
-		List<CommandOverride> CommandsDisabledOnRole { get; set; }
-		List<CommandOverride> CommandsDisabledOnChannel { get; set; }
+		CommandSettings CommandSettings { get; set; }
 
 		//Non-saved settings
 		List<BannedPhraseUserInfo> BannedPhraseUsers { get; }
@@ -54,20 +51,6 @@ namespace Advobot.Core.Interfaces
 		SocketGuild Guild { get; }
 		bool Loaded { get; }
 
-		/// <summary>
-		/// Returns commands from guildsettings that are in a specific category.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="category"></param>
-		/// <returns></returns>
-		CommandSwitch[] GetCommands(CommandCategory category);
-		/// <summary>
-		/// Returns a command from guildsettings with the passed in command name/alias.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="commandNameOrAlias"></param>
-		/// <returns></returns>
-		CommandSwitch GetCommand(string name);
 		/// <summary>
 		/// Returns a string of all the guild's settings in human readable format.
 		/// </summary>

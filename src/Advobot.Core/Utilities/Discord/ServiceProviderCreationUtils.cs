@@ -56,7 +56,6 @@ namespace Advobot.Core.Utilities
 			cmds.AddTypeReader<IBan>(new BanTypeReader());
 			cmds.AddTypeReader<Emote>(new EmoteTypeReader());
 			cmds.AddTypeReader<Color>(new ColorTypeReader());
-			cmds.AddTypeReader<CommandSwitch>(new CommandSwitchTypeReader());
 			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
 
 			//Add in generic custom argument type readers
@@ -66,7 +65,7 @@ namespace Advobot.Core.Utilities
 			foreach (var c in customArgumentsClasses)
 			{
 				var t = typeof(NamedArguments<>).MakeGenericType(c);
-				var tr = (TypeReader)Activator.CreateInstance(typeof(CustomArgumentsTypeReader<>).MakeGenericType(c));
+				var tr = (TypeReader)Activator.CreateInstance(typeof(NamedArgumentsTypeReader<>).MakeGenericType(c));
 				cmds.AddTypeReader(t, tr);
 			}
 
