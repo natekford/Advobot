@@ -112,7 +112,7 @@ namespace Advobot.UILauncher.Classes
 		public static ColorSettings LoadUISettings()
 		{
 			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC);
-			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings), create: true);
+			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings), true);
 		}
 
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)

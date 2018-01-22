@@ -52,7 +52,6 @@ namespace Advobot.Core.Classes.GuildSettings
 		{
 			return _Roles.TryGetValue(id, out role);
 		}
-
 		public void PostDeserialize(SocketGuild guild)
 		{
 			foreach (var roleId in _RoleIds)

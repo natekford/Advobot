@@ -151,7 +151,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="create">If true, unable to deserialize an object from the file, and the type has a parameterless constructor, then uses that constructor.</param>
 		/// <param name="callback">An action to do after the object has been deserialized.</param>
 		/// <returns></returns>
-		public static T DeserializeFromFile<T>(FileInfo file, Type type, JsonSerializerSettings settings = null, bool create = false)
+		public static T DeserializeFromFile<T>(FileInfo file, Type type, bool create = false, JsonSerializerSettings settings = null, Action<T> callback = null)
 		{
 			T obj = default;
 			var stillDef = true;
@@ -178,7 +178,9 @@ namespace Advobot.Core.Utilities
 			}
 
 			//If want an object no matter what and the object is still default and there is a parameterless constructor then create one
-			return create && stillDef && type.GetConstructors().Any(x => !x.GetParameters().Any()) ? (T)Activator.CreateInstance(type) : obj;
+			var result = create && stillDef && type.GetConstructors().Any(x => !x.GetParameters().Any()) ? (T)Activator.CreateInstance(type) : obj;
+			callback?.Invoke(result);
+			return result;
 		}
 		/// <summary>
 		/// Writes an uncaught exception to a log file.

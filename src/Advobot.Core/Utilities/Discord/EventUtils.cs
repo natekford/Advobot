@@ -87,7 +87,7 @@ namespace Advobot.Core.Utilities
 			//Welcome message
 			if (settings.WelcomeMessage != null)
 			{
-				await settings.WelcomeMessage.SendAsync(settings.Guild, user).CAF();
+				await settings.WelcomeMessage.SendAsync(user.Guild, user).CAF();
 			}
 		}
 		/// <summary>
@@ -108,7 +108,7 @@ namespace Advobot.Core.Utilities
 			//Goodbye message
 			if (settings.GoodbyeMessage != null)
 			{
-				await settings.GoodbyeMessage.SendAsync(settings.Guild, user).CAF();
+				await settings.GoodbyeMessage.SendAsync(user.Guild, user).CAF();
 			}
 		}
 		/// <summary>

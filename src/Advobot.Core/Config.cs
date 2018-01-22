@@ -167,7 +167,7 @@ namespace Advobot.Core
 		/// <returns></returns>
 		private static ConfigDict LoadConfigDictionary()
 		{
-			return IOUtils.DeserializeFromFile<ConfigDict>(new FileInfo(_SavePath), typeof(ConfigDict), create: true);
+			return IOUtils.DeserializeFromFile<ConfigDict>(new FileInfo(_SavePath), typeof(ConfigDict), true);
 		}
 		/// <summary>
 		/// Writes the current <see cref="ConfigDict"/> to file.
