@@ -3,6 +3,7 @@ using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
+using Discord.WebSocket;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,11 +24,11 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="userId"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task UnbanAsync(IGuild guild, ulong userId, ModerationReason reason)
+		public async Task UnbanAsync(SocketGuild guild, ulong userId, ModerationReason reason)
 		{
 			var ban = (await guild.GetBansAsync().CAF()).SingleOrDefault(x => x.User.Id == userId);
 			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions()).CAF();
-			After(PunishmentType.Ban, guild, ban?.User, reason);
+			await After(PunishmentType.Ban, guild, ban?.User, reason).CAF();
 		}
 		/// <summary>
 		/// Removes the mute role from the user.
@@ -36,10 +37,10 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="role"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task UnrolemuteAsync(IGuildUser user, IRole role, ModerationReason reason)
+		public async Task UnrolemuteAsync(SocketGuildUser user, IRole role, ModerationReason reason)
 		{
 			await RoleUtils.TakeRolesAsync(user, new[] { role }, reason).CAF();
-			After(PunishmentType.RoleMute, user?.Guild, user, reason);
+			await After(PunishmentType.RoleMute, user?.Guild, user, reason).CAF();
 		}
 		/// <summary>
 		/// Unmutes a user from voice chat.
@@ -47,10 +48,10 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task UnvoicemuteAsync(IGuildUser user, ModerationReason reason)
+		public async Task UnvoicemuteAsync(SocketGuildUser user, ModerationReason reason)
 		{
 			await user?.ModifyAsync(x => x.Mute = false, reason.CreateRequestOptions()).CAF();
-			After(PunishmentType.VoiceMute, user?.Guild, user, reason);
+			await After(PunishmentType.VoiceMute, user?.Guild, user, reason).CAF();
 		}
 		/// <summary>
 		/// Undeafens a user from voice chat.
@@ -58,16 +59,16 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task UndeafenAsync(IGuildUser user, ModerationReason reason)
+		public async Task UndeafenAsync(SocketGuildUser user, ModerationReason reason)
 		{
 			await user?.ModifyAsync(x => x.Deaf = false, reason.CreateRequestOptions()).CAF();
-			After(PunishmentType.Deafen, user?.Guild, user, reason);
+			await After(PunishmentType.Deafen, user?.Guild, user, reason).CAF();
 		}
 
-		protected override void After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason)
+		protected async Task After(PunishmentType type, SocketGuild guild, IUser user, ModerationReason reason)
 		{
 			var sb = new StringBuilder($"Successfully {_Removal[type]} {user?.Format() ?? "`Unknown User`"}. ");
-			if (_Timers != null && _Timers.RemovePunishments(user?.Id ?? 0, type) > 0)
+			if (_Timers != null && (await _Timers.RemovePunishment(guild, user?.Id ?? 0, type).CAF()).UserId != 0)
 			{
 				sb.Append($"Removed all timed {type.EnumName().FormatTitle().ToLower()} punishments on them. ");
 			}

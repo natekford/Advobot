@@ -48,7 +48,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			}
 
 			_Logging.Messages.Increment();
-			if (!(message.Author is IGuildUser user) || !TryGetSettings(message, out var settings))
+			if (!(message.Author is SocketGuildUser user) || !TryGetSettings(message, out var settings))
 			{
 				return;
 			}
@@ -305,11 +305,11 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// Checks the message against the slowmode.
 		/// </summary>
 		/// <returns></returns>
-		public async Task HandleSlowmodeAsync(IGuildSettings settings, IGuildUser user, IMessage message)
+		public async Task HandleSlowmodeAsync(IGuildSettings settings, SocketGuildUser user, IMessage message)
 		{
 			//Don't bother doing stuff on the user if they're immune
 			var slowmode = settings.Slowmode;
-			if (!(slowmode?.Enabled ?? false) || user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
+			if (!(slowmode?.Enabled ?? false) || user.Roles.Select(x => x.Id).Intersect(slowmode.ImmuneRoleIds).Any())
 			{
 				return;
 			}
@@ -333,7 +333,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// Then checks if there are any user mentions in thier message for voting on user kicks.
 		/// </summary>
 		/// <returns></returns>
-		public async Task HandleSpamPreventionAsync(IGuildSettings settings, IGuildUser user, IMessage message)
+		public async Task HandleSpamPreventionAsync(IGuildSettings settings, SocketGuildUser user, IMessage message)
 		{
 			if (user.Guild.GetBot().GetIfCanModifyUser(user))
 			{
@@ -423,8 +423,21 @@ namespace Advobot.Core.Services.Log.Loggers
 				return;
 			}
 
-			await settings.BannedPhraseStrings.FirstOrDefault(x => message.Content.CaseInsContains(x.Phrase))?.PunishAsync(settings, message, _Timers).CAF();
-			await settings.BannedPhraseRegex.FirstOrDefault(x => RegexUtils.CheckIfRegexMatch(message.Content, x.Phrase))?.PunishAsync(settings, message, _Timers).CAF();
+			var str = settings.BannedPhraseStrings.FirstOrDefault(x => message.Content.CaseInsContains(x.Phrase));
+			if (str != null)
+			{
+				await str.PunishAsync(settings, message, _Timers).CAF();
+			}
+			var regex = settings.BannedPhraseRegex.FirstOrDefault(x => RegexUtils.CheckIfRegexMatch(message.Content, x.Phrase));
+			if (regex != null)
+			{
+				await regex.PunishAsync(settings, message, _Timers).CAF();
+			}
+
+			if (str != null || regex != null)
+			{
+				await MessageUtils.DeleteMessageAsync(message, new ModerationReason("banned phrase")).CAF();
+			}
 		}
 	}
 }

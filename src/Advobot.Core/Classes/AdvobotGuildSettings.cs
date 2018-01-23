@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Rules;
-using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
@@ -13,7 +12,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -271,8 +269,6 @@ namespace Advobot.Core.Classes
 			set => _CommandSettings = value;
 		}
 
-		[JsonIgnore]
-		public List<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
 		[JsonIgnore]
 		public List<CachedInvite> Invites { get; } = new List<CachedInvite>();
 		[JsonIgnore]

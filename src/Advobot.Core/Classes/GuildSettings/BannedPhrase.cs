@@ -34,27 +34,30 @@ namespace Advobot.Core.Classes.GuildSettings
 		/// <param name="message"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings guildSettings, IMessage message, ITimersService timers = null)
+		public async Task PunishAsync(IGuildSettings settings, IMessage message, ITimersService timers = null)
 		{
-			await MessageUtils.DeleteMessageAsync(message, new ModerationReason("banned phrase")).CAF();
-
-			var user = guildSettings.BannedPhraseUsers.SingleOrDefault(x => x.User.Id == message.Author.Id);
-			if (user == null)
+			if (!(message.Author is SocketGuildUser user))
 			{
-				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUserInfo(message.Author as IGuildUser));
+				return;
 			}
 
-			var count = user.IncrementValue(Punishment);
-			var punishment = guildSettings.BannedPhrasePunishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
+			var bannedPhraseUser = timers.GetBannedPhraseUser(user);
+			if (bannedPhraseUser == null)
+			{
+				timers.Add(bannedPhraseUser = new BannedPhraseUserInfo(user));
+			}
+
+			var count = bannedPhraseUser.IncrementValue(Punishment);
+			var punishment = settings.BannedPhrasePunishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
 			if (punishment == null)
 			{
 				return;
 			}
 
 			var giver = new PunishmentGiver(punishment.PunishmentTime, timers);
-			var role = guildSettings.Guild.GetRole(punishment.RoleId);
-			await giver.PunishAsync(Punishment, user.User, role, new ModerationReason("banned phrase")).CAF();
-			user.ResetValue(Punishment);
+			var role = settings.Guild.GetRole(punishment.RoleId);
+			await giver.PunishAsync(Punishment, user, role, new ModerationReason("banned phrase")).CAF();
+			bannedPhraseUser.ResetValue(Punishment);
 		}
 
 		public override string ToString()

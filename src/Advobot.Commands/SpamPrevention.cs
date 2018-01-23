@@ -4,6 +4,7 @@ using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -130,7 +131,7 @@ namespace Advobot.Commands.SpamPrevention
 				var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).Reverse().ToArray();
 				for (int i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
 				{
-					await raidPrev.PunishAsync(Context.GuildSettings, users[i]).CAF();
+					await raidPrev.PunishAsync(Context.GuildSettings, users[i] as SocketGuildUser).CAF();
 				}
 			}
 

@@ -114,9 +114,9 @@ namespace Advobot.Core.Classes.GuildSettings
 		public override string ToString()
 		{
 			return $"**Punishment:** `{Punishment.EnumName()}`\n" +
-					$"**Spam Instances:** `{SpamInstances}`\n" +
-					$"**Votes For Punishment:** `{VotesForKick}`\n" +
-					(SpamPerMessage != 0 ? $"**Spam Amount:** `{SpamPerMessage}`" : $"**Time Interval:** `{TimeInterval}`");
+				$"**Spam Instances:** `{SpamInstances}`\n" +
+				$"**Votes For Punishment:** `{VotesForKick}`\n" +
+				(SpamPerMessage != 0 ? $"**Spam Amount:** `{SpamPerMessage}`" : $"**Time Interval:** `{TimeInterval}`");
 		}
 		public string ToString(SocketGuild guild)
 		{

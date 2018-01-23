@@ -15,19 +15,23 @@ namespace Advobot.Core.Interfaces
 	/// </summary>
 	public interface ITimersService
 	{
-		void Add(RemovablePunishment punishment);
+		Task Add(RemovablePunishment punishment);
+		Task Add(IUser author, IUserMessage botMessage, CloseWords<HelpEntry> help);
+		Task Add(IUser author, IUserMessage botMessage, CloseWords<Quote> quote);
 		void Add(RemovableMessage message);
-		Task Add(IGuildUser author, IUserMessage botMessage, CloseWords<HelpEntry> help);
-		Task Add(IGuildUser author, IUserMessage botMessage, CloseWords<Quote> quote);
+		void Add(TimedMessage message);
 		void Add(SpamPreventionUserInfo user);
 		void Add(SlowmodeUserInfo user);
-		void Add(TimedMessage message);
+		void Add(BannedPhraseUserInfo user);
 
-		int RemovePunishments(ulong id, PunishmentType punishment);
-		Task<CloseWords<HelpEntry>> GetOutActiveCloseHelp(IGuildUser user);
-		Task<CloseWords<Quote>> GetOutActiveCloseQuote(IGuildUser user);
-		SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user);
+		Task<RemovablePunishment> RemovePunishment(IGuild guild, ulong id, PunishmentType punishment);
+		Task<CloseWords<HelpEntry>> RemoveActiveCloseHelp(IUser user);
+		Task<CloseWords<Quote>> RemoveActiveCloseQuote(IUser user);
 		IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild);
+		IEnumerable<SlowmodeUserInfo> GetSlowmodeUsers(IGuild guild);
+		IEnumerable<BannedPhraseUserInfo> GetBannedPhraseUsers(IGuild guild);
+		SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user);
 		SlowmodeUserInfo GetSlowmodeUser(IGuildUser user);
+		BannedPhraseUserInfo GetBannedPhraseUser(IGuildUser user);
 	}
 }

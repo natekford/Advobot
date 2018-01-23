@@ -61,7 +61,7 @@ namespace Advobot.Core.Classes.GuildSettings
 		/// <param name="guildSettings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings guildSettings, IGuildUser user)
+		public async Task PunishAsync(IGuildSettings guildSettings, SocketGuildUser user)
 		{
 			await _Giver.PunishAsync(Punishment, user, guildSettings.MuteRole, _Reason).CAF();
 		}

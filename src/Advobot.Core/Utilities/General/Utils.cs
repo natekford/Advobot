@@ -209,6 +209,25 @@ namespace Advobot.Core.Utilities
 			return count;
 		}
 		/// <summary>
+		/// Gets and removes items older than <paramref name="time"/>.
+		/// </summary>
+		/// <typeparam name="TKey"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
+		/// <param name="dictionary"></param>
+		/// <param name="time"></param>
+		/// <returns></returns>
+		public static IEnumerable<TValue> GetItemsByTime<TKey, TValue>(ConcurrentDictionary<TKey, TValue> dictionary, DateTime time) where TValue : ITime
+		{
+			//Loop through every value in the dictionary, remove if too old
+			foreach (var kvp in dictionary)
+			{
+				if (kvp.Value.Time.Ticks < time.Ticks && dictionary.TryRemove(kvp.Key, out var value))
+				{
+					yield return value;
+				}
+			}
+		}
+		/// <summary>
 		/// Returns the length of a number.
 		/// </summary>
 		/// <param name="num"></param>

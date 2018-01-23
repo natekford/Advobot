@@ -45,7 +45,6 @@ namespace Advobot.Core.Interfaces
 		CommandSettings CommandSettings { get; set; }
 
 		//Non-saved settings
-		List<BannedPhraseUserInfo> BannedPhraseUsers { get; }
 		List<CachedInvite> Invites { get; }
 		List<string> EvaluatedRegex { get; }
 		MessageDeletion MessageDeletion { get; }

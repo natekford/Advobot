@@ -2,6 +2,7 @@
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
+using Discord.WebSocket;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -53,7 +54,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public bool PotentialPunishment => _Punishment != default && _VotesRequired > 0;
 		public int Votes => _UsersWhoHaveAlreadyVoted.Count;
 
-		public SpamPreventionUserInfo(IGuildUser user) : base(user) { }
+		public SpamPreventionUserInfo(SocketGuildUser user) : base(user) { }
 
 		public bool HasUserAlreadyVoted(ulong id)
 		{

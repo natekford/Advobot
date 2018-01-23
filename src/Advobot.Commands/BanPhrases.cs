@@ -441,7 +441,7 @@ namespace Advobot.Commands.BanPhrases
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show(IGuildUser user)
 		{
-			var bannedPhraseUser = Context.GuildSettings.BannedPhraseUsers.SingleOrDefault(x => x.User.Id == user.Id);
+			var bannedPhraseUser = Context.Timers.GetBannedPhraseUser(user);
 			if (bannedPhraseUser == null)
 			{
 				var error = new Error($"The user `{user.Format()}` is not in the list of banned phrase users.");
@@ -455,7 +455,7 @@ namespace Advobot.Commands.BanPhrases
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
 		public async Task Reset(IGuildUser user)
 		{
-			var bannedPhraseUser = Context.GuildSettings.BannedPhraseUsers.SingleOrDefault(x => x.User.Id == user.Id);
+			var bannedPhraseUser = Context.Timers.GetBannedPhraseUser(user);
 			if (bannedPhraseUser == null)
 			{
 				var error = new Error($"The user `{user.Format()}` is not in the list of banned phrase users.");

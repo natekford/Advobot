@@ -125,7 +125,7 @@ namespace Advobot.Core.Utilities
 			}
 			--i;
 
-			var quotes = await timers.GetOutActiveCloseQuote(user).CAF();
+			var quotes = await timers.RemoveActiveCloseQuote(user).CAF();
 			var validQuotes = quotes != null && quotes.List.Count > i;
 			if (validQuotes)
 			{
@@ -138,7 +138,7 @@ namespace Advobot.Core.Utilities
 				embed.TryAddFooter("Quote", null, out var footerErrors);
 				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
 			}
-			var helpEntries = await timers.GetOutActiveCloseHelp(user).CAF();
+			var helpEntries = await timers.RemoveActiveCloseHelp(user).CAF();
 			var validHelpEntries = helpEntries != null && helpEntries.List.Count > i;
 			if (validHelpEntries)
 			{

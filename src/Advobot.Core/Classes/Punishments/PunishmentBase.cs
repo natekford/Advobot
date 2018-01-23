@@ -4,6 +4,7 @@ using Discord;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.Punishments
 {
@@ -40,8 +41,6 @@ namespace Advobot.Core.Classes.Punishments
 		{
 			_Timers = timers;
 		}
-
-		protected abstract void After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason);
 
 		public override string ToString()
 		{
