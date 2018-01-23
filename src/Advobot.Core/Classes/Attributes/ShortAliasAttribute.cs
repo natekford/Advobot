@@ -1,6 +1,6 @@
-﻿using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.Attributes
 {

@@ -1,13 +1,11 @@
-﻿using Advobot.Core.Classes;
+﻿using System.Collections.Generic;
+using System.Reflection;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Rules;
-using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Discord;
 using Discord.WebSocket;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.Serialization;
 
 namespace Advobot.Core.Interfaces
 {
@@ -65,7 +63,7 @@ namespace Advobot.Core.Interfaces
 		/// <summary>
 		/// Sets the specified log type channel to the passed in channel.
 		/// </summary>
-		/// <param name="logChannelType"></param>
+		/// <param name="type"></param>
 		/// <param name="channel"></param>
 		bool SetLogChannel(LogChannelType type, ITextChannel channel);
 		/// <summary>
@@ -76,6 +74,6 @@ namespace Advobot.Core.Interfaces
 		/// Updates certain settings which require a guild to be fully created.
 		/// </summary>
 		/// <param name="guild"></param>
-		void PostDeserialize(SocketGuild guild);
+		void PostDeserialize(IGuild guild);
 	}
 }

@@ -1,6 +1,6 @@
-﻿using Discord.Commands;
-using System;
+﻿using System;
 using System.Reflection;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.UsageGeneration
 {

@@ -1,9 +1,4 @@
-﻿using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Discord;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,6 +7,11 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Discord;
+using Newtonsoft.Json;
 
 namespace Advobot.Core.Classes
 {
@@ -23,8 +23,8 @@ namespace Advobot.Core.Classes
 		#region Fields and Properties
 		[JsonProperty("TrustedUsers")]
 		private List<ulong> _TrustedUsers;
-		[JsonProperty("UsersUnableToDMOwner")]
-		private List<ulong> _UsersUnableToDMOwner;
+		[JsonProperty("UsersUnableToDmOwner")]
+		private List<ulong> _UsersUnableToDmOwner;
 		[JsonProperty("UsersIgnoredFromCommands")]
 		private List<ulong> _UsersIgnoredFromCommands;
 		[JsonProperty("ShardCount")]
@@ -57,12 +57,12 @@ namespace Advobot.Core.Classes
 			}
 		}
 		[JsonIgnore]
-		public IReadOnlyList<ulong> UsersUnableToDMOwner
+		public IReadOnlyList<ulong> UsersUnableToDmOwner
 		{
-			get => _UsersUnableToDMOwner.AsReadOnly() ?? (_UsersUnableToDMOwner = new List<ulong>()).AsReadOnly();
+			get => _UsersUnableToDmOwner.AsReadOnly() ?? (_UsersUnableToDmOwner = new List<ulong>()).AsReadOnly();
 			set
 			{
-				_UsersUnableToDMOwner = value.ToList();
+				_UsersUnableToDmOwner = value.ToList();
 				OnPropertyChanged();
 			}
 		}
@@ -196,7 +196,7 @@ namespace Advobot.Core.Classes
 
 				sb.AppendLineFeed($"**{property.Name}**:");
 				sb.AppendLineFeed($"{formatted}");
-				sb.AppendLineFeed("");
+				sb.AppendLineFeed();
 			}
 			return sb.ToString();
 		}
@@ -215,7 +215,8 @@ namespace Advobot.Core.Classes
 			{
 				return "`Nothing`";
 			}
-			else if (value is ulong ul)
+
+			if (value is ulong ul)
 			{
 				var user = await client.GetUserAsync(ul).CAF();
 				if (user != null)
@@ -230,16 +231,18 @@ namespace Advobot.Core.Classes
 				return ul.ToString();
 			}
 			//Because strings are char[] this pointless else if has to be here so it doesn't go into the else if directly below
-			else if (value is string str)
+
+			if (value is string str)
 			{
 				return String.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
 			}
-			else if (value is IEnumerable enumerable)
+
+			if (value is IEnumerable enumerable)
 			{
 				var text = await Task.WhenAll(enumerable.Cast<object>().Select(async x => await FormatObjectAsync(client, x).CAF()));
 				return String.Join("\n", text);
 			}
-			return $"`{value.ToString()}`";
+			return $"`{value}`";
 		}
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{

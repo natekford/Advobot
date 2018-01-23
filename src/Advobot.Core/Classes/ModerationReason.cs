@@ -1,6 +1,6 @@
-﻿using Advobot.Core.Utilities.Formatting;
+﻿using System;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
-using System;
 
 namespace Advobot.Core.Classes
 {
@@ -25,7 +25,7 @@ namespace Advobot.Core.Classes
 
 		public RequestOptions CreateRequestOptions()
 		{
-			return new RequestOptions { AuditLogReason = ToString(), };
+			return new RequestOptions { AuditLogReason = ToString() };
 		}
 
 		public override string ToString()

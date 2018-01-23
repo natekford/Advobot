@@ -1,8 +1,8 @@
-﻿using Advobot.Core.Utilities;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Advobot.Core.Utilities;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.Attributes
 {
@@ -22,7 +22,8 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return alreadyCreated.Aliases.ToArray();
 			}
-			else if (classType.IsNested)
+
+			if (classType.IsNested)
 			{
 				throw new ArgumentException($"needs to not have the {nameof(TopLevelShortAliasAttribute)} attribute", classType.FullName);
 			}
@@ -36,14 +37,14 @@ namespace Advobot.Core.Classes.Attributes
 			//Example with:
 			//ChangeChannelPosition
 			//ChangeChannelPerms
-			var matchingInitialisms = _AlreadyUsedInUpperMostClasses.Values.Where(x => x.Edited.CaseInsEquals(initialism.Edited));
+			var matchingInitialisms = _AlreadyUsedInUpperMostClasses.Values.Where(x => x.Edited.CaseInsEquals(initialism.Edited)).ToList();
 			if (matchingInitialisms.Any())
 			{
 				//ChangeChannel is in both at the start, so would match with ChangeChannelPosition.
 				var matchingStarts = matchingInitialisms.Select(x =>
 				{
 					var matchingStartPartsIndex = -1;
-					for (int i = 0; i < Math.Min(x.Parts.Count, initialism.Parts.Count); ++i)
+					for (var i = 0; i < Math.Min(x.Parts.Count, initialism.Parts.Count); ++i)
 					{
 						if (x.Parts[i].CaseInsEquals(initialism.Parts[i]))
 						{
@@ -56,7 +57,7 @@ namespace Advobot.Core.Classes.Attributes
 					}
 
 					return (Holder: x, matchingStartPartsIndex);
-				}).Where(x => x.matchingStartPartsIndex > -1);
+				}).Where(x => x.matchingStartPartsIndex > -1).ToList();
 
 				//ChangeChannel is 2 parts, so this would return 2. Add 1 to start adding from Perms instead of Channel.
 				var indexToAddAt = matchingStarts.Any() ? matchingStarts.Max(x => x.matchingStartPartsIndex) + 1 : 1;

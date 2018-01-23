@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Advobot.Core.Utilities.Formatting
 {
@@ -11,7 +12,6 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <summary>
 		/// Returns a formatted string displaying the bot's current uptime.
 		/// </summary>
-		/// <param name="botSettings"></param>
 		/// <returns></returns>
 		public static string Uptime()
 		{
@@ -34,7 +34,7 @@ namespace Advobot.Core.Utilities.Formatting
 		public static string Readable(this DateTime dt)
 		{
 			var utc = dt.ToUniversalTime();
-			var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(utc.Month);
+			var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(utc.Month);
 			return $"{monthName} {utc.Day}, {utc.Year} at {utc.ToLongTimeString()}";
 		}
 		/// <summary>

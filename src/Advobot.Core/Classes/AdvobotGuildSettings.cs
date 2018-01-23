@@ -1,4 +1,11 @@
-﻿using Advobot.Core.Classes.GuildSettings;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Rules;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
@@ -7,13 +14,6 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes
 {
@@ -176,7 +176,7 @@ namespace Advobot.Core.Classes
 				{ SpamType.LongMessage, null },
 				{ SpamType.Link, null },
 				{ SpamType.Image, null },
-				{ SpamType.Mention, null },
+				{ SpamType.Mention, null }
 			});
 			set => _SpamPrevention = value;
 		}
@@ -186,7 +186,7 @@ namespace Advobot.Core.Classes
 			get => _RaidPrevention ?? (_RaidPrevention = new Dictionary<RaidType, RaidPreventionInfo>
 			{
 				{ RaidType.Regular, null },
-				{ RaidType.RapidJoins, null },
+				{ RaidType.RapidJoins, null }
 			});
 			set => _RaidPrevention = value;
 		}
@@ -276,9 +276,9 @@ namespace Advobot.Core.Classes
 		[JsonIgnore]
 		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 		[JsonIgnore]
-		public SocketGuild Guild { get; private set; } = null;
+		public SocketGuild Guild { get; private set; }
 		[JsonIgnore]
-		public bool Loaded { get; private set; } = false;
+		public bool Loaded { get; private set; }
 		#endregion
 
 		public string Format()
@@ -300,7 +300,7 @@ namespace Advobot.Core.Classes
 
 				sb.AppendLineFeed($"**{property.Name}**:");
 				sb.AppendLineFeed($"{formatted}");
-				sb.AppendLineFeed("");
+				sb.AppendLineFeed();
 			}
 			return sb.ToString();
 		}
@@ -343,9 +343,9 @@ namespace Advobot.Core.Classes
 		{
 			IOUtils.OverwriteFile(IOUtils.GetServerDirectoryFile(Guild?.Id ?? 0, Constants.GUILD_SETTINGS_LOC), IOUtils.Serialize(this));
 		}
-		public void PostDeserialize(SocketGuild guild)
+		public void PostDeserialize(IGuild guild)
 		{
-			Guild = guild;
+			Guild = guild as SocketGuild;
 
 			Task.Run(async () =>
 			{
@@ -360,10 +360,7 @@ namespace Advobot.Core.Classes
 #endif
 			});
 
-			if (_ListedInvite != null)
-			{
-				_ListedInvite.PostDeserialize(Guild);
-			}
+			_ListedInvite?.PostDeserialize(Guild);
 			if (_SelfAssignableGroups != null)
 			{
 				foreach (var group in _SelfAssignableGroups)
@@ -381,11 +378,13 @@ namespace Advobot.Core.Classes
 			{
 				return "`Nothing`";
 			}
-			else if (value is IGuildSetting setting)
+
+			if (value is IGuildSetting setting)
 			{
 				return setting.ToString();
 			}
-			else if (value is ulong ul)
+
+			if (value is ulong ul)
 			{
 				var chan = Guild.GetChannel(ul);
 				if (chan != null)
@@ -405,21 +404,24 @@ namespace Advobot.Core.Classes
 				return ul.ToString();
 			}
 			//Because strings are char[] this has to be here so it doesn't go into IEnumerable
-			else if (value is string str)
+
+			if (value is string str)
 			{
 				return String.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
 			}
 			//Has to be above IEnumerable too
-			else if (value is IDictionary dict)
+
+			if (value is IDictionary dict)
 			{
 				var keys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
 				return String.Join("\n", keys.Select(x => $"{Format(x)}: {Format(dict[x])}"));
 			}
-			else if (value is IEnumerable enumarble)
+
+			if (value is IEnumerable enumarble)
 			{
 				return String.Join("\n", enumarble.Cast<object>().Select(x => Format(x)));
 			}
-			return $"`{value.ToString()}`";
+			return $"`{value}`";
 		}
 	}
 }

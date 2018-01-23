@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Classes.Attributes;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Advobot.Core.Classes.NamedArguments
 {

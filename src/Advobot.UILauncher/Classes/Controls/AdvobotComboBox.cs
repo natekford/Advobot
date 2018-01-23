@@ -1,11 +1,10 @@
-﻿using Advobot.UILauncher.Utilities;
-using Advobot.UILauncher.Enums;
-using Advobot.UILauncher.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using Advobot.UILauncher.Enums;
+using Advobot.UILauncher.Interfaces;
+using Advobot.UILauncher.Utilities;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -35,9 +34,9 @@ namespace Advobot.UILauncher.Classes.Controls
 		}
 		public void SetResourceReferences()
 		{
-			SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
-			SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
-			SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
+			SetResourceReference(BackgroundProperty, ColorTarget.BaseBackground);
+			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
+			SetResourceReference(BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 
 		private static void SourceEnumCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)

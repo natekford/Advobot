@@ -1,7 +1,7 @@
-﻿using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.TypeReaders;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.TypeReaders;
 
 namespace Advobot.Core.Classes.NamedArguments
 {
@@ -42,10 +42,10 @@ namespace Advobot.Core.Classes.NamedArguments
 				Color = ColorTypeReader.GetColor(color),
 				ImageUrl = imageUrl,
 				Url = url,
-				ThumbnailUrl = thumbUrl,
+				ThumbnailUrl = thumbUrl
 			};
-			Embed.TryAddAuthor(authorName, authorUrl, authorIconUrl, out var authorErrors);
-			Embed.TryAddFooter(footer, footerIconUrl, out var footerErrors);
+			Embed.TryAddAuthor(authorName, authorUrl, authorIconUrl, out _);
+			Embed.TryAddFooter(footer, footerIconUrl, out _);
 
 			//Fields are done is a very gross way
 			foreach (var f in fieldInfo)
@@ -62,7 +62,7 @@ namespace Advobot.Core.Classes.NamedArguments
 				{
 					{ FIELD_NAME, null },
 					{ FIELD_TEXT, null },
-					{ FIELD_INLINE, null },
+					{ FIELD_INLINE, null }
 				};
 				//Get the values by the standard split by colon
 				foreach (var arg in split)
@@ -81,8 +81,8 @@ namespace Advobot.Core.Classes.NamedArguments
 				}
 
 				//Finally try to parse if the inline is a bool or not
-				bool.TryParse(dict[FIELD_INLINE], out bool inline);
-				Embed.TryAddField(dict[FIELD_NAME], dict[FIELD_TEXT], inline, out var fieldErrors);
+				bool.TryParse(dict[FIELD_INLINE], out var inline);
+				Embed.TryAddField(dict[FIELD_NAME], dict[FIELD_TEXT], inline, out _);
 			}
 		}
 	}

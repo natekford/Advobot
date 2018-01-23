@@ -1,13 +1,14 @@
-﻿using Advobot.Core.Utilities;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Discord.WebSocket;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -58,14 +59,14 @@ namespace Advobot.UILauncher.Classes.Controls
 			Guild = guild;
 			Tag = new CompGuild(guild);
 			ItemsSource = _Files;
-			HorizontalContentAlignment = System.Windows.HorizontalAlignment.Left;
-			VerticalContentAlignment = System.Windows.VerticalAlignment.Center;
+			HorizontalContentAlignment = HorizontalAlignment.Left;
+			VerticalContentAlignment = VerticalAlignment.Center;
 			SetResourceReferences();
 		}
 		public void SetResourceReferences()
 		{
-			SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
-			SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
+			SetResourceReference(BackgroundProperty, ColorTarget.BaseBackground);
+			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
 		}
 
 		private void OnFileChangeInGuildDirectory(object sender, FileSystemEventArgs e)

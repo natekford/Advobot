@@ -1,14 +1,14 @@
-﻿using Advobot.Core.Utilities;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 //Something has to be referenced in this assembly so the attribute gets noticed
 //So that's why commandhandler is in this assembly

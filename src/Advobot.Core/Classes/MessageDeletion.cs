@@ -1,11 +1,11 @@
-﻿using Discord;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading;
+using Discord;
 
 namespace Advobot.Core.Classes
 {
 	/// <summary>
-	/// Handles deleted message collection for <see cref="Modules.Log.MyLogModule.OnMessageDeleted(Cacheable{IMessage, ulong}, ISocketMessageChannel)"/>.
+	/// Handles deleted message collection.
 	/// </summary>
 	public sealed class MessageDeletion
 	{

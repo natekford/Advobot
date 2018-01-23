@@ -1,4 +1,8 @@
-﻿using Advobot.Core;
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
@@ -7,10 +11,6 @@ using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Quotes
 {
@@ -29,12 +29,14 @@ namespace Advobot.Commands.Quotes
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-			else if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
+
+			if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("A quote already has that name.")).CAF();
 				return;
 			}
-			else if (String.IsNullOrWhiteSpace(text))
+
+			if (String.IsNullOrWhiteSpace(text))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Adding a quote requires text.")).CAF();
 				return;
@@ -79,12 +81,13 @@ namespace Advobot.Commands.Quotes
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("There are no quotes.")).CAF();
 				return;
 			}
-			else if (name == null)
+
+			if (name == null)
 			{
 				var embed = new EmbedWrapper
 				{
 					Title = "Quotes",
-					Description = $"`{String.Join("`, `", quotes.Select(x => x.Name))}`",
+					Description = $"`{String.Join("`, `", quotes.Select(x => x.Name))}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 				return;

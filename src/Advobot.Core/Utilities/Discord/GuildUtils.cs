@@ -1,10 +1,10 @@
-﻿using Advobot.Core.Classes;
-using Discord;
-using Discord.WebSocket;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Core.Classes;
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Core.Utilities
 {
@@ -20,7 +20,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static IGuild GetGuild(this IMessage message)
 		{
-			return (message?.Channel as IGuildChannel)?.Guild;
+			return (message?.Channel as SocketGuildChannel)?.Guild;
 		}
 		/// <summary>
 		/// Attempts to get a guild from a user.
@@ -29,7 +29,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static IGuild GetGuild(this IUser user)
 		{
-			return (user as IGuildUser)?.Guild;
+			return (user as SocketGuildUser)?.Guild;
 		}
 		/// <summary>
 		/// Attempts to get a guild from a channel.
@@ -38,16 +38,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static IGuild GetGuild(this IChannel channel)
 		{
-			return (channel as IGuildChannel)?.Guild;
-		}
-		/// <summary>
-		/// Attempts to get a guild from a role.
-		/// </summary>
-		/// <param name="role"></param>
-		/// <returns></returns>
-		public static IGuild GetGuild(this IRole role)
-		{
-			return role?.Guild;
+			return (channel as SocketGuildChannel)?.Guild;
 		}
 		/// <summary>
 		/// Returns the bot's guild user.
@@ -56,7 +47,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static IGuildUser GetBot(this IGuild guild)
 		{
-			return (guild as SocketGuild).CurrentUser;
+			return (guild as SocketGuild)?.CurrentUser;
 		}
 		/// <summary>
 		/// Returns true if the guild has any global emotes.
@@ -72,12 +63,9 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static async Task<IReadOnlyList<IGuildUser>> GetUsersByJoinDateAsync(this IGuild guild)
+		public static async Task<IEnumerable<IGuildUser>> GetUsersByJoinDateAsync(this IGuild guild)
 		{
-			return (await guild.GetUsersAsync().CAF())
-					   .Where(x => x.JoinedAt != null)
-					   .OrderBy(x => x.JoinedAt.Value.Ticks)
-					   .ToList().AsReadOnly();
+			return (await guild.GetUsersAsync().CAF()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt?.Ticks ?? 0);
 		}
 		/// <summary>
 		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
@@ -85,11 +73,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="guild"></param>
 		/// <param name="invokingUser"></param>
 		/// <returns></returns>
-		public static async Task<IReadOnlyList<IGuildUser>> GetEditableUsersAsync(this IGuild guild, IUser invokingUser)
+		public static async Task<IEnumerable<IGuildUser>> GetEditableUsersAsync(this IGuild guild, IGuildUser invokingUser)
 		{
-			return (await guild.GetUsersAsync().CAF())
-					   .Where(x => invokingUser.GetIfCanModifyUser(x) && guild.GetBot().GetIfCanModifyUser(x))
-					   .ToList().AsReadOnly();
+			return (await guild.GetUsersAsync().CAF()).Where(x => invokingUser.CanModifyUser(x) && guild.GetBot().CanModifyUser(x));
 		}
 		/// <summary>
 		/// Prunes users who haven't been active in a certain amount of days and says the supplied reason in the audit log.
@@ -132,7 +118,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="time"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildAFKTimeAsync(IGuild guild, int time, ModerationReason reason)
+		public static async Task ModifyGuildAfkTimeAsync(IGuild guild, int time, ModerationReason reason)
 		{
 			await guild.ModifyAsync(x => x.AfkTimeout = time, reason.CreateRequestOptions()).CAF();
 		}
@@ -143,7 +129,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="channel"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildAFKChannelAsync(IGuild guild, IVoiceChannel channel, ModerationReason reason)
+		public static async Task ModifyGuildAfkChannelAsync(IGuild guild, IVoiceChannel channel, ModerationReason reason)
 		{
 			await guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), reason.CreateRequestOptions()).CAF();
 		}

@@ -1,7 +1,7 @@
-﻿using Advobot.Core.Classes.CloseWords;
+﻿using System;
+using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Interfaces;
 using Discord;
-using System;
 
 namespace Advobot.Core.Services.Timers
 {

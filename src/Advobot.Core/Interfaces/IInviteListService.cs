@@ -1,6 +1,6 @@
-﻿using Advobot.Core.Classes.GuildSettings;
+﻿using System.Collections.Generic;
+using Advobot.Core.Classes.GuildSettings;
 using Discord;
-using System.Collections.Generic;
 
 namespace Advobot.Core.Interfaces
 {

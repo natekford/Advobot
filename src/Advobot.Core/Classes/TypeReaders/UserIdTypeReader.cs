@@ -1,8 +1,9 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Enums;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Discord.Commands;
+using Discord.WebSocket;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -20,13 +21,11 @@ namespace Advobot.Core.Classes.TypeReaders
 		/// <returns></returns>
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			if (!ulong.TryParse(input, out ulong id))
+			if (!ulong.TryParse(input, out var id))
 			{
 				return TypeReaderResult.FromError(CommandError.ParseFailed, "Invalid user id provided.");
 			}
-
-			var user = await context.Guild.GetUserAsync(id).CAF();
-			if (user == null)
+			if (!(await context.Guild.GetUserAsync(id).CAF() is SocketGuildUser user))
 			{
 				return TypeReaderResult.FromSuccess(id);
 			}

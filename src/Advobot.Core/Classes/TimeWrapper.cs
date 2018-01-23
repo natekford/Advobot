@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Interfaces;
-using System;
+﻿using System;
+using Advobot.Core.Interfaces;
 
 namespace Advobot.Core.Classes
 {

@@ -12,6 +12,6 @@ namespace Advobot.Core.Enums
 		LongMessage = (1U << 1),
 		Link = (1U << 2),
 		Image = (1U << 3),
-		Mention = (1U << 4),
+		Mention = (1U << 4)
 	}
 }

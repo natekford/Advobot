@@ -1,8 +1,8 @@
-﻿using Advobot.UILauncher.Utilities;
+﻿using System.Windows;
+using System.Windows.Controls;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
-using System.Windows.Controls;
-using System.Windows;
+using Advobot.UILauncher.Utilities;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -25,7 +25,7 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public void SetResourceReferences()
 		{
-			SetResourceReference(Button.StyleProperty, OtherTarget.ButtonStyle);
+			SetResourceReference(StyleProperty, OtherTarget.ButtonStyle);
 		}
 	}
 }

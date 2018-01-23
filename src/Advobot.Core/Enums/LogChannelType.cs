@@ -10,6 +10,6 @@ namespace Advobot.Core.Enums
 	{
 		Server = (1U << 0),
 		Mod = (1U << 1),
-		Image = (1U << 2),
+		Image = (1U << 2)
 	}
 }

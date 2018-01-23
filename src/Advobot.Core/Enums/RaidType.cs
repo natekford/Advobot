@@ -9,6 +9,6 @@ namespace Advobot.Core.Enums
 	public enum RaidType : uint
 	{
 		Regular = (1U << 0),
-		RapidJoins = (1U << 1),
+		RapidJoins = (1U << 1)
 	}
 }

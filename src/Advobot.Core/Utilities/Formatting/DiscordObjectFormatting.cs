@@ -1,7 +1,7 @@
-﻿using Discord;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
+using Discord;
 
 namespace Advobot.Core.Utilities.Formatting
 {
@@ -21,26 +21,28 @@ namespace Advobot.Core.Utilities.Formatting
 			{
 				return user.Format();
 			}
-			else if (obj is IChannel channel)
+
+			if (obj is IChannel channel)
 			{
 				return channel.Format();
 			}
-			else if (obj is IRole role)
+
+			if (obj is IRole role)
 			{
 				return role.Format();
 			}
-			else if (obj is IGuild guild)
+
+			if (obj is IGuild guild)
 			{
 				return guild.Format();
 			}
-			else if (obj is IActivity presence)
+
+			if (obj is IActivity presence)
 			{
 				return presence.Format();
 			}
-			else
-			{
-				return obj.ToString();
-			}
+
+			return obj.ToString();
 		}
 		/// <summary>
 		/// Returns a string with the user's name, discriminator, and id.
@@ -114,7 +116,7 @@ namespace Advobot.Core.Utilities.Formatting
 				}
 				return embed.ToString();
 			});
-			var attachments = msg.Attachments.Select(x => x.Filename);
+			var attachments = msg.Attachments.Select(x => x.Filename).ToList();
 
 			var text = String.IsNullOrEmpty(msg.Content) ? "Empty message content" : msg.Content;
 			var time = msg.CreatedAt.ToString("HH:mm:ss");
@@ -123,7 +125,7 @@ namespace Advobot.Core.Utilities.Formatting
 			if (withMentions)
 			{
 				var userMention = msg.Author.Mention;
-				var channelMention = (msg.Channel as ITextChannel).Mention;
+				var channelMention = ((ITextChannel)msg.Channel).Mention;
 				header = $"`[{time}]` {userMention} IN {channelMention} `{msg.Id}`";
 			}
 			else
@@ -155,7 +157,8 @@ namespace Advobot.Core.Utilities.Formatting
 			{
 				return $"**Current Stream:** [{sg.Name.EscapeBackTicks()}]({sg.Url})";
 			}
-			else if (presence is Game g)
+
+			if (presence is Game g)
 			{
 				return $"**Current Game:** `{g.Name.EscapeBackTicks()}`";
 			}
@@ -163,7 +166,7 @@ namespace Advobot.Core.Utilities.Formatting
 			return "**Current Game:** `N/A`";
 		}
 		/// <summary>
-		/// Returns the channel perms gotten from <see cref="GetFilteredChannelOverwritePermissions"/> formatted with their perm value in front of the perm name.
+		/// Returns the channel perms gotten from the filtered overwrite permissions formatted with their perm value in front of the perm name.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="channel"></param>

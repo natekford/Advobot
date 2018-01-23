@@ -1,13 +1,13 @@
-﻿using Advobot.Core.Utilities;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.GuildSettings
 {
@@ -30,11 +30,11 @@ namespace Advobot.Core.Classes.GuildSettings
 		/// <summary>
 		/// Deletes the message then checks if the user should be punished.
 		/// </summary>
-		/// <param name="guildSettings"></param>
+		/// <param name="settings"></param>
 		/// <param name="message"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings settings, IMessage message, ITimersService timers = null)
+		public async Task PunishAsync(IGuildSettings settings, IMessage message, ITimersService timers)
 		{
 			if (!(message.Author is SocketGuildUser user))
 			{

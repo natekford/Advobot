@@ -1,10 +1,10 @@
-﻿using Advobot.Core.Classes;
+﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using Advobot.Core.Classes;
 using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
-using System;
-using System.Diagnostics;
-using System.Linq;
 
 namespace Advobot.Core.Utilities.Formatting
 {
@@ -16,7 +16,6 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a user on a guild.
 		/// </summary>
-		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
@@ -28,14 +27,14 @@ namespace Advobot.Core.Utilities.Formatting
 				var perms = user.GetPermissions(x);
 				return perms.ViewChannel && perms.Connect;
 			}).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)");
-			var channels = textChannels.Concat(voiceChannels);
-			var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
-			var roles = user.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
+			var channels = textChannels.Concat(voiceChannels).ToList();
+			var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt?.Ticks ?? 0).ToList();
+			var roles = user.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).ToList();
 
 			var desc = $"**Id:** `{user.Id}`\n" +
 				$"**Nickname:** `{(String.IsNullOrWhiteSpace(user.Nickname) ? "No nickname" : user.Nickname.EscapeBackTicks())}`\n" +
 				$"{user.CreatedAt.UtcDateTime.CreatedAt()}\n" +
-				$"**Joined:** `{user.JoinedAt.Value.UtcDateTime.Readable()}` (`{users.IndexOf(user) + 1}` to join the guild)\n\n" +
+				$"**Joined:** `{user.JoinedAt?.UtcDateTime.Readable()}` (`{users.IndexOf(user) + 1}` to join the guild)\n\n" +
 				$"{user.Activity.Format()}\n" +
 				$"**Online status:** `{user.Status}`\n";
 
@@ -44,18 +43,18 @@ namespace Advobot.Core.Utilities.Formatting
 			{
 				Description = desc,
 				Color = color,
-				ThumbnailUrl = user.GetAvatarUrl(),
+				ThumbnailUrl = user.GetAvatarUrl()
 			};
-			embed.TryAddAuthor(user, out var authorErrors);
-			embed.TryAddFooter("User Info", null, out var footerErrors);
+			embed.TryAddAuthor(user, out _);
+			embed.TryAddFooter("User Info", null, out _);
 
 			if (channels.Count() != 0)
 			{
-				embed.TryAddField("Channels", String.Join(", ", channels), false, out var errors);
+				embed.TryAddField("Channels", String.Join(", ", channels), false, out _);
 			}
 			if (roles.Count() != 0)
 			{
-				embed.TryAddField("Roles", String.Join(", ", roles.Select(x => x.Name)), false, out var errors);
+				embed.TryAddField("Roles", String.Join(", ", roles.Select(x => x.Name)), false, out _);
 			}
 			if (user.VoiceChannel != null)
 			{
@@ -63,18 +62,17 @@ namespace Advobot.Core.Utilities.Formatting
 					$"Server deafen: `{user.IsDeafened}`\n" +
 					$"Self mute: `{user.IsSelfMuted}`\n" +
 					$"Self deafen: `{user.IsSelfDeafened}`";
-				embed.TryAddField($"Voice Channel: {user.VoiceChannel.Name}", value, false, out var errors);
+				embed.TryAddField($"Voice Channel: {user.VoiceChannel.Name}", value, false, out _);
 			}
 			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a user not on a guild.
 		/// </summary>
-		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatUserInfo(SocketGuild guild, SocketUser user)
+		public static EmbedWrapper FormatUserInfo(IUser user)
 		{
 			var desc = $"{user.CreatedAt.UtcDateTime.CreatedAt()}\n" +
 				$"{user.Activity.Format()}\n" +
@@ -83,42 +81,40 @@ namespace Advobot.Core.Utilities.Formatting
 			var embed = new EmbedWrapper
 			{
 				Description = desc,
-				ThumbnailUrl = user.GetAvatarUrl(),
+				ThumbnailUrl = user.GetAvatarUrl()
 			};
-			embed.TryAddAuthor(user, out var authorErrors);
-			embed.TryAddFooter("User Info", null, out var footerErrors);
+			embed.TryAddAuthor(user, out _);
+			embed.TryAddFooter("User Info", null, out _);
 			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a role.
 		/// </summary>
-		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
 		/// <param name="role"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatRoleInfo(SocketGuild guild, SocketRole role)
+		public static EmbedWrapper FormatRoleInfo(SocketGuild guild, IRole role)
 		{
 			var desc = $"{role.CreatedAt.UtcDateTime.CreatedAt()}\n" +
 				$"**Position:** `{role.Position}`" +
-				$"**User Count:** `{guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count()}`";
+				$"**User Count:** `{guild.Users.Count(x => x.Roles.Any(y => y.Id == role.Id))}`";
 
 			var embed = new EmbedWrapper
 			{
 				Description = desc,
-				Color = role.Color,
+				Color = role.Color
 			};
-			embed.TryAddAuthor(role.Format(), null, null, out var authorErrors);
-			embed.TryAddFooter("Role Info", null, out var footerErrors);
+			embed.TryAddAuthor(role.Format(), null, null, out _);
+			embed.TryAddFooter("Role Info", null, out _);
 			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a channel.
 		/// </summary>
 		/// <param name="guildSettings"></param>
-		/// <param name="guild"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatChannelInfo(IGuildSettings guildSettings, SocketGuild guild, SocketChannel channel)
+		public static EmbedWrapper FormatChannelInfo(IGuildSettings guildSettings, SocketChannel channel)
 		{
 			var ignoredFromLog = guildSettings.IgnoredLogChannels.Contains(channel.Id);
 			var ignoredFromCmd = guildSettings.IgnoredCommandChannels.Contains(channel.Id);
@@ -138,28 +134,27 @@ namespace Advobot.Core.Utilities.Formatting
 
 			var embed = new EmbedWrapper
 			{
-				Description = desc,
+				Description = desc
 			};
-			embed.TryAddAuthor(channel.Format(), null, null, out var authorErrors);
-			embed.TryAddFooter("Channel Info", null, out var footerErrors);
+			embed.TryAddAuthor(channel.Format(), null, null, out _);
+			embed.TryAddFooter("Channel Info", null, out _);
 			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a guild.
 		/// </summary>
-		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public static EmbedWrapper FormatGuildInfo(SocketGuild guild)
 		{
 			var owner = guild.Owner;
-			var onlineCount = guild.Users.Where(x => x.Status != UserStatus.Offline).Count();
-			var nicknameCount = guild.Users.Where(x => x.Nickname != null).Count();
-			var gameCount = guild.Users.Where(x => x.Activity is Game).Count();
-			var botCount = guild.Users.Where(x => x.IsBot).Count();
-			var voiceCount = guild.Users.Where(x => x.VoiceChannel != null).Count();
-			var localECount = guild.Emotes.Where(x => !x.IsManaged).Count();
-			var globalECount = guild.Emotes.Where(x => x.IsManaged).Count();
+			var onlineCount = guild.Users.Count(x => x.Status != UserStatus.Offline);
+			var nicknameCount = guild.Users.Count(x => x.Nickname != null);
+			var gameCount = guild.Users.Count(x => x.Activity is Game);
+			var botCount = guild.Users.Count(x => x.IsBot);
+			var voiceCount = guild.Users.Count(x => x.VoiceChannel != null);
+			var localECount = guild.Emotes.Count(x => !x.IsManaged);
+			var globalECount = guild.Emotes.Count(x => x.IsManaged);
 
 			var desc = $"{guild.CreatedAt.UtcDateTime.CreatedAt()}\n" +
 				$"**Owner:** `{owner.Format()}`\n" +
@@ -178,16 +173,15 @@ namespace Advobot.Core.Utilities.Formatting
 			{
 				Description = desc,
 				Color = color,
-				ThumbnailUrl = guild.IconUrl,
+				ThumbnailUrl = guild.IconUrl
 			};
-			embed.TryAddAuthor(guild.Format(), null, null, out var authorErrors);
-			embed.TryAddFooter("Guild Info", null, out var footerErrors);
+			embed.TryAddAuthor(guild.Format(), null, null, out _);
+			embed.TryAddFooter("Guild Info", null, out _);
 			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about an emote.
 		/// </summary>
-		/// <param name="guildSettings"></param>
 		/// <param name="emote"></param>
 		/// <returns></returns>
 		public static EmbedWrapper FormatEmoteInfo(Emote emote)
@@ -197,17 +191,15 @@ namespace Advobot.Core.Utilities.Formatting
 			var embed = new EmbedWrapper
 			{
 				Description = desc,
-				ThumbnailUrl = emote.Url,
+				ThumbnailUrl = emote.Url
 			};
-			embed.TryAddAuthor(emote.Name, null, null, out var authorErrors);
-			embed.TryAddFooter("Emote Info", null, out var footerErrors);
+			embed.TryAddAuthor(emote.Name, null, null, out _);
+			embed.TryAddFooter("Emote Info", null, out _);
 			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about an invite.
 		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="guild"></param>
 		/// <param name="invite"></param>
 		/// <returns></returns>
 		public static EmbedWrapper FormatInviteInfo(IInviteMetadata invite)
@@ -219,10 +211,10 @@ namespace Advobot.Core.Utilities.Formatting
 
 			var embed = new EmbedWrapper
 			{
-				Description = desc,
+				Description = desc
 			};
-			embed.TryAddAuthor(invite.Code, null, null, out var authorErrors);
-			embed.TryAddFooter("Invite Info", null, out var footerErrors);
+			embed.TryAddAuthor(invite.Code, null, null, out _);
+			embed.TryAddFooter("Invite Info", null, out _);
 			return embed;
 		}
 		/// <summary>
@@ -233,13 +225,13 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <param name="logModule"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogService logModule, IGuild guild)
+		public static EmbedWrapper FormatBotInfo(IDiscordClient client, ILogService logModule, IGuild guild)
 		{
 			var desc = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.Readable()}` (`{TimeFormatting.Uptime()}`)\n" +
 				$"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`\n" +
 				$"**Current Shard:** `{ClientUtils.GetShardIdFor(client, guild)}`\n" +
 				$"**Latency:** `{ClientUtils.GetLatency(client)}ms`\n" +
-				$"**Memory Usage:** `{IOUtils.GetMemory().ToString("0.00")}MB`\n" +
+				$"**Memory Usage:** `{IOUtils.GetMemory():0.00)}MB`\n" +
 				$"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`\n";
 
 			var firstField = logModule.FormatLoggedUserActions(true, false).Trim('\n', '\r');
@@ -248,13 +240,13 @@ namespace Advobot.Core.Utilities.Formatting
 
 			var embed = new EmbedWrapper
 			{
-				Description = desc,
+				Description = desc
 			};
-			embed.TryAddAuthor(client.CurrentUser, out var authorErrors);
-			embed.TryAddField("Users", firstField, false, out var firstFieldErrors);
-			embed.TryAddField("Messages", secondField, false, out var secondFieldErrors);
-			embed.TryAddField("Commands", thirdField, false, out var thirdFieldErrors);
-			embed.TryAddFooter($"Versions [Bot: {Version.VersionNumber}] [API: {Constants.API_VERSION}]", null, out var footerErrors);
+			embed.TryAddAuthor(client.CurrentUser, out _);
+			embed.TryAddField("Users", firstField, false, out _);
+			embed.TryAddField("Messages", secondField, false, out _);
+			embed.TryAddField("Commands", thirdField, false, out _);
+			embed.TryAddFooter($"Versions [Bot: {Version.VERSION_NUMBER}] [API: {Constants.ApiVersion}]", null, out _);
 			return embed;
 		}
 	}

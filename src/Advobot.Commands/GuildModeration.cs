@@ -1,15 +1,16 @@
-﻿using Advobot.Core;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes;
-using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Enums;
-using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Advobot.Core;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 
 namespace Advobot.Commands.GuildModeration
 {
@@ -84,16 +85,16 @@ namespace Advobot.Commands.GuildModeration
 			"us-east",
 			"us-central",
 			"us-south",
-			"us-west",
+			"us-west"
 		};
 		private static string[] _VIPRegionIDs =
 		{
 			"vip-amsterdam",
 			"vip-us-east",
-			"vip-us-west",
+			"vip-us-west"
 		};
 
-		private static string _BaseRegions = String.Join("\n", _BaseRegions);
+		private static string _BaseRegions = String.Join("\n", _ValidRegionIDs);
 		private static string _VIPRegions = String.Join("\n", _VIPRegionIDs);
 		private static string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
 
@@ -103,7 +104,7 @@ namespace Advobot.Commands.GuildModeration
 			var embed = new EmbedWrapper
 			{
 				Title = "Region Ids",
-				Description = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions,
+				Description = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -116,8 +117,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command, Priority(0)]
 		public async Task Command(string regionId)
 		{
-			if (true
-				&& !_ValidRegionIDs.CaseInsContains(regionId) 
+			if (!_ValidRegionIDs.CaseInsContains(regionId) 
 				&& !(Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(regionId)))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("No valid region ID was input.")).CAF();
@@ -131,31 +131,31 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildAFKTimer)), TopLevelShortAlias(typeof(ModifyGuildAFKTimer))]
+	[Group(nameof(ModifyGuildAfkTimer)), TopLevelShortAlias(typeof(ModifyGuildAfkTimer))]
 	[Summary("Updates the guild's AFK timeout.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildAFKTimer : AdvobotModuleBase
+	public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyNumber(new[] { 60, 300, 900, 1800, 3600 })] uint time)
 		{
-			await GuildUtils.ModifyGuildAFKTimeAsync(Context.Guild, (int)time, new ModerationReason(Context.User, null)).CAF();
+			await GuildUtils.ModifyGuildAfkTimeAsync(Context.Guild, (int)time, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully set the guild's AFK timeout to `{time}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
-	[Group(nameof(ModifyGuildAFKChannel)), TopLevelShortAlias(typeof(ModifyGuildAFKChannel))]
+	[Group(nameof(ModifyGuildAfkChannel)), TopLevelShortAlias(typeof(ModifyGuildAfkChannel))]
 	[Summary("Updates the guild's AFK channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildAFKChannel : AdvobotModuleBase
+	public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(IVoiceChannel channel)
+		public async Task Command(SocketVoiceChannel channel)
 		{
-			await GuildUtils.ModifyGuildAFKChannelAsync(Context.Guild, channel, new ModerationReason(Context.User, null)).CAF();
+			await GuildUtils.ModifyGuildAfkChannelAsync(Context.Guild, null, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully set the guild's AFK channel to `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -209,7 +209,8 @@ namespace Advobot.Commands.GuildModeration
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-			else if (imageUrl == null)
+
+			if (imageUrl == null)
 			{
 				await Context.Guild.ModifyAsync(x => x.Icon = new Image()).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild's icon.").CAF();

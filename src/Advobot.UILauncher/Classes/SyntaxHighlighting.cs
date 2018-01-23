@@ -1,14 +1,14 @@
-﻿using ICSharpCode.AvalonEdit.Highlighting;
-using ICSharpCode.AvalonEdit.Highlighting.Xshd;
-using System;
+﻿using System;
 using System.Reflection;
 using System.Xml;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 
 namespace Advobot.UILauncher.Classes
 {
 	internal static class SyntaxHighlighting
 	{
-		public static void LoadJSONHighlighting()
+		public static void LoadJsonHighlighting()
 		{
 			LoadSyntaxHighlighting("Advobot.UILauncher.Resources.JSONSyntaxHighlighting.xshd", "JSON", new[] { ".json" });
 		}

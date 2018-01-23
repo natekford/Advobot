@@ -1,8 +1,4 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Enums;
-using Discord;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,6 +6,9 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Core.Classes;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Discord;
+using Newtonsoft.Json;
 
 namespace Advobot.Core
 {
@@ -68,7 +67,6 @@ namespace Advobot.Core
 		/// <summary>
 		/// Attempts to set the save path with the given input. Returns a boolean signifying whether the save path is valid or not.
 		/// </summary>
-		/// <param name="windows"></param>
 		/// <param name="input"></param>
 		/// <param name="startup"></param>
 		/// <returns></returns>
@@ -80,12 +78,14 @@ namespace Advobot.Core
 			{
 				return true;
 			}
-			else if (startup)
+
+			if (startup)
 			{
 				ConsoleUtils.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
 				return false;
 			}
-			else if ("appdata".CaseInsEquals(path))
+
+			if ("appdata".CaseInsEquals(path))
 			{
 				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			}
@@ -125,7 +125,8 @@ namespace Advobot.Core
 					return false;
 				}
 			}
-			else if (startup)
+
+			if (startup)
 			{
 				ConsoleUtils.WriteLine("Please enter the bot's key:");
 				return false;
@@ -158,7 +159,7 @@ namespace Advobot.Core
 			//Count how many exist with that name so they can be saved as Advobot1, Advobot2, etc.
 			var count = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length;
 			//Add the config file into the local application data folder under Advobot
-			var configFileName = currentName + count.ToString() + ".config";
+			var configFileName = currentName + count + ".config";
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Advobot", configFileName);
 		}
 		/// <summary>
@@ -178,7 +179,7 @@ namespace Advobot.Core
 		}
 
 		/// <summary>
-		/// Creates a dictionary which only holds the values for <see cref="ConfigKeys"/> to be modified.
+		/// Creates a dictionary which only holds the values for <see cref="ConfigKey"/> to be modified.
 		/// </summary>
 		public class ConfigDict
 		{
@@ -187,7 +188,7 @@ namespace Advobot.Core
 			{
 				{ ConfigKey.SavePath, null },
 				{ ConfigKey.BotKey, null },
-				{ ConfigKey.BotId, "0" },
+				{ ConfigKey.BotId, "0" }
 			};
 
 			[JsonIgnore]
@@ -205,7 +206,7 @@ namespace Advobot.Core
 			{
 				SavePath = (1U << 0),
 				BotKey = (1U << 1),
-				BotId = (1U << 2),
+				BotId = (1U << 2)
 			}
 		}
 	}

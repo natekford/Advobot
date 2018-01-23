@@ -1,19 +1,20 @@
-﻿using Advobot.Core.Enums;
+﻿using System;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.WebSocket;
-using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.Punishments
 {
 	/// <summary>
 	/// Gives a punishment to a user.
 	/// </summary>
+	/// <inheritdoc cref="PunishmentBase"/>
 	public class PunishmentGiver : PunishmentBase
 	{
 		private TimeSpan _Time;
@@ -35,7 +36,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="reason"></param>
 		/// <param name="days"></param>
 		/// <returns></returns>
-		public async Task BanAsync(SocketGuild guild, ulong userId, ModerationReason reason, int days = 1)
+		public async Task BanAsync(IGuild guild, ulong userId, ModerationReason reason, int days = 1)
 		{
 			await guild.AddBanAsync(userId, days, null, reason.CreateRequestOptions()).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
@@ -48,7 +49,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="userId"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task SoftbanAsync(SocketGuild guild, ulong userId, ModerationReason reason)
+		public async Task SoftbanAsync(IGuild guild, ulong userId, ModerationReason reason)
 		{
 			await guild.AddBanAsync(userId, 1, null, reason.CreateRequestOptions()).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
@@ -61,7 +62,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task KickAsync(SocketGuildUser user, ModerationReason reason)
+		public async Task KickAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.KickAsync(null, reason.CreateRequestOptions()).CAF();
 			After(PunishmentType.Kick, user.Guild, user, reason);
@@ -73,7 +74,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="role"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task RoleMuteAsync(SocketGuildUser user, IRole role, ModerationReason reason)
+		public async Task RoleMuteAsync(IGuildUser user, IRole role, ModerationReason reason)
 		{
 			await RoleUtils.GiveRolesAsync(user, new[] { role }, reason).CAF();
 			After(PunishmentType.RoleMute, user.Guild, user, reason);
@@ -84,7 +85,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task VoiceMuteAsync(SocketGuildUser user, ModerationReason reason)
+		public async Task VoiceMuteAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Mute = true, reason.CreateRequestOptions()).CAF();
 			After(PunishmentType.VoiceMute, user.Guild, user, reason);
@@ -95,7 +96,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task DeafenAsync(SocketGuildUser user, ModerationReason reason)
+		public async Task DeafenAsync(IGuildUser user, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Deaf = true, reason.CreateRequestOptions()).CAF();
 			After(PunishmentType.Deafen, user.Guild, user, reason);
@@ -108,11 +109,9 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="role"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(PunishmentType type, SocketGuildUser user, IRole role, ModerationReason reason)
+		public async Task PunishAsync(PunishmentType type, IGuildUser user, IRole role, ModerationReason reason)
 		{
-			var guild = user.Guild;
-			var bot = guild.GetBot();
-			if (!bot.GetIfCanModifyUser(user))
+			if (!(user.Guild is SocketGuild guild && guild.GetBot() is SocketGuildUser bot && bot.CanModifyUser(user)))
 			{
 				return;
 			}
@@ -152,7 +151,7 @@ namespace Advobot.Core.Classes.Punishments
 			}
 		}
 
-		protected void After(PunishmentType type, SocketGuild guild, IUser user, ModerationReason reason)
+		private void After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason)
 		{
 			var sb = new StringBuilder($"Successfully {_Given[type]} {user.Format()}. ");
 			if (!_Time.Equals(default) && _Timers != null)

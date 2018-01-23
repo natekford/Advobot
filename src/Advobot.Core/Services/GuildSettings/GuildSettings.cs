@@ -1,10 +1,10 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Interfaces;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Discord;
 using Discord.WebSocket;
 
 namespace Advobot.Core.Services.GuildSettings
@@ -17,7 +17,7 @@ namespace Advobot.Core.Services.GuildSettings
 
 		public Task Remove(ulong guildId)
 		{
-			if (_GuildSettings.ContainsKey(guildId) && !_GuildSettings.TryRemove(guildId, out var value))
+			if (_GuildSettings.ContainsKey(guildId) && !_GuildSettings.TryRemove(guildId, out _))
 			{
 				ConsoleUtils.WriteLine($"Failed to remove {guildId} from the guild settings holder.", color: ConsoleColor.Red);
 			}
@@ -31,7 +31,7 @@ namespace Advobot.Core.Services.GuildSettings
 			}
 
 			if (!_GuildSettings.TryGetValue(guild.Id, out var settings) &&
-				!_GuildSettings.TryAdd(guild.Id, settings = CreationUtils.CreateGuildSettings(guild as SocketGuild)))
+				!_GuildSettings.TryAdd(guild.Id, settings = CreationUtils.CreateGuildSettings(guild)))
 			{
 				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
 			}

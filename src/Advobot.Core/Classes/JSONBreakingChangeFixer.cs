@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
+using Advobot.Core.Utilities;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Advobot.Core.Classes
 {
@@ -21,15 +21,14 @@ namespace Advobot.Core.Classes
 
 		//Values to replace when building
 		//Has to be manually set, but that shouldn't be a problem since the break would have been manually created anyways
-		private Fix[] _Fixes = new[]
-		{
+		private Fix[] _Fixes = {
 			#region January 20, 2018: Text Fix
 			new Fix
 			{
 				Type = typeof(AdvobotGuildSettings),
 				Path = "WelcomeMessage.Title",
 				ErrorValues = new[] { "[]" },
-				NewValue = null,
+				NewValue = null
 			}
 			#endregion
 		};
@@ -50,7 +49,6 @@ namespace Advobot.Core.Classes
 			{
 				if (!(jObj.SelectToken(fix.Path)?.Parent is JProperty jProp))
 				{
-					continue;
 				}
 				else if (fix.ErrorValues.Any(x => x.CaseInsEquals(jProp.Value.ToString())))
 				{
@@ -67,20 +65,25 @@ namespace Advobot.Core.Classes
 					continue;
 				}
 
-				var name = attr?.PropertyName ?? member.Name;
+				var name = String.IsNullOrWhiteSpace(attr.PropertyName) ? member.Name : attr.PropertyName;
 				if (String.IsNullOrWhiteSpace(name))
 				{
 					continue;
 				}
 
 				//Setting a value to null will set it to default if value type.
-				if (member is FieldInfo field)
+				switch (member)
 				{
-					field.SetValue(value, jObj[name]?.ToObject(field.FieldType, serializer));
-				}
-				else if (member is PropertyInfo prop)
-				{
-					prop.SetValue(value, jObj[name]?.ToObject(prop.PropertyType, serializer));
+					case FieldInfo field:
+					{
+						field.SetValue(value, jObj[name]?.ToObject(field.FieldType, serializer));
+						break;
+					}
+					case PropertyInfo prop:
+					{
+						prop.SetValue(value, jObj[name]?.ToObject(prop.PropertyType, serializer));
+						break;
+					}
 				}
 			}
 			return value;

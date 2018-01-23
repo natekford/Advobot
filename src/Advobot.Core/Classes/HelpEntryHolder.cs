@@ -1,15 +1,15 @@
-﻿using Advobot.Core.Classes.Attributes;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
+using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.UsageGeneration;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord.Commands;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Reflection;
 
 namespace Advobot.Core.Classes
 {
@@ -25,11 +25,11 @@ namespace Advobot.Core.Classes
 
 		public HelpEntryHolder()
 		{
-			var types = Constants.COMMAND_ASSEMBLIES.SelectMany(x => x.GetTypes());
-			var commands = types.Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
+			var types = Constants.CommandAssemblies.SelectMany(x => x.GetTypes());
+			var commands = types.Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
 			if (!commands.Any())
 			{
-				var assemblyNames = String.Join(", ", Constants.COMMAND_ASSEMBLIES.Select(x => x.GetName().Name));
+				var assemblyNames = String.Join(", ", Constants.CommandAssemblies.Select(x => x.GetName().Name));
 				ConsoleUtils.WriteLine($"The following assemblies have no commands: '{assemblyNames}'. Press any key to close the program.");
 				Console.ReadKey();
 				throw new TypeLoadException($"The following assemblies have no commands: '{assemblyNames}'.");
@@ -43,7 +43,8 @@ namespace Advobot.Core.Classes
 					throw new ArgumentException($"is not currently in the {nameof(CommandCategory)} enum", innerMostNameSpace);
 				}
 				//Nested commands don't need to be added since they're added under the class they're nested in
-				else if (t.IsNested)
+
+				if (t.IsNested)
 				{
 #if DEBUG
 					VerifyAllAliasesAreDifferent(t);
@@ -70,7 +71,7 @@ namespace Advobot.Core.Classes
 				VerifyShortAliasAttribute(t);
 #endif
 
-				var helpEntry = new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }),
+				var helpEntry = new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", permReqs, otherReqs),
 					summary, aliases, category, defaultEnabled, unableToBeTurnedOff);
 				_NameMap.Add(name.ToLower(), name);
 				foreach (var alias in aliases ?? new string[0])
@@ -111,11 +112,11 @@ namespace Advobot.Core.Classes
 			var methodAliases = classType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
 				.Select(x => x.GetCustomAttribute<AliasAttribute>()?.Aliases).Where(x => x != null);
 			var both = nestedAliases.Concat(methodAliases).ToArray();
-			for (int i = 0; i < both.Count(); ++i)
+			for (var i = 0; i < both.Count(); ++i)
 			{
-				for (int j = i + 1; j < both.Count(); ++j)
+				for (var j = i + 1; j < both.Count(); ++j)
 				{
-					var intersected = both[i].Intersect(both[j], StringComparer.OrdinalIgnoreCase);
+					var intersected = both[i].Intersect(both[j], StringComparer.OrdinalIgnoreCase).ToList();
 					if (intersected.Any())
 					{
 						throw new InvalidOperationException($"The following aliases in {classType.FullName} have conflicts: {String.Join(" + ", intersected)}");

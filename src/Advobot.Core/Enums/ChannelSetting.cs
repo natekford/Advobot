@@ -8,6 +8,6 @@ namespace Advobot.Core.Enums
 	[Flags]
 	public enum ChannelSetting : uint
 	{
-		ImageOnly = (1U << 0),
+		ImageOnly = (1U << 0)
 	}
 }

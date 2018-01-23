@@ -1,4 +1,8 @@
-﻿using Advobot.Core.Classes;
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.NamedArguments;
@@ -6,10 +10,6 @@ using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildList
 {
@@ -27,7 +27,8 @@ namespace Advobot.Commands.GuildList
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild is already listed.")).CAF();
 				return;
 			}
-			else if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
+
+			if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Don't provide invites that expire.")).CAF();
 				return;
@@ -65,7 +66,8 @@ namespace Advobot.Commands.GuildList
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("There is no invite to bump.")).CAF();
 				return;
 			}
-			else if ((DateTime.UtcNow - Context.GuildSettings.ListedInvite.LastBumped).TotalHours < 1)
+
+			if ((DateTime.UtcNow - Context.GuildSettings.ListedInvite.LastBumped).TotalHours < 1)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Last bump is too recent.")).CAF();
 				return;
@@ -89,24 +91,23 @@ namespace Advobot.Commands.GuildList
 		[Command]
 		public async Task Command([Remainder] NamedArguments<ListedInviteGatherer> gatherer)
 		{
-			var invites = gatherer.CreateObject().GatherInvites(Context.InviteList);
+			var invites = gatherer.CreateObject().GatherInvites(Context.InviteList).ToList();
 			if (!invites.Any())
 			{
 				var error = new Error("No guild could be found that matches the given specifications.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
 			}
 			else if (invites.Count() <= 5)
 			{
 				var embed = new EmbedWrapper
 				{
-					Title = "Guilds",
+					Title = "Guilds"
 				};
 				foreach (var invite in invites)
 				{
 					var e = invite.HasGlobalEmotes ? "**Has global emotes**" : "";
 					var text = $"**URL:** {invite.Url}\n**Members:** {invite.Guild.MemberCount}\n{e}";
-					embed.TryAddField(invite.Guild.Name, text, true, out var error);
+					embed.TryAddField(invite.Guild.Name, text, true, out _);
 				}
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -127,7 +128,6 @@ namespace Advobot.Commands.GuildList
 			{
 				var resp = $"`{invites.Count()}` results returned. Please narrow your search.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-				return;
 			}
 		}
 	}

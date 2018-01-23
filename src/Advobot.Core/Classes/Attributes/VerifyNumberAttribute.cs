@@ -1,8 +1,8 @@
-﻿using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.Attributes
 {
@@ -46,22 +46,22 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			else if (!int.TryParse(value.ToString(), out var num))
+
+			if (!int.TryParse(value.ToString(), out var num))
 			{
 				throw new NotSupportedException($"{nameof(VerifyNumberAttribute)} only supports {nameof(Int32)}.");
 			}
-			else if (ValidNumbers.Any())
+
+			if (ValidNumbers.Any())
 			{
-				return ValidNumbers.Contains((int)num)
+				return ValidNumbers.Contains(num)
 					? Task.FromResult(PreconditionResult.FromSuccess())
 					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{String.Join("`, `", ValidNumbers)}`"));
 			}
-			else
-			{
-				return num >= Start && num <= End
-					? Task.FromResult(PreconditionResult.FromSuccess())
-					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{Start}` and `{End}`."));
-			}				
+
+			return num >= Start && num <= End
+				? Task.FromResult(PreconditionResult.FromSuccess())
+				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{Start}` and `{End}`."));
 		}
 
 		public override string ToString()
@@ -70,10 +70,8 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return $"({Start} to {End})";
 			}
-			else
-			{
-				return $"({String.Join(", ", ValidNumbers)}";
-			}
+
+			return $"({String.Join(", ", ValidNumbers)}";
 		}
 	}
 }

@@ -1,4 +1,10 @@
-﻿using Advobot.Core;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.GuildSettings;
@@ -9,13 +15,6 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.BanPhrases
 {
@@ -30,7 +29,7 @@ namespace Advobot.Commands.BanPhrases
 		[Command]
 		public async Task Command([VerifyStringLength(Target.Regex)] string regex, [Remainder] string testPhrase)
 		{
-			if (!RegexUtils.TryCreateRegex(regex, out Regex reg, out Error error))
+			if (!RegexUtils.TryCreateRegex(regex, out _, out var error))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
@@ -42,11 +41,11 @@ namespace Advobot.Commands.BanPhrases
 			var matchesSpace = RegexUtils.CheckIfRegexMatch(" ", regex);
 			var matchesNewLine = RegexUtils.CheckIfRegexMatch(Environment.NewLine, regex);
 			var randomMatchCount = 0;
-			for (int i = 0; i < 10; ++i)
+			for (var i = 0; i < 10; ++i)
 			{
 				var r = new Random();
 				var p = new StringBuilder();
-				for (int j = 0; j < r.Next(1, 100); ++j)
+				for (var j = 0; j < r.Next(1, 100); ++j)
 				{
 					p.Append((char)r.Next(1, 10000));
 				}
@@ -78,7 +77,7 @@ namespace Advobot.Commands.BanPhrases
 			var embed = new EmbedWrapper
 			{
 				Title = regex,
-				Description = desc,
+				Description = desc
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -112,12 +111,14 @@ namespace Advobot.Commands.BanPhrases
 					await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 					return;
 				}
-				else if (position > Context.GuildSettings.EvaluatedRegex.Count)
+
+				if (position > Context.GuildSettings.EvaluatedRegex.Count)
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error("Invalid position to add at.")).CAF();
 					return;
 				}
-				else if (Context.GuildSettings.BannedPhraseRegex.Count >= Constants.MAX_BANNED_REGEX)
+
+				if (Context.GuildSettings.BannedPhraseRegex.Count >= Constants.MAX_BANNED_REGEX)
 				{
 					var error = new Error($"You cannot have more than `{Constants.MAX_BANNED_REGEX}` banned regex at a time.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
@@ -203,17 +204,16 @@ namespace Advobot.Commands.BanPhrases
 			}
 		}
 
-		private static async Task Show<T>(IAdvobotCommandContext context, List<T> list, string type) where T : BannedPhrase
+		private static async Task Show<T>(ICommandContext context, IEnumerable<T> list, string type) where T : BannedPhrase
 		{
 			var embed = new EmbedWrapper
 			{
 				Title = $"Banned {type}",
-				Description = list.FormatNumberedList("`{0}`", x => x.Phrase),
+				Description = list.FormatNumberedList("`{0}`", x => x.Phrase)
 			};
 			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
-			return;
 		}
-		private static async Task Add<T>(IAdvobotCommandContext context, List<T> list, string text, string type, int max) where T : BannedPhrase
+		private static async Task Add<T>(IAdvobotCommandContext context, ICollection<T> list, string text, string type, int max) where T : BannedPhrase
 		{
 			if (list.Count >= max)
 			{
@@ -270,7 +270,7 @@ namespace Advobot.Commands.BanPhrases
 			[Command, Priority(1)]
 			public async Task Command(uint position, PunishmentType punishment)
 			{
-				await Modify(Context, Context.GuildSettings.BannedPhraseRegex, (int)position, nameof(Regex), punishment).CAF();
+				await Modify(Context, Context.GuildSettings.BannedPhraseRegex, (int)position, punishment).CAF();
 			}
 			[Command]
 			public async Task Command(string text, PunishmentType punishment)
@@ -289,7 +289,7 @@ namespace Advobot.Commands.BanPhrases
 			[Command, Priority(1)]
 			public async Task Command(uint position, PunishmentType punishment)
 			{
-				await Modify(Context, Context.GuildSettings.BannedPhraseStrings, (int)position, nameof(String), punishment).CAF();
+				await Modify(Context, Context.GuildSettings.BannedPhraseStrings, (int)position, punishment).CAF();
 			}
 			[Command]
 			public async Task Command(string text, PunishmentType punishment)
@@ -303,7 +303,7 @@ namespace Advobot.Commands.BanPhrases
 			var embed = new EmbedWrapper
 			{
 				Title = $"Banned {type} Punishments",
-				Description = list.FormatNumberedList("`{0}`", x => x.ToString()),
+				Description = list.FormatNumberedList("`{0}`", x => x.ToString())
 			};
 			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
 		}
@@ -321,8 +321,7 @@ namespace Advobot.Commands.BanPhrases
 			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment.EnumName()}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
 		}
-		private static async Task Modify<T>(IAdvobotCommandContext context, List<T> list, int position, string type,
-			PunishmentType punishment) where T : BannedPhrase
+		private static async Task Modify<T>(IAdvobotCommandContext context, List<T> list, int position, PunishmentType punishment) where T : BannedPhrase
 		{
 			if (position == default || position > list.Count)
 			{
@@ -352,7 +351,7 @@ namespace Advobot.Commands.BanPhrases
 			var embed = new EmbedWrapper
 			{
 				Title = $"Banned Phrase Punishments",
-				Description = Context.GuildSettings.BannedPhrasePunishments.FormatNumberedList("`{0}`", x => x.ToString()),
+				Description = Context.GuildSettings.BannedPhrasePunishments.FormatNumberedList("`{0}`", x => x.ToString())
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -367,13 +366,15 @@ namespace Advobot.Commands.BanPhrases
 					await MessageUtils.SendErrorMessageAsync(Context, new Error("Do not use zero.")).CAF();
 					return;
 				}
-				else if (Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
+
+				if (Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
 				{
 					var error = new Error("A punishment already exists for that number of banned phrases said.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
-				else if (Context.GuildSettings.BannedPhrasePunishments.Count >= Constants.MAX_BANNED_PUNISHMENTS)
+
+				if (Context.GuildSettings.BannedPhrasePunishments.Count >= Constants.MAX_BANNED_PUNISHMENTS)
 				{
 					var error = new Error($"You cannot have more than `{Constants.MAX_BANNED_PUNISHMENTS}` banned phrase punishments at a time.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
@@ -382,7 +383,7 @@ namespace Advobot.Commands.BanPhrases
 
 				var p = new BannedPhrasePunishment(punishment, (int)position, (int)time);
 				Context.GuildSettings.BannedPhrasePunishments.Add(p);
-				var resp = $"Successfully added the following banned phrase punishment: {p.ToString()}.";
+				var resp = $"Successfully added the following banned phrase punishment: {p}.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
@@ -393,13 +394,15 @@ namespace Advobot.Commands.BanPhrases
 					await MessageUtils.SendErrorMessageAsync(Context, new Error("Do not use zero.")).CAF();
 					return;
 				}
-				else if (Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
+
+				if (Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
 				{
 					var error = new Error("A punishment already exists for that number of banned phrases said.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
-				else if (Context.GuildSettings.BannedPhrasePunishments.Count >= Constants.MAX_BANNED_PUNISHMENTS)
+
+				if (Context.GuildSettings.BannedPhrasePunishments.Count >= Constants.MAX_BANNED_PUNISHMENTS)
 				{
 					var error = new Error($"You cannot have more than `{Constants.MAX_BANNED_PUNISHMENTS}` banned phrase punishments at a time.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
@@ -420,7 +423,8 @@ namespace Advobot.Commands.BanPhrases
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Invalid position to remove at.")).CAF();
 				return;
 			}
-			else if (!Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
+
+			if (!Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("No punishment has the supplied position.")).CAF();
 				return;
@@ -449,7 +453,7 @@ namespace Advobot.Commands.BanPhrases
 				return;
 			}
 
-			var resp = $"The user `{user.Format()}` has `{bannedPhraseUser.ToString()}`";
+			var resp = $"The user `{user.Format()}` has `{bannedPhraseUser}`";
 			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
@@ -463,7 +467,7 @@ namespace Advobot.Commands.BanPhrases
 				return;
 			}
 
-			var resp = $"The user `{user.Format()}` has `{bannedPhraseUser.ToString()}`";
+			var resp = $"The user `{user.Format()}` has `{bannedPhraseUser}`";
 			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 	}

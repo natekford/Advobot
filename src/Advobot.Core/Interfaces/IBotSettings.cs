@@ -1,7 +1,7 @@
-﻿using Discord;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using Discord;
 
 namespace Advobot.Core.Interfaces
 {
@@ -12,7 +12,7 @@ namespace Advobot.Core.Interfaces
 	{
 		//Saved settings
 		IReadOnlyList<ulong> TrustedUsers { get; set; }
-		IReadOnlyList<ulong> UsersUnableToDMOwner { get; set; }
+		IReadOnlyList<ulong> UsersUnableToDmOwner { get; set; }
 		IReadOnlyList<ulong> UsersIgnoredFromCommands { get; set; }
 		int ShardCount { get; set; }
 		int MessageCacheCount { get; set; }

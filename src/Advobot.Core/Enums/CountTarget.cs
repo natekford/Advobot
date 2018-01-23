@@ -10,6 +10,6 @@ namespace Advobot.Core.Enums
 	{
 		Equal = (1U << 0),
 		Below = (1U << 1),
-		Above = (1U << 2),
+		Above = (1U << 2)
 	}
 }

@@ -1,8 +1,8 @@
-﻿using Advobot.Commands;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.Commands;
 using Advobot.Core;
 using Advobot.Core.Utilities;
-using System;
-using System.Threading.Tasks;
 
 namespace Advobot.ConsoleLauncher
 {

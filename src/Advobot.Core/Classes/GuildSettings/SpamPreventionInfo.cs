@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Enums;
+﻿using System;
+using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
 
 namespace Advobot.Core.Classes.GuildSettings
 {

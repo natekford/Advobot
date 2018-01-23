@@ -1,6 +1,6 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Classes.Results;
+﻿using Advobot.Core.Classes.Results;
 using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
 using System;
@@ -11,42 +11,42 @@ using System.Threading.Tasks;
 namespace Advobot.Core.Classes.Attributes
 {
 	/// <summary>
-	/// Verifies the parameter this attribute is targetting fits all of the given conditions. Abstract since <see cref="_GetResultsDict"/> has to be created by a class inheriting this.
+	/// Verifies the parameter this attribute is targetting fits all of the given conditions.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
-		public ImmutableList<ObjectVerification> Checks { get; }
-		public bool IfNullCheckFromContext { get; }
+		private ImmutableList<ObjectVerification> _Checks;
+		private bool _IfNullCheckFromContext;
 
 		public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
 		{
-			Checks = checks.ToImmutableList();
-			IfNullCheckFromContext = ifNullCheckFromContext;
+			_Checks = checks.ToImmutableList();
+			_IfNullCheckFromContext = ifNullCheckFromContext;
 		}
 
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
-			if (value == null)
+			if (value != null)
 			{
-				//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-				if (!IfNullCheckFromContext)
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
-
-				if (typeof(ITextChannel).IsAssignableFrom(parameter.Type))
-				{
-					value = context.Channel as ITextChannel;
-				}
-				else if (typeof(IVoiceChannel).IsAssignableFrom(parameter.Type))
-				{
-					value = (context.User as IGuildUser).VoiceChannel;
-				}
-				else if (typeof(IGuildUser).IsAssignableFrom(parameter.Type))
-				{
-					value = context.User as IGuildUser;
-				}
+				return Task.FromResult(GetPreconditionResult(context, value));
+			}
+			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
+			if (!_IfNullCheckFromContext)
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+			if (typeof(ITextChannel).IsAssignableFrom(parameter.Type))
+			{
+				value = context.Channel as ITextChannel;
+			}
+			else if (typeof(IVoiceChannel).IsAssignableFrom(parameter.Type) && context.User is IGuildUser user)
+			{
+				value = user.VoiceChannel;
+			}
+			else if (typeof(IGuildUser).IsAssignableFrom(parameter.Type))
+			{
+				value = context.User as IGuildUser;
 			}
 
 			return Task.FromResult(GetPreconditionResult(context, value));
@@ -54,36 +54,44 @@ namespace Advobot.Core.Classes.Attributes
 
 		private PreconditionResult GetPreconditionResult(ICommandContext context, object value)
 		{
-			VerifiedObjectResult result = default;
-			if (value is IEnumerable enumerable)
+			VerifiedObjectResult result;
+			switch (value)
 			{
-				foreach (var item in enumerable)
+				case IEnumerable enumerable:
 				{
-					var preconditionResult = GetPreconditionResult(context, item);
-					//Don't bother testing more if anything is a failure.
-					if (!preconditionResult.IsSuccess)
+					foreach (var item in enumerable)
 					{
-						return preconditionResult;
+						var preconditionResult = GetPreconditionResult(context, item);
+						//Don't bother testing more if anything is a failure.
+						if (!preconditionResult.IsSuccess)
+						{
+							return preconditionResult;
+						}
 					}
+					//If nothing failed then it gets to this point, so return success
+					result = new VerifiedObjectResult(value, null, null);
+					break;
 				}
-				//If nothing failed then it gets to this point, so return success
-				result = new VerifiedObjectResult(value, null, null);
-			}
-			else if (value is IGuildChannel guildChannel)
-			{
-				result = guildChannel.Verify(context, Checks);
-			}
-			else if (value is IGuildUser guildUser)
-			{
-				result = guildUser.Verify(context, Checks);
-			}
-			else if (value is IRole role)
-			{
-				result = role.Verify(context, Checks);
-			}
-			else
-			{
-				result = new VerifiedObjectResult(value, CommandError.Exception, $"Please notify Advorange of this failure: {nameof(GetPreconditionResult)}");
+				case IGuildChannel guildChannel:
+				{
+					result = guildChannel.Verify(context, _Checks);
+					break;
+				}
+				case IGuildUser guildUser:
+				{
+					result = guildUser.Verify(context, _Checks);
+					break;
+				}
+				case IRole role:
+				{
+					result = role.Verify(context, _Checks);
+					break;
+				}
+				default:
+				{
+					result = new VerifiedObjectResult(value, CommandError.Exception, $"Please notify Advorange of this failure: {nameof(GetPreconditionResult)}");
+					break;
+				}
 			}
 
 			return result.IsSuccess ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(result);

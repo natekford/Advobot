@@ -8,6 +8,5 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Assembly)]
 	public sealed class CommandAssemblyAttribute : Attribute
 	{
-		public CommandAssemblyAttribute() { }
 	}
 }

@@ -1,4 +1,10 @@
-﻿using Advobot.Core.Classes;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Timers;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Punishments;
@@ -7,13 +13,6 @@ using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Timers;
 
 namespace Advobot.Core.Services.Timers
 {
@@ -88,7 +87,7 @@ namespace Advobot.Core.Services.Timers
 							continue;
 						}
 
-						var groupMsgs = group.SelectMany(x => x.Messages);
+						var groupMsgs = group.SelectMany(x => x.Messages).ToList();
 						if (groupMsgs.Count() == 1)
 						{
 							await MessageUtils.DeleteMessageAsync(groupMsgs.First(), _MessageReason).CAF();
@@ -239,8 +238,8 @@ namespace Advobot.Core.Services.Timers
 
 	internal struct MultiKey<TFirst, TSecond>
 	{
-		TFirst FirstValue;
-		TSecond SecondValue;
+		public readonly TFirst FirstValue;
+		public readonly TSecond SecondValue;
 
 		public MultiKey(TFirst firstValue, TSecond secondValue)
 		{
@@ -257,7 +256,7 @@ namespace Advobot.Core.Services.Timers
 			//Source: https://stackoverflow.com/a/263416
 			unchecked // Overflow is fine, just wrap
 			{
-				int hash = (int)2166136261;
+				var hash = (int)2166136261;
 				// Suitable nullity checks etc, of course :)
 				hash = (hash * 16777619) ^ FirstValue.GetHashCode();
 				hash = (hash * 16777619) ^ SecondValue.GetHashCode();

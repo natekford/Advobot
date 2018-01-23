@@ -1,7 +1,7 @@
-﻿using Advobot.Core.Utilities.Formatting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Advobot.Core.Utilities.Formatting;
 
 namespace Advobot.Core.Utilities
 {
@@ -19,7 +19,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static SortedDictionary<string, List<string>> GetOrCreateWrittenLines()
 		{
-			return _WrittenLines = _WrittenLines ?? new SortedDictionary<string, List<string>>();
+			lock (_MessageLock)
+			{
+				return _WrittenLines = _WrittenLines ?? new SortedDictionary<string, List<string>>();
+			}
 		}
 		/// <summary>
 		/// Writes the given text to the console with a timestamp and the calling method. Writes in gray by default.

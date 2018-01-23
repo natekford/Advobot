@@ -1,6 +1,6 @@
-﻿using Advobot.Core.Classes.UserInformation;
+﻿using System;
+using Advobot.Core.Classes.UserInformation;
 using Discord;
-using System;
 
 namespace Advobot.Core.Services.Timers
 {

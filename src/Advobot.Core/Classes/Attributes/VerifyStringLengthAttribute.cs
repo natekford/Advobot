@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Enums;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.Attributes
 {
@@ -27,7 +27,7 @@ namespace Advobot.Core.Classes.Attributes
 			{ Target.Regex, (Constants.MIN_REGEX_LENGTH, Constants.MAX_REGEX_LENGTH, "regex") },
 			{ Target.RuleCategory, (Constants.MIN_RULE_CATEGORY_LENGTH, Constants.MAX_RULE_CATEGORY_LENGTH, "rule category") },
 			{ Target.Rule, (Constants.MIN_RULE_LENGTH, Constants.MAX_RULE_LENGTH, "rule") },
-			{ Target.Category, (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "category") },
+			{ Target.Category, (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "category") }
 		};
 
 		public int Min { get; }
@@ -69,25 +69,23 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			else if (value is string str)
+
+			if (value is string str)
 			{
 				if (str.Length < Min)
 				{
 					return Task.FromResult(PreconditionResult.FromError(TooShort));
 				}
-				else if (str.Length > Max)
+
+				if (str.Length > Max)
 				{
 					return Task.FromResult(PreconditionResult.FromError(TooLong));
 				}
-				else
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
+
+				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			else
-			{
-				throw new NotSupportedException($"{nameof(VerifyStringLengthAttribute)} only supports strings.");
-			}
+
+			throw new NotSupportedException($"{nameof(VerifyStringLengthAttribute)} only supports strings.");
 		}
 
 		public override string ToString()

@@ -1,14 +1,14 @@
-﻿using Advobot.Core.Classes.Punishments;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
+using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.GuildSettings
 {
@@ -61,7 +61,7 @@ namespace Advobot.Core.Classes.GuildSettings
 		/// <param name="guildSettings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings guildSettings, SocketGuildUser user)
+		public async Task PunishAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
 			await _Giver.PunishAsync(Punishment, user, guildSettings.MuteRole, _Reason).CAF();
 		}
@@ -86,7 +86,8 @@ namespace Advobot.Core.Classes.GuildSettings
 				error = new Error($"The user count must be less than or equal to `{MAX_USERS}`.");
 				return false;
 			}
-			else if (timeInterval > MAX_TIME)
+
+			if (timeInterval > MAX_TIME)
 			{
 				error = new Error($"The interval must be less than or equal to `{MAX_TIME}`.");
 				return false;

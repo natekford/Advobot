@@ -4,7 +4,6 @@ using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord.Commands;
-using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,7 +26,7 @@ namespace Advobot.Commands.SpamPrevention
 			var embed = new EmbedWrapper
 			{
 				Title = "Punishment Types",
-				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`",
+				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -42,7 +41,7 @@ namespace Advobot.Commands.SpamPrevention
 			}
 
 			Context.GuildSettings.SpamPreventionDictionary[spam] = prev;
-			var resp = $"Successfully set up the spam prevention for `{spam.EnumName().ToLower()}`.\n{prev.ToString()}";
+			var resp = $"Successfully set up the spam prevention for `{spam.EnumName().ToLower()}`.\n{prev}";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
@@ -90,7 +89,7 @@ namespace Advobot.Commands.SpamPrevention
 			var embed = new EmbedWrapper
 			{
 				Title = "Punishment Types",
-				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`",
+				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -110,7 +109,7 @@ namespace Advobot.Commands.SpamPrevention
 			}
 
 			Context.GuildSettings.RaidPreventionDictionary[raidType] = raidPrevention;
-			var resp = $"Successfully set up the raid prevention for `{raidType.EnumName().ToLower()}`.\n{raidPrevention.ToString()}";
+			var resp = $"Successfully set up the raid prevention for `{raidType.EnumName().ToLower()}`.\n{raidPrevention}";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
@@ -129,9 +128,9 @@ namespace Advobot.Commands.SpamPrevention
 			{
 				//Mute the newest joining users
 				var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).Reverse().ToArray();
-				for (int i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
+				for (var i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
 				{
-					await raidPrev.PunishAsync(Context.GuildSettings, users[i] as SocketGuildUser).CAF();
+					await raidPrev.PunishAsync(Context.GuildSettings, users[i]).CAF();
 				}
 			}
 

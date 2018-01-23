@@ -1,10 +1,10 @@
-﻿using Advobot.Commands;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.Commands;
 using Advobot.Core;
 using Advobot.Core.Utilities;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Threading.Tasks;
 
 namespace Advobot.UILauncher.Classes
 {

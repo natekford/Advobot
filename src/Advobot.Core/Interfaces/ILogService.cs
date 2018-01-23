@@ -1,8 +1,8 @@
-﻿using Advobot.Core.Classes;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Discord;
 using Discord.WebSocket;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Interfaces
 {

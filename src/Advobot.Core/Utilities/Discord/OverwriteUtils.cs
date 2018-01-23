@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Classes;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Core.Classes;
+using Discord;
 
 namespace Advobot.Core.Utilities
 {
@@ -25,14 +25,13 @@ namespace Advobot.Core.Utilities
 			{
 				return channel.GetPermissionOverwrite(role);
 			}
-			else if (obj is IUser user)
+
+			if (obj is IUser user)
 			{
 				return channel.GetPermissionOverwrite(user);
 			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(obj));
-			}
+
+			throw new ArgumentException("invalid type", nameof(obj));
 		}
 		/// <summary>
 		/// Gets the permission overwrite allow value for a role or user.
@@ -55,12 +54,12 @@ namespace Advobot.Core.Utilities
 			return channel.GetPermissionOverwrite(obj)?.DenyValue ?? 0;
 		}
 		/// <summary>
-		/// Based off of the <paramref name="actionType"/> passed in will allow, inherit, or deny the given values for the <paramref name="discordObject"/> on the channel.
+		/// Based off of the action passed in will allow, inherit, or deny the given values for the object on the channel.
 		/// </summary>
 		/// <param name="channel"></param>
-		/// <param name="discordObject"></param>
-		/// <param name="actionType"></param>
+		/// <param name="action"></param>
 		/// <param name="changeValue"></param>
+		/// <param name="obj"></param>
 		/// <param name="invokingUser"></param>
 		/// <returns></returns>
 		public static async Task<IEnumerable<string>> ModifyOverwritePermissionsAsync<T>(PermValue action, IGuildChannel channel, T obj, ulong changeValue, IGuildUser invokingUser) where T : ISnowflakeEntity
@@ -93,10 +92,10 @@ namespace Advobot.Core.Utilities
 			return ChannelPermsUtils.ConvertValueToNames(changeValue);
 		}
 		/// <summary>
-		/// Sets the overwrite on a channel for the given <paramref name="discordObject"/>.
+		/// Sets the overwrite on a channel for the given object.
 		/// </summary>
 		/// <param name="channel"></param>
-		/// <param name="discordObject"></param>
+		/// <param name="obj"></param>
 		/// <param name="allowBits"></param>
 		/// <param name="denyBits"></param>
 		/// <param name="reason"></param>
@@ -158,14 +157,13 @@ namespace Advobot.Core.Utilities
 				{
 					return nameof(PermValue.Allow);
 				}
-				else if ((overwrite.Permissions.DenyValue & (ulong)x.Value) != 0)
+
+				if ((overwrite.Permissions.DenyValue & (ulong)x.Value) != 0)
 				{
 					return nameof(PermValue.Deny);
 				}
-				else
-				{
-					return nameof(PermValue.Inherit);
-				}
+
+				return nameof(PermValue.Inherit);
 			});
 		}
 		/// <summary>

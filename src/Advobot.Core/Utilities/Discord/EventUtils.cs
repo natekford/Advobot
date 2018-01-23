@@ -1,13 +1,13 @@
-﻿using Advobot.Core.Classes;
+﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {
@@ -35,7 +35,7 @@ namespace Advobot.Core.Utilities
 			await ClientUtils.UpdateGameAsync(client, botSettings).CAF();
 
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
-			ConsoleUtils.WriteLine($"Current version: {Version.VersionNumber}");
+			ConsoleUtils.WriteLine($"Current version: {Version.VERSION_NUMBER}");
 			ConsoleUtils.WriteLine($"Current bot prefix is: {botSettings.Prefix}");
 			ConsoleUtils.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
 		}
@@ -43,6 +43,7 @@ namespace Advobot.Core.Utilities
 		/// Checks banned names, antiraid, persistent roles, and welcome messages.
 		/// </summary>
 		/// <param name="user"></param>
+		/// <param name="botSettings"></param>
 		/// <param name="settings"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
@@ -69,7 +70,7 @@ namespace Advobot.Core.Utilities
 			var antiJoin = settings.RaidPreventionDictionary[RaidType.RapidJoins];
 			if (antiJoin != null && antiJoin.Enabled)
 			{
-				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
+				antiJoin.Add(user.JoinedAt?.UtcDateTime ?? default);
 				if (antiJoin.GetSpamCount() >= antiJoin.UserCount)
 				{
 					await antiJoin.PunishAsync(settings, user).CAF();
@@ -78,7 +79,7 @@ namespace Advobot.Core.Utilities
 
 			//Persistent roles
 			var roles = settings.PersistentRoles.Where(x => x.UserId == user.Id)
-				.Select(x => user.Guild.GetRole(x.RoleId)).Where(x => x != null);
+				.Select(x => user.Guild.GetRole(x.RoleId)).Where(x => x != null).ToList();
 			if (roles.Any())
 			{
 				await RoleUtils.GiveRolesAsync(user, roles, new ModerationReason("persistent roles")).CAF();
@@ -94,6 +95,7 @@ namespace Advobot.Core.Utilities
 		/// Checks goodbye messages.
 		/// </summary>
 		/// <param name="user"></param>
+		/// <param name="botSettings"></param>
 		/// <param name="settings"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
@@ -115,11 +117,13 @@ namespace Advobot.Core.Utilities
 		/// Checks close helpentries and quotes.
 		/// </summary>
 		/// <param name="message"></param>
+		/// <param name="botSettings"></param>
+		/// <param name="settings"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
 		public static async Task OnMessageReceived(SocketMessage message, IBotSettings botSettings, IGuildSettings settings, ITimersService timers)
 		{
-			if (timers == null || int.TryParse(message.Content, out int i) || i < 0 || i > 7 || !(message.Author is IGuildUser user))
+			if (timers == null || int.TryParse(message.Content, out var i) || i < 0 || i > 7 || !(message.Author is IGuildUser user))
 			{
 				return;
 			}
@@ -133,9 +137,9 @@ namespace Advobot.Core.Utilities
 				var embed = new EmbedWrapper
 				{
 					Title = quote.Name,
-					Description = quote.Description,
+					Description = quote.Description
 				};
-				embed.TryAddFooter("Quote", null, out var footerErrors);
+				embed.TryAddFooter("Quote", null, out _);
 				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
 			}
 			var helpEntries = await timers.RemoveActiveCloseHelp(user).CAF();
@@ -147,9 +151,9 @@ namespace Advobot.Core.Utilities
 				var embed = new EmbedWrapper
 				{
 					Title = help.Name,
-					Description = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix),
+					Description = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix)
 				};
-				embed.TryAddFooter("Help", null, out var footerErrors);
+				embed.TryAddFooter("Help", null, out _);
 				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
 			}
 

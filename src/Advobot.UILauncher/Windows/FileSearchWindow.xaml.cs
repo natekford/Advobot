@@ -1,10 +1,10 @@
-﻿using Advobot.Core;
-using Advobot.Core.Utilities;
-using Advobot.UILauncher.Classes.Controls;
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Advobot.Core;
+using Advobot.Core.Utilities;
+using Advobot.UILauncher.Classes.Controls;
 
 namespace Advobot.UILauncher.Windows
 {
@@ -13,9 +13,8 @@ namespace Advobot.UILauncher.Windows
 	/// </summary>
 	internal partial class FileSearchWindow : ModalWindow
 	{
-		private string[] _Files = new[]
-		{
-			Constants.GUILD_SETTINGS_LOC.Split('.')[0],
+		private string[] _Files = {
+			Constants.GUILD_SETTINGS_LOC.Split('.')[0]
 		};
 
 		public FileSearchWindow() : this(null) { }
@@ -30,7 +29,7 @@ namespace Advobot.UILauncher.Windows
 			var selected = FileTypeComboBox.SelectedItem;
 			var name = GuildNameInput.Text;
 			var id = GuildIdInput.Text;
-			if (!(this.Owner is AdvobotWindow win) ||
+			if (!(Owner is AdvobotWindow win) ||
 				!(selected is TextBox tb) ||
 				!(tb.Tag is string s))
 			{

@@ -1,14 +1,15 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
+﻿using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using Discord.WebSocket;
 
 namespace Advobot.Commands.NicknameModeration
 {
@@ -20,7 +21,7 @@ namespace Advobot.Commands.NicknameModeration
 	public sealed class ModifyNickName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user,
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketGuildUser user,
 			[Optional, VerifyStringLength(Target.Nickname)] string nickname)
 		{
 			await UserUtils.ChangeNicknameAsync(user, nickname, new ModerationReason(Context.User, null)).CAF();
@@ -43,30 +44,32 @@ namespace Advobot.Commands.NicknameModeration
 			[VerifyStringLength(Target.Nickname)] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF()).Where(x => false
-				|| (x.Nickname != null && x.Nickname.CaseInsContains(search))
-				|| (x.Nickname == null && x.Username.CaseInsContains(search)))
-				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF()).Where(x =>
+			{
+				return (x.Nickname != null && x.Nickname.CaseInsContains(search))
+					|| (x.Nickname == null && x.Username.CaseInsContains(search));
+			}).Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
 
-	[Group(nameof(ReplaceByUTF16)), TopLevelShortAlias(typeof(ReplaceByUTF16))]
+	[Group(nameof(ReplaceByUtf16)), TopLevelShortAlias(typeof(ReplaceByUtf16))]
 	[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. " +
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ReplaceByUTF16 : AdvobotModuleBase
+	public sealed class ReplaceByUtf16 : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(uint upperLimit,
 			[VerifyStringLength(Target.Nickname)] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF()).Where(x => false
-				|| (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit))
-				|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)))
-				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF()).Where(x =>
+			{
+				return (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit))
+				|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit));
+			}).Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
@@ -81,8 +84,8 @@ namespace Advobot.Commands.NicknameModeration
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF()).Where(x => x.Nickname != null)
-				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF())
+				.Where(x => x.Nickname != null).Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();
 		}
 	}

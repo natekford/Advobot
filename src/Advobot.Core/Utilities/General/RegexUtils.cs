@@ -1,6 +1,6 @@
-﻿using Advobot.Core.Classes;
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
+using Advobot.Core.Classes;
 
 namespace Advobot.Core.Utilities
 {
@@ -14,9 +14,9 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Tries to create a <see cref="Regex"/>. Returns false if unable to created a <see cref="Regex"/> with the given input.
 		/// </summary>
-		/// <param name="input"></param>
+		/// <param name="pattern"></param>
 		/// <param name="regexOutput"></param>
-		/// <param name="stringOutput"></param>
+		/// <param name="errorReason"></param>
 		/// <returns></returns>
 		public static bool TryCreateRegex(string pattern, out Regex regexOutput, out Error errorReason)
 		{
@@ -42,7 +42,7 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Returns true if the pattern is found within the input. Has a timeout of 1,000,000 ticks.
 		/// </summary>
-		/// <param name="msg"></param>
+		/// <param name="input"></param>
 		/// <param name="pattern"></param>
 		/// <returns></returns>
 		public static bool CheckIfRegexMatch(string input, string pattern)

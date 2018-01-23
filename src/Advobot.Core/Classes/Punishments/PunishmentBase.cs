@@ -1,10 +1,8 @@
-﻿using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 
 namespace Advobot.Core.Classes.Punishments
 {
@@ -21,7 +19,7 @@ namespace Advobot.Core.Classes.Punishments
 			{ PunishmentType.Deafen, "deafened" },
 			{ PunishmentType.VoiceMute, "voice-muted" },
 			{ PunishmentType.RoleMute, "role-muted" },
-			{ PunishmentType.Softban, "softbanned" },
+			{ PunishmentType.Softban, "softbanned" }
 		}.ToImmutableDictionary();
 		protected static ImmutableDictionary<PunishmentType, string> _Removal = new Dictionary<PunishmentType, string>
 		{
@@ -30,7 +28,7 @@ namespace Advobot.Core.Classes.Punishments
 			{ PunishmentType.Deafen, "undeafened" },
 			{ PunishmentType.VoiceMute, "unvoice-muted" },
 			{ PunishmentType.RoleMute, "unrole-muted" },
-			{ PunishmentType.Softban, "unsoftbanned" }, //Doesn't make sense either
+			{ PunishmentType.Softban, "unsoftbanned" } //Doesn't make sense either
 		}.ToImmutableDictionary();
 
 		protected ITimersService _Timers;

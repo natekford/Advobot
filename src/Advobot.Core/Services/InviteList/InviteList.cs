@@ -1,10 +1,10 @@
-﻿using Advobot.Core.Classes.GuildSettings;
-using Advobot.Core.Interfaces;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Advobot.Core.Classes.GuildSettings;
+using Advobot.Core.Interfaces;
+using Discord;
 
 namespace Advobot.Core.Services.InviteList
 {
@@ -20,7 +20,7 @@ namespace Advobot.Core.Services.InviteList
 		}
 		public bool Remove(IGuild guild)
 		{
-			return _Invites.TryRemove(guild.Id, out var invite);
+			return _Invites.TryRemove(guild.Id, out _);
 		}
 		public IEnumerable<ListedInvite> GetAll()
 		{

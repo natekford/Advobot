@@ -1,10 +1,10 @@
-﻿using Advobot.Core.Interfaces;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord.WebSocket;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Services.Log.Loggers
 {
@@ -19,14 +19,14 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnGuildAvailable(SocketGuild guild)
 		{
-			ConsoleUtils.WriteLine($"{guild.Format()} is now online on shard {ClientUtils.GetShardIdFor(_Client, guild)}.");
+			ConsoleUtils.WriteLine($"{guild.Format()} is now online on shard {ClientUtils.GetShardIdFor(Client, guild)}.");
 			ConsoleUtils.WriteLine($"Current memory usage is: {IOUtils.GetMemory().ToString("0.00")}MB.");
 
-			if (!_GuildSettings.Contains(guild.Id))
+			if (!GuildSettings.Contains(guild.Id))
 			{
-				_Logging.TotalUsers.Add(guild.MemberCount);
-				_Logging.TotalGuilds.Increment();
-				await _GuildSettings.GetOrCreate(guild).CAF();
+				Logging.TotalUsers.Add(guild.MemberCount);
+				Logging.TotalGuilds.Increment();
+				await GuildSettings.GetOrCreate(guild).CAF();
 			}
 		}
 		/// <summary>
@@ -79,8 +79,8 @@ namespace Advobot.Core.Services.Log.Loggers
 			}
 
 			//Warn if at the maximum else leave
-			var guilds = (await _Client.GetGuildsAsync().CAF()).Count;
-			var curMax = ClientUtils.GetShardCount(_Client) * 2500;
+			var guilds = (await Client.GetGuildsAsync().CAF()).Count;
+			var curMax = ClientUtils.GetShardCount(Client) * 2500;
 			if (guilds > curMax)
 			{
 				await guild.LeaveAsync().CAF();
@@ -91,11 +91,11 @@ namespace Advobot.Core.Services.Log.Loggers
 				ConsoleUtils.WriteLine($"The bot currently has {guilds} out of {curMax} possible spots for servers filled. Increase the shard count soon.");
 			}
 
-			if (!_GuildSettings.Contains(guild.Id))
+			if (!GuildSettings.Contains(guild.Id))
 			{
-				_Logging.TotalUsers.Add(guild.MemberCount);
-				_Logging.TotalGuilds.Increment();
-				await _GuildSettings.GetOrCreate(guild).CAF();
+				Logging.TotalUsers.Add(guild.MemberCount);
+				Logging.TotalGuilds.Increment();
+				await GuildSettings.GetOrCreate(guild).CAF();
 			}
 		}
 		/// <summary>
@@ -107,9 +107,9 @@ namespace Advobot.Core.Services.Log.Loggers
 		{
 			ConsoleUtils.WriteLine($"Bot has left {guild.Format()}.");
 
-			_Logging.TotalUsers.Remove(guild.MemberCount);
-			_Logging.TotalGuilds.Decrement();
-			await _GuildSettings.Remove(guild.Id).CAF();
+			Logging.TotalUsers.Remove(guild.MemberCount);
+			Logging.TotalGuilds.Decrement();
+			await GuildSettings.Remove(guild.Id).CAF();
 		}
 	}
 }

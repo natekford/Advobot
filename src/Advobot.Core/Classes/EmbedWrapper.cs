@@ -1,11 +1,11 @@
-﻿using Advobot.Core.Interfaces;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Advobot.Core.Interfaces;
+using Discord;
 
 namespace Advobot.Core.Classes
 {
@@ -15,13 +15,14 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public class EmbedWrapper
 	{
-		public const int MaxDescriptionLines = 20;
-		public const int MaxFieldLines = 5;
+		//TODO: implement these checks
+		public const int MAX_DESCRIPTION_LINES = 20;
+		public const int MAX_FIELD_LINES = 5;
 
 		private EmbedBuilder _Builder = new EmbedBuilder
 		{
-			Color = Constants.BASE,
-			Timestamp = DateTimeOffset.UtcNow,
+			Color = Constants.Base,
+			Timestamp = DateTimeOffset.UtcNow
 		};
 		private bool _ThrowOnInvalid;
 
@@ -36,7 +37,8 @@ namespace Advobot.Core.Classes
 			set
 			{
 				if (TryAddTitle(value, out var errors)) { return; }
-				else if (_ThrowOnInvalid) { throw CreateException(errors); }
+
+				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 				_Builder.Title = ShortenString(errors, value);
 			}
@@ -47,7 +49,8 @@ namespace Advobot.Core.Classes
 			set
 			{
 				if (TryAddDescription(value, out var errors)) { return; }
-				else if (_ThrowOnInvalid) { throw CreateException(errors); }
+
+				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 				_Builder.Description = ShortenString(errors, value);
 			}
@@ -57,7 +60,8 @@ namespace Advobot.Core.Classes
 			get => _Builder.Url;
 			set
 			{
-				if (TryAddUrl(value, out var errors)) { return; }
+				if (TryAddUrl(value, out var errors)) {
+				}
 				else if (_ThrowOnInvalid) { throw CreateException(errors); }
 			}
 		}
@@ -66,7 +70,8 @@ namespace Advobot.Core.Classes
 			get => _Builder.ThumbnailUrl;
 			set
 			{
-				if (TryAddThumbnailUrl(value, out var errors)) { return; }
+				if (TryAddThumbnailUrl(value, out var errors)) {
+				}
 				else if (_ThrowOnInvalid) { throw CreateException(errors); }
 			}
 		}
@@ -75,7 +80,8 @@ namespace Advobot.Core.Classes
 			get => _Builder.ImageUrl;
 			set
 			{
-				if (TryAddImageUrl(value, out var errors)) { return; }
+				if (TryAddImageUrl(value, out var errors)) {
+				}
 				else if (_ThrowOnInvalid) { throw CreateException(errors); }
 			}
 		}
@@ -95,16 +101,17 @@ namespace Advobot.Core.Classes
 			set
 			{
 				if (value == null) { _Builder.Author = null; }
-				if (TryAddAuthor(value.Name, value.Url, value.IconUrl, out var errors)) { return; }
-				else if (_ThrowOnInvalid) { throw CreateException(errors); }
+				if (TryAddAuthor(value?.Name, value?.Url, value?.IconUrl, out var errors)) { return; }
+
+				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 				//No need to error check the Urls since they are going to always be valid
 				//Since Discord.Net checks them in the builder or throws
 				_Builder.Author = new EmbedAuthorBuilder
 				{
-					Name = ShortenString(errors, value.Name),
-					Url = value.Url,
-					IconUrl = value.IconUrl,
+					Name = ShortenString(errors, value?.Name),
+					Url = value?.Url,
+					IconUrl = value?.IconUrl
 				};
 			}
 		}
@@ -114,15 +121,16 @@ namespace Advobot.Core.Classes
 			set
 			{
 				if (value == null) { _Builder.Footer = null; }
-				if (TryAddFooter(value.Text, value.IconUrl, out var errors)) { return; }
-				else if (_ThrowOnInvalid) { throw CreateException(errors); }
+				if (TryAddFooter(value?.Text, value?.IconUrl, out var errors)) { return; }
+
+				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 				//No need to error check the Urls since they are going to always be valid
 				//Since Discord.Net checks them in the builder or throws
 				_Builder.Footer = new EmbedFooterBuilder
 				{
-					Text = ShortenString(errors, value.Text),
-					IconUrl = value.IconUrl,
+					Text = ShortenString(errors, value?.Text),
+					IconUrl = value?.IconUrl
 				};
 			}
 		}
@@ -139,14 +147,15 @@ namespace Advobot.Core.Classes
 				//Have to clear and do it step by step instead of temp list
 				//Because TryAddField adds to the builder if success and also checks against total embed length
 				_Builder.Fields.Clear();
-				for (int i = 0; i < Math.Min(value.Count, EmbedBuilder.MaxFieldCount); ++i)
+				for (var i = 0; i < Math.Min(value.Count, EmbedBuilder.MaxFieldCount); ++i)
 				{
 					var f = value[i];
 					if (TryAddField(f?.Name, f?.Value?.ToString(), f?.IsInline ?? false, out var errors)) { continue; }
-					else if (_ThrowOnInvalid) { throw CreateException(errors); }
 
-					var fName = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Name)), f.Name);
-					var fValue = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Value)), f.Value.ToString());
+					if (_ThrowOnInvalid) { throw CreateException(errors); }
+
+					var fName = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Name)), f?.Name);
+					var fValue = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Value)), f?.Value?.ToString());
 					//If there's a total length error then don't even bother trying to put any more fields in
 					//Because it's impossible to know what length the name and value should be made
 					if (errors.SingleOrDefault(x => x.SubProperty == nameof(EmbedBuilder.MaxEmbedLength)).RemainingLength > -1)
@@ -159,7 +168,7 @@ namespace Advobot.Core.Classes
 					{
 						Name = fName,
 						Value = fValue,
-						IsInline = f.IsInline,
+						IsInline = f?.IsInline ?? false,
 					});
 				}
 			}
@@ -316,7 +325,7 @@ namespace Advobot.Core.Classes
 				{
 					Name = name,
 					Url = url,
-					IconUrl = iconUrl,
+					IconUrl = iconUrl
 				};
 				_FailedValues.Remove(nameof(Author));
 			}
@@ -353,7 +362,7 @@ namespace Advobot.Core.Classes
 				_Builder.Footer = new EmbedFooterBuilder
 				{
 					Text = text,
-					IconUrl = iconUrl,
+					IconUrl = iconUrl
 				};
 				_FailedValues.Remove(nameof(Footer));
 			}
@@ -450,7 +459,8 @@ namespace Advobot.Core.Classes
 				return false;
 			}
 			//If the field fails to be removed then it has to be reinserted
-			else if (!TryAddField(name, value, inLine, out errors))
+
+			if (!TryAddField(name, value, inLine, out errors))
 			{
 				_Builder.Fields.Insert(index, field);
 				return false;
@@ -577,14 +587,14 @@ namespace Advobot.Core.Classes
 		{
 			return new EmbedError(property, subProperty, value, $"Remaining length is {lengthRemaining}.")
 			{
-				RemainingLength = lengthRemaining,
+				RemainingLength = lengthRemaining
 			};
 		}
 		internal static EmbedError MaxLength(string property, string subProperty, object value, int maxLength)
 		{
 			return new EmbedError(property, subProperty, value, $"Max length is {maxLength}.")
 			{
-				RemainingLength = maxLength,
+				RemainingLength = maxLength
 			};
 		}
 		internal static EmbedError Url(string property, string subProperty, object value)

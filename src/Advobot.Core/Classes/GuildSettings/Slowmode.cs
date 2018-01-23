@@ -1,12 +1,11 @@
-﻿using Advobot.Core.Utilities.Formatting;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Linq;
-using System.Text;
-using System.Collections.Immutable;
 
 namespace Advobot.Core.Classes.GuildSettings
 {

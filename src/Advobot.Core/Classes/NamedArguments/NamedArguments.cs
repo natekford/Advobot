@@ -1,11 +1,11 @@
-﻿using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Utilities;
 
 namespace Advobot.Core.Classes.NamedArguments
 {
@@ -30,7 +30,7 @@ namespace Advobot.Core.Classes.NamedArguments
 		/// </summary>
 		static NamedArguments()
 		{
-			_Constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+			_Constructor = typeof(T).GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
 				.Single(x => x.GetCustomAttribute<NamedArgumentConstructorAttribute>() != null);
 
 			//Make sure no invalid types have CustomArgumentAttribute
@@ -52,11 +52,13 @@ namespace Advobot.Core.Classes.NamedArguments
 				{
 					throw new ArgumentException("don't use on anything other than primitives/enums/strings", nameof(NamedArgumentAttribute));
 				}
-				else if (argNames.CaseInsContains(p.Name))
+
+				if (argNames.CaseInsContains(p.Name))
 				{
 					throw new InvalidOperationException("Argument names are case insensitive, so don't have duplicates.");
 				}
-				else if (p.GetCustomAttribute<ParamArrayAttribute>() != null)
+
+				if (p.GetCustomAttribute<ParamArrayAttribute>() != null)
 				{
 					_HasParams = true;
 					_ParamsLength = customArgumentAttr.Length > 0 ? customArgumentAttr.Length : int.MaxValue;
@@ -80,7 +82,7 @@ namespace Advobot.Core.Classes.NamedArguments
 			var split = input.Split('"').Select((x, index) =>
 			{
 				return index % 2 == 0
-					? x.Split(new[] { ' ' })
+					? x.Split(' ')
 					: new[] { x };
 			}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x));
 
@@ -88,27 +90,27 @@ namespace Advobot.Core.Classes.NamedArguments
 			var argKvps = split.Select(x =>
 			{
 				var kvp = x?.Split(new[] { ':' }, 2);
-				return kvp.Length == 2
+				return kvp?.Length == 2
 					? (Key: kvp[0], Value: kvp[1])
 					: (Key: null, Value: null);
 			}).Where(x => x.Key != null && x.Value != null);
 
-			foreach (var (Key, Value) in argKvps)
+			foreach (var (key, value) in argKvps)
 			{
 				//If the params name is the arg name then add to params
-				if (_HasParams && _ParamsName.CaseInsEquals(Key))
+				if (_HasParams && _ParamsName.CaseInsEquals(key))
 				{
 					//Keep this inside here so that if there are too many
 					//params args it won't potentially go into the else if
 					if (_ParamArgs.Count() < _ParamsLength)
 					{
-						_ParamArgs.Add(Value);
+						_ParamArgs.Add(value);
 					}
 				}
 				//If the args dictionary has the value as a key, set it.
-				else if (_Args.ContainsKey(Key))
+				else if (_Args.ContainsKey(key))
 				{
-					_Args[Key] = Value;
+					_Args[key] = value;
 				}
 			}
 		}
@@ -147,12 +149,14 @@ namespace Advobot.Core.Classes.NamedArguments
 					return correctTypeArray;
 				}
 				//Checking against the attribute again in case arguments have duplicate names
-				else if (p.GetCustomAttribute<NamedArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))
+
+				if (p.GetCustomAttribute<NamedArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))
 				{
 					return ConvertValue(t, arg);
 				}
 				//Finally see if any additional args should be used
-				else if (additionalArgsList.Any())
+
+				if (additionalArgsList.Any())
 				{
 					var value = additionalArgsList.FirstOrDefault(x => x.GetType() == t);
 					if (value != null)
@@ -218,6 +222,7 @@ namespace Advobot.Core.Classes.NamedArguments
 		/// Value types and classes with parameterless constructors can be created with no parameters.
 		/// </summary>
 		/// <param name="type"></param>
+		/// <param name="createParameterless"></param>
 		/// <returns></returns>
 		public static object CreateDefault(Type type, bool createParameterless = false)
 		{
@@ -225,7 +230,8 @@ namespace Advobot.Core.Classes.NamedArguments
 			{
 				return Activator.CreateInstance(type);
 			}
-			else if (createParameterless)
+
+			if (createParameterless)
 			{
 				var constructor = type.GetConstructors().SingleOrDefault(x => !x.GetParameters().Any());
 				if (constructor != null)

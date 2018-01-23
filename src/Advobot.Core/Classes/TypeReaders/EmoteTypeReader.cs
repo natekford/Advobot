@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities;
-using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Core.Utilities;
+using Discord;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -22,18 +22,18 @@ namespace Advobot.Core.Classes.TypeReaders
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			IEmote emote = null;
-			if (Emote.TryParse(input, out Emote tempEmote))
+			if (Emote.TryParse(input, out var tempEmote))
 			{
 				emote = tempEmote;
 			}
-			else if (ulong.TryParse(input, out ulong emoteID))
+			else if (ulong.TryParse(input, out var emoteId))
 			{
-				emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == emoteID);
+				emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == emoteId);
 			}
 
 			if (emote == null)
 			{
-				var emotes = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input));
+				var emotes = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToList();
 				if (emotes.Count() == 1)
 				{
 					emote = emotes.First();

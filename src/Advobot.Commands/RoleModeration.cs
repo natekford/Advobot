@@ -1,4 +1,8 @@
-﻿using Advobot.Core;
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.TypeReaders;
@@ -7,10 +11,7 @@ using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using Discord.WebSocket;
 
 namespace Advobot.Commands.RoleModeration
 {
@@ -21,7 +22,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class GiveRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(IGuildUser user,
+		public async Task Command(SocketGuildUser user,
 			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
 		{
 			await RoleUtils.GiveRolesAsync(user, roles, new ModerationReason(Context.User, null)).CAF();
@@ -37,7 +38,8 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class TakeRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
+		public async Task Command(SocketGuildUser user,
+			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
 		{
 			await RoleUtils.TakeRolesAsync(user, roles, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully took `{String.Join("`, `", roles.Select(x => x.Format()))}` from `{user.Format()}`.";
@@ -136,7 +138,7 @@ namespace Advobot.Commands.RoleModeration
 			var embed = new EmbedWrapper
 			{
 				Title = "Role Positions",
-				Description = desc,
+				Description = desc
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -159,7 +161,7 @@ namespace Advobot.Commands.RoleModeration
 				var embed = new EmbedWrapper
 				{
 					Title = "Guild Permission Types",
-					Description = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`",
+					Description = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -170,7 +172,7 @@ namespace Advobot.Commands.RoleModeration
 				var embed = new EmbedWrapper
 				{
 					Title = role.Name,
-					Description = $"`{(currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission")}`",
+					Description = $"`{(currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission")}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -178,14 +180,14 @@ namespace Advobot.Commands.RoleModeration
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
 		public async Task Allow([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
-			var givenPerms = await RoleUtils.ModifyRolePermissionsAsync(role, PermValue.Allow, permissions, Context.User as IGuildUser).CAF();
+			var givenPerms = (await RoleUtils.ModifyRolePermissionsAsync(role, PermValue.Allow, permissions, Context.User as IGuildUser).CAF()).ToList();
 			var resp = $"Successfully allowed `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Deny)), ShortAlias(nameof(Deny))]
 		public async Task Deny([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
-			var givenPerms = await RoleUtils.ModifyRolePermissionsAsync(role, PermValue.Deny, permissions, Context.User as IGuildUser).CAF();
+			var givenPerms = (await RoleUtils.ModifyRolePermissionsAsync(role, PermValue.Deny, permissions, Context.User as IGuildUser).CAF()).ToList();
 			var resp = $"Successfully denied `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -203,7 +205,7 @@ namespace Advobot.Commands.RoleModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole inputRole,
 			[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole outputRole)
 		{
-			var userBits = (Context.User as IGuildUser).GuildPermissions.RawValue;
+			var userBits = ((IGuildUser)Context.User).GuildPermissions.RawValue;
 			var inputRoleBits = inputRole.Permissions.RawValue;
 			var outputRoleBits = outputRole.Permissions.RawValue;
 			var immovableBits = outputRoleBits & ~userBits;
@@ -233,7 +235,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 		{
-			var userBits = (Context.User as IGuildUser).GuildPermissions.RawValue;
+			var userBits = ((IGuildUser)Context.User).GuildPermissions.RawValue;
 			var roleBits = role.Permissions.RawValue;
 			var immovableBits = roleBits & ~userBits;
 
@@ -265,13 +267,13 @@ namespace Advobot.Commands.RoleModeration
 		[Command(nameof(Position))]
 		public async Task Position(uint rolePosition, [Remainder, VerifyStringLength(Target.Role)] string name)
 		{
-			var roles = Context.Guild.Roles.Where(x => x.Position == rolePosition);
+			var roles = Context.Guild.Roles.Where(x => x.Position == rolePosition).ToList();
 			if (!roles.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"No object has the position `{rolePosition}`.")).CAF();
 				return;
 			}
-			else if (roles.Count() > 1)
+			if (roles.Count() > 1)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Multiple objects have the position `{rolePosition}`.")).CAF();
 				return;
@@ -306,7 +308,7 @@ namespace Advobot.Commands.RoleModeration
 				var embed = new EmbedWrapper
 				{
 					Title = "Colors",
-					Description = $"`{String.Join("`, `", Constants.COLORS.Keys)}`",
+					Description = $"`{String.Join("`, `", Constants.Colors.Keys)}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 				return;

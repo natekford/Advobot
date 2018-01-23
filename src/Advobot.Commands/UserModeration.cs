@@ -95,14 +95,15 @@ namespace Advobot.Commands.UserModeration
 	public sealed class MoveUser : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel channel)
+		public async Task Command(SocketGuildUser user, [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel channel)
 		{
 			if (user.VoiceChannel == null)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("User is not in a voice channel.")).CAF();
 				return;
 			}
-			else if (user.VoiceChannel == channel)
+
+			if (user.VoiceChannel == channel)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("User is already in that channel.")).CAF();
 				return;
@@ -126,8 +127,7 @@ namespace Advobot.Commands.UserModeration
 			[VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await inputChannel.GetUsersAsync().FlattenAsync().CAF())
-				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
+			var users = (await inputChannel.GetUsersAsync().FlattenAsync().CAF()).Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).MoveUsersAsync(outputChannel, new ModerationReason(Context.User, null)).CAF();
 		}
 	}
@@ -168,7 +168,7 @@ namespace Advobot.Commands.UserModeration
 		private async Task CommandRunner(ulong userId, string reason)
 		{
 			var giver = new PunishmentGiver(0, Context.Timers);
-			await giver.SoftbanAsync(Context.Guild as SocketGuild, userId, new ModerationReason(Context.User, reason)).CAF();
+			await giver.SoftbanAsync(Context.Guild, userId, new ModerationReason(Context.User, reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
 	}
@@ -201,7 +201,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			var giver = new PunishmentGiver((int)time, Context.Timers);
-			await giver.BanAsync(Context.Guild as SocketGuild, userId, new ModerationReason(Context.User, reason), 1).CAF();
+			await giver.BanAsync(Context.Guild, userId, new ModerationReason(Context.User, reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
 	}
@@ -216,7 +216,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command(IBan ban, [Optional, Remainder] string reason)
 		{
 			var remover = new PunishmentRemover(Context.Timers);
-			await remover.UnbanAsync(Context.Guild as SocketGuild, ban.User.Id, new ModerationReason(Context.User, reason)).CAF();
+			await remover.UnbanAsync(Context.Guild, ban.User.Id, new ModerationReason(Context.User, reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, remover.ToString()).CAF();
 		}
 	}
@@ -233,7 +233,7 @@ namespace Advobot.Commands.UserModeration
 			var embed = new EmbedWrapper
 			{
 				Title = $"Ban reason for {ban.User.Format()}",
-				Description = ban.Reason,
+				Description = ban.Reason
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -246,7 +246,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class Kick : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketGuildUser user, [Optional, Remainder] string reason)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 		{
 			var giver = new PunishmentGiver(0, Context.Timers);
 			await giver.KickAsync(user, new ModerationReason(Context.User, reason)).CAF();
@@ -273,7 +273,7 @@ namespace Advobot.Commands.UserModeration
 			var embed = new EmbedWrapper
 			{
 				Title = "Current Bans",
-				Description = bans.FormatNumberedList("`{0}`", x => x.User.Format()),
+				Description = bans.FormatNumberedList("`{0}`", x => x.User.Format())
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -298,7 +298,7 @@ namespace Advobot.Commands.UserModeration
 			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
 		}
 
-		private async Task CommandRunner(int requestCount, IGuildUser user, ITextChannel channel)
+		private async Task CommandRunner(int requestCount, IUser user, ITextChannel channel)
 		{
 			/* I don't know if anyone actually cares about this. 
 			 * If someone ever does I guess I can uncomment it or make it a setting.
@@ -333,7 +333,7 @@ namespace Advobot.Commands.UserModeration
 
 			var response = $"Successfully deleted `{deletedAmt}` message{GeneralFormatting.FormatPlural(deletedAmt)}";
 			var userResp = user != null ? $" from `{user.Format()}`" : null;
-			var chanResp = channel != null ? $" on `{channel.Format()}`" : null;
+			var chanResp = $" on `{channel.Format()}`";
 			var resp = $"{GeneralFormatting.JoinNonNullStrings(" ", response, userResp, chanResp)}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -352,7 +352,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task Create([VerifyNumber(1, 5)] uint messages, [VerifyNumber(1, 30)] uint interval, [Optional] params IRole[] immuneRoles)
 		{
 			Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
-			var resp = $"Successfully setup slowmode.\n{Context.GuildSettings.Slowmode.ToString()}";
+			var resp = $"Successfully setup slowmode.\n{Context.GuildSettings.Slowmode}";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
@@ -366,7 +366,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			Context.GuildSettings.Slowmode.Enabled = true;
-			var resp = $"Successfully enabled slowmode.\n{Context.GuildSettings.Slowmode.ToString()}";
+			var resp = $"Successfully enabled slowmode.\n{Context.GuildSettings.Slowmode}";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
@@ -392,7 +392,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class ForAllWithRole : AdvobotModuleBase
 	{
 		[Command(nameof(GiveRole)), ShortAlias(nameof(GiveRole))]
-		public async Task GiveRole(IRole targetRole, 
+		public async Task GiveRole(SocketRole targetRole, 
 			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole givenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
@@ -402,17 +402,17 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF())
 				.Where(x => x.RoleIds.Contains(targetRole.Id))
 				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).GiveRolesAsync(givenRole, new ModerationReason(Context.User, null)).CAF();
 		}
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
-		public async Task TakeRole(IRole targetRole,
+		public async Task TakeRole(SocketRole targetRole,
 			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole takenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF())
 				.Where(x => x.RoleIds.Contains(targetRole.Id))
 				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).TakeRolesAsync(takenRole, new ModerationReason(Context.User, null)).CAF();
@@ -422,7 +422,7 @@ namespace Advobot.Commands.UserModeration
 			[VerifyStringLength(Target.Nickname)] string nickname,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF())
 				.Where(x => x.RoleIds.Contains(targetRole.Id))
 				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(nickname, new ModerationReason(Context.User, null)).CAF();
@@ -431,7 +431,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task TakeNickname([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await Context.Guild.GetEditableUsersAsync(Context.User).CAF())
+			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF())
 				.Where(x => x.RoleIds.Contains(targetRole.Id))
 				.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();

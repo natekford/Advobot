@@ -1,11 +1,11 @@
-﻿using Advobot.Core.Utilities;
+﻿using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Advobot.Core.Utilities;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Advobot.UILauncher.Utilities;
 using Discord;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -28,9 +28,9 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public void SetResourceReferences()
 		{
-			SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
-			SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
-			SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
+			SetResourceReference(BackgroundProperty, ColorTarget.BaseBackground);
+			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
+			SetResourceReference(BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 
 		public static AdvobotTextBox CreateComboBoxItem(string text, object tag)
@@ -44,7 +44,7 @@ namespace Advobot.UILauncher.Classes.Controls
 				IsHitTestVisible = false,
 				BorderThickness = new Thickness(0),
 				Background = Brushes.Transparent,
-				Foreground = Brushes.Black,
+				Foreground = Brushes.Black
 			};
 		}
 

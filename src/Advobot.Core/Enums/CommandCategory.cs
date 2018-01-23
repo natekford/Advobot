@@ -25,6 +25,6 @@ namespace Advobot.Core.Enums
 		Quotes = (1U << 14),
 		Rules = (1U << 15),
 		Gets = (1U << 16),
-		CategoryModeration = (1U << 17),
+		CategoryModeration = (1U << 17)
 	}
 }

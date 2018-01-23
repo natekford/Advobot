@@ -1,11 +1,11 @@
-﻿using Advobot.Core.Interfaces;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.Attributes
 {
@@ -34,19 +34,20 @@ namespace Advobot.Core.Classes.Attributes
 
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (context is IAdvobotCommandContext advobotCommandContext)
+			if (!(context is IAdvobotCommandContext advobotCommandContext && context.User is IGuildUser user))
 			{
-				var user = context.User as IGuildUser;
-				var guildBits = user.GuildPermissions.RawValue;
-				var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
-				var userPerms = guildBits | botBits;
+				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+			}
 
-				var all = _AllFlags != 0 && ((GuildPermission)userPerms & _AllFlags) == _AllFlags;
-				var any = userPerms != 0 && _AnyFlags != 0 && ((GuildPermission)userPerms & _AnyFlags) != 0;
-				if (all || any)
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
+			var guildBits = user.GuildPermissions.RawValue;
+			var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
+			var userPerms = guildBits | botBits;
+
+			var all = _AllFlags != 0 && ((GuildPermission)userPerms & _AllFlags) == _AllFlags;
+			var any = userPerms != 0 && _AnyFlags != 0 && ((GuildPermission)userPerms & _AnyFlags) != 0;
+			if (all || any)
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
 			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}

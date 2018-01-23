@@ -10,6 +10,6 @@ namespace Advobot.Core.Enums
 	{
 		Bold = (1U << 0),
 		Italics = (1U << 1),
-		Code = (1U << 2),
+		Code = (1U << 2)
 	}
 }

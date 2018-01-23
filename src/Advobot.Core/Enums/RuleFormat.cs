@@ -11,6 +11,6 @@ namespace Advobot.Core.Enums
 		Numbers = (1U << 0),
 		Dashes = (1U << 1),
 		Bullets = (1U << 2),
-		Bold = (1U << 3),
+		Bold = (1U << 3)
 	}
 }

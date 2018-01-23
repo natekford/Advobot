@@ -1,16 +1,16 @@
-﻿using Advobot.Core;
-using Advobot.Core.Utilities;
-using Advobot.UILauncher.Enums;
-using Advobot.UILauncher.Utilities;
-using ICSharpCode.AvalonEdit.Highlighting;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
+using Advobot.Core;
+using Advobot.Core.Utilities;
+using Advobot.UILauncher.Enums;
+using Advobot.UILauncher.Utilities;
+using ICSharpCode.AvalonEdit.Highlighting;
+using Newtonsoft.Json;
 
 namespace Advobot.UILauncher.Classes
 {

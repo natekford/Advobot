@@ -1,9 +1,8 @@
-﻿using Advobot.Core.Utilities;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Discord;
 
 namespace Advobot.Core.Utilities
 {
@@ -125,7 +124,7 @@ namespace Advobot.Core.Utilities
 		/// <returns>Boolean representing true if all permissions are valid, false if any are invalid.</returns>
 		public static bool TryGetValidPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
 		{
-			var permissions = input.Split('/', ' ').Select(x => x.Trim(','));
+			var permissions = input.Split('/', ' ').Select(x => x.Trim(',')).ToList();
 			validPerms = permissions.Where(x => Permissions.Select(y => y.Name).CaseInsContains(x));
 			invalidPerms = permissions.Where(x => !Permissions.Select(y => y.Name).CaseInsContains(x));
 			return !invalidPerms.Any();
@@ -134,7 +133,7 @@ namespace Advobot.Core.Utilities
 		private static GuildPerm[] CreatePermList()
 		{
 			var temp = new List<GuildPerm>();
-			for (int i = 0; i < 64; ++i)
+			for (var i = 0; i < 64; ++i)
 			{
 				var val = (GuildPermission)(1UL << i);
 				var name = Enum.GetName(typeof(GuildPermission), val);

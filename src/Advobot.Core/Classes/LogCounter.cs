@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities.Formatting;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using Advobot.Core.Utilities.Formatting;
 
 namespace Advobot.Core.Classes
 {
@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes
 	public class LogCounter : INotifyPropertyChanged
 	{
 		public string Title { get; private set; }
-		private int _Count = 0;
+		private int _Count;
 		public int Count => _Count;
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -49,18 +49,19 @@ namespace Advobot.Core.Classes
 		}
 
 		/// <summary>
-		/// Return a formatted string in which the format is each <see cref="ActionCount.ToString()"/> on a new line, or if 
+		/// Return a formatted string in which the format is each counter on a new line, or if 
 		/// <paramref name="haveEqualSpacing"/> is true there will always be an equal amount of space between each
 		/// title and count.
 		/// </summary>
+		/// <param name="withMarkDown"></param>
 		/// <param name="haveEqualSpacing"></param>
-		/// <param name="input"></param>
+		/// <param name="counters"></param>
 		/// <returns></returns>
 		public static string FormatMultiple(bool withMarkDown, bool haveEqualSpacing, params LogCounter[] counters)
 		{
-			var titlesAndCount = withMarkDown
+			var titlesAndCount = (withMarkDown
 				? counters.Select(x => (Title: $"**{x.Title}**:", Count: $"`{x.Count}`"))
-				: counters.Select(x => (Title: $"{x.Title}:", Count: $"{x.Count}"));
+				: counters.Select(x => (Title: $"{x.Title}:", Count: $"{x.Count}"))).ToList();
 
 			if (haveEqualSpacing)
 			{

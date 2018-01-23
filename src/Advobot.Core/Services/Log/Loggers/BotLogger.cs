@@ -1,8 +1,8 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Interfaces;
-using Discord;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Discord;
 
 namespace Advobot.Core.Services.Log.Loggers
 {
@@ -13,7 +13,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <summary>
 		/// Logs system messages from the Discord .Net library.
 		/// </summary>
-		/// <param name="msg"></param>
+		/// <param name="message"></param>
 		/// <returns></returns>
 		public Task OnLogMessageSent(LogMessage message)
 		{

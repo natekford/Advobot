@@ -1,11 +1,11 @@
-﻿using Advobot.UILauncher.Classes.Converters;
-using Advobot.UILauncher.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using Advobot.UILauncher.Classes.Converters;
+using Advobot.UILauncher.Interfaces;
 
 namespace Advobot.UILauncher.Utilities
 {
@@ -48,15 +48,17 @@ namespace Advobot.UILauncher.Utilities
 				throw new ArgumentException("is not a double", nameof(e.NewValue));
 			}
 
-			if (!TryGetTopMostParent(element, out Grid parent, out int ancestorLevel))
+			if (!TryGetTopMostParent(element, out Grid parent, out var ancestorLevel))
 			{
 				throw new ArgumentException($"must be inside a grid if {nameof(IFontResizeValue.FontResizeValue)} is set", element.Name);
 			}
-			else if (size < 0)
+
+			if (size < 0)
 			{
 				throw new ArgumentException("must be greater than or equal to 0", nameof(size));
 			}
-			else if (size == 0)
+
+			if (size == 0)
 			{
 				BindingOperations.ClearBinding(element, Control.FontSizeProperty);
 				return;
@@ -66,7 +68,7 @@ namespace Advobot.UILauncher.Utilities
 			{
 				Path = new PropertyPath(nameof(FrameworkElement.ActualHeight)),
 				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), ancestorLevel),
-				Converter = new FontResizeConverter(size),
+				Converter = new FontResizeConverter(size)
 			});
 		}
 		/// <summary>
@@ -101,7 +103,7 @@ namespace Advobot.UILauncher.Utilities
 		/// <returns></returns>
 		public static IEnumerable<DependencyObject> GetChildren(this DependencyObject parent)
 		{
-			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); ++i)
+			for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); ++i)
 			{
 				yield return VisualTreeHelper.GetChild(parent, i);
 			}

@@ -13,6 +13,6 @@ namespace Advobot.Core.Enums
 		UserUpdated = (1U << 2),
 		MessageReceived = (1U << 3),
 		MessageUpdated = (1U << 4),
-		MessageDeleted = (1U << 5),
+		MessageDeleted = (1U << 5)
 	}
 }

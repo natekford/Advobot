@@ -9,6 +9,6 @@ namespace Advobot.Core.Enums
 	public enum RuleFormatOption : uint
 	{
 		NumbersSameLength = (1U << 0),
-		ExtraLines = (1U << 1),
+		ExtraLines = (1U << 1)
 	}
 }

@@ -1,4 +1,9 @@
-﻿using Advobot.Core;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Advobot.Commands.Miscellaneous;
+using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.GuildSettings;
@@ -11,10 +16,6 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildSettings
 {
@@ -42,7 +43,7 @@ namespace Advobot.Commands.GuildSettings
 	[Group(nameof(ModifyCommands)), TopLevelShortAlias(typeof(ModifyCommands))]
 	[Summary("Turns a command on or off. " +
 		"Can turn all commands in a category on or off too. " +
-		"Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Miscellaneous.Help) + "`.")]
+		"Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Help) + "`.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true, false)]
 	public sealed class ModifyCommands : AdvobotSavingModuleBase
@@ -54,14 +55,14 @@ namespace Advobot.Commands.GuildSettings
 			public async Task All()
 			{
 				//Only grab commands that are already disabled
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Constants.HELP_ENTRIES.GetHelpEntries(), true);
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Constants.HelpEntries.GetHelpEntries(), true);
 				var text = commands.Any() ? String.Join("`, `", commands) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
 			}
 			[Command]
 			public async Task Command(string commandName)
 			{
-				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
+				if (!(Constants.HelpEntries[commandName] is HelpEntry helpEntry))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
@@ -82,7 +83,7 @@ namespace Advobot.Commands.GuildSettings
 			public async Task Command(CommandCategory category)
 			{
 				//Only grab commands that are already disabled and in the same category and are able to be changed.
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Constants.HELP_ENTRIES[category], true);
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Constants.HelpEntries[category], true);
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x)) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
 			}
@@ -94,14 +95,14 @@ namespace Advobot.Commands.GuildSettings
 			public async Task All()
 			{
 				//Only grab commands that are already enabled and are able to be changed.
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Constants.HELP_ENTRIES.GetHelpEntries(), false);
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Constants.HelpEntries.GetHelpEntries(), false);
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x)) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
 			}
 			[Command]
 			public async Task Command(string commandName)
 			{
-				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
+				if (!(Constants.HelpEntries[commandName] is HelpEntry helpEntry))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
@@ -122,7 +123,7 @@ namespace Advobot.Commands.GuildSettings
 			public async Task Command(CommandCategory category)
 			{
 				//Only grab commands that are already enabled and in the same category and are able to be changed.
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Constants.HELP_ENTRIES[category], false);
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Constants.HelpEntries[category], false);
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x)) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
 			}
@@ -156,7 +157,7 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, string commandName)
 			{
-				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
+				if (!(Constants.HelpEntries[commandName] is HelpEntry helpEntry))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
@@ -174,7 +175,7 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
 			{
-				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(Constants.HELP_ENTRIES[category], true, CommandOverrideTarget.Channel, channel);
+				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(Constants.HelpEntries[category], true, CommandOverrideTarget.Channel, channel);
 				var resp = $"Successfully stopped ignoring the following commands on `{channel.Format()}`: `{String.Join("`, `", commands)}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
@@ -199,7 +200,7 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, string commandName)
 			{
-				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
+				if (!(Constants.HelpEntries[commandName] is HelpEntry helpEntry))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
@@ -217,7 +218,7 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
 			{
-				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(Constants.HELP_ENTRIES[category], false, CommandOverrideTarget.Channel, channel);
+				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(Constants.HelpEntries[category], false, CommandOverrideTarget.Channel, channel);
 				var resp = $"Successfully started disabled the following commands on `{channel.Format()}`: `{String.Join("`, `", commands)}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
@@ -241,7 +242,7 @@ namespace Advobot.Commands.GuildSettings
 				var embed = new EmbedWrapper
 				{
 					Title = "Bot Permissions",
-					Description = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`",
+					Description = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -259,7 +260,7 @@ namespace Advobot.Commands.GuildSettings
 				var embed = new EmbedWrapper
 				{
 					Title = $"Permissions for {user.Format()}",
-					Description = $"`{String.Join("`, `", GuildPermsUtils.ConvertValueToNames(botUser.Permissions))}`",
+					Description = $"`{String.Join("`, `", GuildPermsUtils.ConvertValueToNames(botUser.Permissions))}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -273,7 +274,7 @@ namespace Advobot.Commands.GuildSettings
 				Context.GuildSettings.BotUsers.Add(botUser = new BotImplementedPermissions(user.Id, permissions));
 			}
 
-			permissions |= (Context.User as IGuildUser).GuildPermissions.RawValue;
+			permissions |= ((IGuildUser)Context.User).GuildPermissions.RawValue;
 			botUser.AddPermissions(permissions);
 
 			var givenPerms = String.Join("`, `", GuildPermsUtils.ConvertValueToNames(permissions));
@@ -283,7 +284,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
-			permissions |= (Context.User as IGuildUser).GuildPermissions.RawValue;
+			permissions |= ((IGuildUser)Context.User).GuildPermissions.RawValue;
 
 			var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id);
 			if (botUser == null)
@@ -325,14 +326,14 @@ namespace Advobot.Commands.GuildSettings
 				var embed = new EmbedWrapper
 				{
 					Title = "Persistent Roles",
-					Description = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild)),
+					Description = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild))
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			[Command]
 			public async Task Command(IUser user)
 			{
-				var roles = Context.GuildSettings.PersistentRoles.Where(x => x.UserId == user.Id);
+				var roles = Context.GuildSettings.PersistentRoles.Where(x => x.UserId == user.Id).ToList();
 				if (!roles.Any())
 				{
 					var error = new Error($"The user `{user.Format()}` does not have any persistent roles.");
@@ -343,7 +344,7 @@ namespace Advobot.Commands.GuildSettings
 				var embed = new EmbedWrapper
 				{
 					Title = "Persistent Roles",
-					Description = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild)),
+					Description = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild))
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -503,7 +504,7 @@ namespace Advobot.Commands.GuildSettings
 			var embed = new EmbedWrapper
 			{
 				Title = "Setting Names",
-				Description = $"`{String.Join("`, `", Utils.GetSettings(typeof(IGuildSettings)).Select(x => x.Name))}`",
+				Description = $"`{String.Join("`, `", Utils.GetSettings(typeof(IGuildSettings)).Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -522,7 +523,7 @@ namespace Advobot.Commands.GuildSettings
 				var embed = new EmbedWrapper
 				{
 					Title = settingName.Name,
-					Description = desc,
+					Description = desc
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}

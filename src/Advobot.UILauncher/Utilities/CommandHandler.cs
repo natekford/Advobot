@@ -1,5 +1,5 @@
-﻿using Advobot.Core.Utilities;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
+using Advobot.Core.Utilities;
 
 namespace Advobot.UILauncher.Utilities
 {
@@ -12,7 +12,7 @@ namespace Advobot.UILauncher.Utilities
 		/// <returns></returns>
 		public static string GatherInput(TextBox tb)
 		{
-			var text = tb.Text.Trim(new[] { '\r', '\n' });
+			var text = tb.Text.Trim('\r', '\n');
 			tb.Text = null;
 			return text;
 		}

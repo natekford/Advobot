@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Interfaces;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {

@@ -9,6 +9,6 @@ namespace Advobot.Core.Enums
 	public enum GuildNotificationType : uint
 	{
 		Welcome = (1U << 0),
-		Goodbye = (1U << 1),
+		Goodbye = (1U << 1)
 	}
 }

@@ -1,14 +1,14 @@
-﻿using Advobot.Core.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {
@@ -109,11 +109,11 @@ namespace Advobot.Core.Utilities
 			var secondMessage = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr).CAF();
 			if (timers != null)
 			{
-				timers.Add(new RemovableMessage(time, new[] { message, secondMessage }));
+				timers.Add(new RemovableMessage(time, message, secondMessage));
 			}
 		}
 		/// <summary>
-		/// If the guild has verbose errors enabled then this acts just like <see cref="MakeAndDeleteSecondaryMessage(IMessageChannel, IMessage, string, int, ITimersService)"/>.
+		/// If the guild has verbose errors enabled then this acts just like makeanddeletesecondarymessage.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="error"></param>
@@ -126,8 +126,7 @@ namespace Advobot.Core.Utilities
 				return;
 			}
 
-			var content = $"**ERROR:** {error.Reason}";
-			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, content, time, context.Timers).CAF();
+			await MakeAndDeleteSecondaryMessageAsync(context, $"**ERROR:** {error.Reason}", time);
 		}
 		/// <summary>
 		/// Returns true if no error occur.
@@ -151,12 +150,12 @@ namespace Advobot.Core.Utilities
 			{
 				var attach = context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
 				var embeds = context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
-				var imageUrls = attach.Concat(embeds);
-				if (imageUrls.Count() == 1)
+				var imageUrls = attach.Concat(embeds).ToList();
+				if (imageUrls.Count == 1)
 				{
 					url = new Uri(imageUrls.First());
 				}
-				else if (imageUrls.Count() > 1)
+				else if (imageUrls.Count > 1)
 				{
 					error = new Error("Too many attached or embedded images.");
 				}
@@ -168,15 +167,15 @@ namespace Advobot.Core.Utilities
 				req.Method = WebRequestMethods.Http.Head;
 				using (var resp = req.GetResponse())
 				{
-					if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
+					if (!Constants.ValidImageExtensions.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
 					{
 						error = new Error("Image must be a png or jpg.");
 					}
-					else if (!int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
+					else if (!int.TryParse(resp.Headers.Get("Content-Length"), out var contentLength))
 					{
 						error = new Error("Unable to get the image's file size.");
 					}
-					else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
+					else if (contentLength > Constants.MAX_ICON_FILE_SIZE)
 					{
 						var maxSize = (double)Constants.MAX_ICON_FILE_SIZE / 1000 * 1000;
 						error = new Error($"Image is bigger than {maxSize:0.0}MB. Manually upload instead.");
@@ -184,7 +183,7 @@ namespace Advobot.Core.Utilities
 				}
 			}
 
-			return error.Reason == null;
+			return error?.Reason == null;
 		}
 		/// <summary>
 		/// Gets the given count of messages from a channel.
@@ -192,9 +191,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="channel"></param>
 		/// <param name="requestCount"></param>
 		/// <returns></returns>
-		public static async Task<List<IMessage>> GetMessagesAsync(IMessageChannel channel, int requestCount)
+		public static async Task<IEnumerable<IMessage>> GetMessagesAsync(ITextChannel channel, int requestCount)
 		{
-			return (await channel.GetMessagesAsync(requestCount).FlattenAsync().CAF()).ToList();
+			return await channel.GetMessagesAsync(requestCount).FlattenAsync().CAF();
 		}
 		/// <summary>
 		/// Removes the given count of messages from a channel.
@@ -203,6 +202,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="fromMessage"></param>
 		/// <param name="requestCount"></param>
 		/// <param name="reason"></param>
+		/// <param name="fromUser"></param>
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason, IUser fromUser = null)
 		{
@@ -211,36 +211,28 @@ namespace Advobot.Core.Utilities
 				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).FlattenAsync().CAF();
 				return await DeleteMessagesAsync(channel, messages, reason).CAF();
 			}
-			else
+
+			var deletedCount = 0;
+			while (requestCount > 0)
 			{
-				var deletedCount = 0;
-				while (requestCount > 0)
+				var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before).FlattenAsync().CAF()).ToList();
+				if (!messages.Any())
 				{
-					var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF();
-					if (!messages.Any())
-					{
-						break;
-					}
-					fromMessage = messages.Last();
-
-					//Get messages from a targetted user
-					var userMessages = messages.Where(x => x.Author.Id == fromUser.Id).TakeMin(requestCount, 100);
-					if (!userMessages.Any())
-					{
-						break;
-					}
-					deletedCount += await DeleteMessagesAsync(channel, userMessages, reason).CAF();
-
-					//Leave if the message count gathered implies that enough user messages have been deleted 
-					if (userMessages.Count() < userMessages.Count())
-					{
-						break;
-					}
-
-					requestCount -= userMessages.Count();
+					break;
 				}
-				return deletedCount;
+				fromMessage = messages.Last();
+
+				//Get messages from a targetted user
+				var userMessages = messages.Where(x => x.Author.Id == fromUser.Id).TakeMin(requestCount, 100).ToList();
+				if (!userMessages.Any())
+				{
+					break;
+				}
+				deletedCount += await DeleteMessagesAsync(channel, userMessages, reason).CAF();
+
+				requestCount -= userMessages.Count();
 			}
+			return deletedCount;
 		}
 		/// <summary>
 		/// Deletes the passed in messages directly. Will only delete messages under 14 days old.
@@ -252,7 +244,7 @@ namespace Advobot.Core.Utilities
 		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, ModerationReason reason)
 		{
 			//13.95 for some buffer in case
-			var youngMessages = messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95);
+			var youngMessages = messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95).ToList();
 			try
 			{
 				await channel.DeleteMessagesAsync(youngMessages, reason.CreateRequestOptions()).CAF();
@@ -268,6 +260,7 @@ namespace Advobot.Core.Utilities
 		/// Deletes the passed in message directly.
 		/// </summary>
 		/// <param name="message"></param>
+		/// <param name="reason"></param>
 		/// <returns></returns>
 		public static async Task<int> DeleteMessageAsync(IMessage message, ModerationReason reason)
 		{

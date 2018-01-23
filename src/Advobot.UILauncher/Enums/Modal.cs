@@ -7,6 +7,6 @@ namespace Advobot.UILauncher.Enums
     {
 		FileSearch = (1U << 0),
 		OutputSearch = (1U << 1),
-		FileViewing = (1U << 2),
+		FileViewing = (1U << 2)
     }
 }

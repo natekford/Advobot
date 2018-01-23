@@ -1,13 +1,13 @@
-﻿using Advobot.Core.Interfaces;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Advobot.Core.Interfaces;
+using Discord;
 
 namespace Advobot.Core.Classes.Punishments
 {
 	/// <summary>
-	/// Messages that will get deleted after <see cref="GetTime"/> is less than <see cref="DateTime.UtcNow"/>.
+	/// Messages that will get deleted after the time is less than <see cref="DateTime.UtcNow"/>.
 	/// </summary>
 	public struct RemovableMessage : ITime
 	{

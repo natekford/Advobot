@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -22,20 +22,20 @@ namespace Advobot.Core.Classes.TypeReaders
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			//Check numbers first
-			if (ulong.TryParse(input, out ulong rawValue))
+			if (ulong.TryParse(input, out var rawValue))
 			{
 				return Task.FromResult(TypeReaderResult.FromSuccess(rawValue));
 			}
 			//Then check permission names
-			else if (!GuildPermsUtils.TryGetValidPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
-			{
-				var str = $"Invalid permission{GeneralFormatting.FormatPlural(invalidPerms.Count())} provided: `{String.Join("`, `", invalidPerms)}`.";
-				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, str));
-			}
-			else
+			if (GuildPermsUtils.TryGetValidPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
 			{
 				return Task.FromResult(TypeReaderResult.FromSuccess(GuildPermsUtils.ConvertToValue(validPerms)));
 			}
+
+			var perms = invalidPerms.ToList();
+			var str = $"Invalid permission{GeneralFormatting.FormatPlural(perms.Count)} provided: `{String.Join("`, `", perms)}`.";
+			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, str));
+
 		}
 	}
 }

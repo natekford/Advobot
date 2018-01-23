@@ -1,14 +1,15 @@
-﻿using Advobot.Core.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.Results;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Discord.WebSocket;
 
 namespace Advobot.Core.Utilities
 {
@@ -30,17 +31,19 @@ namespace Advobot.Core.Utilities
 			{
 				return new VerifiedObjectResult(target, CommandError.ObjectNotFound, "Unable to find a matching role.");
 			}
+			if (!(context.User is SocketGuildUser invokingUser && context.Guild.GetBot() is SocketGuildUser bot))
+			{
+				return new VerifiedObjectResult(target, CommandError.Unsuccessful, "Invalid invoking user or guild or bot.");
+			}
 
-			var invokingUser = context.User as IGuildUser;
-			var bot = context.Guild.GetBot();
 			foreach (var check in checks)
 			{
-				if (!UserUtils.GetIfUserCanDoActionOnRole(invokingUser, target, check))
+				if (!invokingUser.CanDoAction(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"You are unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
-				else if (!UserUtils.GetIfUserCanDoActionOnRole(bot, target, check))
+				if (!bot.CanDoAction(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"I am unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
@@ -116,7 +119,9 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IRole> CreateRoleAsync(IGuild guild, string name, ModerationReason reason)
 		{
-			return await guild?.CreateRoleAsync(name, new GuildPermissions(0), options: reason.CreateRequestOptions()).CAF();
+			return guild != null
+				? await guild.CreateRoleAsync(name, new GuildPermissions(0), options: reason.CreateRequestOptions()).CAF()
+				: null;
 		}
 		/// <summary>
 		/// Deletes a a role then says the supplied reason in the audit log.
@@ -126,7 +131,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task DeleteRoleAsync(IRole role, ModerationReason reason)
 		{
-			await role?.DeleteAsync(reason.CreateRequestOptions()).CAF();
+			if (role != null)
+			{
+				await role.DeleteAsync(reason.CreateRequestOptions()).CAF();
+			}
 		}
 		/// <summary>
 		/// Gives the roles to a user.
@@ -137,7 +145,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task GiveRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
 		{
-			await user?.AddRolesAsync(roles, reason.CreateRequestOptions()).CAF();
+			if (user != null)
+			{
+				await user.AddRolesAsync(roles, reason.CreateRequestOptions()).CAF();
+			}
 		}
 		/// <summary>
 		/// Removes the roles from a user.
@@ -148,7 +159,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task TakeRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
 		{
-			await user?.RemoveRolesAsync(roles, reason.CreateRequestOptions()).CAF();
+			if (user != null)
+			{
+				await user.RemoveRolesAsync(roles, reason.CreateRequestOptions()).CAF();
+			}
 		}
 		/// <summary>
 		/// Changes the role's permissions by allowing or denying the supplied change value from them.
@@ -197,18 +211,17 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<int> ModifyRolePositionAsync(IRole role, int position, ModerationReason reason)
 		{
-			if (role == null)
+			if (!(role != null && role.Guild is SocketGuild guild && guild.GetBot() is SocketGuildUser bot))
 			{
 				return -1;
 			}
 
-			var roles = role.Guild.Roles
-				.Where(x => x.Id != role.Id && x.Position < role.Guild.GetBot().GetPosition())
+			var roles = role.Guild.Roles.Where(x => x.Id != role.Id && x.Position < bot.Hierarchy)
 				.OrderBy(x => x.Position).ToArray();
 			position = Math.Max(1, Math.Min(position, roles.Length));
 
 			var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
-			for (int i = 0; i < reorderProperties.Length; ++i)
+			for (var i = 0; i < reorderProperties.Length; ++i)
 			{
 				if (i > position)
 				{
@@ -236,7 +249,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task ModifyRolePermissionsAsync(IRole role, ulong permissions, ModerationReason reason)
 		{
-			await role?.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), reason.CreateRequestOptions()).CAF();
+			if (role != null)
+			{
+				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), reason.CreateRequestOptions()).CAF();
+			}
 		}
 		/// <summary>
 		/// Changes the role's name and says the supplied reason in the audit log.
@@ -247,7 +263,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task ModifyRoleNameAsync(IRole role, string name, ModerationReason reason)
 		{
-			await role?.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
+			if (role != null)
+			{
+				await role.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
+			}
 		}
 		/// <summary>
 		/// Changes the role's color and says the supplied reason in the audit log.
@@ -258,7 +277,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task ModifyRoleColorAsync(IRole role, Color color, ModerationReason reason)
 		{
-			await role?.ModifyAsync(x => x.Color = color, reason.CreateRequestOptions()).CAF();
+			if (role != null)
+			{
+				await role.ModifyAsync(x => x.Color = color, reason.CreateRequestOptions()).CAF();
+			}
 		}
 		/// <summary>
 		/// Changes the role's hoist status and says the supplied reason in the audit log.
@@ -268,7 +290,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task ModifyRoleHoistAsync(IRole role, ModerationReason reason)
 		{
-			await role?.ModifyAsync(x => x.Hoist = !role.IsHoisted, reason.CreateRequestOptions()).CAF();
+			if (role != null)
+			{
+				await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, reason.CreateRequestOptions()).CAF();
+			}
 		}
 		/// <summary>
 		/// Changes the role's mentionability and says the the supplied reason in the audit log.
@@ -278,7 +303,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task ModifyRoleMentionabilityAsync(IRole role, ModerationReason reason)
 		{
-			await role?.ModifyAsync(x => x.Mentionable = !role.IsMentionable, reason.CreateRequestOptions()).CAF();
+			if (role != null)
+			{
+				await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, reason.CreateRequestOptions()).CAF();
+			}
 		}
 	}
 }

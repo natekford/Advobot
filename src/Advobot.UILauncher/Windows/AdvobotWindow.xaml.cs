@@ -1,15 +1,4 @@
-﻿using Advobot.Core;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Interfaces;
-using Advobot.UILauncher.Utilities;
-using Advobot.UILauncher.Classes;
-using Advobot.UILauncher.Classes.Controls;
-using Advobot.UILauncher.Enums;
-using Discord;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -19,6 +8,17 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using System.Windows.Threading;
+using Advobot.Core;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Advobot.UILauncher.Classes;
+using Advobot.UILauncher.Classes.Controls;
+using Advobot.UILauncher.Enums;
+using Advobot.UILauncher.Utilities;
+using Discord;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.UILauncher.Windows
 {
@@ -136,12 +136,13 @@ namespace Advobot.UILauncher.Windows
 		private void AddTrustedUser(object sender, RoutedEventArgs e)
 		{
 			var input = TrustedUsersBox.Text;
-			if (!ulong.TryParse(input, out ulong userId))
+			if (!ulong.TryParse(input, out var userId))
 			{
 				ConsoleUtils.WriteLine($"The given input '{input}' is not a valid ID.");
 				return;
 			}
-			else if (TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
+
+			if (TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
 			{
 				ConsoleUtils.WriteLine($"The given input '{input}' is already a trusted user.");
 				return;
@@ -208,13 +209,11 @@ namespace Advobot.UILauncher.Windows
 						c[target] = null;
 						ConsoleUtils.WriteLine($"Successfully removed the custom color for {name}.");
 					}
-					continue;
 				}
 				//Failed to add a brush
 				else if (!BrushUtils.TryCreateBrush(childText, out var brush))
 				{
 					ConsoleUtils.WriteLine($"Invalid custom color supplied for {name}: '{childText}'.");
-					continue;
 				}
 				//Succeeding in adding a brush
 				else if (!BrushUtils.CheckIfSameBrush(c[target], brush))
@@ -234,7 +233,8 @@ namespace Advobot.UILauncher.Windows
 				{
 					continue;
 				}
-				else if (c.Theme == theme)
+
+				if (c.Theme == theme)
 				{
 					continue;
 				}

@@ -1,9 +1,11 @@
-﻿using Advobot.Core.Classes;
-using Advobot.Core.Interfaces;
-using Discord;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Core.Classes;
+using Advobot.Core.Interfaces;
+using Discord;
+using Discord.Rest;
+using Discord.WebSocket;
 
 namespace Advobot.Core.Utilities
 {
@@ -17,11 +19,9 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static async Task<IReadOnlyList<IInviteMetadata>> GetInvitesAsync(IGuild guild)
+		public static async Task<IEnumerable<IInviteMetadata>> GetInvitesAsync(IGuild guild)
 		{
-			return guild.GetBot().GuildPermissions.ManageGuild
-					   ? new List<IInviteMetadata>().AsReadOnly()
-					   : (await guild.GetInvitesAsync().CAF()).ToList().AsReadOnly();
+			return guild.GetBot().GuildPermissions.ManageGuild ? new List<IInviteMetadata>() : await guild.GetInvitesAsync().CAF();
 		}
 		/// <summary>
 		/// Tries to find the invite a user joined on.
@@ -39,18 +39,18 @@ namespace Advobot.Core.Utilities
 				return new CachedInvite("Invited by admin", 0);
 			}
 
-			var currentInvites = await GetInvitesAsync(user.Guild).CAF();
-			var cachedInvites = guildSettings.Invites;
+			var currentInvites = (await GetInvitesAsync(user.Guild).CAF()).ToList();
+			var cachedInvites = guildSettings.Invites.ToList();
 			if (!currentInvites.Any())
 			{
-				return joinInv;
+				return null;
 			}
 
 			//Find invites where the cached invite uses are not the same as the current ones.
 			var updatedInvites = cachedInvites.Where(cached =>
 			{
 				return currentInvites.Any(current => cached.Code == current.Code && cached.Uses != current.Uses);
-			});
+			}).ToList();
 			//If only one then treat it as the joining invite
 			if (updatedInvites.Count() == 1)
 			{
@@ -60,7 +60,7 @@ namespace Advobot.Core.Utilities
 			else
 			{
 				//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
-				var newInvs = currentInvites.Where(current => !cachedInvites.Select(cached => cached.Code).Contains(current.Code));
+				var newInvs = currentInvites.Where(current => !cachedInvites.Select(cached => cached.Code).Contains(current.Code)).ToList();
 				//If no new invites then assume it was the vanity url
 				if (!newInvs.Any() || newInvs.All(x => x.Uses == 0))
 				{

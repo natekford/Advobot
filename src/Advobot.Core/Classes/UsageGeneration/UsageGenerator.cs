@@ -1,12 +1,11 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Interfaces;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.UsageGeneration
 {
@@ -69,7 +68,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 				methods.Add(m);
 
 				var p = method.GetParameters();
-				for (int i = 0; i < p.Length; ++i)
+				for (var i = 0; i < p.Length; ++i)
 				{
 					parameters.Add(new ParameterDetails((m.Name != null ? 1 : 0) + deepness + i, p[i]));
 				}
@@ -118,13 +117,13 @@ namespace Advobot.Core.Classes.UsageGeneration
 			var upperBounds = new[]
 			{
 				methods.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
-				parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
+				parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0)
 			};
 			var maximumUpperBounds = upperBounds.Max(); //Highest of the two highs
 			var minimumUpperBounds = upperBounds.Min(); //Lowest of the two highs
 
 			var sb = new StringBuilder();
-			for (int i = 0; i <= maximumUpperBounds; ++i)
+			for (var i = 0; i <= maximumUpperBounds; ++i)
 			{
 				//t = thisIteration
 				var tClasses = classes.Where(x => x.Deepness == i).ToList();
@@ -189,9 +188,9 @@ namespace Advobot.Core.Classes.UsageGeneration
 		}
 		private void AddOptions<T>(StringBuilder sb, IEnumerable<T> options)
 		{
-			var converted = options.Select(x => x.ToString()).Where(x => !String.IsNullOrWhiteSpace(x));
+			var converted = options.Select(x => x.ToString()).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
 			var addOrToEnd = converted.Any(x => !String.IsNullOrWhiteSpace(x)) ? "|" : "";
-			sb.Append(GeneralFormatting.JoinNonNullStrings("|", converted.ToArray()) + addOrToEnd);
+			sb.Append(GeneralFormatting.JoinNonNullStrings("|", converted) + addOrToEnd);
 		}
 	}
 }

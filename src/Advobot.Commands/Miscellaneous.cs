@@ -1,4 +1,8 @@
-﻿using Advobot.Core;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
@@ -8,10 +12,6 @@ using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Miscellaneous
 {
@@ -42,26 +42,26 @@ namespace Advobot.Commands.Miscellaneous
 			var embed = new EmbedWrapper
 			{
 				Title = "General Help",
-				Description = _GeneralHelp.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix()),
+				Description = _GeneralHelp.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix())
 			};
-			embed.TryAddField("Basic Syntax", _BasicSyntax, true, out var firstFieldErrors);
-			embed.TryAddField("Mention Syntax", _MentionSyntax, true, out var secondFieldErrors);
-			embed.TryAddField("Links", _Links, false, out var thirdFieldErrors);
-			embed.TryAddFooter("Help", null, out var footerErrors);
+			embed.TryAddField("Basic Syntax", _BasicSyntax, true, out _);
+			embed.TryAddField("Mention Syntax", _MentionSyntax, true, out _);
+			embed.TryAddField("Links", _Links, false, out _);
+			embed.TryAddFooter("Help", null, out _);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command]
 		public async Task Command(string commandName)
 		{
-			var helpEntry = Constants.HELP_ENTRIES[commandName];
+			var helpEntry = Constants.HelpEntries[commandName];
 			if (helpEntry != null)
 			{
 				var embed = new EmbedWrapper
 				{
 					Title = helpEntry.Name,
-					Description = helpEntry.ToString().Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix()),
+					Description = helpEntry.ToString().Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix())
 				};
-				embed.TryAddFooter("Help", null, out var footerErrors);
+				embed.TryAddFooter("Help", null, out _);
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 				return;
 			}
@@ -95,7 +95,7 @@ namespace Advobot.Commands.Miscellaneous
 			var embed = new EmbedWrapper
 			{
 				Title = "All Commands",
-				Description = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetCommandNames())}`",
+				Description = $"`{String.Join("`, `", Constants.HelpEntries.GetCommandNames())}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -105,7 +105,7 @@ namespace Advobot.Commands.Miscellaneous
 			var embed = new EmbedWrapper
 			{
 				Title = category.EnumName(),
-				Description = $"`{String.Join("`, `", Constants.HELP_ENTRIES[category].Select(x => x.Name))}`",
+				Description = $"`{String.Join("`, `", Constants.HelpEntries[category].Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -115,7 +115,7 @@ namespace Advobot.Commands.Miscellaneous
 			var embed = new EmbedWrapper
 			{
 				Title = "Categories",
-				Description = _CommandCategories.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix()),
+				Description = _CommandCategories.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix())
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -171,7 +171,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command([Remainder] string message)
 		{
-			if (Context.BotSettings.UsersUnableToDMOwner.Contains(Context.User.Id))
+			if (Context.BotSettings.UsersUnableToDmOwner.Contains(Context.User.Id))
 			{
 				return;
 			}

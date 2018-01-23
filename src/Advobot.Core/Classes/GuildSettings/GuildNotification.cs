@@ -1,17 +1,17 @@
-﻿using Advobot.Core.Classes.Attributes;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.GuildSettings
 {
 	/// <summary>
-	/// Notification that gets sent whenever certain events happen depending on what <see cref="GuildNotificationType"/> is linked to this notification.
+	/// Notification that gets sent whenever certain events happen depending on what is linked to this notification.
 	/// </summary>
 	public class GuildNotification : IGuildSetting
 	{
@@ -45,7 +45,7 @@ namespace Advobot.Core.Classes.GuildSettings
 				{
 					Title = title,
 					Description = description,
-					ThumbnailUrl = thumbUrl,
+					ThumbnailUrl = thumbUrl
 				};
 			}
 		}
@@ -54,8 +54,8 @@ namespace Advobot.Core.Classes.GuildSettings
 			[NamedArgument] string content,
 			[NamedArgument] string title,
 			[NamedArgument] string description,
-			[NamedArgument] string thumbURL,
-			ITextChannel channel) : this(content, title, description, thumbURL, channel.Id)
+			[NamedArgument] string thumbUrl,
+			ITextChannel channel) : this(content, title, description, thumbUrl, channel.Id)
 		{
 			ChannelId = channel.Id;
 		}
@@ -64,6 +64,7 @@ namespace Advobot.Core.Classes.GuildSettings
 		/// <summary>
 		/// Sends the notification to the channel.
 		/// </summary>
+		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public async Task SendAsync(SocketGuild guild, IUser user)

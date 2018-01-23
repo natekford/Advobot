@@ -1,18 +1,18 @@
-﻿using Advobot.Core;
-using Advobot.Core.Utilities;
-using Advobot.Core.Classes;
-using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.TypeReaders;
-using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
-using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Advobot.Core;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.TypeReaders;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Discord;
+using Discord.Commands;
 
 namespace Advobot.Commands.BotSettings
 {
@@ -31,8 +31,7 @@ namespace Advobot.Commands.BotSettings
 			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task CommandShardCount(uint shardCount)
 			{
-				var guilds = await Context.Client.GetGuildsAsync().CAF();
-				var validNum = guilds.Count / 2500 + 1;
+				var validNum = (await Context.Client.GetGuildsAsync().CAF()).Count / 2500 + 1;
 				if (shardCount < validNum)
 				{
 					var error = new Error($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`.");
@@ -113,8 +112,7 @@ namespace Advobot.Commands.BotSettings
 			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task CommandShardCount()
 			{
-				var guilds = await Context.Client.GetGuildsAsync().CAF();
-				Context.BotSettings.ShardCount = guilds.Count / 2500 + 1;
+				Context.BotSettings.ShardCount = (await Context.Client.GetGuildsAsync().CAF()).Count / 2500 + 1;
 				var resp = $"Successfully set the shard amount to `{Context.BotSettings.ShardCount}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
@@ -190,7 +188,7 @@ namespace Advobot.Commands.BotSettings
 			var embed = new EmbedWrapper
 			{
 				Title = "Setting Names",
-				Description = $"`{String.Join("`, `", Utils.GetSettings(typeof(IBotSettings)).Select(x => x.Name))}`",
+				Description = $"`{String.Join("`, `", Utils.GetSettings(typeof(IBotSettings)).Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -209,7 +207,7 @@ namespace Advobot.Commands.BotSettings
 				var embed = new EmbedWrapper
 				{
 					Title = settingName.Name,
-					Description = desc,
+					Description = desc
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -251,7 +249,8 @@ namespace Advobot.Commands.BotSettings
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-			else if (imageUrl == null)
+
+			if (imageUrl == null)
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot's icon.").CAF();

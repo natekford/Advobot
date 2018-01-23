@@ -1,14 +1,14 @@
-﻿using Advobot.Core.Classes;
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Classes.Rules;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Rules
 {

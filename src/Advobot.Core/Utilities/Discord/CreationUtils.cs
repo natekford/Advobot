@@ -1,5 +1,8 @@
-﻿using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.GuildSettings;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.TypeReaders;
@@ -12,10 +15,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {
@@ -36,9 +35,9 @@ namespace Advobot.Core.Utilities
 			var botSettings = CreateBotSettings();
 			var client = CreateDiscordClient(botSettings);
 			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
-				.AddSingleton<CommandService>(commandService)
-				.AddSingleton<IBotSettings>(botSettings)
-				.AddSingleton<IDiscordClient>(client)
+				.AddSingleton(commandService)
+				.AddSingleton(botSettings)
+				.AddSingleton(client)
 				.AddSingleton<IGuildSettingsService>(x => new GuildSettingsService(x))
 				.AddSingleton<ITimersService>(x => new TimersSservice(x))
 				.AddSingleton<ILogService>(x => new LogService(x))
@@ -48,9 +47,9 @@ namespace Advobot.Core.Utilities
 		/// Creates the <see cref="CommandService"/> for the bot. Add in typereaders and modules.
 		/// </summary>
 		/// <returns></returns>
-		internal static async Task<CommandService> CreateCommandService()
+		private static async Task<CommandService> CreateCommandService()
 		{
-			var cmds = new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, });
+			var cmds = new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false });
 
 			cmds.AddTypeReader<IInvite>(new InviteTypeReader());
 			cmds.AddTypeReader<IBan>(new BanTypeReader());
@@ -60,7 +59,7 @@ namespace Advobot.Core.Utilities
 
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()
-				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
 				.Any(c => c.GetCustomAttribute<NamedArgumentConstructorAttribute>() != null));
 			foreach (var c in customArgumentsClasses)
 			{
@@ -70,7 +69,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			//Add in commands
-			foreach (var assembly in Constants.COMMAND_ASSEMBLIES)
+			foreach (var assembly in Constants.CommandAssemblies)
 			{
 				await cmds.AddModulesAsync(assembly).CAF();
 			}
@@ -82,23 +81,22 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <param name="botSettings">The settings to initialize the client with.</param>
 		/// <returns>A discord client.</returns>
-		internal static IDiscordClient CreateDiscordClient(IBotSettings botSettings)
+		private static IDiscordClient CreateDiscordClient(IBotSettings botSettings)
 		{
 			var config = new DiscordSocketConfig
 			{
 				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
 				MessageCacheSize = botSettings.MessageCacheCount,
 				LogLevel = botSettings.LogLevel,
-				TotalShards = botSettings.ShardCount,
+				TotalShards = botSettings.ShardCount
 			};
 			return botSettings.ShardCount > 1 ? new DiscordShardedClient(config) : (IDiscordClient)new DiscordSocketClient(config);
 		}
 		/// <summary>
 		/// Creates settings that the bot uses.
 		/// </summary>
-		/// <param name="botSettingsType"></param>
 		/// <returns></returns>
-		internal static IBotSettings CreateBotSettings()
+		private static IBotSettings CreateBotSettings()
 		{
 			var path = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
 			return IOUtils.DeserializeFromFile<IBotSettings>(path, Config.BotSettingsType, true);
@@ -106,13 +104,12 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Creates settings that guilds on the bot use.
 		/// </summary>
-		/// <param name="guildSettingsType"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal static IGuildSettings CreateGuildSettings(SocketGuild guild)
+		internal static IGuildSettings CreateGuildSettings(IGuild guild)
 		{
 			var path = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOC);
-			return IOUtils.DeserializeFromFile<IGuildSettings>(path, Config.GuildSettingsType, true, null, (s) => s.PostDeserialize(guild));
+			return IOUtils.DeserializeFromFile<IGuildSettings>(path, Config.GuildSettingsType, true, null, s => s.PostDeserialize(guild));
 		}
 	}
 }

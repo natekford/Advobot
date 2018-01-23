@@ -10,6 +10,6 @@ namespace Advobot.UILauncher.Enums
 	{
 		FileSavingFailure = (1U << 0),
 		FileSavingSuccess = (1U << 1),
-		InvalidFilePath = (1U << 2),
+		InvalidFilePath = (1U << 2)
 	}
 }

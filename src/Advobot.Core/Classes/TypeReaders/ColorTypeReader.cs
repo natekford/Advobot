@@ -1,9 +1,9 @@
-﻿using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -32,29 +32,29 @@ namespace Advobot.Core.Classes.TypeReaders
 			Color? color = null;
 			if (input == null)
 			{
-				return color;
+				return null;
 			}
 			//By name
-			else if (Constants.COLORS.TryGetValue(input, out Color temp))
+
+			if (Constants.Colors.TryGetValue(input, out var temp))
 			{
 				color = temp;
 			}
 			//By hex (trimming characters that are sometimes at the beginning of hex numbers)
-			else if (uint.TryParse(input.TrimStart(new[] { '&', 'h', '#', '0', 'x' }), NumberStyles.HexNumber, null, out uint hex))
+			else if (uint.TryParse(input.TrimStart('&', 'h', '#', '0', 'x'), NumberStyles.HexNumber, null, out var hex))
 			{
 				color = new Color(hex);
 			}
 			//By RGB
 			else if (input.Contains('/'))
 			{
-				const byte MAX_VAL = 255;
-				var colorRGB = input.Split('/');
-				if (colorRGB.Length == 3 &&
-					byte.TryParse(colorRGB[0], out byte r) &&
-					byte.TryParse(colorRGB[1], out byte g) &&
-					byte.TryParse(colorRGB[2], out byte b))
+				var colorRgb = input.Split('/');
+				if (colorRgb.Length == 3 &&
+				    byte.TryParse(colorRgb[0], out var r) &&
+				    byte.TryParse(colorRgb[1], out var g) &&
+				    byte.TryParse(colorRgb[2], out var b))
 				{
-					color = new Color(Math.Min(r, MAX_VAL), Math.Min(g, MAX_VAL), Math.Min(b, MAX_VAL));
+					color = new Color(Math.Min(r, (byte)255), Math.Min(g, (byte)255), Math.Min(b, (byte)255));
 				}
 			}
 			return color;

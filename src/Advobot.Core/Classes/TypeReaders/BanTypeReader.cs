@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities;
-using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Core.Utilities;
+using Discord;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -23,18 +23,18 @@ namespace Advobot.Core.Classes.TypeReaders
 		{
 			IBan ban = null;
 			var bans = await context.Guild.GetBansAsync().CAF();
-			if (MentionUtils.TryParseUser(input, out ulong userID))
+			if (MentionUtils.TryParseUser(input, out var userId))
 			{
-				ban = bans.FirstOrDefault(x => x.User.Id == userID);
+				ban = bans.FirstOrDefault(x => x.User.Id == userId);
 			}
-			else if (ulong.TryParse(input, out userID))
+			else if (ulong.TryParse(input, out userId))
 			{
-				ban = bans.FirstOrDefault(x => x.User.Id == userID);
+				ban = bans.FirstOrDefault(x => x.User.Id == userId);
 			}
 			else if (input.Contains('#'))
 			{
 				var usernameAndDiscriminator = input.Split('#');
-				if (usernameAndDiscriminator.Length == 2 && ushort.TryParse(usernameAndDiscriminator[1], out ushort discriminator))
+				if (usernameAndDiscriminator.Length == 2 && ushort.TryParse(usernameAndDiscriminator[1], out var discriminator))
 				{
 					ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == discriminator && x.User.Username.CaseInsEquals(usernameAndDiscriminator[0]));
 				}
@@ -42,7 +42,7 @@ namespace Advobot.Core.Classes.TypeReaders
 
 			if (ban == null)
 			{
-				var matchingUsernames = bans.Where(x => x.User.Username.CaseInsEquals(input));
+				var matchingUsernames = bans.Where(x => x.User.Username.CaseInsEquals(input)).ToList();
 				if (matchingUsernames.Count() == 1)
 				{
 					ban = matchingUsernames.FirstOrDefault();

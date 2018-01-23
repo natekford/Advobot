@@ -1,12 +1,12 @@
-﻿using Advobot.Core.Classes;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Discord;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Interfaces
 {

@@ -22,18 +22,18 @@ namespace Advobot.UILauncher.Utilities
 			{
 				return rgb;
 			}
-			else if (TryCreateBrushFromStringName(input, out var name))
+
+			if (TryCreateBrushFromStringName(input, out var name))
 			{
 				return name;
 			}
-			else if (TryCreateBrushFromStringHex(input, out var hex))
+
+			if (TryCreateBrushFromStringHex(input, out var hex))
 			{
 				return hex;
 			}
-			else
-			{
-				return default;
-			}
+
+			return default;
 		}
 		public static bool TryCreateBrush(string input, out SolidColorBrush brush)
 		{
@@ -74,7 +74,7 @@ namespace Advobot.UILauncher.Utilities
 		private static bool TryCreateBrushFromStringHex(string hex, out SolidColorBrush color)
 		{
 			//Make sure it will always have an opacity of 255 if one isn't passed in
-			var trimmed = hex.Replace("0x", "").TrimStart(new[] { '&', 'h', '#', 'x' });
+			var trimmed = hex.Replace("0x", "").TrimStart('&', 'h', '#', 'x');
 			//If not 6 wide add in more 0's so the call right below doesn't mess with the colors, only the alpha channel
 			while (trimmed.Length < 6)
 			{
@@ -86,7 +86,7 @@ namespace Advobot.UILauncher.Utilities
 				trimmed = "F" + trimmed;
 			}
 
-			if (uint.TryParse(trimmed, NumberStyles.HexNumber, null, out uint h))
+			if (uint.TryParse(trimmed, NumberStyles.HexNumber, null, out var h))
 			{
 				color = CreateBrushFromInt(h);
 				return true;

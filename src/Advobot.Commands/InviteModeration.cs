@@ -1,4 +1,8 @@
-﻿using Advobot.Core.Classes;
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Enums;
@@ -6,10 +10,7 @@ using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using Discord.WebSocket;
 
 namespace Advobot.Commands.InviteModeration
 {
@@ -22,7 +23,7 @@ namespace Advobot.Commands.InviteModeration
 		[Command]
 		public async Task Command()
 		{
-			var invites = (await Context.Guild.GetInvitesAsync().CAF()).OrderByDescending(x => x.Uses);
+			var invites = (await Context.Guild.GetInvitesAsync().CAF()).OrderByDescending(x => x.Uses).ToList();
 			if (!invites.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild has no invites.")).CAF();
@@ -38,7 +39,7 @@ namespace Advobot.Commands.InviteModeration
 			var embed = new EmbedWrapper
 			{
 				Title = "Instant Invite List",
-				Description = desc,
+				Description = desc
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -63,10 +64,10 @@ namespace Advobot.Commands.InviteModeration
 			var nullableUses = uses != 0 ? uses as int? : null;
 			var inv = await InviteUtils.CreateInviteAsync(channel, nullableTime, nullableUses, tempMem, false, new ModerationReason(Context.User, null)).CAF();
 
-			var timeOutputStr = nullableTime.HasValue
+			var timeOutputStr = uses != 0
 				? $"It will last for this amount of time: `{nullableTime}`." 
 				: "It will last until manually revoked.";
-			var usesOutputStr = nullableUses.HasValue 
+			var usesOutputStr = time != 0
 				? $"It will last for this amount of uses: `{nullableUses}`." 
 				: "It has no usage limit.";
 			var tempOutputStr = tempMem 
@@ -103,7 +104,7 @@ namespace Advobot.Commands.InviteModeration
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Remainder] NamedArguments<MultipleInviteGatherer> gatherer)
 		{
-			var invites = gatherer.CreateObject().GatherInvites(await Context.Guild.GetInvitesAsync().CAF());
+			var invites = gatherer.CreateObject().GatherInvites(await Context.Guild.GetInvitesAsync().CAF()).ToList();
 			if (!invites.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("No invites satisfied the given conditions.")).CAF();

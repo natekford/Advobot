@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Advobot.Core.Utilities;
 
 namespace Advobot.Core.Classes
 {
@@ -14,7 +14,7 @@ namespace Advobot.Core.Classes
 	{
 		private static Dictionary<string, string> _ShortenedPhrases = new Dictionary<string, string>
 		{
-			{ "clear", "clr" },
+			{ "clear", "clr" }
 		};
 
 		public string Original { get; private set; }
@@ -65,7 +65,7 @@ namespace Advobot.Core.Classes
 		public void AppendToInitialismByPart(int index, int length)
 		{
 			var newInitialism = new StringBuilder();
-			for (int i = 0; i < Parts.Count; ++i)
+			for (var i = 0; i < Parts.Count; ++i)
 			{
 				var p = Parts[i];
 				var l = i == index ? length : 1;

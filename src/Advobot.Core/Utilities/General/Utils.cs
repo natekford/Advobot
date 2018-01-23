@@ -1,6 +1,4 @@
-﻿using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 
 namespace Advobot.Core.Utilities
 {
@@ -99,7 +99,7 @@ namespace Advobot.Core.Utilities
 		public static bool CaseInsEverythingSame(this IEnumerable<string> enumerable)
 		{
 			var array = enumerable.ToArray();
-			for (int i = 1; i < array.Length; ++i)
+			for (var i = 1; i < array.Length; ++i)
 			{
 				if (!array[i - 1].CaseInsEquals(array[i]))
 				{
@@ -167,16 +167,17 @@ namespace Advobot.Core.Utilities
 
 			//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
 			var count = 0;
-			for (int i = 0; i < listLength; ++i)
+			for (var i = 0; i < listLength; ++i)
 			{
-				for (int j = i + 1; j < listLength; ++j)
+				for (var j = i + 1; j < listLength; ++j)
 				{
 					if ((int)(timeList[j].Time - timeList[i].Time).TotalSeconds < timeFrame)
 					{
 						continue;
 					}
 					//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
-					else if ((int)(timeList[j].Time - timeList[j - 1].Time).TotalSeconds > timeFrame)
+
+					if ((int)(timeList[j].Time - timeList[j - 1].Time).TotalSeconds > timeFrame)
 					{
 						i = j;
 					}
@@ -189,20 +190,20 @@ namespace Advobot.Core.Utilities
 				//Remove all that are older than the given timeframe (with an added 1 second margin)
 				//Do this because if they're too old then they cannot affect any spam prevention that relies on a timeframe
 				var now = DateTime.UtcNow;
-				for (int i = listLength - 1; i >= 0; --i)
+				for (var i = listLength - 1; i >= 0; --i)
 				{
 					if ((int)(now - timeList[i].Time).TotalSeconds >= timeFrame + 1)
 					{
 						break;
 					}
 
-					//Make sure the queue and the list are looking at the same object
+					//Make sure the queue and the source are looking at the same object
 					if (queue.TryPeek(out var peekResult) && peekResult.Time != timeList[i].Time)
 					{
 						throw new InvalidOperationException($"{nameof(queue)} has had an object dequeued.");
 					}
 
-					queue.TryDequeue(out var dequeueResult);
+					queue.TryDequeue(out _);
 				}
 			}
 
@@ -237,15 +238,16 @@ namespace Advobot.Core.Utilities
 			return num.ToString().Length;
 		}
 		/// <summary>
-		/// Takes a variable number of integers and cuts the list the smallest one (including the list's length).
+		/// Takes a variable number of integers and cuts the source the smallest one (including the source's length).
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="list"></param>
+		/// <param name="source"></param>
 		/// <param name="x"></param>
 		/// <returns></returns>
-		public static IEnumerable<T> TakeMin<T>(this IEnumerable<T> list, params int[] x)
+		public static IEnumerable<T> TakeMin<T>(this IEnumerable<T> source, params int[] x)
 		{
-			return list.Take(Math.Max(0, Math.Min(list.Count(), x.Min()))).ToList();
+			var list = source.ToList();
+			return list.Take(Math.Max(0, Math.Min(list.Count, x.Min()))).ToList();
 		}
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
@@ -304,7 +306,7 @@ namespace Advobot.Core.Utilities
 			}).ToArray();
 		}
 		/// <summary>
-		/// Short way to write <see cref="Task.ConfigureAwait(false)"/>.
+		/// Short way to write ConfigureAwait(false).
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="task"></param>
@@ -314,7 +316,7 @@ namespace Advobot.Core.Utilities
 			return await task.ConfigureAwait(false);
 		}
 		/// <summary>
-		/// Short way to write <see cref="Task.ConfigureAwait(false)"/>.
+		/// Short way to write ConfigureAwait(false).
 		/// </summary>
 		/// <param name="task"></param>
 		/// <returns></returns>

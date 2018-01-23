@@ -1,10 +1,10 @@
-﻿using Advobot.UILauncher.Enums;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using Advobot.UILauncher.Enums;
 
 namespace Advobot.UILauncher.Utilities
 {
@@ -14,7 +14,7 @@ namespace Advobot.UILauncher.Utilities
 		{
 			{ ToolTipReason.FileSavingFailure, "Failed to save the file." },
 			{ ToolTipReason.FileSavingSuccess, "Successfully saved the file." },
-			{ ToolTipReason.InvalidFilePath, "Unable to gather the path for this file." },
+			{ ToolTipReason.InvalidFilePath, "Unable to gather the path for this file." }
 		};
 		private static CancellationTokenSource _ToolTipCancellationTokenSource;
 
@@ -28,7 +28,7 @@ namespace Advobot.UILauncher.Utilities
 					{
 						IsOpen = false,
 						Visibility = Visibility.Collapsed,
-						Placement = PlacementMode.Relative,
+						Placement = PlacementMode.Relative
 					};
 				}
 				else

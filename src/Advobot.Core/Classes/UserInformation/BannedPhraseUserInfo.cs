@@ -1,11 +1,11 @@
-﻿using Advobot.Core.Enums;
-using Advobot.Core.Utilities;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Discord.WebSocket;
 
 namespace Advobot.Core.Classes.UserInformation
 {

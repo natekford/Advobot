@@ -1,7 +1,7 @@
-﻿using Advobot.Core.Utilities;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Advobot.Core.Utilities;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {

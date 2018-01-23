@@ -8,6 +8,5 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Constructor)]
 	public class NamedArgumentConstructorAttribute : Attribute
 	{
-		public NamedArgumentConstructorAttribute() { }
 	}
 }

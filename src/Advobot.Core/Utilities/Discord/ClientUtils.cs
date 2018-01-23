@@ -1,11 +1,11 @@
-﻿using Advobot.Core.Interfaces;
-using Discord;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Core.Interfaces;
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Core.Utilities
 {
@@ -110,7 +110,6 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task ModifyBotIconAsync(IDiscordClient client, FileInfo fileInfo)
 		{
-			//Needs to be a stream, otherwise will lock the file and then can't delete
 			using (var stream = new StreamReader(fileInfo.FullName))
 			{
 				await client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream.BaseStream)).CAF();
@@ -124,17 +123,14 @@ namespace Advobot.Core.Utilities
 		/// <exception cref="ArgumentException"></exception>
 		public static int GetShardId(IDiscordClient client)
 		{
-			if (client is DiscordSocketClient socketClient)
+			switch (client)
 			{
-				return socketClient.ShardId;
-			}
-			else if (client is DiscordShardedClient shardedClient)
-			{
-				return -1;
-			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(client));
+				case DiscordSocketClient socketClient:
+					return socketClient.ShardId;
+				case DiscordShardedClient _:
+					return -1;
+				default:
+					throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 		/// <summary>
@@ -145,17 +141,14 @@ namespace Advobot.Core.Utilities
 		/// <exception cref="ArgumentException">/></exception>
 		public static int GetLatency(IDiscordClient client)
 		{
-			if (client is DiscordSocketClient socketClient)
+			switch (client)
 			{
-				return socketClient.Latency;
-			}
-			else if (client is DiscordShardedClient shardedClient)
-			{
-				return shardedClient.Latency;
-			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(client));
+				case DiscordSocketClient socketClient:
+					return socketClient.Latency;
+				case DiscordShardedClient shardedClient:
+					return shardedClient.Latency;
+				default:
+					throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 		/// <summary>
@@ -166,17 +159,14 @@ namespace Advobot.Core.Utilities
 		/// <exception cref="ArgumentException"></exception>
 		public static int GetShardCount(IDiscordClient client)
 		{
-			if (client is DiscordSocketClient socketClient)
+			switch (client)
 			{
-				return 1;
-			}
-			else if (client is DiscordShardedClient shardedClient)
-			{
-				return shardedClient.Shards.Count;
-			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(client));
+				case DiscordSocketClient socketClient:
+					return 1;
+				case DiscordShardedClient shardedClient:
+					return shardedClient.Shards.Count;
+				default:
+					throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 		/// <summary>
@@ -188,21 +178,18 @@ namespace Advobot.Core.Utilities
 		/// <exception cref="ArgumentException"></exception>
 		public static int GetShardIdFor(IDiscordClient client, IGuild guild)
 		{
-			if (client is DiscordSocketClient socketClient)
+			switch (client)
 			{
-				return socketClient.ShardId;
-			}
-			else if (client is DiscordShardedClient shardedClient)
-			{
-				return shardedClient.GetShardIdFor(guild);
-			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(client));
+				case DiscordSocketClient socketClient:
+					return socketClient.ShardId;
+				case DiscordShardedClient shardedClient:
+					return shardedClient.GetShardIdFor(guild);
+				default:
+					throw new ArgumentException("invalid type", nameof(client));
 			}
 		}
 		/// <summary>
-		/// Creates a new bot that uses the same console. The bot that starts is created using <see cref="Process.Start"/> and specifying the filename as dotnet and the arguments as the location of the .dll.
+		/// Creates a new bot that uses the same console. The bot that starts is created using <see cref="Process.Start()"/> and specifying the filename as dotnet and the arguments as the location of the .dll.
 		/// <para>
 		/// The old bot is then killed
 		/// </para>
@@ -213,7 +200,7 @@ namespace Advobot.Core.Utilities
 			Process.Start(new ProcessStartInfo
 			{
 				FileName = "dotnet",
-				Arguments = $@"""{Assembly.GetEntryAssembly().Location}""",
+				Arguments = $@"""{Assembly.GetEntryAssembly().Location}"""
 			});
 			ConsoleUtils.WriteLine($"Restarted the bot.{Environment.NewLine}");
 			Process.GetCurrentProcess().Kill();
@@ -224,13 +211,18 @@ namespace Advobot.Core.Utilities
 		public static void DisconnectBot(IDiscordClient client)
 		{
 			//When this gets awaited the client hangs
-			if (client is DiscordSocketClient socketClient)
+			switch (client)
 			{
-				socketClient.SetStatusAsync(UserStatus.Invisible);
-			}
-			else if (client is DiscordShardedClient shardedClient)
-			{
-				shardedClient.SetStatusAsync(UserStatus.Invisible);
+#pragma warning disable 4014
+				case DiscordSocketClient socketClient:
+					socketClient.SetStatusAsync(UserStatus.Invisible);
+					break;
+				case DiscordShardedClient shardedClient:
+					shardedClient.SetStatusAsync(UserStatus.Invisible);
+					break;
+				default:
+					throw new ArgumentException("invalid type", nameof(client));
+#pragma warning restore 4014
 			}
 			client.StopAsync();
 			Environment.Exit(0);

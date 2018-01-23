@@ -1,14 +1,13 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Enums;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Discord;
 
 namespace Advobot.Core.Classes.Rules
 {
@@ -23,7 +22,7 @@ namespace Advobot.Core.Classes.Rules
 			{ RuleFormat.Numbers, MarkDownFormat.Bold },
 			{ RuleFormat.Dashes, MarkDownFormat.Code },
 			{ RuleFormat.Bullets, MarkDownFormat.Bold },
-			{ RuleFormat.Bold, MarkDownFormat.Bold | MarkDownFormat.Italics },
+			{ RuleFormat.Bold, MarkDownFormat.Bold | MarkDownFormat.Italics }
 		};
 		private static Dictionary<RuleFormat, MarkDownFormat> _DefaultRuleFormats = new Dictionary<RuleFormat, MarkDownFormat>
 		{
@@ -31,35 +30,35 @@ namespace Advobot.Core.Classes.Rules
 			{ RuleFormat.Numbers, default },
 			{ RuleFormat.Dashes, default },
 			{ RuleFormat.Bullets, default },
-			{ RuleFormat.Bold, MarkDownFormat.Bold },
+			{ RuleFormat.Bold, MarkDownFormat.Bold }
 		};
-			 
-		public RuleFormat Format;
-		public MarkDownFormat TitleMarkDownFormat;
-		public MarkDownFormat RuleMarkDownFormat;
-		public RuleFormatOption Options;
-		public char CharAfterNumbers;
 
-		public RuleFormatter() : this(default, default, default, '.') { }
+		private RuleFormat _Format;
+		private MarkDownFormat _TitleMarkDownFormat;
+		private MarkDownFormat _RuleMarkDownFormat;
+		private RuleFormatOption _Options;
+		private char _CharAfterNumbers;
+
+		public RuleFormatter() : this(default) { }
 		[NamedArgumentConstructor]
-		public RuleFormatter(
+		private RuleFormatter(
 			[NamedArgument] RuleFormat format = default,
 			[NamedArgument] MarkDownFormat titleFormat = default,
 			[NamedArgument] MarkDownFormat ruleFormat = default,
 			[NamedArgument] char charAfterNumbers = '.',
 			[NamedArgument(10)] params RuleFormatOption[] formatOptions)
 		{
-			Format = format == default ? RuleFormat.Numbers : format;
-			TitleMarkDownFormat = titleFormat;
-			RuleMarkDownFormat = ruleFormat;
-			CharAfterNumbers = charAfterNumbers;
-			formatOptions.ToList().ForEach(x => Options |= x);
+			_Format = format == default ? RuleFormat.Numbers : format;
+			_TitleMarkDownFormat = titleFormat;
+			_RuleMarkDownFormat = ruleFormat;
+			_CharAfterNumbers = charAfterNumbers;
+			formatOptions.ToList().ForEach(x => _Options |= x);
 		}
 
 		public string FormatName(string name, int index)
 		{
-			var n = "";
-			switch (Format)
+			string n;
+			switch (_Format)
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bullets:
@@ -81,21 +80,21 @@ namespace Advobot.Core.Classes.Rules
 			}
 
 			n = n.Trim(' ');
-			if (Options.HasFlag(RuleFormatOption.ExtraLines))
+			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
 			{
 				n = n + "\n";
 			}
-			return AddMarkDown(TitleMarkDownFormat == default ? _DefaultTitleFormats[Format] : TitleMarkDownFormat, n);
+			return AddMarkDown(_TitleMarkDownFormat == default ? _DefaultTitleFormats[_Format] : _TitleMarkDownFormat, n);
 		}
 		public string FormatRule(string rule, int index, int rulesInCategory)
 		{
-			var r = "";
-			switch (Format)
+			string r;
+			switch (_Format)
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bold:
 				{
-					if (Options.HasFlag(RuleFormatOption.NumbersSameLength))
+					if (_Options.HasFlag(RuleFormatOption.NumbersSameLength))
 					{
 						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLength(), '0')}";
 					}
@@ -123,20 +122,20 @@ namespace Advobot.Core.Classes.Rules
 			}
 
 			r = $"{r}{rule}";
-			r = CharAfterNumbers != default
-				? AddCharAfterNumbers(r, CharAfterNumbers)
+			r = _CharAfterNumbers != default
+				? AddCharAfterNumbers(r, _CharAfterNumbers)
 				: r;
 			r = r.Trim(' ');
-			if (Options.HasFlag(RuleFormatOption.ExtraLines))
+			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
 			{
 				r = r + "\n";
 			}
-			return AddMarkDown(RuleMarkDownFormat == default ? _DefaultRuleFormats[Format] : RuleMarkDownFormat, r);
+			return AddMarkDown(_RuleMarkDownFormat == default ? _DefaultRuleFormats[_Format] : _RuleMarkDownFormat, r);
 		}
 		private string AddCharAfterNumbers(string text, char charToAdd)
 		{
 			var sb = new StringBuilder();
-			for (int i = 0; i < text.Length; ++i)
+			for (var i = 0; i < text.Length; ++i)
 			{
 				var c = text[i];
 				sb.Append(c);
@@ -182,13 +181,14 @@ namespace Advobot.Core.Classes.Rules
 		/// <summary>
 		/// Sends the rules to the specified channel.
 		/// </summary>
+		/// <param name="categories"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
 		public async Task<IReadOnlyList<IUserMessage>> SendRulesAsync(IEnumerable<RuleCategory> categories, IMessageChannel channel)
 		{
 			var messages = new List<IUserMessage>();
 
-			var formattedCategories = categories.Select((c, i) => c.ToString(this, i));
+			var formattedCategories = categories.Select((c, i) => c.ToString(this, i)).ToList();
 			var formattedRules = String.Join("\n", formattedCategories);
 			//If all of the rules can be sent in one message, do that.
 			if (!String.IsNullOrWhiteSpace(formattedRules) && formattedRules.Length <= 2000)
@@ -219,7 +219,8 @@ namespace Advobot.Core.Classes.Rules
 				return messages;
 			}
 			//Short enough categories just get sent on their own
-			else if (formattedCategory.Length <= 2000)
+
+			if (formattedCategory.Length <= 2000)
 			{
 				messages.Add(await MessageUtils.SendMessageAsync(channel, formattedCategory).CAF());
 				return messages;

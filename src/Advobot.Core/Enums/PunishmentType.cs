@@ -13,6 +13,6 @@ namespace Advobot.Core.Enums
 		Deafen = (1U << 2),
 		VoiceMute = (1U << 3),
 		Softban = (1U << 4),
-		RoleMute = (1U << 5),
+		RoleMute = (1U << 5)
 	}
 }

@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities.Formatting;
+﻿using System.Collections.Generic;
+using System.Text;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities.Formatting;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Advobot.Core.Classes.Rules
 {
@@ -49,7 +49,7 @@ namespace Advobot.Core.Classes.Rules
 		public string ToString(RuleFormatter formatter)
 		{
 			var sb = new StringBuilder();
-			for (int c = 0; c < _Categories.Count; ++c)
+			for (var c = 0; c < _Categories.Count; ++c)
 			{
 				sb.AppendLineFeed(_Categories[c].ToString(formatter, c));
 			}

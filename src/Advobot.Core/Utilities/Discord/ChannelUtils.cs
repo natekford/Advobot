@@ -1,9 +1,10 @@
-﻿using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Results;
 using Advobot.Core.Enums;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,25 +22,28 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="target"></param>
-		/// <param name="checkingTypes"></param>
+		/// <param name="checks"></param>
 		/// <returns></returns>
 		public static VerifiedObjectResult Verify(this IGuildChannel target, ICommandContext context, IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{
-				return new VerifiedObjectResult(target, CommandError.ObjectNotFound, "Unable to find a matching channel.");
+				return new VerifiedObjectResult(null, CommandError.ObjectNotFound, "Unable to find a matching channel.");
+			}
+			if (!(context.User is SocketGuildUser invokingUser && context.Guild.GetBot() is SocketGuildUser bot))
+			{
+				return new VerifiedObjectResult(target, CommandError.Unsuccessful, "Invalid invoking user or guild or bot.");
 			}
 
-			var invokingUser = context.User as IGuildUser;
-			var bot = context.Guild.GetBot();
 			foreach (var check in checks)
 			{
-				if (!invokingUser.GetIfCanDoActionOnChannel(target, check))
+				if (!invokingUser.CanDoAction(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"You are unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
-				else if (!bot.GetIfCanDoActionOnChannel(target, check))
+
+				if (!bot.CanDoAction(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"I am unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
@@ -117,13 +121,13 @@ namespace Advobot.Core.Utilities
 			}
 
 			//Double check the everyone role has the correct perms
-			if (!channel.PermissionOverwrites.Any(x => x.TargetId == guild.EveryoneRole.Id))
+			if (channel.PermissionOverwrites.All(x => x.TargetId != guild.EveryoneRole.Id))
 			{
 				await channel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny)).CAF();
 			}
 
 			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-			await ModifyPositionAsync(channel, (await guild.GetTextChannelsAsync()).Max(x => x.Position), reason).CAF();
+			await ModifyPositionAsync(channel, (await guild.GetTextChannelsAsync().CAF()).Max(x => x.Position), reason).CAF();
 		}
 		/// <summary>
 		/// Deletes a channel.
@@ -144,18 +148,19 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<int> ModifyPositionAsync(IGuildChannel channel, int position, ModerationReason reason)
 		{
+			//TODO: rework this since channels can be mixed now
 			if (channel == null)
 			{
 				return -1;
 			}
 
 			var channels = channel is ITextChannel
-				? (await channel.Guild.GetTextChannelsAsync().CAF()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray()
-				: (await channel.Guild.GetVoiceChannelsAsync().CAF()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
+				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<SocketGuildChannel>().ToArray()
+				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<SocketGuildChannel>().ToArray();
 			position = Math.Max(0, Math.Min(position, channels.Length));
 
 			var reorderProperties = new ReorderChannelProperties[channels.Length];
-			for (int i = 0; i < channels.Length; ++i)
+			for (var i = 0; i < channels.Length; ++i)
 			{
 				if (i > position)
 				{

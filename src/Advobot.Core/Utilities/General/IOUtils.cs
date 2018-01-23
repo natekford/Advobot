@@ -1,10 +1,10 @@
-﻿using Advobot.Core.Utilities.Formatting;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Advobot.Core.Utilities.Formatting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Advobot.Core.Utilities
 {
@@ -13,7 +13,7 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class IOUtils
 	{
-		internal static JsonSerializerSettings DefaultSerializingSettings = new JsonSerializerSettings
+		private static JsonSerializerSettings _DefaultSerializingSettings = new JsonSerializerSettings
 		{
 			//Ignores errors parsing specific invalid properties instead of throwing exceptions making the entire object null
 			//Will still make the object null if the property's type is changed to something not creatable from the text
@@ -25,7 +25,7 @@ namespace Advobot.Core.Utilities
 #endif
 				e.ErrorContext.Handled = false;
 			},
-			Converters = new[] { new StringEnumConverter() },
+			Converters = new JsonConverter[] { new StringEnumConverter() }
 		};
 
 		/// <summary>
@@ -123,10 +123,11 @@ namespace Advobot.Core.Utilities
 		/// Converts the object to JSON.
 		/// </summary>
 		/// <param name="obj"></param>
+		/// <param name="settings"></param>
 		/// <returns></returns>
 		public static string Serialize(object obj, JsonSerializerSettings settings = null)
 		{
-			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, settings ?? DefaultSerializingSettings);
+			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, settings ?? _DefaultSerializingSettings);
 		}
 		/// <summary>
 		/// Creates an object of type <typeparamref name="T"/> with the supplied string and type.
@@ -138,7 +139,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static T Deserialize<T>(string value, Type type, JsonSerializerSettings settings = null)
 		{
-			return (T)JsonConvert.DeserializeObject(value, type, settings ?? DefaultSerializingSettings);
+			return (T)JsonConvert.DeserializeObject(value, type, settings ?? _DefaultSerializingSettings);
 		}
 		/// <summary>
 		/// Creates an object from JSON stored in a file.
@@ -162,7 +163,7 @@ namespace Advobot.Core.Utilities
 				{
 					using (var reader = new StreamReader(file.FullName))
 					{
-						obj = Deserialize<T>(reader.ReadToEnd(), type, settings ?? DefaultSerializingSettings);
+						obj = Deserialize<T>(reader.ReadToEnd(), type, settings ?? _DefaultSerializingSettings);
 						stillDef = false;
 					}
 					ConsoleUtils.WriteLine($"The {type.Name} file has successfully been loaded.");
@@ -185,7 +186,7 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Writes an uncaught exception to a log file.
 		/// </summary>
-		/// <param name="exeption"></param>
+		/// <param name="exception"></param>
 		public static void LogUncaughtException(object exception)
 		{
 			var crashLogPath = GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOC);
@@ -193,7 +194,7 @@ namespace Advobot.Core.Utilities
 			//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
 			using (var writer = crashLogPath.AppendText())
 			{
-				writer.WriteLine($"{DateTime.UtcNow.Readable()}: {exception.ToString()}\n");
+				writer.WriteLine($"{DateTime.UtcNow.Readable()}: {exception}\n");
 			}
 		}
 	}

@@ -1,9 +1,9 @@
-﻿using Advobot.Core.Utilities;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
+using Advobot.Core.Utilities;
 
 namespace Advobot.UILauncher.Classes
 {
@@ -29,7 +29,8 @@ namespace Advobot.UILauncher.Classes
 			{
 				return;
 			}
-			else if (value.Equals('\n'))
+
+			if (value.Equals('\n'))
 			{
 				Write(_CurrentLineText);
 				_CurrentLineText = null;

@@ -1,15 +1,14 @@
-﻿using Advobot.Core.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
+using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
 
 namespace Advobot.Core.Classes.GuildSettings
 {
@@ -128,13 +127,13 @@ namespace Advobot.Core.Classes.GuildSettings
 			//Channel
 			//Guild
 
-			var name = Constants.HELP_ENTRIES[command.Aliases[0].Split(' ')[0]].Name;
+			var name = Constants.HelpEntries[command.Aliases[0].Split(' ')[0]].Name;
 			if (_UserOverrides.TryGetValue(context.User.Id, out var uDict) && uDict.TryGetValue(name, out var uValue))
 			{
 				return uValue;
 			}
 
-			foreach (var role in (context.User as SocketGuildUser).Roles.OrderByDescending(x => x.Position))
+			foreach (var role in ((SocketGuildUser)context.User).Roles.OrderByDescending(x => x.Position))
 			{
 				if (_RoleOverrides.TryGetValue(role.Id, out var rDict) && rDict.TryGetValue(name, out var rValue))
 				{
@@ -150,33 +149,35 @@ namespace Advobot.Core.Classes.GuildSettings
 			return _CommandValues[name];
 		}
 
-		private bool ModifyCommand(Dictionary<string, bool> dict, HelpEntry helpEntry, bool? enable)
+		private static bool ModifyCommand(IDictionary<string, bool> dict, HelpEntry helpEntry, bool? enable)
 		{
 			if (!helpEntry.AbleToBeTurnedOff)
 			{
 				return false;
 			}
-			else if (enable == null)
+			if (enable == null)
 			{
-				if (dict.ContainsKey(helpEntry.Name))
+				if (!dict.ContainsKey(helpEntry.Name))
 				{
-					dict.Remove(helpEntry.Name);
-					return true;
+					return false;
 				}
-			}
-			else if (!dict.TryGetValue(helpEntry.Name, out var value) || value != enable)
-			{
-				dict[helpEntry.Name] = enable.Value;
+				dict.Remove(helpEntry.Name);
 				return true;
 			}
-			return false;
+			if (dict.TryGetValue(helpEntry.Name, out var value) && value == enable)
+			{
+				return false;
+			}
+
+			dict[helpEntry.Name] = enable.Value;
+			return true;
 		}
 
 		[OnDeserialized]
 		private void OnDeserialized(StreamingContext context)
 		{
 			//Add in the default values for commands that aren't set
-			foreach (var helpEntry in Constants.HELP_ENTRIES.GetUnsetCommands(_CommandValues.Keys))
+			foreach (var helpEntry in Constants.HelpEntries.GetUnsetCommands(_CommandValues.Keys))
 			{
 				_CommandValues.Add(helpEntry.Name, helpEntry.DefaultEnabled);
 			}
@@ -186,7 +187,7 @@ namespace Advobot.Core.Classes.GuildSettings
 			ClearInvalidValues(_RoleOverrides);
 			ClearInvalidValues(_ChannelOverrides);
 		}
-		private void ClearInvalidValues(Dictionary<ulong, Dictionary<string, bool>> dict)
+		private static void ClearInvalidValues(Dictionary<ulong, Dictionary<string, bool>> dict)
 		{
 			foreach (var outerKey in dict.Keys)
 			{
@@ -198,11 +199,11 @@ namespace Advobot.Core.Classes.GuildSettings
 				}
 			}
 		}
-		private void ClearInvalidValues(Dictionary<string, bool> dict)
+		private static void ClearInvalidValues(Dictionary<string, bool> dict)
 		{
 			foreach (var key in dict.Keys)
 			{
-				if (Constants.HELP_ENTRIES[key] == null)
+				if (Constants.HelpEntries[key] == null)
 				{
 					dict.Remove(key);
 				}
@@ -220,7 +221,7 @@ namespace Advobot.Core.Classes.GuildSettings
 				$"{ToString(_RoleOverrides, "Role", guild)}\n" +
 				$"{ToString(_UserOverrides, "User", guild)}".TrimEnd();
 		}
-		private string ToString(Dictionary<ulong, Dictionary<string, bool>> dict, string type, SocketGuild guild = null)
+		private static string ToString(Dictionary<ulong, Dictionary<string, bool>> dict, string type, SocketGuild guild = null)
 		{
 			var sb = new StringBuilder();
 			foreach (var kvp in dict)
@@ -268,6 +269,6 @@ namespace Advobot.Core.Classes.GuildSettings
 	{
 		Channel,
 		Role,
-		User,
+		User
 	}
 }

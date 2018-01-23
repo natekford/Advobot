@@ -1,14 +1,13 @@
-﻿using Advobot.Core.Enums;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 
 namespace Advobot.Core.Classes.UserInformation
 {
@@ -25,7 +24,7 @@ namespace Advobot.Core.Classes.UserInformation
 			{ PunishmentType.RoleMute, 250 },
 			{ PunishmentType.Kick, 500 },
 			{ PunishmentType.Softban, 750 },
-			{ PunishmentType.Ban, 1000 },
+			{ PunishmentType.Ban, 1000 }
 		};
 
 		private ConcurrentBag<ulong> _UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
@@ -41,7 +40,7 @@ namespace Advobot.Core.Classes.UserInformation
 			get => _VotesRequired;
 			set => _VotesRequired = Math.Min(_VotesRequired, value);
 		}
-		private PunishmentType _Punishment = default;
+		private PunishmentType _Punishment;
 		/// <summary>
 		/// The punishment to do on a user.
 		/// Setting sets to whatever is the most severe punishment.

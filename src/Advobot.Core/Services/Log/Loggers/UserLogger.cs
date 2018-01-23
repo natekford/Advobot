@@ -1,11 +1,11 @@
-﻿using Advobot.Core.Classes;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Services.Log.Loggers
 {
@@ -20,8 +20,8 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnUserJoined(SocketGuildUser user)
 		{
-			_Logging.TotalUsers.Increment();
-			_Logging.UserJoins.Increment();
+			Logging.TotalUsers.Increment();
+			Logging.UserJoins.Increment();
 
 			if (!TryGetSettings(user, out var settings)
 				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
@@ -47,10 +47,10 @@ namespace Advobot.Core.Services.Log.Loggers
 			var embed = new EmbedWrapper
 			{
 				Description = $"**ID:** {user.Id}\n{invite}\n{ageWarning}",
-				Color = Constants.JOIN,
+				Color = Constants.Join
 			};
-			embed.TryAddAuthor(user, out var authorErrors);
-			embed.TryAddFooter(user.IsBot ? "Bot Joined" : "User Joined", null, out var footerErrors);
+			embed.TryAddAuthor(user, out _);
+			embed.TryAddFooter(user.IsBot ? "Bot Joined" : "User Joined", null, out _);
 			await MessageUtils.SendEmbedMessageAsync(serverLog, embed).CAF();
 		}
 		/// <summary>
@@ -60,8 +60,8 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnUserLeft(SocketGuildUser user)
 		{
-			_Logging.TotalUsers.Decrement();
-			_Logging.UserLeaves.Increment();
+			Logging.TotalUsers.Decrement();
+			Logging.UserLeaves.Increment();
 
 			if (!TryGetSettings(user, out var settings)
 				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
@@ -80,10 +80,10 @@ namespace Advobot.Core.Services.Log.Loggers
 			var embed = new EmbedWrapper
 			{
 				Description = $"**ID:** {user.Id}\n{userStayLength}",
-				Color = Constants.LEAV,
+				Color = Constants.Leave
 			};
-			embed.TryAddAuthor(user, out var authorErrors);
-			embed.TryAddFooter(user.IsBot ? "Bot Left" : "User Left", null, out var footerErrors);
+			embed.TryAddAuthor(user, out _);
+			embed.TryAddFooter(user.IsBot ? "Bot Left" : "User Left", null, out _);
 			await MessageUtils.SendEmbedMessageAsync(serverLog, embed).CAF();
 		}
 		/// <summary>
@@ -94,16 +94,16 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 		{
-			if (_BotSettings.Pause || beforeUser.Username.CaseInsEquals(afterUser.Username))
+			if (BotSettings.Pause || beforeUser.Username.CaseInsEquals(afterUser.Username))
 			{
 				return;
 			}
 
-			var guilds = await _Client.GetGuildsAsync().CAF();
-			var guildsContainingUser = guilds.Where(g => (g as SocketGuild).Users.Select(u => u.Id).Contains(afterUser.Id));
+			var guilds = await Client.GetGuildsAsync().CAF();
+			var guildsContainingUser = guilds.Where(g => ((SocketGuild)g).Users.Select(u => u.Id).Contains(afterUser.Id));
 			foreach (var guild in guildsContainingUser)
 			{
-				_Logging.UserChanges.Increment();
+				Logging.UserChanges.Increment();
 				if (!TryGetSettings(guild, out var settings) || !(settings.ServerLog is ITextChannel serverLog))
 				{
 					continue;
@@ -111,12 +111,12 @@ namespace Advobot.Core.Services.Log.Loggers
 
 				var embed = new EmbedWrapper
 				{
-					Color = Constants.UEDT,
+					Color = Constants.UserEdit
 				};
-				embed.TryAddAuthor(afterUser, out var authorErrors);
-				embed.TryAddField("Before:", $"`{beforeUser.Username}`", false, out var firstFieldErrors);
-				embed.TryAddField("After:", $"`{afterUser.Username}`", false, out var secondFieldErrors);
-				embed.TryAddFooter("Name Changed", null, out var footerErrors);
+				embed.TryAddAuthor(afterUser, out _);
+				embed.TryAddField("Before:", $"`{beforeUser.Username}`", false, out _);
+				embed.TryAddField("After:", $"`{afterUser.Username}`", false, out _);
+				embed.TryAddFooter("Name Changed", null, out _);
 				await MessageUtils.SendEmbedMessageAsync(serverLog, embed).CAF();
 			}
 		}

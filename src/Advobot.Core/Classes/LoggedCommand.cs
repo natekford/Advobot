@@ -1,10 +1,10 @@
-﻿using Advobot.Core.Interfaces;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord.Commands;
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes
 {
@@ -47,14 +47,15 @@ namespace Advobot.Core.Classes
 		/// <param name="result"></param>
 		public void SetError(IResult result)
 		{
-			if (TryGetErrorReason(result, out string errorReason))
+			if (!TryGetErrorReason(result, out var errorReason))
 			{
-				ErrorReason = errorReason;
-				WriteColor = ConsoleColor.Red;
+				return;
 			}
+			ErrorReason = errorReason;
+			WriteColor = ConsoleColor.Red;
 		}
 		/// <summary>
-		/// Sets <see cref="TimeCompleted"/> to <see cref="DateTime.UtcNow"/>.
+		/// Sets the time completed to <see cref="DateTime.UtcNow"/>.
 		/// </summary>
 		public void Complete(ICommandContext context, IResult result)
 		{
@@ -117,10 +118,10 @@ namespace Advobot.Core.Classes
 				{
 					var embed = new EmbedWrapper
 					{
-						Description = context.Message.Content,
+						Description = context.Message.Content
 					};
-					embed.TryAddAuthor(context.User, out var authorErrors);
-					embed.TryAddFooter("Mod Log", null, out var footerErrors);
+					embed.TryAddAuthor(context.User, out _);
+					embed.TryAddFooter("Mod Log", null, out _);
 					await MessageUtils.SendEmbedMessageAsync(guildSettings.ModLog, embed).CAF();
 				}
 			}

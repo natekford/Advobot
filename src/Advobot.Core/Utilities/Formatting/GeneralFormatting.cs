@@ -54,15 +54,16 @@ namespace Advobot.Core.Utilities.Formatting
 		/// Returns a string which is a numbered list of the passed in objects. The format is for the passed in arguments; the counter is added by default.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="list"></param>
+		/// <param name="source"></param>
 		/// <param name="format"></param>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public static string FormatNumberedList<T>(this IEnumerable<T> list, string format, params Func<T, object>[] args)
+		public static string FormatNumberedList<T>(this IEnumerable<T> source, string format, params Func<T, object>[] args)
 		{
-			var maxLen = list.Count().GetLength();
+			var list = source.ToList();
+			var maxLen = list.Count.GetLength();
 			//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
-			return String.Join("\n", list.Select((x, index) => $"`{(index + 1).ToString().PadLeft(maxLen, '0')}.` {String.Format(@format, args.Select(f => f(x)).ToArray())}"));
+			return String.Join("\n", list.Select((x, index) => $"`{(index + 1).ToString().PadLeft(maxLen, '0')}.` {String.Format(format, args.Select(f => f(x)).ToArray())}"));
 		}
 		/// <summary>
 		/// Returns the input string with `, *, and _, escaped.
@@ -117,7 +118,7 @@ namespace Advobot.Core.Utilities.Formatting
 		public static string FormatTitle(this string title)
 		{
 			var sb = new StringBuilder();
-			for (int i = 0; i < title.Length; ++i)
+			for (var i = 0; i < title.Length; ++i)
 			{
 				var c = title[i];
 				if (Char.IsUpper(c) && (i > 0 && !Char.IsWhiteSpace(title[i - 1])))
@@ -135,14 +136,14 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string FormatPlural(double i)
 		{
-			return i == 1 ? "" : "s";
+			return Math.Abs(i - 1) < 0 ? "" : "s";
 		}
 		/// <summary>
 		/// Only appends a \n after the value. On Windows <see cref="StringBuilder.AppendLine(string)"/> appends \r\n (which isn't
 		/// necessarily wanted).
 		/// </summary>
 		/// <param name="sb"></param>
-		/// <param name="text"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
 		public static StringBuilder AppendLineFeed(this StringBuilder sb, string value = "")
 		{

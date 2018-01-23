@@ -4,14 +4,14 @@
 using System.Reflection;
 using Advobot.Core;
 
-[assembly: AssemblyVersion(Version.VersionNumber)]
-[assembly: AssemblyFileVersion(Version.VersionNumber)]
-[assembly: AssemblyInformationalVersion(Version.VersionNumber)]
+[assembly: AssemblyVersion(Version.VERSION_NUMBER)]
+[assembly: AssemblyFileVersion(Version.VERSION_NUMBER)]
+[assembly: AssemblyInformationalVersion(Version.VERSION_NUMBER)]
 namespace Advobot.Core
 {
 	internal static class Version
 	{
 		//To make sure every attribute has the same version number.
-		public const string VersionNumber = "3.2.6597.4220";
+		public const string VERSION_NUMBER = "3.2.6597.12603";
 	}
 }

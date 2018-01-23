@@ -1,16 +1,15 @@
-﻿using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.GuildSettings;
-using Advobot.Core.Classes.NamedArguments;
-using Advobot.Core.Classes.TypeReaders;
-using Advobot.Core.Interfaces;
-using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.NamedArguments;
+using Advobot.Core.Classes.TypeReaders;
+using Discord;
+using Discord.Commands;
+using ParameterInfo = System.Reflection.ParameterInfo;
 
 namespace Advobot.Core.Classes.UsageGeneration
 {
@@ -31,7 +30,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 			{ typeof(PruneTypeReader), typeof(string) },
 			{ typeof(SettingTypeReader.GuildSettingTypeReader), typeof(string) },
 			{ typeof(SettingTypeReader.BotSettingTypeReader), typeof(string) },
-			{ typeof(UserIdTypeReader), typeof(ulong) },
+			{ typeof(UserIdTypeReader), typeof(ulong) }
 		};
 		private static Dictionary<Type, string> _NameSwitcher = new Dictionary<Type, string>
 		{
@@ -39,7 +38,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 			{ typeof(BanTypeReader), "UserId|Username#Discriminator" },
 			{ typeof(ColorTypeReader), "Hexadecimal|R/G/B|Name" },
 			{ typeof(EmoteTypeReader), "EmoteId|Name" },
-			{ typeof(PruneTypeReader), PruneTypeReader.PRUNE_STRING },
+			{ typeof(PruneTypeReader), PruneTypeReader.PRUNE_STRING }
 		};
 
 		public int Deepness { get; private set; }
@@ -53,7 +52,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 		public Type Type { get; private set; }
 		public string TypeName { get; private set; }
 
-		public ParameterDetails(int deepness, System.Reflection.ParameterInfo parameter)
+		public ParameterDetails(int deepness, ParameterInfo parameter)
 		{
 			Deepness = deepness;
 			Name = CapitalizeFirstLetter(parameter.Name);
@@ -66,7 +65,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 			SetText(parameter);
 		}
 
-		private void SetType(System.Reflection.ParameterInfo parameter)
+		private void SetType(ParameterInfo parameter)
 		{
 			var overrideTypeReaderAttr = parameter.GetCustomAttribute<OverrideTypeReaderAttribute>();
 			var typeReader = overrideTypeReaderAttr?.TypeReader;
@@ -108,17 +107,17 @@ namespace Advobot.Core.Classes.UsageGeneration
 			//Generics have `1, `2, etc for each instance of them in use
 			TypeName = n.Contains('`') ? n.Substring(0, n.IndexOf('`') + 1) : n;
 		}
-		private void SetText(System.Reflection.ParameterInfo parameter)
+		private void SetText(ParameterInfo parameter)
 		{
 			var verifyNumberAttr = parameter.GetCustomAttribute<VerifyNumberAttribute>();
 			if (verifyNumberAttr != null)
 			{
-				Text += $" {verifyNumberAttr.ToString()}";
+				Text += $" {verifyNumberAttr}";
 			}
 			var verifyStringLengthAttr = parameter.GetCustomAttribute<VerifyStringLengthAttribute>();
 			if (verifyStringLengthAttr != null)
 			{
-				Text += $" {verifyStringLengthAttr.ToString()}";
+				Text += $" {verifyStringLengthAttr}";
 			}
 			if (Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(NamedArguments<>))
 			{

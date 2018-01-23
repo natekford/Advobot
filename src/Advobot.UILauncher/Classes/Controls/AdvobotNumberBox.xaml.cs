@@ -1,10 +1,10 @@
-﻿using Advobot.Core.Utilities;
-using System;
+﻿using System;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Advobot.Core.Utilities;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -79,7 +79,7 @@ namespace Advobot.UILauncher.Classes.Controls
 
 			//Append the text in the correct part of the string
 			var sb = new StringBuilder();
-			for (int i = 0; i < tb.MaxLength; ++i)
+			for (var i = 0; i < tb.MaxLength; ++i)
 			{
 				if (i < tb.CaretIndex)
 				{
@@ -126,7 +126,6 @@ namespace Advobot.UILauncher.Classes.Controls
 
 			if (StoredValue == value)
 			{
-				return;
 			}
 			else
 			{

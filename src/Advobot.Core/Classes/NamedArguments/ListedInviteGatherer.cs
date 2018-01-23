@@ -1,10 +1,10 @@
-﻿using Advobot.Core.Classes.Attributes;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Advobot.Core.Classes.NamedArguments
 {
@@ -37,7 +37,7 @@ namespace Advobot.Core.Classes.NamedArguments
 
 		public IEnumerable<ListedInvite> GatherInvites(IInviteListService inviteListService)
 		{
-			IEnumerable<ListedInvite> invites = _Keywords.Any() ? inviteListService.GetAll(_Keywords) : inviteListService.GetAll();
+			var invites = _Keywords.Any() ? inviteListService.GetAll(_Keywords) : inviteListService.GetAll();
 
 			var wentIntoAny = false;
 			if (_Code != null)

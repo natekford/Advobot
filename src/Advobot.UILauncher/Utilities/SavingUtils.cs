@@ -1,19 +1,18 @@
-﻿using Advobot.Core;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
-using Advobot.UILauncher.Enums;
-using Discord;
-using ICSharpCode.AvalonEdit;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Advobot.Core;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Advobot.UILauncher.Classes.Controls;
+using Advobot.UILauncher.Enums;
+using Discord;
+using ICSharpCode.AvalonEdit;
+using Newtonsoft.Json;
 
 namespace Advobot.UILauncher.Utilities
 {
@@ -51,7 +50,8 @@ namespace Advobot.UILauncher.Utilities
 			{
 				return ToolTipReason.InvalidFilePath;
 			}
-			else if (fi.Name == Constants.GUILD_SETTINGS_LOC)
+
+			if (fi.Name == Constants.GUILD_SETTINGS_LOC)
 			{
 				//Make sure the guild info stays valid
 				try
@@ -98,7 +98,6 @@ namespace Advobot.UILauncher.Utilities
 				var result = SaveSetting(child, botSettings);
 				if (result == null)
 				{
-					continue;
 				}
 				else if (!result.Value)
 				{
@@ -114,7 +113,8 @@ namespace Advobot.UILauncher.Utilities
 				//If any are false then return false indicating one failed
 				return !g.Children.OfType<FrameworkElement>().Select(x => SaveSetting(x, botSettings)).Any(x => x == false);
 			}
-			else if (ele is Viewbox vb)
+
+			if (ele is Viewbox vb)
 			{
 				return vb.Child is FrameworkElement vbc ? SaveSetting(vbc, botSettings) : true;
 			}
@@ -124,7 +124,8 @@ namespace Advobot.UILauncher.Utilities
 			{
 				return null;
 			}
-			else if (ele is AdvobotNumberBox nb)
+
+			if (ele is AdvobotNumberBox nb)
 			{
 				value = nb.StoredValue;
 			}

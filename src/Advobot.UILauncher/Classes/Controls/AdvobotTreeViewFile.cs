@@ -1,14 +1,14 @@
-﻿using Advobot.Core;
-using Advobot.Core.Utilities;
-using Advobot.UILauncher.Utilities;
-using Advobot.UILauncher.Enums;
-using Advobot.UILauncher.Interfaces;
-using Advobot.UILauncher.Windows;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using System;
+﻿using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using Advobot.Core;
+using Advobot.Core.Utilities;
+using Advobot.UILauncher.Enums;
+using Advobot.UILauncher.Interfaces;
+using Advobot.UILauncher.Utilities;
+using Advobot.UILauncher.Windows;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -34,22 +34,22 @@ namespace Advobot.UILauncher.Classes.Controls
 			{
 				Header = "Delete File",
 				HorizontalContentAlignment = HorizontalAlignment.Center,
-				VerticalContentAlignment = VerticalAlignment.Center,
+				VerticalContentAlignment = VerticalAlignment.Center
 			};
 			delete.Click += DeleteFile;
 			var copy = new MenuItem
 			{
 				Header = "Copy File",
 				HorizontalContentAlignment = HorizontalAlignment.Center,
-				VerticalContentAlignment = VerticalAlignment.Center,
+				VerticalContentAlignment = VerticalAlignment.Center
 			};
 			copy.Click += CopyFile;
 			return new ContextMenu { ItemsSource = new[] { delete, copy } };
 		}
 		public void SetResourceReferences()
 		{
-			SetResourceReference(TreeViewItem.BackgroundProperty, ColorTarget.BaseBackground);
-			SetResourceReference(TreeViewItem.ForegroundProperty, ColorTarget.BaseForeground);
+			SetResourceReference(BackgroundProperty, ColorTarget.BaseBackground);
+			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
 		}
 		public void Update(RenamedEventArgs e)
 		{
@@ -74,7 +74,7 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		private void OpenFile(object sender, RoutedEventArgs e)
 		{
-			if (!ElementUtils.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
+			if (!this.TryGetTopMostParent(out AdvobotWindow window, out var ancestorLevel))
 			{
 				throw new ArgumentException("unable to get a parent", nameof(AdvobotWindow));
 			}
@@ -88,7 +88,7 @@ namespace Advobot.UILauncher.Classes.Controls
 				{
 					case CommonFileDialogResult.Ok:
 					{
-						if (!ElementUtils.TryGetTopMostParent(this, out AdvobotWindow window, out var ancestorLevel))
+						if (!this.TryGetTopMostParent(out AdvobotWindow window, out var ancestorLevel))
 						{
 							throw new ArgumentException("unable to get a parent", nameof(AdvobotWindow));
 						}

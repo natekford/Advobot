@@ -1,14 +1,15 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.Core.Classes;
-using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Enums;
-using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 
 namespace Advobot.Commands.Logs
 {
@@ -78,13 +79,12 @@ namespace Advobot.Commands.Logs
 	[DefaultEnabled(false)]
 	public sealed class ModifyLogActions : AdvobotSavingModuleBase
 	{
-		private static LogAction[] _DefaultLogActions = new[] 
-		{
+		private static LogAction[] _DefaultLogActions = {
 			LogAction.UserJoined,
 			LogAction.UserLeft,
 			LogAction.MessageReceived,
 			LogAction.MessageUpdated,
-			LogAction.MessageDeleted,
+			LogAction.MessageDeleted
 		};
 
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
@@ -93,7 +93,7 @@ namespace Advobot.Commands.Logs
 			var embed = new EmbedWrapper
 			{
 				Title = "Log Actions",
-				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(LogAction)))}`",
+				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(LogAction)))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}

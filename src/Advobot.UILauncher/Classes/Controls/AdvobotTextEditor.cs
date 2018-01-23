@@ -1,9 +1,8 @@
-﻿using Advobot.UILauncher.Utilities;
+﻿using System.Windows;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
+using Advobot.UILauncher.Utilities;
 using ICSharpCode.AvalonEdit;
-using System.Windows.Controls;
-using System.Windows;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -26,9 +25,9 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public void SetResourceReferences()
 		{
-			SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
-			SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
-			SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
+			SetResourceReference(BackgroundProperty, ColorTarget.BaseBackground);
+			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
+			SetResourceReference(BorderBrushProperty, ColorTarget.BaseBorder);
 		}
 	}
 }

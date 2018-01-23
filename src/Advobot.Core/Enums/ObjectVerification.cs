@@ -26,6 +26,6 @@ namespace Advobot.Core.Enums
 		CanMoveUsers = (1U << 8),
 		CanDeleteMessages = (1U << 9),
 		CanBeRead = (1U << 10),
-		CanCreateInstantInvite = (1U << 11),
+		CanCreateInstantInvite = (1U << 11)
 	}
 }

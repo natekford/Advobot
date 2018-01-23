@@ -1,6 +1,6 @@
-﻿using Advobot.UILauncher.Interfaces;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Windows.Documents;
+using Advobot.UILauncher.Interfaces;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -14,7 +14,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		/// </summary>
 		public string UnescapedText
 		{
-			set => base.Text = Regex.Unescape(value);
+			set => Text = Regex.Unescape(value);
 		}
 	}
 }

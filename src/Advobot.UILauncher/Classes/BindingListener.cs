@@ -28,7 +28,7 @@ namespace Advobot.UILauncher.Classes
 		private string ThreadId { get; set; }
 		private string Timestamp { get; set; }
 
-		public BindingListener() : base()
+		public BindingListener()
 		{
 			PresentationTraceSources.Refresh();
 			PresentationTraceSources.DataBindingSource.Listeners.Add(this);
@@ -53,7 +53,7 @@ namespace Advobot.UILauncher.Classes
 			}
 			else
 			{
-				var propertyInformation = message.Split(new string[] { "=" }, StringSplitOptions.None);
+				var propertyInformation = message.Split(new[] { "=" }, StringSplitOptions.None);
 
 				if (propertyInformation.Length == 1)
 				{
