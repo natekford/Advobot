@@ -120,7 +120,6 @@ namespace Advobot.Core.Services.Log.Loggers
 				{
 					try
 					{
-						//TODO: try cancel token in the task?
 						await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken).CAF();
 					}
 					catch (TaskCanceledException)

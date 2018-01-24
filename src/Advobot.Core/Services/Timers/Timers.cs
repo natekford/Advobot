@@ -17,7 +17,7 @@ using Discord;
 namespace Advobot.Core.Services.Timers
 {
 	//I have absolutely no idea if this class works as intended under stress.
-	internal sealed class TimersSservice : ITimersService
+	internal sealed class TimersService : ITimersService
 	{
 		private Timer _HourTimer = new Timer(60 * 60 * 1000);
 		private Timer _MinuteTimer = new Timer(60 * 1000);
@@ -47,7 +47,7 @@ namespace Advobot.Core.Services.Timers
 		private ConcurrentDictionary<ulong, CloseWordsWrapper<Quote>> _ActiveCloseQuotes =
 			new ConcurrentDictionary<ulong, CloseWordsWrapper<Quote>>();
 
-		public TimersSservice(IServiceProvider provider)
+		public TimersService(IServiceProvider provider)
 		{
 			_PunishmentRemover = new PunishmentRemover(this);
 
@@ -123,7 +123,7 @@ namespace Advobot.Core.Services.Timers
 		/// </summary>
 		/// <param name="punishment"></param>
 		/// <returns></returns>
-		public async Task Add(RemovablePunishment punishment)
+		public async Task AddAsync(RemovablePunishment punishment)
 		{          
 			var doubleKey = new MultiKey<ulong, PunishmentType>(punishment.UserId, punishment.PunishmentType);
 			if (_RemovablePunishments.TryRemove(punishment.Guild, doubleKey, out var value))
@@ -139,7 +139,7 @@ namespace Advobot.Core.Services.Timers
 		/// <param name="message"></param>
 		/// <param name="helpEntries"></param>
 		/// <returns></returns>
-		public async Task Add(IUser user, IUserMessage message, CloseWords<HelpEntry> helpEntries)
+		public async Task AddAsync(IUser user, IUserMessage message, CloseWords<HelpEntry> helpEntries)
 		{
 			if (_ActiveCloseHelp.TryRemove(user.Id, out var value))
 			{
@@ -154,7 +154,7 @@ namespace Advobot.Core.Services.Timers
 		/// <param name="message"></param>
 		/// <param name="quotes"></param>
 		/// <returns></returns>
-		public async Task Add(IUser user, IUserMessage message, CloseWords<Quote> quotes)
+		public async Task AddAsync(IUser user, IUserMessage message, CloseWords<Quote> quotes)
 		{
 			if (_ActiveCloseQuotes.TryRemove(user.Id, out var value))
 			{

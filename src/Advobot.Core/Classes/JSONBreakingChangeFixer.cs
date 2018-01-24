@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Advobot.Core.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,13 +22,14 @@ namespace Advobot.Core.Classes
 
 		//Values to replace when building
 		//Has to be manually set, but that shouldn't be a problem since the break would have been manually created anyways
-		private Fix[] _Fixes = {
+		private Fix[] _Fixes =
+		{
 			#region January 20, 2018: Text Fix
 			new Fix
 			{
 				Type = typeof(AdvobotGuildSettings),
 				Path = "WelcomeMessage.Title",
-				ErrorValues = new[] { "[]" },
+				ErrorValues = new[] { new Regex(@"\[.*\]") },
 				NewValue = null
 			}
 			#endregion
@@ -47,10 +49,7 @@ namespace Advobot.Core.Classes
 			//Only use fixes specified for the class
 			foreach (var fix in _Fixes.Where(x => x.Type.IsAssignableFrom(objectType)))
 			{
-				if (!(jObj.SelectToken(fix.Path)?.Parent is JProperty jProp))
-				{
-				}
-				else if (fix.ErrorValues.Any(x => x.CaseInsEquals(jProp.Value.ToString())))
+				if (jObj.SelectToken(fix.Path)?.Parent is JProperty jProp && fix.ErrorValues.Any(x => x.IsMatch(jProp.Value.ToString())))
 				{
 					jProp.Value = fix.NewValue;
 				}
@@ -97,7 +96,7 @@ namespace Advobot.Core.Classes
 		{
 			public Type Type;
 			public string Path;
-			public string[] ErrorValues;
+			public Regex[] ErrorValues;
 			public string NewValue;
 		}
 	}

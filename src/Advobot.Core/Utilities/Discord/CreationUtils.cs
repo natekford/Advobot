@@ -39,7 +39,7 @@ namespace Advobot.Core.Utilities
 				.AddSingleton(botSettings)
 				.AddSingleton(client)
 				.AddSingleton<IGuildSettingsService>(x => new GuildSettingsService(x))
-				.AddSingleton<ITimersService>(x => new TimersSservice(x))
+				.AddSingleton<ITimersService>(x => new TimersService(x))
 				.AddSingleton<ILogService>(x => new LogService(x))
 				.AddSingleton<IInviteListService>(x => new InviteListService(x)));
 		}

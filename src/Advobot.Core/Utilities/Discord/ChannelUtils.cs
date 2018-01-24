@@ -148,15 +148,15 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<int> ModifyPositionAsync(IGuildChannel channel, int position, ModerationReason reason)
 		{
-			//TODO: rework this since channels can be mixed now
 			if (channel == null)
 			{
 				return -1;
 			}
 
-			var channels = channel is ITextChannel
-				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<SocketGuildChannel>().ToArray()
-				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<SocketGuildChannel>().ToArray();
+			var channels = (await channel.Guild.GetChannelsAsync().CAF()).Where(x =>
+			{
+				return x.CategoryId == channel.CategoryId && x.Id != channel.Id;
+			}).OrderBy(x => x.Position).ToArray();
 			position = Math.Max(0, Math.Min(position, channels.Length));
 
 			var reorderProperties = new ReorderChannelProperties[channels.Length];

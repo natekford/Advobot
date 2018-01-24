@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Discord;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Interfaces
 {
@@ -15,9 +15,9 @@ namespace Advobot.Core.Interfaces
 	/// </summary>
 	public interface ITimersService
 	{
-		Task Add(RemovablePunishment punishment);
-		Task Add(IUser author, IUserMessage botMessage, CloseWords<HelpEntry> help);
-		Task Add(IUser author, IUserMessage botMessage, CloseWords<Quote> quote);
+		Task AddAsync(RemovablePunishment punishment);
+		Task AddAsync(IUser author, IUserMessage botMessage, CloseWords<HelpEntry> help);
+		Task AddAsync(IUser author, IUserMessage botMessage, CloseWords<Quote> quote);
 		void Add(RemovableMessage message);
 		void Add(TimedMessage message);
 		void Add(SpamPreventionUserInfo user);

@@ -15,13 +15,13 @@ namespace Advobot.Core.Interfaces
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		Task<IGuildSettings> GetOrCreate(IGuild guild);
+		Task<IGuildSettings> GetOrCreateAsync(IGuild guild);
 		/// <summary>
 		/// Removes the given guild's settings from the module.
 		/// </summary>
 		/// <param name="guildId"></param>
 		/// <returns></returns>
-		Task Remove(ulong guildId);
+		Task RemoveAsync(ulong guildId);
 		/// <summary>
 		/// Returns all of the settings in the module.
 		/// </summary>

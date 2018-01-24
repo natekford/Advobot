@@ -26,7 +26,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			{
 				Logging.TotalUsers.Add(guild.MemberCount);
 				Logging.TotalGuilds.Increment();
-				await GuildSettings.GetOrCreate(guild).CAF();
+				await GuildSettings.GetOrCreateAsync(guild).CAF();
 			}
 		}
 		/// <summary>
@@ -95,7 +95,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			{
 				Logging.TotalUsers.Add(guild.MemberCount);
 				Logging.TotalGuilds.Increment();
-				await GuildSettings.GetOrCreate(guild).CAF();
+				await GuildSettings.GetOrCreateAsync(guild).CAF();
 			}
 		}
 		/// <summary>
@@ -109,7 +109,7 @@ namespace Advobot.Core.Services.Log.Loggers
 
 			Logging.TotalUsers.Remove(guild.MemberCount);
 			Logging.TotalGuilds.Decrement();
-			await GuildSettings.Remove(guild.Id).CAF();
+			await GuildSettings.RemoveAsync(guild.Id).CAF();
 		}
 	}
 }

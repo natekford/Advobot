@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using Discord;
 
 namespace Advobot.Core.Classes
@@ -15,7 +16,6 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public class EmbedWrapper
 	{
-		//TODO: implement these checks
 		public const int MAX_DESCRIPTION_LINES = 20;
 		public const int MAX_FIELD_LINES = 5;
 
@@ -49,10 +49,9 @@ namespace Advobot.Core.Classes
 			set
 			{
 				if (TryAddDescription(value, out var errors)) { return; }
-
 				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
-				_Builder.Description = ShortenString(errors, value);
+				_Builder.Description = ShortenString(errors.Where(x => x.SubProperty == null), value);
 			}
 		}
 		public string Url
@@ -60,9 +59,10 @@ namespace Advobot.Core.Classes
 			get => _Builder.Url;
 			set
 			{
-				if (TryAddUrl(value, out var errors)) {
-				}
-				else if (_ThrowOnInvalid) { throw CreateException(errors); }
+				if (TryAddUrl(value, out var errors)) { return; }
+				if (_ThrowOnInvalid) { throw CreateException(errors); }
+
+				_Builder.Url = null;
 			}
 		}
 		public string ThumbnailUrl
@@ -70,9 +70,10 @@ namespace Advobot.Core.Classes
 			get => _Builder.ThumbnailUrl;
 			set
 			{
-				if (TryAddThumbnailUrl(value, out var errors)) {
-				}
-				else if (_ThrowOnInvalid) { throw CreateException(errors); }
+				if (TryAddThumbnailUrl(value, out var errors)) { return; }
+				if (_ThrowOnInvalid) { throw CreateException(errors); }
+
+				_Builder.ThumbnailUrl = null;
 			}
 		}
 		public string ImageUrl
@@ -80,9 +81,10 @@ namespace Advobot.Core.Classes
 			get => _Builder.ImageUrl;
 			set
 			{
-				if (TryAddImageUrl(value, out var errors)) {
-				}
-				else if (_ThrowOnInvalid) { throw CreateException(errors); }
+				if (TryAddImageUrl(value, out var errors)) { return; }
+				if (_ThrowOnInvalid) { throw CreateException(errors); }
+
+				_Builder.ImageUrl = null;
 			}
 		}
 		public Color? Color
@@ -100,9 +102,8 @@ namespace Advobot.Core.Classes
 			get => _Builder.Author;
 			set
 			{
-				if (value == null) { _Builder.Author = null; }
+				if (value == null) { _Builder.Author = null; return; }
 				if (TryAddAuthor(value?.Name, value?.Url, value?.IconUrl, out var errors)) { return; }
-
 				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 				//No need to error check the Urls since they are going to always be valid
@@ -120,9 +121,8 @@ namespace Advobot.Core.Classes
 			get => _Builder.Footer;
 			set
 			{
-				if (value == null) { _Builder.Footer = null; }
+				if (value == null) { _Builder.Footer = null; return; }
 				if (TryAddFooter(value?.Text, value?.IconUrl, out var errors)) { return; }
-
 				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 				//No need to error check the Urls since they are going to always be valid
@@ -151,7 +151,6 @@ namespace Advobot.Core.Classes
 				{
 					var f = value[i];
 					if (TryAddField(f?.Name, f?.Value?.ToString(), f?.IsInline ?? false, out var errors)) { continue; }
-
 					if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 					var fName = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Name)), f?.Name);
@@ -219,6 +218,10 @@ namespace Advobot.Core.Classes
 			if (description?.Length > EmbedBuilder.MaxDescriptionLength)
 			{
 				errors.Add(EmbedError.MaxLength(nameof(Description), null, description, EmbedBuilder.MaxDescriptionLength));
+			}
+			if (description?.CountLineBreaks() > MAX_DESCRIPTION_LINES)
+			{
+				errors.Add(EmbedError.MaxLength(nameof(Description), "Line Breaks", description, MAX_DESCRIPTION_LINES));
 			}
 			var remainingLen = GetRemainingLength(nameof(Description));
 			if (description?.Length > remainingLen)
@@ -387,6 +390,10 @@ namespace Advobot.Core.Classes
 			if (String.IsNullOrWhiteSpace(value))
 			{
 				errors.Add(new EmbedError(nameof(Fields), nameof(EmbedFieldBuilder.Value), value, $"Cannot be null or whitespace."));
+			}
+			if (value?.CountLineBreaks() > MAX_DESCRIPTION_LINES)
+			{
+				errors.Add(EmbedError.MaxLength(nameof(Fields), "Line Breaks", value, MAX_FIELD_LINES));
 			}
 			if (name.Length > EmbedFieldBuilder.MaxFieldNameLength)
 			{

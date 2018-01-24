@@ -71,7 +71,7 @@ namespace Advobot.Commands.Miscellaneous
 			{
 				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name)}";
 				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
-				await Context.Timers.Add(Context.User as IGuildUser, msg, closeHelps).CAF();
+				await Context.Timers.AddAsync(Context.User as IGuildUser, msg, closeHelps).CAF();
 				return;
 			}
 
@@ -211,8 +211,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command()
 		{
-			var file = new FileInfo(@"C:\Users\Nate\Downloads\test.txt");
-			IOUtils.OverwriteFile(file, IOUtils.Serialize(Context.GuildSettings));
+			Context.GuildSettings.SaveSettings();
 			await MessageUtils.SendMessageAsync(Context.Channel, $"Test").CAF();
 		}
 	}
