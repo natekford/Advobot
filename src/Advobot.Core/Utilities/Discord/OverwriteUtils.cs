@@ -69,23 +69,17 @@ namespace Advobot.Core.Utilities
 			switch (action)
 			{
 				case PermValue.Allow:
-				{
 					allowBits |= changeValue;
 					denyBits &= ~changeValue;
 					break;
-				}
 				case PermValue.Inherit:
-				{
 					allowBits &= ~changeValue;
 					denyBits &= ~changeValue;
 					break;
-				}
 				case PermValue.Deny:
-				{
 					allowBits &= ~changeValue;
 					denyBits |= changeValue;
 					break;
-				}
 			}
 
 			await ModifyOverwriteAsync(channel, obj, allowBits, denyBits, new ModerationReason(invokingUser, null)).CAF();
@@ -130,17 +124,13 @@ namespace Advobot.Core.Utilities
 				switch (overwrite.TargetType)
 				{
 					case PermissionTarget.Role:
-					{
 						var role = channel.Guild.GetRole(overwrite.TargetId);
 						await channel.RemovePermissionOverwriteAsync(role, reason.CreateRequestOptions()).CAF();
 						break;
-					}
 					case PermissionTarget.User:
-					{
 						var user = await channel.Guild.GetUserAsync(overwrite.TargetId).CAF();
 						await channel.RemovePermissionOverwriteAsync(user, reason.CreateRequestOptions()).CAF();
 						break;
-					}
 				}
 			}
 		}

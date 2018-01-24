@@ -77,18 +77,11 @@ namespace Advobot.Core.Utilities
 			switch (type)
 			{
 				case ObjectVerification.CanBeMovedFromChannel:
-				{
 					return invokingUser.CanDoAction(target?.VoiceChannel, ObjectVerification.CanMoveUsers);
-				}
 				case ObjectVerification.CanBeEdited:
-				{
 					return invokingUser.CanModifyUser(target);
-				}
-				default:
-				{
-					return true;
-				}
 			}
+			return true;
 		}
 		/// <summary>
 		/// Returns true if the user can edit the channel in the specified way.
@@ -104,38 +97,21 @@ namespace Advobot.Core.Utilities
 			switch (type)
 			{
 				case ObjectVerification.CanBeRead:
-				{
 					return channelPerms.ViewChannel;
-				}
 				case ObjectVerification.CanCreateInstantInvite:
-				{
 					return channelPerms.ViewChannel && channelPerms.CreateInstantInvite;
-				}
 				case ObjectVerification.CanBeManaged:
-				{
 					return channelPerms.ViewChannel && channelPerms.ManageChannel;
-				}
 				case ObjectVerification.CanModifyPermissions:
-				{
 					return channelPerms.ViewChannel && channelPerms.ManageChannel && channelPerms.ManageRoles;
-				}
 				case ObjectVerification.CanBeReordered:
-				{
 					return channelPerms.ViewChannel && guildPerms.ManageChannels;
-				}
 				case ObjectVerification.CanDeleteMessages:
-				{
 					return channelPerms.ViewChannel && channelPerms.ManageMessages;
-				}
 				case ObjectVerification.CanMoveUsers:
-				{
 					return channelPerms.MoveMembers;
-				}
-				default:
-				{
-					return true;
-				}
 			}
+			return true;
 		}
 		/// <summary>
 		/// Returns true if the user can edit the role in the specified way.
@@ -149,14 +125,9 @@ namespace Advobot.Core.Utilities
 			switch (type)
 			{
 				case ObjectVerification.CanBeEdited:
-				{
 					return target?.Position < invokingUser.GetPosition();
-				}
-				default:
-				{
-					return true;
-				}
 			}
+			return true;
 		}
 		/// <summary>
 		/// Changes the user's nickname then says the supplied reason in the audit log.

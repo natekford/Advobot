@@ -83,12 +83,11 @@ namespace Advobot.UILauncher.Classes
 		{
 			foreach (var name in names)
 			{
-				var highlighting = HighlightingManager.Instance.GetDefinition(name)
-					?? throw new ArgumentException("not a valid highlighting.", name);
+				var highlighting = HighlightingManager.Instance.GetDefinition(name) ?? throw new ArgumentException("not a valid highlighting.", name);
 
 				foreach (var namedColor in highlighting.NamedHighlightingColors)
 				{
-					//E.G.: Highlighting name is JSON, color name is Param, searches for JSONParam
+					//E.G.: Highlighting name is json, color name is Param, searches for jsonParam
 					var colorName = highlighting.Name + namedColor.Name;
 					if (!Enum.TryParse(colorName, true, out ColorTarget target))
 					{
@@ -130,31 +129,25 @@ namespace Advobot.UILauncher.Classes
 			switch (Theme)
 			{
 				case ColorTheme.Classic:
-				{
 					foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
 					{
 						r[ct] = LightModeProperties[ct];
 					}
 					break;
-				}
 				case ColorTheme.DarkMode:
-				{
 					foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
 					{
 						r[ct] = DarkModeProperties[ct];
 					}
 					break;
-				}
 				case ColorTheme.UserMade:
-				{
 					foreach (var kvp in ColorTargets)
 					{
 						r[kvp.Key] = kvp.Value;
 					}
 					break;
-				}
 			}
-			SetSyntaxHighlightingColors("JSON");
+			SetSyntaxHighlightingColors("Json");
 		}
 	}
 }

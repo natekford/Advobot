@@ -84,21 +84,15 @@ namespace Advobot.UILauncher.Classes.Controls
 				switch (e.ChangeType)
 				{
 					case WatcherChangeTypes.Created:
-					{
 						_Files.Add(new AdvobotTreeViewFile(new FileInfo(e.FullPath)));
 						break;
-					}
 					case WatcherChangeTypes.Deleted:
-					{
 						_Files.Remove(_Files.FirstOrDefault(x => x.FileInfo.FullName == e.FullPath));
 						break;
-					}
 					case WatcherChangeTypes.Renamed:
-					{
 						var renamed = (RenamedEventArgs)e;
 						_Files.FirstOrDefault(x => x.FileInfo.FullName == renamed.OldFullPath)?.Update(renamed);
 						break;
-					}
 				}
 				Items.SortDescriptions.Clear();
 				Items.SortDescriptions.Add(new SortDescription("Header", ListSortDirection.Ascending));

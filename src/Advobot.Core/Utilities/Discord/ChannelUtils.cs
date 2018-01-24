@@ -100,19 +100,13 @@ namespace Advobot.Core.Utilities
 				switch (overwrite.TargetType)
 				{
 					case PermissionTarget.Role:
-					{
 						obj = guild.GetRole(overwrite.TargetId);
 						break;
-					}
 					case PermissionTarget.User:
-					{
 						obj = await guild.GetUserAsync(overwrite.TargetId).CAF();
 						break;
-					}
 					default:
-					{
 						continue;
-					}
 				}
 
 				var allowBits = overwrite.Permissions.AllowValue & ~(ulong)ChannelPermission.ViewChannel;

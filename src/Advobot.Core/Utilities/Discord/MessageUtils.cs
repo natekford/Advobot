@@ -126,7 +126,7 @@ namespace Advobot.Core.Utilities
 				return;
 			}
 
-			await MakeAndDeleteSecondaryMessageAsync(context, $"**ERROR:** {error.Reason}", time);
+			await MakeAndDeleteSecondaryMessageAsync(context, $"**ERROR:** {error.Reason}", time).CAF();
 		}
 		/// <summary>
 		/// Returns true if no error occur.

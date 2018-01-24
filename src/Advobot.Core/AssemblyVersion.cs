@@ -12,6 +12,6 @@ namespace Advobot.Core
 	internal static class Version
 	{
 		//To make sure every attribute has the same version number.
-		public const string VERSION_NUMBER = "3.2.6598.10175";
+		public const string VERSION_NUMBER = "3.2.6598.40417";
 	}
 }

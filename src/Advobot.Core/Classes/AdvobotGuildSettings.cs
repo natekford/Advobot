@@ -20,7 +20,6 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.
 	/// </summary>
-	[JsonConverter(typeof(JSONBreakingChangeFixer))]
 	public sealed class AdvobotGuildSettings : IGuildSettings
 	{
 		#region Fields and Properties
@@ -313,60 +312,34 @@ namespace Advobot.Core.Classes
 			switch (logChannelType)
 			{
 				case LogChannelType.Server:
-				{
-					if (_ServerLogId == (channel?.Id ?? 0))
-					{ return false; }
+					if (_ServerLogId == (channel?.Id ?? 0)) { return false; }
 					ServerLog = channel;
 					return true;
-				}
 				case LogChannelType.Mod:
-				{
-					if (_ModLogId == (channel?.Id ?? 0))
-					{ return false; }
+					if (_ModLogId == (channel?.Id ?? 0)) { return false; }
 					ModLog = channel;
 					return true;
-				}
 				case LogChannelType.Image:
-				{
-					if (_ImageLogId == (channel?.Id ?? 0))
-					{ return false; }
+					if (_ImageLogId == (channel?.Id ?? 0)) { return false; }
 					ImageLog = channel;
 					return true;
-				}
 				default:
-				{
 					throw new ArgumentException("invalid type", nameof(channel));
-				}
 			}
 		}
 		public void SaveSettings()
 		{
 			IOUtils.OverwriteFile(IOUtils.GetServerDirectoryFile(Guild?.Id ?? 0, Constants.GUILD_SETTINGS_LOC), IOUtils.Serialize(this));
 		}
-		public void PostDeserialize(IGuild guild)
+		public async Task PostDeserializeAsync(IGuild guild)
 		{
 			Guild = guild as SocketGuild;
-
-			Task.Run(async () =>
-			{
-				var invites = await InviteUtils.GetInvitesAsync(guild).CAF();
-				var cached = invites.Select(x => new CachedInvite(x.Code, x.Uses));
-				lock (Invites)
-				{
-					Invites.AddRange(cached);
-				}
-#if false
-				ConsoleUtils.WriteLine($"Invites for {guild.Name} have been gotten.");
-#endif
-			});
+			Invites.AddRange((await InviteUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
 
 			_ListedInvite?.PostDeserialize(Guild);
-			if (_SelfAssignableGroups != null)
+			foreach (var group in _SelfAssignableGroups ?? Enumerable.Empty<SelfAssignableRoles>())
 			{
-				foreach (var group in _SelfAssignableGroups)
-				{
-					group.PostDeserialize(Guild);
-				}
+				group.PostDeserialize(Guild);
 			}
 
 			Loaded = true;

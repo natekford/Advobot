@@ -262,10 +262,8 @@ namespace Advobot.UILauncher.Windows
 			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
-				{
 					Output.Clear();
 					return;
-				}
 			}
 		}
 		private void OpenModal(object sender, RoutedEventArgs e)
@@ -278,25 +276,17 @@ namespace Advobot.UILauncher.Windows
 			switch (m)
 			{
 				case Modal.FileSearch:
-				{
 					new FileSearchWindow(this).ShowDialog();
 					break;
-				}
 				case Modal.OutputSearch:
-				{
 					new OutputSearchWindow(this).ShowDialog();
 					break;
-				}
+				//This modal should not be opened through this method.
+				//Opened instead on double click on a treeview file item or through guild search
 				case Modal.FileViewing:
-				{
-					//This modal should not be opened through this method.
-					//Opened instead on double click on a treeview file item or through guild search
 					return;
-				}
 				default:
-				{
 					throw new ArgumentException("invalid type supplied", nameof(m));
-				}
 			}
 		}
 		private void OpenMenu(object sender, RoutedEventArgs e)
@@ -329,17 +319,12 @@ namespace Advobot.UILauncher.Windows
 				switch (type)
 				{
 					case MenuType.Main:
-					{
 						MainMenu.Visibility = Visibility.Visible;
 						return;
-					}
 					case MenuType.Info:
-					{
 						InfoMenu.Visibility = Visibility.Visible;
 						return;
-					}
 					case MenuType.Settings:
-					{
 						var s = BotSettings.HeldObject;
 						var llSelected = LogLevel.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is LogSeverity ls && ls == s.LogLevel);
@@ -356,9 +341,7 @@ namespace Advobot.UILauncher.Windows
 
 						SettingsMenu.Visibility = Visibility.Visible;
 						return;
-					}
 					case MenuType.Colors:
-					{
 						var c = _Colors;
 						var tcbSelected = ThemesComboBox.Items.OfType<TextBox>()
 							.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
@@ -380,12 +363,9 @@ namespace Advobot.UILauncher.Windows
 
 						ColorsMenu.Visibility = Visibility.Visible;
 						return;
-					}
 					case MenuType.Files:
-					{
 						FilesMenu.Visibility = Visibility.Visible;
 						return;
-					}
 				}
 			}
 		}
@@ -399,10 +379,8 @@ namespace Advobot.UILauncher.Windows
 			switch (MessageBox.Show("Are you sure you want to disconnect the bot?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
-				{
 					ClientUtils.DisconnectBot(Client.HeldObject);
 					return;
-				}
 			}
 		}
 		private void Restart(object sender, RoutedEventArgs e)
@@ -410,10 +388,8 @@ namespace Advobot.UILauncher.Windows
 			switch (MessageBox.Show("Are you sure you want to restart the bot?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
-				{
 					ClientUtils.RestartBot();
 					return;
-				}
 			}
 		}
 		private void Pause(object sender, RoutedEventArgs e)

@@ -73,25 +73,17 @@ namespace Advobot.Core.Classes.GuildSettings
 			switch (spam)
 			{
 				case SpamType.LongMessage:
-				{
 					if (IsError("message length", spamAmount, 1, 2000, out error)) { return false; }
 					break;
-				}
 				case SpamType.Link:
-				{
 					if (IsError("link count", spamAmount, 1, 50, out error)) { return false; }
 					break;
-				}
 				case SpamType.Image:
-				{
 					if (IsError("image count", spamAmount, 1, 50, out error)) { return false; }
 					break;
-				}
 				case SpamType.Mention:
-				{
 					if (IsError("mention count", spamAmount, 1, 200, out error)) { return false; }
 					break;
-				}
 			}
 
 			info = new SpamPreventionInfo(punishment, instances, votes, timeInterval, spamAmount);

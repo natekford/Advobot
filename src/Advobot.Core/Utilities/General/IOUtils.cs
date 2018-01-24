@@ -1,10 +1,13 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities.Formatting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Advobot.Core.Utilities
 {
@@ -13,6 +16,19 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class IOUtils
 	{
+		//Has to be manually set, but that shouldn't be a problem since the break would have been manually created anyways
+		private static JsonFix[] _Fixes =
+		{
+			#region January 20, 2018: Text Fix
+			new JsonFix
+			{
+				Type = typeof(IGuildSettings),
+				Path = "WelcomeMessage.Title",
+				ErrorValues = new[] { new Regex(@"\[.*\]") },
+				NewValue = null
+			}
+			#endregion
+		};
 		private static JsonSerializerSettings _DefaultSerializingSettings = new JsonSerializerSettings
 		{
 			//Ignores errors parsing specific invalid properties instead of throwing exceptions making the entire object null
@@ -98,7 +114,7 @@ namespace Advobot.Core.Utilities
 		{
 			CreateFile(fileInfo);
 			//Have to use this open method because fileInfo.OpenWrite() occasionally
-			//let the last character get written twice which would mess up JSON
+			//let the last character get written twice which would mess up json
 			using (var writer = new StreamWriter(fileInfo.Open(FileMode.Truncate)))
 			{
 				writer.Write(text);
@@ -120,7 +136,7 @@ namespace Advobot.Core.Utilities
 			}
 		}
 		/// <summary>
-		/// Converts the object to JSON.
+		/// Converts the object to json.
 		/// </summary>
 		/// <param name="obj"></param>
 		/// <param name="settings"></param>
@@ -139,10 +155,26 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static T Deserialize<T>(string value, Type type, JsonSerializerSettings settings = null)
 		{
-			return (T)JsonConvert.DeserializeObject(value, type, settings ?? _DefaultSerializingSettings);
+			//Only use fixes specified for the class
+			var json = value;
+			var fixes = _Fixes.Where(f => f.Type == type || f.Type.IsAssignableFrom(type));
+			if (fixes.Any())
+			{
+				var jObject = JObject.Parse(value);
+				foreach (var fix in fixes)
+				{
+					if (jObject.SelectToken(fix.Path)?.Parent is JProperty jProp && fix.ErrorValues.Any(x => x.IsMatch(jProp.Value.ToString())))
+					{
+						jProp.Value = fix.NewValue;
+					}
+				}
+				json = jObject.ToString();
+			}
+
+			return (T)JsonConvert.DeserializeObject(json, type, settings ?? _DefaultSerializingSettings);
 		}
 		/// <summary>
-		/// Creates an object from JSON stored in a file.
+		/// Creates an object from json stored in a file.
 		/// By default will ignore any fields/propties deserializing with errors and parses enums as strings.
 		/// </summary>
 		/// <typeparam name="T">The general type to deserialize. Can be an abstraction of <paramref name="type"/> but has to be a type where it can be converted to <typeparamref name="T"/>.</typeparam>
@@ -196,6 +228,14 @@ namespace Advobot.Core.Utilities
 			{
 				writer.WriteLine($"{DateTime.UtcNow.Readable()}: {exception}\n");
 			}
+		}
+
+		private struct JsonFix
+		{
+			public Type Type;
+			public string Path;
+			public Regex[] ErrorValues;
+			public string NewValue;
 		}
 	}
 }

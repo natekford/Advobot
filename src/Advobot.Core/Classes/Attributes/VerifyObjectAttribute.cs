@@ -58,7 +58,6 @@ namespace Advobot.Core.Classes.Attributes
 			switch (value)
 			{
 				case IEnumerable enumerable:
-				{
 					foreach (var item in enumerable)
 					{
 						var preconditionResult = GetPreconditionResult(context, item);
@@ -71,27 +70,18 @@ namespace Advobot.Core.Classes.Attributes
 					//If nothing failed then it gets to this point, so return success
 					result = new VerifiedObjectResult(value, null, null);
 					break;
-				}
 				case IGuildChannel guildChannel:
-				{
 					result = guildChannel.Verify(context, _Checks);
 					break;
-				}
 				case IGuildUser guildUser:
-				{
 					result = guildUser.Verify(context, _Checks);
 					break;
-				}
 				case IRole role:
-				{
 					result = role.Verify(context, _Checks);
 					break;
-				}
 				default:
-				{
 					result = new VerifiedObjectResult(value, CommandError.Exception, $"Please notify Advorange of this failure: {nameof(GetPreconditionResult)}");
 					break;
-				}
 			}
 
 			return result.IsSuccess ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(result);

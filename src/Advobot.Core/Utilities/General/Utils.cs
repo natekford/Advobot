@@ -263,20 +263,14 @@ namespace Advobot.Core.Utilities
 			switch (target)
 			{
 				case CountTarget.Equal:
-				{
 					objects = objects.Where(x => { var val = f(x); return val != null && val == count; });
 					break;
-				}
 				case CountTarget.Below:
-				{
 					objects = objects.Where(x => { var val = f(x); return val != null && val < count; });
 					break;
-				}
 				case CountTarget.Above:
-				{
 					objects = objects.Where(x => { var val = f(x); return val != null && val > count; });
 					break;
-				}
 			}
 			return objects;
 		}

@@ -514,25 +514,17 @@ namespace Advobot.Core.Classes
 			switch (propertyToDisregard)
 			{
 				case nameof(Title):
-				{
 					currentLength -= _Builder.Title?.Length ?? 0;
 					break;
-				}
 				case nameof(Author):
-				{
 					currentLength -= _Builder.Author?.Name?.Length ?? 0;
 					break;
-				}
 				case nameof(Description):
-				{
 					currentLength -= _Builder.Description?.Length ?? 0;
 					break;
-				}
 				case nameof(Footer):
-				{
 					currentLength -= _Builder.Footer?.Text?.Length ?? 0;
 					break;
-				}
 			}
 			return EmbedBuilder.MaxEmbedLength - currentLength;
 		}

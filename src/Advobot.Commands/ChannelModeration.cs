@@ -229,20 +229,14 @@ namespace Advobot.Commands.ChannelModeration
 			switch (action)
 			{
 				case PermValue.Allow:
-				{
 					actionStr = "allowed";
 					break;
-				}
 				case PermValue.Inherit:
-				{
 					actionStr = "inherited";
 					break;
-				}
 				case PermValue.Deny:
-				{
 					actionStr = "denied";
 					break;
-				}
 			}
 
 			var givenPerms = OverwriteUtils.ModifyOverwritePermissionsAsync(action, channel, discordObject, permissions, Context.User as IGuildUser);
@@ -289,6 +283,8 @@ namespace Advobot.Commands.ChannelModeration
 			}
 
 			string target;
+			ulong allowBits;
+			ulong denyBits;
 			var reason = new ModerationReason(Context.User, null);
 			if (discordObject == null)
 			{
@@ -298,21 +294,17 @@ namespace Advobot.Commands.ChannelModeration
 					switch (overwrite.TargetType)
 					{
 						case PermissionTarget.Role:
-						{
 							var role = Context.Guild.GetRole(overwrite.TargetId);
-							var allowBits = overwrite.Permissions.AllowValue;
-							var denyBits = overwrite.Permissions.DenyValue;
+							allowBits = overwrite.Permissions.AllowValue;
+							denyBits = overwrite.Permissions.DenyValue;
 							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, role, allowBits, denyBits, reason).CAF();
 							break;
-						}
 						case PermissionTarget.User:
-						{
 							var user = await Context.Guild.GetUserAsync(overwrite.TargetId).CAF();
-							var allowBits = overwrite.Permissions.AllowValue;
-							var denyBits = overwrite.Permissions.DenyValue;
+							allowBits = overwrite.Permissions.AllowValue;
+							denyBits = overwrite.Permissions.DenyValue;
 							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, user, allowBits, denyBits, reason).CAF();
 							break;
-						}
 					}
 				}
 			}
@@ -327,8 +319,8 @@ namespace Advobot.Commands.ChannelModeration
 					return;
 				}
 
-				var allowBits = overwrite.Value.AllowValue;
-				var denyBits = overwrite.Value.DenyValue;
+				allowBits = overwrite.Value.AllowValue;
+				denyBits = overwrite.Value.DenyValue;
 				await OverwriteUtils.ModifyOverwriteAsync(outputChannel, discordObject, allowBits, denyBits, reason).CAF();
 			}
 

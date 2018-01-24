@@ -135,28 +135,22 @@ namespace Advobot.UILauncher.Utilities
 				switch (settingName)
 				{
 					case nameof(IBotSettings.Prefix):
-					{
 						if (String.IsNullOrWhiteSpace(text))
 						{
 							return false;
 						}
 						value = text;
 						break;
-					}
 					case nameof(IBotSettings.Game):
-					{
 						value = text ?? "";
 						break;
-					}
 					case nameof(IBotSettings.Stream):
-					{
 						if (!RegexUtils.CheckIfInputIsAValidTwitchName(text))
 						{
 							return false;
 						}
 						value = text;
 						break;
-					}
 				}
 			}
 			else if (ele is CheckBox cb)
@@ -168,22 +162,18 @@ namespace Advobot.UILauncher.Utilities
 				switch (settingName)
 				{
 					case nameof(IBotSettings.LogLevel):
-					{
 						if (cmb.SelectedItem is TextBox cmbtb && cmbtb.Tag is LogSeverity ls)
 						{
 							value = ls;
 						}
 						break;
-					}
 					case nameof(IBotSettings.TrustedUsers):
-					{
 						var updated = cmb.Items.OfType<TextBox>().Select(x => x?.Tag as ulong? ?? 0).Where(x => x != 0);
 						if (botSettings.TrustedUsers.Except(updated).Any() || updated.Except(botSettings.TrustedUsers).Any())
 						{
 							value = updated.ToList();
 						}
 						break;
-					}
 				}
 			}
 			else

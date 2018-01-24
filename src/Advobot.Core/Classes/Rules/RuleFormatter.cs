@@ -63,20 +63,14 @@ namespace Advobot.Core.Classes.Rules
 				case RuleFormat.Numbers:
 				case RuleFormat.Bullets:
 				case RuleFormat.Bold:
-				{
 					n = $"{name.FormatTitle()}";
 					break;
-				}
 				case RuleFormat.Dashes:
-				{
 					n = $"{index + 1} - {name.FormatTitle()}";
 					break;
-				}
 				default:
-				{
 					n = name.FormatTitle();
 					break;
-				}
 			}
 
 			n = n.Trim(' ');
@@ -93,7 +87,6 @@ namespace Advobot.Core.Classes.Rules
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bold:
-				{
 					if (_Options.HasFlag(RuleFormatOption.NumbersSameLength))
 					{
 						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLength(), '0')}";
@@ -103,22 +96,15 @@ namespace Advobot.Core.Classes.Rules
 						r = $"`{index + 1}`";
 					}
 					break;
-				}
 				case RuleFormat.Dashes:
-				{
 					r = $"-";
 					break;
-				}
 				case RuleFormat.Bullets:
-				{
 					r = $"•";
 					break;
-				}
 				default:
-				{
 					r = "";
 					break;
-				}
 			}
 
 			r = $"{r}{rule}";
@@ -158,20 +144,14 @@ namespace Advobot.Core.Classes.Rules
 					switch (md)
 					{
 						case MarkDownFormat.Bold:
-						{
 							text = $"**{text}**";
 							break;
-						}
 						case MarkDownFormat.Italics:
-						{
 							text = $"*{text}*";
 							break;
-						}
 						case MarkDownFormat.Code:
-						{
 							text = $"`{text.EscapeBackTicks()}`";
 							break;
-						}
 					}
 				}
 			}

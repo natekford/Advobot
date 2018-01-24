@@ -16,7 +16,7 @@ namespace Advobot.Core.Classes.UserInformation
 	/// </summary>
 	public sealed class SpamPreventionUserInfo : UserInfo
 	{
-		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
+		//Because the enum values might change in the future. These are never saved in json so these can be modified
 		private static Dictionary<PunishmentType, int> _PunishmentSeverity = new Dictionary<PunishmentType, int>
 		{
 			{ PunishmentType.Deafen, 0 },

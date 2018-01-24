@@ -87,16 +87,13 @@ namespace Advobot.UILauncher.Classes.Controls
 				switch (dialog.ShowDialog())
 				{
 					case CommonFileDialogResult.Ok:
-					{
 						if (!this.TryGetTopMostParent(out AdvobotWindow window, out var ancestorLevel))
 						{
 							throw new ArgumentException("unable to get a parent", nameof(AdvobotWindow));
 						}
-
 						_FI.CopyTo(Path.Combine(dialog.FileName, _FI.Name), true);
 						ToolTipUtils.EnableTimedToolTip(window.Layout, $"Successfully copied {_FI.Name} to {dialog.FileName}.");
-						break;
-					}
+						return;
 				}
 			}
 		}
@@ -106,10 +103,8 @@ namespace Advobot.UILauncher.Classes.Controls
 			switch (MessageBox.Show(text, Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
 			{
 				case MessageBoxResult.Yes:
-				{
 					IOUtils.DeleteFile(_FI);
 					return;
-				}
 			}
 		}
 	}

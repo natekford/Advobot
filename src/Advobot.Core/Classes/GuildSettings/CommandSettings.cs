@@ -25,6 +25,15 @@ namespace Advobot.Core.Classes.GuildSettings
 		private Dictionary<ulong, Dictionary<string, bool>> _RoleOverrides = new Dictionary<ulong, Dictionary<string, bool>>();
 		[JsonProperty("UserOverrides")]
 		private Dictionary<ulong, Dictionary<string, bool>> _UserOverrides = new Dictionary<ulong, Dictionary<string, bool>>();
+		[JsonIgnore]
+		private Dictionary<CommandOverrideTarget, Dictionary<ulong, Dictionary<string, bool>>> _OverrideDict = new Dictionary<CommandOverrideTarget, Dictionary<ulong, Dictionary<string, bool>>>();
+
+		public CommandSettings()
+		{
+			_OverrideDict.Add(CommandOverrideTarget.Channel, _ChannelOverrides);
+			_OverrideDict.Add(CommandOverrideTarget.Role, _RoleOverrides);
+			_OverrideDict.Add(CommandOverrideTarget.User, _UserOverrides);
+		}
 
 		/// <summary>
 		/// Changes the value for whether or not the commands are enabled on a guild.
@@ -86,29 +95,7 @@ namespace Advobot.Core.Classes.GuildSettings
 		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
 		public bool ModifyOverride<T>(HelpEntry helpEntry, bool? enable, CommandOverrideTarget target, T obj) where T : ISnowflakeEntity
 		{
-			Dictionary<ulong, Dictionary<string, bool>> outerDict;
-			switch (target)
-			{
-				case CommandOverrideTarget.Channel:
-				{
-					outerDict = _ChannelOverrides;
-					break;
-				}
-				case CommandOverrideTarget.Role:
-				{
-					outerDict = _RoleOverrides;
-					break;
-				}
-				case CommandOverrideTarget.User:
-				{
-					outerDict = _UserOverrides;
-					break;
-				}
-				default:
-				{
-					throw new ArgumentException("Invalid type supplied.", nameof(target));
-				}
-			}
+			var outerDict = _OverrideDict[target];
 			var innerDict = outerDict.TryGetValue(obj.Id, out var inner) ? inner : outerDict[obj.Id] = new Dictionary<string, bool>();
 			return ModifyCommand(innerDict, helpEntry, enable);
 		}

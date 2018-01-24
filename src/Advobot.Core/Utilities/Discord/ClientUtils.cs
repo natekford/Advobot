@@ -21,23 +21,15 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task StartAsync(IDiscordClient client)
 		{
-			switch (client.ConnectionState)
+			if (client.ConnectionState != ConnectionState.Disconnected)
 			{
-				case ConnectionState.Connecting:
-				case ConnectionState.Connected:
-				case ConnectionState.Disconnecting:
-				{
-					return;
-				}
-				case ConnectionState.Disconnected:
-				{
-					ConsoleUtils.WriteLine("Connecting the client...");
-					await client.StartAsync().CAF();
-					ConsoleUtils.WriteLine("Successfully connected the client.");
-					await Task.Delay(-1).CAF();
-					return;
-				}
+				return;
 			}
+
+			ConsoleUtils.WriteLine("Connecting the client...");
+			await client.StartAsync().CAF();
+			ConsoleUtils.WriteLine("Successfully connected the client.");
+			await Task.Delay(-1).CAF();
 		}
 		/// <summary>
 		/// Attempts to login with the given key.
@@ -210,9 +202,9 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		public static void DisconnectBot(IDiscordClient client)
 		{
-			//When this gets awaited the client hangs
 			switch (client)
 			{
+				//To avoid the client hanging
 #pragma warning disable 4014
 				case DiscordSocketClient socketClient:
 					socketClient.SetStatusAsync(UserStatus.Invisible);

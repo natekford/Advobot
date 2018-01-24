@@ -79,24 +79,8 @@ namespace Advobot.Core.Classes
 		private bool TryGetErrorReason(IResult result, out string errorReason)
 		{
 			errorReason = result.ErrorReason;
-			if (result.IsSuccess || Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
-			{
-				return false;
-			}
-
-			switch (result.Error)
-			{
-				case null:
-				//Ignore commands with the unknown command error because it's annoying
-				case CommandError.UnknownCommand:
-				{
-					return false;
-				}
-				default:
-				{
-					return true;
-				}
-			}
+			return !(result.IsSuccess || Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason)
+				|| result.Error == null || result.Error == CommandError.UnknownCommand);
 		}
 		/// <summary>
 		/// Writes the results of the command to the console and log channel.

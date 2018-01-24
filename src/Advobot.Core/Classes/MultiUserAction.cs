@@ -93,25 +93,17 @@ namespace Advobot.Core.Classes
 				switch (action)
 				{
 					case nameof(GiveRolesAsync):
-					{
 						await RoleUtils.GiveRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
-					}
 					case nameof(TakeRolesAsync):
-					{
 						await RoleUtils.TakeRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
-					}
 					case nameof(ModifyNicknamesAsync):
-					{
 						await UserUtils.ChangeNicknameAsync(_Users[i], obj as string, reason).CAF();
 						continue;
-					}
 					case nameof(MoveUsersAsync):
-					{
 						await UserUtils.MoveUserAsync(_Users[i], obj as IVoiceChannel, reason).CAF();
 						continue;
-					}
 				}
 			}
 

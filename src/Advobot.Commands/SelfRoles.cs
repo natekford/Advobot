@@ -52,45 +52,35 @@ namespace Advobot.Commands.SelfRoles
 			switch (caller)
 			{
 				case nameof(Create):
-				{
 					if (selfAssignableGroups.Count >= Constants.MAX_SA_GROUPS)
 					{
 						var error = new Error($"You have too many groups. {Constants.MAX_SA_GROUPS} is the maximum.");
 						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 						return;
 					}
-
-					if (selfAssignableGroups.Any(x => x.Group == groupNum))
+					else if (selfAssignableGroups.Any(x => x.Group == groupNum))
 					{
 						await MessageUtils.SendErrorMessageAsync(Context, new Error("A group already exists with that position.")).CAF();
 						return;
 					}
-
 					selfAssignableGroups.Add(new SelfAssignableRoles((int)groupNum));
 					break;
-				}
 				case nameof(Delete):
-				{
 					if (selfAssignableGroups.Count <= 0)
 					{
 						await MessageUtils.SendErrorMessageAsync(Context, new Error("There are no groups to delete.")).CAF();
 						return;
 					}
-
-					if (!selfAssignableGroups.Any(x => x.Group == groupNum))
+					else if (!selfAssignableGroups.Any(x => x.Group == groupNum))
 					{
 						var error = new Error("A group needs to exist with that position before it can be deleted.");
 						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 						return;
 					}
-
 					selfAssignableGroups.RemoveAll(x => x.Group == groupNum);
 					break;
-				}
 				default:
-				{
 					return;
-				}
 			}
 
 			var actionName = caller.ToLower() + "d";
@@ -118,7 +108,6 @@ namespace Advobot.Commands.SelfRoles
 			switch (caller)
 			{
 				case nameof(Add):
-				{
 					foreach (var role in roles)
 					{
 						if (!selfAssignableGroups.Any(x => x.TryGetRole(role.Id, out _)))
@@ -132,9 +121,7 @@ namespace Advobot.Commands.SelfRoles
 					}
 					group.AddRoles(rolesModified);
 					break;
-				}
 				case nameof(Remove):
-				{
 					foreach (var role in roles)
 					{
 						if (selfAssignableGroups.Any(x => x.TryGetRole(role.Id, out _)))
@@ -148,11 +135,8 @@ namespace Advobot.Commands.SelfRoles
 					}
 					group.RemoveRoles(rolesModified);
 					break;
-				}
 				default:
-				{
 					return;
-				}
 			}
 
 			var actionName = caller.ToLower() + "d";

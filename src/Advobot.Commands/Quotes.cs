@@ -105,7 +105,7 @@ namespace Advobot.Commands.Quotes
 			{
 				var text = $"Did you mean any of the following:\n{closeQuotes.List.FormatNumberedList("{0}", x => x.Word.Name)}";
 				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
-				await Context.Timers.Add(Context.User as IGuildUser, msg, closeQuotes).CAF();
+				await Context.Timers.AddAsync(Context.User as IGuildUser, msg, closeQuotes).CAF();
 				return;
 			}
 

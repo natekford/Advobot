@@ -153,23 +153,18 @@ namespace Advobot.Commands.Gets
 			switch (targetType)
 			{
 				case Target.Role:
-				{
 					var role = obj as IRole;
 					title = $"Users With The Role '{role?.Name}'";
 					users = users.Where(x => x.RoleIds.Contains(role?.Id ?? 0));
 					break;
-				}
 				case Target.Name:
-				{
-					var str = obj.ToString();
+					var name = obj.ToString();
 					title = $"Users With Names Containing '{obj}'";
-					users = users.Where(x => exact ? x.Username.CaseInsEquals(str) || (nickname && x.Nickname.CaseInsEquals(str))
-												   : x.Username.CaseInsContains(str) || (nickname && x.Nickname.CaseInsContains(str)));
+					users = users.Where(x => exact ? x.Username.CaseInsEquals(name) || (nickname && x.Nickname.CaseInsEquals(name))
+												   : x.Username.CaseInsContains(name) || (nickname && x.Nickname.CaseInsContains(name)));
 					break;
-				}
 				case Target.Game:
-				{
-					var str = obj.ToString();
+					var game = obj.ToString();
 					title = $"Users With Games Containing '{obj}'";
 					users = users.Where(x =>
 					{
@@ -177,20 +172,15 @@ namespace Advobot.Commands.Gets
 						{
 							return false;
 						}
-						return exact ? g.Name.CaseInsEquals(str) : g.Name.CaseInsContains(str);
+						return exact ? g.Name.CaseInsEquals(game) : g.Name.CaseInsContains(game);
 					});
 					break;
-				}
 				case Target.Stream:
-				{
 					title = "Users Who Are Streaming";
 					users = users.Where(x => x.Activity is StreamingGame);
 					break;
-				}
 				default:
-				{
 					return;
-				}
 			}
 
 			var desc = count

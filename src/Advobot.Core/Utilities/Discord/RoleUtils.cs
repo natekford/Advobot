@@ -52,23 +52,19 @@ namespace Advobot.Core.Utilities
 				switch (check)
 				{
 					case ObjectVerification.IsEveryone:
-					{
 						if (context.Guild.EveryoneRole.Id != target.Id)
 						{
 							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 								"The everyone role cannot be modified in that way.");
 						}
 						break;
-					}
 					case ObjectVerification.IsManaged:
-					{
 						if (!target.IsManaged)
 						{
 							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 								"Managed roles cannot be modified in that way.");
 						}
 						break;
-					}
 				}
 			}
 
@@ -184,19 +180,13 @@ namespace Advobot.Core.Utilities
 			{
 				//Only modify permissions the user has the ability to
 				case PermValue.Allow:
-				{
 					roleBits |= (changeValue & user.GuildPermissions.RawValue);
 					break;
-				}
 				case PermValue.Deny:
-				{
 					roleBits &= ~(changeValue & user.GuildPermissions.RawValue);
 					break;
-				}
 				default:
-				{
 					throw new ArgumentException("invalid value provided", nameof(permValue));
-				}
 			}
 
 			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null)).CAF();

@@ -43,30 +43,22 @@ namespace Advobot.Core.Services.Log.Loggers
 			switch (obj)
 			{
 				case IMessage tempMessage:
-				{
 					user = tempMessage.Author as IGuildUser;
 					channel = tempMessage.Channel as IGuildChannel;
 					guild = channel?.Guild;
 					break;
-				}
 				case IGuildUser tempUser:
-				{
 					user = tempUser;
 					channel = default;
 					guild = user.Guild;
 					break;
-				}
 				case IGuild tempGuild:
-				{
 					user = default;
 					channel = default;
 					guild = tempGuild;
 					break;
-				}
 				default:
-				{
 					return false;
-				}
 			}
 			if (BotSettings.Pause || !GuildSettings.TryGet(guild?.Id ?? 0, out settings) || !settings.LogActions.Contains(logAction))
 			{
@@ -83,13 +75,9 @@ namespace Advobot.Core.Services.Log.Loggers
 				{
 					case LogAction.MessageReceived:
 					case LogAction.MessageUpdated:
-					{
 						return !isFromThisBot && !isFromBot && !isOnIgnoredChannel;
-					}
 					default:
-					{
 						return !isOnIgnoredChannel;
-					}
 				}
 			}
 			//After a message, only a user will have user as not null

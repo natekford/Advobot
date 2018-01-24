@@ -37,25 +37,17 @@ namespace Advobot.Core.Classes.Punishments
 			switch (PunishmentType)
 			{
 				case PunishmentType.Ban:
-				{
 					await remover.UnbanAsync(Guild, UserId, reason).CAF();
 					return;
-				}
 				case PunishmentType.Deafen:
-				{
 					await remover.UndeafenAsync(await Guild.GetUserAsync(UserId).CAF(), reason).CAF();
 					return;
-				}
 				case PunishmentType.VoiceMute:
-				{
 					await remover.UnvoicemuteAsync(await Guild.GetUserAsync(UserId).CAF(), reason).CAF();
 					return;
-				}
 				case PunishmentType.RoleMute:
-				{
 					await remover.UnrolemuteAsync(await Guild.GetUserAsync(UserId).CAF(), Guild.GetRole(RoleId), reason).CAF();
 					return;
-				}
 			}
 		}
 	}

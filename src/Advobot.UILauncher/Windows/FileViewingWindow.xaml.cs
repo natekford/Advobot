@@ -56,10 +56,8 @@ namespace Advobot.UILauncher.Windows
 			switch (MessageBox.Show("Are you sure you want to close the file window?", Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
 			{
 				case MessageBoxResult.Yes:
-				{
 					Close(sender, e);
 					return;
-				}
 			}
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)

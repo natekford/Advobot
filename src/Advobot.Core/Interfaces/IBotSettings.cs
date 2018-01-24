@@ -41,7 +41,7 @@ namespace Advobot.Core.Interfaces
 		/// <returns></returns>
 		Task<string> FormatAsync(IDiscordClient client, PropertyInfo property);
 		/// <summary>
-		/// Saves the settings to a JSON file.
+		/// Saves the settings to a json file.
 		/// </summary>
 		void SaveSettings();
 	}

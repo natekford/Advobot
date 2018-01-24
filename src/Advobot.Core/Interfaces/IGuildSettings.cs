@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Rules;
@@ -67,13 +68,13 @@ namespace Advobot.Core.Interfaces
 		/// <param name="channel"></param>
 		bool SetLogChannel(LogChannelType type, ITextChannel channel);
 		/// <summary>
-		/// Saves the settings to a JSON file.
+		/// Saves the settings to a json file.
 		/// </summary>
 		void SaveSettings();
 		/// <summary>
 		/// Updates certain settings which require a guild to be fully created.
 		/// </summary>
 		/// <param name="guild"></param>
-		void PostDeserialize(IGuild guild);
+		Task PostDeserializeAsync(IGuild guild);
 	}
 }

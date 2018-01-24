@@ -119,35 +119,23 @@ namespace Advobot.Core.Classes.Punishments
 			switch (type)
 			{
 				case PunishmentType.Kick:
-				{
 					await KickAsync(user, reason).CAF();
 					return;
-				}
 				case PunishmentType.Ban:
-				{
 					await BanAsync(guild, user.Id, reason).CAF();
 					return;
-				}
 				case PunishmentType.Deafen:
-				{
 					await DeafenAsync(user, reason).CAF();
 					return;
-				}
 				case PunishmentType.VoiceMute:
-				{
 					await VoiceMuteAsync(user, reason).CAF();
 					return;
-				}
 				case PunishmentType.Softban:
-				{
 					await SoftbanAsync(guild, user.Id, reason).CAF();
 					return;
-				}
 				case PunishmentType.RoleMute:
-				{
 					await RoleMuteAsync(user, role, reason).CAF();
 					return;
-				}
 			}
 		}
 

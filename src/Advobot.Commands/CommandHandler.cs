@@ -79,11 +79,11 @@ namespace Advobot.Commands
 		}
 		private static async Task OnUserJoined(SocketGuildUser user)
 		{
-			await EventUtils.OnUserJoined(user, _BotSettings, await _GuildSettings.GetOrCreate(user.Guild), _Timers).CAF();
+			await EventUtils.OnUserJoined(user, _BotSettings, await _GuildSettings.GetOrCreateAsync(user.Guild), _Timers).CAF();
 		}
 		private static async Task OnUserLeft(SocketGuildUser user)
 		{
-			await EventUtils.OnUserLeft(user, _BotSettings, await _GuildSettings.GetOrCreate(user.Guild), _Timers).CAF();
+			await EventUtils.OnUserLeft(user, _BotSettings, await _GuildSettings.GetOrCreateAsync(user.Guild), _Timers).CAF();
 		}
 		private static async Task OnMessageReceived(SocketMessage message)
 		{
@@ -92,7 +92,7 @@ namespace Advobot.Commands
 			{
 				return;
 			}
-			await EventUtils.OnMessageReceived(message, _BotSettings, await _GuildSettings.GetOrCreate(guild), _Timers).CAF();
+			await EventUtils.OnMessageReceived(message, _BotSettings, await _GuildSettings.GetOrCreateAsync(guild), _Timers).CAF();
 		}
 
 		private static async Task HandleCommand(SocketMessage message)
@@ -105,7 +105,7 @@ namespace Advobot.Commands
 			}
 
 			//Guild settings
-			var settings = await _GuildSettings.GetOrCreate(channel.Guild).CAF();
+			var settings = await _GuildSettings.GetOrCreateAsync(channel.Guild).CAF();
 			if (settings == null)
 			{
 				return;
