@@ -110,6 +110,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			//The old cancel token gets cancled in its getter
 			var cancelToken = msgDeletion.CancelToken;
 
+			//TODO: figure out how to get this to not be like this.
 			//Has to run on completely separate thread, else prints early
 			Task.Run(async () =>
 			{

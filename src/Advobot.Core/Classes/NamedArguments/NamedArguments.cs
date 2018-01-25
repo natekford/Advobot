@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 
 namespace Advobot.Core.Classes.NamedArguments
@@ -70,7 +71,6 @@ namespace Advobot.Core.Classes.NamedArguments
 			}
 			ArgNames = argNames.ToImmutableList();
 		}
-
 		/// <summary>
 		/// Splits the input by spaces except when in quotes then attempts to fit them into a dictionary of arguments
 		/// or a list of params arguments.
@@ -134,7 +134,7 @@ namespace Advobot.Core.Classes.NamedArguments
 				{
 					//Convert all from string to whatever type they need to be
 					//NEEDS TO BE AN ARRAY SINCE PARAMS IS AN ARRAY!
-					var convertedArgs = _ParamArgs.Select(x => ConvertValue(t, x)).ToArray();
+					var convertedArgs = _ParamArgs.Select(x => NamedArgumentsUtils.ConvertValue(t, x)).ToArray();
 					//Have to use this method otherwise create instance throws exception
 					//because this will send object[] instead of T[] when empty
 					if (!convertedArgs.Any())
@@ -152,7 +152,7 @@ namespace Advobot.Core.Classes.NamedArguments
 
 				if (p.GetCustomAttribute<NamedArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))
 				{
-					return ConvertValue(t, arg);
+					return NamedArgumentsUtils.ConvertValue(t, arg);
 				}
 				//Finally see if any additional args should be used
 
@@ -165,7 +165,7 @@ namespace Advobot.Core.Classes.NamedArguments
 						return value;
 					}
 				}
-				return CreateDefault(t);
+				return NamedArgumentsUtils.CreateDefault(t);
 			}).ToArray();
 
 			try
@@ -178,6 +178,10 @@ namespace Advobot.Core.Classes.NamedArguments
 				return new T();
 			}
 		}
+	}
+
+	public static class NamedArgumentsUtils
+	{
 		/// <summary>
 		/// Converts the string into the given <paramref name="type"/>.
 		/// Null or whitespace strings will return default values.
@@ -266,6 +270,31 @@ namespace Advobot.Core.Classes.NamedArguments
 				}
 			}
 			return Enum.ToObject(type, e);
+		}
+		/// <summary>
+		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="objects"></param>
+		/// <param name="target"></param>
+		/// <param name="count"></param>
+		/// <param name="f"></param>
+		/// <returns></returns>
+		public static IEnumerable<T> GetObjectsBasedOffCount<T>(this IEnumerable<T> objects, CountTarget target, uint? count, Func<T, int?> f)
+		{
+			switch (target)
+			{
+				case CountTarget.Equal:
+					objects = objects.Where(x => { var val = f(x); return val != null && val == count; });
+					break;
+				case CountTarget.Below:
+					objects = objects.Where(x => { var val = f(x); return val != null && val < count; });
+					break;
+				case CountTarget.Above:
+					objects = objects.Where(x => { var val = f(x); return val != null && val > count; });
+					break;
+			}
+			return objects;
 		}
 	}
 }

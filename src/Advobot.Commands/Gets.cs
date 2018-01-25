@@ -342,21 +342,21 @@ namespace Advobot.Commands.Gets
 			var m = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();
 
 			var formattedMessagesBuilder = new StringBuilder();
-			int count;
-			for (count = 0; count < m.Length; ++count)
+			for (int count = 0; count < m.Length; ++count)
 			{
 				var text = m[count].Format(false).RemoveAllMarkdown().RemoveDuplicateNewLines();
 				if (formattedMessagesBuilder.Length + text.Length < Context.BotSettings.MaxMessageGatherSize)
 				{
 					formattedMessagesBuilder.AppendLineFeed(text);
-					continue;
 				}
-				break;
+				else
+				{
+					var fileName = $"{channel?.Name}_Messages";
+					var content = $"Successfully got `{count}` messages";
+					await MessageUtils.SendTextFileAsync(Context.Channel, formattedMessagesBuilder.ToString(), fileName, content).CAF();
+					return;
+				}
 			}
-
-			var fileName = $"{channel?.Name}_Messages";
-			var content = $"Successfully got `{count}` messages";
-			await MessageUtils.SendTextFileAsync(Context.Channel, formattedMessagesBuilder.ToString(), fileName, content).CAF();
 		}
 	}
 
@@ -369,7 +369,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild(ulong number)
 		{
-			var perms = GuildPermsUtils.ConvertValueToNames(number);
+			var perms = Utils.GetNamesFromEnum((GuildPermission)number);
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
@@ -383,7 +383,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel(ulong number)
 		{
-			var perms = ChannelPermsUtils.ConvertValueToNames(number);
+			var perms = Utils.GetNamesFromEnum((ChannelPermission)number);
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();

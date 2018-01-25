@@ -41,6 +41,64 @@ namespace Advobot.Core
 		public const int MAX_USERNAME_LENGTH = 32;
 		public const int MIN_USERNAME_LENGTH = 2;
 
+		/*
+		private const ChannelPermission GENERAL_BITS = 0
+			| ChannelPermission.ViewChannel
+			| ChannelPermission.CreateInstantInvite
+			| ChannelPermission.ManageChannels
+			| ChannelPermission.ManageRoles
+			| ChannelPermission.ManageWebhooks;
+		private const ChannelPermission TEXT_BITS = 0
+			| ChannelPermission.SendMessages
+			| ChannelPermission.SendTTSMessages
+			| ChannelPermission.ManageMessages
+			| ChannelPermission.EmbedLinks
+			| ChannelPermission.AttachFiles
+			| ChannelPermission.ReadMessageHistory
+			| ChannelPermission.MentionEveryone
+			| ChannelPermission.UseExternalEmojis
+			| ChannelPermission.AddReactions;
+		private const ChannelPermission VOICE_BITS = 0
+			| ChannelPermission.Connect
+			| ChannelPermission.Speak
+			| ChannelPermission.MuteMembers
+			| ChannelPermission.DeafenMembers
+			| ChannelPermission.MoveMembers
+			| ChannelPermission.UseVAD;*/
+
+		public const ChannelPermission MUTE_ROLE_TEXT_PERMS = 0
+			| ChannelPermission.CreateInstantInvite
+			| ChannelPermission.ManageChannels
+			| ChannelPermission.ManageRoles
+			| ChannelPermission.ManageWebhooks
+			| ChannelPermission.SendMessages
+			| ChannelPermission.ManageMessages
+			| ChannelPermission.AddReactions;
+		public const ChannelPermission MUTE_ROLE_VOICE_PERMS = 0
+			| ChannelPermission.CreateInstantInvite
+			| ChannelPermission.ManageChannels
+			| ChannelPermission.ManageRoles
+			| ChannelPermission.ManageWebhooks
+			| ChannelPermission.Speak
+			| ChannelPermission.MuteMembers
+			| ChannelPermission.DeafenMembers
+			| ChannelPermission.MoveMembers;
+
+		public const GuildPermission USER_HAS_A_PERMISSION_PERMS = 0
+			| GuildPermission.Administrator
+			| GuildPermission.BanMembers
+			| GuildPermission.DeafenMembers
+			| GuildPermission.KickMembers
+			| GuildPermission.ManageChannels
+			| GuildPermission.ManageEmojis
+			| GuildPermission.ManageGuild
+			| GuildPermission.ManageMessages
+			| GuildPermission.ManageNicknames
+			| GuildPermission.ManageRoles
+			| GuildPermission.ManageWebhooks
+			| GuildPermission.MoveMembers
+			| GuildPermission.MuteMembers;
+
 		//Regex for checking any awaits are non ConfigureAwait(false): ^(?!.*CAF\(\)).*await.*$
 		public const string PROGRAM_NAME = "Advobot";
 		public const string IGNORE_ERROR = "xd";

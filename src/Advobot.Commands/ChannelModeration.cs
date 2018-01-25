@@ -151,7 +151,7 @@ namespace Advobot.Commands.ChannelModeration
 				var embed = new EmbedWrapper
 				{
 					Title = "Channel Permissions",
-					Description = $"`{String.Join("`, `", ChannelPermsUtils.Permissions.Select(x => x.Name))}`"
+					Description = $"`{String.Join("`, `", Enum.GetNames(typeof(ChannelPermission)))}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}

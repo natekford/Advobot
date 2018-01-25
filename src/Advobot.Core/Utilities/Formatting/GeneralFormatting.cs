@@ -61,7 +61,7 @@ namespace Advobot.Core.Utilities.Formatting
 		public static string FormatNumberedList<T>(this IEnumerable<T> source, string format, params Func<T, object>[] args)
 		{
 			var list = source.ToList();
-			var maxLen = list.Count.GetLength();
+			var maxLen = list.Count.ToString().Length;
 			//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
 			return String.Join("\n", list.Select((x, index) => $"`{(index + 1).ToString().PadLeft(maxLen, '0')}.` {String.Format(format, args.Select(f => f(x)).ToArray())}"));
 		}

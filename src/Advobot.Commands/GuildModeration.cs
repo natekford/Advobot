@@ -171,7 +171,7 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Command(DefaultMessageNotifications msgNotifs)
 		{
 			await GuildUtils.ModifyGuildDefaultMsgNotificationsAsync(Context.Guild, msgNotifs, new ModerationReason(Context.User, null)).CAF();
-			var resp = $"Successfully changed the default message notification setting to `{msgNotifs.EnumName()}`.";
+			var resp = $"Successfully changed the default message notification setting to `{msgNotifs.ToString()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -187,7 +187,7 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Command(VerificationLevel verif)
 		{
 			await GuildUtils.ModifyGuildVerificationLevelAsync(Context.Guild, verif, new ModerationReason(Context.User, null)).CAF();
-			var resp = $"Successfully set the guild verification level as `{verif.EnumName()}`.";
+			var resp = $"Successfully set the guild verification level as `{verif.ToString()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}

@@ -57,7 +57,7 @@ namespace Advobot.Core.Classes.NamedArguments
 			}
 			if (_UserCount != null)
 			{
-				invites = invites.GetObjectsInListBasedOffOfCount(_UserCountTarget, _UserCount, x => x.Guild.Users.Count);
+				invites = invites.GetObjectsBasedOffCount(_UserCountTarget, _UserCount, x => x.Guild.Users.Count);
 				wentIntoAny = true;
 			}
 			return wentIntoAny ? Enumerable.Empty<ListedInvite>() : invites;

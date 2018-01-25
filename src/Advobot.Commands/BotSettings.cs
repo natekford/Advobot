@@ -102,7 +102,7 @@ namespace Advobot.Commands.BotSettings
 			public async Task CommandLogLevel(LogSeverity logLevel)
 			{
 				Context.BotSettings.LogLevel = logLevel;
-				var resp = $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.";
+				var resp = $"Successfully set the log level to `{Context.BotSettings.LogLevel.ToString()}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
@@ -169,7 +169,7 @@ namespace Advobot.Commands.BotSettings
 			public async Task CommandLogLevel()
 			{
 				Context.BotSettings.LogLevel = LogSeverity.Warning;
-				var resp = $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.";
+				var resp = $"Successfully set the log level to `{Context.BotSettings.LogLevel.ToString()}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}

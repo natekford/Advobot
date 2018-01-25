@@ -91,7 +91,7 @@ namespace Advobot.Core.Utilities
 			{
 				if (textChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					var perms = (ulong)ChannelPermsUtils.MUTE_ROLE_TEXT_PERMS;
+					var perms = (ulong)Constants.MUTE_ROLE_TEXT_PERMS;
 					await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, perms)).CAF();
 				}
 			}
@@ -99,7 +99,7 @@ namespace Advobot.Core.Utilities
 			{
 				if (voiceChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					var perms = (ulong)ChannelPermsUtils.MUTE_ROLE_VOICE_PERMS;
+					var perms = (ulong)Constants.MUTE_ROLE_VOICE_PERMS;
 					await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, perms)).CAF();
 				}
 			}
@@ -190,7 +190,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null)).CAF();
-			return GuildPermsUtils.ConvertValueToNames(changeValue);
+			return Utils.GetNamesFromEnum((GuildPermission)changeValue);
 		}
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.

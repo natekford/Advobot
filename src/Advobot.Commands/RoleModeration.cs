@@ -161,14 +161,14 @@ namespace Advobot.Commands.RoleModeration
 				var embed = new EmbedWrapper
 				{
 					Title = "Guild Permission Types",
-					Description = $"`{String.Join("`, `", GuildPermsUtils.Permissions.Select(x => x.Name))}`"
+					Description = $"`{String.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
-				var currentRolePerms = GuildPermsUtils.ConvertValueToNames(role.Permissions.RawValue);
+				var currentRolePerms = Utils.GetNamesFromEnum((GuildPermission)role.Permissions.RawValue);
 				var embed = new EmbedWrapper
 				{
 					Title = role.Name,
@@ -214,9 +214,9 @@ namespace Advobot.Commands.RoleModeration
 
 			await RoleUtils.ModifyRolePermissionsAsync(outputRole, newRoleBits, new ModerationReason(Context.User, null)).CAF();
 
-			var immovablePerms = GuildPermsUtils.ConvertValueToNames(immovableBits);
-			var failedToCopy = GuildPermsUtils.ConvertValueToNames(inputRoleBits & ~copyBits);
-			var newPerms = GuildPermsUtils.ConvertValueToNames(newRoleBits);
+			var immovablePerms = Utils.GetNamesFromEnum((GuildPermission)immovableBits);
+			var failedToCopy = Utils.GetNamesFromEnum((GuildPermission)(inputRoleBits & ~copyBits));
+			var newPerms = Utils.GetNamesFromEnum((GuildPermission)newRoleBits);
 			var immovablePermsStr = immovablePerms.Any() ? "Output role had some permissions unable to be removed by you." : null;
 			var failedToCopyStr = failedToCopy.Any() ? "Input role had some permission unable to be copied by you." : null;
 			var newPermsStr = $"`{outputRole.Format()}` now has the following permissions: `{(newPerms.Any() ? String.Join("`, `", newPerms) : "Nothing")}`.";
@@ -241,7 +241,7 @@ namespace Advobot.Commands.RoleModeration
 
 			await RoleUtils.ModifyRolePermissionsAsync(role, immovableBits, new ModerationReason(Context.User, null)).CAF();
 
-			var immovablePerms = GuildPermsUtils.ConvertValueToNames(immovableBits);
+			var immovablePerms = Utils.GetNamesFromEnum((GuildPermission)immovableBits);
 			var immovablePermsStr = immovablePerms.Any() ? "Role had some permissions unable to be cleared by you." : null;
 			var newPermsStr = $"`{role.Format()}` now has the following permissions: `{(immovablePerms.Any() ? String.Join("`, `", immovablePerms) : "Nothing")}`.";
 

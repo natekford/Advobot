@@ -26,12 +26,12 @@ namespace Advobot.Commands.Logs
 		{
 			if (!Context.GuildSettings.SetLogChannel(logChannelType, channel))
 			{
-				var error = new Error($"That channel is already the current {logChannelType.EnumName().ToLower()} log.");
+				var error = new Error($"That channel is already the current {logChannelType.ToString().ToLower()} log.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			var resp = $"Successfully set the {logChannelType.EnumName().ToLower()} log as `{channel.Format()}`.";
+			var resp = $"Successfully set the {logChannelType.ToString().ToLower()} log as `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
@@ -39,12 +39,12 @@ namespace Advobot.Commands.Logs
 		{
 			if (!Context.GuildSettings.SetLogChannel(logChannelType, null))
 			{
-				var error = new Error($"The {logChannelType.EnumName().ToLower()} log is already off.");
+				var error = new Error($"The {logChannelType.ToString().ToLower()} log is already off.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			var resp = $"Successfully removed the {logChannelType.EnumName().ToLower()} log.";
+			var resp = $"Successfully removed the {logChannelType.ToString().ToLower()} log.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -122,7 +122,7 @@ namespace Advobot.Commands.Logs
 
 				//Add in logActions that aren't already in there
 				Context.GuildSettings.LogActions.AddRange(logActions.Except(Context.GuildSettings.LogActions));
-				var resp = $"Successfully enabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.EnumName()))}`.";
+				var resp = $"Successfully enabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.ToString()))}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
@@ -145,7 +145,7 @@ namespace Advobot.Commands.Logs
 
 				//Only remove logactions that are already in there
 				Context.GuildSettings.LogActions.RemoveAll(x => logActions.Contains(x));
-				var resp = $"Successfully disabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.EnumName()))}`.";
+				var resp = $"Successfully disabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.ToString()))}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}

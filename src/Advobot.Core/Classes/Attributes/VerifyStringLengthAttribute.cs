@@ -49,7 +49,7 @@ namespace Advobot.Core.Classes.Attributes
 			}
 			else
 			{
-				throw new NotSupportedException($"{target.EnumName()} doesn't have a min and max or error output.");
+				throw new NotSupportedException($"{target.ToString()} doesn't have a min and max or error output.");
 			}
 		}
 

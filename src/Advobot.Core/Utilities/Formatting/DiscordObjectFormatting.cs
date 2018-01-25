@@ -175,7 +175,7 @@ namespace Advobot.Core.Utilities.Formatting
 		public static string FormatOverwritePerms<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
 		{
 			var overwrite = channel.PermissionOverwrites.FirstOrDefault(x => x.TargetId == obj.Id);
-			var perms = OverwriteUtils.GetFilteredChannelOverwritePermissions(overwrite, channel);
+			var perms = OverwriteUtils.GetChannelOverwriteNamesAndValues(overwrite, channel);
 			var maxLen = perms.Keys.Max(x => x.Length);
 			return String.Join("\n", perms.Select(x => $"{x.Key.PadRight(maxLen)} {x.Value}"));
 		}

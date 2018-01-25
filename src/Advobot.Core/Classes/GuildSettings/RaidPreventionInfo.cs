@@ -102,7 +102,7 @@ namespace Advobot.Core.Classes.GuildSettings
 			return $"**Enabled:** `{Enabled}`\n" +
 				$"**Users:** `{UserCount}`\n" +
 				$"**Time Interval:** `{TimeInterval}`\n" +
-				$"**Punishment:** `{Punishment.EnumName()}`";
+				$"**Punishment:** `{Punishment.ToString()}`";
 		}
 		public string ToString(SocketGuild guild)
 		{

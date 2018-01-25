@@ -105,7 +105,7 @@ namespace Advobot.Core.Classes.GuildSettings
 
 		public override string ToString()
 		{
-			return $"**Punishment:** `{Punishment.EnumName()}`\n" +
+			return $"**Punishment:** `{Punishment.ToString()}`\n" +
 				$"**Spam Instances:** `{SpamInstances}`\n" +
 				$"**Votes For Punishment:** `{VotesForKick}`\n" +
 				(SpamPerMessage != 0 ? $"**Spam Amount:** `{SpamPerMessage}`" : $"**Time Interval:** `{TimeInterval}`");

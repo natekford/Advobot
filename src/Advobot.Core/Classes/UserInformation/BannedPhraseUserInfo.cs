@@ -34,7 +34,7 @@ namespace Advobot.Core.Classes.UserInformation
 
 		public override string ToString()
 		{
-			return String.Join("/", _Values.Select(x => $"{x.Value}{x.Key.EnumName()[0]}"));
+			return String.Join("/", _Values.Select(x => $"{x.Value}{x.Key.ToString()[0]}"));
 		}
 	}
 }

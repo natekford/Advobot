@@ -136,7 +136,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		private static void UpdateMaxLength(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
 			var nb = d as AdvobotNumberBox;
-			nb.MaxLength = Math.Max(nb.MinValue.GetLength(), nb.MaxValue.GetLength());
+			nb.MaxLength = Math.Max(nb.MinValue.ToString().Length, nb.MaxValue.ToString().Length);
 		}
 		private static void UpdateText(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{

@@ -30,7 +30,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		protected bool TryGetSettings<T>(T obj, out IGuildSettings settings, [CallerMemberName] string caller = null) where T : ISnowflakeEntity, IEntity<ulong>
 		{
 			var actionName = caller ?? throw new ArgumentException("Value cannot be null", nameof(caller));
-			var actionEnum = _LogActions.First(x => actionName.CaseInsContains(x.EnumName()));
+			var actionEnum = _LogActions.First(x => actionName.CaseInsContains(x.ToString()));
 			return TryGetSettings(actionEnum, obj, out settings);
 		}
 		private bool TryGetSettings<T>(LogAction logAction, T obj, out IGuildSettings settings) where T : ISnowflakeEntity, IEntity<ulong>

@@ -89,7 +89,7 @@ namespace Advobot.Core.Classes.Rules
 				case RuleFormat.Bold:
 					if (_Options.HasFlag(RuleFormatOption.NumbersSameLength))
 					{
-						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLength(), '0')}";
+						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.ToString().Length, '0')}";
 					}
 					else
 					{

@@ -34,13 +34,13 @@ namespace Advobot.Core.Classes.GuildSettings
 
 		public override string ToString()
 		{
-			var punishment = RoleId == 0 ? Punishment.EnumName() : RoleId.ToString();
+			var punishment = RoleId == 0 ? Punishment.ToString() : RoleId.ToString();
 			var time = PunishmentTime == 0 ? "" : $" `{PunishmentTime} minutes`";
 			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}
 		public string ToString(SocketGuild guild)
 		{
-			var punishment = RoleId == 0 ? Punishment.EnumName() : guild.GetRole(RoleId).Name;
+			var punishment = RoleId == 0 ? Punishment.ToString() : guild.GetRole(RoleId).Name;
 			var time = PunishmentTime == 0 ? "" : $" `{PunishmentTime} minutes`";
 			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}

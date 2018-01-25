@@ -200,7 +200,7 @@ namespace Advobot.UILauncher.Windows
 				}
 
 				var childText = tb.Text;
-				var name = target.EnumName().FormatTitle().ToLower();
+				var name = target.ToString().FormatTitle().ToLower();
 				//Removing a brush
 				if (String.IsNullOrWhiteSpace(childText))
 				{
@@ -240,7 +240,7 @@ namespace Advobot.UILauncher.Windows
 				}
 
 				c.Theme = theme;
-				ConsoleUtils.WriteLine($"Successfully updated the theme to {c.Theme.EnumName().FormatTitle().ToLower()}.");
+				ConsoleUtils.WriteLine($"Successfully updated the theme to {c.Theme.ToString().FormatTitle().ToLower()}.");
 			}
 
 			c.SaveSettings();

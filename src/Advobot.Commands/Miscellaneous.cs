@@ -104,7 +104,7 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			var embed = new EmbedWrapper
 			{
-				Title = category.EnumName(),
+				Title = category.ToString(),
 				Description = $"`{String.Join("`, `", Constants.HelpEntries[category].Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
@@ -211,7 +211,6 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command()
 		{
-			Context.GuildSettings.SaveSettings();
 			await MessageUtils.SendMessageAsync(Context.Channel, $"Test").CAF();
 		}
 	}

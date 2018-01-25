@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
-using Advobot.Core.Utilities;
 using Discord;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Advobot.Core.Classes.NamedArguments
 {
@@ -66,12 +65,12 @@ namespace Advobot.Core.Classes.NamedArguments
 			}
 			if (_Uses != null)
 			{
-				invites = invites.GetObjectsInListBasedOffOfCount(_UsesCountTarget, _Uses, x => x.Uses);
+				invites = invites.GetObjectsBasedOffCount(_UsesCountTarget, _Uses, x => x.Uses);
 				wentIntoAny = true;
 			}
 			if (_Age != null)
 			{
-				invites = invites.GetObjectsInListBasedOffOfCount(_AgeCountTarget, _Age, x => x.MaxAge);
+				invites = invites.GetObjectsBasedOffCount(_AgeCountTarget, _Age, x => x.MaxAge);
 				wentIntoAny = true;
 			}
 			if (_IsTemporary)

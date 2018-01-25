@@ -41,7 +41,7 @@ namespace Advobot.Commands.SpamPrevention
 			}
 
 			Context.GuildSettings.SpamPreventionDictionary[spam] = prev;
-			var resp = $"Successfully set up the spam prevention for `{spam.EnumName().ToLower()}`.\n{prev}";
+			var resp = $"Successfully set up the spam prevention for `{spam.ToString().ToLower()}`.\n{prev}";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
@@ -109,7 +109,7 @@ namespace Advobot.Commands.SpamPrevention
 			}
 
 			Context.GuildSettings.RaidPreventionDictionary[raidType] = raidPrevention;
-			var resp = $"Successfully set up the raid prevention for `{raidType.EnumName().ToLower()}`.\n{raidPrevention}";
+			var resp = $"Successfully set up the raid prevention for `{raidType.ToString().ToLower()}`.\n{raidPrevention}";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]

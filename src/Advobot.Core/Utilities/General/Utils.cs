@@ -4,10 +4,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using Discord;
 
 namespace Advobot.Core.Utilities
 {
@@ -118,6 +120,7 @@ namespace Advobot.Core.Utilities
 		{
 			return enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
 		}
+
 		/// <summary>
 		/// Verifies all characters in the string have a value of a less than the upperlimit.
 		/// </summary>
@@ -127,15 +130,6 @@ namespace Advobot.Core.Utilities
 		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit = -1)
 		{
 			return !str.Any(x => x > (upperLimit < 0 ? Constants.MAX_UTF16_VAL_FOR_NAMES : upperLimit));
-		}
-		/// <summary>
-		/// Returns the enum's name as a string.
-		/// </summary>
-		/// <param name="e"></param>
-		/// <returns></returns>
-		public static string EnumName(this Enum e)
-		{
-			return Enum.GetName(e.GetType(), e);
 		}
 		/// <summary>
 		/// Returns the count of characters equal to \r or \n.
@@ -209,71 +203,115 @@ namespace Advobot.Core.Utilities
 
 			return count;
 		}
+
 		/// <summary>
-		/// Gets and removes items older than <paramref name="time"/>.
+		/// Converts an enum to the names of the values it contains. <typeparamref name="TEnum"/> MUST be an enum.
 		/// </summary>
-		/// <typeparam name="TKey"></typeparam>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="dictionary"></param>
-		/// <param name="time"></param>
-		/// <returns></returns>
-		public static IEnumerable<TValue> GetItemsByTime<TKey, TValue>(ConcurrentDictionary<TKey, TValue> dictionary, DateTime time) where TValue : ITime
+		/// <typeparam name="TEnum">The enum to convert.</typeparam>
+		/// <param name="value">The instance value of the enum.</param>
+		/// <returns>The names of the values <paramref name="value"/> contains.</returns>
+		/// <exception cref="ArgumentException">When <typeparamref name="TEnum"/> is not an enum.</exception>
+		/// <remarks>Roughly 2x slower than any explicit method, but it is generic.</remarks>
+		public static IEnumerable<string> GetNamesFromEnum<TEnum>(TEnum value) where TEnum : struct
 		{
-			//Loop through every value in the dictionary, remove if too old
-			foreach (var kvp in dictionary)
+			//If only generics could be restricted fully to enums, this stupid shit wouldn't have to be done
+			if (!typeof(TEnum).IsEnum)
 			{
-				if (kvp.Value.Time.Ticks < time.Ticks && dictionary.TryRemove(kvp.Key, out var value))
+				throw new ArgumentException($"Invalid generic parameter type. Must be an enum.", nameof(TEnum));
+			}
+
+			//Has to be created from underlying type so Marshal.SizeOf doesn't throw an exception
+			//Add one so this value can be used to bitshift in the for loop
+			//Can't just use 1 or 1UL in the loop because that might be the incorrect underlying type
+			var startVal = (dynamic)Activator.CreateInstance(Enum.GetUnderlyingType(typeof(TEnum))) + 1;
+			//Use Marshal.SizeOf to loop through every single bit in the enum
+			for (int i = 0; i < Marshal.SizeOf(startVal) * 8; ++i)
+			{
+				//Cast the bitshifted value so it can & together with the passed in enum value
+				var bitVal = (TEnum)(startVal << i);
+				//Cast the passed in enum value as dynamic since TEnum can't do bitwise functions on its own
+				if (Enum.IsDefined(typeof(TEnum), bitVal) && ((dynamic)value & bitVal) == bitVal)
 				{
-					yield return value;
+					yield return Enum.GetName(typeof(TEnum), bitVal);
+				}
+			}
+		}
+		public static IEnumerable<string> GetNamesFromEnum2(GuildPermission value)
+		{
+			for (int i = 0; i < 64; ++i)
+			{
+				var bitVal = 1UL << i;
+				if (Enum.IsDefined(typeof(GuildPermission), bitVal) && ((ulong)value & bitVal) == bitVal)
+				{
+					yield return Enum.GetName(typeof(GuildPermission), bitVal);
 				}
 			}
 		}
 		/// <summary>
-		/// Returns the length of a number.
+		/// Attempts to parse enums from the supplied values. <typeparamref name="TEnum"/> MUST be an enum.
 		/// </summary>
-		/// <param name="num"></param>
-		/// <returns></returns>
-		public static int GetLength(this int num)
+		/// <typeparam name="TEnum">The enum to parse.</typeparam>
+		/// <param name="input">The input names.</param>
+		/// <param name="value">The valid enums.</param>
+		/// <param name="invalidInput">The invalid names.</param>
+		/// <returns>A boolean indicating if there were any failed parses.</returns>
+		/// <exception cref="ArgumentException">When <typeparamref name="TEnum"/> is not an enum.</exception>
+		public static bool TryParseEnums<TEnum>(IEnumerable<string> input, out List<TEnum> validInput, out List<string> invalidInput) where TEnum : struct
 		{
-			return num.ToString().Length;
-		}
-		/// <summary>
-		/// Takes a variable number of integers and cuts the source the smallest one (including the source's length).
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="source"></param>
-		/// <param name="x"></param>
-		/// <returns></returns>
-		public static IEnumerable<T> TakeMin<T>(this IEnumerable<T> source, params int[] x)
-		{
-			var list = source.ToList();
-			return list.Take(Math.Max(0, Math.Min(list.Count, x.Min()))).ToList();
-		}
-		/// <summary>
-		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="objects"></param>
-		/// <param name="target"></param>
-		/// <param name="count"></param>
-		/// <param name="f"></param>
-		/// <returns></returns>
-		public static IEnumerable<T> GetObjectsInListBasedOffOfCount<T>(this IEnumerable<T> objects, CountTarget target, uint? count, Func<T, int?> f)
-		{
-			switch (target)
+			if (!typeof(TEnum).IsEnum)
 			{
-				case CountTarget.Equal:
-					objects = objects.Where(x => { var val = f(x); return val != null && val == count; });
-					break;
-				case CountTarget.Below:
-					objects = objects.Where(x => { var val = f(x); return val != null && val < count; });
-					break;
-				case CountTarget.Above:
-					objects = objects.Where(x => { var val = f(x); return val != null && val > count; });
-					break;
+				throw new ArgumentException("Invalid generic parameter type. Must be an enum.", nameof(TEnum));
 			}
-			return objects;
+
+			validInput = new List<TEnum>();
+			invalidInput = new List<string>();
+			foreach (var enumName in input)
+			{
+				if (Enum.TryParse<TEnum>(enumName, true, out var result))
+				{
+					validInput.Add(result);
+				}
+				else
+				{
+					invalidInput.Add(enumName);
+				}
+			}
+			return !invalidInput.Any();
 		}
+		/// <summary>
+		/// Attempts to parse all enums then OR them together. <typeparamref name="TEnum"/> MUST be an enum.
+		/// </summary>
+		/// <typeparam name="TEnum">The enum to parse.</typeparam>
+		/// <param name="input">The input names.</param>
+		/// <param name="value">The return value of every valid enum ORed together.</param>
+		/// <param name="invalidInput">The invalid names.</param>
+		/// <returns>A boolean indicating if there were any failed parses.</returns>
+		/// <exception cref="ArgumentException">When <typeparamref name="TEnum"/> is not an enum.</exception>
+		public static bool TryParseEnums<TEnum>(IEnumerable<string> input, out TEnum value, out List<string> invalidInput) where TEnum : struct
+		{
+			if (!typeof(TEnum).IsEnum)
+			{
+				throw new ArgumentException($"Invalid generic parameter type. Must be an enum.", nameof(TEnum));
+			}
+
+			//Cast as dynamic so bitwise functions can be done on it
+			dynamic temp = Activator.CreateInstance<TEnum>();
+			invalidInput = new List<string>();
+			foreach (var enumName in input)
+			{
+				if (Enum.TryParse<TEnum>(enumName, true, out var result))
+				{
+					temp |= result;
+				}
+				else
+				{
+					invalidInput.Add(enumName);
+				}
+			}
+			value = (TEnum)temp;
+			return !invalidInput.Any();
+		}
+
 		/// <summary>
 		/// Returns all public properties that have a set method.
 		/// </summary>
@@ -299,6 +337,7 @@ namespace Advobot.Core.Utilities
 					&& !pt.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 			}).ToArray();
 		}
+
 		/// <summary>
 		/// Short way to write ConfigureAwait(false).
 		/// </summary>

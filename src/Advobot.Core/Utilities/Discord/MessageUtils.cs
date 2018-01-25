@@ -223,7 +223,7 @@ namespace Advobot.Core.Utilities
 				fromMessage = messages.Last();
 
 				//Get messages from a targetted user
-				var userMessages = messages.Where(x => x.Author.Id == fromUser.Id).TakeMin(requestCount, 100).ToList();
+				var userMessages = messages.Where(x => x.Author.Id == fromUser.Id).Take(Math.Min(requestCount, 100)).ToList();
 				if (!userMessages.Any())
 				{
 					break;

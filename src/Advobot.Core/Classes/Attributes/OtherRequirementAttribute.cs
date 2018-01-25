@@ -41,7 +41,7 @@ namespace Advobot.Core.Classes.Attributes
 				var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 
 				var userPerms = guildBits | botBits;
-				if ((userPerms & (ulong)GuildPermsUtils.USER_HAS_A_PERMISSION_PERMS) != 0)
+				if ((userPerms & (ulong)Constants.USER_HAS_A_PERMISSION_PERMS) != 0)
 				{
 					return PreconditionResult.FromSuccess();
 				}

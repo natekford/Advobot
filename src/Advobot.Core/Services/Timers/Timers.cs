@@ -61,14 +61,14 @@ namespace Advobot.Core.Services.Timers
 			{
 				Task.Run(async () =>
 				{
-					foreach (var punishment in _RemovablePunishments.GetValues(DateTime.UtcNow))
+					foreach (var punishment in _RemovablePunishments.RemoveValues(DateTime.UtcNow))
 					{
 						await punishment.RemoveAsync(_PunishmentRemover, _PunishmentReason).CAF();
 					}
 				});
 				Task.Run(async () =>
 				{
-					foreach (var timedMessage in Utils.GetItemsByTime(_TimedMessages, DateTime.UtcNow))
+					foreach (var timedMessage in RemoveItemsByTime(_TimedMessages, DateTime.UtcNow))
 					{
 						await timedMessage.SendAsync().CAF();
 					}
@@ -80,7 +80,7 @@ namespace Advobot.Core.Services.Timers
 			{
 				Task.Run(async () =>
 				{
-					foreach (var group in Utils.GetItemsByTime(_RemovableMessages, DateTime.UtcNow).GroupBy(x => x.Channel?.Id ?? 0))
+					foreach (var group in RemoveItemsByTime(_RemovableMessages, DateTime.UtcNow).GroupBy(x => x.Channel?.Id ?? 0))
 					{
 						if (group.Key == 0)
 						{
@@ -101,19 +101,19 @@ namespace Advobot.Core.Services.Timers
 				});
 				Task.Run(async () =>
 				{
-					foreach (var helpEntries in Utils.GetItemsByTime(_ActiveCloseHelp, DateTime.UtcNow))
+					foreach (var helpEntries in RemoveItemsByTime(_ActiveCloseHelp, DateTime.UtcNow))
 					{
 						await MessageUtils.DeleteMessageAsync(helpEntries.Message, _CloseHelpReason).CAF();
 					}
 				});
 				Task.Run(async () =>
 				{
-					foreach (var quotes in Utils.GetItemsByTime(_ActiveCloseQuotes, DateTime.UtcNow))
+					foreach (var quotes in RemoveItemsByTime(_ActiveCloseQuotes, DateTime.UtcNow))
 					{
 						await MessageUtils.DeleteMessageAsync(quotes.Message, _CloseQuotesReason).CAF();
 					}
 				});
-				Task.Run(() => _SlowmodeUsers.GetValues(DateTime.UtcNow));
+				Task.Run(() => _SlowmodeUsers.RemoveValues(DateTime.UtcNow));
 			};
 			_SecondTimer.Enabled = true;
 		}
@@ -183,7 +183,7 @@ namespace Advobot.Core.Services.Timers
 			_BannedPhraseUsers.AddOrUpdate(user.User.Guild, user.User.Id, user);
 		}
 
-		public async Task<RemovablePunishment> RemovePunishment(IGuild guild, ulong userId, PunishmentType punishment)
+		public async Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, PunishmentType punishment)
 		{
 			if (_RemovablePunishments.TryRemove(guild, new MultiKey<ulong, PunishmentType>(userId, punishment), out var value))
 			{
@@ -191,7 +191,7 @@ namespace Advobot.Core.Services.Timers
 			}
 			return value;
 		}
-		public async Task<CloseWords<HelpEntry>> RemoveActiveCloseHelp(IUser user)
+		public async Task<CloseWords<HelpEntry>> RemoveActiveCloseHelpAsync(IUser user)
 		{
 			if (_ActiveCloseHelp.TryRemove(user.Id, out var wrapper))
 			{
@@ -199,7 +199,7 @@ namespace Advobot.Core.Services.Timers
 			}
 			return wrapper.CloseWords;
 		}
-		public async Task<CloseWords<Quote>> RemoveActiveCloseQuote(IUser user)
+		public async Task<CloseWords<Quote>> RemoveActiveCloseQuoteAsync(IUser user)
 		{
 			if (_ActiveCloseQuotes.TryRemove(user.Id, out var wrapper))
 			{
@@ -234,80 +234,21 @@ namespace Advobot.Core.Services.Timers
 			_BannedPhraseUsers.TryGetValue(user.Guild, user.Id, out var bannedPhrases);
 			return bannedPhrases;
 		}
-	}
 
-	internal struct MultiKey<TFirst, TSecond>
-	{
-		public readonly TFirst FirstValue;
-		public readonly TSecond SecondValue;
-
-		public MultiKey(TFirst firstValue, TSecond secondValue)
+		/// <summary>
+		/// Gets and removes items older than <paramref name="time"/>.
+		/// </summary>
+		/// <typeparam name="TKey"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
+		/// <param name="dictionary"></param>
+		/// <param name="time"></param>
+		/// <returns></returns>
+		public static IEnumerable<TValue> RemoveItemsByTime<TKey, TValue>(ConcurrentDictionary<TKey, TValue> dictionary, DateTime time) where TValue : ITime
 		{
-			FirstValue = firstValue;
-			SecondValue = secondValue;
-		}
-
-		public override bool Equals(object obj)
-		{
-			return obj is MultiKey<TFirst, TSecond> key && key.FirstValue.Equals(FirstValue) && key.SecondValue.Equals(SecondValue);
-		}
-		public override int GetHashCode()
-		{
-			//Source: https://stackoverflow.com/a/263416
-			unchecked // Overflow is fine, just wrap
+			//Loop through every value in the dictionary, remove if too old
+			foreach (var kvp in dictionary)
 			{
-				var hash = (int)2166136261;
-				// Suitable nullity checks etc, of course :)
-				hash = (hash * 16777619) ^ FirstValue.GetHashCode();
-				hash = (hash * 16777619) ^ SecondValue.GetHashCode();
-				return hash;
-			}
-		}
-
-		public static bool operator ==(MultiKey<TFirst, TSecond> left, MultiKey<TFirst, TSecond> right)
-		{
-			return left.Equals(right);
-		}
-		public static bool operator !=(MultiKey<TFirst, TSecond> left, MultiKey<TFirst, TSecond> right)
-		{
-			return !left.Equals(right);
-		}
-	}
-
-	internal sealed class ConcurrentDoubleKeyDictionary<TFirstKey, TSecondKey, TValue> where TValue : ITime
-	{
-		private ConcurrentDictionary<TFirstKey, ConcurrentDictionary<TSecondKey, TValue>> _Values = new ConcurrentDictionary<TFirstKey, ConcurrentDictionary<TSecondKey, TValue>>();
-
-		public void Clear()
-		{
-			_Values.Clear();
-		}
-		public void AddOrUpdate(TFirstKey firstKey, TSecondKey secondKey, TValue value)
-		{
-			_Values.GetOrAdd(firstKey, new ConcurrentDictionary<TSecondKey, TValue>()).AddOrUpdate(secondKey, value, (k, v) => value);
-		}
-		public bool TryGetValue(TFirstKey firstKey, TSecondKey secondKey, out TValue value)
-		{
-			return !_Values.GetOrAdd(firstKey, new ConcurrentDictionary<TSecondKey, TValue>()).TryGetValue(secondKey, out value);
-		}
-		public bool TryAdd(TFirstKey firstKey, TSecondKey secondKey, TValue value)
-		{
-			return !_Values.GetOrAdd(firstKey, new ConcurrentDictionary<TSecondKey, TValue>()).TryAdd(secondKey, value);
-		}
-		public bool TryRemove(TFirstKey firstKey, TSecondKey secondKey, out TValue value)
-		{
-			return !_Values.GetOrAdd(firstKey, new ConcurrentDictionary<TSecondKey, TValue>()).TryRemove(secondKey, out value);
-		}
-		public IEnumerable<TValue> GetValues(TFirstKey firstKey)
-		{
-			return !_Values.TryGetValue(firstKey, out var innerDict) ? innerDict.Values : Enumerable.Empty<TValue>();
-		}
-		public IEnumerable<TValue> GetValues(DateTime time)
-		{
-			//Loop through each inner dictionary inside the outer dictionary
-			foreach (var outerKvp in _Values)
-			{
-				foreach (var value in Utils.GetItemsByTime(outerKvp.Value, time))
+				if (kvp.Value.Time.Ticks < time.Ticks && dictionary.TryRemove(kvp.Key, out var value))
 				{
 					yield return value;
 				}

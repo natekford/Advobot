@@ -83,7 +83,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			await ModifyOverwriteAsync(channel, obj, allowBits, denyBits, new ModerationReason(invokingUser, null)).CAF();
-			return ChannelPermsUtils.ConvertValueToNames(changeValue);
+			return Utils.GetNamesFromEnum((ChannelPermission)changeValue);
 		}
 		/// <summary>
 		/// Sets the overwrite on a channel for the given object.
@@ -135,51 +135,37 @@ namespace Advobot.Core.Utilities
 			}
 		}
 		/// <summary>
-		/// Returns a dictionary of channel permissions and their values (allow, deny, inherit). Non filtered so incorrect channel type permissions will be in it.
-		/// </summary>
-		/// <param name="overwrite"></param>
-		/// <returns></returns>
-		public static Dictionary<string, string> GetChannelOverwritePermissions(Overwrite overwrite)
-		{
-			return ChannelPermsUtils.Permissions.ToDictionary(x => x.Name, x => //Name is the key, PermValue is the value
-			{
-				if ((overwrite.Permissions.AllowValue & (ulong)x.Value) != 0)
-				{
-					return nameof(PermValue.Allow);
-				}
-
-				if ((overwrite.Permissions.DenyValue & (ulong)x.Value) != 0)
-				{
-					return nameof(PermValue.Deny);
-				}
-
-				return nameof(PermValue.Inherit);
-			});
-		}
-		/// <summary>
-		/// Returns a similar dictionary to <see cref="GetChannelOverwritePermissions"/> except this method has voice permissions filtered out of text channels and vice versa.
+		/// Returns a dictionary that has voice permissions filtered out of text channels and vice versa.
 		/// </summary>
 		/// <param name="overwrite"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		public static Dictionary<string, string> GetFilteredChannelOverwritePermissions(Overwrite overwrite, IGuildChannel channel)
+		public static Dictionary<string, string> GetChannelOverwriteNamesAndValues(Overwrite overwrite, IGuildChannel channel)
 		{
-			var dictionary = GetChannelOverwritePermissions(overwrite);
-			if (channel is ITextChannel)
+			var validPermissions = channel is ITextChannel ? ChannelPermissions.Text : ChannelPermissions.Voice;
+			var temp = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+			for (int i = 0; i < sizeof(ulong) * 8; ++i)
 			{
-				foreach (var perm in ChannelPermsUtils.Permissions.Where(x => x.Voice))
+				var value = (1U << i);
+				if (!validPermissions.Has((ChannelPermission)value))
 				{
-					dictionary.Remove(perm.Name);
+					continue;
+				}
+
+				if ((overwrite.Permissions.AllowValue & value) != 0)
+				{
+					temp.Add(((ChannelPermission)value).ToString(), nameof(PermValue.Allow));
+				}
+				else if ((overwrite.Permissions.DenyValue & value) != 0)
+				{
+					temp.Add(((ChannelPermission)value).ToString(), nameof(PermValue.Deny));
+				}
+				else
+				{
+					temp.Add(((ChannelPermission)value).ToString(), nameof(PermValue.Inherit));
 				}
 			}
-			else
-			{
-				foreach (var perm in ChannelPermsUtils.Permissions.Where(x => x.Text))
-				{
-					dictionary.Remove(perm.Name);
-				}
-			}
-			return dictionary;
+			return temp;
 		}
 	}
 }

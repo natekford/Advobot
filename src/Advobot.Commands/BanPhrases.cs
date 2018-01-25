@@ -318,7 +318,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 
 			phrase.Punishment = punishment;
-			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment.EnumName()}.";
+			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment.ToString()}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
 		}
 		private static async Task Modify<T>(IAdvobotCommandContext context, List<T> list, int position, PunishmentType punishment) where T : BannedPhrase
@@ -332,7 +332,7 @@ namespace Advobot.Commands.BanPhrases
 			--position;
 			var phrase = list[position];
 			phrase.Punishment = punishment;
-			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment.EnumName()}.";
+			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment.ToString()}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
 		}
 	}

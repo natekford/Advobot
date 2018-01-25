@@ -24,9 +24,9 @@ namespace Advobot.Core.Interfaces
 		void Add(SlowmodeUserInfo user);
 		void Add(BannedPhraseUserInfo user);
 
-		Task<RemovablePunishment> RemovePunishment(IGuild guild, ulong id, PunishmentType punishment);
-		Task<CloseWords<HelpEntry>> RemoveActiveCloseHelp(IUser user);
-		Task<CloseWords<Quote>> RemoveActiveCloseQuote(IUser user);
+		Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong id, PunishmentType punishment);
+		Task<CloseWords<HelpEntry>> RemoveActiveCloseHelpAsync(IUser user);
+		Task<CloseWords<Quote>> RemoveActiveCloseQuoteAsync(IUser user);
 		IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild);
 		IEnumerable<SlowmodeUserInfo> GetSlowmodeUsers(IGuild guild);
 		IEnumerable<BannedPhraseUserInfo> GetBannedPhraseUsers(IGuild guild);

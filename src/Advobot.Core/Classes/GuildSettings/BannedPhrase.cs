@@ -62,7 +62,7 @@ namespace Advobot.Core.Classes.GuildSettings
 
 		public override string ToString()
 		{
-			var punishmentChar = Punishment == default ? "N" : Punishment.EnumName().Substring(0, 1);
+			var punishmentChar = Punishment == default ? "N" : Punishment.ToString().Substring(0, 1);
 			return $"`{punishmentChar}` `{Phrase}`";
 		}
 		public string ToString(SocketGuild guild)
