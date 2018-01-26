@@ -369,7 +369,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild(ulong number)
 		{
-			var perms = Utils.GetNamesFromEnum((GuildPermission)number);
+			var perms = EnumUtils.GetNamesFromEnum((GuildPermission)number);
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
@@ -383,7 +383,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel(ulong number)
 		{
-			var perms = Utils.GetNamesFromEnum((ChannelPermission)number);
+			var perms = EnumUtils.GetNamesFromEnum((ChannelPermission)number);
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();

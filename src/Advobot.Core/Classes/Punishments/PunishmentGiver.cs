@@ -141,12 +141,12 @@ namespace Advobot.Core.Classes.Punishments
 
 		private async Task After(PunishmentType type, IGuild guild, IUser user, ModerationReason reason)
 		{
-			var sb = new StringBuilder($"Successfully {_Given[type]} {user.Format()}. ");
+			var sb = new StringBuilder($"Successfully {_Given[type]} `{user.Format()}`. ");
 			if (!_Time.Equals(default) && _Timers != null)
 			{
 				//Removing the punishments via the timers in whatever time is set
 				await _Timers.AddAsync(new RemovablePunishment(_Time, type, guild, user)).CAF();
-				sb.Append($"They will be {_Removal[type]} in {_Time} minutes. ");
+				sb.Append($"They will be {_Removal[type]} in `{_Time}` minutes. ");
 			}
 			if (reason.Reason != null)
 			{

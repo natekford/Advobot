@@ -8,7 +8,7 @@ using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
-	public abstract class PermissionsTypeReader<T> : TypeReader where T : struct
+	public abstract class PermissionsTypeReader<T> : TypeReader where T : struct, IComparable, IConvertible, IFormattable
 	{
 		private static char[] _SplitChars = new[] { '/', ' ', ',' };
 		private static char[] _TrimChars = new[] { '"' };
@@ -30,7 +30,7 @@ namespace Advobot.Core.Classes.TypeReaders
 				return Task.FromResult(TypeReaderResult.FromSuccess(rawValue));
 			}
 			//Then check permission names
-			if (Utils.TryParseEnums(input.Split(_SplitChars).Select(x => x.Trim(_TrimChars)), out T value, out var invalidPerms))
+			if (EnumUtils.TryParseEnums(input.Split(_SplitChars).Select(x => x.Trim(_TrimChars)), out T value, out var invalidPerms))
 			{
 				return Task.FromResult(TypeReaderResult.FromSuccess((ulong)(object)value));
 			}

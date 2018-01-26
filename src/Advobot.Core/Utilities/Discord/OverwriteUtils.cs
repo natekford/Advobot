@@ -83,7 +83,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			await ModifyOverwriteAsync(channel, obj, allowBits, denyBits, new ModerationReason(invokingUser, null)).CAF();
-			return Utils.GetNamesFromEnum((ChannelPermission)changeValue);
+			return EnumUtils.GetNamesFromEnum((ChannelPermission)changeValue);
 		}
 		/// <summary>
 		/// Sets the overwrite on a channel for the given object.

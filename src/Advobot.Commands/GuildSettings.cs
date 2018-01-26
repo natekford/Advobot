@@ -260,7 +260,7 @@ namespace Advobot.Commands.GuildSettings
 				var embed = new EmbedWrapper
 				{
 					Title = $"Permissions for {user.Format()}",
-					Description = $"`{String.Join("`, `", Utils.GetNamesFromEnum((GuildPermission)botUser.Permissions))}`"
+					Description = $"`{String.Join("`, `", EnumUtils.GetNamesFromEnum((GuildPermission)botUser.Permissions))}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -277,7 +277,7 @@ namespace Advobot.Commands.GuildSettings
 			permissions |= ((IGuildUser)Context.User).GuildPermissions.RawValue;
 			botUser.AddPermissions(permissions);
 
-			var givenPerms = String.Join("`, `", Utils.GetNamesFromEnum((GuildPermission)permissions));
+			var givenPerms = String.Join("`, `", EnumUtils.GetNamesFromEnum((GuildPermission)permissions));
 			var resp = $"Successfully gave `{user.Format()}` the following bot permissions: `{givenPerms}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -295,7 +295,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 			botUser.RemovePermissions(permissions);
 
-			var takenPerms = String.Join("`, `", Utils.GetNamesFromEnum((GuildPermission)permissions));
+			var takenPerms = String.Join("`, `", EnumUtils.GetNamesFromEnum((GuildPermission)permissions));
 			var resp = $"Successfully removed the following bot permissions from `{user.Format()}`: `{takenPerms}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
