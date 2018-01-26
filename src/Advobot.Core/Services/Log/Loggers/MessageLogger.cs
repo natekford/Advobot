@@ -427,7 +427,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			{
 				await str.PunishAsync(settings, message, Timers).CAF();
 			}
-			var regex = settings.BannedPhraseRegex.FirstOrDefault(x => RegexUtils.CheckIfRegexMatch(message.Content, x.Phrase));
+			var regex = settings.BannedPhraseRegex.FirstOrDefault(x => RegexUtils.IsMatch(message.Content, x.Phrase));
 			if (regex != null)
 			{
 				await regex.PunishAsync(settings, message, Timers).CAF();

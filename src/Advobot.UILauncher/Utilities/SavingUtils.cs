@@ -145,7 +145,7 @@ namespace Advobot.UILauncher.Utilities
 						value = text ?? "";
 						break;
 					case nameof(IBotSettings.Stream):
-						if (!RegexUtils.CheckIfInputIsAValidTwitchName(text))
+						if (!RegexUtils.IsValidTwitchName(text))
 						{
 							return false;
 						}

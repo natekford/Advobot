@@ -22,7 +22,7 @@ namespace Advobot.Core
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
 		public const int VIP_BITRATE = 128;
-		public const int MAX_MESSAGE_LENGTH_LONG = 2000; //Gives a little margin of error.
+		public const int MAX_MESSAGE_LENGTH = 2000; //Gives a little margin of error.
 		public const int MAX_VOICE_CHANNEL_USER_LIMIT = 99;
 		public const int MAX_STREAM_LENGTH = 25; //Source: https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/
 		public const int MIN_STREAM_LENGTH = 4;
@@ -120,7 +120,7 @@ namespace Advobot.Core
 		public const string BOT_ICON_LOC = "BotIcon" + IMAGE_FILE_EXTENSION;
 		public const string GUILD_ICON_LOC = "GuildIcon" + IMAGE_FILE_EXTENSION;
 		public const int SECONDS_DEFAULT = 3;
-		public const int TICKS_REGEX_TIMEOUT = 1000000;
+		public const int TICKS_REGEX_TIMEOUT = 5000;
 		public const int MIN_REGEX_LENGTH = 1;
 		public const int MAX_REGEX_LENGTH = 100;
 		public const int MIN_PREFIX_LENGTH = 1;

@@ -36,10 +36,10 @@ namespace Advobot.Commands.BanPhrases
 			}
 
 			//Test to make sure it doesn't match stuff it shouldn't
-			var matchesMessage = RegexUtils.CheckIfRegexMatch(testPhrase, regex);
-			var matchesEmpty = RegexUtils.CheckIfRegexMatch("", regex);
-			var matchesSpace = RegexUtils.CheckIfRegexMatch(" ", regex);
-			var matchesNewLine = RegexUtils.CheckIfRegexMatch(Environment.NewLine, regex);
+			var matchesMessage = RegexUtils.IsMatch(testPhrase, regex);
+			var matchesEmpty = RegexUtils.IsMatch("", regex);
+			var matchesSpace = RegexUtils.IsMatch(" ", regex);
+			var matchesNewLine = RegexUtils.IsMatch(Environment.NewLine, regex);
 			var randomMatchCount = 0;
 			for (var i = 0; i < 10; ++i)
 			{
@@ -49,7 +49,7 @@ namespace Advobot.Commands.BanPhrases
 				{
 					p.Append((char)r.Next(1, 10000));
 				}
-				if (RegexUtils.CheckIfRegexMatch(p.ToString(), regex))
+				if (RegexUtils.IsMatch(p.ToString(), regex))
 				{
 					++randomMatchCount;
 				}

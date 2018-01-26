@@ -34,7 +34,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			content = DiscordObjectFormatting.FormatMessageContent(guild, content);
-			return content.Length < Constants.MAX_MESSAGE_LENGTH_LONG
+			return content.Length < Constants.MAX_MESSAGE_LENGTH
 				? await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content).CAF()
 				: await SendTextFileAsync(channel, content, "Long_Message_", LONG).CAF();
 		}

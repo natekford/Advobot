@@ -81,7 +81,7 @@ namespace Advobot.Commands.BotSettings
 			[Command(nameof(IBotSettings.Stream)), ShortAlias(nameof(IBotSettings.Stream))]
 			public async Task CommandStream([VerifyStringLength(Target.Stream)] string stream)
 			{
-				if (!RegexUtils.CheckIfInputIsAValidTwitchName(stream))
+				if (!RegexUtils.IsValidTwitchName(stream))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{stream}` is not a valid Twitch stream name.")).CAF();
 					return;
