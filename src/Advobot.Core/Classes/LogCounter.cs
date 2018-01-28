@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,7 +11,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Used in logging. Holds the name of what is being logged and the count.
 	/// </summary>
-	public class LogCounter : INotifyPropertyChanged
+	public sealed class LogCounter : INotifyPropertyChanged
 	{
 		public string Title { get; private set; }
 		private int _Count;
@@ -71,8 +72,9 @@ namespace Advobot.Core.Classes
 				var sb = new StringBuilder();
 				foreach (var tc in titlesAndCount)
 				{
-					var str = GeneralFormatting.FormatStringsWithLength(tc.Title, tc.Count, rightSpacing, leftSpacing);
-					sb.AppendLineFeed(str);
+					var str1 = tc.Title.ToString().PadRight(Math.Max(rightSpacing, 0));
+					var str2 = tc.Count.ToString().PadLeft(Math.Max(leftSpacing, 0));
+					sb.AppendLineFeed($"{str1}{str2}");
 				}
 				return sb.ToString();
 			}

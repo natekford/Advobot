@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using Advobot.Core;
+﻿using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.GuildSettings;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Advobot.Commands.SelfRoles
 {
@@ -23,7 +23,7 @@ namespace Advobot.Commands.SelfRoles
 		"Add and Remove modify a single role in a group.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifySelfRoles : AdvobotSavingModuleBase
+	public sealed class ModifySelfRoles : SavingModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(uint groupNumber)
@@ -146,7 +146,7 @@ namespace Advobot.Commands.SelfRoles
 			var notModified = rolesNotModified.Any()
 				? $"Failed to {actionName} the following role(s): `{String.Join("`, `", rolesNotModified.Select(x => x.Format()))}`."
 				: null;
-			var resp = GeneralFormatting.JoinNonNullStrings(" ", modified, notModified);
+			var resp = new[] { modified, notModified }.JoinNonNullStrings(" ");
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -155,7 +155,7 @@ namespace Advobot.Commands.SelfRoles
 	[Summary("Gives or takes a role depending on if the user has it already. " +
 		"Removes all other roles in the same group unless the group is `0`.")]
 	[DefaultEnabled(false)]
-	public sealed class AssignSelfRole : AdvobotModuleBase
+	public sealed class AssignSelfRole : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command(SocketRole role)
@@ -199,7 +199,7 @@ namespace Advobot.Commands.SelfRoles
 	[Summary("Shows the current group numbers that exists on the guild. " +
 		"If a number is input then it shows the roles in that group.")]
 	[DefaultEnabled(false)]
-	public sealed class DisplaySelfRoles : AdvobotModuleBase
+	public sealed class DisplaySelfRoles : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command()

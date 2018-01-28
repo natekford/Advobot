@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Core.Classes.GuildSettings
+namespace Advobot.Core.Classes.Settings
 {
 	/// <summary>
 	/// Holds a name and description.

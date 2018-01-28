@@ -10,6 +10,10 @@ namespace Advobot.Core.Interfaces
 		IBotSettings BotSettings { get; }
 		IGuildSettings GuildSettings { get; }
 		ILogService Logging { get; }
+		IInviteListService InviteList { get; }
 		ITimersService Timers { get; }
+		long ElapsedMilliseconds { get; }
+
+		string GetPrefix();
 	}
 }

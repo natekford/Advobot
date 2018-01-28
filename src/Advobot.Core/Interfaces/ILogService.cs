@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Discord;
 using Discord.WebSocket;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Interfaces
 {
@@ -11,7 +10,6 @@ namespace Advobot.Core.Interfaces
 	/// </summary>
 	public interface ILogService
 	{
-		List<LoggedCommand> RanCommands { get; }
 		LogCounter TotalUsers { get; }
 		LogCounter TotalGuilds { get; }
 		LogCounter AttemptedCommands { get; }

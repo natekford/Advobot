@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Services.Log.Loggers;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Linq;
 
 namespace Advobot.Core.Services.Log
 {
@@ -23,7 +22,6 @@ namespace Advobot.Core.Services.Log
 		private LogCounter[] _LoggedMessageActions;
 		private LogCounter[] _LoggedAttachments;
 
-		public List<LoggedCommand> RanCommands { get; private set; } = new List<LoggedCommand>();
 		public LogCounter TotalUsers { get; private set; } = new LogCounter();
 		public LogCounter TotalGuilds { get; private set; } = new LogCounter();
 		public LogCounter AttemptedCommands { get; private set; } = new LogCounter();

@@ -26,12 +26,12 @@ namespace Advobot.Core.Classes
 		public HelpEntryHolder()
 		{
 			var types = Constants.CommandAssemblies.SelectMany(x => x.GetTypes());
-			var commands = types.Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
+			var commands = types.Where(x => x.IsSubclassOf(typeof(NonSavingModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
 			if (!commands.Any())
 			{
 				var assemblyNames = String.Join(", ", Constants.CommandAssemblies.Select(x => x.GetName().Name));
-				ConsoleUtils.WriteLine($"The following assemblies have no commands: '{assemblyNames}'. Press any key to close the program.");
-				Console.ReadKey();
+				ConsoleUtils.WriteLine($"The following assemblies have no commands: '{assemblyNames}'.");
+				Console.Read();
 				throw new TypeLoadException($"The following assemblies have no commands: '{assemblyNames}'.");
 			}
 
@@ -71,7 +71,7 @@ namespace Advobot.Core.Classes
 				VerifyShortAliasAttribute(t);
 #endif
 
-				var helpEntry = new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", permReqs, otherReqs),
+				var helpEntry = new HelpEntry(name, usage, new[] { permReqs, otherReqs }.JoinNonNullStrings(" | "),
 					summary, aliases, category, defaultEnabled, unableToBeTurnedOff);
 				_NameMap.Add(name.ToLower(), name);
 				foreach (var alias in aliases ?? new string[0])

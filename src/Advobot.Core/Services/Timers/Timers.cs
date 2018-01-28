@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Timers;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.CloseWords;
-using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.Punishments;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Timers;
 
 namespace Advobot.Core.Services.Timers
 {

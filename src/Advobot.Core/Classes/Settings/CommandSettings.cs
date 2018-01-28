@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
 
-namespace Advobot.Core.Classes.GuildSettings
+namespace Advobot.Core.Classes.Settings
 {
 	/// <summary>
 	/// Holds the settings for commands on a guild in the bot.
@@ -33,6 +33,8 @@ namespace Advobot.Core.Classes.GuildSettings
 			_OverrideDict.Add(CommandOverrideTarget.Channel, _ChannelOverrides);
 			_OverrideDict.Add(CommandOverrideTarget.Role, _RoleOverrides);
 			_OverrideDict.Add(CommandOverrideTarget.User, _UserOverrides);
+
+			OnDeserialized(new StreamingContext());
 		}
 
 		/// <summary>

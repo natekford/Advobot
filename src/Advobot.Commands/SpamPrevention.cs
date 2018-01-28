@@ -1,6 +1,6 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.GuildSettings;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord.Commands;
@@ -18,7 +18,7 @@ namespace Advobot.Commands.SpamPrevention
 		"`Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventSpam : AdvobotSavingModuleBase
+	public sealed class PreventSpam : SavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -81,7 +81,7 @@ namespace Advobot.Commands.SpamPrevention
 		"`Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventRaid : AdvobotSavingModuleBase
+	public sealed class PreventRaid : SavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()

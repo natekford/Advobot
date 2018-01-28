@@ -23,10 +23,10 @@ namespace Advobot.Commands.BotSettings
 		"Cannot modify settings through this command if they are lists.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotSettings : AdvobotSavingModuleBase
+	public sealed class ModifyBotSettings : SavingModuleBase
 	{
 		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]
-		public sealed class Modify : AdvobotSavingModuleBase
+		public sealed class Modify : SavingModuleBase
 		{
 			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task CommandShardCount(uint shardCount)
@@ -107,7 +107,7 @@ namespace Advobot.Commands.BotSettings
 			}
 		}
 		[Group(nameof(Clear)), ShortAlias(nameof(Clear))]
-		public sealed class Clear : AdvobotSavingModuleBase
+		public sealed class Clear : SavingModuleBase
 		{
 			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task CommandShardCount()
@@ -180,7 +180,7 @@ namespace Advobot.Commands.BotSettings
 		"`Show` gives a list of the setting names.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayBotSettings : AdvobotModuleBase
+	public sealed class DisplayBotSettings : NonSavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -222,7 +222,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Changes the bot's name to the given name.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotName : AdvobotModuleBase
+	public sealed class ModifyBotName : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Name)] string newName)
@@ -238,7 +238,7 @@ namespace Advobot.Commands.BotSettings
 		"Inputting nothing removes the bot's icon.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotIcon : AdvobotModuleBase
+	public sealed class ModifyBotIcon : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, Remainder] string url)
@@ -275,7 +275,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Resets bot key, bot id, save path.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ResetBotConfig : AdvobotModuleBase
+	public sealed class ResetBotConfig : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -293,7 +293,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Removes the currently used bot's key so that a different bot can be used instead.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ResetBotKey : AdvobotModuleBase
+	public sealed class ResetBotKey : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -309,7 +309,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Turns the bot off.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class DisconnectBot : AdvobotModuleBase
+	public sealed class DisconnectBot : NonSavingModuleBase
 	{
 		[Command]
 		public Task Command()
@@ -323,7 +323,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Restarts the bot.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class RestartBot : AdvobotModuleBase
+	public sealed class RestartBot : NonSavingModuleBase
 	{
 		[Command]
 		public Task Command()

@@ -19,7 +19,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 		"If left blank will provide general help.")]
 	[DefaultEnabled(true, false)]
-	public sealed class Help : AdvobotModuleBase
+	public sealed class Help : NonSavingModuleBase
 	{
 		private static string _GeneralHelp =
 			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)}` for the list of commands.\n" +
@@ -69,7 +69,7 @@ namespace Advobot.Commands.Miscellaneous
 			var closeHelps = new CloseHelpEntries(commandName);
 			if (closeHelps.List.Any())
 			{
-				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name)}";
+				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList(x => x.Word.Name)}";
 				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
 				await Context.Timers.AddAsync(Context.User as IGuildUser, msg, closeHelps).CAF();
 				return;
@@ -83,7 +83,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Prints out the commands in that category of the command list. " +
 		"Inputting nothing will list the command categories.")]
 	[DefaultEnabled(true)]
-	public sealed class Commands : AdvobotModuleBase
+	public sealed class Commands : NonSavingModuleBase
 	{
 		private static string _Command = $"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)} [Category]` for commands from that category.\n\n";
 		private static string _Categories = $"`{String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))}`";
@@ -127,7 +127,7 @@ namespace Advobot.Commands.Miscellaneous
 		"Each must be formatted like the following: `" + CustomEmbed.FORMAT + "`.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class MakeAnEmbed : AdvobotModuleBase
+	public sealed class MakeAnEmbed : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder] NamedArguments<CustomEmbed> arguments)
@@ -141,7 +141,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Mention an unmentionable role with the given message.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class MessageRole : AdvobotModuleBase
+	public sealed class MessageRole : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string message)
@@ -166,7 +166,7 @@ namespace Advobot.Commands.Miscellaneous
 		"Messages will be cut down to 250 characters.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
-	public sealed class MessageBotOwner : AdvobotModuleBase
+	public sealed class MessageBotOwner : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder] string message)
@@ -192,7 +192,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Sends a message to the person who said the command after the passed in time is up. " +
 		"Potentially may take one minute longer than asked for if the command is input at certain times.")]
 	[DefaultEnabled(true)]
-	public sealed class SendTimedMessage : AdvobotModuleBase
+	public sealed class SendTimedMessage : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyNumber(1, 10000)] uint minutes, [Remainder] string message)
@@ -206,7 +206,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Mostly just makes the bot say test.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class Test : AdvobotModuleBase
+	public sealed class Test : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command()

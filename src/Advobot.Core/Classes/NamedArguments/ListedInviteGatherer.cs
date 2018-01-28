@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.GuildSettings;
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Advobot.Core.Classes.NamedArguments
 {

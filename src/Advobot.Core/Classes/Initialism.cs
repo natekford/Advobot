@@ -10,16 +10,16 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Creates an initialism out of the passed in name. Keeps track of the parts and original.
 	/// </summary>
-	public class Initialism
+	public sealed class Initialism
 	{
 		private static Dictionary<string, string> _ShortenedPhrases = new Dictionary<string, string>
 		{
 			{ "clear", "clr" }
 		};
 
-		public string Original { get; private set; }
+		public string Original { get; }
 		public string Edited { get; private set; }
-		public ImmutableList<string> Parts { get; private set; }
+		public ImmutableList<string> Parts { get; }
 		public ImmutableList<string> Aliases => _OtherAliases.Concat(new[] { Edited }).ToImmutableList();
 		private string[] _OtherAliases;
 

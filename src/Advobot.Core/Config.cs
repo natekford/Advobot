@@ -28,7 +28,7 @@ namespace Advobot.Core
 		[JsonProperty("Config")]
 		public static ConfigDict Configuration = LoadConfigDictionary();
 		[JsonIgnore]
-		private static Type _GuildSettingsType = typeof(AdvobotGuildSettings);
+		private static Type _GuildSettingsType = typeof(GuildSettings);
 		/// <summary>
 		/// The explicit guild settings type to create or deserialize.
 		/// </summary>
@@ -46,7 +46,7 @@ namespace Advobot.Core
 			}
 		}
 		[JsonIgnore]
-		private static Type _BotSettingsType = typeof(AdvobotBotSettings);
+		private static Type _BotSettingsType = typeof(BotSettings);
 		/// <summary>
 		/// The explicit bot settings type to create or deserialize.
 		/// </summary>

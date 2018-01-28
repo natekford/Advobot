@@ -190,7 +190,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null)).CAF();
-			return EnumUtils.GetNamesFromEnum((GuildPermission)changeValue);
+			return EnumUtils.GetFlagNames((GuildPermission)changeValue);
 		}
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.

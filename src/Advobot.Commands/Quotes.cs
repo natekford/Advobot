@@ -1,16 +1,16 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Advobot.Core;
+﻿using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
-using Advobot.Core.Classes.GuildSettings;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Advobot.Commands.Quotes
 {
@@ -18,7 +18,7 @@ namespace Advobot.Commands.Quotes
 	[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyQuotes : AdvobotSavingModuleBase
+	public sealed class ModifyQuotes : SavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(string name, [Remainder] string text)
@@ -70,7 +70,7 @@ namespace Advobot.Commands.Quotes
 	[Summary("Shows the content for the given quote. " +
 		"If nothing is input, then shows the list of the current quotes.")]
 	[DefaultEnabled(false)]
-	public sealed class SayQuote : AdvobotModuleBase
+	public sealed class SayQuote : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([Optional, Remainder] string name)
@@ -103,7 +103,7 @@ namespace Advobot.Commands.Quotes
 			var closeQuotes = new CloseQuotes(Context.GuildSettings, name);
 			if (closeQuotes.List.Any())
 			{
-				var text = $"Did you mean any of the following:\n{closeQuotes.List.FormatNumberedList("{0}", x => x.Word.Name)}";
+				var text = $"Did you mean any of the following:\n{closeQuotes.List.FormatNumberedList(x => x.Word.Name)}";
 				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
 				await Context.Timers.AddAsync(Context.User as IGuildUser, msg, closeQuotes).CAF();
 				return;

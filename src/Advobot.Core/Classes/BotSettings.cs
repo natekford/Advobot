@@ -18,7 +18,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Holds settings for the bot. Settings are saved through property setters or calling <see cref="SaveSettings()"/>.
 	/// </summary>
-	public sealed class AdvobotBotSettings : IBotSettings, INotifyPropertyChanged
+	internal sealed class BotSettings : IBotSettings, INotifyPropertyChanged
 	{
 		#region Fields and Properties
 		[JsonProperty("TrustedUsers")]
@@ -172,7 +172,7 @@ namespace Advobot.Core.Classes
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		public AdvobotBotSettings()
+		public BotSettings()
 		{
 			PropertyChanged += SaveSettings;
 		}

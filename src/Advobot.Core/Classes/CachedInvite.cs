@@ -5,7 +5,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Holds the code and uses of an invite.
 	/// </summary>
-	public class CachedInvite
+	public sealed class CachedInvite
 	{
 		public string Code { get; }
 		private int _Uses;

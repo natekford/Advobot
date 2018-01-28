@@ -1,6 +1,8 @@
-﻿using Advobot.Commands;
-using Advobot.Core;
+﻿using Advobot.Core;
+using Advobot.Core.Classes;
 using Advobot.Core.Utilities;
+using Discord;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -23,7 +25,8 @@ namespace Advobot.ConsoleLauncher
 			}
 
 			var provider = await CreationUtils.CreateServiceProvider().CAF();
-			var client = CommandHandler.Install(provider);
+			var commandHandler = new CommandHandler(provider);
+			var client = provider.GetService<IDiscordClient>();
 
 			//Get the bot key
 			var botKey = true;

@@ -1,14 +1,14 @@
-﻿using System;
-using System.Threading.Tasks;
-using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System;
+using System.Threading.Tasks;
 
-namespace Advobot.Core.Classes.GuildSettings
+namespace Advobot.Core.Classes.Settings
 {
 	/// <summary>
 	/// Notification that gets sent whenever certain events happen depending on what is linked to this notification.

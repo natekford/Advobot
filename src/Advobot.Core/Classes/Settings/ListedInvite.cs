@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace Advobot.Core.Classes.GuildSettings
+namespace Advobot.Core.Classes.Settings
 {
 	/// <summary>
 	/// Lists an invite for use in <see cref="IInviteListService"/>.

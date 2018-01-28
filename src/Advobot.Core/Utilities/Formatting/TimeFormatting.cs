@@ -15,7 +15,7 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string Uptime()
 		{
-			var span = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime());
+			var span = DateTime.UtcNow - Process.GetCurrentProcess().StartTime.ToUniversalTime();
 			return $"{span.Days}:{span.Hours:00}:{span.Minutes:00}:{span.Seconds:00}";
 		}
 		/// <summary>
@@ -44,9 +44,8 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string CreatedAt(this DateTime dt)
 		{
-			var time = Readable(dt);
-			var diff = DateTime.UtcNow.Subtract(dt).Days;
-			return $"**Created:** `{time}` (`{diff}` days ago)";
+			var diff = DateTime.UtcNow.Subtract(dt).TotalDays;
+			return $"**Created:** `{Readable(dt)}` (`{diff:0.00}` days ago)";
 		}
 	}
 }

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Core.Classes.Punishments;
+﻿using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
@@ -8,8 +6,10 @@ using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace Advobot.Core.Classes.GuildSettings
+namespace Advobot.Core.Classes.Settings
 {
 	/// <summary>
 	/// Holds a phrase and punishment.

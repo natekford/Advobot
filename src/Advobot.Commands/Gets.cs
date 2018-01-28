@@ -20,7 +20,7 @@ namespace Advobot.Commands.Gets
 	[Summary("Shows the ID of the given object. " +
 	"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
-	public sealed class GetId : AdvobotModuleBase
+	public sealed class GetId : NonSavingModuleBase
 	{
 		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
 		public async Task Bot()
@@ -58,7 +58,7 @@ namespace Advobot.Commands.Gets
 	[Summary("Shows information about the given object. " +
 		"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
-	public sealed class GetInfo : AdvobotModuleBase
+	public sealed class GetInfo : NonSavingModuleBase
 	{
 		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
 		public async Task Bot()
@@ -119,7 +119,7 @@ namespace Advobot.Commands.Gets
 		"`Exact` specifies if only exact matches apply.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class GetUsersWithReason : AdvobotModuleBase
+	public sealed class GetUsersWithReason : NonSavingModuleBase
 	{
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
 		public async Task Role(IRole role, params SearchOptions[] additionalSearchOptions)
@@ -185,7 +185,7 @@ namespace Advobot.Commands.Gets
 
 			var desc = count
 				? $"**Count:** `{users.Count()}`"
-				: users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.Format());
+				: users.OrderBy(x => x.JoinedAt).FormatNumberedList(x => x.Format());
 			var embed = new EmbedWrapper
 			{
 				Title = title,
@@ -205,7 +205,7 @@ namespace Advobot.Commands.Gets
 	[Group(nameof(GetUserAvatar)), TopLevelShortAlias(typeof(GetUserAvatar))]
 	[Summary("Shows the URL of the given user's avatar. Must supply a format, can supply a size, and can specify which user.")]
 	[DefaultEnabled(true)]
-	public sealed class GetUserAvatar : AdvobotModuleBase
+	public sealed class GetUserAvatar : NonSavingModuleBase
 	{
 		[Command, Priority(0)]
 		public async Task Command(ImageFormat format, [Optional] IUser user, [Optional] ushort size)
@@ -223,7 +223,7 @@ namespace Advobot.Commands.Gets
 	[Summary("Shows the user which joined the guild in that position.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class GetUserJoinedAt : AdvobotModuleBase
+	public sealed class GetUserJoinedAt : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command(uint position)
@@ -241,7 +241,7 @@ namespace Advobot.Commands.Gets
 	[Summary("Lists the name, id, and owner of every guild the bot is on.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class GetGuilds : AdvobotModuleBase
+	public sealed class GetGuilds : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
@@ -263,7 +263,7 @@ namespace Advobot.Commands.Gets
 			else
 			{
 				var guildsAndOwners = await Task.WhenAll(guilds.Select(async x => (Guild: x, Owner: await x.GetOwnerAsync().CAF())));
-				var desc = guildsAndOwners.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Guild.Format(), x => x.Owner.Format());
+				var desc = guildsAndOwners.FormatNumberedList(x => $"`{x.Guild.Format()}` Owner: `{x.Owner.Format()}`");
 				var embed = new EmbedWrapper
 				{
 					Title = "Guilds",
@@ -278,15 +278,13 @@ namespace Advobot.Commands.Gets
 	[Summary("Lists most of the users who have joined the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class GetUserJoinList : AdvobotModuleBase
+	public sealed class GetUserJoinList : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
 		{
 			var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).ToArray();
-			var text = users.FormatNumberedList("`{0}` joined on `{1}`",
-				x => x.Format(),
-				x => x.JoinedAt?.UtcDateTime.Readable());
+			var text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.Readable()}`");
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "User_Joins_").CAF();
 		}
 	}
@@ -295,14 +293,14 @@ namespace Advobot.Commands.Gets
 	[Summary("Lists the emotes in the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class GetEmotes : AdvobotModuleBase
+	public sealed class GetEmotes : NonSavingModuleBase
 	{
 		[Command(nameof(Managed)), ShortAlias(nameof(Managed))]
 		public async Task Managed()
 		{
 			var emotes = Context.Guild.Emotes.Where(x => x.IsManaged).ToList();
 			var desc = emotes.Any()
-				? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name)
+				? emotes.FormatNumberedList(x => $"<:{x.Name}:{x.Id}> `{x.Name}`")
 				: $"This guild has no global emotes.";
 			var embed = new EmbedWrapper
 			{
@@ -316,7 +314,7 @@ namespace Advobot.Commands.Gets
 		{
 			var emotes = Context.Guild.Emotes.Where(x => !x.IsManaged).ToList();
 			var desc = emotes.Any()
-				? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name)
+				? emotes.FormatNumberedList(x => $"<:{x.Name}:{x.Id}> `{x.Name}`")
 				: $"This guild has no guild emotes.";
 			var embed = new EmbedWrapper
 			{
@@ -332,7 +330,7 @@ namespace Advobot.Commands.Gets
 		"Up to 1000 messages or 500KB worth of formatted text.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
-	public sealed class GetMessages : AdvobotModuleBase
+	public sealed class GetMessages : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(int number, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] ITextChannel channel)
@@ -364,12 +362,12 @@ namespace Advobot.Commands.Gets
 	[Summary("Lists all the perms that come from the given value.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class GetPermNamesFromValue : AdvobotModuleBase
+	public sealed class GetPermNamesFromValue : NonSavingModuleBase
 	{
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild(ulong number)
 		{
-			var perms = EnumUtils.GetNamesFromEnum((GuildPermission)number);
+			var perms = EnumUtils.GetFlagNames((GuildPermission)number);
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
@@ -383,7 +381,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel(ulong number)
 		{
-			var perms = EnumUtils.GetNamesFromEnum((ChannelPermission)number);
+			var perms = EnumUtils.GetFlagNames((ChannelPermission)number);
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
@@ -400,7 +398,7 @@ namespace Advobot.Commands.Gets
 	[Summary("Prints out all the options of an enum.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class GetEnumNames : AdvobotModuleBase
+	public sealed class GetEnumNames : NonSavingModuleBase
 	{
 		private static ImmutableList<Type> _Enums = SetEnums();
 
@@ -442,7 +440,7 @@ namespace Advobot.Commands.Gets
 		public static ImmutableList<Type> SetEnums()
 		{
 			var discEnums = Assembly.GetAssembly(typeof(CommandService)).GetTypes().Where(x => x.IsEnum);
-			var advoEnums = Assembly.GetAssembly(typeof(AdvobotModuleBase)).GetTypes().Where(x => x.IsEnum);
+			var advoEnums = Assembly.GetAssembly(typeof(ModuleBase)).GetTypes().Where(x => x.IsEnum);
 			return discEnums.Concat(advoEnums).Distinct().Where(x => x.Name != null).ToImmutableList();
 		}
 	}

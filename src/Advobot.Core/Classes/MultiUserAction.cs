@@ -1,15 +1,13 @@
-﻿using System;
+﻿using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Discord;
+using Discord.Commands;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Advobot.Core.Classes
 {
@@ -36,11 +34,6 @@ namespace Advobot.Core.Classes
 			_Context = context;
 			_Timers = timers;
 			_Users = users.ToList();
-
-			if (new Random().NextDouble() > .997)
-			{
-				ConsoleUtils.WriteLine("Multi-user drifting!!");
-			}
 		}
 
 		public async Task TakeRolesAsync(IRole role, ModerationReason reason)

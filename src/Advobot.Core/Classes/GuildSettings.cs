@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Advobot.Core.Classes.GuildSettings;
-using Advobot.Core.Classes.Rules;
+﻿using Advobot.Core.Classes.Rules;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
@@ -14,13 +7,20 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.
 	/// </summary>
-	public sealed class AdvobotGuildSettings : IGuildSettings
+	internal sealed class GuildSettings : IGuildSettings
 	{
 		#region Fields and Properties
 		[JsonProperty("WelcomeMessage")]

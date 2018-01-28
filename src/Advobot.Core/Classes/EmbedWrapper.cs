@@ -14,7 +14,7 @@ namespace Advobot.Core.Classes
 	/// Wrapper class for <see cref="EmbedBuilder"/>.
 	/// Allows for preemptive error checking and error swallowing.
 	/// </summary>
-	public class EmbedWrapper
+	public sealed class EmbedWrapper
 	{
 		public const int MAX_DESCRIPTION_LINES = 20;
 		public const int MAX_FIELD_LINES = 5;

@@ -16,6 +16,21 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class OtherRequirementAttribute : PreconditionAttribute
 	{
+		private const GuildPermission USER_HAS_A_PERMISSION_PERMS = 0
+			| GuildPermission.Administrator
+			| GuildPermission.BanMembers
+			| GuildPermission.DeafenMembers
+			| GuildPermission.KickMembers
+			| GuildPermission.ManageChannels
+			| GuildPermission.ManageEmojis
+			| GuildPermission.ManageGuild
+			| GuildPermission.ManageMessages
+			| GuildPermission.ManageNicknames
+			| GuildPermission.ManageRoles
+			| GuildPermission.ManageWebhooks
+			| GuildPermission.MoveMembers
+			| GuildPermission.MuteMembers;
+
 		public Precondition Requirements { get; }
 
 		public OtherRequirementAttribute(Precondition requirements)
@@ -41,7 +56,7 @@ namespace Advobot.Core.Classes.Attributes
 				var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 
 				var userPerms = guildBits | botBits;
-				if ((userPerms & (ulong)Constants.USER_HAS_A_PERMISSION_PERMS) != 0)
+				if ((userPerms & (ulong)USER_HAS_A_PERMISSION_PERMS) != 0)
 				{
 					return PreconditionResult.FromSuccess();
 				}

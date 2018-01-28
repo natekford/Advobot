@@ -63,7 +63,7 @@ namespace Advobot.Core.Classes.Attributes
 
 		public override string ToString()
 		{
-			return $"[{GeneralFormatting.JoinNonNullStrings(" | ", AllText, AnyText)}]";
+			return $"[{new[] { AllText, AnyText }.JoinNonNullStrings(" | ")}]";
 		}
 	}
 }

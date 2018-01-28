@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
-using Advobot.Core.Classes.GuildSettings;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Rules;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
 using Discord;
 using Discord.WebSocket;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Interfaces
 {

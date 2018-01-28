@@ -1,16 +1,18 @@
-﻿using System;
-using System.Threading.Tasks;
-using Advobot.Commands;
-using Advobot.Core;
+﻿using Advobot.Core;
+using Advobot.Core.Classes;
 using Advobot.Core.Utilities;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Threading.Tasks;
 
 namespace Advobot.UILauncher.Classes
 {
-	internal class LoginHandler : IServiceProvider
+	internal class LoginHandler
 	{
-		private IServiceProvider _Provider;
+		public IServiceProvider Provider { get; private set; }
+		public CommandHandler CommandHandler { get; private set; }
+
 		private bool _StartUp = true;
 		public bool GotPath { get; private set; }
 		public bool GotKey { get; private set; }
@@ -29,12 +31,12 @@ namespace Advobot.UILauncher.Classes
 				//Null means it's from the loaded event, which is start up so it's telling the bot to look up the config value
 				_StartUp = input == null;
 				//Set startup to whatever returned value is so it can be used in GotKey, and then after GotKey in the last if statement
-				_StartUp = GotPath = (_Provider = await GetPath(input, _StartUp)) != null;
+				_StartUp = GotPath = await GetPath(input, _StartUp);
 			}
 			else if (!GotKey)
 			{
 				_StartUp = input == null;
-				_StartUp = GotKey = await Config.ValidateBotKey(_Provider.GetRequiredService<IDiscordClient>(), input, _StartUp);
+				_StartUp = GotKey = await Config.ValidateBotKey(Provider.GetRequiredService<IDiscordClient>(), input, _StartUp);
 			}
 
 			var somethingWasSet = _StartUp;
@@ -45,24 +47,19 @@ namespace Advobot.UILauncher.Classes
 			}
 			return somethingWasSet;
 		}
-		private static async Task<IServiceProvider> GetPath(string path, bool startup)
+		private async Task<bool> GetPath(string path, bool startup)
 		{
 			if (Config.ValidatePath(path, startup))
 			{
-				var provider = await CreationUtils.CreateServiceProvider().CAF();
-				CommandHandler.Install(provider);
-				return provider;
+				Provider = await CreationUtils.CreateServiceProvider().CAF();
+				CommandHandler = new CommandHandler(Provider);
+				return true;
 			}
-			return null;
+			return false;
 		}
-		private static async Task<bool> GetKey(IDiscordClient client, string key, bool startup)
+		private async Task<bool> GetKey(IDiscordClient client, string key, bool startup)
 		{
 			return await Config.ValidateBotKey(client, key, startup);
-		}
-
-		public object GetService(Type serviceType)
-		{
-			return _Provider.GetService(serviceType);
 		}
 	}
 }

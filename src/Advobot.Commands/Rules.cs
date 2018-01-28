@@ -16,7 +16,7 @@ namespace Advobot.Commands.Rules
 	[Summary("Modifies the rule categories which hold rules.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyRuleCategories : AdvobotSavingModuleBase
+	public sealed class ModifyRuleCategories : SavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add([VerifyStringLength(Target.RuleCategory)] string name)
@@ -54,7 +54,7 @@ namespace Advobot.Commands.Rules
 	[Summary("Modifies the rules which are saved in the bot settings.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyRules : AdvobotSavingModuleBase
+	public sealed class ModifyRules : SavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(RuleCategory category, [VerifyStringLength(Target.Rule)] string rule)
@@ -92,7 +92,7 @@ namespace Advobot.Commands.Rules
 		"`FormatOptions` use the `" + nameof(RuleFormatOption) + "` enum.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
-	public sealed class PrintOutRules : AdvobotModuleBase
+	public sealed class PrintOutRules : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command(RuleCategory category, [Optional, Remainder] NamedArguments<RuleFormatter> formatter)

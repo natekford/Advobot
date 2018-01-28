@@ -1,11 +1,10 @@
-﻿using System;
-using Advobot.Core.Enums;
+﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System;
 
-namespace Advobot.Core.Classes.GuildSettings
+namespace Advobot.Core.Classes.Settings
 {
 	/// <summary>
 	/// Holds information about spam prevention, such as how much is considered spam, required spam instances, and votes to kick.

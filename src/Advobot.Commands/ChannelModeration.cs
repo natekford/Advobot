@@ -22,7 +22,7 @@ namespace Advobot.Commands.ChannelModeration
 		"Text channel names cannot contain any spaces.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class CreateChannel : AdvobotModuleBase
+	public sealed class CreateChannel : NonSavingModuleBase
 	{
 		[Command(nameof(Text)), ShortAlias(nameof(Text))]
 		public async Task Text([Remainder, VerifyStringLength(Target.Channel)] string name)
@@ -54,7 +54,7 @@ namespace Advobot.Commands.ChannelModeration
 	[Summary("Makes everyone unable to see the channel and moves it to the bottom of the channel list.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
-	public sealed class SoftDeleteChannel : AdvobotModuleBase
+	public sealed class SoftDeleteChannel : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel)
@@ -68,7 +68,7 @@ namespace Advobot.Commands.ChannelModeration
 	[Summary("Deletes the channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteChannel : AdvobotModuleBase
+	public sealed class DeleteChannel : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel)
@@ -83,7 +83,7 @@ namespace Advobot.Commands.ChannelModeration
 		"Position zero is the top most position.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyChannelPosition : AdvobotModuleBase
+	public sealed class ModifyChannelPosition : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command(SocketGuildChannel channel)
@@ -104,7 +104,7 @@ namespace Advobot.Commands.ChannelModeration
 	[Summary("Lists the positions of each text or voice channel on the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayChannelPosition : AdvobotModuleBase
+	public sealed class DisplayChannelPosition : NonSavingModuleBase
 	{
 		[Command(nameof(Text)), ShortAlias(nameof(Text))]
 		public async Task Text(ChannelType channelType)
@@ -140,10 +140,10 @@ namespace Advobot.Commands.ChannelModeration
 		"Type `" + nameof(ModifyChannelPerms) + " [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
-	public sealed class ModifyChannelPerms : AdvobotModuleBase
+	public sealed class ModifyChannelPerms : NonSavingModuleBase
 	{
 		[Group(nameof(Show)), ShortAlias(nameof(Show))]
-		public sealed class Show : AdvobotModuleBase
+		public sealed class Show : NonSavingModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -252,7 +252,7 @@ namespace Advobot.Commands.ChannelModeration
 		"If nothing is specified, copies everything.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
-	public sealed class CopyChannelPerms : AdvobotModuleBase
+	public sealed class CopyChannelPerms : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
@@ -333,7 +333,7 @@ namespace Advobot.Commands.ChannelModeration
 	[Summary("Removes all permissions set on a channel.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
-	public sealed class ClearChannelPerms : AdvobotModuleBase
+	public sealed class ClearChannelPerms : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel)
@@ -348,7 +348,7 @@ namespace Advobot.Commands.ChannelModeration
 	[Summary("Toggles the NSFW option on a channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyChannelNsfw : AdvobotModuleBase
+	public sealed class ModifyChannelNsfw : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] ITextChannel channel)
@@ -364,7 +364,7 @@ namespace Advobot.Commands.ChannelModeration
 	[Summary("Changes the name of the channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyChannelName : AdvobotModuleBase
+	public sealed class ModifyChannelName : NonSavingModuleBase
 	{
 		[Command, Priority(1)]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel,
@@ -436,7 +436,7 @@ namespace Advobot.Commands.ChannelModeration
 		"Clears the topic if nothing is input")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyChannelTopic : AdvobotModuleBase
+	public sealed class ModifyChannelTopic : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] ITextChannel channel,
@@ -454,7 +454,7 @@ namespace Advobot.Commands.ChannelModeration
 		"The limit ranges from 0 (no limit) to 99.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyChannelLimit : AdvobotModuleBase
+	public sealed class ModifyChannelLimit : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint limit)
@@ -476,7 +476,7 @@ namespace Advobot.Commands.ChannelModeration
 		"Lowest is 8, highest is 96 (unless on a partnered guild, then it goes up to 128), default is 64.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyChannelBitRate : AdvobotModuleBase
+	public sealed class ModifyChannelBitRate : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint bitrate)

@@ -1,11 +1,10 @@
 ﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Core.Classes.GuildSettings
+namespace Advobot.Core.Classes.Settings
 {
 	/// <summary>
 	/// Holds a variety of information which allows a punishment to be given for <see cref="BannedPhrase"/>.

@@ -6,7 +6,10 @@ using Discord;
 
 namespace Advobot.Core.Classes
 {
-	public class TimedMessage : ITime
+	/// <summary>
+	/// Sends a message to the author after the time has passed.
+	/// </summary>
+	public struct TimedMessage : ITime
     {
 		public IGuildUser Author { get; }
 		public DateTime Time { get; }

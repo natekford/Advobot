@@ -18,7 +18,7 @@ namespace Advobot.Commands.InviteModeration
 	[Summary("Gives a list of all the instant invites on the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayInvites : AdvobotModuleBase
+	public sealed class DisplayInvites : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -32,10 +32,13 @@ namespace Advobot.Commands.InviteModeration
 
 			var lenForCode = invites.Max(x => x.Code.Length);
 			var lenForUses = invites.Max(x => x.Uses).ToString().Length;
-			var desc = String.Join("\n", invites.FormatNumberedList("`{0}` `{1}` `{2}`",
-				x => x.Code.PadRight(lenForCode),
-				x => x.Uses.ToString().PadRight(lenForUses),
-				x => x.Inviter.Format()));
+			var desc = String.Join("\n", invites.FormatNumberedList(x =>
+			{
+				var code = x.Code.PadRight(lenForCode);
+				var uses = x.Uses.ToString().PadRight(lenForUses);
+				var inviter = x.Inviter.Format();
+				return $"`{code}` `{uses}` `{inviter}`";
+			}));
 			var embed = new EmbedWrapper
 			{
 				Title = "Instant Invite List",
@@ -52,7 +55,7 @@ namespace Advobot.Commands.InviteModeration
 		"Temp membership means when the user goes offline they get kicked.")]
 	[PermissionRequirement(new[] { GuildPermission.CreateInstantInvite }, null)]
 	[DefaultEnabled(true)]
-	public sealed class CreateInvite : AdvobotModuleBase
+	public sealed class CreateInvite : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(true, ObjectVerification.CanCreateInstantInvite)] IGuildChannel channel,
@@ -73,7 +76,7 @@ namespace Advobot.Commands.InviteModeration
 			var tempOutputStr = tempMem 
 				? "Users will be kicked when they go offline unless they get a role." 
 				: "Users will not be kicked when they go offline and do not have a role.";
-			var joined = GeneralFormatting.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr);
+			var joined = new[] { inv.Url, timeOutputStr, usesOutputStr, tempOutputStr }.JoinNonNullStrings("\n");
 			var resp = $"Here is your invite for `{channel.Format()}`: {joined}";
 			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
@@ -83,7 +86,7 @@ namespace Advobot.Commands.InviteModeration
 	[Summary("Deletes the invite with the given code.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteInvite : AdvobotModuleBase
+	public sealed class DeleteInvite : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command(IInvite invite)
@@ -99,7 +102,7 @@ namespace Advobot.Commands.InviteModeration
 		"IsTemporary, NeverExpires, and NoMaxUses are either `True`, or `False`.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteMultipleInvites : AdvobotModuleBase
+	public sealed class DeleteMultipleInvites : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Remainder] NamedArguments<MultipleInviteGatherer> gatherer)

@@ -1,15 +1,15 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.GuildSettings;
 using Advobot.Core.Classes.NamedArguments;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildList
 {
@@ -17,7 +17,7 @@ namespace Advobot.Commands.GuildList
 	[Summary("Adds or removes a guild from the public guild list.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyGuildListing : AdvobotSavingModuleBase
+	public sealed class ModifyGuildListing : SavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(IInvite invite, [Optional] params string[] keywords)
@@ -56,7 +56,7 @@ namespace Advobot.Commands.GuildList
 	[Summary("Bumps the invite on the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
-	public sealed class BumpGuildListing : AdvobotModuleBase
+	public sealed class BumpGuildListing : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -81,7 +81,7 @@ namespace Advobot.Commands.GuildList
 	[Group(nameof(GetGuildListing)), TopLevelShortAlias(typeof(GetGuildListing))]
 	[Summary("Gets an invite meeting the given criteria.")]
 	[DefaultEnabled(true)]
-	public sealed class GetGuildListing : AdvobotModuleBase
+	public sealed class GetGuildListing : NonSavingModuleBase
 	{
 		private static string _GHeader = "Guild Name".PadRight(25);
 		private static string _UHeader = "URL".PadRight(35);

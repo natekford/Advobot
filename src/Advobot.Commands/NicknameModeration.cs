@@ -18,7 +18,7 @@ namespace Advobot.Commands.NicknameModeration
 		"Inputting no nickname resets their nickname.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyNickName : AdvobotModuleBase
+	public sealed class ModifyNickName : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketGuildUser user,
@@ -37,7 +37,7 @@ namespace Advobot.Commands.NicknameModeration
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ReplaceWordsInNames : AdvobotModuleBase
+	public sealed class ReplaceWordsInNames : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([VerifyStringLength(Target.Nickname)] string search,
@@ -58,7 +58,7 @@ namespace Advobot.Commands.NicknameModeration
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ReplaceByUtf16 : AdvobotModuleBase
+	public sealed class ReplaceByUtf16 : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(uint upperLimit,
@@ -67,8 +67,8 @@ namespace Advobot.Commands.NicknameModeration
 		{
 			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF()).Where(x =>
 			{
-				return (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit))
-				|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit));
+				return (x.Nickname != null && !x.Nickname.AllCharsWithinLimit((int)upperLimit))
+				|| (x.Nickname == null && !x.Username.AllCharsWithinLimit((int)upperLimit));
 			}).Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
 		}
@@ -79,7 +79,7 @@ namespace Advobot.Commands.NicknameModeration
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class RemoveAllNickNames : AdvobotModuleBase
+	public sealed class RemoveAllNickNames : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)

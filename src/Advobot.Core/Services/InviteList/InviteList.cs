@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Advobot.Core.Classes.Settings;
+using Advobot.Core.Interfaces;
+using Discord;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Core.Classes.GuildSettings;
-using Advobot.Core.Interfaces;
-using Discord;
 
 namespace Advobot.Core.Services.InviteList
 {

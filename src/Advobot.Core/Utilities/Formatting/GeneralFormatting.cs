@@ -11,68 +11,29 @@ namespace Advobot.Core.Utilities.Formatting
 	/// </summary>
 	public static class GeneralFormatting
 	{
-		private static Regex _RemoveDuplicateLines = new Regex(@"[\r\n]+", RegexOptions.Compiled);
-
-		/// <summary>
-		/// Returns a string with the given number of spaces minus the length of the second object padded onto the right side of the first object.
-		/// </summary>
-		/// <param name="obj1"></param>
-		/// <param name="obj2"></param>
-		/// <param name="len"></param>
-		/// <returns></returns>
-		public static string FormatStringsWithLength(object obj1, object obj2, int len)
-		{
-			var str1 = obj1.ToString();
-			var str2 = obj2.ToString();
-			return $"{str1.PadRight(Math.Min(len - str2.Length, 0))}{str2}";
-		}
-		/// <summary>
-		/// Returns the first object padded right with the right argument and the second string padded left with the left argument.
-		/// </summary>
-		/// <param name="obj1"></param>
-		/// <param name="obj2"></param>
-		/// <param name="right"></param>
-		/// <param name="left"></param>
-		/// <returns></returns>
-		public static string FormatStringsWithLength(object obj1, object obj2, int right, int left)
-		{
-			var str1 = obj1.ToString().PadRight(Math.Max(right, 0));
-			var str2 = obj2.ToString().PadLeft(Math.Max(left, 0));
-			return $"{str1}{str2}";
-		}
 		/// <summary>
 		/// Joins all strings which are not null with the given string.
 		/// </summary>
-		/// <param name="joining"></param>
-		/// <param name="toJoin"></param>
+		/// <param name="seperator"></param>
+		/// <param name="values"></param>
 		/// <returns></returns>
-		public static string JoinNonNullStrings(string joining, params string[] toJoin)
+		public static string JoinNonNullStrings(this IEnumerable<string> values, string seperator)
 		{
-			return String.Join(joining, toJoin.Where(x => !String.IsNullOrWhiteSpace(x)));
+			return String.Join(seperator, values.Where(x => !String.IsNullOrWhiteSpace(x)));
 		}
 		/// <summary>
 		/// Returns a string which is a numbered list of the passed in objects. The format is for the passed in arguments; the counter is added by default.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="source"></param>
+		/// <param name="values"></param>
 		/// <param name="format"></param>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public static string FormatNumberedList<T>(this IEnumerable<T> source, string format, params Func<T, object>[] args)
+		public static string FormatNumberedList<T>(this IEnumerable<T> values, Func<T, string> func)
 		{
-			var list = source.ToList();
+			var list = values.ToList();
 			var maxLen = list.Count.ToString().Length;
-			//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
-			return String.Join("\n", list.Select((x, index) => $"`{(index + 1).ToString().PadLeft(maxLen, '0')}.` {String.Format(format, args.Select(f => f(x)).ToArray())}"));
-		}
-		/// <summary>
-		/// Returns the input string with `, *, and _, escaped.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static string EscapeAllMarkdown(this string input)
-		{
-			return input?.Replace("`", "\\`")?.Replace("*", "\\*")?.Replace("_", "\\_");
+			return String.Join("\n", list.Select((x, index) => $"`{(index + 1).ToString().PadLeft(maxLen, '0')}.` {func(x)}"));
 		}
 		/// <summary>
 		/// Returns the input string with ` escaped.
@@ -93,25 +54,23 @@ namespace Advobot.Core.Utilities.Formatting
 			return input?.Replace("`", "")?.Replace("*", "")?.Replace("_", "");
 		}
 		/// <summary>
-		/// Returns the input string with no duplicate new lines.
+		/// Returns the input string with no duplicate new lines. Also changes any carriage returns to new lines.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
 		public static string RemoveDuplicateNewLines(this string input)
 		{
-			return _RemoveDuplicateLines.Replace(input, "\n");
+			var str = input.Replace("\r", "\n");
+			var len = str.Length;
+			do
+			{
+				len = str.Length;
+				str = str.Replace("\n\n", "\n");
+			} while (len != str.Length);
+			return str;
 		}
 		/// <summary>
-		/// Returns the input string with no new lines.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static string RemoveAllNewLines(this string input)
-		{
-			return input?.Replace("\r", "")?.Replace("\n", "");
-		}
-		/// <summary>
-		/// Adds in spaces between each capital letter.
+		/// Adds in spaces between each capital letter and capitalizes every letter after a space.
 		/// </summary>
 		/// <param name="title"></param>
 		/// <returns></returns>
@@ -125,7 +84,8 @@ namespace Advobot.Core.Utilities.Formatting
 				{
 					sb.Append(' ');
 				}
-				sb.Append(c);
+				var makeCapital = i == 0 || i > 0 && Char.IsWhiteSpace(title[i - 1]);
+				sb.Append(makeCapital ? Char.ToUpper(c) : c);
 			}
 			return sb.ToString();
 		}
@@ -136,7 +96,8 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string FormatPlural(double i)
 		{
-			return Math.Abs(i - 1) < 0 ? "" : "s";
+			//In case of weird floating point math
+			return i > 0 && Math.Abs(i - 1) <= 0 ? "" : "s";
 		}
 		/// <summary>
 		/// Only appends a \n after the value. On Windows <see cref="StringBuilder.AppendLine(string)"/> appends \r\n (which isn't

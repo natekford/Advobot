@@ -1,10 +1,10 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Advobot.Core.Utilities;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests
 {
-    [TestClass]
-    public class RegexUtilsTest
+	[TestClass]
+    public class RegexUtilsTests
     {
         [TestMethod]
         public void TryCreateRegex_Test()

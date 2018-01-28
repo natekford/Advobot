@@ -30,7 +30,7 @@ namespace Advobot.Core.Classes.TypeReaders
 				return Task.FromResult(TypeReaderResult.FromSuccess(rawValue));
 			}
 			//Then check permission names
-			if (EnumUtils.TryParseEnums(input.Split(_SplitChars).Select(x => x.Trim(_TrimChars)), out T value, out var invalidPerms))
+			if (EnumUtils.TryParseFlags(input.Split(_SplitChars).Select(x => x.Trim(_TrimChars)), out T value, out var invalidPerms))
 			{
 				return Task.FromResult(TypeReaderResult.FromSuccess((ulong)(object)value));
 			}

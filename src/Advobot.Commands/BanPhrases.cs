@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Advobot.Core;
+﻿using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.GuildSettings;
+using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
@@ -15,6 +9,12 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Advobot.Commands.BanPhrases
 {
@@ -24,7 +24,7 @@ namespace Advobot.Commands.BanPhrases
 		"Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class EvaluateBannedRegex : AdvobotModuleBase
+	public sealed class EvaluateBannedRegex : NonSavingModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyStringLength(Target.Regex)] string regex, [Remainder] string testPhrase)
@@ -88,10 +88,10 @@ namespace Advobot.Commands.BanPhrases
 		"Banned names ban users if they join and they have them in their name.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyBannedPhrases : AdvobotSavingModuleBase
+	public sealed class ModifyBannedPhrases : SavingModuleBase
 	{
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
-		public sealed class Regex : AdvobotSavingModuleBase
+		public sealed class Regex : SavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -106,7 +106,7 @@ namespace Advobot.Commands.BanPhrases
 					var embed = new EmbedWrapper
 					{
 						Title = "Evaluted Regex",
-						Description = Context.GuildSettings.EvaluatedRegex.FormatNumberedList("`{0}`", x => x)
+						Description = Context.GuildSettings.EvaluatedRegex.FormatNumberedList(x => x.ToString())
 					};
 					await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 					return;
@@ -131,7 +131,7 @@ namespace Advobot.Commands.BanPhrases
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added the regex `{regex}`.").CAF();
 			}
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-			public sealed class Remove : AdvobotSavingModuleBase
+			public sealed class Remove : SavingModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
@@ -146,7 +146,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
-		public sealed class String : AdvobotSavingModuleBase
+		public sealed class String : SavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -160,7 +160,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-			public sealed class Remove : AdvobotSavingModuleBase
+			public sealed class Remove : SavingModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
@@ -175,7 +175,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 		}
 		[Group(nameof(Name)), ShortAlias(nameof(Name))]
-		public sealed class Name : AdvobotSavingModuleBase
+		public sealed class Name : SavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -189,7 +189,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-			public sealed class Remove : AdvobotSavingModuleBase
+			public sealed class Remove : SavingModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
@@ -209,7 +209,7 @@ namespace Advobot.Commands.BanPhrases
 			var embed = new EmbedWrapper
 			{
 				Title = $"Banned {type}",
-				Description = list.FormatNumberedList("`{0}`", x => x.Phrase)
+				Description = list.FormatNumberedList(x => x.Phrase)
 			};
 			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
 		}
@@ -257,10 +257,10 @@ namespace Advobot.Commands.BanPhrases
 		"`Show` lists the punishments of whatever type was specified.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyPunishmentType : AdvobotSavingModuleBase
+	public sealed class ModifyPunishmentType : SavingModuleBase
 	{
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
-		public sealed class Regex : AdvobotSavingModuleBase
+		public sealed class Regex : SavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -279,7 +279,7 @@ namespace Advobot.Commands.BanPhrases
 			}
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
-		public sealed class String : AdvobotSavingModuleBase
+		public sealed class String : SavingModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -303,7 +303,7 @@ namespace Advobot.Commands.BanPhrases
 			var embed = new EmbedWrapper
 			{
 				Title = $"Banned {type} Punishments",
-				Description = list.FormatNumberedList("`{0}`", x => x.ToString())
+				Description = list.FormatNumberedList(x => x.ToString())
 			};
 			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
 		}
@@ -343,7 +343,7 @@ namespace Advobot.Commands.BanPhrases
 		"Time is in minutes.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyBannedPhrasePunishments : AdvobotSavingModuleBase
+	public sealed class ModifyBannedPhrasePunishments : SavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -351,12 +351,12 @@ namespace Advobot.Commands.BanPhrases
 			var embed = new EmbedWrapper
 			{
 				Title = $"Banned Phrase Punishments",
-				Description = Context.GuildSettings.BannedPhrasePunishments.FormatNumberedList("`{0}`", x => x.ToString())
+				Description = Context.GuildSettings.BannedPhrasePunishments.FormatNumberedList(x => x.ToString())
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
-		public sealed class Add : AdvobotSavingModuleBase
+		public sealed class Add : SavingModuleBase
 		{
 			[Command]
 			public async Task Command(PunishmentType punishment, uint position, [Optional] uint time)
@@ -440,7 +440,7 @@ namespace Advobot.Commands.BanPhrases
 	[Summary("Shows or resets all infraction points from banned phrases a user has on the guild.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyBannedPhraseUser : AdvobotModuleBase
+	public sealed class ModifyBannedPhraseUser : NonSavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show(IGuildUser user)

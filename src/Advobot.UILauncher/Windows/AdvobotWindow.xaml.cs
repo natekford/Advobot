@@ -1,14 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Navigation;
-using System.Windows.Threading;
-using Advobot.Core;
+﻿using Advobot.Core;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
@@ -19,6 +9,16 @@ using Advobot.UILauncher.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Navigation;
+using System.Windows.Threading;
 
 namespace Advobot.UILauncher.Windows
 {
@@ -86,9 +86,9 @@ namespace Advobot.UILauncher.Windows
 		}
 		private async Task Start()
 		{
-			Client.HeldObject = _LoginHandler.GetRequiredService<IDiscordClient>();
-			BotSettings.HeldObject = _LoginHandler.GetRequiredService<IBotSettings>();
-			LogHolder.HeldObject = _LoginHandler.GetRequiredService<ILogService>();
+			Client.HeldObject = _LoginHandler.Provider.GetRequiredService<IDiscordClient>();
+			BotSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IBotSettings>();
+			LogHolder.HeldObject = _LoginHandler.Provider.GetRequiredService<ILogService>();
 			_Colors = ColorSettings.LoadUISettings();
 
 			if (Client.HeldObject is DiscordSocketClient socket)

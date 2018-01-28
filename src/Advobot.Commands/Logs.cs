@@ -18,7 +18,7 @@ namespace Advobot.Commands.Logs
 		"Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyLogChannels : AdvobotSavingModuleBase
+	public sealed class ModifyLogChannels : SavingModuleBase
 	{
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public async Task Enable(LogChannelType logChannelType,
@@ -53,7 +53,7 @@ namespace Advobot.Commands.Logs
 	[Summary("Ignores all logging info that would have been gotten from a channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyIgnoredLogChannels : AdvobotSavingModuleBase
+	public sealed class ModifyIgnoredLogChannels : SavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
@@ -77,7 +77,7 @@ namespace Advobot.Commands.Logs
 		"`Show` displays the possible actions.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyLogActions : AdvobotSavingModuleBase
+	public sealed class ModifyLogActions : SavingModuleBase
 	{
 		private static LogAction[] _DefaultLogActions = {
 			LogAction.UserJoined,
@@ -104,7 +104,7 @@ namespace Advobot.Commands.Logs
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the log actions to the default ones.").CAF();
 		}
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
-		public sealed class Enable : AdvobotSavingModuleBase
+		public sealed class Enable : SavingModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All))]
 			public async Task All()
@@ -127,7 +127,7 @@ namespace Advobot.Commands.Logs
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
-		public sealed class Disable : AdvobotSavingModuleBase
+		public sealed class Disable : SavingModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All))]
 			public async Task All()

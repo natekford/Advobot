@@ -50,7 +50,7 @@ namespace Advobot.UILauncher.Classes.Controls
 
 		public static AdvobotTextBox CreateUserBox(IUser user)
 		{
-			var name = user.Username.AllCharactersAreWithinUpperLimit() ? user.Username : "Non-Standard Name";
+			var name = user.Username.AllCharsWithinLimit() ? user.Username : "Non-Standard Name";
 			var text = $"'{name}#{user.Discriminator}' ({user.Id})";
 			return CreateComboBoxItem(text, user.Id);
 		}
