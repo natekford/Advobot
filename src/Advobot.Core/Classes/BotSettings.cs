@@ -21,20 +21,14 @@ namespace Advobot.Core.Classes
 	internal sealed class BotSettings : IBotSettings, INotifyPropertyChanged
 	{
 		#region Fields and Properties
+		[JsonProperty("LogLevel")]
+		private LogSeverity _LogLevel = LogSeverity.Warning;
 		[JsonProperty("TrustedUsers")]
 		private List<ulong> _TrustedUsers;
 		[JsonProperty("UsersUnableToDmOwner")]
 		private List<ulong> _UsersUnableToDmOwner;
 		[JsonProperty("UsersIgnoredFromCommands")]
 		private List<ulong> _UsersIgnoredFromCommands;
-		[JsonProperty("ShardCount")]
-		private int _ShardCount;
-		[JsonProperty("MessageCacheCount")]
-		private int _MessageCacheCount;
-		[JsonProperty("MaxUserGatherCount")]
-		private int _MaxUserGatherCount;
-		[JsonProperty("MaxMessageGatherSize")]
-		private int _MaxMessageGatherSize;
 		[JsonProperty("Prefix")]
 		private string _Prefix;
 		[JsonProperty("Game")]
@@ -43,9 +37,41 @@ namespace Advobot.Core.Classes
 		private string _Stream;
 		[JsonProperty("AlwaysDownloadUsers")]
 		private bool _AlwaysDownloadUsers = true;
-		[JsonProperty("LogLevel")]
-		private LogSeverity _LogLevel = LogSeverity.Warning;
+		[JsonProperty("ShardCount")]
+		private int _ShardCount;
+		[JsonProperty("MessageCacheCount")]
+		private int _MessageCacheCount;
+		[JsonProperty("MaxUserGatherCount")]
+		private int _MaxUserGatherCount;
+		[JsonProperty("MaxMessageGatherSize")]
+		private int _MaxMessageGatherSize;
+		[JsonProperty("MaxRuleCategories")]
+		private int _MaxRuleCategories;
+		[JsonProperty("MaxRulesPerCategory")]
+		private int _MaxRulesPerCategory;
+		[JsonProperty("MaxSelfAssignableRoleGroups")]
+		private int _MaxSelfAssignableRoleGroups;
+		[JsonProperty("MaxQuotes")]
+		private int _MaxQuotes;
+		[JsonProperty("MaxBannedStrings")]
+		private int _MaxBannedStrings;
+		[JsonProperty("MaxBannedRegex")]
+		private int _MaxBannedRegex;
+		[JsonProperty("MaxBannedNames")]
+		private int _MaxBannedNames;
+		[JsonProperty("MaxBannedPunishments")]
+		private int _MaxBannedPunishments;
 
+		[JsonIgnore]
+		public LogSeverity LogLevel
+		{
+			get => _LogLevel;
+			set
+			{
+				_LogLevel = value;
+				OnPropertyChanged();
+			}
+		}
 		[JsonIgnore]
 		public IReadOnlyList<ulong> TrustedUsers
 		{
@@ -73,46 +99,6 @@ namespace Advobot.Core.Classes
 			set
 			{
 				_UsersIgnoredFromCommands = value.ToList();
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public int ShardCount
-		{
-			get => _ShardCount > 1 ? _ShardCount : (_ShardCount = 1);
-			set
-			{
-				_ShardCount = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public int MessageCacheCount
-		{
-			get => _MessageCacheCount > 0 ? _MessageCacheCount : (_MessageCacheCount = 1000);
-			set
-			{
-				_MessageCacheCount = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public int MaxUserGatherCount
-		{
-			get => _MaxUserGatherCount > 0 ? _MaxUserGatherCount : (_MaxUserGatherCount = 100);
-			set
-			{
-				_MaxUserGatherCount = value;
-				OnPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		public int MaxMessageGatherSize
-		{
-			get => _MaxMessageGatherSize > 0 ? _MaxMessageGatherSize : (_MaxMessageGatherSize = 500000);
-			set
-			{
-				_MaxMessageGatherSize = value;
 				OnPropertyChanged();
 			}
 		}
@@ -157,12 +143,122 @@ namespace Advobot.Core.Classes
 			}
 		}
 		[JsonIgnore]
-		public LogSeverity LogLevel
+		public int ShardCount
 		{
-			get => _LogLevel;
+			get => _ShardCount > 1 ? _ShardCount : (_ShardCount = 1);
 			set
 			{
-				_LogLevel = value;
+				_ShardCount = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MessageCacheCount
+		{
+			get => _MessageCacheCount > 0 ? _MessageCacheCount : (_MessageCacheCount = 1000);
+			set
+			{
+				_MessageCacheCount = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxUserGatherCount
+		{
+			get => _MaxUserGatherCount > 0 ? _MaxUserGatherCount : (_MaxUserGatherCount = 100);
+			set
+			{
+				_MaxUserGatherCount = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxMessageGatherSize
+		{
+			get => _MaxMessageGatherSize > 0 ? _MaxMessageGatherSize : (_MaxMessageGatherSize = 500000);
+			set
+			{
+				_MaxMessageGatherSize = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxRuleCategories
+		{
+			get => _MaxRuleCategories > 0 ? _MaxRuleCategories : (_MaxRuleCategories = 20);
+			set
+			{
+				_MaxRuleCategories = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxRulesPerCategory
+		{
+			get => _MaxRulesPerCategory > 0 ? _MaxRulesPerCategory : (_MaxRulesPerCategory = 20);
+			set
+			{
+				_MaxRulesPerCategory = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxSelfAssignableRoleGroups
+		{
+			get => _MaxSelfAssignableRoleGroups > 0 ? _MaxSelfAssignableRoleGroups : (_MaxSelfAssignableRoleGroups = 10);
+			set
+			{
+				_MaxSelfAssignableRoleGroups = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxQuotes
+		{
+			get => _MaxQuotes > 0 ? _MaxQuotes : (_MaxQuotes = 500);
+			set
+			{
+				_MaxQuotes = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxBannedStrings
+		{
+			get => _MaxBannedStrings > 0 ? _MaxBannedStrings : (_MaxBannedStrings = 50);
+			set
+			{
+				_MaxBannedStrings = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxBannedRegex
+		{
+			get => _MaxBannedRegex > 0 ? _MaxBannedRegex : (_MaxBannedRegex = 25);
+			set
+			{
+				_MaxBannedRegex = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxBannedNames
+		{
+			get => _MaxBannedNames > 0 ? _MaxBannedNames : (_MaxBannedNames = 25);
+			set
+			{
+				_MaxBannedNames = value;
+				OnPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		public int MaxBannedPunishments
+		{
+			get => _MaxBannedPunishments > 0 ? _MaxBannedPunishments : (_MaxBannedPunishments = 10);
+			set
+			{
+				_MaxBannedPunishments = value;
 				OnPropertyChanged();
 			}
 		}

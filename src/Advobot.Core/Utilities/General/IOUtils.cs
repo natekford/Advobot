@@ -82,7 +82,7 @@ namespace Advobot.Core.Utilities
 		public static DirectoryInfo GetBaseBotDirectory()
 		{
 			return Directory.CreateDirectory(Path.Combine(Config.Configuration[Config.ConfigDict.ConfigKey.SavePath],
-				$"{Constants.SERVER_FOLDER}_{Config.Configuration[Config.ConfigDict.ConfigKey.BotId]}"));
+				$"Discord_Servers_{Config.Configuration[Config.ConfigDict.ConfigKey.BotId]}"));
 		}
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\File

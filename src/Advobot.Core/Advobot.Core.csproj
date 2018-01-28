@@ -3,16 +3,16 @@
   <PropertyGroup>
     <GenerateAssemblyVersion>false</GenerateAssemblyVersion>
     <GenerateAssemblyFileVersion>false</GenerateAssemblyFileVersion>
-	<GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+	  <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Advorange</Authors>
     <Company>Advorange</Company>
-    <Product>Advobot Core</Product>
+    <Product>Advobot</Product>
     <Description>The core of Advobot. Classes, interfaces, and actions.</Description>
-    <Copyright>Copyright © 2017</Copyright>
+    <Copyright>Copyright © 2018</Copyright>
     <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
     <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
     <NeutralLanguage>English</NeutralLanguage>
@@ -63,5 +63,9 @@
       <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
     </None>
   </ItemGroup>
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
 
 </Project>

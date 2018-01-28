@@ -70,8 +70,11 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IUserMessage> SendTextFileAsync(IMessageChannel channel, string text, string fileName, string content = null)
 		{
-			if (!fileName.EndsWith("_")) { fileName += "_"; }
-			var fullFileName = fileName + TimeFormatting.Saving() + Constants.GENERAL_FILE_EXTENSION;
+			if (!fileName.EndsWith("_"))
+			{
+				fileName += "_";
+			}
+			var fullFileName = $"{fileName}{TimeFormatting.Saving()}.txt";
 			var fileInfo = IOUtils.GetServerDirectoryFile(channel.GetGuild()?.Id ?? 0, fullFileName);
 
 			IOUtils.OverwriteFile(fileInfo, text.RemoveAllMarkdown());
@@ -86,9 +89,9 @@ namespace Advobot.Core.Utilities
 		/// <param name="secondStr"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task MakeAndDeleteSecondaryMessageAsync(IAdvobotCommandContext context, string secondStr, TimeSpan time = default)
+		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(IAdvobotCommandContext context, string secondStr, TimeSpan time = default)
 		{
-			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, secondStr, time, context.Timers).CAF();
+			return await MakeAndDeleteSecondaryMessageAsync(context.Timers, context.Channel, context.Message, secondStr, time).CAF();
 		}
 		/// <summary>
 		/// Waits a few seconds then deletes the newly created message and the given message.
@@ -99,18 +102,17 @@ namespace Advobot.Core.Utilities
 		/// <param name="time"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task MakeAndDeleteSecondaryMessageAsync(IMessageChannel channel, IMessage message, string secondStr, TimeSpan time = default, ITimersService timers = null)
+		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(ITimersService timers, IMessageChannel channel, IMessage message, string secondStr, TimeSpan time = default)
 		{
 			if (time.Equals(default))
 			{
-				time = TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT);
+				time = Constants.DEFAULT_WAIT_TIME;
 			}
 
 			var secondMessage = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr).CAF();
-			if (timers != null)
-			{
-				timers.Add(new RemovableMessage(time, message, secondMessage));
-			}
+			var removableMessage = new RemovableMessage(time, message, secondMessage);
+			timers?.Add(removableMessage);
+			return removableMessage;
 		}
 		/// <summary>
 		/// If the guild has verbose errors enabled then this acts just like makeanddeletesecondarymessage.
@@ -119,14 +121,23 @@ namespace Advobot.Core.Utilities
 		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task SendErrorMessageAsync(IAdvobotCommandContext context, IError error, TimeSpan time = default)
+		public static async Task<RemovableMessage> SendErrorMessageAsync(IAdvobotCommandContext context, IError error, TimeSpan time = default)
 		{
-			if (context.GuildSettings.NonVerboseErrors)
-			{
-				return;
-			}
-
-			await MakeAndDeleteSecondaryMessageAsync(context, $"**ERROR:** {error.Reason}", time).CAF();
+			return await SendErrorMessageAsync(context.Timers, context.GuildSettings, context.Channel, context.Message, error, time).CAF();
+		}
+		/// <summary>
+		/// If the guild has verbose errors enabled then this acts just like makeanddeletesecondarymessage.
+		/// </summary>
+		/// <param name="timers"></param>
+		/// <param name="settings"></param>
+		/// <param name="channel"></param>
+		/// <param name="message"></param>
+		/// <param name="error"></param>
+		/// <param name="time"></param>
+		/// <returns></returns>
+		public static async Task<RemovableMessage> SendErrorMessageAsync(ITimersService timers, IGuildSettings settings, IMessageChannel channel, IMessage message, IError error, TimeSpan time = default)
+		{
+			return settings.NonVerboseErrors ? default : await MakeAndDeleteSecondaryMessageAsync(timers, channel, message, $"**ERROR:** {error.Reason}", time).CAF();
 		}
 		/// <summary>
 		/// Returns true if no error occur.
@@ -136,16 +147,15 @@ namespace Advobot.Core.Utilities
 		/// <param name="url"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public static bool GetImageUrl(ICommandContext context, string text, out Uri url, out IError error)
+		public static bool TryGetImageUrl(ICommandContext context, string text, out Uri url, out IError error)
 		{
 			url = null;
 			error = default;
-
 			if (text != null && !Uri.TryCreate(text, UriKind.Absolute, out url))
 			{
 				error = new Error("Invalid Url provided.");
+				return false;
 			}
-
 			if (url == null)
 			{
 				var attach = context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
@@ -158,32 +168,34 @@ namespace Advobot.Core.Utilities
 				else if (imageUrls.Count > 1)
 				{
 					error = new Error("Too many attached or embedded images.");
+					return false;
 				}
 			}
-
 			if (url != null)
 			{
 				var req = WebRequest.Create(url);
 				req.Method = WebRequestMethods.Http.Head;
 				using (var resp = req.GetResponse())
 				{
-					if (!Constants.ValidImageExtensions.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
+					if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
 					{
 						error = new Error("Image must be a png or jpg.");
+						return false;
 					}
 					else if (!int.TryParse(resp.Headers.Get("Content-Length"), out var contentLength))
 					{
 						error = new Error("Unable to get the image's file size.");
+						return false;
 					}
-					else if (contentLength > Constants.MAX_ICON_FILE_SIZE)
+					else if (contentLength > 2500000)
 					{
-						var maxSize = (double)Constants.MAX_ICON_FILE_SIZE / 1000 * 1000;
+						var maxSize = (double)2500000 / 1000 * 1000;
 						error = new Error($"Image is bigger than {maxSize:0.0}MB. Manually upload instead.");
+						return false;
 					}
 				}
 			}
-
-			return error?.Reason == null;
+			return true;
 		}
 		/// <summary>
 		/// Gets the given count of messages from a channel.
@@ -244,15 +256,15 @@ namespace Advobot.Core.Utilities
 		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, ModerationReason reason)
 		{
 			//13.95 for some buffer in case
-			var youngMessages = messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95).ToList();
+			var validMessages = messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95).ToList();
 			try
 			{
-				await channel.DeleteMessagesAsync(youngMessages, reason.CreateRequestOptions()).CAF();
-				return youngMessages.Count();
+				await channel.DeleteMessagesAsync(validMessages, reason.CreateRequestOptions()).CAF();
+				return validMessages.Count();
 			}
 			catch
 			{
-				ConsoleUtils.WriteLine($"Unable to delete {youngMessages.Count()} messages on the guild {channel.GetGuild().Format()} on channel {channel.Format()}.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Unable to delete {validMessages.Count()} messages on the guild {channel.GetGuild().Format()} on channel {channel.Format()}.", color: ConsoleColor.Red);
 				return 0;
 			}
 		}
@@ -264,11 +276,10 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<int> DeleteMessageAsync(IMessage message, ModerationReason reason)
 		{
-			if (message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays > 13.95)
+			if (message == null || (DateTime.UtcNow - message.CreatedAt.UtcDateTime).TotalDays > 13.95)
 			{
 				return 0;
 			}
-
 			try
 			{
 				await message.DeleteAsync(reason.CreateRequestOptions()).CAF();

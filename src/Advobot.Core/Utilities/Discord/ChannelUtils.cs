@@ -37,13 +37,13 @@ namespace Advobot.Core.Utilities
 
 			foreach (var check in checks)
 			{
-				if (!invokingUser.CanDoAction(target, check))
+				if (!invokingUser.CanModify(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"You are unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
 
-				if (!bot.CanDoAction(target, check))
+				if (!bot.CanModify(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"I am unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");

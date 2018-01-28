@@ -2,8 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-
     <IsPackable>false</IsPackable>
+    <Authors>Advorange</Authors>
+    <Company>Advorange</Company>
+    <Product>Advobot</Product>
+    <Copyright>Copyright © 2018</Copyright>
+    <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
+    <NeutralLanguage>English</NeutralLanguage>
+    <Description>Unit tests for Advobot.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,5 +25,15 @@
     <ProjectReference Include="..\..\src\Advobot.Core\Advobot.Core.csproj" />
     <ProjectReference Include="..\..\src\Advobot.UILauncher\Advobot.UILauncher.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System">
+      <HintPath>System</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
 
 </Project>

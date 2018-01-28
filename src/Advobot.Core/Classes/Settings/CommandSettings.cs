@@ -116,7 +116,7 @@ namespace Advobot.Core.Classes.Settings
 			//Channel
 			//Guild
 
-			var name = Constants.HelpEntries[command.Aliases[0].Split(' ')[0]].Name;
+			var name = Constants.HELP_ENTRIES[command.Aliases[0].Split(' ')[0]].Name;
 			if (_UserOverrides.TryGetValue(context.User.Id, out var uDict) && uDict.TryGetValue(name, out var uValue))
 			{
 				return uValue;
@@ -166,7 +166,7 @@ namespace Advobot.Core.Classes.Settings
 		private void OnDeserialized(StreamingContext context)
 		{
 			//Add in the default values for commands that aren't set
-			foreach (var helpEntry in Constants.HelpEntries.GetUnsetCommands(_CommandValues.Keys))
+			foreach (var helpEntry in Constants.HELP_ENTRIES.GetUnsetCommands(_CommandValues.Keys))
 			{
 				_CommandValues.Add(helpEntry.Name, helpEntry.DefaultEnabled);
 			}
@@ -192,7 +192,7 @@ namespace Advobot.Core.Classes.Settings
 		{
 			foreach (var key in dict.Keys)
 			{
-				if (Constants.HelpEntries[key] == null)
+				if (Constants.HELP_ENTRIES[key] == null)
 				{
 					dict.Remove(key);
 				}

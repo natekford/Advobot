@@ -42,7 +42,7 @@ namespace Advobot.Core.Classes.Attributes
 		{
 			if (!(context is IAdvobotCommandContext advobotCommandContext && context.User is IGuildUser user))
 			{
-				return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+				return PreconditionResult.FromError((string)null);
 			}
 
 			var permissions = (Requirements & Precondition.GenericPerms) != 0;
@@ -73,7 +73,7 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+			return PreconditionResult.FromError((string)null);
 		}
 
 		public override string ToString()

@@ -22,7 +22,7 @@ namespace Advobot.Core.Classes.CloseWords
 		protected CloseWords(IEnumerable<T> objects, string input, TimeSpan time = default)
 		{
 			List = GetObjectsWithSimilarNames(objects.ToList(), input).ToImmutableList();
-			Time = DateTime.UtcNow.Add(time.Equals(default) ? TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT) : time);
+			Time = DateTime.UtcNow.Add(time.Equals(default) ? Constants.DEFAULT_WAIT_TIME : time);
 		}
 
 		protected abstract int FindCloseness(T obj, string input);

@@ -246,7 +246,7 @@ namespace Advobot.Core.Utilities.Formatting
 			embed.TryAddField("Users", firstField, false, out _);
 			embed.TryAddField("Messages", secondField, false, out _);
 			embed.TryAddField("Commands", thirdField, false, out _);
-			embed.TryAddFooter($"Versions [Bot: {Version.VERSION_NUMBER}] [API: {Constants.ApiVersion}]", null, out _);
+			embed.TryAddFooter($"Versions [Bot: {Version.VERSION_NUMBER}] [API: {Constants.API_VERSION}]", null, out _);
 			return embed;
 		}
 	}

@@ -19,7 +19,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IEnumerable<IInviteMetadata>> GetInvitesAsync(IGuild guild)
 		{
-			return guild.GetBot().GuildPermissions.ManageGuild ? new List<IInviteMetadata>() : await guild.GetInvitesAsync().CAF();
+			return guild.GetBot().GuildPermissions.ManageGuild ? await guild.GetInvitesAsync().CAF() : new List<IInviteMetadata>();
 		}
 		/// <summary>
 		/// Tries to find the invite a user joined on.
@@ -29,53 +29,50 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<CachedInvite> GetInviteUserJoinedOnAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
-			CachedInvite joinInv = null;
-
 			//Bots join by being invited by admin, not through invites.
 			if (user.IsBot)
 			{
 				return new CachedInvite("Invited by admin", 0);
 			}
-
 			var currentInvites = (await GetInvitesAsync(user.Guild).CAF()).ToList();
-			var cachedInvites = guildSettings.Invites.ToList();
 			if (!currentInvites.Any())
 			{
-				return null;
+				return user.Guild.Features.CaseInsContains(Constants.VANITY_URL) ? new CachedInvite("Vanity Url", 0) : null;
 			}
 
 			//Find invites where the cached invite uses are not the same as the current ones.
-			var updatedInvites = cachedInvites.Where(cached =>
+			var updatedInvites = guildSettings.Invites.Where(cached =>
 			{
 				return currentInvites.Any(current => cached.Code == current.Code && cached.Uses != current.Uses);
 			}).ToList();
 			//If only one then treat it as the joining invite
+			CachedInvite joinInv;
 			if (updatedInvites.Count() == 1)
 			{
-				joinInv = updatedInvites.FirstOrDefault();
+				joinInv = updatedInvites.First();
 				joinInv.IncrementUses();
+				return joinInv;
 			}
-			else
+
+			//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
+			var newInvs = currentInvites.Where(current =>
 			{
-				//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
-				var newInvs = currentInvites.Where(current => !cachedInvites.Select(cached => cached.Code).Contains(current.Code)).ToList();
-				//If no new invites then assume it was the vanity url
-				if (!newInvs.Any() || newInvs.All(x => x.Uses == 0))
-				{
-					if (user.Guild.Features.CaseInsContains(Constants.VANITY_URL))
-					{
-						joinInv = new CachedInvite("Vanity URL", 0);
-					}
-				}
-				//If one then assume it's the new one
-				else if (newInvs.Count() == 1)
-				{
-					joinInv = new CachedInvite(newInvs.First().Code, newInvs.First().Uses);
-				}
-				//No way to tell if more than one
-				guildSettings.Invites.AddRange(newInvs.Select(x => new CachedInvite(x.Code, x.Uses)));
+				return !guildSettings.Invites.Select(cached => cached.Code).Contains(current.Code);
+			}).ToList();
+			//If no new invites then assume it was the vanity url
+			if ((!newInvs.Any() || newInvs.All(x => x.Uses == 0)) && user.Guild.Features.CaseInsContains(Constants.VANITY_URL))
+			{
+				joinInv = new CachedInvite("Vanity Url", 0);
 			}
-			return joinInv;
+			//If one then assume it's the new one
+			else if (newInvs.Count(x => x.Uses != 0) == 1)
+			{
+				var invite = newInvs.First(x => x.Uses != 0);
+				joinInv = new CachedInvite(invite);
+			}
+			//No way to tell if more than one
+			guildSettings.Invites.AddRange(newInvs.Select(x => new CachedInvite(x)));
+			return null;
 		}
 		/// <summary>
 		/// Creates an invite with the supplied arguments.

@@ -36,7 +36,7 @@ namespace Advobot.Core.Classes.TypeReaders
 			}
 			//By name
 
-			if (Constants.Colors.TryGetValue(input, out var temp))
+			if (Constants.COLORS.TryGetValue(input, out var temp))
 			{
 				color = temp;
 			}

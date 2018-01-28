@@ -1,5 +1,4 @@
-﻿using Advobot.Core;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Advobot.UILauncher.Classes;
@@ -13,6 +12,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -259,7 +259,8 @@ namespace Advobot.UILauncher.Windows
 
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
-			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
+			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+			switch (MessageBox.Show("Are you sure you want to clear the output window?", caption, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
 					Output.Clear();
@@ -376,7 +377,8 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void Disconnect(object sender, RoutedEventArgs e)
 		{
-			switch (MessageBox.Show("Are you sure you want to disconnect the bot?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
+			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+			switch (MessageBox.Show("Are you sure you want to disconnect the bot?", caption, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
 					ClientUtils.DisconnectBot(Client.HeldObject);
@@ -385,7 +387,8 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void Restart(object sender, RoutedEventArgs e)
 		{
-			switch (MessageBox.Show("Are you sure you want to restart the bot?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
+			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+			switch (MessageBox.Show("Are you sure you want to restart the bot?", caption, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
 					ClientUtils.RestartBot();

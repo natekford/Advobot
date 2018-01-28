@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using Discord;
+using System.Threading;
 
 namespace Advobot.Core.Classes
 {
@@ -11,6 +12,7 @@ namespace Advobot.Core.Classes
 		private int _Uses;
 		public int Uses => _Uses;
 
+		public CachedInvite(IInviteMetadata invite) : this(invite.Code, invite.Uses) { }
 		public CachedInvite(string code, int uses)
 		{
 			Code = code;

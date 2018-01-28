@@ -75,7 +75,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IEnumerable<IGuildUser>> GetEditableUsersAsync(this IGuild guild, IGuildUser invokingUser)
 		{
-			return (await guild.GetUsersAsync().CAF()).Where(x => invokingUser.CanModifyUser(x) && guild.GetBot().CanModifyUser(x));
+			return (await guild.GetUsersAsync().CAF()).Where(x => invokingUser.CanModify(x) && guild.GetBot().CanModify(x));
 		}
 		/// <summary>
 		/// Prunes users who haven't been active in a certain amount of days and says the supplied reason in the audit log.

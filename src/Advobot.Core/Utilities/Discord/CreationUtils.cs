@@ -69,7 +69,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			//Add in commands
-			foreach (var assembly in Constants.CommandAssemblies)
+			foreach (var assembly in Constants.COMMAND_ASSEMBLIES)
 			{
 				await cmds.AddModulesAsync(assembly).CAF();
 			}

@@ -18,7 +18,7 @@ namespace Advobot.Core.Classes.Attributes
 		{
 			if (!(context is IAdvobotCommandContext advobotCommandContext))
 			{
-				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+				return Task.FromResult(PreconditionResult.FromError((string)null));
 			}
 			if (!(context.Guild.GetBot() is IGuildUser bot))
 			{
@@ -35,7 +35,7 @@ namespace Advobot.Core.Classes.Attributes
 			if (advobotCommandContext.GuildSettings.IgnoredCommandChannels.Contains(context.Channel.Id)
 			    || !advobotCommandContext.GuildSettings.CommandSettings.IsCommandEnabled(context, command))
 			{
-				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+				return Task.FromResult(PreconditionResult.FromError((string)null));
 			}
 
 			return Task.FromResult(PreconditionResult.FromSuccess());

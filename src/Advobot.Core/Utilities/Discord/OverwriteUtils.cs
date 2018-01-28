@@ -21,37 +21,15 @@ namespace Advobot.Core.Utilities
 		/// <exception cref="ArgumentException"></exception>
 		public static OverwritePermissions? GetPermissionOverwrite<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
 		{
-			if (obj is IRole role)
+			switch (obj)
 			{
-				return channel.GetPermissionOverwrite(role);
+				case IRole role:
+					return channel.GetPermissionOverwrite(role);
+				case IUser user:
+					return channel.GetPermissionOverwrite(user);
+				default:
+					throw new ArgumentException("invalid type", nameof(obj));
 			}
-
-			if (obj is IUser user)
-			{
-				return channel.GetPermissionOverwrite(user);
-			}
-
-			throw new ArgumentException("invalid type", nameof(obj));
-		}
-		/// <summary>
-		/// Gets the permission overwrite allow value for a role or user.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static ulong GetPermissionOverwriteAllowValue<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
-		{
-			return channel.GetPermissionOverwrite(obj)?.AllowValue ?? 0;
-		}
-		/// <summary>
-		/// Gets the permision overwrite deny value for a role or user.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static ulong GetPermissionOverwriteDenyValue<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
-		{
-			return channel.GetPermissionOverwrite(obj)?.DenyValue ?? 0;
 		}
 		/// <summary>
 		/// Based off of the action passed in will allow, inherit, or deny the given values for the object on the channel.
@@ -64,8 +42,8 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IEnumerable<string>> ModifyOverwritePermissionsAsync<T>(PermValue action, IGuildChannel channel, T obj, ulong changeValue, IGuildUser invokingUser) where T : ISnowflakeEntity
 		{
-			var allowBits = channel.GetPermissionOverwriteAllowValue(obj);
-			var denyBits = channel.GetPermissionOverwriteDenyValue(obj);
+			var allowBits = channel.GetPermissionOverwrite(obj)?.AllowValue ?? 0;
+			var denyBits = channel.GetPermissionOverwrite(obj)?.DenyValue ?? 0;
 			switch (action)
 			{
 				case PermValue.Allow:
@@ -98,17 +76,16 @@ namespace Advobot.Core.Utilities
 		public static async Task ModifyOverwriteAsync<T>(IGuildChannel channel, T obj, ulong allowBits, ulong denyBits, ModerationReason reason) where T : ISnowflakeEntity
 		{
 			var permissions = new OverwritePermissions(allowBits, denyBits);
-			if (obj is IRole role)
+			switch (obj)
 			{
-				await channel.AddPermissionOverwriteAsync(role, permissions, reason.CreateRequestOptions()).CAF();
-			}
-			else if (obj is IUser user)
-			{
-				await channel.AddPermissionOverwriteAsync(user, permissions, reason.CreateRequestOptions()).CAF();
-			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(obj));
+				case IRole role:
+					await channel.AddPermissionOverwriteAsync(role, permissions, reason.CreateRequestOptions()).CAF();
+					return;
+				case IUser user:
+					await channel.AddPermissionOverwriteAsync(user, permissions, reason.CreateRequestOptions()).CAF();
+					return;
+				default:
+					throw new ArgumentException("invalid type", nameof(obj));
 			}
 		}
 		/// <summary>
@@ -144,25 +121,23 @@ namespace Advobot.Core.Utilities
 		{
 			var validPermissions = channel is ITextChannel ? ChannelPermissions.Text : ChannelPermissions.Voice;
 			var temp = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-			for (int i = 0; i < sizeof(ulong) * 8; ++i)
+			foreach (ChannelPermission e in Enum.GetValues(typeof(ChannelPermission)))
 			{
-				var value = (1U << i);
-				if (!validPermissions.Has((ChannelPermission)value))
+				if (!validPermissions.Has(e))
 				{
 					continue;
 				}
-
-				if ((overwrite.Permissions.AllowValue & value) != 0)
+				if ((overwrite.Permissions.AllowValue & (ulong)e) != 0)
 				{
-					temp.Add(((ChannelPermission)value).ToString(), nameof(PermValue.Allow));
+					temp.Add(e.ToString(), nameof(PermValue.Allow));
 				}
-				else if ((overwrite.Permissions.DenyValue & value) != 0)
+				else if ((overwrite.Permissions.DenyValue & (ulong)e) != 0)
 				{
-					temp.Add(((ChannelPermission)value).ToString(), nameof(PermValue.Deny));
+					temp.Add(e.ToString(), nameof(PermValue.Deny));
 				}
 				else
 				{
-					temp.Add(((ChannelPermission)value).ToString(), nameof(PermValue.Inherit));
+					temp.Add(e.ToString(), nameof(PermValue.Inherit));
 				}
 			}
 			return temp;

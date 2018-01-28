@@ -18,6 +18,24 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class RoleUtils
 	{
+		public const ChannelPermission MUTE_ROLE_TEXT_PERMS = 0
+			| ChannelPermission.CreateInstantInvite
+			| ChannelPermission.ManageChannels
+			| ChannelPermission.ManageRoles
+			| ChannelPermission.ManageWebhooks
+			| ChannelPermission.SendMessages
+			| ChannelPermission.ManageMessages
+			| ChannelPermission.AddReactions;
+		public const ChannelPermission MUTE_ROLE_VOICE_PERMS = 0
+			| ChannelPermission.CreateInstantInvite
+			| ChannelPermission.ManageChannels
+			| ChannelPermission.ManageRoles
+			| ChannelPermission.ManageWebhooks
+			| ChannelPermission.Speak
+			| ChannelPermission.MuteMembers
+			| ChannelPermission.DeafenMembers
+			| ChannelPermission.MoveMembers;
+
 		/// <summary>
 		/// Verifies that the role can be edited in specific ways.
 		/// </summary>
@@ -38,12 +56,12 @@ namespace Advobot.Core.Utilities
 
 			foreach (var check in checks)
 			{
-				if (!invokingUser.CanDoAction(target, check))
+				if (!invokingUser.CanModify(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"You are unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
-				if (!bot.CanDoAction(target, check))
+				if (!bot.CanModify(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"I am unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
@@ -82,7 +100,7 @@ namespace Advobot.Core.Utilities
 			var muteRole = guildSettings.MuteRole;
 			if (!Verify(muteRole, context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
 			{
-				muteRole = await context.Guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0)).CAF();
+				muteRole = await context.Guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0)).CAF();
 				guildSettings.MuteRole = muteRole;
 				guildSettings.SaveSettings();
 			}
@@ -91,19 +109,16 @@ namespace Advobot.Core.Utilities
 			{
 				if (textChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					var perms = (ulong)Constants.MUTE_ROLE_TEXT_PERMS;
-					await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, perms)).CAF();
+					await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, (ulong)MUTE_ROLE_TEXT_PERMS)).CAF();
 				}
 			}
 			foreach (var voiceChannel in await context.Guild.GetVoiceChannelsAsync().CAF())
 			{
 				if (voiceChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					var perms = (ulong)Constants.MUTE_ROLE_VOICE_PERMS;
-					await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, perms)).CAF();
+					await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, (ulong)MUTE_ROLE_VOICE_PERMS)).CAF();
 				}
 			}
-
 			return muteRole;
 		}
 		/// <summary>

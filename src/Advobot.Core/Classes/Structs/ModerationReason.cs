@@ -25,7 +25,11 @@ namespace Advobot.Core.Classes
 
 		public RequestOptions CreateRequestOptions()
 		{
-			return new RequestOptions { AuditLogReason = ToString() };
+			return new RequestOptions
+			{
+				AuditLogReason = ToString(),
+				RetryMode = RetryMode.RetryRatelimit,
+			};
 		}
 
 		public override string ToString()

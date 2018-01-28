@@ -47,7 +47,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			var embed = new EmbedWrapper
 			{
 				Description = $"**ID:** {user.Id}\n{invite}\n{ageWarning}",
-				Color = Constants.Join
+				Color = EmbedWrapper.Join
 			};
 			embed.TryAddAuthor(user, out _);
 			embed.TryAddFooter(user.IsBot ? "Bot Joined" : "User Joined", null, out _);
@@ -80,7 +80,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			var embed = new EmbedWrapper
 			{
 				Description = $"**ID:** {user.Id}\n{userStayLength}",
-				Color = Constants.Leave
+				Color = EmbedWrapper.Leave
 			};
 			embed.TryAddAuthor(user, out _);
 			embed.TryAddFooter(user.IsBot ? "Bot Left" : "User Left", null, out _);
@@ -111,7 +111,7 @@ namespace Advobot.Core.Services.Log.Loggers
 
 				var embed = new EmbedWrapper
 				{
-					Color = Constants.UserEdit
+					Color = EmbedWrapper.UserEdit
 				};
 				embed.TryAddAuthor(afterUser, out _);
 				embed.TryAddField("Before:", $"`{beforeUser.Username}`", false, out _);

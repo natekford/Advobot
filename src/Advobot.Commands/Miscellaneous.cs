@@ -53,7 +53,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command(string commandName)
 		{
-			var helpEntry = Constants.HelpEntries[commandName];
+			var helpEntry = Constants.HELP_ENTRIES[commandName];
 			if (helpEntry != null)
 			{
 				var embed = new EmbedWrapper
@@ -95,7 +95,7 @@ namespace Advobot.Commands.Miscellaneous
 			var embed = new EmbedWrapper
 			{
 				Title = "All Commands",
-				Description = $"`{String.Join("`, `", Constants.HelpEntries.GetCommandNames())}`"
+				Description = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetCommandNames())}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -105,7 +105,7 @@ namespace Advobot.Commands.Miscellaneous
 			var embed = new EmbedWrapper
 			{
 				Title = category.ToString(),
-				Description = $"`{String.Join("`, `", Constants.HelpEntries[category].Select(x => x.Name))}`"
+				Description = $"`{String.Join("`, `", Constants.HELP_ENTRIES[category].Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}

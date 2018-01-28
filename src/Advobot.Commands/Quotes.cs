@@ -23,9 +23,9 @@ namespace Advobot.Commands.Quotes
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(string name, [Remainder] string text)
 		{
-			if (Context.GuildSettings.Quotes.Count >= Constants.MAX_QUOTES)
+			if (Context.GuildSettings.Quotes.Count >= Context.BotSettings.MaxQuotes)
 			{
-				var error = new Error($"You cannot have more than `{Constants.MAX_QUOTES}` quotes at a time.");
+				var error = new Error($"You cannot have more than `{Context.BotSettings.MaxQuotes}` quotes at a time.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}

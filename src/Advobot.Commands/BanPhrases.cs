@@ -20,7 +20,7 @@ namespace Advobot.Commands.BanPhrases
 {
 	[Group(nameof(EvaluateBannedRegex)), TopLevelShortAlias(typeof(EvaluateBannedRegex))]
 	[Summary("Evaluates a regex (case is ignored). " +
-		"The regex are also restricted to a 1,000,000 tick timeout. " +
+		"The regex are also restricted to a 5,000 tick timeout. " +
 		"Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -111,16 +111,14 @@ namespace Advobot.Commands.BanPhrases
 					await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 					return;
 				}
-
 				if (position > Context.GuildSettings.EvaluatedRegex.Count)
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error("Invalid position to add at.")).CAF();
 					return;
 				}
-
-				if (Context.GuildSettings.BannedPhraseRegex.Count >= Constants.MAX_BANNED_REGEX)
+				if (Context.GuildSettings.BannedPhraseRegex.Count >= Context.BotSettings.MaxBannedRegex)
 				{
-					var error = new Error($"You cannot have more than `{Constants.MAX_BANNED_REGEX}` banned regex at a time.");
+					var error = new Error($"You cannot have more than `{Context.BotSettings.MaxBannedRegex}` banned regex at a time.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
@@ -156,7 +154,7 @@ namespace Advobot.Commands.BanPhrases
 			[Command(nameof(Add)), ShortAlias(nameof(Add))]
 			public async Task Add(string text)
 			{
-				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), Constants.MAX_BANNED_STRINGS).CAF();
+				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), Context.BotSettings.MaxBannedStrings).CAF();
 			}
 
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
@@ -185,7 +183,7 @@ namespace Advobot.Commands.BanPhrases
 			[Command(nameof(Add)), ShortAlias(nameof(Add))]
 			public async Task Add(string text)
 			{
-				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseNames, text, nameof(Name), Constants.MAX_BANNED_NAMES).CAF();
+				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseNames, text, nameof(Name), Context.BotSettings.MaxBannedNames).CAF();
 			}
 
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
@@ -374,9 +372,9 @@ namespace Advobot.Commands.BanPhrases
 					return;
 				}
 
-				if (Context.GuildSettings.BannedPhrasePunishments.Count >= Constants.MAX_BANNED_PUNISHMENTS)
+				if (Context.GuildSettings.BannedPhrasePunishments.Count >= Context.BotSettings.MaxBannedPunishments)
 				{
-					var error = new Error($"You cannot have more than `{Constants.MAX_BANNED_PUNISHMENTS}` banned phrase punishments at a time.");
+					var error = new Error($"You cannot have more than `{Context.BotSettings.MaxBannedPunishments}` banned phrase punishments at a time.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
@@ -394,17 +392,15 @@ namespace Advobot.Commands.BanPhrases
 					await MessageUtils.SendErrorMessageAsync(Context, new Error("Do not use zero.")).CAF();
 					return;
 				}
-
 				if (Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
 				{
 					var error = new Error("A punishment already exists for that number of banned phrases said.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
-
-				if (Context.GuildSettings.BannedPhrasePunishments.Count >= Constants.MAX_BANNED_PUNISHMENTS)
+				if (Context.GuildSettings.BannedPhrasePunishments.Count >= Context.BotSettings.MaxBannedPunishments)
 				{
-					var error = new Error($"You cannot have more than `{Constants.MAX_BANNED_PUNISHMENTS}` banned phrase punishments at a time.");
+					var error = new Error($"You cannot have more than `{Context.BotSettings.MaxBannedPunishments}` banned phrase punishments at a time.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}

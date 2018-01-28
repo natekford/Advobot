@@ -4,11 +4,11 @@ using System.Linq;
 namespace Advobot.Core.Classes.CloseWords
 {
 	/// <summary>
-	/// Implementation of <see cref="CloseWords{T}"/> which searches through <see cref="Constants.HelpEntries"/>.
+	/// Implementation of <see cref="CloseWords{T}"/> which searches through <see cref="Constants.HELP_ENTRIES"/>.
 	/// </summary>
 	public class CloseHelpEntries : CloseWords<HelpEntry>
     {
-		public CloseHelpEntries(string input) : base(Constants.HelpEntries.GetHelpEntries(), input) { }
+		public CloseHelpEntries(string input) : base(Constants.HELP_ENTRIES.GetHelpEntries(), input) { }
 
 		protected override int FindCloseness(HelpEntry obj, string input)
 		{

@@ -3,6 +3,7 @@ using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
@@ -28,12 +29,12 @@ namespace Advobot.Commands.SelfRoles
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(uint groupNumber)
 		{
-			await CommandRunner(groupNumber).CAF();
+			await CommandRunner(Context, groupNumber).CAF();
 		}
 		[Command(nameof(Delete)), ShortAlias(nameof(Delete))]
 		public async Task Delete(uint groupNumber)
 		{
-			await CommandRunner(groupNumber).CAF();
+			await CommandRunner(Context, groupNumber).CAF();
 		}
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(uint groupNumber, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
@@ -46,15 +47,15 @@ namespace Advobot.Commands.SelfRoles
 			await CommandRunner(groupNumber, roles).CAF();
 		}
 
-		private async Task CommandRunner(uint groupNum, [CallerMemberName] string caller = "")
+		private async Task CommandRunner(IAdvobotCommandContext context, uint groupNum, [CallerMemberName] string caller = "")
 		{
 			var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
 			switch (caller)
 			{
 				case nameof(Create):
-					if (selfAssignableGroups.Count >= Constants.MAX_SA_GROUPS)
+					if (selfAssignableGroups.Count >= context.BotSettings.MaxSelfAssignableRoleGroups)
 					{
-						var error = new Error($"You have too many groups. {Constants.MAX_SA_GROUPS} is the maximum.");
+						var error = new Error($"You have too many groups. {context.BotSettings.MaxSelfAssignableRoleGroups} is the maximum.");
 						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 						return;
 					}

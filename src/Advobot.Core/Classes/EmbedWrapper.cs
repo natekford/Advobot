@@ -16,12 +16,19 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public sealed class EmbedWrapper
 	{
+		public static Color Base { get; } = new Color(255, 100, 000);
+		public static Color Join { get; } = new Color(000, 255, 000);
+		public static Color Leave { get; } = new Color(255, 000, 000);
+		public static Color UserEdit { get; } = new Color(051, 051, 255);
+		public static Color Attachment { get; } = new Color(000, 204, 204);
+		public static Color MessageEdit { get; } = new Color(000, 000, 255);
+		public static Color MessageDelete { get; } = new Color(255, 051, 051);
 		public const int MAX_DESCRIPTION_LINES = 20;
 		public const int MAX_FIELD_LINES = 5;
 
 		private EmbedBuilder _Builder = new EmbedBuilder
 		{
-			Color = Constants.Base,
+			Color = EmbedWrapper.Base,
 			Timestamp = DateTimeOffset.UtcNow
 		};
 		private bool _ThrowOnInvalid;

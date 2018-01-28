@@ -111,7 +111,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <returns></returns>
 		public async Task PunishAsync(PunishmentType type, IGuildUser user, IRole role, ModerationReason reason)
 		{
-			if (!(user.Guild is SocketGuild guild && guild.GetBot() is SocketGuildUser bot && bot.CanModifyUser(user)))
+			if (!(user.Guild is SocketGuild guild && guild.GetBot() is SocketGuildUser bot && bot.CanModify(user)))
 			{
 				return;
 			}

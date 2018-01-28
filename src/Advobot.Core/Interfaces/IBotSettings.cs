@@ -11,18 +11,26 @@ namespace Advobot.Core.Interfaces
 	public interface IBotSettings
 	{
 		//Saved settings
+		LogSeverity LogLevel { get; set; }
 		IReadOnlyList<ulong> TrustedUsers { get; set; }
 		IReadOnlyList<ulong> UsersUnableToDmOwner { get; set; }
 		IReadOnlyList<ulong> UsersIgnoredFromCommands { get; set; }
-		int ShardCount { get; set; }
-		int MessageCacheCount { get; set; }
-		int MaxUserGatherCount { get; set; }
-		int MaxMessageGatherSize { get; set; }
 		string Prefix { get; set; }
 		string Game { get; set; }
 		string Stream { get; set; }
 		bool AlwaysDownloadUsers { get; set; }
-		LogSeverity LogLevel { get; set; }
+		int ShardCount { get; set; }
+		int MessageCacheCount { get; set; }
+		int MaxUserGatherCount { get; set; }
+		int MaxMessageGatherSize { get; set; }
+		int MaxRuleCategories { get; set; }
+		int MaxRulesPerCategory { get; set; }
+		int MaxSelfAssignableRoleGroups { get; set; }
+		int MaxQuotes { get; set; }
+		int MaxBannedStrings { get; set; }
+		int MaxBannedRegex { get; set; }
+		int MaxBannedNames { get; set; }
+		int MaxBannedPunishments { get; set; }
 
 		//Non-saved settings
 		bool Pause { get; set; }

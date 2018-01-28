@@ -10,7 +10,7 @@ namespace Advobot.Core.Utilities
 	public static class RegexUtils
 	{
 		private static Regex _TwitchRegex = new Regex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled);
-		private static TimeSpan _Timespan = new TimeSpan(Constants.TICKS_REGEX_TIMEOUT);
+		private static TimeSpan _Timespan = new TimeSpan(5000);
 
 		/// <summary>
 		/// Tries to create a <see cref="Regex"/>. Returns false if unable to created a <see cref="Regex"/> with the given input.

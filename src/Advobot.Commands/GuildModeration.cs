@@ -203,7 +203,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, Remainder] string url)
 		{
-			var success = MessageUtils.GetImageUrl(Context, url, out var imageUrl, out var error);
+			var success = MessageUtils.TryGetImageUrl(Context, url, out var imageUrl, out var error);
 			if (!success)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();

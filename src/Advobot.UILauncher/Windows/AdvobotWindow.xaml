@@ -204,10 +204,10 @@
                             <LineBreak />
                             <LineBreak />
                             <controls:AdvobotRun UnescapedText="API Wrapper Version: " />
-                            <controls:AdvobotRun UnescapedText="{x:Static constants:Constants.ApiVersion}" />
+                            <controls:AdvobotRun UnescapedText="{x:Static constants:Constants.API_VERSION}" />
                             <LineBreak />
                             <controls:AdvobotRun UnescapedText="Bot Version: " />
-                            <controls:AdvobotRun UnescapedText="{x:Static constants:Constants.BotVersion}" />
+                            <controls:AdvobotRun UnescapedText="{x:Static constants:Constants.BOT_VERSION}" />
                             <LineBreak />
                             <LineBreak />
                             <Hyperlink IsEnabled="True"

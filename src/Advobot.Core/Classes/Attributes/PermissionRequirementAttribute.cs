@@ -42,7 +42,7 @@ namespace Advobot.Core.Classes.Attributes
 		{
 			if (!(context is IAdvobotCommandContext advobotCommandContext && context.User is IGuildUser user))
 			{
-				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+				return Task.FromResult(PreconditionResult.FromError((string)null));
 			}
 
 			var guildBits = user.GuildPermissions.RawValue;
@@ -55,7 +55,7 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+			return Task.FromResult(PreconditionResult.FromError((string)null));
 		}
 
 		public string AllText => String.Join(" & ", _AllFlags.ToList().Select(x => x.ToString()));

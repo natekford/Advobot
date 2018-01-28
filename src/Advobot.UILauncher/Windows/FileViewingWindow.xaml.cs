@@ -1,9 +1,9 @@
-﻿using System.Windows;
+﻿using Advobot.UILauncher.Classes.Controls;
+using Advobot.UILauncher.Utilities;
+using System.Reflection;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Advobot.Core;
-using Advobot.UILauncher.Classes.Controls;
-using Advobot.UILauncher.Utilities;
 
 namespace Advobot.UILauncher.Windows
 {
@@ -53,7 +53,8 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void CloseFile(object sender, RoutedEventArgs e)
 		{
-			switch (MessageBox.Show("Are you sure you want to close the file window?", Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
+			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+			switch (MessageBox.Show("Are you sure you want to close the file window?", caption, MessageBoxButton.YesNo))
 			{
 				case MessageBoxResult.Yes:
 					Close(sender, e);

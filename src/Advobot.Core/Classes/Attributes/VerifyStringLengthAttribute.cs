@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Advobot.Core.Enums;
+using Discord.Commands;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Advobot.Core.Enums;
-using Advobot.Core.Utilities;
-using Discord.Commands;
 
 namespace Advobot.Core.Classes.Attributes
 {
@@ -15,19 +14,19 @@ namespace Advobot.Core.Classes.Attributes
 	{
 		private static Dictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>
 		{
-			{ Target.Guild, (Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
-			{ Target.Channel, (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
-			{ Target.Role, (Constants.MIN_ROLE_NAME_LENGTH, Constants.MAX_ROLE_NAME_LENGTH, "role name") },
-			{ Target.Name, (Constants.MIN_USERNAME_LENGTH, Constants.MAX_USERNAME_LENGTH, "username") },
-			{ Target.Nickname, (Constants.MIN_NICKNAME_LENGTH, Constants.MAX_NICKNAME_LENGTH, "nickname") },
-			{ Target.Game, (Constants.MIN_GAME_LENGTH, Constants.MAX_GAME_LENGTH, "game") },
-			{ Target.Stream, (Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
-			{ Target.Topic, (Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
-			{ Target.Prefix, (Constants.MIN_PREFIX_LENGTH, Constants.MAX_PREFIX_LENGTH, "bot prefix") },
-			{ Target.Regex, (Constants.MIN_REGEX_LENGTH, Constants.MAX_REGEX_LENGTH, "regex") },
-			{ Target.RuleCategory, (Constants.MIN_RULE_CATEGORY_LENGTH, Constants.MAX_RULE_CATEGORY_LENGTH, "rule category") },
-			{ Target.Rule, (Constants.MIN_RULE_LENGTH, Constants.MAX_RULE_LENGTH, "rule") },
-			{ Target.Category, (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "category") }
+			{ Target.Guild,        (2, 100,  "guild name") },
+			{ Target.Channel,      (2, 100,  "channel name") },
+			{ Target.Role,         (1, 100,  "role name") },
+			{ Target.Name,         (2, 32,   "username") },
+			{ Target.Nickname,     (1, 32,   "nickname") },
+			{ Target.Game,         (0, 128,  "game") },        //Yes, I know it CAN go past that, but it won't show for others.
+			{ Target.Stream,       (4, 25,   "stream name") }, //Source: https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/
+			{ Target.Topic,        (0, 1024, "channel topic") },
+			{ Target.Prefix,       (1, 10,   "bot prefix") },
+			{ Target.Regex,        (1, 100,  "regex") },
+			{ Target.RuleCategory, (1, 250,  "rule category") },
+			{ Target.Rule,         (1, 150,  "rule") },
+			{ Target.Category,     (2, 100,  "category") }
 		};
 
 		public int Min { get; }

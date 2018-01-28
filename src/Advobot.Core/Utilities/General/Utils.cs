@@ -126,7 +126,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static bool AllCharsWithinLimit(this string str, int limit = -1)
 		{
-			return !str.Any(x => x > (limit < 0 ? Constants.MAX_UTF16_VAL_FOR_NAMES : limit));
+			return !str.Any(x => x > (limit < 0 ? 1000 : limit));
 		}
 		/// <summary>
 		/// Returns the count of characters equal to \r or \n.

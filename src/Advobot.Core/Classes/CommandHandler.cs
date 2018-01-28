@@ -56,7 +56,6 @@ namespace Advobot.Core.Classes
 			{
 				throw new ArgumentException("invalid type", nameof(_Client));
 			}
-			_Commands.CommandExecuted += OnCommandExecuted;
 		}
 
 		private async Task OnConnected()
@@ -74,7 +73,7 @@ namespace Advobot.Core.Classes
 				await ClientUtils.UpdateGameAsync(_Client, _BotSettings).CAF();
 
 				var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
-				ConsoleUtils.WriteLine($"Current version: {Constants.BotVersion}");
+				ConsoleUtils.WriteLine($"Current version: {Constants.BOT_VERSION}");
 				ConsoleUtils.WriteLine($"Current bot prefix is: {_BotSettings.Prefix}");
 				ConsoleUtils.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
 				_Loaded = true;
@@ -188,6 +187,8 @@ namespace Advobot.Core.Classes
 			{
 				return;
 			}
+			var stopwatch = new Stopwatch();
+			stopwatch.Start();
 
 			//Guild settings
 			var settings = await _GuildSettings.GetOrCreateAsync(channel.Guild).CAF();
@@ -205,12 +206,8 @@ namespace Advobot.Core.Classes
 
 			var context = new AdvobotCommandContext(_Provider, settings, _Client, userMessage);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
-		}
-		private async Task OnCommandExecuted(CommandInfo commandInfo, ICommandContext context, IResult result)
-		{
-			if (!(context is IAdvobotCommandContext advobotContext)
-				|| Constants.IGNORE_ERROR == result.ErrorReason
-				|| result.Error == CommandError.UnknownCommand)
+
+			if ((!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)
 			{
 				return;
 			}
@@ -219,8 +216,7 @@ namespace Advobot.Core.Classes
 				_Logging.SuccessfulCommands.Increment();
 				await MessageUtils.DeleteMessageAsync(context.Message, new ModerationReason("logged command")).CAF();
 
-				var guildSettings = advobotContext.GuildSettings;
-				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
+				if (settings.ModLog != null && !settings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
 					var embed = new EmbedWrapper
 					{
@@ -228,13 +224,13 @@ namespace Advobot.Core.Classes
 					};
 					embed.TryAddAuthor(context.User, out _);
 					embed.TryAddFooter("Mod Log", null, out _);
-					await MessageUtils.SendEmbedMessageAsync(guildSettings.ModLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(settings.ModLog, embed).CAF();
 				}
 			}
 			else
 			{
 				_Logging.FailedCommands.Increment();
-				await MessageUtils.SendErrorMessageAsync(advobotContext, new Error(result.ErrorReason)).CAF();
+				await MessageUtils.SendErrorMessageAsync(context, new Error(result.ErrorReason)).CAF();
 			}
 
 			var response = $"Guild: {context.Guild.Format()}" +
@@ -242,7 +238,7 @@ namespace Advobot.Core.Classes
 				$"{_Joiner}User: {context.User.Format()}" +
 				$"{_Joiner}Time: {context.Message.CreatedAt.UtcDateTime.Readable()}" +
 				$"{_Joiner}Text: {context.Message.Content}" +
-				$"{_Joiner}Time taken: {advobotContext.ElapsedMilliseconds}ms";
+				$"{_Joiner}Time taken: {stopwatch.ElapsedMilliseconds}ms";
 			response += result.ErrorReason == null ? "" : $"{_Joiner}Error: {result.ErrorReason}";
 
 			ConsoleUtils.WriteLine(response, color: result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);

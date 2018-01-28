@@ -40,7 +40,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			var guild = message.GetGuild();
 			if (guild?.Id == 294173126697418752 && message.Author is IGuildUser author)
 			{
-				if (author.Username != "jeff" && author.Nickname != "jeff" && guild.GetBot().CanModifyUser(author))
+				if (author.Username != "jeff" && author.Nickname != "jeff" && guild.GetBot().CanModify(author))
 				{
 					await UserUtils.ChangeNicknameAsync(author, "jeff", new ModerationReason("my nama jeff")).CAF();
 				}
@@ -121,7 +121,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				{
 					try
 					{
-						await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken).CAF();
+						await Task.Delay(Constants.DEFAULT_WAIT_TIME, cancelToken).CAF();
 					}
 					catch (TaskCanceledException)
 					{
@@ -154,7 +154,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					{
 						Title = "Deleted Messages",
 						Description = sb.ToString().RemoveDuplicateNewLines(),
-						Color = Constants.MessageDelete
+						Color = EmbedWrapper.MessageDelete
 					};
 					embed.TryAddFooter("Deleted Messages", null, out _);
 					await MessageUtils.SendEmbedMessageAsync(settings.ServerLog, embed).CAF();
@@ -210,12 +210,12 @@ namespace Advobot.Core.Services.Log.Loggers
 			foreach (var attachmentUrl in message.Attachments.Select(x => x.Url).Distinct()) //Attachments
 			{
 				string footerText;
-				if (Constants.ValidImageExtensions.CaseInsContains(Path.GetExtension(attachmentUrl))) //Image
+				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentUrl))) //Image
 				{
 					Logging.Images.Increment();
 					footerText = "Attached Image";
 				}
-				else if (Constants.ValidGifExtentions.CaseInsContains(Path.GetExtension(attachmentUrl))) //Gif
+				else if (Constants.VALID_GIF_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentUrl))) //Gif
 				{
 					Logging.Gifs.Increment();
 					footerText = "Attached Gif";
@@ -229,7 +229,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				var embed = new EmbedWrapper
 				{
 					Description = desc,
-					Color = Constants.Attachment,
+					Color = EmbedWrapper.Attachment,
 					Url = attachmentUrl,
 					ImageUrl = footerText.Contains("File") ? null : attachmentUrl
 				};
@@ -243,7 +243,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				var embed = new EmbedWrapper
 				{
 					Description = desc,
-					Color = Constants.Attachment,
+					Color = EmbedWrapper.Attachment,
 					Url = imageEmbed.Url,
 					ImageUrl = imageEmbed.Image?.Url ?? imageEmbed.Thumbnail?.Url
 				};
@@ -290,7 +290,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			Logging.MessageEdits.Increment();
 			var embed = new EmbedWrapper
 			{
-				Color = Constants.MessageEdit
+				Color = EmbedWrapper.MessageEdit
 			};
 			embed.TryAddAuthor(after.Author, out _);
 			embed.TryAddField("Before:", $"`{(bMsgContent.Length > 750 ? "Long message" : bMsgContent)}`", true, out _);
@@ -334,7 +334,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task HandleSpamPreventionAsync(IGuildSettings settings, SocketGuildUser user, IMessage message)
 		{
-			if (user.Guild.GetBot().CanModifyUser(user))
+			if (user.Guild.GetBot().CanModify(user))
 			{
 				var spamUser = Timers.GetSpamPreventionUser(user);
 				if (spamUser == null)
@@ -372,7 +372,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					var votesReq = spamUser.VotesRequired - spamUser.Votes;
 					var content = $"The user `{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					var channel = message.Channel as ITextChannel;
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(channel, null, content, TimeSpan.FromSeconds(10), Timers).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Timers, channel, null, content, TimeSpan.FromSeconds(10)).CAF();
 					await MessageUtils.DeleteMessageAsync(message, new ModerationReason("spam prevention")).CAF();
 				}
 			}

@@ -35,21 +35,24 @@ namespace Advobot.Core.Utilities
 
 			foreach (var check in checks)
 			{
-				if (!invokingUser.CanDoAction(target, check))
+				if (!invokingUser.CanModify(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"You are unable to make the given changes to the user: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
-				if (!bot.CanDoAction(target, check))
+				if (!bot.CanModify(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"I am unable to make the given changes to the user: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
 			}
-
 			return new VerifiedObjectResult(target, null, null);
 		}
-
+		/// <summary>
+		/// Returns the position the user has in the guild hierarchy.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
 		public static int GetPosition(this IGuildUser user)
 		{
 			return user is SocketGuildUser socket ? socket.Hierarchy : -1;
@@ -60,7 +63,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="invokingUser"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static bool CanModifyUser(this IGuildUser invokingUser, IGuildUser target)
+		public static bool CanModify(this IGuildUser invokingUser, IGuildUser target)
 		{
 			return (target.Id == invokingUser.Id && target.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId])
 				|| invokingUser.GetPosition() > target.GetPosition();
@@ -72,14 +75,14 @@ namespace Advobot.Core.Utilities
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static bool CanDoAction(this IGuildUser invokingUser, IGuildUser target, ObjectVerification type)
+		public static bool CanModify(this IGuildUser invokingUser, IGuildUser target, ObjectVerification type)
 		{
 			switch (type)
 			{
 				case ObjectVerification.CanBeMovedFromChannel:
-					return invokingUser.CanDoAction(target?.VoiceChannel, ObjectVerification.CanMoveUsers);
+					return invokingUser.CanModify(target?.VoiceChannel, ObjectVerification.CanMoveUsers);
 				case ObjectVerification.CanBeEdited:
-					return invokingUser.CanModifyUser(target);
+					return invokingUser.CanModify(target);
 			}
 			return true;
 		}
@@ -90,10 +93,15 @@ namespace Advobot.Core.Utilities
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static bool CanDoAction(this IGuildUser invokingUser, IGuildChannel target, ObjectVerification type)
+		public static bool CanModify(this IGuildUser invokingUser, IGuildChannel target, ObjectVerification type)
 		{
-			var channelPerms = invokingUser?.GetPermissions(target) ?? default;
 			var guildPerms = invokingUser?.GuildPermissions ?? default;
+			if (guildPerms.Has(GuildPermission.Administrator))
+			{
+				return true;
+			}
+
+			var channelPerms = invokingUser?.GetPermissions(target) ?? default;
 			switch (type)
 			{
 				case ObjectVerification.CanBeRead:
@@ -120,7 +128,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static bool CanDoAction(this IGuildUser invokingUser, IRole target, ObjectVerification type)
+		public static bool CanModify(this IGuildUser invokingUser, IRole target, ObjectVerification type)
 		{
 			switch (type)
 			{

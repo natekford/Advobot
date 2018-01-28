@@ -25,11 +25,11 @@ namespace Advobot.Core.Classes
 
 		public HelpEntryHolder()
 		{
-			var types = Constants.CommandAssemblies.SelectMany(x => x.GetTypes());
+			var types = Constants.COMMAND_ASSEMBLIES.SelectMany(x => x.GetTypes());
 			var commands = types.Where(x => x.IsSubclassOf(typeof(NonSavingModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
 			if (!commands.Any())
 			{
-				var assemblyNames = String.Join(", ", Constants.CommandAssemblies.Select(x => x.GetName().Name));
+				var assemblyNames = String.Join(", ", Constants.COMMAND_ASSEMBLIES.Select(x => x.GetName().Name));
 				ConsoleUtils.WriteLine($"The following assemblies have no commands: '{assemblyNames}'.");
 				Console.Read();
 				throw new TypeLoadException($"The following assemblies have no commands: '{assemblyNames}'.");

@@ -1,14 +1,14 @@
-﻿using System;
-using System.IO;
-using System.Windows;
-using System.Windows.Controls;
-using Advobot.Core;
-using Advobot.Core.Utilities;
+﻿using Advobot.Core.Utilities;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Advobot.UILauncher.Utilities;
 using Advobot.UILauncher.Windows;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
+using System.IO;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
@@ -100,7 +100,8 @@ namespace Advobot.UILauncher.Classes.Controls
 		private void DeleteFile(object sender, RoutedEventArgs e)
 		{
 			var text = $"Are you sure you want to delete the file {_FI.Name}?";
-			switch (MessageBox.Show(text, Constants.PROGRAM_NAME, MessageBoxButton.YesNo))
+			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+			switch (MessageBox.Show(text, caption, MessageBoxButton.YesNo))
 			{
 				case MessageBoxResult.Yes:
 					IOUtils.DeleteFile(_FI);

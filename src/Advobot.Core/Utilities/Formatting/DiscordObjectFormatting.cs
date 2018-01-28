@@ -21,27 +21,22 @@ namespace Advobot.Core.Utilities.Formatting
 			{
 				return user.Format();
 			}
-
 			if (obj is IChannel channel)
 			{
 				return channel.Format();
 			}
-
 			if (obj is IRole role)
 			{
 				return role.Format();
 			}
-
 			if (obj is IGuild guild)
 			{
 				return guild.Format();
 			}
-
 			if (obj is IActivity presence)
 			{
 				return presence.Format();
 			}
-
 			return obj.ToString();
 		}
 		/// <summary>

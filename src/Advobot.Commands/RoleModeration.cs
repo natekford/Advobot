@@ -308,7 +308,7 @@ namespace Advobot.Commands.RoleModeration
 				var embed = new EmbedWrapper
 				{
 					Title = "Colors",
-					Description = $"`{String.Join("`, `", Constants.Colors.Keys)}`"
+					Description = $"`{String.Join("`, `", Constants.COLORS.Keys)}`"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 				return;

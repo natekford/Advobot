@@ -102,7 +102,7 @@ namespace Advobot.Core.Classes
 
 			await MessageUtils.DeleteMessageAsync(msg, new ModerationReason("multi user action")).CAF();
 			var response = $"Successfully {pastTense} `{successCount}` users.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(_Context.Channel, _Context.Message, response, timers: _Timers).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(_Timers, _Context.Channel, _Context.Message, response).CAF();
 		}
 	}
 }

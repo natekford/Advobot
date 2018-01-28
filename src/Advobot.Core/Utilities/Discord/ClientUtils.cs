@@ -77,7 +77,7 @@ namespace Advobot.Core.Utilities
 			var activityType = ActivityType.Playing;
 			if (!String.IsNullOrWhiteSpace(stream))
 			{
-				stream = Constants.TWITCH_URL + stream.Substring(stream.LastIndexOf('/') + 1);
+				stream = "https://www.twitch.tv/" + stream.Substring(stream.LastIndexOf('/') + 1);
 				activityType = ActivityType.Streaming;
 			}
 

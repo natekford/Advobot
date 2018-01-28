@@ -456,12 +456,14 @@ namespace Advobot.Commands.ChannelModeration
 	[DefaultEnabled(true)]
 	public sealed class ModifyChannelLimit : NonSavingModuleBase
 	{
+		public const int MAX_VOICE_CHANNEL_USER_LIMIT = 99;
+
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint limit)
 		{
-			if (limit > Constants.MAX_VOICE_CHANNEL_USER_LIMIT)
+			if (limit > MAX_VOICE_CHANNEL_USER_LIMIT)
 			{
-				var error = new Error($"The highest a voice channel user limit can be is `{Constants.MAX_VOICE_CHANNEL_USER_LIMIT}`.");
+				var error = new Error($"The highest a voice channel user limit can be is `{MAX_VOICE_CHANNEL_USER_LIMIT}`.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 			}
 
@@ -478,26 +480,28 @@ namespace Advobot.Commands.ChannelModeration
 	[DefaultEnabled(true)]
 	public sealed class ModifyChannelBitRate : NonSavingModuleBase
 	{
+		public const int MIN_BITRATE = 8;
+		public const int MAX_BITRATE = 96;
+		public const int VIP_BITRATE = 128;
+
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint bitrate)
 		{
-			if (bitrate < Constants.MIN_BITRATE)
+			if (bitrate < MIN_BITRATE)
 			{
-				var error = new Error($"The bitrate must be above or equal to `{Constants.MIN_BITRATE}`.");
+				var error = new Error($"The bitrate must be above or equal to `{MIN_BITRATE}`.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-
-			if (!Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && bitrate > Constants.MAX_BITRATE)
+			if (!Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && bitrate > MAX_BITRATE)
 			{
-				var error = new Error($"The bitrate must be below or equal to `{Constants.MAX_BITRATE}`.");
+				var error = new Error($"The bitrate must be below or equal to `{MAX_BITRATE}`.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-
-			if (bitrate > Constants.VIP_BITRATE)
+			if (bitrate > VIP_BITRATE)
 			{
-				var error = new Error($"The bitrate must be below or equal to `{Constants.VIP_BITRATE}`.");
+				var error = new Error($"The bitrate must be below or equal to `{VIP_BITRATE}`.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}

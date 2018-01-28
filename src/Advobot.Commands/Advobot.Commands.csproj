@@ -4,9 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Advorange</Authors>
     <Company>Advorange</Company>
-    <Product>Advobot Commands</Product>
+    <Product>Advobot</Product>
     <Description>The commands that Advobot uses.</Description>
-    <Copyright>Copyright © 2017</Copyright>
+    <Copyright>Copyright © 2018</Copyright>
     <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
     <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
     <NeutralLanguage>English</NeutralLanguage>
@@ -29,5 +29,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PackageReleaseNotes />
+  </PropertyGroup>
 
 </Project>
