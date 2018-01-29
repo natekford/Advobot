@@ -18,7 +18,7 @@ namespace Advobot.Commands.SpamPrevention
 		"`Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventSpam : SavingModuleBase
+	public sealed class PreventSpam : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -81,7 +81,7 @@ namespace Advobot.Commands.SpamPrevention
 		"`Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventRaid : SavingModuleBase
+	public sealed class PreventRaid : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()

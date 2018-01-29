@@ -346,7 +346,7 @@ namespace Advobot.Commands.UserModeration
 		"Fourth are the list of roles that are immune to slowmode.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifySlowmode : SavingModuleBase
+	public sealed class ModifySlowmode : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create([VerifyNumber(1, 5)] uint messages, [VerifyNumber(1, 30)] uint interval, [Optional] params IRole[] immuneRoles)

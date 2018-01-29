@@ -17,27 +17,21 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string FormatDiscordObject(object obj)
 		{
-			if (obj is IUser user)
+			switch (obj)
 			{
-				return user.Format();
+				case IUser user:
+					return user.Format();
+				case IChannel channel:
+					return channel.Format();
+				case IRole role:
+					return role.Format();
+				case IGuild guild:
+					return guild.Format();
+				case IActivity activity:
+					return activity.Format();
+				default:
+					return obj.ToString();
 			}
-			if (obj is IChannel channel)
-			{
-				return channel.Format();
-			}
-			if (obj is IRole role)
-			{
-				return role.Format();
-			}
-			if (obj is IGuild guild)
-			{
-				return guild.Format();
-			}
-			if (obj is IActivity presence)
-			{
-				return presence.Format();
-			}
-			return obj.ToString();
 		}
 		/// <summary>
 		/// Returns a string with the user's name, discriminator, and id.
@@ -46,13 +40,9 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string Format(this IUser user)
 		{
-			if (user != null)
-			{
-				var username = user.Username.EscapeBackTicks()
-					.CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK);
-				return $"'{username}#{user.Discriminator}' ({user.Id})";
-			}
-			return "Irretrievable User";
+			return user != null
+				? $"'{user.Username.EscapeBackTicks()}#{user.Discriminator}' ({user.Id})"
+				: "Irretrievable User";
 		}
 		/// <summary>
 		/// Returns a string with the role's name and id.
@@ -72,12 +62,25 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string Format(this IChannel channel)
 		{
-			if (channel != null)
+			string type;
+			switch (channel)
 			{
-				var type = channel is IMessageChannel ? "text" : "voice";
-				return $"'{channel.Name.EscapeBackTicks()}' ({type}) ({channel.Id})";
+				case IMessageChannel message:
+					type = "text";
+					break;
+				case IVoiceChannel voice:
+					type = "voice";
+					break;
+				case ICategoryChannel category:
+					type = "category";
+					break;
+				default:
+					type = "unknown";
+					break;
 			}
-			return "Irretrievable Channel";
+			return channel != null
+				? $"'{channel.Name.EscapeBackTicks()}' ({type}) ({channel.Id})"
+				: "Irretrievable Channel";
 		}
 		/// <summary>
 		/// Returns a string with the guild's name and id.
@@ -146,19 +149,17 @@ namespace Advobot.Core.Utilities.Formatting
 		/// </summary>
 		/// <param name="presence"></param>
 		/// <returns></returns>
-		public static string Format(this IActivity presence)
+		public static string Format(this IActivity activity)
 		{
-			if (presence is StreamingGame sg)
+			switch (activity)
 			{
-				return $"**Current Stream:** [{sg.Name.EscapeBackTicks()}]({sg.Url})";
+				case StreamingGame sg:
+					return $"**Current Stream:** [{sg.Name.EscapeBackTicks()}]({sg.Url})";
+				case Game g:
+					return $"**Current Game:** `{g.Name.EscapeBackTicks()}`";
+				default:
+					return "**Current Activity:** `N/A`";
 			}
-
-			if (presence is Game g)
-			{
-				return $"**Current Game:** `{g.Name.EscapeBackTicks()}`";
-			}
-
-			return "**Current Game:** `N/A`";
 		}
 		/// <summary>
 		/// Returns the channel perms gotten from the filtered overwrite permissions formatted with their perm value in front of the perm name.
@@ -173,20 +174,6 @@ namespace Advobot.Core.Utilities.Formatting
 			var perms = OverwriteUtils.GetChannelOverwriteNamesAndValues(overwrite, channel);
 			var maxLen = perms.Keys.Max(x => x.Length);
 			return String.Join("\n", perms.Select(x => $"{x.Key.PadRight(maxLen)} {x.Value}"));
-		}
-		/// <summary>
-		/// Replaces everyone/here mentions with a non pinging version and removes \tts.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="content"></param>
-		/// <returns></returns>
-		public static string FormatMessageContent(IGuild guild, string content)
-		{
-			return content
-				.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE) //Everyone and Here have the same role.
-				.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE)
-				.CaseInsReplace("@here", Constants.FAKE_HERE)
-				.CaseInsReplace("\tts", Constants.FAKE_TTS);
 		}
 	}
 }

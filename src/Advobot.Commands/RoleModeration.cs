@@ -100,7 +100,7 @@ namespace Advobot.Commands.RoleModeration
 
 	[Group(nameof(ModifyRolePosition)), TopLevelShortAlias(typeof(ModifyRolePosition))]
 	[Summary("If only a role is input its position will be listed, else moves the role to the given position. " +
-		Constants.FAKE_EVERYONE + " is the first position and starts at zero.")]
+		"Everyone is the first position and starts at zero.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRolePosition : NonSavingModuleBase
@@ -132,7 +132,7 @@ namespace Advobot.Commands.RoleModeration
 			var desc = String.Join("\n", Context.Guild.Roles.OrderByDescending(x => x.Position).Select(x =>
 			{
 				return x.Id == Context.Guild.EveryoneRole.Id
-					? $"`{x.Position.ToString("00")}.` {Constants.FAKE_EVERYONE}"
+					? $"`{x.Position.ToString("00")}.` Everyone"
 					: $"`{x.Position.ToString("00")}.` {x.Name}";
 			}));
 			var embed = new EmbedWrapper

@@ -95,10 +95,8 @@ namespace Advobot.Core.Services.Log.Loggers
 		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
 			//Ignore uncached messages since not much can be done with them
-			if (!cached.HasValue
-				|| !(cached.Value is IMessage message)
-				|| !TryGetSettings(message, out var settings)
-				|| settings.ServerLog == null)
+			if (!cached.HasValue || !(cached.Value is IMessage message)
+				|| !TryGetSettings(message, out var settings) || settings.ServerLog == null)
 			{
 				return Task.FromResult(0);
 			}
@@ -110,7 +108,6 @@ namespace Advobot.Core.Services.Log.Loggers
 			//The old cancel token gets cancled in its getter
 			var cancelToken = msgDeletion.CancelToken;
 
-			//TODO: figure out how to get this to not be like this.
 			//Has to run on completely separate thread, else prints early
 			Task.Run(async () =>
 			{

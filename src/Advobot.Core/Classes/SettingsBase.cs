@@ -1,0 +1,159 @@
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
+using Discord;
+using Discord.WebSocket;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+
+namespace Advobot.Core.Classes
+{
+	public abstract class SettingsBase
+    {
+		public abstract FileInfo GetFileLocation();
+		public string Format(IDiscordClient client, IGuild guild)
+		{
+			var sb = new StringBuilder();
+			foreach (var kvp in GetSettings(GetType()))
+			{
+				var formatted = Format(client, guild, kvp.Value);
+				if (String.IsNullOrWhiteSpace(formatted))
+				{
+					continue;
+				}
+
+				sb.AppendLineFeed($"**{kvp.Key.FormatTitle()}**:");
+				sb.AppendLineFeed($"{formatted}");
+				sb.AppendLineFeed();
+			}
+			return sb.ToString();
+		}
+		public string Format(IDiscordClient client, IGuild guild, FieldInfo field)
+		{
+			return Format(client, guild, field.GetValue(this));
+		}
+		public object ResetSetting(FieldInfo field)
+		{
+			var settingAttr = field.GetCustomAttribute<SettingAttribute>();
+			if (settingAttr.NonCompileTime)
+			{
+				object nonCompileTimeValue;
+				switch (settingAttr.NonCompileTimeDefaultValue)
+				{
+					case NonCompileTimeDefaultValue.InstantiateDefaultParameterless:
+						nonCompileTimeValue = Activator.CreateInstance(field.FieldType);
+						break;
+					case NonCompileTimeDefaultValue.ClearDictionaryValues:
+						var dict = (IDictionary)field.GetValue(this);
+						dict.Keys.Cast<object>().ToList().ForEach(x => dict[x] = null);
+						return dict;
+					default:
+						throw new InvalidOperationException("Invalid non compile time default value provided.");
+				}
+				field.SetValue(this, nonCompileTimeValue);
+				return field.GetValue(this);
+			}
+			else
+			{
+				field.SetValue(this, settingAttr.DefaultValue);
+				return field.GetValue(this);
+			}
+		}
+		public object ResetSetting(string name)
+		{
+			var field = GetSettings(GetType())[name] ?? throw new ArgumentException("Invalid field name provided.", nameof(name));
+			return ResetSetting(field);
+		}
+		public void ResetSettings()
+		{
+			foreach (var field in GetSettings(GetType()))
+			{
+				ResetSetting(field.Value);
+			}
+		}
+		public void SaveSettings()
+		{
+			IOUtils.OverwriteFile(GetFileLocation(), IOUtils.Serialize(this));
+		}
+
+		/// <summary>
+		/// Returns all non-public instance fields with <see cref="SettingAttribute"/>.
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static Dictionary<string, FieldInfo> GetSettings(Type t)
+		{
+			return t.GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
+				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase);
+		}
+		/// <summary>
+		/// Returns all non-public instance fields with <see cref="SettingAttribute"/> and are not <see cref="String"/> or <see cref="IEnumerable{T}"/>.
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static Dictionary<string, FieldInfo> GetNonEnumerableSettings(Type t)
+		{
+			return GetSettings(t).Where(f =>
+			{
+				var ft = f.Value.FieldType;
+				return ft != typeof(string)
+					&& ft != typeof(IEnumerable)
+					&& !ft.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+			}).ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+		}
+
+		private string Format(IDiscordClient client, IGuild guild, object value)
+		{
+			switch (value)
+			{
+				case null:
+					return "`Nothing`";
+				case ulong id:
+				{
+					if (guild is SocketGuild sg)
+					{
+						if (sg?.GetChannel(id) is IChannel c)
+						{
+							return $"`{c.Format()}`";
+						}
+						if (sg?.GetRole(id) is IRole r)
+						{
+							return $"`{r.Format()}`";
+						}
+						if (sg?.GetUser(id) is IUser u)
+						{
+							return $"`{u.Format()}`";
+						}
+					}
+					if (client != null)
+					{
+						if (ClientUtils.GetUser(client, id) is IUser u)
+						{
+							return $"`{u.Format()}`";
+						}
+						if (ClientUtils.GetGuild(client, id) is IGuild g)
+						{
+							return $"`{g.Format()}`";
+						}
+					}
+					return id.ToString();
+				}
+				case string str: //Strings are char[], so this case needs to be above ienumerable
+					return String.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
+				case IDictionary dict: //Has to be above IEnumerable too
+					var keys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
+					return String.Join("\n", keys.Select(x => $"{Format(client, guild, x)}: {Format(client, guild, dict[x])}"));
+				case IEnumerable enumerable:
+					return String.Join("\n", enumerable.Cast<object>().Select(x => Format(client, guild, x)));
+				default:
+					return $"`{value}`";
+			}
+		}
+	}
+}

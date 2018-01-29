@@ -47,6 +47,8 @@ namespace Advobot.UILauncher.Classes
 		public static SolidColorBrush DarkModeJsonValue => BrushUtils.CreateBrush("#0051FF");
 		public static SolidColorBrush DarkModeJsonParamName => BrushUtils.CreateBrush("#057500");
 
+		private static string _FileLoc = "UISettings.json";
+
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;
 		[JsonProperty("Theme")]
@@ -105,12 +107,11 @@ namespace Advobot.UILauncher.Classes
 		/// </summary>
 		public void SaveSettings()
 		{
-			IOUtils.OverwriteFile(IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC), IOUtils.Serialize(this));
+			IOUtils.OverwriteFile(IOUtils.GetBaseBotDirectoryFile(_FileLoc), IOUtils.Serialize(this));
 		}
-
 		public static ColorSettings LoadUISettings()
 		{
-			var fileInfo = IOUtils.GetBaseBotDirectoryFile(Constants.UI_INFO_LOC);
+			var fileInfo = IOUtils.GetBaseBotDirectoryFile(_FileLoc);
 			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings), true);
 		}
 

@@ -217,7 +217,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			var fileInfo = IOUtils.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOC);
+			var fileInfo = IOUtils.GetServerDirectoryFile(Context.Guild.Id, "GuildIcon.png");
 			using (var webClient = new WebClient())
 			{
 				webClient.DownloadFileAsync(imageUrl, fileInfo.FullName);

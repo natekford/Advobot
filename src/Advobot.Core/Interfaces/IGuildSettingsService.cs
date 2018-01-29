@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Discord;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Discord;
 
 namespace Advobot.Core.Interfaces
 {
@@ -9,6 +10,8 @@ namespace Advobot.Core.Interfaces
 	/// </summary>
 	public interface IGuildSettingsService
 	{
+		Type GuildSettingsType { get; }
+
 		/// <summary>
 		/// If the given guild is already in the module this will return its settings.
 		/// Otherwise it will create them, add them to the module, then return them.

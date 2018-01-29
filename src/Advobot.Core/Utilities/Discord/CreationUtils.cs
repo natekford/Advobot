@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.NamedArguments;
@@ -28,28 +29,46 @@ namespace Advobot.Core.Utilities
 		/// <see cref="ITimersService"/>, and <see cref="ILogService"/>.
 		/// </summary>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static async Task<IServiceProvider> CreateServiceProvider()
+		public static IServiceProvider CreateServiceProvider(Type botSettingsType, Type guildSettingsType)
 		{
+			if (!typeof(IBotSettings).IsAssignableFrom(botSettingsType))
+			{
+				throw new ArgumentException($"Must inherit {nameof(IBotSettings)}.", nameof(botSettingsType));
+			}
+			if (typeof(IBotSettings) == botSettingsType)
+			{
+				throw new ArgumentException($"Must not be the interface {nameof(IBotSettings)}.", nameof(botSettingsType));
+			}
+			if (!typeof(IGuildSettings).IsAssignableFrom(guildSettingsType))
+			{
+				throw new ArgumentException($"Must inherit {nameof(IGuildSettings)}.", nameof(guildSettingsType));
+			}
+			if (typeof(IGuildSettings) == guildSettingsType)
+			{
+				throw new ArgumentException($"Must not be the interface {nameof(IGuildSettings)}.", nameof(guildSettingsType));
+			}
+
 			//I have no idea if I am providing services correctly, but it works.
-			var commandService = await CreateCommandService().CAF();
-			var botSettings = CreateBotSettings();
-			var client = CreateDiscordClient(botSettings);
 			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
-				.AddSingleton(commandService)
-				.AddSingleton(botSettings)
-				.AddSingleton(client)
-				.AddSingleton<IGuildSettingsService>(x => new GuildSettingsService(x))
-				.AddSingleton<ITimersService>(x => new TimersService(x))
-				.AddSingleton<ILogService>(x => new LogService(x))
-				.AddSingleton<IInviteListService>(x => new InviteListService(x)));
+				.AddSingleton<CommandService>(provider => CreateCommandService())
+				.AddSingleton<IBotSettings>(provider => CreateBotSettings(botSettingsType))
+				.AddSingleton<IDiscordClient>(provider => CreateDiscordClient(provider))
+				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService(guildSettingsType, provider))
+				.AddSingleton<ITimersService>(provider => new TimersService(provider))
+				.AddSingleton<ILogService>(provider => new LogService(provider))
+				.AddSingleton<IInviteListService>(provider => new InviteListService(provider)));
 		}
 		/// <summary>
 		/// Creates the <see cref="CommandService"/> for the bot. Add in typereaders and modules.
 		/// </summary>
 		/// <returns></returns>
-		private static async Task<CommandService> CreateCommandService()
+		internal static CommandService CreateCommandService()
 		{
-			var cmds = new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false });
+			var cmds = new CommandService(new CommandServiceConfig
+			{
+				CaseSensitiveCommands = false,
+				ThrowOnError = false,
+			});
 
 			cmds.AddTypeReader<IInvite>(new InviteTypeReader());
 			cmds.AddTypeReader<IBan>(new BanTypeReader());
@@ -69,10 +88,14 @@ namespace Advobot.Core.Utilities
 			}
 
 			//Add in commands
-			foreach (var assembly in Constants.COMMAND_ASSEMBLIES)
+			Task.Run(async () =>
 			{
-				await cmds.AddModulesAsync(assembly).CAF();
-			}
+				foreach (var assembly in Constants.COMMAND_ASSEMBLIES)
+				{
+					await cmds.AddModulesAsync(assembly).CAF();
+				}
+				ConsoleUtils.WriteLine("Successfully added every command assembly.");
+			});
 
 			return cmds;
 		}
@@ -81,8 +104,9 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <param name="botSettings">The settings to initialize the client with.</param>
 		/// <returns>A discord client.</returns>
-		private static IDiscordClient CreateDiscordClient(IBotSettings botSettings)
+		internal static IDiscordClient CreateDiscordClient(IServiceProvider provider)
 		{
+			var botSettings = provider.GetRequiredService<IBotSettings>();
 			var config = new DiscordSocketConfig
 			{
 				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
@@ -95,22 +119,25 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Creates settings that the bot uses.
 		/// </summary>
+		/// <param name="botSettingsType"></param>
 		/// <returns></returns>
-		private static IBotSettings CreateBotSettings()
+		internal static IBotSettings CreateBotSettings(Type botSettingsType)
 		{
 			var path = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
-			return IOUtils.DeserializeFromFile<IBotSettings>(path, Config.BotSettingsType, true);
+			return IOUtils.DeserializeFromFile<IBotSettings>(path, botSettingsType, true);
 		}
 		/// <summary>
-		/// Creates settings that guilds on the bot use.
+		/// Creates settings the guilds use.
 		/// </summary>
+		/// <param name="guildSettingsType"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal static IGuildSettings CreateGuildSettings(IGuild guild)
+		internal static IGuildSettings CreateGuildSettings(Type guildSettingsType, IGuild guild)
 		{
 			var path = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOC);
-			return IOUtils.DeserializeFromFile<IGuildSettings>(path, Config.GuildSettingsType, true, null,
-				async s => await s.PostDeserializeAsync(guild).CAF());
+			var jsonSettings = IOUtils.GenerateDefaultSerializerSettings();
+			jsonSettings.Context = new StreamingContext(StreamingContextStates.Other, guild);
+			return IOUtils.DeserializeFromFile<IGuildSettings>(path, guildSettingsType, true, jsonSettings);
 		}
 	}
 }

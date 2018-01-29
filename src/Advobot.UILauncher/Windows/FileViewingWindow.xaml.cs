@@ -1,5 +1,6 @@
 ﻿using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Utilities;
+using System;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,15 +13,15 @@ namespace Advobot.UILauncher.Windows
 	/// </summary>
 	internal partial class FileViewingWindow : ModalWindow
 	{
-		private AdvobotWindow _AdvoWin;
 		private AdvobotTreeViewFile _TreeViewFile;
+		private Type _GuildSettingsType;
 
 		public FileViewingWindow() : this(null, null) { }
 		public FileViewingWindow(AdvobotWindow mainWindow, AdvobotTreeViewFile treeViewFile) : base(mainWindow)
 		{
 			InitializeComponent();
-			_AdvoWin = mainWindow;
 			_TreeViewFile = treeViewFile;
+			_GuildSettingsType = mainWindow.GuildSettings.HeldObject.GuildSettingsType;
 			if (SavingUtils.TryGetFileText(_TreeViewFile, out var text, out var fileInfo))
 			{
 				SpecificFileOutput.Tag = fileInfo;
@@ -33,17 +34,14 @@ namespace Advobot.UILauncher.Windows
 		{
 			_TreeViewFile.CopyFile();
 		}
-
 		private void DeleteFile(object sender, RoutedEventArgs e)
 		{
 			_TreeViewFile.DeleteFile();
 		}
-
 		private void SaveFile(object sender, RoutedEventArgs e)
 		{
-			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(SpecificFileOutput).GetReason());
+			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(SpecificFileOutput, _GuildSettingsType).GetReason());
 		}
-
 		private void SaveFileWithCtrlS(object sender, KeyEventArgs e)
 		{
 			if (SavingUtils.IsCtrlS(e))

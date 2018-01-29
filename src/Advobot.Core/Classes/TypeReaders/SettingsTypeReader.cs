@@ -1,11 +1,9 @@
-﻿using System;
+﻿using Advobot.Core.Interfaces;
+using Discord.Commands;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
-using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -14,10 +12,10 @@ namespace Advobot.Core.Classes.TypeReaders
 	/// </summary>
 	public abstract class SettingTypeReader : TypeReader
 	{
-		private static Dictionary<string, Dictionary<string, PropertyInfo>> _Settings = new Dictionary<string, Dictionary<string, PropertyInfo>>
+		private static Dictionary<string, Dictionary<string, FieldInfo>> _Settings = new Dictionary<string, Dictionary<string, FieldInfo>>
 		{
-			{ nameof(GuildSettingTypeReader), Utils.GetSettings(typeof(IGuildSettings)).ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
-			{ nameof(BotSettingTypeReader), Utils.GetSettings(typeof(IBotSettings)).ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) }
+			{ nameof(GuildSettingTypeReader), SettingsBase.GetSettings(typeof(IGuildSettings)) },
+			{ nameof(BotSettingTypeReader), SettingsBase.GetSettings(typeof(IBotSettings)) },
 		};
 
 		/// <summary>
@@ -34,7 +32,6 @@ namespace Advobot.Core.Classes.TypeReaders
 			{
 				throw new ArgumentException("not in the settings dictionary", GetType().FullName);
 			}
-
 			if (dict.TryGetValue(input, out var value))
 			{
 				return Task.FromResult(TypeReaderResult.FromSuccess(value));

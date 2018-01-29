@@ -23,9 +23,9 @@ namespace Advobot.Core.Classes
 		//Maps the name to the helpentry
 		private Dictionary<string, HelpEntry> _Source = new Dictionary<string, HelpEntry>();
 
-		public HelpEntryHolder()
+		public HelpEntryHolder(IEnumerable<Assembly> commandAssemblies)
 		{
-			var types = Constants.COMMAND_ASSEMBLIES.SelectMany(x => x.GetTypes());
+			var types = commandAssemblies.SelectMany(x => x.GetTypes());
 			var commands = types.Where(x => x.IsSubclassOf(typeof(NonSavingModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
 			if (!commands.Any())
 			{

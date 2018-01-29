@@ -1,18 +1,17 @@
-﻿using Advobot.Core.Classes.Rules;
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes
@@ -20,31 +19,16 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.
 	/// </summary>
-	internal sealed class GuildSettings : IGuildSettings
+	public class GuildSettings : SettingsBase, IGuildSettings
 	{
-		#region Fields and Properties
-		[JsonProperty("WelcomeMessage")]
-		private GuildNotification _WelcomeMessage;
-		[JsonProperty("GoodbyeMessage")]
-		private GuildNotification _GoodbyeMessage;
-		[JsonProperty("ListedInvite")]
-		private ListedInvite _ListedInvite;
-		[JsonProperty("Slowmode")]
-		private Slowmode _Slowmode;
-		[JsonProperty("Rules")]
-		private RuleHolder _Rules;
-		[JsonProperty("Prefix")]
-		private string _Prefix;
-		[JsonProperty("NonVerboseErrors")]
-		private bool _NonVerboseErrors;
-		[JsonProperty("ServerLog")]
-		private ulong _ServerLogId;
-		[JsonProperty("ModLog")]
-		private ulong _ModLogId;
-		[JsonProperty("ImageLog")]
-		private ulong _ImageLogId;
-		[JsonProperty("MuteRole")]
-		private ulong _MuteRoleId;
+		[JsonProperty("WelcomeMessage"), Setting(null)]
+		private GuildNotification _WelcomeMessage = null;
+		[JsonProperty("GoodbyeMessage"), Setting(null)]
+		private GuildNotification _GoodbyeMessage = null;
+		[JsonProperty("ListedInvite"), Setting(null)]
+		private ListedInvite _ListedInvite = null;
+		[JsonProperty("Slowmode"), Setting(null)]
+		private Slowmode _Slowmode = null;
 		[JsonIgnore]
 		private ITextChannel _ServerLog;
 		[JsonIgnore]
@@ -53,36 +37,61 @@ namespace Advobot.Core.Classes
 		private ITextChannel _ImageLog;
 		[JsonIgnore]
 		private IRole _MuteRole;
-		[JsonProperty("SpamPrevention")]
-		private Dictionary<SpamType, SpamPreventionInfo> _SpamPrevention;
-		[JsonProperty("RaidPrevention")]
-		private Dictionary<RaidType, RaidPreventionInfo> _RaidPrevention;
-		[JsonProperty("PersistentRoles")]
-		private List<PersistentRole> _PersistentRoles;
-		[JsonProperty("BotUsers")]
-		private List<BotImplementedPermissions> _BotUsers;
-		[JsonProperty("SelfAssignableGroups")]
-		private List<SelfAssignableRoles> _SelfAssignableGroups;
-		[JsonProperty("Quotes")]
-		private List<Quote> _Quotes;
-		[JsonProperty("LogActions")]
-		private List<LogAction> _LogActions;
-		[JsonProperty("IgnoredCommandChannels")]
-		private List<ulong> _IgnoredCommandChannels;
-		[JsonProperty("IgnoredLogChannels")]
-		private List<ulong> _IgnoredLogChannels;
-		[JsonProperty("ImageOnlyChannels")]
-		private List<ulong> _ImageOnlyChannels;
-		[JsonProperty("BannedPhraseStrings")]
-		private List<BannedPhrase> _BannedPhraseStrings;
-		[JsonProperty("BannedPhraseRegex")]
-		private List<BannedPhrase> _BannedPhraseRegex;
-		[JsonProperty("BannedPhraseNames")]
-		private List<BannedPhrase> _BannedPhraseNames;
-		[JsonProperty("BannedPhrasePunishments")]
-		private List<BannedPhrasePunishment> _BannedPhrasePunishments;
-		[JsonProperty("CommandSettings")]
-		private CommandSettings _CommandSettings;
+		[JsonProperty("ServerLog"), Setting(0)]
+		private ulong _ServerLogId = 0;
+		[JsonProperty("ModLog"), Setting(0)]
+		private ulong _ModLogId = 0;
+		[JsonProperty("ImageLog"), Setting(0)]
+		private ulong _ImageLogId = 0;
+		[JsonProperty("MuteRole"), Setting(0)]
+		private ulong _MuteRoleId = 0;
+		[JsonProperty("Prefix"), Setting(null)]
+		private string _Prefix = null;
+		[JsonProperty("NonVerboseErrors"), Setting(false)]
+		private bool _NonVerboseErrors = false;
+		[JsonProperty("SpamPrevention"), Setting(NonCompileTimeDefaultValue.ClearDictionaryValues)]
+		private Dictionary<SpamType, SpamPreventionInfo> _SpamPrevention = new Dictionary<SpamType, SpamPreventionInfo>
+		{
+			{ SpamType.Message, null },
+			{ SpamType.LongMessage, null },
+			{ SpamType.Link, null },
+			{ SpamType.Image, null },
+			{ SpamType.Mention, null }
+		};
+		[JsonProperty("RaidPrevention"), Setting(NonCompileTimeDefaultValue.ClearDictionaryValues)]
+		private Dictionary<RaidType, RaidPreventionInfo> _RaidPrevention = new Dictionary<RaidType, RaidPreventionInfo>
+		{
+			{ RaidType.Regular, null },
+			{ RaidType.RapidJoins, null }
+		};
+		[JsonProperty("PersistentRoles"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<PersistentRole> _PersistentRoles = new List<PersistentRole>();
+		[JsonProperty("BotUsers"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<BotImplementedPermissions> _BotUsers = new List<BotImplementedPermissions>();
+		[JsonProperty("SelfAssignableGroups"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<SelfAssignableRoles> _SelfAssignableGroups = new List<SelfAssignableRoles>();
+		[JsonProperty("Quotes"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<Quote> _Quotes = new List<Quote>();
+		[JsonProperty("LogActions"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<LogAction> _LogActions = new List<LogAction>();
+		[JsonProperty("IgnoredCommandChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<ulong> _IgnoredCommandChannels = new List<ulong>();
+		[JsonProperty("IgnoredLogChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<ulong> _IgnoredLogChannels = new List<ulong>();
+		[JsonProperty("ImageOnlyChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<ulong> _ImageOnlyChannels = new List<ulong>();
+		[JsonProperty("BannedPhraseStrings"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<BannedPhrase> _BannedPhraseStrings = new List<BannedPhrase>();
+		[JsonProperty("BannedPhraseRegex"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<BannedPhrase> _BannedPhraseRegex = new List<BannedPhrase>();
+		[JsonProperty("BannedPhraseNames"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<BannedPhrase> _BannedPhraseNames = new List<BannedPhrase>();
+		[JsonProperty("BannedPhrasePunishments"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<BannedPhrasePunishment> _BannedPhrasePunishments = new List<BannedPhrasePunishment>();
+		[JsonProperty("Rules"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private RuleHolder _Rules = new RuleHolder();
+		[JsonProperty("CommandSettings"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private CommandSettings _CommandSettings = new CommandSettings();
 
 		[JsonIgnore]
 		public GuildNotification WelcomeMessage
@@ -109,11 +118,7 @@ namespace Advobot.Core.Classes
 			set => _Slowmode = value;
 		}
 		[JsonIgnore]
-		public RuleHolder Rules
-		{
-			get => _Rules ?? (_Rules = new RuleHolder());
-			set => _Rules = value;
-		}
+		public RuleHolder Rules => _Rules;
 		[JsonIgnore]
 		public string Prefix
 		{
@@ -167,106 +172,35 @@ namespace Advobot.Core.Classes
 			}
 		}
 		[JsonIgnore]
-		public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary
-		{
-			get => _SpamPrevention ?? (_SpamPrevention = new Dictionary<SpamType, SpamPreventionInfo>
-			{
-				{ SpamType.Message, null },
-				{ SpamType.LongMessage, null },
-				{ SpamType.Link, null },
-				{ SpamType.Image, null },
-				{ SpamType.Mention, null }
-			});
-			set => _SpamPrevention = value;
-		}
+		public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary => _SpamPrevention;
 		[JsonIgnore]
-		public Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary
-		{
-			get => _RaidPrevention ?? (_RaidPrevention = new Dictionary<RaidType, RaidPreventionInfo>
-			{
-				{ RaidType.Regular, null },
-				{ RaidType.RapidJoins, null }
-			});
-			set => _RaidPrevention = value;
-		}
+		public Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary => _RaidPrevention;
 		[JsonIgnore]
-		public List<PersistentRole> PersistentRoles
-		{
-			get => _PersistentRoles ?? (_PersistentRoles = new List<PersistentRole>());
-			set => _PersistentRoles = value;
-		}
+		public List<PersistentRole> PersistentRoles => _PersistentRoles;
 		[JsonIgnore]
-		public List<BotImplementedPermissions> BotUsers
-		{
-			get => _BotUsers ?? (_BotUsers = new List<BotImplementedPermissions>());
-			set => _BotUsers = value;
-		}
+		public List<BotImplementedPermissions> BotUsers => _BotUsers;
 		[JsonIgnore]
-		public List<SelfAssignableRoles> SelfAssignableGroups
-		{
-			get => _SelfAssignableGroups ?? (_SelfAssignableGroups = new List<SelfAssignableRoles>());
-			set => _SelfAssignableGroups = value;
-		}
+		public List<SelfAssignableRoles> SelfAssignableGroups => _SelfAssignableGroups;
 		[JsonIgnore]
-		public List<Quote> Quotes
-		{
-			get => _Quotes ?? (_Quotes = new List<Quote>());
-			set => _Quotes = value;
-		}
+		public List<Quote> Quotes => _Quotes;
 		[JsonIgnore]
-		public List<LogAction> LogActions
-		{
-			get => _LogActions ?? (_LogActions = new List<LogAction>());
-			set => _LogActions = value;
-		}
+		public List<LogAction> LogActions => _LogActions;
 		[JsonIgnore]
-		public List<ulong> IgnoredCommandChannels
-		{
-			get => _IgnoredCommandChannels ?? (_IgnoredCommandChannels = new List<ulong>());
-			set => _IgnoredCommandChannels = value;
-		}
+		public List<ulong> IgnoredCommandChannels => _IgnoredCommandChannels;
 		[JsonIgnore]
-		public List<ulong> IgnoredLogChannels
-		{
-			get => _IgnoredLogChannels ?? (_IgnoredLogChannels = new List<ulong>());
-			set => _IgnoredLogChannels = value;
-		}
+		public List<ulong> IgnoredLogChannels => _IgnoredLogChannels;
 		[JsonIgnore]
-		public List<ulong> ImageOnlyChannels
-		{
-			get => _ImageOnlyChannels ?? (_ImageOnlyChannels = new List<ulong>());
-			set => _ImageOnlyChannels = value;
-		}
+		public List<ulong> ImageOnlyChannels => _ImageOnlyChannels;
 		[JsonIgnore]
-		public List<BannedPhrase> BannedPhraseStrings
-		{
-			get => _BannedPhraseStrings ?? (_BannedPhraseStrings = new List<BannedPhrase>());
-			set => _BannedPhraseStrings = value;
-		}
+		public List<BannedPhrase> BannedPhraseStrings => _BannedPhraseStrings;
 		[JsonIgnore]
-		public List<BannedPhrase> BannedPhraseRegex
-		{
-			get => _BannedPhraseRegex ?? (_BannedPhraseRegex = new List<BannedPhrase>());
-			set => _BannedPhraseRegex = value;
-		}
+		public List<BannedPhrase> BannedPhraseRegex => _BannedPhraseRegex;
 		[JsonIgnore]
-		public List<BannedPhrase> BannedPhraseNames
-		{
-			get => _BannedPhraseNames ?? (_BannedPhraseNames = new List<BannedPhrase>());
-			set => _BannedPhraseNames = value;
-		}
+		public List<BannedPhrase> BannedPhraseNames => _BannedPhraseNames;
 		[JsonIgnore]
-		public List<BannedPhrasePunishment> BannedPhrasePunishments
-		{
-			get => _BannedPhrasePunishments ?? (_BannedPhrasePunishments = new List<BannedPhrasePunishment>());
-			set => _BannedPhrasePunishments = value;
-		}
+		public List<BannedPhrasePunishment> BannedPhrasePunishments => _BannedPhrasePunishments;
 		[JsonIgnore]
-		public CommandSettings CommandSettings
-		{
-			get => _CommandSettings ?? (_CommandSettings = new CommandSettings());
-			set => _CommandSettings = value;
-		}
+		public CommandSettings CommandSettings => _CommandSettings;
 
 		[JsonIgnore]
 		public List<CachedInvite> Invites { get; } = new List<CachedInvite>();
@@ -278,123 +212,61 @@ namespace Advobot.Core.Classes
 		public SocketGuild Guild { get; private set; }
 		[JsonIgnore]
 		public bool Loaded { get; private set; }
-		#endregion
 
-		public string Format()
+		public override FileInfo GetFileLocation()
 		{
-			var sb = new StringBuilder();
-			foreach (var property in GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
-			{
-				//Only get public editable properties
-				if (property.GetGetMethod() == null || property.GetSetMethod() == null)
-				{
-					continue;
-				}
-
-				var formatted = Format(property);
-				if (String.IsNullOrWhiteSpace(formatted))
-				{
-					continue;
-				}
-
-				sb.AppendLineFeed($"**{property.Name}**:");
-				sb.AppendLineFeed($"{formatted}");
-				sb.AppendLineFeed();
-			}
-			return sb.ToString();
-		}
-		public string Format(PropertyInfo property)
-		{
-			return Format(property.GetValue(this));
+			return IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOC);
 		}
 		public bool SetLogChannel(LogChannelType logChannelType, ITextChannel channel)
 		{
 			switch (logChannelType)
 			{
 				case LogChannelType.Server:
-					if (_ServerLogId == (channel?.Id ?? 0)) { return false; }
+					if (_ServerLogId == (channel?.Id ?? 0))
+					{
+						return false;
+					}
 					ServerLog = channel;
 					return true;
 				case LogChannelType.Mod:
-					if (_ModLogId == (channel?.Id ?? 0)) { return false; }
+					if (_ModLogId == (channel?.Id ?? 0))
+					{
+						return false;
+					}
 					ModLog = channel;
 					return true;
 				case LogChannelType.Image:
-					if (_ImageLogId == (channel?.Id ?? 0)) { return false; }
+					if (_ImageLogId == (channel?.Id ?? 0))
+					{
+						return false;
+					}
 					ImageLog = channel;
 					return true;
 				default:
 					throw new ArgumentException("invalid type", nameof(channel));
 			}
 		}
-		public void SaveSettings()
-		{
-			IOUtils.OverwriteFile(IOUtils.GetServerDirectoryFile(Guild?.Id ?? 0, Constants.GUILD_SETTINGS_LOC), IOUtils.Serialize(this));
-		}
-		public async Task PostDeserializeAsync(IGuild guild)
-		{
-			Guild = guild as SocketGuild;
-			Invites.AddRange((await InviteUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
 
-			_ListedInvite?.PostDeserialize(Guild);
+		[OnDeserialized]
+		private void OnDeserialized(StreamingContext context)
+		{
+			if (!(context.Context is SocketGuild guild))
+			{
+				throw new InvalidOperationException("The additional streaming context must be a socketguild when deserializing.");
+			}
+
+			Guild = guild;
+			Task.Run(async () =>
+			{
+				Invites.AddRange((await InviteUtils.GetInvitesAsync(Guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
+			});
 			foreach (var group in _SelfAssignableGroups ?? Enumerable.Empty<SelfAssignableRoles>())
 			{
 				group.PostDeserialize(Guild);
 			}
+			_ListedInvite?.PostDeserialize(Guild);
 
 			Loaded = true;
-		}
-
-		private string Format(object value)
-		{
-			if (value == null)
-			{
-				return "`Nothing`";
-			}
-
-			if (value is IGuildSetting setting)
-			{
-				return setting.ToString();
-			}
-
-			if (value is ulong ul)
-			{
-				var chan = Guild.GetChannel(ul);
-				if (chan != null)
-				{
-					return $"`{chan.Format()}`";
-				}
-				var role = Guild.GetRole(ul);
-				if (role != null)
-				{
-					return $"`{role.Format()}`";
-				}
-				var user = Guild.GetUser(ul);
-				if (user != null)
-				{
-					return $"`{user.Format()}`";
-				}
-				return ul.ToString();
-			}
-			//Because strings are char[] this has to be here so it doesn't go into IEnumerable
-
-			if (value is string str)
-			{
-				return String.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
-			}
-			//Has to be above IEnumerable too
-
-			if (value is IDictionary dict)
-			{
-				var keys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
-				return String.Join("\n", keys.Select(x => $"{Format(x)}: {Format(dict[x])}"));
-			}
-
-			if (value is IEnumerable enumarble)
-			{
-				return String.Join("\n", enumarble.Cast<object>().Select(x => Format(x)));
-			}
-			return $"`{value}`";
 		}
 	}
 }

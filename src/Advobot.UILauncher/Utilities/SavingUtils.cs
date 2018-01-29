@@ -23,18 +23,18 @@ namespace Advobot.UILauncher.Utilities
 		/// </summary>
 		/// <param name="editor"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextEditor editor)
+		public static ToolTipReason SaveFile(TextEditor editor, Type guildSettingsType = null)
 		{
-			return SaveFile(editor, editor.Text);
+			return SaveFile(editor, editor.Text, guildSettingsType);
 		}
 		/// <summary>
 		/// Saves the text of <paramref name="tb"/> to file.
 		/// </summary>
 		/// <param name="tb"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextBox tb)
+		public static ToolTipReason SaveFile(TextBox tb, Type guildSettingsType = null)
 		{
-			return SaveFile(tb, tb.Text);
+			return SaveFile(tb, tb.Text, guildSettingsType);
 		}
 		/// <summary>
 		/// Attempts to save a file and returns a value indicating the result.
@@ -42,7 +42,7 @@ namespace Advobot.UILauncher.Utilities
 		/// <param name="control"></param>
 		/// <param name="text"></param>
 		/// <returns></returns>
-		private static ToolTipReason SaveFile(Control control, string text)
+		private static ToolTipReason SaveFile(Control control, string text, Type guildSettingsType)
 		{
 			//If no valid tag just save to a new file with its name being the control's name
 			var tag = control.Tag ?? CreateFileInfo(control);
@@ -50,13 +50,12 @@ namespace Advobot.UILauncher.Utilities
 			{
 				return ToolTipReason.InvalidFilePath;
 			}
-
-			if (fi.Name == Constants.GUILD_SETTINGS_LOC)
+			if (fi.Name == Constants.GUILD_SETTINGS_LOC && guildSettingsType != null)
 			{
 				//Make sure the guild info stays valid
 				try
 				{
-					var throwaway = JsonConvert.DeserializeObject(text, Config.GuildSettingsType);
+					var throwaway = JsonConvert.DeserializeObject(text, guildSettingsType);
 				}
 				catch (JsonReaderException jre)
 				{

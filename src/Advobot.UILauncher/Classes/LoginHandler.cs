@@ -31,7 +31,7 @@ namespace Advobot.UILauncher.Classes
 				//Null means it's from the loaded event, which is start up so it's telling the bot to look up the config value
 				_StartUp = input == null;
 				//Set startup to whatever returned value is so it can be used in GotKey, and then after GotKey in the last if statement
-				_StartUp = GotPath = await GetPath(input, _StartUp);
+				_StartUp = GotPath = GetPath(input, _StartUp);
 			}
 			else if (!GotKey)
 			{
@@ -47,11 +47,11 @@ namespace Advobot.UILauncher.Classes
 			}
 			return somethingWasSet;
 		}
-		private async Task<bool> GetPath(string path, bool startup)
+		private bool GetPath(string path, bool startup)
 		{
 			if (Config.ValidatePath(path, startup))
 			{
-				Provider = await CreationUtils.CreateServiceProvider().CAF();
+				Provider = CreationUtils.CreateServiceProvider(typeof(BotSettings), typeof(GuildSettings));
 				CommandHandler = new CommandHandler(Provider);
 				return true;
 			}

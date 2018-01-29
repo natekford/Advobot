@@ -17,6 +17,9 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class MessageUtils
 	{
+		public const string ZERO_LENGTH_CHAR = "\u180E";
+		private const string LONG = "Response too long. Sent as text file instead.";
+
 		/// <summary>
 		/// Sends a message to the given channel with the given content.
 		/// </summary>
@@ -25,17 +28,14 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IUserMessage> SendMessageAsync(IMessageChannel channel, string content)
 		{
-			const string LONG = "The response is a long message and was sent as a text file instead";
-
-			var guild = channel.GetGuild();
-			if (guild == null)
+			if (!(channel.GetGuild() is IGuild guild))
 			{
 				return null;
 			}
 
-			content = DiscordObjectFormatting.FormatMessageContent(guild, content);
+			content = content.SanitizeContent(guild);
 			return content.Length < Constants.MAX_MESSAGE_LENGTH
-				? await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content).CAF()
+				? await channel.SendMessageAsync(content).CAF()
 				: await SendTextFileAsync(channel, content, "Long_Message_", LONG).CAF();
 		}
 		/// <summary>
@@ -47,12 +47,16 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IEnumerable<IUserMessage>> SendEmbedMessageAsync(IMessageChannel channel, EmbedWrapper embed, string content = null)
 		{
+			if (!(channel.GetGuild() is IGuild guild))
+			{
+				return Enumerable.Empty<IUserMessage>();
+			}
+
 			//Catches length errors and nsfw filter errors if an avatar has nsfw content and filtering is enabled
 			var messages = new List<IUserMessage>
 			{
-				await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + (content ?? ""), embed: embed.Build()).CAF()
+				await channel.SendMessageAsync((content ?? "").SanitizeContent(guild), embed: embed.Build()).CAF()
 			};
-
 			//Upload any errors
 			if (embed.FailedValues.Any())
 			{
@@ -70,15 +74,21 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IUserMessage> SendTextFileAsync(IMessageChannel channel, string text, string fileName, string content = null)
 		{
+			if (!(channel.GetGuild() is IGuild guild))
+			{
+				return null;
+			}
+
 			if (!fileName.EndsWith("_"))
 			{
 				fileName += "_";
 			}
 			var fullFileName = $"{fileName}{TimeFormatting.Saving()}.txt";
 			var fileInfo = IOUtils.GetServerDirectoryFile(channel.GetGuild()?.Id ?? 0, fullFileName);
+			var c = (String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**").SanitizeContent(guild);
 
 			IOUtils.OverwriteFile(fileInfo, text.RemoveAllMarkdown());
-			var msg = await channel.SendFileAsync(fileInfo.FullName, String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**").CAF();
+			var msg = await channel.SendFileAsync(fileInfo.FullName, c).CAF();
 			IOUtils.DeleteFile(fileInfo);
 			return msg;
 		}
@@ -109,7 +119,7 @@ namespace Advobot.Core.Utilities
 				time = Constants.DEFAULT_WAIT_TIME;
 			}
 
-			var secondMessage = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr).CAF();
+			var secondMessage = await SendMessageAsync(channel, ZERO_LENGTH_CHAR + secondStr).CAF();
 			var removableMessage = new RemovableMessage(time, message, secondMessage);
 			timers?.Add(removableMessage);
 			return removableMessage;
@@ -290,6 +300,14 @@ namespace Advobot.Core.Utilities
 				ConsoleUtils.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.Format()}.", color: ConsoleColor.Red);
 				return 0;
 			}
+		}
+		private static string SanitizeContent(this string content, IGuild guild)
+		{
+			return ZERO_LENGTH_CHAR + content.CaseInsReplace(guild.EveryoneRole.Mention, $"@{ZERO_LENGTH_CHAR}everyone") //Everyone and Here have the same role.
+				.CaseInsReplace("@everyone", $"@{ZERO_LENGTH_CHAR}everyone")
+				.CaseInsReplace("@here", $"@{ZERO_LENGTH_CHAR}here")
+				.CaseInsReplace("discord.gg", $"discord{ZERO_LENGTH_CHAR}.gg")
+				.CaseInsReplace("\tts", $"\\{ZERO_LENGTH_CHAR}tts");
 		}
 	}
 }

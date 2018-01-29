@@ -17,7 +17,7 @@ namespace Advobot.Core.Utilities
 	public static class IOUtils
 	{
 		//Has to be manually set, but that shouldn't be a problem since the break would have been manually created anyways
-		private static JsonFix[] _Fixes =
+		public static JsonFix[] Fixes =
 		{
 			#region January 20, 2018: Text Fix
 			new JsonFix
@@ -29,20 +29,7 @@ namespace Advobot.Core.Utilities
 			}
 			#endregion
 		};
-		private static JsonSerializerSettings _DefaultSerializingSettings = new JsonSerializerSettings
-		{
-			//Ignores errors parsing specific invalid properties instead of throwing exceptions making the entire object null
-			//Will still make the object null if the property's type is changed to something not creatable from the text
-			//Won't make the entire object null though, just the 
-			Error = (sender, e) =>
-			{
-#if DEBUG
-				ConsoleUtils.WriteLine(e.ErrorContext.Error.Message, color: ConsoleColor.Red);
-#endif
-				e.ErrorContext.Handled = false;
-			},
-			Converters = new JsonConverter[] { new StringEnumConverter() }
-		};
+		private static JsonSerializerSettings _DefaultSerializingSettings = GenerateDefaultSerializerSettings();
 
 		/// <summary>
 		/// Returns the <see cref="Process.WorkingSet64"/> value divided by a MB.
@@ -157,7 +144,7 @@ namespace Advobot.Core.Utilities
 		{
 			//Only use fixes specified for the class
 			var json = value;
-			var fixes = _Fixes.Where(f => f.Type == type || f.Type.IsAssignableFrom(type));
+			var fixes = Fixes.Where(f => f.Type == type || f.Type.IsAssignableFrom(type));
 			if (fixes.Any())
 			{
 				var jObject = JObject.Parse(value);
@@ -216,12 +203,33 @@ namespace Advobot.Core.Utilities
 			return result;
 		}
 		/// <summary>
+		/// Generates json serializer settings which ignore most errors, and has a string enum converter.
+		/// </summary>
+		/// <returns></returns>
+		public static JsonSerializerSettings GenerateDefaultSerializerSettings()
+		{
+			return new JsonSerializerSettings
+			{
+				//Ignores errors parsing specific invalid properties instead of throwing exceptions making the entire object null
+				//Will still make the object null if the property's type is changed to something not creatable from the text
+				//Won't make the entire object null though, just the 
+				Error = (sender, e) =>
+				{
+#if DEBUG
+					ConsoleUtils.WriteLine(e.ErrorContext.Error.Message, color: ConsoleColor.Red);
+#endif
+					e.ErrorContext.Handled = false;
+				},
+				Converters = new JsonConverter[] { new StringEnumConverter() }
+			};
+		}
+		/// <summary>
 		/// Writes an uncaught exception to a log file.
 		/// </summary>
 		/// <param name="exception"></param>
 		public static void LogUncaughtException(object exception)
 		{
-			var crashLogPath = GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOC);
+			var crashLogPath = GetBaseBotDirectoryFile("CrashLog.txt");
 			CreateFile(crashLogPath);
 			//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
 			using (var writer = crashLogPath.AppendText())
@@ -230,7 +238,7 @@ namespace Advobot.Core.Utilities
 			}
 		}
 
-		private struct JsonFix
+		public struct JsonFix
 		{
 			public Type Type;
 			public string Path;

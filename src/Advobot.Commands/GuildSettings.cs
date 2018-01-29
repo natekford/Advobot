@@ -23,7 +23,7 @@ namespace Advobot.Commands.GuildSettings
 	[Summary("Makes the bot use the given prefix in the guild.")]
 	[OtherRequirement(Precondition.GuildOwner)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyGuildPrefix : SavingModuleBase
+	public sealed class ModifyGuildPrefix : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Clear)), Priority(1)]
 		public async Task Clear()
@@ -46,10 +46,10 @@ namespace Advobot.Commands.GuildSettings
 		"Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Help) + "`.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true, false)]
-	public sealed class ModifyCommands : SavingModuleBase
+	public sealed class ModifyCommands : GuildSettingsSavingModuleBase
 	{
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
-		public sealed class Enable : SavingModuleBase
+		public sealed class Enable : GuildSettingsSavingModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 			public async Task All()
@@ -89,7 +89,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
-		public sealed class Disable : SavingModuleBase
+		public sealed class Disable : GuildSettingsSavingModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 			public async Task All()
@@ -135,10 +135,10 @@ namespace Advobot.Commands.GuildSettings
 		"If a command is input then the bot will instead ignore only that command on the given channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true, false)]
-	public sealed class ModifyIgnoredCommandChannels : SavingModuleBase
+	public sealed class ModifyIgnoredCommandChannels : GuildSettingsSavingModuleBase
 	{
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
-		public sealed class Enable : SavingModuleBase
+		public sealed class Enable : GuildSettingsSavingModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel)
@@ -181,7 +181,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
-		public sealed class Disable : SavingModuleBase
+		public sealed class Disable : GuildSettingsSavingModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel)
@@ -231,7 +231,7 @@ namespace Advobot.Commands.GuildSettings
 		"Type `" + nameof(ModifyBotUsers) + " [Show] [User]` to see the permissions of that user.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyBotUsers : SavingModuleBase
+	public sealed class ModifyBotUsers : GuildSettingsSavingModuleBase
 	{
 		[Group(nameof(Show)), ShortAlias(nameof(Show))]
 		public sealed class Show : NonSavingModuleBase
@@ -307,7 +307,7 @@ namespace Advobot.Commands.GuildSettings
 		"Type `" + nameof(ModifyPersistentRoles) + " [Show] [User]` to see the persistent roles of that user.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyPersistentRoles : SavingModuleBase
+	public sealed class ModifyPersistentRoles : GuildSettingsSavingModuleBase
 	{
 		[Group(nameof(Show)), ShortAlias(nameof(Show))]
 		public sealed class Show : NonSavingModuleBase
@@ -350,7 +350,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
-		public sealed class Add : SavingModuleBase
+		public sealed class Add : GuildSettingsSavingModuleBase
 		{
 			[Command, Priority(1)]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
@@ -381,7 +381,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 		}
 		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public sealed class Remove : SavingModuleBase
+		public sealed class Remove : GuildSettingsSavingModuleBase
 		{
 			[Command, Priority(1)]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
@@ -418,7 +418,7 @@ namespace Advobot.Commands.GuildSettings
 		"Using the command on an already targetted channel turns it off.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyChannelSettings : SavingModuleBase
+	public sealed class ModifyChannelSettings : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(ImageOnly)), ShortAlias(nameof(ImageOnly))]
 		public async Task ImageOnly([VerifyObject(true, ObjectVerification.CanBeEdited)] ITextChannel channel)
@@ -444,7 +444,7 @@ namespace Advobot.Commands.GuildSettings
 		"`" + GuildNotification.USER_STRING + "` will be replaced with a mention of the joining user.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyGuildNotifs : SavingModuleBase
+	public sealed class ModifyGuildNotifs : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
 		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> arguments)
@@ -504,20 +504,20 @@ namespace Advobot.Commands.GuildSettings
 			var embed = new EmbedWrapper
 			{
 				Title = "Setting Names",
-				Description = $"`{String.Join("`, `", Utils.GetSettings(typeof(IGuildSettings)).Select(x => x.Name))}`"
+				Description = $"`{String.Join("`, `", SettingsBase.GetSettings(typeof(IGuildSettings)).Keys)}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
 		{
-			var text = Context.GuildSettings.Format().TrimEnd();
+			var text = Context.GuildSettings.Format(Context.Client, Context.Guild).TrimEnd();
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "Guild_Settings", "Guild Settings").CAF();
 		}
 		[Command]
-		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.GuildSettingTypeReader))] PropertyInfo settingName)
+		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.GuildSettingTypeReader))] FieldInfo settingName)
 		{
-			var desc = Context.GuildSettings.Format(settingName);
+			var desc = Context.GuildSettings.Format(Context.Client, Context.Guild, settingName);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper

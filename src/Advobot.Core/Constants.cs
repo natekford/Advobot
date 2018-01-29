@@ -14,13 +14,7 @@ namespace Advobot.Core
 	{
 		//Regex for checking any awaits are non ConfigureAwait(false): ^(?!.*CAF\(\)).*await.*$
 		public const string BOT_VERSION = Version.VERSION_NUMBER;
-		public const string ZERO_LENGTH_CHAR = "\u180E";
-		public const string PLACEHOLDER_PREFIX = ZERO_LENGTH_CHAR + "%PREFIX%";
-		public const string DEFAULT_PREFIX = "&&";
-		public const string FAKE_DISCORD_LINK = "discord" + ZERO_LENGTH_CHAR + ".gg";
-		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
-		public const string FAKE_HERE = "@" + ZERO_LENGTH_CHAR + "here";
-		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
+		public const string PLACEHOLDER_PREFIX = "%PREFIX%";
 		public const string DISCORD_INV = "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server
 		public const string REPO = "https://github.com/advorange/Advobot";
 		public const string VIP_REGIONS = "VIP_REGIONS";
@@ -28,10 +22,6 @@ namespace Advobot.Core
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
 		public const string GUILD_SETTINGS_LOC = "GuildSettings.json";
 		public const string BOT_SETTINGS_LOC = "BotSettings.json";
-		public const string UI_INFO_LOC = "UISettings.json";
-		public const string CRASH_LOG_LOC = "CrashLog.txt";
-		public const string BOT_ICON_LOC = "BotIcon.png";
-		public const string GUILD_ICON_LOC = "GuildIcon.png";
 		public const int MAX_MESSAGE_LENGTH = 2000;
 
 		public static readonly string API_VERSION = Assembly.GetAssembly(typeof(IDiscordClient)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
@@ -40,7 +30,7 @@ namespace Advobot.Core
 		public static readonly ImmutableList<string> VALID_GIF_EXTENSIONS = ImmutableList.Create(".gif", ".gifv");
 		public static readonly ImmutableList<Assembly> COMMAND_ASSEMBLIES = GetCommandAssemblies();
 		public static readonly ImmutableDictionary<string, Color> COLORS = GetColorDictionary();
-		public static readonly HelpEntryHolder HELP_ENTRIES = new HelpEntryHolder();
+		public static readonly HelpEntryHolder HELP_ENTRIES = new HelpEntryHolder(COMMAND_ASSEMBLIES);
 
 		private static ImmutableList<Assembly> GetCommandAssemblies()
 		{

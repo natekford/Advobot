@@ -17,7 +17,7 @@ namespace Advobot.Commands.GuildList
 	[Summary("Adds or removes a guild from the public guild list.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyGuildListing : SavingModuleBase
+	public sealed class ModifyGuildListing : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(IInvite invite, [Optional] params string[] keywords)

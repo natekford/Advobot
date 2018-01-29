@@ -1,20 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
+using System.Collections.Generic;
 
 namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Holds bot settings.
 	/// </summary>
-	public interface IBotSettings
+	public interface IBotSettings : ISettingsBase
 	{
 		//Saved settings
 		LogSeverity LogLevel { get; set; }
-		IReadOnlyList<ulong> TrustedUsers { get; set; }
-		IReadOnlyList<ulong> UsersUnableToDmOwner { get; set; }
-		IReadOnlyList<ulong> UsersIgnoredFromCommands { get; set; }
+		List<ulong> TrustedUsers { get; }
+		List<ulong> UsersUnableToDmOwner { get; }
+		List<ulong> UsersIgnoredFromCommands { get; }
 		string Prefix { get; set; }
 		string Game { get; set; }
 		string Stream { get; set; }
@@ -34,23 +32,5 @@ namespace Advobot.Core.Interfaces
 
 		//Non-saved settings
 		bool Pause { get; set; }
-
-		/// <summary>
-		/// Returns a string of all the bot's settings in a human readable format.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <returns></returns>
-		Task<string> FormatAsync(IDiscordClient client);
-		/// <summary>
-		/// Returns a string of a bot setting in human readable format.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="property"></param>
-		/// <returns></returns>
-		Task<string> FormatAsync(IDiscordClient client, PropertyInfo property);
-		/// <summary>
-		/// Saves the settings to a json file.
-		/// </summary>
-		void SaveSettings();
 	}
 }

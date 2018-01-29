@@ -24,7 +24,7 @@ namespace Advobot.ConsoleLauncher
 				savePath = false;
 			}
 
-			var provider = await CreationUtils.CreateServiceProvider().CAF();
+			var provider = CreationUtils.CreateServiceProvider(typeof(BotSettings), typeof(GuildSettings));
 			var commandHandler = new CommandHandler(provider);
 			var client = provider.GetService<IDiscordClient>();
 

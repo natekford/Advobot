@@ -29,6 +29,7 @@ namespace Advobot.UILauncher.Windows
 	{
 		public Holder<IDiscordClient> Client { get; private set; } = new Holder<IDiscordClient>();
 		public Holder<IBotSettings> BotSettings { get; private set; } = new Holder<IBotSettings>();
+		public Holder<IGuildSettingsService> GuildSettings { get; private set; } = new Holder<IGuildSettingsService>();
 		public Holder<ILogService> LogHolder { get; private set; } = new Holder<ILogService>();
 
 		private ColorSettings _Colors = new ColorSettings();
@@ -88,6 +89,7 @@ namespace Advobot.UILauncher.Windows
 		{
 			Client.HeldObject = _LoginHandler.Provider.GetRequiredService<IDiscordClient>();
 			BotSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IBotSettings>();
+			GuildSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IGuildSettingsService>();
 			LogHolder.HeldObject = _LoginHandler.Provider.GetRequiredService<ILogService>();
 			_Colors = ColorSettings.LoadUISettings();
 

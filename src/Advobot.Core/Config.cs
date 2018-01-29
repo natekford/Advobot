@@ -1,14 +1,13 @@
-﻿using System;
+﻿using Advobot.Core.Utilities;
+using Discord;
+using Discord.Net;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Advobot.Core.Classes;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
-using Discord;
-using Newtonsoft.Json;
 
 namespace Advobot.Core
 {
@@ -27,42 +26,6 @@ namespace Advobot.Core
 		/// </summary>
 		[JsonProperty("Config")]
 		public static ConfigDict Configuration = LoadConfigDictionary();
-		[JsonIgnore]
-		private static Type _GuildSettingsType = typeof(GuildSettings);
-		/// <summary>
-		/// The explicit guild settings type to create or deserialize.
-		/// </summary>
-		[JsonIgnore]
-		public static Type GuildSettingsType
-		{
-			get => _GuildSettingsType;
-			set
-			{
-				if (!typeof(IGuildSettings).IsAssignableFrom(value))
-				{
-					throw new ArgumentException($"Must inherit {nameof(IGuildSettings)}.", nameof(GuildSettingsType));
-				}
-				_GuildSettingsType = value;
-			}
-		}
-		[JsonIgnore]
-		private static Type _BotSettingsType = typeof(BotSettings);
-		/// <summary>
-		/// The explicit bot settings type to create or deserialize.
-		/// </summary>
-		[JsonIgnore]
-		public static Type BotSettingsType
-		{
-			get => _BotSettingsType;
-			set
-			{
-				if (!typeof(IBotSettings).IsAssignableFrom(value))
-				{
-					throw new ArgumentException($"Must inherit {nameof(IBotSettings)}.", nameof(BotSettingsType));
-				}
-				_BotSettingsType = value;
-			}
-		}
 
 		/// <summary>
 		/// Attempts to set the save path with the given input. Returns a boolean signifying whether the save path is valid or not.
@@ -119,13 +82,12 @@ namespace Advobot.Core
 					await ClientUtils.LoginAsync(client, key).CAF();
 					return true;
 				}
-				catch
+				catch (HttpException)
 				{
 					ConsoleUtils.WriteLine("The given key is no longer valid. Please enter a new valid key:");
 					return false;
 				}
 			}
-
 			if (startup)
 			{
 				ConsoleUtils.WriteLine("Please enter the bot's key:");
@@ -141,7 +103,7 @@ namespace Advobot.Core
 				Save();
 				return true;
 			}
-			catch
+			catch (HttpException)
 			{
 				ConsoleUtils.WriteLine("The given key is invalid. Please enter a valid key:");
 				return false;

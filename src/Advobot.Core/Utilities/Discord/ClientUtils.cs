@@ -108,6 +108,42 @@ namespace Advobot.Core.Utilities
 			}
 		}
 		/// <summary>
+		/// Returns the user with the supplied id.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public static IUser GetUser(IDiscordClient client, ulong id)
+		{
+			switch (client)
+			{
+				case DiscordSocketClient socketClient:
+					return socketClient.GetUser(id);
+				case DiscordShardedClient shardedClient:
+					return shardedClient.GetUser(id);
+				default:
+					throw new ArgumentException("invalid type", nameof(client));
+			}
+		}
+		/// <summary>
+		/// Returns the guild with the supplied id.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public static IGuild GetGuild(IDiscordClient client, ulong id)
+		{
+			switch (client)
+			{
+				case DiscordSocketClient socketClient:
+					return socketClient.GetGuild(id);
+				case DiscordShardedClient shardedClient:
+					return shardedClient.GetGuild(id);
+				default:
+					throw new ArgumentException("invalid type", nameof(client));
+			}
+		}
+		/// <summary>
 		/// Returns the shard id for a <see cref="DiscordSocketClient"/> else returns -1.
 		/// </summary>
 		/// <param name="client"></param>

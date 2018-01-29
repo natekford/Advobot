@@ -11,8 +11,17 @@ namespace Advobot.Core.Services.GuildSettings
 	internal sealed class GuildSettingsService : IGuildSettingsService
 	{
 		private ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
+		public Type GuildSettingsType { get; }
 
-		public GuildSettingsService(IServiceProvider provider) { }
+		public GuildSettingsService(Type guildSettingsType, IServiceProvider provider)
+		{
+			if (!typeof(IGuildSettings).IsAssignableFrom(guildSettingsType))
+			{
+				throw new ArgumentException($"Must inherit {nameof(IGuildSettings)}.", nameof(guildSettingsType));
+			}
+
+			GuildSettingsType = guildSettingsType;
+		}
 
 		public void Remove(ulong guildId)
 		{
@@ -27,9 +36,12 @@ namespace Advobot.Core.Services.GuildSettings
 			{
 				return null;
 			}
+			if (_GuildSettings.TryGetValue(guild.Id, out var settings))
+			{
+				return settings;
+			}
 
-			if (!_GuildSettings.TryGetValue(guild.Id, out var settings) &&
-				!_GuildSettings.TryAdd(guild.Id, settings = CreationUtils.CreateGuildSettings(guild)))
+			if (!_GuildSettings.TryAdd(guild.Id, settings = CreationUtils.CreateGuildSettings(GuildSettingsType, guild)))
 			{
 				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
 			}
