@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
@@ -13,10 +14,10 @@ using System.Text;
 
 namespace Advobot.Core.Classes
 {
-	public abstract class SettingsBase
+	public abstract class SettingsBase : ISettingsBase
     {
 		public abstract FileInfo GetFileLocation();
-		public string Format(IDiscordClient client, IGuild guild)
+		public virtual string Format(IDiscordClient client, IGuild guild)
 		{
 			var sb = new StringBuilder();
 			foreach (var kvp in GetSettings(GetType()))
@@ -33,11 +34,22 @@ namespace Advobot.Core.Classes
 			}
 			return sb.ToString();
 		}
-		public string Format(IDiscordClient client, IGuild guild, FieldInfo field)
+		public virtual string Format(IDiscordClient client, IGuild guild, FieldInfo field)
 		{
 			return Format(client, guild, field.GetValue(this));
 		}
-		public object ResetSetting(FieldInfo field)
+		public virtual string Format(IDiscordClient client, IGuild guild, string name)
+		{
+			return Format(client, guild, GetField(name));
+		}
+		public virtual void ResetSettings()
+		{
+			foreach (var field in GetSettings(GetType()))
+			{
+				ResetSetting(field.Value);
+			}
+		}
+		public virtual object ResetSetting(FieldInfo field)
 		{
 			var settingAttr = field.GetCustomAttribute<SettingAttribute>();
 			if (settingAttr.NonCompileTime)
@@ -64,19 +76,11 @@ namespace Advobot.Core.Classes
 				return field.GetValue(this);
 			}
 		}
-		public object ResetSetting(string name)
+		public virtual object ResetSetting(string name)
 		{
-			var field = GetSettings(GetType())[name] ?? throw new ArgumentException("Invalid field name provided.", nameof(name));
-			return ResetSetting(field);
+			return ResetSetting(GetField(name));
 		}
-		public void ResetSettings()
-		{
-			foreach (var field in GetSettings(GetType()))
-			{
-				ResetSetting(field.Value);
-			}
-		}
-		public void SaveSettings()
+		public virtual void SaveSettings()
 		{
 			IOUtils.OverwriteFile(GetFileLocation(), IOUtils.Serialize(this));
 		}
@@ -88,26 +92,15 @@ namespace Advobot.Core.Classes
 		/// <returns></returns>
 		public static Dictionary<string, FieldInfo> GetSettings(Type t)
 		{
-			return t.GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+			return t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
 				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
 				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase);
 		}
-		/// <summary>
-		/// Returns all non-public instance fields with <see cref="SettingAttribute"/> and are not <see cref="String"/> or <see cref="IEnumerable{T}"/>.
-		/// </summary>
-		/// <param name="t"></param>
-		/// <returns></returns>
-		public static Dictionary<string, FieldInfo> GetNonEnumerableSettings(Type t)
-		{
-			return GetSettings(t).Where(f =>
-			{
-				var ft = f.Value.FieldType;
-				return ft != typeof(string)
-					&& ft != typeof(IEnumerable)
-					&& !ft.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-			}).ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
-		}
 
+		private FieldInfo GetField(string name)
+		{
+			return GetSettings(GetType())[name] ?? throw new ArgumentException("Invalid field name provided.", nameof(name));
+		}
 		private string Format(IDiscordClient client, IGuild guild, object value)
 		{
 			switch (value)
