@@ -95,27 +95,28 @@ namespace Advobot.UILauncher.Utilities
 			foreach (var child in parent.GetChildren().OfType<FrameworkElement>())
 			{
 				var result = SaveSetting(child, botSettings);
-				if (result == null)
+				if (result.HasValue && result.Value)
 				{
+					ConsoleUtils.WriteLine($"Successfully updated {child.Name}.");
 				}
-				else if (!result.Value)
+				if (result.HasValue && !result.Value)
 				{
-					ConsoleUtils.WriteLine($"Failed to save: {child.Name}");
+					ConsoleUtils.WriteLine($"Failed to save {child.Name}.");
 				}
 			}
+			botSettings.SaveSettings();
 		}
 		private static bool? SaveSetting(FrameworkElement ele, IBotSettings botSettings)
 		{
 			//Go through children and not the actual object
-			if (ele is Grid g)
+			switch (ele)
 			{
-				//If any are false then return false indicating one failed
-				return !g.Children.OfType<FrameworkElement>().Select(x => SaveSetting(x, botSettings)).Any(x => x == false);
-			}
-
-			if (ele is Viewbox vb)
-			{
-				return vb.Child is FrameworkElement vbc ? SaveSetting(vbc, botSettings) : true;
+				case Grid g:
+					var children = g.Children.OfType<FrameworkElement>();
+					var results = children.Select(x => SaveSetting(x, botSettings)).Where(x => x != null).Cast<bool>();
+					return results.Any() ? !results.Any(x => !x) : (bool?)null;
+				case Viewbox vb:
+					return vb.Child is FrameworkElement vbc ? SaveSetting(vbc, botSettings) : null;
 			}
 
 			object value = null;
@@ -123,69 +124,76 @@ namespace Advobot.UILauncher.Utilities
 			{
 				return null;
 			}
+			switch (ele)
+			{
+				case AdvobotNumberBox nb:
+					value = nb.StoredValue;
+					break;
+				case TextBox tb:
+					var text = tb.Text;
+					switch (settingName)
+					{
+						case nameof(IBotSettings.Prefix):
+							if (String.IsNullOrWhiteSpace(text))
+							{
+								return false;
+							}
+							value = text;
+							break;
+						case nameof(IBotSettings.Game):
+							value = text ?? "";
+							break;
+						case nameof(IBotSettings.Stream):
+							if (!RegexUtils.IsValidTwitchName(text))
+							{
+								return false;
+							}
+							value = text;
+							break;
+					}
+					break;
+				case CheckBox cb:
+					value = cb.IsChecked.Value;
+					break;
+				case ComboBox cmb:
+					switch (settingName)
+					{
+						case nameof(IBotSettings.LogLevel):
+							if (cmb.SelectedItem is TextBox cmbtb && cmbtb.Tag is LogSeverity ls)
+							{
+								value = ls;
+								break;
+							}
+							return null;
+						case nameof(IBotSettings.TrustedUsers):
+							var updated = cmb.Items.OfType<TextBox>().Select(x => x?.Tag as ulong?).Where(x => x != null).Cast<ulong>();
+							if (botSettings.TrustedUsers.Except(updated).Any() || updated.Except(botSettings.TrustedUsers).Any())
+							{
+								value = updated.ToList();
+								break;
+							}
+							return null;
+					}
+					break;
+				default:
+					throw new ArgumentException("invalid object when attempting to save settings", ele.Name ?? ele.GetType().Name);
+			}
+			if (value == null)
+			{
+				return null;
+			}
 
-			if (ele is AdvobotNumberBox nb)
+			var property = typeof(IBotSettings).GetProperty(settingName);
+			if (value.GetType() != property.PropertyType)
 			{
-				value = nb.StoredValue;
+				return false;
 			}
-			else if (ele is TextBox tb)
+			else if (property.GetValue(botSettings).Equals(value))
 			{
-				var text = tb.Text;
-				switch (settingName)
-				{
-					case nameof(IBotSettings.Prefix):
-						if (String.IsNullOrWhiteSpace(text))
-						{
-							return false;
-						}
-						value = text;
-						break;
-					case nameof(IBotSettings.Game):
-						value = text ?? "";
-						break;
-					case nameof(IBotSettings.Stream):
-						if (!RegexUtils.IsValidTwitchName(text))
-						{
-							return false;
-						}
-						value = text;
-						break;
-				}
-			}
-			else if (ele is CheckBox cb)
-			{
-				value = cb.IsChecked.Value;
-			}
-			else if (ele is ComboBox cmb)
-			{
-				switch (settingName)
-				{
-					case nameof(IBotSettings.LogLevel):
-						if (cmb.SelectedItem is TextBox cmbtb && cmbtb.Tag is LogSeverity ls)
-						{
-							value = ls;
-						}
-						break;
-					case nameof(IBotSettings.TrustedUsers):
-						var updated = cmb.Items.OfType<TextBox>().Select(x => x?.Tag as ulong? ?? 0).Where(x => x != 0);
-						if (botSettings.TrustedUsers.Except(updated).Any() || updated.Except(botSettings.TrustedUsers).Any())
-						{
-							value = updated.ToList();
-						}
-						break;
-				}
-			}
-			else
-			{
-				throw new ArgumentException("invalid object when attempting to save settings", ele.Name ?? ele.GetType().Name);
+				return null;
 			}
 
-			var field = typeof(IBotSettings).GetProperty(settingName);
-			//Make sure value isn't null 
-			if (value != null && value.GetType() == field.PropertyType && !field.GetValue(botSettings).Equals(value))
-			{
-				field.SetValue(botSettings, value);
-			}
+			property.SetValue(botSettings, value);
 			return true;
 		}
 		/// <summary>

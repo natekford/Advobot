@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta-00880" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta-00881" />
   </ItemGroup>
 
   <ItemGroup>

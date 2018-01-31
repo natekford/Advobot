@@ -139,6 +139,8 @@ namespace Advobot.Core.Classes
 				}
 				case string str: //Strings are char[], so this case needs to be above ienumerable
 					return String.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
+				case IGuildSetting setting:
+					return setting.ToString();
 				case IDictionary dict: //Has to be above IEnumerable too
 					var keys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
 					return String.Join("\n", keys.Select(x => $"{Format(client, guild, x)}: {Format(client, guild, dict[x])}"));
