@@ -47,12 +47,5 @@ namespace Advobot.Core.Interfaces
 		MessageDeletion MessageDeletion { get; }
 		SocketGuild Guild { get; }
 		bool Loaded { get; }
-
-		/// <summary>
-		/// Sets the specified log type channel to the passed in channel.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="channel"></param>
-		bool SetLogChannel(LogChannelType type, ITextChannel channel);
 	}
 }

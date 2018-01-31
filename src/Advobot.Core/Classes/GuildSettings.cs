@@ -211,41 +211,9 @@ namespace Advobot.Core.Classes
 		[JsonIgnore]
 		public SocketGuild Guild { get; private set; }
 		[JsonIgnore]
+		public override FileInfo FileLocation => IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOC);
+		[JsonIgnore]
 		public bool Loaded { get; private set; }
-
-		public override FileInfo GetFileLocation()
-		{
-			return IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOC);
-		}
-		public bool SetLogChannel(LogChannelType logChannelType, ITextChannel channel)
-		{
-			switch (logChannelType)
-			{
-				case LogChannelType.Server:
-					if (_ServerLogId == (channel?.Id ?? 0))
-					{
-						return false;
-					}
-					ServerLog = channel;
-					return true;
-				case LogChannelType.Mod:
-					if (_ModLogId == (channel?.Id ?? 0))
-					{
-						return false;
-					}
-					ModLog = channel;
-					return true;
-				case LogChannelType.Image:
-					if (_ImageLogId == (channel?.Id ?? 0))
-					{
-						return false;
-					}
-					ImageLog = channel;
-					return true;
-				default:
-					throw new ArgumentException("invalid type", nameof(channel));
-			}
-		}
 
 		[OnDeserialized]
 		private void OnDeserialized(StreamingContext context)

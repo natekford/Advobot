@@ -16,11 +16,23 @@ namespace Advobot.Core.Classes
 {
 	public abstract class SettingsBase : ISettingsBase
     {
-		public abstract FileInfo GetFileLocation();
+		public abstract FileInfo FileLocation { get; }
+		private Dictionary<string, FieldInfo> _Settings;
+
+		/// <summary>
+		/// Returns all non-public instance fields with <see cref="SettingAttribute"/>.
+		/// </summary>
+		/// <returns></returns>
+		public virtual IReadOnlyDictionary<string, FieldInfo> GetSettings()
+		{
+			return _Settings ?? (_Settings = GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
+				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase));
+		}
 		public virtual string Format(IDiscordClient client, IGuild guild)
 		{
 			var sb = new StringBuilder();
-			foreach (var kvp in GetSettings(GetType()))
+			foreach (var kvp in GetSettings())
 			{
 				var formatted = Format(client, guild, kvp.Value);
 				if (String.IsNullOrWhiteSpace(formatted))
@@ -44,7 +56,7 @@ namespace Advobot.Core.Classes
 		}
 		public virtual void ResetSettings()
 		{
-			foreach (var field in GetSettings(GetType()))
+			foreach (var field in GetSettings())
 			{
 				ResetSetting(field.Value);
 			}
@@ -82,24 +94,12 @@ namespace Advobot.Core.Classes
 		}
 		public virtual void SaveSettings()
 		{
-			IOUtils.OverwriteFile(GetFileLocation(), IOUtils.Serialize(this));
-		}
-
-		/// <summary>
-		/// Returns all non-public instance fields with <see cref="SettingAttribute"/>.
-		/// </summary>
-		/// <param name="t"></param>
-		/// <returns></returns>
-		public static Dictionary<string, FieldInfo> GetSettings(Type t)
-		{
-			return t.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
-				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase);
+			IOUtils.OverwriteFile(FileLocation, IOUtils.Serialize(this));
 		}
 
 		private FieldInfo GetField(string name)
 		{
-			return GetSettings(GetType())[name] ?? throw new ArgumentException("Invalid field name provided.", nameof(name));
+			return GetSettings()[name] ?? throw new ArgumentException("Invalid field name provided.", nameof(name));
 		}
 		private string Format(IDiscordClient client, IGuild guild, object value)
 		{

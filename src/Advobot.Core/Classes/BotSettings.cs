@@ -16,12 +16,6 @@ namespace Advobot.Core.Classes
 	{
 		[JsonProperty("LogLevel"), Setting(LogSeverity.Warning)]
 		private LogSeverity _LogLevel = LogSeverity.Warning;
-		[JsonProperty("TrustedUsers"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<ulong> _TrustedUsers = new List<ulong>();
-		[JsonProperty("UsersUnableToDmOwner"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<ulong> _UsersUnableToDmOwner = new List<ulong>();
-		[JsonProperty("UsersIgnoredFromCommands"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<ulong> _UsersIgnoredFromCommands = new List<ulong>();
 		[JsonProperty("Prefix"), Setting("&&")]
 		private string _Prefix = "&&";
 		[JsonProperty("Game"), Setting(null)]
@@ -54,6 +48,12 @@ namespace Advobot.Core.Classes
 		private int _MaxBannedNames = 25;
 		[JsonProperty("MaxBannedPunishments"), Setting(10)]
 		private int _MaxBannedPunishments = 10;
+		[JsonProperty("TrustedUsers"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<ulong> _TrustedUsers = new List<ulong>();
+		[JsonProperty("UsersUnableToDmOwner"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<ulong> _UsersUnableToDmOwner = new List<ulong>();
+		[JsonProperty("UsersIgnoredFromCommands"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		private List<ulong> _UsersIgnoredFromCommands = new List<ulong>();
 
 		[JsonIgnore]
 		public LogSeverity LogLevel
@@ -61,12 +61,6 @@ namespace Advobot.Core.Classes
 			get => _LogLevel;
 			set => _LogLevel = value;
 		}
-		[JsonIgnore]
-		public List<ulong> TrustedUsers => _TrustedUsers;
-		[JsonIgnore]
-		public List<ulong> UsersUnableToDmOwner => _UsersUnableToDmOwner;
-		[JsonIgnore]
-		public List<ulong> UsersIgnoredFromCommands => _UsersIgnoredFromCommands;
 		[JsonIgnore]
 		public string Prefix
 		{
@@ -255,11 +249,15 @@ namespace Advobot.Core.Classes
 			}
 		}
 		[JsonIgnore]
-		public bool Pause { get; set; }
+		public List<ulong> TrustedUsers => _TrustedUsers;
+		[JsonIgnore]
+		public List<ulong> UsersUnableToDmOwner => _UsersUnableToDmOwner;
+		[JsonIgnore]
+		public List<ulong> UsersIgnoredFromCommands => _UsersIgnoredFromCommands;
 
-		public override FileInfo GetFileLocation()
-		{
-			return IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
-		}
+		[JsonIgnore]
+		public bool Pause { get; set; }
+		[JsonIgnore]
+		public override FileInfo FileLocation => IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
 	}
 }

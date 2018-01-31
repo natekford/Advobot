@@ -1,11 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
+﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.Attributes
 {

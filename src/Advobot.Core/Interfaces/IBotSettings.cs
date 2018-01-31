@@ -10,9 +10,6 @@ namespace Advobot.Core.Interfaces
 	{
 		//Saved settings
 		LogSeverity LogLevel { get; set; }
-		List<ulong> TrustedUsers { get; }
-		List<ulong> UsersUnableToDmOwner { get; }
-		List<ulong> UsersIgnoredFromCommands { get; }
 		string Prefix { get; set; }
 		string Game { get; set; }
 		string Stream { get; set; }
@@ -29,6 +26,9 @@ namespace Advobot.Core.Interfaces
 		int MaxBannedRegex { get; set; }
 		int MaxBannedNames { get; set; }
 		int MaxBannedPunishments { get; set; }
+		List<ulong> TrustedUsers { get; }
+		List<ulong> UsersUnableToDmOwner { get; }
+		List<ulong> UsersIgnoredFromCommands { get; }
 
 		//Non-saved settings
 		bool Pause { get; set; }

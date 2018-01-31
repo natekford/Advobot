@@ -48,7 +48,6 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				value = context.User as IGuildUser;
 			}
-
 			return Task.FromResult(GetPreconditionResult(context, value));
 		}
 

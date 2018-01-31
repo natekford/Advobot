@@ -181,13 +181,24 @@ namespace Advobot.Commands.UserModeration
 	public sealed class Ban : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, [Optional] uint time,
-			[Optional, Remainder] string reason)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user,
+			[Optional] uint minutesForBan, [Optional, Remainder] string reason)
 		{
-			await CommandRunner(user, time, reason).CAF();
+			await CommandRunner(user.Id, minutesForBan, reason).CAF();
 		}
 		[Command]
-		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, [Optional, Remainder] string reason)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user,
+			[Optional, Remainder] string reason)
+		{
+			await CommandRunner(user.Id, 0, reason).CAF();
+		}
+		[Command]
+		public async Task Command(ulong user, [Optional] uint minutesForBan, [Optional, Remainder] string reason)
+		{
+			await CommandRunner(user, minutesForBan, reason).CAF();
+		}
+		[Command]
+		public async Task Command(ulong user, [Optional, Remainder] string reason)
 		{
 			await CommandRunner(user, 0, reason).CAF();
 		}

@@ -1,20 +1,18 @@
-﻿using System;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Advobot.Core;
+﻿using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Advobot.Commands.BotSettings
 {
@@ -22,11 +20,33 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Modify the given setting on the bot. " +
 		"`Show` lists the setting names. " +
 		"`Reset` resets a setting back to default. " +
-		"Cannot modify settings through this command if they are lists.")]
+		"For lists, a boolean indicating whether or not to add has to be included before the value.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotSettings : BotSettingsSavingModuleBase
 	{
+		[Command(nameof(Show)), ShortAlias(nameof(Show))]
+		public async Task Show()
+		{
+			var embed = new EmbedWrapper
+			{
+				Title = "Setting Names",
+				Description = $"`{String.Join("`, `", Context.BotSettings.GetSettings().Keys)}`"
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+		}
+		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
+		public async Task Reset(string settingName)
+		{
+			if (!Context.BotSettings.GetSettings().TryGetValue(settingName, out var field))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting."));
+				return;
+			}
+
+			var resp = $"Successfully reset {settingName.FormatTitle().ToLower()} to `{Context.BotSettings.ResetSetting(field)}`.";
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+		}
 		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]
 		public sealed class Modify : BotSettingsSavingModuleBase
 		{
@@ -97,71 +117,34 @@ namespace Advobot.Commands.BotSettings
 			[Command(nameof(IBotSettings.MaxBannedPunishments)), ShortAlias(nameof(IBotSettings.MaxBannedPunishments))]
 			public async Task MaxBannedPunishments([VerifyNumber(1, int.MaxValue)] uint count) 
 				=> await CommandRunner(Context, (s) => { s.MaxBannedPunishments = (int)count; return s.MaxBannedPunishments; }).CAF();
+			[Command(nameof(IBotSettings.TrustedUsers)), ShortAlias(nameof(IBotSettings.TrustedUsers))]
+			public async Task TrustedUsers(bool add, ulong value)
+				=> await CommandRunner(Context, Context.BotSettings.TrustedUsers, value, add).CAF();
+			[Command(nameof(IBotSettings.UsersUnableToDmOwner)), ShortAlias(nameof(IBotSettings.UsersUnableToDmOwner))]
+			public async Task UsersUnableToDmOwner(bool add, ulong value)
+				=> await CommandRunner(Context, Context.BotSettings.UsersUnableToDmOwner, value, add).CAF();
+			[Command(nameof(IBotSettings.UsersIgnoredFromCommands)), ShortAlias(nameof(IBotSettings.UsersIgnoredFromCommands))]
+			public async Task UsersIgnoredFromCommands(bool add, ulong value)
+				=> await CommandRunner(Context, Context.BotSettings.UsersIgnoredFromCommands, value, add).CAF();
 
-			public static async Task CommandRunner(IAdvobotCommandContext context, Func<IBotSettings, object> func, [CallerMemberName] string property = "")
+			private static async Task CommandRunner<T>(IAdvobotCommandContext context, List<T> list, T obj, bool add, [CallerMemberName] string field = "")
 			{
-				var resp = $"Successfully set {property.FormatTitle().ToLower()} to `{func(context.BotSettings)}`.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
+				if (add)
+				{
+					list.Add(obj);
+					var resp = $"Successfully added `{obj}` to {field.FormatTitle().ToLower()}.";
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
+				}
+				else
+				{
+					list.Remove(obj);
+					var resp = $"Successfully removed `{obj}` from {field.FormatTitle().ToLower()}.";
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
+				}
 			}
-		}
-		[Group(nameof(Reset)), ShortAlias(nameof(Reset))]
-		public sealed class Reset : BotSettingsSavingModuleBase
-		{
-			[Command(nameof(IBotSettings.LogLevel)), ShortAlias(nameof(IBotSettings.LogLevel))]
-			public async Task LogLevel() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.LogLevel)));
-			[Command(nameof(IBotSettings.Prefix)), ShortAlias(nameof(IBotSettings.Prefix))]
-			public async Task Prefix() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.Prefix)));
-			[Command(nameof(IBotSettings.Game)), ShortAlias(nameof(IBotSettings.Game))]
-			public async Task Game() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.Game)));
-			[Command(nameof(IBotSettings.Stream)), ShortAlias(nameof(IBotSettings.Stream))]
-			public async Task Stream() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.Stream)));
-			[Command(nameof(IBotSettings.AlwaysDownloadUsers)), ShortAlias(nameof(IBotSettings.AlwaysDownloadUsers))]
-			public async Task AlwaysDownloadUsers() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.AlwaysDownloadUsers)));
-			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
-			public async Task ShardCount() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.ShardCount)));
-			[Command(nameof(IBotSettings.MessageCacheCount)), ShortAlias(nameof(IBotSettings.MessageCacheCount))]
-			public async Task MessagecacheCount() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MessageCacheCount)));
-			[Command(nameof(IBotSettings.MaxUserGatherCount)), ShortAlias(nameof(IBotSettings.MaxUserGatherCount))]
-			public async Task MaxUserGatherCount() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxUserGatherCount)));
-			[Command(nameof(IBotSettings.MaxMessageGatherSize)), ShortAlias(nameof(IBotSettings.MaxMessageGatherSize))]
-			public async Task MaxMessageGatherSize() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxMessageGatherSize)));
-			[Command(nameof(IBotSettings.MaxRuleCategories)), ShortAlias(nameof(IBotSettings.MaxRuleCategories))]
-			public async Task MaxRuleCategories() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxRuleCategories)));
-			[Command(nameof(IBotSettings.MaxRulesPerCategory)), ShortAlias(nameof(IBotSettings.MaxRulesPerCategory))]
-			public async Task MaxRulesPerCategory() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxRulesPerCategory)));
-			[Command(nameof(IBotSettings.MaxSelfAssignableRoleGroups)), ShortAlias(nameof(IBotSettings.MaxSelfAssignableRoleGroups))]
-			public async Task MaxSelfAssignableRoleGroups() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxSelfAssignableRoleGroups)));
-			[Command(nameof(IBotSettings.MaxQuotes)), ShortAlias(nameof(IBotSettings.MaxQuotes))]
-			public async Task MaxQuotes() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxQuotes)));
-			[Command(nameof(IBotSettings.MaxBannedStrings)), ShortAlias(nameof(IBotSettings.MaxBannedStrings))]
-			public async Task MaxBannedStrings() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxBannedStrings)));
-			[Command(nameof(IBotSettings.MaxBannedRegex)), ShortAlias(nameof(IBotSettings.MaxBannedRegex))]
-			public async Task MaxBannedRegex() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxBannedRegex)));
-			[Command(nameof(IBotSettings.MaxBannedNames)), ShortAlias(nameof(IBotSettings.MaxBannedNames))]
-			public async Task MaxBannedNames() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxBannedNames)));
-			[Command(nameof(IBotSettings.MaxBannedPunishments)), ShortAlias(nameof(IBotSettings.MaxBannedPunishments))]
-			public async Task MaxBannedPunishments() 
-				=> await CommandRunner(Context, (s) => s.ResetSetting(nameof(IBotSettings.MaxBannedPunishments)));
-
-			public static async Task CommandRunner(IAdvobotCommandContext context, Func<IBotSettings, object> func, [CallerMemberName] string property = "")
+			private static async Task CommandRunner(IAdvobotCommandContext context, Func<IBotSettings, object> func, [CallerMemberName] string field = "")
 			{
-				var resp = $"Successfully reset {property.FormatTitle().ToLower()} to `{func(context.BotSettings)}`.";
+				var resp = $"Successfully set {field.FormatTitle().ToLower()} to `{func(context.BotSettings)}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
 			}
 		}
@@ -180,7 +163,7 @@ namespace Advobot.Commands.BotSettings
 			var embed = new EmbedWrapper
 			{
 				Title = "Setting Names",
-				Description = $"`{String.Join("`, `", SettingsBase.GetSettings(typeof(IBotSettings)).Keys)}`"
+				Description = $"`{String.Join("`, `", Context.BotSettings.GetSettings().Keys)}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -191,21 +174,27 @@ namespace Advobot.Commands.BotSettings
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "Bot Settings", "Bot Settings").CAF();
 		}
 		[Command, Priority(0)]
-		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.BotSettingTypeReader))] FieldInfo settingName)
+		public async Task Command(string settingName)
 		{
+			if (!Context.BotSettings.GetSettings().TryGetValue(settingName, out var field))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting."));
+				return;
+			}
+
 			var desc = Context.BotSettings.Format(Context.Client, Context.Guild);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper
 				{
-					Title = settingName.Name,
+					Title = settingName,
 					Description = desc
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else
 			{
-				await MessageUtils.SendTextFileAsync(Context.Channel, desc, settingName.Name, settingName.Name).CAF();
+				await MessageUtils.SendTextFileAsync(Context.Channel, desc, settingName, settingName).CAF();
 			}
 		}
 	}

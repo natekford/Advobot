@@ -358,9 +358,8 @@ namespace Advobot.Commands.GuildSettings
 			{
 				await CommandRunner(user.Id, role).CAF();
 			}
-			[Command]
-			public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong userId,
-				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
+			public async Task Command(ulong userId, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(userId, role).CAF();
 			}
@@ -368,7 +367,7 @@ namespace Advobot.Commands.GuildSettings
 			private async Task CommandRunner(ulong userId, IRole role)
 			{
 				var match = Context.GuildSettings.PersistentRoles.SingleOrDefault(x => x.UserId == userId && x.RoleId == role.Id);
-				if (match == null)
+				if (match != null)
 				{
 					var error = new Error($"A persistent role already exists for the user id {userId} with the role {role.Format()}.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
@@ -389,9 +388,8 @@ namespace Advobot.Commands.GuildSettings
 			{
 				await CommandRunner(user.Id, role).CAF();
 			}
-			[Command]
-			public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong userId,
-				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
+			public async Task Command(ulong userId, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(userId, role).CAF();
 			}
@@ -504,7 +502,7 @@ namespace Advobot.Commands.GuildSettings
 			var embed = new EmbedWrapper
 			{
 				Title = "Setting Names",
-				Description = $"`{String.Join("`, `", SettingsBase.GetSettings(typeof(IGuildSettings)).Keys)}`"
+				Description = $"`{String.Join("`, `", Context.GuildSettings.GetSettings().Keys)}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -515,21 +513,27 @@ namespace Advobot.Commands.GuildSettings
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "Guild_Settings", "Guild Settings").CAF();
 		}
 		[Command]
-		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.GuildSettingTypeReader))] FieldInfo settingName)
+		public async Task Command(string settingName)
 		{
-			var desc = Context.GuildSettings.Format(Context.Client, Context.Guild, settingName);
+			if (!Context.GuildSettings.GetSettings().TryGetValue(settingName, out var field))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting."));
+				return;
+			}
+
+			var desc = Context.GuildSettings.Format(Context.Client, Context.Guild, field);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper
 				{
-					Title = settingName.Name,
+					Title = settingName,
 					Description = desc
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else
 			{
-				await MessageUtils.SendTextFileAsync(Context.Channel, desc, settingName.Name, settingName.Name).CAF();
+				await MessageUtils.SendTextFileAsync(Context.Channel, desc, settingName, settingName).CAF();
 			}
 		}
 	}

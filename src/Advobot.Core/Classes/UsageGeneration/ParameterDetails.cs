@@ -28,9 +28,6 @@ namespace Advobot.Core.Classes.UsageGeneration
 			{ typeof(GuildPermissionsTypeReader), typeof(GuildPermissions) },
 			{ typeof(InviteTypeReader), typeof(IInvite) },
 			{ typeof(PruneTypeReader), typeof(string) },
-			{ typeof(SettingTypeReader.GuildSettingTypeReader), typeof(string) },
-			{ typeof(SettingTypeReader.BotSettingTypeReader), typeof(string) },
-			{ typeof(UserIdTypeReader), typeof(ulong) }
 		};
 		private static Dictionary<Type, string> _NameSwitcher = new Dictionary<Type, string>
 		{

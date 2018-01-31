@@ -8,7 +8,7 @@ namespace Advobot.Core.Classes.Attributes
 	/// Specifies a command is broken. Will provide an error each time a user tries to invoke the command.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-	public class BrokenCommandAttribute : PreconditionAttribute
+	public class DisabledCommandAttribute : PreconditionAttribute
 	{
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
