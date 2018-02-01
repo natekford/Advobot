@@ -4,8 +4,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests
 {
 	[TestClass]
-    public class FormattingUtilsTests
-    {
+	public class FormattingUtilsTests
+	{
 		[TestMethod]
 		public void JoinNonNullStrings_Test()
 		{

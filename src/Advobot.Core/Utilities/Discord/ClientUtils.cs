@@ -95,19 +95,6 @@ namespace Advobot.Core.Utilities
 			}
 		}
 		/// <summary>
-		/// Updates the bot's icon to the given image.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="fileInfo"></param>
-		/// <returns></returns>
-		public static async Task ModifyBotIconAsync(IDiscordClient client, FileInfo fileInfo)
-		{
-			using (var stream = new StreamReader(fileInfo.FullName))
-			{
-				await client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream.BaseStream)).CAF();
-			}
-		}
-		/// <summary>
 		/// Returns the user with the supplied id.
 		/// </summary>
 		/// <param name="client"></param>

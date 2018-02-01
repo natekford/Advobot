@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Interfaces;
+using System;
 
 namespace Advobot.Core.Classes
 {
@@ -9,6 +10,10 @@ namespace Advobot.Core.Classes
 	{
 		public string Reason { get; }
 
+		public Error(Exception e)
+		{
+			Reason = e.Message;
+		}
 		public Error(string reason)
 		{
 			Reason = reason;

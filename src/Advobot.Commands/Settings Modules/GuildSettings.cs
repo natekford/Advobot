@@ -1,4 +1,4 @@
-﻿using Advobot.Commands.Miscellaneous;
+﻿using Advobot.Commands.Misc;
 using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
@@ -6,7 +6,6 @@ using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
@@ -14,7 +13,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildSettings

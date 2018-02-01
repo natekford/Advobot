@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Enums;
@@ -10,9 +6,12 @@ using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
-namespace Advobot.Commands.InviteModeration
+namespace Advobot.Commands.Invites
 {
 	[Group(nameof(DisplayInvites)), TopLevelShortAlias(typeof(DisplayInvites))]
 	[Summary("Gives a list of all the instant invites on the guild.")]
@@ -68,13 +67,13 @@ namespace Advobot.Commands.InviteModeration
 			var inv = await InviteUtils.CreateInviteAsync(channel, nullableTime, nullableUses, tempMem, false, new ModerationReason(Context.User, null)).CAF();
 
 			var timeOutputStr = uses != 0
-				? $"It will last for this amount of time: `{nullableTime}`." 
+				? $"It will last for this amount of time: `{nullableTime}`."
 				: "It will last until manually revoked.";
 			var usesOutputStr = time != 0
-				? $"It will last for this amount of uses: `{nullableUses}`." 
+				? $"It will last for this amount of uses: `{nullableUses}`."
 				: "It has no usage limit.";
-			var tempOutputStr = tempMem 
-				? "Users will be kicked when they go offline unless they get a role." 
+			var tempOutputStr = tempMem
+				? "Users will be kicked when they go offline unless they get a role."
 				: "Users will not be kicked when they go offline and do not have a role.";
 			var joined = new[] { inv.Url, timeOutputStr, usesOutputStr, tempOutputStr }.JoinNonNullStrings("\n");
 			var resp = $"Here is your invite for `{channel.Format()}`: {joined}";

@@ -13,7 +13,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace Advobot.Commands.UserModeration
+namespace Advobot.Commands.Users
 {
 	[Group(nameof(Mute)), TopLevelShortAlias(typeof(Mute))]
 	[Summary("Prevents a user from typing and speaking in the guild. " +
@@ -234,7 +234,7 @@ namespace Advobot.Commands.UserModeration
 
 	[Group(nameof(GetBanReason)), TopLevelShortAlias(typeof(GetBanReason))]
 	[Summary("Lists the given reason for the ban.")]
-	[PermissionRequirement(new[] { GuildPermission.BanMembers}, null)]
+	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
 	public sealed class GetBanReason : NonSavingModuleBase
 	{
@@ -297,13 +297,13 @@ namespace Advobot.Commands.UserModeration
 	public sealed class RemoveMessages : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command(uint requestCount, [Optional] IGuildUser user, 
+		public async Task Command(uint requestCount, [Optional] IGuildUser user,
 			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel)
 		{
 			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
 		}
 		[Command]
-		public async Task Command(uint requestCount, 
+		public async Task Command(uint requestCount,
 			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
 		{
 			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
@@ -403,7 +403,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class ForAllWithRole : NonSavingModuleBase
 	{
 		[Command(nameof(GiveRole)), ShortAlias(nameof(GiveRole))]
-		public async Task GiveRole(SocketRole targetRole, 
+		public async Task GiveRole(SocketRole targetRole,
 			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole givenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{

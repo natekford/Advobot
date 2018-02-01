@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Enums;
@@ -10,8 +7,11 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
-namespace Advobot.Commands.NicknameModeration
+namespace Advobot.Commands.Nicknames
 {
 	[Group(nameof(ModifyNickName)), TopLevelShortAlias(typeof(ModifyNickName))]
 	[Summary("Gives the user a nickname. " +

@@ -5,7 +5,7 @@ using System.Linq;
 namespace Advobot.Core.Utilities
 {
 	public static class EnumUtils
-    {
+	{
 		/// <summary>
 		/// Converts an enum to the names of the flags it contains. <typeparamref name="TEnum"/> must be an enum.
 		/// </summary>

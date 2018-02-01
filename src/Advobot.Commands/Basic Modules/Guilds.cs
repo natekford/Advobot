@@ -1,8 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Advobot.Core;
+﻿using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
@@ -11,8 +7,12 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
-namespace Advobot.Commands.GuildModeration
+namespace Advobot.Commands.Guilds
 {
 	[Group(nameof(LeaveGuild)), TopLevelShortAlias(typeof(LeaveGuild))]
 	[Summary("Makes the bot leave the guild. " +
@@ -117,7 +117,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command, Priority(0)]
 		public async Task Command(string regionId)
 		{
-			if (!_ValidRegionIDs.CaseInsContains(regionId) 
+			if (!_ValidRegionIDs.CaseInsContains(regionId)
 				&& !(Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(regionId)))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("No valid region ID was input.")).CAF();
@@ -203,31 +203,27 @@ namespace Advobot.Commands.GuildModeration
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, Remainder] string url)
 		{
-			var success = MessageUtils.TryGetImageUrl(Context, url, out var imageUrl, out var error);
-			if (!success)
+			if (!ImageUtils.TryGetUri(Context.Message, url, out var imageUrl, out var error))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-
-			if (imageUrl == null)
-			{
-				await Context.Guild.ModifyAsync(x => x.Icon = new Image()).CAF();
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild's icon.").CAF();
-				return;
-			}
-
-			var fileInfo = IOUtils.GetServerDirectoryFile(Context.Guild.Id, "GuildIcon.png");
-			using (var webClient = new WebClient())
-			{
-				webClient.DownloadFileAsync(imageUrl, fileInfo.FullName);
-				webClient.DownloadFileCompleted += async (sender, e) =>
+				if (error != null)
 				{
-					await GuildUtils.ModifyGuildIconAsync(Context.Guild, fileInfo, new ModerationReason(Context.User, null)).CAF();
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully changed the guild's icon.").CAF();
-					IOUtils.DeleteFile(fileInfo);
-				};
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				}
+				else
+				{
+					await Context.Guild.ModifyAsync(x => x.Icon = new Image()).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild's icon.").CAF();
+				}
+				return;
 			}
+
+			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
+			var resp = await imageUrl.UseImageStream(2500000, false, async s =>
+			{
+				await Context.Guild.ModifyAsync(x => x.Icon = new Image(s), options).CAF();
+			}).CAF();
+			var text = resp == null ? "Successfully updated the guild icon" : "Failed to update the guild icon. Reason: " + resp;
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, text);
 		}
 	}
 

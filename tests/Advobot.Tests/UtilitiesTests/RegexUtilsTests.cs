@@ -4,11 +4,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests
 {
 	[TestClass]
-    public class RegexUtilsTests
-    {
-        [TestMethod]
-        public void TryCreateRegex_Test()
-        {
+	public class RegexUtilsTests
+	{
+		[TestMethod]
+		public void TryCreateRegex_Test()
+		{
 			//Empty
 			{
 				Assert.IsFalse(RegexUtils.TryCreateRegex("", out var regex, out var error));
@@ -53,5 +53,5 @@ namespace Advobot.Tests
 			Assert.IsFalse(RegexUtils.IsValidTwitchName(new string('a', 26)));
 			Assert.IsFalse(RegexUtils.IsValidTwitchName(new string('a', 3)));
 		}
-    }
+	}
 }

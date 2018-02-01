@@ -18,6 +18,8 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public sealed class HelpEntryHolder
 	{
+		//Keep the names of the category to the category
+		private Dictionary<string, CommandCategory> _CategoryMap = new Dictionary<string, CommandCategory>();
 		//Maps the name and aliases of a command to the name
 		private Dictionary<string, string> _NameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		//Maps the name to the helpentry
@@ -37,19 +39,19 @@ namespace Advobot.Core.Classes
 
 			foreach (var t in commands)
 			{
-				var innerMostNameSpace = t.Namespace.Substring(t.Namespace.LastIndexOf('.') + 1);
-				if (!Enum.TryParse(innerMostNameSpace, true, out CommandCategory category))
-				{
-					throw new ArgumentException($"is not currently in the {nameof(CommandCategory)} enum", innerMostNameSpace);
-				}
 				//Nested commands don't need to be added since they're added under the class they're nested in
-
 				if (t.IsNested)
 				{
 #if DEBUG
 					VerifyAllAliasesAreDifferent(t);
 #endif
 					continue;
+				}
+
+				var innerNamespace = t.Namespace.Substring(t.Namespace.LastIndexOf('.') + 1);
+				if (!_CategoryMap.TryGetValue(innerNamespace, out var category))
+				{
+					_CategoryMap[innerNamespace] = category = new CommandCategory(innerNamespace);
 				}
 
 				var name = t.GetCustomAttribute<GroupAttribute>()?.Prefix;
@@ -133,14 +135,6 @@ namespace Advobot.Core.Classes
 		}
 
 		/// <summary>
-		/// Returns all the names of every command.
-		/// </summary>
-		/// <returns></returns>
-		public string[] GetCommandNames()
-		{
-			return _Source.Keys.ToArray();
-		}
-		/// <summary>
 		/// Retrurns an array of <see cref="HelpEntry"/> which have not had their values set in guild settings.
 		/// </summary>
 		/// <param name="setCommands"></param>
@@ -157,6 +151,14 @@ namespace Advobot.Core.Classes
 		{
 			return _Source.Values.ToArray();
 		}
+		/// <summary>
+		/// Returns an array of every <see cref="CommandCategory"/>.
+		/// </summary>
+		/// <returns></returns>
+		public CommandCategory[] GetCategories()
+		{
+			return _CategoryMap.Values.ToArray();
+		}
 	
 		public HelpEntry this[string nameOrAlias]
 		{
@@ -164,7 +166,7 @@ namespace Advobot.Core.Classes
 		}
 		public HelpEntry[] this[CommandCategory category]
 		{
-			get => _Source.Values.Where(x => x.Category == category).ToArray();
+			get => _Source.Values.Where(x => x.Category.Name == category.Name).ToArray();
 		}
 	}
 
@@ -182,7 +184,8 @@ namespace Advobot.Core.Classes
 		public bool DefaultEnabled { get; }
 		public bool AbleToBeTurnedOff { get; }
 
-		internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases, CommandCategory category, bool defaultEnabled, bool ableToBeTurnedOff)
+		internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases,
+			CommandCategory category, bool defaultEnabled, bool ableToBeTurnedOff)
 		{
 			if (String.IsNullOrWhiteSpace(name))
 			{

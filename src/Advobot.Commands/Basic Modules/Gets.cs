@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
@@ -13,6 +6,12 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Advobot.Commands.Gets
 {
@@ -400,9 +399,13 @@ namespace Advobot.Commands.Gets
 	[DefaultEnabled(true)]
 	public sealed class GetEnumNames : NonSavingModuleBase
 	{
-		private static ImmutableList<Type> _Enums = SetEnums();
+		private static ImmutableArray<Type> _Enums = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(x => x.FullName.CaseInsContains("discord") || x.FullName.CaseInsContains("advobot"))
+			.SelectMany(x => x.GetTypes()).Where(x => x.IsEnum && x.IsPublic)
+			.Distinct().OrderBy(x => x.Name)
+			.ToImmutableArray();
 
-		[Command(nameof(Show)), ShortAlias(nameof(Show))]
+		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
 			var embed = new EmbedWrapper
@@ -421,7 +424,6 @@ namespace Advobot.Commands.Gets
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"No enum has the name `{enumName}`.")).CAF();
 				return;
 			}
-
 			if (matchingNames.Count() > 1)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Too many enums have the name `{enumName}`.")).CAF();
@@ -435,13 +437,6 @@ namespace Advobot.Commands.Gets
 				Description = $"`{String.Join("`, `", Enum.GetNames(e))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
-		}
-
-		public static ImmutableList<Type> SetEnums()
-		{
-			var discEnums = Assembly.GetAssembly(typeof(CommandService)).GetTypes().Where(x => x.IsEnum);
-			var advoEnums = Assembly.GetAssembly(typeof(ModuleBase)).GetTypes().Where(x => x.IsEnum);
-			return discEnums.Concat(advoEnums).Distinct().Where(x => x.Name != null).ToImmutableList();
 		}
 	}
 }

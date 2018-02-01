@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Discord;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {
@@ -11,7 +10,7 @@ namespace Advobot.Core.Utilities
 	/// Actions which are done on an <see cref="Overwrite"/>.
 	/// </summary>
 	public static class OverwriteUtils
-    {
+	{
 		/// <summary>
 		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.
 		/// </summary>

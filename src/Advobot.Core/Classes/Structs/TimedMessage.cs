@@ -10,7 +10,7 @@ namespace Advobot.Core.Classes
 	/// Sends a message to the author after the time has passed.
 	/// </summary>
 	public struct TimedMessage : ITime
-    {
+	{
 		public IGuildUser Author { get; }
 		public DateTime Time { get; }
 		public string Text { get; }
@@ -26,5 +26,5 @@ namespace Advobot.Core.Classes
 		{
 			await Author.SendMessageAsync(Text).CAF();
 		}
-    }
+	}
 }

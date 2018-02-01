@@ -26,8 +26,6 @@ namespace Advobot.Core
 
 		public static readonly string API_VERSION = Assembly.GetAssembly(typeof(IDiscordClient)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
 		public static readonly TimeSpan DEFAULT_WAIT_TIME = TimeSpan.FromSeconds(3);
-		public static readonly ImmutableList<string> VALID_IMAGE_EXTENSIONS = ImmutableList.Create(".jpeg", ".jpg", ".png");
-		public static readonly ImmutableList<string> VALID_GIF_EXTENSIONS = ImmutableList.Create(".gif", ".gifv");
 		public static readonly ImmutableList<Assembly> COMMAND_ASSEMBLIES = GetCommandAssemblies();
 		public static readonly ImmutableDictionary<string, Color> COLORS = GetColorDictionary();
 		public static readonly HelpEntryHolder HELP_ENTRIES = new HelpEntryHolder(COMMAND_ASSEMBLIES);

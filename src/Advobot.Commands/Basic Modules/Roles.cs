@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Advobot.Core;
+﻿using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.TypeReaders;
@@ -12,8 +8,12 @@ using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
-namespace Advobot.Commands.RoleModeration
+namespace Advobot.Commands.Roles
 {
 	[Group(nameof(GiveRole)), TopLevelShortAlias(typeof(GiveRole))]
 	[Summary("Gives the role(s) to the user (assuming the person using the command and bot both have the ability to give that role).")]

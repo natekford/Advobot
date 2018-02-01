@@ -15,7 +15,7 @@ using System.Text;
 namespace Advobot.Core.Classes
 {
 	public abstract class SettingsBase : ISettingsBase
-    {
+	{
 		public abstract FileInfo FileLocation { get; }
 		private Dictionary<string, FieldInfo> _Settings;
 

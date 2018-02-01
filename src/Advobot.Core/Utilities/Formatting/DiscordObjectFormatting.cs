@@ -9,7 +9,7 @@ namespace Advobot.Core.Utilities.Formatting
 	/// Formatting for various Discord objects.
 	/// </summary>
 	public static class DiscordObjectFormatting
-    {
+	{
 		/// <summary>
 		/// Returns a string that better describes the object than its ToString() method.
 		/// </summary>

@@ -52,12 +52,11 @@ namespace Advobot.Core.Services.Log.Loggers
 				return;
 			}
 
-			await HandleBannedPhrasesAsync(settings, user, message).CAF();
-			await HandleBannedPhrasesAsync(settings, user, message).CAF();
 			await HandleChannelSettingsAsync(settings, user, message).CAF();
 			await HandleImageLoggingAsync(settings, user, message).CAF();
 			await HandleSlowmodeAsync(settings, user, message).CAF();
 			await HandleSpamPreventionAsync(settings, user, message).CAF();
+			await HandleBannedPhrasesAsync(settings, user, message).CAF();
 		}
 		/// <summary>
 		/// Logs the before and after message. Handles banned phrases on the after message.
@@ -207,15 +206,16 @@ namespace Advobot.Core.Services.Log.Loggers
 			foreach (var attachmentUrl in message.Attachments.Select(x => x.Url).Distinct()) //Attachments
 			{
 				string footerText;
-				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentUrl))) //Image
-				{
-					Logging.Images.Increment();
-					footerText = "Attached Image";
-				}
-				else if (Constants.VALID_GIF_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentUrl))) //Gif
+				var mimeType = MimeTypes.GetMimeType(attachmentUrl);
+				if (mimeType.CaseInsContains("video/") || mimeType.CaseInsContains("/gif"))
 				{
 					Logging.Gifs.Increment();
 					footerText = "Attached Gif";
+				}
+				else if (mimeType.CaseInsContains("image/"))
+				{
+					Logging.Images.Increment();
+					footerText = "Attached Image";
 				}
 				else //Random file
 				{

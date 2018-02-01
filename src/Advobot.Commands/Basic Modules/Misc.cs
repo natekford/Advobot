@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Core;
+﻿using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
@@ -12,8 +8,11 @@ using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace Advobot.Commands.Miscellaneous
+namespace Advobot.Commands.Misc
 {
 	[Group(nameof(Help)), TopLevelShortAlias(typeof(Help))]
 	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
@@ -86,7 +85,7 @@ namespace Advobot.Commands.Miscellaneous
 	public sealed class Commands : NonSavingModuleBase
 	{
 		private static string _Command = $"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)} [Category]` for commands from that category.\n\n";
-		private static string _Categories = $"`{String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))}`";
+		private static string _Categories = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetCategories().Select(x => x.Name))}`";
 		private static string _CommandCategories = _Command + _Categories;
 
 		[Command(nameof(All)), ShortAlias(nameof(All))]
@@ -95,7 +94,7 @@ namespace Advobot.Commands.Miscellaneous
 			var embed = new EmbedWrapper
 			{
 				Title = "All Commands",
-				Description = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetCommandNames())}`"
+				Description = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetHelpEntries().Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -104,7 +103,7 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			var embed = new EmbedWrapper
 			{
-				Title = category.ToString(),
+				Title = category.Name,
 				Description = $"`{String.Join("`, `", Constants.HELP_ENTRIES[category].Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();

@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Advobot.Core.Classes;
 using Discord;
@@ -154,20 +156,6 @@ namespace Advobot.Core.Utilities
 		public static async Task ModifyGuildVerificationLevelAsync(IGuild guild, VerificationLevel verifLevel, ModerationReason reason)
 		{
 			await guild.ModifyAsync(x => x.VerificationLevel = verifLevel, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Changes the guild's icon and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="fileInfo"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyGuildIconAsync(IGuild guild, FileInfo fileInfo, ModerationReason reason)
-		{
-			using (var stream = new StreamReader(fileInfo.FullName))
-			{
-				await guild.ModifyAsync(x => x.Icon = new Image(stream.BaseStream), reason.CreateRequestOptions()).CAF();
-			}
 		}
 	}
 }

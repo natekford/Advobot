@@ -8,7 +8,7 @@ using Discord.Commands;
 namespace Advobot.Tests
 {
 	[TestClass]
-    public class ClassTests
-    {
-    }
+	public class ClassTests
+	{
+	}
 }

@@ -183,7 +183,8 @@ namespace Advobot.Core.Classes
 		private async Task HandleCommand(SocketMessage message)
 		{
 			//Bot isn't paused and the message isn't a system message
-			if (_BotSettings.Pause || !(message is SocketUserMessage userMessage) || !(message.Channel is IGuildChannel channel))
+			if (_BotSettings.Pause || !(message.Channel is IGuildChannel channel)
+				|| !(message is SocketUserMessage userMessage) || String.IsNullOrWhiteSpace(userMessage.Content))
 			{
 				return;
 			}

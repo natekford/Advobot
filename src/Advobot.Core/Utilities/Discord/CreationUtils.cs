@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Classes.Rules;
@@ -75,6 +76,7 @@ namespace Advobot.Core.Utilities
 			cmds.AddTypeReader<Emote>(new EmoteTypeReader());
 			cmds.AddTypeReader<Color>(new ColorTypeReader());
 			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
+			cmds.AddTypeReader<CommandCategory>(new CommandCategoryTypeReader());
 
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()

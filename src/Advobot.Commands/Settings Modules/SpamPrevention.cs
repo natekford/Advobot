@@ -97,11 +97,11 @@ namespace Advobot.Commands.SpamPrevention
 		public async Task Create(RaidType raidType, PunishmentType punishment, uint userCount, uint interval)
 		{
 			if (!RaidPreventionInfo.TryCreate(
-				raidType, 
-				punishment, 
-				(int)userCount, 
-				(int)interval, 
-				out var raidPrevention, 
+				raidType,
+				punishment,
+				(int)userCount,
+				(int)interval,
+				out var raidPrevention,
 				out var errorReason))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, errorReason).CAF();

@@ -28,7 +28,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IUserMessage> SendMessageAsync(IMessageChannel channel, string content)
 		{
-			if (!(channel.GetGuild() is IGuild guild))
+			if (String.IsNullOrWhiteSpace(content) || !(channel.GetGuild() is IGuild guild))
 			{
 				return null;
 			}
@@ -148,64 +148,6 @@ namespace Advobot.Core.Utilities
 		public static async Task<RemovableMessage> SendErrorMessageAsync(ITimersService timers, IGuildSettings settings, IMessageChannel channel, IMessage message, IError error, TimeSpan time = default)
 		{
 			return settings.NonVerboseErrors ? default : await MakeAndDeleteSecondaryMessageAsync(timers, channel, message, $"**ERROR:** {error.Reason}", time).CAF();
-		}
-		/// <summary>
-		/// Returns true if no error occur.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="text"></param>
-		/// <param name="url"></param>
-		/// <param name="error"></param>
-		/// <returns></returns>
-		public static bool TryGetImageUrl(ICommandContext context, string text, out Uri url, out IError error)
-		{
-			url = null;
-			error = default;
-			if (text != null && !Uri.TryCreate(text, UriKind.Absolute, out url))
-			{
-				error = new Error("Invalid Url provided.");
-				return false;
-			}
-			if (url == null)
-			{
-				var attach = context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
-				var embeds = context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
-				var imageUrls = attach.Concat(embeds).ToList();
-				if (imageUrls.Count == 1)
-				{
-					url = new Uri(imageUrls.First());
-				}
-				else if (imageUrls.Count > 1)
-				{
-					error = new Error("Too many attached or embedded images.");
-					return false;
-				}
-			}
-			if (url != null)
-			{
-				var req = WebRequest.Create(url);
-				req.Method = WebRequestMethods.Http.Head;
-				using (var resp = req.GetResponse())
-				{
-					if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
-					{
-						error = new Error("Image must be a png or jpg.");
-						return false;
-					}
-					else if (!int.TryParse(resp.Headers.Get("Content-Length"), out var contentLength))
-					{
-						error = new Error("Unable to get the image's file size.");
-						return false;
-					}
-					else if (contentLength > 2500000)
-					{
-						var maxSize = (double)2500000 / 1000 * 1000;
-						error = new Error($"Image is bigger than {maxSize:0.0}MB. Manually upload instead.");
-						return false;
-					}
-				}
-			}
-			return true;
 		}
 		/// <summary>
 		/// Gets the given count of messages from a channel.

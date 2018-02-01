@@ -1,5 +1,4 @@
-﻿using Advobot.Core;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
@@ -16,7 +15,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Commands.BanPhrases
+namespace Advobot.Commands.BannedPhrases
 {
 	[Group(nameof(EvaluateBannedRegex)), TopLevelShortAlias(typeof(EvaluateBannedRegex))]
 	[Summary("Evaluates a regex (case is ignored). " +
@@ -156,7 +155,6 @@ namespace Advobot.Commands.BanPhrases
 			{
 				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), Context.BotSettings.MaxBannedStrings).CAF();
 			}
-
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
 			public sealed class Remove : GuildSettingsSavingModuleBase
 			{
@@ -185,7 +183,6 @@ namespace Advobot.Commands.BanPhrases
 			{
 				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseNames, text, nameof(Name), Context.BotSettings.MaxBannedNames).CAF();
 			}
-
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
 			public sealed class Remove : GuildSettingsSavingModuleBase
 			{

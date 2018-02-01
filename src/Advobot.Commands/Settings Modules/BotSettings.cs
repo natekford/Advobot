@@ -9,7 +9,7 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
-using System.Net;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -52,13 +52,13 @@ namespace Advobot.Commands.BotSettings
 		{
 			[Command(nameof(IBotSettings.LogLevel)), ShortAlias(nameof(IBotSettings.LogLevel))]
 			public async Task LogLevel(LogSeverity logLevel)
-				=> await CommandRunner(Context, (s) => { s.LogLevel = logLevel; return s.LogLevel; }).CAF();
+				=> await CommandRunner((s) => { s.LogLevel = logLevel; return s.LogLevel; }).CAF();
 			[Command(nameof(IBotSettings.Prefix)), ShortAlias(nameof(IBotSettings.Prefix))]
 			public async Task Prefix([VerifyStringLength(Target.Prefix)] string prefix)
-				=> await CommandRunner(Context, (s) => { s.Prefix = prefix; return s.Prefix; }).CAF();
+				=> await CommandRunner((s) => { s.Prefix = prefix; return s.Prefix; }).CAF();
 			[Command(nameof(IBotSettings.Game)), ShortAlias(nameof(IBotSettings.Game))]
 			public async Task Game([VerifyStringLength(Target.Game)] string game)
-				=> await CommandRunner(Context, (s) => { s.Game = game; return s.Game; }).CAF();
+				=> await CommandRunner((s) => { s.Game = game; return s.Game; }).CAF();
 			[Command(nameof(IBotSettings.Stream)), ShortAlias(nameof(IBotSettings.Stream))]
 			public async Task Stream([VerifyStringLength(Target.Stream)] string stream)
 			{
@@ -67,11 +67,11 @@ namespace Advobot.Commands.BotSettings
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{stream}` is not a valid Twitch stream name.")).CAF();
 					return;
 				}
-				await CommandRunner(Context, (s) => { s.Stream = stream; return s.Stream; }).CAF();
+				await CommandRunner((s) => { s.Stream = stream; return s.Stream; }).CAF();
 			}
 			[Command(nameof(IBotSettings.AlwaysDownloadUsers)), ShortAlias(nameof(IBotSettings.AlwaysDownloadUsers))]
 			public async Task AlwaysDownloadUsers(bool downloadUsers)
-				=> await CommandRunner(Context, (s) => { s.AlwaysDownloadUsers = downloadUsers; return s.AlwaysDownloadUsers; }).CAF();
+				=> await CommandRunner((s) => { s.AlwaysDownloadUsers = downloadUsers; return s.AlwaysDownloadUsers; }).CAF();
 			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task ShardCount([VerifyNumber(1, int.MaxValue)] uint count)
 			{
@@ -82,70 +82,70 @@ namespace Advobot.Commands.BotSettings
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
-				await CommandRunner(Context, (s) => { s.ShardCount = (int)count; return s.ShardCount; }).CAF();
+				await CommandRunner((s) => { s.ShardCount = (int)count; return s.ShardCount; }).CAF();
 			}
 			[Command(nameof(IBotSettings.MessageCacheCount)), ShortAlias(nameof(IBotSettings.MessageCacheCount))]
 			public async Task MessageCacheCount([VerifyNumber(1, int.MaxValue)] uint count)
-				=> await CommandRunner(Context, (s) => { s.MessageCacheCount = (int)count; return s.MessageCacheCount; }).CAF();
+				=> await CommandRunner((s) => { s.MessageCacheCount = (int)count; return s.MessageCacheCount; }).CAF();
 			[Command(nameof(IBotSettings.MaxUserGatherCount)), ShortAlias(nameof(IBotSettings.MaxUserGatherCount))]
 			public async Task MaxUserGatherCount([VerifyNumber(1, int.MaxValue)] uint count)
-				=> await CommandRunner(Context, (s) => { s.MaxUserGatherCount = (int)count; return s.MaxUserGatherCount; }).CAF();
+				=> await CommandRunner((s) => { s.MaxUserGatherCount = (int)count; return s.MaxUserGatherCount; }).CAF();
 			[Command(nameof(IBotSettings.MaxMessageGatherSize)), ShortAlias(nameof(IBotSettings.MaxMessageGatherSize))]
-			public async Task MaxMessageGatherSize([VerifyNumber(1, int.MaxValue)] uint count) 
-				=> await CommandRunner(Context, (s) => { s.MaxMessageGatherSize = (int)count; return s.MaxMessageGatherSize; }).CAF();
+			public async Task MaxMessageGatherSize([VerifyNumber(1, int.MaxValue)] uint count)
+				=> await CommandRunner((s) => { s.MaxMessageGatherSize = (int)count; return s.MaxMessageGatherSize; }).CAF();
 			[Command(nameof(IBotSettings.MaxRuleCategories)), ShortAlias(nameof(IBotSettings.MaxRuleCategories))]
-			public async Task MaxRuleCategories([VerifyNumber(1, int.MaxValue)] uint count) 
-				=> await CommandRunner(Context, (s) => { s.MaxRuleCategories = (int)count; return s.MaxRuleCategories; }).CAF();
+			public async Task MaxRuleCategories([VerifyNumber(1, int.MaxValue)] uint count)
+				=> await CommandRunner((s) => { s.MaxRuleCategories = (int)count; return s.MaxRuleCategories; }).CAF();
 			[Command(nameof(IBotSettings.MaxRulesPerCategory)), ShortAlias(nameof(IBotSettings.MaxRulesPerCategory))]
-			public async Task MaxRulesPerCategory([VerifyNumber(1, int.MaxValue)] uint count) 
-				=> await CommandRunner(Context, (s) => { s.MaxRulesPerCategory = (int)count; return s.MaxRulesPerCategory; }).CAF();
+			public async Task MaxRulesPerCategory([VerifyNumber(1, int.MaxValue)] uint count)
+				=> await CommandRunner((s) => { s.MaxRulesPerCategory = (int)count; return s.MaxRulesPerCategory; }).CAF();
 			[Command(nameof(IBotSettings.MaxSelfAssignableRoleGroups)), ShortAlias(nameof(IBotSettings.MaxSelfAssignableRoleGroups))]
-			public async Task MaxSelfAssignableRoleGroups([VerifyNumber(1, int.MaxValue)] uint count) 
-				=> await CommandRunner(Context, (s) => { s.MaxSelfAssignableRoleGroups = (int)count; return s.MaxSelfAssignableRoleGroups; }).CAF();
+			public async Task MaxSelfAssignableRoleGroups([VerifyNumber(1, int.MaxValue)] uint count)
+				=> await CommandRunner((s) => { s.MaxSelfAssignableRoleGroups = (int)count; return s.MaxSelfAssignableRoleGroups; }).CAF();
 			[Command(nameof(IBotSettings.MaxQuotes)), ShortAlias(nameof(IBotSettings.MaxQuotes))]
-			public async Task MaxQuotes([VerifyNumber(1, int.MaxValue)] uint count) 
-				=> await CommandRunner(Context, (s) => { s.MaxQuotes = (int)count; return s.MaxQuotes; }).CAF();
+			public async Task MaxQuotes([VerifyNumber(1, int.MaxValue)] uint count)
+				=> await CommandRunner((s) => { s.MaxQuotes = (int)count; return s.MaxQuotes; }).CAF();
 			[Command(nameof(IBotSettings.MaxBannedStrings)), ShortAlias(nameof(IBotSettings.MaxBannedStrings))]
-			public async Task MaxBannedStrings([VerifyNumber(1, int.MaxValue)] uint count) 
-				=> await CommandRunner(Context, (s) => { s.MaxBannedStrings = (int)count; return s.MaxBannedStrings; }).CAF();
+			public async Task MaxBannedStrings([VerifyNumber(1, int.MaxValue)] uint count)
+				=> await CommandRunner((s) => { s.MaxBannedStrings = (int)count; return s.MaxBannedStrings; }).CAF();
 			[Command(nameof(IBotSettings.MaxBannedRegex)), ShortAlias(nameof(IBotSettings.MaxBannedRegex))]
-			public async Task MaxBannedRegex([VerifyNumber(1, int.MaxValue)] uint count) 
-				=> await CommandRunner(Context, (s) => { s.MaxBannedRegex = (int)count; return s.MaxBannedRegex; }).CAF();
+			public async Task MaxBannedRegex([VerifyNumber(1, int.MaxValue)] uint count)
+				=> await CommandRunner((s) => { s.MaxBannedRegex = (int)count; return s.MaxBannedRegex; }).CAF();
 			[Command(nameof(IBotSettings.MaxBannedNames)), ShortAlias(nameof(IBotSettings.MaxBannedNames))]
-			public async Task MaxBannedNames([VerifyNumber(1, int.MaxValue)] uint count) 
-				=> await CommandRunner(Context, (s) => { s.MaxBannedNames = (int)count; return s.MaxBannedNames; }).CAF();
+			public async Task MaxBannedNames([VerifyNumber(1, int.MaxValue)] uint count)
+				=> await CommandRunner((s) => { s.MaxBannedNames = (int)count; return s.MaxBannedNames; }).CAF();
 			[Command(nameof(IBotSettings.MaxBannedPunishments)), ShortAlias(nameof(IBotSettings.MaxBannedPunishments))]
-			public async Task MaxBannedPunishments([VerifyNumber(1, int.MaxValue)] uint count) 
-				=> await CommandRunner(Context, (s) => { s.MaxBannedPunishments = (int)count; return s.MaxBannedPunishments; }).CAF();
+			public async Task MaxBannedPunishments([VerifyNumber(1, int.MaxValue)] uint count)
+				=> await CommandRunner((s) => { s.MaxBannedPunishments = (int)count; return s.MaxBannedPunishments; }).CAF();
 			[Command(nameof(IBotSettings.TrustedUsers)), ShortAlias(nameof(IBotSettings.TrustedUsers))]
 			public async Task TrustedUsers(bool add, ulong value)
-				=> await CommandRunner(Context, Context.BotSettings.TrustedUsers, value, add).CAF();
+				=> await CommandRunner(Context.BotSettings.TrustedUsers, value, add).CAF();
 			[Command(nameof(IBotSettings.UsersUnableToDmOwner)), ShortAlias(nameof(IBotSettings.UsersUnableToDmOwner))]
 			public async Task UsersUnableToDmOwner(bool add, ulong value)
-				=> await CommandRunner(Context, Context.BotSettings.UsersUnableToDmOwner, value, add).CAF();
+				=> await CommandRunner(Context.BotSettings.UsersUnableToDmOwner, value, add).CAF();
 			[Command(nameof(IBotSettings.UsersIgnoredFromCommands)), ShortAlias(nameof(IBotSettings.UsersIgnoredFromCommands))]
 			public async Task UsersIgnoredFromCommands(bool add, ulong value)
-				=> await CommandRunner(Context, Context.BotSettings.UsersIgnoredFromCommands, value, add).CAF();
+				=> await CommandRunner(Context.BotSettings.UsersIgnoredFromCommands, value, add).CAF();
 
-			private static async Task CommandRunner<T>(IAdvobotCommandContext context, List<T> list, T obj, bool add, [CallerMemberName] string field = "")
+			private async Task CommandRunner<T>(List<T> list, T obj, bool add, [CallerMemberName] string field = "")
 			{
 				if (add)
 				{
 					list.Add(obj);
 					var resp = $"Successfully added `{obj}` to {field.FormatTitle().ToLower()}.";
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 				}
 				else
 				{
 					list.Remove(obj);
 					var resp = $"Successfully removed `{obj}` from {field.FormatTitle().ToLower()}.";
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 				}
 			}
-			private static async Task CommandRunner(IAdvobotCommandContext context, Func<IBotSettings, object> func, [CallerMemberName] string field = "")
+			private async Task CommandRunner(Func<IBotSettings, object> func, [CallerMemberName] string field = "")
 			{
-				var resp = $"Successfully set {field.FormatTitle().ToLower()} to `{func(context.BotSettings)}`.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
+				var resp = $"Successfully set {field.FormatTitle().ToLower()} to `{func(Context.BotSettings)}`.";
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 	}
@@ -224,31 +224,27 @@ namespace Advobot.Commands.BotSettings
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, Remainder] string url)
 		{
-			var success = MessageUtils.TryGetImageUrl(Context, url, out var imageUrl, out var error);
-			if (!success)
+			if (!ImageUtils.TryGetUri(Context.Message, url, out var imageUrl, out var error))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-
-			if (imageUrl == null)
-			{
-				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot's icon.").CAF();
-				return;
-			}
-
-			var fileInfo = IOUtils.GetServerDirectoryFile(Context.Guild.Id, "BotIcon.png");
-			using (var webClient = new WebClient())
-			{
-				webClient.DownloadFileAsync(imageUrl, fileInfo.FullName);
-				webClient.DownloadFileCompleted += async (sender, e) =>
+				if (error != null)
 				{
-					await ClientUtils.ModifyBotIconAsync(Context.Client, fileInfo).CAF();
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully changed the bot's icon.").CAF();
-					IOUtils.DeleteFile(fileInfo);
-				};
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				}
+				else
+				{
+					await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot's icon.").CAF();
+				}
+				return;
 			}
+
+			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
+			var resp = await imageUrl.UseImageStream(2500000, false, async s =>
+			{
+				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(s), options).CAF();
+			}).CAF();
+			var text = resp == null ? "Successfully updated the bot icon" : "Failed to update the bot icon. Reason: " + resp;
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, text);
 		}
 	}
 

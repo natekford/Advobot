@@ -32,7 +32,7 @@ namespace Advobot.Core.Classes.Attributes
 				return Task.FromResult(PreconditionResult.FromError("Wait until the guild is loaded."));
 			}
 			if (advobotCommandContext.GuildSettings.IgnoredCommandChannels.Contains(context.Channel.Id)
-			    || !advobotCommandContext.GuildSettings.CommandSettings.IsCommandEnabled(context, command))
+				|| !advobotCommandContext.GuildSettings.CommandSettings.IsCommandEnabled(context, command))
 			{
 				return Task.FromResult(PreconditionResult.FromError((string)null));
 			}

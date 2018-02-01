@@ -1,5 +1,4 @@
-﻿using Advobot.Core;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
@@ -19,7 +18,7 @@ namespace Advobot.Commands.SelfRoles
 {
 	[Group(nameof(ModifySelfRoles)), TopLevelShortAlias(typeof(ModifySelfRoles))]
 	[Summary("Adds a role to the self assignable list. " +
-		"Roles can be grouped together which means only one role in the group can be self assigned at a time. " + 
+		"Roles can be grouped together which means only one role in the group can be self assigned at a time. " +
 		"Create and Delete modify the entire group. " +
 		"Add and Remove modify a single role in a group.")]
 	[PermissionRequirement(null, null)]

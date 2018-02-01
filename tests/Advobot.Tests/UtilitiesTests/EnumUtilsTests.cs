@@ -6,8 +6,8 @@ using System.Linq;
 namespace Advobot.Tests
 {
 	[TestClass]
-    public class EnumUtilsTests
-    {
+	public class EnumUtilsTests
+	{
 		[Flags]
 		public enum TestEnum : ulong
 		{

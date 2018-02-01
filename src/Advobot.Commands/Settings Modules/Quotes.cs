@@ -1,5 +1,4 @@
-﻿using Advobot.Core;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Classes.Settings;
