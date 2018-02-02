@@ -10,6 +10,7 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Misc
@@ -208,7 +209,7 @@ namespace Advobot.Commands.Misc
 	public sealed class Test : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command()
+		public async Task Command([Optional, Remainder] string test)
 		{
 			await MessageUtils.SendMessageAsync(Context.Channel, $"Test").CAF();
 		}

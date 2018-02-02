@@ -1,69 +1,15 @@
-﻿using Advobot.Core.Classes;
-using Advobot.Core.Interfaces;
-using Discord;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.Primitives;
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Image = SixLabors.ImageSharp.Image;
+using ImageMagick;
 
 namespace Advobot.Core.Utilities
 {
 	public static class ImageUtils
 	{
-		/// <summary>
-		/// Attempts to gather an image url from the message content or embeds. Returns true if no error occurs and a url is found.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="text"></param>
-		/// <param name="url"></param>
-		/// <param name="error"></param>
-		/// <returns></returns>
-		public static bool TryGetUri(IUserMessage message, string text, out Uri url, out IError error)
-		{
-			url = null;
-			error = default;
-			if (text != null && !Uri.TryCreate(text, UriKind.Absolute, out url))
-			{
-				error = new Error("Invalid Url provided.");
-				return false;
-			}
-			if (url == null)
-			{
-				var attach = message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
-				var embeds = message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
-				var imageUrls = attach.Concat(embeds).ToList();
-				if (imageUrls.Count == 1)
-				{
-					url = new Uri(imageUrls.First());
-				}
-				else if (imageUrls.Count > 1)
-				{
-					error = new Error("Too many attached or embedded images.");
-					return false;
-				}
-			}
-			return url != null;
-		}
-		/// <summary>
-		/// Creates a webrequest for the given uri and sets the user agent, credentials, and timeout.
-		/// </summary>
-		/// <param name="uri"></param>
-		/// <returns></returns>
-		public static HttpWebRequest CreateWebRequest(this Uri uri)
-		{
-			var req = (HttpWebRequest)WebRequest.Create(uri);
-			req.UserAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
-			req.Credentials = CredentialCache.DefaultCredentials;
-			req.Timeout = 5000;
-			req.ReadWriteTimeout = 5000;
-			return req;
-		}
 		/// <summary>
 		/// Uses the image stream for the required function.
 		/// </summary>
@@ -72,22 +18,39 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<string> UseImageStream(this Uri uri, long maxSizeInBits, bool resizeIfTooBig, Func<Stream, Task> update)
 		{
+			var editedUri = new Uri(uri.ToString().Replace(".gifv", ".gif"));
+
+			var req = (HttpWebRequest)WebRequest.Create(editedUri);
+			req.UserAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
+			req.Credentials = CredentialCache.DefaultCredentials;
+			req.Timeout = 5000;
+			req.ReadWriteTimeout = 5000;
+			//Not sure why the proxy has to be set, but with it being null I would get a PlatformNotSupportedException
+			req.Proxy = new WebProxy();
+			//For Imgur to redirect to correct page
+			req.AllowAutoRedirect = true;
+
 			try
 			{
-				using (var resp = await uri.CreateWebRequest().GetResponseAsync().CAF())
+				using (var resp = await req.GetResponseAsync().CAF())
 				{
-					switch (resp.ContentType.Split('/').Last())
+					if (!Enum.TryParse<MagickFormat>(resp.ContentType.Split('/').Last(), true, out var format))
 					{
-						case "jpg":
-						case "jpeg":
-						case "png":
+						return $"invalid file format supplied.";
+					}
+					switch (format)
+					{
+						case MagickFormat.Jpg:
+						case MagickFormat.Jpeg:
+						case MagickFormat.Png:
+						case MagickFormat.Gif:
 							break;
 						default:
-							return "Link must lead to a png or jpg.";
+							return "link must lead to a png or jpg.";
 					}
 					if (!resizeIfTooBig && resp.ContentLength > maxSizeInBits)
 					{
-						return $"Image is bigger than the max allowed size: {(double)maxSizeInBits / 1000 * 1000:0.0}MB.";
+						return $"file is bigger than the max allowed size of {(double)maxSizeInBits / 1000 * 1000:0.0}MB.";
 					}
 
 					using (var s = resp.GetResponseStream())
@@ -95,9 +58,12 @@ namespace Advobot.Core.Utilities
 					{
 						await s.CopyToAsync(ms).CAF();
 
-						if (resizeIfTooBig && resp.ContentLength > maxSizeInBits)
+						if (resizeIfTooBig)
 						{
-							ResizeImage(ms, maxSizeInBits);
+							while (ms.Length > maxSizeInBits)
+							{
+								await ResizeEmote(format, ms, maxSizeInBits).CAF();
+							}
 						}
 
 						ms.Seek(0, SeekOrigin.Begin);
@@ -111,30 +77,87 @@ namespace Advobot.Core.Utilities
 				return we.Message;
 			}
 		}
-		private static void ResizeImage(Stream s, long maxSize)
+		private static async Task ResizeEmote(MagickFormat format, MemoryStream ms, long maxSize)
 		{
 			//Make sure at start
-			s.Seek(0, SeekOrigin.Begin);
-			using (var image = Image.Load(s))
-			{
-				var shrinkFactor = Math.Sqrt((double)s.Length / maxSize);
-				image.Mutate(x =>
-				{
-					x.Resize(new ResizeOptions
-					{
-						Mode = ResizeMode.Min,
-						Size = new Size
-						{
-							Height = (int)Math.Min(128, image.Height / shrinkFactor),
-							Width = (int)Math.Min(128, image.Width / shrinkFactor),
-						}
-					});
-				});
+			ms.Seek(0, SeekOrigin.Begin);
+			//Find how much to shrink the image
+			var shrinkFactor = Math.Sqrt((double)ms.Length / maxSize);
 
-				//Clear the stream
-				s.SetLength(0);
-				//Then reset it
-				image.Save(s, ImageFormats.Jpeg);
+			if (format == MagickFormat.Gif)
+			{
+#if true
+				var working =
+					@"-i C:\Users\User\Downloads\tumblr_ooe75jcU6T1w8q6ufo1_400.gif " + //Specify the input file
+					"-vf fps=20,scale=40:40 " + //Filtergraph arguments, fps, scale etc https://ffmpeg.org/ffmpeg.html#Simple-filtergraphs
+					"-f gif " +                 //Force output file type to gif https://ffmpeg.org/ffmpeg.html#Main-options
+					"pipe:1";                   //Output to stdout https://ffmpeg.org/ffmpeg-protocols.html#pipe
+				var notWorking = "-f gif " +          //Accept unknown file types https://trac.ffmpeg.org/wiki/Slideshow
+						//"-i " +                     //Specifies input https://ffmpeg.org/ffmpeg.html#Main-options
+						"-i pipe:0 " +                 //Input from stdin https://ffmpeg.org/ffmpeg-protocols.html#pipe
+						"-vf fps=20,scale=40:40 " + //Filtergraph arguments, fps, scale etc https://ffmpeg.org/ffmpeg.html#Simple-filtergraphs
+						"-f gif " +                 //Force output file type to gif https://ffmpeg.org/ffmpeg.html#Main-options
+						"pipe:1";                   //Output to stdout https://ffmpeg.org/ffmpeg-protocols.html#pipe
+				var test = @"-f gif -i pipe:0 -f gif pipe:1";
+
+				var info = new ProcessStartInfo
+				{
+					CreateNoWindow = false,
+					UseShellExecute = false,
+					LoadUserProfile = false,
+					RedirectStandardInput = true,
+					RedirectStandardOutput = true,
+					FileName = "ffmpeg",
+					Arguments = test,
+						
+				};
+				using (var process = new Process { StartInfo = info, })
+				{
+					process.Start();
+
+					var text = new StreamReader(ms).ReadToEnd();
+
+					//Not sure why this gives pipe error
+					process.StandardInput.Write(text);
+					ms.SetLength(0);
+					await process.StandardOutput.BaseStream.CopyToAsync(ms).CAF();
+				}
+#else
+				using (var gif = new MagickImageCollection(ms))
+				{
+					//Assumes every image has the same width/height
+					var width = (int)Math.Min(128, gif.First().Width / shrinkFactor);
+					var height = (int)Math.Min(128, gif.First().Height / shrinkFactor);
+
+					gif.Coalesce();
+					foreach (var image in gif)
+					{
+						image.Resize(width, height);
+						image.AnimationDelay = 100;
+						image.ColorFuzz = new Percentage(.02);
+					}
+					gif.Optimize();
+					gif.OptimizeTransparency();
+					//Clear the stream
+					ms.SetLength(0);
+					//Then reset it
+					gif.Write(ms);
+				}
+#endif
+			}
+			else
+			{
+				using (var image = new MagickImage(ms))
+				{
+					var width = (int)Math.Min(128, image.Width / shrinkFactor);
+					var height = (int)Math.Min(128, image.Height / shrinkFactor);
+					image.Resize(width, height);
+
+					//Clear the stream
+					ms.SetLength(0);
+					//Then reset it
+					image.Write(ms);
+				}
 			}
 		}
 	}

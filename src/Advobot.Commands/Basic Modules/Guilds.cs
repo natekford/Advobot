@@ -194,36 +194,27 @@ namespace Advobot.Commands.Guilds
 
 	[Group(nameof(ModifyGuildIcon)), TopLevelShortAlias(typeof(ModifyGuildIcon))]
 	[Summary("Changes the guild's icon to the given image. " +
-		"The image must be smaller than 2.5MB. " +
-		"Inputting nothing removes the guild's icon.")]
+		"The image must be smaller than 2.5MB.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildIcon : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command([Optional, Remainder] string url)
+		public async Task Command(Uri url)
 		{
-			if (!ImageUtils.TryGetUri(Context.Message, url, out var imageUrl, out var error))
-			{
-				if (error != null)
-				{
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				}
-				else
-				{
-					await Context.Guild.ModifyAsync(x => x.Icon = new Image()).CAF();
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild's icon.").CAF();
-				}
-				return;
-			}
-
 			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
-			var resp = await imageUrl.UseImageStream(2500000, false, async s =>
+			var resp = await url.UseImageStream(2500000, false, async s =>
 			{
 				await Context.Guild.ModifyAsync(x => x.Icon = new Image(s), options).CAF();
 			}).CAF();
 			var text = resp == null ? "Successfully updated the guild icon" : "Failed to update the guild icon. Reason: " + resp;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, text);
+		}
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove()
+		{
+			await Context.Guild.ModifyAsync(x => x.Icon = new Image()).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild's icon.").CAF();
 		}
 	}
 

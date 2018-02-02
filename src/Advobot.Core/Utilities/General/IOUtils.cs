@@ -215,9 +215,7 @@ namespace Advobot.Core.Utilities
 				//Won't make the entire object null though, just the 
 				Error = (sender, e) =>
 				{
-#if DEBUG
 					ConsoleUtils.WriteLine(e.ErrorContext.Error.Message, color: ConsoleColor.Red);
-#endif
 					e.ErrorContext.Handled = false;
 				},
 				Converters = new JsonConverter[] { new StringEnumConverter() }

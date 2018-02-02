@@ -42,8 +42,8 @@
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.0.0-beta-00881" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.3.0" />
     <PackageReference Include="MimeTypes" Version="1.0.6" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0002" />
   </ItemGroup>
 
   <ItemGroup>

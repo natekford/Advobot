@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Reflection;
-using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.UsageGeneration;
-using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord.Commands;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 
 namespace Advobot.Core.Classes
 {
@@ -42,9 +42,7 @@ namespace Advobot.Core.Classes
 				//Nested commands don't need to be added since they're added under the class they're nested in
 				if (t.IsNested)
 				{
-#if DEBUG
 					VerifyAllAliasesAreDifferent(t);
-#endif
 					continue;
 				}
 
@@ -63,7 +61,6 @@ namespace Advobot.Core.Classes
 				var defaultEnabled = t.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
 				var unableToBeTurnedOff = t.GetCustomAttribute<DefaultEnabledAttribute>()?.AbleToBeTurnedOff ?? true;
 
-#if DEBUG
 				//These are basically only here so I won't forget something.
 				//Without them the bot should work fine, but may have tiny bugs.
 				VerifyDefaultValueEnabledAttributeExists(t);
@@ -71,7 +68,6 @@ namespace Advobot.Core.Classes
 				VerifyAllCommandsHaveCommandAttribute(t);
 				VerifyAllAliasesAreDifferent(t);
 				VerifyShortAliasAttribute(t);
-#endif
 
 				var helpEntry = new HelpEntry(name, usage, new[] { permReqs, otherReqs }.JoinNonNullStrings(" | "),
 					summary, aliases, category, defaultEnabled, unableToBeTurnedOff);
@@ -85,6 +81,7 @@ namespace Advobot.Core.Classes
 			}
 		}
 
+		[Conditional("DEBUG")]
 		private void VerifyDefaultValueEnabledAttributeExists(Type classType)
 		{
 			if (classType.GetCustomAttribute<DefaultEnabledAttribute>() == null)
@@ -92,6 +89,7 @@ namespace Advobot.Core.Classes
 				throw new InvalidOperationException($"{classType.FullName} does not have a default enabled value set.");
 			}
 		}
+		[Conditional("DEBUG")]
 		private void VerifyClassIsPublic(Type classType)
 		{
 			if (classType.IsNotPublic)
@@ -99,6 +97,7 @@ namespace Advobot.Core.Classes
 				throw new InvalidOperationException($"{classType.FullName} is not public and commands will not execute from it.");
 			}
 		}
+		[Conditional("DEBUG")]
 		private void VerifyAllCommandsHaveCommandAttribute(Type classType)
 		{
 			var methods = classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
@@ -107,6 +106,7 @@ namespace Advobot.Core.Classes
 				throw new InvalidOperationException($"{classType.FullName} has a command missing the command attribute.");
 			}
 		}
+		[Conditional("DEBUG")]
 		private void VerifyAllAliasesAreDifferent(Type classType)
 		{
 			var nestedAliases = classType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Public)
@@ -126,6 +126,7 @@ namespace Advobot.Core.Classes
 				}
 			}
 		}
+		[Conditional("DEBUG")]
 		private void VerifyShortAliasAttribute(Type classType)
 		{
 			if (classType.GetCustomAttribute<TopLevelShortAliasAttribute>() == null)
@@ -159,7 +160,7 @@ namespace Advobot.Core.Classes
 		{
 			return _CategoryMap.Values.ToArray();
 		}
-	
+
 		public HelpEntry this[string nameOrAlias]
 		{
 			get => _NameMap.TryGetValue(nameOrAlias, out var name) ? _Source[name] : null;

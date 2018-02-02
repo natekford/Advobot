@@ -1,9 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Classes.Rules;
@@ -17,6 +12,11 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {
@@ -77,6 +77,7 @@ namespace Advobot.Core.Utilities
 			cmds.AddTypeReader<Color>(new ColorTypeReader());
 			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
 			cmds.AddTypeReader<CommandCategory>(new CommandCategoryTypeReader());
+			cmds.AddTypeReader<Uri>(new UriTypeReader());
 
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()

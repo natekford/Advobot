@@ -9,9 +9,7 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.BotSettings
@@ -215,36 +213,28 @@ namespace Advobot.Commands.BotSettings
 
 	[Group(nameof(ModifyBotIcon)), TopLevelShortAlias(typeof(ModifyBotIcon))]
 	[Summary("Changes the bot's icon to the given image. " +
-		"The image must be smaller than 2.5MB. " +
-		"Inputting nothing removes the bot's icon.")]
+		"The image must be smaller than 2.5MB.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotIcon : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command([Optional, Remainder] string url)
+		public async Task Command(Uri url)
 		{
-			if (!ImageUtils.TryGetUri(Context.Message, url, out var imageUrl, out var error))
-			{
-				if (error != null)
-				{
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				}
-				else
-				{
-					await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot's icon.").CAF();
-				}
-				return;
-			}
-
 			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
-			var resp = await imageUrl.UseImageStream(2500000, false, async s =>
+			var resp = await url.UseImageStream(2500000, false, async s =>
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(s), options).CAF();
 			}).CAF();
 			var text = resp == null ? "Successfully updated the bot icon" : "Failed to update the bot icon. Reason: " + resp;
+
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, text);
+		}
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove()
+		{
+			await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot's icon.").CAF();
 		}
 	}
 
