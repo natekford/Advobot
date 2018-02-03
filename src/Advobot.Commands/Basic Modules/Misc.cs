@@ -8,9 +8,9 @@ using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
+using ImageMagick;
 using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Misc
@@ -209,9 +209,17 @@ namespace Advobot.Commands.Misc
 	public sealed class Test : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command([Optional, Remainder] string test)
+		public async Task Command(Uri imageUrl)
 		{
-			await MessageUtils.SendMessageAsync(Context.Channel, $"Test").CAF();
+			var args = new ImageResizerArgs
+			{
+				MaxSize = 256000,
+				ResizeTries = 5,
+				AnimationDelay = 10,
+				ColorFuzzingPercentage = new Percentage(30),
+				FrameSkip = 3,
+			};
+			await imageUrl.UseImageStream(args, async s => await Context.Guild.CreateEmoteAsync("hapdoge", new Image(s)));
 		}
 	}
 }

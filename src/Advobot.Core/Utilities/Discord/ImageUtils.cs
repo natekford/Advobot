@@ -1,10 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using Advobot.Core.Classes;
+using ImageMagick;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using ImageMagick;
 
 namespace Advobot.Core.Utilities
 {
@@ -16,7 +16,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="uri"></param>
 		/// <param name="update"></param>
 		/// <returns></returns>
-		public static async Task<string> UseImageStream(this Uri uri, long maxSizeInBits, bool resizeIfTooBig, Func<Stream, Task> update)
+		public static async Task<string> UseImageStream(this Uri uri, ImageResizerArgs args, Func<Stream, Task> update)
 		{
 			var editedUri = new Uri(uri.ToString().Replace(".gifv", ".gif"));
 
@@ -48,27 +48,39 @@ namespace Advobot.Core.Utilities
 						default:
 							return "link must lead to a png or jpg.";
 					}
-					if (!resizeIfTooBig && resp.ContentLength > maxSizeInBits)
+					if (args.ResizeTries < 1 && resp.ContentLength > args.MaxSize)
 					{
-						return $"file is bigger than the max allowed size of {(double)maxSizeInBits / 1000 * 1000:0.0}MB.";
+						return $"file is bigger than the max allowed size of {(double)args.MaxSize / 1000 * 1000:0.0}MB.";
 					}
 
 					using (var s = resp.GetResponseStream())
 					using (var ms = new MemoryStream())
 					{
 						await s.CopyToAsync(ms).CAF();
-
-						if (resizeIfTooBig)
+						if (ms.Length < args.MaxSize)
 						{
-							while (ms.Length > maxSizeInBits)
-							{
-								await ResizeEmote(format, ms, maxSizeInBits).CAF();
-							}
+							ms.Seek(0, SeekOrigin.Begin);
+							await update(ms).CAF();
+							return null;
 						}
 
-						ms.Seek(0, SeekOrigin.Begin);
-						await update(ms).CAF();
-						return null;
+						//Getting to this point has already checked resize tries, so this image needs to be resized if it's too big
+						for (int i = 0; i < args.ResizeTries && ms.Length > args.MaxSize; ++i)
+						{
+							//If the emote gets small enough that it's acceptable, don't bother continuing
+							if (ResizeEmote(ms, args, format, i == 0, out var width, out var height))
+							{
+								ms.Seek(0, SeekOrigin.Begin);
+								await update(ms).CAF();
+								return null;
+							}
+							//If the emote gets too small, stop and return an error
+							if (width < 35 || height < 35)
+							{
+								return $"during resizing the image has been made too small. Manually resize instead.";
+							}
+						}
+						return $"unable to shrink the file to the max allowed size of {(double)args.MaxSize / 1000 * 1000:0.0}MB.";
 					}
 				}
 			}
@@ -77,88 +89,66 @@ namespace Advobot.Core.Utilities
 				return we.Message;
 			}
 		}
-		private static async Task ResizeEmote(MagickFormat format, MemoryStream ms, long maxSize)
+		private static bool ResizeEmote(MemoryStream ms, ImageResizerArgs args, MagickFormat format, bool firstIter, out int width, out int height)
 		{
 			//Make sure at start
 			ms.Seek(0, SeekOrigin.Begin);
-			//Find how much to shrink the image
-			var shrinkFactor = Math.Sqrt((double)ms.Length / maxSize);
-
+			var shrinkFactor = Math.Sqrt((double)ms.Length / args.MaxSize);
 			if (format == MagickFormat.Gif)
 			{
-#if true
-				var working =
-					@"-i C:\Users\User\Downloads\tumblr_ooe75jcU6T1w8q6ufo1_400.gif " + //Specify the input file
-					"-vf fps=20,scale=40:40 " + //Filtergraph arguments, fps, scale etc https://ffmpeg.org/ffmpeg.html#Simple-filtergraphs
-					"-f gif " +                 //Force output file type to gif https://ffmpeg.org/ffmpeg.html#Main-options
-					"pipe:1";                   //Output to stdout https://ffmpeg.org/ffmpeg-protocols.html#pipe
-				var notWorking = "-f gif " +          //Accept unknown file types https://trac.ffmpeg.org/wiki/Slideshow
-						//"-i " +                     //Specifies input https://ffmpeg.org/ffmpeg.html#Main-options
-						"-i pipe:0 " +                 //Input from stdin https://ffmpeg.org/ffmpeg-protocols.html#pipe
-						"-vf fps=20,scale=40:40 " + //Filtergraph arguments, fps, scale etc https://ffmpeg.org/ffmpeg.html#Simple-filtergraphs
-						"-f gif " +                 //Force output file type to gif https://ffmpeg.org/ffmpeg.html#Main-options
-						"pipe:1";                   //Output to stdout https://ffmpeg.org/ffmpeg-protocols.html#pipe
-				var test = @"-f gif -i pipe:0 -f gif pipe:1";
-
-				var info = new ProcessStartInfo
-				{
-					CreateNoWindow = false,
-					UseShellExecute = false,
-					LoadUserProfile = false,
-					RedirectStandardInput = true,
-					RedirectStandardOutput = true,
-					FileName = "ffmpeg",
-					Arguments = test,
-						
-				};
-				using (var process = new Process { StartInfo = info, })
-				{
-					process.Start();
-
-					var text = new StreamReader(ms).ReadToEnd();
-
-					//Not sure why this gives pipe error
-					process.StandardInput.Write(text);
-					ms.SetLength(0);
-					await process.StandardOutput.BaseStream.CopyToAsync(ms).CAF();
-				}
-#else
 				using (var gif = new MagickImageCollection(ms))
 				{
-					//Assumes every image has the same width/height
-					var width = (int)Math.Min(128, gif.First().Width / shrinkFactor);
-					var height = (int)Math.Min(128, gif.First().Height / shrinkFactor);
-
-					gif.Coalesce();
-					foreach (var image in gif)
+					if (firstIter && args.FrameSkip > 0)
 					{
-						image.Resize(width, height);
-						image.AnimationDelay = 100;
-						image.ColorFuzz = new Percentage(.02);
+						//Trim the file size down by removing every x frames
+						for (int i = gif.Count - 1; i >= 0; --i)
+						{
+							if (i % args.FrameSkip == 0)
+							{
+								gif.RemoveAt(i);
+							}
+						}
 					}
+
+					//Optimize before, not after, so all the frames will keep the same dimension when resized
 					gif.Optimize();
-					gif.OptimizeTransparency();
-					//Clear the stream
+					//Determine the new width and height to give these frames
+					var geo = new MagickGeometry
+					{
+						IgnoreAspectRatio = true, //Ignore aspect ratio so all the frames keep the same dimensions
+						Width = width = (int)Math.Min(128, gif[0].Width / shrinkFactor),
+						Height = height = (int)Math.Min(128, gif[0].Height / shrinkFactor),
+					};
+					foreach (var frame in gif)
+					{
+						frame.ColorFuzz = args.ColorFuzzingPercentage;
+						frame.GifDisposeMethod = GifDisposeMethod.Background;
+						frame.AnimationDelay = args.AnimationDelay;
+						frame.Scale(geo);
+					}
+
+					//Clear the stream and overwrite it
 					ms.SetLength(0);
-					//Then reset it
 					gif.Write(ms);
 				}
-#endif
 			}
 			else
 			{
 				using (var image = new MagickImage(ms))
 				{
-					var width = (int)Math.Min(128, image.Width / shrinkFactor);
-					var height = (int)Math.Min(128, image.Height / shrinkFactor);
-					image.Resize(width, height);
+					image.Scale(new MagickGeometry
+					{
+						IgnoreAspectRatio = true,
+						Width = width = (int)Math.Min(128, image.Width / shrinkFactor),
+						Height = height = (int)Math.Min(128, image.Height / shrinkFactor),
+					});
 
-					//Clear the stream
+					//Clear the stream and overwrite it
 					ms.SetLength(0);
-					//Then reset it
 					image.Write(ms);
 				}
 			}
+			return ms.Length < args.MaxSize;
 		}
 	}
 }

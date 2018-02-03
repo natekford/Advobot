@@ -222,7 +222,7 @@ namespace Advobot.Commands.BotSettings
 		public async Task Command(Uri url)
 		{
 			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
-			var resp = await url.UseImageStream(2500000, false, async s =>
+			var resp = await url.UseImageStream(new ImageResizerArgs { MaxSize = 2500000 }, async s =>
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(s), options).CAF();
 			}).CAF();
