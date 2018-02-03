@@ -208,7 +208,7 @@ namespace Advobot.Commands.Misc
 	[DefaultEnabled(true)]
 	public sealed class Test : NonSavingModuleBase
 	{
-		[Command]
+		[Command(RunMode = RunMode.Async)]
 		public async Task Command(Uri imageUrl)
 		{
 			var args = new ImageResizerArgs
@@ -219,7 +219,8 @@ namespace Advobot.Commands.Misc
 				ColorFuzzingPercentage = new Percentage(30),
 				FrameSkip = 3,
 			};
-			await imageUrl.UseImageStream(args, async s => await Context.Guild.CreateEmoteAsync("hapdoge", new Image(s)));
+			await imageUrl.UseImageStream(Context.Guild, args,
+				async s => await Context.Guild.CreateEmoteAsync("hapdoge", new Image(s)));
 		}
 	}
 }

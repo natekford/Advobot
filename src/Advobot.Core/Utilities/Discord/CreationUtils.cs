@@ -74,6 +74,7 @@ namespace Advobot.Core.Utilities
 			cmds.AddTypeReader<IInvite>(new InviteTypeReader());
 			cmds.AddTypeReader<IBan>(new BanTypeReader());
 			cmds.AddTypeReader<Emote>(new EmoteTypeReader());
+			cmds.AddTypeReader<GuildEmote>(new GuildEmoteTypeReader());
 			cmds.AddTypeReader<Color>(new ColorTypeReader());
 			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
 			cmds.AddTypeReader<CommandCategory>(new CommandCategoryTypeReader());
