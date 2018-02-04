@@ -31,9 +31,8 @@ namespace Advobot.Commands.Emotes
 			{
 				MaxSize = 256000,
 				ResizeTries = 5,
-				AnimationDelay = 10,
+				AnimationDelay = 8,
 				ColorFuzzingPercentage = new Percentage(30),
-				FrameSkip = 3,
 			};
 			var resp = await url.UseImageStream(Context.Guild, args,
 				async s => await Context.Guild.CreateEmoteAsync(name, new Image(s), default, options).CAF()).CAF();

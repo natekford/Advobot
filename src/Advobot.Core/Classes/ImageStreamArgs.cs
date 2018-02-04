@@ -19,7 +19,7 @@ namespace Advobot.Core.Classes
 		/// <summary>
 		/// The color fuzzing percentage to use when optimizing a gif.
 		/// </summary>
-		public Percentage ColorFuzzingPercentage = new Percentage(30);
+		public Percentage ColorFuzzingPercentage;
 		/// <summary>
 		/// Skip every xth frame.
 		/// </summary>

@@ -125,15 +125,14 @@ namespace Advobot.Core.Utilities
 				Arguments = @"-f mp4 -i \\.\pipe\in -vf fps=10,scale=128:128 -f gif pipe:1",
 
 			};
-			using (var process = new Process { StartInfo = info, EnableRaisingEvents = true, })
+			using (var process = new Process { StartInfo = info, })
 			//Have to use this pipe and not StandardInput b/c StandardInput hangs
 			using (var pipe = new NamedPipeServerStream("in", PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, (int)ms.Length, (int)ms.Length))
 			{
-				process.ErrorDataReceived += (sender, e) => ConsoleUtils.WriteLine(e.Data, "Ffmpeg Mp4 to Gif", ConsoleColor.Red);
 				process.Start();
 
 				//Make sure the pipe is connected
-				pipe.WaitForConnection();
+				await pipe.WaitForConnectionAsync().CAF();
 				//Make sure to start at the beginning of the data to not get a "moov atom not found" error
 				ms.Seek(0, SeekOrigin.Begin);
 				await ms.CopyToAsync(pipe).CAF();
@@ -156,6 +155,7 @@ namespace Advobot.Core.Utilities
 				case MagickFormat.Gif:
 					using (var gif = new MagickImageCollection(ms))
 					{
+						/*
 						if (firstIter && args.FrameSkip > 0)
 						{
 							//Trim the file size down by removing every x frames
@@ -166,10 +166,12 @@ namespace Advobot.Core.Utilities
 									gif.RemoveAt(i);
 								}
 							}
-						}
+						}*/
+
+						//TODO: figure out when to coalesce and optimize correctly
 
 						//Optimize before, not after, so all the frames will keep the same dimension when resized
-						gif.Optimize();
+						//gif.Optimize();
 						//Determine the new width and height to give these frames
 						var geo = new MagickGeometry
 						{
@@ -180,7 +182,6 @@ namespace Advobot.Core.Utilities
 						foreach (var frame in gif)
 						{
 							frame.ColorFuzz = args.ColorFuzzingPercentage;
-							frame.GifDisposeMethod = GifDisposeMethod.Background;
 							frame.AnimationDelay = args.AnimationDelay;
 							frame.Scale(geo);
 						}

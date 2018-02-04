@@ -66,7 +66,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
-			if (!(message.Author is IGuildUser user) || !TryGetSettings(message, out var settings))
+			if (!(message?.Author is IGuildUser user) || !TryGetSettings(message, out var settings))
 			{
 				return;
 			}
