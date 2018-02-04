@@ -217,7 +217,6 @@ namespace Advobot.Commands.Misc
 				ResizeTries = 5,
 				AnimationDelay = 10,
 				ColorFuzzingPercentage = new Percentage(30),
-				FrameSkip = 3,
 			};
 			await imageUrl.UseImageStream(Context.Guild, args,
 				async s => await Context.Guild.CreateEmoteAsync("hapdoge", new Image(s)));
