@@ -222,8 +222,8 @@ namespace Advobot.Commands.BotSettings
 		public async Task Command(Uri url)
 		{
 			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
-			var resp = await url.UseImageStream(Context.Guild, new ImageResizerArgs { MaxSize = 2500000 },
-				async s => await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(s), options).CAF()).CAF();
+			var resp = await url.UseImageStream(Context.Guild, IconResizerArgs.Default,
+				async (f, s) => await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(s), options).CAF()).CAF();
 			var text = resp == null ? "Successfully updated the bot icon" : "Failed to update the bot icon. Reason: " + resp;
 
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, text);

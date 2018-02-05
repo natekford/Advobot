@@ -15,8 +15,6 @@ namespace Advobot.ConsoleLauncher
 	{
 		private static async Task Main()
 		{
-			var dog = ImageUtils.FfmpegLocation;
-
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
 
 			//Get the save path

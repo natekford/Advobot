@@ -8,12 +8,12 @@ namespace Advobot.Core.Classes.NamedArguments
 	/// <summary>
 	/// Allows a user to make an embed through the use of <see cref="NamedArguments{T}"/>.
 	/// </summary>
-	public class CustomEmbed
+	public sealed class CustomEmbed
 	{
 		public const string FIELD_NAME = "FieldName";
 		public const string FIELD_TEXT = "FieldText";
 		public const string FIELD_INLINE = "FieldInline";
-		public const string SPLIT_CHAR = "^";
+		public const string SPLIT_CHAR = "|";
 		private static char _SplitChar = SPLIT_CHAR[0];
 		public const string FORMAT = FIELD_NAME + ":Name" + SPLIT_CHAR + FIELD_TEXT + ":Text" + SPLIT_CHAR + FIELD_INLINE + ":True|False";
 

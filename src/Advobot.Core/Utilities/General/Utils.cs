@@ -1,11 +1,9 @@
-﻿using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -214,6 +212,31 @@ namespace Advobot.Core.Utilities
 			}
 
 			return maxCount;
+		}
+		/// <summary>
+		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="objects"></param>
+		/// <param name="target"></param>
+		/// <param name="count"></param>
+		/// <param name="f"></param>
+		/// <returns></returns>
+		public static IEnumerable<T> GetObjectsBasedOffCount<T>(this IEnumerable<T> objects, CountTarget target, uint? count, Func<T, int?> f)
+		{
+			switch (target)
+			{
+				case CountTarget.Equal:
+					objects = objects.Where(x => { var val = f(x); return val != null && val == count; });
+					break;
+				case CountTarget.Below:
+					objects = objects.Where(x => { var val = f(x); return val != null && val < count; });
+					break;
+				case CountTarget.Above:
+					objects = objects.Where(x => { var val = f(x); return val != null && val > count; });
+					break;
+			}
+			return objects;
 		}
 
 		/// <summary>

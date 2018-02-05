@@ -102,7 +102,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 
 			var n = TypeName ?? Type.Name;
 			//Generics have `1, `2, etc for each instance of them in use
-			TypeName = n.Contains('`') ? n.Substring(0, n.IndexOf('`') + 1) : n;
+			TypeName = n.Contains('`') ? n.Substring(0, n.IndexOf('`')) : n;
 		}
 		private void SetText(ParameterInfo parameter)
 		{

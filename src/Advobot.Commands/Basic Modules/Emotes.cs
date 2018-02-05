@@ -1,11 +1,13 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
 using ImageMagick;
 using System;
-using System.Linq;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Emotes
@@ -24,22 +26,30 @@ namespace Advobot.Commands.Emotes
 		}
 		//TODO: implement a queue for these commands, since they use high memory and download
 		[Command(nameof(Add), RunMode = RunMode.Async), ShortAlias(nameof(Add))]
-		public async Task Add(string name, Uri url)
+		public async Task Add(string name, Uri url, [Optional, Remainder] NamedArguments<EmoteResizerArgs> args)
 		{
-			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
-			var args = new ImageResizerArgs
+			EmoteResizerArgs obj;
+			if (args == null)
 			{
-				MaxSize = 256000,
-				ResizeTries = 5,
-				AnimationDelay = 8,
-				ColorFuzzingPercentage = new Percentage(30),
-			};
-			var resp = await url.UseImageStream(Context.Guild, args,
-				async s => await Context.Guild.CreateEmoteAsync(name, new Image(s), default, options).CAF()).CAF();
-			var text = resp == null
-				? $"Successfully created the emote `{name}`."
-				: $"Failed to create the emote `{name}`. Reason: " + resp;
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, text);
+				obj = EmoteResizerArgs.Default;
+			}
+			else if (!args.TryCreateObject(new object[] { 5, new Percentage(30) }, out obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+
+			var resp = await url.UseImageStream(Context.Guild, obj, async (f, s) =>
+			{
+				var options = new ModerationReason(Context.User, null).CreateRequestOptions();
+				await Context.Guild.CreateEmoteAsync(name, new Image(s), default, options).CAF();
+				s.Seek(0, SeekOrigin.Begin);
+				await Context.Channel.SendFileAsync(s, $"{name}.{f}", $"Successfully created the emote `{name}`.", false, options).CAF();
+			}).CAF();
+			if (resp != null)
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Failed to create the emote `{name}`. Reason: {resp}.")).CAF();
+			}
 		}
 		[Command(nameof(Delete)), ShortAlias(nameof(Delete))]
 		public async Task Delete(GuildEmote emote)

@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Classes;
+using Advobot.Core.Interfaces;
 using Discord;
 using ImageMagick;
 using System;
@@ -14,19 +15,20 @@ namespace Advobot.Core.Utilities
 {
 	public static class ImageUtils
 	{
+		public const long MaxDownloadLengthInBytes = 10000000;
 		public static readonly string FfmpegLocation = FindFfmpeg();
 
 		/// <summary>
-		/// Uses the image stream for the required function. Returns null if successful, returns an error otherwise.
+		/// Uses the image stream for <paramref name="callback"/>. Returns null if successful, returns an error otherwise.
 		/// </summary>
-		/// <param name="uri"></param>
-		/// <param name="callback"></param>
+		/// <param name="uri">The uri to download the file from.</param>
+		/// <param name="guild">The guild to check emotes from.</param>
+		/// <param name="args">The arguments to use on the file.</param>
+		/// <param name="callback">What do to with the resized file.</param>
 		/// <returns></returns>
-		public static async Task<string> UseImageStream(this Uri uri, IGuild guild, ImageResizerArgs args, Func<Stream, Task> callback)
+		public static async Task<string> UseImageStream(this Uri uri, IGuild guild, IImageResizerArgs args, Func<MagickFormat, MemoryStream, Task> callback)
 		{
-			var editedUri = new Uri(uri.ToString().Replace(".gifv", ".gif"));
-
-			var req = (HttpWebRequest)WebRequest.Create(editedUri);
+			var req = (HttpWebRequest)WebRequest.Create(uri.ToString().Replace(".gifv", ".mp4"));
 			req.UserAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
 			req.Credentials = CredentialCache.DefaultCredentials;
 			req.Timeout = 5000;
@@ -40,13 +42,20 @@ namespace Advobot.Core.Utilities
 			{
 				using (var resp = await req.GetResponseAsync().CAF())
 				{
-					if (args.ResizeTries < 1 && resp.ContentLength > args.MaxSize)
+					//Max size without resize tries
+					if (args.ResizeTries < 1 && resp.ContentLength > args.MaxAllowedLengthInBytes)
 					{
-						return $"file is bigger than the max allowed size of {(double)args.MaxSize / 1000 * 1000:0.0}MB.";
+						return $"file is bigger than the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB";
 					}
-					if (!Enum.TryParse<MagickFormat>(resp.ContentType.Split('/').Last(), true, out var format))
+					//Utter max size
+					if (resp.ContentLength > MaxDownloadLengthInBytes)
 					{
-						return $"invalid file format supplied.";
+						return $"file is bigger than the max allowed size of {(double)MaxDownloadLengthInBytes / 1000 * 1000:0.0}MB";
+					}
+					//Make sure the content type is an image content type
+					if (!Enum.TryParse<MagickFormat>(resp.ContentType.Split('/').Last(), true, out var format) || !args.ValidFormats.Contains(format))
+					{
+						return $"invalid file format supplied";
 					}
 					switch (format)
 					{
@@ -55,23 +64,23 @@ namespace Advobot.Core.Utilities
 						case MagickFormat.Png:
 							if (guild.Emotes.Where(x => !x.Animated).Count() >= 50)
 							{
-								return "there are already 50 non animated emotes.";
+								return "there are already 50 non animated emotes";
 							}
 							break;
 						case MagickFormat.Mp4:
 							if (String.IsNullOrWhiteSpace(FfmpegLocation))
 							{
-								return "mp4 is an invalid file format if ffmpeg is not installed.";
+								return "mp4 is an invalid file format if ffmpeg is not installed";
 							}
 							goto case MagickFormat.Gif;
 						case MagickFormat.Gif:
 							if (guild.Emotes.Where(x => x.Animated).Count() >= 50)
 							{
-								return "there are already 50 animated emotes.";
+								return "there are already 50 animated emotes";
 							}
 							break;
 						default:
-							return "link must lead to a png, jpg, gif, or mp4.";
+							return "link must lead to a png, jpg, gif, or mp4";
 					}
 
 					using (var s = resp.GetResponseStream())
@@ -81,37 +90,41 @@ namespace Advobot.Core.Utilities
 						//Convert mp4 to gif so it can be used in animated gifs
 						if (format == MagickFormat.Mp4)
 						{
-							await ConvertMp4ToGif(ms).CAF();
+							await ConvertMp4ToGif(ms, (EmoteResizerArgs)args).CAF();
 							format = MagickFormat.Gif;
 						}
-						if (ms.Length > args.MaxSize)
+						if (ms.Length > args.MaxAllowedLengthInBytes)
 						{
 							//Getting to this point has already checked resize tries, so this image needs to be resized if it's too big
-							for (int i = 0; i < args.ResizeTries && ms.Length > args.MaxSize; ++i)
+							for (int i = 0; i < args.ResizeTries && ms.Length > args.MaxAllowedLengthInBytes; ++i)
 							{
 								//If the emote gets small enough that it's acceptable, don't bother continuing
-								if (ResizeEmote(ms, args, format, i == 0, out var width, out var height))
+								if (ResizeFile(ms, args, format, i == 0, out var width, out var height))
 								{
 									break;
 								}
 								//If the emote gets too small, stop and return an error
 								if (width < 35 || height < 35)
 								{
-									return $"during resizing the image has been made too small. Manually resize instead.";
+									return $"during resizing the file has been made too small. Manually resize instead";
 								}
 								//Too many attempts 
 								if (i == args.ResizeTries - 1)
 								{
-									return $"unable to shrink the file to the max allowed size of {(double)args.MaxSize / 1000 * 1000:0.0}MB.";
+									return $"failed to shrink the file to the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB";
 								}
 							}
+						}
+						if (ms.Length < 1)
+						{
+							return $"file is empty after shrinking";
 						}
 
 						//Make sure the stream is at the beginning
 						ms.Seek(0, SeekOrigin.Begin);
 						try
 						{
-							await callback(ms).CAF();
+							await callback(format, ms).CAF();
 						}
 						catch (Exception e)
 						{
@@ -126,7 +139,7 @@ namespace Advobot.Core.Utilities
 				return we.Message;
 			}
 		}
-		private static async Task ConvertMp4ToGif(MemoryStream ms)
+		private static async Task ConvertMp4ToGif(MemoryStream ms, EmoteResizerArgs args)
 		{
 			var info = new ProcessStartInfo
 			{
@@ -140,37 +153,37 @@ namespace Advobot.Core.Utilities
 				RedirectStandardInput = true,
 				RedirectStandardOutput = true,
 				FileName = FfmpegLocation,
-				Arguments = @"-f mp4 -i \\.\pipe\in -vf fps=12,scale=128:128 -f gif pipe:1",
-
+				Arguments = $@"-f mp4 -i \\.\pipe\in -ss {args.StartInSeconds} -t {args.LengthInSeconds} -vf fps={(int)(100.0 / args.AnimationDelay)},scale=256:256 -f gif pipe:1",
 			};
 			using (var process = new Process { StartInfo = info, })
 			//Have to use this pipe and not StandardInput b/c StandardInput hangs
-			using (var pipe = new NamedPipeServerStream("in", PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, (int)ms.Length, (int)ms.Length))
+			using (var inPipe = new NamedPipeServerStream("in", PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, (int)ms.Length, (int)ms.Length))
 			{
 				process.Start();
 
 				//Make sure the pipe is connected
-				await pipe.WaitForConnectionAsync().CAF();
+				await inPipe.WaitForConnectionAsync().CAF();
 				//Make sure to start at the beginning of the data to not get a "moov atom not found" error
 				ms.Seek(0, SeekOrigin.Begin);
-				await ms.CopyToAsync(pipe).CAF();
+				await ms.CopyToAsync(inPipe).CAF();
 				//Flush and close, otherwise hangs
-				pipe.Flush();
-				pipe.Close();
+				inPipe.Flush();
+				inPipe.Close();
 
 				//Clear and overwrite
 				ms.SetLength(0);
 				await process.StandardOutput.BaseStream.CopyToAsync(ms).CAF();
 			}
 		}
-		private static bool ResizeEmote(MemoryStream ms, ImageResizerArgs args, MagickFormat format, bool firstIter, out int width, out int height)
+		private static bool ResizeFile(MemoryStream ms, IImageResizerArgs args, MagickFormat format, bool firstIter, out int width, out int height)
 		{
 			//Make sure at start
 			ms.Seek(0, SeekOrigin.Begin);
-			var shrinkFactor = Math.Sqrt((double)ms.Length / args.MaxSize) * 1.25;
+			var shrinkFactor = Math.Sqrt((double)ms.Length / args.MaxAllowedLengthInBytes) * 1.1;
 			switch (format)
 			{
 				case MagickFormat.Gif:
+					var gifArgs = (EmoteResizerArgs)args;
 					using (var gif = new MagickImageCollection(ms))
 					{
 						//Determine the new width and height to give these frames
@@ -182,8 +195,8 @@ namespace Advobot.Core.Utilities
 						};
 						foreach (var frame in gif)
 						{
-							frame.ColorFuzz = args.ColorFuzzingPercentage;
-							frame.AnimationDelay = args.AnimationDelay;
+							frame.ColorFuzz = args.ColorFuzzing;
+							frame.AnimationDelay = gifArgs.AnimationDelay;
 							frame.Scale(geo);
 						}
 
@@ -191,7 +204,7 @@ namespace Advobot.Core.Utilities
 						ms.SetLength(0);
 						gif.Write(ms);
 					}
-					return ms.Length < args.MaxSize;
+					return ms.Length < args.MaxAllowedLengthInBytes;
 				case MagickFormat.Jpg:
 				case MagickFormat.Jpeg:
 				case MagickFormat.Png:
@@ -208,7 +221,7 @@ namespace Advobot.Core.Utilities
 						ms.SetLength(0);
 						image.Write(ms);
 					}
-					return ms.Length < args.MaxSize;
+					return ms.Length < args.MaxAllowedLengthInBytes;
 				default:
 					throw new InvalidOperationException("This method only works on gif, png, and jpg formats.");
 			}
@@ -232,7 +245,10 @@ namespace Advobot.Core.Utilities
 			//Check path variables
 			foreach (var part in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(windows ? ';' : ':'))
 			{
-				directories.Add(new DirectoryInfo(part.Trim()));
+				if (!String.IsNullOrWhiteSpace(part))
+				{
+					directories.Add(new DirectoryInfo(part.Trim()));
+				}
 			}
 			//Look through every directory and any subfolders they have called bin
 			foreach (var dir in directories.Select(x => new[] { x, new DirectoryInfo(Path.Combine(x.FullName, "bin")) }).SelectMany(x => x))

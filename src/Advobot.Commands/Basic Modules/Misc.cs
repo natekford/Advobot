@@ -130,10 +130,14 @@ namespace Advobot.Commands.Misc
 	public sealed class MakeAnEmbed : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command([Remainder] NamedArguments<CustomEmbed> arguments)
+		public async Task Command([Remainder] NamedArguments<CustomEmbed> args)
 		{
-			var embed = arguments.CreateObject().Embed;
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			if (!args.TryCreateObject(new object[0], out var obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, obj.Embed).CAF();
 		}
 	}
 
@@ -211,15 +215,7 @@ namespace Advobot.Commands.Misc
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(Uri imageUrl)
 		{
-			var args = new ImageResizerArgs
-			{
-				MaxSize = 256000,
-				ResizeTries = 5,
-				AnimationDelay = 10,
-				ColorFuzzingPercentage = new Percentage(30),
-			};
-			await imageUrl.UseImageStream(Context.Guild, args,
-				async s => await Context.Guild.CreateEmoteAsync("hapdoge", new Image(s)));
+			await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
 		}
 	}
 }

@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Advobot.Core.Classes.NamedArguments
 {
-	public class ListedInviteGatherer
+	public sealed class ListedInviteGatherer
 	{
 		private string _Code;
 		private string _Name;

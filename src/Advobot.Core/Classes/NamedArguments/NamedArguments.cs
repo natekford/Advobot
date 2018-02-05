@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Enums;
-using Advobot.Core.Utilities;
 
 namespace Advobot.Core.Classes.NamedArguments
 {
@@ -14,7 +15,7 @@ namespace Advobot.Core.Classes.NamedArguments
 	/// Allows named arguments to be used via an overly complex system of attributes and reflection.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class NamedArguments<T> where T : new()
+	public sealed class NamedArguments<T> where T : class
 	{
 		public static ImmutableList<string> ArgNames { get; }
 
@@ -23,8 +24,8 @@ namespace Advobot.Core.Classes.NamedArguments
 		private static int _ParamsLength;
 		private static string _ParamsName;
 
-		private Dictionary<string, string> _Args = ArgNames.ToDictionary(x => x, x => default(string), StringComparer.OrdinalIgnoreCase);
-		private List<string> _ParamArgs = new List<string>();
+		private Dictionary<string, string> _Args;
+		private List<string> _ParamArgs;
 
 		/// <summary>
 		/// Sets the constructor, argnames, and params information.
@@ -78,6 +79,9 @@ namespace Advobot.Core.Classes.NamedArguments
 		/// <param name="input"></param>
 		public NamedArguments(string input)
 		{
+			_Args = ArgNames.ToDictionary(x => x, x => default(string), StringComparer.OrdinalIgnoreCase);
+			_ParamArgs = new List<string>();
+
 			//Split by spaces except when in quotes
 			var split = input.Split('"').Select((x, index) =>
 			{
@@ -121,67 +125,68 @@ namespace Advobot.Core.Classes.NamedArguments
 		/// </summary>
 		/// <param name="additionalArgs"></param>
 		/// <returns></returns>
-		public T CreateObject(params object[] additionalArgs)
+		public bool TryCreateObject(object[] additionalArgs, out T obj, out IError error)
 		{
 			var additionalArgsList = new List<object>(additionalArgs);
-			var parameters = _Constructor.GetParameters().Select(p =>
-			{
-				//For arrays get the underlying type
-				var t = p.ParameterType.IsArray ? p.ParameterType.GetElementType() : p.ParameterType;
-
-				//Check params first otherwise will go into the middle else if
-				if (p.GetCustomAttribute<ParamArrayAttribute>() != null)
-				{
-					//Convert all from string to whatever type they need to be
-					//NEEDS TO BE AN ARRAY SINCE PARAMS IS AN ARRAY!
-					var convertedArgs = _ParamArgs.Select(x => NamedArgumentsUtils.ConvertValue(t, x)).ToArray();
-					//Have to use this method otherwise create instance throws exception
-					//because this will send object[] instead of T[] when empty
-					if (!convertedArgs.Any())
-					{
-						return Array.CreateInstance(t, 0);
-					}
-
-					//Have to use create instance here so the array will be the correct type
-					//Wish there was a better way to cast the array but not sure
-					var correctTypeArray = Array.CreateInstance(t, convertedArgs.Length);
-					Array.Copy(convertedArgs, correctTypeArray, convertedArgs.Length);
-					return correctTypeArray;
-				}
-				//Checking against the attribute again in case arguments have duplicate names
-
-				if (p.GetCustomAttribute<NamedArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))
-				{
-					return NamedArgumentsUtils.ConvertValue(t, arg);
-				}
-				//Finally see if any additional args should be used
-
-				if (additionalArgsList.Any())
-				{
-					var value = additionalArgsList.FirstOrDefault(x => x.GetType() == t);
-					if (value != null)
-					{
-						additionalArgsList.Remove(value);
-						return value;
-					}
-				}
-				return NamedArgumentsUtils.CreateDefault(t);
-			}).ToArray();
+			var parameters = _Constructor.GetParameters().Select(p => GetValueForParameter(p, additionalArgsList)).ToArray();
 
 			try
 			{
-				return (T)_Constructor.Invoke(parameters);
+				obj = (T)_Constructor.Invoke(parameters);
+				error = null;
+				return true;
 			}
-			catch (MissingMethodException e)
+			catch (Exception e)
 			{
-				e.Write();
-				return new T();
+				obj = null;
+				error = new Error(e);
+				return false;
 			}
 		}
-	}
+		/// <summary>
+		/// Attempts to find or create the value for a parameter in a constructor.
+		/// </summary>
+		/// <param name="p"></param>
+		/// <param name="additionalArgs"></param>
+		/// <returns></returns>
+		private object GetValueForParameter(ParameterInfo p, List<object> additionalArgs)
+		{
+			//For arrays get the underlying type
+			var t = p.ParameterType.IsArray ? p.ParameterType.GetElementType() : p.ParameterType;
 
-	public static class NamedArgumentsUtils
-	{
+			//Check params first otherwise will go into the middle else if
+			if (p.GetCustomAttribute<ParamArrayAttribute>() != null)
+			{
+				//Convert all from string to whatever type they need to be
+				//NEEDS TO BE AN ARRAY SINCE PARAMS IS AN ARRAY!
+				var convertedArgs = _ParamArgs.Select(x => ConvertValue(t, x)).ToArray();
+				//Have to use this method otherwise create instance throws exception
+				//because this will send object[] instead of T[] when empty
+				if (!convertedArgs.Any())
+				{
+					return Array.CreateInstance(t, 0);
+				}
+
+				//Have to use create instance here so the array will be the correct type
+				//Wish there was a better way to cast the array but not sure
+				var correctTypeArray = Array.CreateInstance(t, convertedArgs.Length);
+				Array.Copy(convertedArgs, correctTypeArray, convertedArgs.Length);
+				return correctTypeArray;
+			}
+			//Checking against the attribute again in case arguments have duplicate names
+			if (p.GetCustomAttribute<NamedArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))
+			{
+				return ConvertValue(t, arg);
+			}
+			//Finally see if any additional args should be used
+			if (additionalArgs.Any())
+			{
+				var value = additionalArgs[0];
+				additionalArgs.RemoveAt(0);
+				return value;
+			}
+			return CreateDefault(t);
+		}
 		/// <summary>
 		/// Converts the string into the given <paramref name="type"/>.
 		/// Null or whitespace strings will return default values.
@@ -189,7 +194,7 @@ namespace Advobot.Core.Classes.NamedArguments
 		/// <param name="type"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static object ConvertValue(Type type, string value)
+		private object ConvertValue(Type type, string value)
 		{
 			if (String.IsNullOrWhiteSpace(value))
 			{
@@ -201,7 +206,23 @@ namespace Advobot.Core.Classes.NamedArguments
 			//If the type is an enum see if it's a valid name. If invalid then return default
 			if (t.IsEnum)
 			{
-				return ConvertEnum(t, value);
+				if (type.GetCustomAttribute<FlagsAttribute>() == null)
+				{
+					return Enum.IsDefined(type, value)
+						? Enum.Parse(type, value, true)
+						: Activator.CreateInstance(type);
+				}
+
+				//Allow people to 'OR' things together (kind of)
+				var e = (ulong)Activator.CreateInstance(type);
+				foreach (var s in value.Split('|'))
+				{
+					if (Enum.IsDefined(type, s))
+					{
+						e |= (ulong)Enum.Parse(type, s, true);
+					}
+				}
+				return Enum.ToObject(type, e);
 			}
 
 			//Converters should work for primitives. Not sure what else it works for.
@@ -228,7 +249,7 @@ namespace Advobot.Core.Classes.NamedArguments
 		/// <param name="type"></param>
 		/// <param name="createParameterless"></param>
 		/// <returns></returns>
-		public static object CreateDefault(Type type, bool createParameterless = false)
+		private object CreateDefault(Type type, bool createParameterless = false)
 		{
 			if (type.IsValueType)
 			{
@@ -240,61 +261,10 @@ namespace Advobot.Core.Classes.NamedArguments
 				var constructor = type.GetConstructors().SingleOrDefault(x => !x.GetParameters().Any());
 				if (constructor != null)
 				{
-					return constructor.Invoke(Array.Empty<object>());
+					return constructor.Invoke(new object[0]);
 				}
 			}
 			return null;
-		}
-		/// <summary>
-		/// Converts a string to an enum value.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public static object ConvertEnum(Type type, string value)
-		{
-			if (type.GetCustomAttribute<FlagsAttribute>() == null)
-			{
-				return Enum.IsDefined(type, value)
-					? Enum.Parse(type, value, true)
-					: Activator.CreateInstance(type);
-			}
-
-			//Allow people to 'OR' things together (kind of)
-			var e = (uint)Activator.CreateInstance(type);
-			foreach (var s in value.Split('|'))
-			{
-				if (Enum.IsDefined(type, s))
-				{
-					e |= (uint)Enum.Parse(type, s, true);
-				}
-			}
-			return Enum.ToObject(type, e);
-		}
-		/// <summary>
-		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="objects"></param>
-		/// <param name="target"></param>
-		/// <param name="count"></param>
-		/// <param name="f"></param>
-		/// <returns></returns>
-		public static IEnumerable<T> GetObjectsBasedOffCount<T>(this IEnumerable<T> objects, CountTarget target, uint? count, Func<T, int?> f)
-		{
-			switch (target)
-			{
-				case CountTarget.Equal:
-					objects = objects.Where(x => { var val = f(x); return val != null && val == count; });
-					break;
-				case CountTarget.Below:
-					objects = objects.Where(x => { var val = f(x); return val != null && val < count; });
-					break;
-				case CountTarget.Above:
-					objects = objects.Where(x => { var val = f(x); return val != null && val > count; });
-					break;
-			}
-			return objects;
 		}
 	}
 }

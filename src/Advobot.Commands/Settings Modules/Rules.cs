@@ -95,14 +95,24 @@ namespace Advobot.Commands.Rules
 	public sealed class PrintOutRules : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command(RuleCategory category, [Optional, Remainder] NamedArguments<RuleFormatter> formatter)
+		public async Task Command(RuleCategory category, [Optional, Remainder] NamedArguments<RuleFormatter> args)
 		{
-			var obj = formatter?.CreateObject() ?? new RuleFormatter();
+			RuleFormatter obj;
+			if (args == null)
+			{
+				obj = new RuleFormatter();
+			}
+			else if (!args.TryCreateObject(new object[0], out obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+
 			var index = Array.IndexOf(Context.GuildSettings.Rules.Categories.ToArray(), category);
 			await obj.SendCategoryAsync(category.ToString(obj, index), Context.Channel).CAF();
 		}
 		[Command]
-		public async Task Command([Optional, Remainder] NamedArguments<RuleFormatter> formatter)
+		public async Task Command([Optional, Remainder] NamedArguments<RuleFormatter> args)
 		{
 			if (Context.GuildSettings.Rules.Categories.Count == 0)
 			{
@@ -110,7 +120,17 @@ namespace Advobot.Commands.Rules
 				return;
 			}
 
-			var obj = formatter?.CreateObject() ?? new RuleFormatter();
+			RuleFormatter obj;
+			if (args == null)
+			{
+				obj = new RuleFormatter();
+			}
+			else if (!args.TryCreateObject(new object[0], out obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+
 			await obj.SendRulesAsync(Context.GuildSettings.Rules.Categories, Context.Channel).CAF();
 		}
 	}

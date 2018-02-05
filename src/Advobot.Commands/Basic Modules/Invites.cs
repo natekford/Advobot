@@ -104,9 +104,14 @@ namespace Advobot.Commands.Invites
 	public sealed class DeleteMultipleInvites : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command([Remainder] NamedArguments<MultipleInviteGatherer> gatherer)
+		public async Task Command([Remainder] NamedArguments<MultipleInviteGatherer> args)
 		{
-			var invites = gatherer.CreateObject().GatherInvites(await Context.Guild.GetInvitesAsync().CAF()).ToList();
+			if (!args.TryCreateObject(new object[0], out var obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+			var invites = obj.GatherInvites(await Context.Guild.GetInvitesAsync().CAF()).ToList();
 			if (!invites.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("No invites satisfied the given conditions.")).CAF();

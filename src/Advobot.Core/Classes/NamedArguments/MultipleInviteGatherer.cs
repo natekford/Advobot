@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
 using Discord;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Advobot.Core.Classes.NamedArguments
 	/// <summary>
 	/// Sets the search terms for invites and can gather invites matching those terms.
 	/// </summary>
-	public class MultipleInviteGatherer
+	public sealed class MultipleInviteGatherer
 	{
 		private ulong? _UserId;
 		private ulong? _ChannelId;

@@ -89,12 +89,17 @@ namespace Advobot.Commands.GuildList
 		private static string _EHeader = "Global Emotes";
 
 		[Command]
-		public async Task Command([Remainder] NamedArguments<ListedInviteGatherer> gatherer)
+		public async Task Command([Remainder] NamedArguments<ListedInviteGatherer> args)
 		{
-			var invites = gatherer.CreateObject().GatherInvites(Context.InviteList).ToList();
+			if (!args.TryCreateObject(new object[0], out var obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+			var invites = obj.GatherInvites(Context.InviteList).ToList();
 			if (!invites.Any())
 			{
-				var error = new Error("No guild could be found that matches the given specifications.");
+				error = new Error("No guild could be found that matches the given specifications.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 			}
 			else if (invites.Count() <= 5)

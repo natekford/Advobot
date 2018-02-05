@@ -443,15 +443,25 @@ namespace Advobot.Commands.GuildSettings
 	public sealed class ModifyGuildNotifs : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
-		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> arguments)
+		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 		{
-			Context.GuildSettings.WelcomeMessage = arguments.CreateObject(channel);
+			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+			Context.GuildSettings.WelcomeMessage = obj;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the welcome message.").CAF();
 		}
 		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
-		public async Task Goodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> arguments)
+		public async Task Goodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 		{
-			Context.GuildSettings.GoodbyeMessage = arguments.CreateObject(channel);
+			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+			Context.GuildSettings.GoodbyeMessage = obj;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the goodbye message.").CAF();
 		}
 	}

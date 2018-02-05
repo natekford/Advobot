@@ -95,9 +95,20 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static EmbedWrapper FormatRoleInfo(SocketGuild guild, IRole role)
 		{
+			var permissions = role.Permissions.Has(GuildPermission.Administrator)
+				? "All"
+				: String.Join("`, `", Enum.GetValues(typeof(GuildPermission))
+					.Cast<GuildPermission>()
+					.Where(x => role.Permissions.Has(x)));
+
 			var desc = $"{role.CreatedAt.UtcDateTime.CreatedAt()}\n" +
-				$"**Position:** `{role.Position}`" +
-				$"**User Count:** `{guild.Users.Count(x => x.Roles.Any(y => y.Id == role.Id))}`";
+				$"**Position:** `{role.Position}`\n" +
+				$"**Color:** `#{role.Color.RawValue.ToString("X6")}`\n\n" +
+				$"**Is Hoisted:** `{role.IsHoisted}`\n" +
+				$"**Is Managed:** `{role.IsManaged}`\n" +
+				$"**Is Mentionable:** `{role.IsMentionable}`\n\n" +
+				$"**User Count:** `{guild.Users.Count(x => x.Roles.Any(y => y.Id == role.Id))}`\n" +
+				$"**Permissions:** `{permissions}`";
 
 			var embed = new EmbedWrapper
 			{
@@ -116,21 +127,14 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static EmbedWrapper FormatChannelInfo(IGuildSettings guildSettings, SocketChannel channel)
 		{
-			var ignoredFromLog = guildSettings.IgnoredLogChannels.Contains(channel.Id);
-			var ignoredFromCmd = guildSettings.IgnoredCommandChannels.Contains(channel.Id);
-			var imageOnly = guildSettings.ImageOnlyChannels.Contains(channel.Id);
-			var serverLog = guildSettings.ServerLog?.Id == channel.Id;
-			var modLog = guildSettings.ModLog?.Id == channel.Id;
-			var imageLog = guildSettings.ImageLog?.Id == channel.Id;
-
-			var desc = $"{channel.CreatedAt.UtcDateTime.CreatedAt()}\n" +
-				$"**User Count:** `{channel.Users.Count}`\n\n" +
-				$"**Ignored From Log:** `{(ignoredFromLog ? "Yes" : "No")}`" +
-				$"**Ignored From Commands:** `{(ignoredFromCmd ? "Yes" : "No")}`" +
-				$"**Image Only:** `{(imageOnly ? "Yes" : "No")}`\n\n" +
-				$"**Serverlog:** `{(serverLog ? "Yes" : "No")}`" +
-				$"**Modlog:** `{(modLog ? "Yes" : "No")}`" +
-				$"**Imagelog:** `{(imageLog ? "Yes" : "No")}`";
+			var desc = $"{channel.CreatedAt.UtcDateTime.CreatedAt()}\n\n" +
+				$"**Is Ignored From Log:** `{guildSettings.IgnoredLogChannels.Contains(channel.Id)}`\n" +
+				$"**Is Ignored From Commands:** `{guildSettings.IgnoredCommandChannels.Contains(channel.Id)}`\n" +
+				$"**Is Image Only:** `{guildSettings.ImageOnlyChannels.Contains(channel.Id)}`\n" +
+				$"**Is Serverlog:** `{guildSettings.ServerLog?.Id == channel.Id}`\n" +
+				$"**Is Modlog:** `{guildSettings.ModLog?.Id == channel.Id}`\n" +
+				$"**Is Imagelog:** `{guildSettings.ImageLog?.Id == channel.Id}`\n\n" +
+				$"**User Count:** `{channel.Users.Count}`";
 
 			var embed = new EmbedWrapper
 			{
@@ -147,28 +151,30 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static EmbedWrapper FormatGuildInfo(SocketGuild guild)
 		{
-			var owner = guild.Owner;
-			var onlineCount = guild.Users.Count(x => x.Status != UserStatus.Offline);
-			var nicknameCount = guild.Users.Count(x => x.Nickname != null);
-			var gameCount = guild.Users.Count(x => x.Activity is Game);
-			var botCount = guild.Users.Count(x => x.IsBot);
-			var voiceCount = guild.Users.Count(x => x.VoiceChannel != null);
-			var localECount = guild.Emotes.Count(x => !x.IsManaged);
-			var globalECount = guild.Emotes.Count(x => x.IsManaged);
-
+			var users = guild.Users;
 			var desc = $"{guild.CreatedAt.UtcDateTime.CreatedAt()}\n" +
-				$"**Owner:** `{owner.Format()}`\n" +
+				$"**Owner:** `{guild.Owner.Format()}`\n" +
 				$"**Region:** `{guild.VoiceRegionId}`\n" +
-				$"**Emotes:** `{localECount + globalECount}` (`{localECount}` local, `{globalECount}` global)\n\n" +
-				$"**User Count:** `{guild.MemberCount}` (`{onlineCount}` online, `{botCount}` bots)\n" +
-				$"**Users With Nickname:** `{nicknameCount}`\n" +
-				$"**Users Playing Games:** `{gameCount}`\n" +
-				$"**Users In Voice:** `{voiceCount}`\n\n" +
+				$"**Emotes:** `{guild.Emotes.Count}` " +
+					$"(`{guild.Emotes.Count(x => !x.IsManaged)}` local, " +
+					$"`{guild.Emotes.Count(x => x.IsManaged)}` global)\n\n" +
+				$"**User Count:** `{guild.MemberCount}` " +
+					$"(`{users.Count(x => x.Status != UserStatus.Offline)}` online, " +
+					$"`{users.Count(x => x.IsBot)}` bots)\n" +
+				$"**Users With Nickname:** `{users.Count(x => x.Nickname != null)}`\n" +
+				$"**Users Playing Games:** `{users.Count(x => x.Activity.Type == ActivityType.Playing)}`\n" +
+				$"**Users Listening:** `{users.Count(x => x.Activity.Type == ActivityType.Listening)}`\n" +
+				$"**Users Watching:** `{users.Count(x => x.Activity.Type == ActivityType.Watching)}`\n" +
+				$"**Users Streaming:** `{users.Count(x => x.Activity.Type == ActivityType.Streaming)}`\n" +
+				$"**Users In Voice:** `{users.Count(x => x.VoiceChannel != null)}`\n\n" +
 				$"**Role Count:** `{guild.Roles.Count}`\n" +
-				$"**Channel Count:** `{guild.Channels.Count}` (`{guild.TextChannels.Count}` text, `{guild.VoiceChannels.Count}` voice)\n" +
+				$"**Channel Count:** `{guild.Channels.Count}` " +
+					$"(`{guild.TextChannels.Count}` text, " +
+					$"`{guild.VoiceChannels.Count}` voice, " +
+					$"`{guild.CategoryChannels.Count}` categories)\n" +
 				$"**AFK Channel:** `{guild.AFKChannel.Format()}` (`{guild.AFKTimeout / 60}` minute{GeneralFormatting.FormatPlural(guild.AFKTimeout / 60)})";
 
-			var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
+			var color = guild.Owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
 			var embed = new EmbedWrapper
 			{
 				Description = desc,
