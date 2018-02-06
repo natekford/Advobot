@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Classes;
-using Advobot.Core.Interfaces;
-using Discord;
+using Discord.Commands;
 using ImageMagick;
 using System;
 using System.Diagnostics;
@@ -22,11 +21,11 @@ namespace Advobot.Core.Utilities
 		/// Uses the image stream for <paramref name="callback"/>. Returns null if successful, returns an error otherwise.
 		/// </summary>
 		/// <param name="uri">The uri to download the file from.</param>
-		/// <param name="guild">The guild to check emotes from.</param>
+		/// <param name="context">The current context.</param>
 		/// <param name="args">The arguments to use on the file.</param>
 		/// <param name="callback">What do to with the resized file.</param>
 		/// <returns></returns>
-		public static async Task<string> UseImageStream(this Uri uri, IGuild guild, IImageResizerArgs args, Func<MagickFormat, MemoryStream, Task> callback)
+		public static async Task<string> UseImageStreamAsync(this Uri uri, ICommandContext context, IImageResizerArgs args, Func<MagickFormat, MemoryStream, Task> callback)
 		{
 			var req = (HttpWebRequest)WebRequest.Create(uri.ToString().Replace(".gifv", ".mp4"));
 			req.UserAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
@@ -38,105 +37,112 @@ namespace Advobot.Core.Utilities
 			//For Imgur to redirect to correct page
 			req.AllowAutoRedirect = true;
 
+			var message = await context.Channel.SendMessageAsync("Starting to download the file.").CAF();
+			WebResponse response = null;
+			MemoryStream stream = null;
 			try
 			{
-				using (var resp = await req.GetResponseAsync().CAF())
+				response = await req.GetResponseAsync().CAF();
+				if (args.ResizeTries < 1 && response.ContentLength > args.MaxAllowedLengthInBytes) //Max size without resize tries
 				{
-					//Max size without resize tries
-					if (args.ResizeTries < 1 && resp.ContentLength > args.MaxAllowedLengthInBytes)
-					{
-						return $"file is bigger than the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB";
-					}
-					//Utter max size
-					if (resp.ContentLength > MaxDownloadLengthInBytes)
-					{
-						return $"file is bigger than the max allowed size of {(double)MaxDownloadLengthInBytes / 1000 * 1000:0.0}MB";
-					}
-					//Make sure the content type is an image content type
-					if (!Enum.TryParse<MagickFormat>(resp.ContentType.Split('/').Last(), true, out var format) || !args.ValidFormats.Contains(format))
-					{
-						return $"invalid file format supplied";
-					}
-					switch (format)
-					{
-						case MagickFormat.Jpg:
-						case MagickFormat.Jpeg:
-						case MagickFormat.Png:
-							if (guild.Emotes.Where(x => !x.Animated).Count() >= 50)
-							{
-								return "there are already 50 non animated emotes";
-							}
-							break;
-						case MagickFormat.Mp4:
-							if (String.IsNullOrWhiteSpace(FfmpegLocation))
-							{
-								return "mp4 is an invalid file format if ffmpeg is not installed";
-							}
-							goto case MagickFormat.Gif;
-						case MagickFormat.Gif:
-							if (guild.Emotes.Where(x => x.Animated).Count() >= 50)
-							{
-								return "there are already 50 animated emotes";
-							}
-							break;
-						default:
-							return "link must lead to a png, jpg, gif, or mp4";
-					}
+					return $"file is bigger than the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB";
+				}
+				if (response.ContentLength > MaxDownloadLengthInBytes) //Utter max size, even with resize tries
+				{
+					return $"file is bigger than the max allowed size of {(double)MaxDownloadLengthInBytes / 1000 * 1000:0.0}MB";
+				}
+				if (!Enum.TryParse<MagickFormat>(response.ContentType.Split('/').Last(), true, out var format) || !args.ValidFormats.Contains(format))
+				{
+					return $"invalid file format supplied";
+				}
+				switch (format)
+				{
+					case MagickFormat.Jpg:
+					case MagickFormat.Jpeg:
+					case MagickFormat.Png:
+						if (context.Guild.Emotes.Where(x => !x.Animated).Count() >= 50)
+						{
+							return "there are already 50 non animated emotes";
+						}
+						break;
+					case MagickFormat.Mp4:
+						if (String.IsNullOrWhiteSpace(FfmpegLocation))
+						{
+							return "mp4 is an invalid file format if ffmpeg is not installed";
+						}
+						goto case MagickFormat.Gif;
+					case MagickFormat.Gif:
+						if (context.Guild.Emotes.Where(x => x.Animated).Count() >= 50)
+						{
+							return "there are already 50 animated emotes";
+						}
+						break;
+					default:
+						return "link must lead to a png, jpg, gif, or mp4";
+				}
 
-					using (var s = resp.GetResponseStream())
-					using (var ms = new MemoryStream())
-					{
-						await s.CopyToAsync(ms).CAF();
-						//Convert mp4 to gif so it can be used in animated gifs
-						if (format == MagickFormat.Mp4)
-						{
-							await ConvertMp4ToGif(ms, (EmoteResizerArgs)args).CAF();
-							format = MagickFormat.Gif;
-						}
-						if (ms.Length > args.MaxAllowedLengthInBytes)
-						{
-							//Getting to this point has already checked resize tries, so this image needs to be resized if it's too big
-							for (int i = 0; i < args.ResizeTries && ms.Length > args.MaxAllowedLengthInBytes; ++i)
-							{
-								//If the emote gets small enough that it's acceptable, don't bother continuing
-								if (ResizeFile(ms, args, format, i == 0, out var width, out var height))
-								{
-									break;
-								}
-								//If the emote gets too small, stop and return an error
-								if (width < 35 || height < 35)
-								{
-									return $"during resizing the file has been made too small. Manually resize instead";
-								}
-								//Too many attempts 
-								if (i == args.ResizeTries - 1)
-								{
-									return $"failed to shrink the file to the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB";
-								}
-							}
-						}
-						if (ms.Length < 1)
-						{
-							return $"file is empty after shrinking";
-						}
+				//Copy the response stream to a new variable so it can be seeked on
+				await response.GetResponseStream().CopyToAsync(stream = new MemoryStream()).CAF();
+				if (format == MagickFormat.Mp4) //Convert mp4 to gif so it can be used in animated gifs
+				{
+					await message.ModifyAsync(x => x.Content = $"Converting mp4 to gif.");
+					await ConvertMp4ToGif(stream, (EmoteResizerArgs)args).CAF();
+					format = MagickFormat.Gif;
+				}
+				if (stream.Length < args.MaxAllowedLengthInBytes)
+				{
+					stream.Seek(0, SeekOrigin.Begin);
+					await callback(format, stream).CAF();
+					return null;
+				}
 
-						//Make sure the stream is at the beginning
-						ms.Seek(0, SeekOrigin.Begin);
-						try
-						{
-							await callback(format, ms).CAF();
-						}
-						catch (Exception e)
-						{
-							return e.Message;
-						}
-						return null;
+				//Getting to this point has already checked resize tries, so this image needs to be resized if it's too big
+				await message.ModifyAsync(x => x.Content = $"Attempting to resize.");
+				for (int i = 0; i < args.ResizeTries && stream.Length > args.MaxAllowedLengthInBytes; ++i)
+				{
+					if (ResizeFile(stream, args, format, i == 0, out var width, out var height)) //Acceptable size
+					{
+						break;
+					}
+					else if (width < 35 || height < 35) //Too small, will look like shit
+					{
+						return $"during resizing the file has been made too small. Manually resize instead";
+					}
+					else if (i == args.ResizeTries - 1) //Too many attempts
+					{
+						return $"failed to shrink the file to the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB";
+					}
+					else
+					{
+						await message.ModifyAsync(x => x.Content = $"{i + 1}/{args.ResizeTries} resize tries attempted.");
 					}
 				}
+				if (stream.Length < 1) //Stream somehow got empty, will result in error if callback is attempted
+				{
+					return $"file is empty after shrinking";
+				}
+
+				stream.Seek(0, SeekOrigin.Begin);
+				await callback(format, stream).CAF();
+				return null;
 			}
-			catch (WebException we)
+			catch (Exception e)
 			{
-				return we.Message;
+				return e.Message;
+			}
+			//Not using using blocks because they cause the code to become too indented.
+			finally
+			{
+				//Get rid of the update message
+				await message.DeleteAsync(new ModerationReason("image stream used").CreateRequestOptions()).CAF();
+				if (response != null)
+				{
+					response.Dispose();
+				}
+				if (stream != null)
+				{
+					stream.Dispose();
+				}
 			}
 		}
 		private static async Task ConvertMp4ToGif(MemoryStream ms, EmoteResizerArgs args)

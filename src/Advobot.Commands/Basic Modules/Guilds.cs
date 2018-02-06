@@ -203,8 +203,10 @@ namespace Advobot.Commands.Guilds
 		public async Task Command(Uri url)
 		{
 			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
-			var resp = await url.UseImageStream(Context.Guild, IconResizerArgs.Default,
-				async (f, s) => await Context.Guild.ModifyAsync(x => x.Icon = new Image(s), options).CAF()).CAF();
+			var resp = await url.UseImageStreamAsync(Context, IconResizerArgs.Default, async (f, s) =>
+			{
+				await Context.Guild.ModifyAsync(x => x.Icon = new Image(s), options).CAF();
+			}).CAF();
 			var text = resp == null ? "Successfully updated the guild icon" : "Failed to update the guild icon. Reason: " + resp;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, text);
 		}

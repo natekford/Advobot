@@ -39,7 +39,7 @@ namespace Advobot.Commands.Emotes
 				return;
 			}
 
-			var resp = await url.UseImageStream(Context.Guild, obj, async (f, s) =>
+			var resp = await url.UseImageStreamAsync(Context, obj, async (f, s) =>
 			{
 				var options = new ModerationReason(Context.User, null).CreateRequestOptions();
 				await Context.Guild.CreateEmoteAsync(name, new Image(s), default, options).CAF();
