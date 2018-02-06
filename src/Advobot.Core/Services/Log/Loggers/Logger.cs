@@ -1,11 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using Advobot.Core.Enums;
+﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Advobot.Core.Services.Log.Loggers
 {

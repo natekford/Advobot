@@ -1,11 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Services.Log.Loggers
 {

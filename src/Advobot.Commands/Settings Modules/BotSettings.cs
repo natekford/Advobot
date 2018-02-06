@@ -73,7 +73,7 @@ namespace Advobot.Commands.BotSettings
 			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task ShardCount([VerifyNumber(1, int.MaxValue)] uint count)
 			{
-				var validNum = (await Context.Client.GetGuildsAsync().CAF()).Count / 2500 + 1;
+				var validNum = Context.Client.Guilds.Count / 2500 + 1;
 				if (count < validNum)
 				{
 					var error = new Error($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`.");

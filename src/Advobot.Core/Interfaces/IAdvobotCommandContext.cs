@@ -3,7 +3,7 @@
 namespace Advobot.Core.Interfaces
 {
 	/// <summary>
-	/// Abstraction for <see cref="Classes.AdvobotCommandContext"/>.
+	/// Abstraction for <see cref="Classes.AdvobotSocketCommandContext"/>.
 	/// </summary>
 	public interface IAdvobotCommandContext : ICommandContext
 	{

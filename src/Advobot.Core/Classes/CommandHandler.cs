@@ -19,9 +19,9 @@ namespace Advobot.Core.Classes
 		private static string _Joiner = "\n" + new string(' ', 28);
 		private IServiceProvider _Provider;
 		private CommandService _Commands;
+		private IDiscordClient _Client;
 		private IBotSettings _BotSettings;
 		private IGuildSettingsService _GuildSettings;
-		private IDiscordClient _Client;
 		private ITimersService _Timers;
 		private ILogService _Logging;
 		private bool _Loaded;
@@ -30,31 +30,30 @@ namespace Advobot.Core.Classes
 		{
 			_Provider = provider;
 			_Commands = _Provider.GetRequiredService<CommandService>();
+			_Client = _Provider.GetRequiredService<IDiscordClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsService>();
-			_Client = _Provider.GetRequiredService<IDiscordClient>();
 			_Timers = _Provider.GetRequiredService<ITimersService>();
 			_Logging = _Provider.GetRequiredService<ILogService>();
 
-			if (_Client is DiscordSocketClient socketClient)
+			switch (_Client)
 			{
-				socketClient.Connected += OnConnected;
-				socketClient.UserJoined += OnUserJoined;
-				socketClient.UserLeft += OnUserLeft;
-				socketClient.MessageReceived += OnMessageReceived;
-				socketClient.MessageReceived += HandleCommand;
-			}
-			else if (_Client is DiscordShardedClient shardedClient)
-			{
-				shardedClient.Shards.Last().Connected += OnConnected;
-				shardedClient.UserJoined += OnUserJoined;
-				shardedClient.UserLeft += OnUserLeft;
-				shardedClient.MessageReceived += OnMessageReceived;
-				shardedClient.MessageReceived += HandleCommand;
-			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(_Client));
+				case DiscordSocketClient socketClient:
+					socketClient.Connected += OnConnected;
+					socketClient.UserJoined += OnUserJoined;
+					socketClient.UserLeft += OnUserLeft;
+					socketClient.MessageReceived += OnMessageReceived;
+					socketClient.MessageReceived += HandleCommand;
+					return;
+				case DiscordShardedClient shardedClient:
+					shardedClient.Shards.Last().Connected += OnConnected;
+					shardedClient.UserJoined += OnUserJoined;
+					shardedClient.UserLeft += OnUserLeft;
+					shardedClient.MessageReceived += OnMessageReceived;
+					shardedClient.MessageReceived += HandleCommand;
+					return;
+				default:
+					throw new ArgumentException("invalid type", nameof(_Client));
 			}
 		}
 
@@ -205,7 +204,18 @@ namespace Advobot.Core.Classes
 				return;
 			}
 
-			var context = new AdvobotCommandContext(_Provider, settings, _Client, userMessage);
+			IAdvobotCommandContext context;
+			switch (_Client)
+			{
+				case DiscordSocketClient socketClient:
+					context = new AdvobotSocketCommandContext(_Provider, settings, socketClient, userMessage);
+					break;
+				case DiscordShardedClient shardedClient:
+					context = new AdvobotShardedCommandContext(_Provider, settings, shardedClient, userMessage);
+					break;
+				default:
+					throw new ArgumentException("invalid type", nameof(_Client));
+			}
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 
 			if ((!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)

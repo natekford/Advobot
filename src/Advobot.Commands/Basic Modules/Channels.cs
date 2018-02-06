@@ -295,7 +295,7 @@ namespace Advobot.Commands.Channels
 							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, role, allow, deny, reason).CAF();
 							break;
 						case PermissionTarget.User:
-							var user = await Context.Guild.GetUserAsync(overwrite.TargetId).CAF();
+							var user = Context.Guild.GetUser(overwrite.TargetId);
 							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, user, allow, deny, reason).CAF();
 							break;
 					}

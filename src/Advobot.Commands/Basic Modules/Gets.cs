@@ -110,13 +110,13 @@ namespace Advobot.Commands.Gets
 			var exact = additionalSearchOptions.Contains(SearchOptions.Exact);
 
 			string title;
-			var users = (await Context.Guild.GetUsersAsync().CAF()).AsEnumerable();
+			var users = Context.Guild.Users.AsEnumerable();
 			switch (targetType)
 			{
 				case Target.Role:
 					var role = obj as IRole;
 					title = $"Users With The Role '{role?.Name}'";
-					users = users.Where(x => x.RoleIds.Contains(role?.Id ?? 0));
+					users = users.Where(u => u.Roles.Select(r => r.Id).Contains(role?.Id ?? 0));
 					break;
 				case Target.Name:
 					var name = obj.ToString();
@@ -207,7 +207,7 @@ namespace Advobot.Commands.Gets
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
 		{
-			var guilds = await Context.Client.GetGuildsAsync().CAF();
+			var guilds = Context.Client.Guilds;
 			if (guilds.Count() <= 10)
 			{
 				var embed = new EmbedWrapper
@@ -216,15 +216,14 @@ namespace Advobot.Commands.Gets
 				};
 				foreach (var guild in guilds)
 				{
-					embed.TryAddField(guild.Format(), $"**Owner:** `{(await guild.GetOwnerAsync().CAF()).Format()}`", false, out _);
+					embed.TryAddField(guild.Format(), $"**Owner:** `{guild.Owner.Format()}`", false, out _);
 				}
 
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else
 			{
-				var guildsAndOwners = await Task.WhenAll(guilds.Select(async x => (Guild: x, Owner: await x.GetOwnerAsync().CAF())));
-				var desc = guildsAndOwners.FormatNumberedList(x => $"`{x.Guild.Format()}` Owner: `{x.Owner.Format()}`");
+				var desc = guilds.FormatNumberedList(x => $"`{x.Format()}` Owner: `{x.Owner.Format()}`");
 				var embed = new EmbedWrapper
 				{
 					Title = "Guilds",

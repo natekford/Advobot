@@ -31,7 +31,7 @@ namespace Advobot.Commands.Guilds
 			//Need bot owner check so only the bot owner can make the bot leave servers they don't own
 			else if (Context.User.Id == (await ClientUtils.GetBotOwnerAsync(Context.Client).CAF()).Id)
 			{
-				var guild = await Context.Client.GetGuildAsync(guildId).CAF();
+				var guild = Context.Client.GetGuild(guildId);
 				if (guild == null)
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error("Invalid server supplied.")).CAF();
