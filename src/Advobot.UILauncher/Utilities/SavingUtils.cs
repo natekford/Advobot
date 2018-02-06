@@ -82,7 +82,7 @@ namespace Advobot.UILauncher.Utilities
 		private static FileInfo CreateFileInfo(Control control)
 		{
 			var baseDir = IOUtils.GetBaseBotDirectory().FullName;
-			var fileName = $"{control.Name}_{TimeFormatting.Saving()}.txt";
+			var fileName = $"{control.Name}_{TimeFormatting.ToSaving()}.txt";
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}
 		/// <summary>

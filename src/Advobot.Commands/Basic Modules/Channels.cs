@@ -184,7 +184,7 @@ namespace Advobot.Commands.Channels
 				var embed = new EmbedWrapper
 				{
 					Title = $"Overwrite On {channel.Format()}",
-					Description = $"Role:** `{role.Format()}`\n```{channel.FormatOverwritePerms(role)}```"
+					Description = $"Role:** `{role.Format()}`\n```{channel.FormatOverwrite(role)}```"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -201,7 +201,7 @@ namespace Advobot.Commands.Channels
 				var embed = new EmbedWrapper
 				{
 					Title = $"Overwrite On {channel.Format()}",
-					Description = $"User:** `{user.Format()}`\n```{channel.FormatOverwritePerms(user)}```"
+					Description = $"User:** `{user.Format()}`\n```{channel.FormatOverwrite(user)}```"
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -240,8 +240,7 @@ namespace Advobot.Commands.Channels
 			}
 
 			var givenPerms = OverwriteUtils.ModifyOverwritePermissionsAsync(action, channel, discordObject, permissions, Context.User as IGuildUser);
-			var fObj = DiscordObjectFormatting.FormatDiscordObject(discordObject);
-			var response = $"Successfully {actionStr} `{String.Join("`, `", givenPerms)}` for `{fObj}` on `{channel.Format()}`.";
+			var response = $"Successfully {actionStr} `{String.Join("`, `", givenPerms)}` for `{discordObject.Format()}` on `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, response).CAF();
 		}
 	}
@@ -282,49 +281,39 @@ namespace Advobot.Commands.Channels
 				return;
 			}
 
-			string target;
-			ulong allowBits;
-			ulong denyBits;
 			var reason = new ModerationReason(Context.User, null);
 			if (discordObject == null)
 			{
-				target = "All";
 				foreach (var overwrite in inputChannel.PermissionOverwrites)
 				{
+					var allow = overwrite.Permissions.AllowValue;
+					var deny = overwrite.Permissions.DenyValue;
 					switch (overwrite.TargetType)
 					{
 						case PermissionTarget.Role:
 							var role = Context.Guild.GetRole(overwrite.TargetId);
-							allowBits = overwrite.Permissions.AllowValue;
-							denyBits = overwrite.Permissions.DenyValue;
-							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, role, allowBits, denyBits, reason).CAF();
+							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, role, allow, deny, reason).CAF();
 							break;
 						case PermissionTarget.User:
 							var user = await Context.Guild.GetUserAsync(overwrite.TargetId).CAF();
-							allowBits = overwrite.Permissions.AllowValue;
-							denyBits = overwrite.Permissions.DenyValue;
-							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, user, allowBits, denyBits, reason).CAF();
+							await OverwriteUtils.ModifyOverwriteAsync(outputChannel, user, allow, deny, reason).CAF();
 							break;
 					}
 				}
 			}
 			else
 			{
-				target = DiscordObjectFormatting.FormatDiscordObject(discordObject);
 				var overwrite = inputChannel.GetPermissionOverwrite(discordObject);
 				if (!overwrite.HasValue)
 				{
-					var error = new Error($"A permission overwrite for {target} does not exist to copy over.");
+					var error = new Error($"A permission overwrite for {discordObject.Format()} does not exist to copy over.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
-
-				allowBits = overwrite.Value.AllowValue;
-				denyBits = overwrite.Value.DenyValue;
-				await OverwriteUtils.ModifyOverwriteAsync(outputChannel, discordObject, allowBits, denyBits, reason).CAF();
+				await OverwriteUtils.ModifyOverwriteAsync(outputChannel, discordObject, overwrite.Value.AllowValue, overwrite.Value.DenyValue, reason).CAF();
 			}
 
-			var resp = $"Successfully copied `{target}` from `{inputChannel.Format()}` to `{outputChannel.Format()}`";
+			var resp = $"Successfully copied `{discordObject?.Format() ?? "All"}` from `{inputChannel.Format()}` to `{outputChannel.Format()}`";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}

@@ -11,11 +11,11 @@ namespace Advobot.Core.Utilities.Formatting
 	public static class DiscordObjectFormatting
 	{
 		/// <summary>
-		/// Returns a string that better describes the object than its ToString() method.
+		/// Returns a string with the object's name and id.
 		/// </summary>
 		/// <param name="obj"></param>
 		/// <returns></returns>
-		public static string FormatDiscordObject(object obj)
+		public static string Format(this ISnowflakeEntity obj)
 		{
 			switch (obj)
 			{
@@ -30,19 +30,17 @@ namespace Advobot.Core.Utilities.Formatting
 				case IActivity activity:
 					return activity.Format();
 				default:
-					return obj.ToString();
+					return obj?.ToString();
 			}
 		}
 		/// <summary>
-		/// Returns a string with the user's name, discriminator, and id.
+		/// Returns a string with the user's name, discriminator and id.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public static string Format(this IUser user)
 		{
-			return user != null
-				? $"'{user.Username.EscapeBackTicks()}#{user.Discriminator}' ({user.Id})"
-				: "Irretrievable User";
+			return user != null ? $"'{user.Username.EscapeBackTicks()}#{user.Discriminator}' ({user.Id})" : "Irretrievable User";
 		}
 		/// <summary>
 		/// Returns a string with the role's name and id.
@@ -51,9 +49,7 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string Format(this IRole role)
 		{
-			return role != null
-				? $"'{role.Name.EscapeBackTicks()}' ({role.Id})"
-				: "Irretrievable Role";
+			return role != null ? $"'{role.Name.EscapeBackTicks()}' ({role.Id})" : "Irretrievable Role";
 		}
 		/// <summary>
 		/// Returns a string with the channel's name and id.
@@ -78,9 +74,7 @@ namespace Advobot.Core.Utilities.Formatting
 					type = "unknown";
 					break;
 			}
-			return channel != null
-				? $"'{channel.Name.EscapeBackTicks()}' ({type}) ({channel.Id})"
-				: "Irretrievable Channel";
+			return channel != null ? $"'{channel.Name.EscapeBackTicks()}' ({type}) ({channel.Id})" : "Irretrievable Channel";
 		}
 		/// <summary>
 		/// Returns a string with the guild's name and id.
@@ -89,9 +83,7 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string Format(this IGuild guild)
 		{
-			return guild != null
-				? $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})"
-				: "Irretrievable Guild";
+			return guild != null ? $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})" : "Irretrievable Guild";
 		}
 		/// <summary>
 		/// Returns a string with the messages content, embeds, and attachments listed.
@@ -168,7 +160,7 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <param name="channel"></param>
 		/// <param name="obj"></param>
 		/// <returns></returns>
-		public static string FormatOverwritePerms<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
+		public static string FormatOverwrite<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
 		{
 			var overwrite = channel.PermissionOverwrites.FirstOrDefault(x => x.TargetId == obj.Id);
 			var perms = OverwriteUtils.GetChannelOverwriteNamesAndValues(overwrite, channel);

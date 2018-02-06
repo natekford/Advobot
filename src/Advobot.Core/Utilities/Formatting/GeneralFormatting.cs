@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Advobot.Core.Utilities.Formatting
 {
@@ -51,7 +50,7 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static string RemoveAllMarkdown(this string input)
 		{
-			return input?.Replace("`", "")?.Replace("*", "")?.Replace("_", "");
+			return input?.Replace("\\", "")?.Replace("*", "")?.Replace("_", "")?.Replace("~", "")?.Replace("`", "");
 		}
 		/// <summary>
 		/// Returns the input string with no duplicate new lines. Also changes any carriage returns to new lines.

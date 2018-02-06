@@ -59,12 +59,12 @@ namespace Advobot.Core.Utilities
 				if (!invokingUser.CanModify(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
-						$"You are unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
+						$"You are unable to make the given changes to the role: `{target.Format()}`.");
 				}
 				if (!bot.CanModify(target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
-						$"I am unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
+						$"I am unable to make the given changes to the role: `{target.Format()}`.");
 				}
 
 				switch (check)

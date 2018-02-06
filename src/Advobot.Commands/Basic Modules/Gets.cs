@@ -15,44 +15,6 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.Gets
 {
-	[Group(nameof(GetId)), TopLevelShortAlias(typeof(GetId))]
-	[Summary("Shows the ID of the given object. " +
-	"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
-	[DefaultEnabled(true)]
-	public sealed class GetId : NonSavingModuleBase
-	{
-		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
-		public async Task Bot()
-		{
-			await MessageUtils.SendMessageAsync(Context.Channel, $"The bot has the ID `{Context.Client.CurrentUser.Id}`.").CAF();
-		}
-		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
-		public async Task Guild()
-		{
-			await MessageUtils.SendMessageAsync(Context.Channel, $"The guild has the ID `{Context.Guild.Id}`.").CAF();
-		}
-		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
-		public async Task Channel(IGuildChannel channel)
-		{
-			await MessageUtils.SendMessageAsync(Context.Channel, $"The channel `{channel.Name}` has the ID `{channel.Id}`.").CAF();
-		}
-		[Command(nameof(Role)), ShortAlias(nameof(Role))]
-		public async Task Role(IRole role)
-		{
-			await MessageUtils.SendMessageAsync(Context.Channel, $"The role `{role.Name}` has the ID `{role.Id}`.").CAF();
-		}
-		[Command(nameof(User)), ShortAlias(nameof(User))]
-		public async Task User(IUser user)
-		{
-			await MessageUtils.SendMessageAsync(Context.Channel, $"The user `{user.Username}` has the ID `{user.Id}`.").CAF();
-		}
-		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
-		public async Task Emote(Emote emote)
-		{
-			await MessageUtils.SendMessageAsync(Context.Channel, $"The emote `{emote.Name}` has the ID `{emote.Id}`.").CAF();
-		}
-	}
-
 	[Group(nameof(GetInfo)), TopLevelShortAlias(typeof(GetInfo))]
 	[Summary("Shows information about the given object. " +
 		"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
@@ -72,28 +34,28 @@ namespace Advobot.Commands.Gets
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
-		public async Task Channel(IGuildChannel channel)
+		public async Task Channel(SocketGuildChannel channel)
 		{
-			var embed = InfoFormatting.FormatChannelInfo(Context.GuildSettings, channel as SocketChannel);
+			var embed = InfoFormatting.FormatChannelInfo(Context.GuildSettings, channel);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
-		public async Task Role(IRole role)
+		public async Task Role(SocketRole role)
 		{
-			var embed = InfoFormatting.FormatRoleInfo(Context.Guild as SocketGuild, role as SocketRole);
+			var embed = InfoFormatting.FormatRoleInfo(role);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(User)), ShortAlias(nameof(User))]
-		public async Task User(IUser user)
+		public async Task User(SocketUser user)
 		{
-			if (user is SocketGuildUser socketGuildUser)
+			if (user is SocketGuildUser guildUser)
 			{
-				var embed = InfoFormatting.FormatUserInfo(Context.Guild as SocketGuild, socketGuildUser);
+				var embed = InfoFormatting.FormatUserInfo(guildUser);
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
-			else if (user is SocketUser socketUser)
+			else
 			{
-				var embed = InfoFormatting.FormatUserInfo(socketUser);
+				var embed = InfoFormatting.FormatUserInfo(user);
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
@@ -230,7 +192,7 @@ namespace Advobot.Commands.Gets
 			var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).ToArray();
 			var newPos = Math.Max(1, Math.Min((int)position, users.Length));
 			var user = users[newPos - 1];
-			var time = user.JoinedAt?.UtcDateTime.Readable();
+			var time = user.JoinedAt?.UtcDateTime.ToReadable();
 			var text = $"`{user.Format()}` is `#{newPos}` to join the guild on `{time}`.";
 			await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
 		}
@@ -283,7 +245,7 @@ namespace Advobot.Commands.Gets
 		public async Task Command()
 		{
 			var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).ToArray();
-			var text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.Readable()}`");
+			var text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.ToReadable()}`");
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "User_Joins_").CAF();
 		}
 	}

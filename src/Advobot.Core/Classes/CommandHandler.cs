@@ -237,7 +237,7 @@ namespace Advobot.Core.Classes
 			var response = $"Guild: {context.Guild.Format()}" +
 				$"{_Joiner}Channel: {context.Channel.Format()}" +
 				$"{_Joiner}User: {context.User.Format()}" +
-				$"{_Joiner}Time: {context.Message.CreatedAt.UtcDateTime.Readable()}" +
+				$"{_Joiner}Time: {context.Message.CreatedAt.UtcDateTime.ToReadable()}" +
 				$"{_Joiner}Text: {context.Message.Content}" +
 				$"{_Joiner}Time taken: {stopwatch.ElapsedMilliseconds}ms";
 			response += result.ErrorReason == null ? "" : $"{_Joiner}Error: {result.ErrorReason}";

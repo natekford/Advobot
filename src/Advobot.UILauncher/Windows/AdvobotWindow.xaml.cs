@@ -413,7 +413,7 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
-			Uptime.Text = $"Uptime: {TimeFormatting.Uptime()}";
+			Uptime.Text = $"Uptime: {TimeFormatting.GetUptime()}";
 			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientUtils.GetLatency(Client.HeldObject))}ms";
 			Memory.Text = $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB";
 			ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";

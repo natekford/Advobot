@@ -83,7 +83,7 @@ namespace Advobot.Core.Utilities
 			{
 				fileName += "_";
 			}
-			var fullFileName = $"{fileName}{TimeFormatting.Saving()}.txt";
+			var fullFileName = $"{fileName}{TimeFormatting.ToSaving()}.txt";
 			var fileInfo = IOUtils.GetServerDirectoryFile(channel.GetGuild()?.Id ?? 0, fullFileName);
 			var c = (String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**").SanitizeContent(guild);
 

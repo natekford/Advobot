@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Classes;
 using Discord;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,6 +12,21 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class OverwriteUtils
 	{
+		public static IEnumerable<string> GetNamesOfAllOverwrites(this SocketGuildChannel channel)
+		{
+			foreach (var overwrite in channel.PermissionOverwrites)
+			{
+				switch (overwrite.TargetType)
+				{
+					case PermissionTarget.Role:
+						yield return channel.Guild.GetRole(overwrite.TargetId).Name;
+						break;
+					case PermissionTarget.User:
+						yield return channel.Guild.GetUser(overwrite.TargetId).Username;
+						break;
+				}
+			}
+		}
 		/// <summary>
 		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.
 		/// </summary>
