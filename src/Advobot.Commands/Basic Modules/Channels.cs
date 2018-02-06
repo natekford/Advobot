@@ -86,7 +86,7 @@ namespace Advobot.Commands.Channels
 	public sealed class ModifyChannelPosition : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command(SocketGuildChannel channel)
+		public async Task Command(IGuildChannel channel)
 		{
 			var resp = $"The channel `{channel.Format()}` has the position `{channel.Position}`.";
 			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
@@ -109,17 +109,17 @@ namespace Advobot.Commands.Channels
 		[Command(nameof(Text)), ShortAlias(nameof(Text))]
 		public async Task Text(ChannelType channelType)
 		{
-			await CommandRunner(((SocketGuild)Context.Guild).TextChannels, "Text Channel Positions").CAF();
+			await CommandRunner(Context.Guild.TextChannels, "Text Channel Positions").CAF();
 		}
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice()
 		{
-			await CommandRunner(((SocketGuild)Context.Guild).VoiceChannels, "Voice Channel Positions").CAF();
+			await CommandRunner(Context.Guild.VoiceChannels, "Voice Channel Positions").CAF();
 		}
 		[Command(nameof(Category)), ShortAlias(nameof(Category))]
 		public async Task Category()
 		{
-			await CommandRunner(((SocketGuild)Context.Guild).CategoryChannels, "Category Channel Positions").CAF();
+			await CommandRunner(Context.Guild.CategoryChannels, "Category Channel Positions").CAF();
 		}
 
 		private async Task CommandRunner(IEnumerable<SocketGuildChannel> channels, string title)
@@ -161,7 +161,7 @@ namespace Advobot.Commands.Channels
 				var roleOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.Role);
 				var userOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.User);
 				var roleNames = roleOverwrites.Select(x => Context.Guild.GetRole(x.TargetId).Name).ToArray();
-				var userNames = userOverwrites.Select(x => (((SocketGuild)Context.Guild).GetUser(x.TargetId)).Username).ToArray();
+				var userNames = userOverwrites.Select(x => Context.Guild.GetUser(x.TargetId).Username).ToArray();
 
 				var embed = new EmbedWrapper
 				{
@@ -372,7 +372,7 @@ namespace Advobot.Commands.Channels
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice(uint channelPosition, [Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
-			await ChangeByPosition(Context, ((SocketGuild)Context.Guild).VoiceChannels, channelPosition, name).CAF();
+			await ChangeByPosition(Context, Context.Guild.VoiceChannels, channelPosition, name).CAF();
 		}
 
 		[Command(nameof(Text)), ShortAlias(nameof(Text))]
@@ -384,12 +384,12 @@ namespace Advobot.Commands.Channels
 				return;
 			}
 
-			await ChangeByPosition(Context, ((SocketGuild)Context.Guild).TextChannels, channelPosition, name).CAF();
+			await ChangeByPosition(Context, Context.Guild.TextChannels, channelPosition, name).CAF();
 		}
 		[Command(nameof(Category)), ShortAlias(nameof(Category))]
 		public async Task Category(uint channelPosition, [Remainder, VerifyStringLength(Target.Category)] string name)
 		{
-			await ChangeByPosition(Context, ((SocketGuild)Context.Guild).CategoryChannels, channelPosition, name).CAF();
+			await ChangeByPosition(Context, Context.Guild.CategoryChannels, channelPosition, name).CAF();
 		}
 
 		private async Task ChangeByPosition(IAdvobotCommandContext context, IEnumerable<SocketGuildChannel> channels, uint channelPos, string name)

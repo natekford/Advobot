@@ -153,7 +153,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildAfkChannel : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command(SocketVoiceChannel channel)
+		public async Task Command(IVoiceChannel channel)
 		{
 			await GuildUtils.ModifyGuildAfkChannelAsync(Context.Guild, null, new ModerationReason(Context.User, null)).CAF();
 			var resp = $"Successfully set the guild's AFK channel to `{channel.Format()}`.";

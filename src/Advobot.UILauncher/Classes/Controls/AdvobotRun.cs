@@ -14,6 +14,7 @@ namespace Advobot.UILauncher.Classes.Controls
 		/// </summary>
 		public string UnescapedText
 		{
+			get => Text;
 			set => Text = Regex.Unescape(value);
 		}
 	}

@@ -4,15 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:coreenums="clr-namespace:Advobot.Core.Enums;assembly=Advobot.Core"
-        xmlns:constants="clr-namespace:Advobot.Core;assembly=Advobot.Core"
+        xmlns:interfaces="clr-namespace:Advobot.Core.Interfaces;assembly=Advobot.Core"
+        xmlns:core="clr-namespace:Advobot.Core;assembly=Advobot.Core"
+        xmlns:classes="clr-namespace:Advobot.UILauncher.Classes"
         xmlns:controls="clr-namespace:Advobot.UILauncher.Classes.Controls"
         xmlns:extensions="clr-namespace:Advobot.UILauncher.Classes.Extensions"
         xmlns:enums="clr-namespace:Advobot.UILauncher.Enums"
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
         xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
-        xmlns:classes="clr-namespace:Advobot.UILauncher.Classes"
-        xmlns:interfaces="clr-namespace:Advobot.Core.Interfaces;assembly=Advobot.Core"
         mc:Ignorable="d"
         Title="Advobot"
         WindowState="Maximized"
@@ -204,21 +203,21 @@
                             <LineBreak />
                             <LineBreak />
                             <controls:AdvobotRun UnescapedText="API Wrapper Version: " />
-                            <controls:AdvobotRun UnescapedText="{x:Static constants:Constants.API_VERSION}" />
+                            <controls:AdvobotRun UnescapedText="{x:Static core:Constants.API_VERSION}" />
                             <LineBreak />
                             <controls:AdvobotRun UnescapedText="Bot Version: " />
-                            <controls:AdvobotRun UnescapedText="{x:Static constants:Constants.BOT_VERSION}" />
+                            <controls:AdvobotRun UnescapedText="{x:Static core:Constants.BOT_VERSION}" />
                             <LineBreak />
                             <LineBreak />
                             <Hyperlink IsEnabled="True"
                                        RequestNavigate="OpenHyperLink"
-                                       NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static constants:Constants.REPO}}">
+                                       NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static core:Constants.REPO}}">
                                 GitHub repository for Advobot
                             </Hyperlink>
                             <LineBreak />
                             <Hyperlink IsEnabled="True"
                                        RequestNavigate="OpenHyperLink"
-                                       NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static constants:Constants.DISCORD_INV}}">
+                                       NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static core:Constants.DISCORD_INV}}">
                                 Join the Discord server for additional help.
                             </Hyperlink>
                         </Paragraph>

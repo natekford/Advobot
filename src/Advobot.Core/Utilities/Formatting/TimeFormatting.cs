@@ -16,7 +16,7 @@ namespace Advobot.Core.Utilities.Formatting
 		public static string GetUptime()
 		{
 			var span = DateTime.UtcNow - Process.GetCurrentProcess().StartTime.ToUniversalTime();
-			return $"{span.TotalDays}:{span.Hours:00}:{span.Minutes:00}:{span.Seconds:00}";
+			return $"{(int)span.TotalDays}:{span.Hours:00}:{span.Minutes:00}:{span.Seconds:00}";
 		}
 		/// <summary>
 		/// Returns the current time in a year, month, day, hour, minute, second format. E.G: 20170815_053645
