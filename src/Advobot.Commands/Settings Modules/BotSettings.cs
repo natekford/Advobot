@@ -221,14 +221,16 @@ namespace Advobot.Commands.BotSettings
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(Uri url)
 		{
-			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
-			var resp = await url.UseImageStreamAsync(Context, IconResizerArgs.Default, async (f, s) =>
+			using (var resp = await ImageUtils.ResizeImageAsync(url, Context, new IconResizerArgs()))
 			{
-				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(s), options).CAF();
-			}).CAF();
-			var text = resp == null ? "Successfully updated the bot icon" : "Failed to update the bot icon. Reason: " + resp;
-
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, text);
+				if (resp.IsSuccess)
+				{
+					await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(resp.Stream), CreateRequestOptions()).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully updated the bot icon.");
+					return;
+				}
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Failed to update the bot icon. Reason: {resp.Error}");
+			}
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()

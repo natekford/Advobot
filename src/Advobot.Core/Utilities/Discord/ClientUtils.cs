@@ -1,11 +1,10 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
+using System;
+using System.Diagnostics;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {
@@ -241,6 +240,19 @@ namespace Advobot.Core.Utilities
 			}
 			client.StopAsync();
 			Environment.Exit(0);
+		}
+		/// <summary>
+		/// Returns request options, with <paramref name="reason"/> as the audit log reason.
+		/// </summary>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static RequestOptions CreateRequestOptions(string reason)
+		{
+			return new RequestOptions
+			{
+				AuditLogReason = reason,
+				RetryMode = RetryMode.RetryRatelimit,
+			};
 		}
 	}
 }

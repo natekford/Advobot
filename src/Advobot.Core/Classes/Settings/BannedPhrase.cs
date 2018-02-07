@@ -56,7 +56,7 @@ namespace Advobot.Core.Classes.Settings
 
 			var giver = new PunishmentGiver(punishment.PunishmentTime, timers);
 			var role = settings.Guild.GetRole(punishment.RoleId);
-			await giver.PunishAsync(Punishment, user, role, new ModerationReason("banned phrase")).CAF();
+			await giver.PunishAsync(Punishment, user, role, ClientUtils.CreateRequestOptions("banned phrase")).CAF();
 			bannedPhraseUser.ResetValue(Punishment);
 		}
 

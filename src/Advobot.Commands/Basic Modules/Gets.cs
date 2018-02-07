@@ -190,7 +190,7 @@ namespace Advobot.Commands.Gets
 		public async Task Command(uint position)
 		{
 			var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).ToArray();
-			var newPos = Math.Max(1, Math.Min((int)position, users.Length));
+			var newPos = Math.Min((int)position, users.Length);
 			var user = users[newPos - 1];
 			var time = user.JoinedAt?.UtcDateTime.ToReadable();
 			var text = $"`{user.Format()}` is `#{newPos}` to join the guild on `{time}`.";
@@ -212,22 +212,20 @@ namespace Advobot.Commands.Gets
 			{
 				var embed = new EmbedWrapper
 				{
-					Title = "Guilds"
+					Title = "Guilds",
 				};
 				foreach (var guild in guilds)
 				{
 					embed.TryAddField(guild.Format(), $"**Owner:** `{guild.Owner.Format()}`", false, out _);
 				}
-
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else
 			{
-				var desc = guilds.FormatNumberedList(x => $"`{x.Format()}` Owner: `{x.Owner.Format()}`");
 				var embed = new EmbedWrapper
 				{
 					Title = "Guilds",
-					Description = desc
+					Description = guilds.FormatNumberedList(x => $"`{x.Format()}` Owner: `{x.Owner.Format()}`"),
 				};
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -246,42 +244,6 @@ namespace Advobot.Commands.Gets
 			var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).ToArray();
 			var text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.ToReadable()}`");
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "User_Joins_").CAF();
-		}
-	}
-
-	[Group(nameof(GetEmotes)), TopLevelShortAlias(typeof(GetEmotes))]
-	[Summary("Lists the emotes in the guild.")]
-	[OtherRequirement(Precondition.GenericPerms)]
-	[DefaultEnabled(true)]
-	public sealed class GetEmotes : NonSavingModuleBase
-	{
-		[Command(nameof(Managed)), ShortAlias(nameof(Managed))]
-		public async Task Managed()
-		{
-			var emotes = Context.Guild.Emotes.Where(x => x.IsManaged).ToList();
-			var desc = emotes.Any()
-				? emotes.FormatNumberedList(x => $"<:{x.Name}:{x.Id}> `{x.Name}`")
-				: $"This guild has no global emotes.";
-			var embed = new EmbedWrapper
-			{
-				Title = "Emotes",
-				Description = desc
-			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
-		}
-		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
-		public async Task Guild()
-		{
-			var emotes = Context.Guild.Emotes.Where(x => !x.IsManaged).ToList();
-			var desc = emotes.Any()
-				? emotes.FormatNumberedList(x => $"<:{x.Name}:{x.Id}> `{x.Name}`")
-				: $"This guild has no guild emotes.";
-			var embed = new EmbedWrapper
-			{
-				Title = "Emotes",
-				Description = desc
-			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 

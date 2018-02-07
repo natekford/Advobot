@@ -6,9 +6,7 @@ using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -62,7 +60,7 @@ namespace Advobot.Commands.Guilds
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
 		{
-			await GuildUtils.ModifyGuildNameAsync(Context.Guild, name, new ModerationReason(Context.User, null)).CAF();
+			await Context.Guild.ModifyAsync(x => x.Name = name, CreateRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the guild name to `{name}`.").CAF();
 		}
 	}
@@ -125,7 +123,7 @@ namespace Advobot.Commands.Guilds
 			}
 
 			var beforeRegion = Context.Guild.VoiceRegionId;
-			await GuildUtils.ModifyGuildRegionAsync(Context.Guild, regionId, new ModerationReason(Context.User, null)).CAF();
+			await Context.Guild.ModifyAsync(x => x.RegionId = regionId, CreateRequestOptions()).CAF();
 			var resp = $"Successfully changed the server region of the guild from `{beforeRegion}` to `{regionId}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -140,7 +138,7 @@ namespace Advobot.Commands.Guilds
 		[Command]
 		public async Task Command([VerifyNumber(new[] { 60, 300, 900, 1800, 3600 })] uint time)
 		{
-			await GuildUtils.ModifyGuildAfkTimeAsync(Context.Guild, (int)time, new ModerationReason(Context.User, null)).CAF();
+			await Context.Guild.ModifyAsync(x => x.AfkTimeout = (int)time, CreateRequestOptions()).CAF();
 			var resp = $"Successfully set the guild's AFK timeout to `{time}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -155,7 +153,7 @@ namespace Advobot.Commands.Guilds
 		[Command]
 		public async Task Command(IVoiceChannel channel)
 		{
-			await GuildUtils.ModifyGuildAfkChannelAsync(Context.Guild, null, new ModerationReason(Context.User, null)).CAF();
+			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), CreateRequestOptions()).CAF();
 			var resp = $"Successfully set the guild's AFK channel to `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -170,7 +168,7 @@ namespace Advobot.Commands.Guilds
 		[Command]
 		public async Task Command(DefaultMessageNotifications msgNotifs)
 		{
-			await GuildUtils.ModifyGuildDefaultMsgNotificationsAsync(Context.Guild, msgNotifs, new ModerationReason(Context.User, null)).CAF();
+			await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, CreateRequestOptions()).CAF();
 			var resp = $"Successfully changed the default message notification setting to `{msgNotifs.ToString()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -186,7 +184,7 @@ namespace Advobot.Commands.Guilds
 		[Command]
 		public async Task Command(VerificationLevel verif)
 		{
-			await GuildUtils.ModifyGuildVerificationLevelAsync(Context.Guild, verif, new ModerationReason(Context.User, null)).CAF();
+			await Context.Guild.ModifyAsync(x => x.VerificationLevel = verif, CreateRequestOptions()).CAF();
 			var resp = $"Successfully set the guild verification level as `{verif.ToString()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -202,13 +200,16 @@ namespace Advobot.Commands.Guilds
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(Uri url)
 		{
-			var options = new ModerationReason(Context.User, null).CreateRequestOptions();
-			var resp = await url.UseImageStreamAsync(Context, IconResizerArgs.Default, async (f, s) =>
+			using (var resp = await ImageUtils.ResizeImageAsync(url, Context, new IconResizerArgs()))
 			{
-				await Context.Guild.ModifyAsync(x => x.Icon = new Image(s), options).CAF();
-			}).CAF();
-			var text = resp == null ? "Successfully updated the guild icon" : "Failed to update the guild icon. Reason: " + resp;
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, text);
+				if (resp.IsSuccess)
+				{
+					await Context.Guild.ModifyAsync(x => x.Icon = new Image(resp.Stream), CreateRequestOptions()).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully updated the guild icon.");
+					return;
+				}
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Failed to update the guild icon. Reason: {resp.Error}");
+			}
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()

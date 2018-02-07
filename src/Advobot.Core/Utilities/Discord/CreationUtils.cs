@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Interfaces;

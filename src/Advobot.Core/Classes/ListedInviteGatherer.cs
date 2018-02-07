@@ -6,7 +6,7 @@ using Advobot.Core.Utilities;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Core.Classes.NamedArguments
+namespace Advobot.Core.Classes
 {
 	public sealed class ListedInviteGatherer
 	{

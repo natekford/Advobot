@@ -18,7 +18,7 @@ namespace Advobot.Core.Classes.Settings
 	public class RaidPreventionInfo : IGuildSetting
 	{
 		private static PunishmentGiver _Giver = new PunishmentGiver(0, null);
-		private static ModerationReason _Reason = new ModerationReason("raid prevention");
+		private static RequestOptions _Reason = ClientUtils.CreateRequestOptions("raid prevention");
 
 		private const int MAX_USERS = 25;
 		private const int MAX_TIME = 60;

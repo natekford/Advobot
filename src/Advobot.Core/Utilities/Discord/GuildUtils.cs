@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Discord;
 using Discord.WebSocket;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {
@@ -52,15 +49,6 @@ namespace Advobot.Core.Utilities
 			return (guild as SocketGuild)?.CurrentUser;
 		}
 		/// <summary>
-		/// Returns true if the guild has any global emotes.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		public static bool HasGlobalEmotes(this IGuild guild)
-		{
-			return guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
-		}
-		/// <summary>
 		/// Returns every user that has a non null join time in order from least to greatest.
 		/// </summary>
 		/// <param name="guild"></param>
@@ -77,85 +65,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IEnumerable<IGuildUser>> GetEditableUsersAsync(this IGuild guild, IGuildUser invokingUser)
 		{
-			return (await guild.GetUsersAsync().CAF()).Where(x => invokingUser.CanModify(x) && guild.GetBot().CanModify(x));
-		}
-		/// <summary>
-		/// Prunes users who haven't been active in a certain amount of days and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="days"></param>
-		/// <param name="simulate"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task<int> PruneUsersAsync(IGuild guild, int days, bool simulate, ModerationReason reason)
-		{
-			return await guild.PruneUsersAsync(days, simulate, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Changes the guild's name and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="name"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyGuildNameAsync(IGuild guild, string name, ModerationReason reason)
-		{
-			await guild.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Changes the guild's region and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="region"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyGuildRegionAsync(IGuild guild, string region, ModerationReason reason)
-		{
-			await guild.ModifyAsync(x => x.RegionId = region, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Changes the guild's afk time and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="time"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyGuildAfkTimeAsync(IGuild guild, int time, ModerationReason reason)
-		{
-			await guild.ModifyAsync(x => x.AfkTimeout = time, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Changes the guild's afk channel and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="channel"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyGuildAfkChannelAsync(IGuild guild, IVoiceChannel channel, ModerationReason reason)
-		{
-			await guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Changes the guild's default message notification value and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="msgNotifs"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyGuildDefaultMsgNotificationsAsync(IGuild guild, DefaultMessageNotifications msgNotifs, ModerationReason reason)
-		{
-			await guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Changes the guild's verification level and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="verifLevel"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyGuildVerificationLevelAsync(IGuild guild, VerificationLevel verifLevel, ModerationReason reason)
-		{
-			await guild.ModifyAsync(x => x.VerificationLevel = verifLevel, reason.CreateRequestOptions()).CAF();
+			return (await guild.GetUsersAsync().CAF()).Where(x => invokingUser.HasHigherPosition(x) && guild.GetBot().HasHigherPosition(x));
 		}
 	}
 }

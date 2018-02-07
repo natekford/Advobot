@@ -45,7 +45,7 @@ namespace Advobot.Core.Classes.Settings
 		public void UpdateLastBumped()
 		{
 			LastBumped = DateTime.UtcNow;
-			HasGlobalEmotes = Guild.HasGlobalEmotes();
+			HasGlobalEmotes = Guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
 		}
 		/// <summary>
 		/// Sets the <see cref="Guild"/> property and checks for global emotes.
@@ -54,7 +54,7 @@ namespace Advobot.Core.Classes.Settings
 		public void PostDeserialize(SocketGuild guild)
 		{
 			Guild = guild;
-			HasGlobalEmotes = Guild.HasGlobalEmotes();
+			UpdateLastBumped();
 		}
 
 		public override string ToString()

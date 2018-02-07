@@ -24,7 +24,7 @@ namespace Advobot.Commands.Nicknames
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketGuildUser user,
 			[Optional, VerifyStringLength(Target.Nickname)] string nickname)
 		{
-			await UserUtils.ChangeNicknameAsync(user, nickname, new ModerationReason(Context.User, null)).CAF();
+			await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, CreateRequestOptions()).CAF();
 			var response = nickname == null
 				? $"Successfully removed the nickname from `{user.Format()}`."
 				: $"Successfully gave `{user.Format()}` the nickname `{nickname}`.";
@@ -49,7 +49,7 @@ namespace Advobot.Commands.Nicknames
 				return (x.Nickname != null && x.Nickname.CaseInsContains(search))
 					|| (x.Nickname == null && x.Username.CaseInsContains(search));
 			}).Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
-			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
+			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, CreateRequestOptions()).CAF();
 		}
 	}
 
@@ -70,7 +70,7 @@ namespace Advobot.Commands.Nicknames
 				return (x.Nickname != null && !x.Nickname.AllCharsWithinLimit((int)upperLimit))
 				|| (x.Nickname == null && !x.Username.AllCharsWithinLimit((int)upperLimit));
 			}).Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
-			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, new ModerationReason(Context.User, null)).CAF();
+			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(replace, CreateRequestOptions()).CAF();
 		}
 	}
 
@@ -86,7 +86,7 @@ namespace Advobot.Commands.Nicknames
 		{
 			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF())
 				.Where(x => x.Nickname != null).Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
-			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(null, new ModerationReason(Context.User, null)).CAF();
+			await new MultiUserAction(Context, Context.Timers, users).ModifyNicknamesAsync(null, CreateRequestOptions()).CAF();
 		}
 	}
 }

@@ -53,94 +53,13 @@ namespace Advobot.Core.Utilities
 			return new VerifiedObjectResult(target, null, null);
 		}
 		/// <summary>
-		/// Creates a text channel with the given name.
-		/// </summary>
-		/// <param name="guild">The guild to create the channel on.</param>
-		/// <param name="name">The name to use for the channel.</param>
-		/// <param name="reason">The reason for creation to say in the audit log.</param>
-		/// <returns>The newly created text channel.</returns>
-		public static async Task<ITextChannel> CreateTextChannelAsync(IGuild guild, string name, ModerationReason reason)
-		{
-			return await guild.CreateTextChannelAsync(name, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Creates a voice channel with the given name.
-		/// </summary>
-		/// <param name="guild">The guild to create the channel on.</param>
-		/// <param name="name">The name to use for the channel.</param>
-		/// <param name="reason">The reason for creation to say in the audit log.</param>
-		/// <returns>The newly created voice channel</returns>
-		public static async Task<IVoiceChannel> CreateVoiceChannelAsync(IGuild guild, string name, ModerationReason reason)
-		{
-			return await guild.CreateVoiceChannelAsync(name, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Creates a category with the given name.
-		/// </summary>
-		/// <param name="guild">The guild to create the category on.</param>
-		/// <param name="name">The name to use for the category.</param>
-		/// <param name="reason">The reason to say in the audit log.</param>
-		/// <returns>The newly created category.</returns>
-		public static async Task<ICategoryChannel> CreateCategoryAsync(IGuild guild, string name, ModerationReason reason)
-		{
-			return await guild.CreateCategoryAsync(name, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Modifies a channel so only admins can read it and puts the channel to the bottom of the channel list.
-		/// </summary>
-		/// <param name="channel">The channel to softdelete.</param>
-		/// <param name="reason">The reason to say in the audit log.</param>
-		/// <returns></returns>
-		public static async Task SoftDeleteChannelAsync(IGuildChannel channel, ModerationReason reason)
-		{
-			var guild = channel.Guild;
-			foreach (var overwrite in channel.PermissionOverwrites)
-			{
-				ISnowflakeEntity obj;
-				switch (overwrite.TargetType)
-				{
-					case PermissionTarget.Role:
-						obj = guild.GetRole(overwrite.TargetId);
-						break;
-					case PermissionTarget.User:
-						obj = await guild.GetUserAsync(overwrite.TargetId).CAF();
-						break;
-					default:
-						continue;
-				}
-
-				var allowBits = overwrite.Permissions.AllowValue & ~(ulong)ChannelPermission.ViewChannel;
-				var denyBits = overwrite.Permissions.DenyValue | (ulong)ChannelPermission.ViewChannel;
-				await OverwriteUtils.ModifyOverwriteAsync(channel, obj, allowBits, denyBits, reason).CAF();
-			}
-
-			//Double check the everyone role has the correct perms
-			if (channel.PermissionOverwrites.All(x => x.TargetId != guild.EveryoneRole.Id))
-			{
-				await channel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny)).CAF();
-			}
-
-			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-			await ModifyPositionAsync(channel, (await guild.GetTextChannelsAsync().CAF()).Max(x => x.Position), reason).CAF();
-		}
-		/// <summary>
-		/// Deletes a channel.
-		/// </summary>
-		/// <param name="channel">The channel to delete.</param>
-		/// <param name="reason">The reason to say in the audit log.</param>
-		/// <returns></returns>
-		public static async Task DeleteChannelAsync(IGuildChannel channel, ModerationReason reason)
-		{
-			await channel.DeleteAsync(reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
 		/// Modifies a channel's position.
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="position"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> ModifyPositionAsync(IGuildChannel channel, int position, ModerationReason reason)
+		public static async Task<int> ModifyPositionAsync(this IGuildChannel channel, int position, RequestOptions options)
 		{
 			if (channel == null)
 			{
@@ -178,44 +97,56 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <param name="channel">The channel to rename.</param>
 		/// <param name="name">The new name.</param>
-		/// <param name="reason">The reason to say in the audit log.</param>
+		/// <param name="options">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyNameAsync(IGuildChannel channel, string name, ModerationReason reason)
+		public static async Task ModifyNameAsync(this IGuildChannel channel, string name, RequestOptions options)
 		{
-			await channel.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
+			await channel.ModifyAsync(x => x.Name = name, options).CAF();
+		}
+
+		/// <summary>
+		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
+		public static OverwritePermissions? GetPermissionOverwrite<T>(this IGuildChannel channel, T obj) where T : ISnowflakeEntity
+		{
+			switch (obj)
+			{
+				case IRole role:
+					return channel.GetPermissionOverwrite(role);
+				case IUser user:
+					return channel.GetPermissionOverwrite(user);
+				default:
+					throw new ArgumentException("invalid type", nameof(obj));
+			}
 		}
 		/// <summary>
-		/// Modifies a text channel's topic.
+		/// Sets the overwrite on a channel for the given object.
 		/// </summary>
-		/// <param name="channel">The channel to modify.</param>
-		/// <param name="topic">The new topic.</param>
-		/// <param name="reason">The reason to say in the audit log.</param>
+		/// <param name="channel"></param>
+		/// <param name="obj"></param>
+		/// <param name="allowBits"></param>
+		/// <param name="denyBits"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task ModifyTopicAsync(ITextChannel channel, string topic, ModerationReason reason)
+		/// <exception cref="ArgumentException"></exception>
+		public static async Task ModifyOverwriteAsync<T>(IGuildChannel channel, T obj, ulong allowBits, ulong denyBits, RequestOptions options) where T : ISnowflakeEntity
 		{
-			await channel.ModifyAsync(x => x.Topic = topic, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Modifies a voice channel's limit.
-		/// </summary>
-		/// <param name="channel">The channel to modify..</param>
-		/// <param name="limit">The new limit.</param>
-		/// <param name="reason">The reason to say in the audit log.</param>
-		/// <returns></returns>
-		public static async Task ModifyLimitAsync(IVoiceChannel channel, int limit, ModerationReason reason)
-		{
-			await channel.ModifyAsync(x => x.UserLimit = limit, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Modifies a voice channel's bitrate.
-		/// </summary>
-		/// <param name="channel">The channel to modify.</param>
-		/// <param name="bitrate">The new bitrate.</param>
-		/// <param name="reason">The reason to say in the audit log.</param>
-		/// <returns></returns>
-		public static async Task ModifyBitrateAsync(IVoiceChannel channel, int bitrate, ModerationReason reason)
-		{
-			await channel.ModifyAsync(x => x.Bitrate = bitrate, reason.CreateRequestOptions()).CAF();
+			var permissions = new OverwritePermissions(allowBits, denyBits);
+			switch (obj)
+			{
+				case IRole role:
+					await channel.AddPermissionOverwriteAsync(role, permissions, options).CAF();
+					return;
+				case IUser user:
+					await channel.AddPermissionOverwriteAsync(user, permissions, options).CAF();
+					return;
+				default:
+					throw new ArgumentException("invalid type", nameof(obj));
+			}
 		}
 	}
 }

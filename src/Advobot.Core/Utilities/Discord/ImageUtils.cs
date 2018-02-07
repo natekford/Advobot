@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Classes;
+using Advobot.Core.Interfaces;
 using Discord.Commands;
 using ImageMagick;
 using System;
@@ -18,14 +19,15 @@ namespace Advobot.Core.Utilities
 		public static readonly string FfmpegLocation = FindFfmpeg();
 
 		/// <summary>
-		/// Uses the image stream for <paramref name="callback"/>. Returns null if successful, returns an error otherwise.
+		/// Uses the image stream for <paramref name="callback"/>. Returns null if successful, returns an error string otherwise.
+		/// The stream will be set to a position of 0 before the callback is invoked.
 		/// </summary>
 		/// <param name="uri">The uri to download the file from.</param>
 		/// <param name="context">The current context.</param>
 		/// <param name="args">The arguments to use on the file.</param>
 		/// <param name="callback">What do to with the resized file.</param>
 		/// <returns></returns>
-		public static async Task<string> UseImageStreamAsync(this Uri uri, ICommandContext context, IImageResizerArgs args, Func<MagickFormat, MemoryStream, Task> callback)
+		public static async Task<ResizedImageResult> ResizeImageAsync(Uri uri, ICommandContext context, IImageResizerArgs args)
 		{
 			var req = (HttpWebRequest)WebRequest.Create(uri.ToString().Replace(".gifv", ".mp4"));
 			req.UserAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
@@ -45,15 +47,15 @@ namespace Advobot.Core.Utilities
 				response = await req.GetResponseAsync().CAF();
 				if (args.ResizeTries < 1 && response.ContentLength > args.MaxAllowedLengthInBytes) //Max size without resize tries
 				{
-					return $"file is bigger than the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB";
+					return new ResizedImageResult(stream, default, $"file is bigger than the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB");
 				}
 				if (response.ContentLength > MaxDownloadLengthInBytes) //Utter max size, even with resize tries
 				{
-					return $"file is bigger than the max allowed size of {(double)MaxDownloadLengthInBytes / 1000 * 1000:0.0}MB";
+					return new ResizedImageResult(stream, default, $"file is bigger than the max allowed size of {(double)MaxDownloadLengthInBytes / 1000 * 1000:0.0}MB");
 				}
 				if (!Enum.TryParse<MagickFormat>(response.ContentType.Split('/').Last(), true, out var format) || !args.ValidFormats.Contains(format))
 				{
-					return $"invalid file format supplied";
+					return new ResizedImageResult(stream, default, $"invalid file format supplied");
 				}
 				switch (format)
 				{
@@ -62,23 +64,23 @@ namespace Advobot.Core.Utilities
 					case MagickFormat.Png:
 						if (context.Guild.Emotes.Where(x => !x.Animated).Count() >= 50)
 						{
-							return "there are already 50 non animated emotes";
+							return new ResizedImageResult(stream, format, "there are already 50 non animated emotes");
 						}
 						break;
 					case MagickFormat.Mp4:
 						if (String.IsNullOrWhiteSpace(FfmpegLocation))
 						{
-							return "mp4 is an invalid file format if ffmpeg is not installed";
+							return new ResizedImageResult(stream, format, "mp4 is an invalid file format if ffmpeg is not installed");
 						}
 						goto case MagickFormat.Gif;
 					case MagickFormat.Gif:
 						if (context.Guild.Emotes.Where(x => x.Animated).Count() >= 50)
 						{
-							return "there are already 50 animated emotes";
+							return new ResizedImageResult(stream, format, "there are already 50 animated emotes");
 						}
 						break;
 					default:
-						return "link must lead to a png, jpg, gif, or mp4";
+						return new ResizedImageResult(stream, format, "link must lead to a png, jpg, gif, or mp4");
 				}
 
 				//Copy the response stream to a new variable so it can be seeked on
@@ -91,58 +93,47 @@ namespace Advobot.Core.Utilities
 				}
 				if (stream.Length < args.MaxAllowedLengthInBytes)
 				{
-					stream.Seek(0, SeekOrigin.Begin);
-					await callback(format, stream).CAF();
-					return null;
+					return new ResizedImageResult(stream, format, null);
 				}
 
 				//Getting to this point has already checked resize tries, so this image needs to be resized if it's too big
-				await message.ModifyAsync(x => x.Content = $"Attempting to resize.");
 				for (int i = 0; i < args.ResizeTries && stream.Length > args.MaxAllowedLengthInBytes; ++i)
 				{
+					await message.ModifyAsync(x => x.Content = $"Attempting to resize {i + 1}/{args.ResizeTries}.");
 					if (ResizeFile(stream, args, format, i == 0, out var width, out var height)) //Acceptable size
 					{
 						break;
 					}
 					else if (width < 35 || height < 35) //Too small, will look like shit
 					{
-						return $"during resizing the file has been made too small. Manually resize instead";
+						return new ResizedImageResult(stream, format, $"during resizing the file has been made too small. Manually resize instead");
 					}
 					else if (i == args.ResizeTries - 1) //Too many attempts
 					{
-						return $"failed to shrink the file to the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB";
-					}
-					else
-					{
-						await message.ModifyAsync(x => x.Content = $"{i + 1}/{args.ResizeTries} resize tries attempted.");
+						return new ResizedImageResult(stream, format, $"failed to shrink the file to the max allowed size of {(double)args.MaxAllowedLengthInBytes / 1000 * 1000:0.0}MB");
 					}
 				}
 				if (stream.Length < 1) //Stream somehow got empty, will result in error if callback is attempted
 				{
-					return $"file is empty after shrinking";
+					return new ResizedImageResult(stream, format, $"file is empty after shrinking");
 				}
 
-				stream.Seek(0, SeekOrigin.Begin);
-				await callback(format, stream).CAF();
-				return null;
+				return new ResizedImageResult(stream, format, null);
 			}
 			catch (Exception e)
 			{
-				return e.Message;
+				return new ResizedImageResult(stream, default, e.Message);
 			}
 			//Not using using blocks because they cause the code to become too indented.
 			finally
 			{
 				//Get rid of the update message
-				await message.DeleteAsync(new ModerationReason("image stream used").CreateRequestOptions()).CAF();
+				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("image stream used")).CAF();
 				if (response != null)
 				{
 					response.Dispose();
 				}
-				if (stream != null)
-				{
-					stream.Dispose();
-				}
+				//stream isn't disposed here cause it's returned
 			}
 		}
 		private static async Task ConvertMp4ToGif(MemoryStream ms, EmoteResizerArgs args)
@@ -159,7 +150,7 @@ namespace Advobot.Core.Utilities
 				RedirectStandardInput = true,
 				RedirectStandardOutput = true,
 				FileName = FfmpegLocation,
-				Arguments = $@"-f mp4 -i \\.\pipe\in -ss {args.StartInSeconds} -t {args.LengthInSeconds} -vf fps={(int)(100.0 / args.AnimationDelay)},scale=256:256 -f gif pipe:1",
+				Arguments = $@"-f mp4 -i \\.\pipe\in -ss {args.StartInSeconds} -t {args.LengthInSeconds} -vf fps=12,scale=256:256 -f gif pipe:1",
 			};
 			using (var process = new Process { StartInfo = info, })
 			//Have to use this pipe and not StandardInput b/c StandardInput hangs
@@ -189,7 +180,6 @@ namespace Advobot.Core.Utilities
 			switch (format)
 			{
 				case MagickFormat.Gif:
-					var gifArgs = (EmoteResizerArgs)args;
 					using (var gif = new MagickImageCollection(ms))
 					{
 						//Determine the new width and height to give these frames
@@ -202,7 +192,6 @@ namespace Advobot.Core.Utilities
 						foreach (var frame in gif)
 						{
 							frame.ColorFuzz = args.ColorFuzzing;
-							frame.AnimationDelay = gifArgs.AnimationDelay;
 							frame.Scale(geo);
 						}
 
@@ -271,6 +260,28 @@ namespace Advobot.Core.Utilities
 				}
 			}
 			return null;
+		}
+
+		public sealed class ResizedImageResult : IDisposable
+		{
+			public MemoryStream Stream { get; }
+			public MagickFormat Format { get; }
+			public string Error { get; }
+			public bool IsSuccess { get; }
+
+			internal ResizedImageResult(MemoryStream stream, MagickFormat format, string error)
+			{
+				stream?.Seek(0, SeekOrigin.Begin);
+				Stream = stream;
+				Format = format;
+				Error = error;
+				IsSuccess = error == null && stream != null;
+			}
+
+			public void Dispose()
+			{
+				Stream?.Dispose();
+			}
 		}
 	}
 }

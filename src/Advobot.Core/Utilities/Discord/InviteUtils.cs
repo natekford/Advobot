@@ -82,21 +82,21 @@ namespace Advobot.Core.Utilities
 		/// <param name="maxUses"></param>
 		/// <param name="isTemporary"></param>
 		/// <param name="isUnique"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<IInviteMetadata> CreateInviteAsync(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary, bool isUnique, ModerationReason reason)
+		public static async Task<IInviteMetadata> CreateInviteAsync(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary, bool isUnique, RequestOptions options)
 		{
-			return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, reason.CreateRequestOptions()).CAF();
+			return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options).CAF();
 		}
 		/// <summary>
 		/// Deletes the invite.
 		/// </summary>
 		/// <param name="invite"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task DeleteInviteAsync(IInvite invite, ModerationReason reason)
+		public static async Task DeleteInviteAsync(IInvite invite, RequestOptions options)
 		{
-			await invite.DeleteAsync(reason.CreateRequestOptions()).CAF();
+			await invite.DeleteAsync(options).CAF();
 		}
 	}
 }

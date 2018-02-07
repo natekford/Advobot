@@ -5,7 +5,7 @@ using Discord;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Core.Classes.NamedArguments
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Sets the search terms for invites and can gather invites matching those terms.

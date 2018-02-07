@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.BannedPhrases
@@ -28,9 +29,14 @@ namespace Advobot.Commands.BannedPhrases
 		[Command]
 		public async Task Command([VerifyStringLength(Target.Regex)] string regex, [Remainder] string testPhrase)
 		{
-			if (!RegexUtils.TryCreateRegex(regex, out _, out var error))
+			Regex regexOutput;
+			try
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				regexOutput = new Regex(regex);
+			}
+			catch (ArgumentException e)
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error(e)).CAF();
 				return;
 			}
 

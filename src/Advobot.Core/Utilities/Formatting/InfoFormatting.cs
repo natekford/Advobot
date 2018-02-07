@@ -115,6 +115,18 @@ namespace Advobot.Core.Utilities.Formatting
 		/// <returns></returns>
 		public static EmbedWrapper FormatChannelInfo(IGuildSettings guildSettings, SocketGuildChannel channel)
 		{
+			var overwriteNames = channel.PermissionOverwrites.Select(overwrite =>
+			{
+				switch (overwrite.TargetType)
+				{
+					case PermissionTarget.Role:
+						return channel.Guild.GetRole(overwrite.TargetId).Name;
+					case PermissionTarget.User:
+						return channel.Guild.GetUser(overwrite.TargetId).Username;
+					default:
+						throw new InvalidOperationException("Invalid overwrite target type.");
+				}
+			});
 			var embed = new EmbedWrapper
 			{
 				Description = channel.FormatInfo() +
@@ -125,7 +137,7 @@ namespace Advobot.Core.Utilities.Formatting
 					$"**Is Modlog:** `{guildSettings.ModLog?.Id == channel.Id}`\n" +
 					$"**Is Imagelog:** `{guildSettings.ImageLog?.Id == channel.Id}`\n\n" +
 					$"**User Count:** `{channel.Users.Count}`\n" +
-					$"**Overwrites:** `{String.Join("`, `", channel.GetNamesOfAllOverwrites())}`",
+					$"**Overwrites:** `{String.Join("`, `", overwriteNames)}`",
 			};
 			embed.TryAddAuthor(channel.Format(), null, null, out _);
 			embed.TryAddFooter("Channel Info", null, out _);

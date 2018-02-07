@@ -39,9 +39,9 @@ namespace Advobot.Core.Services.Log.Loggers
 			var guild = message.GetGuild();
 			if (guild?.Id == 294173126697418752 && message.Author is IGuildUser author)
 			{
-				if (author.Username != "jeff" && author.Nickname != "jeff" && guild.GetBot().CanModify(author))
+				if (author.Username != "jeff" && author.Nickname != "jeff" && guild.GetBot().HasHigherPosition(author))
 				{
-					await UserUtils.ChangeNicknameAsync(author, "jeff", new ModerationReason("my nama jeff")).CAF();
+					await author.ModifyAsync(x => x.Nickname = "jeff", ClientUtils.CreateRequestOptions("my nama jeff")).CAF();
 				}
 			}
 
@@ -320,7 +320,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			}
 			else
 			{
-				await MessageUtils.DeleteMessageAsync(message, new ModerationReason("slowmode")).CAF();
+				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("slowmode")).CAF();
 			}
 		}
 		/// <summary>
@@ -330,7 +330,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task HandleSpamPreventionAsync(IGuildSettings settings, SocketGuildUser user, IMessage message)
 		{
-			if (user.Guild.GetBot().CanModify(user))
+			if (user.Guild.GetBot().HasHigherPosition(user))
 			{
 				var spamUser = Timers.GetSpamPreventionUser(user);
 				if (spamUser == null)
@@ -369,7 +369,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					var content = $"The user `{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					var channel = message.Channel as ITextChannel;
 					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Timers, channel, null, content, TimeSpan.FromSeconds(10)).CAF();
-					await MessageUtils.DeleteMessageAsync(message, new ModerationReason("spam prevention")).CAF();
+					await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("spam prevention")).CAF();
 				}
 			}
 			if (!message.MentionedUserIds.Any())
@@ -391,7 +391,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			}
 
 			var giver = new PunishmentGiver(0, null);
-			var reason = new ModerationReason("spam prevention");
+			var reason = ClientUtils.CreateRequestOptions("spam prevention");
 			foreach (var u in users)
 			{
 				u.IncreaseVotes(user.Id);
@@ -428,10 +428,9 @@ namespace Advobot.Core.Services.Log.Loggers
 			{
 				await regex.PunishAsync(settings, message, Timers).CAF();
 			}
-
 			if (str != null || regex != null)
 			{
-				await MessageUtils.DeleteMessageAsync(message, new ModerationReason("banned phrase")).CAF();
+				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("banned phrase")).CAF();
 			}
 		}
 	}

@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
-using Discord.Commands;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {
@@ -78,19 +77,17 @@ namespace Advobot.Core.Utilities
 			{
 				return null;
 			}
+			fileName = $"{fileName.TrimEnd('_')}_{TimeFormatting.ToSaving()}.txt";
+			content = (content == null ? "" : $"**{content}:**").SanitizeContent(guild);
 
-			if (!fileName.EndsWith("_"))
+			using (var stream = new MemoryStream())
+			using (var writer = new StreamWriter(stream))
 			{
-				fileName += "_";
+				writer.Write(text);
+				writer.Flush();
+				stream.Seek(0, SeekOrigin.Begin);
+				return await channel.SendFileAsync(stream, fileName, content).CAF();
 			}
-			var fullFileName = $"{fileName}{TimeFormatting.ToSaving()}.txt";
-			var fileInfo = IOUtils.GetServerDirectoryFile(channel.GetGuild()?.Id ?? 0, fullFileName);
-			var c = (String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**").SanitizeContent(guild);
-
-			IOUtils.OverwriteFile(fileInfo, text.RemoveAllMarkdown());
-			var msg = await channel.SendFileAsync(fileInfo.FullName, c).CAF();
-			IOUtils.DeleteFile(fileInfo);
-			return msg;
 		}
 		/// <summary>
 		/// Waits a few seconds then deletes the newly created message and the context message.
@@ -165,15 +162,15 @@ namespace Advobot.Core.Utilities
 		/// <param name="channel"></param>
 		/// <param name="fromMessage"></param>
 		/// <param name="requestCount"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <param name="fromUser"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason, IUser fromUser = null)
+		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, RequestOptions options, IUser fromUser = null)
 		{
 			if (fromUser == null)
 			{
 				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).FlattenAsync().CAF();
-				return await DeleteMessagesAsync(channel, messages, reason).CAF();
+				return await DeleteMessagesAsync(channel, messages, options).CAF();
 			}
 
 			var deletedCount = 0;
@@ -192,7 +189,7 @@ namespace Advobot.Core.Utilities
 				{
 					break;
 				}
-				deletedCount += await DeleteMessagesAsync(channel, userMessages, reason).CAF();
+				deletedCount += await DeleteMessagesAsync(channel, userMessages, options).CAF();
 
 				requestCount -= userMessages.Count();
 			}
@@ -203,15 +200,15 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="messages"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, ModerationReason reason)
+		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, RequestOptions options)
 		{
 			//13.95 for some buffer in case
 			var validMessages = messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95).ToList();
 			try
 			{
-				await channel.DeleteMessagesAsync(validMessages, reason.CreateRequestOptions()).CAF();
+				await channel.DeleteMessagesAsync(validMessages, options).CAF();
 				return validMessages.Count();
 			}
 			catch
@@ -224,9 +221,9 @@ namespace Advobot.Core.Utilities
 		/// Deletes the passed in message directly.
 		/// </summary>
 		/// <param name="message"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessageAsync(IMessage message, ModerationReason reason)
+		public static async Task<int> DeleteMessageAsync(IMessage message, RequestOptions options)
 		{
 			if (message == null || (DateTime.UtcNow - message.CreatedAt.UtcDateTime).TotalDays > 13.95)
 			{
@@ -234,7 +231,7 @@ namespace Advobot.Core.Utilities
 			}
 			try
 			{
-				await message.DeleteAsync(reason.CreateRequestOptions()).CAF();
+				await message.DeleteAsync(options).CAF();
 				return 1;
 			}
 			catch

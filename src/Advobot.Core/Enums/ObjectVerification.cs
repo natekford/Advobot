@@ -16,7 +16,7 @@ namespace Advobot.Core.Enums
 		CanBeMovedFromChannel = (1U << 2),
 
 		//Role
-		IsEveryone = (1U << 2),
+		IsNotEveryone = (1U << 2),
 		IsManaged = (1U << 3),
 
 		//Channel

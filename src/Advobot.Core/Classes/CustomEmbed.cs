@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.TypeReaders;
 
-namespace Advobot.Core.Classes.NamedArguments
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Allows a user to make an embed through the use of <see cref="NamedArguments{T}"/>.

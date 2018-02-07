@@ -90,7 +90,7 @@ namespace Advobot.Core.Classes
 			if (settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(user.Username)))
 			{
 				var giver = new PunishmentGiver(0, _Timers);
-				await giver.PunishAsync(PunishmentType.Ban, user, null, new ModerationReason("banned name")).CAF();
+				await giver.PunishAsync(PunishmentType.Ban, user, null, ClientUtils.CreateRequestOptions("banned name")).CAF();
 			}
 			//Antiraid
 			var antiRaid = settings.RaidPreventionDictionary[RaidType.Regular];
@@ -112,7 +112,7 @@ namespace Advobot.Core.Classes
 				.Select(x => user.Guild.GetRole(x.RoleId)).Where(x => x != null).ToList();
 			if (roles.Any())
 			{
-				await RoleUtils.GiveRolesAsync(user, roles, new ModerationReason("persistent roles")).CAF();
+				await RoleUtils.GiveRolesAsync(user, roles, ClientUtils.CreateRequestOptions("persistent roles")).CAF();
 			}
 			//Welcome message
 			if (settings.WelcomeMessage != null)
@@ -176,7 +176,7 @@ namespace Advobot.Core.Classes
 
 			if (validQuotes || validHelpEntries)
 			{
-				await MessageUtils.DeleteMessageAsync(message, new ModerationReason("help entry or quote")).CAF();
+				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("help entry or quote")).CAF();
 			}
 		}
 		private async Task HandleCommand(SocketMessage message)
@@ -225,7 +225,7 @@ namespace Advobot.Core.Classes
 			else if (result.IsSuccess)
 			{
 				_Logging.SuccessfulCommands.Increment();
-				await MessageUtils.DeleteMessageAsync(context.Message, new ModerationReason("logged command")).CAF();
+				await MessageUtils.DeleteMessageAsync(context.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
 
 				if (settings.ModLog != null && !settings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{

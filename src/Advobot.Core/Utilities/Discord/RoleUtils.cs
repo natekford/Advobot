@@ -18,24 +18,6 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class RoleUtils
 	{
-		public const ChannelPermission MUTE_ROLE_TEXT_PERMS = 0
-			| ChannelPermission.CreateInstantInvite
-			| ChannelPermission.ManageChannels
-			| ChannelPermission.ManageRoles
-			| ChannelPermission.ManageWebhooks
-			| ChannelPermission.SendMessages
-			| ChannelPermission.ManageMessages
-			| ChannelPermission.AddReactions;
-		public const ChannelPermission MUTE_ROLE_VOICE_PERMS = 0
-			| ChannelPermission.CreateInstantInvite
-			| ChannelPermission.ManageChannels
-			| ChannelPermission.ManageRoles
-			| ChannelPermission.ManageWebhooks
-			| ChannelPermission.Speak
-			| ChannelPermission.MuteMembers
-			| ChannelPermission.DeafenMembers
-			| ChannelPermission.MoveMembers;
-
 		/// <summary>
 		/// Verifies that the role can be edited in specific ways.
 		/// </summary>
@@ -69,7 +51,7 @@ namespace Advobot.Core.Utilities
 
 				switch (check)
 				{
-					case ObjectVerification.IsEveryone:
+					case ObjectVerification.IsNotEveryone:
 						if (context.Guild.EveryoneRole.Id != target.Id)
 						{
 							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
@@ -89,132 +71,56 @@ namespace Advobot.Core.Utilities
 			return new VerifiedObjectResult(target, null, null);
 		}
 		/// <summary>
-		/// Makes sure the guild has a mute role, if not creates one. Also updates all the permisions on the channels so the mute
-		/// role remains effective.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="guildSettings"></param>
-		/// <returns></returns>
-		public static async Task<IRole> GetMuteRoleAsync(ICommandContext context, IGuildSettings guildSettings)
-		{
-			var muteRole = guildSettings.MuteRole;
-			if (!Verify(muteRole, context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
-			{
-				muteRole = await context.Guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0)).CAF();
-				guildSettings.MuteRole = muteRole;
-				guildSettings.SaveSettings();
-			}
-
-			foreach (var textChannel in await context.Guild.GetTextChannelsAsync().CAF())
-			{
-				if (textChannel.GetPermissionOverwrite(muteRole) == null)
-				{
-					await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, (ulong)MUTE_ROLE_TEXT_PERMS)).CAF();
-				}
-			}
-			foreach (var voiceChannel in await context.Guild.GetVoiceChannelsAsync().CAF())
-			{
-				if (voiceChannel.GetPermissionOverwrite(muteRole) == null)
-				{
-					await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, (ulong)MUTE_ROLE_VOICE_PERMS)).CAF();
-				}
-			}
-			return muteRole;
-		}
-		/// <summary>
 		/// Creates a role then says the supplied reason in the audit log.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <param name="name"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<IRole> CreateRoleAsync(IGuild guild, string name, ModerationReason reason)
+		public static async Task<IRole> CreateRoleAsync(IGuild guild, string name, RequestOptions options)
 		{
-			return guild != null
-				? await guild.CreateRoleAsync(name, new GuildPermissions(0), options: reason.CreateRequestOptions()).CAF()
-				: null;
+			return await guild?.CreateRoleAsync(name, new GuildPermissions(0), options: options).CAF();
 		}
 		/// <summary>
 		/// Deletes a a role then says the supplied reason in the audit log.
 		/// </summary>
 		/// <param name="role"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task DeleteRoleAsync(IRole role, ModerationReason reason)
+		public static async Task DeleteRoleAsync(IRole role, RequestOptions options)
 		{
-			if (role != null)
-			{
-				await role.DeleteAsync(reason.CreateRequestOptions()).CAF();
-			}
+			await role?.DeleteAsync(options).CAF();
 		}
 		/// <summary>
 		/// Gives the roles to a user.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <param name="roles"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task GiveRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
+		public static async Task GiveRolesAsync(IGuildUser user, IEnumerable<IRole> roles, RequestOptions options)
 		{
-			if (user != null)
-			{
-				await user.AddRolesAsync(roles, reason.CreateRequestOptions()).CAF();
-			}
+			await user?.AddRolesAsync(roles, options).CAF();
 		}
 		/// <summary>
 		/// Removes the roles from a user.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <param name="roles"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task TakeRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
+		public static async Task TakeRolesAsync(IGuildUser user, IEnumerable<IRole> roles, RequestOptions options)
 		{
-			if (user != null)
-			{
-				await user.RemoveRolesAsync(roles, reason.CreateRequestOptions()).CAF();
-			}
-		}
-		/// <summary>
-		/// Changes the role's permissions by allowing or denying the supplied change value from them.
-		/// </summary>
-		/// <param name="role"></param>
-		/// <param name="permValue"></param>
-		/// <param name="changeValue"></param>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		public static async Task<IEnumerable<string>> ModifyRolePermissionsAsync(IRole role, PermValue permValue, ulong changeValue, IGuildUser user)
-		{
-			if (role == null)
-			{
-				return Enumerable.Empty<string>();
-			}
-
-			var roleBits = role.Permissions.RawValue;
-			switch (permValue)
-			{
-				//Only modify permissions the user has the ability to
-				case PermValue.Allow:
-					roleBits |= (changeValue & user.GuildPermissions.RawValue);
-					break;
-				case PermValue.Deny:
-					roleBits &= ~(changeValue & user.GuildPermissions.RawValue);
-					break;
-				default:
-					throw new ArgumentException("invalid value provided", nameof(permValue));
-			}
-
-			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null)).CAF();
-			return EnumUtils.GetFlagNames((GuildPermission)changeValue);
+			await user?.RemoveRolesAsync(roles, options).CAF();
 		}
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.
 		/// </summary>
 		/// <param name="role"></param>
 		/// <param name="position"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> ModifyRolePositionAsync(IRole role, int position, ModerationReason reason)
+		public static async Task<int> ModifyRolePositionAsync(IRole role, int position, RequestOptions options)
 		{
 			if (!(role != null && role.Guild is SocketGuild guild && guild.GetBot() is SocketGuildUser bot))
 			{
@@ -242,7 +148,7 @@ namespace Advobot.Core.Utilities
 				}
 			}
 
-			await role.Guild.ReorderRolesAsync(reorderProperties, reason.CreateRequestOptions()).CAF();
+			await role.Guild.ReorderRolesAsync(reorderProperties, options).CAF();
 			return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
 		}
 		/// <summary>
@@ -250,68 +156,22 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <param name="role"></param>
 		/// <param name="permissions"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task ModifyRolePermissionsAsync(IRole role, ulong permissions, ModerationReason reason)
+		public static async Task ModifyRolePermissionsAsync(IRole role, ulong permissions, RequestOptions options)
 		{
-			if (role != null)
-			{
-				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), reason.CreateRequestOptions()).CAF();
-			}
+			await role?.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), options).CAF();
 		}
 		/// <summary>
 		/// Changes the role's name and says the supplied reason in the audit log.
 		/// </summary>
 		/// <param name="role"></param>
 		/// <param name="name"></param>
-		/// <param name="reason"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task ModifyRoleNameAsync(IRole role, string name, ModerationReason reason)
+		public static async Task ModifyRoleNameAsync(IRole role, string name, RequestOptions options)
 		{
-			if (role != null)
-			{
-				await role.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
-			}
-		}
-		/// <summary>
-		/// Changes the role's color and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="role"></param>
-		/// <param name="color"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyRoleColorAsync(IRole role, Color color, ModerationReason reason)
-		{
-			if (role != null)
-			{
-				await role.ModifyAsync(x => x.Color = color, reason.CreateRequestOptions()).CAF();
-			}
-		}
-		/// <summary>
-		/// Changes the role's hoist status and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="role"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyRoleHoistAsync(IRole role, ModerationReason reason)
-		{
-			if (role != null)
-			{
-				await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, reason.CreateRequestOptions()).CAF();
-			}
-		}
-		/// <summary>
-		/// Changes the role's mentionability and says the the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="role"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyRoleMentionabilityAsync(IRole role, ModerationReason reason)
-		{
-			if (role != null)
-			{
-				await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, reason.CreateRequestOptions()).CAF();
-			}
+			await role?.ModifyAsync(x => x.Name = name, options).CAF();
 		}
 	}
 }

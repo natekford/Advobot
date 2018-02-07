@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
@@ -64,7 +63,7 @@ namespace Advobot.Commands.Invites
 		{
 			var nullableTime = time != 0 ? time as int? : 86400;
 			var nullableUses = uses != 0 ? uses as int? : null;
-			var inv = await InviteUtils.CreateInviteAsync(channel, nullableTime, nullableUses, tempMem, false, new ModerationReason(Context.User, null)).CAF();
+			var inv = await InviteUtils.CreateInviteAsync(channel, nullableTime, nullableUses, tempMem, false, CreateRequestOptions()).CAF();
 
 			var timeOutputStr = uses != 0
 				? $"It will last for this amount of time: `{nullableTime}`."
@@ -90,7 +89,7 @@ namespace Advobot.Commands.Invites
 		[Command]
 		public async Task Command(IInvite invite)
 		{
-			await InviteUtils.DeleteInviteAsync(invite, new ModerationReason(Context.User, null)).CAF();
+			await InviteUtils.DeleteInviteAsync(invite, CreateRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the invite `{invite.Code}`.").CAF();
 		}
 	}
@@ -120,7 +119,7 @@ namespace Advobot.Commands.Invites
 
 			foreach (var invite in invites)
 			{
-				await InviteUtils.DeleteInviteAsync(invite, new ModerationReason(Context.User, null)).CAF();
+				await InviteUtils.DeleteInviteAsync(invite, CreateRequestOptions()).CAF();
 			}
 
 			var resp = $"Successfully deleted `{invites.Count()}` instant invites.";

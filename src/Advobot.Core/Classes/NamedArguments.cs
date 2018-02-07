@@ -9,7 +9,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
-namespace Advobot.Core.Classes.NamedArguments
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Allows named arguments to be used via an overly complex system of attributes and reflection.

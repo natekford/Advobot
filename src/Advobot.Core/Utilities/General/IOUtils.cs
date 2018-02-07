@@ -84,7 +84,7 @@ namespace Advobot.Core.Utilities
 		/// Creates a file if it does not already exist.
 		/// </summary>
 		/// <param name="fileInfo"></param>
-		public static void CreateFile(FileInfo fileInfo)
+		private static void CreateFile(FileInfo fileInfo)
 		{
 			if (!fileInfo.Exists)
 			{
@@ -105,21 +105,6 @@ namespace Advobot.Core.Utilities
 			using (var writer = new StreamWriter(fileInfo.Open(FileMode.Truncate)))
 			{
 				writer.Write(text);
-			}
-		}
-		/// <summary>
-		/// Attempts to delete the supplied file.
-		/// </summary>
-		/// <param name="fileInfo"></param>
-		public static void DeleteFile(FileInfo fileInfo)
-		{
-			try
-			{
-				fileInfo.Delete();
-			}
-			catch (Exception e)
-			{
-				e.Write();
 			}
 		}
 		/// <summary>

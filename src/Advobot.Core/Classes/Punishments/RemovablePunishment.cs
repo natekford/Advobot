@@ -32,21 +32,21 @@ namespace Advobot.Core.Classes.Punishments
 			RoleId = role.Id;
 		}
 
-		public async Task RemoveAsync(PunishmentRemover remover, ModerationReason reason)
+		public async Task RemoveAsync(PunishmentRemover remover, RequestOptions options)
 		{
 			switch (PunishmentType)
 			{
 				case PunishmentType.Ban:
-					await remover.UnbanAsync(Guild, UserId, reason).CAF();
+					await remover.UnbanAsync(Guild, UserId, options).CAF();
 					return;
 				case PunishmentType.Deafen:
-					await remover.UndeafenAsync(await Guild.GetUserAsync(UserId).CAF(), reason).CAF();
+					await remover.UndeafenAsync(await Guild.GetUserAsync(UserId).CAF(), options).CAF();
 					return;
 				case PunishmentType.VoiceMute:
-					await remover.UnvoicemuteAsync(await Guild.GetUserAsync(UserId).CAF(), reason).CAF();
+					await remover.UnvoicemuteAsync(await Guild.GetUserAsync(UserId).CAF(), options).CAF();
 					return;
 				case PunishmentType.RoleMute:
-					await remover.UnrolemuteAsync(await Guild.GetUserAsync(UserId).CAF(), Guild.GetRole(RoleId), reason).CAF();
+					await remover.UnrolemuteAsync(await Guild.GetUserAsync(UserId).CAF(), Guild.GetRole(RoleId), options).CAF();
 					return;
 			}
 		}

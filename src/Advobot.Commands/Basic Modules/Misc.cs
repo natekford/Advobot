@@ -2,13 +2,11 @@
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
-using Advobot.Core.Classes.NamedArguments;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
-using ImageMagick;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -148,7 +146,7 @@ namespace Advobot.Commands.Misc
 	public sealed class MessageRole : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string message)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone)] IRole role, [Remainder] string message)
 		{
 			if (role.IsMentionable)
 			{
@@ -158,9 +156,9 @@ namespace Advobot.Commands.Misc
 			{
 				var cutText = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
-				await role.ModifyAsync(x => x.Mentionable = true, new ModerationReason(Context.User, null).CreateRequestOptions()).CAF();
+				await role.ModifyAsync(x => x.Mentionable = true, CreateRequestOptions()).CAF();
 				await MessageUtils.SendMessageAsync(Context.Channel, cutText).CAF();
-				await role.ModifyAsync(x => x.Mentionable = false, new ModerationReason(Context.User, null).CreateRequestOptions()).CAF();
+				await role.ModifyAsync(x => x.Mentionable = false, CreateRequestOptions()).CAF();
 			}
 		}
 	}

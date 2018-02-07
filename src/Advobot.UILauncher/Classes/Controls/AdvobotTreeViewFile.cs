@@ -100,7 +100,14 @@ namespace Advobot.UILauncher.Classes.Controls
 			switch (MessageBox.Show(text, caption, MessageBoxButton.YesNo))
 			{
 				case MessageBoxResult.Yes:
-					IOUtils.DeleteFile(_FI);
+					try
+					{
+						_FI.Delete();
+					}
+					catch (Exception ex)
+					{
+						ex.Write();
+					}
 					return;
 			}
 		}

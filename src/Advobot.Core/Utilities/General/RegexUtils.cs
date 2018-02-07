@@ -13,34 +13,6 @@ namespace Advobot.Core.Utilities
 		private static TimeSpan _Timespan = new TimeSpan(5000);
 
 		/// <summary>
-		/// Tries to create a <see cref="Regex"/>. Returns false if unable to created a <see cref="Regex"/> with the given input.
-		/// </summary>
-		/// <param name="pattern"></param>
-		/// <param name="regexOutput"></param>
-		/// <param name="errorReason"></param>
-		/// <returns></returns>
-		public static bool TryCreateRegex(string pattern, out Regex regexOutput, out Error errorReason)
-		{
-			regexOutput = null;
-			errorReason = default;
-			if (String.IsNullOrEmpty(pattern))
-			{
-				errorReason = new Error("The pattern cannot be null or empty.");
-				return false;
-			}
-
-			try
-			{
-				regexOutput = new Regex(pattern);
-				return true;
-			}
-			catch (ArgumentException e)
-			{
-				errorReason = new Error(e.Message);
-				return false;
-			}
-		}
-		/// <summary>
 		/// Returns true if the pattern is found within the input. Has a timeout of 1,000,000 ticks.
 		/// Will only check up to the first 2,000 characters since this should only be applied to message content.
 		/// </summary>

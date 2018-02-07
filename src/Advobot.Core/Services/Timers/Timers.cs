@@ -23,10 +23,10 @@ namespace Advobot.Core.Services.Timers
 		private Timer _MinuteTimer = new Timer(60 * 1000);
 		private Timer _SecondTimer = new Timer(1000);
 		private PunishmentRemover _PunishmentRemover;
-		private ModerationReason _PunishmentReason = new ModerationReason("automatic punishment removal.");
-		private ModerationReason _MessageReason = new ModerationReason("automatic message deletion.");
-		private ModerationReason _CloseHelpReason = new ModerationReason("removing active close help");
-		private ModerationReason _CloseQuotesReason = new ModerationReason("removing active close quotes");
+		private RequestOptions _PunishmentReason = ClientUtils.CreateRequestOptions("automatic punishment removal.");
+		private RequestOptions _MessageReason = ClientUtils.CreateRequestOptions("automatic message deletion.");
+		private RequestOptions _CloseHelpReason = ClientUtils.CreateRequestOptions("removing active close help");
+		private RequestOptions _CloseQuotesReason = ClientUtils.CreateRequestOptions("removing active close quotes");
 
 		//Guild specific
 		private ConcurrentDoubleKeyDictionary<IGuild, MultiKey<ulong, PunishmentType>, RemovablePunishment> _RemovablePunishments =

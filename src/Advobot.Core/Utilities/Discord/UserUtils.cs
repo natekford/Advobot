@@ -49,59 +49,56 @@ namespace Advobot.Core.Utilities
 			return new VerifiedObjectResult(target, null, null);
 		}
 		/// <summary>
-		/// Returns the position the user has in the guild hierarchy.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		public static int GetPosition(this IGuildUser user)
-		{
-			return user is SocketGuildUser socket ? socket.Hierarchy : -1;
-		}
-		/// <summary>
 		/// Returns true if the invoking user's position is greater than the target user's position.
 		/// </summary>
-		/// <param name="invokingUser"></param>
+		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invokingUser, IGuildUser target)
+		public static bool HasHigherPosition(this IGuildUser invoker, IGuildUser target)
 		{
-			return (target.Id == invokingUser.Id && target.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId])
-				|| invokingUser.GetPosition() > target.GetPosition();
+			//User is the bot
+			if (target.Id == invoker.Id && target.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId])
+			{
+				return true;
+			}
+			var invokerPosition = invoker is SocketGuildUser socketInvoker ? socketInvoker.Hierarchy : -1;
+			var targetPosition = target is SocketGuildUser socketTarget ? socketTarget.Hierarchy : -1;
+			return invokerPosition > targetPosition;
 		}
 		/// <summary>
 		/// Returns true if the user can edit the user in the specified way.
 		/// </summary>
-		/// <param name="invokingUser"></param>
+		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invokingUser, IGuildUser target, ObjectVerification type)
+		public static bool CanModify(this IGuildUser invoker, IGuildUser target, ObjectVerification type)
 		{
 			switch (type)
 			{
 				case ObjectVerification.CanBeMovedFromChannel:
-					return invokingUser.CanModify(target?.VoiceChannel, ObjectVerification.CanMoveUsers);
+					return invoker.CanModify(target?.VoiceChannel, ObjectVerification.CanMoveUsers);
 				case ObjectVerification.CanBeEdited:
-					return invokingUser.CanModify(target);
+					return invoker.HasHigherPosition(target);
 			}
 			return true;
 		}
 		/// <summary>
 		/// Returns true if the user can edit the channel in the specified way.
 		/// </summary>
-		/// <param name="invokingUser"></param>
+		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invokingUser, IGuildChannel target, ObjectVerification type)
+		public static bool CanModify(this IGuildUser invoker, IGuildChannel target, ObjectVerification type)
 		{
-			var guildPerms = invokingUser?.GuildPermissions ?? default;
+			var guildPerms = invoker?.GuildPermissions ?? default;
 			if (guildPerms.Has(GuildPermission.Administrator))
 			{
 				return true;
 			}
 
-			var channelPerms = invokingUser?.GetPermissions(target) ?? default;
+			var channelPerms = invoker?.GetPermissions(target) ?? default;
 			switch (type)
 			{
 				case ObjectVerification.CanBeRead:
@@ -124,40 +121,18 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Returns true if the user can edit the role in the specified way.
 		/// </summary>
-		/// <param name="invokingUser"></param>
+		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invokingUser, IRole target, ObjectVerification type)
+		public static bool CanModify(this IGuildUser invoker, IRole target, ObjectVerification type)
 		{
 			switch (type)
 			{
 				case ObjectVerification.CanBeEdited:
-					return target?.Position < invokingUser.GetPosition();
+					return invoker is SocketGuildUser socketInvoker && socketInvoker.Hierarchy > target?.Position;
 			}
 			return true;
-		}
-		/// <summary>
-		/// Changes the user's nickname then says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="newNickname"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ChangeNicknameAsync(IGuildUser user, string newNickname, ModerationReason reason)
-		{
-			await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, reason.CreateRequestOptions()).CAF();
-		}
-		/// <summary>
-		/// Moves the user to the supplied channel then says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="channel"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task MoveUserAsync(IGuildUser user, IVoiceChannel channel, ModerationReason reason)
-		{
-			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), reason.CreateRequestOptions()).CAF();
 		}
 	}
 }

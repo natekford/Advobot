@@ -1,61 +1,114 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.NamedArguments;
+using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
+using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using ImageMagick;
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Emotes
 {
-	[Group(nameof(ModifyEmotes)), TopLevelShortAlias(typeof(ModifyEmotes))]
-	[Summary("Adds or removes an emote. " +
-		"Adding requires an image url.")]
+	[Group(nameof(CreateEmote)), TopLevelShortAlias(typeof(CreateEmote))]
+	[Summary("Adds an emote to the server. " +
+		"Requires either an emote to copy, or the name and file to make an emote out of.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyEmotes : NonSavingModuleBase
+	public sealed class CreateEmote : NonSavingModuleBase
 	{
-		[Command(nameof(Copy), RunMode = RunMode.Async), ShortAlias(nameof(Copy))]
-		public async Task Copy(Emote emote)
+		[Command(RunMode = RunMode.Async)]
+		public async Task Command(Emote emote)
 		{
-			await Add(emote.Name, new Uri(emote.Url)).CAF();
+			await Command(emote.Name, new Uri(emote.Url)).CAF();
 		}
 		//TODO: implement a queue for these commands, since they use high memory and download
-		[Command(nameof(Add), RunMode = RunMode.Async), ShortAlias(nameof(Add))]
-		public async Task Add(string name, Uri url, [Optional, Remainder] NamedArguments<EmoteResizerArgs> args)
+		[Command(RunMode = RunMode.Async)]
+		public async Task Command(string name, Uri url, [Optional, Remainder] NamedArguments<EmoteResizerArgs> args)
 		{
 			EmoteResizerArgs obj;
 			if (args == null)
 			{
-				obj = EmoteResizerArgs.Default;
+				obj = new EmoteResizerArgs();
 			}
 			else if (!args.TryCreateObject(new object[] { 5, new Percentage(30) }, out obj, out var error))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-
-			var resp = await url.UseImageStreamAsync(Context, obj, async (f, s) =>
+			
+			using (var resp = await ImageUtils.ResizeImageAsync(url, Context, obj))
 			{
-				var options = new ModerationReason(Context.User, null).CreateRequestOptions();
-				await Context.Guild.CreateEmoteAsync(name, new Image(s), default, options).CAF();
-				s.Seek(0, SeekOrigin.Begin);
-				await Context.Channel.SendFileAsync(s, $"{name}.{f}", $"Successfully created the emote `{name}`.", false, options).CAF();
-			}).CAF();
-			if (resp != null)
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Failed to create the emote `{name}`. Reason: {resp}.")).CAF();
+				if (resp.IsSuccess)
+				{
+					var options = CreateRequestOptions();
+					var emote = await Context.Guild.CreateEmoteAsync(name, new Image(resp.Stream), default, options).CAF();
+					await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully created the emote {emote}.");
+					return;
+				}
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Failed to create the emote `{name}`. Reason: {resp.Error}.")).CAF();
 			}
 		}
-		[Command(nameof(Delete)), ShortAlias(nameof(Delete))]
-		public async Task Delete(GuildEmote emote)
+	}
+
+	[Group(nameof(DeleteEmote)), TopLevelShortAlias(typeof(DeleteEmote))]
+	[Summary("Deletes the supplied emote from the guild.")]
+	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
+	[DefaultEnabled(true)]
+	public sealed class DeleteEmote : NonSavingModuleBase
+	{
+		[Command]
+		public async Task Command(GuildEmote emote)
 		{
-			await Context.Guild.DeleteEmoteAsync(emote, new ModerationReason(Context.User, null).CreateRequestOptions()).CAF();
+			await Context.Guild.DeleteEmoteAsync(emote, CreateRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the emote `{emote.Name}`.");
+		}
+	}
+
+	[Group(nameof(ModifyEmoteName)), TopLevelShortAlias(typeof(ModifyEmoteName))]
+	[Summary("Changes the name of the supplied emote.")]
+	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
+	[DefaultEnabled(true)]
+	public sealed class ModifyEmoteName : NonSavingModuleBase
+	{
+		[Command]
+		public async Task Command(GuildEmote emote, [Remainder] string newName)
+		{
+			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = newName, CreateRequestOptions()).CAF();
+		}
+	}
+
+	[Group(nameof(DisplayEmotes)), TopLevelShortAlias(typeof(DisplayEmotes))]
+	[Summary("Lists the emotes in the guild.")]
+	[OtherRequirement(Precondition.GenericPerms)]
+	[DefaultEnabled(true)]
+	public sealed class DisplayEmotes : NonSavingModuleBase
+	{
+		[Command(nameof(Managed)), ShortAlias(nameof(Managed))]
+		public async Task Managed()
+		{
+			await CommandRunner(Context.Guild.Emotes.Where(x => x.IsManaged).ToList()).CAF();
+		}
+		[Command(nameof(Local)), ShortAlias(nameof(Local))]
+		public async Task Local()
+		{
+			await CommandRunner(Context.Guild.Emotes.Where(x => !x.IsManaged).ToList()).CAF();
+		}
+
+		private async Task CommandRunner(List<GuildEmote> emotes)
+		{
+			var embed = new EmbedWrapper
+			{
+				Title = "Emotes",
+				Description = emotes.Any()
+					? emotes.FormatNumberedList(x => $"<:{x.Name}:{x.Id}> `{x.Name}`")
+					: $"This guild has no guild emotes.",
+			};
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 }
