@@ -6,7 +6,7 @@ namespace Advobot.Core.Classes.CloseWords
 	/// Holds an object which has a name and text and its closeness.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public struct CloseWord<T> where T : IDescription
+	public struct CloseWord<T>
 	{
 		public T Word { get; }
 		public int Closeness { get; }

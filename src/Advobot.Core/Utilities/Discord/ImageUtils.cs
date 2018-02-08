@@ -15,8 +15,8 @@ namespace Advobot.Core.Utilities
 {
 	public static class ImageUtils
 	{
-		public const long MaxDownloadLengthInBytes = 10000000;
-		public static readonly string FfmpegLocation = FindFfmpeg();
+		private static readonly string FfmpegLocation = FindFfmpeg();
+		private const long MaxDownloadLengthInBytes = 10000000;
 
 		/// <summary>
 		/// Uses the image stream for <paramref name="callback"/>. Returns null if successful, returns an error string otherwise.

@@ -6,9 +6,11 @@ using Discord;
 using Discord.Commands;
 using ImageMagick;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Emotes
@@ -18,8 +20,11 @@ namespace Advobot.Commands.Emotes
 		"Requires either an emote to copy, or the name and file to make an emote out of.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
+	[Queue(1)]
 	public sealed class CreateEmote : NonSavingModuleBase
 	{
+		private static Dictionary<ulong, bool> _WorkingDictionary = new Dictionary<ulong, bool>();
+
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(Emote emote)
 		{
@@ -27,7 +32,7 @@ namespace Advobot.Commands.Emotes
 		}
 		//TODO: implement a queue for these commands, since they use high memory and download
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(string name, Uri url, [Optional, Remainder] NamedArguments<EmoteResizerArgs> args)
+		public async Task Command([VerifyStringLength(Target.Emote)] string name, Uri url, [Optional, Remainder] NamedArguments<EmoteResizerArgs> args)
 		{
 			EmoteResizerArgs obj;
 			if (args == null)
@@ -39,7 +44,13 @@ namespace Advobot.Commands.Emotes
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-			
+			if (_WorkingDictionary.TryGetValue(Context.Guild.Id, out var isWorking) && isWorking)
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on creating an emote."));
+				return;
+			}
+
+			_WorkingDictionary[Context.Guild.Id] = true;
 			using (var resp = await ImageUtils.ResizeImageAsync(url, Context, obj))
 			{
 				if (resp.IsSuccess)
@@ -50,6 +61,7 @@ namespace Advobot.Commands.Emotes
 				}
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Failed to create the emote `{name}`. Reason: {resp.Error}.")).CAF();
 			}
+			_WorkingDictionary[Context.Guild.Id] = false;
 		}
 	}
 
@@ -74,7 +86,7 @@ namespace Advobot.Commands.Emotes
 	public sealed class ModifyEmoteName : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command(GuildEmote emote, [Remainder] string newName)
+		public async Task Command(GuildEmote emote, [VerifyStringLength(Target.Emote), Remainder] string newName)
 		{
 			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = newName, CreateRequestOptions()).CAF();
 		}

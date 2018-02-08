@@ -26,6 +26,7 @@ namespace Advobot.Core.Classes.Attributes
 			{ Target.Regex,        (1, 100,  "regex") },
 			{ Target.RuleCategory, (1, 250,  "rule category") },
 			{ Target.Rule,         (1, 150,  "rule") },
+			{ Target.Emote,        (2, 32,   "emote name") },
 		};
 
 		public int Min { get; }
@@ -47,7 +48,7 @@ namespace Advobot.Core.Classes.Attributes
 			}
 			else
 			{
-				throw new NotSupportedException($"{target.ToString()} doesn't have a min and max or error output.");
+				throw new NotSupportedException($"{target.ToString()} doesn't have a min and max and error output.");
 			}
 		}
 

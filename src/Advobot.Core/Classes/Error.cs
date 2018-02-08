@@ -1,12 +1,11 @@
-﻿using Advobot.Core.Interfaces;
-using System;
+﻿using System;
 
 namespace Advobot.Core.Classes
 {
 	/// <summary>
-	/// Wrapper for an error reason.
+	/// Describes the reason for an error.
 	/// </summary>
-	public struct Error : IError
+	public class Error
 	{
 		public string Reason { get; }
 

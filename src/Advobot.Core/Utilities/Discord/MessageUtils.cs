@@ -119,7 +119,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> SendErrorMessageAsync(AdvobotSocketCommandContext context, IError error, TimeSpan time = default)
+		public static async Task<RemovableMessage> SendErrorMessageAsync(AdvobotSocketCommandContext context, Error error, TimeSpan time = default)
 		{
 			return await SendErrorMessageAsync((SocketTextChannel)context.Channel, context.GuildSettings, context.Message, error, context.Timers, time).CAF();
 		}
@@ -133,7 +133,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> SendErrorMessageAsync(SocketTextChannel channel, IGuildSettings settings, IUserMessage message, IError error, ITimersService timers, TimeSpan time = default)
+		public static async Task<RemovableMessage> SendErrorMessageAsync(SocketTextChannel channel, IGuildSettings settings, IUserMessage message, Error error, ITimersService timers, TimeSpan time = default)
 		{
 			return settings.NonVerboseErrors ? default : await MakeAndDeleteSecondaryMessageAsync(channel, message, $"**ERROR:** {error.Reason}", timers, time).CAF();
 		}

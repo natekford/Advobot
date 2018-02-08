@@ -125,7 +125,7 @@ namespace Advobot.Core.Classes
 		/// </summary>
 		/// <param name="additionalArgs"></param>
 		/// <returns></returns>
-		public bool TryCreateObject(object[] additionalArgs, out T obj, out IError error)
+		public bool TryCreateObject(object[] additionalArgs, out T obj, out Error error)
 		{
 			var additionalArgsList = new List<object>(additionalArgs);
 			var parameters = _Constructor.GetParameters().Select(p => GetValueForParameter(p, additionalArgsList)).ToArray();
