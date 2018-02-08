@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Advobot.Core.Utilities;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using Advobot.Core.Utilities.Formatting;
 
 namespace Advobot.Core.Classes
 {

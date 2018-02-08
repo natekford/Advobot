@@ -26,7 +26,7 @@ namespace Advobot.Core.Classes.Settings
 			NumberOfRemoves = removes;
 			PunishmentTime = time;
 		}
-		public BannedPhrasePunishment(IRole role, int removes, int time) : this(PunishmentType.RoleMute, removes, time)
+		public BannedPhrasePunishment(SocketRole role, int removes, int time) : this(PunishmentType.RoleMute, removes, time)
 		{
 			RoleId = role.Id;
 		}

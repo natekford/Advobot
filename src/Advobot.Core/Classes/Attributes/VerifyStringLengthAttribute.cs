@@ -26,7 +26,6 @@ namespace Advobot.Core.Classes.Attributes
 			{ Target.Regex,        (1, 100,  "regex") },
 			{ Target.RuleCategory, (1, 250,  "rule category") },
 			{ Target.Rule,         (1, 150,  "rule") },
-			{ Target.Category,     (2, 100,  "category") }
 		};
 
 		public int Min { get; }

@@ -1,13 +1,12 @@
-﻿using System;
+﻿using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Discord;
+using Discord.WebSocket;
+using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Core.Classes.Punishments
 {
@@ -36,7 +35,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="options"></param>
 		/// <param name="days"></param>
 		/// <returns></returns>
-		public async Task BanAsync(IGuild guild, ulong userId, RequestOptions options, int days = 1)
+		public async Task BanAsync(SocketGuild guild, ulong userId, RequestOptions options, int days = 1)
 		{
 			await guild.AddBanAsync(userId, days, null, options).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
@@ -49,7 +48,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="userId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task SoftbanAsync(IGuild guild, ulong userId, RequestOptions options)
+		public async Task SoftbanAsync(SocketGuild guild, ulong userId, RequestOptions options)
 		{
 			await guild.AddBanAsync(userId, 1, null, options).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
@@ -62,7 +61,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task KickAsync(IGuildUser user, RequestOptions options)
+		public async Task KickAsync(SocketGuildUser user, RequestOptions options)
 		{
 			await user.KickAsync(null, options).CAF();
 			await After(PunishmentType.Kick, user?.Guild, user, options).CAF();
@@ -74,9 +73,9 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="role"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task RoleMuteAsync(IGuildUser user, IRole role, RequestOptions options)
+		public async Task RoleMuteAsync(SocketGuildUser user, IRole role, RequestOptions options)
 		{
-			await RoleUtils.GiveRolesAsync(user, new[] { role }, options).CAF();
+			await user.AddRoleAsync(role, options).CAF();
 			await After(PunishmentType.RoleMute, user?.Guild, user, options).CAF();
 		}
 		/// <summary>
@@ -85,7 +84,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task VoiceMuteAsync(IGuildUser user, RequestOptions options)
+		public async Task VoiceMuteAsync(SocketGuildUser user, RequestOptions options)
 		{
 			await user.ModifyAsync(x => x.Mute = true, options).CAF();
 			await After(PunishmentType.VoiceMute, user?.Guild, user, options).CAF();
@@ -96,7 +95,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task DeafenAsync(IGuildUser user, RequestOptions options)
+		public async Task DeafenAsync(SocketGuildUser user, RequestOptions options)
 		{
 			await user.ModifyAsync(x => x.Deaf = true, options).CAF();
 			await After(PunishmentType.Deafen, user?.Guild, user, options).CAF();
@@ -109,9 +108,9 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="role"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(PunishmentType type, IGuildUser user, IRole role, RequestOptions options)
+		public async Task PunishAsync(PunishmentType type, SocketGuildUser user, SocketRole role, RequestOptions options)
 		{
-			if (!(user.Guild is SocketGuild guild && guild.GetBot() is SocketGuildUser bot && bot.HasHigherPosition(user)))
+			if (!(user.Guild is SocketGuild guild && guild.CurrentUser is SocketGuildUser bot && bot.HasHigherPosition(user)))
 			{
 				return;
 			}

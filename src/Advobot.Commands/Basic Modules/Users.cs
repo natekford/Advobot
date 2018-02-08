@@ -5,7 +5,6 @@ using Advobot.Core.Classes.Settings;
 using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -44,11 +43,11 @@ namespace Advobot.Commands.Users
 		[Command]
 		public async Task Command(SocketGuildUser user, [Optional] uint time, [Optional, Remainder] string reason)
 		{
-			var muteRole = Context.GuildSettings.MuteRole;
+			IRole muteRole = Context.Guild.GetRole(Context.GuildSettings.MuteRoleId);
 			if (!muteRole.Verify(Context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
 			{
 				muteRole = await Context.Guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0)).CAF();
-				Context.GuildSettings.MuteRole = muteRole;
+				Context.GuildSettings.MuteRoleId = muteRole.Id;
 				Context.GuildSettings.SaveSettings();
 			}
 
@@ -136,7 +135,7 @@ namespace Advobot.Commands.Users
 	public sealed class MoveUser : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command(SocketGuildUser user, [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel channel)
+		public async Task Command(SocketGuildUser user, [VerifyObject(false, ObjectVerification.CanMoveUsers)] SocketVoiceChannel channel)
 		{
 			if (user.VoiceChannel == null)
 			{
@@ -149,7 +148,7 @@ namespace Advobot.Commands.Users
 				return;
 			}
 
-			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), CreateRequestOptions()).CAF();
+			await user.ModifyAsync(x => x.Channel = Optional.Create((IVoiceChannel)channel), CreateRequestOptions()).CAF();
 			var resp = $"Successfully moved `{user.Format()}` to `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -164,11 +163,11 @@ namespace Advobot.Commands.Users
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
-			[VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel inputChannel,
-			[VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
+			[VerifyObject(false, ObjectVerification.CanMoveUsers)] SocketVoiceChannel inputChannel,
+			[VerifyObject(false, ObjectVerification.CanMoveUsers)] SocketVoiceChannel outputChannel,
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await inputChannel.GetUsersAsync().FlattenAsync().CAF()).Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
+			var users = inputChannel.Users.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await new MultiUserAction(Context, Context.Timers, users).MoveUsersAsync(outputChannel, CreateRequestOptions()).CAF();
 		}
 	}
@@ -297,7 +296,7 @@ namespace Advobot.Commands.Users
 	public sealed class Kick : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketGuildUser user, [Optional, Remainder] string reason)
 		{
 			var giver = new PunishmentGiver(0, Context.Timers);
 			await giver.KickAsync(user, CreateRequestOptions(reason)).CAF();
@@ -336,20 +335,20 @@ namespace Advobot.Commands.Users
 		public async Task Command(
 			uint requestCount, 
 			[Optional] IGuildUser user,
-			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel)
+			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] SocketTextChannel channel)
 		{
-			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
+			await CommandRunner((int)requestCount, user, channel ?? (SocketTextChannel)Context.Channel).CAF();
 		}
 		[Command]
 		public async Task Command(
 			uint requestCount,
-			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel, 
+			[Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] SocketTextChannel channel, 
 			[Optional] IGuildUser user)
 		{
-			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel).CAF();
+			await CommandRunner((int)requestCount, user, channel ?? (SocketTextChannel)Context.Channel).CAF();
 		}
 
-		private async Task CommandRunner(int requestCount, IUser user, ITextChannel channel)
+		private async Task CommandRunner(int requestCount, IUser user, SocketTextChannel channel)
 		{
 			/* I don't know if anyone actually cares about this. 
 			 * If someone ever does I guess I can uncomment it or make it a setting.
@@ -380,7 +379,7 @@ namespace Advobot.Commands.Users
 				deletedAmt++;
 			}
 
-			var response = $"Successfully deleted `{deletedAmt}` message{GeneralFormatting.FormatPlural(deletedAmt)}";
+			var response = $"Successfully deleted `{deletedAmt}` message{Formatting.FormatPlural(deletedAmt)}";
 			var userResp = user != null ? $" from `{user.Format()}`" : null;
 			var chanResp = $" on `{channel.Format()}`";
 			var resp = $"{new[] { response, userResp, chanResp }.JoinNonNullStrings(" ")}.";
@@ -398,7 +397,7 @@ namespace Advobot.Commands.Users
 	public sealed class ModifySlowmode : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
-		public async Task Create([VerifyNumber(1, 5)] uint messages, [VerifyNumber(1, 30)] uint interval, [Optional] params IRole[] immuneRoles)
+		public async Task Create([VerifyNumber(1, 5)] uint messages, [VerifyNumber(1, 30)] uint interval, [Optional] params SocketRole[] immuneRoles)
 		{
 			Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
 			var resp = $"Successfully setup slowmode.\n{Context.GuildSettings.Slowmode}";
@@ -443,7 +442,7 @@ namespace Advobot.Commands.Users
 		[Command(nameof(GiveRole)), ShortAlias(nameof(GiveRole))]
 		public async Task GiveRole(
 			SocketRole targetRole,
-			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone, ObjectVerification.IsManaged)] IRole givenRole,
+			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone, ObjectVerification.IsManaged)] SocketRole givenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			if (targetRole.Id == givenRole.Id)
@@ -457,14 +456,14 @@ namespace Advobot.Commands.Users
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
 		public async Task TakeRole(
 			SocketRole targetRole,
-			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone, ObjectVerification.IsManaged)] IRole takenRole,
+			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone, ObjectVerification.IsManaged)] SocketRole takenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			await Use(targetRole, bypass, async (m) => await m.TakeRolesAsync(takenRole, CreateRequestOptions()).CAF());
 		}
 		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
 		public async Task GiveNickname(
-			[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
+			[VerifyObject(false, ObjectVerification.CanBeEdited)] SocketRole targetRole,
 			[VerifyStringLength(Target.Nickname)] string nickname,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
@@ -472,16 +471,16 @@ namespace Advobot.Commands.Users
 		}
 		[Command(nameof(TakeNickname)), ShortAlias(nameof(TakeNickname))]
 		public async Task TakeNickname(
-			[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
+			[VerifyObject(false, ObjectVerification.CanBeEdited)] SocketRole targetRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			await Use(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(null, CreateRequestOptions()).CAF());
 		}
 
-		private async Task Use(IRole target, bool bypass, Func<MultiUserAction, Task> callback)
+		private async Task Use(SocketRole target, bool bypass, Func<MultiUserAction, Task> callback)
 		{
-			var users = (await Context.Guild.GetEditableUsersAsync(Context.User as IGuildUser).CAF())
-				   .Where(x => x.RoleIds.Contains(target.Id))
+			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser)
+				   .Where(x => x.Roles.Select(r => r.Id).Contains(target.Id))
 				   .Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
 			await callback(new MultiUserAction(Context, Context.Timers, users)).CAF();
 		}

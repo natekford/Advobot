@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Enums;
@@ -413,7 +412,7 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
-			Uptime.Text = $"Uptime: {TimeFormatting.GetUptime()}";
+			Uptime.Text = $"Uptime: {Formatting.GetUptime()}";
 			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientUtils.GetLatency(Client.HeldObject))}ms";
 			Memory.Text = $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB";
 			ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";

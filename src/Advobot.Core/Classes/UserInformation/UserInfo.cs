@@ -1,5 +1,5 @@
 ﻿using Advobot.Core.Interfaces;
-using Discord;
+using Discord.WebSocket;
 using System;
 
 namespace Advobot.Core.Classes.UserInformation
@@ -9,15 +9,15 @@ namespace Advobot.Core.Classes.UserInformation
 	/// </summary>
 	public abstract class UserInfo : ITime
 	{
-		public IGuildUser User { get; }
+		public SocketGuildUser User { get; }
 		public DateTime Time { get; protected set; }
 
-		public UserInfo(IGuildUser user)
+		public UserInfo(SocketGuildUser user)
 		{
 			User = user;
 			Time = DateTime.UtcNow;
 		}
-		public UserInfo(TimeSpan timeToAdd, IGuildUser user)
+		public UserInfo(TimeSpan timeToAdd, SocketGuildUser user)
 		{
 			User = user;
 			Time = DateTime.UtcNow.Add(timeToAdd);

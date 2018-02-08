@@ -1,14 +1,13 @@
-﻿using System.Collections.ObjectModel;
+﻿using Advobot.Core.Utilities;
+using Advobot.UILauncher.Enums;
+using Advobot.UILauncher.Interfaces;
+using Discord.WebSocket;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Advobot.UILauncher.Enums;
-using Advobot.UILauncher.Interfaces;
-using Discord.WebSocket;
 
 namespace Advobot.UILauncher.Classes.Controls
 {

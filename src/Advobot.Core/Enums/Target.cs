@@ -24,6 +24,5 @@ namespace Advobot.Core.Enums
 		Regex = (1U << 13),
 		RuleCategory = (1U << 14),
 		Rule = (1U << 15),
-		Category = (1U << 16)
 	}
 }

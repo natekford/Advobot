@@ -4,7 +4,6 @@ using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -210,8 +209,8 @@ namespace Advobot.Commands.Misc
 	[DefaultEnabled(true)]
 	public sealed class Test : NonSavingModuleBase
 	{
-		[Command(RunMode = RunMode.Async)]
-		public async Task Command(Uri imageUrl)
+		[Command]
+		public async Task Command()
 		{
 			await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
 		}

@@ -34,7 +34,7 @@ namespace Advobot.Core.Classes.Settings
 		/// <param name="message"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings settings, IMessage message, ITimersService timers)
+		public async Task PunishAsync(IGuildSettings settings, SocketUserMessage message, ITimersService timers)
 		{
 			if (!(message.Author is SocketGuildUser user))
 			{
@@ -55,7 +55,7 @@ namespace Advobot.Core.Classes.Settings
 			}
 
 			var giver = new PunishmentGiver(punishment.PunishmentTime, timers);
-			var role = settings.Guild.GetRole(punishment.RoleId);
+			var role = user.Guild.GetRole(punishment.RoleId);
 			await giver.PunishAsync(Punishment, user, role, ClientUtils.CreateRequestOptions("banned phrase")).CAF();
 			bannedPhraseUser.ResetValue(Punishment);
 		}

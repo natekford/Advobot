@@ -1,7 +1,7 @@
-﻿using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities.Formatting;
+﻿using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,7 +39,7 @@ namespace Advobot.Core.Classes.Attributes
 
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (!(context is IAdvobotCommandContext advobotCommandContext && context.User is IGuildUser user))
+			if (!(context is AdvobotSocketCommandContext advobotCommandContext && context.User is SocketGuildUser user))
 			{
 				return Task.FromResult(PreconditionResult.FromError((string)null));
 			}

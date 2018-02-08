@@ -25,13 +25,13 @@ namespace Advobot.Core.Services.Log.Loggers
 
 			if (!TryGetSettings(user, out var settings)
 				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
-				|| !(settings.ServerLog is ITextChannel serverLog))
+				|| settings.ServerLogId == 0)
 			{
 				return;
 			}
 
 			var invite = "";
-			var inviteUserJoinedOn = await InviteUtils.GetInviteUserJoinedOnAsync(settings, user).CAF();
+			var inviteUserJoinedOn = await DiscordUtils.GetInviteUserJoinedOnAsync(settings, user).CAF();
 			if (inviteUserJoinedOn != null)
 			{
 				invite = $"**Invite:** {inviteUserJoinedOn.Code}";
@@ -51,7 +51,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			};
 			embed.TryAddAuthor(user, out _);
 			embed.TryAddFooter(user.IsBot ? "Bot Joined" : "User Joined", null, out _);
-			await MessageUtils.SendEmbedMessageAsync(serverLog, embed).CAF();
+			await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), embed).CAF();
 		}
 		/// <summary>
 		/// Does nothing if the bot is the user, logs their leave to the server log, or says the goodbye message.
@@ -65,7 +65,7 @@ namespace Advobot.Core.Services.Log.Loggers
 
 			if (!TryGetSettings(user, out var settings)
 				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
-				|| !(settings.ServerLog is ITextChannel serverLog))
+				|| settings.ServerLogId == 0)
 			{
 				return;
 			}
@@ -84,7 +84,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			};
 			embed.TryAddAuthor(user, out _);
 			embed.TryAddFooter(user.IsBot ? "Bot Left" : "User Left", null, out _);
-			await MessageUtils.SendEmbedMessageAsync(serverLog, embed).CAF();
+			await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), embed).CAF();
 		}
 		/// <summary>
 		/// Logs their name change to every server that has OnUserUpdated enabled.
@@ -99,12 +99,12 @@ namespace Advobot.Core.Services.Log.Loggers
 				return;
 			}
 
-			var guilds = await Client.GetGuildsAsync().CAF();
-			var guildsContainingUser = guilds.Where(g => ((SocketGuild)g).Users.Select(u => u.Id).Contains(afterUser.Id));
+			var guilds = (await Client.GetGuildsAsync().CAF()).Cast<SocketGuild>();
+			var guildsContainingUser = guilds.Where(g => g.Users.Select(u => u.Id).Contains(afterUser.Id));
 			foreach (var guild in guildsContainingUser)
 			{
 				Logging.UserChanges.Increment();
-				if (!TryGetSettings(guild, out var settings) || !(settings.ServerLog is ITextChannel serverLog))
+				if (!TryGetSettings(guild, out var settings) || settings.ServerLogId == 0)
 				{
 					continue;
 				}
@@ -117,7 +117,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				embed.TryAddField("Before:", $"`{beforeUser.Username}`", false, out _);
 				embed.TryAddField("After:", $"`{afterUser.Username}`", false, out _);
 				embed.TryAddFooter("Name Changed", null, out _);
-				await MessageUtils.SendEmbedMessageAsync(serverLog, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(guild.GetTextChannel(settings.ServerLogId), embed).CAF();
 			}
 		}
 	}

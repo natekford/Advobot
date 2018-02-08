@@ -1,19 +1,163 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using Advobot.Core.Classes;
+﻿using Advobot.Core.Classes;
 using Advobot.Core.Interfaces;
 using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
 
-namespace Advobot.Core.Utilities.Formatting
+namespace Advobot.Core.Utilities
 {
 	/// <summary>
 	/// Formatting for information about Discord objects.
 	/// </summary>
-	public static class InfoFormatting
+	public static class DiscordFormatting
 	{
+		/// <summary>
+		/// Returns a string with the object's name and id.
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		public static string Format(this ISnowflakeEntity obj)
+		{
+			switch (obj)
+			{
+				case IUser user:
+					return user.Format();
+				case IChannel channel:
+					return channel.Format();
+				case IRole role:
+					return role.Format();
+				case IGuild guild:
+					return guild.Format();
+				case IActivity activity:
+					return activity.Format();
+				default:
+					return obj?.ToString();
+			}
+		}
+		/// <summary>
+		/// Returns a string with the user's name, discriminator and id.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public static string Format(this IUser user)
+		{
+			return user != null ? $"'{user.Username.EscapeBackTicks()}#{user.Discriminator}' ({user.Id})" : "Irretrievable User";
+		}
+		/// <summary>
+		/// Returns a string with the role's name and id.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <returns></returns>
+		public static string Format(this IRole role)
+		{
+			return role != null ? $"'{role.Name.EscapeBackTicks()}' ({role.Id})" : "Irretrievable Role";
+		}
+		/// <summary>
+		/// Returns a string with the channel's name and id.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <returns></returns>
+		public static string Format(this IChannel channel)
+		{
+			string type;
+			switch (channel)
+			{
+				case IMessageChannel message:
+					type = "text";
+					break;
+				case IVoiceChannel voice:
+					type = "voice";
+					break;
+				case ICategoryChannel category:
+					type = "category";
+					break;
+				default:
+					type = "unknown";
+					break;
+			}
+			return channel != null ? $"'{channel.Name.EscapeBackTicks()}' ({type}) ({channel.Id})" : "Irretrievable Channel";
+		}
+		/// <summary>
+		/// Returns a string with the guild's name and id.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
+		public static string Format(this IGuild guild)
+		{
+			return guild != null ? $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})" : "Irretrievable Guild";
+		}
+		/// <summary>
+		/// Returns a string with the messages content, embeds, and attachments listed.
+		/// </summary>
+		/// <param name="msg"></param>
+		/// <param name="withMentions"></param>
+		/// <returns></returns>
+		public static string Format(this IMessage msg, bool withMentions)
+		{
+			var embeds = msg.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue).Select((x, index) =>
+			{
+				var embed = new StringBuilder($"Embed {index + 1}: {x.Description ?? "No description"}");
+				if (x.Url != null)
+				{
+					embed.Append($" URL: {x.Url}");
+				}
+				if (x.Image.HasValue)
+				{
+					embed.Append($" IURL: {x.Image.Value.Url}");
+				}
+				return embed.ToString();
+			});
+			var attachments = msg.Attachments.Select(x => x.Filename).ToList();
+
+			var text = String.IsNullOrEmpty(msg.Content) ? "Empty message content" : msg.Content;
+			var time = msg.CreatedAt.ToString("HH:mm:ss");
+
+			string header;
+			if (withMentions)
+			{
+				var userMention = msg.Author.Mention;
+				var channelMention = ((ITextChannel)msg.Channel).Mention;
+				header = $"`[{time}]` {userMention} IN {channelMention} `{msg.Id}`";
+			}
+			else
+			{
+				var user = msg.Author.Format();
+				var channel = msg.Channel.Format();
+				header = $"`[{time}]` `{user}` IN `{channel}` `{msg.Id}`";
+			}
+
+			var content = new StringBuilder($"{header}\n```\n{text.EscapeBackTicks()}");
+			foreach (var embed in embeds)
+			{
+				content.AppendLineFeed(embed.EscapeBackTicks());
+			}
+			if (attachments.Any())
+			{
+				content.AppendLineFeed($" + {String.Join(" + ", attachments).EscapeBackTicks()}");
+			}
+			return content.Append("```").ToString();
+		}
+		/// <summary>
+		/// Returns the game's name or stream name/url.
+		/// </summary>
+		/// <param name="presence"></param>
+		/// <returns></returns>
+		public static string Format(this IActivity activity)
+		{
+			switch (activity)
+			{
+				case StreamingGame sg:
+					return $"**Current Stream:** [{sg.Name.EscapeBackTicks()}]({sg.Url})";
+				case Game g:
+					return $"**Current Game:** `{g.Name.EscapeBackTicks()}`";
+				default:
+					return "**Current Activity:** `N/A`";
+			}
+		}
+
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a user on a guild.
 		/// </summary>
@@ -130,12 +274,13 @@ namespace Advobot.Core.Utilities.Formatting
 			var embed = new EmbedWrapper
 			{
 				Description = channel.FormatInfo() +
+					$"**Position:** `{channel.Position}`\n" +
 					$"**Is Ignored From Log:** `{guildSettings.IgnoredLogChannels.Contains(channel.Id)}`\n" +
 					$"**Is Ignored From Commands:** `{guildSettings.IgnoredCommandChannels.Contains(channel.Id)}`\n" +
 					$"**Is Image Only:** `{guildSettings.ImageOnlyChannels.Contains(channel.Id)}`\n" +
-					$"**Is Serverlog:** `{guildSettings.ServerLog?.Id == channel.Id}`\n" +
-					$"**Is Modlog:** `{guildSettings.ModLog?.Id == channel.Id}`\n" +
-					$"**Is Imagelog:** `{guildSettings.ImageLog?.Id == channel.Id}`\n\n" +
+					$"**Is Serverlog:** `{guildSettings.ServerLogId == channel.Id}`\n" +
+					$"**Is Modlog:** `{guildSettings.ModLogId == channel.Id}`\n" +
+					$"**Is Imagelog:** `{guildSettings.ImageLogId == channel.Id}`\n\n" +
 					$"**User Count:** `{channel.Users.Count}`\n" +
 					$"**Overwrites:** `{String.Join("`, `", overwriteNames)}`",
 			};
@@ -195,7 +340,7 @@ namespace Advobot.Core.Utilities.Formatting
 						$"`{guild.VoiceChannels.Count}` voice, " +
 						$"`{guild.CategoryChannels.Count}` categories)\n" +
 					$"**AFK Channel:** `{guild.AFKChannel.Format()}` " +
-						$"(`{guild.AFKTimeout / 60}` minute{GeneralFormatting.FormatPlural(guild.AFKTimeout / 60)})",
+						$"(`{guild.AFKTimeout / 60}` minute{Formatting.FormatPlural(guild.AFKTimeout / 60)})",
 				Color = guild.Owner.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).LastOrDefault(x => x.Color.RawValue != 0)?.Color,
 				ThumbnailUrl = guild.IconUrl
 			};
@@ -249,7 +394,7 @@ namespace Advobot.Core.Utilities.Formatting
 		{
 			var embed = new EmbedWrapper
 			{
-				Description = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.ToReadable()}` (`{TimeFormatting.GetUptime()}`)\n" +
+				Description = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.ToReadable()}` (`{Formatting.GetUptime()}`)\n" +
 					$"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`\n" +
 					$"**Current Shard:** `{ClientUtils.GetShardIdFor(client, guild)}`\n" +
 					$"**Latency:** `{ClientUtils.GetLatency(client)}ms`\n" +

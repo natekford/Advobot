@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Text;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities.Formatting;
+﻿using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Advobot.Core.Classes.Rules
 {

@@ -2,9 +2,9 @@
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -56,14 +56,15 @@ namespace Advobot.Commands.Invites
 	public sealed class CreateInvite : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(true, ObjectVerification.CanCreateInstantInvite)] IGuildChannel channel,
+		public async Task Command(
+			[VerifyObject(true, ObjectVerification.CanCreateInstantInvite)] SocketGuildChannel channel,
 			[Optional, VerifyNumber(new[] { 0, 1800, 3600, 21600, 43200, 86400 })] int time,
 			[Optional, VerifyNumber(new[] { 0, 1, 5, 10, 25, 50, 100 })] int uses,
 			[Optional] bool tempMem)
 		{
 			var nullableTime = time != 0 ? time as int? : 86400;
 			var nullableUses = uses != 0 ? uses as int? : null;
-			var inv = await InviteUtils.CreateInviteAsync(channel, nullableTime, nullableUses, tempMem, false, CreateRequestOptions()).CAF();
+			var inv = await channel.CreateInviteAsync(nullableTime, nullableUses, tempMem, false, CreateRequestOptions()).CAF();
 
 			var timeOutputStr = uses != 0
 				? $"It will last for this amount of time: `{nullableTime}`."
@@ -89,7 +90,7 @@ namespace Advobot.Commands.Invites
 		[Command]
 		public async Task Command(IInvite invite)
 		{
-			await InviteUtils.DeleteInviteAsync(invite, CreateRequestOptions()).CAF();
+			await invite.DeleteAsync(CreateRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the invite `{invite.Code}`.").CAF();
 		}
 	}
@@ -119,7 +120,7 @@ namespace Advobot.Commands.Invites
 
 			foreach (var invite in invites)
 			{
-				await InviteUtils.DeleteInviteAsync(invite, CreateRequestOptions()).CAF();
+				await invite.DeleteAsync(CreateRequestOptions()).CAF();
 			}
 
 			var resp = $"Successfully deleted `{invites.Count()}` instant invites.";

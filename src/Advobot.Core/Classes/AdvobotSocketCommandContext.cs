@@ -10,7 +10,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// A <see cref="SocketCommandContext"/> which contains <see cref="IBotSettings"/>, <see cref="IGuildSettings"/>, <see cref="ILogService"/>, and <see cref="ITimersService"/>.
 	/// </summary>
-	public class AdvobotSocketCommandContext : SocketCommandContext, IAdvobotCommandContext
+	public class AdvobotSocketCommandContext : SocketCommandContext
 	{
 		public IBotSettings BotSettings { get; }
 		public ILogService Logging { get; }

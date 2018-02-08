@@ -1,13 +1,12 @@
-﻿using System;
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Discord;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Enums;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
-using Discord;
 
 namespace Advobot.Core.Classes.Rules
 {

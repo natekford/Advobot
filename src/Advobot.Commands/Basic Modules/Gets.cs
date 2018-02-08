@@ -2,7 +2,6 @@
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -24,25 +23,25 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
 		public async Task Bot()
 		{
-			var embed = InfoFormatting.FormatBotInfo(Context.Client, Context.Logging, Context.Guild);
+			var embed = DiscordFormatting.FormatBotInfo(Context.Client, Context.Logging, Context.Guild);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
 		{
-			var embed = InfoFormatting.FormatGuildInfo(Context.Guild as SocketGuild);
+			var embed = DiscordFormatting.FormatGuildInfo(Context.Guild as SocketGuild);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel(SocketGuildChannel channel)
 		{
-			var embed = InfoFormatting.FormatChannelInfo(Context.GuildSettings, channel);
+			var embed = DiscordFormatting.FormatChannelInfo(Context.GuildSettings, channel);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
 		public async Task Role(SocketRole role)
 		{
-			var embed = InfoFormatting.FormatRoleInfo(role);
+			var embed = DiscordFormatting.FormatRoleInfo(role);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(User)), ShortAlias(nameof(User))]
@@ -50,25 +49,25 @@ namespace Advobot.Commands.Gets
 		{
 			if (user is SocketGuildUser guildUser)
 			{
-				var embed = InfoFormatting.FormatUserInfo(guildUser);
+				var embed = DiscordFormatting.FormatUserInfo(guildUser);
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else
 			{
-				var embed = InfoFormatting.FormatUserInfo(user);
+				var embed = DiscordFormatting.FormatUserInfo(user);
 				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
 		public async Task Emote(Emote emote)
 		{
-			var embed = InfoFormatting.FormatEmoteInfo(emote);
+			var embed = DiscordFormatting.FormatEmoteInfo(emote);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Invite)), ShortAlias(nameof(Invite))]
 		public async Task Invite(IInvite invite)
 		{
-			var embed = InfoFormatting.FormatInviteInfo(invite as IInviteMetadata);
+			var embed = DiscordFormatting.FormatInviteInfo(invite as IInviteMetadata);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
@@ -83,7 +82,7 @@ namespace Advobot.Commands.Gets
 	public sealed class GetUsersWithReason : NonSavingModuleBase
 	{
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
-		public async Task Role(IRole role, params SearchOptions[] additionalSearchOptions)
+		public async Task Role(SocketRole role, params SearchOptions[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Role, role, additionalSearchOptions).CAF();
 		}
@@ -189,7 +188,7 @@ namespace Advobot.Commands.Gets
 		[Command]
 		public async Task Command(uint position)
 		{
-			var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).ToArray();
+			var users = Context.Guild.GetUsersByJoinDate().ToArray();
 			var newPos = Math.Min((int)position, users.Length);
 			var user = users[newPos - 1];
 			var time = user.JoinedAt?.UtcDateTime.ToReadable();
@@ -241,7 +240,7 @@ namespace Advobot.Commands.Gets
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
 		{
-			var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).ToArray();
+			var users = Context.Guild.GetUsersByJoinDate().ToArray();
 			var text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.ToReadable()}`");
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "User_Joins_").CAF();
 		}
@@ -255,9 +254,9 @@ namespace Advobot.Commands.Gets
 	public sealed class GetMessages : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(int number, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] ITextChannel channel)
+		public async Task Command(int number, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] SocketTextChannel channel)
 		{
-			channel = channel ?? Context.Channel as ITextChannel;
+			channel = channel ?? (SocketTextChannel)Context.Channel;
 			var messages = await MessageUtils.GetMessagesAsync(channel, Math.Min(number, 1000)).CAF();
 			var m = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();
 

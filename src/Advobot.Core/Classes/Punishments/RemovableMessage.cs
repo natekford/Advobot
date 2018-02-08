@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Linq;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord;
+using Discord.WebSocket;
+using System;
+using System.Collections.Immutable;
 
 namespace Advobot.Core.Classes.Punishments
 {
@@ -11,14 +11,14 @@ namespace Advobot.Core.Classes.Punishments
 	/// </summary>
 	public struct RemovableMessage : ITime
 	{
-		public ImmutableList<IMessage> Messages { get; }
-		public ITextChannel Channel { get; }
+		public ImmutableList<IUserMessage> Messages { get; }
+		public SocketTextChannel Channel { get; }
 		public DateTime Time { get; }
 
-		public RemovableMessage(TimeSpan time, params IMessage[] messages)
+		public RemovableMessage(TimeSpan time, SocketTextChannel channel, params IUserMessage[] messages)
 		{
 			Messages = messages.ToImmutableList();
-			Channel = messages.FirstOrDefault().Channel as ITextChannel;
+			Channel = channel;
 			Time = DateTime.UtcNow.Add(time);
 		}
 	}

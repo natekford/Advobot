@@ -1,10 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
+﻿using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -36,7 +35,7 @@ namespace Advobot.Core.Classes.TypeReaders
 			}
 
 			var perms = invalidPerms.ToList();
-			var str = $"Invalid permission{GeneralFormatting.FormatPlural(perms.Count)} provided: `{String.Join("`, `", perms)}`.";
+			var str = $"Invalid permission{Formatting.FormatPlural(perms.Count)} provided: `{String.Join("`, `", perms)}`.";
 			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, str));
 		}
 	}

@@ -127,7 +127,7 @@ namespace Advobot.Commands.SpamPrevention
 			if (raidType == RaidType.Regular)
 			{
 				//Mute the newest joining users
-				var users = (await Context.Guild.GetUsersByJoinDateAsync().CAF()).Reverse().ToArray();
+				var users = Context.Guild.GetUsersByJoinDate().Reverse().ToArray();
 				for (var i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
 				{
 					await raidPrev.PunishAsync(Context.GuildSettings, users[i]).CAF();

@@ -1,7 +1,6 @@
 ﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using System.Linq;
 using System.Text;
@@ -38,7 +37,7 @@ namespace Advobot.Core.Classes.Punishments
 		/// <returns></returns>
 		public async Task UnrolemuteAsync(IGuildUser user, IRole role, RequestOptions options)
 		{
-			await RoleUtils.TakeRolesAsync(user, new[] { role }, options).CAF();
+			await user.RemoveRoleAsync(role, options).CAF();
 			await After(PunishmentType.RoleMute, user?.Guild, user, options).CAF();
 		}
 		/// <summary>

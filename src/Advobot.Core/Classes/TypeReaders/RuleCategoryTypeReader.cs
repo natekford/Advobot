@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Advobot.Core.Utilities;
+using Discord.Commands;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
-using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -21,7 +20,7 @@ namespace Advobot.Core.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			if (context is IAdvobotCommandContext advobotCommandContext)
+			if (context is AdvobotSocketCommandContext advobotCommandContext)
 			{
 				var command = advobotCommandContext.GuildSettings.Rules.Categories.SingleOrDefault(x => x.Name.CaseInsEquals(input));
 				if (command != null)

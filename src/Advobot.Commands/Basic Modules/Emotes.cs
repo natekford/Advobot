@@ -2,7 +2,6 @@
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using ImageMagick;
@@ -45,8 +44,7 @@ namespace Advobot.Commands.Emotes
 			{
 				if (resp.IsSuccess)
 				{
-					var options = CreateRequestOptions();
-					var emote = await Context.Guild.CreateEmoteAsync(name, new Image(resp.Stream), default, options).CAF();
+					var emote = await Context.Guild.CreateEmoteAsync(name, new Image(resp.Stream), default, CreateRequestOptions()).CAF();
 					await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully created the emote {emote}.");
 					return;
 				}

@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 

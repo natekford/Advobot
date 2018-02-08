@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Advobot.Core.Utilities.Formatting;
 
 namespace Advobot.Core.Utilities
 {

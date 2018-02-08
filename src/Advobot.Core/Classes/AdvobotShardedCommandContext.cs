@@ -9,7 +9,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// A mostly copied and pasted implementation to having a sharded versino of <see cref="AdvobotSocketCommandContext"/>.
 	/// </summary>
-	public class AdvobotShardedCommandContext : AdvobotSocketCommandContext, IAdvobotCommandContext
+	public class AdvobotShardedCommandContext : AdvobotSocketCommandContext, ICommandContext
 	{
 		public new DiscordShardedClient Client { get; }
 

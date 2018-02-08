@@ -2,7 +2,6 @@
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -112,7 +111,7 @@ namespace Advobot.Core.Classes
 				.Select(x => user.Guild.GetRole(x.RoleId)).Where(x => x != null).ToList();
 			if (roles.Any())
 			{
-				await RoleUtils.GiveRolesAsync(user, roles, ClientUtils.CreateRequestOptions("persistent roles")).CAF();
+				await user.AddRolesAsync(roles, ClientUtils.CreateRequestOptions("persistent roles")).CAF();
 			}
 			//Welcome message
 			if (settings.WelcomeMessage != null)
@@ -137,14 +136,13 @@ namespace Advobot.Core.Classes
 		}
 		private async Task OnMessageReceived(SocketMessage message)
 		{
-			var guild = message.GetGuild();
-			if (guild == null || _Timers == null || int.TryParse(message.Content, out var i) || i < 0 || i > 7 || !(message.Author is IGuildUser user))
+			if (!(message.Author is SocketGuildUser user) || _Timers == null || !int.TryParse(message.Content, out var i) || i < 0 || i > 7)
 			{
 				return;
 			}
 			--i;
 
-			var settings = await _GuildSettings.GetOrCreateAsync(guild);
+			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild);
 
 			var quotes = await _Timers.RemoveActiveCloseQuoteAsync(user).CAF();
 			var validQuotes = quotes != null && quotes.List.Count > i;
@@ -182,8 +180,10 @@ namespace Advobot.Core.Classes
 		private async Task HandleCommand(SocketMessage message)
 		{
 			//Bot isn't paused and the message isn't a system message
-			if (_BotSettings.Pause || !(message.Channel is IGuildChannel channel)
-				|| !(message is SocketUserMessage userMessage) || String.IsNullOrWhiteSpace(userMessage.Content))
+			if (_BotSettings.Pause
+				|| !(message.Channel is SocketGuildChannel channel)
+				|| !(message is SocketUserMessage userMessage)
+				|| String.IsNullOrWhiteSpace(userMessage.Content))
 			{
 				return;
 			}
@@ -204,7 +204,7 @@ namespace Advobot.Core.Classes
 				return;
 			}
 
-			IAdvobotCommandContext context;
+			AdvobotSocketCommandContext context;
 			switch (_Client)
 			{
 				case DiscordSocketClient socketClient:
@@ -227,7 +227,7 @@ namespace Advobot.Core.Classes
 				_Logging.SuccessfulCommands.Increment();
 				await MessageUtils.DeleteMessageAsync(context.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
 
-				if (settings.ModLog != null && !settings.IgnoredLogChannels.Contains(context.Channel.Id))
+				if (settings.ModLogId != 0 && !settings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
 					var embed = new EmbedWrapper
 					{
@@ -235,7 +235,7 @@ namespace Advobot.Core.Classes
 					};
 					embed.TryAddAuthor(context.User, out _);
 					embed.TryAddFooter("Mod Log", null, out _);
-					await MessageUtils.SendEmbedMessageAsync(settings.ModLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(channel.Guild.GetTextChannel(settings.ModLogId), embed).CAF();
 				}
 			}
 			else

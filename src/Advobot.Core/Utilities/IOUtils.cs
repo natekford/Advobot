@@ -1,5 +1,4 @@
 ﻿using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities.Formatting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;

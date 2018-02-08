@@ -2,9 +2,7 @@
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -28,12 +26,12 @@ namespace Advobot.Commands.SelfRoles
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(uint groupNumber)
 		{
-			await CommandRunner(Context, groupNumber).CAF();
+			await CommandRunner(groupNumber).CAF();
 		}
 		[Command(nameof(Delete)), ShortAlias(nameof(Delete))]
 		public async Task Delete(uint groupNumber)
 		{
-			await CommandRunner(Context, groupNumber).CAF();
+			await CommandRunner(groupNumber).CAF();
 		}
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(uint groupNumber, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
@@ -46,15 +44,15 @@ namespace Advobot.Commands.SelfRoles
 			await CommandRunner(groupNumber, roles).CAF();
 		}
 
-		private async Task CommandRunner(IAdvobotCommandContext context, uint groupNum, [CallerMemberName] string caller = "")
+		private async Task CommandRunner(uint groupNum, [CallerMemberName] string caller = "")
 		{
 			var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
 			switch (caller)
 			{
 				case nameof(Create):
-					if (selfAssignableGroups.Count >= context.BotSettings.MaxSelfAssignableRoleGroups)
+					if (selfAssignableGroups.Count >= Context.BotSettings.MaxSelfAssignableRoleGroups)
 					{
-						var error = new Error($"You have too many groups. {context.BotSettings.MaxSelfAssignableRoleGroups} is the maximum.");
+						var error = new Error($"You have too many groups. {Context.BotSettings.MaxSelfAssignableRoleGroups} is the maximum.");
 						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 						return;
 					}
@@ -172,7 +170,7 @@ namespace Advobot.Commands.SelfRoles
 			}
 			if (user.RoleIds.Contains(role.Id))
 			{
-				await RoleUtils.TakeRolesAsync(user, new[] { role }, CreateRequestOptions("self role removal")).CAF();
+				await user.AddRoleAsync(role, CreateRequestOptions("self role removal")).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed `{role.Format()}`.").CAF();
 				return;
 			}
@@ -184,12 +182,12 @@ namespace Advobot.Commands.SelfRoles
 				var otherRoles = user.RoleIds.Select(x => group.TryGetRole(x, out var temp) ? temp : null).Where(x => x != null).ToList();
 				if (otherRoles.Any())
 				{
-					await RoleUtils.TakeRolesAsync(user, otherRoles, CreateRequestOptions("self role removal")).CAF();
+					await user.RemoveRolesAsync(otherRoles, CreateRequestOptions("self role removal")).CAF();
 					removedRoles = $", and removed `{String.Join("`, `", otherRoles.Select(x => x.Format()))}`";
 				}
 			}
 
-			await RoleUtils.GiveRolesAsync(user, new[] { role }, CreateRequestOptions("self role giving")).CAF();
+			await user.AddRoleAsync(role, CreateRequestOptions("self role giving"));
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully gave `{role.Name}`{removedRoles}.").CAF();
 		}
 	}

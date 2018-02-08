@@ -54,25 +54,25 @@ namespace Advobot.Tests
 		[TestMethod]
 		public void FormatPlural_Test()
 		{
-			Assert.AreEqual("", GeneralFormatting.FormatPlural(1));
-			Assert.AreEqual("s", GeneralFormatting.FormatPlural(2));
+			Assert.AreEqual("", Formatting.FormatPlural(1));
+			Assert.AreEqual("s", Formatting.FormatPlural(2));
 
-			Assert.AreEqual("", GeneralFormatting.FormatPlural(1U));
-			Assert.AreEqual("s", GeneralFormatting.FormatPlural(2U));
+			Assert.AreEqual("", Formatting.FormatPlural(1U));
+			Assert.AreEqual("s", Formatting.FormatPlural(2U));
 
-			Assert.AreEqual("", GeneralFormatting.FormatPlural(1UL));
-			Assert.AreEqual("s", GeneralFormatting.FormatPlural(2UL));
+			Assert.AreEqual("", Formatting.FormatPlural(1UL));
+			Assert.AreEqual("s", Formatting.FormatPlural(2UL));
 
-			Assert.AreEqual("s", GeneralFormatting.FormatPlural(0.9d));
-			Assert.AreEqual("", GeneralFormatting.FormatPlural(1.0d));
-			Assert.AreEqual("s", GeneralFormatting.FormatPlural(2.0d));
+			Assert.AreEqual("s", Formatting.FormatPlural(0.9d));
+			Assert.AreEqual("", Formatting.FormatPlural(1.0d));
+			Assert.AreEqual("s", Formatting.FormatPlural(2.0d));
 
-			Assert.AreEqual("s", GeneralFormatting.FormatPlural(0.9f));
-			Assert.AreEqual("", GeneralFormatting.FormatPlural(1.0f));
-			Assert.AreEqual("s", GeneralFormatting.FormatPlural(2.0f));
+			Assert.AreEqual("s", Formatting.FormatPlural(0.9f));
+			Assert.AreEqual("", Formatting.FormatPlural(1.0f));
+			Assert.AreEqual("s", Formatting.FormatPlural(2.0f));
 
-			Assert.AreEqual("", GeneralFormatting.FormatPlural(0b01));
-			Assert.AreEqual("s", GeneralFormatting.FormatPlural(0b10));
+			Assert.AreEqual("", Formatting.FormatPlural(0b01));
+			Assert.AreEqual("s", Formatting.FormatPlural(0b10));
 		}
 	}
 }

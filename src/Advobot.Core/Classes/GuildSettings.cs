@@ -29,14 +29,6 @@ namespace Advobot.Core.Classes
 		private ListedInvite _ListedInvite = null;
 		[JsonProperty("Slowmode"), Setting(null)]
 		private Slowmode _Slowmode = null;
-		[JsonIgnore]
-		private ITextChannel _ServerLog;
-		[JsonIgnore]
-		private ITextChannel _ModLog;
-		[JsonIgnore]
-		private ITextChannel _ImageLog;
-		[JsonIgnore]
-		private IRole _MuteRole;
 		[JsonProperty("ServerLog"), Setting(0)]
 		private ulong _ServerLogId = 0;
 		[JsonProperty("ModLog"), Setting(0)]
@@ -126,50 +118,34 @@ namespace Advobot.Core.Classes
 			set => _Prefix = value;
 		}
 		[JsonIgnore]
+		public ulong ServerLogId
+		{
+			get => _ServerLogId;
+			set => _ServerLogId = value;
+		}
+		[JsonIgnore]
+		public ulong ModLogId
+		{
+			get => _ModLogId;
+			set => _ModLogId = value;
+		}
+		[JsonIgnore]
+		public ulong ImageLogId
+		{
+			get => _ImageLogId;
+			set => _ImageLogId = value;
+		}
+		[JsonIgnore]
+		public ulong MuteRoleId
+		{
+			get => _MuteRoleId;
+			set => _MuteRoleId = value;
+		}
+		[JsonIgnore]
 		public bool NonVerboseErrors
 		{
 			get => _NonVerboseErrors;
 			set => _NonVerboseErrors = value;
-		}
-		[JsonIgnore]
-		public ITextChannel ServerLog
-		{
-			get => _ServerLog ?? (_ServerLog = Guild.GetTextChannel(_ServerLogId));
-			set
-			{
-				_ServerLogId = value?.Id ?? 0;
-				_ServerLog = value;
-			}
-		}
-		[JsonIgnore]
-		public ITextChannel ModLog
-		{
-			get => _ModLog ?? (_ModLog = Guild.GetTextChannel(_ModLogId));
-			set
-			{
-				_ModLogId = value?.Id ?? 0;
-				_ModLog = value;
-			}
-		}
-		[JsonIgnore]
-		public ITextChannel ImageLog
-		{
-			get => _ImageLog ?? (_ImageLog = Guild.GetTextChannel(_ImageLogId));
-			set
-			{
-				_ImageLogId = value?.Id ?? 0;
-				_ImageLog = value;
-			}
-		}
-		[JsonIgnore]
-		public IRole MuteRole
-		{
-			get => _MuteRole ?? (_MuteRole = Guild.GetRole(_MuteRoleId));
-			set
-			{
-				_MuteRoleId = value?.Id ?? 0;
-				_MuteRole = value;
-			}
 		}
 		[JsonIgnore]
 		public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary => _SpamPrevention;
@@ -209,9 +185,9 @@ namespace Advobot.Core.Classes
 		[JsonIgnore]
 		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 		[JsonIgnore]
-		public SocketGuild Guild { get; private set; }
+		public override FileInfo FileLocation => IOUtils.GetServerDirectoryFile(GuildId, Constants.GUILD_SETTINGS_LOC);
 		[JsonIgnore]
-		public override FileInfo FileLocation => IOUtils.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOC);
+		public ulong GuildId { get; private set; }
 		[JsonIgnore]
 		public bool Loaded { get; private set; }
 
@@ -223,16 +199,16 @@ namespace Advobot.Core.Classes
 				throw new InvalidOperationException("The additional streaming context must be a socketguild when deserializing.");
 			}
 
-			Guild = guild;
+			GuildId = guild.Id;
 			Task.Run(async () =>
 			{
-				Invites.AddRange((await InviteUtils.GetInvitesAsync(Guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
+				Invites.AddRange((await DiscordUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
 			});
 			foreach (var group in _SelfAssignableGroups ?? Enumerable.Empty<SelfAssignableRoles>())
 			{
-				group.PostDeserialize(Guild);
+				group.PostDeserialize(guild);
 			}
-			_ListedInvite?.PostDeserialize(Guild);
+			_ListedInvite?.PostDeserialize(guild);
 
 			Loaded = true;
 		}

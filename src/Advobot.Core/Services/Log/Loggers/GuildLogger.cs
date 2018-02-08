@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord.WebSocket;
 using System;
 using System.Linq;

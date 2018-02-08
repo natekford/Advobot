@@ -2,7 +2,6 @@
 using Advobot.Core.Classes.UsageGeneration;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;

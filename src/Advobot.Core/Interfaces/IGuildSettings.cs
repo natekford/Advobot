@@ -2,7 +2,6 @@
 using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
-using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;
 
@@ -18,11 +17,11 @@ namespace Advobot.Core.Interfaces
 		GuildNotification GoodbyeMessage { get; set; }
 		ListedInvite ListedInvite { get; set; }
 		Slowmode Slowmode { get; set; }
-		ITextChannel ServerLog { get; set; }
-		ITextChannel ModLog { get; set; }
-		ITextChannel ImageLog { get; set; }
-		IRole MuteRole { get; set; }
 		string Prefix { get; set; }
+		ulong ServerLogId { get; set; }
+		ulong ModLogId { get; set; }
+		ulong ImageLogId { get; set; }
+		ulong MuteRoleId { get; set; }
 		bool NonVerboseErrors { get; set; }
 		Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; }
 		Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; }
@@ -45,7 +44,6 @@ namespace Advobot.Core.Interfaces
 		List<CachedInvite> Invites { get; }
 		List<string> EvaluatedRegex { get; }
 		MessageDeletion MessageDeletion { get; }
-		SocketGuild Guild { get; }
 		bool Loaded { get; }
 	}
 }

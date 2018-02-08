@@ -1,9 +1,8 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
+﻿using Advobot.Core.Utilities;
 using Advobot.UILauncher.Interfaces;
 using Advobot.UILauncher.Utilities;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes.Controls
 {

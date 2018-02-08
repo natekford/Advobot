@@ -1,8 +1,7 @@
 ﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
-using Discord.Commands;
+using Discord.WebSocket;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +18,11 @@ namespace Advobot.Core.Classes
 		private static ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new ConcurrentDictionary<ulong, CancellationTokenSource>();
 
 		private CancellationTokenSource _CancelToken;
-		private ICommandContext _Context;
+		private AdvobotSocketCommandContext _Context;
 		private ITimersService _Timers;
 		private List<IGuildUser> _Users;
 
-		public MultiUserAction(ICommandContext context, ITimersService timers, IEnumerable<IGuildUser> users)
+		public MultiUserAction(AdvobotSocketCommandContext context, ITimersService timers, IEnumerable<IGuildUser> users)
 		{
 			_CancelToken = new CancellationTokenSource();
 			_CancelTokens.AddOrUpdate(context.Guild.Id, _CancelToken, (oldKey, oldValue) =>
@@ -36,13 +35,13 @@ namespace Advobot.Core.Classes
 			_Users = users.ToList();
 		}
 
-		public async Task TakeRolesAsync(IRole role, RequestOptions options)
+		public async Task TakeRolesAsync(SocketRole role, RequestOptions options)
 		{
 			var presentTense = $"take the role `{role.Format()}` from";
 			var pastTense = $"took the role `{role.Format()} from";
 			await DoActionAsync(nameof(TakeRolesAsync), role, presentTense, pastTense, options).CAF();
 		}
-		public async Task GiveRolesAsync(IRole role, RequestOptions options)
+		public async Task GiveRolesAsync(SocketRole role, RequestOptions options)
 		{
 			var presentTense = $"give the role `{role.Format()}` to";
 			var pastTense = $"gave the role `{role.Format()} to";
@@ -54,7 +53,7 @@ namespace Advobot.Core.Classes
 			var pastTense = "nicknamed";
 			await DoActionAsync(nameof(ModifyNicknamesAsync), replace, presentTense, pastTense, options).CAF();
 		}
-		public async Task MoveUsersAsync(IVoiceChannel outputChannel, RequestOptions options)
+		public async Task MoveUsersAsync(SocketVoiceChannel outputChannel, RequestOptions options)
 		{
 			var presentTense = "move";
 			var pastTense = "moved";
@@ -89,16 +88,16 @@ namespace Advobot.Core.Classes
 					switch (action)
 					{
 						case nameof(GiveRolesAsync):
-							x.RoleIds = Optional.Create(x.RoleIds.Value.Concat(new[] { (obj as IRole).Id }).Distinct());
+							x.RoleIds = Optional.Create(x.RoleIds.Value.Concat(new[] { ((IRole)obj).Id }).Distinct());
 							return;
 						case nameof(TakeRolesAsync):
-							x.RoleIds = Optional.Create(x.RoleIds.Value.Except(new[] { (obj as IRole).Id }));
+							x.RoleIds = Optional.Create(x.RoleIds.Value.Except(new[] { ((IRole)obj).Id }));
 							return;
 						case nameof(ModifyNicknamesAsync):
 							x.Nickname = obj as string ?? user.Username;
 							return;
 						case nameof(MoveUsersAsync):
-							x.Channel = Optional.Create(obj as IVoiceChannel);
+							x.Channel = Optional.Create((IVoiceChannel)obj);
 							return;
 					}
 				}, options);
@@ -106,7 +105,7 @@ namespace Advobot.Core.Classes
 
 			await MessageUtils.DeleteMessageAsync(msg, options).CAF();
 			var response = $"Successfully {pastTense} `{successCount}` users.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(_Timers, _Context.Channel, _Context.Message, response).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)_Context.Channel, _Context.Message, response, _Timers).CAF();
 		}
 	}
 }

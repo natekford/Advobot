@@ -3,9 +3,9 @@ using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,10 +20,11 @@ namespace Advobot.Commands.Logs
 	public sealed class ModifyLogChannels : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
-		public async Task Enable(LogChannelType logChannelType,
-			[VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] ITextChannel channel)
+		public async Task Enable(
+			LogChannelType logChannelType,
+			[VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] SocketTextChannel channel)
 		{
-			if (!SetLogChannel(Context.GuildSettings, logChannelType, channel))
+			if (!SetLogChannel(Context.GuildSettings, logChannelType, channel.Id))
 			{
 				var error = new Error($"That channel is already the current {logChannelType.ToString().ToLower()} log.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
@@ -36,7 +37,7 @@ namespace Advobot.Commands.Logs
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public async Task Disable(LogChannelType logChannelType)
 		{
-			if (!SetLogChannel(Context.GuildSettings, logChannelType, null))
+			if (!SetLogChannel(Context.GuildSettings, logChannelType, 0))
 			{
 				var error = new Error($"The {logChannelType.ToString().ToLower()} log is already off.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
@@ -47,30 +48,30 @@ namespace Advobot.Commands.Logs
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 
-		private bool SetLogChannel(IGuildSettings settings, LogChannelType type, ITextChannel value)
+		private bool SetLogChannel(IGuildSettings settings, LogChannelType type, ulong id)
 		{
 			switch (type)
 			{
 				case LogChannelType.Server:
-					if (settings.ServerLog?.Id == value?.Id)
+					if (settings.ServerLogId == id)
 					{
 						return false;
 					}
-					settings.ServerLog = value;
+					settings.ServerLogId = id;
 					return true;
 				case LogChannelType.Mod:
-					if (settings.ModLog?.Id == value?.Id)
+					if (settings.ModLogId == id)
 					{
 						return false;
 					}
-					settings.ModLog = value;
+					settings.ModLogId = id;
 					return true;
 				case LogChannelType.Image:
-					if (settings.ImageLog?.Id == value?.Id)
+					if (settings.ImageLogId == id)
 					{
 						return false;
 					}
-					settings.ImageLog = value;
+					settings.ImageLogId = id;
 					return true;
 				default:
 					throw new ArgumentException("invalid type", nameof(type));

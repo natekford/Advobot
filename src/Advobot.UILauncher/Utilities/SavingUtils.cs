@@ -1,18 +1,17 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using Advobot.Core;
+﻿using Advobot.Core;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Enums;
 using Discord;
 using ICSharpCode.AvalonEdit;
 using Newtonsoft.Json;
+using System;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Advobot.UILauncher.Utilities
 {
@@ -82,7 +81,7 @@ namespace Advobot.UILauncher.Utilities
 		private static FileInfo CreateFileInfo(Control control)
 		{
 			var baseDir = IOUtils.GetBaseBotDirectory().FullName;
-			var fileName = $"{control.Name}_{TimeFormatting.ToSaving()}.txt";
+			var fileName = $"{control.Name}_{Core.Utilities.Formatting.ToSaving()}.txt";
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}
 		/// <summary>

@@ -3,7 +3,6 @@ using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using System;

@@ -1,7 +1,6 @@
-﻿using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
 
@@ -15,11 +14,11 @@ namespace Advobot.Core.Classes.Attributes
 	{
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			if (!(context is IAdvobotCommandContext advobotCommandContext))
+			if (!(context is AdvobotSocketCommandContext advobotCommandContext))
 			{
 				return Task.FromResult(PreconditionResult.FromError((string)null));
 			}
-			if (!(context.Guild.GetBot() is IGuildUser bot))
+			if (!(advobotCommandContext.Guild.CurrentUser is SocketGuildUser bot))
 			{
 				return Task.FromResult(PreconditionResult.FromError("Unable to get the bot."));
 			}

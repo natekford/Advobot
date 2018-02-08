@@ -4,7 +4,6 @@ using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -36,26 +35,25 @@ namespace Advobot.Core.Services.Log.Loggers
 		public async Task OnMessageReceived(SocketMessage message)
 		{
 			//For some meme server
-			var guild = message.GetGuild();
-			if (guild?.Id == 294173126697418752 && message.Author is IGuildUser author)
+			if (message.Author is SocketGuildUser author && author.Guild.Id == 294173126697418752)
 			{
-				if (author.Username != "jeff" && author.Nickname != "jeff" && guild.GetBot().HasHigherPosition(author))
+				if (author.Username != "jeff" && author.Nickname != "jeff" && author.Guild.CurrentUser.HasHigherPosition(author))
 				{
 					await author.ModifyAsync(x => x.Nickname = "jeff", ClientUtils.CreateRequestOptions("my nama jeff")).CAF();
 				}
 			}
 
 			Logging.Messages.Increment();
-			if (!(message.Author is SocketGuildUser user) || !TryGetSettings(message, out var settings))
+			if (!(message is SocketUserMessage msg) || !(msg.Author is SocketGuildUser user) || !TryGetSettings(message, out var settings))
 			{
 				return;
 			}
 
-			await HandleChannelSettingsAsync(settings, user, message).CAF();
-			await HandleImageLoggingAsync(settings, user, message).CAF();
-			await HandleSlowmodeAsync(settings, user, message).CAF();
-			await HandleSpamPreventionAsync(settings, user, message).CAF();
-			await HandleBannedPhrasesAsync(settings, user, message).CAF();
+			await HandleChannelSettingsAsync(settings, user, msg).CAF();
+			await HandleImageLoggingAsync(settings, user, msg).CAF();
+			await HandleSlowmodeAsync(settings, user, msg).CAF();
+			await HandleSpamPreventionAsync(settings, user, msg).CAF();
+			await HandleBannedPhrasesAsync(settings, user, msg).CAF();
 		}
 		/// <summary>
 		/// Logs the before and after message. Handles banned phrases on the after message.
@@ -66,12 +64,12 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
-			if (!(message?.Author is IGuildUser user) || !TryGetSettings(message, out var settings))
+			if (!(message is SocketUserMessage msg) || !(msg.Author is SocketGuildUser user) || !TryGetSettings(message, out var settings))
 			{
 				return;
 			}
 
-			await HandleBannedPhrasesAsync(settings, user, message).CAF();
+			await HandleBannedPhrasesAsync(settings, user, msg).CAF();
 
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
@@ -93,8 +91,11 @@ namespace Advobot.Core.Services.Log.Loggers
 		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
 			//Ignore uncached messages since not much can be done with them
-			if (!cached.HasValue || !(cached.Value is IMessage message)
-				|| !TryGetSettings(message, out var settings) || settings.ServerLog == null)
+			if (!cached.HasValue
+				|| !(cached.Value is IMessage message)
+				|| !(channel is SocketGuildChannel guildChannel)
+				|| !TryGetSettings(message, out var settings)
+				|| settings.ServerLogId == 0)
 			{
 				return Task.FromResult(0);
 			}
@@ -152,7 +153,7 @@ namespace Advobot.Core.Services.Log.Loggers
 						Color = EmbedWrapper.MessageDelete
 					};
 					embed.TryAddFooter("Deleted Messages", null, out _);
-					await MessageUtils.SendEmbedMessageAsync(settings.ServerLog, embed).CAF();
+					await MessageUtils.SendEmbedMessageAsync(guildChannel.Guild.GetTextChannel(settings.ServerLogId), embed).CAF();
 				}
 				else
 				{
@@ -163,7 +164,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					}
 
 					var text = sb.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
-					await MessageUtils.SendTextFileAsync(settings.ServerLog, text, "Deleted Messages", $"{messages.Count()} Deleted Messages").CAF();
+					await MessageUtils.SendTextFileAsync(guildChannel.Guild.GetTextChannel(settings.ServerLogId), text, "Deleted Messages", $"{messages.Count()} Deleted Messages").CAF();
 				}
 			});
 
@@ -194,9 +195,9 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <param name="user"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public async Task HandleImageLoggingAsync(IGuildSettings settings, IGuildUser user, IMessage message)
+		public async Task HandleImageLoggingAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
-			if (settings.ImageLog == null)
+			if (settings.ImageLogId == 0)
 			{
 				return;
 			}
@@ -231,7 +232,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				};
 				embed.TryAddAuthor(user.Username, attachmentUrl, user.GetAvatarUrl(), out _);
 				embed.TryAddFooter(footerText, null, out _);
-				await MessageUtils.SendEmbedMessageAsync(settings.ImageLog, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ImageLogId), embed).CAF();
 			}
 			foreach (var imageEmbed in message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
 			{
@@ -258,7 +259,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				}
 
 				embed.TryAddFooter(footerText, null, out _);
-				await MessageUtils.SendEmbedMessageAsync(settings.ImageLog, embed).CAF();
+				await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ImageLogId), embed).CAF();
 			}
 		}
 		/// <summary>
@@ -269,9 +270,9 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <param name="before"></param>
 		/// <param name="after"></param>
 		/// <returns></returns>
-		public async Task HandleMessageEdittedLoggingAsync(IGuildSettings settings, IGuildUser user, IMessage before, IMessage after)
+		public async Task HandleMessageEdittedLoggingAsync(IGuildSettings settings, SocketGuildUser user, IMessage before, SocketMessage after)
 		{
-			if (settings.ServerLog == null)
+			if (settings.ServerLogId == 0)
 			{
 				return;
 			}
@@ -292,7 +293,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			embed.TryAddField("Before:", $"`{(bMsgContent.Length > 750 ? "Long message" : bMsgContent)}`", true, out _);
 			embed.TryAddField("After:", $"`{(aMsgContent.Length > 750 ? "Long message" : aMsgContent)}`", false, out _);
 			embed.TryAddFooter("Message Updated", null, out _);
-			await MessageUtils.SendEmbedMessageAsync(settings.ServerLog, embed).CAF();
+			await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), embed).CAF();
 
 			Logging.MessageEdits.Increment();
 		}
@@ -328,9 +329,9 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// Then checks if there are any user mentions in thier message for voting on user kicks.
 		/// </summary>
 		/// <returns></returns>
-		public async Task HandleSpamPreventionAsync(IGuildSettings settings, SocketGuildUser user, IMessage message)
+		public async Task HandleSpamPreventionAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
-			if (user.Guild.GetBot().HasHigherPosition(user))
+			if (user.Guild.CurrentUser.HasHigherPosition(user))
 			{
 				var spamUser = Timers.GetSpamPreventionUser(user);
 				if (spamUser == null)
@@ -367,12 +368,11 @@ namespace Advobot.Core.Services.Log.Loggers
 				{
 					var votesReq = spamUser.VotesRequired - spamUser.Votes;
 					var content = $"The user `{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
-					var channel = message.Channel as ITextChannel;
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Timers, channel, null, content, TimeSpan.FromSeconds(10)).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)message.Channel, null, content, Timers, TimeSpan.FromSeconds(10)).CAF();
 					await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("spam prevention")).CAF();
 				}
 			}
-			if (!message.MentionedUserIds.Any())
+			if (!message.MentionedUsers.Any())
 			{
 				return;
 			}
@@ -382,7 +382,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			{
 				return x.PotentialPunishment
 					&& x.User.Id != user.Id
-					&& message.MentionedUserIds.Contains(x.User.Id)
+					&& message.MentionedUsers.Select(u => u.Id).Contains(x.User.Id)
 					&& !x.HasUserAlreadyVoted(user.Id);
 			}).ToList();
 			if (!users.Any())
@@ -400,7 +400,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					return;
 				}
 
-				await giver.PunishAsync(u.Punishment, u.User, settings.MuteRole, reason).CAF();
+				await giver.PunishAsync(u.Punishment, u.User, user.Guild.GetRole(settings.MuteRoleId), reason).CAF();
 
 				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 				u.Reset();
@@ -410,7 +410,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// Makes sure a message doesn't have any banned phrases.
 		/// </summary>
 		/// <returns></returns>
-		public async Task HandleBannedPhrasesAsync(IGuildSettings settings, IGuildUser user, IMessage message)
+		public async Task HandleBannedPhrasesAsync(IGuildSettings settings, SocketGuildUser user, SocketUserMessage message)
 		{
 			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
 			if (user.GuildPermissions.Administrator || (DateTime.UtcNow - message.CreatedAt.UtcDateTime).Hours > 0)

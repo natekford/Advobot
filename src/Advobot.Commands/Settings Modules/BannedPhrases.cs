@@ -2,9 +2,7 @@
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Advobot.Core.Utilities.Formatting;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -214,7 +212,7 @@ namespace Advobot.Commands.BannedPhrases
 			};
 			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
 		}
-		private static async Task Add<T>(IAdvobotCommandContext context, ICollection<T> list, string text, string type, int max) where T : BannedPhrase
+		private static async Task Add<T>(AdvobotSocketCommandContext context, ICollection<T> list, string text, string type, int max) where T : BannedPhrase
 		{
 			if (list.Count >= max)
 			{
@@ -226,7 +224,7 @@ namespace Advobot.Commands.BannedPhrases
 			list.Add((T)new BannedPhrase(text));
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, $"Successfully removed the {type} `{text}`.").CAF();
 		}
-		private static async Task Remove<T>(IAdvobotCommandContext context, List<T> list, string text, string type) where T : BannedPhrase
+		private static async Task Remove<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type) where T : BannedPhrase
 		{
 			var phrase = list.SingleOrDefault(x => x.Phrase.CaseInsEquals(text));
 			if (phrase == null)
@@ -238,7 +236,7 @@ namespace Advobot.Commands.BannedPhrases
 			list.Remove(phrase);
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, $"Successfully removed the {type} `{phrase.Phrase}`.").CAF();
 		}
-		private static async Task Remove<T>(IAdvobotCommandContext context, List<T> list, int position, string type) where T : BannedPhrase
+		private static async Task Remove<T>(AdvobotSocketCommandContext context, List<T> list, int position, string type) where T : BannedPhrase
 		{
 			if (position == default || position > list.Count)
 			{
@@ -299,7 +297,7 @@ namespace Advobot.Commands.BannedPhrases
 			}
 		}
 
-		private static async Task Show<T>(IAdvobotCommandContext context, List<T> list, string type) where T : BannedPhrase
+		private static async Task Show<T>(AdvobotSocketCommandContext context, List<T> list, string type) where T : BannedPhrase
 		{
 			var embed = new EmbedWrapper
 			{
@@ -308,7 +306,7 @@ namespace Advobot.Commands.BannedPhrases
 			};
 			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
 		}
-		private static async Task Modify<T>(IAdvobotCommandContext context, List<T> list, string text, string type,
+		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type,
 			PunishmentType punishment) where T : BannedPhrase
 		{
 			var phrase = list.SingleOrDefault(x => x.Phrase.CaseInsEquals(text));
@@ -322,7 +320,7 @@ namespace Advobot.Commands.BannedPhrases
 			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment.ToString()}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
 		}
-		private static async Task Modify<T>(IAdvobotCommandContext context, List<T> list, int position, PunishmentType punishment) where T : BannedPhrase
+		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, int position, PunishmentType punishment) where T : BannedPhrase
 		{
 			if (position == default || position > list.Count)
 			{
@@ -388,7 +386,7 @@ namespace Advobot.Commands.BannedPhrases
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, uint position, [Optional] uint time)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketRole role, uint position, [Optional] uint time)
 			{
 				if (position == default)
 				{
@@ -442,7 +440,7 @@ namespace Advobot.Commands.BannedPhrases
 	public sealed class ModifyBannedPhraseUser : NonSavingModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
-		public async Task Show(IGuildUser user)
+		public async Task Show(SocketGuildUser user)
 		{
 			var bannedPhraseUser = Context.Timers.GetBannedPhraseUser(user);
 			if (bannedPhraseUser == null)
@@ -456,7 +454,7 @@ namespace Advobot.Commands.BannedPhrases
 			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
-		public async Task Reset(IGuildUser user)
+		public async Task Reset(SocketGuildUser user)
 		{
 			var bannedPhraseUser = Context.Timers.GetBannedPhraseUser(user);
 			if (bannedPhraseUser == null)

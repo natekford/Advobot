@@ -46,12 +46,10 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-
 			if (!int.TryParse(value.ToString(), out var num))
 			{
 				throw new NotSupportedException($"{nameof(VerifyNumberAttribute)} only supports {nameof(Int32)}.");
 			}
-
 			if (ValidNumbers.Any())
 			{
 				return ValidNumbers.Contains(num)
