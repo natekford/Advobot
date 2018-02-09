@@ -1,4 +1,6 @@
 ﻿using Advobot.Core.Interfaces;
+using Advobot.Core.Utilities;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;

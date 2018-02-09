@@ -31,19 +31,19 @@ namespace Advobot.Commands.Channels
 				return;
 			}
 
-			var channel = await Context.Guild.CreateTextChannelAsync(name, CreateRequestOptions()).CAF();
+			var channel = await Context.Guild.CreateTextChannelAsync(name, GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.Format()}`.").CAF();
 		}
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice([Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
-			var channel = await Context.Guild.CreateVoiceChannelAsync(name, CreateRequestOptions()).CAF();
+			var channel = await Context.Guild.CreateVoiceChannelAsync(name, GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.Format()}`.").CAF();
 		}
 		[Command(nameof(Category)), ShortAlias(nameof(Category))]
 		public async Task Category([Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
-			var channel = await Context.Guild.CreateCategoryChannelAsync(name, CreateRequestOptions()).CAF();
+			var channel = await Context.Guild.CreateCategoryChannelAsync(name, GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.Format()}`.").CAF();
 		}
 	}
@@ -74,7 +74,7 @@ namespace Advobot.Commands.Channels
 
 				var allowBits = overwrite.Permissions.AllowValue & ~(ulong)ChannelPermission.ViewChannel;
 				var denyBits = overwrite.Permissions.DenyValue | (ulong)ChannelPermission.ViewChannel;
-				await channel.AddPermissionOverwriteAsync(obj, allowBits, denyBits, CreateRequestOptions()).CAF();
+				await channel.AddPermissionOverwriteAsync(obj, allowBits, denyBits, GetRequestOptions()).CAF();
 			}
 
 			//Double check the everyone role has the correct perms
@@ -96,7 +96,7 @@ namespace Advobot.Commands.Channels
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] SocketGuildChannel channel)
 		{
-			await channel.DeleteAsync(CreateRequestOptions()).CAF();
+			await channel.DeleteAsync(GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted `{channel.Format()}`.").CAF();
 		}
 	}
@@ -143,7 +143,7 @@ namespace Advobot.Commands.Channels
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeReordered)] SocketGuildChannel channel, uint position)
 		{
-			await channel.ModifyAsync(x => x.Position = (int)position, CreateRequestOptions()).CAF();
+			await channel.ModifyAsync(x => x.Position = (int)position, GetRequestOptions()).CAF();
 			var resp = $"Successfully moved `{channel.Format()}` to position `{position}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -307,7 +307,7 @@ namespace Advobot.Commands.Channels
 					break;
 			}
 
-			await channel.AddPermissionOverwriteAsync(discordObject, allowBits, denyBits, CreateRequestOptions()).CAF();
+			await channel.AddPermissionOverwriteAsync(discordObject, allowBits, denyBits, GetRequestOptions()).CAF();
 			var givenPerms = EnumUtils.GetFlagNames((ChannelPermission)permissions);
 			var response = $"Successfully {actionStr} `{String.Join("`, `", givenPerms)}` for `{discordObject.Format()}` on `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, response).CAF();
@@ -353,7 +353,7 @@ namespace Advobot.Commands.Channels
 				return;
 			}
 
-			var reason = CreateRequestOptions();
+			var reason = GetRequestOptions();
 			if (discordObject == null)
 			{
 				foreach (var overwrite in inputChannel.PermissionOverwrites)
@@ -402,10 +402,10 @@ namespace Advobot.Commands.Channels
 				switch (overwrite.TargetType)
 				{
 					case PermissionTarget.Role:
-						await channel.RemovePermissionOverwriteAsync(Context.Guild.GetRole(overwrite.TargetId), CreateRequestOptions()).CAF();
+						await channel.RemovePermissionOverwriteAsync(Context.Guild.GetRole(overwrite.TargetId), GetRequestOptions()).CAF();
 						break;
 					case PermissionTarget.User:
-						await channel.RemovePermissionOverwriteAsync(Context.Guild.GetUser(overwrite.TargetId), CreateRequestOptions()).CAF();
+						await channel.RemovePermissionOverwriteAsync(Context.Guild.GetUser(overwrite.TargetId), GetRequestOptions()).CAF();
 						break;
 				}
 			}
@@ -447,7 +447,7 @@ namespace Advobot.Commands.Channels
 				return;
 			}
 
-			await channel.ModifyAsync(x => x.Name = name, CreateRequestOptions()).CAF();
+			await channel.ModifyAsync(x => x.Name = name, GetRequestOptions()).CAF();
 			var resp = $"Successfully changed the name of `{channel.Format()}` to `{name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -494,7 +494,7 @@ namespace Advobot.Commands.Channels
 				await MessageUtils.SendErrorMessageAsync(Context, new Error(result.ErrorReason)).CAF();
 			}
 
-			await channel.ModifyAsync(x => x.Name = name, CreateRequestOptions()).CAF();
+			await channel.ModifyAsync(x => x.Name = name, GetRequestOptions()).CAF();
 			var resp = $"Successfully changed the name of `{channel.Format()}` to `{name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -513,7 +513,7 @@ namespace Advobot.Commands.Channels
 			[Optional, Remainder, VerifyStringLength(Target.Topic)] string topic)
 		{
 			var oldTopic = channel.Topic ?? "Nothing";
-			await channel.ModifyAsync(x => x.Topic = topic, CreateRequestOptions()).CAF();
+			await channel.ModifyAsync(x => x.Topic = topic, GetRequestOptions()).CAF();
 			var resp = $"Successfully changed the topic in `{channel.Format()}` from `{oldTopic}` to `{(topic ?? "Nothing")}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -534,7 +534,7 @@ namespace Advobot.Commands.Channels
 			[VerifyObject(false, ObjectVerification.CanBeManaged)] SocketVoiceChannel channel,
 			[VerifyNumber(MIN_USER_LIMIT, MAX_USER_LIMIT)] uint limit)
 		{
-			await channel.ModifyAsync(x => x.UserLimit = (int)limit, CreateRequestOptions()).CAF();
+			await channel.ModifyAsync(x => x.UserLimit = (int)limit, GetRequestOptions()).CAF();
 			var resp = $"Successfully set the user limit for `{channel.Format()}` to `{limit}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -564,7 +564,7 @@ namespace Advobot.Commands.Channels
 			}
 
 			//Have to multiply by 1000 because in bps and for some reason treats, say, 50 as 50bps and not 50kbps
-			await channel.ModifyAsync(x => x.Bitrate = (int)bitrate * 1000, CreateRequestOptions()).CAF();
+			await channel.ModifyAsync(x => x.Bitrate = (int)bitrate * 1000, GetRequestOptions()).CAF();
 			var resp = $"Successfully set the user limit for `{channel.Format()}` to `{bitrate}kbps`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}

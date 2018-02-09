@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -245,18 +246,18 @@ namespace Advobot.Core.Utilities
 		/// <typeparam name="T"></typeparam>
 		/// <param name="task"></param>
 		/// <returns></returns>
-		public static async Task<T> CAF<T>(this Task<T> task)
+		public static ConfiguredTaskAwaitable<T> CAF<T>(this Task<T> task)
 		{
-			return await task.ConfigureAwait(false);
+			return task.ConfigureAwait(false);
 		}
 		/// <summary>
 		/// Short way to write ConfigureAwait(false).
 		/// </summary>
 		/// <param name="task"></param>
 		/// <returns></returns>
-		public static async Task CAF(this Task task)
+		public static ConfiguredTaskAwaitable CAF(this Task task)
 		{
-			await task.ConfigureAwait(false);
+			return task.ConfigureAwait(false);
 		}
 	}
 }

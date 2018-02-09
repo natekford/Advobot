@@ -190,7 +190,7 @@ namespace Advobot.Core.Classes.Settings
 		}
 		private static void ClearInvalidValues(Dictionary<string, bool> dict)
 		{
-			foreach (var key in dict.Keys)
+			foreach (var key in dict.Keys.ToList())
 			{
 				if (Constants.HELP_ENTRIES[key] == null)
 				{

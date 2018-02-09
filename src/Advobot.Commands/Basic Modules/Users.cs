@@ -69,13 +69,13 @@ namespace Advobot.Commands.Users
 			if (user.Roles.Select(x => x.Id).Contains(muteRole.Id))
 			{
 				var remover = new PunishmentRemover(Context.Timers);
-				await remover.UnrolemuteAsync(user, muteRole, CreateRequestOptions(reason)).CAF();
+				await remover.UnrolemuteAsync(user, muteRole, GetRequestOptions(reason)).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
 				return;
 			}
 
 			var giver = new PunishmentGiver((int)time, Context.Timers);
-			await giver.RoleMuteAsync(user, muteRole, CreateRequestOptions(reason)).CAF();
+			await giver.RoleMuteAsync(user, muteRole, GetRequestOptions(reason)).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, giver.ToString()).CAF();
 		}
 	}
@@ -93,13 +93,13 @@ namespace Advobot.Commands.Users
 			if (user.IsMuted)
 			{
 				var remover = new PunishmentRemover(Context.Timers);
-				await remover.UnvoicemuteAsync(user, CreateRequestOptions(reason)).CAF();
+				await remover.UnvoicemuteAsync(user, GetRequestOptions(reason)).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
 				return;
 			}
 
 			var giver = new PunishmentGiver((int)time, Context.Timers);
-			await giver.VoiceMuteAsync(user, CreateRequestOptions(reason)).CAF();
+			await giver.VoiceMuteAsync(user, GetRequestOptions(reason)).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, giver.ToString()).CAF();
 		}
 	}
@@ -117,13 +117,13 @@ namespace Advobot.Commands.Users
 			if (user.IsDeafened)
 			{
 				var remover = new PunishmentRemover(Context.Timers);
-				await remover.UndeafenAsync(user, CreateRequestOptions(reason)).CAF();
+				await remover.UndeafenAsync(user, GetRequestOptions(reason)).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
 				return;
 			}
 
 			var giver = new PunishmentGiver((int)time, Context.Timers);
-			await giver.DeafenAsync(user, CreateRequestOptions(reason)).CAF();
+			await giver.DeafenAsync(user, GetRequestOptions(reason)).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, giver.ToString()).CAF();
 		}
 	}
@@ -148,7 +148,7 @@ namespace Advobot.Commands.Users
 				return;
 			}
 
-			await user.ModifyAsync(x => x.Channel = Optional.Create((IVoiceChannel)channel), CreateRequestOptions()).CAF();
+			await user.ModifyAsync(x => x.Channel = Optional.Create((IVoiceChannel)channel), GetRequestOptions()).CAF();
 			var resp = $"Successfully moved `{user.Format()}` to `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -168,7 +168,7 @@ namespace Advobot.Commands.Users
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = inputChannel.Users.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
-			await new MultiUserAction(Context, Context.Timers, users).MoveUsersAsync(outputChannel, CreateRequestOptions()).CAF();
+			await new MultiUserAction(Context, Context.Timers, users).MoveUsersAsync(outputChannel, GetRequestOptions()).CAF();
 		}
 	}
 
@@ -183,7 +183,7 @@ namespace Advobot.Commands.Users
 		public async Task Command([VerifyNumber(new[] { 1, 7, 30 })] uint days, [Optional, OverrideTypeReader(typeof(PruneTypeReader))] bool actual)
 		{
 			//Actual TRUE = PRUNE, FALSE = SIMULATION
-			var amt = await Context.Guild.PruneUsersAsync((int)days, !actual, CreateRequestOptions()).CAF();
+			var amt = await Context.Guild.PruneUsersAsync((int)days, !actual, GetRequestOptions()).CAF();
 			var resp = $"`{amt}` members{(!actual ? " would" : "")} have been pruned with a prune period of `{days}` days.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -209,7 +209,7 @@ namespace Advobot.Commands.Users
 		private async Task CommandRunner(ulong userId, string reason)
 		{
 			var giver = new PunishmentGiver(0, Context.Timers);
-			await giver.SoftbanAsync(Context.Guild, userId, CreateRequestOptions(reason)).CAF();
+			await giver.SoftbanAsync(Context.Guild, userId, GetRequestOptions(reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
 	}
@@ -251,7 +251,7 @@ namespace Advobot.Commands.Users
 			}
 
 			var giver = new PunishmentGiver((int)time, Context.Timers);
-			await giver.BanAsync(Context.Guild, userId, CreateRequestOptions(reason)).CAF();
+			await giver.BanAsync(Context.Guild, userId, GetRequestOptions(reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
 	}
@@ -266,7 +266,7 @@ namespace Advobot.Commands.Users
 		public async Task Command(IBan ban, [Optional, Remainder] string reason)
 		{
 			var remover = new PunishmentRemover(Context.Timers);
-			await remover.UnbanAsync(Context.Guild, ban.User.Id, CreateRequestOptions(reason)).CAF();
+			await remover.UnbanAsync(Context.Guild, ban.User.Id, GetRequestOptions(reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, remover.ToString()).CAF();
 		}
 	}
@@ -299,7 +299,7 @@ namespace Advobot.Commands.Users
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketGuildUser user, [Optional, Remainder] string reason)
 		{
 			var giver = new PunishmentGiver(0, Context.Timers);
-			await giver.KickAsync(user, CreateRequestOptions(reason)).CAF();
+			await giver.KickAsync(user, GetRequestOptions(reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
 	}
@@ -369,13 +369,13 @@ namespace Advobot.Commands.Users
 				: (await channel.GetMessagesAsync(1).FlattenAsync().CAF()).FirstOrDefault();
 
 			//If there is a non null user then delete messages specifically from that user
-			var deletedAmt = await MessageUtils.DeleteMessagesAsync(channel, messageToStartAt, requestCount, CreateRequestOptions(), user).CAF();
+			var deletedAmt = await MessageUtils.DeleteMessagesAsync(channel, messageToStartAt, requestCount, GetRequestOptions(), user).CAF();
 
 			//If the context channel isn't the targetted channel then delete the start message
 			//Increase by one to account for it not being targetted.
 			if (Context.Message.Channel.Id != channel.Id)
 			{
-				await MessageUtils.DeleteMessageAsync(messageToStartAt, CreateRequestOptions()).CAF();
+				await MessageUtils.DeleteMessageAsync(messageToStartAt, GetRequestOptions()).CAF();
 				deletedAmt++;
 			}
 
@@ -451,7 +451,7 @@ namespace Advobot.Commands.Users
 				return;
 			}
 
-			await Use(targetRole, bypass, async (m) => await m.GiveRolesAsync(givenRole, CreateRequestOptions()).CAF());
+			await Use(targetRole, bypass, async (m) => await m.GiveRolesAsync(givenRole, GetRequestOptions()).CAF());
 		}
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
 		public async Task TakeRole(
@@ -459,7 +459,7 @@ namespace Advobot.Commands.Users
 			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone, ObjectVerification.IsManaged)] SocketRole takenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			await Use(targetRole, bypass, async (m) => await m.TakeRolesAsync(takenRole, CreateRequestOptions()).CAF());
+			await Use(targetRole, bypass, async (m) => await m.TakeRolesAsync(takenRole, GetRequestOptions()).CAF());
 		}
 		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
 		public async Task GiveNickname(
@@ -467,14 +467,14 @@ namespace Advobot.Commands.Users
 			[VerifyStringLength(Target.Nickname)] string nickname,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			await Use(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(nickname, CreateRequestOptions()).CAF());
+			await Use(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(nickname, GetRequestOptions()).CAF());
 		}
 		[Command(nameof(TakeNickname)), ShortAlias(nameof(TakeNickname))]
 		public async Task TakeNickname(
 			[VerifyObject(false, ObjectVerification.CanBeEdited)] SocketRole targetRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			await Use(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(null, CreateRequestOptions()).CAF());
+			await Use(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(null, GetRequestOptions()).CAF());
 		}
 
 		private async Task Use(SocketRole target, bool bypass, Func<MultiUserAction, Task> callback)

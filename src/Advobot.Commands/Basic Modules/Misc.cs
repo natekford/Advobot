@@ -155,9 +155,9 @@ namespace Advobot.Commands.Misc
 			{
 				var cutText = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
-				await role.ModifyAsync(x => x.Mentionable = true, CreateRequestOptions()).CAF();
+				await role.ModifyAsync(x => x.Mentionable = true, GetRequestOptions()).CAF();
 				await MessageUtils.SendMessageAsync(Context.Channel, cutText).CAF();
-				await role.ModifyAsync(x => x.Mentionable = false, CreateRequestOptions()).CAF();
+				await role.ModifyAsync(x => x.Mentionable = false, GetRequestOptions()).CAF();
 			}
 		}
 	}

@@ -224,7 +224,7 @@ namespace Advobot.Commands.BotSettings
 			{
 				if (resp.IsSuccess)
 				{
-					await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(resp.Stream), CreateRequestOptions()).CAF();
+					await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(resp.Stream), GetRequestOptions()).CAF();
 					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully updated the bot icon.");
 					return;
 				}

@@ -170,7 +170,7 @@ namespace Advobot.Commands.SelfRoles
 			}
 			if (user.RoleIds.Contains(role.Id))
 			{
-				await user.AddRoleAsync(role, CreateRequestOptions("self role removal")).CAF();
+				await user.AddRoleAsync(role, GetRequestOptions("self role removal")).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed `{role.Format()}`.").CAF();
 				return;
 			}
@@ -182,12 +182,12 @@ namespace Advobot.Commands.SelfRoles
 				var otherRoles = user.RoleIds.Select(x => group.TryGetRole(x, out var temp) ? temp : null).Where(x => x != null).ToList();
 				if (otherRoles.Any())
 				{
-					await user.RemoveRolesAsync(otherRoles, CreateRequestOptions("self role removal")).CAF();
+					await user.RemoveRolesAsync(otherRoles, GetRequestOptions("self role removal")).CAF();
 					removedRoles = $", and removed `{String.Join("`, `", otherRoles.Select(x => x.Format()))}`";
 				}
 			}
 
-			await user.AddRoleAsync(role, CreateRequestOptions("self role giving"));
+			await user.AddRoleAsync(role, GetRequestOptions("self role giving"));
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully gave `{role.Name}`{removedRoles}.").CAF();
 		}
 	}

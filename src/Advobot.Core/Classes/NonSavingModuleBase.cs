@@ -11,7 +11,9 @@ namespace Advobot.Core.Classes
 	[CommandRequirement]
 	public class NonSavingModuleBase : ModuleBase<AdvobotSocketCommandContext>
 	{
-		public RequestOptions CreateRequestOptions(string reason = "")
-			=> ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}. Reason: {reason}.");
+		public RequestOptions GetRequestOptions(string reason = "")
+		{
+			return ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}. Reason: {reason}.");
+		}
 	}
 }

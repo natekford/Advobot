@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.Emotes
 {
-	[Group(nameof(CreateEmote)), TopLevelShortAlias(typeof(CreateEmote))]
+	[Group(nameof(Create)), TopLevelShortAlias(typeof(CreateEmote))]
 	[Summary("Adds an emote to the server. " +
 		"Requires either an emote to copy, or the name and file to make an emote out of.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
@@ -23,16 +23,20 @@ namespace Advobot.Commands.Emotes
 	[Queue(1)]
 	public sealed class CreateEmote : NonSavingModuleBase
 	{
-		private static Dictionary<ulong, bool> _WorkingDictionary = new Dictionary<ulong, bool>();
+		private static ConcurrentQueue<EmoteCreationArguments> _Args = new ConcurrentQueue<EmoteCreationArguments>();
+		private static ConcurrentDictionary<ulong, object> _CurrentlyMakingEmoteOnGuild = new ConcurrentDictionary<ulong, object>();
+		private static SemaphoreSlim _SemaphoreSlim = new SemaphoreSlim(1);
 
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(Emote emote)
 		{
 			await Command(emote.Name, new Uri(emote.Url)).CAF();
 		}
-		//TODO: implement a queue for these commands, since they use high memory and download
-		[Command(RunMode = RunMode.Async)]
-		public async Task Command([VerifyStringLength(Target.Emote)] string name, Uri url, [Optional, Remainder] NamedArguments<EmoteResizerArgs> args)
+		[Priority(1), Command(RunMode = RunMode.Async)]
+		public async Task Command(
+			[VerifyStringLength(Target.Emote)] string name, 
+			Uri url, 
+			[Optional, Remainder] NamedArguments<EmoteResizerArgs> args)
 		{
 			EmoteResizerArgs obj;
 			if (args == null)
@@ -44,24 +48,64 @@ namespace Advobot.Commands.Emotes
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-			if (_WorkingDictionary.TryGetValue(Context.Guild.Id, out var isWorking) && isWorking)
+			if (_Args.Any(x => x.Context.Guild.Id == Context.Guild.Id) || _CurrentlyMakingEmoteOnGuild.Any(x => x.Key == Context.Guild.Id))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on creating an emote."));
 				return;
 			}
 
-			_WorkingDictionary[Context.Guild.Id] = true;
-			using (var resp = await ImageUtils.ResizeImageAsync(url, Context, obj))
+			_Args.Enqueue(new EmoteCreationArguments
+			{
+				Uri = url,
+				Name = name,
+				Args = obj,
+				Context = Context,
+				Options = GetRequestOptions(),
+			});
+			//Start the emote creating, but keep it synchronous so as not to use a ton of memory/download
+			if (_SemaphoreSlim.CurrentCount > 0)
+			{
+				//Store it as a variable to get rid of the warning and allow it to run on its own
+				var t = Task.Run(async () =>
+				{
+					//Lock since only one thread should be processing this at once (maybe bump count up later)
+					await _SemaphoreSlim.WaitAsync().CAF();
+					while (_Args.TryDequeue(out var d))
+					{
+						_CurrentlyMakingEmoteOnGuild.TryAdd(d.Context.Guild.Id, new object());
+						await Create(d).CAF();
+						_CurrentlyMakingEmoteOnGuild.TryRemove(d.Context.Guild.Id, out var removed);
+					}
+					_SemaphoreSlim.Release();
+				}).CAF();
+			}
+			else
+			{
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in emote creation queue: {_Args.Count}.").CAF();
+			}
+		}
+
+		private static async Task Create(EmoteCreationArguments args)
+		{
+			using (var resp = await ImageUtils.ResizeImageAsync(args.Uri, args.Context, args.Args))
 			{
 				if (resp.IsSuccess)
 				{
-					var emote = await Context.Guild.CreateEmoteAsync(name, new Image(resp.Stream), default, CreateRequestOptions()).CAF();
-					await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully created the emote {emote}.");
+					var emote = await args.Context.Guild.CreateEmoteAsync(args.Name, new Image(resp.Stream), default, args.Options).CAF();
+					await MessageUtils.SendMessageAsync(args.Context.Channel, $"Successfully created the emote {emote}.");
 					return;
 				}
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Failed to create the emote `{name}`. Reason: {resp.Error}.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(args.Context, new Error($"Failed to create the emote `{args.Name}`. Reason: {resp.Error}.")).CAF();
 			}
-			_WorkingDictionary[Context.Guild.Id] = false;
+		}
+
+		private struct EmoteCreationArguments
+		{
+			public Uri Uri;
+			public string Name;
+			public EmoteResizerArgs Args;
+			public AdvobotSocketCommandContext Context;
+			public RequestOptions Options;
 		}
 	}
 
@@ -74,7 +118,7 @@ namespace Advobot.Commands.Emotes
 		[Command]
 		public async Task Command(GuildEmote emote)
 		{
-			await Context.Guild.DeleteEmoteAsync(emote, CreateRequestOptions()).CAF();
+			await Context.Guild.DeleteEmoteAsync(emote, GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the emote `{emote.Name}`.");
 		}
 	}
@@ -88,7 +132,7 @@ namespace Advobot.Commands.Emotes
 		[Command]
 		public async Task Command(GuildEmote emote, [VerifyStringLength(Target.Emote), Remainder] string newName)
 		{
-			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = newName, CreateRequestOptions()).CAF();
+			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = newName, GetRequestOptions()).CAF();
 		}
 	}
 
