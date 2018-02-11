@@ -152,11 +152,17 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildAfkChannel : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command(IVoiceChannel channel)
+		public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeManaged)] IVoiceChannel channel)
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), GetRequestOptions()).CAF();
 			var resp = $"Successfully set the guild's AFK channel to `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+		}
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove()
+		{
+			await Context.Guild.ModifyAsync(x => x.AfkChannelId = Optional.Create<ulong?>(null), GetRequestOptions()).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild's afk channel.").CAF();
 		}
 	}
 
@@ -230,7 +236,7 @@ namespace Advobot.Commands.Guilds
 				return;
 			}
 
-			await Context.Guild.ModifyAsync(x => x.Icon = new Image()).CAF();
+			await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild icon.").CAF();
 		}
 

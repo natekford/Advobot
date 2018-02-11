@@ -149,7 +149,7 @@ namespace Advobot.Core.Classes.Punishments
 			}
 			if (options.AuditLogReason != null)
 			{
-				sb.Append($"The provided reason is `{options.AuditLogReason.EscapeBackTicks()}`. ");
+				sb.Append($"The provided reason is `{options.AuditLogReason.EscapeBackTicks().TrimEnd('.', ' ')}`. ");
 			}
 			_Actions.Add(sb.ToString().Trim());
 		}

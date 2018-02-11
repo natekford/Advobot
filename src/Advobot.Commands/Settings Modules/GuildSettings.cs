@@ -137,7 +137,7 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Enable : GuildSettingsSavingModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel)
 			{
 				if (!Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -151,7 +151,7 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, string commandName)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel, string commandName)
 			{
 				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
 				{
@@ -169,7 +169,7 @@ namespace Advobot.Commands.GuildSettings
 				}
 			}
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
 			{
 				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(Constants.HELP_ENTRIES[category], true, CommandOverrideTarget.Channel, channel);
 				var resp = $"Successfully stopped ignoring the following commands on `{channel.Format()}`: `{String.Join("`, `", commands)}`.";
@@ -180,7 +180,7 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Disable : GuildSettingsSavingModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel)
 			{
 				if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -194,7 +194,7 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, string commandName)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel, string commandName)
 			{
 				if (!(Constants.HELP_ENTRIES[commandName] is HelpEntry helpEntry))
 				{
@@ -212,7 +212,7 @@ namespace Advobot.Commands.GuildSettings
 				}
 			}
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
 			{
 				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(Constants.HELP_ENTRIES[category], false, CommandOverrideTarget.Channel, channel);
 				var resp = $"Successfully started disabled the following commands on `{channel.Format()}`: `{String.Join("`, `", commands)}`.";

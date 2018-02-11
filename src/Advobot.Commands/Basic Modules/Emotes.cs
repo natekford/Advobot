@@ -152,9 +152,10 @@ namespace Advobot.Commands.Emotes
 
 			await Context.Guild.ModifyEmoteAsync(emote, x =>
 			{
-				x.Roles = x.Roles.IsSpecified
-					? x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Select(q => q.Id).Contains(r.Id)))
-					: Optional<IEnumerable<IRole>>.Unspecified;
+				if (x.Roles.IsSpecified)
+				{
+					x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Select(q => q.Id).Contains(r.Id)));
+				}
 			}, GetRequestOptions()).CAF();
 			var resp = $"Successfully removed `{String.Join("`, `", roles.Select(x => x.Format()))}` as roles necessary to use `{emote}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
@@ -168,7 +169,7 @@ namespace Advobot.Commands.Emotes
 				return;
 			}
 
-			await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional<IEnumerable<IRole>>.Unspecified, GetRequestOptions()).CAF();
+			await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create<IEnumerable<IRole>>(null), GetRequestOptions()).CAF();
 			var resp = $"Successfully removed all roles necessary to use `{emote}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}

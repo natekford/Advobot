@@ -33,19 +33,19 @@ namespace Advobot.Commands.Gets
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
-		public async Task Channel(SocketGuildChannel channel)
+		public async Task Channel([Remainder] SocketGuildChannel channel)
 		{
 			var embed = DiscordFormatting.FormatChannelInfo(Context.GuildSettings, channel);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
-		public async Task Role(SocketRole role)
+		public async Task Role([Remainder] SocketRole role)
 		{
 			var embed = DiscordFormatting.FormatRoleInfo(role);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(User)), ShortAlias(nameof(User))]
-		public async Task User(SocketUser user)
+		public async Task User([Remainder] SocketUser user)
 		{
 			var embed = user is SocketGuildUser guildUser
 				? DiscordFormatting.FormatGuildUserInfo(guildUser)
@@ -53,7 +53,7 @@ namespace Advobot.Commands.Gets
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
-		public async Task Emote(Emote emote)
+		public async Task Emote([Remainder] Emote emote)
 		{
 			var embed = emote is GuildEmote guildEmote
 				? DiscordFormatting.FormatGuildEmoteInfo(Context.Guild, guildEmote)
@@ -61,9 +61,15 @@ namespace Advobot.Commands.Gets
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Invite)), ShortAlias(nameof(Invite))]
-		public async Task Invite(IInvite invite)
+		public async Task Invite([Remainder] IInvite invite)
 		{
 			var embed = DiscordFormatting.FormatInviteInfo(invite as IInviteMetadata);
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+		}
+		[Command(nameof(Webhook)), ShortAlias(nameof(Webhook))]
+		public async Task Webhook([Remainder] IWebhook webhook)
+		{
+			var embed = DiscordFormatting.FormatWebhookInfo(Context.Guild, webhook);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
@@ -249,7 +255,7 @@ namespace Advobot.Commands.Gets
 	public sealed class GetMessages : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(int number, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] SocketTextChannel channel)
+		public async Task Command(int number, [Optional, VerifyObject(true, ObjectVerification.CanBeViewed)] SocketTextChannel channel)
 		{
 			channel = channel ?? (SocketTextChannel)Context.Channel;
 			var messages = await MessageUtils.GetMessagesAsync(channel, Math.Min(number, 1000)).CAF();

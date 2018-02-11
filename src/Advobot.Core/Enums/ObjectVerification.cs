@@ -25,7 +25,8 @@ namespace Advobot.Core.Enums
 		CanBeManaged = (1U << 7),
 		CanMoveUsers = (1U << 8),
 		CanDeleteMessages = (1U << 9),
-		CanBeRead = (1U << 10),
-		CanCreateInstantInvite = (1U << 11)
+		CanBeViewed = (1U << 10),
+		CanCreateInstantInvite = (1U << 11),
+		CanManageWebhooks = (1U << 12),
 	}
 }

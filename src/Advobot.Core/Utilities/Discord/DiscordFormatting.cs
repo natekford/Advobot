@@ -141,7 +141,7 @@ namespace Advobot.Core.Utilities
 			return content.Append("```").ToString();
 		}
 		/// <summary>
-		/// Returns the game's name or stream name/url.
+		/// Returns a string with the game's name or stream name/url.
 		/// </summary>
 		/// <param name="presence"></param>
 		/// <returns></returns>
@@ -156,6 +156,15 @@ namespace Advobot.Core.Utilities
 				default:
 					return "**Current Activity:** `N/A`";
 			}
+		}
+		/// <summary>
+		/// Returns a string with the webhook's name and id.
+		/// </summary>
+		/// <param name="webhook"></param>
+		/// <returns></returns>
+		public static string Format(this IWebhook webhook)
+		{
+			return webhook != null ? $"'{webhook.Name}' ({webhook.Id})" : "Irretrievable Webhooks";
 		}
 
 		/// <summary>
@@ -401,6 +410,24 @@ namespace Advobot.Core.Utilities
 			};
 			embed.TryAddAuthor(invite.Code, null, null, out _);
 			embed.TryAddFooter("Invite Info", null, out _);
+			return embed;
+		}
+		/// <summary>
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about a webhook.
+		/// </summary>
+		/// <param name="webhook"></param>
+		/// <returns></returns>
+		public static EmbedWrapper FormatWebhookInfo(SocketGuild guild, IWebhook webhook)
+		{
+			var embed = new EmbedWrapper
+			{
+				Description = webhook.FormatInfo() +
+					$"**Creator:** `{webhook.Creator.Format()}`\n" +
+					$"**Channel:** `{guild.GetChannel(webhook.ChannelId).Format()}`\n",
+				ThumbnailUrl = webhook.GetAvatarUrl(),
+			};
+			embed.TryAddAuthor(webhook.Name, webhook.GetAvatarUrl(), webhook.GetAvatarUrl(), out _);
+			embed.TryAddFooter("Webhook Info", null, out _);
 			return embed;
 		}
 		/// <summary>

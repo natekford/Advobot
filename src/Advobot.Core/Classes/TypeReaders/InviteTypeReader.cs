@@ -8,7 +8,7 @@ using Discord.Commands;
 namespace Advobot.Core.Classes.TypeReaders
 {
 	/// <summary>
-	/// Attemps to find an <see cref="IInvite"/> on a guild.
+	/// Attempts to find an <see cref="IInvite"/> on a guild.
 	/// </summary>
 	public sealed class InviteTypeReader : TypeReader
 	{
@@ -22,14 +22,9 @@ namespace Advobot.Core.Classes.TypeReaders
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			IInvite invite = (await context.Guild.GetInvitesAsync().CAF()).FirstOrDefault(x => x.Code.CaseInsEquals(input));
-			if (invite == null)
+			if (invite == null && await context.Client.GetInviteAsync(input).CAF() is IInvite inv && inv.GuildId == context.Guild.Id)
 			{
-				//Test if vanity url
-				var testInv = await context.Client.GetInviteAsync(input).CAF();
-				if (testInv.GuildId == context.Guild.Id)
-				{
-					invite = testInv;
-				}
+				invite = inv;
 			}
 			return invite != null
 				? TypeReaderResult.FromSuccess(invite)

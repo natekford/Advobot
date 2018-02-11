@@ -72,12 +72,14 @@ namespace Advobot.Core.Utilities
 
 			cmds.AddTypeReader<IInvite>(new InviteTypeReader());
 			cmds.AddTypeReader<IBan>(new BanTypeReader());
+			cmds.AddTypeReader<IWebhook>(new WebhookTypeReader());
 			cmds.AddTypeReader<Emote>(new EmoteTypeReader());
 			cmds.AddTypeReader<GuildEmote>(new GuildEmoteTypeReader());
 			cmds.AddTypeReader<Color>(new ColorTypeReader());
+			cmds.AddTypeReader<Uri>(new UriTypeReader());
 			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
 			cmds.AddTypeReader<CommandCategory>(new CommandCategoryTypeReader());
-			cmds.AddTypeReader<Uri>(new UriTypeReader());
+			cmds.AddTypeReader<ModerationReason>(new ModerationReasonTypeReader());
 
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()

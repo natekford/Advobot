@@ -83,7 +83,7 @@ namespace Advobot.Core.Utilities
 					var channelPerms = invoker?.GetPermissions(guildChannel) ?? default;
 					switch (type)
 					{
-						case ObjectVerification.CanBeRead:
+						case ObjectVerification.CanBeViewed:
 							return channelPerms.ViewChannel;
 						case ObjectVerification.CanCreateInstantInvite:
 							return channelPerms.ViewChannel && channelPerms.CreateInstantInvite;
@@ -97,6 +97,8 @@ namespace Advobot.Core.Utilities
 							return channelPerms.ViewChannel && channelPerms.ManageMessages;
 						case ObjectVerification.CanMoveUsers:
 							return channelPerms.MoveMembers;
+						case ObjectVerification.CanManageWebhooks:
+							return channelPerms.ManageWebhooks;
 					}
 					return true;
 				case IRole guildRole:
