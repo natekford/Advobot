@@ -79,7 +79,7 @@ namespace Advobot.Core.Classes
 		}
 		private async Task OnUserJoined(SocketGuildUser user)
 		{
-			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild);
+			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild).CAF();
 			if (settings == null)
 			{
 				return;
@@ -122,7 +122,7 @@ namespace Advobot.Core.Classes
 		private async Task OnUserLeft(SocketGuildUser user)
 		{
 			//Check if the bot was the one that left
-			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild);
+			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild).CAF();
 			if (settings == null || user.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId])
 			{
 				return;
@@ -142,7 +142,7 @@ namespace Advobot.Core.Classes
 			}
 			--i;
 
-			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild);
+			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild).CAF();
 
 			var quotes = await _Timers.RemoveActiveCloseQuoteAsync(user).CAF();
 			var validQuotes = quotes != null && quotes.List.Count > i;

@@ -164,10 +164,7 @@ namespace Advobot.Commands.SelfRoles
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("There is no self assignable role by that name.")).CAF();
 				return;
 			}
-			if (!(Context.User is IGuildUser user))
-			{
-				return;
-			}
+			var user = Context.User as IGuildUser;
 			if (user.RoleIds.Contains(role.Id))
 			{
 				await user.AddRoleAsync(role, GetRequestOptions("self role removal")).CAF();
@@ -187,7 +184,7 @@ namespace Advobot.Commands.SelfRoles
 				}
 			}
 
-			await user.AddRoleAsync(role, GetRequestOptions("self role giving"));
+			await user.AddRoleAsync(role, GetRequestOptions("self role giving")).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully gave `{role.Name}`{removedRoles}.").CAF();
 		}
 	}

@@ -47,21 +47,17 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(User)), ShortAlias(nameof(User))]
 		public async Task User(SocketUser user)
 		{
-			if (user is SocketGuildUser guildUser)
-			{
-				var embed = DiscordFormatting.FormatUserInfo(guildUser);
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
-			}
-			else
-			{
-				var embed = DiscordFormatting.FormatUserInfo(user);
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
-			}
+			var embed = user is SocketGuildUser guildUser
+				? DiscordFormatting.FormatGuildUserInfo(guildUser)
+				: DiscordFormatting.FormatUserInfo(user);
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
 		public async Task Emote(Emote emote)
 		{
-			var embed = DiscordFormatting.FormatEmoteInfo(emote);
+			var embed = emote is GuildEmote guildEmote
+				? DiscordFormatting.FormatGuildEmoteInfo(Context.Guild, guildEmote)
+				: DiscordFormatting.FormatEmoteInfo(emote);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Invite)), ShortAlias(nameof(Invite))]
@@ -167,7 +163,7 @@ namespace Advobot.Commands.Gets
 	[DefaultEnabled(true)]
 	public sealed class GetUserAvatar : NonSavingModuleBase
 	{
-		[Command, Priority(0)]
+		[Command]
 		public async Task Command(ImageFormat format, [Optional] IUser user, [Optional] ushort size)
 		{
 			await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl(format, size == 0 ? (ushort)128 : size)).CAF();
@@ -191,8 +187,7 @@ namespace Advobot.Commands.Gets
 			var users = Context.Guild.GetUsersByJoinDate().ToArray();
 			var newPos = Math.Min((int)position, users.Length);
 			var user = users[newPos - 1];
-			var time = user.JoinedAt?.UtcDateTime.ToReadable();
-			var text = $"`{user.Format()}` is `#{newPos}` to join the guild on `{time}`.";
+			var text = $"`{user.Format()}` is `#{newPos}` to join the guild on `{user.JoinedAt?.UtcDateTime.ToReadable()}`.";
 			await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
 		}
 	}
@@ -203,11 +198,11 @@ namespace Advobot.Commands.Gets
 	[DefaultEnabled(true)]
 	public sealed class GetGuilds : NonSavingModuleBase
 	{
-		[Command(RunMode = RunMode.Async)]
+		[Command]
 		public async Task Command()
 		{
 			var guilds = Context.Client.Guilds;
-			if (guilds.Count() <= 10)
+			if (guilds.Count() <= EmbedBuilder.MaxFieldCount)
 			{
 				var embed = new EmbedWrapper
 				{
@@ -271,7 +266,7 @@ namespace Advobot.Commands.Gets
 				else
 				{
 					var fileName = $"{channel?.Name}_Messages";
-					var content = $"Successfully got `{count}` messages";
+					var content = $"Successfully got `{count}` messages.";
 					await MessageUtils.SendTextFileAsync(Context.Channel, formattedMessagesBuilder.ToString(), fileName, content).CAF();
 					return;
 				}
@@ -292,12 +287,10 @@ namespace Advobot.Commands.Gets
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
+				return;
 			}
-			else
-			{
-				var resp = $"The number `{number}` has the following guild permissions: `{String.Join("`, `", perms)}`.";
-				await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
-			}
+			var resp = $"The number `{number}` has the following guild permissions: `{String.Join("`, `", perms)}`.";
+			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel(ulong number)
@@ -306,12 +299,10 @@ namespace Advobot.Commands.Gets
 			if (!perms.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
+				return;
 			}
-			else
-			{
-				var resp = $"The number `{number}` has the following channel permissions: `{String.Join("`, `", perms)}`.";
-				await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
-			}
+			var resp = $"The number `{number}` has the following channel permissions: `{String.Join("`, `", perms)}`.";
+			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 	}
 

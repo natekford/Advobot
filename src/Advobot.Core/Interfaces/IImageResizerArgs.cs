@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace Advobot.Core.Interfaces
 {
-	public interface IImageResizerArgs
+	public interface IImageResizerArguments
 	{
 		ImmutableArray<MagickFormat> ValidFormats { get; }
 		long MaxAllowedLengthInBytes { get; }

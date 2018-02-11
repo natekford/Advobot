@@ -233,7 +233,7 @@ namespace Advobot.Core.Utilities
 		}
 		private static string SanitizeContent(this string content, IMessageChannel channel)
 		{
-			if ((channel is SocketGuildChannel guildChannel))
+			if (channel is SocketGuildChannel guildChannel)
 			{
 				content = content.CaseInsReplace(guildChannel.Guild.EveryoneRole.Mention, $"@{ZERO_LENGTH_CHAR}everyone"); //Everyone and Here have the same role
 			}

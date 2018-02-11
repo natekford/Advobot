@@ -35,8 +35,8 @@ namespace Advobot.Core.Utilities
 								"The everyone role cannot be modified in that way.");
 						}
 						return null;
-					case ObjectVerification.IsManaged:
-						if (!target.IsManaged)
+					case ObjectVerification.IsNotManaged:
+						if (target.IsManaged)
 						{
 							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 								"Managed roles cannot be modified in that way.");
@@ -46,6 +46,29 @@ namespace Advobot.Core.Utilities
 				return null;
 			});
 		}
+		/// <summary>
+		/// Verifies that the channel can be edited in specific ways.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="target"></param>
+		/// <param name="checks"></param>
+		/// <returns></returns>
+		public static VerifiedObjectResult Verify(this IGuildChannel target, ICommandContext context, IEnumerable<ObjectVerification> checks)
+		{
+			return InternalUtils.InternalVerify(target, context, checks);
+		}
+		/// <summary>
+		/// Verifies that the user can be edited in specific ways.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="target"></param>
+		/// <param name="checks"></param>
+		/// <returns></returns>
+		public static VerifiedObjectResult Verify(this IGuildUser target, ICommandContext context, IEnumerable<ObjectVerification> checks)
+		{
+			return InternalUtils.InternalVerify(target, context, checks);
+		}
+
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.
 		/// Not sure why, but IRole.ModifyAsync cannot set the position of a role to 1.
@@ -84,18 +107,6 @@ namespace Advobot.Core.Utilities
 			await role.Guild.ReorderRolesAsync(reorderProperties, options).CAF();
 			return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
 		}
-
-		/// <summary>
-		/// Verifies that the channel can be edited in specific ways.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="target"></param>
-		/// <param name="checks"></param>
-		/// <returns></returns>
-		public static VerifiedObjectResult Verify(this IGuildChannel target, ICommandContext context, IEnumerable<ObjectVerification> checks)
-		{
-			return InternalUtils.InternalVerify(target, context, checks);
-		}
 		/// <summary>
 		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.
 		/// </summary>
@@ -127,31 +138,19 @@ namespace Advobot.Core.Utilities
 		/// <exception cref="ArgumentException"></exception>
 		public static async Task AddPermissionOverwriteAsync<T>(this IGuildChannel channel, T obj, ulong allowBits, ulong denyBits, RequestOptions options) where T : ISnowflakeEntity
 		{
-			var permissions = new OverwritePermissions(allowBits, denyBits);
 			switch (obj)
 			{
 				case IRole role:
-					await channel.AddPermissionOverwriteAsync(role, permissions, options).CAF();
+					await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits), options).CAF();
 					return;
 				case IUser user:
-					await channel.AddPermissionOverwriteAsync(user, permissions, options).CAF();
+					await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits), options).CAF();
 					return;
 				default:
 					throw new ArgumentException("invalid type", nameof(obj));
 			}
 		}
 
-		/// <summary>
-		/// Verifies that the user can be edited in specific ways.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="target"></param>
-		/// <param name="checks"></param>
-		/// <returns></returns>
-		public static VerifiedObjectResult Verify(this IGuildUser target, ICommandContext context, IEnumerable<ObjectVerification> checks)
-		{
-			return InternalUtils.InternalVerify(target, context, checks);
-		}
 		/// <summary>
 		/// Returns true if the invoking user's position is greater than the target user's position.
 		/// </summary>
@@ -168,17 +167,6 @@ namespace Advobot.Core.Utilities
 			var invokerPosition = invoker is SocketGuildUser socketInvoker ? socketInvoker.Hierarchy : -1;
 			var targetPosition = target is SocketGuildUser socketTarget ? socketTarget.Hierarchy : -1;
 			return invokerPosition > targetPosition;
-		}
-		/// <summary>
-		/// Returns true if the user can edit the user in the specified way.
-		/// </summary>
-		/// <param name="invoker"></param>
-		/// <param name="target"></param>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invoker, IGuildUser target, ObjectVerification type)
-		{
-			return InternalUtils.InternalCanModify(invoker, target, type);
 		}
 		/// <summary>
 		/// Returns true if the user can edit the channel in the specified way.
@@ -202,6 +190,17 @@ namespace Advobot.Core.Utilities
 		{
 			return InternalUtils.InternalCanModify(invoker, target, type);
 		}
+		/// <summary>
+		/// Returns true if the user can edit the user in the specified way.
+		/// </summary>
+		/// <param name="invoker"></param>
+		/// <param name="target"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public static bool CanModify(this IGuildUser invoker, IGuildUser target, ObjectVerification type)
+		{
+			return InternalUtils.InternalCanModify(invoker, target, type);
+		}
 
 		/// <summary>
 		/// Returns every user that has a non null join time in order from least to greatest.
@@ -222,7 +221,6 @@ namespace Advobot.Core.Utilities
 		{
 			return guild.Users.Where(x => invokingUser.HasHigherPosition(x) && guild.CurrentUser.HasHigherPosition(x));
 		}
-
 		/// <summary>
 		/// Checks if the bot can get invites before trying to get invites.
 		/// </summary>
@@ -230,7 +228,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<IEnumerable<RestInviteMetadata>> GetInvitesAsync(SocketGuild guild)
 		{
-			return guild.CurrentUser.GuildPermissions.ManageGuild ? await guild.GetInvitesAsync().CAF() : new List<RestInviteMetadata>();
+			return guild.CurrentUser.GuildPermissions.ManageGuild ? await guild.GetInvitesAsync().CAF() : Enumerable.Empty<RestInviteMetadata>();
 		}
 		/// <summary>
 		/// Tries to find the invite a user joined on.
@@ -245,45 +243,31 @@ namespace Advobot.Core.Utilities
 			{
 				return new CachedInvite("Invited by admin", 0);
 			}
-			var currentInvites = (await GetInvitesAsync(user.Guild).CAF()).ToList();
-			if (!currentInvites.Any())
+			//No invites means vanity url, linked twitch, or something I don't know
+			var curInvs = (await GetInvitesAsync(user.Guild).CAF()).ToList();
+			if (!curInvs.Any())
 			{
-				return user.Guild.Features.CaseInsContains(Constants.VANITY_URL) ? new CachedInvite("Vanity Url", 0) : null;
+				return user.Guild.Features.CaseInsContains(Constants.VANITY_URL) ? new CachedInvite("Vanity url or linked twitch", 0) : null;
 			}
-
 			//Find invites where the cached invite uses are not the same as the current ones.
-			var updatedInvites = guildSettings.Invites.Where(cached =>
-			{
-				return currentInvites.Any(current => cached.Code == current.Code && cached.Uses != current.Uses);
-			}).ToList();
+			var updatedInvs = guildSettings.Invites.Where(cac => curInvs.Any(cur => cac.Code == cur.Code && cac.Uses != cur.Uses)).ToList();
 			//If only one then treat it as the joining invite
-			CachedInvite joinInv;
-			if (updatedInvites.Count() == 1)
+			if (updatedInvs.Count == 1)
 			{
-				joinInv = updatedInvites.First();
-				joinInv.IncrementUses();
-				return joinInv;
+				var inv = updatedInvs.First();
+				inv.IncrementUses();
+				return inv;
 			}
-
 			//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
-			var newInvs = currentInvites.Where(current =>
-			{
-				return !guildSettings.Invites.Select(cached => cached.Code).Contains(current.Code);
-			}).ToList();
-			//If no new invites then assume it was the vanity url
+			var newInvs = curInvs.Where(cur => !guildSettings.Invites.Select(cac => cac.Code).Contains(cur.Code)).ToList();
+			guildSettings.Invites.AddRange(newInvs.Select(x => new CachedInvite(x)));
+			//If no new invites then assume it was the vanity url, linked twitch, or something I don't know
 			if ((!newInvs.Any() || newInvs.All(x => x.Uses == 0)) && user.Guild.Features.CaseInsContains(Constants.VANITY_URL))
 			{
-				joinInv = new CachedInvite("Vanity Url", 0);
+				return new CachedInvite("Vanity url or linked twitch", 0);
 			}
-			//If one then assume it's the new one
-			else if (newInvs.Count(x => x.Uses != 0) == 1)
-			{
-				var invite = newInvs.First(x => x.Uses != 0);
-				joinInv = new CachedInvite(invite);
-			}
-			//No way to tell if more than one
-			guildSettings.Invites.AddRange(newInvs.Select(x => new CachedInvite(x)));
-			return null;
+			//If one then assume it's the new one, if more than one, no way to tell
+			return newInvs.Count(x => x.Uses != 0) == 1 ? guildSettings.Invites.First(i => i.Code == newInvs.First(n => n.Uses != 0).Code) : null;
 		}
 	}
 }

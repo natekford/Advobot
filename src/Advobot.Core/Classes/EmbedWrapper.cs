@@ -26,6 +26,8 @@ namespace Advobot.Core.Classes
 		public const int MAX_DESCRIPTION_LINES = 20;
 		public const int MAX_FIELD_LINES = 5;
 
+		private const string LINE_BREAKS = "Line Breaks";
+
 		private EmbedBuilder _Builder = new EmbedBuilder
 		{
 			Color = Base,
@@ -58,7 +60,8 @@ namespace Advobot.Core.Classes
 				if (TryAddDescription(value, out var errors)) { return; }
 				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
-				_Builder.Description = ShortenString(errors.Where(x => x.SubProperty == null), value);
+				var shortenedOnLines = ShortenString(errors.Where(x => x.SubProperty == LINE_BREAKS), value, true);
+				_Builder.Description = ShortenString(errors.Where(x => x.SubProperty == null), shortenedOnLines);
 			}
 		}
 		public string Url
@@ -161,7 +164,8 @@ namespace Advobot.Core.Classes
 					if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 					var fName = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Name)), f?.Name);
-					var fValue = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Value)), f?.Value?.ToString());
+					var fValue = ShortenString(errors.Where(x => x.SubProperty == LINE_BREAKS), f?.Value?.ToString(), true);
+					fValue = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Value)), fValue);
 					//If there's a total length error then don't even bother trying to put any more fields in
 					//Because it's impossible to know what length the name and value should be made
 					if (errors.SingleOrDefault(x => x.SubProperty == nameof(EmbedBuilder.MaxEmbedLength)).RemainingLength > -1)
@@ -169,7 +173,7 @@ namespace Advobot.Core.Classes
 						break;
 					}
 
-					//No need to check for 
+					//No need to check again 
 					_Builder.Fields.Add(new EmbedFieldBuilder
 					{
 						Name = fName,
@@ -228,7 +232,7 @@ namespace Advobot.Core.Classes
 			}
 			if (description?.CountLineBreaks() > MAX_DESCRIPTION_LINES)
 			{
-				errors.Add(EmbedError.MaxLength(nameof(Description), "Line Breaks", description, MAX_DESCRIPTION_LINES));
+				errors.Add(EmbedError.MaxLength(nameof(Description), LINE_BREAKS, description, MAX_DESCRIPTION_LINES));
 			}
 			var remainingLen = GetRemainingLength(nameof(Description));
 			if (description?.Length > remainingLen)
@@ -400,7 +404,7 @@ namespace Advobot.Core.Classes
 			}
 			if (value?.CountLineBreaks() > MAX_DESCRIPTION_LINES)
 			{
-				errors.Add(EmbedError.MaxLength(nameof(Fields), "Line Breaks", value, MAX_FIELD_LINES));
+				errors.Add(EmbedError.MaxLength(nameof(Fields), LINE_BREAKS, value, MAX_FIELD_LINES));
 			}
 			if (name.Length > EmbedFieldBuilder.MaxFieldNameLength)
 			{
@@ -541,7 +545,7 @@ namespace Advobot.Core.Classes
 		/// <param name="errors"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		private string ShortenString(IEnumerable<EmbedError> errors, string value)
+		private string ShortenString(IEnumerable<EmbedError> errors, string value, bool newLines = false)
 		{
 			if (value == null)
 			{
@@ -549,7 +553,24 @@ namespace Advobot.Core.Classes
 			}
 
 			var remaining = errors.Select(x => x.RemainingLength).Where(x => x > -1).DefaultIfEmpty(-1).Min();
-			var shortened = value.Substring(0, remaining == -1 ? value.Length : remaining);
+			if (remaining < 0)
+			{
+				return value;
+			}
+
+			var shortened = "";
+			if (newLines)
+			{
+				var lines = value.Split('\n', '\r');
+				for (int i = 0; i < Math.Min(lines.Length, remaining); ++i)
+				{
+					shortened += lines[i] + "\n";
+				}
+			}
+			else
+			{
+				shortened = value.Substring(remaining);
+			}
 			return shortened.Length == 0 ? null : shortened;
 		}
 		/// <summary>
@@ -565,7 +586,7 @@ namespace Advobot.Core.Classes
 
 		public override string ToString()
 		{
-			return String.Join("\n\n", _FailedValues.Select(x => $"{x.Key}: {x.Value}"));
+			return String.Join("\n\n", _FailedValues.Select(x => $"{x.Key}:\n{x.Value}"));
 		}
 	}
 }

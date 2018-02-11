@@ -82,7 +82,6 @@ namespace Advobot.Core.Classes.Attributes
 					result = new VerifiedObjectResult(value, CommandError.Exception, $"Please notify Advorange of this failure: {nameof(GetPreconditionResult)}");
 					break;
 			}
-
 			return result.IsSuccess ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(result);
 		}
 	}

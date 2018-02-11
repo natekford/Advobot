@@ -306,8 +306,7 @@ namespace Advobot.Commands.BannedPhrases
 			};
 			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
 		}
-		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type,
-			PunishmentType punishment) where T : BannedPhrase
+		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type, PunishmentType punishment) where T : BannedPhrase
 		{
 			var phrase = list.SingleOrDefault(x => x.Phrase.CaseInsEquals(text));
 			if (phrase == null)

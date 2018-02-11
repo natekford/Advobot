@@ -37,7 +37,7 @@ namespace Advobot.Commands.BotSettings
 		{
 			if (!Context.BotSettings.GetSettings().TryGetValue(settingName, out var field))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting."));
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting.")).CAF();
 				return;
 			}
 
@@ -154,7 +154,7 @@ namespace Advobot.Commands.BotSettings
 	[DefaultEnabled(true)]
 	public sealed class DisplayBotSettings : NonSavingModuleBase
 	{
-		[Command(nameof(Show)), ShortAlias(nameof(Show))]
+		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
 			var embed = new EmbedWrapper
@@ -164,18 +164,18 @@ namespace Advobot.Commands.BotSettings
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
-		[Command(nameof(All)), ShortAlias(nameof(All))]
+		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
 		{
 			var text = Context.BotSettings.Format(Context.Client, Context.Guild);
 			await MessageUtils.SendTextFileAsync(Context.Channel, text, "Bot Settings", "Bot Settings").CAF();
 		}
-		[Command, Priority(0)]
+		[Command]
 		public async Task Command(string settingName)
 		{
 			if (!Context.BotSettings.GetSettings().TryGetValue(settingName, out var field))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting."));
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting.")).CAF();
 				return;
 			}
 
@@ -215,27 +215,60 @@ namespace Advobot.Commands.BotSettings
 		"The image must be smaller than 2.5MB.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotIcon : NonSavingModuleBase
+	public sealed class ModifyBotIcon : ImageCreationModuleBase<IconResizerArgs>
 	{
-		[Command(RunMode = RunMode.Async)]
+		[Command]
 		public async Task Command(Uri url)
 		{
-			using (var resp = await ImageUtils.ResizeImageAsync(url, Context, new IconResizerArgs()))
+			if (GuildAlreadyProcessing)
 			{
-				if (resp.IsSuccess)
-				{
-					await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(resp.Stream), GetRequestOptions()).CAF();
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully updated the bot icon.");
-					return;
-				}
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Failed to update the bot icon. Reason: {resp.Error}");
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the bot icon.")).CAF();
+				return;
+			}
+
+			EnqueueArguments(new ImageCreationArguments<IconResizerArgs>
+			{
+				Uri = url,
+				Name = null,
+				Args = new IconResizerArgs(),
+				Context = Context,
+				Options = GetRequestOptions(),
+			});
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in bot icon creation queue: {QueueCount}.").CAF();
+			if (CanStart)
+			{
+				StartProcessing();
 			}
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
+			if (GuildAlreadyProcessing)
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the bot icon.")).CAF();
+				return;
+			}
+
 			await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot's icon.").CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot icon.").CAF();
+		}
+
+		protected override Task Create(ImageCreationArguments<IconResizerArgs> args)
+		{
+			return PrivateCreate(args);
+		}
+		private static async Task PrivateCreate(ImageCreationArguments<IconResizerArgs> args)
+		{
+			using (var resp = await ImageUtils.ResizeImageAsync(args.Uri, args.Context, args.Args).CAF())
+			{
+				if (resp.IsSuccess)
+				{
+					await args.Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(resp.Stream), args.Options).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(args.Context, "Successfully updated the bot icon.").CAF();
+					return;
+				}
+				await MessageUtils.SendErrorMessageAsync(args.Context, new Error($"Failed to update the bot icon. Reason: {resp.Error}.")).CAF();
+			}
 		}
 	}
 

@@ -17,7 +17,7 @@ namespace Advobot.Core.Enums
 
 		//Role
 		IsNotEveryone = (1U << 2),
-		IsManaged = (1U << 3),
+		IsNotManaged = (1U << 3),
 
 		//Channel
 		CanBeReordered = (1U << 5),

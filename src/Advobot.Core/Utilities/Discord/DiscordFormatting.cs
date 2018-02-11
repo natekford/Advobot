@@ -164,7 +164,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatUserInfo(SocketGuildUser user)
+		public static EmbedWrapper FormatGuildUserInfo(SocketGuildUser user)
 		{
 			var guild = user.Guild;
 			var textChannels = guild.TextChannels.Where(x => user.GetPermissions(x).ViewChannel).OrderBy(x => x.Position).Select(x => x.Name);
@@ -188,7 +188,7 @@ namespace Advobot.Core.Utilities
 				ThumbnailUrl = user.GetAvatarUrl(),
 			};
 			embed.TryAddAuthor(user, out _);
-			embed.TryAddFooter("User Info", null, out _);
+			embed.TryAddFooter("Guild User Info", null, out _);
 
 			if (channels.Count() != 0)
 			{
@@ -224,7 +224,7 @@ namespace Advobot.Core.Utilities
 				ThumbnailUrl = user.GetAvatarUrl()
 			};
 			embed.TryAddAuthor(user, out _);
-			embed.TryAddFooter("User Info", null, out _);
+			embed.TryAddFooter("Global User Info", null, out _);
 			return embed;
 		}
 		/// <summary>
@@ -259,14 +259,14 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static EmbedWrapper FormatChannelInfo(IGuildSettings guildSettings, SocketGuildChannel channel)
 		{
-			var overwriteNames = channel.PermissionOverwrites.Select(overwrite =>
+			var overwriteNames = channel.PermissionOverwrites.Select(o =>
 			{
-				switch (overwrite.TargetType)
+				switch (o.TargetType)
 				{
 					case PermissionTarget.Role:
-						return channel.Guild.GetRole(overwrite.TargetId).Name;
+						return channel.Guild.GetRole(o.TargetId).Name;
 					case PermissionTarget.User:
-						return channel.Guild.GetUser(overwrite.TargetId).Username;
+						return channel.Guild.GetUser(o.TargetId).Username;
 					default:
 						throw new InvalidOperationException("Invalid overwrite target type.");
 				}
@@ -340,7 +340,8 @@ namespace Advobot.Core.Utilities
 						$"`{guild.VoiceChannels.Count}` voice, " +
 						$"`{guild.CategoryChannels.Count}` categories)\n" +
 					$"**AFK Channel:** `{guild.AFKChannel.Format()}` " +
-						$"(`{guild.AFKTimeout / 60}` minute{Formatting.FormatPlural(guild.AFKTimeout / 60)})",
+						$"(`{guild.AFKTimeout / 60}` minute{Formatting.FormatPlural(guild.AFKTimeout / 60)})\n\n" +
+					(guild.Features.Any() ? $"**Features:** {String.Join("`, `", guild.Features)}" : ""),
 				Color = guild.Owner.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).LastOrDefault(x => x.Color.RawValue != 0)?.Color,
 				ThumbnailUrl = guild.IconUrl
 			};
@@ -357,11 +358,31 @@ namespace Advobot.Core.Utilities
 		{
 			var embed = new EmbedWrapper
 			{
-				Description = emote.FormatInfo(),
-				ThumbnailUrl = emote.Url
+				Description = emote.FormatInfo(), 
+				ThumbnailUrl = emote.Url,
 			};
 			embed.TryAddAuthor(emote.Name, null, null, out _);
 			embed.TryAddFooter("Emote Info", null, out _);
+			return embed;
+		}
+		/// <summary>
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about a guild emote.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="emote"></param>
+		/// <returns></returns>
+		public static EmbedWrapper FormatGuildEmoteInfo(SocketGuild guild, GuildEmote emote)
+		{
+			var embed = new EmbedWrapper
+			{
+				Description = emote.FormatInfo() + 
+					$"**Is Managed:** `{emote.IsManaged}`\n" +
+					$"**Requires Colons:** `{emote.RequireColons}`\n\n" +
+					$"**Roles:** `{String.Join("`, `", emote.RoleIds.Select(x => guild.GetRole(x)).OrderBy(x => x.Position).Select(x => x.Name))}`",
+				ThumbnailUrl = emote.Url,
+			};
+			embed.TryAddAuthor(emote.Name, null, null, out _);
+			embed.TryAddFooter("Guild Emote Info", null, out _);
 			return embed;
 		}
 		/// <summary>

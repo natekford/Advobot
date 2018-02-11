@@ -332,14 +332,16 @@ namespace Advobot.Commands.Channels
 		[Command]
 		public async Task Command(
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel inputChannel,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel outputChannel, SocketRole role)
+			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel outputChannel,
+			SocketRole role)
 		{
 			await CommandRunner(inputChannel, outputChannel, role).CAF();
 		}
 		[Command]
 		public async Task Command(
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel inputChannel,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel outputChannel, SocketGuildUser user)
+			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel outputChannel,
+			SocketGuildUser user)
 		{
 			await CommandRunner(inputChannel, outputChannel, user).CAF();
 		}

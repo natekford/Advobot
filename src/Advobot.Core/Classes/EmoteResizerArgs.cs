@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Advobot.Core.Classes
 {
-	public sealed class EmoteResizerArgs : IImageResizerArgs
+	public sealed class EmoteResizerArgs : IImageResizerArguments
 	{
 		public long MaxAllowedLengthInBytes => 256000;
 		public ImmutableArray<MagickFormat> ValidFormats => ImmutableArray.Create(new[]

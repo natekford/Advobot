@@ -523,7 +523,7 @@ namespace Advobot.Commands.GuildSettings
 		{
 			if (!Context.GuildSettings.GetSettings().TryGetValue(settingName, out var field))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting."));
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting.")).CAF();
 				return;
 			}
 

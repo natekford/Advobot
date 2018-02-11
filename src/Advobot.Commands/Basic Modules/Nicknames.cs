@@ -20,7 +20,8 @@ namespace Advobot.Commands.Nicknames
 	public sealed class ModifyNickName : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketGuildUser user,
+		public async Task Command(
+			[VerifyObject(false, ObjectVerification.CanBeEdited)] SocketGuildUser user,
 			[Optional, VerifyStringLength(Target.Nickname)] string nickname)
 		{
 			await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, GetRequestOptions()).CAF();
@@ -61,7 +62,8 @@ namespace Advobot.Commands.Nicknames
 	public sealed class ReplaceByUtf16 : NonSavingModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(uint upperLimit,
+		public async Task Command(
+			uint upperLimit,
 			[VerifyStringLength(Target.Nickname)] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{

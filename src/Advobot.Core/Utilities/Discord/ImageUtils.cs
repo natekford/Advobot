@@ -27,7 +27,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="args">The arguments to use on the file.</param>
 		/// <param name="callback">What do to with the resized file.</param>
 		/// <returns></returns>
-		public static async Task<ResizedImageResult> ResizeImageAsync(Uri uri, ICommandContext context, IImageResizerArgs args)
+		public static async Task<ResizedImageResult> ResizeImageAsync(Uri uri, ICommandContext context, IImageResizerArguments args)
 		{
 			var req = (HttpWebRequest)WebRequest.Create(uri.ToString().Replace(".gifv", ".mp4"));
 			req.UserAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
@@ -87,7 +87,7 @@ namespace Advobot.Core.Utilities
 				await response.GetResponseStream().CopyToAsync(stream = new MemoryStream()).CAF();
 				if (format == MagickFormat.Mp4) //Convert mp4 to gif so it can be used in animated gifs
 				{
-					await message.ModifyAsync(x => x.Content = $"Converting mp4 to gif.");
+					await message.ModifyAsync(x => x.Content = $"Converting mp4 to gif.").CAF();
 					await ConvertMp4ToGif(stream, (EmoteResizerArgs)args).CAF();
 					format = MagickFormat.Gif;
 				}
@@ -99,7 +99,7 @@ namespace Advobot.Core.Utilities
 				//Getting to this point has already checked resize tries, so this image needs to be resized if it's too big
 				for (int i = 0; i < args.ResizeTries && stream.Length > args.MaxAllowedLengthInBytes; ++i)
 				{
-					await message.ModifyAsync(x => x.Content = $"Attempting to resize {i + 1}/{args.ResizeTries}.");
+					await message.ModifyAsync(x => x.Content = $"Attempting to resize {i + 1}/{args.ResizeTries}.").CAF();
 					if (ResizeFile(stream, args, format, i == 0, out var width, out var height)) //Acceptable size
 					{
 						break;
@@ -172,7 +172,7 @@ namespace Advobot.Core.Utilities
 				await process.StandardOutput.BaseStream.CopyToAsync(ms).CAF();
 			}
 		}
-		private static bool ResizeFile(MemoryStream ms, IImageResizerArgs args, MagickFormat format, bool firstIter, out int width, out int height)
+		private static bool ResizeFile(MemoryStream ms, IImageResizerArguments args, MagickFormat format, bool firstIter, out int width, out int height)
 		{
 			//Make sure at start
 			ms.Seek(0, SeekOrigin.Begin);

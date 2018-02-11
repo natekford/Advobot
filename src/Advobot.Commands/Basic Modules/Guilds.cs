@@ -6,7 +6,9 @@ using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Guilds
@@ -111,7 +113,7 @@ namespace Advobot.Commands.Guilds
 			var resp = $"The guild's current server region is `{Context.Guild.VoiceRegionId}`.";
 			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
-		[Command, Priority(0)]
+		[Command]
 		public async Task Command(string regionId)
 		{
 			if (!_ValidRegionIDs.CaseInsContains(regionId)
@@ -194,27 +196,60 @@ namespace Advobot.Commands.Guilds
 		"The image must be smaller than 2.5MB.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildIcon : NonSavingModuleBase
+	public sealed class ModifyGuildIcon : ImageCreationModuleBase<IconResizerArgs>
 	{
-		[Command(RunMode = RunMode.Async)]
+		[Command]
 		public async Task Command(Uri url)
 		{
-			using (var resp = await ImageUtils.ResizeImageAsync(url, Context, new IconResizerArgs()))
+			if (GuildAlreadyProcessing)
 			{
-				if (resp.IsSuccess)
-				{
-					await Context.Guild.ModifyAsync(x => x.Icon = new Image(resp.Stream), GetRequestOptions()).CAF();
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully updated the guild icon.");
-					return;
-				}
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Failed to update the guild icon. Reason: {resp.Error}");
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild icon.")).CAF();
+				return;
+			}
+
+			EnqueueArguments(new ImageCreationArguments<IconResizerArgs>
+			{
+				Uri = url,
+				Name = null,
+				Args = new IconResizerArgs(),
+				Context = Context,
+				Options = GetRequestOptions(),
+			});
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in guild icon creation queue: {QueueCount}.").CAF();
+			if (CanStart)
+			{
+				StartProcessing();
 			}
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
+			if (GuildAlreadyProcessing)
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild icon.")).CAF();
+				return;
+			}
+
 			await Context.Guild.ModifyAsync(x => x.Icon = new Image()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild's icon.").CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild icon.").CAF();
+		}
+
+		protected override Task Create(ImageCreationArguments<IconResizerArgs> args)
+		{
+			return PrivateCreate(args);
+		}
+		private static async Task PrivateCreate(ImageCreationArguments<IconResizerArgs> args)
+		{
+			using (var resp = await ImageUtils.ResizeImageAsync(args.Uri, args.Context, args.Args).CAF())
+			{
+				if (resp.IsSuccess)
+				{
+					await args.Context.Guild.ModifyAsync(x => x.Icon = new Image(resp.Stream), args.Options).CAF();
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(args.Context, "Successfully updated the guild icon.").CAF();
+					return;
+				}
+				await MessageUtils.SendErrorMessageAsync(args.Context, new Error($"Failed to update the guild icon. Reason: {resp.Error}.")).CAF();
+			}
 		}
 	}
 

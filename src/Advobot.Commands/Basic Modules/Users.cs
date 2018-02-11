@@ -44,7 +44,7 @@ namespace Advobot.Commands.Users
 		public async Task Command(SocketGuildUser user, [Optional] uint time, [Optional, Remainder] string reason)
 		{
 			IRole muteRole = Context.Guild.GetRole(Context.GuildSettings.MuteRoleId);
-			if (!muteRole.Verify(Context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
+			if (!muteRole.Verify(Context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsNotManaged }).IsSuccess)
 			{
 				muteRole = await Context.Guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0)).CAF();
 				Context.GuildSettings.MuteRoleId = muteRole.Id;
@@ -200,7 +200,7 @@ namespace Advobot.Commands.Users
 		{
 			await CommandRunner(user.Id, reason).CAF();
 		}
-		[Command, Priority(0)]
+		[Command]
 		public async Task Command(ulong userId, [Optional, Remainder] string reason)
 		{
 			await CommandRunner(userId, reason).CAF();
@@ -442,7 +442,7 @@ namespace Advobot.Commands.Users
 		[Command(nameof(GiveRole)), ShortAlias(nameof(GiveRole))]
 		public async Task GiveRole(
 			SocketRole targetRole,
-			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone, ObjectVerification.IsManaged)] SocketRole givenRole,
+			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone, ObjectVerification.IsNotManaged)] SocketRole givenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			if (targetRole.Id == givenRole.Id)
@@ -456,7 +456,7 @@ namespace Advobot.Commands.Users
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
 		public async Task TakeRole(
 			SocketRole targetRole,
-			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone, ObjectVerification.IsManaged)] SocketRole takenRole,
+			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone, ObjectVerification.IsNotManaged)] SocketRole takenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			await Use(targetRole, bypass, async (m) => await m.TakeRolesAsync(takenRole, GetRequestOptions()).CAF());
