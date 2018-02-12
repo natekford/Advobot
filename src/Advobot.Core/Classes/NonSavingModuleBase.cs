@@ -2,6 +2,7 @@
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
+using System;
 
 namespace Advobot.Core.Classes
 {
@@ -13,7 +14,9 @@ namespace Advobot.Core.Classes
 	{
 		public RequestOptions GetRequestOptions(string reason = "")
 		{
-			return ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}. Reason: {reason}.");
+			return String.IsNullOrWhiteSpace(reason)
+				? ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}.")
+				: ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}. Reason: {reason}.");
 		}
 	}
 }

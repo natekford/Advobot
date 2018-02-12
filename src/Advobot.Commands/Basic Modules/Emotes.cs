@@ -17,14 +17,16 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.Emotes
 {
-	[Group(nameof(Create)), TopLevelShortAlias(typeof(CreateEmote))]
+	[Group(nameof(CreateEmote)), TopLevelShortAlias(typeof(CreateEmote))]
 	[Summary("Adds an emote to the server. " +
 		"Requires either an emote to copy, or the name and file to make an emote out of.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
 	[Queue(1)]
-	public sealed class CreateEmote : ImageCreationModuleBase<EmoteResizerArgs>
+	public sealed class CreateEmote : NonSavingModuleBase
 	{
+		private static EmoteResizer _Resizer = new EmoteResizer(4);
+
 		[Command]
 		public async Task Command(Emote emote)
 		{
@@ -34,17 +36,17 @@ namespace Advobot.Commands.Emotes
 		public async Task Command(
 			[VerifyStringLength(Target.Emote)] string name,
 			Uri url,
-			[Optional, Remainder] NamedArguments<EmoteResizerArgs> args)
+			[Optional, Remainder] NamedArguments<EmoteResizerArguments> args)
 		{
-			EmoteResizerArgs obj;
-			if (GuildAlreadyProcessing)
+			EmoteResizerArguments obj;
+			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on creating an emote.")).CAF();
 				return;
 			}
 			else if (args == null)
 			{
-				obj = new EmoteResizerArgs();
+				obj = new EmoteResizerArguments();
 			}
 			else if (!args.TryCreateObject(new object[] { 5, new Percentage(30) }, out obj, out var error))
 			{
@@ -52,36 +54,11 @@ namespace Advobot.Commands.Emotes
 				return;
 			}
 
-			EnqueueArguments(new ImageCreationArguments<EmoteResizerArgs>
+			_Resizer.EnqueueArguments(Context, obj, url, GetRequestOptions(), name);
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in emote creation queue: {_Resizer.QueueCount}.").CAF();
+			if (_Resizer.CanStart)
 			{
-				Uri = url,
-				Name = name,
-				Args = obj,
-				Context = Context,
-				Options = GetRequestOptions(),
-			});
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in emote creation queue: {QueueCount}.").CAF();
-			if (CanStart)
-			{
-				StartProcessing();
-			}
-		}
-
-		protected override Task Create(ImageCreationArguments<EmoteResizerArgs> args)
-		{
-			return PrivateCreate(args);
-		}
-		private static async Task PrivateCreate(ImageCreationArguments<EmoteResizerArgs> args)
-		{
-			using (var resp = await ImageUtils.ResizeImageAsync(args.Uri, args.Context, args.Args).CAF())
-			{
-				if (resp.IsSuccess)
-				{
-					var emote = await args.Context.Guild.CreateEmoteAsync(args.Name, new Image(resp.Stream), default, args.Options).CAF();
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(args.Context, $"Successfully created the emote {emote}.").CAF();
-					return;
-				}
-				await MessageUtils.SendErrorMessageAsync(args.Context, new Error($"Failed to create the emote `{args.Name}`. Reason: {resp.Error}.")).CAF();
+				_Resizer.StartProcessing();
 			}
 		}
 	}

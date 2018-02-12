@@ -88,7 +88,7 @@ namespace Advobot.Core.Utilities
 				if (format == MagickFormat.Mp4) //Convert mp4 to gif so it can be used in animated gifs
 				{
 					await message.ModifyAsync(x => x.Content = $"Converting mp4 to gif.").CAF();
-					await ConvertMp4ToGif(stream, (EmoteResizerArgs)args).CAF();
+					await ConvertMp4ToGif(stream, (EmoteResizerArguments)args).CAF();
 					format = MagickFormat.Gif;
 				}
 				if (stream.Length < args.MaxAllowedLengthInBytes)
@@ -136,7 +136,7 @@ namespace Advobot.Core.Utilities
 				//stream isn't disposed here cause it's returned
 			}
 		}
-		private static async Task ConvertMp4ToGif(MemoryStream ms, EmoteResizerArgs args)
+		private static async Task ConvertMp4ToGif(MemoryStream ms, EmoteResizerArguments args)
 		{
 			var info = new ProcessStartInfo
 			{

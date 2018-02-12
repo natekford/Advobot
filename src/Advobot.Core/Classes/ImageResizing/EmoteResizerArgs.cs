@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Advobot.Core.Classes
 {
-	public sealed class EmoteResizerArgs : IImageResizerArguments
+	public sealed class EmoteResizerArguments : IImageResizerArguments
 	{
 		public long MaxAllowedLengthInBytes => 256000;
 		public ImmutableArray<MagickFormat> ValidFormats => ImmutableArray.Create(new[]
@@ -22,7 +22,7 @@ namespace Advobot.Core.Classes
 		public int StartInSeconds { get; set; }
 		public int LengthInSeconds { get; set; }
 
-		public EmoteResizerArgs()
+		public EmoteResizerArguments()
 		{
 			ResizeTries = 5;
 			ColorFuzzing = new Percentage(30);
@@ -30,7 +30,7 @@ namespace Advobot.Core.Classes
 			LengthInSeconds = 10;
 		}
 		[NamedArgumentConstructor]
-		public EmoteResizerArgs(
+		public EmoteResizerArguments(
 			int resizeTries,
 			Percentage colorFuzzing,
 			[NamedArgument] uint? startInSeconds,

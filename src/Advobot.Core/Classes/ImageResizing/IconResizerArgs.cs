@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Advobot.Core.Classes
 {
-	public sealed class IconResizerArgs : IImageResizerArguments
+	public sealed class IconResizerArguments : IImageResizerArguments
 	{
 		public long MaxAllowedLengthInBytes => 10000000;
 		public ImmutableArray<MagickFormat> ValidFormats => ImmutableArray.Create(new[]
@@ -16,7 +16,7 @@ namespace Advobot.Core.Classes
 		public int ResizeTries { get; set; }
 		public Percentage ColorFuzzing { get; set; }
 
-		public IconResizerArgs()
+		public IconResizerArguments()
 		{
 			ResizeTries = 5;
 			ColorFuzzing = new Percentage(30);
