@@ -238,7 +238,7 @@ namespace Advobot.Commands.Gets
 	[DefaultEnabled(true)]
 	public sealed class GetUserJoinList : NonSavingModuleBase
 	{
-		[Command(RunMode = RunMode.Async)]
+		[Command]
 		public async Task Command()
 		{
 			var users = Context.Guild.GetUsersByJoinDate().ToArray();

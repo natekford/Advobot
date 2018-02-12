@@ -107,7 +107,7 @@ namespace Advobot.Commands.Webhooks
 		{
 			using (var resp = await ImageUtils.ResizeImageAsync(args.Uri, args.Context, args.Args).CAF())
 			{
-				if (!_Webhooks.TryGetValue(args.Context.Guild.Id, out var webhook))
+				if (!_Webhooks.TryRemove(args.Context.Guild.Id, out var webhook))
 				{
 					await MessageUtils.SendErrorMessageAsync(args.Context, new Error("Unable to modify the webhook."));
 					return;
