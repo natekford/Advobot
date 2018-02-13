@@ -25,7 +25,28 @@ namespace Advobot.Commands.Emotes
 	[Queue(1)]
 	public sealed class CreateEmote : NonSavingModuleBase
 	{
-		private static EmoteResizer _Resizer = new EmoteResizer(4);
+		private static ImageResizer<EmoteResizerArguments> _Resizer = new ImageResizer<EmoteResizerArguments>(4, "emote", async (c, s, f, n, o) =>
+		{
+			switch (f)
+			{
+				case MagickFormat.Jpg:
+				case MagickFormat.Jpeg:
+				case MagickFormat.Png:
+					if (c.Guild.Emotes.Where(x => !x.Animated).Count() >= 50)
+					{
+						return new Error("there are already 50 non animated emotes.");
+					}
+					break;
+				case MagickFormat.Gif:
+					if (c.Guild.Emotes.Where(x => x.Animated).Count() >= 50)
+					{
+						return new Error("there are already 50 animated emotes.");
+					}
+					break;
+			}
+			await c.Guild.CreateEmoteAsync(n, new Image(s), default, o).CAF();
+			return null;
+		});
 
 		[Command]
 		public async Task Command(Emote emote)

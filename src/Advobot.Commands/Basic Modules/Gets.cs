@@ -29,7 +29,13 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
 		{
-			var embed = DiscordFormatting.FormatGuildInfo(Context.Guild as SocketGuild);
+			var embed = DiscordFormatting.FormatGuildInfo(Context.Guild);
+			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+		}
+		[Command(nameof(GuildUsers)), ShortAlias(nameof(GuildUsers))]
+		public async Task GuildUsers()
+		{
+			var embed = DiscordFormatting.FormatAllGuildUsersInfo(Context.Guild);
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]

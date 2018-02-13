@@ -304,13 +304,73 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static EmbedWrapper FormatGuildInfo(SocketGuild guild)
 		{
-			int online = 0, bots = 0, nickname = 0, voice = 0, playing = 0, listening = 0, watching = 0, streaming = 0;
+			int local = 0, animated = 0, managed = 0;
+			foreach (var emote in guild.Emotes)
+			{
+				if (emote.IsManaged)
+				{ ++managed; }
+				if (emote.Animated)
+				{ ++animated; }
+				else
+				{ ++local; }
+			}
+
+			var embed = new EmbedWrapper
+			{
+				Description = guild.FormatInfo() +
+					$"**Owner:** `{guild.Owner.Format()}`\n" +
+					$"**Default Message Notifs:** `{guild.DefaultMessageNotifications}`\n" +
+					$"**Verification Level:** `{guild.VerificationLevel}`\n" +
+					$"**Region:** `{guild.VoiceRegionId}`\n\n" +
+					$"**Emotes:** `{guild.Emotes.Count}` (`{local}` local, `{animated}` animated, `{managed}` managed)\n" +
+					$"**User Count:** `{guild.MemberCount}`\n" +
+					$"**Role Count:** `{guild.Roles.Count}`\n" +
+					$"**Channel Count:** `{guild.Channels.Count}` " +
+						$"(`{guild.TextChannels.Count}` text, " +
+						$"`{guild.VoiceChannels.Count}` voice, " +
+						$"`{guild.CategoryChannels.Count}` categories)\n\n" +
+					$"**Default Channel:** `{guild.DefaultChannel?.Format() ?? "None"}`\n" +
+					$"**AFK Channel:** `{guild.AFKChannel?.Format() ?? "None"}` (Time: `{guild.AFKTimeout / 60}`)\n" +
+					$"**System Channel:** `{guild.SystemChannel?.Format() ?? "None"}`\n" +
+					$"**Embed Channel:** `{guild.EmbedChannel?.Format() ?? "None"}`\n" +
+					(guild.Features.Any() ? $"**Features:** `{String.Join("`, `", guild.Features)}`" : ""),
+				Color = guild.Owner.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).LastOrDefault(x => x.Color.RawValue != 0)?.Color,
+				ThumbnailUrl = guild.IconUrl
+			};
+			embed.TryAddAuthor(guild.Format(), null, null, out _);
+			embed.TryAddFooter("Guild Info", null, out _);
+			return embed;
+		}
+		/// <summary>
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about every member in the guild.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
+		public static EmbedWrapper FormatAllGuildUsersInfo(SocketGuild guild)
+		{
+			int offline = 0, online = 0, idle = 0, afk = 0, donotdisturb = 0,
+				playing = 0, listening = 0, watching = 0, streaming = 0,
+				webhooks = 0, bots = 0, nickname = 0, voice = 0;
 			foreach (var user in guild.Users)
 			{
-				if (user.Status != UserStatus.Offline) { ++online; }
-				if (user.IsBot) { ++bots; }
-				if (user.Nickname != null) { ++nickname; }
-				if (user.VoiceChannel != null) { ++voice; }
+				switch (user.Status)
+				{
+					case UserStatus.Offline:
+						++offline;
+						break;
+					case UserStatus.Online:
+						++online;
+						break;
+					case UserStatus.Idle:
+						++idle;
+						break;
+					case UserStatus.AFK:
+						++afk;
+						break;
+					case UserStatus.DoNotDisturb:
+						++donotdisturb;
+						break;
+				}
 				switch (user.Activity?.Type)
 				{
 					case ActivityType.Playing:
@@ -326,36 +386,37 @@ namespace Advobot.Core.Utilities
 						++watching;
 						break;
 				}
+				if (user.IsWebhook)
+				{ ++webhooks; }
+				if (user.IsBot)
+				{ ++bots; }
+				if (user.Nickname != null)
+				{ ++nickname; }
+				if (user.VoiceChannel != null)
+				{ ++voice; }
 			}
 
 			var embed = new EmbedWrapper
 			{
-				Description = guild.FormatInfo() +
-					$"**Owner:** `{guild.Owner.Format()}`\n" +
-					$"**Region:** `{guild.VoiceRegionId}`\n" +
-					$"**Emotes:** `{guild.Emotes.Count}` " +
-						$"(`{guild.Emotes.Count(x => !x.IsManaged)}` local, " +
-						$"`{guild.Emotes.Count(x => x.IsManaged)}` global)\n\n" +
-					$"**User Count:** `{guild.MemberCount}` (`{online}` online, `{bots}` bots)\n" +
-					$"**Users With Nickname:** `{nickname}`\n" +
-					$"**Users In Voice:** `{voice}`\n" +
-					$"**Users Playing:** `{playing}`\n" +
-					$"**Users Streaming:** `{streaming}`\n" +
-					$"**Users Listening:** `{listening}`\n" +
-					$"**Users Watching:** `{watching}`\n\n" +
-					$"**Role Count:** `{guild.Roles.Count}`\n" +
-					$"**Channel Count:** `{guild.Channels.Count}` " +
-						$"(`{guild.TextChannels.Count}` text, " +
-						$"`{guild.VoiceChannels.Count}` voice, " +
-						$"`{guild.CategoryChannels.Count}` categories)\n" +
-					$"**AFK Channel:** `{guild.AFKChannel.Format()}` " +
-						$"(`{guild.AFKTimeout / 60}` minute{Formatting.FormatPlural(guild.AFKTimeout / 60)})\n\n" +
-					(guild.Features.Any() ? $"**Features:** {String.Join("`, `", guild.Features)}" : ""),
-				Color = guild.Owner.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).LastOrDefault(x => x.Color.RawValue != 0)?.Color,
-				ThumbnailUrl = guild.IconUrl
+				Description = $"**Count:** `{guild.Users.Count}`\n" +
+					$"**Bots:** `{bots}`\n" +
+					$"**Webhooks:** `{webhooks}`\n" +
+					$"**In Voice:** `{voice}`\n" +
+					$"**Has Nickname:** `{nickname}`\n",
 			};
-			embed.TryAddAuthor(guild.Format(), null, null, out _);
-			embed.TryAddFooter("Guild Info", null, out _);
+			var statuses = $"**Offline:** `{offline}`\n" +
+				$"**Online:** `{online}`\n" +
+				$"**Idle:** `{idle}`\n" +
+				$"**AFK:** `{afk}`\n" +
+				$"**Do Not Disturb:** `{donotdisturb}`";
+			embed.TryAddField("Statuses", statuses, false, out _);
+			var activities = $"**Playing Games:** `{playing}`\n" +
+				$"**Streaming:** `{streaming}`\n" +
+				$"**Listening:** `{listening}`\n" +
+				$"**Watching:** `{watching}`";
+			embed.TryAddField("Activities", activities, false, out _);
+			embed.TryAddAuthor("Guild Users", null, null, out _);
+			embed.TryAddFooter("Guild Users Info", null, out _);
 			return embed;
 		}
 		/// <summary>

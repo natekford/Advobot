@@ -42,5 +42,4 @@ namespace Advobot.Core.Classes
 			LengthInSeconds = (int)Math.Min(int.MaxValue, lengthInSeconds ?? 10);
 		}
 	}
-
 }

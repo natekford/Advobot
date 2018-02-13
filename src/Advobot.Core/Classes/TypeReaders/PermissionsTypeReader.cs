@@ -35,7 +35,7 @@ namespace Advobot.Core.Classes.TypeReaders
 			}
 
 			var perms = invalidPerms.ToList();
-			var str = $"Invalid permission{Formatting.FormatPlural(perms.Count)} provided: `{String.Join("`, `", perms)}`.";
+			var str = $"Invalid permission(s) provided: `{String.Join("`, `", perms)}`.";
 			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, str));
 		}
 	}

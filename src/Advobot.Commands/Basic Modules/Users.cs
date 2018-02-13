@@ -370,7 +370,7 @@ namespace Advobot.Commands.Users
 				deletedAmt++;
 			}
 
-			var response = $"Successfully deleted `{deletedAmt}` message{Formatting.FormatPlural(deletedAmt)}";
+			var response = $"Successfully deleted `{deletedAmt}` message(s)";
 			var userResp = user != null ? $" from `{user.Format()}`" : null;
 			var chanResp = $" on `{channel.Format()}`";
 			var resp = $"{new[] { response, userResp, chanResp }.JoinNonNullStrings(" ")}.";

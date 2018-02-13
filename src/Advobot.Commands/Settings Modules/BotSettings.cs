@@ -217,7 +217,11 @@ namespace Advobot.Commands.BotSettings
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotIcon : NonSavingModuleBase
 	{
-		private static IconResizer _Resizer = new IconResizer("bot", 4);
+		private static ImageResizer<IconResizerArguments> _Resizer = new ImageResizer<IconResizerArguments>(4, "bot icon", async (c, s, f, n, o) =>
+		{
+			await c.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(s), o).CAF();
+			return null;
+		});
 
 		[Command]
 		public async Task Command(Uri url)

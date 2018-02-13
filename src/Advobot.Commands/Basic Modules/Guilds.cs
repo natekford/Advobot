@@ -5,6 +5,7 @@ using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
@@ -40,8 +41,7 @@ namespace Advobot.Commands.Guilds
 				await guild.LeaveAsync().CAF();
 				if (Context.Guild.Id != guildId)
 				{
-					var resp = $"Successfully left the server `{guild.Name}` with an ID `{guild.Id}`.";
-					await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
+					await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully left the server `{guild.Format()}`.").CAF();
 				}
 			}
 			else
@@ -107,12 +107,6 @@ namespace Advobot.Commands.Guilds
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
-		[Command(nameof(Current)), ShortAlias(nameof(Current)), Priority(1)]
-		public async Task Current()
-		{
-			var resp = $"The guild's current server region is `{Context.Guild.VoiceRegionId}`.";
-			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
-		}
 		[Command]
 		public async Task Command(string regionId)
 		{
@@ -131,7 +125,7 @@ namespace Advobot.Commands.Guilds
 	}
 
 	[Group(nameof(ModifyGuildAfkTimer)), TopLevelShortAlias(typeof(ModifyGuildAfkTimer))]
-	[Summary("Updates the guild's AFK timeout.")]
+	[Summary("Updates the guild AFK timeout.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildAfkTimer : NonSavingModuleBase
@@ -140,29 +134,50 @@ namespace Advobot.Commands.Guilds
 		public async Task Command([VerifyNumber(new[] { 60, 300, 900, 1800, 3600 })] uint time)
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkTimeout = (int)time, GetRequestOptions()).CAF();
-			var resp = $"Successfully set the guild's AFK timeout to `{time}`.";
+			var resp = $"Successfully set the guild AFK timeout to `{time}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
 	[Group(nameof(ModifyGuildAfkChannel)), TopLevelShortAlias(typeof(ModifyGuildAfkChannel))]
-	[Summary("Updates the guild's AFK channel.")]
+	[Summary("Updates specific special channels in the guild (afk, default, system, embed).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildAfkChannel : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeManaged)] IVoiceChannel channel)
+		public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeManaged)] SocketVoiceChannel channel)
 		{
-			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), GetRequestOptions()).CAF();
-			var resp = $"Successfully set the guild's AFK channel to `{channel.Format()}`.";
+			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel>(channel), GetRequestOptions()).CAF();
+			var resp = $"Successfully set the guild AFK channel to `{channel.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkChannelId = Optional.Create<ulong?>(null), GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild's afk channel.").CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild afk channel.").CAF();
+		}
+	}
+
+	[Group(nameof(ModifyGuildSystemChannel)), TopLevelShortAlias(typeof(ModifyGuildSystemChannel))]
+	[Summary("Updates the guild system channel.")]
+	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[DefaultEnabled(true)]
+	public sealed class ModifyGuildSystemChannel : NonSavingModuleBase
+	{
+		[Command]
+		public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeManaged)] SocketTextChannel channel)
+		{
+			await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel>(channel), GetRequestOptions()).CAF();
+			var resp = $"Successfully set the guild system channel to `{channel.Format()}`.";
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+		}
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove()
+		{
+			await Context.Guild.ModifyAsync(x => x.SystemChannelId = Optional.Create<ulong?>(null), GetRequestOptions()).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild system channel.").CAF();
 		}
 	}
 
@@ -198,13 +213,16 @@ namespace Advobot.Commands.Guilds
 	}
 
 	[Group(nameof(ModifyGuildIcon)), TopLevelShortAlias(typeof(ModifyGuildIcon))]
-	[Summary("Changes the guild's icon to the given image. " +
-		"The image must be smaller than 2.5MB.")]
+	[Summary("Changes the guild's icon to the given image.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildIcon : NonSavingModuleBase
 	{
-		private static IconResizer _Resizer = new IconResizer("guild", 4);
+		private static ImageResizer<IconResizerArguments> _Resizer = new ImageResizer<IconResizerArguments>(4, "guild icon", async (c, s, f, n, o) =>
+		{
+			await c.Guild.ModifyAsync(x => x.Icon = new Image(s), o).CAF();
+			return null;
+		});
 
 		[Command]
 		public async Task Command(Uri url)
@@ -233,6 +251,48 @@ namespace Advobot.Commands.Guilds
 
 			await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild icon.").CAF();
+		}
+	}
+
+	[Group(nameof(ModifyGuildSplash)), TopLevelShortAlias(typeof(ModifyGuildSplash))]
+	[Summary("Changes the guild splash to the given image. Won't be modified unless the server is partnered with Discord.")]
+	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[DefaultEnabled(true)]
+	public sealed class ModifyGuildSplash : NonSavingModuleBase
+	{
+		private static ImageResizer<IconResizerArguments> _Resizer = new ImageResizer<IconResizerArguments>(4, "guild splash", async (c, s, f, n, o) =>
+		{
+			await c.Guild.ModifyAsync(x => x.Splash = new Image(s), o).CAF();
+			return null;
+		});
+
+		[Command]
+		public async Task Command(Uri url)
+		{
+			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild splash.")).CAF();
+				return;
+			}
+
+			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GetRequestOptions());
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in guild splash creation queue: {_Resizer.QueueCount}.").CAF();
+			if (_Resizer.CanStart)
+			{
+				_Resizer.StartProcessing();
+			}
+		}
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove()
+		{
+			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild splash.")).CAF();
+				return;
+			}
+
+			await Context.Guild.ModifyAsync(x => x.Splash = new Image(), GetRequestOptions()).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild splash.").CAF();
 		}
 	}
 

@@ -60,7 +60,15 @@ namespace Advobot.Commands.Webhooks
 	[DefaultEnabled(true)]
 	public sealed class ModifyWebhookIcon : NonSavingModuleBase
 	{
-		private static WebhookIconResizer _Resizer = new WebhookIconResizer(4); 
+		private static ImageResizer<IconResizerArguments> _Resizer = new ImageResizer<IconResizerArguments>(4, "webhook icon", async (c, s, f, n, o) =>
+		{
+			if (!(await c.Guild.GetWebhookAsync(Convert.ToUInt64(n)).CAF() is IWebhook webhook))
+			{
+				return new Error("Unable to find the webhook to update.");
+			}
+			await webhook.ModifyAsync(x => x.Image = new Image(s), o).CAF();
+			return null;
+		});
 
 		[Command]
 		public async Task Command(IWebhook webhook, Uri url)
@@ -71,8 +79,7 @@ namespace Advobot.Commands.Webhooks
 				return;
 			}
 
-			_Resizer.AddWebhook(Context.Guild, webhook);
-			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GetRequestOptions());
+			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GetRequestOptions(), webhook.Id.ToString());
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in webhook icon creation queue: {_Resizer.QueueCount}.").CAF();
 			if (_Resizer.CanStart)
 			{
