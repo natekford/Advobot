@@ -127,7 +127,6 @@ namespace Advobot.Core.Utilities
 		public static T Deserialize<T>(string value, Type type, JsonSerializerSettings settings = null)
 		{
 			//Only use fixes specified for the class
-			var json = value;
 			var fixes = Fixes.Where(f => f.Type == type || f.Type.IsAssignableFrom(type));
 			if (fixes.Any())
 			{
@@ -139,10 +138,9 @@ namespace Advobot.Core.Utilities
 						jProp.Value = fix.NewValue;
 					}
 				}
-				json = jObject.ToString();
+				value = jObject.ToString();
 			}
-
-			return (T)JsonConvert.DeserializeObject(json, type, settings ?? _DefaultSerializingSettings);
+			return (T)JsonConvert.DeserializeObject(value, type, settings ?? _DefaultSerializingSettings);
 		}
 		/// <summary>
 		/// Creates an object from json stored in a file.
@@ -150,12 +148,12 @@ namespace Advobot.Core.Utilities
 		/// </summary>
 		/// <typeparam name="T">The general type to deserialize. Can be an abstraction of <paramref name="type"/> but has to be a type where it can be converted to <typeparamref name="T"/>.</typeparam>
 		/// <param name="file">The file to read from.</param>
-		/// <param name="type">The type of object to create.</param>
+		/// <param name="type">The explicit type of object to create.</param>
 		/// <param name="settings">The json settings to use. If null, uses settings that parse enums as strings and ignores errors.</param>
 		/// <param name="create">If true, unable to deserialize an object from the file, and the type has a parameterless constructor, then uses that constructor.</param>
 		/// <param name="callback">An action to do after the object has been deserialized.</param>
 		/// <returns></returns>
-		public static T DeserializeFromFile<T>(FileInfo file, Type type, bool create = false, JsonSerializerSettings settings = null, Action<T> callback = null)
+		public static T DeserializeFromFile<T>(FileInfo file, Type type, bool create = false, JsonSerializerSettings settings = null)
 		{
 			T obj = default;
 			var stillDef = true;
@@ -180,11 +178,8 @@ namespace Advobot.Core.Utilities
 			{
 				ConsoleUtils.WriteLine($"The {type.Name} file could not be found; using default.");
 			}
-
 			//If want an object no matter what and the object is still default and there is a parameterless constructor then create one
-			var result = create && stillDef && type.GetConstructors().Any(x => !x.GetParameters().Any()) ? (T)Activator.CreateInstance(type) : obj;
-			callback?.Invoke(result);
-			return result;
+			return create && stillDef && type.GetConstructors().Any(x => !x.GetParameters().Any()) ? (T)Activator.CreateInstance(type) : obj;
 		}
 		/// <summary>
 		/// Generates json serializer settings which ignore most errors, and has a string enum converter.
@@ -196,7 +191,6 @@ namespace Advobot.Core.Utilities
 			{
 				//Ignores errors parsing specific invalid properties instead of throwing exceptions making the entire object null
 				//Will still make the object null if the property's type is changed to something not creatable from the text
-				//Won't make the entire object null though, just the 
 				Error = (sender, e) =>
 				{
 					ConsoleUtils.WriteLine(e.ErrorContext.Error.Message, color: ConsoleColor.Red);

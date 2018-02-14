@@ -7,6 +7,7 @@ using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,6 +20,8 @@ namespace Advobot.Core.Services.Timers
 	//I have absolutely no idea if this class works as intended under stress.
 	internal sealed class TimersService : ITimersService
 	{
+		private IDiscordClient _Client;
+
 		private Timer _HourTimer = new Timer(60 * 60 * 1000);
 		private Timer _MinuteTimer = new Timer(60 * 1000);
 		private Timer _SecondTimer = new Timer(1000);
@@ -29,14 +32,14 @@ namespace Advobot.Core.Services.Timers
 		private RequestOptions _CloseQuotesReason = ClientUtils.CreateRequestOptions("removing active close quotes");
 
 		//Guild specific
-		private ConcurrentDoubleKeyDictionary<IGuild, MultiKey<ulong, PunishmentType>, RemovablePunishment> _RemovablePunishments =
-			new ConcurrentDoubleKeyDictionary<IGuild, MultiKey<ulong, PunishmentType>, RemovablePunishment>();
-		private ConcurrentDoubleKeyDictionary<IGuild, ulong, SpamPreventionUserInfo> _SpamPreventionUsers =
-			new ConcurrentDoubleKeyDictionary<IGuild, ulong, SpamPreventionUserInfo>();
-		private ConcurrentDoubleKeyDictionary<IGuild, ulong, SlowmodeUserInfo> _SlowmodeUsers =
-			new ConcurrentDoubleKeyDictionary<IGuild, ulong, SlowmodeUserInfo>();
-		private ConcurrentDoubleKeyDictionary<IGuild, ulong, BannedPhraseUserInfo> _BannedPhraseUsers =
-			new ConcurrentDoubleKeyDictionary<IGuild, ulong, BannedPhraseUserInfo>();
+		private ConcurrentDoubleKeyDictionary<ulong, MultiKey<ulong, PunishmentType>, RemovablePunishment> _RemovablePunishments =
+			new ConcurrentDoubleKeyDictionary<ulong, MultiKey<ulong, PunishmentType>, RemovablePunishment>();
+		private ConcurrentDoubleKeyDictionary<ulong, ulong, SpamPreventionUserInfo> _SpamPreventionUsers =
+			new ConcurrentDoubleKeyDictionary<ulong, ulong, SpamPreventionUserInfo>();
+		private ConcurrentDoubleKeyDictionary<ulong, ulong, SlowmodeUserInfo> _SlowmodeUsers =
+			new ConcurrentDoubleKeyDictionary<ulong, ulong, SlowmodeUserInfo>();
+		private ConcurrentDoubleKeyDictionary<ulong, ulong, BannedPhraseUserInfo> _BannedPhraseUsers =
+			new ConcurrentDoubleKeyDictionary<ulong, ulong, BannedPhraseUserInfo>();
 		//Not guild specific
 		private ConcurrentDictionary<MultiKey<ulong, long>, RemovableMessage> _RemovableMessages =
 			new ConcurrentDictionary<MultiKey<ulong, long>, RemovableMessage>();
@@ -49,6 +52,7 @@ namespace Advobot.Core.Services.Timers
 
 		public TimersService(IServiceProvider provider)
 		{
+			_Client = provider.GetRequiredService<IDiscordClient>();
 			_PunishmentRemover = new PunishmentRemover(this);
 
 			_HourTimer.Elapsed += (sender, e) =>
@@ -63,7 +67,7 @@ namespace Advobot.Core.Services.Timers
 				{
 					foreach (var punishment in _RemovablePunishments.RemoveValues(DateTime.UtcNow))
 					{
-						await punishment.RemoveAsync(_PunishmentRemover, _PunishmentReason).CAF();
+						await punishment.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 					}
 				});
 				Task.Run(async () =>
@@ -126,11 +130,11 @@ namespace Advobot.Core.Services.Timers
 		public async Task AddAsync(RemovablePunishment punishment)
 		{          
 			var doubleKey = new MultiKey<ulong, PunishmentType>(punishment.UserId, punishment.PunishmentType);
-			if (_RemovablePunishments.TryRemove(punishment.Guild, doubleKey, out var value))
+			if (_RemovablePunishments.TryRemove(punishment.GuildId, doubleKey, out var value))
 			{
-				await value.RemoveAsync(_PunishmentRemover, _PunishmentReason).CAF();
+				await value.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 			}
-			_RemovablePunishments.TryAdd(punishment.Guild, doubleKey, punishment);
+			_RemovablePunishments.TryAdd(punishment.GuildId, doubleKey, punishment);
 		}
 		/// <summary>
 		/// Removes all older instances, deletes the bot's message, and stores <paramref name="helpEntries"/>.
@@ -172,22 +176,22 @@ namespace Advobot.Core.Services.Timers
 		}
 		public void Add(SpamPreventionUserInfo user)
 		{
-			_SpamPreventionUsers.AddOrUpdate(user.User.Guild, user.User.Id, user);
+			_SpamPreventionUsers.AddOrUpdate(user.GuildId, user.UserId, user);
 		}
 		public void Add(SlowmodeUserInfo user)
 		{
-			_SlowmodeUsers.AddOrUpdate(user.User.Guild, user.User.Id, user);
+			_SlowmodeUsers.AddOrUpdate(user.GuildId, user.UserId, user);
 		}
 		public void Add(BannedPhraseUserInfo user)
 		{
-			_BannedPhraseUsers.AddOrUpdate(user.User.Guild, user.User.Id, user);
+			_BannedPhraseUsers.AddOrUpdate(user.GuildId, user.UserId, user);
 		}
 
 		public async Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, PunishmentType punishment)
 		{
-			if (_RemovablePunishments.TryRemove(guild, new MultiKey<ulong, PunishmentType>(userId, punishment), out var value))
+			if (_RemovablePunishments.TryRemove(guild.Id, new MultiKey<ulong, PunishmentType>(userId, punishment), out var value))
 			{
-				await value.RemoveAsync(_PunishmentRemover, _PunishmentReason).CAF();
+				await value.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 			}
 			return value;
 		}
@@ -209,29 +213,29 @@ namespace Advobot.Core.Services.Timers
 		}
 		public IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild)
 		{
-			return _SpamPreventionUsers.GetValues(guild);
+			return _SpamPreventionUsers.GetValues(guild.Id);
 		}
 		public IEnumerable<SlowmodeUserInfo> GetSlowmodeUsers(IGuild guild)
 		{
-			return _SlowmodeUsers.GetValues(guild);
+			return _SlowmodeUsers.GetValues(guild.Id);
 		}
 		public IEnumerable<BannedPhraseUserInfo> GetBannedPhraseUsers(IGuild guild)
 		{
-			return _BannedPhraseUsers.GetValues(guild);
+			return _BannedPhraseUsers.GetValues(guild.Id);
 		}
 		public SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user)
 		{
-			_SpamPreventionUsers.TryGetValue(user.Guild, user.Id, out var spamPrevention);
+			_SpamPreventionUsers.TryGetValue(user.Guild.Id, user.Id, out var spamPrevention);
 			return spamPrevention;
 		}
 		public SlowmodeUserInfo GetSlowmodeUser(IGuildUser user)
 		{
-			_SlowmodeUsers.TryGetValue(user.Guild, user.Id, out var slowmode);
+			_SlowmodeUsers.TryGetValue(user.Guild.Id, user.Id, out var slowmode);
 			return slowmode;
 		}
 		public BannedPhraseUserInfo GetBannedPhraseUser(IGuildUser user)
 		{
-			_BannedPhraseUsers.TryGetValue(user.Guild, user.Id, out var bannedPhrases);
+			_BannedPhraseUsers.TryGetValue(user.Guild.Id, user.Id, out var bannedPhrases);
 			return bannedPhrases;
 		}
 

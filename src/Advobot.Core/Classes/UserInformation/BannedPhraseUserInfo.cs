@@ -1,11 +1,10 @@
-﻿using System;
+﻿using Advobot.Core.Enums;
+using Discord.WebSocket;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Advobot.Core.Enums;
-using Advobot.Core.Utilities;
-using Discord.WebSocket;
 
 namespace Advobot.Core.Classes.UserInformation
 {
@@ -14,7 +13,7 @@ namespace Advobot.Core.Classes.UserInformation
 	/// </summary>
 	public class BannedPhraseUserInfo : UserInfo
 	{
-		private Dictionary<PunishmentType, StrongBox<int>> _Values = Enum.GetValues(typeof(PunishmentType)).Cast<PunishmentType>()
+		public Dictionary<PunishmentType, StrongBox<int>> _Values = Enum.GetValues(typeof(PunishmentType)).Cast<PunishmentType>()
 			.ToDictionary(x => x, x => new StrongBox<int>(0));
 
 		public BannedPhraseUserInfo(SocketGuildUser user) : base(user) { }
@@ -34,7 +33,7 @@ namespace Advobot.Core.Classes.UserInformation
 
 		public override string ToString()
 		{
-			return String.Join("/", _Values.Select(x => $"{x.Value}{x.Key.ToString()[0]}"));
+			return String.Join("/", _Values.Select(x => $"{x.Value.Value}{x.Key.ToString()[0]}"));
 		}
 	}
 }

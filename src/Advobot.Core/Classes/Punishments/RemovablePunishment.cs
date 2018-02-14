@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes.Punishments
 	public struct RemovablePunishment : ITime
 	{
 		public PunishmentType PunishmentType { get; }
-		public IGuild Guild { get; }
+		public ulong GuildId { get; }
 		public ulong UserId { get; }
 		public ulong RoleId { get; }
 		public DateTime Time { get; }
@@ -21,32 +21,32 @@ namespace Advobot.Core.Classes.Punishments
 		public RemovablePunishment(TimeSpan time, PunishmentType punishment, IGuild guild, IUser user)
 		{
 			PunishmentType = punishment;
-			Guild = guild;
+			GuildId = guild.Id;
 			UserId = user.Id;
 			RoleId = 0;
 			Time = DateTime.UtcNow.Add(time);
 		}
-		public RemovablePunishment(TimeSpan time, PunishmentType punishment, IGuild guild, IUser user, IRole role)
-			: this(time, punishment, guild, user)
+		public RemovablePunishment(TimeSpan time, PunishmentType punishment, IGuild guild, IUser user, IRole role) : this(time, punishment, guild, user)
 		{
 			RoleId = role.Id;
 		}
 
-		public async Task RemoveAsync(PunishmentRemover remover, RequestOptions options)
+		public async Task RemoveAsync(IDiscordClient client, PunishmentRemover remover, RequestOptions options)
 		{
+			var guild = await client.GetGuildAsync(GuildId).CAF();
 			switch (PunishmentType)
 			{
 				case PunishmentType.Ban:
-					await remover.UnbanAsync(Guild, UserId, options).CAF();
+					await remover.UnbanAsync(guild, UserId, options).CAF();
 					return;
 				case PunishmentType.Deafen:
-					await remover.UndeafenAsync(await Guild.GetUserAsync(UserId).CAF(), options).CAF();
+					await remover.UndeafenAsync(await guild.GetUserAsync(UserId).CAF(), options).CAF();
 					return;
 				case PunishmentType.VoiceMute:
-					await remover.UnvoicemuteAsync(await Guild.GetUserAsync(UserId).CAF(), options).CAF();
+					await remover.UnvoicemuteAsync(await guild.GetUserAsync(UserId).CAF(), options).CAF();
 					return;
 				case PunishmentType.RoleMute:
-					await remover.UnrolemuteAsync(await Guild.GetUserAsync(UserId).CAF(), Guild.GetRole(RoleId), options).CAF();
+					await remover.UnrolemuteAsync(await guild.GetUserAsync(UserId).CAF(), guild.GetRole(RoleId), options).CAF();
 					return;
 			}
 		}

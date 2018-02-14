@@ -381,8 +381,8 @@ namespace Advobot.Core.Services.Log.Loggers
 			var users = Timers.GetSpamPreventionUsers(user.Guild).Where(x =>
 			{
 				return x.PotentialPunishment
-					&& x.User.Id != user.Id
-					&& message.MentionedUsers.Select(u => u.Id).Contains(x.User.Id)
+					&& x.UserId != user.Id
+					&& message.MentionedUsers.Select(u => u.Id).Contains(x.UserId)
 					&& !x.HasUserAlreadyVoted(user.Id);
 			}).ToList();
 			if (!users.Any())
@@ -400,7 +400,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					return;
 				}
 
-				await giver.PunishAsync(u.Punishment, u.User, user.Guild.GetRole(settings.MuteRoleId), reason).CAF();
+				await giver.PunishAsync(u.Punishment, user.Guild.GetUser(u.UserId), user.Guild.GetRole(settings.MuteRoleId), reason).CAF();
 
 				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 				u.Reset();

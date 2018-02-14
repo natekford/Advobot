@@ -12,8 +12,6 @@ namespace Advobot.Core.Classes.UserInformation
 		private int _MessagesLeft;
 		public int MessagesLeft => _MessagesLeft;
 
-		public SlowmodeUserInfo(int interval, SocketGuildUser user, int baseMessages)
-			: this(TimeSpan.FromSeconds(interval), user, baseMessages) { }
 		public SlowmodeUserInfo(TimeSpan time, SocketGuildUser user, int baseMessages) : base(time, user)
 		{
 			_MessagesLeft = baseMessages;

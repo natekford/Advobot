@@ -9,17 +9,20 @@ namespace Advobot.Core.Classes.UserInformation
 	/// </summary>
 	public abstract class UserInfo : ITime
 	{
-		public SocketGuildUser User { get; }
+		public ulong GuildId { get; }
+		public ulong UserId { get; }
 		public DateTime Time { get; protected set; }
 
 		public UserInfo(SocketGuildUser user)
 		{
-			User = user;
+			GuildId = user.Guild.Id;
+			UserId = user.Id;
 			Time = DateTime.UtcNow;
 		}
 		public UserInfo(TimeSpan timeToAdd, SocketGuildUser user)
 		{
-			User = user;
+			GuildId = user.Guild.Id;
+			UserId = user.Id;
 			Time = DateTime.UtcNow.Add(timeToAdd);
 		}
 	}
