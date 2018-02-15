@@ -173,7 +173,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Holds information about a command, such as its name, aliases, usage, base permissions, description, category, and default enabled value.
 	/// </summary>
-	public class HelpEntry : IDescription
+	public class HelpEntry
 	{
 		public string Name { get; }
 		public string Usage { get; }

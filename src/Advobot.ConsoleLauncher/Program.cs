@@ -1,15 +1,9 @@
 ﻿using Advobot.Core;
 using Advobot.Core.Classes;
-using Advobot.Core.Classes.UserInformation;
-using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord;
-using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Advobot.ConsoleLauncher

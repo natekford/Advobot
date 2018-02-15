@@ -148,11 +148,11 @@ namespace Advobot.Core.Classes
 			var validQuotes = quotes != null && quotes.List.Count > i;
 			if (validQuotes)
 			{
-				var quote = quotes.List[i].Word;
+				var quote = quotes.List[i];
 				var embed = new EmbedWrapper
 				{
 					Title = quote.Name,
-					Description = quote.Description
+					Description = quote.Text,
 				};
 				embed.TryAddFooter("Quote", null, out _);
 				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
@@ -162,11 +162,11 @@ namespace Advobot.Core.Classes
 			if (validHelpEntries)
 			{
 				var prefix = String.IsNullOrWhiteSpace(settings.Prefix) ? _BotSettings.Prefix : settings.Prefix;
-				var help = helpEntries.List[i].Word;
+				var help = helpEntries.List[i];
 				var embed = new EmbedWrapper
 				{
 					Title = help.Name,
-					Description = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix)
+					Description = help.Text.Replace(Constants.PLACEHOLDER_PREFIX, prefix),
 				};
 				embed.TryAddFooter("Help", null, out _);
 				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
