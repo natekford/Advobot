@@ -6,7 +6,7 @@ namespace Advobot.Core.Enums
 	/// Specify what punishment should be given.
 	/// </summary>
 	[Flags]
-	public enum PunishmentType : uint
+	public enum Punishment : uint
 	{
 		Kick = (1U << 0),
 		Ban = (1U << 1),

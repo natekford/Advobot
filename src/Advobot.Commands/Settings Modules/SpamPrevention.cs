@@ -26,12 +26,12 @@ namespace Advobot.Commands.SpamPrevention
 			var embed = new EmbedWrapper
 			{
 				Title = "Punishment Types",
-				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`"
+				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(Punishment)))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
-		public async Task Create(SpamType spam, PunishmentType punishment, uint messageCount, uint votes, uint timeInterval, uint spamAmount)
+		public async Task Create(SpamType spam, Punishment punishment, uint messageCount, uint votes, uint timeInterval, uint spamAmount)
 		{
 			if (!SpamPreventionInfo.TryCreate(spam, punishment, (int)messageCount, (int)votes, (int)timeInterval, (int)spamAmount,
 				out var prev, out var error))
@@ -89,12 +89,12 @@ namespace Advobot.Commands.SpamPrevention
 			var embed = new EmbedWrapper
 			{
 				Title = "Punishment Types",
-				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`"
+				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(Punishment)))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
-		public async Task Create(RaidType raidType, PunishmentType punishment, uint userCount, uint interval)
+		public async Task Create(RaidType raidType, Punishment punishment, uint userCount, uint interval)
 		{
 			if (!RaidPreventionInfo.TryCreate(
 				raidType,

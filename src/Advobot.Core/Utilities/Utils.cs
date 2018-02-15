@@ -1,7 +1,5 @@
 ﻿using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -136,83 +134,6 @@ namespace Advobot.Core.Utilities
 		public static int CountLineBreaks(this string str)
 		{
 			return str?.Count(x => x == '\r' || x == '\n') ?? 0;
-		}
-		/// <summary>
-		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
-		/// Also modifies the queue by removing instances which are too old to matter.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="queue"></param>
-		/// <param name="seconds"></param>
-		/// <param name="removeOldInstances"></param>
-		/// <returns></returns>
-		/// <exception cref="ArgumentException">When <paramref name="queue"/> is not in order.</exception>
-		/// <exception cref="InvalidOperationException">When <paramref name="queue"/> has been modified during method run time.</exception>
-		public static int CountItemsInTimeFrame<T>(this ConcurrentQueue<T> queue, int seconds = 0, bool removeOldInstances = false) where T : ITime
-		{
-			var timeList = new List<T>(queue);
-			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
-			var listLength = timeList.Count;
-			if (seconds <= 0 || listLength < 2)
-			{
-				return listLength;
-			}
-
-			//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
-			var maxCount = 0;
-			for (var i = 0; i < listLength; ++i)
-			{
-				//If the queue is out of order that kinda ruins the method
-				if (i > 0 && timeList[i - 1].Time > timeList[i].Time)
-				{
-					throw new ArgumentException("The queue must be in order from oldest to newest.", nameof(queue));
-				}
-
-				var currentIterCount = 1;
-				for (var j = i + 1; j < listLength; ++j)
-				{
-					if ((int)(timeList[j].Time - timeList[i].Time).TotalSeconds < seconds)
-					{
-						++currentIterCount;
-						continue;
-					}
-					//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
-					if ((int)(timeList[j].Time - timeList[j - 1].Time).TotalSeconds > seconds)
-					{
-						i = j + 1;
-					}
-					break;
-				}
-				maxCount = Math.Max(maxCount, currentIterCount);
-			}
-
-			if (removeOldInstances)
-			{
-				//Work the way down
-				var now = DateTime.UtcNow;
-				for (int i = listLength - 1; i >= 0; --i)
-				{
-					//if the time is recent enough to still be within the timeframe leave it
-					if ((int)(now - timeList[i].Time).TotalSeconds < seconds + 1)
-					{
-						continue;
-					}
-					//The first object now found within the timeframe is where objects will be removed up to
-					for (int j = 0; j < i; ++j)
-					{
-						//Make sure the queue and the source are looking at the same object
-						if (queue.TryPeek(out var peekResult) && peekResult.Time != timeList[j].Time)
-						{
-							throw new InvalidOperationException($"{nameof(queue)} has had an object dequeued.");
-						}
-
-						queue.TryDequeue(out _);
-					}
-					break;
-				}
-			}
-
-			return maxCount;
 		}
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.

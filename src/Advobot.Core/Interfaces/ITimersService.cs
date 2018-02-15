@@ -16,15 +16,15 @@ namespace Advobot.Core.Interfaces
 	public interface ITimersService
 	{
 		Task AddAsync(RemovablePunishment punishment);
-		Task AddAsync(IUser author, IUserMessage botMessage, CloseWords<HelpEntry> help);
-		Task AddAsync(IUser author, IUserMessage botMessage, CloseWords<Quote> quote);
-		void Add(RemovableMessage message);
-		void Add(TimedMessage message);
-		void Add(SpamPreventionUserInfo user);
-		void Add(SlowmodeUserInfo user);
-		void Add(BannedPhraseUserInfo user);
+		Task AddAsync(CloseWords<HelpEntry> help);
+		Task AddAsync(CloseWords<Quote> quote);
+		Task AddAsync(RemovableMessage message);
+		Task AddAsync(TimedMessage message);
+		Task AddAsync(SpamPreventionUserInfo user);
+		Task AddAsync(SlowmodeUserInfo user);
+		Task AddAsync(BannedPhraseUserInfo user);
 
-		Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong id, PunishmentType punishment);
+		Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, Punishment punishment);
 		Task<CloseWords<HelpEntry>> RemoveActiveCloseHelpAsync(IUser user);
 		Task<CloseWords<Quote>> RemoveActiveCloseQuoteAsync(IUser user);
 		IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild);

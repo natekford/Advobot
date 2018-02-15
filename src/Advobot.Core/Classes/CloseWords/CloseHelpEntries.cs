@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Discord.Commands;
+using System;
 using System.Linq;
 
 namespace Advobot.Core.Classes.CloseWords
@@ -8,7 +9,8 @@ namespace Advobot.Core.Classes.CloseWords
 	/// </summary>
 	public class CloseHelpEntries : CloseWords<HelpEntry>
 	{
-		public CloseHelpEntries(string input) : base(Constants.HELP_ENTRIES.GetHelpEntries(), input) { }
+		public CloseHelpEntries(TimeSpan time, ICommandContext context, string input) 
+			: base(time, context, Constants.HELP_ENTRIES.GetHelpEntries(), input) { }
 
 		protected override int FindCloseness(HelpEntry obj, string input)
 		{

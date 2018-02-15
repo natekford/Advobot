@@ -19,9 +19,9 @@ namespace Advobot.Core.Classes.Settings
 		[JsonProperty]
 		public string Phrase { get; }
 		[JsonProperty]
-		public PunishmentType Punishment;
+		public Punishment Punishment;
 
-		public BannedPhrase(string phrase, PunishmentType punishment = default)
+		public BannedPhrase(string phrase, Punishment punishment = default)
 		{
 			Phrase = phrase;
 			Punishment = punishment;
@@ -44,7 +44,7 @@ namespace Advobot.Core.Classes.Settings
 			var bannedPhraseUser = timers.GetBannedPhraseUser(user);
 			if (bannedPhraseUser == null)
 			{
-				timers.Add(bannedPhraseUser = new BannedPhraseUserInfo(user));
+				await timers.AddAsync(bannedPhraseUser = new BannedPhraseUserInfo(user)).CAF();
 			}
 
 			var count = bannedPhraseUser.IncrementValue(Punishment);

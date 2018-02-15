@@ -109,7 +109,10 @@ namespace Advobot.Core.Utilities
 
 			var secondMessage = await SendMessageAsync(channel, ZERO_LENGTH_CHAR + secondStr).CAF();
 			var removableMessage = new RemovableMessage(time, channel, message, secondMessage);
-			timers?.Add(removableMessage);
+			if (timers != null)
+			{
+				await timers.AddAsync(removableMessage).CAF();
+			}
 			return removableMessage;
 		}
 		/// <summary>
@@ -156,7 +159,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="options"></param>
 		/// <param name="fromUser"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(SocketTextChannel channel, IMessage fromMessage, int requestCount, RequestOptions options, IUser fromUser = null)
+		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, RequestOptions options, IUser fromUser = null)
 		{
 			if (fromUser == null)
 			{
@@ -193,7 +196,7 @@ namespace Advobot.Core.Utilities
 		/// <param name="messages"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(SocketTextChannel channel, IEnumerable<IMessage> messages, RequestOptions options)
+		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, RequestOptions options)
 		{
 			//13.95 for some buffer in case
 			var validMessages = messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95).ToList();

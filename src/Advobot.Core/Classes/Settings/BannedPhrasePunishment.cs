@@ -12,7 +12,7 @@ namespace Advobot.Core.Classes.Settings
 	public class BannedPhrasePunishment : IGuildSetting
 	{
 		[JsonProperty]
-		public PunishmentType Punishment { get; }
+		public Punishment Punishment { get; }
 		[JsonProperty]
 		public ulong RoleId { get; }
 		[JsonProperty]
@@ -20,13 +20,13 @@ namespace Advobot.Core.Classes.Settings
 		[JsonProperty]
 		public int PunishmentTime { get; }
 
-		public BannedPhrasePunishment(PunishmentType punishment, int removes, int time)
+		public BannedPhrasePunishment(Punishment punishment, int removes, int time)
 		{
 			Punishment = punishment;
 			NumberOfRemoves = removes;
 			PunishmentTime = time;
 		}
-		public BannedPhrasePunishment(SocketRole role, int removes, int time) : this(PunishmentType.RoleMute, removes, time)
+		public BannedPhrasePunishment(SocketRole role, int removes, int time) : this(Punishment.RoleMute, removes, time)
 		{
 			RoleId = role.Id;
 		}

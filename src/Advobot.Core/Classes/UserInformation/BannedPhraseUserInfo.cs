@@ -1,9 +1,7 @@
 ﻿using Advobot.Core.Enums;
 using Discord.WebSocket;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Advobot.Core.Classes.UserInformation
@@ -13,27 +11,113 @@ namespace Advobot.Core.Classes.UserInformation
 	/// </summary>
 	public class BannedPhraseUserInfo : UserInfo
 	{
-		public Dictionary<PunishmentType, StrongBox<int>> _Values = Enum.GetValues(typeof(PunishmentType)).Cast<PunishmentType>()
-			.ToDictionary(x => x, x => new StrongBox<int>(0));
+		private int _Kick;
+		private int _Ban;
+		private int _Deafen;
+		private int _VoiceMute;
+		private int _Softban;
+		private int _RoleMute;
+
+		public int Kick
+		{
+			get => _Kick;
+			private set => _Kick = value;
+		}
+		public int Ban
+		{
+			get => _Ban;
+			private set => _Ban = value;
+		}
+		public int Deafen
+		{
+			get => _Deafen;
+			private set => _Deafen = value;
+		}
+		public int VoiceMute
+		{
+			get => _VoiceMute;
+			private set => _VoiceMute = value;
+		}
+		public int Softban
+		{
+			get => _Softban;
+			private set => _Softban = value;
+		}
+		public int RoleMute
+		{
+			get => _RoleMute;
+			private set => _RoleMute = value;
+		}
 
 		public BannedPhraseUserInfo(SocketGuildUser user) : base(user) { }
 
-		public int this[PunishmentType type]
+		public int this[Punishment type]
 		{
-			get => _Values[type].Value;
+			get
+			{
+				switch (type)
+				{
+					case Punishment.Kick:
+						return _Kick;
+					case Punishment.Ban:
+						return _Ban;
+					case Punishment.Deafen:
+						return _Deafen;
+					case Punishment.VoiceMute:
+						return _VoiceMute;
+					case Punishment.Softban:
+						return _Softban;
+					case Punishment.RoleMute:
+						return _RoleMute;
+					default:
+						throw new ArgumentException("Invalid punishment type provided.", nameof(type));
+				}
+			}
 		}
-		public int IncrementValue(PunishmentType type)
+		public int IncrementValue(Punishment type)
 		{
-			return Interlocked.Increment(ref _Values[type].Value);
+			switch (type)
+			{
+				case Punishment.Kick:
+					return Interlocked.Increment(ref _Kick);
+				case Punishment.Ban:
+					return Interlocked.Increment(ref _Ban);
+				case Punishment.Deafen:
+					return Interlocked.Increment(ref _Deafen);
+				case Punishment.VoiceMute:
+					return Interlocked.Increment(ref _VoiceMute);
+				case Punishment.Softban:
+					return Interlocked.Increment(ref _Softban);
+				case Punishment.RoleMute:
+					return Interlocked.Increment(ref _RoleMute);
+				default:
+					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
+			}
 		}
-		public void ResetValue(PunishmentType type)
+		public int ResetValue(Punishment type)
 		{
-			Interlocked.Exchange(ref _Values[type].Value, 0);
+			switch (type)
+			{
+				case Punishment.Kick:
+					return Interlocked.Exchange(ref _Kick, 0);
+				case Punishment.Ban:
+					return Interlocked.Exchange(ref _Ban, 0);
+				case Punishment.Deafen:
+					return Interlocked.Exchange(ref _Deafen, 0);
+				case Punishment.VoiceMute:
+					return Interlocked.Exchange(ref _VoiceMute, 0);
+				case Punishment.Softban:
+					return Interlocked.Exchange(ref _Softban, 0);
+				case Punishment.RoleMute:
+					return Interlocked.Exchange(ref _RoleMute, 0);
+				default:
+					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
+			}
 		}
 
 		public override string ToString()
 		{
-			return String.Join("/", _Values.Select(x => $"{x.Value.Value}{x.Key.ToString()[0]}"));
+			return String.Join("/", GetType().GetProperties().Select(x => $"{x.Name[0]}{x.GetValue(this)}"));
 		}
 	}
 }

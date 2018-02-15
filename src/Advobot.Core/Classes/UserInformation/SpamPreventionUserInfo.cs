@@ -1,13 +1,12 @@
-﻿using System;
+﻿using Advobot.Core.Enums;
+using Advobot.Core.Utilities;
+using Discord;
+using Discord.WebSocket;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
-using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Core.Classes.UserInformation
 {
@@ -17,20 +16,21 @@ namespace Advobot.Core.Classes.UserInformation
 	public sealed class SpamPreventionUserInfo : UserInfo
 	{
 		//Because the enum values might change in the future. These are never saved in json so these can be modified
-		private static Dictionary<PunishmentType, int> _PunishmentSeverity = new Dictionary<PunishmentType, int>
+		private static Dictionary<Punishment, int> _PunishmentSeverity = new Dictionary<Punishment, int>
 		{
-			{ PunishmentType.Deafen, 0 },
-			{ PunishmentType.VoiceMute, 100 },
-			{ PunishmentType.RoleMute, 250 },
-			{ PunishmentType.Kick, 500 },
-			{ PunishmentType.Softban, 750 },
-			{ PunishmentType.Ban, 1000 }
+			{ Punishment.Deafen, 0 },
+			{ Punishment.VoiceMute, 100 },
+			{ Punishment.RoleMute, 250 },
+			{ Punishment.Kick, 500 },
+			{ Punishment.Softban, 750 },
+			{ Punishment.Ban, 1000 }
 		};
 
 		private ConcurrentBag<ulong> _UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
-		private ConcurrentDictionary<SpamType, ConcurrentQueue<SpamInstance>> _Spam = CreateDictionary();
-
+		private ConcurrentDictionary<SpamType, ConcurrentQueue<ulong>> _Spam = CreateDictionary();
 		private int _VotesRequired = -1;
+		private Punishment _Punishment;
+
 		/// <summary>
 		/// The votes required to punish a user.
 		/// Setting sets to the lowest of the new value or old value.
@@ -40,17 +40,22 @@ namespace Advobot.Core.Classes.UserInformation
 			get => _VotesRequired;
 			set => _VotesRequired = Math.Min(_VotesRequired, value);
 		}
-		private PunishmentType _Punishment;
 		/// <summary>
 		/// The punishment to do on a user.
 		/// Setting sets to whatever is the most severe punishment.
 		/// </summary>
-		public PunishmentType Punishment
+		public Punishment Punishment
 		{
 			get => _Punishment;
 			set => _Punishment = _PunishmentSeverity[value] > _PunishmentSeverity[_Punishment] ? value : _Punishment;
 		}
+		/// <summary>
+		/// Returns true if <see cref="Punishment"/> is not default and <see cref="VotesRequired"/> is greater than 0.
+		/// </summary>
 		public bool PotentialPunishment => _Punishment != default && _VotesRequired > 0;
+		/// <summary>
+		/// Returns the count of people who have voted to punish the user.
+		/// </summary>
 		public int Votes => _UsersWhoHaveAlreadyVoted.Count;
 
 		public SpamPreventionUserInfo(SocketGuildUser user) : base(user) { }
@@ -73,9 +78,9 @@ namespace Advobot.Core.Classes.UserInformation
 		public void AddSpamInstance(SpamType type, IMessage message)
 		{
 			var queue = _Spam[type];
-			if (!queue.Any(x => x.MessageId == message.Id))
+			if (!queue.Any(x => x == message.Id))
 			{
-				queue.Enqueue(new SpamInstance(message));
+				queue.Enqueue(message.Id);
 			}
 		}
 		public void Reset()
@@ -87,26 +92,14 @@ namespace Advobot.Core.Classes.UserInformation
 			Punishment = default;
 		}
 
-		private static ConcurrentDictionary<SpamType, ConcurrentQueue<SpamInstance>> CreateDictionary()
+		private static ConcurrentDictionary<SpamType, ConcurrentQueue<ulong>> CreateDictionary()
 		{
-			var temp = new ConcurrentDictionary<SpamType, ConcurrentQueue<SpamInstance>>();
+			var temp = new ConcurrentDictionary<SpamType, ConcurrentQueue<ulong>>();
 			foreach (SpamType spamType in Enum.GetValues(typeof(SpamType)))
 			{
-				temp.TryAdd(spamType, new ConcurrentQueue<SpamInstance>());
+				temp.TryAdd(spamType, new ConcurrentQueue<ulong>());
 			}
 			return temp;
-		}
-
-		private struct SpamInstance : ITime
-		{
-			public ulong MessageId { get; }
-			public DateTime Time { get; }
-
-			public SpamInstance(IMessage message)
-			{
-				MessageId = message.Id;
-				Time = message.CreatedAt.UtcDateTime;
-			}
 		}
 	}
 }

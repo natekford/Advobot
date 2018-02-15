@@ -63,12 +63,12 @@ namespace Advobot.Commands.Misc
 				return;
 			}
 
-			var closeHelps = new CloseHelpEntries(commandName);
+			var closeHelps = new CloseHelpEntries(default, Context, commandName);
 			if (closeHelps.List.Any())
 			{
 				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList(x => x.Word.Name)}";
 				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
-				await Context.Timers.AddAsync(Context.User as IGuildUser, msg, closeHelps).CAF();
+				await Context.Timers.AddAsync(closeHelps).CAF();
 				return;
 			}
 
@@ -198,7 +198,7 @@ namespace Advobot.Commands.Misc
 		[Command]
 		public async Task Command([VerifyNumber(1, 10000)] uint minutes, [Remainder] string message)
 		{
-			Context.Timers.Add(new TimedMessage(TimeSpan.FromMinutes(minutes), Context.User as IGuildUser, message));
+			await Context.Timers.AddAsync(new TimedMessage(TimeSpan.FromMinutes(minutes), Context.User as IGuildUser, message)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, $"Will send the message in around `{minutes}` minute(s).").CAF();
 		}
 	}

@@ -8,27 +8,27 @@ namespace Advobot.Core.Classes.Punishments
 {
 	/// <summary>
 	/// Base for classes like <see cref="PunishmentGiver"/> and <see cref="PunishmentRemover"/>. Holds the past tense words for removing
-	/// and giving <see cref="PunishmentType"/> values.
+	/// and giving <see cref="Punishment"/> values.
 	/// </summary>
 	public abstract class PunishmentBase
 	{
-		protected static ImmutableDictionary<PunishmentType, string> _Given = new Dictionary<PunishmentType, string>
+		protected static ImmutableDictionary<Punishment, string> _Given = new Dictionary<Punishment, string>
 		{
-			{ PunishmentType.Kick, "kicked" },
-			{ PunishmentType.Ban, "banned" },
-			{ PunishmentType.Deafen, "deafened" },
-			{ PunishmentType.VoiceMute, "voice-muted" },
-			{ PunishmentType.RoleMute, "role-muted" },
-			{ PunishmentType.Softban, "softbanned" }
+			{ Punishment.Kick, "kicked" },
+			{ Punishment.Ban, "banned" },
+			{ Punishment.Deafen, "deafened" },
+			{ Punishment.VoiceMute, "voice-muted" },
+			{ Punishment.RoleMute, "role-muted" },
+			{ Punishment.Softban, "softbanned" }
 		}.ToImmutableDictionary();
-		protected static ImmutableDictionary<PunishmentType, string> _Removal = new Dictionary<PunishmentType, string>
+		protected static ImmutableDictionary<Punishment, string> _Removal = new Dictionary<Punishment, string>
 		{
-			{ PunishmentType.Kick, "unkicked" }, //Doesn't make sense
-			{ PunishmentType.Ban, "unbanned" },
-			{ PunishmentType.Deafen, "undeafened" },
-			{ PunishmentType.VoiceMute, "unvoice-muted" },
-			{ PunishmentType.RoleMute, "unrole-muted" },
-			{ PunishmentType.Softban, "unsoftbanned" } //Doesn't make sense either
+			{ Punishment.Kick, "unkicked" }, //Doesn't make sense
+			{ Punishment.Ban, "unbanned" },
+			{ Punishment.Deafen, "undeafened" },
+			{ Punishment.VoiceMute, "unvoice-muted" },
+			{ Punishment.RoleMute, "unrole-muted" },
+			{ Punishment.Softban, "unsoftbanned" } //Doesn't make sense either
 		}.ToImmutableDictionary();
 
 		protected ITimersService _Timers;

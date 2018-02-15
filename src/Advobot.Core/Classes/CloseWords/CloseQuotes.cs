@@ -1,5 +1,7 @@
 ﻿using Advobot.Core.Classes.Settings;
 using Advobot.Core.Interfaces;
+using Discord.Commands;
+using System;
 
 namespace Advobot.Core.Classes.CloseWords
 {
@@ -8,7 +10,8 @@ namespace Advobot.Core.Classes.CloseWords
 	/// </summary>
 	public class CloseQuotes : CloseWords<Quote>
 	{
-		public CloseQuotes(IGuildSettings settings, string input) : base(settings.Quotes, input) { }
+		public CloseQuotes(TimeSpan time, ICommandContext context, IGuildSettings settings, string input) 
+			: base(time, context, settings.Quotes, input) { }
 
 		protected override int FindCloseness(Quote obj, string input)
 		{

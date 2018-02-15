@@ -12,13 +12,13 @@ namespace Advobot.Core.Classes.Punishments
 	/// </summary>
 	public struct RemovablePunishment : ITime
 	{
-		public PunishmentType PunishmentType { get; }
-		public ulong GuildId { get; }
-		public ulong UserId { get; }
-		public ulong RoleId { get; }
-		public DateTime Time { get; }
+		public Punishment PunishmentType { get; private set; }
+		public ulong GuildId { get; private set; }
+		public ulong UserId { get; private set; }
+		public ulong RoleId { get; private set; }
+		public DateTime Time { get; private set; }
 
-		public RemovablePunishment(TimeSpan time, PunishmentType punishment, IGuild guild, IUser user)
+		public RemovablePunishment(TimeSpan time, Punishment punishment, IGuild guild, IUser user)
 		{
 			PunishmentType = punishment;
 			GuildId = guild.Id;
@@ -26,7 +26,7 @@ namespace Advobot.Core.Classes.Punishments
 			RoleId = 0;
 			Time = DateTime.UtcNow.Add(time);
 		}
-		public RemovablePunishment(TimeSpan time, PunishmentType punishment, IGuild guild, IUser user, IRole role) : this(time, punishment, guild, user)
+		public RemovablePunishment(TimeSpan time, Punishment punishment, IGuild guild, IUser user, IRole role) : this(time, punishment, guild, user)
 		{
 			RoleId = role.Id;
 		}
@@ -36,16 +36,16 @@ namespace Advobot.Core.Classes.Punishments
 			var guild = await client.GetGuildAsync(GuildId).CAF();
 			switch (PunishmentType)
 			{
-				case PunishmentType.Ban:
+				case Punishment.Ban:
 					await remover.UnbanAsync(guild, UserId, options).CAF();
 					return;
-				case PunishmentType.Deafen:
+				case Punishment.Deafen:
 					await remover.UndeafenAsync(await guild.GetUserAsync(UserId).CAF(), options).CAF();
 					return;
-				case PunishmentType.VoiceMute:
+				case Punishment.VoiceMute:
 					await remover.UnvoicemuteAsync(await guild.GetUserAsync(UserId).CAF(), options).CAF();
 					return;
-				case PunishmentType.RoleMute:
+				case Punishment.RoleMute:
 					await remover.UnrolemuteAsync(await guild.GetUserAsync(UserId).CAF(), guild.GetRole(RoleId), options).CAF();
 					return;
 			}

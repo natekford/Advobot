@@ -4,6 +4,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 
 namespace Advobot.Core.Classes.CloseWords
 {
@@ -13,14 +16,22 @@ namespace Advobot.Core.Classes.CloseWords
 	/// <typeparam name="T"></typeparam>
 	public abstract class CloseWords<T> : ITime where T : IDescription
 	{
+		public DateTime Time { get; private set; }
+		public ulong GuildId { get; private set; }
+		public ulong ChannelId { get; private set; }
+		public ulong UserId { get; private set; }
+		public ulong MessageId { get; private set; }
 		public ImmutableList<CloseWord<T>> List { get; }
-		public DateTime Time { get; }
 
 		private int _MaxAllowedCloseness = 4;
 		private int _MaxOutput = 5;
 
-		protected CloseWords(IEnumerable<T> objects, string input, TimeSpan time = default)
+		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string input)
 		{
+			GuildId = context.Guild.Id;
+			ChannelId = context.Channel.Id;
+			UserId = context.User.Id;
+			MessageId = context.Message.Id;
 			List = GetObjectsWithSimilarNames(objects.ToList(), input).ToImmutableList();
 			Time = DateTime.UtcNow.Add(time.Equals(default) ? Constants.DEFAULT_WAIT_TIME : time);
 		}

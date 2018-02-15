@@ -98,12 +98,12 @@ namespace Advobot.Commands.Quotes
 				return;
 			}
 
-			var closeQuotes = new CloseQuotes(Context.GuildSettings, name);
+			var closeQuotes = new CloseQuotes(default, Context, Context.GuildSettings, name);
 			if (closeQuotes.List.Any())
 			{
 				var text = $"Did you mean any of the following:\n{closeQuotes.List.FormatNumberedList(x => x.Word.Name)}";
 				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
-				await Context.Timers.AddAsync(Context.User as IGuildUser, msg, closeQuotes).CAF();
+				await Context.Timers.AddAsync(closeQuotes).CAF();
 				return;
 			}
 

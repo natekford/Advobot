@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -200,6 +201,87 @@ namespace Advobot.Core.Utilities
 		public static bool CanModify(this IGuildUser invoker, IGuildUser target, ObjectVerification type)
 		{
 			return InternalUtils.InternalCanModify(invoker, target, type);
+		}
+
+		/// <summary>
+		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
+		/// Also modifies the queue by removing instances which are too old to matter.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="source"></param>
+		/// <param name="seconds"></param>
+		/// <param name="removeOldInstances"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException">When <paramref name="source"/> is not in order.</exception>
+		/// <exception cref="InvalidOperationException">When <paramref name="source"/> has been modified during method run time.</exception>
+		public static int CountItemsInTimeFrame(this ConcurrentQueue<ulong> source, int seconds = 0, bool removeOldInstances = false)
+		{
+			var timeList = new List<ulong>(source);
+			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
+			var listLength = timeList.Count;
+			if (seconds <= 0 || listLength < 2)
+			{
+				return listLength;
+			}
+
+			//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
+			var maxCount = 0;
+			for (var i = 0; i < listLength; ++i)
+			{
+				//If the queue is out of order that kinda ruins the method
+				if (i > 0 && timeList[i - 1] > timeList[i])
+				{
+					throw new ArgumentException("The queue must be in order from oldest to newest.", nameof(source));
+				}
+
+				var currentIterCount = 1;
+				var iTime = SnowflakeUtils.FromSnowflake(timeList[i]).UtcDateTime;
+				for (var j = i + 1; j < listLength; ++j)
+				{
+					var jTime = SnowflakeUtils.FromSnowflake(timeList[j]).UtcDateTime;
+					if ((int)(jTime - iTime).TotalSeconds < seconds)
+					{
+						++currentIterCount;
+						continue;
+					}
+					//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
+					var jMinOneTime = SnowflakeUtils.FromSnowflake(timeList[j - 1]).UtcDateTime;
+					if ((int)(jTime - jMinOneTime).TotalSeconds > seconds)
+					{
+						i = j + 1;
+					}
+					break;
+				}
+				maxCount = Math.Max(maxCount, currentIterCount);
+			}
+
+			if (removeOldInstances)
+			{
+				//Work the way down
+				var now = DateTime.UtcNow;
+				for (int i = listLength - 1; i >= 0; --i)
+				{
+					//if the time is recent enough to still be within the timeframe leave it
+					if ((int)(now - SnowflakeUtils.FromSnowflake(timeList[i]).UtcDateTime).TotalSeconds < seconds + 1)
+					{
+						continue;
+					}
+					//The first object now found within the timeframe is where objects will be removed up to
+					for (int j = 0; j < i; ++j)
+					{
+						//Make sure the queue and the source are looking at the same object
+						if (source.TryPeek(out var peekResult) && peekResult != timeList[j])
+						{
+							throw new InvalidOperationException($"{nameof(source)} has had an object dequeued.");
+						}
+
+						source.TryDequeue(out _);
+					}
+					break;
+				}
+			}
+
+			return maxCount;
 		}
 
 		/// <summary>

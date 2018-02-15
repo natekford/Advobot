@@ -32,8 +32,8 @@ namespace Advobot.Core.Services.Timers
 		private RequestOptions _CloseQuotesReason = ClientUtils.CreateRequestOptions("removing active close quotes");
 
 		//Guild specific
-		private ConcurrentDoubleKeyDictionary<ulong, MultiKey<ulong, PunishmentType>, RemovablePunishment> _RemovablePunishments =
-			new ConcurrentDoubleKeyDictionary<ulong, MultiKey<ulong, PunishmentType>, RemovablePunishment>();
+		private ConcurrentDoubleKeyDictionary<ulong, MultiKey<ulong, Punishment>, RemovablePunishment> _RemovablePunishments =
+			new ConcurrentDoubleKeyDictionary<ulong, MultiKey<ulong, Punishment>, RemovablePunishment>();
 		private ConcurrentDoubleKeyDictionary<ulong, ulong, SpamPreventionUserInfo> _SpamPreventionUsers =
 			new ConcurrentDoubleKeyDictionary<ulong, ulong, SpamPreventionUserInfo>();
 		private ConcurrentDoubleKeyDictionary<ulong, ulong, SlowmodeUserInfo> _SlowmodeUsers =
@@ -45,10 +45,10 @@ namespace Advobot.Core.Services.Timers
 			new ConcurrentDictionary<MultiKey<ulong, long>, RemovableMessage>();
 		private ConcurrentDictionary<ulong, TimedMessage> _TimedMessages =
 			new ConcurrentDictionary<ulong, TimedMessage>();
-		private ConcurrentDictionary<ulong, CloseWordsWrapper<HelpEntry>> _ActiveCloseHelp =
-			new ConcurrentDictionary<ulong, CloseWordsWrapper<HelpEntry>>();
-		private ConcurrentDictionary<ulong, CloseWordsWrapper<Quote>> _ActiveCloseQuotes =
-			new ConcurrentDictionary<ulong, CloseWordsWrapper<Quote>>();
+		private ConcurrentDictionary<ulong, CloseWords<HelpEntry>> _ActiveCloseHelp =
+			new ConcurrentDictionary<ulong, CloseWords<HelpEntry>>();
+		private ConcurrentDictionary<ulong, CloseWords<Quote>> _ActiveCloseQuotes =
+			new ConcurrentDictionary<ulong, CloseWords<Quote>>();
 
 		public TimersService(IServiceProvider provider)
 		{
@@ -74,7 +74,12 @@ namespace Advobot.Core.Services.Timers
 				{
 					foreach (var timedMessage in RemoveItemsByTime(_TimedMessages, DateTime.UtcNow))
 					{
-						await timedMessage.SendAsync().CAF();
+						if (!(await _Client.GetUserAsync(timedMessage.UserId).CAF() is IUser user))
+						{
+							continue;
+						}
+
+						await user.SendMessageAsync(timedMessage.Text).CAF();
 					}
 				});
 			};
@@ -84,37 +89,98 @@ namespace Advobot.Core.Services.Timers
 			{
 				Task.Run(async () =>
 				{
-					foreach (var group in RemoveItemsByTime(_RemovableMessages, DateTime.UtcNow).GroupBy(x => x.Channel?.Id ?? 0))
+					foreach (var guildGroup in RemoveItemsByTime(_RemovableMessages, DateTime.UtcNow).GroupBy(x => x.GuildId))
 					{
-						if (group.Key == 0)
+						if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
 						{
 							continue;
 						}
+						foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
+						{
+							if (!(await guild.GetTextChannelAsync(channelGroup.Key).CAF() is ITextChannel channel))
+							{
+								continue;
+							}
 
-						var groupMsgs = group.SelectMany(x => x.Messages).ToList();
-						if (groupMsgs.Count() == 1)
-						{
-							await MessageUtils.DeleteMessageAsync(groupMsgs.First(), _MessageReason).CAF();
-						}
-						else
-						{
-							var channel = group.First().Channel;
-							await MessageUtils.DeleteMessagesAsync(channel, groupMsgs, _MessageReason).CAF();
+							var tasks = channelGroup.SelectMany(x => x.MessageIds).Select(async x => await channel.GetMessageAsync(x).CAF());
+							var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
+							if (!messages.Any())
+							{
+								continue;
+							}
+							else if (messages.Count == 1)
+							{
+								await MessageUtils.DeleteMessageAsync(messages.First(), _MessageReason).CAF();
+							}
+							else
+							{
+								await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
+							}
 						}
 					}
 				});
 				Task.Run(async () =>
 				{
-					foreach (var helpEntries in RemoveItemsByTime(_ActiveCloseHelp, DateTime.UtcNow))
+					foreach (var guildGroup in RemoveItemsByTime(_ActiveCloseHelp, DateTime.UtcNow).GroupBy(x => x.GuildId))
 					{
-						await MessageUtils.DeleteMessageAsync(helpEntries.Message, _CloseHelpReason).CAF();
+						if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
+						{
+							continue;
+						}
+						foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
+						{
+							if (!(await guild.GetTextChannelAsync(channelGroup.Key).CAF() is ITextChannel channel))
+							{
+								continue;
+							}
+
+							var tasks = channelGroup.Select(async x => await channel.GetMessageAsync(x.MessageId).CAF());
+							var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
+							if (!messages.Any())
+							{
+								continue;
+							}
+							else if (messages.Count == 1)
+							{
+								await MessageUtils.DeleteMessageAsync(messages.First(), _CloseHelpReason).CAF();
+							}
+							else
+							{
+								await MessageUtils.DeleteMessagesAsync(channel, messages, _CloseHelpReason).CAF();
+							}
+						}
 					}
 				});
 				Task.Run(async () =>
 				{
-					foreach (var quotes in RemoveItemsByTime(_ActiveCloseQuotes, DateTime.UtcNow))
+					foreach (var guildGroup in RemoveItemsByTime(_ActiveCloseQuotes, DateTime.UtcNow).GroupBy(x => x.GuildId))
 					{
-						await MessageUtils.DeleteMessageAsync(quotes.Message, _CloseQuotesReason).CAF();
+						if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
+						{
+							continue;
+						}
+						foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
+						{
+							if (!(await guild.GetTextChannelAsync(channelGroup.Key).CAF() is ITextChannel channel))
+							{
+								continue;
+							}
+
+							var tasks = channelGroup.Select(async x => await channel.GetMessageAsync(x.MessageId).CAF());
+							var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
+							if (!messages.Any())
+							{
+								continue;
+							}
+							else if (messages.Count == 1)
+							{
+								await MessageUtils.DeleteMessageAsync(messages.First(), _CloseQuotesReason).CAF();
+							}
+							else
+							{
+								await MessageUtils.DeleteMessagesAsync(channel, messages, _CloseQuotesReason).CAF();
+							}
+						}
 					}
 				});
 				Task.Run(() => _SlowmodeUsers.RemoveValues(DateTime.UtcNow));
@@ -129,7 +195,7 @@ namespace Advobot.Core.Services.Timers
 		/// <returns></returns>
 		public async Task AddAsync(RemovablePunishment punishment)
 		{          
-			var doubleKey = new MultiKey<ulong, PunishmentType>(punishment.UserId, punishment.PunishmentType);
+			var doubleKey = new MultiKey<ulong, Punishment>(punishment.UserId, punishment.PunishmentType);
 			if (_RemovablePunishments.TryRemove(punishment.GuildId, doubleKey, out var value))
 			{
 				await value.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
@@ -143,13 +209,16 @@ namespace Advobot.Core.Services.Timers
 		/// <param name="message"></param>
 		/// <param name="helpEntries"></param>
 		/// <returns></returns>
-		public async Task AddAsync(IUser user, IUserMessage message, CloseWords<HelpEntry> helpEntries)
+		public async Task AddAsync(CloseWords<HelpEntry> helpEntries)
 		{
-			if (_ActiveCloseHelp.TryRemove(user.Id, out var value))
+			if (_ActiveCloseHelp.TryRemove(helpEntries.UserId, out var value)
+				&& await _Client.GetGuildAsync(value.GuildId).CAF() is IGuild guild
+				&& await guild.GetTextChannelAsync(value.ChannelId).CAF() is ITextChannel channel
+				&& await channel.GetMessageAsync(value.MessageId).CAF() is IMessage msg)
 			{
-				await MessageUtils.DeleteMessageAsync(value.Message, _CloseHelpReason).CAF();
+				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 			}
-			_ActiveCloseHelp.TryAdd(user.Id, new CloseWordsWrapper<HelpEntry>(helpEntries, message));
+			_ActiveCloseHelp.TryAdd(helpEntries.UserId, helpEntries);
 		}
 		/// <summary>
 		/// Removes all older instances, delete's the bot's message, and stores <paramref name="quotes"/>.
@@ -158,21 +227,24 @@ namespace Advobot.Core.Services.Timers
 		/// <param name="message"></param>
 		/// <param name="quotes"></param>
 		/// <returns></returns>
-		public async Task AddAsync(IUser user, IUserMessage message, CloseWords<Quote> quotes)
+		public async Task AddAsync(CloseWords<Quote> quotes)
 		{
-			if (_ActiveCloseQuotes.TryRemove(user.Id, out var value))
+			if (_ActiveCloseHelp.TryRemove(quotes.UserId, out var value)
+				&& await _Client.GetGuildAsync(value.GuildId).CAF() is IGuild guild
+				&& await guild.GetTextChannelAsync(value.ChannelId).CAF() is ITextChannel channel
+				&& await channel.GetMessageAsync(value.MessageId).CAF() is IMessage msg)
 			{
-				await MessageUtils.DeleteMessageAsync(value.Message, _CloseQuotesReason).CAF();
+				await MessageUtils.DeleteMessageAsync(msg, _CloseQuotesReason).CAF();
 			}
-			_ActiveCloseQuotes.TryAdd(user.Id, new CloseWordsWrapper<Quote>(quotes, message));
+			_ActiveCloseQuotes.TryAdd(quotes.UserId, quotes);
 		}
 		public void Add(RemovableMessage message)
 		{
-			_RemovableMessages.TryAdd(new MultiKey<ulong, long>(message.Channel.Id, message.Time.Ticks), message);
+			_RemovableMessages.TryAdd(new MultiKey<ulong, long>(message.ChannelId, message.Time.Ticks), message);
 		}
 		public void Add(TimedMessage message)
 		{
-			_TimedMessages.AddOrUpdate(message.Author.Id, message, (key, value) => message);
+			_TimedMessages.AddOrUpdate(message.UserId, message, (key, value) => message);
 		}
 		public void Add(SpamPreventionUserInfo user)
 		{
@@ -187,9 +259,9 @@ namespace Advobot.Core.Services.Timers
 			_BannedPhraseUsers.AddOrUpdate(user.GuildId, user.UserId, user);
 		}
 
-		public async Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, PunishmentType punishment)
+		public async Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, Punishment punishment)
 		{
-			if (_RemovablePunishments.TryRemove(guild.Id, new MultiKey<ulong, PunishmentType>(userId, punishment), out var value))
+			if (_RemovablePunishments.TryRemove(guild.Id, new MultiKey<ulong, Punishment>(userId, punishment), out var value))
 			{
 				await value.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 			}
@@ -197,19 +269,25 @@ namespace Advobot.Core.Services.Timers
 		}
 		public async Task<CloseWords<HelpEntry>> RemoveActiveCloseHelpAsync(IUser user)
 		{
-			if (_ActiveCloseHelp.TryRemove(user.Id, out var wrapper))
+			if (_ActiveCloseHelp.TryRemove(user.Id, out var value) 
+				&& await _Client.GetGuildAsync(value.GuildId).CAF() is IGuild guild
+				&& await guild.GetTextChannelAsync(value.ChannelId).CAF() is ITextChannel channel
+				&& await channel.GetMessageAsync(value.MessageId).CAF() is IMessage msg)
 			{
-				await MessageUtils.DeleteMessageAsync(wrapper.Message, _CloseHelpReason).CAF();
+				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 			}
-			return wrapper.CloseWords;
+			return value;
 		}
 		public async Task<CloseWords<Quote>> RemoveActiveCloseQuoteAsync(IUser user)
 		{
-			if (_ActiveCloseQuotes.TryRemove(user.Id, out var wrapper))
+			if (_ActiveCloseQuotes.TryRemove(user.Id, out var value)
+				&& await _Client.GetGuildAsync(value.GuildId).CAF() is IGuild guild
+				&& await guild.GetTextChannelAsync(value.ChannelId).CAF() is ITextChannel channel
+				&& await channel.GetMessageAsync(value.MessageId).CAF() is IMessage msg)
 			{
-				await MessageUtils.DeleteMessageAsync(wrapper.Message, _CloseQuotesReason).CAF();
+				await MessageUtils.DeleteMessageAsync(msg, _CloseQuotesReason).CAF();
 			}
-			return wrapper.CloseWords;
+			return value;
 		}
 		public IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild)
 		{
@@ -257,6 +335,33 @@ namespace Advobot.Core.Services.Timers
 					yield return value;
 				}
 			}
+		}
+
+		//ITimersService
+		Task ITimersService.AddAsync(RemovableMessage message)
+		{
+			Add(message);
+			return Task.FromResult(0);
+		}
+		Task ITimersService.AddAsync(TimedMessage message)
+		{
+			Add(message);
+			return Task.FromResult(0);
+		}
+		Task ITimersService.AddAsync(SpamPreventionUserInfo user)
+		{
+			Add(user);
+			return Task.FromResult(0);
+		}
+		Task ITimersService.AddAsync(SlowmodeUserInfo user)
+		{
+			Add(user);
+			return Task.FromResult(0);
+		}
+		Task ITimersService.AddAsync(BannedPhraseUserInfo user)
+		{
+			Add(user);
+			return Task.FromResult(0);
 		}
 	}
 }

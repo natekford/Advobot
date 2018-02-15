@@ -10,7 +10,11 @@ namespace Advobot.Core.Classes.UserInformation
 	public class SlowmodeUserInfo : UserInfo
 	{
 		private int _MessagesLeft;
-		public int MessagesLeft => _MessagesLeft;
+		public int MessagesLeft
+		{
+			get => _MessagesLeft;
+			private set => _MessagesLeft = value;
+		}
 
 		public SlowmodeUserInfo(TimeSpan time, SocketGuildUser user, int baseMessages) : base(time, user)
 		{

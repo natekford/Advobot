@@ -12,7 +12,7 @@ namespace Advobot.Core.Classes.Settings
 	public class SpamPreventionInfo : IGuildSetting
 	{
 		[JsonProperty]
-		public PunishmentType Punishment { get; }
+		public Punishment Punishment { get; }
 		/// <summary>
 		/// The required amount of times a user must spam before they can be voted to be kicked.
 		/// </summary>
@@ -36,7 +36,7 @@ namespace Advobot.Core.Classes.Settings
 		[JsonIgnore]
 		public bool Enabled;
 
-		private SpamPreventionInfo(PunishmentType punishment, int instances, int votes, int timeInterval, int spamAmount)
+		private SpamPreventionInfo(Punishment punishment, int instances, int votes, int timeInterval, int spamAmount)
 		{
 			Punishment = punishment;
 			SpamInstances = instances;
@@ -57,7 +57,7 @@ namespace Advobot.Core.Classes.Settings
 		/// <param name="info"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public static bool TryCreate(SpamType spam, PunishmentType punishment, int instances, int votes, int timeInterval, int spamAmount,
+		public static bool TryCreate(SpamType spam, Punishment punishment, int instances, int votes, int timeInterval, int spamAmount,
 			out SpamPreventionInfo info, out Error error)
 		{
 			info = default;

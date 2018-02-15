@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
+﻿using Advobot.Core.Interfaces;
 using Discord;
+using System;
 
 namespace Advobot.Core.Classes
 {
@@ -11,20 +9,15 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public struct TimedMessage : ITime
 	{
-		public IGuildUser Author { get; }
-		public DateTime Time { get; }
-		public string Text { get; }
+		public DateTime Time { get; private set; }
+		public ulong UserId { get; private set; }
+		public string Text { get; private set; }
 
 		public TimedMessage(TimeSpan time, IGuildUser author, string text)
 		{
-			Author = author;
 			Time = DateTime.UtcNow.Add(time);
+			UserId = author.Id;
 			Text = text;
-		}
-
-		public async Task SendAsync()
-		{
-			await Author.SendMessageAsync(Text).CAF();
 		}
 	}
 }

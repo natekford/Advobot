@@ -267,12 +267,12 @@ namespace Advobot.Commands.BannedPhrases
 				await ModifyPunishmentType.Show(Context, Context.GuildSettings.BannedPhraseRegex, nameof(Regex)).CAF();
 			}
 			[Command, Priority(1)]
-			public async Task Command(uint position, PunishmentType punishment)
+			public async Task Command(uint position, Punishment punishment)
 			{
 				await Modify(Context, Context.GuildSettings.BannedPhraseRegex, (int)position, punishment).CAF();
 			}
 			[Command]
-			public async Task Command(string text, PunishmentType punishment)
+			public async Task Command(string text, Punishment punishment)
 			{
 				await Modify(Context, Context.GuildSettings.BannedPhraseRegex, text, nameof(Regex), punishment).CAF();
 			}
@@ -286,12 +286,12 @@ namespace Advobot.Commands.BannedPhrases
 				await ModifyPunishmentType.Show(Context, Context.GuildSettings.BannedPhraseStrings, nameof(String)).CAF();
 			}
 			[Command, Priority(1)]
-			public async Task Command(uint position, PunishmentType punishment)
+			public async Task Command(uint position, Punishment punishment)
 			{
 				await Modify(Context, Context.GuildSettings.BannedPhraseStrings, (int)position, punishment).CAF();
 			}
 			[Command]
-			public async Task Command(string text, PunishmentType punishment)
+			public async Task Command(string text, Punishment punishment)
 			{
 				await Modify(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), punishment).CAF();
 			}
@@ -306,7 +306,7 @@ namespace Advobot.Commands.BannedPhrases
 			};
 			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
 		}
-		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type, PunishmentType punishment) where T : BannedPhrase
+		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type, Punishment punishment) where T : BannedPhrase
 		{
 			var phrase = list.SingleOrDefault(x => x.Phrase.CaseInsEquals(text));
 			if (phrase == null)
@@ -319,7 +319,7 @@ namespace Advobot.Commands.BannedPhrases
 			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment.ToString()}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
 		}
-		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, int position, PunishmentType punishment) where T : BannedPhrase
+		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, int position, Punishment punishment) where T : BannedPhrase
 		{
 			if (position == default || position > list.Count)
 			{
@@ -357,7 +357,7 @@ namespace Advobot.Commands.BannedPhrases
 		public sealed class Add : GuildSettingsSavingModuleBase
 		{
 			[Command]
-			public async Task Command(PunishmentType punishment, uint position, [Optional] uint time)
+			public async Task Command(Punishment punishment, uint position, [Optional] uint time)
 			{
 				if (position == default)
 				{

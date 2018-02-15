@@ -24,7 +24,7 @@ namespace Advobot.Core.Classes.Settings
 		private const int MAX_TIME = 60;
 
 		[JsonProperty]
-		public PunishmentType Punishment { get; }
+		public Punishment Punishment { get; }
 		[JsonProperty]
 		public int TimeInterval { get; }
 		[JsonProperty]
@@ -32,11 +32,11 @@ namespace Advobot.Core.Classes.Settings
 		[JsonProperty]
 		public bool Enabled = true;
 		[JsonIgnore]
-		private ConcurrentQueue<TimeWrapper> _TimeList = new ConcurrentQueue<TimeWrapper>();
+		private ConcurrentQueue<ulong> _TimeList = new ConcurrentQueue<ulong>();
 		[JsonIgnore]
-		public ConcurrentQueue<TimeWrapper> TimeList => _TimeList;
+		public ConcurrentQueue<ulong> TimeList => _TimeList;
 
-		private RaidPreventionInfo(PunishmentType punishmentType, int userCount, int interval)
+		private RaidPreventionInfo(Punishment punishmentType, int userCount, int interval)
 		{
 			Punishment = punishmentType;
 			UserCount = userCount;
@@ -49,11 +49,11 @@ namespace Advobot.Core.Classes.Settings
 		}
 		public void Add(DateTime time)
 		{
-			TimeList.Enqueue(new TimeWrapper(time));
+			TimeList.Enqueue(SnowflakeUtils.ToSnowflake(time));
 		}
 		public void Reset()
 		{
-			Interlocked.Exchange(ref _TimeList, new ConcurrentQueue<TimeWrapper>());
+			Interlocked.Exchange(ref _TimeList, new ConcurrentQueue<ulong>());
 		}
 		/// <summary>
 		/// Punishes a user.
@@ -75,7 +75,7 @@ namespace Advobot.Core.Classes.Settings
 		/// <param name="info"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public static bool TryCreate(RaidType raid, PunishmentType punishment, int userCount, int timeInterval,
+		public static bool TryCreate(RaidType raid, Punishment punishment, int userCount, int timeInterval,
 			out RaidPreventionInfo info, out Error error)
 		{
 			info = default;
