@@ -13,6 +13,7 @@ namespace Advobot.Core.Classes.CloseWords
 	/// </summary>
 	public class CloseQuotes : CloseWords<Quote>
 	{
+		public CloseQuotes() { }
 		public CloseQuotes(TimeSpan time, ICommandContext context, IGuildSettings settings, string input) 
 			: base(time, context, settings.Quotes, input) { }
 

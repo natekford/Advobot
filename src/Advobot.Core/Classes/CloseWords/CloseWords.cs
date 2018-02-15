@@ -1,6 +1,6 @@
 ﻿using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
 using Discord.Commands;
+using LiteDB;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +14,7 @@ namespace Advobot.Core.Classes.CloseWords
 	/// <typeparam name="T"></typeparam>
 	public abstract class CloseWords<T> : ITime
 	{
+		public ObjectId Id { get; set; }
 		public DateTime Time { get; private set; }
 		public ulong GuildId { get; private set; }
 		public ulong ChannelId { get; private set; }
@@ -24,6 +25,7 @@ namespace Advobot.Core.Classes.CloseWords
 		private int _MaxAllowedCloseness = 4;
 		private int _MaxOutput = 5;
 
+		protected CloseWords() { }
 		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string input)
 		{
 			GuildId = context.Guild.Id;

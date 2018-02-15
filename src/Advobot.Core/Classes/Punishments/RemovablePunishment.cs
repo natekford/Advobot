@@ -2,6 +2,7 @@
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
+using LiteDB;
 using System;
 using System.Threading.Tasks;
 
@@ -10,14 +11,16 @@ namespace Advobot.Core.Classes.Punishments
 	/// <summary>
 	/// Punishments that will be removed after the time is less than <see cref="DateTime.UtcNow"/>.
 	/// </summary>
-	public struct RemovablePunishment : ITime
+	public class RemovablePunishment : ITime
 	{
+		public ObjectId Id { get; set; }
+		public DateTime Time { get; private set; }
 		public Punishment PunishmentType { get; private set; }
 		public ulong GuildId { get; private set; }
 		public ulong UserId { get; private set; }
 		public ulong RoleId { get; private set; }
-		public DateTime Time { get; private set; }
 
+		public RemovablePunishment() { }
 		public RemovablePunishment(TimeSpan time, Punishment punishment, IGuild guild, IUser user)
 		{
 			PunishmentType = punishment;

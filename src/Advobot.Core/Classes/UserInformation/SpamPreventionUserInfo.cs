@@ -26,6 +26,7 @@ namespace Advobot.Core.Classes.UserInformation
 			{ Punishment.Ban, 1000 }
 		};
 
+		//TODO: check if this serializes correctly
 		private ConcurrentBag<ulong> _UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
 		private ConcurrentDictionary<SpamType, ConcurrentQueue<ulong>> _Spam = CreateDictionary();
 		private int _VotesRequired = -1;
@@ -58,6 +59,7 @@ namespace Advobot.Core.Classes.UserInformation
 		/// </summary>
 		public int Votes => _UsersWhoHaveAlreadyVoted.Count;
 
+		public SpamPreventionUserInfo() { }
 		public SpamPreventionUserInfo(SocketGuildUser user) : base(user) { }
 
 		public bool HasUserAlreadyVoted(ulong id)

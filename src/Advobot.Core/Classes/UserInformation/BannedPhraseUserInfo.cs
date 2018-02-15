@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Enums;
 using Discord.WebSocket;
+using LiteDB;
 using System;
 using System.Linq;
 using System.Threading;
@@ -18,6 +19,7 @@ namespace Advobot.Core.Classes.UserInformation
 		private int _Softban;
 		private int _RoleMute;
 
+		public ObjectId Id { get; set; }
 		public int Kick
 		{
 			get => _Kick;
@@ -49,6 +51,7 @@ namespace Advobot.Core.Classes.UserInformation
 			private set => _RoleMute = value;
 		}
 
+		public BannedPhraseUserInfo() { }
 		public BannedPhraseUserInfo(SocketGuildUser user) : base(user) { }
 
 		public int this[Punishment type]

@@ -74,6 +74,7 @@ namespace Advobot.Core.Classes
 				ConsoleUtils.WriteLine($"Current version: {Constants.BOT_VERSION}");
 				ConsoleUtils.WriteLine($"Current bot prefix is: {_BotSettings.Prefix}");
 				ConsoleUtils.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
+				_Timers.Start();
 				_Loaded = true;
 			}
 		}

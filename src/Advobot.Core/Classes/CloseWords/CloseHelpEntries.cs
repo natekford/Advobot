@@ -11,6 +11,7 @@ namespace Advobot.Core.Classes.CloseWords
 	/// </summary>
 	public class CloseHelpEntries : CloseWords<HelpEntry>
 	{
+		public CloseHelpEntries() { }
 		public CloseHelpEntries(TimeSpan time, ICommandContext context, string input) 
 			: base(time, context, Constants.HELP_ENTRIES.GetHelpEntries(), input) { }
 

@@ -13,6 +13,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public ulong UserId { get; }
 		public DateTime Time { get; protected set; }
 
+		protected UserInfo() { }
 		public UserInfo(SocketGuildUser user)
 		{
 			GuildId = user.Guild.Id;
