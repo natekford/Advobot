@@ -9,16 +9,34 @@ using System.Threading.Tasks;
 namespace Advobot.Core.Classes.Punishments
 {
 	/// <summary>
-	/// Punishments that will be removed after the time is less than <see cref="DateTime.UtcNow"/>.
+	/// Punishments that will be removed after the time has passed.
 	/// </summary>
 	public class RemovablePunishment : ITime
 	{
+		/// <summary>
+		/// The id of the object for LiteDB.
+		/// </summary>
 		public ObjectId Id { get; set; }
-		public DateTime Time { get; private set; }
-		public Punishment PunishmentType { get; private set; }
-		public ulong GuildId { get; private set; }
-		public ulong UserId { get; private set; }
-		public ulong RoleId { get; private set; }
+		/// <summary>
+		/// The time to remove the punishment.
+		/// </summary>
+		public DateTime Time { get; set; }
+		/// <summary>
+		/// The type of punishment that was given.
+		/// </summary>
+		public Punishment PunishmentType { get; set; }
+		/// <summary>
+		/// The id of the guild the punishment was given on.
+		/// </summary>
+		public ulong GuildId { get; set; }
+		/// <summary>
+		/// The id of the user the punishment was given to.
+		/// </summary>
+		public ulong UserId { get; set; }
+		/// <summary>
+		/// The id of the role given (only applicable if <see cref="PunishmentType"/> is <see cref="Punishment.RoleMute"/>).
+		/// </summary>
+		public ulong RoleId { get; set; }
 
 		public RemovablePunishment() { }
 		public RemovablePunishment(TimeSpan time, Punishment punishment, IGuild guild, IUser user)

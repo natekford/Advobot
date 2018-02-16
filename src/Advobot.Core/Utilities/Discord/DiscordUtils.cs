@@ -205,7 +205,7 @@ namespace Advobot.Core.Utilities
 
 		/// <summary>
 		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
-		/// Also modifies the queue by removing instances which are too old to matter.
+		/// Also modifies the queue by removing instances which are too old to matter (locks the source when doing so).
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="source"></param>
@@ -214,7 +214,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">When <paramref name="source"/> is not in order.</exception>
 		/// <exception cref="InvalidOperationException">When <paramref name="source"/> has been modified during method run time.</exception>
-		public static int CountItemsInTimeFrame(this ConcurrentQueue<ulong> source, int seconds = 0, bool removeOldInstances = false)
+		public static int CountItemsInTimeFrame(List<ulong> source, int seconds = 0, bool removeOldInstances = false)
 		{
 			var timeList = new List<ulong>(source);
 			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
@@ -257,30 +257,26 @@ namespace Advobot.Core.Utilities
 
 			if (removeOldInstances)
 			{
-				//Work the way down
-				var now = DateTime.UtcNow;
-				for (int i = listLength - 1; i >= 0; --i)
+				lock (source)
 				{
-					//if the time is recent enough to still be within the timeframe leave it
-					if ((int)(now - SnowflakeUtils.FromSnowflake(timeList[i]).UtcDateTime).TotalSeconds < seconds + 1)
+					//Work the way down
+					var now = DateTime.UtcNow;
+					for (int i = listLength - 1; i >= 0; --i)
 					{
-						continue;
-					}
-					//The first object now found within the timeframe is where objects will be removed up to
-					for (int j = 0; j < i; ++j)
-					{
-						//Make sure the queue and the source are looking at the same object
-						if (source.TryPeek(out var peekResult) && peekResult != timeList[j])
+						//if the time is recent enough to still be within the timeframe leave it
+						if ((int)(now - SnowflakeUtils.FromSnowflake(timeList[i]).UtcDateTime).TotalSeconds < seconds + 1)
 						{
-							throw new InvalidOperationException($"{nameof(source)} has had an object dequeued.");
+							continue;
 						}
-
-						source.TryDequeue(out _);
+						//The first object now found within the timeframe is where objects will be removed up to
+						for (int j = 0; j < i; ++j)
+						{
+							source.Remove(timeList[j]);
+						}
+						break;
 					}
-					break;
 				}
 			}
-
 			return maxCount;
 		}
 

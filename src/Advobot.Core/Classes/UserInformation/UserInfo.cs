@@ -9,9 +9,9 @@ namespace Advobot.Core.Classes.UserInformation
 	/// </summary>
 	public abstract class UserInfo : ITime
 	{
-		public ulong GuildId { get; }
-		public ulong UserId { get; }
-		public DateTime Time { get; protected set; }
+		public DateTime Time { get; set; }
+		public ulong GuildId { get; set; }
+		public ulong UserId { get; set; }
 
 		protected UserInfo() { }
 		public UserInfo(SocketGuildUser user)

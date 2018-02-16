@@ -7,6 +7,7 @@ using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,9 +33,9 @@ namespace Advobot.Core.Classes.Settings
 		[JsonProperty]
 		public bool Enabled = true;
 		[JsonIgnore]
-		private ConcurrentQueue<ulong> _TimeList = new ConcurrentQueue<ulong>();
+		private List<ulong> _TimeList = new List<ulong>();
 		[JsonIgnore]
-		public ConcurrentQueue<ulong> TimeList => _TimeList;
+		public List<ulong> TimeList => _TimeList;
 
 		private RaidPreventionInfo(Punishment punishmentType, int userCount, int interval)
 		{
@@ -45,15 +46,18 @@ namespace Advobot.Core.Classes.Settings
 
 		public int GetSpamCount()
 		{
-			return TimeList.CountItemsInTimeFrame(TimeInterval);
+			return DiscordUtils.CountItemsInTimeFrame(TimeList, TimeInterval);
 		}
 		public void Add(DateTime time)
 		{
-			TimeList.Enqueue(SnowflakeUtils.ToSnowflake(time));
+			lock (_TimeList)
+			{
+				_TimeList.Add(SnowflakeUtils.ToSnowflake(time));
+			}
 		}
 		public void Reset()
 		{
-			Interlocked.Exchange(ref _TimeList, new ConcurrentQueue<ulong>());
+			Interlocked.Exchange(ref _TimeList, new List<ulong>());
 		}
 		/// <summary>
 		/// Punishes a user.

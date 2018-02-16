@@ -67,7 +67,7 @@ namespace Advobot.Commands.Misc
 			if (closeHelps.List.Any())
 			{
 				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList(x => x.Name)}";
-				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
+				closeHelps.MessageId = (await MessageUtils.SendMessageAsync(Context.Channel, text).CAF()).Id;
 				await Context.Timers.AddAsync(closeHelps).CAF();
 				return;
 			}

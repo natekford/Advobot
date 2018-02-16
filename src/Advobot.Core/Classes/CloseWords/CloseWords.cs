@@ -3,27 +3,53 @@ using Discord.Commands;
 using LiteDB;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace Advobot.Core.Classes.CloseWords
 {
 	/// <summary>
-	/// Container of close words which is intended to be removed after the time returns a value less than the current time.
+	/// Container of close words which is intended to be removed after the time has passed.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	public abstract class CloseWords<T> : ITime
 	{
-		public ObjectId Id { get; set; }
-		public DateTime Time { get; private set; }
-		public ulong GuildId { get; private set; }
-		public ulong ChannelId { get; private set; }
-		public ulong UserId { get; private set; }
-		public ulong MessageId { get; private set; }
-		public ImmutableList<CloseWord> List { get; private set; }
+		/// <summary>
+		/// The max allowed closeness before a word will not be added.
+		/// </summary>
+		public static int MaxAllowedCloseness = 4;
+		/// <summary>
+		/// The max allowed output to add to <see cref="List"/>.
+		/// </summary>
+		public static int MaxOutput = 5;
 
-		private int _MaxAllowedCloseness = 4;
-		private int _MaxOutput = 5;
+		/// <summary>
+		/// The id of the object for LiteDB.
+		/// </summary>
+		public ObjectId Id { get; set; }
+		/// <summary>
+		/// The time to remove this object and delete whatever message can be gotten from <see cref="MessageId"/>.
+		/// </summary>
+		public DateTime Time { get; set; }
+		/// <summary>
+		/// The id of the guild from the passed in context.
+		/// </summary>
+		public ulong GuildId { get; set; }
+		/// <summary>
+		/// The id of the channel from the passed in context.
+		/// </summary>
+		public ulong ChannelId { get; set; }
+		/// <summary>
+		/// The id of the user from the passed in context.
+		/// </summary>
+		public ulong UserId { get; set; }
+		/// <summary>
+		/// The id of the response the bot has sent.
+		/// </summary>
+		public ulong MessageId { get; set; }
+		/// <summary>
+		/// The gathered words.
+		/// </summary>
+		public List<CloseWord> List { get; set; }
 
 		protected CloseWords() { }
 		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string input)
@@ -31,15 +57,41 @@ namespace Advobot.Core.Classes.CloseWords
 			GuildId = context.Guild.Id;
 			ChannelId = context.Channel.Id;
 			UserId = context.User.Id;
-			MessageId = context.Message.Id;
-			List = GetObjectsWithSimilarNames(objects.ToList(), input).ToImmutableList();
+			List = GetObjectsWithSimilarNames(objects.ToList(), input);
 			Time = DateTime.UtcNow.Add(time.Equals(default) ? Constants.DEFAULT_WAIT_TIME : time);
 		}
 
-		protected abstract CloseWord FindCloseWord(T obj, string input);
-		protected abstract CloseWord FindCloseWord(IEnumerable<T> objs, IEnumerable<string> alreadyUsedNames, string input);
+		/// <summary>
+		/// Finds an object with a similar name to the search term..
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <param name="search"></param>
+		/// <returns></returns>
+		protected abstract CloseWord FindCloseWord(T obj, string search);
+		/// <summary>
+		/// Finds an object with the search term in directly in their name.
+		/// </summary>
+		/// <param name="objs"></param>
+		/// <param name="alreadyUsedNames"></param>
+		/// <param name="search"></param>
+		/// <returns></returns>
+		protected abstract CloseWord FindCloseWord(IEnumerable<T> objs, IEnumerable<string> alreadyUsedNames, string search);
+		/// <summary>
+		/// Returns a value gotten from using Damerau Levenshtein distance to compare the source and target.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="target"></param>
+		/// <param name="threshold"></param>
+		/// <returns></returns>
 		protected int FindCloseName(string source, string target, int threshold = 10)
 		{
+			void Swap<T2>(ref T2 arg1, ref T2 arg2)
+			{
+				var temp = arg1;
+				arg1 = arg2;
+				arg2 = temp;
+			}
+
 			/* Damerau Levenshtein Distance: https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
 			 * Copied nearly verbatim from: https://stackoverflow.com/a/9454016 
 			 */
@@ -119,33 +171,27 @@ namespace Advobot.Core.Classes.CloseWords
 			foreach (var word in suppliedObjects)
 			{
 				var closeWord = FindCloseWord(word, input);
-				if (closeWord.Closeness > _MaxAllowedCloseness)
+				if (closeWord.Closeness > MaxAllowedCloseness)
 				{
 					continue;
 				}
 
 				closeWords.Add(closeWord);
-				if (closeWords.Count > _MaxOutput)
+				if (closeWords.Count > MaxOutput)
 				{
 					closeWords = closeWords.OrderBy(x => x.Closeness).ToList();
-					closeWords.RemoveRange(_MaxOutput, closeWords.Count - _MaxOutput);
+					closeWords.RemoveRange(MaxOutput, closeWords.Count - MaxOutput);
 				}
 			}
 
-			if (closeWords.Count < _MaxOutput)
+			if (closeWords.Count < MaxOutput)
 			{
-				for (int i = closeWords.Count - 1; i < _MaxOutput; ++i)
+				for (int i = closeWords.Count - 1; i < MaxOutput; ++i)
 				{
 					closeWords.Add(FindCloseWord(suppliedObjects, closeWords.Select(x => x.Name), input));
 				}
 			}
-			return closeWords;
-		}
-		private void Swap<T2>(ref T2 arg1, ref T2 arg2)
-		{
-			var temp = arg1;
-			arg1 = arg2;
-			arg2 = temp;
+			return closeWords.Where(x => x.Closeness > -1).ToList();
 		}
 
 		/// <summary>

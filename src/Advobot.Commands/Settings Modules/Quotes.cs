@@ -27,13 +27,11 @@ namespace Advobot.Commands.Quotes
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-
 			if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("A quote already has that name.")).CAF();
 				return;
 			}
-
 			if (String.IsNullOrWhiteSpace(text))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Adding a quote requires text.")).CAF();
@@ -79,7 +77,6 @@ namespace Advobot.Commands.Quotes
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("There are no quotes.")).CAF();
 				return;
 			}
-
 			if (name == null)
 			{
 				var embed = new EmbedWrapper
@@ -102,7 +99,7 @@ namespace Advobot.Commands.Quotes
 			if (closeQuotes.List.Any())
 			{
 				var text = $"Did you mean any of the following:\n{closeQuotes.List.FormatNumberedList(x => x.Name)}";
-				var msg = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
+				closeQuotes.MessageId = (await MessageUtils.SendMessageAsync(Context.Channel, text).CAF()).Id;
 				await Context.Timers.AddAsync(closeQuotes).CAF();
 				return;
 			}

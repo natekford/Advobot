@@ -12,11 +12,17 @@ namespace Advobot.Core.Classes.UserInformation
 	{
 		private int _MessagesLeft;
 
+		/// <summary>
+		/// The id of the object for LiteDB.
+		/// </summary>
 		public ObjectId Id { get; set; }
+		/// <summary>
+		/// The amount of messages left for the user to send before they should start being deleted.
+		/// </summary>
 		public int MessagesLeft
 		{
 			get => _MessagesLeft;
-			private set => _MessagesLeft = value;
+			set => _MessagesLeft = value;
 		}
 
 		public SlowmodeUserInfo() { }

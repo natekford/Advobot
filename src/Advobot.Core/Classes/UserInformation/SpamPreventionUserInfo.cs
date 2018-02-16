@@ -3,7 +3,6 @@ using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -27,9 +26,9 @@ namespace Advobot.Core.Classes.UserInformation
 		};
 
 		//TODO: check if this serializes correctly
-		private ConcurrentBag<ulong> _UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
-		private ConcurrentDictionary<SpamType, ConcurrentQueue<ulong>> _Spam = CreateDictionary();
-		private int _VotesRequired = -1;
+		private List<ulong> _UsersWhoHaveAlreadyVoted = new List<ulong>();
+		private Dictionary<SpamType, List<ulong>> _Spam = CreateDictionary();
+		private int _VotesRequired = int.MaxValue;
 		private Punishment _Punishment;
 
 		/// <summary>
@@ -39,7 +38,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public int VotesRequired
 		{
 			get => _VotesRequired;
-			set => _VotesRequired = Math.Min(_VotesRequired, value);
+			set => _VotesRequired = Math.Max(1, Math.Min(_VotesRequired, value));
 		}
 		/// <summary>
 		/// The punishment to do on a user.
@@ -53,7 +52,7 @@ namespace Advobot.Core.Classes.UserInformation
 		/// <summary>
 		/// Returns true if <see cref="Punishment"/> is not default and <see cref="VotesRequired"/> is greater than 0.
 		/// </summary>
-		public bool PotentialPunishment => _Punishment != default && _VotesRequired > 0;
+		public bool PotentialPunishment => _Punishment != default && _VotesRequired != int.MaxValue;
 		/// <summary>
 		/// Returns the count of people who have voted to punish the user.
 		/// </summary>
@@ -68,7 +67,7 @@ namespace Advobot.Core.Classes.UserInformation
 		}
 		public int GetSpamAmount(SpamType type, int timeFrame)
 		{
-			return timeFrame < 1 ? _Spam[type].Count : _Spam[type].CountItemsInTimeFrame(timeFrame);
+			return timeFrame < 1 ? _Spam[type].Count : DiscordUtils.CountItemsInTimeFrame(_Spam[type], timeFrame);
 		}
 		public void IncreaseVotes(ulong id)
 		{
@@ -79,29 +78,27 @@ namespace Advobot.Core.Classes.UserInformation
 		}
 		public void AddSpamInstance(SpamType type, IMessage message)
 		{
-			var queue = _Spam[type];
-			if (!queue.Any(x => x == message.Id))
+			var list = _Spam[type];
+			lock (list)
 			{
-				queue.Enqueue(message.Id);
+				if (!list.Any(x => x == message.Id))
+				{
+					list.Add(message.Id);
+				}
 			}
 		}
 		public void Reset()
 		{
-			Interlocked.Exchange(ref _UsersWhoHaveAlreadyVoted, new ConcurrentBag<ulong>());
+			Interlocked.Exchange(ref _UsersWhoHaveAlreadyVoted, new List<ulong>());
 			Interlocked.Exchange(ref _Spam, CreateDictionary());
 
 			VotesRequired = -1;
 			Punishment = default;
 		}
 
-		private static ConcurrentDictionary<SpamType, ConcurrentQueue<ulong>> CreateDictionary()
+		private static Dictionary<SpamType, List<ulong>> CreateDictionary()
 		{
-			var temp = new ConcurrentDictionary<SpamType, ConcurrentQueue<ulong>>();
-			foreach (SpamType spamType in Enum.GetValues(typeof(SpamType)))
-			{
-				temp.TryAdd(spamType, new ConcurrentQueue<ulong>());
-			}
-			return temp;
+			return Enum.GetValues(typeof(SpamType)).Cast<SpamType>().ToDictionary(x => x, x => new List<ulong>());
 		}
 	}
 }

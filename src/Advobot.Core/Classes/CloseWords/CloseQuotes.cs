@@ -14,17 +14,17 @@ namespace Advobot.Core.Classes.CloseWords
 	public class CloseQuotes : CloseWords<Quote>
 	{
 		public CloseQuotes() { }
-		public CloseQuotes(TimeSpan time, ICommandContext context, IGuildSettings settings, string input) 
-			: base(time, context, settings.Quotes, input) { }
+		public CloseQuotes(TimeSpan time, ICommandContext context, IGuildSettings settings, string search) 
+			: base(time, context, settings.Quotes, search) { }
 
-		protected override CloseWord FindCloseWord(Quote obj, string input)
+		protected override CloseWord FindCloseWord(Quote obj, string search)
 		{
-			return new CloseWord(FindCloseName(obj.Name, input), obj.Name, obj.Description);
+			return new CloseWord(FindCloseName(obj.Name, search), obj.Name, obj.Description);
 		}
-		protected override CloseWord FindCloseWord(IEnumerable<Quote> objs, IEnumerable<string> alreadyUsedNames, string input)
+		protected override CloseWord FindCloseWord(IEnumerable<Quote> objs, IEnumerable<string> alreadyUsedNames, string search)
 		{
-			var obj = objs.FirstOrDefault(x => !alreadyUsedNames.Contains(x.Name) && x.Name.CaseInsContains(input));
-			return new CloseWord(int.MaxValue, obj.Name, obj.Description);
+			var obj = objs.FirstOrDefault(x => !alreadyUsedNames.Contains(x.Name) && x.Name.CaseInsContains(search));
+			return obj == null ? new CloseWord(-1, null, null) : new CloseWord(int.MaxValue, obj.Name, obj.Description);
 		}
 	}
 }

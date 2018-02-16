@@ -19,36 +19,57 @@ namespace Advobot.Core.Classes.UserInformation
 		private int _Softban;
 		private int _RoleMute;
 
+		/// <summary>
+		/// The id of the object for LiteDB.
+		/// </summary>
 		public ObjectId Id { get; set; }
+		/// <summary>
+		/// The amount of messages that gave them a kick punishment.
+		/// </summary>
 		public int Kick
 		{
 			get => _Kick;
-			private set => _Kick = value;
+			set => _Kick = value;
 		}
+		/// <summary>
+		/// The amount of messages that gave them a ban punishment.
+		/// </summary>
 		public int Ban
 		{
 			get => _Ban;
-			private set => _Ban = value;
+			set => _Ban = value;
 		}
+		/// <summary>
+		/// The amount of messages that gave them a deafen punishment.
+		/// </summary>
 		public int Deafen
 		{
 			get => _Deafen;
-			private set => _Deafen = value;
+			set => _Deafen = value;
 		}
+		/// <summary>
+		/// The amount of messages that gave them a voice mute punishment.
+		/// </summary>
 		public int VoiceMute
 		{
 			get => _VoiceMute;
-			private set => _VoiceMute = value;
+			set => _VoiceMute = value;
 		}
+		/// <summary>
+		/// The amount of messages that gave them a soft ban punishment.
+		/// </summary>
 		public int Softban
 		{
 			get => _Softban;
-			private set => _Softban = value;
+			set => _Softban = value;
 		}
+		/// <summary>
+		/// The amount of messages that gave them a role mute punishment.
+		/// </summary>
 		public int RoleMute
 		{
 			get => _RoleMute;
-			private set => _RoleMute = value;
+			set => _RoleMute = value;
 		}
 
 		public BannedPhraseUserInfo() { }
