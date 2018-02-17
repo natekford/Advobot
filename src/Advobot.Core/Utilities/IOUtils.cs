@@ -167,7 +167,7 @@ namespace Advobot.Core.Utilities
 						obj = Deserialize<T>(reader.ReadToEnd(), type, settings ?? _DefaultSerializingSettings);
 						stillDef = false;
 					}
-					ConsoleUtils.WriteLine($"The {type.Name} file has successfully been loaded.");
+					//ConsoleUtils.WriteLine($"The {type.Name} file has successfully been loaded.");
 				}
 				catch (JsonReaderException jre)
 				{
@@ -176,7 +176,7 @@ namespace Advobot.Core.Utilities
 			}
 			else
 			{
-				ConsoleUtils.WriteLine($"The {type.Name} file could not be found; using default.");
+				ConsoleUtils.WriteLine($"The {type.Name} file could not be found; using default.", ConsoleColor.Yellow);
 			}
 			//If want an object no matter what and the object is still default and there is a parameterless constructor then create one
 			return create && stillDef && type.GetConstructors().Any(x => !x.GetParameters().Any()) ? (T)Activator.CreateInstance(type) : obj;
@@ -193,7 +193,7 @@ namespace Advobot.Core.Utilities
 				//Will still make the object null if the property's type is changed to something not creatable from the text
 				Error = (sender, e) =>
 				{
-					ConsoleUtils.WriteLine(e.ErrorContext.Error.Message, color: ConsoleColor.Red);
+					ConsoleUtils.WriteLine(e.ErrorContext.Error.Message, ConsoleColor.Red);
 					e.ErrorContext.Handled = false;
 				},
 				Converters = new JsonConverter[] { new StringEnumConverter() }
@@ -212,6 +212,8 @@ namespace Advobot.Core.Utilities
 			{
 				writer.WriteLine($"{DateTime.UtcNow.ToReadable()}: {exception}\n");
 			}
+
+			ConsoleUtils.WriteLine($"Something has gone drastically wrong. Check {crashLogPath} for more details.", ConsoleColor.Red);
 		}
 
 		public struct JsonFix

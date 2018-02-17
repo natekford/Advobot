@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using System;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -12,6 +14,11 @@ namespace Advobot.Core.Classes.TypeReaders
 	/// </summary>
 	public sealed class ColorTypeReader : TypeReader
 	{
+		private static readonly ImmutableDictionary<string, Color> _Colors = typeof(Color)
+			.GetFields(BindingFlags.Public | BindingFlags.Static)
+			.ToDictionary(x => x.Name, x => (Color)x.GetValue(new Color()), StringComparer.OrdinalIgnoreCase)
+			.ToImmutableDictionary();
+
 		/// <summary>
 		/// Input is tested as a color name, then hex, then RBG separated by back slashes.
 		/// </summary>
@@ -35,7 +42,7 @@ namespace Advobot.Core.Classes.TypeReaders
 				return null;
 			}
 			//By name
-			if (Constants.COLORS.TryGetValue(input, out var temp))
+			if (_Colors.TryGetValue(input, out var temp))
 			{
 				color = temp;
 			}

@@ -7,28 +7,6 @@ namespace Advobot.Tests
 	public class RegexUtilsTests
 	{
 		[TestMethod]
-		public void TryCreateRegex_Test()
-		{
-			//Empty
-			{
-				Assert.IsFalse(RegexUtils.TryCreateRegex("", out var regex, out var error));
-				Assert.IsNull(regex);
-				Assert.IsNotNull(error.Reason);
-			}
-			//Valid but small
-			{
-				Assert.IsTrue(RegexUtils.TryCreateRegex("a", out var regex, out var error));
-				Assert.IsNotNull(regex);
-				Assert.IsNull(error.Reason);
-			}
-			//Invalid
-			{
-				Assert.IsFalse(RegexUtils.TryCreateRegex("[", out var regex, out var error));
-				Assert.IsNull(regex);
-				Assert.IsNotNull(error.Reason);
-			}
-		}
-		[TestMethod]
 		public void IsMatch_Test()
 		{
 			//Basic match

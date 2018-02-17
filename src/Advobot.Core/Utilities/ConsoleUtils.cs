@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Advobot.Core.Utilities
@@ -29,14 +30,16 @@ namespace Advobot.Core.Utilities
 		/// <param name="text"></param>
 		/// <param name="name"></param>
 		/// <param name="color"></param>
-		public static void WriteLine(string text, [CallerMemberName] string name = "", ConsoleColor color = ConsoleColor.Gray)
+		public static void WriteLine(string text, ConsoleColor color = ConsoleColor.Gray, [CallerMemberName] string name = "")
 		{
 			var line = $"[{DateTime.Now.ToString("HH:mm:ss")}] [{name}]: {text.RemoveAllMarkdown().RemoveDuplicateNewLines()}";
 
 			lock (_MessageLock)
 			{
+				var oldColor = Console.ForegroundColor;
 				Console.ForegroundColor = color;
 				Console.WriteLine(line);
+				Console.ForegroundColor = oldColor;
 
 				if (_WrittenLines == null)
 				{
@@ -56,7 +59,17 @@ namespace Advobot.Core.Utilities
 		/// <param name="name"></param>
 		public static void Write(this Exception e, [CallerMemberName] string name = "")
 		{
-			WriteLine($"{Environment.NewLine}EXCEPTION: {e}{Environment.NewLine}", name, ConsoleColor.Red);
+			WriteLine($"{Environment.NewLine}EXCEPTION: {e}{Environment.NewLine}", ConsoleColor.Red, name);
+		}
+		/// <summary>
+		/// Writes the text only when in debug mode. Only writes in <see cref="ConsoleColor.Cyan"/>.
+		/// </summary>
+		/// <param name="text"></param>
+		/// <param name="name"></param>
+		[Conditional("DEBUG")]
+		public static void DebugWrite(string text, [CallerMemberName] string name = "")
+		{
+			WriteLine(text, ConsoleColor.Cyan, name);
 		}
 	}
 }

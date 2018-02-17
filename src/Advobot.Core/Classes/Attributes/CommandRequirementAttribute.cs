@@ -3,6 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Core.Classes.Attributes
 {
@@ -26,12 +27,14 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromError($"This bot will not function without the `{nameof(GuildPermission.Administrator)}` permission."));
 			}
-			if (!advobotCommandContext.GuildSettings.Loaded)
+
+			var settings = advobotCommandContext.GuildSettings;
+			if (!settings.Loaded)
 			{
 				return Task.FromResult(PreconditionResult.FromError("Wait until the guild is loaded."));
 			}
-			if (advobotCommandContext.GuildSettings.IgnoredCommandChannels.Contains(context.Channel.Id)
-				|| !advobotCommandContext.GuildSettings.CommandSettings.IsCommandEnabled(context, command))
+			if (settings.IgnoredCommandChannels.Contains(context.Channel.Id)
+				|| !settings.CommandSettings.IsCommandEnabled(services.GetRequiredService<HelpEntryHolder>(), context, command))
 			{
 				return Task.FromResult(PreconditionResult.FromError((string)null));
 			}

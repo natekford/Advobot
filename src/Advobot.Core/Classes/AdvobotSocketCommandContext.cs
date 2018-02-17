@@ -19,6 +19,7 @@ namespace Advobot.Core.Classes
 		public ITimersService Timers { get; }
 		public IInviteListService InviteList { get; }
 		public IGuildSettings GuildSettings { get; }
+		public HelpEntryHolder HelpEntries { get; }
 
 		private Stopwatch _Stopwatch = new Stopwatch();
 		public long ElapsedMilliseconds => _Stopwatch.ElapsedMilliseconds;
@@ -30,6 +31,7 @@ namespace Advobot.Core.Classes
 			Logging = provider.GetRequiredService<ILogService>();
 			Timers = provider.GetRequiredService<ITimersService>();
 			InviteList = provider.GetRequiredService<IInviteListService>();
+			HelpEntries = provider.GetRequiredService<HelpEntryHolder>();
 			GuildSettings = settings;
 		}
 

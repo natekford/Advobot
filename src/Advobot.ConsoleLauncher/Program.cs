@@ -24,7 +24,7 @@ namespace Advobot.ConsoleLauncher
 				savePath = false;
 			}
 
-			var provider = CreationUtils.CreateServiceProvider(typeof(BotSettings), typeof(GuildSettings));
+			var provider = CreationUtils.CreateDefaultServiceProvider(DiscordUtils.GetCommandAssemblies(), typeof(BotSettings), typeof(GuildSettings));
 			var commandHandler = new CommandHandler(provider);
 			var client = provider.GetService<IDiscordClient>();
 

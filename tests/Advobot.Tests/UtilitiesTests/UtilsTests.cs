@@ -3,6 +3,7 @@ using Advobot.Core.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Advobot.Tests
@@ -69,22 +70,6 @@ namespace Advobot.Tests
 			Assert.AreEqual(1, "\n".CountLineBreaks());
 			Assert.AreEqual(1, "\r".CountLineBreaks());
 			Assert.AreEqual(2, "\r\n".CountLineBreaks());
-		}
-		[TestMethod]
-		public void CountItemsInTimeFrame_Test()
-		{
-			var queue = new ConcurrentQueue<TimeWrapper>();
-			queue.Enqueue(new TimeWrapper(new DateTime(2000, 1, 1, 1, 1, 1)));
-			queue.Enqueue(new TimeWrapper(new DateTime(2000, 1, 1, 1, 1, 2)));
-			queue.Enqueue(new TimeWrapper(new DateTime(2000, 1, 1, 1, 1, 3)));
-			queue.Enqueue(new TimeWrapper(new DateTime(2000, 1, 1, 1, 1, 4)));
-			queue.Enqueue(new TimeWrapper(new DateTime(2000, 1, 1, 1, 2, 1)));
-			queue.Enqueue(new TimeWrapper(new DateTime(2000, 1, 1, 1, 5, 1)));
-
-			Assert.AreEqual(6, queue.CountItemsInTimeFrame(1000, false));
-			Assert.AreEqual(5, queue.CountItemsInTimeFrame(90, false));
-			Assert.AreEqual(4, queue.CountItemsInTimeFrame(5, true));
-			Assert.AreEqual(1, queue.CountItemsInTimeFrame(1000, false));
 		}
 	}
 }

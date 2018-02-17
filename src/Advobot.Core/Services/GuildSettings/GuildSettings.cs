@@ -27,7 +27,7 @@ namespace Advobot.Core.Services.GuildSettings
 		{
 			if (_GuildSettings.ContainsKey(guildId) && !_GuildSettings.TryRemove(guildId, out _))
 			{
-				ConsoleUtils.WriteLine($"Failed to remove {guildId} from the guild settings holder.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Failed to remove {guildId} from the guild settings holder.", ConsoleColor.Yellow);
 			}
 		}
 		public IGuildSettings GetOrCreate(IGuild guild)
@@ -43,7 +43,7 @@ namespace Advobot.Core.Services.GuildSettings
 
 			if (!_GuildSettings.TryAdd(guild.Id, settings = CreationUtils.CreateGuildSettings(GuildSettingsType, guild)))
 			{
-				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
+				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", ConsoleColor.Yellow);
 			}
 			return settings;
 		}

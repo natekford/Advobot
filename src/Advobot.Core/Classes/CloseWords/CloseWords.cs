@@ -62,7 +62,7 @@ namespace Advobot.Core.Classes.CloseWords
 		}
 
 		/// <summary>
-		/// Finds an object with a similar name to the search term..
+		/// Finds an object with a similar name to the search term.
 		/// </summary>
 		/// <param name="obj"></param>
 		/// <param name="search"></param>
@@ -83,7 +83,7 @@ namespace Advobot.Core.Classes.CloseWords
 		/// <param name="target"></param>
 		/// <param name="threshold"></param>
 		/// <returns></returns>
-		protected int FindCloseName(string source, string target, int threshold = 10)
+		protected int FindCloseness(string source, string target, int threshold = 10)
 		{
 			void Swap<T2>(ref T2 arg1, ref T2 arg2)
 			{
@@ -171,11 +171,10 @@ namespace Advobot.Core.Classes.CloseWords
 			foreach (var word in suppliedObjects)
 			{
 				var closeWord = FindCloseWord(word, input);
-				if (closeWord.Closeness > MaxAllowedCloseness)
+				if (closeWord == null)
 				{
 					continue;
 				}
-
 				closeWords.Add(closeWord);
 				if (closeWords.Count > MaxOutput)
 				{
@@ -183,26 +182,29 @@ namespace Advobot.Core.Classes.CloseWords
 					closeWords.RemoveRange(MaxOutput, closeWords.Count - MaxOutput);
 				}
 			}
-
-			if (closeWords.Count < MaxOutput)
+			//Then loop around for words that have the search term simply inside them
+			for (int i = closeWords.Count - 1; i < MaxOutput; ++i)
 			{
-				for (int i = closeWords.Count - 1; i < MaxOutput; ++i)
+				var closeWord = FindCloseWord(suppliedObjects, closeWords.Select(x => x.Name), input);
+				if (closeWord == null)
 				{
-					closeWords.Add(FindCloseWord(suppliedObjects, closeWords.Select(x => x.Name), input));
+					continue;
 				}
+				closeWords.Add(closeWord);
 			}
-			return closeWords.Where(x => x.Closeness > -1).ToList();
+			return closeWords.Where(x => x != null && x.Closeness > -1 && x.Closeness <= MaxAllowedCloseness).ToList();
 		}
 
 		/// <summary>
 		/// Holds an object which has a name and text and its closeness.
 		/// </summary>
-		public struct CloseWord
+		public class CloseWord
 		{
-			public int Closeness { get; private set; }
-			public string Name { get; private set; }
-			public string Text { get; private set; }
+			public int Closeness { get; set; }
+			public string Name { get; set; }
+			public string Text { get; set; }
 
+			public CloseWord() { }
 			public CloseWord(int closeness, string name, string text)
 			{
 				Closeness = closeness;

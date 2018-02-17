@@ -26,31 +26,5 @@ namespace Advobot.Core
 
 		public static readonly string API_VERSION = Assembly.GetAssembly(typeof(IDiscordClient)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
 		public static readonly TimeSpan DEFAULT_WAIT_TIME = TimeSpan.FromSeconds(3);
-		public static readonly ImmutableList<Assembly> COMMAND_ASSEMBLIES = GetCommandAssemblies();
-		public static readonly ImmutableDictionary<string, Color> COLORS = GetColorDictionary();
-		public static readonly HelpEntryHolder HELP_ENTRIES = new HelpEntryHolder(COMMAND_ASSEMBLIES);
-
-		private static ImmutableList<Assembly> GetCommandAssemblies()
-		{
-			var currentAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-			var unloadedAssemblies = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly)
-				.Where(f => Path.GetFileName(f).CaseInsContains("Commands"))
-				.Select(f => Assembly.LoadFrom(f));
-			var commandAssemblies = currentAssemblies.Concat(unloadedAssemblies).Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null).ToList();
-			if (commandAssemblies.Any())
-			{
-				return commandAssemblies.ToImmutableList();
-			}
-
-			ConsoleUtils.WriteLine($"Unable to find any command assemblies.");
-			Console.Read();
-			throw new DllNotFoundException("Unable to find any command assemblies.");
-		}
-		private static ImmutableDictionary<string, Color> GetColorDictionary()
-		{
-			return typeof(Color).GetFields(BindingFlags.Public | BindingFlags.Static)
-				.ToDictionary(x => x.Name, x => (Color)x.GetValue(new Color()), StringComparer.OrdinalIgnoreCase)
-				.ToImmutableDictionary();
-		}
 	}
 }

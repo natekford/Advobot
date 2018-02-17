@@ -31,9 +31,9 @@ namespace Advobot.Core.Classes.UserInformation
 			_MessagesLeft = baseMessages;
 		}
 
-		public int DecrementMessages()
+		public void DecrementValue()
 		{
-			return Interlocked.Decrement(ref _MessagesLeft);
+			Interlocked.Decrement(ref _MessagesLeft);
 		}
 	}
 }

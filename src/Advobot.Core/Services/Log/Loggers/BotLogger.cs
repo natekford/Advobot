@@ -19,7 +19,7 @@ namespace Advobot.Core.Services.Log.Loggers
 		{
 			if (!String.IsNullOrWhiteSpace(message.Message))
 			{
-				ConsoleUtils.WriteLine(message.Message, message.Source);
+				ConsoleUtils.WriteLine(message.Message, name: message.Source);
 			}
 			return Task.CompletedTask;
 		}

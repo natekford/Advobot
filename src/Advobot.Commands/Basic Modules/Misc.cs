@@ -50,7 +50,7 @@ namespace Advobot.Commands.Misc
 		[Command]
 		public async Task Command(string commandName)
 		{
-			var helpEntry = Constants.HELP_ENTRIES[commandName];
+			var helpEntry = Context.HelpEntries[commandName];
 			if (helpEntry != null)
 			{
 				var embed = new EmbedWrapper
@@ -63,7 +63,7 @@ namespace Advobot.Commands.Misc
 				return;
 			}
 
-			var closeHelps = new CloseHelpEntries(default, Context, commandName);
+			var closeHelps = new CloseHelpEntries(default, Context, Context.HelpEntries, commandName);
 			if (closeHelps.List.Any())
 			{
 				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList(x => x.Name)}";
@@ -82,17 +82,13 @@ namespace Advobot.Commands.Misc
 	[DefaultEnabled(true)]
 	public sealed class Commands : NonSavingModuleBase
 	{
-		private static string _Command = $"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)} [Category]` for commands from that category.\n\n";
-		private static string _Categories = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetCategories().Select(x => x.Name))}`";
-		private static string _CommandCategories = _Command + _Categories;
-
 		[Command(nameof(All)), ShortAlias(nameof(All))]
 		public async Task All()
 		{
 			var embed = new EmbedWrapper
 			{
 				Title = "All Commands",
-				Description = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetHelpEntries().Select(x => x.Name))}`"
+				Description = $"`{String.Join("`, `", Context.HelpEntries.GetHelpEntries().Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -102,7 +98,7 @@ namespace Advobot.Commands.Misc
 			var embed = new EmbedWrapper
 			{
 				Title = category.Name,
-				Description = $"`{String.Join("`, `", Constants.HELP_ENTRIES[category].Select(x => x.Name))}`"
+				Description = $"`{String.Join("`, `", Context.HelpEntries[category].Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -112,7 +108,8 @@ namespace Advobot.Commands.Misc
 			var embed = new EmbedWrapper
 			{
 				Title = "Categories",
-				Description = _CommandCategories.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix())
+				Description = $"Type `{Context.GetPrefix()}{nameof(Commands)} [Category]` for commands from that category.\n\n" +
+					$"`{String.Join("`, `", Context.HelpEntries.GetCategories().Select(x => x.Name))}`",
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}

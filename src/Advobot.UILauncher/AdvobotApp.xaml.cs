@@ -5,16 +5,12 @@ using Advobot.Core.Utilities;
 using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Windows;
 
-//Note about System.Net.Http: upgrading the discord library requires this assembly to be added to references.
-//Otherwise the wrapper fails to install and uninstalls itself because of that.
-//It's removed from this project because on both computers I work on it gives a warning saying that the reference
-//to System.Net.Http "could not be found." However, this project compiles completely fine with or without it.
 namespace Advobot.UILauncher
 {
 	/// <summary>
 	/// Interaction logic for AdvobotApp.xaml
 	/// </summary>
-	public partial class AdvobotApp : Application
+	public partial class AdvobotApp : Application, IDisposable
 	{
 		private BindingListener _Listener = new BindingListener();
 
@@ -44,5 +40,34 @@ namespace Advobot.UILauncher
 		{
 			IOUtils.LogUncaughtException(e.ExceptionObject);
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				if (disposing)
+				{
+					_Listener.Dispose();
+				}
+
+				_Listener = null;
+				disposedValue = true;
+			}
+		}
+
+		~AdvobotApp()
+		{
+			Dispose(false);
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

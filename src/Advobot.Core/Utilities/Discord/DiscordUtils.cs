@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Results;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
@@ -9,7 +10,10 @@ using Discord.WebSocket;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
@@ -280,6 +284,26 @@ namespace Advobot.Core.Utilities
 			return maxCount;
 		}
 
+		/// <summary>
+		/// Returns all the assemblies in the base directory which have the <see cref="CommandAssemblyAttribute"/>.
+		/// </summary>
+		/// <returns></returns>
+		public static IEnumerable<Assembly> GetCommandAssemblies()
+		{
+			var currentAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+			var unloadedAssemblies = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly)
+				.Where(f => Path.GetFileName(f).CaseInsContains("Commands"))
+				.Select(f => Assembly.LoadFrom(f));
+			var commandAssemblies = currentAssemblies.Concat(unloadedAssemblies).Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null).ToList();
+			if (commandAssemblies.Any())
+			{
+				return commandAssemblies;
+			}
+
+			ConsoleUtils.WriteLine($"Unable to find any command assemblies.", ConsoleColor.Red);
+			Console.Read();
+			throw new DllNotFoundException("Unable to find any command assemblies.");
+		}
 		/// <summary>
 		/// Returns every user that has a non null join time in order from least to greatest.
 		/// </summary>

@@ -47,7 +47,8 @@ namespace Advobot.Core.Classes.Settings
 				await timers.AddAsync(bannedPhraseUser = new BannedPhraseUserInfo(user)).CAF();
 			}
 
-			var count = bannedPhraseUser.IncrementValue(Punishment);
+			bannedPhraseUser.IncrementValue(Punishment);
+			var count = bannedPhraseUser[Punishment];
 			var punishment = settings.BannedPhrasePunishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
 			if (punishment == null)
 			{

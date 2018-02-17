@@ -30,7 +30,7 @@ namespace Advobot.Core.Classes
 			var commands = types.Where(x => x.IsSubclassOf(typeof(NonSavingModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
 			if (!commands.Any())
 			{
-				var assemblyNames = String.Join(", ", Constants.COMMAND_ASSEMBLIES.Select(x => x.GetName().Name));
+				var assemblyNames = String.Join(", ", commandAssemblies.Select(x => x.GetName().Name));
 				ConsoleUtils.WriteLine($"The following assemblies have no commands: '{assemblyNames}'.");
 				Console.Read();
 				throw new TypeLoadException($"The following assemblies have no commands: '{assemblyNames}'.");

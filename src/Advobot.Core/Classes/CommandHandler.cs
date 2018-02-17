@@ -18,6 +18,7 @@ namespace Advobot.Core.Classes
 		private static string _Joiner = "\n" + new string(' ', 28);
 		private IServiceProvider _Provider;
 		private CommandService _Commands;
+		private HelpEntryHolder _HelpEntries;
 		private IDiscordClient _Client;
 		private IBotSettings _BotSettings;
 		private IGuildSettingsService _GuildSettings;
@@ -29,6 +30,7 @@ namespace Advobot.Core.Classes
 		{
 			_Provider = provider;
 			_Commands = _Provider.GetRequiredService<CommandService>();
+			_HelpEntries = _Provider.GetRequiredService<HelpEntryHolder>();
 			_Client = _Provider.GetRequiredService<IDiscordClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsService>();
@@ -71,9 +73,7 @@ namespace Advobot.Core.Classes
 				await ClientUtils.UpdateGameAsync(_Client, _BotSettings).CAF();
 
 				var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
-				ConsoleUtils.WriteLine($"Current version: {Constants.BOT_VERSION}");
-				ConsoleUtils.WriteLine($"Current bot prefix is: {_BotSettings.Prefix}");
-				ConsoleUtils.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
+				ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; Prefix: {_BotSettings.Prefix}; Launch Time: {startTime:n}ms");
 				_Timers.Start();
 				_Loaded = true;
 			}
@@ -253,7 +253,7 @@ namespace Advobot.Core.Classes
 				$"{_Joiner}Time taken: {stopwatch.ElapsedMilliseconds}ms";
 			response += result.ErrorReason == null ? "" : $"{_Joiner}Error: {result.ErrorReason}";
 
-			ConsoleUtils.WriteLine(response, color: result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+			ConsoleUtils.WriteLine(response, result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 			_Logging.AttemptedCommands.Increment();
 		}
 	}

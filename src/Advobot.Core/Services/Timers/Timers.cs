@@ -56,8 +56,8 @@ namespace Advobot.Core.Services.Timers
 				var col = _Db.GetCollection<RemovablePunishment>();
 				foreach (var punishment in col.Find(x => x.Time < DateTime.UtcNow))
 				{
-					await punishment.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 					col.Delete(punishment.Id);
+					await punishment.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 				}
 			});
 			_TimedMessages = new ProcessQueue(1, async () =>
@@ -65,14 +65,13 @@ namespace Advobot.Core.Services.Timers
 				var col = _Db.GetCollection<TimedMessage>();
 				foreach (var timedMessage in col.Find(x => x.Time < DateTime.UtcNow))
 				{
+					col.Delete(timedMessage.Id);
 					if (!(await _Client.GetUserAsync(timedMessage.UserId).CAF() is IUser user))
 					{
-						col.Delete(timedMessage.Id);
 						continue;
 					}
 
 					await user.SendMessageAsync(timedMessage.Text).CAF();
-					col.Delete(timedMessage.Id);
 				}
 			});
 			_RemovableMessages = new ProcessQueue(1, async () =>
@@ -80,6 +79,11 @@ namespace Advobot.Core.Services.Timers
 				var col = _Db.GetCollection<RemovableMessage>();
 				foreach (var guildGroup in col.Find(x => x.Time < DateTime.UtcNow).GroupBy(x => x.GuildId))
 				{
+					//Remove them from the database
+					foreach (var g in guildGroup)
+					{
+						col.Delete(g.Id);
+					}
 					if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
 					{
 						continue;
@@ -106,11 +110,6 @@ namespace Advobot.Core.Services.Timers
 							await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
 						}
 					}
-					//Remove them from the database. After instead of above because it modifies the 
-					foreach (var g in guildGroup)
-					{
-						col.Delete(g.Id);
-					}
 				}
 			});
 			_CloseHelpEntries = new ProcessQueue(1, async () =>
@@ -118,6 +117,11 @@ namespace Advobot.Core.Services.Timers
 				var col = _Db.GetCollection<CloseHelpEntries>();
 				foreach (var guildGroup in col.Find(x => x.Time < DateTime.UtcNow).GroupBy(x => x.GuildId))
 				{
+					//Remove them from the database
+					foreach (var g in guildGroup)
+					{
+						col.Delete(g.Id);
+					}
 					if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
 					{
 						continue;
@@ -144,11 +148,6 @@ namespace Advobot.Core.Services.Timers
 							await MessageUtils.DeleteMessagesAsync(channel, messages, _CloseHelpReason).CAF();
 						}
 					}
-					//Remove them from the database. After instead of above because it modifies the 
-					foreach (var g in guildGroup)
-					{
-						col.Delete(g.Id);
-					}
 				}
 			});
 			_CloseQuotes = new ProcessQueue(1, async () =>
@@ -156,6 +155,11 @@ namespace Advobot.Core.Services.Timers
 				var col = _Db.GetCollection<CloseQuotes>();
 				foreach (var guildGroup in col.Find(x => x.Time < DateTime.UtcNow).GroupBy(x => x.GuildId))
 				{
+					//Remove them from the database
+					foreach (var g in guildGroup)
+					{
+						col.Delete(g.Id);
+					}
 					if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
 					{
 						continue;
@@ -181,11 +185,6 @@ namespace Advobot.Core.Services.Timers
 						{
 							await MessageUtils.DeleteMessagesAsync(channel, messages, _CloseQuotesReason).CAF();
 						}
-					}
-					//Remove them from the database. After instead of above because it modifies the foreach
-					foreach (var g in guildGroup)
-					{
-						col.Delete(g.Id);
 					}
 				}
 			});
@@ -252,8 +251,8 @@ namespace Advobot.Core.Services.Timers
 			var entry = col.FindOne(x => x.UserId == punishment.UserId && x.GuildId == punishment.GuildId && x.PunishmentType == punishment.PunishmentType);
 			if (entry != null)
 			{
-				await entry.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 				col.Delete(entry.Id);
+				await entry.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 			}
 			col.Insert(punishment);
 		}
@@ -273,8 +272,8 @@ namespace Advobot.Core.Services.Timers
 				&& await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel
 				&& await channel.GetMessageAsync(entry.MessageId).CAF() is IMessage msg)
 			{
-				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 				col.Delete(entry.Id);
+				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 			}
 			col.Insert(helpEntries);
 		}
@@ -294,8 +293,8 @@ namespace Advobot.Core.Services.Timers
 				&& await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel
 				&& await channel.GetMessageAsync(entry.MessageId).CAF() is IMessage msg)
 			{
-				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 				col.Delete(entry.Id);
+				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 			}
 			col.Insert(quotes);
 		}
@@ -338,8 +337,8 @@ namespace Advobot.Core.Services.Timers
 			var entry = col.FindOne(x => x.UserId == userId && x.GuildId == guild.Id && x.PunishmentType == punishment);
 			if (entry != null)
 			{
-				await entry.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 				col.Delete(entry.Id);
+				await entry.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 			}
 			return entry;
 		}
@@ -352,8 +351,8 @@ namespace Advobot.Core.Services.Timers
 				&& await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel
 				&& await channel.GetMessageAsync(entry.MessageId).CAF() is IMessage msg)
 			{
-				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 				col.Delete(entry.Id);
+				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 			}
 			return entry;
 		}
@@ -366,8 +365,8 @@ namespace Advobot.Core.Services.Timers
 				&& await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel
 				&& await channel.GetMessageAsync(entry.MessageId).CAF() is IMessage msg)
 			{
-				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 				col.Delete(entry.Id);
+				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
 			}
 			return entry;
 		}

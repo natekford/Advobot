@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 
 namespace Advobot.Core.Classes.Settings
@@ -33,8 +32,6 @@ namespace Advobot.Core.Classes.Settings
 			_OverrideDict.Add(CommandOverrideTarget.Channel, _ChannelOverrides);
 			_OverrideDict.Add(CommandOverrideTarget.Role, _RoleOverrides);
 			_OverrideDict.Add(CommandOverrideTarget.User, _UserOverrides);
-
-			OnDeserialized(new StreamingContext());
 		}
 
 		/// <summary>
@@ -108,7 +105,7 @@ namespace Advobot.Core.Classes.Settings
 		/// <param name="context"></param>
 		/// <param name="command"></param>
 		/// <returns></returns>
-		public bool IsCommandEnabled(ICommandContext context, CommandInfo command)
+		public bool IsCommandEnabled(HelpEntryHolder helpEntries, ICommandContext context, CommandInfo command)
 		{
 			//Hierarchy:
 			//User
@@ -116,26 +113,29 @@ namespace Advobot.Core.Classes.Settings
 			//Channel
 			//Guild
 
-			var name = Constants.HELP_ENTRIES[command.Aliases[0].Split(' ')[0]].Name;
-			if (_UserOverrides.TryGetValue(context.User.Id, out var uDict) && uDict.TryGetValue(name, out var uValue))
+			var helpEntry = helpEntries[command.Aliases[0].Split(' ')[0]];
+			if (_UserOverrides.TryGetValue(context.User.Id, out var uDict) && uDict.TryGetValue(helpEntry.Name, out var uValue))
 			{
 				return uValue;
 			}
-
 			foreach (var role in ((SocketGuildUser)context.User).Roles.OrderByDescending(x => x.Position))
 			{
-				if (_RoleOverrides.TryGetValue(role.Id, out var rDict) && rDict.TryGetValue(name, out var rValue))
+				if (_RoleOverrides.TryGetValue(role.Id, out var rDict) && rDict.TryGetValue(helpEntry.Name, out var rValue))
 				{
 					return rValue;
 				}
 			}
-
-			if (_ChannelOverrides.TryGetValue(context.Channel.Id, out var cDict) && cDict.TryGetValue(name, out var cValue))
+			if (_ChannelOverrides.TryGetValue(context.Channel.Id, out var cDict) && cDict.TryGetValue(helpEntry.Name, out var cValue))
 			{
 				return cValue;
 			}
-
-			return _CommandValues[name];
+			if (_CommandValues.TryGetValue(helpEntry.Name, out var value))
+			{
+				return value;
+			}
+			//If they get here it means they're not in the command values currently so they should just use the default value.
+			_CommandValues.Add(helpEntry.Name, helpEntry.DefaultEnabled);
+			return helpEntry.DefaultEnabled;
 		}
 
 		private static bool ModifyCommand(IDictionary<string, bool> dict, HelpEntry helpEntry, bool? enable)
@@ -160,43 +160,6 @@ namespace Advobot.Core.Classes.Settings
 
 			dict[helpEntry.Name] = enable.Value;
 			return true;
-		}
-
-		[OnDeserialized]
-		private void OnDeserialized(StreamingContext context)
-		{
-			//Add in the default values for commands that aren't set
-			foreach (var helpEntry in Constants.HELP_ENTRIES.GetUnsetCommands(_CommandValues.Keys))
-			{
-				_CommandValues.Add(helpEntry.Name, helpEntry.DefaultEnabled);
-			}
-			//Remove all that aren't commands anymore
-			ClearInvalidValues(_CommandValues);
-			ClearInvalidValues(_UserOverrides);
-			ClearInvalidValues(_RoleOverrides);
-			ClearInvalidValues(_ChannelOverrides);
-		}
-		private static void ClearInvalidValues(Dictionary<ulong, Dictionary<string, bool>> dict)
-		{
-			foreach (var outerKey in dict.Keys)
-			{
-				//If there are no valid commands then remove the dict
-				ClearInvalidValues(dict[outerKey]);
-				if (!dict[outerKey].Any())
-				{
-					dict.Remove(outerKey);
-				}
-			}
-		}
-		private static void ClearInvalidValues(Dictionary<string, bool> dict)
-		{
-			foreach (var key in dict.Keys.ToList())
-			{
-				if (Constants.HELP_ENTRIES[key] == null)
-				{
-					dict.Remove(key);
-				}
-			}
 		}
 
 		public override string ToString()

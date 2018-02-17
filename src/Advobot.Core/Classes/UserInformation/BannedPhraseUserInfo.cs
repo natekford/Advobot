@@ -29,7 +29,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public int Kick
 		{
 			get => _Kick;
-			set => _Kick = value;
+			set => Interlocked.Exchange(ref _Kick, value);
 		}
 		/// <summary>
 		/// The amount of messages that gave them a ban punishment.
@@ -37,7 +37,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public int Ban
 		{
 			get => _Ban;
-			set => _Ban = value;
+			set => Interlocked.Exchange(ref _Ban, value);
 		}
 		/// <summary>
 		/// The amount of messages that gave them a deafen punishment.
@@ -45,7 +45,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public int Deafen
 		{
 			get => _Deafen;
-			set => _Deafen = value;
+			set => Interlocked.Exchange(ref _Deafen, value);
 		}
 		/// <summary>
 		/// The amount of messages that gave them a voice mute punishment.
@@ -53,7 +53,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public int VoiceMute
 		{
 			get => _VoiceMute;
-			set => _VoiceMute = value;
+			set => Interlocked.Exchange(ref _VoiceMute, value);
 		}
 		/// <summary>
 		/// The amount of messages that gave them a soft ban punishment.
@@ -61,7 +61,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public int Softban
 		{
 			get => _Softban;
-			set => _Softban = value;
+			set => Interlocked.Exchange(ref _Softban, value);
 		}
 		/// <summary>
 		/// The amount of messages that gave them a role mute punishment.
@@ -69,7 +69,7 @@ namespace Advobot.Core.Classes.UserInformation
 		public int RoleMute
 		{
 			get => _RoleMute;
-			set => _RoleMute = value;
+			set => Interlocked.Exchange(ref _RoleMute, value);
 		}
 
 		public BannedPhraseUserInfo() { }
@@ -98,42 +98,54 @@ namespace Advobot.Core.Classes.UserInformation
 				}
 			}
 		}
-		public int IncrementValue(Punishment type)
+		public void IncrementValue(Punishment type)
 		{
 			switch (type)
 			{
 				case Punishment.Kick:
-					return Interlocked.Increment(ref _Kick);
+					Interlocked.Increment(ref _Kick);
+					return;
 				case Punishment.Ban:
-					return Interlocked.Increment(ref _Ban);
+					Interlocked.Increment(ref _Ban);
+					return;
 				case Punishment.Deafen:
-					return Interlocked.Increment(ref _Deafen);
+					Interlocked.Increment(ref _Deafen);
+					return;
 				case Punishment.VoiceMute:
-					return Interlocked.Increment(ref _VoiceMute);
+					Interlocked.Increment(ref _VoiceMute);
+					return;
 				case Punishment.Softban:
-					return Interlocked.Increment(ref _Softban);
+					Interlocked.Increment(ref _Softban);
+					return;
 				case Punishment.RoleMute:
-					return Interlocked.Increment(ref _RoleMute);
+					Interlocked.Increment(ref _RoleMute);
+					return;
 				default:
 					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
 			}
 		}
-		public int ResetValue(Punishment type)
+		public void ResetValue(Punishment type)
 		{
 			switch (type)
 			{
 				case Punishment.Kick:
-					return Interlocked.Exchange(ref _Kick, 0);
+					Interlocked.Exchange(ref _Kick, 0);
+					return;
 				case Punishment.Ban:
-					return Interlocked.Exchange(ref _Ban, 0);
+					Interlocked.Exchange(ref _Ban, 0);
+					return;
 				case Punishment.Deafen:
-					return Interlocked.Exchange(ref _Deafen, 0);
+					Interlocked.Exchange(ref _Deafen, 0);
+					return;
 				case Punishment.VoiceMute:
-					return Interlocked.Exchange(ref _VoiceMute, 0);
+					Interlocked.Exchange(ref _VoiceMute, 0);
+					return;
 				case Punishment.Softban:
-					return Interlocked.Exchange(ref _Softban, 0);
+					Interlocked.Exchange(ref _Softban, 0);
+					return;
 				case Punishment.RoleMute:
-					return Interlocked.Exchange(ref _RoleMute, 0);
+					Interlocked.Exchange(ref _RoleMute, 0);
+					return;
 				default:
 					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
 			}

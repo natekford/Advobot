@@ -207,7 +207,6 @@ namespace Advobot.Core.Utilities
 			}
 			catch
 			{
-				ConsoleUtils.WriteLine($"Unable to delete {validMessages.Count()} messages on the guild {channel.Guild.Format()} on channel {channel.Format()}.", color: ConsoleColor.Red);
 				return 0;
 			}
 		}
@@ -230,7 +229,6 @@ namespace Advobot.Core.Utilities
 			}
 			catch
 			{
-				ConsoleUtils.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.Format()}.", color: ConsoleColor.Red);
 				return 0;
 			}
 		}

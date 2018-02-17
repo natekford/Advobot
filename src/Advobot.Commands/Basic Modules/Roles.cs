@@ -321,17 +321,7 @@ namespace Advobot.Commands.Roles
 	[DefaultEnabled(true)]
 	public sealed class ModifyRoleColor : NonSavingModuleBase
 	{
-		[Command(nameof(Show)), ShortAlias(nameof(Show))]
-		public async Task Show()
-		{
-			var embed = new EmbedWrapper
-			{
-				Title = "Colors",
-				Description = $"`{String.Join("`, `", Constants.COLORS.Keys)}`"
-			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
-		}
-		[Command, Priority(1)]
+		[Command]
 		public async Task Command([Optional, VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone)] IRole role, [Optional] Color color)
 		{
 			await role.ModifyAsync(x => x.Color = color, GetRequestOptions()).CAF();

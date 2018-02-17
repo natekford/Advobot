@@ -22,7 +22,6 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return alreadyCreated.Aliases.ToArray();
 			}
-
 			if (classType.IsNested)
 			{
 				throw new ArgumentException($"needs to not have the {nameof(TopLevelShortAliasAttribute)} attribute", classType.FullName);
@@ -70,9 +69,7 @@ namespace Advobot.Core.Classes.Attributes
 					++length;
 				}
 
-#if DEBUG
-				ConsoleUtils.WriteLine($"Changed the alias of {initialism.Original} to {initialism.Edited}.", color: ConsoleColor.DarkYellow);
-#endif
+				ConsoleUtils.DebugWrite($"Changed the alias of {initialism.Original} to {initialism.Edited}.");
 			}
 
 			_AlreadyUsedInUpperMostClasses.Add(classType, initialism);

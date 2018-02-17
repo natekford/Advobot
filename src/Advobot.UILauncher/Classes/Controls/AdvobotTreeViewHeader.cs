@@ -2,6 +2,7 @@
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Interfaces;
 using Discord.WebSocket;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -11,7 +12,7 @@ using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes.Controls
 {
-	internal class AdvobotTreeViewHeader : TreeViewItem, IAdvobotControl
+	internal class AdvobotTreeViewHeader : TreeViewItem, IAdvobotControl, IDisposable
 	{
 		private FileSystemWatcher _FSW;
 		public FileSystemWatcher FileSystemWatcher => _FSW;
@@ -67,7 +68,6 @@ namespace Advobot.UILauncher.Classes.Controls
 			SetResourceReference(BackgroundProperty, ColorTarget.BaseBackground);
 			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
 		}
-
 		private void OnFileChangeInGuildDirectory(object sender, FileSystemEventArgs e)
 		{
 			//Only allow basic text files to be shown
@@ -96,6 +96,11 @@ namespace Advobot.UILauncher.Classes.Controls
 				Items.SortDescriptions.Clear();
 				Items.SortDescriptions.Add(new SortDescription("Header", ListSortDirection.Ascending));
 			});
+		}
+
+		public void Dispose()
+		{
+			((IDisposable)_FSW).Dispose();
 		}
 	}
 }

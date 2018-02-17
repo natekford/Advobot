@@ -12,6 +12,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -25,11 +26,11 @@ namespace Advobot.Core.Utilities
 	public static class CreationUtils
 	{
 		/// <summary>
-		/// Creates services the bot uses. Such as <see cref="IBotSettings"/>, <see cref="IGuildSettingsService"/>, <see cref="IDiscordClient"/>,
-		/// <see cref="ITimersService"/>, and <see cref="ILogService"/>.
+		/// Creates services the bot uses. The explicit implementations will always be the same; if wanting to customize
+		/// them do not use this method.
 		/// </summary>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static IServiceProvider CreateServiceProvider(Type botSettingsType, Type guildSettingsType)
+		public static IServiceProvider CreateDefaultServiceProvider(IEnumerable<Assembly> commandAssembies, Type botSettingsType, Type guildSettingsType)
 		{
 			if (!typeof(IBotSettings).IsAssignableFrom(botSettingsType))
 			{
@@ -49,8 +50,10 @@ namespace Advobot.Core.Utilities
 			}
 
 			//I have no idea if I am providing services correctly, but it works.
+			var helpEntryHolder = new HelpEntryHolder(commandAssembies);
 			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
-				.AddSingleton<CommandService>(provider => CreateCommandService())
+				.AddSingleton<CommandService>(provider => CreateCommandService(commandAssembies))
+				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
 				.AddSingleton<IBotSettings>(provider => CreateBotSettings(botSettingsType))
 				.AddSingleton<IDiscordClient>(provider => CreateDiscordClient(provider))
 				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService(guildSettingsType, provider))
@@ -62,7 +65,7 @@ namespace Advobot.Core.Utilities
 		/// Creates the <see cref="CommandService"/> for the bot. Add in typereaders and modules.
 		/// </summary>
 		/// <returns></returns>
-		internal static CommandService CreateCommandService()
+		internal static CommandService CreateCommandService(IEnumerable<Assembly> commandAssemblies)
 		{
 			var cmds = new CommandService(new CommandServiceConfig
 			{
@@ -95,11 +98,11 @@ namespace Advobot.Core.Utilities
 			//Add in commands
 			Task.Run(async () =>
 			{
-				foreach (var assembly in Constants.COMMAND_ASSEMBLIES)
+				foreach (var assembly in commandAssemblies)
 				{
 					await cmds.AddModulesAsync(assembly).CAF();
 				}
-				ConsoleUtils.WriteLine("Successfully added every command assembly.");
+				ConsoleUtils.DebugWrite("Successfully added every command assembly.");
 			});
 
 			return cmds;

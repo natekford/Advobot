@@ -52,9 +52,20 @@ namespace Advobot.Core.Classes.Punishments
 			RoleId = role.Id;
 		}
 
+		/// <summary>
+		/// Removes the punishment from the user.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="remover"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
 		public async Task RemoveAsync(IDiscordClient client, PunishmentRemover remover, RequestOptions options)
 		{
-			var guild = await client.GetGuildAsync(GuildId).CAF();
+			if (!(await client.GetGuildAsync(GuildId).CAF() is IGuild guild))
+			{
+				return;
+			}
+
 			switch (PunishmentType)
 			{
 				case Punishment.Ban:

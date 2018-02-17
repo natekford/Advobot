@@ -61,7 +61,7 @@ namespace Advobot.Core
 				return true;
 			}
 
-			ConsoleUtils.WriteLine("Invalid directory. Please enter a valid directory:");
+			ConsoleUtils.WriteLine("Invalid directory. Please enter a valid directory:", ConsoleColor.Red);
 			return false;
 		}
 		/// <summary>
@@ -105,7 +105,7 @@ namespace Advobot.Core
 			}
 			catch (HttpException)
 			{
-				ConsoleUtils.WriteLine("The given key is invalid. Please enter a valid key:");
+				ConsoleUtils.WriteLine("The given key is invalid. Please enter a valid key:", ConsoleColor.Red);
 				return false;
 			}
 		}

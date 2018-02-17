@@ -317,7 +317,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			}
 			if (info.MessagesLeft > 0)
 			{
-				info.DecrementMessages();
+				info.DecrementValue();
 			}
 			else
 			{

@@ -19,12 +19,13 @@ namespace Advobot.Core.Classes.CloseWords
 
 		protected override CloseWord FindCloseWord(Quote obj, string search)
 		{
-			return new CloseWord(FindCloseName(obj.Name, search), obj.Name, obj.Description);
+			var closeness = FindCloseness(obj.Name, search);
+			return closeness > MaxAllowedCloseness ? null : new CloseWord(closeness, obj.Name, obj.Description);
 		}
 		protected override CloseWord FindCloseWord(IEnumerable<Quote> objs, IEnumerable<string> alreadyUsedNames, string search)
 		{
 			var obj = objs.FirstOrDefault(x => !alreadyUsedNames.Contains(x.Name) && x.Name.CaseInsContains(search));
-			return obj == null ? new CloseWord(-1, null, null) : new CloseWord(int.MaxValue, obj.Name, obj.Description);
+			return obj == null ? null : new CloseWord(int.MaxValue, obj.Name, obj.Description);
 		}
 	}
 }
