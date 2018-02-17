@@ -21,27 +21,30 @@ namespace Advobot.UILauncher.Utilities
 		/// Saves the text of <paramref name="editor"/> to file.
 		/// </summary>
 		/// <param name="editor"></param>
+		/// <param name="type"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextEditor editor, Type guildSettingsType = null)
+		public static ToolTipReason SaveFile(TextEditor editor, Type type = null)
 		{
-			return SaveFile(editor, editor.Text, guildSettingsType);
+			return SaveFile(editor, editor.Text, type);
 		}
 		/// <summary>
 		/// Saves the text of <paramref name="tb"/> to file.
 		/// </summary>
 		/// <param name="tb"></param>
+		/// <param name="type"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextBox tb, Type guildSettingsType = null)
+		public static ToolTipReason SaveFile(TextBox tb, Type type = null)
 		{
-			return SaveFile(tb, tb.Text, guildSettingsType);
+			return SaveFile(tb, tb.Text, type);
 		}
 		/// <summary>
 		/// Attempts to save a file and returns a value indicating the result.
 		/// </summary>
 		/// <param name="control"></param>
 		/// <param name="text"></param>
+		/// <param name="type"></param>
 		/// <returns></returns>
-		private static ToolTipReason SaveFile(Control control, string text, Type guildSettingsType)
+		private static ToolTipReason SaveFile(Control control, string text, Type type)
 		{
 			//If no valid tag just save to a new file with its name being the control's name
 			var tag = control.Tag ?? CreateFileInfo(control);
@@ -49,12 +52,11 @@ namespace Advobot.UILauncher.Utilities
 			{
 				return ToolTipReason.InvalidFilePath;
 			}
-			if (fi.Name == Constants.GUILD_SETTINGS_LOC && guildSettingsType != null)
+			if (type != null)
 			{
-				//Make sure the guild info stays valid
 				try
 				{
-					var throwaway = JsonConvert.DeserializeObject(text, guildSettingsType);
+					var throwaway = JsonConvert.DeserializeObject(text, type);
 				}
 				catch (JsonReaderException jre)
 				{
@@ -205,22 +207,22 @@ namespace Advobot.UILauncher.Utilities
 			return e.Key == Key.S && e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control);
 		}
 		/// <summary>
-		/// Attempts to get a text file from an element's tag.
+		/// Attempts to get a text file from a path.
 		/// </summary>
-		/// <param name="sender"></param>
+		/// <param name="path"></param>
 		/// <param name="text"></param>
 		/// <param name="fileInfo"></param>
 		/// <returns></returns>
-		public static bool TryGetFileText(object sender, out string text, out FileInfo fileInfo)
+		public static bool TryGetFileText(string path, out string text, out FileInfo fileInfo)
 		{
 			text = null;
 			fileInfo = null;
-			if (sender is FrameworkElement element && element.Tag is FileInfo fi && fi.Exists)
+			if (File.Exists(path))
 			{
-				using (var reader = new StreamReader(fi.FullName))
+				using (var reader = new StreamReader(path))
 				{
 					text = reader.ReadToEnd();
-					fileInfo = fi;
+					fileInfo = new FileInfo(path);
 				}
 				return true;
 			}

@@ -7,6 +7,7 @@ using Advobot.UILauncher.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -53,37 +54,6 @@ namespace Advobot.UILauncher.Windows
 				OutputContextMenu.IsEnabled = true;
 			});
 		}
-		private async Task AddGuildToTreeView(SocketGuild guild)
-		{
-			await Dispatcher.InvokeAsync(() =>
-			{
-				//Make sure the guild isn't already in the treeview
-				var item = FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
-				if (item != null)
-				{
-					item.Visibility = Visibility.Visible;
-					return;
-				}
-
-				//Add to tree view then resort based on member count
-				FilesTreeView.Items.Add(new AdvobotTreeViewHeader(guild));
-				//Not sure why the two lines below have to be used instead of Items.Refresh
-				FilesTreeView.Items.SortDescriptions.Clear();
-							FilesTreeView.Items.SortDescriptions.Add(new SortDescription("Tag", ListSortDirection.Descending));
-			}, DispatcherPriority.Background);
-		}
-		private async Task RemoveGuildFromTreeView(SocketGuild guild)
-		{
-			await Dispatcher.InvokeAsync(() =>
-			{
-				//Just make the item invisible so if need be it can be made visible instead of having to recreate it.
-				var item = FilesTreeView.Items.OfType<AdvobotTreeViewHeader>().SingleOrDefault(x => x.Guild.Id == guild.Id);
-				if (item != null)
-				{
-					item.Visibility = Visibility.Collapsed;
-				}
-			}, DispatcherPriority.Background);
-		}
 		private async Task Start()
 		{
 			Client.HeldObject = _LoginHandler.Provider.GetRequiredService<IDiscordClient>();
@@ -95,12 +65,10 @@ namespace Advobot.UILauncher.Windows
 			if (Client.HeldObject is DiscordSocketClient socket)
 			{
 				socket.Connected += EnableButtons;
-				socket.GuildAvailable += AddGuildToTreeView;
 			}
 			else if (Client.HeldObject is DiscordShardedClient sharded)
 			{
 				sharded.Shards.LastOrDefault().Connected += EnableButtons;
-				sharded.GuildAvailable += AddGuildToTreeView;
 			}
 			await ClientUtils.StartAsync(Client.HeldObject);
 		}
@@ -175,7 +143,6 @@ namespace Advobot.UILauncher.Windows
 		{
 			TrustedUsers.Items.Remove(TrustedUsers.SelectedItem);
 		}
-
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			SavingUtils.SaveSettings(SettingsMenuDisplay, BotSettings.HeldObject);
@@ -257,7 +224,6 @@ namespace Advobot.UILauncher.Windows
 		{
 			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(Output).GetReason());
 		}
-
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
 			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
@@ -266,6 +232,18 @@ namespace Advobot.UILauncher.Windows
 				case MessageBoxResult.OK:
 					Output.Clear();
 					return;
+			}
+		}
+		private void SearchForFile(object sender, RoutedEventArgs e)
+		{
+			using (var dialog = new CommonOpenFileDialog { DefaultDirectory = IOUtils.GetBaseBotDirectory().FullName })
+			{
+				switch (dialog.ShowDialog())
+				{
+					case CommonFileDialogResult.Ok:
+						new FileViewingWindow(this, dialog.FileName).ShowDialog();
+						break;
+				}
 			}
 		}
 		private void OpenModal(object sender, RoutedEventArgs e)
@@ -277,14 +255,10 @@ namespace Advobot.UILauncher.Windows
 
 			switch (m)
 			{
-				case Modal.FileSearch:
-					new FileSearchWindow(this).ShowDialog();
-					break;
 				case Modal.OutputSearch:
 					new OutputSearchWindow(this).ShowDialog();
 					break;
-				//This modal should not be opened through this method.
-				//Opened instead on double click on a treeview file item or through guild search
+				//This modal should not be opened through this method, it should be opened through SearchForFile
 				case Modal.FileViewing:
 					return;
 				default:
@@ -303,7 +277,6 @@ namespace Advobot.UILauncher.Windows
 			SettingsMenu.Visibility = Visibility.Collapsed;
 			ColorsMenu.Visibility = Visibility.Collapsed;
 			InfoMenu.Visibility = Visibility.Collapsed;
-			FilesMenu.Visibility = Visibility.Collapsed;
 
 			var type = ele.Tag as MenuType? ?? default;
 			if (type == _LastButtonClicked)
@@ -364,9 +337,6 @@ namespace Advobot.UILauncher.Windows
 						JsonParamName.Text = c[ColorTarget.JsonParamName]?.ToString();
 
 						ColorsMenu.Visibility = Visibility.Visible;
-						return;
-					case MenuType.Files:
-						FilesMenu.Visibility = Visibility.Visible;
 						return;
 				}
 			}

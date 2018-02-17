@@ -144,8 +144,6 @@
     </Compile>
     <Compile Include="Utilities\BrushUtils.cs" />
     <Compile Include="Classes\CompGuild.cs" />
-    <Compile Include="Classes\Controls\AdvobotTreeViewFile.cs" />
-    <Compile Include="Classes\Controls\AdvobotTreeViewHeader.cs" />
     <Compile Include="Classes\SyntaxHighlighting.cs" />
     <Compile Include="Interfaces\IAdvobotControl.cs" />
     <Compile Include="Windows\AdvobotWindow.xaml.cs">
@@ -174,9 +172,6 @@
     <Compile Include="Enums\Modal.cs" />
     <Compile Include="Enums\OtherTarget.cs" />
     <Compile Include="Classes\Extensions\NameOfExtension.cs" />
-    <Compile Include="Windows\FileSearchWindow.xaml.cs">
-      <DependentUpon>FileSearchWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Interfaces\IFontResizeValue.cs" />
     <Compile Include="Interfaces\IUnescapedText.cs" />
     <Compile Include="Windows\FileViewingWindow.xaml.cs">
@@ -232,10 +227,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\AdvobotWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\FileSearchWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

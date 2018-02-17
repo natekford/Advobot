@@ -43,25 +43,6 @@ namespace Advobot.Core.Utilities
 			}
 		}
 		/// <summary>
-		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId
-		/// </summary>
-		/// <param name="guildId"></param>
-		/// <returns></returns>
-		public static DirectoryInfo GetServerDirectory(ulong guildId)
-		{
-			return Directory.CreateDirectory(Path.Combine(GetBaseBotDirectory().FullName, guildId.ToString()));
-		}
-		/// <summary>
-		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId\File
-		/// </summary>
-		/// <param name="guildId"></param>
-		/// <param name="fileName"></param>
-		/// <returns></returns>
-		public static FileInfo GetServerDirectoryFile(ulong guildId, string fileName)
-		{
-			return new FileInfo(Path.Combine(GetServerDirectory(guildId).FullName, fileName));
-		}
-		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId
 		/// </summary>
 		/// <returns></returns>
@@ -78,6 +59,23 @@ namespace Advobot.Core.Utilities
 		public static FileInfo GetBaseBotDirectoryFile(string fileName)
 		{
 			return new FileInfo(Path.Combine(GetBaseBotDirectory().FullName, fileName));
+		}
+		/// <summary>
+		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\GuildSettings\GuildId.json
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public static FileInfo GetGuildSettingsFile(ulong id)
+		{
+			return GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{id}.json"));
+		}
+		/// <summary>
+		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\BotSettings.json
+		/// </summary>
+		/// <returns></returns>
+		public static FileInfo GetBotSettingsFile()
+		{
+			return GetBaseBotDirectoryFile("BotSettings.json");
 		}
 		/// <summary>
 		/// Creates a file if it does not already exist.

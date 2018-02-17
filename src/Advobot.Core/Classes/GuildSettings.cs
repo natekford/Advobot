@@ -185,7 +185,7 @@ namespace Advobot.Core.Classes
 		[JsonIgnore]
 		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 		[JsonIgnore]
-		public override FileInfo FileLocation => IOUtils.GetServerDirectoryFile(GuildId, Constants.GUILD_SETTINGS_LOC);
+		public override FileInfo FileLocation => IOUtils.GetGuildSettingsFile(GuildId);
 		[JsonIgnore]
 		public ulong GuildId { get; private set; }
 		[JsonIgnore]

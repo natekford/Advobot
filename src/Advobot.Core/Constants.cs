@@ -20,7 +20,6 @@ namespace Advobot.Core
 		public const string VIP_REGIONS = "VIP_REGIONS";
 		public const string VANITY_URL = "VANITY_URL";
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
-		public const string GUILD_SETTINGS_LOC = "GuildSettings.json";
 		public const string BOT_SETTINGS_LOC = "BotSettings.json";
 		public const int MAX_MESSAGE_LENGTH = 2000;
 

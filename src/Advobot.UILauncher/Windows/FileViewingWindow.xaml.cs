@@ -1,6 +1,9 @@
-﻿using Advobot.UILauncher.Classes.Controls;
+﻿using Advobot.Core.Utilities;
+using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Utilities;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
+using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,18 +16,17 @@ namespace Advobot.UILauncher.Windows
 	/// </summary>
 	internal partial class FileViewingWindow : ModalWindow
 	{
-		private AdvobotTreeViewFile _TreeViewFile;
+		private FileInfo _File;
 		private Type _GuildSettingsType;
 
 		public FileViewingWindow() : this(null, null) { }
-		public FileViewingWindow(AdvobotWindow mainWindow, AdvobotTreeViewFile treeViewFile) : base(mainWindow)
+		public FileViewingWindow(AdvobotWindow mainWindow, string path) : base(mainWindow)
 		{
 			InitializeComponent();
-			_TreeViewFile = treeViewFile;
 			_GuildSettingsType = mainWindow.GuildSettings.HeldObject.GuildSettingsType;
-			if (SavingUtils.TryGetFileText(_TreeViewFile, out var text, out var fileInfo))
+			if (SavingUtils.TryGetFileText(path, out var text, out _File))
 			{
-				SpecificFileOutput.Tag = fileInfo;
+				SpecificFileOutput.Tag = _File;
 				SpecificFileOutput.Clear();
 				SpecificFileOutput.AppendText(text);
 			}
@@ -32,11 +34,38 @@ namespace Advobot.UILauncher.Windows
 
 		private void CopyFile(object sender, RoutedEventArgs e)
 		{
-			_TreeViewFile.CopyFile();
+			using (var dialog = new CommonOpenFileDialog { IsFolderPicker = true })
+			{
+				switch (dialog.ShowDialog())
+				{
+					case CommonFileDialogResult.Ok:
+						if (!this.TryGetTopMostParent(out AdvobotWindow window, out var ancestorLevel))
+						{
+							throw new ArgumentException("unable to get a parent", nameof(AdvobotWindow));
+						}
+						_File.CopyTo(Path.Combine(dialog.FileName, _File.Name), true);
+						ToolTipUtils.EnableTimedToolTip(window.Layout, $"Successfully copied {_File.Name} to {dialog.FileName}.");
+						return;
+				}
+			}
 		}
 		private void DeleteFile(object sender, RoutedEventArgs e)
 		{
-			_TreeViewFile.DeleteFile();
+			var text = $"Are you sure you want to delete the file {_File.Name}?";
+			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+			switch (MessageBox.Show(text, caption, MessageBoxButton.YesNo))
+			{
+				case MessageBoxResult.Yes:
+					try
+					{
+						_File.Delete();
+					}
+					catch (Exception ex)
+					{
+						ex.Write();
+					}
+					return;
+			}
 		}
 		private void SaveFile(object sender, RoutedEventArgs e)
 		{

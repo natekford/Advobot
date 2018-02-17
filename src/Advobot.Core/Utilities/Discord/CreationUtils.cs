@@ -13,6 +13,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -131,21 +132,19 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		internal static IBotSettings CreateBotSettings(Type botSettingsType)
 		{
-			var path = IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
-			return IOUtils.DeserializeFromFile<IBotSettings>(path, botSettingsType, true);
+			return IOUtils.DeserializeFromFile<IBotSettings>(IOUtils.GetBotSettingsFile(), botSettingsType, true);
 		}
 		/// <summary>
 		/// Creates settings the guilds use.
 		/// </summary>
-		/// <param name="guildSettingsType"></param>
+		/// <param name="type"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal static IGuildSettings CreateGuildSettings(Type guildSettingsType, IGuild guild)
+		internal static IGuildSettings CreateGuildSettings(Type type, IGuild guild)
 		{
-			var path = IOUtils.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOC);
-			var jsonSettings = IOUtils.GenerateDefaultSerializerSettings();
-			jsonSettings.Context = new StreamingContext(StreamingContextStates.Other, guild);
-			return IOUtils.DeserializeFromFile<IGuildSettings>(path, guildSettingsType, true, jsonSettings);
+			var settings = IOUtils.GenerateDefaultSerializerSettings();
+			settings.Context = new StreamingContext(StreamingContextStates.Other, guild);
+			return IOUtils.DeserializeFromFile<IGuildSettings>(IOUtils.GetGuildSettingsFile(guild.Id), type, true, settings);
 		}
 	}
 }

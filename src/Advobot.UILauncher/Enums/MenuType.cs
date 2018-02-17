@@ -12,6 +12,5 @@ namespace Advobot.UILauncher.Enums
 		Info = (1U << 1),
 		Settings = (1U << 2),
 		Colors = (1U << 3),
-		Files = (1U << 4)
 	}
 }

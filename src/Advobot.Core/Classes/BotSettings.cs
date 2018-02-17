@@ -258,6 +258,6 @@ namespace Advobot.Core.Classes
 		[JsonIgnore]
 		public bool Pause { get; set; }
 		[JsonIgnore]
-		public override FileInfo FileLocation => IOUtils.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOC);
+		public override FileInfo FileLocation => IOUtils.GetBotSettingsFile();
 	}
 }

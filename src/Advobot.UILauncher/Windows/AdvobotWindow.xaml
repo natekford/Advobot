@@ -129,10 +129,6 @@
                                   Grid.RowSpan="3"
                                   FontResizeValue=".015"
                                   IsEnabled="False">
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition />
@@ -142,30 +138,21 @@
 
                 <!-- These buttons have this binding so the menus can't be gotten to when the bot's not loaded -->
                 <controls:AdvobotButton x:Name="MainMenuButton"
-                                        Grid.RowSpan="2"
                                         Content="{extensions:NameOf Member=Main, Type={x:Type enums:MenuType}}"
                                         Tag="{x:Static enums:MenuType.Main}"
                                         Click="OpenMenu" />
                 <controls:AdvobotButton x:Name="InfoMenuButton"
                                         Grid.Column="1"
-                                        Grid.RowSpan="2"
                                         Content="{extensions:NameOf Member=Info, Type={x:Type enums:MenuType}}"
                                         Tag="{x:Static enums:MenuType.Info}"
                                         Click="OpenMenu" />
-                <controls:AdvobotButton x:Name="FilesMenuButton"
-                                        Grid.Column="2"
-                                        Grid.RowSpan="2"
-                                        Content="{extensions:NameOf Member=Files, Type={x:Type enums:MenuType}}"
-                                        Tag="{x:Static enums:MenuType.Files}"
-                                        Click="OpenMenu" />
                 <controls:AdvobotButton x:Name="ColorsMenuButton"
-                                        Grid.Column="3"
+                                        Grid.Column="2"
                                         Content="{extensions:NameOf Member=Colors, Type={x:Type enums:MenuType}}"
                                         Tag="{x:Static enums:MenuType.Colors}"
                                         Click="OpenMenu" />
                 <controls:AdvobotButton x:Name="SettingsMenuButton"
                                         Grid.Column="3"
-                                        Grid.Row="1"
                                         Content="{extensions:NameOf Member=Settings, Type={x:Type enums:MenuType}}"
                                         Tag="{x:Static enums:MenuType.Settings}"
                                         Click="OpenMenu" />
@@ -259,7 +246,8 @@
                     <RowDefinition Height="1*" />
                     <RowDefinition Height="1*" />
                     <RowDefinition Height="1*" />
-                    <RowDefinition Height="7*" />
+                    <RowDefinition Height="6*" />
+                    <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*" />
@@ -374,6 +362,13 @@
                                          Grid.Column="2"
                                          Grid.Row="12"
                                          Text="{Binding LogHolder.HeldObject.Files.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                
+                <!-- Button -->
+                <controls:AdvobotButton x:Name="FileSearchButton"
+                                        Grid.ColumnSpan="4"
+                                        Grid.Row="14"
+                                        Content="Search For File"
+                                        Click="SearchForFile" />
             </controls:AdvobotGrid>
 
             <!-- Settings Menu -->
@@ -738,27 +733,6 @@
                                         Grid.Row="1"
                                         Content="Save Colors"
                                         Click="SaveColors" />
-            </controls:AdvobotGrid>
-
-            <!-- Files Menu -->
-            <controls:AdvobotGrid x:Name="FilesMenu"
-                                  Tag="{x:Static enums:MenuType.Files}"
-                                  Grid.Column="1"
-                                  Grid.Row="0"
-                                  FontResizeValue=".018"
-                                  Visibility="Collapsed">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="20*" />
-                    <RowDefinition Height="1*" />
-                </Grid.RowDefinitions>
-
-                <controls:AdvobotTreeView x:Name="FilesTreeView"
-                                          BorderThickness="1" />
-                <controls:AdvobotButton x:Name="FileSearchButton"
-                                        Grid.Row="1"
-                                        Content="Search Files"
-                                        Click="OpenModal"
-                                        Tag="{x:Static enums:Modal.FileSearch}" />
             </controls:AdvobotGrid>
         </controls:AdvobotGrid>
     </classes:DpiDecorator>
