@@ -11,7 +11,7 @@ namespace Advobot.Core.Classes.CloseWords
 	/// Container of close words which is intended to be removed after the time has passed.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class CloseWords<T> : ITime
+	public abstract class CloseWords<T> : DatabaseEntry
 	{
 		/// <summary>
 		/// The max allowed closeness before a word will not be added.
@@ -22,14 +22,6 @@ namespace Advobot.Core.Classes.CloseWords
 		/// </summary>
 		public static int MaxOutput = 5;
 
-		/// <summary>
-		/// The id of the object for LiteDB.
-		/// </summary>
-		public ObjectId Id { get; set; }
-		/// <summary>
-		/// The time to remove this object and delete whatever message can be gotten from <see cref="MessageId"/>.
-		/// </summary>
-		public DateTime Time { get; set; }
 		/// <summary>
 		/// The id of the guild from the passed in context.
 		/// </summary>
@@ -51,14 +43,13 @@ namespace Advobot.Core.Classes.CloseWords
 		/// </summary>
 		public List<CloseWord> List { get; set; }
 
-		protected CloseWords() { }
-		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string input)
+		protected CloseWords() : base(default) { }
+		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string input) : base(time)
 		{
 			GuildId = context.Guild.Id;
 			ChannelId = context.Channel.Id;
 			UserId = context.User.Id;
 			List = GetObjectsWithSimilarNames(objects.ToList(), input);
-			Time = DateTime.UtcNow.Add(time.Equals(default) ? Constants.DEFAULT_WAIT_TIME : time);
 		}
 
 		/// <summary>

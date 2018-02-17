@@ -8,16 +8,8 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Sends a message to the author after the time has passed.
 	/// </summary>
-	public class TimedMessage : ITime
+	public class TimedMessage : DatabaseEntry
 	{
-		/// <summary>
-		/// The id of the object for LiteDB.
-		/// </summary>
-		public ObjectId Id { get; set; }
-		/// <summary>
-		/// The time to send the message at.
-		/// </summary>
-		public DateTime Time { get; set; }
 		/// <summary>
 		/// The user to send the message to.
 		/// </summary>
@@ -27,10 +19,9 @@ namespace Advobot.Core.Classes
 		/// </summary>
 		public string Text { get; set; }
 
-		public TimedMessage() { }
-		public TimedMessage(TimeSpan time, IGuildUser author, string text)
+		public TimedMessage() : base(default) { }
+		public TimedMessage(TimeSpan time, IGuildUser author, string text) : base(time)
 		{
-			Time = DateTime.UtcNow.Add(time);
 			UserId = author.Id;
 			Text = text;
 		}

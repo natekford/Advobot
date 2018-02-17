@@ -117,7 +117,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				{
 					try
 					{
-						await Task.Delay(Constants.DEFAULT_WAIT_TIME, cancelToken).CAF();
+						await Task.Delay(TimeSpan.FromSeconds(3), cancelToken).CAF();
 					}
 					catch (TaskCanceledException)
 					{

@@ -11,16 +11,8 @@ namespace Advobot.Core.Classes.Punishments
 	/// <summary>
 	/// Messages that will get deleted after the time has passed.
 	/// </summary>
-	public class RemovableMessage : ITime
+	public class RemovableMessage : DatabaseEntry
 	{
-		/// <summary>
-		/// The id of the object for LiteDB.
-		/// </summary>
-		public ObjectId Id { get; set; }
-		/// <summary>
-		/// The time to remove the message(s) at.
-		/// </summary>
-		public DateTime Time { get; set; }
 		/// <summary>
 		/// The guild they're located in.
 		/// </summary>
@@ -34,13 +26,12 @@ namespace Advobot.Core.Classes.Punishments
 		/// </summary>
 		public List<ulong> MessageIds { get; set; }
 
-		public RemovableMessage() { }
-		public RemovableMessage(TimeSpan time, SocketTextChannel channel, params IUserMessage[] messages)
+		public RemovableMessage() : base(default) { }
+		public RemovableMessage(TimeSpan time, SocketTextChannel channel, params IUserMessage[] messages) : base(time)
 		{
 			MessageIds = messages.Select(x => x.Id).ToList();
 			ChannelId = channel.Id;
 			GuildId = channel.Guild.Id;
-			Time = DateTime.UtcNow.Add(time);
 		}
 	}
 }

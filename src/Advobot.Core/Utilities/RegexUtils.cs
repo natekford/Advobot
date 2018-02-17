@@ -21,7 +21,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static bool IsMatch(string input, string pattern)
 		{
-			var content = input.Substring(0, Math.Min(input.Length, Constants.MAX_MESSAGE_LENGTH));
+			var content = input.Substring(0, Math.Min(input.Length, 2000));
 
 			try
 			{

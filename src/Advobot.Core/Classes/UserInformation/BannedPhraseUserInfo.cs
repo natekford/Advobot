@@ -20,10 +20,6 @@ namespace Advobot.Core.Classes.UserInformation
 		private int _RoleMute;
 
 		/// <summary>
-		/// The id of the object for LiteDB.
-		/// </summary>
-		public ObjectId Id { get; set; }
-		/// <summary>
 		/// The amount of messages that gave them a kick punishment.
 		/// </summary>
 		public int Kick

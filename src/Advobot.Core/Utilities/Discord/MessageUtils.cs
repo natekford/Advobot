@@ -33,7 +33,7 @@ namespace Advobot.Core.Utilities
 			}
 
 			content = content.SanitizeContent(channel);
-			return content.Length < Constants.MAX_MESSAGE_LENGTH
+			return content.Length < 2000
 				? await channel.SendMessageAsync(content).CAF()
 				: await SendTextFileAsync(channel, content, "Long_Message_", LONG).CAF();
 		}
@@ -102,11 +102,6 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(SocketTextChannel channel, IUserMessage message, string secondStr, ITimersService timers = null, TimeSpan time = default)
 		{
-			if (time.Equals(default))
-			{
-				time = Constants.DEFAULT_WAIT_TIME;
-			}
-
 			var secondMessage = await SendMessageAsync(channel, ZERO_LENGTH_CHAR + secondStr).CAF();
 			var removableMessage = new RemovableMessage(time, channel, message, secondMessage);
 			if (timers != null)

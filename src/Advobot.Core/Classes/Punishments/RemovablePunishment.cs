@@ -11,16 +11,8 @@ namespace Advobot.Core.Classes.Punishments
 	/// <summary>
 	/// Punishments that will be removed after the time has passed.
 	/// </summary>
-	public class RemovablePunishment : ITime
+	public class RemovablePunishment : DatabaseEntry
 	{
-		/// <summary>
-		/// The id of the object for LiteDB.
-		/// </summary>
-		public ObjectId Id { get; set; }
-		/// <summary>
-		/// The time to remove the punishment.
-		/// </summary>
-		public DateTime Time { get; set; }
 		/// <summary>
 		/// The type of punishment that was given.
 		/// </summary>
@@ -38,14 +30,13 @@ namespace Advobot.Core.Classes.Punishments
 		/// </summary>
 		public ulong RoleId { get; set; }
 
-		public RemovablePunishment() { }
-		public RemovablePunishment(TimeSpan time, Punishment punishment, IGuild guild, IUser user)
+		public RemovablePunishment() : base(default) { }
+		public RemovablePunishment(TimeSpan time, Punishment punishment, IGuild guild, IUser user) : base(time)
 		{
 			PunishmentType = punishment;
 			GuildId = guild.Id;
 			UserId = user.Id;
 			RoleId = 0;
-			Time = DateTime.UtcNow.Add(time);
 		}
 		public RemovablePunishment(TimeSpan time, Punishment punishment, IGuild guild, IUser user, IRole role) : this(time, punishment, guild, user)
 		{
