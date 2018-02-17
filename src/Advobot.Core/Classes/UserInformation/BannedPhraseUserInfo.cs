@@ -10,13 +10,19 @@ namespace Advobot.Core.Classes.UserInformation
 	/// <summary>
 	/// Holds a user and the counts of which punishments they should get.
 	/// </summary>
-	public class BannedPhraseUserInfo : UserInfo
+	public class BannedPhraseUserInfo : UserDatabaseEntry
 	{
+		[BsonIgnore]
 		private int _Kick;
+		[BsonIgnore]
 		private int _Ban;
+		[BsonIgnore]
 		private int _Deafen;
+		[BsonIgnore]
 		private int _VoiceMute;
+		[BsonIgnore]
 		private int _Softban;
+		[BsonIgnore]
 		private int _RoleMute;
 
 		/// <summary>

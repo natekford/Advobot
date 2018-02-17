@@ -2,6 +2,7 @@
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
+using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord;
@@ -209,6 +210,8 @@ namespace Advobot.Commands.Misc
 		[Command]
 		public async Task Command()
 		{
+			await Context.Timers.AddAsync(new SpamPreventionUserInfo(Context.User as Discord.WebSocket.SocketGuildUser)).CAF();
+			var user = Context.Timers.GetSlowmodeUser(Context.User as IGuildUser);
 			await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
 		}
 	}

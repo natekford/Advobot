@@ -210,6 +210,7 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
 		/// Also modifies the queue by removing instances which are too old to matter (locks the source when doing so).
+		/// Returns the listlength if seconds is less than 2 or the listlength is less than 2.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="source"></param>
@@ -223,7 +224,7 @@ namespace Advobot.Core.Utilities
 			var timeList = new List<ulong>(source);
 			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
 			var listLength = timeList.Count;
-			if (seconds <= 0 || listLength < 2)
+			if (seconds < 2 || listLength < 2)
 			{
 				return listLength;
 			}

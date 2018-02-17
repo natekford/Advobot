@@ -219,12 +219,7 @@ namespace Advobot.Core.Services.Timers
 		{
 			//TODO: make correctly deserialization so it actually does something
 			var loc = IOUtils.GetBaseBotDirectoryFile("TimedDatabase.db").ToString();
-			var mapper = new BsonMapper
-			{
-				IncludeNonPublic = true,
-				IncludeFields = true,
-			};
-			_Db = new LiteDatabase($"filename={loc};mode=exclusive;", mapper);
+			_Db = new LiteDatabase($"filename={loc};mode=exclusive;");
 			_HourTimer.Enabled = true;
 			_MinuteTimer.Enabled = true;
 			_SecondTimer.Enabled = true;

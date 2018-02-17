@@ -4,7 +4,7 @@ using System;
 namespace Advobot.Core.Classes
 {
 	/// <summary>
-	/// Does an action after the specified time has passed.
+	/// Stores a value in a database for later usage.
 	/// </summary>
 	public abstract class DatabaseEntry
 	{

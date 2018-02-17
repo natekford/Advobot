@@ -8,8 +8,9 @@ namespace Advobot.Core.Classes.UserInformation
 	/// <summary>
 	/// Holds how many messages a user has left and when to reset them.
 	/// </summary>
-	public class SlowmodeUserInfo : UserInfo
+	public class SlowmodeUserInfo : UserDatabaseEntry
 	{
+		[BsonIgnore]
 		private int _MessagesLeft;
 
 		/// <summary>

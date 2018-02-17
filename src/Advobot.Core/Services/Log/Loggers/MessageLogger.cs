@@ -366,7 +366,7 @@ namespace Advobot.Core.Services.Log.Loggers
 
 				if (spam)
 				{
-					var votesReq = spamUser.VotesRequired - spamUser.Votes;
+					var votesReq = spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count;
 					var content = $"The user `{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					await MessageUtils.MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)message.Channel, null, content, Timers, TimeSpan.FromSeconds(10)).CAF();
 					await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("spam prevention")).CAF();
@@ -380,10 +380,10 @@ namespace Advobot.Core.Services.Log.Loggers
 			//Get the users who are able to be punished by the spam prevention
 			var users = Timers.GetSpamPreventionUsers(user.Guild).Where(x =>
 			{
-				return x.PotentialPunishment
+				return x.IsPunishable()
 					&& x.UserId != user.Id
 					&& message.MentionedUsers.Select(u => u.Id).Contains(x.UserId)
-					&& !x.HasUserAlreadyVoted(user.Id);
+					&& !x.UsersWhoHaveAlreadyVoted.Contains(user.Id);
 			}).ToList();
 			if (!users.Any())
 			{
@@ -394,8 +394,8 @@ namespace Advobot.Core.Services.Log.Loggers
 			var reason = ClientUtils.CreateRequestOptions("spam prevention");
 			foreach (var u in users)
 			{
-				u.IncreaseVotes(user.Id);
-				if (u.Votes < u.VotesRequired)
+				u.UsersWhoHaveAlreadyVoted.Add(user.Id);
+				if (u.UsersWhoHaveAlreadyVoted.Count < u.VotesRequired)
 				{
 					return;
 				}
