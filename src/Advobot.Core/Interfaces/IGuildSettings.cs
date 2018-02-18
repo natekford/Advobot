@@ -1,8 +1,8 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.Settings;
+using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
-using Discord.WebSocket;
 using System.Collections.Generic;
 
 namespace Advobot.Core.Interfaces
@@ -41,6 +41,9 @@ namespace Advobot.Core.Interfaces
 		CommandSettings CommandSettings { get; }
 
 		//Non-saved settings
+		List<SlowmodeUserInfo> SlowmodeUsers { get; }
+		List<SpamPreventionUserInfo> SpamPreventionUsers { get; }
+		List<BannedPhraseUserInfo> BannedPhraseUsers { get; }
 		List<CachedInvite> Invites { get; }
 		List<string> EvaluatedRegex { get; }
 		MessageDeletion MessageDeletion { get; }

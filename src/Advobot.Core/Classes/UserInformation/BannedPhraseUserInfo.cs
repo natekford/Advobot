@@ -1,6 +1,5 @@
 ﻿using Advobot.Core.Enums;
 using Discord.WebSocket;
-using LiteDB;
 using System;
 using System.Linq;
 using System.Threading;
@@ -10,71 +9,40 @@ namespace Advobot.Core.Classes.UserInformation
 	/// <summary>
 	/// Holds a user and the counts of which punishments they should get.
 	/// </summary>
-	public class BannedPhraseUserInfo : UserDatabaseEntry
+	public class BannedPhraseUserInfo : UserInfo
 	{
-		[BsonIgnore]
 		private int _Kick;
-		[BsonIgnore]
 		private int _Ban;
-		[BsonIgnore]
 		private int _Deafen;
-		[BsonIgnore]
 		private int _VoiceMute;
-		[BsonIgnore]
 		private int _Softban;
-		[BsonIgnore]
 		private int _RoleMute;
 
 		/// <summary>
 		/// The amount of messages that gave them a kick punishment.
 		/// </summary>
-		public int Kick
-		{
-			get => _Kick;
-			set => Interlocked.Exchange(ref _Kick, value);
-		}
+		public int Kick => _Kick;
 		/// <summary>
 		/// The amount of messages that gave them a ban punishment.
 		/// </summary>
-		public int Ban
-		{
-			get => _Ban;
-			set => Interlocked.Exchange(ref _Ban, value);
-		}
+		public int Ban => _Ban;
 		/// <summary>
 		/// The amount of messages that gave them a deafen punishment.
 		/// </summary>
-		public int Deafen
-		{
-			get => _Deafen;
-			set => Interlocked.Exchange(ref _Deafen, value);
-		}
+		public int Deafen => _Deafen;
 		/// <summary>
 		/// The amount of messages that gave them a voice mute punishment.
 		/// </summary>
-		public int VoiceMute
-		{
-			get => _VoiceMute;
-			set => Interlocked.Exchange(ref _VoiceMute, value);
-		}
+		public int VoiceMute => _VoiceMute;
 		/// <summary>
 		/// The amount of messages that gave them a soft ban punishment.
 		/// </summary>
-		public int Softban
-		{
-			get => _Softban;
-			set => Interlocked.Exchange(ref _Softban, value);
-		}
+		public int Softban => _Softban;
 		/// <summary>
 		/// The amount of messages that gave them a role mute punishment.
 		/// </summary>
-		public int RoleMute
-		{
-			get => _RoleMute;
-			set => Interlocked.Exchange(ref _RoleMute, value);
-		}
+		public int RoleMute => _RoleMute;
 
-		public BannedPhraseUserInfo() { }
 		public BannedPhraseUserInfo(SocketGuildUser user) : base(user) { }
 
 		public int this[Punishment type]
@@ -100,33 +68,36 @@ namespace Advobot.Core.Classes.UserInformation
 				}
 			}
 		}
-		public void IncrementValue(Punishment type)
+		/// <summary>
+		/// Increases the banned phrase count for that punishment by one.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public int Increment(Punishment type)
 		{
 			switch (type)
 			{
 				case Punishment.Kick:
-					Interlocked.Increment(ref _Kick);
-					return;
+					return Interlocked.Increment(ref _Kick);
 				case Punishment.Ban:
-					Interlocked.Increment(ref _Ban);
-					return;
+					return Interlocked.Increment(ref _Ban);
 				case Punishment.Deafen:
-					Interlocked.Increment(ref _Deafen);
-					return;
+					return Interlocked.Increment(ref _Deafen);
 				case Punishment.VoiceMute:
-					Interlocked.Increment(ref _VoiceMute);
-					return;
+					return Interlocked.Increment(ref _VoiceMute);
 				case Punishment.Softban:
-					Interlocked.Increment(ref _Softban);
-					return;
+					return Interlocked.Increment(ref _Softban);
 				case Punishment.RoleMute:
-					Interlocked.Increment(ref _RoleMute);
-					return;
+					return Interlocked.Increment(ref _RoleMute);
 				default:
 					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
 			}
 		}
-		public void ResetValue(Punishment type)
+		/// <summary>
+		/// Sets the banned phrase count for that punishment back to zero.
+		/// </summary>
+		/// <param name="type"></param>
+		public void Reset(Punishment type)
 		{
 			switch (type)
 			{
@@ -151,6 +122,18 @@ namespace Advobot.Core.Classes.UserInformation
 				default:
 					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
 			}
+		}
+		/// <summary>
+		/// Sets everything back to default values.
+		/// </summary>
+		public override void Reset()
+		{
+			Interlocked.Exchange(ref _Kick, 0);
+			Interlocked.Exchange(ref _Ban, 0);
+			Interlocked.Exchange(ref _Deafen, 0);
+			Interlocked.Exchange(ref _VoiceMute, 0);
+			Interlocked.Exchange(ref _Softban, 0);
+			Interlocked.Exchange(ref _RoleMute, 0);
 		}
 
 		public override string ToString()

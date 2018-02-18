@@ -62,12 +62,12 @@ namespace Advobot.Core.Classes.Settings
 		/// <summary>
 		/// Punishes a user.
 		/// </summary>
-		/// <param name="guildSettings"></param>
+		/// <param name="settings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings guildSettings, SocketGuildUser user)
+		public async Task PunishAsync(IGuildSettings settings, SocketGuildUser user)
 		{
-			await _Giver.PunishAsync(Punishment, user, user.Guild.GetRole(guildSettings.MuteRoleId), _Reason).CAF();
+			await _Giver.PunishAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
 		}
 		/// <summary>
 		/// Attempts to creat raid prevention.

@@ -1,12 +1,10 @@
-﻿using System;
+﻿using Advobot.Core.Utilities;
+using Discord;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
-using Discord;
 
 namespace Advobot.Core.Classes
 {

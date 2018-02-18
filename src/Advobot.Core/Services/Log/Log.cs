@@ -34,7 +34,7 @@ namespace Advobot.Core.Services.Log
 		public LogCounter MessageDeletes { get; private set; } = new LogCounter();
 		public LogCounter Messages { get; private set; } = new LogCounter();
 		public LogCounter Images { get; private set; } = new LogCounter();
-		public LogCounter Gifs { get; private set; } = new LogCounter();
+		public LogCounter Animated { get; private set; } = new LogCounter();
 		public LogCounter Files { get; private set; } = new LogCounter();
 
 		public IBotLogger BotLogger { get; private set; }
@@ -47,7 +47,7 @@ namespace Advobot.Core.Services.Log
 			_LoggedCommands = new[] { AttemptedCommands, SuccessfulCommands, FailedCommands };
 			_LoggedUserActions = new[] { UserJoins, UserLeaves, UserChanges };
 			_LoggedMessageActions = new[] { MessageEdits, MessageDeletes };
-			_LoggedAttachments = new[] { Images, Gifs, Files };
+			_LoggedAttachments = new[] { Images, Animated, Files };
 
 			BotLogger = new BotLogger(this, provider);
 			GuildLogger = new GuildLogger(this, provider);

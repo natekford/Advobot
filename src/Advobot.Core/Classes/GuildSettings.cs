@@ -1,6 +1,7 @@
 ﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.Settings;
+using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
@@ -178,6 +179,12 @@ namespace Advobot.Core.Classes
 		[JsonIgnore]
 		public CommandSettings CommandSettings => _CommandSettings;
 
+		[JsonIgnore]
+		public List<SpamPreventionUserInfo> SpamPreventionUsers { get; } = new List<SpamPreventionUserInfo>();
+		[JsonIgnore]
+		public List<SlowmodeUserInfo> SlowmodeUsers { get; } = new List<SlowmodeUserInfo>();
+		[JsonIgnore]
+		public List<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
 		[JsonIgnore]
 		public List<CachedInvite> Invites { get; } = new List<CachedInvite>();
 		[JsonIgnore]

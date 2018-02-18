@@ -16,6 +16,8 @@ namespace Advobot.Core.Classes.Settings
 	/// </summary>
 	public class BannedPhrase : IGuildSetting
 	{
+		private static RequestOptions _Options = ClientUtils.CreateRequestOptions("banned phrase");
+
 		[JsonProperty]
 		public string Phrase { get; }
 		[JsonProperty]
@@ -31,40 +33,26 @@ namespace Advobot.Core.Classes.Settings
 		/// Deletes the message then checks if the user should be punished.
 		/// </summary>
 		/// <param name="settings"></param>
-		/// <param name="message"></param>
+		/// <param name="guild"
+		/// <param name="info"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings settings, SocketUserMessage message, ITimersService timers)
+		public async Task PunishAsync(IGuildSettings settings, SocketGuild guild, BannedPhraseUserInfo info, ITimersService timers)
 		{
-			if (!(message.Author is SocketGuildUser user))
-			{
-				return;
-			}
-
-			var bannedPhraseUser = timers.GetBannedPhraseUser(user);
-			if (bannedPhraseUser == null)
-			{
-				await timers.AddAsync(bannedPhraseUser = new BannedPhraseUserInfo(user)).CAF();
-			}
-
-			bannedPhraseUser.IncrementValue(Punishment);
-			var count = bannedPhraseUser[Punishment];
+			var count = info.Increment(Punishment);
 			var punishment = settings.BannedPhrasePunishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
 			if (punishment == null)
 			{
 				return;
 			}
 
-			var giver = new PunishmentGiver(punishment.PunishmentTime, timers);
-			var role = user.Guild.GetRole(punishment.RoleId);
-			await giver.PunishAsync(Punishment, user, role, ClientUtils.CreateRequestOptions("banned phrase")).CAF();
-			bannedPhraseUser.ResetValue(Punishment);
+			await new PunishmentGiver(punishment.Time, timers).PunishAsync(Punishment, guild, info.UserId, punishment.RoleId, _Options).CAF();
+			info.Reset(Punishment);
 		}
 
 		public override string ToString()
 		{
-			var punishmentChar = Punishment == default ? "N" : Punishment.ToString().Substring(0, 1);
-			return $"`{punishmentChar}` `{Phrase}`";
+			return $"`{(Punishment == default ? 'N' : Punishment.ToString()[0])}` `{Phrase}`";
 		}
 		public string ToString(SocketGuild guild)
 		{

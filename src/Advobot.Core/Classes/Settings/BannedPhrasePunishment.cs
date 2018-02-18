@@ -18,13 +18,13 @@ namespace Advobot.Core.Classes.Settings
 		[JsonProperty]
 		public int NumberOfRemoves { get; }
 		[JsonProperty]
-		public int PunishmentTime { get; }
+		public int Time { get; }
 
 		public BannedPhrasePunishment(Punishment punishment, int removes, int time)
 		{
 			Punishment = punishment;
 			NumberOfRemoves = removes;
-			PunishmentTime = time;
+			Time = time;
 		}
 		public BannedPhrasePunishment(SocketRole role, int removes, int time) : this(Punishment.RoleMute, removes, time)
 		{
@@ -34,13 +34,13 @@ namespace Advobot.Core.Classes.Settings
 		public override string ToString()
 		{
 			var punishment = RoleId == 0 ? Punishment.ToString() : RoleId.ToString();
-			var time = PunishmentTime == 0 ? "" : $" `{PunishmentTime} minutes`";
+			var time = Time == 0 ? "" : $" `{Time} minutes`";
 			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}
 		public string ToString(SocketGuild guild)
 		{
 			var punishment = RoleId == 0 ? Punishment.ToString() : guild.GetRole(RoleId).Name;
-			var time = PunishmentTime == 0 ? "" : $" `{PunishmentTime} minutes`";
+			var time = Time == 0 ? "" : $" `{Time} minutes`";
 			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}
 	}

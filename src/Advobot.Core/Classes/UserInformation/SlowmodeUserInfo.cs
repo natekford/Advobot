@@ -1,5 +1,4 @@
 ﻿using Discord.WebSocket;
-using LiteDB;
 using System;
 using System.Threading;
 
@@ -8,29 +7,28 @@ namespace Advobot.Core.Classes.UserInformation
 	/// <summary>
 	/// Holds how many messages a user has left and when to reset them.
 	/// </summary>
-	public class SlowmodeUserInfo : UserDatabaseEntry
+	public class SlowmodeUserInfo : UserInfo
 	{
-		[BsonIgnore]
-		private int _MessagesLeft;
+		private int _MessagesSent;
 
 		/// <summary>
-		/// The amount of messages left for the user to send before they should start being deleted.
+		/// The amount of messages the user has currently sent.
 		/// </summary>
-		public int MessagesLeft
-		{
-			get => _MessagesLeft;
-			set => _MessagesLeft = value;
-		}
+		public int MessagesSent => _MessagesSent;
 
-		public SlowmodeUserInfo() { }
-		public SlowmodeUserInfo(TimeSpan time, SocketGuildUser user, int baseMessages) : base(time, user)
-		{
-			_MessagesLeft = baseMessages;
-		}
+		public SlowmodeUserInfo(TimeSpan time, SocketGuildUser user) : base(time, user) { }
 
-		public void DecrementValue()
+		public int Increment()
 		{
-			Interlocked.Decrement(ref _MessagesLeft);
+			return Interlocked.Increment(ref _MessagesSent);
+		}
+		public void UpdateTime(TimeSpan time)
+		{
+			Time = DateTime.UtcNow.Add(time);
+		}
+		public override void Reset()
+		{
+			Interlocked.Exchange(ref _MessagesSent, 0);
 		}
 	}
 }

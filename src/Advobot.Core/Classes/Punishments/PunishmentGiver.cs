@@ -108,20 +108,27 @@ namespace Advobot.Core.Classes.Punishments
 		/// <param name="role"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(Punishment type, SocketGuildUser user, SocketRole role, RequestOptions options)
+		public async Task PunishAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions options)
 		{
-			if (!(user.Guild is SocketGuild guild && guild.CurrentUser is SocketGuildUser bot && bot.HasHigherPosition(user)))
+			//Ban and softban both work without having to get the user
+			switch (type)
+			{
+				case Punishment.Ban:
+					await BanAsync(guild, userId, options).CAF();
+					return;
+				case Punishment.Softban:
+					await SoftbanAsync(guild, userId, options).CAF();
+					return;
+			}
+
+			if (!(guild.GetUser(userId) is SocketGuildUser user))
 			{
 				return;
 			}
-
 			switch (type)
 			{
 				case Punishment.Kick:
 					await KickAsync(user, options).CAF();
-					return;
-				case Punishment.Ban:
-					await BanAsync(guild, user.Id, options).CAF();
 					return;
 				case Punishment.Deafen:
 					await DeafenAsync(user, options).CAF();
@@ -129,10 +136,11 @@ namespace Advobot.Core.Classes.Punishments
 				case Punishment.VoiceMute:
 					await VoiceMuteAsync(user, options).CAF();
 					return;
-				case Punishment.Softban:
-					await SoftbanAsync(guild, user.Id, options).CAF();
-					return;
 				case Punishment.RoleMute:
+					if (!(guild.GetRole(roleId) is SocketRole role))
+					{
+						return;
+					}
 					await RoleMuteAsync(user, role, options).CAF();
 					return;
 			}

@@ -209,8 +209,8 @@ namespace Advobot.Core.Services.Log.Loggers
 				var mimeType = MimeTypes.GetMimeType(attachmentUrl);
 				if (mimeType.CaseInsContains("video/") || mimeType.CaseInsContains("/gif"))
 				{
-					Logging.Gifs.Increment();
-					footerText = "Attached Gif";
+					Logging.Animated.Increment();
+					footerText = "Attached Animated Content";
 				}
 				else if (mimeType.CaseInsContains("image/"))
 				{
@@ -249,7 +249,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				string footerText;
 				if (imageEmbed.Video != null)
 				{
-					Logging.Gifs.Increment();
+					Logging.Animated.Increment();
 					footerText = "Embedded Gif/Video";
 				}
 				else
@@ -310,14 +310,24 @@ namespace Advobot.Core.Services.Log.Loggers
 				return;
 			}
 
-			var info = Timers.GetSlowmodeUser(user);
+			var info = settings.SlowmodeUsers.SingleOrDefault(x => x.UserId == user.Id);
 			if (info == null)
 			{
-				await Timers.AddAsync(info = new SlowmodeUserInfo(slowmode.Interval, user, slowmode.BaseMessages)).CAF();
+				settings.SlowmodeUsers.Add(info = new SlowmodeUserInfo(slowmode.Interval, user));
 			}
-			if (info.MessagesLeft > 0)
+			else if (info.Time < DateTime.UtcNow)
 			{
-				info.DecrementValue();
+				info.Reset();
+			}
+
+			if (info.MessagesSent < slowmode.BaseMessages)
+			{
+				if (info.MessagesSent == 0)
+				{
+					info.UpdateTime(slowmode.Interval);
+				}
+
+				info.Increment();
 			}
 			else
 			{
@@ -333,10 +343,10 @@ namespace Advobot.Core.Services.Log.Loggers
 		{
 			if (user.Guild.CurrentUser.HasHigherPosition(user))
 			{
-				var spamUser = Timers.GetSpamPreventionUser(user);
-				if (spamUser == null)
+				var info = settings.SpamPreventionUsers.SingleOrDefault(x => x.UserId == user.Id);
+				if (info == null)
 				{
-					await Timers.AddAsync(spamUser = new SpamPreventionUserInfo(user)).CAF();
+					settings.SpamPreventionUsers.Add(info = new SpamPreventionUserInfo(user));
 				}
 
 				var spam = false;
@@ -351,23 +361,23 @@ namespace Advobot.Core.Services.Log.Loggers
 					var spamAmount = _GetSpamNumberFuncs[type](message) ?? 0;
 					if (spamAmount >= prev.SpamPerMessage)
 					{
-						spamUser.AddSpamInstance(type, message);
+						info.AddSpamInstance(type, message);
 					}
-					if (spamUser.GetSpamAmount(type, prev.TimeInterval) < prev.SpamInstances)
+					if (info.GetSpamAmount(type, prev.TimeInterval) < prev.SpamInstances)
 					{
 						continue;
 					}
 
 					//Make sure they have the lowest vote count required to kick and the most severe punishment type
-					spamUser.VotesRequired = prev.VotesForKick;
-					spamUser.Punishment = prev.Punishment;
+					info.VotesRequired = prev.VotesForKick;
+					info.Punishment = prev.Punishment;
 					spam = true;
 				}
 
 				if (spam)
 				{
-					var votesReq = spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count;
-					var content = $"The user `{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
+					var votesReq = info.VotesRequired - info.UsersWhoHaveAlreadyVoted.Count;
+					var content = $"`{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					await MessageUtils.MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)message.Channel, null, content, Timers, TimeSpan.FromSeconds(10)).CAF();
 					await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("spam prevention")).CAF();
 				}
@@ -378,32 +388,30 @@ namespace Advobot.Core.Services.Log.Loggers
 			}
 
 			//Get the users who are able to be punished by the spam prevention
-			var users = Timers.GetSpamPreventionUsers(user.Guild).Where(x =>
+			var spammers = settings.SpamPreventionUsers.Where(x =>
 			{
 				return x.IsPunishable()
 					&& x.UserId != user.Id
 					&& message.MentionedUsers.Select(u => u.Id).Contains(x.UserId)
 					&& !x.UsersWhoHaveAlreadyVoted.Contains(user.Id);
 			}).ToList();
-			if (!users.Any())
+			if (!spammers.Any())
 			{
 				return;
 			}
 
 			var giver = new PunishmentGiver(0, null);
-			var reason = ClientUtils.CreateRequestOptions("spam prevention");
-			foreach (var u in users)
+			var options = ClientUtils.CreateRequestOptions("spam prevention");
+			foreach (var spammer in spammers)
 			{
-				u.UsersWhoHaveAlreadyVoted.Add(user.Id);
-				if (u.UsersWhoHaveAlreadyVoted.Count < u.VotesRequired)
+				spammer.UsersWhoHaveAlreadyVoted.Add(user.Id);
+				if (spammer.UsersWhoHaveAlreadyVoted.Count < spammer.VotesRequired)
 				{
-					return;
+					continue;
 				}
 
-				await giver.PunishAsync(u.Punishment, user.Guild.GetUser(u.UserId), user.Guild.GetRole(settings.MuteRoleId), reason).CAF();
-
-				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
-				u.Reset();
+				await giver.PunishAsync(spammer.Punishment, user.Guild, spammer.UserId, settings.MuteRoleId, options).CAF();
+				spammer.Reset();
 			}
 		}
 		/// <summary>
@@ -418,15 +426,20 @@ namespace Advobot.Core.Services.Log.Loggers
 				return;
 			}
 
+			var info = settings.BannedPhraseUsers.SingleOrDefault(x => x.UserId == user.Id);
+			if (info == null)
+			{
+				settings.BannedPhraseUsers.Add(info = new BannedPhraseUserInfo(user));
+			}
 			var str = settings.BannedPhraseStrings.FirstOrDefault(x => message.Content.CaseInsContains(x.Phrase));
 			if (str != null)
 			{
-				await str.PunishAsync(settings, message, Timers).CAF();
+				await str.PunishAsync(settings, user.Guild, info, Timers).CAF();
 			}
 			var regex = settings.BannedPhraseRegex.FirstOrDefault(x => RegexUtils.IsMatch(message.Content, x.Phrase));
 			if (regex != null)
 			{
-				await regex.PunishAsync(settings, message, Timers).CAF();
+				await regex.PunishAsync(settings, user.Guild, info, Timers).CAF();
 			}
 			if (str != null || regex != null)
 			{

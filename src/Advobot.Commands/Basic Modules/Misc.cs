@@ -208,10 +208,8 @@ namespace Advobot.Commands.Misc
 	public sealed class Test : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command()
+		public async Task Command(string text)
 		{
-			await Context.Timers.AddAsync(new SpamPreventionUserInfo(Context.User as Discord.WebSocket.SocketGuildUser)).CAF();
-			var user = Context.Timers.GetSlowmodeUser(Context.User as IGuildUser);
 			await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
 		}
 	}

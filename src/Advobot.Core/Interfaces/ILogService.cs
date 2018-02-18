@@ -22,7 +22,7 @@ namespace Advobot.Core.Interfaces
 		LogCounter MessageDeletes { get; }
 		LogCounter Messages { get; }
 		LogCounter Images { get; }
-		LogCounter Gifs { get; }
+		LogCounter Animated { get; }
 		LogCounter Files { get; }
 
 		IBotLogger BotLogger { get; }

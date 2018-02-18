@@ -23,7 +23,6 @@ namespace Advobot.Core.Services.Timers
 		private LiteDatabase _Db;
 		private IDiscordClient _Client;
 
-		private Timer _HourTimer = new Timer(60 * 60 * 1000);
 		private Timer _MinuteTimer = new Timer(60 * 1000);
 		private Timer _SecondTimer = new Timer(1000);
 		private PunishmentRemover _PunishmentRemover;
@@ -32,25 +31,17 @@ namespace Advobot.Core.Services.Timers
 		private RequestOptions _CloseHelpReason = ClientUtils.CreateRequestOptions("removing active close help");
 		private RequestOptions _CloseQuotesReason = ClientUtils.CreateRequestOptions("removing active close quotes");
 
-		private ProcessQueue _SpamPreventionUserInfo;
 		private ProcessQueue _RemovablePunishments;
 		private ProcessQueue _TimedMessages;
 		private ProcessQueue _RemovableMessages;
 		private ProcessQueue _CloseHelpEntries;
 		private ProcessQueue _CloseQuotes;
-		private ProcessQueue _SlowmodeUserInfo;
 
 		public TimersService(IServiceProvider provider)
 		{
 			_Client = provider.GetRequiredService<IDiscordClient>();
 			_PunishmentRemover = new PunishmentRemover(this);
 
-			_SpamPreventionUserInfo = new ProcessQueue(1, () =>
-			{
-				//TODO: does check if collection needs to exist before doing this
-				_Db.DropCollection(typeof(SpamPreventionUserInfo).Name);
-				return Task.FromResult(0);
-			});
 			_RemovablePunishments = new ProcessQueue(1, async () =>
 			{
 				var col = _Db.GetCollection<RemovablePunishment>();
@@ -188,16 +179,7 @@ namespace Advobot.Core.Services.Timers
 					}
 				}
 			});
-			_SlowmodeUserInfo = new ProcessQueue(1, () =>
-			{
-				_Db.GetCollection<SlowmodeUserInfo>().Delete(x => x.Time < DateTime.UtcNow);
-				return Task.FromResult(0);
-			});
 
-			_HourTimer.Elapsed += (sender, e) =>
-			{
-				_SpamPreventionUserInfo.Process();
-			};
 			_MinuteTimer.Elapsed += (sender, e) =>
 			{
 				_RemovablePunishments.Process();
@@ -208,7 +190,6 @@ namespace Advobot.Core.Services.Timers
 				_RemovableMessages.Process();
 				_CloseHelpEntries.Process();
 				_CloseQuotes.Process();
-				_SlowmodeUserInfo.Process();
 			};
 		}
 
@@ -220,7 +201,6 @@ namespace Advobot.Core.Services.Timers
 			//TODO: make correctly deserialization so it actually does something
 			var loc = IOUtils.GetBaseBotDirectoryFile("TimedDatabase.db").ToString();
 			_Db = new LiteDatabase($"filename={loc};mode=exclusive;");
-			_HourTimer.Enabled = true;
 			_MinuteTimer.Enabled = true;
 			_SecondTimer.Enabled = true;
 		}
@@ -229,7 +209,6 @@ namespace Advobot.Core.Services.Timers
 		/// </summary>
 		public void Dispose()
 		{
-			_HourTimer.Stop();
 			_MinuteTimer.Stop();
 			_SecondTimer.Stop();
 			_Db.Dispose();
@@ -304,27 +283,6 @@ namespace Advobot.Core.Services.Timers
 			col.Delete(x => x.UserId == message.UserId);
 			col.Insert(message);
 		}
-		public void Add(SpamPreventionUserInfo user)
-		{
-			var col = _Db.GetCollection<SpamPreventionUserInfo>();
-			//Only allow one spam prevention user at a time
-			col.Delete(x => x.UserId == user.UserId && x.GuildId == user.GuildId);
-			col.Insert(user);
-		}
-		public void Add(SlowmodeUserInfo user)
-		{
-			var col = _Db.GetCollection<SlowmodeUserInfo>();
-			//Only allow one spam prevention user at a time
-			col.Delete(x => x.UserId == user.UserId && x.GuildId == user.GuildId);
-			col.Insert(user);
-		}
-		public void Add(BannedPhraseUserInfo user)
-		{
-			var col = _Db.GetCollection<BannedPhraseUserInfo>();
-			//Only allow one spam prevention user at a time
-			col.Delete(x => x.UserId == user.UserId && x.GuildId == user.GuildId);
-			col.Insert(user);
-		}
 
 		public async Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, Punishment punishment)
 		{
@@ -365,30 +323,6 @@ namespace Advobot.Core.Services.Timers
 			}
 			return entry;
 		}
-		public IEnumerable<SpamPreventionUserInfo> GetSpamPreventionUsers(IGuild guild)
-		{
-			return _Db.GetCollection<SpamPreventionUserInfo>().Find(x => x.GuildId == guild.Id);
-		}
-		public IEnumerable<SlowmodeUserInfo> GetSlowmodeUsers(IGuild guild)
-		{
-			return _Db.GetCollection<SlowmodeUserInfo>().Find(x => x.GuildId == guild.Id);
-		}
-		public IEnumerable<BannedPhraseUserInfo> GetBannedPhraseUsers(IGuild guild)
-		{
-			return _Db.GetCollection<BannedPhraseUserInfo>().Find(x => x.GuildId == guild.Id);
-		}
-		public SpamPreventionUserInfo GetSpamPreventionUser(IGuildUser user)
-		{
-			return _Db.GetCollection<SpamPreventionUserInfo>().FindOne(x => x.UserId == user.Id && x.GuildId == user.GuildId);
-		}
-		public SlowmodeUserInfo GetSlowmodeUser(IGuildUser user)
-		{
-			return _Db.GetCollection<SlowmodeUserInfo>().FindOne(x => x.UserId == user.Id && x.GuildId == user.GuildId);
-		}
-		public BannedPhraseUserInfo GetBannedPhraseUser(IGuildUser user)
-		{
-			return _Db.GetCollection<BannedPhraseUserInfo>().FindOne(x => x.UserId == user.Id && x.GuildId == user.GuildId);
-		}
 
 		//ITimersService
 		Task ITimersService.AddAsync(RemovableMessage message)
@@ -399,21 +333,6 @@ namespace Advobot.Core.Services.Timers
 		Task ITimersService.AddAsync(TimedMessage message)
 		{
 			Add(message);
-			return Task.FromResult(0);
-		}
-		Task ITimersService.AddAsync(SpamPreventionUserInfo user)
-		{
-			Add(user);
-			return Task.FromResult(0);
-		}
-		Task ITimersService.AddAsync(SlowmodeUserInfo user)
-		{
-			Add(user);
-			return Task.FromResult(0);
-		}
-		Task ITimersService.AddAsync(BannedPhraseUserInfo user)
-		{
-			Add(user);
 			return Task.FromResult(0);
 		}
 

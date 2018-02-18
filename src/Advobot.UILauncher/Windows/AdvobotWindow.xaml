@@ -303,7 +303,7 @@
                 <controls:AdvobotTitle x:Name="ImagesTitle"
                                        Grid.Column="1"
                                        Grid.Row="10" />
-                <controls:AdvobotTitle x:Name="GifsTitle"
+                <controls:AdvobotTitle x:Name="AnimatedContentTitle"
                                        Grid.Column="1"
                                        Grid.Row="11" />
                 <controls:AdvobotTitle x:Name="FilesTitle"
@@ -354,10 +354,10 @@
                                          Grid.Column="2"
                                          Grid.Row="10"
                                          Text="{Binding LogHolder.HeldObject.Images.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                <controls:AdvobotTextBox x:Name="Gifs"
+                <controls:AdvobotTextBox x:Name="AnimatedContent"
                                          Grid.Column="2"
                                          Grid.Row="11"
-                                         Text="{Binding LogHolder.HeldObject.Gifs.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                                         Text="{Binding LogHolder.HeldObject.Animated.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
                 <controls:AdvobotTextBox x:Name="Files"
                                          Grid.Column="2"
                                          Grid.Row="12"

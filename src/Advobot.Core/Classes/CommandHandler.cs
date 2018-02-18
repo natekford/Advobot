@@ -90,7 +90,7 @@ namespace Advobot.Core.Classes
 			if (settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(user.Username)))
 			{
 				var giver = new PunishmentGiver(0, _Timers);
-				await giver.PunishAsync(Punishment.Ban, user, null, ClientUtils.CreateRequestOptions("banned name")).CAF();
+				await giver.PunishAsync(Punishment.Ban, user.Guild, user.Id, 0, ClientUtils.CreateRequestOptions("banned name")).CAF();
 			}
 			//Antiraid
 			var antiRaid = settings.RaidPreventionDictionary[RaidType.Regular];

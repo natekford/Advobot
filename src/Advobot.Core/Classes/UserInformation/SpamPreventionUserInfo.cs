@@ -2,7 +2,6 @@
 using Advobot.Core.Utilities;
 using Discord;
 using Discord.WebSocket;
-using LiteDB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,22 +12,16 @@ namespace Advobot.Core.Classes.UserInformation
 	/// <summary>
 	/// Keeps track how much spam this user has said, how many people need to vote, who has voted, and what punishment to give.
 	/// </summary>
-	public sealed class SpamPreventionUserInfo : UserDatabaseEntry
+	public sealed class SpamPreventionUserInfo : UserInfo
 	{
-		private static Dictionary<Punishment, int> _PunishmentSeverity = new Dictionary<Punishment, int>
-		{
-			{ default, -1 },
-			{ Punishment.Deafen, 0 },
-			{ Punishment.VoiceMute, 1 },
-			{ Punishment.RoleMute, 2 },
-			{ Punishment.Kick, 3 },
-			{ Punishment.Softban, 4 },
-			{ Punishment.Ban, 5 },
-		};
-		[BsonIgnore]
 		private int _VotesRequired = int.MaxValue;
-		[BsonIgnore]
-		private Punishment _Punishment;
+		private int _Punishment = -1;
+		private List<ulong> _UsersWhoHaveAlreadyVoted = new List<ulong>();
+		private List<ulong> _Message = new List<ulong>();
+		private List<ulong> _LongMessage = new List<ulong>();
+		private List<ulong> _Link = new List<ulong>();
+		private List<ulong> _Image = new List<ulong>();
+		private List<ulong> _Mention = new List<ulong>();
 
 		/// <summary>
 		/// The votes required to punish a user.
@@ -45,35 +38,58 @@ namespace Advobot.Core.Classes.UserInformation
 		/// </summary>
 		public Punishment Punishment
 		{
-			get => _Punishment;
-			set => _Punishment = _PunishmentSeverity[value] > _PunishmentSeverity[_Punishment] ? value : _Punishment;
+			get => (Punishment)_Punishment;
+			set => _Punishment = Math.Min((int)value, _Punishment);
 		}
 		/// <summary>
 		/// Who has voted to punish the user.
 		/// </summary>
-		public List<ulong> UsersWhoHaveAlreadyVoted { get; set; } = new List<ulong>();
+		public List<ulong> UsersWhoHaveAlreadyVoted
+		{
+			get => _UsersWhoHaveAlreadyVoted;
+			set => Interlocked.Exchange(ref _UsersWhoHaveAlreadyVoted, new List<ulong>());
+		}
 		/// <summary>
 		/// The amount of spam instances associated with the amount of messages sent.
 		/// </summary>
-		public List<ulong> Message { get; set; } = new List<ulong>();
+		public List<ulong> Message
+		{
+			get => _Message;
+			set => Interlocked.Exchange(ref _Message, new List<ulong>());
+		}
 		/// <summary>
 		/// The amount of spam instances associated with the length of messages sent.
 		/// </summary>
-		public List<ulong> LongMessage { get; set; } = new List<ulong>();
+		public List<ulong> LongMessage
+		{
+			get => _LongMessage;
+			set => Interlocked.Exchange(ref _LongMessage, new List<ulong>());
+		}
 		/// <summary>
 		/// The amount of spam instances associated with how many links are in messages sent.
 		/// </summary>
-		public List<ulong> Link { get; set; } = new List<ulong>();
+		public List<ulong> Link
+		{
+			get => _Link;
+			set => Interlocked.Exchange(ref _Link, new List<ulong>());
+		}
 		/// <summary>
 		/// The amount of spam instances associated with how many images are in messages sent.
 		/// </summary>
-		public List<ulong> Image { get; set; } = new List<ulong>();
+		public List<ulong> Image
+		{
+			get => _Image;
+			set => Interlocked.Exchange(ref _Image, new List<ulong>());
+		}
 		/// <summary>
 		/// The amount of spam instances associated with how many mentions are in messages sent.
 		/// </summary>
-		public List<ulong> Mention { get; set; } = new List<ulong>();
+		public List<ulong> Mention
+		{
+			get => _Mention;
+			set => Interlocked.Exchange(ref _Mention, new List<ulong>());
+		}
 
-		public SpamPreventionUserInfo() { }
 		public SpamPreventionUserInfo(SocketGuildUser user) : base(user) { }
 
 		/// <summary>
@@ -167,16 +183,16 @@ namespace Advobot.Core.Classes.UserInformation
 		/// <summary>
 		/// Sets everything back to default values.
 		/// </summary>
-		public void Reset()
+		public override void Reset()
 		{
-			UsersWhoHaveAlreadyVoted = new List<ulong>();
-			Message = new List<ulong>();
-			LongMessage = new List<ulong>();
-			Link = new List<ulong>();
-			Image = new List<ulong>();
-			Mention = new List<ulong>();
-			VotesRequired = int.MaxValue;
-			Punishment = default;
+			Interlocked.Exchange(ref _VotesRequired, int.MaxValue);
+			Interlocked.Exchange(ref _Punishment, (int)default(Punishment));
+			Interlocked.Exchange(ref _UsersWhoHaveAlreadyVoted, new List<ulong>());
+			Interlocked.Exchange(ref _Message, new List<ulong>());
+			Interlocked.Exchange(ref _LongMessage, new List<ulong>());
+			Interlocked.Exchange(ref _Link, new List<ulong>());
+			Interlocked.Exchange(ref _Image, new List<ulong>());
+			Interlocked.Exchange(ref _Mention, new List<ulong>());
 		}
 	}
 }

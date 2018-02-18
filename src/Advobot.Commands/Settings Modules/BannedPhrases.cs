@@ -431,40 +431,4 @@ namespace Advobot.Commands.BannedPhrases
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
-
-	[Group(nameof(ModifyBannedPhraseUser)), TopLevelShortAlias(typeof(ModifyBannedPhraseUser))]
-	[Summary("Shows or resets all infraction points from banned phrases a user has on the guild.")]
-	[PermissionRequirement(null, null)]
-	[DefaultEnabled(false)]
-	public sealed class ModifyBannedPhraseUser : NonSavingModuleBase
-	{
-		[Command(nameof(Show)), ShortAlias(nameof(Show))]
-		public async Task Show(SocketGuildUser user)
-		{
-			var bannedPhraseUser = Context.Timers.GetBannedPhraseUser(user);
-			if (bannedPhraseUser == null)
-			{
-				var error = new Error($"The user `{user.Format()}` is not in the list of banned phrase users.");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-
-			var resp = $"The user `{user.Format()}` has `{bannedPhraseUser}`";
-			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
-		}
-		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
-		public async Task Reset(SocketGuildUser user)
-		{
-			var bannedPhraseUser = Context.Timers.GetBannedPhraseUser(user);
-			if (bannedPhraseUser == null)
-			{
-				var error = new Error($"The user `{user.Format()}` is not in the list of banned phrase users.");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-
-			var resp = $"The user `{user.Format()}` has `{bannedPhraseUser}`";
-			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
-		}
-	}
 }
