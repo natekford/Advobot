@@ -1,9 +1,11 @@
-﻿using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Classes.Punishments;
+using Advobot.Core.Utilities;
+using Discord;
 using Discord.Commands;
-using LiteDB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.CloseWords
 {
@@ -11,7 +13,7 @@ namespace Advobot.Core.Classes.CloseWords
 	/// Container of close words which is intended to be removed after the time has passed.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class CloseWords<T> : DatabaseEntry
+	public abstract class CloseWords<T> : RemovableMessage
 	{
 		/// <summary>
 		/// The max allowed closeness before a word will not be added.
@@ -23,35 +25,27 @@ namespace Advobot.Core.Classes.CloseWords
 		public static int MaxOutput = 5;
 
 		/// <summary>
-		/// The id of the guild from the passed in context.
-		/// </summary>
-		public ulong GuildId { get; set; }
-		/// <summary>
-		/// The id of the channel from the passed in context.
-		/// </summary>
-		public ulong ChannelId { get; set; }
-		/// <summary>
-		/// The id of the user from the passed in context.
-		/// </summary>
-		public ulong UserId { get; set; }
-		/// <summary>
-		/// The id of the response the bot has sent.
-		/// </summary>
-		public ulong MessageId { get; set; }
-		/// <summary>
 		/// The gathered words.
 		/// </summary>
 		public List<CloseWord> List { get; set; }
 
-		protected CloseWords() : base(default) { }
-		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string input) : base(time)
+		protected CloseWords() : base() { }
+		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string input)
+			: base(time, context)
 		{
-			GuildId = context.Guild.Id;
-			ChannelId = context.Channel.Id;
-			UserId = context.User.Id;
 			List = GetObjectsWithSimilarNames(objects.ToList(), input);
 		}
 
+		/// <summary>
+		/// Sends the bots response to let the user know what options they can pick from.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <returns></returns>
+		public async Task SendBotMessageAsync(IMessageChannel channel)
+		{
+			var text = $"Did you mean any of the following:\n{List.FormatNumberedList(x => x.Name)}";
+			MessageIds.Add((await MessageUtils.SendMessageAsync(channel, text).CAF()).Id);
+		}
 		/// <summary>
 		/// Finds an object with a similar name to the search term.
 		/// </summary>

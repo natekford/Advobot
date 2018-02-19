@@ -103,7 +103,7 @@ namespace Advobot.Core.Utilities
 		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(SocketTextChannel channel, IUserMessage message, string secondStr, ITimersService timers = null, TimeSpan time = default)
 		{
 			var secondMessage = await SendMessageAsync(channel, ZERO_LENGTH_CHAR + secondStr).CAF();
-			var removableMessage = new RemovableMessage(time, channel, message, secondMessage);
+			var removableMessage = new RemovableMessage(time, channel.Guild, channel, message.Author, message, secondMessage);
 			if (timers != null)
 			{
 				await timers.AddAsync(removableMessage).CAF();

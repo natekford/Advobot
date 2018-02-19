@@ -28,8 +28,6 @@ namespace Advobot.Core.Services.Timers
 		private PunishmentRemover _PunishmentRemover;
 		private RequestOptions _PunishmentReason = ClientUtils.CreateRequestOptions("automatic punishment removal.");
 		private RequestOptions _MessageReason = ClientUtils.CreateRequestOptions("automatic message deletion.");
-		private RequestOptions _CloseHelpReason = ClientUtils.CreateRequestOptions("removing active close help");
-		private RequestOptions _CloseQuotesReason = ClientUtils.CreateRequestOptions("removing active close quotes");
 
 		private ProcessQueue _RemovablePunishments;
 		private ProcessQueue _TimedMessages;
@@ -67,117 +65,15 @@ namespace Advobot.Core.Services.Timers
 			});
 			_RemovableMessages = new ProcessQueue(1, async () =>
 			{
-				var col = _Db.GetCollection<RemovableMessage>();
-				foreach (var guildGroup in col.Find(x => x.Time < DateTime.UtcNow).GroupBy(x => x.GuildId))
-				{
-					//Remove them from the database
-					foreach (var g in guildGroup)
-					{
-						col.Delete(g.Id);
-					}
-					if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
-					{
-						continue;
-					}
-					foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
-					{
-						if (!(await guild.GetTextChannelAsync(channelGroup.Key).CAF() is ITextChannel channel))
-						{
-							continue;
-						}
-
-						var tasks = channelGroup.SelectMany(x => x.MessageIds).Select(async x => await channel.GetMessageAsync(x).CAF());
-						var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
-						if (!messages.Any())
-						{
-							continue;
-						}
-						else if (messages.Count == 1)
-						{
-							await MessageUtils.DeleteMessageAsync(messages.First(), _MessageReason).CAF();
-						}
-						else
-						{
-							await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
-						}
-					}
-				}
+				await HandleRemovableMessages(_Db.GetCollection<RemovableMessage>()).CAF();
 			});
 			_CloseHelpEntries = new ProcessQueue(1, async () =>
 			{
-				var col = _Db.GetCollection<CloseHelpEntries>();
-				foreach (var guildGroup in col.Find(x => x.Time < DateTime.UtcNow).GroupBy(x => x.GuildId))
-				{
-					//Remove them from the database
-					foreach (var g in guildGroup)
-					{
-						col.Delete(g.Id);
-					}
-					if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
-					{
-						continue;
-					}
-					foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
-					{
-						if (!(await guild.GetTextChannelAsync(channelGroup.Key).CAF() is ITextChannel channel))
-						{
-							continue;
-						}
-
-						var tasks = channelGroup.Where(x => x.MessageId != 0).Select(async x => await channel.GetMessageAsync(x.MessageId).CAF());
-						var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
-						if (!messages.Any())
-						{
-							continue;
-						}
-						else if (messages.Count == 1)
-						{
-							await MessageUtils.DeleteMessageAsync(messages.First(), _CloseHelpReason).CAF();
-						}
-						else
-						{
-							await MessageUtils.DeleteMessagesAsync(channel, messages, _CloseHelpReason).CAF();
-						}
-					}
-				}
+				await HandleRemovableMessages(_Db.GetCollection<CloseHelpEntries>()).CAF();
 			});
 			_CloseQuotes = new ProcessQueue(1, async () =>
 			{
-				var col = _Db.GetCollection<CloseQuotes>();
-				foreach (var guildGroup in col.Find(x => x.Time < DateTime.UtcNow).GroupBy(x => x.GuildId))
-				{
-					//Remove them from the database
-					foreach (var g in guildGroup)
-					{
-						col.Delete(g.Id);
-					}
-					if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
-					{
-						continue;
-					}
-					foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
-					{
-						if (!(await guild.GetTextChannelAsync(channelGroup.Key).CAF() is ITextChannel channel))
-						{
-							continue;
-						}
-
-						var tasks = channelGroup.Select(async x => await channel.GetMessageAsync(x.MessageId).CAF());
-						var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
-						if (!messages.Any())
-						{
-							continue;
-						}
-						else if (messages.Count == 1)
-						{
-							await MessageUtils.DeleteMessageAsync(messages.First(), _CloseQuotesReason).CAF();
-						}
-						else
-						{
-							await MessageUtils.DeleteMessagesAsync(channel, messages, _CloseQuotesReason).CAF();
-						}
-					}
-				}
+				await HandleRemovableMessages(_Db.GetCollection<CloseQuotes>()).CAF();
 			});
 
 			_MinuteTimer.Elapsed += (sender, e) =>
@@ -193,20 +89,13 @@ namespace Advobot.Core.Services.Timers
 			};
 		}
 
-		/// <summary>
-		/// Starts the second, minute, and hour timers.
-		/// </summary>
 		public void Start()
 		{
-			//TODO: make correctly deserialization so it actually does something
-			var loc = IOUtils.GetBaseBotDirectoryFile("TimedDatabase.db").ToString();
-			_Db = new LiteDatabase($"filename={loc};mode=exclusive;");
+			//Use mode=exclusive to not have ioexceptions
+			_Db = new LiteDatabase($"filename={IOUtils.GetBaseBotDirectoryFile("TimedDatabase.db")};mode=exclusive;");
 			_MinuteTimer.Enabled = true;
 			_SecondTimer.Enabled = true;
 		}
-		/// <summary>
-		/// Stops the timers and disposes the database connection.
-		/// </summary>
 		public void Dispose()
 		{
 			_MinuteTimer.Stop();
@@ -214,11 +103,6 @@ namespace Advobot.Core.Services.Timers
 			_Db.Dispose();
 		}
 
-		/// <summary>
-		/// Removes all older instances, undoes their current punishment, and stores <paramref name="punishment"/>.
-		/// </summary>
-		/// <param name="punishment"></param>
-		/// <returns></returns>
 		public async Task AddAsync(RemovablePunishment punishment)
 		{
 			var col = _Db.GetCollection<RemovablePunishment>();
@@ -230,46 +114,16 @@ namespace Advobot.Core.Services.Timers
 			}
 			col.Insert(punishment);
 		}
-		/// <summary>
-		/// Removes all older instances, deletes the bot's message, and stores <paramref name="helpEntries"/>.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="message"></param>
-		/// <param name="helpEntries"></param>
-		/// <returns></returns>
 		public async Task AddAsync(CloseHelpEntries helpEntries)
 		{
 			var col = _Db.GetCollection<CloseHelpEntries>();
-			var entry = col.FindOne(x => x.UserId == helpEntries.UserId);
-			if (entry != null
-				&& await _Client.GetGuildAsync(entry.GuildId).CAF() is IGuild guild
-				&& await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel
-				&& await channel.GetMessageAsync(entry.MessageId).CAF() is IMessage msg)
-			{
-				col.Delete(entry.Id);
-				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
-			}
+			await RemoveRemovableMessage(col, helpEntries.UserId).CAF();
 			col.Insert(helpEntries);
 		}
-		/// <summary>
-		/// Removes all older instances, delete's the bot's message, and stores <paramref name="quotes"/>.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="message"></param>
-		/// <param name="quotes"></param>
-		/// <returns></returns>
 		public async Task AddAsync(CloseQuotes quotes)
 		{
 			var col = _Db.GetCollection<CloseQuotes>();
-			var entry = col.FindOne(x => x.UserId == quotes.UserId);
-			if (entry != null
-				&& await _Client.GetGuildAsync(entry.GuildId).CAF() is IGuild guild
-				&& await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel
-				&& await channel.GetMessageAsync(entry.MessageId).CAF() is IMessage msg)
-			{
-				col.Delete(entry.Id);
-				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
-			}
+			await RemoveRemovableMessage(col, quotes.UserId).CAF();
 			col.Insert(quotes);
 		}
 		public void Add(RemovableMessage message)
@@ -282,6 +136,27 @@ namespace Advobot.Core.Services.Timers
 			//Only allow one timed message per user at a time.
 			col.Delete(x => x.UserId == message.UserId);
 			col.Insert(message);
+		}
+
+		public bool Update(RemovablePunishment punishment)
+		{
+			return _Db.GetCollection<RemovablePunishment>().Upsert(punishment);
+		}
+		public bool Update(CloseHelpEntries help)
+		{
+			return _Db.GetCollection<CloseHelpEntries>().Upsert(help);
+		}
+		public bool Update(CloseQuotes quote)
+		{
+			return _Db.GetCollection<CloseQuotes>().Upsert(quote);
+		}
+		public bool Update(RemovableMessage message)
+		{
+			return _Db.GetCollection<RemovableMessage>().Upsert(message);
+		}
+		public bool Update(TimedMessage message)
+		{
+			return _Db.GetCollection<TimedMessage>().Upsert(message);
 		}
 
 		public async Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, Punishment punishment)
@@ -297,43 +172,70 @@ namespace Advobot.Core.Services.Timers
 		}
 		public async Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(IUser user)
 		{
-			var col = _Db.GetCollection<CloseHelpEntries>();
-			var entry = col.FindOne(x => x.UserId == user.Id);
-			if (entry != null
-				&& await _Client.GetGuildAsync(entry.GuildId).CAF() is IGuild guild
-				&& await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel
-				&& await channel.GetMessageAsync(entry.MessageId).CAF() is IMessage msg)
-			{
-				col.Delete(entry.Id);
-				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
-			}
-			return entry;
+			return await RemoveRemovableMessage(_Db.GetCollection<CloseHelpEntries>(), user.Id).CAF();
 		}
 		public async Task<CloseQuotes> RemoveActiveCloseQuoteAsync(IUser user)
 		{
-			var col = _Db.GetCollection<CloseQuotes>();
-			var entry = col.FindOne(x => x.UserId == user.Id);
-			if (entry != null
-				&& await _Client.GetGuildAsync(entry.GuildId).CAF() is IGuild guild
-				&& await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel
-				&& await channel.GetMessageAsync(entry.MessageId).CAF() is IMessage msg)
-			{
-				col.Delete(entry.Id);
-				await MessageUtils.DeleteMessageAsync(msg, _CloseHelpReason).CAF();
-			}
-			return entry;
+			return await RemoveRemovableMessage(_Db.GetCollection<CloseQuotes>(), user.Id).CAF();
 		}
 
-		//ITimersService
-		Task ITimersService.AddAsync(RemovableMessage message)
+		private async Task HandleRemovableMessages<T>(LiteCollection<T> col) where T : RemovableMessage
 		{
-			Add(message);
-			return Task.FromResult(0);
+			foreach (var guildGroup in col.Find(x => x.Time < DateTime.UtcNow).GroupBy(x => x.GuildId))
+			{
+				//Remove them from the database
+				foreach (var g in guildGroup)
+				{
+					col.Delete(g.Id);
+				}
+				if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
+				{
+					continue;
+				}
+				foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
+				{
+					if (!(await guild.GetTextChannelAsync(channelGroup.Key).CAF() is ITextChannel channel))
+					{
+						continue;
+					}
+
+					var tasks = channelGroup
+						.SelectMany(g => g.MessageIds)
+						.Select(async m => m == 0 ? null : await channel.GetMessageAsync(m).CAF());
+					var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
+					if (!messages.Any())
+					{
+						continue;
+					}
+					else if (messages.Count == 1)
+					{
+						await MessageUtils.DeleteMessageAsync(messages.First(), _MessageReason).CAF();
+					}
+					else
+					{
+						await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
+					}
+				}
+			}
 		}
-		Task ITimersService.AddAsync(TimedMessage message)
+		private async Task<T> RemoveRemovableMessage<T>(LiteCollection<T> col, ulong userId) where T : RemovableMessage
 		{
-			Add(message);
-			return Task.FromResult(0);
+			var entry = col.FindOne(x => x.UserId == userId);
+			if (entry == null)
+			{
+				return null;
+			}
+			if (await _Client.GetGuildAsync(entry.GuildId).CAF() is IGuild guild &&
+				await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel)
+			{
+				var tasks = entry.MessageIds
+					.Where(m => m != 0)
+					.Select(async m => m == 0 ? null : await channel.GetMessageAsync(m).CAF());
+				var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
+				await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
+			}
+			col.Delete(entry.Id);
+			return entry;
 		}
 
 		private class ProcessQueue
@@ -361,6 +263,18 @@ namespace Advobot.Core.Services.Timers
 					_Semaphore.Release();
 				});
 			}
+		}
+
+		//ITimersService
+		Task ITimersService.AddAsync(RemovableMessage message)
+		{
+			Add(message);
+			return Task.FromResult(0);
+		}
+		Task ITimersService.AddAsync(TimedMessage message)
+		{
+			Add(message);
+			return Task.FromResult(0);
 		}
 	}
 }

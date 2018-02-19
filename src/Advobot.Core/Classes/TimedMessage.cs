@@ -20,7 +20,7 @@ namespace Advobot.Core.Classes
 		public string Text { get; set; }
 
 		public TimedMessage() : base(default) { }
-		public TimedMessage(TimeSpan time, IGuildUser author, string text) : base(time)
+		public TimedMessage(TimeSpan time, IUser author, string text) : base(time)
 		{
 			UserId = author.Id;
 			Text = text;

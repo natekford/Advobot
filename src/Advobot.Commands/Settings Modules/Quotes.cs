@@ -98,8 +98,7 @@ namespace Advobot.Commands.Quotes
 			var closeQuotes = new CloseQuotes(default, Context, Context.GuildSettings, name);
 			if (closeQuotes.List.Any())
 			{
-				var text = $"Did you mean any of the following:\n{closeQuotes.List.FormatNumberedList(x => x.Name)}";
-				closeQuotes.MessageId = (await MessageUtils.SendMessageAsync(Context.Channel, text).CAF()).Id;
+				await closeQuotes.SendBotMessageAsync(Context.Channel).CAF();
 				await Context.Timers.AddAsync(closeQuotes).CAF();
 				return;
 			}

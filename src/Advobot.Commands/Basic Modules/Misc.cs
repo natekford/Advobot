@@ -67,8 +67,7 @@ namespace Advobot.Commands.Misc
 			var closeHelps = new CloseHelpEntries(default, Context, Context.HelpEntries, commandName);
 			if (closeHelps.List.Any())
 			{
-				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList(x => x.Name)}";
-				closeHelps.MessageId = (await MessageUtils.SendMessageAsync(Context.Channel, text).CAF()).Id;
+				await closeHelps.SendBotMessageAsync(Context.Channel).CAF();
 				await Context.Timers.AddAsync(closeHelps).CAF();
 				return;
 			}

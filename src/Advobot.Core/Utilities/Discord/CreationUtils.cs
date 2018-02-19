@@ -53,7 +53,7 @@ namespace Advobot.Core.Utilities
 			//I have no idea if I am providing services correctly, but it works.
 			var helpEntryHolder = new HelpEntryHolder(commandAssembies);
 			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
-				.AddSingleton<CommandService>(provider => CreateCommandService(commandAssembies))
+				.AddSingleton<CommandService>(provider => CreateCommandService(provider, commandAssembies))
 				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
 				.AddSingleton<IBotSettings>(provider => CreateBotSettings(botSettingsType))
 				.AddSingleton<IDiscordClient>(provider => CreateDiscordClient(provider))
@@ -66,7 +66,7 @@ namespace Advobot.Core.Utilities
 		/// Creates the <see cref="CommandService"/> for the bot. Add in typereaders and modules.
 		/// </summary>
 		/// <returns></returns>
-		internal static CommandService CreateCommandService(IEnumerable<Assembly> commandAssemblies)
+		internal static CommandService CreateCommandService(IServiceProvider provider, IEnumerable<Assembly> commandAssemblies)
 		{
 			var cmds = new CommandService(new CommandServiceConfig
 			{
@@ -101,7 +101,7 @@ namespace Advobot.Core.Utilities
 			{
 				foreach (var assembly in commandAssemblies)
 				{
-					await cmds.AddModulesAsync(assembly).CAF();
+					await cmds.AddModulesAsync(assembly, provider).CAF();
 				}
 				ConsoleUtils.DebugWrite("Successfully added every command assembly.");
 			});
@@ -128,11 +128,11 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Creates settings that the bot uses.
 		/// </summary>
-		/// <param name="botSettingsType"></param>
+		/// <param name="type"></param>
 		/// <returns></returns>
-		internal static IBotSettings CreateBotSettings(Type botSettingsType)
+		internal static IBotSettings CreateBotSettings(Type type)
 		{
-			return IOUtils.DeserializeFromFile<IBotSettings>(IOUtils.GetBotSettingsFile(), botSettingsType, true);
+			return IOUtils.DeserializeFromFile<IBotSettings>(IOUtils.GetBotSettingsFile(), type, true);
 		}
 		/// <summary>
 		/// Creates settings the guilds use.
