@@ -67,7 +67,7 @@ namespace Advobot.Commands.Guilds
 	}
 
 	[Group(nameof(ModifyGuildRegion)), TopLevelShortAlias(typeof(ModifyGuildRegion))]
-	[Summary("Shows or changes the guild's server region.")]
+	[Summary("Changes the guild server region.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildRegion : NonSavingModuleBase
@@ -78,6 +78,7 @@ namespace Advobot.Commands.Guilds
 			"eu-central",
 			"eu-west",
 			"hongkong",
+			"japan",
 			"russia",
 			"singapore",
 			"sydney",
@@ -125,7 +126,7 @@ namespace Advobot.Commands.Guilds
 	}
 
 	[Group(nameof(ModifyGuildAfkTimer)), TopLevelShortAlias(typeof(ModifyGuildAfkTimer))]
-	[Summary("Updates the guild AFK timeout.")]
+	[Summary("Changes the guild AFK timeout.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildAfkTimer : NonSavingModuleBase
@@ -140,7 +141,7 @@ namespace Advobot.Commands.Guilds
 	}
 
 	[Group(nameof(ModifyGuildAfkChannel)), TopLevelShortAlias(typeof(ModifyGuildAfkChannel))]
-	[Summary("Updates specific special channels in the guild (afk, default, system, embed).")]
+	[Summary("Changes the guild afk channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildAfkChannel : NonSavingModuleBase
@@ -161,7 +162,7 @@ namespace Advobot.Commands.Guilds
 	}
 
 	[Group(nameof(ModifyGuildSystemChannel)), TopLevelShortAlias(typeof(ModifyGuildSystemChannel))]
-	[Summary("Updates the guild system channel.")]
+	[Summary("Changes the guild system channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildSystemChannel : NonSavingModuleBase
@@ -191,7 +192,7 @@ namespace Advobot.Commands.Guilds
 		public async Task Command(DefaultMessageNotifications msgNotifs)
 		{
 			await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, GetRequestOptions()).CAF();
-			var resp = $"Successfully changed the default message notification setting to `{msgNotifs.ToString()}`.";
+			var resp = $"Successfully changed the default message notification setting to `{msgNotifs}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -207,7 +208,7 @@ namespace Advobot.Commands.Guilds
 		public async Task Command(VerificationLevel verif)
 		{
 			await Context.Guild.ModifyAsync(x => x.VerificationLevel = verif, GetRequestOptions()).CAF();
-			var resp = $"Successfully set the guild verification level as `{verif.ToString()}`.";
+			var resp = $"Successfully set the guild verification level as `{verif}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -255,7 +256,7 @@ namespace Advobot.Commands.Guilds
 	}
 
 	[Group(nameof(ModifyGuildSplash)), TopLevelShortAlias(typeof(ModifyGuildSplash))]
-	[Summary("Changes the guild splash to the given image. Won't be modified unless the server is partnered with Discord.")]
+	[Summary("Changes the guild splash to the given image. Won't be modified unless the server is a partnered server.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildSplash : NonSavingModuleBase
@@ -269,6 +270,11 @@ namespace Advobot.Commands.Guilds
 		[Command]
 		public async Task Command(Uri url)
 		{
+			if (!Context.Guild.Features.CaseInsContains(Constants.INVITE_SPLASH))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild needs to be partnered."));
+				return;
+			}
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild splash.")).CAF();
@@ -285,6 +291,11 @@ namespace Advobot.Commands.Guilds
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
+			if (!Context.Guild.Features.CaseInsContains(Constants.INVITE_SPLASH))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild needs to be partnered."));
+				return;
+			}
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild splash.")).CAF();

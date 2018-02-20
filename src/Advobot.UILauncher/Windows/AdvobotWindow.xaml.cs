@@ -241,7 +241,10 @@ namespace Advobot.UILauncher.Windows
 				switch (dialog.ShowDialog())
 				{
 					case CommonFileDialogResult.Ok:
-						new FileViewingWindow(this, dialog.FileName).ShowDialog();
+						if (SavingUtils.TryGetFileText(dialog.FileName, out var text, out var fileInfo))
+						{
+							new FileViewingWindow(this, text, fileInfo).ShowDialog();
+						}
 						break;
 				}
 			}

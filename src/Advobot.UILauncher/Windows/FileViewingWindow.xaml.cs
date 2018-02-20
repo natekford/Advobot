@@ -19,17 +19,14 @@ namespace Advobot.UILauncher.Windows
 		private FileInfo _File;
 		private Type _GuildSettingsType;
 
-		public FileViewingWindow() : this(null, null) { }
-		public FileViewingWindow(AdvobotWindow mainWindow, string path) : base(mainWindow)
+		public FileViewingWindow() : this(null, null, null) { }
+		public FileViewingWindow(AdvobotWindow mainWindow, string text, FileInfo fileInfo) : base(mainWindow)
 		{
 			InitializeComponent();
 			_GuildSettingsType = mainWindow.GuildSettings.HeldObject.GuildSettingsType;
-			if (SavingUtils.TryGetFileText(path, out var text, out _File))
-			{
-				SpecificFileOutput.Tag = _File;
-				SpecificFileOutput.Clear();
-				SpecificFileOutput.AppendText(text);
-			}
+			SpecificFileOutput.Tag = fileInfo;
+			SpecificFileOutput.Clear();
+			SpecificFileOutput.AppendText(text);
 		}
 
 		private void CopyFile(object sender, RoutedEventArgs e)

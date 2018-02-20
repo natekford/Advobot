@@ -259,7 +259,7 @@ namespace Advobot.Core.Services.Timers
 				Task.Run(async () =>
 				{
 					await _Semaphore.WaitAsync().CAF();
-					await _T.Invoke().CAF();
+					await _T().CAF();
 					_Semaphore.Release();
 				});
 			}

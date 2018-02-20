@@ -219,12 +219,20 @@ namespace Advobot.UILauncher.Utilities
 			fileInfo = null;
 			if (File.Exists(path))
 			{
-				using (var reader = new StreamReader(path))
+				try
 				{
-					text = reader.ReadToEnd();
-					fileInfo = new FileInfo(path);
+					using (var reader = new StreamReader(path))
+					{
+						text = reader.ReadToEnd();
+						fileInfo = new FileInfo(path);
+					}
+					return true;
 				}
-				return true;
+				catch (Exception e)
+				{
+					e.Write();
+					return false;
+				}
 			}
 
 			ConsoleUtils.WriteLine("Unable to bring up the file.");
