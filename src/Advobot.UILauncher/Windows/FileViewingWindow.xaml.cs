@@ -24,6 +24,7 @@ namespace Advobot.UILauncher.Windows
 		{
 			InitializeComponent();
 			_GuildSettingsType = mainWindow.GuildSettings.HeldObject.GuildSettingsType;
+			_File = fileInfo;
 			SpecificFileOutput.Tag = fileInfo;
 			SpecificFileOutput.Clear();
 			SpecificFileOutput.AppendText(text);

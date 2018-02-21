@@ -128,10 +128,9 @@ namespace Advobot.Core.Classes
 		public bool TryCreateObject(object[] additionalArgs, out T obj, out Error error)
 		{
 			var additionalArgsList = new List<object>(additionalArgs);
-			var parameters = _Constructor.GetParameters().Select(p => GetValueForParameter(p, additionalArgsList)).ToArray();
-
 			try
 			{
+				var parameters = _Constructor.GetParameters().Select(p => GetValueForParameter(p, additionalArgsList)).ToArray();
 				obj = (T)_Constructor.Invoke(parameters);
 				error = null;
 				return true;
@@ -225,11 +224,9 @@ namespace Advobot.Core.Classes
 				return Enum.ToObject(type, e);
 			}
 
-			//Converters should work for primitives. Not sure what else it works for.
-			var converter = TypeDescriptor.GetConverter(t);
 			//I think ConvertFromInvariantString works with commas, but only if the computer's culture is set to one that uses it. 
 			//Can't really test that easily because I CBA to switch my computer's language.
-			if (converter != null && converter.IsValid(value))
+			if (TypeDescriptor.GetConverter(t) is TypeConverter converter)
 			{
 				return converter.ConvertFromInvariantString(value);
 			}
