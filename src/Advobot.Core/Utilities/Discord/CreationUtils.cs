@@ -81,8 +81,6 @@ namespace Advobot.Core.Utilities
 			cmds.AddTypeReader<GuildEmote>(new GuildEmoteTypeReader());
 			cmds.AddTypeReader<Color>(new ColorTypeReader());
 			cmds.AddTypeReader<Uri>(new UriTypeReader());
-			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
-			cmds.AddTypeReader<CommandCategory>(new CommandCategoryTypeReader());
 			cmds.AddTypeReader<ModerationReason>(new ModerationReasonTypeReader());
 
 			//Add in generic custom argument type readers

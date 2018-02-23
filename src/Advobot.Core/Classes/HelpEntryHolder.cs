@@ -18,11 +18,11 @@ namespace Advobot.Core.Classes
 	public sealed class HelpEntryHolder
 	{
 		//Keep the names of the category to the category
-		private Dictionary<string, CommandCategory> _CategoryMap = new Dictionary<string, CommandCategory>();
+		private Dictionary<string, string> _CategoryMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		//Maps the name and aliases of a command to the name
 		private Dictionary<string, string> _NameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		//Maps the name to the helpentry
-		private Dictionary<string, HelpEntry> _Source = new Dictionary<string, HelpEntry>();
+		private Dictionary<string, HelpEntry> _Source = new Dictionary<string, HelpEntry>(StringComparer.OrdinalIgnoreCase);
 
 		public HelpEntryHolder(IEnumerable<Assembly> commandAssemblies)
 		{
@@ -48,7 +48,7 @@ namespace Advobot.Core.Classes
 				var innerNamespace = t.Namespace.Substring(t.Namespace.LastIndexOf('.') + 1);
 				if (!_CategoryMap.TryGetValue(innerNamespace, out var category))
 				{
-					_CategoryMap[innerNamespace] = category = new CommandCategory(innerNamespace);
+					_CategoryMap[innerNamespace] = category = innerNamespace;
 				}
 
 				var name = t.GetCustomAttribute<GroupAttribute>()?.Prefix;
@@ -152,21 +152,26 @@ namespace Advobot.Core.Classes
 			return _Source.Values.ToArray();
 		}
 		/// <summary>
+		/// Returns an array of every <see cref="HelpEntry"/> which has the specified category.
+		/// </summary>
+		/// <param name="category"></param>
+		/// <returns></returns>
+		public HelpEntry[] GetHelpEntiresFromCategory(string category)
+		{
+			return _Source.Values.Where(x => x.Category.CaseInsEquals(category)).ToArray();
+		}
+		/// <summary>
 		/// Returns an array of every <see cref="CommandCategory"/>.
 		/// </summary>
 		/// <returns></returns>
-		public CommandCategory[] GetCategories()
+		public string[] GetCategories()
 		{
 			return _CategoryMap.Values.ToArray();
 		}
 
-		public HelpEntry this[string nameOrAlias]
+		public HelpEntry this[string name]
 		{
-			get => _NameMap.TryGetValue(nameOrAlias, out var name) ? _Source[name] : null;
-		}
-		public HelpEntry[] this[CommandCategory category]
-		{
-			get => _Source.Values.Where(x => x.Category.Name == category.Name).ToArray();
+			get => _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
 		}
 	}
 
@@ -180,12 +185,12 @@ namespace Advobot.Core.Classes
 		public string BasePerm { get; }
 		public string Description { get; }
 		public ImmutableList<string> Aliases { get; }
-		public CommandCategory Category { get; }
+		public string Category { get; }
 		public bool DefaultEnabled { get; }
 		public bool AbleToBeTurnedOff { get; }
 
 		internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases,
-			CommandCategory category, bool defaultEnabled, bool ableToBeTurnedOff)
+			string category, bool defaultEnabled, bool ableToBeTurnedOff)
 		{
 			if (String.IsNullOrWhiteSpace(name))
 			{

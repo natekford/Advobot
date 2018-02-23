@@ -8,8 +8,9 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public sealed class CachedInvite
 	{
-		public string Code { get; }
 		private int _Uses;
+
+		public string Code { get; }
 		public int Uses => _Uses;
 
 		public CachedInvite(IInviteMetadata invite) : this(invite.Code, invite.Uses) { }

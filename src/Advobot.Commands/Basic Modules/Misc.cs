@@ -93,12 +93,17 @@ namespace Advobot.Commands.Misc
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command]
-		public async Task Command(CommandCategory category)
+		public async Task Command(string category)
 		{
+			if (!Context.HelpEntries.GetCategories().CaseInsContains(category))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{category}` is not a valid category.")).CAF();
+				return;
+			}
 			var embed = new EmbedWrapper
 			{
-				Title = category.Name,
-				Description = $"`{String.Join("`, `", Context.HelpEntries[category].Select(x => x.Name))}`"
+				Title = category,
+				Description = $"`{String.Join("`, `", Context.HelpEntries.GetHelpEntiresFromCategory(category).Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
@@ -109,7 +114,7 @@ namespace Advobot.Commands.Misc
 			{
 				Title = "Categories",
 				Description = $"Type `{Context.GetPrefix()}{nameof(Commands)} [Category]` for commands from that category.\n\n" +
-					$"`{String.Join("`, `", Context.HelpEntries.GetCategories().Select(x => x.Name))}`",
+					$"`{String.Join("`, `", Context.HelpEntries.GetCategories())}`",
 			};
 			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}

@@ -54,25 +54,9 @@ namespace Advobot.Core.Classes.Rules
 			formatOptions.ToList().ForEach(x => _Options |= x);
 		}
 
-		public string FormatName(string name, int index)
+		public string FormatName(string name)
 		{
-			string n;
-			switch (_Format)
-			{
-				case RuleFormat.Numbers:
-				case RuleFormat.Bullets:
-				case RuleFormat.Bold:
-					n = $"{name.FormatTitle()}";
-					break;
-				case RuleFormat.Dashes:
-					n = $"{index + 1} - {name.FormatTitle()}";
-					break;
-				default:
-					n = name.FormatTitle();
-					break;
-			}
-
-			n = n.Trim(' ');
+			var n = name.FormatTitle().Trim(' ');
 			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
 			{
 				n = n + "\n";
@@ -155,74 +139,6 @@ namespace Advobot.Core.Classes.Rules
 				}
 			}
 			return text;
-		}
-
-		/// <summary>
-		/// Sends the rules to the specified channel.
-		/// </summary>
-		/// <param name="categories"></param>
-		/// <param name="channel"></param>
-		/// <returns></returns>
-		public async Task<IReadOnlyList<IUserMessage>> SendRulesAsync(IEnumerable<RuleCategory> categories, IMessageChannel channel)
-		{
-			var messages = new List<IUserMessage>();
-
-			var formattedCategories = categories.Select((c, i) => c.ToString(this, i)).ToList();
-			var formattedRules = String.Join("\n", formattedCategories);
-			//If all of the rules can be sent in one message, do that.
-			if (!String.IsNullOrWhiteSpace(formattedRules) && formattedRules.Length <= 2000)
-			{
-				messages.Add(await MessageUtils.SendMessageAsync(channel, formattedRules).CAF());
-				return messages.AsReadOnly();
-			}
-
-			//If not, go by category
-			foreach (var category in formattedCategories)
-			{
-				messages.AddRange(await SendCategoryAsync(category, channel).CAF());
-			}
-			return messages.AsReadOnly();
-		}
-		/// <summary>
-		/// Sends a category to the specified channel.
-		/// </summary>
-		/// <param name="formattedCategory"></param>
-		/// <param name="channel"></param>
-		/// <returns></returns>
-		public async Task<IReadOnlyCollection<IUserMessage>> SendCategoryAsync(string formattedCategory, IMessageChannel channel)
-		{
-			var messages = new List<IUserMessage>();
-			//Null category gets ignored
-			if (String.IsNullOrWhiteSpace(formattedCategory))
-			{
-				return messages;
-			}
-			//Short enough categories just get sent on their own
-
-			if (formattedCategory.Length <= 2000)
-			{
-				messages.Add(await MessageUtils.SendMessageAsync(channel, formattedCategory).CAF());
-				return messages;
-			}
-
-			var sb = new StringBuilder();
-			foreach (var part in formattedCategory.Split('\n'))
-			{
-				//If the current stored text + the new part is too big, send the current stored text
-				//Then start building new stored text to send
-				if (sb.Length + part.Length >= 2000)
-				{
-					messages.Add(await MessageUtils.SendMessageAsync(channel, sb.ToString()).CAF());
-					sb.Clear();
-				}
-				sb.Append(part);
-			}
-			//Send the last remaining text
-			if (sb.Length > 0)
-			{
-				messages.Add(await MessageUtils.SendMessageAsync(channel, sb.ToString()).CAF());
-			}
-			return messages;
 		}
 	}
 }
