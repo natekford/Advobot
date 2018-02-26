@@ -165,7 +165,6 @@ namespace Advobot.Core.Utilities
 						obj = Deserialize<T>(reader.ReadToEnd(), type, settings ?? _DefaultSerializingSettings);
 						stillDef = false;
 					}
-					//ConsoleUtils.WriteLine($"The {type.Name} file has successfully been loaded.");
 				}
 				catch (JsonReaderException jre)
 				{

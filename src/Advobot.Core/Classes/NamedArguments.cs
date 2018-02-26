@@ -226,7 +226,7 @@ namespace Advobot.Core.Classes
 
 			//I think ConvertFromInvariantString works with commas, but only if the computer's culture is set to one that uses it. 
 			//Can't really test that easily because I CBA to switch my computer's language.
-			if (TypeDescriptor.GetConverter(t) is TypeConverter converter)
+			if (TypeDescriptor.GetConverter(t) is TypeConverter converter && converter.IsValid(value))
 			{
 				return converter.ConvertFromInvariantString(value);
 			}

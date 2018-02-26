@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using Advobot.Core.Classes;
 
 namespace Advobot.Core.Utilities
 {
