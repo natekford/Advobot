@@ -6,6 +6,8 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Concurrent;
+using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Webhooks
@@ -97,6 +99,53 @@ namespace Advobot.Commands.Webhooks
 
 			await webhook.ModifyAsync(x => x.Image = new Image(), GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the webhook icon from {webhook.Format()}.").CAF();
+		}
+	}
+
+	[Group(nameof(SendMessageThroughWebhook)), TopLevelShortAlias(typeof(SendMessageThroughWebhook))]
+	[Summary("Sends a message through a webhook.")]
+	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
+	[DefaultEnabled(false)]
+	public sealed class SendMessageThroughWebhook : NonSavingModuleBase
+	{
+		private static ConcurrentDictionary<ulong, RateLimit> _RateLimits = new ConcurrentDictionary<ulong, RateLimit>();
+
+		[Command]
+		public async Task Command(IWebhook webhook, [Remainder] string text)
+		{
+			if (_RateLimits.TryGetValue(Context.Guild.Id, out var rateLimit) && rateLimit.Messages < 1 && DateTime.UtcNow < rateLimit.Time)
+			{
+				var error = new Error($"Cannot send a new message to the webhook until `{rateLimit.Time.ToLongTimeString()}` UTC");
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+
+			var payload = $@"{{ ""content"":""{text}"" }}";
+
+			var req = (HttpWebRequest)WebRequest.Create($"https://canary.discordapp.com/api/webhooks/{webhook.Id}/{webhook.Token}");
+			req.Credentials = CredentialCache.DefaultCredentials;
+			req.Method = "POST";
+			req.Accept = "application/json";
+			req.ContentType = "application/json";
+
+			var bytes = new ASCIIEncoding().GetBytes(payload);
+			req.ContentLength = bytes.Length;
+			using (var s = req.GetRequestStream())
+			{
+				s.Write(bytes, 0, bytes.Length);
+			}
+
+			var resp = (HttpWebResponse)req.GetResponse();
+
+			rateLimit = _RateLimits.GetOrAdd(Context.Guild.Id, new RateLimit());
+			rateLimit.Time = (new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(Convert.ToInt64(resp.Headers["X-RateLimit-Reset"]))).ToUniversalTime();
+			rateLimit.Messages = Convert.ToInt32(resp.Headers["X-RateLimit-Remaining"]);
+		}
+
+		private struct RateLimit
+		{
+			public int Messages { get; set; }
+			public DateTime Time { get; set; }
 		}
 	}
 }

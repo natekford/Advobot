@@ -5,7 +5,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Same as <see cref="NonSavingModuleBase"/> except saves guild settings afterwards.
 	/// </summary>
-	public class GuildSettingsSavingModuleBase : NonSavingModuleBase
+	public abstract class GuildSettingsSavingModuleBase : NonSavingModuleBase
 	{
 		protected override void AfterExecute(CommandInfo command)
 		{
@@ -17,7 +17,7 @@ namespace Advobot.Core.Classes
 	/// <summary>
 	/// Same as <see cref="NonSavingModuleBase"/> except saves bot settings afterwards.
 	/// </summary>
-	public class BotSettingsSavingModuleBase : NonSavingModuleBase
+	public abstract class BotSettingsSavingModuleBase : NonSavingModuleBase
 	{
 		protected override void AfterExecute(CommandInfo command)
 		{

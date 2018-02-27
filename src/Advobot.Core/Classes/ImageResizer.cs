@@ -1,7 +1,6 @@
 ﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
 using Discord;
-using Discord.Commands;
 using ImageMagick;
 using System;
 using System.Collections.Concurrent;
@@ -13,6 +12,7 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Context = Advobot.Core.Classes.AdvobotSocketCommandContext;
 
 namespace Advobot.Core.Classes
 {
@@ -28,7 +28,7 @@ namespace Advobot.Core.Classes
 		private ConcurrentQueue<ImageCreationArguments> _Args = new ConcurrentQueue<ImageCreationArguments>();
 		private ConcurrentDictionary<ulong, object> _CurrentlyWorkingGuilds = new ConcurrentDictionary<ulong, object>();
 		private SemaphoreSlim _SemaphoreSlim;
-		private Func<AdvobotSocketCommandContext, MemoryStream, MagickFormat, string, RequestOptions, Task<Error>> _Callback;
+		private Func<Context, MemoryStream, MagickFormat, string, RequestOptions, Task<Error>> _Callback;
 		private string _Type;
 
 		/// <summary>
@@ -46,7 +46,7 @@ namespace Advobot.Core.Classes
 		/// <param name="threads">How many threads to run in the background.</param>
 		/// <param name="type">Guild icon, bot icon, emote, webhook icon, etc. (only used in response messages, nothing important)</param>
 		/// <param name="callback">What to do with the resized stream.</param>
-		public ImageResizer(int threads, string type, Func<AdvobotSocketCommandContext, MemoryStream, MagickFormat, string, RequestOptions, Task<Error>> callback)
+		public ImageResizer(int threads, string type, Func<Context, MemoryStream, MagickFormat, string, RequestOptions, Task<Error>> callback)
 		{
 			_SemaphoreSlim = new SemaphoreSlim(threads);
 			_Type = type;
@@ -70,7 +70,7 @@ namespace Advobot.Core.Classes
 		/// <param name="uri">The url to download from.</param>
 		/// <param name="options">The request options to use in the callback.</param>
 		/// <param name="nameOrId">The name for an emote, or the id for a webhook.</param>
-		public void EnqueueArguments(AdvobotSocketCommandContext context, T args, Uri uri, RequestOptions options, string nameOrId = null)
+		public void EnqueueArguments(Context context, T args, Uri uri, RequestOptions options, string nameOrId = null)
 		{
 			_Args.Enqueue(new ImageCreationArguments
 			{
@@ -123,7 +123,7 @@ namespace Advobot.Core.Classes
 		/// <param name="args">The arguments to use on the file.</param>
 		/// <param name="callback">What do to with the resized file.</param>
 		/// <returns></returns>
-		private async Task<ResizedImageResult> ResizeImageAsync(Uri uri, AdvobotSocketCommandContext context, IImageResizerArguments args)
+		private async Task<ResizedImageResult> ResizeImageAsync(Uri uri, Context context, IImageResizerArguments args)
 		{
 			var req = (HttpWebRequest)WebRequest.Create(uri.ToString().Replace(".gifv", ".mp4"));
 			req.UserAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
@@ -400,7 +400,7 @@ namespace Advobot.Core.Classes
 		}
 		private struct ImageCreationArguments
 		{
-			public AdvobotSocketCommandContext Context;
+			public Context Context;
 			public T Args;
 			public Uri Uri;
 			public RequestOptions Options;

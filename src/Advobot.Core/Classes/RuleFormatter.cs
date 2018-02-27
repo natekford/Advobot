@@ -1,12 +1,10 @@
 ﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
-using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.Rules
 {
@@ -51,7 +49,10 @@ namespace Advobot.Core.Classes.Rules
 			_TitleMarkDownFormat = titleFormat;
 			_RuleMarkDownFormat = ruleFormat;
 			_CharAfterNumbers = charAfterNumbers;
-			formatOptions.ToList().ForEach(x => _Options |= x);
+			foreach (var option in formatOptions)
+			{
+				_Options |= option;
+			}
 		}
 
 		public string FormatName(string name)
@@ -122,20 +123,21 @@ namespace Advobot.Core.Classes.Rules
 		{
 			foreach (MarkDownFormat md in Enum.GetValues(typeof(MarkDownFormat)))
 			{
-				if ((formattingOptions & md) != 0)
+				if (!formattingOptions.HasFlag(md))
 				{
-					switch (md)
-					{
-						case MarkDownFormat.Bold:
-							text = $"**{text}**";
-							break;
-						case MarkDownFormat.Italics:
-							text = $"*{text}*";
-							break;
-						case MarkDownFormat.Code:
-							text = $"`{text.EscapeBackTicks()}`";
-							break;
-					}
+					continue;
+				}
+				switch (md)
+				{
+					case MarkDownFormat.Bold:
+						text = $"**{text}**";
+						break;
+					case MarkDownFormat.Italics:
+						text = $"*{text}*";
+						break;
+					case MarkDownFormat.Code:
+						text = $"`{text.EscapeBackTicks()}`";
+						break;
 				}
 			}
 			return text;
