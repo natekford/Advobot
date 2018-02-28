@@ -1,7 +1,5 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.Rules;
-using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using Discord.Commands;
@@ -22,7 +20,7 @@ namespace Advobot.Commands.Rules
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add([VerifyStringLength(Target.RuleCategory)] string name)
 		{
-			if (Context.GuildSettings.Rules.Categories.Select(x => x.Key).CaseInsContains(name))
+			if (Context.GuildSettings.Rules.Categories.Select(x => x.Key.Name).CaseInsContains(name))
 			{
 				var error = new Error($"The category `{name}` already exists.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
@@ -30,14 +28,12 @@ namespace Advobot.Commands.Rules
 			}
 
 			var pos = Context.GuildSettings.Rules.Categories.Count + 1;
-			Context.GuildSettings.Rules.Categories.Add(name, new List<string>());
+			Context.GuildSettings.Rules.Categories.Add(new RuleCategory(name), new List<string>());
 			var resp = $"Successfully created the category `{name}` at `{pos}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(ChangeName)), ShortAlias(nameof(ChangeName))]
-		public async Task ChangeName(
-			[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, 
-			[VerifyStringLength(Target.RuleCategory)] string newName)
+		public async Task ChangeName(RuleCategory category, [VerifyStringLength(Target.RuleCategory)] string newName)
 		{
 			var oldVal = Context.GuildSettings.Rules.Categories[category];
 			Context.GuildSettings.Rules.Categories.Remove(category);
@@ -46,7 +42,7 @@ namespace Advobot.Commands.Rules
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category)
+		public async Task Remove(RuleCategory category)
 		{
 			Context.GuildSettings.Rules.Categories.Remove(category);
 			var resp = $"Successfully removed the category `{category}`.";
@@ -61,9 +57,7 @@ namespace Advobot.Commands.Rules
 	public sealed class ModifyRules : GuildSettingsSavingModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add(
-			[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, 
-			[VerifyStringLength(Target.Rule)] string rule)
+		public async Task Add(RuleCategory category, [VerifyStringLength(Target.Rule)] string rule)
 		{
 			if (Context.GuildSettings.Rules.Categories[category].CaseInsContains(rule))
 			{
@@ -75,10 +69,7 @@ namespace Advobot.Commands.Rules
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added a rule in `{category}`.").CAF();
 		}
 		[Command(nameof(Insert)), ShortAlias(nameof(Insert))]
-		public async Task Insert(
-			[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category,
-			uint index,
-			[VerifyStringLength(Target.Rule)] string rule)
+		public async Task Insert(RuleCategory category, uint index, [VerifyStringLength(Target.Rule)] string rule)
 		{
 			var count = Context.GuildSettings.Rules.Categories[category].Count;
 			Context.GuildSettings.Rules.Categories[category].Insert(Math.Min((int)Math.Min(index, int.MaxValue), count - 1), rule);
@@ -86,7 +77,7 @@ namespace Advobot.Commands.Rules
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, uint index)
+		public async Task Remove(RuleCategory category, uint index)
 		{
 			if (Context.GuildSettings.Rules.Categories[category].Count >= index)
 			{
@@ -109,9 +100,7 @@ namespace Advobot.Commands.Rules
 	public sealed class PrintOutRules : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command(
-			[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, 
-			[Optional, Remainder] NamedArguments<RuleFormatter> args)
+		public async Task Command(RuleCategory category, [Optional, Remainder] NamedArguments<RuleFormatter> args)
 		{
 			RuleFormatter obj;
 			if (args == null)

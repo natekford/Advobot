@@ -1,11 +1,9 @@
 ﻿using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;

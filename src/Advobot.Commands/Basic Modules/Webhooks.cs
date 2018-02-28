@@ -1,4 +1,5 @@
-﻿using Advobot.Core.Classes;
+﻿using Advobot.Core;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
@@ -7,6 +8,7 @@ using Discord.Commands;
 using System;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -120,23 +122,20 @@ namespace Advobot.Commands.Webhooks
 				return;
 			}
 
-			var payload = $@"{{ ""content"":""{text}"" }}";
-
 			var req = (HttpWebRequest)WebRequest.Create($"https://canary.discordapp.com/api/webhooks/{webhook.Id}/{webhook.Token}");
+			req.Proxy = new WebProxy();
 			req.Credentials = CredentialCache.DefaultCredentials;
-			req.Method = "POST";
-			req.Accept = "application/json";
-			req.ContentType = "application/json";
+			req.Method = HttpMethod.Post.Method;
+			req.Accept = req.ContentType = "application/json";
 
-			var bytes = new ASCIIEncoding().GetBytes(payload);
+			var bytes = new ASCIIEncoding().GetBytes($@"{{ ""content"":""{text}"" }}");
 			req.ContentLength = bytes.Length;
-			using (var s = req.GetRequestStream())
+			using (var s = await req.GetRequestStreamAsync().CAF())
 			{
-				s.Write(bytes, 0, bytes.Length);
+				await s.WriteAsync(bytes, 0, bytes.Length).CAF();
 			}
 
-			var resp = (HttpWebResponse)req.GetResponse();
-
+			var resp = (HttpWebResponse)(await req.GetResponseAsync().CAF());
 			rateLimit = _RateLimits.GetOrAdd(Context.Guild.Id, new RateLimit());
 			rateLimit.Time = (new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(Convert.ToInt64(resp.Headers["X-RateLimit-Reset"]))).ToUniversalTime();
 			rateLimit.Messages = Convert.ToInt32(resp.Headers["X-RateLimit-Remaining"]);

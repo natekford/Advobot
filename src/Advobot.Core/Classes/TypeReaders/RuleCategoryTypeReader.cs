@@ -1,9 +1,11 @@
-﻿using Discord.Commands;
+﻿using Advobot.Core.Utilities;
+using Discord.Commands;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.TypeReaders
-{
+{	
 	/// <summary>
 	/// Attempts to find a rule category in the guild settings.
 	/// </summary>
@@ -19,7 +21,7 @@ namespace Advobot.Core.Classes.TypeReaders
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			if (context is AdvobotSocketCommandContext advobotCommandContext
-				&& advobotCommandContext.GuildSettings.Rules.Categories.TryGetValue(input, out var value))
+				&& advobotCommandContext.GuildSettings.Rules?.Categories?.FirstOrDefault(x => x.Key.Name.CaseInsEquals(input)) != null)
 			{
 				return Task.FromResult(TypeReaderResult.FromSuccess(input));
 			}

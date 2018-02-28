@@ -1,5 +1,4 @@
 ﻿using Advobot.Core.Classes;
-using Advobot.Core.Classes.Rules;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;

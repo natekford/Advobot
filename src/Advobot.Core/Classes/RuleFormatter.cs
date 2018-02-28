@@ -3,10 +3,9 @@ using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
-namespace Advobot.Core.Classes.Rules
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Formats rules to look nice.

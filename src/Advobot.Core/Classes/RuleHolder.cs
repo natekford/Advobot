@@ -9,12 +9,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Core.Classes.Rules
+namespace Advobot.Core.Classes
 {
 	public class RuleHolder : IGuildSetting
 	{
 		[JsonProperty]
-		public Dictionary<string, List<string>> Categories = new Dictionary<string, List<string>>();
+		public Dictionary<RuleCategory, List<string>> Categories = new Dictionary<RuleCategory, List<string>>();
 
 		/// <summary>
 		/// Sends the rules to the specified channel.
@@ -48,7 +48,7 @@ namespace Advobot.Core.Classes.Rules
 		/// <param name="formattedCategory"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		public async Task<IEnumerable<IUserMessage>> SendCategoryAsync(RuleFormatter formatter, string category, IMessageChannel channel)
+		public async Task<IEnumerable<IUserMessage>> SendCategoryAsync(RuleFormatter formatter, RuleCategory category, IMessageChannel channel)
 		{
 			return await PrivateSendCategoryAsync(ToString(formatter, category), channel).CAF();
 		}
@@ -97,7 +97,7 @@ namespace Advobot.Core.Classes.Rules
 			var index = 0;
 			foreach (var kvp in Categories)
 			{
-				sb.AppendLineFeed(formatter.FormatName(kvp.Key));
+				sb.AppendLineFeed(formatter.FormatName(kvp.Key.Name));
 				for (var r = 0; r < kvp.Value.Count; ++r)
 				{
 					sb.AppendLineFeed(formatter.FormatRule(kvp.Value[r], r, kvp.Value.Count));
@@ -106,11 +106,11 @@ namespace Advobot.Core.Classes.Rules
 			}
 			return sb.ToString();
 		}
-		public string ToString(RuleFormatter formatter, string category)
+		public string ToString(RuleFormatter formatter, RuleCategory category)
 		{
 			var c = Categories[category];
 			var sb = new StringBuilder();
-			sb.AppendLineFeed(formatter.FormatName(category));
+			sb.AppendLineFeed(formatter.FormatName(category.Name));
 			for (var r = 0; r < c.Count; ++r)
 			{
 				sb.AppendLineFeed(formatter.FormatRule(c[r], r, c.Count));
