@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00890" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00896" />
     <PackageReference Include="LiteDB" Version="4.1.1" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.4.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
