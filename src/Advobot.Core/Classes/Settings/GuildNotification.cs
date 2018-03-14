@@ -75,7 +75,7 @@ namespace Advobot.Core.Classes.Settings
 
 			if (Embed != null)
 			{
-				await MessageUtils.SendEmbedMessageAsync(guild.GetTextChannel(ChannelId), Embed, content).CAF();
+				await MessageUtils.SendMessageAsync(guild.GetTextChannel(ChannelId), content, Embed).CAF();
 			}
 			else
 			{

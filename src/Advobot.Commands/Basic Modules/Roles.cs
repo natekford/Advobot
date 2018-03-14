@@ -133,7 +133,7 @@ namespace Advobot.Commands.Roles
 						: $"`{x.Position.ToString("00")}.` {x.Name}";
 				})),
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 
@@ -156,7 +156,7 @@ namespace Advobot.Commands.Roles
 					Title = "Guild Permission Types",
 					Description = $"`{String.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`"
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketRole role)
@@ -167,7 +167,7 @@ namespace Advobot.Commands.Roles
 					Title = role.Name,
 					Description = $"`{(currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission")}`"
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 		}
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]

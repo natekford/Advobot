@@ -30,7 +30,7 @@ namespace Advobot.Commands.BotSettings
 				Title = "Setting Names",
 				Description = $"`{String.Join("`, `", Context.BotSettings.GetSettings().Keys)}`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
 		public async Task Reset(string settingName)
@@ -162,13 +162,13 @@ namespace Advobot.Commands.BotSettings
 				Title = "Setting Names",
 				Description = $"`{String.Join("`, `", Context.BotSettings.GetSettings().Keys)}`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
 		{
-			var text = Context.BotSettings.Format(Context.Client, Context.Guild);
-			await MessageUtils.SendTextFileAsync(Context.Channel, text, "Bot Settings", "Bot Settings").CAF();
+			var textFile = new TextFileInfo("Bot_Settings", Context.BotSettings.Format(Context.Client, Context.Guild));
+			await MessageUtils.SendMessageAsync(Context.Channel, "**Bot Settings:**", textFile: textFile).CAF();
 		}
 		[Command]
 		public async Task Command(string settingName)
@@ -187,11 +187,11 @@ namespace Advobot.Commands.BotSettings
 					Title = settingName,
 					Description = desc
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 			else
 			{
-				await MessageUtils.SendTextFileAsync(Context.Channel, desc, settingName, settingName).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, $"**{settingName.FormatTitle()}:**", textFile: new TextFileInfo(settingName, desc)).CAF();
 			}
 		}
 	}

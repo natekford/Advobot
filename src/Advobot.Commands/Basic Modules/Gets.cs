@@ -24,31 +24,31 @@ namespace Advobot.Commands.Gets
 		public async Task Bot()
 		{
 			var embed = DiscordFormatting.FormatBotInfo(Context.Client, Context.Logging, Context.Guild);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
 		{
 			var embed = DiscordFormatting.FormatGuildInfo(Context.Guild);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(GuildUsers)), ShortAlias(nameof(GuildUsers))]
 		public async Task GuildUsers()
 		{
 			var embed = DiscordFormatting.FormatAllGuildUsersInfo(Context.Guild);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel([Remainder] SocketGuildChannel channel)
 		{
 			var embed = DiscordFormatting.FormatChannelInfo(Context.GuildSettings, channel);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
 		public async Task Role([Remainder] SocketRole role)
 		{
 			var embed = DiscordFormatting.FormatRoleInfo(role);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(User)), ShortAlias(nameof(User))]
 		public async Task User([Remainder] SocketUser user)
@@ -56,7 +56,7 @@ namespace Advobot.Commands.Gets
 			var embed = user is SocketGuildUser guildUser
 				? DiscordFormatting.FormatGuildUserInfo(guildUser)
 				: DiscordFormatting.FormatUserInfo(user);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
 		public async Task Emote([Remainder] Emote emote)
@@ -64,19 +64,19 @@ namespace Advobot.Commands.Gets
 			var embed = emote is GuildEmote guildEmote
 				? DiscordFormatting.FormatGuildEmoteInfo(Context.Guild, guildEmote)
 				: DiscordFormatting.FormatEmoteInfo(emote);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Invite)), ShortAlias(nameof(Invite))]
 		public async Task Invite([Remainder] IInvite invite)
 		{
 			var embed = DiscordFormatting.FormatInviteInfo(invite as IInviteMetadata);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Webhook)), ShortAlias(nameof(Webhook))]
 		public async Task Webhook([Remainder] IWebhook webhook)
 		{
 			var embed = DiscordFormatting.FormatWebhookInfo(Context.Guild, webhook);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 
@@ -159,7 +159,7 @@ namespace Advobot.Commands.Gets
 				Title = title,
 				Description = desc
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 
 		public enum SearchOptions
@@ -224,7 +224,7 @@ namespace Advobot.Commands.Gets
 				{
 					embed.TryAddField(guild.Format(), $"**Owner:** `{guild.Owner.Format()}`", false, out _);
 				}
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 			else
 			{
@@ -233,7 +233,7 @@ namespace Advobot.Commands.Gets
 					Title = "Guilds",
 					Description = guilds.FormatNumberedList(x => $"`{x.Format()}` Owner: `{x.Owner.Format()}`"),
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 		}
 	}
@@ -249,7 +249,7 @@ namespace Advobot.Commands.Gets
 		{
 			var users = Context.Guild.GetUsersByJoinDate().ToArray();
 			var text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.ToReadable()}`");
-			await MessageUtils.SendTextFileAsync(Context.Channel, text, "User_Joins_").CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, $"**User Join List:**", textFile: new TextFileInfo("User_Joins", text)).CAF();
 		}
 	}
 
@@ -277,9 +277,8 @@ namespace Advobot.Commands.Gets
 				}
 				else
 				{
-					var fileName = $"{channel?.Name}_Messages";
-					var content = $"Successfully got `{count}` messages.";
-					await MessageUtils.SendTextFileAsync(Context.Channel, formattedMessagesBuilder.ToString(), fileName, content).CAF();
+					var textFile = new TextFileInfo($"{channel?.Name}_Messages", formattedMessagesBuilder.ToString());
+					await MessageUtils.SendMessageAsync(Context.Channel, $"**{count} Messages:**", textFile: textFile).CAF();
 					return;
 				}
 			}
@@ -338,7 +337,7 @@ namespace Advobot.Commands.Gets
 				Title = "Enums",
 				Description = $"`{String.Join("`, `", _Enums.Select(x => x.Name))}`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command(string enumName)
@@ -361,7 +360,7 @@ namespace Advobot.Commands.Gets
 				Title = e.Name,
 				Description = $"`{String.Join("`, `", Enum.GetNames(e))}`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 }

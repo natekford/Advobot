@@ -113,7 +113,7 @@ namespace Advobot.Commands.GuildList
 					var text = $"**URL:** {invite.Url}\n**Members:** {invite.Guild.MemberCount}\n{e}";
 					embed.TryAddField(invite.Guild.Name, text, true, out _);
 				}
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 			else if (invites.Count() <= 15)
 			{
@@ -125,8 +125,8 @@ namespace Advobot.Commands.GuildList
 					var e = x.HasGlobalEmotes ? "Yes" : "";
 					return $"{n}{u}{m}{e}";
 				});
-				var text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{String.Join("\n", formatted)}";
-				await MessageUtils.SendTextFileAsync(Context.Channel, text, "Guilds_").CAF();
+				var textFile = new TextFileInfo("Guilds", $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{String.Join("\n", formatted)}");
+				await MessageUtils.SendMessageAsync(Context.Channel, "**Guilds:**", textFile: textFile).CAF();
 			}
 			else
 			{

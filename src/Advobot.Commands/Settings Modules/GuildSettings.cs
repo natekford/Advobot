@@ -268,7 +268,7 @@ namespace Advobot.Commands.GuildSettings
 					Title = "Bot Permissions",
 					Description = $"`{String.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`"
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -286,7 +286,7 @@ namespace Advobot.Commands.GuildSettings
 					Title = $"Permissions for {user.Format()}",
 					Description = $"`{String.Join("`, `", EnumUtils.GetFlagNames((GuildPermission)botUser.Permissions))}`"
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 		}
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
@@ -352,7 +352,7 @@ namespace Advobot.Commands.GuildSettings
 					Title = "Persistent Roles",
 					Description = roles.FormatNumberedList(x => x.ToString(Context.Guild as SocketGuild))
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -370,7 +370,7 @@ namespace Advobot.Commands.GuildSettings
 					Title = "Persistent Roles",
 					Description = roles.FormatNumberedList(x => x.ToString(Context.Guild as SocketGuild))
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
@@ -538,13 +538,13 @@ namespace Advobot.Commands.GuildSettings
 				Title = "Setting Names",
 				Description = $"`{String.Join("`, `", Context.GuildSettings.GetSettings().Keys)}`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
 		{
-			var text = Context.GuildSettings.Format(Context.Client, Context.Guild).TrimEnd();
-			await MessageUtils.SendTextFileAsync(Context.Channel, text, "Guild_Settings", "Guild Settings").CAF();
+			var textFile = new TextFileInfo("Guild_Settings", Context.GuildSettings.Format(Context.Client, Context.Guild));
+			await MessageUtils.SendMessageAsync(Context.Channel, "**Guild Settings:**", textFile: textFile).CAF();
 		}
 		[Command]
 		public async Task Command(string settingName)
@@ -563,11 +563,11 @@ namespace Advobot.Commands.GuildSettings
 					Title = settingName,
 					Description = desc
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 			else
 			{
-				await MessageUtils.SendTextFileAsync(Context.Channel, desc, settingName, settingName).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, $"**{settingName.FormatTitle()}:**", textFile: new TextFileInfo(settingName, desc)).CAF();
 			}
 		}
 	}

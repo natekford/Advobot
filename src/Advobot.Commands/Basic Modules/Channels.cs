@@ -130,7 +130,7 @@ namespace Advobot.Commands.Channels
 				Title = title,
 				Description = String.Join("\n", channels.OrderBy(x => x.Position).Select(x => $"`{x.Position:00}.` `{x.Name}`"))
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 
@@ -163,7 +163,7 @@ namespace Advobot.Commands.Channels
 				Title = "Channel Permissions",
 				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(ChannelPermission)))}`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel channel)
@@ -179,7 +179,7 @@ namespace Advobot.Commands.Channels
 			};
 			embed.TryAddField("Role", $"`{(roleNames.Any() ? String.Join("`, `", roleNames) : "None")}`", true, out _);
 			embed.TryAddField("User", $"`{(userNames.Any() ? String.Join("`, `", userNames) : "None")}`", false, out _);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel channel, SocketRole role)
@@ -196,7 +196,7 @@ namespace Advobot.Commands.Channels
 				Title = $"Overwrite On {channel.Format()}",
 				Description = $"Role:** `{role.Format()}`\n```{FormatOverwrites(channel, role)}```"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel channel, SocketGuildUser user)
@@ -213,7 +213,7 @@ namespace Advobot.Commands.Channels
 				Title = $"Overwrite On {channel.Format()}",
 				Description = $"User:** `{user.Format()}`\n```{FormatOverwrites(channel, user)}```"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 
 		private static string FormatOverwrites<T>(SocketGuildChannel channel, T obj) where T : ISnowflakeEntity

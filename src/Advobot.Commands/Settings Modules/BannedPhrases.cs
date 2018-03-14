@@ -82,7 +82,7 @@ namespace Advobot.Commands.BannedPhrases
 				Title = regex,
 				Description = desc
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 
@@ -111,7 +111,7 @@ namespace Advobot.Commands.BannedPhrases
 						Title = "Evaluted Regex",
 						Description = Context.GuildSettings.EvaluatedRegex.FormatNumberedList(x => x.ToString())
 					};
-					await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+					await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 					return;
 				}
 				if (position > Context.GuildSettings.EvaluatedRegex.Count)
@@ -210,7 +210,7 @@ namespace Advobot.Commands.BannedPhrases
 				Title = $"Banned {type}",
 				Description = list.FormatNumberedList(x => x.Phrase)
 			};
-			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(context.Channel, null, embed).CAF();
 		}
 		private static async Task Add<T>(AdvobotSocketCommandContext context, ICollection<T> list, string text, string type, int max) where T : BannedPhrase
 		{
@@ -304,7 +304,7 @@ namespace Advobot.Commands.BannedPhrases
 				Title = $"Banned {type} Punishments",
 				Description = list.FormatNumberedList(x => x.ToString())
 			};
-			await MessageUtils.SendEmbedMessageAsync(context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(context.Channel, null, embed).CAF();
 		}
 		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type, Punishment punishment) where T : BannedPhrase
 		{
@@ -351,7 +351,7 @@ namespace Advobot.Commands.BannedPhrases
 				Title = $"Banned Phrase Punishments",
 				Description = Context.GuildSettings.BannedPhrasePunishments.FormatNumberedList(x => x.ToString())
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
 		public sealed class Add : GuildSettingsSavingModuleBase

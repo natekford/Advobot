@@ -211,7 +211,7 @@ namespace Advobot.Commands.SelfRoles
 				Title = "Self Assignable Role Groups",
 				Description = $"`{String.Join("`, `", groupNumbers)}`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command(uint groupNum)
@@ -228,7 +228,7 @@ namespace Advobot.Commands.SelfRoles
 				Title = $"Self Roles Group {groupNum}",
 				Description = group.Roles.Any() ? group.ToString() : "`Nothing`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 }

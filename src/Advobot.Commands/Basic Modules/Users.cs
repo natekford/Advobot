@@ -276,7 +276,7 @@ namespace Advobot.Commands.Users
 				Title = $"Ban reason for {ban.User.Format()}",
 				Description = ban.Reason
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 
@@ -312,7 +312,7 @@ namespace Advobot.Commands.Users
 					? "This guild has no bans."
 					: bans.FormatNumberedList(x => x.User.Format())
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 

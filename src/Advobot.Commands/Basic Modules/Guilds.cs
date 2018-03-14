@@ -106,7 +106,7 @@ namespace Advobot.Commands.Guilds
 				Title = "Region Ids",
 				Description = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command(string regionId)

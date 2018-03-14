@@ -51,7 +51,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			};
 			embed.TryAddAuthor(user, out _);
 			embed.TryAddFooter(user.IsBot ? "Bot Joined" : "User Joined", null, out _);
-			await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), embed).CAF();
+			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
 		}
 		/// <summary>
 		/// Does nothing if the bot is the user, logs their leave to the server log, or says the goodbye message.
@@ -84,7 +84,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			};
 			embed.TryAddAuthor(user, out _);
 			embed.TryAddFooter(user.IsBot ? "Bot Left" : "User Left", null, out _);
-			await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), embed).CAF();
+			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
 		}
 		/// <summary>
 		/// Logs their name change to every server that has OnUserUpdated enabled.
@@ -117,7 +117,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				embed.TryAddField("Before:", $"`{beforeUser.Username}`", false, out _);
 				embed.TryAddField("After:", $"`{afterUser.Username}`", false, out _);
 				embed.TryAddFooter("Name Changed", null, out _);
-				await MessageUtils.SendEmbedMessageAsync(guild.GetTextChannel(settings.ServerLogId), embed).CAF();
+				await MessageUtils.SendMessageAsync(guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
 			}
 		}
 	}

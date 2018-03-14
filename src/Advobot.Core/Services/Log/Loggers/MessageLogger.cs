@@ -144,6 +144,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					break;
 				}
 
+				var c = guildChannel.Guild.GetTextChannel(settings.ServerLogId);
 				if (inEmbed)
 				{
 					var embed = new EmbedWrapper
@@ -153,7 +154,7 @@ namespace Advobot.Core.Services.Log.Loggers
 						Color = EmbedWrapper.MessageDelete
 					};
 					embed.TryAddFooter("Deleted Messages", null, out _);
-					await MessageUtils.SendEmbedMessageAsync(guildChannel.Guild.GetTextChannel(settings.ServerLogId), embed).CAF();
+					await MessageUtils.SendMessageAsync(c, null, embed).CAF();
 				}
 				else
 				{
@@ -164,7 +165,7 @@ namespace Advobot.Core.Services.Log.Loggers
 					}
 
 					var text = sb.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
-					await MessageUtils.SendTextFileAsync(guildChannel.Guild.GetTextChannel(settings.ServerLogId), text, "Deleted Messages", $"{messages.Count()} Deleted Messages").CAF();
+					await MessageUtils.SendMessageAsync(c, $"**{messages.Count()} Deleted Messages:**", textFile: new TextFileInfo("Deleted_Messages", text)).CAF();
 				}
 			});
 
@@ -232,7 +233,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				};
 				embed.TryAddAuthor(user.Username, attachmentUrl, user.GetAvatarUrl(), out _);
 				embed.TryAddFooter(footerText, null, out _);
-				await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ImageLogId), embed).CAF();
+				await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ImageLogId), null, embed).CAF();
 			}
 			foreach (var imageEmbed in message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
 			{
@@ -259,7 +260,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				}
 
 				embed.TryAddFooter(footerText, null, out _);
-				await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ImageLogId), embed).CAF();
+				await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ImageLogId), null, embed).CAF();
 			}
 		}
 		/// <summary>
@@ -293,7 +294,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			embed.TryAddField("Before:", $"`{(bMsgContent.Length > 750 ? "Long message" : bMsgContent)}`", true, out _);
 			embed.TryAddField("After:", $"`{(aMsgContent.Length > 750 ? "Long message" : aMsgContent)}`", false, out _);
 			embed.TryAddFooter("Message Updated", null, out _);
-			await MessageUtils.SendEmbedMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), embed).CAF();
+			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
 
 			Logging.MessageEdits.Increment();
 		}

@@ -156,7 +156,7 @@ namespace Advobot.Core.Classes
 					Description = quote.Text,
 				};
 				embed.TryAddFooter("Quote", null, out _);
-				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(message.Channel, null, embed).CAF();
 			}
 			var helpEntries = await _Timers.RemoveActiveCloseHelpAsync(user).CAF();
 			var validHelpEntries = helpEntries != null && helpEntries.List.Count > i;
@@ -170,7 +170,7 @@ namespace Advobot.Core.Classes
 					Description = help.Text.Replace(Constants.PLACEHOLDER_PREFIX, prefix),
 				};
 				embed.TryAddFooter("Help", null, out _);
-				await MessageUtils.SendEmbedMessageAsync(message.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(message.Channel, null, embed).CAF();
 			}
 
 			if (validQuotes || validHelpEntries)
@@ -236,7 +236,7 @@ namespace Advobot.Core.Classes
 					};
 					embed.TryAddAuthor(context.User, out _);
 					embed.TryAddFooter("Mod Log", null, out _);
-					await MessageUtils.SendEmbedMessageAsync(channel.Guild.GetTextChannel(settings.ModLogId), embed).CAF();
+					await MessageUtils.SendMessageAsync(channel.Guild.GetTextChannel(settings.ModLogId), null, embed).CAF();
 				}
 			}
 			else

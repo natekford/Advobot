@@ -84,7 +84,7 @@ namespace Advobot.Commands.Quotes
 					Title = "Quotes",
 					Description = $"`{String.Join("`, `", quotes.Select(x => x.Name))}`"
 				};
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 				return;
 			}
 

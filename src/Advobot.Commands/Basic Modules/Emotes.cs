@@ -204,7 +204,7 @@ namespace Advobot.Commands.Emotes
 					? emotes.FormatNumberedList(x => $"{x} `{x.Name}`")
 					: $"This guild has no {caller.ToLower()} emotes.",
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 }

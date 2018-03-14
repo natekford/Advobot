@@ -42,7 +42,7 @@ namespace Advobot.Commands.Invites
 				Title = "Instant Invite List",
 				Description = desc
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 

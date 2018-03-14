@@ -46,7 +46,7 @@ namespace Advobot.Commands.Misc
 			embed.TryAddField("Mention Syntax", _MentionSyntax, true, out _);
 			embed.TryAddField("Links", _Links, false, out _);
 			embed.TryAddFooter("Help", null, out _);
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command(string commandName)
@@ -60,7 +60,7 @@ namespace Advobot.Commands.Misc
 					Description = helpEntry.ToString().Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix())
 				};
 				embed.TryAddFooter("Help", null, out _);
-				await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 				return;
 			}
 
@@ -90,7 +90,7 @@ namespace Advobot.Commands.Misc
 				Title = "All Commands",
 				Description = $"`{String.Join("`, `", Context.HelpEntries.GetHelpEntries().Select(x => x.Name))}`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command(string category)
@@ -105,7 +105,7 @@ namespace Advobot.Commands.Misc
 				Title = category,
 				Description = $"`{String.Join("`, `", Context.HelpEntries.GetHelpEntiresFromCategory(category).Select(x => x.Name))}`"
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command()
@@ -116,7 +116,7 @@ namespace Advobot.Commands.Misc
 				Description = $"Type `{Context.GetPrefix()}{nameof(Commands)} [Category]` for commands from that category.\n\n" +
 					$"`{String.Join("`, `", Context.HelpEntries.GetCategories())}`",
 			};
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 	}
 
@@ -136,7 +136,7 @@ namespace Advobot.Commands.Misc
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-			await MessageUtils.SendEmbedMessageAsync(Context.Channel, obj.Embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, obj.Embed).CAF();
 		}
 	}
 
@@ -212,7 +212,7 @@ namespace Advobot.Commands.Misc
 	public sealed class Test : NonSavingModuleBase
 	{
 		[Command]
-		public async Task Command(string text)
+		public async Task Command()
 		{
 			await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
 		}
