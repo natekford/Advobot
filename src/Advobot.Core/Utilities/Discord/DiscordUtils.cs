@@ -218,7 +218,6 @@ namespace Advobot.Core.Utilities
 		/// <param name="removeOldInstances"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">When <paramref name="source"/> is not in order.</exception>
-		/// <exception cref="InvalidOperationException">When <paramref name="source"/> has been modified during method run time.</exception>
 		public static int CountItemsInTimeFrame(List<ulong> source, int seconds = 0, bool removeOldInstances = false)
 		{
 			var timeList = new List<ulong>(source);
