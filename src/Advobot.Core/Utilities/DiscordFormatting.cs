@@ -121,13 +121,13 @@ namespace Advobot.Core.Utilities
 			{
 				var userMention = msg.Author.Mention;
 				var channelMention = ((ITextChannel)msg.Channel).Mention;
-				header = $"`[{time}]` {userMention} IN {channelMention} `{msg.Id}`";
+				header = $"`[{time}]` {userMention} {channelMention} `{msg.Id}`";
 			}
 			else
 			{
 				var user = msg.Author.Format();
 				var channel = msg.Channel.Format();
-				header = $"`[{time}]` `{user}` IN `{channel}` `{msg.Id}`";
+				header = $"`[{time}]` `{user}` `{channel}` `{msg.Id}`";
 			}
 
 			var content = new StringBuilder($"{header}\n```\n{text.EscapeBackTicks()}");

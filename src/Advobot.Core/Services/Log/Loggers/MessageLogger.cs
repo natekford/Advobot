@@ -9,6 +9,7 @@ using Discord;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -208,7 +209,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			foreach (var attachmentUrl in message.Attachments.Select(x => x.Url).Distinct()) //Attachments
 			{
 				string footerText;
-				var mimeType = MimeTypes.GetMimeType(attachmentUrl);
+				var mimeType = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(attachmentUrl));
 				if (mimeType.CaseInsContains("video/") || mimeType.CaseInsContains("/gif"))
 				{
 					Logging.Animated.Increment();
