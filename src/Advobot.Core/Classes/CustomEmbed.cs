@@ -10,16 +10,40 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public sealed class CustomEmbed
 	{
-		public const string FIELD_NAME = "FieldName";
-		public const string FIELD_TEXT = "FieldText";
-		public const string FIELD_INLINE = "FieldInline";
-		public const string SPLIT_CHAR = "|";
+		private const string FIELD_NAME = "FieldName";
+		private const string FIELD_TEXT = "FieldText";
+		private const string FIELD_INLINE = "FieldInline";
+		private const string SPLIT_CHAR = "|";
 		private static char _SplitChar = SPLIT_CHAR[0];
-		public const string FORMAT = FIELD_NAME + ":Name" + SPLIT_CHAR + FIELD_TEXT + ":Text" + SPLIT_CHAR + FIELD_INLINE + ":True|False";
+		/// <summary>
+		/// The format to use when inputting fields.
+		/// </summary>
+		public const string FIELD_FORMAT = FIELD_NAME + ":Name" + SPLIT_CHAR + FIELD_TEXT + ":Text" + SPLIT_CHAR + FIELD_INLINE + ":True|False";
 
+		/// <summary>
+		/// The embed to create.
+		/// </summary>
 		public EmbedWrapper Embed { get; }
 
+		/// <summary>
+		/// Creates an instance of <see cref="CustomEmbed"/> and with null as every parameter.
+		/// </summary>
 		public CustomEmbed() : this(null, null, null, null, null, null, null, null, null, null, null) { }
+		/// <summary>
+		/// Sets the arguments of <see cref="Embed"/>.
+		/// </summary>
+		/// <param name="title"></param>
+		/// <param name="description"></param>
+		/// <param name="imageUrl"></param>
+		/// <param name="url"></param>
+		/// <param name="thumbUrl"></param>
+		/// <param name="color"></param>
+		/// <param name="authorName"></param>
+		/// <param name="authorIconUrl"></param>
+		/// <param name="authorUrl"></param>
+		/// <param name="footer"></param>
+		/// <param name="footerIconUrl"></param>
+		/// <param name="fieldInfo"></param>
 		[NamedArgumentConstructor]
 		public CustomEmbed(
 			[NamedArgument] string title,
@@ -39,7 +63,7 @@ namespace Advobot.Core.Classes
 			{
 				Title = title,
 				Description = description,
-				Color = ColorTypeReader.GetColor(color),
+				Color = ColorTypeReader.ParseColor(color),
 				ImageUrl = imageUrl,
 				Url = url,
 				ThumbnailUrl = thumbUrl

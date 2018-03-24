@@ -21,12 +21,21 @@ namespace Advobot.Core.Classes.UserInformation
 		/// </summary>
 		public ulong UserId { get; }
 
+		/// <summary>
+		/// Creates an instance of userinfo with the supplied user and time as datetime.utcnow.
+		/// </summary>
+		/// <param name="user"></param>
 		public UserInfo(SocketGuildUser user)
 		{
 			Time = DateTime.UtcNow;
 			GuildId = user.Guild.Id;
 			UserId = user.Id;
 		}
+		/// <summary>
+		/// Creates an instance of userinfo with the supplied user and time.
+		/// </summary>
+		/// <param name="time"></param>
+		/// <param name="user"></param>
 		public UserInfo(TimeSpan time, SocketGuildUser user)
 		{
 			Time = DateTime.UtcNow.Add(time);
@@ -34,6 +43,9 @@ namespace Advobot.Core.Classes.UserInformation
 			UserId = user.Id;
 		}
 
+		/// <summary>
+		/// Sets everything back to default values.
+		/// </summary>
 		public abstract void Reset();
 	}
 }

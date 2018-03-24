@@ -1,5 +1,5 @@
-﻿using System.Windows.Controls;
-using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
+using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Utilities
 {

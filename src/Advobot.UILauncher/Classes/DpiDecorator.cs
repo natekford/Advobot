@@ -4,8 +4,14 @@ using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes
 {
+	/// <summary>
+	/// Changes the dpi of the program to account for other dpi of the monitor.
+	/// </summary>
 	public class DpiDecorator : Decorator
 	{
+		/// <summary>
+		/// Creates an instance of dpidecorator.
+		/// </summary>
 		public DpiDecorator()
 		{
 			Loaded += (sender, e) =>

@@ -1,7 +1,5 @@
 ﻿using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,6 +15,9 @@ namespace Advobot.Core.Classes
 	/// <typeparam name="T"></typeparam>
 	public sealed class NamedArguments<T> where T : class
 	{
+		/// <summary>
+		/// The argument names for the specified generic parameter.
+		/// </summary>
 		public static ImmutableList<string> ArgNames { get; }
 
 		private static ConstructorInfo _Constructor;
@@ -120,10 +121,12 @@ namespace Advobot.Core.Classes
 		}
 
 		/// <summary>
-		/// Creates whatever <see cref="T"/> is with the gathered arguments.
+		/// Creates whatever the generic parameter is with the gathered arguments.
 		/// <paramref name="additionalArgs"/> 
 		/// </summary>
 		/// <param name="additionalArgs"></param>
+		/// <param name="obj"></param>
+		/// <param name="error"></param>
 		/// <returns></returns>
 		public bool TryCreateObject(object[] additionalArgs, out T obj, out Error error)
 		{

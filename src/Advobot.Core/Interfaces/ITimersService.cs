@@ -48,10 +48,35 @@ namespace Advobot.Core.Interfaces
 		/// <returns></returns>
 		Task AddAsync(TimedMessage message);
 
+		/// <summary>
+		/// Updates or inserts the supplied value in the database. If inserting, use AddAsync instead to do the other actions.
+		/// </summary>
+		/// <param name="punishment"></param>
+		/// <returns></returns>
 		bool Update(RemovablePunishment punishment);
+		/// <summary>
+		/// Updates or inserts the supplied value in the database. If inserting, use AddAsync instead to do the other actions.
+		/// </summary>
+		/// <param name="help"></param>
+		/// <returns></returns>
 		bool Update(CloseHelpEntries help);
+		/// <summary>
+		/// Updates or inserts the supplied value in the database. If inserting, use AddAsync instead to do the other actions.
+		/// </summary>
+		/// <param name="quote"></param>
+		/// <returns></returns>
 		bool Update(CloseQuotes quote);
+		/// <summary>
+		/// Updates or inserts the supplied value in the database. If inserting, use AddAsync instead to do the other actions.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		bool Update(RemovableMessage message);
+		/// <summary>
+		/// Updates or inserts the supplied value in the database. If inserting, use AddAsync instead to do the other actions.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		bool Update(TimedMessage message);
 
 		/// <summary>

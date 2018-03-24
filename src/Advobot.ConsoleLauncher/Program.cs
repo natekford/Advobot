@@ -1,6 +1,7 @@
 ﻿using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -24,7 +25,7 @@ namespace Advobot.ConsoleLauncher
 				savePath = false;
 			}
 
-			var provider = CreationUtils.CreateDefaultServiceProvider(DiscordUtils.GetCommandAssemblies(), typeof(BotSettings), typeof(GuildSettings));
+			var provider = CreationUtils.CreateDefaultServiceProvider<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies());
 			var commandHandler = new CommandHandler(provider);
 			var client = provider.GetService<IDiscordClient>();
 

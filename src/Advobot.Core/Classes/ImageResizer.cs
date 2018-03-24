@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using ImageMagick;
 using System;
@@ -115,13 +116,13 @@ namespace Advobot.Core.Classes
 			}).CAF();
 		}
 		/// <summary>
-		/// Uses the image stream for <paramref name="callback"/>. Returns null if successful, returns an error string otherwise.
+		/// Uses the image stream for the function passed into the constructor.
+		/// Returns null if successful, returns an error string otherwise.
 		/// The stream will be set to a position of 0 before the callback is invoked.
 		/// </summary>
 		/// <param name="uri">The uri to download the file from.</param>
 		/// <param name="context">The current context.</param>
 		/// <param name="args">The arguments to use on the file.</param>
-		/// <param name="callback">What do to with the resized file.</param>
 		/// <returns></returns>
 		private async Task<ResizedImageResult> ResizeImageAsync(Uri uri, Context context, IImageResizerArguments args)
 		{
@@ -377,11 +378,26 @@ namespace Advobot.Core.Classes
 			return null;
 		}
 
+		/// <summary>
+		/// The result of the resizing.
+		/// </summary>
 		public sealed class ResizedImageResult : IDisposable
 		{
+			/// <summary>
+			/// The resized image's data.
+			/// </summary>
 			public MemoryStream Stream { get; }
+			/// <summary>
+			/// The format of the image.
+			/// </summary>
 			public MagickFormat Format { get; }
+			/// <summary>
+			/// Any error gotten when resizing.
+			/// </summary>
 			public string Error { get; }
+			/// <summary>
+			/// Whether or not it was resized successfully.
+			/// </summary>
 			public bool IsSuccess { get; }
 
 			internal ResizedImageResult(MemoryStream stream, MagickFormat format, string error)
@@ -393,6 +409,9 @@ namespace Advobot.Core.Classes
 				IsSuccess = error == null && stream != null;
 			}
 
+			/// <summary>
+			/// Disposes <see cref="Stream"/>.
+			/// </summary>
 			public void Dispose()
 			{
 				Stream?.Dispose();

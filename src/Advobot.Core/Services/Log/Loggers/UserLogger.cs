@@ -1,7 +1,7 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
-using Discord;
+using AdvorangesUtils;
 using Discord.WebSocket;
 using System;
 using System.Linq;

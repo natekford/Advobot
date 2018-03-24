@@ -28,9 +28,26 @@ namespace Advobot.Core.Classes.Punishments
 		/// </summary>
 		public List<ulong> MessageIds { get; set; }
 
+		/// <summary>
+		/// Initializes the object. Parameterless constructor is used for the database.
+		/// </summary>
 		public RemovableMessage() : base(default) { }
+		/// <summary>
+		/// Creates an instance of removable messages with the supplied messages on the guild/channel in the context.
+		/// </summary>
+		/// <param name="time"></param>
+		/// <param name="context"></param>
+		/// <param name="messages"></param>
 		public RemovableMessage(TimeSpan time, ICommandContext context, params IUserMessage[] messages)
 			: this(time, context.Guild, context.Channel, context.User, messages) { }
+		/// <summary>
+		/// Creates an instance of removable messages with the supplied messages on the guild/channel passed in.
+		/// </summary>
+		/// <param name="time"></param>
+		/// <param name="guild"></param>
+		/// <param name="channel"></param>
+		/// <param name="user"></param>
+		/// <param name="messages"></param>
 		public RemovableMessage(TimeSpan time, IGuild guild, IMessageChannel channel, IUser user, params IUserMessage[] messages)
 			: base(time)
 		{

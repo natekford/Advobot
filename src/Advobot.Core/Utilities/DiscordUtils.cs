@@ -3,12 +3,12 @@ using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Results;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -18,6 +18,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Utilities
 {
+	/// <summary>
+	/// Actions done on discord objects.
+	/// </summary>
 	public static class DiscordUtils
     {
 		/// <summary>
@@ -208,11 +211,10 @@ namespace Advobot.Core.Utilities
 		}
 
 		/// <summary>
-		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
+		/// Counts how many times something has occurred within a given timeframe.
 		/// Also modifies the queue by removing instances which are too old to matter (locks the source when doing so).
 		/// Returns the listlength if seconds is less than 2 or the listlength is less than 2.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
 		/// <param name="source"></param>
 		/// <param name="seconds"></param>
 		/// <param name="removeOldInstances"></param>
@@ -370,6 +372,31 @@ namespace Advobot.Core.Utilities
 			}
 			//If one then assume it's the new one, if more than one, no way to tell
 			return newInvs.Count(x => x.Uses != 0) == 1 ? guildSettings.Invites.First(i => i.Code == newInvs.First(n => n.Uses != 0).Code) : null;
+		}
+		/// <summary>
+		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="objects"></param>
+		/// <param name="target"></param>
+		/// <param name="count"></param>
+		/// <param name="f"></param>
+		/// <returns></returns>
+		public static IEnumerable<T> GetInvitesFromCount<T>(this IEnumerable<T> objects, CountTarget target, uint? count, Func<T, int?> f)
+		{
+			switch (target)
+			{
+				case CountTarget.Equal:
+					objects = objects.Where(x => { var val = f(x); return val != null && val == count; });
+					break;
+				case CountTarget.Below:
+					objects = objects.Where(x => { var val = f(x); return val != null && val < count; });
+					break;
+				case CountTarget.Above:
+					objects = objects.Where(x => { var val = f(x); return val != null && val > count; });
+					break;
+			}
+			return objects;
 		}
 	}
 }

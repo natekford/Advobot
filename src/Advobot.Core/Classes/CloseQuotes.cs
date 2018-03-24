@@ -1,6 +1,6 @@
 ﻿using Advobot.Core.Classes.Settings;
 using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -13,19 +13,38 @@ namespace Advobot.Core.Classes.CloseWords
 	/// </summary>
 	public class CloseQuotes : CloseWords<Quote>
 	{
+		/// <summary>
+		/// Initializes the object. Parameterless constructor is used for the database.
+		/// </summary>
 		public CloseQuotes() { }
+		/// <summary>
+		/// Initializes the object with the supplied values.
+		/// </summary>
+		/// <param name="time"></param>
+		/// <param name="context"></param>
+		/// <param name="settings"></param>
+		/// <param name="search"></param>
 		public CloseQuotes(TimeSpan time, ICommandContext context, IGuildSettings settings, string search) 
 			: base(time, context, settings.Quotes, search) { }
 
-		protected override CloseWord FindCloseWord(Quote obj, string search)
+		/// <inheritdoc />
+		protected override bool IsCloseWord(Quote obj, string search, out CloseWord closeWord)
 		{
 			var closeness = FindCloseness(obj.Name, search);
-			return closeness > MaxAllowedCloseness ? null : new CloseWord(closeness, obj.Name, obj.Description);
+			var success = closeness < MaxAllowedCloseness;
+			closeWord = success ? new CloseWord(closeness, obj.Name, obj.Description) : null;
+			return success;
 		}
-		protected override CloseWord FindCloseWord(IEnumerable<Quote> objs, IEnumerable<string> alreadyUsedNames, string search)
+		/// <inheritdoc />
+		protected override bool TryGetCloseWord(
+			IEnumerable<Quote> objs,
+			IEnumerable<string> used,
+			string search,
+			out CloseWord closeWord)
 		{
-			var obj = objs.FirstOrDefault(x => !alreadyUsedNames.Contains(x.Name) && x.Name.CaseInsContains(search));
-			return obj == null ? null : new CloseWord(int.MaxValue, obj.Name, obj.Description);
+			var obj = objs.FirstOrDefault(x => !used.Contains(x.Name) && x.Name.CaseInsContains(search));
+			closeWord = obj != null ? new CloseWord(int.MaxValue, obj.Name, obj.ToString()) : null;
+			return obj != null;
 		}
 	}
 }

@@ -3,9 +3,15 @@ using System.Runtime.CompilerServices;
 
 namespace Advobot.UILauncher.Classes
 {
+	/// <summary>
+	/// Holds an object for use in XAML binding.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public class Holder<T> : INotifyPropertyChanged
 	{
-		private T _HeldObject;
+		/// <summary>
+		/// The held object.
+		/// </summary>
 		public T HeldObject
 		{
 			get => _HeldObject;
@@ -16,7 +22,13 @@ namespace Advobot.UILauncher.Classes
 			}
 		}
 
+		private T _HeldObject;
+
+		/// <summary>
+		/// Notifies that the held object has been updated.
+		/// </summary>
 		public event PropertyChangedEventHandler PropertyChanged;
+
 		private void NotifyPropertyChanged([CallerMemberName] string name = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

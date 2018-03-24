@@ -1,8 +1,9 @@
-﻿using System;
+﻿using AdvorangesUtils;
+using Discord.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Core.Utilities;
-using Discord.Commands;
+using System.Text;
 
 namespace Advobot.Core.Classes.Attributes
 {
@@ -14,6 +15,11 @@ namespace Advobot.Core.Classes.Attributes
 	{
 		private static Dictionary<Type, Initialism> _AlreadyUsedInUpperMostClasses = new Dictionary<Type, Initialism>();
 
+		/// <summary>
+		/// Generates the aliases to use for the alias attribute.
+		/// </summary>
+		/// <param name="classType"></param>
+		/// <param name="otherAliases"></param>
 		public TopLevelShortAliasAttribute(Type classType, params string[] otherAliases) : base(Shorten(classType, otherAliases)) { }
 
 		private static string[] Shorten(Type classType, string[] otherAliases)
@@ -36,36 +42,40 @@ namespace Advobot.Core.Classes.Attributes
 			//Example with:
 			//ChangeChannelPosition
 			//ChangeChannelPerms
-			var matchingInitialisms = _AlreadyUsedInUpperMostClasses.Values.Where(x => x.Edited.CaseInsEquals(initialism.Edited)).ToList();
+			var matchingInitialisms = _AlreadyUsedInUpperMostClasses.Values
+				.Where(x => x.Edited.CaseInsEquals(initialism.Edited)).ToList();
 			if (matchingInitialisms.Any())
 			{
 				//ChangeChannel is in both at the start, so would match with ChangeChannelPosition.
 				var matchingStarts = matchingInitialisms.Select(x =>
 				{
-					var matchingStartPartsIndex = -1;
+					var index = -1;
 					for (var i = 0; i < Math.Min(x.Parts.Count, initialism.Parts.Count); ++i)
 					{
-						if (x.Parts[i].CaseInsEquals(initialism.Parts[i]))
-						{
-							++matchingStartPartsIndex;
-						}
-						else
+						if (!x.Parts[i].CaseInsEquals(initialism.Parts[i]))
 						{
 							break;
 						}
+						++index;
 					}
-
-					return (Holder: x, matchingStartPartsIndex);
-				}).Where(x => x.matchingStartPartsIndex > -1).ToList();
+					return (Holder: x, MatchingStartPartsIndex: index);
+				}).Where(x => x.MatchingStartPartsIndex > -1).ToList();
 
 				//ChangeChannel is 2 parts, so this would return 2. Add 1 to start adding from Perms instead of Channel.
-				var indexToAddAt = matchingStarts.Any() ? matchingStarts.Max(x => x.matchingStartPartsIndex) + 1 : 1;
+				var indexToAddAt = matchingStarts.Any() ? matchingStarts.Max(x => x.MatchingStartPartsIndex) + 1 : 1;
 
 				//Would do one loop and change ChangeChannelPerms' initialism from ccp to ccpe
 				var length = 1;
 				while (_AlreadyUsedInUpperMostClasses.Values.Select(x => x.Edited).CaseInsContains(initialism.Edited))
 				{
-					initialism.AppendToInitialismByPart(indexToAddAt, length);
+					var newInitialism = new StringBuilder();
+					for (var i = 0; i < initialism.Parts.Count; ++i)
+					{
+						var p = initialism.Parts[i];
+						var l = i == indexToAddAt ? length : 1;
+						newInitialism.Append(p.Substring(0, l));
+					}
+					initialism.Edited = newInitialism.ToString().ToLower();
 					++length;
 				}
 

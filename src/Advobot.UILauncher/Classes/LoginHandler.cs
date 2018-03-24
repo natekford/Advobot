@@ -51,7 +51,7 @@ namespace Advobot.UILauncher.Classes
 		{
 			if (Config.ValidatePath(path, startup))
 			{
-				Provider = CreationUtils.CreateDefaultServiceProvider(DiscordUtils.GetCommandAssemblies(), typeof(BotSettings), typeof(GuildSettings));
+				Provider = CreationUtils.CreateDefaultServiceProvider<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies());
 				CommandHandler = new CommandHandler(Provider);
 				return true;
 			}

@@ -17,7 +17,16 @@ namespace Advobot.Core.Classes
 		/// </summary>
 		public string Text { get; set; }
 
+		/// <summary>
+		/// Initializes the object. Parameterless constructor is used for the database.
+		/// </summary>
 		public TimedMessage() : base(default) { }
+		/// <summary>
+		/// Creates an instance of timedmessage.
+		/// </summary>
+		/// <param name="time"></param>
+		/// <param name="author"></param>
+		/// <param name="text"></param>
 		public TimedMessage(TimeSpan time, IUser author, string text) : base(time)
 		{
 			UserId = author.Id;

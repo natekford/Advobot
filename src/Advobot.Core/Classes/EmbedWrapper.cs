@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using Discord;
 using System;
 using System.Collections.Generic;
@@ -14,30 +14,47 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public sealed class EmbedWrapper
 	{
+		/// <summary>
+		/// The base color to use for an embed.
+		/// </summary>
 		public static Color Base { get; } = new Color(255, 100, 000);
+		/// <summary>
+		/// The color to use for users joining.
+		/// </summary>
 		public static Color Join { get; } = new Color(000, 255, 000);
+		/// <summary>
+		/// The color to use for users leaving.
+		/// </summary>
 		public static Color Leave { get; } = new Color(255, 000, 000);
+		/// <summary>
+		/// The color to use for users being modified.
+		/// </summary>
 		public static Color UserEdit { get; } = new Color(051, 051, 255);
+		/// <summary>
+		/// The color to use for attachments on a message.
+		/// </summary>
 		public static Color Attachment { get; } = new Color(000, 204, 204);
+		/// <summary>
+		/// The color to use for a message being edited.
+		/// </summary>
 		public static Color MessageEdit { get; } = new Color(000, 000, 255);
+		/// <summary>
+		/// The color to use for a message being deleted.
+		/// </summary>
 		public static Color MessageDelete { get; } = new Color(255, 051, 051);
+		/// <summary>
+		/// The maximum length in lines a description can be before it won't render on mobile.
+		/// </summary>
 		public const int MAX_DESCRIPTION_LINES = 20;
+		/// <summary>
+		/// The maximum length in lines a field can be before it won't render on mobile.
+		/// </summary>
 		public const int MAX_FIELD_LINES = 5;
-
 		private const string LINE_BREAKS = "Line Breaks";
 
-		private EmbedBuilder _Builder = new EmbedBuilder
-		{
-			Color = Base,
-			Timestamp = DateTimeOffset.UtcNow
-		};
-		private bool _ThrowOnInvalid;
-
-		private List<EmbedError> _Errors = new List<EmbedError>();
-		public ImmutableList<EmbedError> Errors => _Errors.ToImmutableList();
-		private Dictionary<string, string> _FailedValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		public ImmutableDictionary<string, string> FailedValues => _FailedValues.ToImmutableDictionary();
-
+		/// <summary>
+		/// The title of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public string Title
 		{
 			get => _Builder.Title;
@@ -50,6 +67,9 @@ namespace Advobot.Core.Classes
 				_Builder.Title = ShortenString(errors, value);
 			}
 		}
+		/// <summary>
+		/// The description of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public string Description
 		{
 			get => _Builder.Description;
@@ -62,6 +82,9 @@ namespace Advobot.Core.Classes
 				_Builder.Description = ShortenString(errors.Where(x => x.SubProperty == null), shortenedOnLines);
 			}
 		}
+		/// <summary>
+		/// The url of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public string Url
 		{
 			get => _Builder.Url;
@@ -73,6 +96,9 @@ namespace Advobot.Core.Classes
 				_Builder.Url = null;
 			}
 		}
+		/// <summary>
+		/// The thumnail url of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public string ThumbnailUrl
 		{
 			get => _Builder.ThumbnailUrl;
@@ -84,6 +110,9 @@ namespace Advobot.Core.Classes
 				_Builder.ThumbnailUrl = null;
 			}
 		}
+		/// <summary>
+		/// The image url of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public string ImageUrl
 		{
 			get => _Builder.ImageUrl;
@@ -95,16 +124,25 @@ namespace Advobot.Core.Classes
 				_Builder.ImageUrl = null;
 			}
 		}
+		/// <summary>
+		/// The color of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public Color? Color
 		{
 			get => _Builder.Color;
 			set => _Builder.Color = value;
 		}
+		/// <summary>
+		/// The timestamp of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public DateTimeOffset? Timestamp
 		{
 			get => _Builder.Timestamp;
 			set => _Builder.Timestamp = value;
 		}
+		/// <summary>
+		/// The author of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public EmbedAuthorBuilder Author
 		{
 			get => _Builder.Author;
@@ -124,6 +162,9 @@ namespace Advobot.Core.Classes
 				};
 			}
 		}
+		/// <summary>
+		/// The footer of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public EmbedFooterBuilder Footer
 		{
 			get => _Builder.Footer;
@@ -142,6 +183,9 @@ namespace Advobot.Core.Classes
 				};
 			}
 		}
+		/// <summary>
+		/// The fields of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// </summary>
 		public List<EmbedFieldBuilder> Fields
 		{
 			get => _Builder.Fields;
@@ -181,6 +225,23 @@ namespace Advobot.Core.Classes
 				}
 			}
 		}
+		/// <summary>
+		/// Any errors which have happened when building the embed.
+		/// </summary>
+		public ImmutableList<EmbedError> Errors => _Errors.ToImmutableList();
+		/// <summary>
+		/// The values which have failed to set.
+		/// </summary>
+		public ImmutableDictionary<string, string> FailedValues => _FailedValues.ToImmutableDictionary();
+
+		private EmbedBuilder _Builder = new EmbedBuilder
+		{
+			Color = Base,
+			Timestamp = DateTimeOffset.UtcNow
+		};
+		private bool _ThrowOnInvalid;
+		private List<EmbedError> _Errors = new List<EmbedError>();
+		private Dictionary<string, string> _FailedValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
 		/// <summary>
 		/// Creates an <see cref="EmbedWrapper"/> that can throw on exceptions if <paramref name="throwOnInvalid"/> is true.
@@ -195,7 +256,12 @@ namespace Advobot.Core.Classes
 		/// </summary>
 		public EmbedWrapper() : this(false) { }
 
-		#region Attempts to modify, does nothing if fails
+		/// <summary>
+		/// Attempts to modify the title. Does nothing if fails.
+		/// </summary>
+		/// <param name="title"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryAddTitle(string title, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
@@ -221,6 +287,12 @@ namespace Advobot.Core.Classes
 			}
 			return !errors.Any();
 		}
+		/// <summary>
+		/// Attempts to modify the description. Does nothing if fails.
+		/// </summary>
+		/// <param name="description"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryAddDescription(string description, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
@@ -250,6 +322,12 @@ namespace Advobot.Core.Classes
 			}
 			return !errors.Any();
 		}
+		/// <summary>
+		/// Attempts to modify the url. Does nothing if fails.
+		/// </summary>
+		/// <param name="url"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryAddUrl(string url, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
@@ -270,6 +348,12 @@ namespace Advobot.Core.Classes
 			}
 			return !errors.Any();
 		}
+		/// <summary>
+		/// Attempts to modify the thumbnail url. Does nothing if fails.
+		/// </summary>
+		/// <param name="thumbnailUrl"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryAddThumbnailUrl(string thumbnailUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
@@ -290,6 +374,12 @@ namespace Advobot.Core.Classes
 			}
 			return !errors.Any();
 		}
+		/// <summary>
+		/// Attempts to modify the image url. Does nothing if fails.
+		/// </summary>
+		/// <param name="imageUrl"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryAddImageUrl(string imageUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
@@ -310,6 +400,14 @@ namespace Advobot.Core.Classes
 			}
 			return !errors.Any();
 		}
+		/// <summary>
+		/// Attempts to modify the author. Does nothing if fails.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="url"></param>
+		/// <param name="iconUrl"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryAddAuthor(string name, string url, string iconUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
@@ -348,10 +446,23 @@ namespace Advobot.Core.Classes
 			}
 			return !errors.Any();
 		}
+		/// <summary>
+		/// Attempts to modify the author using a user. Does nothing if fails.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryAddAuthor(IUser user, out List<EmbedError> errors)
 		{
 			return TryAddAuthor(user.Username, user.GetAvatarUrl(), user.GetAvatarUrl(), out errors);
 		}
+		/// <summary>
+		/// Attempts to modify the footer. Does nothing if fails.
+		/// </summary>
+		/// <param name="text"></param>
+		/// <param name="iconUrl"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryAddFooter(string text, string iconUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
@@ -385,6 +496,14 @@ namespace Advobot.Core.Classes
 			}
 			return !errors.Any();
 		}
+		/// <summary>
+		/// Attempts to add a field. Does nothing if fails.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <param name="inline"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryAddField(string name, string value, bool inline, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
@@ -443,6 +562,13 @@ namespace Advobot.Core.Classes
 			}
 			return !errors.Any();
 		}
+		/// <summary>
+		/// Attempts to remove a field. Does nothing if fails.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <param name="field"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryRemoveField(int index, out EmbedFieldBuilder field, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
@@ -468,6 +594,15 @@ namespace Advobot.Core.Classes
 			_Errors.AddRange(errors);
 			return !errors.Any();
 		}
+		/// <summary>
+		/// Attempts to modify a field. Does nothing if fails.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <param name="inLine"></param>
+		/// <param name="errors"></param>
+		/// <returns></returns>
 		public bool TryModifyField(int index, string name, string value, bool inLine, out List<EmbedError> errors)
 		{
 			if (!TryRemoveField(index, out var field, out errors))
@@ -488,8 +623,6 @@ namespace Advobot.Core.Classes
 			_Builder.Fields.Insert(index, newField);
 			return true;
 		}
-		#endregion
-
 		/// <summary>
 		/// Builds and returns the embed.
 		/// </summary>
@@ -542,6 +675,7 @@ namespace Advobot.Core.Classes
 		/// </summary>
 		/// <param name="errors"></param>
 		/// <param name="value"></param>
+		/// <param name="newLines"></param>
 		/// <returns></returns>
 		private string ShortenString(IEnumerable<EmbedError> errors, string value, bool newLines = false)
 		{
@@ -582,6 +716,10 @@ namespace Advobot.Core.Classes
 			return new ArgumentException(String.Join("\n", errors), caller);
 		}
 
+		/// <summary>
+		/// Returns all the failed values.
+		/// </summary>
+		/// <returns></returns>
 		public override string ToString()
 		{
 			return String.Join("\n\n", _FailedValues.Select(x => $"{x.Key}:\n{x.Value}"));

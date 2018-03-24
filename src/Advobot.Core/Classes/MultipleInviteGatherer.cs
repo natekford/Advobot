@@ -22,7 +22,22 @@ namespace Advobot.Core.Classes
 		private bool _NeverExpires;
 		private bool _NoMaxUses;
 
+		/// <summary>
+		/// Creates an instance of multiple invite gatherer.
+		/// </summary>
 		public MultipleInviteGatherer() : this(null, null, null, default, null, default, false, false, false) { }
+		/// <summary>
+		/// Uses user input to create an instance of multiple invite gatherer.
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <param name="channelId"></param>
+		/// <param name="uses"></param>
+		/// <param name="usesCountTarget"></param>
+		/// <param name="age"></param>
+		/// <param name="ageCountTarget"></param>
+		/// <param name="isTemporary"></param>
+		/// <param name="neverExpires"></param>
+		/// <param name="noMaxUses"></param>
 		[NamedArgumentConstructor]
 		public MultipleInviteGatherer(
 			[NamedArgument] ulong? userId,
@@ -66,12 +81,12 @@ namespace Advobot.Core.Classes
 			}
 			if (_Uses != null)
 			{
-				invites = invites.GetObjectsBasedOffCount(_UsesCountTarget, _Uses, x => x.Uses);
+				invites = invites.GetInvitesFromCount(_UsesCountTarget, _Uses, x => x.Uses);
 				wentIntoAny = true;
 			}
 			if (_Age != null)
 			{
-				invites = invites.GetObjectsBasedOffCount(_AgeCountTarget, _Age, x => x.MaxAge);
+				invites = invites.GetInvitesFromCount(_AgeCountTarget, _Age, x => x.MaxAge);
 				wentIntoAny = true;
 			}
 			if (_IsTemporary)

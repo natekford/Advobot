@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using System;
@@ -18,22 +19,55 @@ namespace Advobot.Core.Classes.CloseWords
 		/// <summary>
 		/// The max allowed closeness before a word will not be added.
 		/// </summary>
-		public static int MaxAllowedCloseness = 4;
+		public int MaxAllowedCloseness { get; set; } = 4;
 		/// <summary>
 		/// The max allowed output to add to <see cref="List"/>.
 		/// </summary>
-		public static int MaxOutput = 5;
-
+		public int MaxOutput { get; set; } = 5;
 		/// <summary>
 		/// The gathered words.
 		/// </summary>
 		public List<CloseWord> List { get; set; }
 
+		/// <summary>
+		/// Initializes the object. Parameterless constructor is used for the database.
+		/// </summary>
 		protected CloseWords() : base() { }
-		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string input)
+		/// <summary>
+		/// Initializes the object with the supplied values.
+		/// </summary>
+		/// <param name="time"></param>
+		/// <param name="context"></param>
+		/// <param name="objects"></param>
+		/// <param name="search"></param>
+		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string search)
 			: base(time, context)
 		{
-			List = GetObjectsWithSimilarNames(objects.ToList(), input);
+			var closeWords = new List<CloseWord>();
+			//First loop around to find words that are similar
+			foreach (var word in objects)
+			{
+				if (!IsCloseWord(word, search, out var closeWord))
+				{
+					continue;
+				}
+				closeWords.Add(closeWord);
+				if (closeWords.Count > MaxOutput)
+				{
+					closeWords = closeWords.OrderBy(x => x.Closeness).ToList();
+					closeWords.RemoveRange(MaxOutput, closeWords.Count - MaxOutput);
+				}
+			}
+			//Then loop around for words that have the search term simply inside them
+			for (int i = closeWords.Count - 1; i < MaxOutput; ++i)
+			{
+				if (!TryGetCloseWord(objects, closeWords.Select(x => x.Name), search, out var closeWord))
+				{
+					break;
+				}
+				closeWords.Add(closeWord);
+			}
+			List = closeWords.Where(x => x != null && x.Closeness > -1 && x.Closeness <= MaxAllowedCloseness).ToList();
 		}
 
 		/// <summary>
@@ -47,20 +81,26 @@ namespace Advobot.Core.Classes.CloseWords
 			MessageIds.Add((await MessageUtils.SendMessageAsync(channel, text).CAF()).Id);
 		}
 		/// <summary>
-		/// Finds an object with a similar name to the search term.
+		/// Determines if an object has a similar name to the search term.
 		/// </summary>
 		/// <param name="obj"></param>
 		/// <param name="search"></param>
+		/// <param name="closeWord"></param>
 		/// <returns></returns>
-		protected abstract CloseWord FindCloseWord(T obj, string search);
+		protected abstract bool IsCloseWord(T obj, string search, out CloseWord closeWord);
 		/// <summary>
 		/// Finds an object with the search term in directly in their name.
 		/// </summary>
 		/// <param name="objs"></param>
-		/// <param name="alreadyUsedNames"></param>
+		/// <param name="used"></param>
 		/// <param name="search"></param>
+		/// <param name="closeWord"></param>
 		/// <returns></returns>
-		protected abstract CloseWord FindCloseWord(IEnumerable<T> objs, IEnumerable<string> alreadyUsedNames, string search);
+		protected abstract bool TryGetCloseWord(
+			IEnumerable<T> objs,
+			IEnumerable<string> used,
+			string search,
+			out CloseWord closeWord);
 		/// <summary>
 		/// Returns a value gotten from using Damerau Levenshtein distance to compare the source and target.
 		/// </summary>
@@ -149,47 +189,35 @@ namespace Advobot.Core.Classes.CloseWords
 			var result = dCurrent[maxi];
 			return (result > threshold) ? int.MaxValue : result;
 		}
-		private List<CloseWord> GetObjectsWithSimilarNames(List<T> suppliedObjects, string input)
-		{
-			var closeWords = new List<CloseWord>();
-			//First loop around to find words that are similar
-			foreach (var word in suppliedObjects)
-			{
-				var closeWord = FindCloseWord(word, input);
-				if (closeWord == null)
-				{
-					continue;
-				}
-				closeWords.Add(closeWord);
-				if (closeWords.Count > MaxOutput)
-				{
-					closeWords = closeWords.OrderBy(x => x.Closeness).ToList();
-					closeWords.RemoveRange(MaxOutput, closeWords.Count - MaxOutput);
-				}
-			}
-			//Then loop around for words that have the search term simply inside them
-			for (int i = closeWords.Count - 1; i < MaxOutput; ++i)
-			{
-				var closeWord = FindCloseWord(suppliedObjects, closeWords.Select(x => x.Name), input);
-				if (closeWord == null)
-				{
-					continue;
-				}
-				closeWords.Add(closeWord);
-			}
-			return closeWords.Where(x => x != null && x.Closeness > -1 && x.Closeness <= MaxAllowedCloseness).ToList();
-		}
 
 		/// <summary>
 		/// Holds an object which has a name and text and its closeness.
 		/// </summary>
 		public class CloseWord
 		{
+			/// <summary>
+			/// How close the name is to the search term.
+			/// </summary>
 			public int Closeness { get; set; }
+			/// <summary>
+			/// The name of the object.
+			/// </summary>
 			public string Name { get; set; }
+			/// <summary>
+			/// The text of the object.
+			/// </summary>
 			public string Text { get; set; }
 
+			/// <summary>
+			/// Initializes the object. Parameterless constructor is used for the database.
+			/// </summary>
 			public CloseWord() { }
+			/// <summary>
+			/// Initializes the object with the supplied values.
+			/// </summary>
+			/// <param name="closeness"></param>
+			/// <param name="name"></param>
+			/// <param name="text"></param>
 			public CloseWord(int closeness, string name, string text)
 			{
 				Closeness = closeness;

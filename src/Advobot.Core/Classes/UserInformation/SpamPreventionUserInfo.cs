@@ -14,15 +14,6 @@ namespace Advobot.Core.Classes.UserInformation
 	/// </summary>
 	public sealed class SpamPreventionUserInfo : UserInfo
 	{
-		private int _VotesRequired = int.MaxValue;
-		private int _Punishment = -1;
-		private List<ulong> _UsersWhoHaveAlreadyVoted = new List<ulong>();
-		private List<ulong> _Message = new List<ulong>();
-		private List<ulong> _LongMessage = new List<ulong>();
-		private List<ulong> _Link = new List<ulong>();
-		private List<ulong> _Image = new List<ulong>();
-		private List<ulong> _Mention = new List<ulong>();
-
 		/// <summary>
 		/// The votes required to punish a user.
 		/// Setting sets to the lowest of the new value or old value.
@@ -90,6 +81,19 @@ namespace Advobot.Core.Classes.UserInformation
 			set => Interlocked.Exchange(ref _Mention, new List<ulong>());
 		}
 
+		private int _VotesRequired = int.MaxValue;
+		private int _Punishment = -1;
+		private List<ulong> _UsersWhoHaveAlreadyVoted = new List<ulong>();
+		private List<ulong> _Message = new List<ulong>();
+		private List<ulong> _LongMessage = new List<ulong>();
+		private List<ulong> _Link = new List<ulong>();
+		private List<ulong> _Image = new List<ulong>();
+		private List<ulong> _Mention = new List<ulong>();
+
+		/// <summary>
+		/// Creates an instance of spampreventionuserinfo.
+		/// </summary>
+		/// <param name="user"></param>
 		public SpamPreventionUserInfo(SocketGuildUser user) : base(user) { }
 
 		/// <summary>
@@ -180,9 +184,7 @@ namespace Advobot.Core.Classes.UserInformation
 					return;
 			}
 		}
-		/// <summary>
-		/// Sets everything back to default values.
-		/// </summary>
+		/// <inheritdoc />
 		public override void Reset()
 		{
 			Interlocked.Exchange(ref _VotesRequired, int.MaxValue);

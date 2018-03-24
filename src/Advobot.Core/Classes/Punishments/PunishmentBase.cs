@@ -12,7 +12,10 @@ namespace Advobot.Core.Classes.Punishments
 	/// </summary>
 	public abstract class PunishmentBase
 	{
-		protected static ImmutableDictionary<Punishment, string> _Given = new Dictionary<Punishment, string>
+		/// <summary>
+		/// Strings for saying the type of punishment given.
+		/// </summary>
+		protected static ImmutableDictionary<Punishment, string> Given = new Dictionary<Punishment, string>
 		{
 			{ Punishment.Kick, "kicked" },
 			{ Punishment.Ban, "banned" },
@@ -21,7 +24,10 @@ namespace Advobot.Core.Classes.Punishments
 			{ Punishment.RoleMute, "role-muted" },
 			{ Punishment.Softban, "softbanned" }
 		}.ToImmutableDictionary();
-		protected static ImmutableDictionary<Punishment, string> _Removal = new Dictionary<Punishment, string>
+		/// <summary>
+		/// Strings for saying the type of punishment removed.
+		/// </summary>
+		protected static ImmutableDictionary<Punishment, string> Removed = new Dictionary<Punishment, string>
 		{
 			{ Punishment.Kick, "unkicked" }, //Doesn't make sense
 			{ Punishment.Ban, "unbanned" },
@@ -31,18 +37,31 @@ namespace Advobot.Core.Classes.Punishments
 			{ Punishment.Softban, "unsoftbanned" } //Doesn't make sense either
 		}.ToImmutableDictionary();
 
-		protected ITimersService _Timers;
-		protected List<string> _Actions = new List<string>();
-		public ImmutableList<string> Actions => _Actions.ToImmutableList();
+		/// <summary>
+		/// The timer service to add punishments to or remove punishments from.
+		/// </summary>
+		protected ITimersService Timers;
+		/// <summary>
+		/// The actions which were done on users.
+		/// </summary>
+		protected List<string> Actions = new List<string>();
 
+		/// <summary>
+		/// Creates an instance of punishment base.
+		/// </summary>
+		/// <param name="timers"></param>
 		public PunishmentBase(ITimersService timers)
 		{
-			_Timers = timers;
+			Timers = timers;
 		}
 
+		/// <summary>
+		/// Returns all the actions joined together.
+		/// </summary>
+		/// <returns></returns>
 		public override string ToString()
 		{
-			return String.Join("\n", _Actions);
+			return String.Join("\n", Actions);
 		}
 	}
 }

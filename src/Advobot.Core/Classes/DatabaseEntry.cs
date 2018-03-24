@@ -19,6 +19,10 @@ namespace Advobot.Core.Classes
 		/// </summary>
 		public DateTime Time { get; set; }
 
+		/// <summary>
+		/// Creates a database entry with the specified timespan added to utcnow for its removal time.
+		/// </summary>
+		/// <param name="time"></param>
 		public DatabaseEntry(TimeSpan time)
 		{
 			Time = DateTime.UtcNow.Add(time.Equals(default) ? _Default : time);

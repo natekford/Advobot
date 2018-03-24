@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using System.Collections.Concurrent;
@@ -22,6 +23,12 @@ namespace Advobot.Core.Classes
 		private ITimersService _Timers;
 		private List<IGuildUser> _Users;
 
+		/// <summary>
+		/// Creates an instance of multi user action and cancels all previous instances.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="timers"></param>
+		/// <param name="users"></param>
 		public MultiUserAction(AdvobotSocketCommandContext context, ITimersService timers, IEnumerable<IGuildUser> users)
 		{
 			_CancelToken = new CancellationTokenSource();
@@ -35,24 +42,48 @@ namespace Advobot.Core.Classes
 			_Users = users.ToList();
 		}
 
+		/// <summary>
+		/// Take a role from multiple users.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
 		public async Task TakeRolesAsync(SocketRole role, RequestOptions options)
 		{
 			var presentTense = $"take the role `{role.Format()}` from";
 			var pastTense = $"took the role `{role.Format()} from";
 			await DoActionAsync(nameof(TakeRolesAsync), role, presentTense, pastTense, options).CAF();
 		}
+		/// <summary>
+		/// Give a role to multiple users.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
 		public async Task GiveRolesAsync(SocketRole role, RequestOptions options)
 		{
 			var presentTense = $"give the role `{role.Format()}` to";
 			var pastTense = $"gave the role `{role.Format()} to";
 			await DoActionAsync(nameof(GiveRolesAsync), role, presentTense, pastTense, options).CAF();
 		}
+		/// <summary>
+		/// Modify the nickname of multiple users.
+		/// </summary>
+		/// <param name="replace"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
 		public async Task ModifyNicknamesAsync(string replace, RequestOptions options)
 		{
 			var presentTense = "nickname";
 			var pastTense = "nicknamed";
 			await DoActionAsync(nameof(ModifyNicknamesAsync), replace, presentTense, pastTense, options).CAF();
 		}
+		/// <summary>
+		/// Move multiple users.
+		/// </summary>
+		/// <param name="outputChannel"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
 		public async Task MoveUsersAsync(SocketVoiceChannel outputChannel, RequestOptions options)
 		{
 			var presentTense = "move";

@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 
 namespace Advobot.Core.Classes
 {
@@ -27,6 +27,11 @@ namespace Advobot.Core.Classes
 		private string _Name;
 		private string _Text;
 
+		/// <summary>
+		/// Creates an instance of textfileinfo.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="text"></param>
 		public TextFileInfo(string name = null, string text = null)
 		{
 			Name = name;

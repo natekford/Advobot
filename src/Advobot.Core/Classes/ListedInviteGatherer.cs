@@ -3,11 +3,15 @@ using Advobot.Core.Classes.Settings;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Advobot.Core.Classes
 {
+	/// <summary>
+	/// Gathers invites which meet specified criteria.
+	/// </summary>
 	public sealed class ListedInviteGatherer
 	{
 		private string _Code;
@@ -17,7 +21,19 @@ namespace Advobot.Core.Classes
 		private CountTarget _UserCountTarget;
 		private string[] _Keywords;
 
+		/// <summary>
+		/// Initializes an instance of listed invite gatherer.
+		/// </summary>
 		public ListedInviteGatherer() : this(null, null, false, null, default) { }
+		/// <summary>
+		/// Creates a gatherer using user input.
+		/// </summary>
+		/// <param name="code"></param>
+		/// <param name="name"></param>
+		/// <param name="hasGlobalEmotes"></param>
+		/// <param name="userCount"></param>
+		/// <param name="userCountTarget"></param>
+		/// <param name="keywords"></param>
 		[NamedArgumentConstructor]
 		public ListedInviteGatherer(
 			[NamedArgument] string code,
@@ -35,10 +51,14 @@ namespace Advobot.Core.Classes
 			_Keywords = keywords;
 		}
 
+		/// <summary>
+		/// Gathers invites which meet the specified criteria.
+		/// </summary>
+		/// <param name="inviteListService"></param>
+		/// <returns></returns>
 		public IEnumerable<ListedInvite> GatherInvites(IInviteListService inviteListService)
 		{
 			var invites = _Keywords.Any() ? inviteListService.GetAll(_Keywords) : inviteListService.GetAll();
-
 			var wentIntoAny = false;
 			if (_Code != null)
 			{
@@ -57,7 +77,7 @@ namespace Advobot.Core.Classes
 			}
 			if (_UserCount != null)
 			{
-				invites = invites.GetObjectsBasedOffCount(_UserCountTarget, _UserCount, x => x.Guild.Users.Count);
+				invites = invites.GetInvitesFromCount(_UserCountTarget, _UserCount, x => x.Guild.Users.Count);
 				wentIntoAny = true;
 			}
 			return wentIntoAny ? Enumerable.Empty<ListedInvite>() : invites;

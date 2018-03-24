@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -17,7 +17,20 @@ namespace Advobot.Core.Classes.Attributes
 		private GuildPermissions _AllFlags;
 		private GuildPermissions _AnyFlags;
 
-		//This doesn't have default values for the parameters since that makes it harder to potentially provide the wrong permissions
+		/// <summary>
+		/// Returns the names of the flags where all are needed.
+		/// </summary>
+		public string AllText => String.Join(" & ", _AllFlags.ToList().Select(x => x.ToString()));
+		/// <summary>
+		/// Returns the names of the flags where any are needed.
+		/// </summary>
+		public string AnyText => String.Join(" | ", _AnyFlags.ToList().Select(x => x.ToString()));
+
+		/// <summary>
+		/// Initializes the attribute.
+		/// </summary>
+		/// <param name="anyOfTheListedPerms"></param>
+		/// <param name="allOfTheListedPerms"></param>
 		public PermissionRequirementAttribute(GuildPermission[] anyOfTheListedPerms, GuildPermission[] allOfTheListedPerms)
 		{
 			var allFlags = (GuildPermission)0;
@@ -37,6 +50,13 @@ namespace Advobot.Core.Classes.Attributes
 			_AnyFlags = new GuildPermissions((ulong)anyFlags);
 		}
 
+		/// <summary>
+		/// Checks if the user has the correct permissions. Otherwise returns an error.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="command"></param>
+		/// <param name="map"></param>
+		/// <returns></returns>
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
 			if (!(context is AdvobotSocketCommandContext advobotCommandContext && context.User is SocketGuildUser user))
@@ -57,9 +77,10 @@ namespace Advobot.Core.Classes.Attributes
 			return Task.FromResult(PreconditionResult.FromError((string)null));
 		}
 
-		public string AllText => String.Join(" & ", _AllFlags.ToList().Select(x => x.ToString()));
-		public string AnyText => String.Join(" | ", _AnyFlags.ToList().Select(x => x.ToString()));
-
+		/// <summary>
+		/// Joins <see cref="AnyText"/> and <see cref="AllText"/>.
+		/// </summary>
+		/// <returns></returns>
 		public override string ToString()
 		{
 			return $"[{new[] { AllText, AnyText }.JoinNonNullStrings(" | ")}]";

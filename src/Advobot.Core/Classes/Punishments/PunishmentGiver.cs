@@ -1,6 +1,7 @@
 ﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -18,10 +19,20 @@ namespace Advobot.Core.Classes.Punishments
 	{
 		private TimeSpan _Time;
 
+		/// <summary>
+		/// Creates an instance of punishment giver with the time for each punishment being the int passed in in minutes.
+		/// </summary>
+		/// <param name="minutes"></param>
+		/// <param name="timers"></param>
 		public PunishmentGiver(int minutes, ITimersService timers) : base(timers)
 		{
 			_Time = TimeSpan.FromMinutes(minutes);
 		}
+		/// <summary>
+		/// Creates an instance of punishment giver with the time for each punishment being the passed in timespan.
+		/// </summary>
+		/// <param name="time"></param>
+		/// <param name="timers"></param>
 		public PunishmentGiver(TimeSpan time, ITimersService timers) : base(timers)
 		{
 			_Time = time;
@@ -104,8 +115,9 @@ namespace Advobot.Core.Classes.Punishments
 		/// Does an action on a user.
 		/// </summary>
 		/// <param name="type"></param>
-		/// <param name="user"></param>
-		/// <param name="role"></param>
+		/// <param name="guild"></param>
+		/// <param name="userId"></param>
+		/// <param name="roleId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
 		public async Task PunishAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions options)
@@ -148,18 +160,18 @@ namespace Advobot.Core.Classes.Punishments
 
 		private async Task After(Punishment type, IGuild guild, IUser user, RequestOptions options)
 		{
-			var sb = new StringBuilder($"Successfully {_Given[type]} `{user.Format()}`. ");
-			if (!_Time.Equals(default) && _Timers != null)
+			var sb = new StringBuilder($"Successfully {Given[type]} `{user.Format()}`. ");
+			if (!_Time.Equals(default) && Timers != null)
 			{
 				//Removing the punishments via the timers in whatever time is set
-				await _Timers.AddAsync(new RemovablePunishment(_Time, type, guild, user)).CAF();
-				sb.Append($"They will be {_Removal[type]} in `{_Time}` minutes. ");
+				await Timers.AddAsync(new RemovablePunishment(_Time, type, guild, user)).CAF();
+				sb.Append($"They will be {Removed[type]} in `{_Time}` minutes. ");
 			}
 			if (options.AuditLogReason != null)
 			{
 				sb.Append($"The provided reason is `{options.AuditLogReason.EscapeBackTicks().TrimEnd('.', ' ')}`. ");
 			}
-			_Actions.Add(sb.ToString().Trim());
+			Actions.Add(sb.ToString().Trim());
 		}
 	}
 }

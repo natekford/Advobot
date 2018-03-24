@@ -2,9 +2,9 @@
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.CloseWords;
-using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using System;
@@ -123,7 +123,7 @@ namespace Advobot.Commands.Misc
 	[Group(nameof(MakeAnEmbed)), TopLevelShortAlias(typeof(MakeAnEmbed))]
 	[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. " +
 		"FieldInfo can have up to 25 arguments supplied. " +
-		"Each must be formatted like the following: `" + CustomEmbed.FORMAT + "`.")]
+		"Each must be formatted like the following: `" + CustomEmbed.FIELD_FORMAT + "`.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class MakeAnEmbed : NonSavingModuleBase

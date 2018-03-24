@@ -27,6 +27,9 @@ namespace Advobot.Core.Classes.Settings
 		[JsonIgnore]
 		private Dictionary<CommandOverrideTarget, Dictionary<ulong, Dictionary<string, bool>>> _OverrideDict = new Dictionary<CommandOverrideTarget, Dictionary<ulong, Dictionary<string, bool>>>();
 
+		/// <summary>
+		/// Creates an instance of command settings.
+		/// </summary>
 		public CommandSettings()
 		{
 			_OverrideDict.Add(CommandOverrideTarget.Channel, _ChannelOverrides);
@@ -102,6 +105,7 @@ namespace Advobot.Core.Classes.Settings
 		/// Returns a value indicating whether or not the command is enabled in the current context.
 		/// Checks user, then roles ordered by descending hierarchy, then channel, then finally the default guild setting.
 		/// </summary>
+		/// <param name="helpEntries"></param>
 		/// <param name="context"></param>
 		/// <param name="command"></param>
 		/// <returns></returns>
@@ -140,7 +144,7 @@ namespace Advobot.Core.Classes.Settings
 
 		private static bool ModifyCommand(IDictionary<string, bool> dict, HelpEntry helpEntry, bool? enable)
 		{
-			if (!helpEntry.AbleToBeTurnedOff)
+			if (!helpEntry.AbleToBeToggled)
 			{
 				return false;
 			}
@@ -162,10 +166,12 @@ namespace Advobot.Core.Classes.Settings
 			return true;
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return ToString(null);
 		}
+		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{
 			return $"{String.Join("\n", _CommandValues.Select(x => $"`{x.Key}:` `{x.Value}`"))}\n\n" +
@@ -217,10 +223,22 @@ namespace Advobot.Core.Classes.Settings
 		}
 	}
 
+	/// <summary>
+	/// The target for command overrides.
+	/// </summary>
 	public enum CommandOverrideTarget
 	{
+		/// <summary>
+		/// Targetting a channel.
+		/// </summary>
 		Channel,
+		/// <summary>
+		/// Targetting a role.
+		/// </summary>
 		Role,
+		/// <summary>
+		/// Targetting a user.
+		/// </summary>
 		User
 	}
 }

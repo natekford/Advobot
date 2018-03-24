@@ -1,6 +1,7 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Interfaces;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -16,6 +17,9 @@ namespace Advobot.Core.Utilities
 	/// </summary>
 	public static class MessageUtils
 	{
+		/// <summary>
+		/// The zero length character to put before every message.
+		/// </summary>
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		private static readonly char[] _InvalidChars = Path.GetInvalidFileNameChars();
 
@@ -25,7 +29,6 @@ namespace Advobot.Core.Utilities
 		/// <param name="channel"></param>
 		/// <param name="content"></param>
 		/// <param name="embedWrapper"></param>
-		/// <param name="fileName"></param>
 		/// <param name="textFile"></param>
 		/// <returns></returns>
 		public static async Task<IUserMessage> SendMessageAsync(IMessageChannel channel, string content, EmbedWrapper embedWrapper = null, TextFileInfo textFile = null)

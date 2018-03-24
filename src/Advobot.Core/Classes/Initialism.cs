@@ -1,9 +1,9 @@
-﻿using System;
+﻿using AdvorangesUtils;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Advobot.Core.Utilities;
 
 namespace Advobot.Core.Classes
 {
@@ -17,13 +17,26 @@ namespace Advobot.Core.Classes
 			{ "clear", "clr" }
 		};
 
+		/// <summary>
+		/// The original supplied name.
+		/// </summary>
 		public string Original { get; }
-		public string Edited { get; private set; }
+		/// <summary>
+		/// The edited name which has been checked to remove any duplicate conflicts with other initialisms.
+		/// </summary>
+		public string Edited { get; internal set; }
+		/// <summary>
+		/// The parts of the original.
+		/// </summary>
 		public ImmutableList<string> Parts { get; }
+		/// <summary>
+		/// The other supplied aliases plus the edited initialism.
+		/// </summary>
 		public ImmutableList<string> Aliases => _OtherAliases.Concat(new[] { Edited }).ToImmutableList();
+
 		private string[] _OtherAliases;
 
-		public Initialism(string name, string[] otherAliases, bool topLevel)
+		internal Initialism(string name, string[] otherAliases, bool topLevel)
 		{
 			var edittingName = name;
 			var parts = new List<StringBuilder>();
@@ -35,7 +48,6 @@ namespace Advobot.Core.Classes
 				{
 					edittingName = edittingName.CaseInsReplace(kvp.Key, kvp.Value.ToUpper());
 				}
-
 				if (name.EndsWith("s"))
 				{
 					edittingName = edittingName.Substring(0, edittingName.Length - 1) + "S";
@@ -60,18 +72,6 @@ namespace Advobot.Core.Classes
 			Parts = parts.Select(x => x.ToString()).ToImmutableList();
 			Edited = initialism.ToString().ToLower();
 			_OtherAliases = otherAliases;
-		}
-
-		public void AppendToInitialismByPart(int index, int length)
-		{
-			var newInitialism = new StringBuilder();
-			for (var i = 0; i < Parts.Count; ++i)
-			{
-				var p = Parts[i];
-				var l = i == index ? length : 1;
-				newInitialism.Append(p.Substring(0, l));
-			}
-			Edited = newInitialism.ToString().ToLower();
 		}
 	}
 }

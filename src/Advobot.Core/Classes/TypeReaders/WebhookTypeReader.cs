@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using System;

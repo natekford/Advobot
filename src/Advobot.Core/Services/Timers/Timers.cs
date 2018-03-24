@@ -1,15 +1,14 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Classes.Punishments;
-using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,7 +91,7 @@ namespace Advobot.Core.Services.Timers
 		public void Start()
 		{
 			//Use mode=exclusive to not have ioexceptions
-			_Db = new LiteDatabase($"filename={IOUtils.GetBaseBotDirectoryFile("TimedDatabase.db")};mode=exclusive;");
+			_Db = new LiteDatabase($"filename={FileUtils.GetBaseBotDirectoryFile("TimedDatabase.db")};mode=exclusive;");
 			_MinuteTimer.Enabled = true;
 			_SecondTimer.Enabled = true;
 		}

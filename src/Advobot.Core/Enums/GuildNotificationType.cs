@@ -8,7 +8,13 @@ namespace Advobot.Core.Enums
 	[Flags]
 	public enum GuildNotificationType : uint
 	{
+		/// <summary>
+		/// This notification is for welcoming a user joining the guild.
+		/// </summary>
 		Welcome = (1U << 0),
-		Goodbye = (1U << 1)
+		/// <summary>
+		/// This notification is for saying goodbye to a user leaving the guild.
+		/// </summary>
+		Goodbye = (1U << 1),
 	}
 }

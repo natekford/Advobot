@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Advobot.UILauncher.Classes.Controls;
+using Advobot.UILauncher.Utilities;
+using AdvorangesUtils;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Advobot.Core.Utilities;
-using Advobot.UILauncher.Classes.Controls;
-using Advobot.UILauncher.Utilities;
 
 namespace Advobot.UILauncher.Windows
 {
@@ -18,7 +18,7 @@ namespace Advobot.UILauncher.Windows
 		public OutputSearchWindow(Window mainWindow) : base(mainWindow)
 		{
 			InitializeComponent();
-			OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleUtils.GetOrCreateWrittenLines().Keys.ToArray());
+			OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleUtils.WrittenLines.Keys.ToArray());
 		}
 
 		private void Search(object sender, RoutedEventArgs e)
@@ -26,7 +26,7 @@ namespace Advobot.UILauncher.Windows
 			if (OutputNamesComboBox.SelectedItem is TextBox tb)
 			{
 				ConsoleSearchOutput.Clear();
-				foreach (var line in ConsoleUtils.GetOrCreateWrittenLines()[tb.Text])
+				foreach (var line in ConsoleUtils.WrittenLines[tb.Text])
 				{
 					ConsoleSearchOutput.AppendText($"{line}{Environment.NewLine}");
 				}

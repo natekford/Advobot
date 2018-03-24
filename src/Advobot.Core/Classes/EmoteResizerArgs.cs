@@ -6,9 +6,14 @@ using System.Collections.Immutable;
 
 namespace Advobot.Core.Classes
 {
+	/// <summary>
+	/// Arguments used when resizing an emote.
+	/// </summary>
 	public sealed class EmoteResizerArguments : IImageResizerArguments
 	{
+		/// <inheritdoc />
 		public long MaxAllowedLengthInBytes => 256000;
+		/// <inheritdoc />
 		public ImmutableArray<MagickFormat> ValidFormats => ImmutableArray.Create(new[]
 		{
 			MagickFormat.Png,
@@ -17,11 +22,22 @@ namespace Advobot.Core.Classes
 			MagickFormat.Mp4,
 			MagickFormat.Gif,
 		});
+		/// <inheritdoc />
 		public int ResizeTries { get; set; }
+		/// <inheritdoc />
 		public Percentage ColorFuzzing { get; set; }
+		/// <summary>
+		/// When to start the emote.
+		/// </summary>
 		public int StartInSeconds { get; set; }
+		/// <summary>
+		/// How long to make the emote.
+		/// </summary>
 		public int LengthInSeconds { get; set; }
 
+		/// <summary>
+		/// Creates an instance of emote resizer arguments.
+		/// </summary>
 		public EmoteResizerArguments()
 		{
 			ResizeTries = 5;
@@ -29,6 +45,13 @@ namespace Advobot.Core.Classes
 			StartInSeconds = 0;
 			LengthInSeconds = 10;
 		}
+		/// <summary>
+		/// Creates the object via user input.
+		/// </summary>
+		/// <param name="resizeTries"></param>
+		/// <param name="colorFuzzing"></param>
+		/// <param name="startInSeconds"></param>
+		/// <param name="lengthInSeconds"></param>
 		[NamedArgumentConstructor]
 		public EmoteResizerArguments(
 			int resizeTries,

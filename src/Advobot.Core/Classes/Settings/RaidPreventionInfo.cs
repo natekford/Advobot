@@ -2,12 +2,13 @@
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,24 +19,39 @@ namespace Advobot.Core.Classes.Settings
 	/// </summary>
 	public class RaidPreventionInfo : IGuildSetting
 	{
+		private const int MAX_USERS = 25;
+		private const int MAX_TIME = 60;
 		private static PunishmentGiver _Giver = new PunishmentGiver(0, null);
 		private static RequestOptions _Reason = ClientUtils.CreateRequestOptions("raid prevention");
 
-		private const int MAX_USERS = 25;
-		private const int MAX_TIME = 60;
-
+		/// <summary>
+		/// The punishment to give raiders.
+		/// </summary>
 		[JsonProperty]
 		public Punishment Punishment { get; }
+		/// <summary>
+		/// How long a raid should be considered to be.
+		/// </summary>
 		[JsonProperty]
 		public int TimeInterval { get; }
+		/// <summary>
+		/// How many users should be considered a raid.
+		/// </summary>
 		[JsonProperty]
 		public int UserCount { get; }
-		[JsonProperty]
-		public bool Enabled = true;
+		/// <summary>
+		/// Whether or not this raid prevention is enabled.
+		/// </summary>
+		[JsonIgnore]
+		public bool Enabled { get; set; }
+		/// <summary>
+		/// The times at which something that could be part of raiding happened.
+		/// </summary>
+		[JsonIgnore]
+		public ImmutableArray<ulong> TimeList => _TimeList.ToImmutableArray();
+
 		[JsonIgnore]
 		private List<ulong> _TimeList = new List<ulong>();
-		[JsonIgnore]
-		public List<ulong> TimeList => _TimeList;
 
 		private RaidPreventionInfo(Punishment punishmentType, int userCount, int interval)
 		{
@@ -44,10 +60,18 @@ namespace Advobot.Core.Classes.Settings
 			TimeInterval = interval;
 		}
 
+		/// <summary>
+		/// Counts how many instances have happened in the supplied interval inside the time list.
+		/// </summary>
+		/// <returns></returns>
 		public int GetSpamCount()
 		{
-			return DiscordUtils.CountItemsInTimeFrame(TimeList, TimeInterval);
+			return DiscordUtils.CountItemsInTimeFrame(_TimeList, TimeInterval);
 		}
+		/// <summary>
+		/// Adds the time to the list.
+		/// </summary>
+		/// <param name="time"></param>
 		public void Add(DateTime time)
 		{
 			lock (_TimeList)
@@ -55,6 +79,9 @@ namespace Advobot.Core.Classes.Settings
 				_TimeList.Add(SnowflakeUtils.ToSnowflake(time));
 			}
 		}
+		/// <summary>
+		/// Removes every value from the time list.
+		/// </summary>
 		public void Reset()
 		{
 			Interlocked.Exchange(ref _TimeList, new List<ulong>());
@@ -70,7 +97,7 @@ namespace Advobot.Core.Classes.Settings
 			await _Giver.PunishAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
 		}
 		/// <summary>
-		/// Attempts to creat raid prevention.
+		/// Attempts to create raid prevention.
 		/// </summary>
 		/// <param name="raid"></param>
 		/// <param name="punishment"></param>
@@ -101,6 +128,7 @@ namespace Advobot.Core.Classes.Settings
 			return true;
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return $"**Enabled:** `{Enabled}`\n" +
@@ -108,6 +136,7 @@ namespace Advobot.Core.Classes.Settings
 				$"**Time Interval:** `{TimeInterval}`\n" +
 				$"**Punishment:** `{Punishment.ToString()}`";
 		}
+		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{
 			return ToString();

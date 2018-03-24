@@ -1,8 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
+﻿using Advobot.Core.Interfaces;
+using AdvorangesUtils;
 using Discord;
+using System;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Services.Log.Loggers
 {

@@ -1,6 +1,7 @@
 ﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -14,22 +15,50 @@ namespace Advobot.Core.Classes.Settings
 	/// </summary>
 	public class GuildNotification : IGuildSetting
 	{
+		/// <summary>
+		/// What to replace with a user mention.
+		/// </summary>
 		public const string USER_MENTION = "%USERMENTION%";
+		/// <summary>
+		/// What to replace with a formatted user.
+		/// </summary>
 		public const string USER_STRING = "%USER%";
 
+		/// <summary>
+		/// The content to send in the message.
+		/// </summary>
 		[JsonProperty]
 		public string Content { get; }
+		/// <summary>
+		/// The title to user in the embed.
+		/// </summary>
 		[JsonProperty]
 		public string Title { get; }
+		/// <summary>
+		/// The description to user in the embed.
+		/// </summary>
 		[JsonProperty]
 		public string Description { get; }
+		/// <summary>
+		/// The thumbnail url to use in the embed.
+		/// </summary>
 		[JsonProperty]
 		public string ThumbUrl { get; }
+		/// <summary>
+		/// The channel to send the message to.
+		/// </summary>
 		[JsonProperty]
 		public ulong ChannelId { get; set; }
+		/// <summary>
+		/// The embed to send.
+		/// </summary>
 		[JsonIgnore]
 		public EmbedWrapper Embed { get; }
 
+		/// <summary>
+		/// Creates an instance of guild notification.
+		/// </summary>
+		public GuildNotification() { }
 		[JsonConstructor]
 		internal GuildNotification(string content, string title, string description, string thumbUrl, ulong channelId)
 		{
@@ -48,6 +77,14 @@ namespace Advobot.Core.Classes.Settings
 				};
 			}
 		}
+		/// <summary>
+		/// Uses user input to create an instance of guild notification.
+		/// </summary>
+		/// <param name="content"></param>
+		/// <param name="title"></param>
+		/// <param name="description"></param>
+		/// <param name="thumbUrl"></param>
+		/// <param name="channel"></param>
 		[NamedArgumentConstructor]
 		public GuildNotification(
 			[NamedArgument] string content,
@@ -58,7 +95,6 @@ namespace Advobot.Core.Classes.Settings
 		{
 			ChannelId = channel.Id;
 		}
-		public GuildNotification() { }
 
 		/// <summary>
 		/// Sends the notification to the channel.
@@ -83,6 +119,7 @@ namespace Advobot.Core.Classes.Settings
 			}
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return $"**Channel:** `{ChannelId}`\n" +
@@ -91,6 +128,7 @@ namespace Advobot.Core.Classes.Settings
 				$"**Description:** `{Description}`\n" +
 				$"**Thumbnail:** `{ThumbUrl}`\n";
 		}
+		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{
 			return $"**Channel:** `{guild.GetTextChannel(ChannelId).Format()}`\n" +

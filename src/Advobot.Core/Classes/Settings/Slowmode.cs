@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.Serialization;
 
 namespace Advobot.Core.Classes.Settings
 {
@@ -15,19 +14,38 @@ namespace Advobot.Core.Classes.Settings
 	/// </summary>
 	public class Slowmode : IGuildSetting
 	{
+		/// <summary>
+		/// The base messages every user gets to start with.
+		/// </summary>
 		[JsonProperty]
 		public int BaseMessages { get; }
+		/// <summary>
+		/// How long until messages refresh for the user.
+		/// </summary>
+		[JsonIgnore]
+		public TimeSpan Interval => TimeSpan.FromSeconds(_Interval);
+		/// <summary>
+		/// Roles that are immune from slowmode.
+		/// </summary>
+		[JsonIgnore]
+		public ImmutableList<ulong> ImmuneRoleIds => _ImmuneRoleIds.ToImmutableList();
+		/// <summary>
+		/// Whether or not slowmode is enabled.
+		/// </summary>
+		[JsonIgnore]
+		public bool Enabled { get; set; }
+
 		[JsonProperty("Interval")]
 		private int _Interval;
 		[JsonProperty("ImmuneRoleIds")]
 		private ulong[] _ImmuneRoleIds;
-		[JsonIgnore]
-		public TimeSpan Interval => TimeSpan.FromSeconds(_Interval);
-		[JsonIgnore]
-		public ImmutableList<ulong> ImmuneRoleIds => _ImmuneRoleIds.ToImmutableList();
-		[JsonIgnore]
-		public bool Enabled;
 
+		/// <summary>
+		/// Creates an instance of slowmode.
+		/// </summary>
+		/// <param name="baseMessages"></param>
+		/// <param name="interval"></param>
+		/// <param name="immuneRoles"></param>
 		public Slowmode(int baseMessages, int interval, IRole[] immuneRoles)
 		{
 			BaseMessages = baseMessages;
@@ -35,18 +53,14 @@ namespace Advobot.Core.Classes.Settings
 			_ImmuneRoleIds = immuneRoles.Select(x => x.Id).Distinct().ToArray();
 		}
 
-		[OnDeserialized]
-		private void OnDeserialized(StreamingContext context)
-		{
-
-		}
-
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return $"**Base messages:** `{BaseMessages}`\n" +
 				$"**Time interval:** `{_Interval}`\n" +
 				$"**Immune Role Ids:** `{String.Join("`, `", _ImmuneRoleIds)}`";
 		}
+		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{
 			return $"**Base messages:** `{BaseMessages}`\n" +

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
@@ -13,7 +13,7 @@ namespace Advobot.Core.Classes.TypeReaders
 	public sealed class EmoteTypeReader : TypeReader
 	{
 		/// <summary>
-		/// Checks for any emotes matching the input. Input is tested as an emote Id, then emote name.
+		/// Checks for any emotes matching the input. Input is tested as an emote id, then emote name.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="input"></param>
@@ -30,7 +30,6 @@ namespace Advobot.Core.Classes.TypeReaders
 			{
 				emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == emoteId);
 			}
-
 			if (emote == null)
 			{
 				var emotes = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToList();
@@ -55,6 +54,13 @@ namespace Advobot.Core.Classes.TypeReaders
 	/// </summary>
 	public sealed class GuildEmoteTypeReader : TypeReader
 	{
+		/// <summary>
+		/// Checks for any guild emotes matching the input. Input is tested as an emote id, then emote name.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			IEmote emote = null;
@@ -67,7 +73,6 @@ namespace Advobot.Core.Classes.TypeReaders
 			{
 				emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == emoteId);
 			}
-
 			if (emote == null)
 			{
 				var emotes = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToList();

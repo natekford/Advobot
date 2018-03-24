@@ -11,6 +11,9 @@ namespace Advobot.Core.Classes.Settings
 	/// </summary>
 	public class SpamPreventionInfo : IGuildSetting
 	{
+		/// <summary>
+		/// The punishment for spamming.
+		/// </summary>
 		[JsonProperty]
 		public Punishment Punishment { get; }
 		/// <summary>
@@ -33,8 +36,11 @@ namespace Advobot.Core.Classes.Settings
 		/// </summary>
 		[JsonProperty]
 		public int TimeInterval { get; }
+		/// <summary>
+		/// Whether or not this spam prevention is enabled.
+		/// </summary>
 		[JsonIgnore]
-		public bool Enabled;
+		public bool Enabled { get; set; }
 
 		private SpamPreventionInfo(Punishment punishment, int instances, int votes, int timeInterval, int spamAmount)
 		{
@@ -102,6 +108,7 @@ namespace Advobot.Core.Classes.Settings
 			return !String.IsNullOrWhiteSpace(error.Reason);
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return $"**Punishment:** `{Punishment.ToString()}`\n" +
@@ -109,6 +116,7 @@ namespace Advobot.Core.Classes.Settings
 				$"**Votes For Punishment:** `{VotesForKick}`\n" +
 				(SpamPerMessage != 0 ? $"**Spam Amount:** `{SpamPerMessage}`" : $"**Time Interval:** `{TimeInterval}`");
 		}
+		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{
 			return ToString();

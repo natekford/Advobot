@@ -29,10 +29,10 @@ namespace Advobot.Core.Classes.Attributes
 			{ Target.Emote,        (2, 32,   "emote name") },
 		};
 
-		public int Min { get; }
-		public int Max { get; }
-		public string TooShort { get; }
-		public string TooLong { get; }
+		private int Min;
+		private int Max;
+		private string TooShort;
+		private string TooLong;
 
 		/// <summary>
 		/// Sets the values by looking up <paramref name="target"/> in a dictionary.
@@ -68,25 +68,25 @@ namespace Advobot.Core.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-
-			if (value is string str)
+			if (!(value is string str))
 			{
-				if (str.Length < Min)
-				{
-					return Task.FromResult(PreconditionResult.FromError(TooShort));
-				}
-
-				if (str.Length > Max)
-				{
-					return Task.FromResult(PreconditionResult.FromError(TooLong));
-				}
-
-				return Task.FromResult(PreconditionResult.FromSuccess());
+				throw new NotSupportedException($"{nameof(VerifyStringLengthAttribute)} only supports strings.");
 			}
-
-			throw new NotSupportedException($"{nameof(VerifyStringLengthAttribute)} only supports strings.");
+			if (str.Length < Min)
+			{
+				return Task.FromResult(PreconditionResult.FromError(TooShort));
+			}
+			if (str.Length > Max)
+			{
+				return Task.FromResult(PreconditionResult.FromError(TooLong));
+			}
+			return Task.FromResult(PreconditionResult.FromSuccess());
 		}
 
+		/// <summary>
+		/// Returns a string saying the min and max characters.
+		/// </summary>
+		/// <returns></returns>
 		public override string ToString()
 		{
 			return $"({Min} to {Max} chars)";

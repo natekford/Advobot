@@ -1,9 +1,6 @@
-﻿using Advobot.Core.Classes;
-using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Text;
 
 namespace Advobot.Tests

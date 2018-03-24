@@ -12,15 +12,28 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public sealed class VerifyNumberAttribute : ParameterPreconditionAttribute
 	{
+		/// <summary>
+		/// Allowed numbers. If the range method is used this will be empty.
+		/// </summary>
 		public ImmutableList<int> ValidNumbers { get; }
+		/// <summary>
+		/// The starting value.
+		/// </summary>
 		public int Start { get; }
+		/// <summary>
+		/// The ending value.
+		/// </summary>
 		public int End { get; }
 
+		/// <summary>
+		/// Valid numbers which are the randomly supplied values.
+		/// </summary>
+		/// <param name="numbers"></param>
 		public VerifyNumberAttribute(int[] numbers)
 		{
-			if (numbers.Length > 10)
+			if (numbers.Length > 50)
 			{
-				throw new ArgumentException("don't input more than 10 numbers", nameof(numbers));
+				throw new ArgumentException("Don't input more than 50 numbers.", nameof(numbers));
 			}
 
 			ValidNumbers = numbers.OrderBy(x => x).ToImmutableList();
@@ -39,6 +52,14 @@ namespace Advobot.Core.Classes.Attributes
 			End = end;
 		}
 
+		/// <summary>
+		/// Makes sure the supplied value is a valid number.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="value"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
@@ -62,14 +83,13 @@ namespace Advobot.Core.Classes.Attributes
 				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{Start}` and `{End}`."));
 		}
 
+		/// <summary>
+		/// Returns a string indicating what the valid numbers are.
+		/// </summary>
+		/// <returns></returns>
 		public override string ToString()
 		{
-			if (!ValidNumbers.Any())
-			{
-				return $"({Start} to {End})";
-			}
-
-			return $"({String.Join(", ", ValidNumbers)}";
+			return ValidNumbers.Any() ? $"({String.Join(", ", ValidNumbers)}" : $"({Start} to {End})";
 		}
 	}
 }

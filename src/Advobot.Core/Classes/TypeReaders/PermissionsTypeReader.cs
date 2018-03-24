@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using System;
@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.TypeReaders
 {
+	/// <summary>
+	/// Attempts to parse permissions.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public abstract class PermissionsTypeReader<T> : TypeReader where T : struct, IComparable, IConvertible, IFormattable
 	{
 		private static char[] _SplitChars = new[] { '/', ' ', ',' };

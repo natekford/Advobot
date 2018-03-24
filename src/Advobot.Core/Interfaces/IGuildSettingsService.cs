@@ -10,6 +10,9 @@ namespace Advobot.Core.Interfaces
 	/// </summary>
 	public interface IGuildSettingsService
 	{
+		/// <summary>
+		/// The type used for guild settings.
+		/// </summary>
 		Type GuildSettingsType { get; }
 
 		/// <summary>

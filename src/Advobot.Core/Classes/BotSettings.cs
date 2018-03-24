@@ -10,10 +10,236 @@ using System.IO;
 namespace Advobot.Core.Classes
 {
 	/// <summary>
-	/// Holds settings for the bot. Settings are saved through property setters or calling <see cref="SaveSettings()"/>.
+	/// Holds settings for the bot.
 	/// </summary>
 	public class BotSettings : SettingsBase, IBotSettings
 	{
+		/// <inheritdoc />
+		[JsonIgnore]
+		public LogSeverity LogLevel
+		{
+			get => _LogLevel;
+			set => _LogLevel = value;
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public string Prefix
+		{
+			get => _Prefix;
+			set
+			{
+				if (String.IsNullOrWhiteSpace(value))
+				{
+					throw new ArgumentException("Must not be null or whitespace.", nameof(value));
+				}
+				_Prefix = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public string Game
+		{
+			get => _Game;
+			set => _Game = value;
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public string Stream
+		{
+			get => _Stream;
+			set => _Stream = value;
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public bool AlwaysDownloadUsers
+		{
+			get => _AlwaysDownloadUsers;
+			set => _AlwaysDownloadUsers = value;
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int ShardCount
+		{
+			get => _ShardCount;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_ShardCount = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MessageCacheCount
+		{
+			get => _MessageCacheCount;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MessageCacheCount = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxUserGatherCount
+		{
+			get => _MaxUserGatherCount;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxUserGatherCount = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxMessageGatherSize
+		{
+			get => _MaxMessageGatherSize;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxMessageGatherSize = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxRuleCategories
+		{
+			get => _MaxRuleCategories;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxRuleCategories = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxRulesPerCategory
+		{
+			get => _MaxRulesPerCategory;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxRulesPerCategory = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxSelfAssignableRoleGroups
+		{
+			get => _MaxSelfAssignableRoleGroups;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxSelfAssignableRoleGroups = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxQuotes
+		{
+			get => _MaxQuotes;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxQuotes = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxBannedStrings
+		{
+			get => _MaxBannedStrings;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxBannedStrings = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxBannedRegex
+		{
+			get => _MaxBannedRegex;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxBannedRegex = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxBannedNames
+		{
+			get => _MaxBannedNames;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxBannedNames = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int MaxBannedPunishments
+		{
+			get => _MaxBannedPunishments;
+			set
+			{
+				if (value < 1)
+				{
+					throw new ArgumentException("Must be greater than 0.", nameof(value));
+				}
+				_MaxBannedPunishments = value;
+			}
+		}
+		/// <inheritdoc />
+		[JsonIgnore]
+		public List<ulong> TrustedUsers => _TrustedUsers;
+		/// <inheritdoc />
+		[JsonIgnore]
+		public List<ulong> UsersUnableToDmOwner => _UsersUnableToDmOwner;
+		/// <inheritdoc />
+		[JsonIgnore]
+		public List<ulong> UsersIgnoredFromCommands => _UsersIgnoredFromCommands;
+		/// <inheritdoc />
+		[JsonIgnore]
+		public bool Pause { get; set; }
+		/// <inheritdoc />
+		[JsonIgnore]
+		public override FileInfo FileLocation => FileUtils.GetBotSettingsFile();
+
 		[JsonProperty("LogLevel"), Setting(LogSeverity.Warning)]
 		private LogSeverity _LogLevel = LogSeverity.Warning;
 		[JsonProperty("Prefix"), Setting("&&")]
@@ -54,210 +280,5 @@ namespace Advobot.Core.Classes
 		private List<ulong> _UsersUnableToDmOwner = new List<ulong>();
 		[JsonProperty("UsersIgnoredFromCommands"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
 		private List<ulong> _UsersIgnoredFromCommands = new List<ulong>();
-
-		[JsonIgnore]
-		public LogSeverity LogLevel
-		{
-			get => _LogLevel;
-			set => _LogLevel = value;
-		}
-		[JsonIgnore]
-		public string Prefix
-		{
-			get => _Prefix;
-			set
-			{
-				if (String.IsNullOrWhiteSpace(value))
-				{
-					throw new ArgumentException("Must not be null or whitespace.", nameof(value));
-				}
-				_Prefix = value;
-			}
-		}
-		[JsonIgnore]
-		public string Game
-		{
-			get => _Game;
-			set => _Game = value;
-		}
-		[JsonIgnore]
-		public string Stream
-		{
-			get => _Stream;
-			set => _Stream = value;
-		}
-		[JsonIgnore]
-		public bool AlwaysDownloadUsers
-		{
-			get => _AlwaysDownloadUsers;
-			set => _AlwaysDownloadUsers = value;
-		}
-		[JsonIgnore]
-		public int ShardCount
-		{
-			get => _ShardCount;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_ShardCount = value;
-			}
-		}
-		[JsonIgnore]
-		public int MessageCacheCount
-		{
-			get => _MessageCacheCount;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MessageCacheCount = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxUserGatherCount
-		{
-			get => _MaxUserGatherCount;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxUserGatherCount = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxMessageGatherSize
-		{
-			get => _MaxMessageGatherSize;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxMessageGatherSize = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxRuleCategories
-		{
-			get => _MaxRuleCategories;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxRuleCategories = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxRulesPerCategory
-		{
-			get => _MaxRulesPerCategory;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxRulesPerCategory = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxSelfAssignableRoleGroups
-		{
-			get => _MaxSelfAssignableRoleGroups;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxSelfAssignableRoleGroups = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxQuotes
-		{
-			get => _MaxQuotes;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxQuotes = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxBannedStrings
-		{
-			get => _MaxBannedStrings;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxBannedStrings = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxBannedRegex
-		{
-			get => _MaxBannedRegex;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxBannedRegex = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxBannedNames
-		{
-			get => _MaxBannedNames;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxBannedNames = value;
-			}
-		}
-		[JsonIgnore]
-		public int MaxBannedPunishments
-		{
-			get => _MaxBannedPunishments;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_MaxBannedPunishments = value;
-			}
-		}
-		[JsonIgnore]
-		public List<ulong> TrustedUsers => _TrustedUsers;
-		[JsonIgnore]
-		public List<ulong> UsersUnableToDmOwner => _UsersUnableToDmOwner;
-		[JsonIgnore]
-		public List<ulong> UsersIgnoredFromCommands => _UsersIgnoredFromCommands;
-
-		[JsonIgnore]
-		public bool Pause { get; set; }
-		[JsonIgnore]
-		public override FileInfo FileLocation => IOUtils.GetBotSettingsFile();
 	}
 }

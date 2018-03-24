@@ -28,13 +28,18 @@ namespace Advobot.Core.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			var color = GetColor(input);
+			var color = ParseColor(input);
 			return color != null
 				? Task.FromResult(TypeReaderResult.FromSuccess(color))
 				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching color."));
 		}
 
-		public static Color? GetColor(string input)
+		/// <summary>
+		/// Attempts to parse a color from the input. If unable to parse, returns null.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public static Color? ParseColor(string input)
 		{
 			Color? color = null;
 			if (input == null)

@@ -1,6 +1,7 @@
 ﻿using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,10 @@ namespace Advobot.Core.Classes.Punishments
 	/// </summary>
 	public class PunishmentRemover : PunishmentBase
 	{
+		/// <summary>
+		/// Creates an instance of punishment remover.
+		/// </summary>
+		/// <param name="timers"></param>
 		public PunishmentRemover(ITimersService timers) : base(timers) { }
 
 		/// <summary>
@@ -71,8 +76,8 @@ namespace Advobot.Core.Classes.Punishments
 
 		private async Task After(Punishment type, IGuild guild, IUser user, RequestOptions options)
 		{
-			var sb = new StringBuilder($"Successfully {_Removal[type]} `{user?.Format() ?? "`Unknown User`"}`. ");
-			if (_Timers != null && (await _Timers.RemovePunishmentAsync(guild, user?.Id ?? 0, type).CAF()).UserId != 0)
+			var sb = new StringBuilder($"Successfully {Removed[type]} `{user?.Format() ?? "`Unknown User`"}`. ");
+			if (Timers != null && (await Timers.RemovePunishmentAsync(guild, user?.Id ?? 0, type).CAF()).UserId != 0)
 			{
 				sb.Append($"Removed all timed {type.ToString().FormatTitle().ToLower()} punishments on them. ");
 			}
@@ -80,7 +85,7 @@ namespace Advobot.Core.Classes.Punishments
 			{
 				sb.Append($"The provided reason is `{options.AuditLogReason.EscapeBackTicks().TrimEnd('.', ' ')}`. ");
 			}
-			_Actions.Add(sb.ToString().Trim());
+			Actions.Add(sb.ToString().Trim());
 		}
 	}
 }

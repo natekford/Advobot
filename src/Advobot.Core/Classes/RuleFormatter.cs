@@ -1,6 +1,6 @@
 ﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Enums;
-using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -35,7 +35,18 @@ namespace Advobot.Core.Classes
 		private RuleFormatOption _Options;
 		private char _CharAfterNumbers;
 
+		/// <summary>
+		/// Creates an instance of rule formatter.
+		/// </summary>
 		public RuleFormatter() : this(default) { }
+		/// <summary>
+		/// Uses user input to create a rule formatter.
+		/// </summary>
+		/// <param name="format"></param>
+		/// <param name="titleFormat"></param>
+		/// <param name="ruleFormat"></param>
+		/// <param name="charAfterNumbers"></param>
+		/// <param name="formatOptions"></param>
 		[NamedArgumentConstructor]
 		private RuleFormatter(
 			[NamedArgument] RuleFormat format = default,
@@ -54,6 +65,11 @@ namespace Advobot.Core.Classes
 			}
 		}
 
+		/// <summary>
+		/// Format the name of a rule category.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
 		public string FormatName(string name)
 		{
 			var n = name.FormatTitle().Trim(' ');
@@ -63,6 +79,13 @@ namespace Advobot.Core.Classes
 			}
 			return AddMarkDown(_TitleMarkDownFormat == default ? _DefaultTitleFormats[_Format] : _TitleMarkDownFormat, n);
 		}
+		/// <summary>
+		/// Format the rule itself.
+		/// </summary>
+		/// <param name="rule"></param>
+		/// <param name="index"></param>
+		/// <param name="rulesInCategory"></param>
+		/// <returns></returns>
 		public string FormatRule(string rule, int index, int rulesInCategory)
 		{
 			string r;

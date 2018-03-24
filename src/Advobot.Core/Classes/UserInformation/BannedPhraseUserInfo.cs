@@ -11,13 +11,6 @@ namespace Advobot.Core.Classes.UserInformation
 	/// </summary>
 	public class BannedPhraseUserInfo : UserInfo
 	{
-		private int _Kick;
-		private int _Ban;
-		private int _Deafen;
-		private int _VoiceMute;
-		private int _Softban;
-		private int _RoleMute;
-
 		/// <summary>
 		/// The amount of messages that gave them a kick punishment.
 		/// </summary>
@@ -43,31 +36,19 @@ namespace Advobot.Core.Classes.UserInformation
 		/// </summary>
 		public int RoleMute => _RoleMute;
 
+		private int _Kick;
+		private int _Ban;
+		private int _Deafen;
+		private int _VoiceMute;
+		private int _Softban;
+		private int _RoleMute;
+
+		/// <summary>
+		/// Creates an instance of bannedphraseuserinfo.
+		/// </summary>
+		/// <param name="user"></param>
 		public BannedPhraseUserInfo(SocketGuildUser user) : base(user) { }
 
-		public int this[Punishment type]
-		{
-			get
-			{
-				switch (type)
-				{
-					case Punishment.Kick:
-						return _Kick;
-					case Punishment.Ban:
-						return _Ban;
-					case Punishment.Deafen:
-						return _Deafen;
-					case Punishment.VoiceMute:
-						return _VoiceMute;
-					case Punishment.Softban:
-						return _Softban;
-					case Punishment.RoleMute:
-						return _RoleMute;
-					default:
-						throw new ArgumentException("Invalid punishment type provided.", nameof(type));
-				}
-			}
-		}
 		/// <summary>
 		/// Increases the banned phrase count for that punishment by one.
 		/// </summary>
@@ -123,9 +104,7 @@ namespace Advobot.Core.Classes.UserInformation
 					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
 			}
 		}
-		/// <summary>
-		/// Sets everything back to default values.
-		/// </summary>
+		/// <inheritdoc />
 		public override void Reset()
 		{
 			Interlocked.Exchange(ref _Kick, 0);
@@ -136,6 +115,39 @@ namespace Advobot.Core.Classes.UserInformation
 			Interlocked.Exchange(ref _RoleMute, 0);
 		}
 
+		/// <summary>
+		/// Returns the value of the specified punishment.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public int this[Punishment type]
+		{
+			get
+			{
+				switch (type)
+				{
+					case Punishment.Kick:
+						return _Kick;
+					case Punishment.Ban:
+						return _Ban;
+					case Punishment.Deafen:
+						return _Deafen;
+					case Punishment.VoiceMute:
+						return _VoiceMute;
+					case Punishment.Softban:
+						return _Softban;
+					case Punishment.RoleMute:
+						return _RoleMute;
+					default:
+						throw new ArgumentException("Invalid punishment type provided.", nameof(type));
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns the count of each punishment type.
+		/// </summary>
+		/// <returns></returns>
 		public override string ToString()
 		{
 			return String.Join("/", GetType().GetProperties().Select(x => $"{x.Name[0]}{x.GetValue(this)}"));

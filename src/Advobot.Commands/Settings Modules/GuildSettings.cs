@@ -1,16 +1,15 @@
 ﻿using Advobot.Commands.Misc;
-using Advobot.Core;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.Settings;
 using Advobot.Core.Classes.TypeReaders;
 using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -75,7 +74,7 @@ namespace Advobot.Commands.GuildSettings
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
-				else if (!helpEntry.AbleToBeTurnedOff)
+				else if (!helpEntry.AbleToBeToggled)
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} cannot be edited.")).CAF();
 				}
@@ -120,7 +119,7 @@ namespace Advobot.Commands.GuildSettings
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
-				else if (!helpEntry.AbleToBeTurnedOff)
+				else if (!helpEntry.AbleToBeToggled)
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} cannot be edited.")).CAF();
 				}
@@ -581,7 +580,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command]
 		public async Task Command()
 		{
-			var file = IOUtils.GetGuildSettingsFile(Context.Guild.Id);
+			var file = FileUtils.GetGuildSettingsFile(Context.Guild.Id);
 			if (!file.Exists)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild settings file does not exist.")).CAF();

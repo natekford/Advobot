@@ -23,6 +23,6 @@ namespace Advobot.Core.Enums
 		/// <summary>
 		/// If a user is the owner of the bot.
 		/// </summary>
-		BotOwner = (1U << 3)
+		BotOwner = (1U << 3),
 	}
 }

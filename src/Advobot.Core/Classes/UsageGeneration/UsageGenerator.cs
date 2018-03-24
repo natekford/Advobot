@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -39,8 +39,15 @@ namespace Advobot.Core.Classes.UsageGeneration
 		 * Gets formatted to [A|B|cat] <q|text> <dog>
 		 */
 
+		/// <summary>
+		/// The generated text.
+		/// </summary>
 		public string Text { get; }
 
+		/// <summary>
+		/// Creates an instance of usage generator.
+		/// </summary>
+		/// <param name="classType"></param>
 		public UsageGenerator(Type classType)
 		{
 			if (classType.IsNested)

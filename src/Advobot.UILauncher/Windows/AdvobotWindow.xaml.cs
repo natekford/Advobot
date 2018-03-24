@@ -4,6 +4,7 @@ using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Classes.Controls;
 using Advobot.UILauncher.Enums;
 using Advobot.UILauncher.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,15 +28,30 @@ namespace Advobot.UILauncher.Windows
 	/// </summary>
 	public partial class AdvobotWindow : Window
 	{
+		/// <summary>
+		/// Holds a reference to the client even when it doesn't exist for XAML binding.
+		/// </summary>
 		public Holder<IDiscordClient> Client { get; private set; } = new Holder<IDiscordClient>();
+		/// <summary>
+		/// Holds a reference to the bot settings even when it doesn't exist for XAML binding.
+		/// </summary>
 		public Holder<IBotSettings> BotSettings { get; private set; } = new Holder<IBotSettings>();
+		/// <summary>
+		/// Holds a reference to the guild settings service even when it doesn't exist for XAML binding.
+		/// </summary>
 		public Holder<IGuildSettingsService> GuildSettings { get; private set; } = new Holder<IGuildSettingsService>();
+		/// <summary>
+		/// Holds a reference to the log service even when it doesn't exist for XAML binding.
+		/// </summary>
 		public Holder<ILogService> LogHolder { get; private set; } = new Holder<ILogService>();
 
 		private ColorSettings _Colors = new ColorSettings();
 		private LoginHandler _LoginHandler = new LoginHandler();
 		private MenuType _LastButtonClicked;
 
+		/// <summary>
+		/// Creates an instance of advobotwindow.
+		/// </summary>
 		public AdvobotWindow()
 		{
 			InitializeComponent();
@@ -236,7 +252,7 @@ namespace Advobot.UILauncher.Windows
 		}
 		private void SearchForFile(object sender, RoutedEventArgs e)
 		{
-			using (var dialog = new CommonOpenFileDialog { DefaultDirectory = IOUtils.GetBaseBotDirectory().FullName })
+			using (var dialog = new CommonOpenFileDialog { DefaultDirectory = FileUtils.GetBaseBotDirectory().FullName })
 			{
 				switch (dialog.ShowDialog())
 				{

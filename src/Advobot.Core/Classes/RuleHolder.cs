@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -11,15 +12,21 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes
 {
+	/// <summary>
+	/// Holds rules on a guild.
+	/// </summary>
 	public class RuleHolder : IGuildSetting
 	{
+		/// <summary>
+		/// Holds the categories for rules which in turn hold the rules.
+		/// </summary>
 		[JsonProperty]
 		public Dictionary<RuleCategory, List<string>> Categories = new Dictionary<RuleCategory, List<string>>();
 
 		/// <summary>
 		/// Sends the rules to the specified channel.
 		/// </summary>
-		/// <param name="categories"></param>
+		/// <param name="formatter"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
 		public async Task<IEnumerable<IUserMessage>> SendAsync(RuleFormatter formatter, IMessageChannel channel)
@@ -45,7 +52,8 @@ namespace Advobot.Core.Classes
 		/// <summary>
 		/// Sends a category to the specified channel.
 		/// </summary>
-		/// <param name="formattedCategory"></param>
+		/// <param name="formatter"></param>
+		/// <param name="category"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
 		public async Task<IEnumerable<IUserMessage>> SendCategoryAsync(RuleFormatter formatter, RuleCategory category, IMessageChannel channel)
@@ -87,10 +95,21 @@ namespace Advobot.Core.Classes
 			return messages;
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return ToString(new RuleFormatter());
 		}
+		/// <inheritdoc />
+		public string ToString(SocketGuild guild)
+		{
+			return ToString();
+		}
+		/// <summary>
+		/// Uses the specified rule formatter to format every rule category.
+		/// </summary>
+		/// <param name="formatter"></param>
+		/// <returns></returns>
 		public string ToString(RuleFormatter formatter)
 		{
 			var sb = new StringBuilder();
@@ -106,6 +125,12 @@ namespace Advobot.Core.Classes
 			}
 			return sb.ToString();
 		}
+		/// <summary>
+		/// Uses the specified rule formatter to format the specified category.
+		/// </summary>
+		/// <param name="formatter"></param>
+		/// <param name="category"></param>
+		/// <returns></returns>
 		public string ToString(RuleFormatter formatter, RuleCategory category)
 		{
 			var c = Categories[category];
@@ -116,10 +141,6 @@ namespace Advobot.Core.Classes
 				sb.AppendLineFeed(formatter.FormatRule(c[r], r, c.Count));
 			}
 			return sb.ToString();
-		}
-		public string ToString(SocketGuild guild)
-		{
-			return ToString();
 		}
 	}
 }

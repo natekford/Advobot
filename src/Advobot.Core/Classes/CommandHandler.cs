@@ -2,6 +2,7 @@
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -13,6 +14,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes
 {
+	/// <summary>
+	/// Handles user input commands.
+	/// </summary>
 	public class CommandHandler
 	{
 		private static string _Joiner = "\n" + new string(' ', 28);
@@ -26,6 +30,10 @@ namespace Advobot.Core.Classes
 		private ILogService _Logging;
 		private bool _Loaded;
 
+		/// <summary>
+		/// Creates an instance of the command handler and gets the required services.
+		/// </summary>
+		/// <param name="provider"></param>
 		public CommandHandler(IServiceProvider provider)
 		{
 			_Provider = provider;

@@ -13,6 +13,13 @@ namespace Advobot.Core.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class CommandRequirementAttribute : PreconditionAttribute
 	{
+		/// <summary>
+		/// Makes sure all the required checks are passed. Otherwise returns an error string.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="command"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			if (!(context is AdvobotSocketCommandContext advobotCommandContext))

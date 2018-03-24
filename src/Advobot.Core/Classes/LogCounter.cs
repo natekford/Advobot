@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -13,32 +13,60 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public sealed class LogCounter : INotifyPropertyChanged
 	{
-		public string Title { get; private set; }
-		private int _Count;
+		/// <summary>
+		/// The title of the log counter.
+		/// </summary>
+		public string Title { get; }
+		/// <summary>
+		/// How many instances have been logged.
+		/// </summary>
 		public int Count => _Count;
 
+		private int _Count;
+
+		/// <summary>
+		/// Notifies when the count changes.
+		/// </summary>
 		public event PropertyChangedEventHandler PropertyChanged;
 
+		/// <summary>
+		/// Create a log counter with the calling method as its title.
+		/// </summary>
+		/// <param name="title"></param>
 		public LogCounter([CallerMemberName] string title = "")
 		{
 			Title = title.FormatTitle().Trim();
 		}
 
+		/// <summary>
+		/// Add a specified amount to the counter.
+		/// </summary>
+		/// <param name="count"></param>
 		public void Add(int count)
 		{
 			Interlocked.Add(ref _Count, count);
 			NotifyPropertyChanged(nameof(Count));
 		}
+		/// <summary>
+		/// Remove a specified amount from the counter.
+		/// </summary>
+		/// <param name="count"></param>
 		public void Remove(int count)
 		{
 			Interlocked.Add(ref _Count, -count);
 			NotifyPropertyChanged(nameof(Count));
 		}
+		/// <summary>
+		/// Add one to the counter.
+		/// </summary>
 		public void Increment()
 		{
 			Interlocked.Increment(ref _Count);
 			NotifyPropertyChanged(nameof(Count));
 		}
+		/// <summary>
+		/// Remove one from the counter.
+		/// </summary>
 		public void Decrement()
 		{
 			Interlocked.Decrement(ref _Count);
@@ -89,6 +117,10 @@ namespace Advobot.Core.Classes
 			}
 		}
 
+		/// <summary>
+		/// Returns the title and count.
+		/// </summary>
+		/// <returns></returns>
 		public override string ToString()
 		{
 			return $"**{Title}:** {Count}";

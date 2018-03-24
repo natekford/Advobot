@@ -33,10 +33,10 @@ namespace Advobot.UILauncher.Utilities
 		/// Sets the <see cref="Control.FontSizeProperty"/> to a number that changes based off of the top most grid's height.
 		/// Zero removes any binding on the <see cref="Control.FontSizeProperty"/>.
 		/// </summary>
-		/// <param name="control"></param>
-		/// <param name="size"></param>
-		/// <exception cref="ArgumentException">If <paramref name="control"/> is not inside a grid.</exception>
-		/// <exception cref="ArgumentException">If <paramref name="size"/> is less than zero.</exception>
+		/// <param name="d"></param>
+		/// <param name="e"></param>
+		/// <exception cref="ArgumentException">If <paramref name="d"/> is not inside a grid.</exception>
+		/// <exception cref="ArgumentException">If <paramref name="e"/>'s new value is less than zero.</exception>
 		public static void SetFontResizeProperty(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
 			if (!(d is FrameworkElement element))
@@ -47,17 +47,14 @@ namespace Advobot.UILauncher.Utilities
 			{
 				throw new ArgumentException("is not a double", nameof(e.NewValue));
 			}
-
 			if (!TryGetTopMostParent(element, out Grid parent, out var ancestorLevel))
 			{
 				throw new ArgumentException($"must be inside a grid if {nameof(IFontResizeValue.FontResizeValue)} is set", element.Name);
 			}
-
 			if (size < 0)
 			{
 				throw new ArgumentException("must be greater than or equal to 0", nameof(size));
 			}
-
 			if (size == 0)
 			{
 				BindingOperations.ClearBinding(element, Control.FontSizeProperty);

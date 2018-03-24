@@ -1,6 +1,5 @@
 ﻿using Discord.Commands;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.TypeReaders
@@ -10,6 +9,13 @@ namespace Advobot.Core.Classes.TypeReaders
 	/// </summary>
 	public sealed class UriTypeReader : TypeReader
 	{
+		/// <summary>
+		/// Checks if the input is a valid uri.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			if (!Uri.TryCreate(input, UriKind.Absolute, out var url))

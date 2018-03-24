@@ -1,4 +1,4 @@
-using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests

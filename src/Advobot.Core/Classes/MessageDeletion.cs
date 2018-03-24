@@ -9,7 +9,6 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public sealed class MessageDeletion
 	{
-		private CancellationTokenSource _CancelTokenSource = new CancellationTokenSource();
 		/// <summary>
 		/// Accessing this cancel token cancels the old token and generates a new one.
 		/// </summary>
@@ -22,9 +21,17 @@ namespace Advobot.Core.Classes
 				return (_CancelTokenSource = new CancellationTokenSource()).Token;
 			}
 		}
-		private ConcurrentBag<IMessage> _Messages = new ConcurrentBag<IMessage>();
+		/// <summary>
+		/// The messages which have been deleted but not printed yet.
+		/// </summary>
 		public ConcurrentBag<IMessage> Messages => _Messages;
 
+		private CancellationTokenSource _CancelTokenSource = new CancellationTokenSource();
+		private ConcurrentBag<IMessage> _Messages = new ConcurrentBag<IMessage>();
+
+		/// <summary>
+		/// Clears any messages currently held.
+		/// </summary>
 		public void ClearBag()
 		{
 			Interlocked.Exchange(ref _Messages, new ConcurrentBag<IMessage>());

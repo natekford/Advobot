@@ -7,6 +7,10 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public abstract class GuildSettingsSavingModuleBase : NonSavingModuleBase
 	{
+		/// <summary>
+		/// Saves the guild settings.
+		/// </summary>
+		/// <param name="command"></param>
 		protected override void AfterExecute(CommandInfo command)
 		{
 			Context.GuildSettings.SaveSettings();
@@ -19,6 +23,10 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public abstract class BotSettingsSavingModuleBase : NonSavingModuleBase
 	{
+		/// <summary>
+		/// Saves the bot settings.
+		/// </summary>
+		/// <param name="command"></param>
 		protected override void AfterExecute(CommandInfo command)
 		{
 			Context.BotSettings.SaveSettings();

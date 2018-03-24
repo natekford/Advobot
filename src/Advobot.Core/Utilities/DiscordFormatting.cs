@@ -1,5 +1,6 @@
 ﻿using Advobot.Core.Classes;
 using Advobot.Core.Interfaces;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -143,7 +144,7 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Returns a string with the game's name or stream name/url.
 		/// </summary>
-		/// <param name="presence"></param>
+		/// <param name="activity"></param>
 		/// <returns></returns>
 		public static string Format(this IActivity activity)
 		{
@@ -170,7 +171,6 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a user on a guild.
 		/// </summary>
-		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public static EmbedWrapper FormatGuildUserInfo(SocketGuildUser user)
@@ -220,7 +220,6 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a user not on a guild.
 		/// </summary>
-		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public static EmbedWrapper FormatUserInfo(SocketUser user)
@@ -239,7 +238,6 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a role.
 		/// </summary>
-		/// <param name="guild"></param>
 		/// <param name="role"></param>
 		/// <returns></returns>
 		public static EmbedWrapper FormatRoleInfo(SocketRole role)
@@ -476,6 +474,7 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a webhook.
 		/// </summary>
+		/// <param name="guild"></param>
 		/// <param name="webhook"></param>
 		/// <returns></returns>
 		public static EmbedWrapper FormatWebhookInfo(SocketGuild guild, IWebhook webhook)
@@ -494,7 +493,6 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about the bot.
 		/// </summary>
-		/// <param name="globalInfo"></param>
 		/// <param name="client"></param>
 		/// <param name="logModule"></param>
 		/// <param name="guild"></param>

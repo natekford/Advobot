@@ -1,6 +1,6 @@
-﻿using Advobot.Core.Utilities;
-using Advobot.UILauncher.Interfaces;
+﻿using Advobot.UILauncher.Interfaces;
 using Advobot.UILauncher.Utilities;
+using AdvorangesUtils;
 using System.Windows;
 using System.Windows.Controls;
 

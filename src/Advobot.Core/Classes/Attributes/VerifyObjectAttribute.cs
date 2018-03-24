@@ -19,13 +19,30 @@ namespace Advobot.Core.Classes.Attributes
 		private ImmutableList<ObjectVerification> _Checks;
 		private bool _IfNullCheckFromContext;
 
+		/// <summary>
+		/// Sets the variables saying what checks to use and if to use the values in the context if null.
+		/// </summary>
+		/// <param name="ifNullCheckFromContext"></param>
+		/// <param name="checks"></param>
 		public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
 		{
 			_Checks = checks.ToImmutableList();
 			_IfNullCheckFromContext = ifNullCheckFromContext;
 		}
 
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		/// <summary>
+		/// Returns success if the user can do the actions on the supplied object.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="value"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		public override Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			object value,
+			IServiceProvider services)
 		{
 			if (value != null)
 			{

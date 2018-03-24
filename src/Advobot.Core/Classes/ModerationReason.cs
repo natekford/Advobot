@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using System;
 using System.Linq;
 using System.Text;
@@ -10,9 +10,19 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public struct ModerationReason
 	{
+		/// <summary>
+		/// The time in minutes to give for a punishment.
+		/// </summary>
 		public int Time { get; }
+		/// <summary>
+		/// The reason for a punishment.
+		/// </summary>
 		public string Reason { get; }
 
+		/// <summary>
+		/// Parses the time and reason for the punishment.
+		/// </summary>
+		/// <param name="input"></param>
 		public ModerationReason(string input)
 		{
 			if (input == null)

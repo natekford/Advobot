@@ -1,11 +1,11 @@
-﻿using Advobot.Core.Utilities;
+﻿using AdvorangesUtils;
 using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.TypeReaders
-{	
+{
 	/// <summary>
 	/// Attempts to find a rule category in the guild settings.
 	/// </summary>

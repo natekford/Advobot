@@ -3,6 +3,7 @@ using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -18,11 +19,22 @@ namespace Advobot.Core.Classes.Settings
 	{
 		private static RequestOptions _Options = ClientUtils.CreateRequestOptions("banned phrase");
 
+		/// <summary>
+		/// The phrase which is banned. Can be string or regex pattern.
+		/// </summary>
 		[JsonProperty]
 		public string Phrase { get; }
+		/// <summary>
+		/// The type of punishment associated with this phrase.
+		/// </summary>
 		[JsonProperty]
 		public Punishment Punishment;
 
+		/// <summary>
+		/// Creates an instance of banned phrase.
+		/// </summary>
+		/// <param name="phrase"></param>
+		/// <param name="punishment"></param>
 		public BannedPhrase(string phrase, Punishment punishment = default)
 		{
 			Phrase = phrase;
@@ -33,7 +45,7 @@ namespace Advobot.Core.Classes.Settings
 		/// Deletes the message then checks if the user should be punished.
 		/// </summary>
 		/// <param name="settings"></param>
-		/// <param name="guild"
+		/// <param name="guild"></param>
 		/// <param name="info"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
@@ -50,10 +62,12 @@ namespace Advobot.Core.Classes.Settings
 			info.Reset(Punishment);
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return $"`{(Punishment == default ? 'N' : Punishment.ToString()[0])}` `{Phrase}`";
 		}
+		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{
 			return ToString();

@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.Net;
 using Newtonsoft.Json;
@@ -130,7 +131,7 @@ namespace Advobot.Core
 		/// <returns></returns>
 		private static ConfigDict LoadConfigDictionary()
 		{
-			return IOUtils.DeserializeFromFile<ConfigDict>(new FileInfo(_SavePath), typeof(ConfigDict), true);
+			return IOUtils.DeserializeFromFile<ConfigDict>(new FileInfo(_SavePath), typeof(ConfigDict));
 		}
 		/// <summary>
 		/// Writes the current <see cref="ConfigDict"/> to file.
@@ -153,6 +154,11 @@ namespace Advobot.Core
 				{ ConfigKey.BotId, "0" }
 			};
 
+			/// <summary>
+			/// Get the config value associated with the key.
+			/// </summary>
+			/// <param name="key"></param>
+			/// <returns></returns>
 			[JsonIgnore]
 			public string this[ConfigKey key]
 			{
@@ -166,9 +172,18 @@ namespace Advobot.Core
 			[Flags]
 			public enum ConfigKey : uint
 			{
+				/// <summary>
+				/// Where everything is saved.
+				/// </summary>
 				SavePath = (1U << 0),
+				/// <summary>
+				/// The key to log into the bot with.
+				/// </summary>
 				BotKey = (1U << 1),
-				BotId = (1U << 2)
+				/// <summary>
+				/// The id of the bot.
+				/// </summary>
+				BotId = (1U << 2),
 			}
 		}
 	}

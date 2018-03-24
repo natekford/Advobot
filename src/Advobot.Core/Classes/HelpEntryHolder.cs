@@ -1,7 +1,6 @@
 ﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.UsageGeneration;
-using Advobot.Core.Interfaces;
-using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -24,6 +23,10 @@ namespace Advobot.Core.Classes
 		//Maps the name to the helpentry
 		private Dictionary<string, HelpEntry> _Source = new Dictionary<string, HelpEntry>(StringComparer.OrdinalIgnoreCase);
 
+		/// <summary>
+		/// Gathers command information from the supplied assemblies.
+		/// </summary>
+		/// <param name="commandAssemblies"></param>
 		public HelpEntryHolder(IEnumerable<Assembly> commandAssemblies)
 		{
 			var types = commandAssemblies.SelectMany(x => x.GetTypes());
@@ -58,7 +61,7 @@ namespace Advobot.Core.Classes
 				var permReqs = t.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
 				var otherReqs = t.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
 				var defaultEnabled = t.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
-				var unableToBeTurnedOff = t.GetCustomAttribute<DefaultEnabledAttribute>()?.AbleToBeTurnedOff ?? true;
+				var unableToBeTurnedOff = t.GetCustomAttribute<DefaultEnabledAttribute>()?.AbleToToggle ?? true;
 
 				//These are basically only here so I won't forget something.
 				//Without them the bot should work fine, but may have tiny bugs.
@@ -161,7 +164,7 @@ namespace Advobot.Core.Classes
 			return _Source.Values.Where(x => x.Category.CaseInsEquals(category)).ToArray();
 		}
 		/// <summary>
-		/// Returns an array of every <see cref="CommandCategory"/>.
+		/// Returns an array of every command category.
 		/// </summary>
 		/// <returns></returns>
 		public string[] GetCategories()
@@ -169,6 +172,11 @@ namespace Advobot.Core.Classes
 			return _CategoryMap.Values.ToArray();
 		}
 
+		/// <summary>
+		/// Attempt to get a command with its name.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
 		public HelpEntry this[string name]
 		{
 			get => _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
@@ -180,14 +188,38 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public class HelpEntry
 	{
+		/// <summary>
+		/// The name of the command.
+		/// </summary>
 		public string Name { get; }
+		/// <summary>
+		/// How to use the command. This is automatically generated.
+		/// </summary>
 		public string Usage { get; }
+		/// <summary>
+		/// The base permissions to use the command.
+		/// </summary>
 		public string BasePerm { get; }
+		/// <summary>
+		/// Describes what the command does.
+		/// </summary>
 		public string Description { get; }
+		/// <summary>
+		/// Other names to invoke the command.
+		/// </summary>
 		public ImmutableList<string> Aliases { get; }
+		/// <summary>
+		/// The category the command is in.
+		/// </summary>
 		public string Category { get; }
+		/// <summary>
+		/// Whether or not the command is on by default.
+		/// </summary>
 		public bool DefaultEnabled { get; }
-		public bool AbleToBeTurnedOff { get; }
+		/// <summary>
+		/// Whether or not the command can be toggled.
+		/// </summary>
+		public bool AbleToBeToggled { get; }
 
 		internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases,
 			string category, bool defaultEnabled, bool ableToBeTurnedOff)
@@ -204,9 +236,13 @@ namespace Advobot.Core.Classes
 			Aliases = (aliases ?? new[] { "N/A" }).ToImmutableList();
 			Category = category;
 			DefaultEnabled = defaultEnabled;
-			AbleToBeTurnedOff = ableToBeTurnedOff;
+			AbleToBeToggled = ableToBeTurnedOff;
 		}
 
+		/// <summary>
+		/// Returns a string with all the information about the command.
+		/// </summary>
+		/// <returns></returns>
 		public override string ToString()
 		{
 			return $"**Aliases:** {String.Join(", ", Aliases)}\n" +

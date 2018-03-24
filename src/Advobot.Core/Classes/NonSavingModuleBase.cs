@@ -12,6 +12,11 @@ namespace Advobot.Core.Classes
 	[CommandRequirement]
 	public abstract class NonSavingModuleBase : ModuleBase<AdvobotSocketCommandContext>
 	{
+		/// <summary>
+		/// Gets a request options that mainly is used for the reason in the audit log.
+		/// </summary>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public RequestOptions GetRequestOptions(string reason = "")
 		{
 			return String.IsNullOrWhiteSpace(reason)

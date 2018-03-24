@@ -15,20 +15,35 @@ namespace Advobot.Core.Classes.Settings
 	/// </summary>
 	public class SelfAssignableRoles : IGuildSetting
 	{
+		/// <summary>
+		/// The group number all the roles belong to.
+		/// </summary>
 		[JsonProperty]
 		public int Group { get; }
+		/// <summary>
+		/// The roles in the group.
+		/// </summary>
+		[JsonIgnore]
+		public ImmutableList<IRole> Roles => _Roles.Values.ToImmutableList();
+
 		[JsonProperty("Roles")]
 		private List<ulong> _RoleIds = new List<ulong>();
 		[JsonIgnore]
 		private Dictionary<ulong, IRole> _Roles = new Dictionary<ulong, IRole>();
-		[JsonIgnore]
-		public ImmutableList<IRole> Roles => _Roles.Values.ToImmutableList();
 
+		/// <summary>
+		/// Creates an instance of selfassignableroles.
+		/// </summary>
+		/// <param name="group"></param>
 		public SelfAssignableRoles(int group)
 		{
 			Group = group;
 		}
 
+		/// <summary>
+		/// Adds the roles to the group.
+		/// </summary>
+		/// <param name="roles"></param>
 		public void AddRoles(IEnumerable<IRole> roles)
 		{
 			foreach (var role in roles)
@@ -40,6 +55,10 @@ namespace Advobot.Core.Classes.Settings
 				}
 			}
 		}
+		/// <summary>
+		/// Removes the roles from the group.
+		/// </summary>
+		/// <param name="roles"></param>
 		public void RemoveRoles(IEnumerable<IRole> roles)
 		{
 			foreach (var role in roles)
@@ -48,10 +67,20 @@ namespace Advobot.Core.Classes.Settings
 				_RoleIds.Remove(role.Id);
 			}
 		}
+		/// <summary>
+		/// Attempts to get the role from the group.
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="role"></param>
+		/// <returns></returns>
 		public bool TryGetRole(ulong id, out IRole role)
 		{
 			return _Roles.TryGetValue(id, out role);
 		}
+		/// <summary>
+		/// Uses the guild to get all the roles.
+		/// </summary>
+		/// <param name="guild"></param>
 		public void PostDeserialize(SocketGuild guild)
 		{
 			foreach (var roleId in _RoleIds)
@@ -67,10 +96,12 @@ namespace Advobot.Core.Classes.Settings
 			}
 		}
 
+		/// <inheritdoc />
 		public override string ToString()
 		{
 			return String.Join("\n", _Roles.Select(x => $"**Role:** `{x.Value?.Format() ?? x.Key.ToString()}`"));
 		}
+		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{
 			return String.Join("\n", _Roles.Select(x => $"**Role:** `{guild.GetRole(x.Key)?.Format() ?? x.Key.ToString()}`"));

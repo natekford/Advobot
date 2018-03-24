@@ -1,9 +1,8 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Threading;
-using Advobot.Core.Utilities;
-using Advobot.UILauncher.Classes;
+﻿using Advobot.UILauncher.Classes;
 using Advobot.UILauncher.Windows;
+using AdvorangesUtils;
+using System;
+using System.Windows;
 
 namespace Advobot.UILauncher
 {
@@ -14,55 +13,70 @@ namespace Advobot.UILauncher
 	{
 		private BindingListener _Listener = new BindingListener();
 
+		/// <summary>
+		/// Creates an instance of advobotapp.
+		/// </summary>
 		public AdvobotApp()
 		{
 			InitializeComponent();
 		}
 
+		/// <summary>
+		/// Creates the main window.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		public void OnStartup(object sender, StartupEventArgs e)
 		{
-			DispatcherUnhandledException += OnDispatcherUnhandledException;
-			AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+			DispatcherUnhandledException += (dueSender, dueE) =>
+			{
+				//Display to the user what happened and also log it
+				MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{dueE.Exception}", "UNHANDLED EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
+				IOUtils.LogUncaughtException(dueE.Exception);
+				dueE.Handled = true;
+				Shutdown();
+			};
+			AppDomain.CurrentDomain.UnhandledException += (ueSender, ueE) =>
+			{
+				IOUtils.LogUncaughtException(ueE.ExceptionObject);
+			};
 
 			SyntaxHighlighting.LoadJsonHighlighting();
 			MainWindow = new AdvobotWindow();
 			MainWindow.Show();
 		}
-		private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-		{
-			//Display to the user what happened and also log it
-			MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{e.Exception}", "UNHANDLED EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
-			IOUtils.LogUncaughtException(e.Exception);
-			e.Handled = true;
-			Shutdown();
-		}
-		private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
-		{
-			IOUtils.LogUncaughtException(e.ExceptionObject);
-		}
 
 		#region IDisposable Support
-		private bool disposedValue = false; // To detect redundant calls
+		private bool _Disposed = false; // To detect redundant calls
 
+		/// <summary>
+		/// Disposes the object.
+		/// </summary>
+		/// <param name="disposing"></param>
 		protected virtual void Dispose(bool disposing)
 		{
-			if (!disposedValue)
+			if (!_Disposed)
 			{
 				if (disposing)
 				{
-					_Listener.Dispose();
+					_Listener?.Dispose();
 				}
 
-				_Listener = null;
-				disposedValue = true;
+				_Disposed = true;
 			}
 		}
 
+		/// <summary>
+		/// Disposes the object through its finalizer.
+		/// </summary>
 		~AdvobotApp()
 		{
 			Dispose(false);
 		}
 
+		/// <summary>
+		/// Disposes the object and suppressed finalize.
+		/// </summary>
 		public void Dispose()
 		{
 			Dispose(true);

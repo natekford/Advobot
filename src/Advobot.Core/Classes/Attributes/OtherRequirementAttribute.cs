@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Core.Enums;
-using Advobot.Core.Interfaces;
+﻿using Advobot.Core.Enums;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Core.Classes.Attributes
 {
@@ -32,13 +32,27 @@ namespace Advobot.Core.Classes.Attributes
 			| GuildPermission.MoveMembers
 			| GuildPermission.MuteMembers;
 
+		/// <summary>
+		/// Preconditions that need to be met before the command fires successfully.
+		/// </summary>
 		public Precondition Requirements { get; }
 
+		/// <summary>
+		/// Initializes the attribute.
+		/// </summary>
+		/// <param name="requirements"></param>
 		public OtherRequirementAttribute(Precondition requirements)
 		{
 			Requirements = requirements;
 		}
 
+		/// <summary>
+		/// Checks each precondition. If any fail, returns an error.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="command"></param>
+		/// <param name="map"></param>
+		/// <returns></returns>
 		public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
 			if (!(context is AdvobotSocketCommandContext advobotCommandContext && context.User is SocketGuildUser user))
@@ -77,6 +91,10 @@ namespace Advobot.Core.Classes.Attributes
 			return PreconditionResult.FromError((string)null);
 		}
 
+		/// <summary>
+		/// Returns the preconditions in a readable format.
+		/// </summary>
+		/// <returns></returns>
 		public override string ToString()
 		{
 			var text = new List<string>();

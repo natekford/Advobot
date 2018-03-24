@@ -6,6 +6,7 @@ using Advobot.Core.Services.GuildSettings;
 using Advobot.Core.Services.InviteList;
 using Advobot.Core.Services.Log;
 using Advobot.Core.Services.Timers;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -28,34 +29,22 @@ namespace Advobot.Core.Utilities
 		/// Creates services the bot uses. The explicit implementations will always be the same; if wanting to customize
 		/// them do not use this method.
 		/// </summary>
+		/// <typeparam name="TBotSettings"></typeparam>
+		/// <typeparam name="TGuildSettings"></typeparam>
+		/// <param name="commands">The assemblies holding commands.</param>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static IServiceProvider CreateDefaultServiceProvider(IEnumerable<Assembly> commandAssembies, Type botSettingsType, Type guildSettingsType)
+		public static IServiceProvider CreateDefaultServiceProvider<TBotSettings, TGuildSettings>(IEnumerable<Assembly> commands)
+			where TBotSettings : IBotSettings, new()
+			where TGuildSettings : IGuildSettings, new()
 		{
-			if (!typeof(IBotSettings).IsAssignableFrom(botSettingsType))
-			{
-				throw new ArgumentException($"Must inherit {nameof(IBotSettings)}.", nameof(botSettingsType));
-			}
-			if (typeof(IBotSettings) == botSettingsType)
-			{
-				throw new ArgumentException($"Must not be the interface {nameof(IBotSettings)}.", nameof(botSettingsType));
-			}
-			if (!typeof(IGuildSettings).IsAssignableFrom(guildSettingsType))
-			{
-				throw new ArgumentException($"Must inherit {nameof(IGuildSettings)}.", nameof(guildSettingsType));
-			}
-			if (typeof(IGuildSettings) == guildSettingsType)
-			{
-				throw new ArgumentException($"Must not be the interface {nameof(IGuildSettings)}.", nameof(guildSettingsType));
-			}
-
 			//I have no idea if I am providing services correctly, but it works.
-			var helpEntryHolder = new HelpEntryHolder(commandAssembies);
+			var helpEntryHolder = new HelpEntryHolder(commands);
 			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
-				.AddSingleton<CommandService>(provider => CreateCommandService(provider, commandAssembies))
+				.AddSingleton<CommandService>(provider => CreateCommandService(provider, commands))
 				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
-				.AddSingleton<IBotSettings>(provider => CreateBotSettings(botSettingsType))
+				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>())
 				.AddSingleton<IDiscordClient>(provider => CreateDiscordClient(provider))
-				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService(guildSettingsType, provider))
+				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService<TGuildSettings>(provider))
 				.AddSingleton<ITimersService>(provider => new TimersService(provider))
 				.AddSingleton<ILogService>(provider => new LogService(provider))
 				.AddSingleton<IInviteListService>(provider => new InviteListService(provider)));
@@ -106,9 +95,9 @@ namespace Advobot.Core.Utilities
 			return cmds;
 		}
 		/// <summary>
-		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
+		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="provider"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
 		/// </summary>
-		/// <param name="botSettings">The settings to initialize the client with.</param>
+		/// <param name="provider">The settings to initialize the client with.</param>
 		/// <returns>A discord client.</returns>
 		internal static IDiscordClient CreateDiscordClient(IServiceProvider provider)
 		{
@@ -125,23 +114,11 @@ namespace Advobot.Core.Utilities
 		/// <summary>
 		/// Creates settings that the bot uses.
 		/// </summary>
-		/// <param name="type"></param>
+		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
-		internal static IBotSettings CreateBotSettings(Type type)
+		internal static IBotSettings CreateBotSettings<T>() where T : IBotSettings, new()
 		{
-			return IOUtils.DeserializeFromFile<IBotSettings>(IOUtils.GetBotSettingsFile(), type, true);
-		}
-		/// <summary>
-		/// Creates settings the guilds use.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		internal static IGuildSettings CreateGuildSettings(Type type, IGuild guild)
-		{
-			var settings = IOUtils.GenerateDefaultSerializerSettings();
-			settings.Context = new StreamingContext(StreamingContextStates.Other, guild);
-			return IOUtils.DeserializeFromFile<IGuildSettings>(IOUtils.GetGuildSettingsFile(guild.Id), type, true, settings);
+			return IOUtils.DeserializeFromFile<T>(FileUtils.GetBotSettingsFile(), typeof(T));
 		}
 	}
 }

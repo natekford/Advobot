@@ -1,6 +1,7 @@
 ﻿using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Interfaces;
 using Advobot.Core.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -13,21 +14,24 @@ using System.Text;
 
 namespace Advobot.Core.Classes
 {
+	/// <summary>
+	/// Abstract class for settings.
+	/// </summary>
 	public abstract class SettingsBase : ISettingsBase
 	{
+		/// <inheritdoc />
 		public abstract FileInfo FileLocation { get; }
+
 		private Dictionary<string, FieldInfo> _Settings;
 
-		/// <summary>
-		/// Returns all non-public instance fields with <see cref="SettingAttribute"/>.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public virtual IReadOnlyDictionary<string, FieldInfo> GetSettings()
 		{
 			return _Settings ?? (_Settings = GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
 				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
 				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase));
 		}
+		/// <inheritdoc />
 		public virtual string Format(IDiscordClient client, IGuild guild)
 		{
 			var sb = new StringBuilder();
@@ -45,14 +49,17 @@ namespace Advobot.Core.Classes
 			}
 			return sb.ToString();
 		}
+		/// <inheritdoc />
 		public virtual string Format(IDiscordClient client, IGuild guild, FieldInfo field)
 		{
 			return Format(client, guild, field.GetValue(this));
 		}
+		/// <inheritdoc />
 		public virtual string Format(IDiscordClient client, IGuild guild, string name)
 		{
 			return Format(client, guild, GetField(name));
 		}
+		/// <inheritdoc />
 		public virtual void ResetSettings()
 		{
 			foreach (var field in GetSettings())
@@ -60,10 +67,11 @@ namespace Advobot.Core.Classes
 				ResetSetting(field.Value);
 			}
 		}
+		/// <inheritdoc />
 		public virtual object ResetSetting(FieldInfo field)
 		{
 			var settingAttr = field.GetCustomAttribute<SettingAttribute>();
-			if (settingAttr.NonCompileTime)
+			if (settingAttr.NonCompileTimeDefaultValue != default)
 			{
 				object nonCompileTimeValue;
 				switch (settingAttr.NonCompileTimeDefaultValue)
@@ -87,10 +95,12 @@ namespace Advobot.Core.Classes
 				return field.GetValue(this);
 			}
 		}
+		/// <inheritdoc />
 		public virtual object ResetSetting(string name)
 		{
 			return ResetSetting(GetField(name));
 		}
+		/// <inheritdoc />
 		public virtual void SaveSettings()
 		{
 			IOUtils.OverwriteFile(FileLocation, IOUtils.Serialize(this));

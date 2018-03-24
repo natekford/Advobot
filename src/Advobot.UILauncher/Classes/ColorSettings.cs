@@ -1,16 +1,16 @@
-﻿using System;
+﻿using Advobot.Core.Utilities;
+using Advobot.UILauncher.Enums;
+using Advobot.UILauncher.Utilities;
+using AdvorangesUtils;
+using ICSharpCode.AvalonEdit.Highlighting;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
-using Advobot.Core;
-using Advobot.Core.Utilities;
-using Advobot.UILauncher.Enums;
-using Advobot.UILauncher.Utilities;
-using ICSharpCode.AvalonEdit.Highlighting;
-using Newtonsoft.Json;
 
 namespace Advobot.UILauncher.Classes
 {
@@ -107,12 +107,12 @@ namespace Advobot.UILauncher.Classes
 		/// </summary>
 		public void SaveSettings()
 		{
-			IOUtils.OverwriteFile(IOUtils.GetBaseBotDirectoryFile(_FileLoc), IOUtils.Serialize(this));
+			IOUtils.OverwriteFile(FileUtils.GetBaseBotDirectoryFile(_FileLoc), IOUtils.Serialize(this));
 		}
 		public static ColorSettings LoadUISettings()
 		{
-			var fileInfo = IOUtils.GetBaseBotDirectoryFile(_FileLoc);
-			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings), true);
+			var fileInfo = FileUtils.GetBaseBotDirectoryFile(_FileLoc);
+			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings));
 		}
 
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
