@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
@@ -107,12 +108,11 @@ namespace Advobot.UILauncher.Classes
 		/// </summary>
 		public void SaveSettings()
 		{
-			IOUtils.OverwriteFile(FileUtils.GetBaseBotDirectoryFile(_FileLoc), IOUtils.Serialize(this));
+			File.WriteAllText(FileUtils.GetBaseBotDirectoryFile(_FileLoc).ToString(), IOUtils.Serialize(this));
 		}
 		public static ColorSettings LoadUISettings()
 		{
-			var fileInfo = FileUtils.GetBaseBotDirectoryFile(_FileLoc);
-			return IOUtils.DeserializeFromFile<ColorSettings>(fileInfo, typeof(ColorSettings));
+			return IOUtils.DeserializeFromFile<ColorSettings, ColorSettings>(FileUtils.GetBaseBotDirectoryFile(_FileLoc));
 		}
 
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
