@@ -103,7 +103,7 @@ namespace Advobot.Core.Classes
 		/// <inheritdoc />
 		public virtual void SaveSettings()
 		{
-			IOUtils.OverwriteFile(FileLocation, IOUtils.Serialize(this));
+			File.WriteAllText(FileLocation.ToString(), IOUtils.Serialize(this));
 		}
 
 		private FieldInfo GetField(string name)

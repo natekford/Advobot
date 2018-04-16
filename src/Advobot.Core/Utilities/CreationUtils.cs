@@ -118,7 +118,7 @@ namespace Advobot.Core.Utilities
 		/// <returns></returns>
 		internal static IBotSettings CreateBotSettings<T>() where T : IBotSettings, new()
 		{
-			return IOUtils.DeserializeFromFile<T>(FileUtils.GetBotSettingsFile(), typeof(T));
+			return IOUtils.DeserializeFromFile<IBotSettings, T>(FileUtils.GetBotSettingsFile());
 		}
 	}
 }

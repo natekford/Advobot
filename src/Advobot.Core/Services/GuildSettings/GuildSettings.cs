@@ -2,6 +2,8 @@
 using Advobot.Core.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -34,9 +36,12 @@ namespace Advobot.Core.Services.GuildSettings
 				return settings;
 			}
 
-			var jsonSettings = IOUtils.GenerateDefaultSerializerSettings();
-			jsonSettings.Context = new StreamingContext(StreamingContextStates.Other, guild);
-			settings = IOUtils.DeserializeFromFile<T>(FileUtils.GetGuildSettingsFile(guild.Id), typeof(T), jsonSettings);
+			var jsonSettings = new JsonSerializerSettings()
+			{
+				Converters = new[] { new StringEnumConverter() },
+				Context = new StreamingContext(StreamingContextStates.Other, guild),
+			};
+			settings = IOUtils.DeserializeFromFile<IGuildSettings, T>(FileUtils.GetGuildSettingsFile(guild.Id), jsonSettings);
 
 			if (!_GuildSettings.TryAdd(guild.Id, settings))
 			{
