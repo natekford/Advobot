@@ -1,20 +1,20 @@
-﻿using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.UsageGeneration;
-using AdvorangesUtils;
-using Discord.Commands;
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.UsageGeneration;
+using AdvorangesUtils;
+using Discord.Commands;
 
 namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Creates a help entry for every command and then allows those to be accessed.
 	/// </summary>
-	public sealed class HelpEntryHolder
+	public sealed class HelpEntryHolder : IEnumerable<HelpEntry>
 	{
 		//Keep the names of the category to the category
 		private Dictionary<string, string> _CategoryMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -33,6 +33,8 @@ namespace Advobot.Core.Classes
 			{
 				try
 				{
+					//Running this on .Net Core leads to an exception for some reason
+					//The exception contains the same amount of commands though.
 					return x.GetTypes();
 				}
 				catch (ReflectionTypeLoadException e)
@@ -66,7 +68,7 @@ namespace Advobot.Core.Classes
 				var name = command.GetCustomAttribute<GroupAttribute>()?.Prefix;
 				var aliases = command.GetCustomAttribute<AliasAttribute>()?.Aliases;
 				var summary = command.GetCustomAttribute<SummaryAttribute>()?.Text;
-				var usage = new UsageGenerator(command).Text;
+				var usage = UsageGenerator.GenerateUsage(command);
 				var permReqs = command.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
 				var otherReqs = command.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
 				var defaultEnabled = command.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
@@ -125,9 +127,9 @@ namespace Advobot.Core.Classes
 			var methodAliases = classType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
 				.Select(x => x.GetCustomAttribute<AliasAttribute>()?.Aliases).Where(x => x != null);
 			var both = nestedAliases.Concat(methodAliases).ToArray();
-			for (var i = 0; i < both.Count(); ++i)
+			for (var i = 0; i < both.Length; ++i)
 			{
-				for (var j = i + 1; j < both.Count(); ++j)
+				for (var j = i + 1; j < both.Length; ++j)
 				{
 					var intersected = both[i].Intersect(both[j], StringComparer.OrdinalIgnoreCase).ToList();
 					if (intersected.Any())
@@ -180,7 +182,16 @@ namespace Advobot.Core.Classes
 		{
 			return _CategoryMap.Values.ToArray();
 		}
-
+		/// <inheritdoc />
+		public IEnumerator<HelpEntry> GetEnumerator()
+		{
+			return _Source.Values.GetEnumerator();
+		}
+		/// <inheritdoc />
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
 		/// <summary>
 		/// Attempt to get a command with its name.
 		/// </summary>
@@ -189,76 +200,6 @@ namespace Advobot.Core.Classes
 		public HelpEntry this[string name]
 		{
 			get => _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
-		}
-	}
-
-	/// <summary>
-	/// Holds information about a command, such as its name, aliases, usage, base permissions, description, category, and default enabled value.
-	/// </summary>
-	public class HelpEntry
-	{
-		/// <summary>
-		/// The name of the command.
-		/// </summary>
-		public string Name { get; }
-		/// <summary>
-		/// How to use the command. This is automatically generated.
-		/// </summary>
-		public string Usage { get; }
-		/// <summary>
-		/// The base permissions to use the command.
-		/// </summary>
-		public string BasePerm { get; }
-		/// <summary>
-		/// Describes what the command does.
-		/// </summary>
-		public string Description { get; }
-		/// <summary>
-		/// Other names to invoke the command.
-		/// </summary>
-		public ImmutableList<string> Aliases { get; }
-		/// <summary>
-		/// The category the command is in.
-		/// </summary>
-		public string Category { get; }
-		/// <summary>
-		/// Whether or not the command is on by default.
-		/// </summary>
-		public bool DefaultEnabled { get; }
-		/// <summary>
-		/// Whether or not the command can be toggled.
-		/// </summary>
-		public bool AbleToBeToggled { get; }
-
-		internal HelpEntry(string name, string usage, string basePerm, string description, string[] aliases,
-			string category, bool defaultEnabled, bool ableToBeTurnedOff)
-		{
-			if (String.IsNullOrWhiteSpace(name))
-			{
-				throw new ArgumentException("cant be null or whitespace", nameof(name));
-			}
-
-			Name = name;
-			Usage = usage ?? "";
-			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? "N/A" : basePerm;
-			Description = String.IsNullOrWhiteSpace(description) ? "N/A" : description;
-			Aliases = (aliases ?? new[] { "N/A" }).ToImmutableList();
-			Category = category;
-			DefaultEnabled = defaultEnabled;
-			AbleToBeToggled = ableToBeTurnedOff;
-		}
-
-		/// <summary>
-		/// Returns a string with all the information about the command.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-		{
-			return $"**Aliases:** {String.Join(", ", Aliases)}\n" +
-				$"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n" +
-				$"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n\n" +
-				$"**Base Permission(s):**\n{BasePerm}\n\n" +
-				$"**Description:**\n{Description}";
 		}
 	}
 }

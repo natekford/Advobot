@@ -18,7 +18,7 @@ namespace Advobot.Core.Classes.UsageGeneration
 		{
 			Deepness = deepness;
 			Name = method.GetCustomAttribute<CommandAttribute>()?.Text;
-			ArgCount = method.GetParameters().Count();
+			ArgCount = method.GetParameters().Length;
 			HasNoArgs = ArgCount == 0;
 		}
 
