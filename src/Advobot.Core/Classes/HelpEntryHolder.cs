@@ -29,8 +29,17 @@ namespace Advobot.Core.Classes
 		/// <param name="commandAssemblies"></param>
 		public HelpEntryHolder(IEnumerable<Assembly> commandAssemblies)
 		{
-			var types = commandAssemblies.SelectMany(x => x.GetTypes());
-			var commands = types.Where(x => x.IsSubclassOf(typeof(NonSavingModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
+			var commands = commandAssemblies.SelectMany(x =>
+			{
+				try
+				{
+					return x.GetTypes();
+				}
+				catch (ReflectionTypeLoadException e)
+				{
+					return e.Types;
+				}
+			}).Where(x => x != null && x.IsSubclassOf(typeof(NonSavingModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
 			if (!commands.Any())
 			{
 				var assemblyNames = String.Join(", ", commandAssemblies.Select(x => x.GetName().Name));
@@ -39,37 +48,37 @@ namespace Advobot.Core.Classes
 				throw new TypeLoadException($"The following assemblies have no commands: '{assemblyNames}'.");
 			}
 
-			foreach (var t in commands)
+			foreach (var command in commands)
 			{
 				//Nested commands don't need to be added since they're added under the class they're nested in
-				if (t.IsNested)
+				if (command.IsNested)
 				{
-					VerifyAllAliasesAreDifferent(t);
+					VerifyAllAliasesAreDifferent(command);
 					continue;
 				}
 
-				var innerNamespace = t.Namespace.Substring(t.Namespace.LastIndexOf('.') + 1);
+				var innerNamespace = command.Namespace.Substring(command.Namespace.LastIndexOf('.') + 1);
 				if (!_CategoryMap.TryGetValue(innerNamespace, out var category))
 				{
 					_CategoryMap[innerNamespace] = category = innerNamespace;
 				}
 
-				var name = t.GetCustomAttribute<GroupAttribute>()?.Prefix;
-				var aliases = t.GetCustomAttribute<AliasAttribute>()?.Aliases;
-				var summary = t.GetCustomAttribute<SummaryAttribute>()?.Text;
-				var usage = new UsageGenerator(t).Text;
-				var permReqs = t.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
-				var otherReqs = t.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
-				var defaultEnabled = t.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
-				var unableToBeTurnedOff = t.GetCustomAttribute<DefaultEnabledAttribute>()?.AbleToToggle ?? true;
+				var name = command.GetCustomAttribute<GroupAttribute>()?.Prefix;
+				var aliases = command.GetCustomAttribute<AliasAttribute>()?.Aliases;
+				var summary = command.GetCustomAttribute<SummaryAttribute>()?.Text;
+				var usage = new UsageGenerator(command).Text;
+				var permReqs = command.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
+				var otherReqs = command.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
+				var defaultEnabled = command.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
+				var unableToBeTurnedOff = command.GetCustomAttribute<DefaultEnabledAttribute>()?.AbleToToggle ?? true;
 
 				//These are basically only here so I won't forget something.
 				//Without them the bot should work fine, but may have tiny bugs.
-				VerifyDefaultValueEnabledAttributeExists(t);
-				VerifyClassIsPublic(t);
-				VerifyAllCommandsHaveCommandAttribute(t);
-				VerifyAllAliasesAreDifferent(t);
-				VerifyShortAliasAttribute(t);
+				VerifyDefaultValueEnabledAttributeExists(command);
+				VerifyClassIsPublic(command);
+				VerifyAllCommandsHaveCommandAttribute(command);
+				VerifyAllAliasesAreDifferent(command);
+				VerifyShortAliasAttribute(command);
 
 				var helpEntry = new HelpEntry(name, usage, new[] { permReqs, otherReqs }.JoinNonNullStrings(" | "),
 					summary, aliases, category, defaultEnabled, unableToBeTurnedOff);

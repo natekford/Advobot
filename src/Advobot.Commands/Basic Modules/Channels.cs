@@ -32,13 +32,13 @@ namespace Advobot.Commands.Channels
 				return;
 			}
 
-			var channel = await Context.Guild.CreateTextChannelAsync(name, GetRequestOptions()).CAF();
+			var channel = await Context.Guild.CreateTextChannelAsync(name, null, GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.Format()}`.").CAF();
 		}
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice([Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
-			var channel = await Context.Guild.CreateVoiceChannelAsync(name, GetRequestOptions()).CAF();
+			var channel = await Context.Guild.CreateVoiceChannelAsync(name, null, GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created `{channel.Format()}`.").CAF();
 		}
 		[Command(nameof(Category)), ShortAlias(nameof(Category))]

@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "Advobot.ConsoleLauncher": {
+      "commandName": "Project"
+    }
+  }
+}

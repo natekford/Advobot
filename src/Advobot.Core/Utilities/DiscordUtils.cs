@@ -288,18 +288,19 @@ namespace Advobot.Core.Utilities
 
 		/// <summary>
 		/// Returns all the assemblies in the base directory which have the <see cref="CommandAssemblyAttribute"/>.
+		/// This loads assemblies with a matching name so this can be a risk to use if bad files are in the folder.
 		/// </summary>
 		/// <returns></returns>
 		public static IEnumerable<Assembly> GetCommandAssemblies()
 		{
-			var currentAssemblies = AppDomain.CurrentDomain.GetAssemblies();
 			var unloadedAssemblies = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly)
-				.Where(f => Path.GetFileName(f).CaseInsContains("Commands"))
-				.Select(f => Assembly.LoadFrom(f));
-			var commandAssemblies = currentAssemblies.Concat(unloadedAssemblies).Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null).ToList();
-			if (commandAssemblies.Any())
+				.Where(x => Path.GetFileName(x).CaseInsContains("Commands"))
+				.Select(x => Assembly.LoadFrom(x));
+			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Concat(unloadedAssemblies)
+				.Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null).ToList();
+			if (assemblies.Any())
 			{
-				return commandAssemblies;
+				return assemblies;
 			}
 
 			ConsoleUtils.WriteLine($"Unable to find any command assemblies.", ConsoleColor.Red);
