@@ -1,5 +1,5 @@
-﻿using Advobot.Core;
-using Advobot.Core.Classes.Attributes;
+﻿using Advobot;
+using Advobot.Classes.Attributes;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;

@@ -1,8 +1,8 @@
-﻿using Advobot.Core.Classes;
-using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.CloseWords;
-using Advobot.Core.Classes.Settings;
-using Advobot.Core.Utilities;
+﻿using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Classes.CloseWords;
+using Advobot.Classes.Settings;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

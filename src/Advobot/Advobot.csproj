@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <GenerateAssemblyVersion>false</GenerateAssemblyVersion>
+    <GenerateAssemblyFileVersion>false</GenerateAssemblyFileVersion>
+	  <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Advorange</Authors>
+    <Company>Advorange</Company>
+    <Product>Advobot</Product>
+    <Description>The core of Advobot. Classes, interfaces, and actions.</Description>
+    <Copyright>Copyright © 2018</Copyright>
+    <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
+    <NeutralLanguage>English</NeutralLanguage>
+    <Version>1.0.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <ShouldCreateLogs>True</ShouldCreateLogs>
+    <AdvancedSettingsExpanded>True</AdvancedSettingsExpanded>
+    <UpdateAssemblyVersion>True</UpdateAssemblyVersion>
+    <UpdateAssemblyFileVersion>True</UpdateAssemblyFileVersion>
+    <UpdateAssemblyInfoVersion>True</UpdateAssemblyInfoVersion>
+    <AssemblyFileVersionSettings>DayStamp.DayStamp.DeltaDayStamp.DayStamp</AssemblyFileVersionSettings>
+    <AssemblyInfoVersionSettings>DayStamp.DayStamp.DeltaDayStamp.DayStamp</AssemblyInfoVersionSettings>
+    <AssemblyVersionSettings>DayStamp.DayStamp.DeltaDayStamp.DayStamp</AssemblyVersionSettings>
+    <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile>bin\Debug\netstandard2.0\Advobot.Core.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;NU1701</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AdvorangesUtils" Version="1.0.9">
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00975" />
+    <PackageReference Include="LiteDB" Version="4.1.4" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="AssemblyVersion.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AssemblyVersion.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="AssemblyVersion.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <OutputFileName>AssemblyVersion.cs</OutputFileName>  
+      <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+</Project>

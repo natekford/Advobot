@@ -1,10 +1,10 @@
 ﻿using Advobot.Commands.Misc;
-using Advobot.Core.Classes;
-using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Classes.Settings;
-using Advobot.Core.Classes.TypeReaders;
-using Advobot.Core.Enums;
-using Advobot.Core.Utilities;
+using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Classes.Settings;
+using Advobot.Classes.TypeReaders;
+using Advobot.Enums;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

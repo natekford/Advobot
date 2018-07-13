@@ -1,4 +1,4 @@
-﻿using Advobot.Core.Classes.Results;
+﻿using Advobot.Classes.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;

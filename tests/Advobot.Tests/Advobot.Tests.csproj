@@ -27,9 +27,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Advobot.Commands\Advobot.Commands.csproj" />
-    <ProjectReference Include="..\..\src\Advobot.ConsoleLauncher\Advobot.ConsoleLauncher.csproj" />
     <ProjectReference Include="..\..\src\Advobot.Core\Advobot.Core.csproj" />
-    <ProjectReference Include="..\..\src\Advobot.UILauncher\Advobot.UILauncher.csproj" />
+    <ProjectReference Include="..\..\src\Advobot\Advobot.csproj" />
+    <ProjectReference Include="..\..\src\Advobot.Windows\Advobot.Windows.csproj" />
   </ItemGroup>
 
   <ItemGroup>

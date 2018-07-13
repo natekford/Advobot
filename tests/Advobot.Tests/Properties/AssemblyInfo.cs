@@ -1,4 +1,4 @@
-﻿using Advobot.Core;
+﻿using Advobot;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
