@@ -7,6 +7,8 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -14,6 +16,44 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.Webhooks
 {
+	[Group(nameof(GetWebhooks)), TopLevelShortAlias(typeof(GetWebhooks))]
+	[Summary("Lists all the webhooks on the guild or the specified channel.")]
+	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
+	[DefaultEnabled(true)]
+	public sealed class GetWebhooks : NonSavingModuleBase
+	{
+		[Command]
+		public async Task Command(ITextChannel channel)
+		{
+			var webhooks = await channel.GetWebhooksAsync().CAF();
+			if (!webhooks.Any())
+			{
+				var error = new Error($"The channel `{channel.Format()}` does not have any webhooks.");
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+			await MessageUtils.SendMessageAsync(Context.Channel, FormatWebhooks(channel, webhooks)).CAF();
+		}
+		[Command]
+		public async Task Command()
+		{
+			var webhooks = (await Context.Guild.GetWebhooksAsync().CAF()).GroupBy(x => x.ChannelId);
+			if (!webhooks.Any())
+			{
+				var error = new Error($"The guild does not have any webhooks.");
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+			var parts = webhooks.Select(x => FormatWebhooks(Context.Guild.GetTextChannel(x.Key), x));
+			await MessageUtils.SendMessageAsync(Context.Channel, String.Join("\n\n", parts)).CAF();
+		}
+
+		private string FormatWebhooks(ITextChannel channel, IEnumerable<IWebhook> webhooks)
+		{
+			return $"**{channel.Format()}**:\n{String.Join("\n", webhooks.Select(x => $"`{x.Format()}`"))}";
+		}
+	}
+
 	[Group(nameof(DeleteWebhook)), TopLevelShortAlias(typeof(DeleteWebhook))]
 	[Summary("Deletes a webhook from the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
@@ -137,6 +177,7 @@ namespace Advobot.Commands.Webhooks
 
 			var resp = (HttpWebResponse)(await req.GetResponseAsync().CAF());
 			rateLimit = _RateLimits.GetOrAdd(Context.Guild.Id, new RateLimit());
+			var headers = resp.Headers;
 			rateLimit.Time = (new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(Convert.ToInt64(resp.Headers["X-RateLimit-Reset"]))).ToUniversalTime();
 			rateLimit.Messages = Convert.ToInt32(resp.Headers["X-RateLimit-Remaining"]);
 		}
