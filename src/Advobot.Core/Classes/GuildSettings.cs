@@ -242,7 +242,7 @@ namespace Advobot.Core.Classes
 			GuildId = guild.Id;
 			Task.Run(async () =>
 			{
-				Invites.AddRange((await DiscordUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
+				Invites.AddRange((await DiscordUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x)));
 			});
 			foreach (var group in _SelfAssignableGroups ?? Enumerable.Empty<SelfAssignableRoles>())
 			{

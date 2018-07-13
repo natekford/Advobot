@@ -23,7 +23,7 @@ namespace Advobot.Core.Classes
 		/// Initializes a cached invite using the code and uses of the metadata.
 		/// </summary>
 		/// <param name="invite"></param>
-		public CachedInvite(IInviteMetadata invite) : this(invite.Code, invite.Uses) { }
+		public CachedInvite(IInviteMetadata invite) : this(invite.Code, invite.Uses ?? 0) { }
 		/// <summary>
 		/// Initializes a cached invite using the code and uses.
 		/// </summary>

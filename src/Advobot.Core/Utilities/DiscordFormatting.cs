@@ -462,7 +462,7 @@ namespace Advobot.Core.Utilities
 		{
 			var embed = new EmbedWrapper
 			{
-				Description = $"{invite.CreatedAt.UtcDateTime.ToCreatedAt()}\n" +
+				Description = $"{invite.CreatedAt.Value.UtcDateTime.ToCreatedAt()}\n" +
 					$"**Inviter:** `{invite.Inviter.Format()}`\n" +
 					$"**Channel:** `{invite.Channel.Format()}`\n" +
 					$"**Uses:** `{invite.Uses}`",
