@@ -121,7 +121,7 @@ namespace Advobot.Services.Logging.Loggers
 				{
 					foreach (var m in messages)
 					{
-						sb.AppendLineFeed(m.Format(true));
+						sb.AppendLineFeed(m.Format(withMentions: true));
 						//Can only stay in an embed if the description length is less than the max length
 						//and if the line numbers are less than 20
 						var validDesc = sb.Length < EmbedBuilder.MaxDescriptionLength;
@@ -152,7 +152,8 @@ namespace Advobot.Services.Logging.Loggers
 					}
 
 					var text = sb.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
-					await MessageUtils.SendMessageAsync(c, $"**{messages.Count()} Deleted Messages:**", textFile: new TextFileInfo("Deleted_Messages", text)).CAF();
+					var tf = new TextFileInfo("Deleted_Messages", text);
+					await MessageUtils.SendMessageAsync(c, $"**{messages.Count()} Deleted Messages:**", textFile: tf).CAF();
 				}
 			});
 

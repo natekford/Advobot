@@ -20,19 +20,19 @@ namespace Advobot.Services.Timers
 	internal sealed class TimersService : ITimersService, IDisposable
 	{
 		private LiteDatabase _Db;
-		private IDiscordClient _Client;
+		private readonly IDiscordClient _Client;
 
-		private Timer _MinuteTimer = new Timer(60 * 1000);
-		private Timer _SecondTimer = new Timer(1000);
-		private PunishmentRemover _PunishmentRemover;
-		private RequestOptions _PunishmentReason = ClientUtils.CreateRequestOptions("automatic punishment removal.");
-		private RequestOptions _MessageReason = ClientUtils.CreateRequestOptions("automatic message deletion.");
+		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
+		private readonly Timer _SecondTimer = new Timer(1000);
+		private readonly PunishmentRemover _PunishmentRemover;
+		private readonly RequestOptions _PunishmentReason = ClientUtils.CreateRequestOptions("automatic punishment removal.");
+		private readonly RequestOptions _MessageReason = ClientUtils.CreateRequestOptions("automatic message deletion.");
 
-		private ProcessQueue _RemovablePunishments;
-		private ProcessQueue _TimedMessages;
-		private ProcessQueue _RemovableMessages;
-		private ProcessQueue _CloseHelpEntries;
-		private ProcessQueue _CloseQuotes;
+		private readonly ProcessQueue _RemovablePunishments;
+		private readonly ProcessQueue _TimedMessages;
+		private readonly ProcessQueue _RemovableMessages;
+		private readonly ProcessQueue _CloseHelpEntries;
+		private readonly ProcessQueue _CloseQuotes;
 
 		public TimersService(IServiceProvider provider)
 		{
@@ -91,7 +91,11 @@ namespace Advobot.Services.Timers
 		public void Start()
 		{
 			//Use mode=exclusive to not have ioexceptions
-			_Db = new LiteDatabase($"filename={FileUtils.GetBaseBotDirectoryFile("TimedDatabase.db")};mode=exclusive;");
+			_Db = new LiteDatabase(new ConnectionString
+			{
+				Filename = FileUtils.GetBaseBotDirectoryFile("TimedDatabase.db").FullName,
+				Mode = FileMode.Exclusive,
+			});
 			_MinuteTimer.Enabled = true;
 			_SecondTimer.Enabled = true;
 		}
@@ -239,8 +243,8 @@ namespace Advobot.Services.Timers
 
 		private class ProcessQueue
 		{
-			Func<Task> _T;
-			SemaphoreSlim _Semaphore;
+			readonly Func<Task> _T;
+			readonly SemaphoreSlim _Semaphore;
 
 			public ProcessQueue(int threads, Func<Task> t)
 			{

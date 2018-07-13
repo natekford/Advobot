@@ -333,7 +333,9 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<IEnumerable<RestInviteMetadata>> GetInvitesAsync(SocketGuild guild)
 		{
-			return guild.CurrentUser.GuildPermissions.ManageGuild ? await guild.GetInvitesAsync().CAF() : Enumerable.Empty<RestInviteMetadata>();
+			return guild.CurrentUser.GuildPermissions.ManageGuild
+				? await guild.GetInvitesAsync().CAF()
+				: Enumerable.Empty<RestInviteMetadata>();
 		}
 		/// <summary>
 		/// Tries to find the invite a user joined on.
@@ -352,7 +354,7 @@ namespace Advobot.Utilities
 			var curInvs = (await GetInvitesAsync(user.Guild).CAF()).ToList();
 			if (!curInvs.Any())
 			{
-				return user.Guild.Features.CaseInsContains(Constants.VANITY_URL) ? new CachedInvite("Vanity url or linked twitch", 0) : null;
+				return user.Guild.Features.CaseInsContains(Constants.VANITY_URL) ? new CachedInvite("Vanity url or linked twitch.", 0) : null;
 			}
 			//Find invites where the cached invite uses are not the same as the current ones.
 			var updatedInvs = guildSettings.Invites.Where(cac => curInvs.Any(cur => cac.Code == cur.Code && cac.Uses != cur.Uses)).ToList();
@@ -369,10 +371,12 @@ namespace Advobot.Utilities
 			//If no new invites then assume it was the vanity url, linked twitch, or something I don't know
 			if ((!newInvs.Any() || newInvs.All(x => x.Uses == 0)) && user.Guild.Features.CaseInsContains(Constants.VANITY_URL))
 			{
-				return new CachedInvite("Vanity url or linked twitch", 0);
+				return new CachedInvite("Vanity url or linked twitch.", 0);
 			}
 			//If one then assume it's the new one, if more than one, no way to tell
-			return newInvs.Count(x => x.Uses != 0) == 1 ? guildSettings.Invites.First(i => i.Code == newInvs.First(n => n.Uses != 0).Code) : null;
+			return newInvs.Count(x => x.Uses != 0) == 1
+				? guildSettings.Invites.First(i => i.Code == newInvs.First(n => n.Uses != 0).Code)
+				: null;
 		}
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.

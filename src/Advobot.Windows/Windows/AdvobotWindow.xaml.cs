@@ -381,7 +381,8 @@ namespace Advobot.Windows.Windows
 			switch (MessageBox.Show("Are you sure you want to restart the bot?", caption, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
-					ClientUtils.RestartBot();
+					Process.Start(Application.ResourceAssembly.Location);
+					Application.Current.Shutdown();
 					return;
 			}
 		}

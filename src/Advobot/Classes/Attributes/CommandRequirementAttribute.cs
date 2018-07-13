@@ -30,10 +30,12 @@ namespace Advobot.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromError("Unable to get the bot."));
 			}
+			//Eh, I guess it works enough without the admin permission
+			/*
 			if (!bot.GuildPermissions.Administrator)
 			{
 				return Task.FromResult(PreconditionResult.FromError($"This bot will not function without the `{nameof(GuildPermission.Administrator)}` permission."));
-			}
+			}*/
 
 			var settings = advobotCommandContext.GuildSettings;
 			if (!settings.Loaded)
