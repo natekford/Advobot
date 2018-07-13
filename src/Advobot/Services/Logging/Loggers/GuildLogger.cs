@@ -6,11 +6,11 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Services.Log.Loggers
+namespace Advobot.Services.Logging.Loggers
 {
 	internal sealed class GuildLogger : Logger, IGuildLogger
 	{
-		internal GuildLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
+		internal GuildLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <summary>
 		/// Writes to the console telling that the guild is online. If the guild's settings are not loaded, creates them.
@@ -23,8 +23,8 @@ namespace Advobot.Services.Log.Loggers
 
 			if (!GuildSettings.Contains(guild.Id))
 			{
-				Logging.TotalUsers.Add(guild.MemberCount);
-				Logging.TotalGuilds.Increment();
+				NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
+				NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 				await GuildSettings.GetOrCreateAsync(guild).CAF();
 			}
 		}
@@ -75,6 +75,7 @@ namespace Advobot.Services.Log.Loggers
 			if ((double)guild.Users.Count(x => x.IsBot) / users > percentage)
 			{
 				await guild.LeaveAsync().CAF();
+				return;
 			}
 
 			//Warn if at the maximum else leave
@@ -84,16 +85,17 @@ namespace Advobot.Services.Log.Loggers
 			{
 				await guild.LeaveAsync().CAF();
 				ConsoleUtils.WriteLine($"Left the guild {guild.Format()} due to having too many guilds on the client and not enough shards.");
+				return;
 			}
-			else if (guilds + 100 >= curMax)
+			if (guilds + 100 >= curMax)
 			{
 				ConsoleUtils.WriteLine($"The bot currently has {guilds} out of {curMax} possible spots for servers filled. Increase the shard count soon.");
 			}
 
 			if (!GuildSettings.Contains(guild.Id))
 			{
-				Logging.TotalUsers.Add(guild.MemberCount);
-				Logging.TotalGuilds.Increment();
+				NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
+				NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 				await GuildSettings.GetOrCreateAsync(guild).CAF();
 			}
 		}
@@ -106,8 +108,8 @@ namespace Advobot.Services.Log.Loggers
 		{
 			ConsoleUtils.WriteLine($"Bot has left {guild.Format()}.");
 
-			Logging.TotalUsers.Remove(guild.MemberCount);
-			Logging.TotalGuilds.Decrement();
+			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);
+			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), -1);
 			await GuildSettings.RemoveAsync(guild.Id).CAF();
 		}
 	}

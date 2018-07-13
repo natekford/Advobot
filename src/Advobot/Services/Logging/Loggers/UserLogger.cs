@@ -7,11 +7,11 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Services.Log.Loggers
+namespace Advobot.Services.Logging.Loggers
 {
 	internal sealed class UserLogger : Logger, IUserLogger
 	{
-		internal UserLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
+		internal UserLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <summary>
 		/// Checks for banned names and raid prevention, logs their join to the server log, or says the welcome message.
@@ -20,8 +20,8 @@ namespace Advobot.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnUserJoined(SocketGuildUser user)
 		{
-			Logging.TotalUsers.Increment();
-			Logging.UserJoins.Increment();
+			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), 1);
+			NotifyLogCounterIncrement(nameof(ILogService.UserJoins), 1);
 
 			if (!TryGetSettings(user, out var settings)
 				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
@@ -60,8 +60,8 @@ namespace Advobot.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnUserLeft(SocketGuildUser user)
 		{
-			Logging.TotalUsers.Decrement();
-			Logging.UserLeaves.Increment();
+			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -1);
+			NotifyLogCounterIncrement(nameof(ILogService.UserLeaves), 1);
 
 			if (!TryGetSettings(user, out var settings)
 				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
@@ -99,11 +99,12 @@ namespace Advobot.Services.Log.Loggers
 				return;
 			}
 
+			NotifyLogCounterIncrement(nameof(ILogService.UserChanges), 1);
+
 			var guilds = (await Client.GetGuildsAsync().CAF()).Cast<SocketGuild>();
 			var guildsContainingUser = guilds.Where(g => g.Users.Select(u => u.Id).Contains(afterUser.Id));
 			foreach (var guild in guildsContainingUser)
 			{
-				Logging.UserChanges.Increment();
 				if (!TryGetSettings(guild, out var settings) || settings.ServerLogId == 0)
 				{
 					continue;

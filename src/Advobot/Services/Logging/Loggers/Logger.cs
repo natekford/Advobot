@@ -1,25 +1,20 @@
-﻿using Advobot.Enums;
+﻿using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using Advobot.Classes;
+using Advobot.Enums;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
 
-namespace Advobot.Services.Log.Loggers
+namespace Advobot.Services.Logging.Loggers
 {
 	/// <summary>
 	/// Logs specific things.
 	/// </summary>
-	public abstract class Logger
+	public abstract class Logger : ILogger
 	{
-		private static LogAction[] _LogActions = Enum.GetValues(typeof(LogAction)).Cast<LogAction>().ToArray();
-
-		/// <summary>
-		/// The logging service which acts as a parent to this.
-		/// </summary>
-		protected ILogService Logging;
 		/// <summary>
 		/// The bot client.
 		/// </summary>
@@ -37,20 +32,30 @@ namespace Advobot.Services.Log.Loggers
 		/// </summary>
 		protected ITimersService Timers;
 
+		/// <inheritdoc />
+		public event LogCounterIncrementEventHandler LogCounterIncrement;
+
 		/// <summary>
 		/// Creates an instance of logger.
 		/// </summary>
-		/// <param name="logging"></param>
 		/// <param name="provider"></param>
-		protected Logger(ILogService logging, IServiceProvider provider)
+		protected Logger(IServiceProvider provider)
 		{
-			Logging = logging;
 			Client = provider.GetRequiredService<IDiscordClient>();
 			BotSettings = provider.GetRequiredService<IBotSettings>();
 			GuildSettings = provider.GetRequiredService<IGuildSettingsService>();
 			Timers = provider.GetRequiredService<ITimersService>();
 		}
 
+		/// <summary>
+		/// Fires the log counter increment event.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="count"></param>
+		protected void NotifyLogCounterIncrement(string name, int count)
+		{
+			LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
+		}
 		/// <summary>
 		/// Attempts to get guild settings from a random discord object.
 		/// </summary>
@@ -61,9 +66,9 @@ namespace Advobot.Services.Log.Loggers
 		/// <returns></returns>
 		protected bool TryGetSettings<T>(T obj, out IGuildSettings settings, [CallerMemberName] string caller = null) where T : ISnowflakeEntity, IEntity<ulong>
 		{
-			var actionName = caller ?? throw new ArgumentException("Value cannot be null", nameof(caller));
-			var actionEnum = _LogActions.First(x => actionName.CaseInsContains(x.ToString()));
-			return TryGetSettings(actionEnum, obj, out settings);
+			var name = caller ?? throw new ArgumentException("Value cannot be null", nameof(caller));
+			var action = Enum.GetValues(typeof(LogAction)).Cast<LogAction>().First(x => name.CaseInsContains(x.ToString()));
+			return TryGetSettings(action, obj, out settings);
 		}
 		private bool TryGetSettings<T>(LogAction logAction, T obj, out IGuildSettings settings) where T : ISnowflakeEntity, IEntity<ulong>
 		{

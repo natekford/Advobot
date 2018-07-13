@@ -16,7 +16,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The title of the log counter.
 		/// </summary>
-		public string Title { get; }
+		public string Name { get; }
 		/// <summary>
 		/// How many instances have been logged.
 		/// </summary>
@@ -24,18 +24,16 @@ namespace Advobot.Classes
 
 		private int _Count;
 
-		/// <summary>
-		/// Notifies when the count changes.
-		/// </summary>
+		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <summary>
-		/// Create a log counter with the calling method as its title.
+		/// Creates an instance of <see cref="LogCounter"/>.
 		/// </summary>
-		/// <param name="title"></param>
-		public LogCounter([CallerMemberName] string title = "")
+		/// <param name="name"></param>
+		public LogCounter([CallerMemberName] string name = "")
 		{
-			Title = title.FormatTitle().Trim();
+			Name = name.FormatTitle().Trim();
 		}
 
 		/// <summary>
@@ -57,26 +55,13 @@ namespace Advobot.Classes
 			NotifyPropertyChanged(nameof(Count));
 		}
 		/// <summary>
-		/// Add one to the counter.
+		/// Fires the property changed event.
 		/// </summary>
-		public void Increment()
-		{
-			Interlocked.Increment(ref _Count);
-			NotifyPropertyChanged(nameof(Count));
-		}
-		/// <summary>
-		/// Remove one from the counter.
-		/// </summary>
-		public void Decrement()
-		{
-			Interlocked.Decrement(ref _Count);
-			NotifyPropertyChanged(nameof(Count));
-		}
+		/// <param name="propertyName"></param>
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
-
 		/// <summary>
 		/// Return a formatted string in which the format is each counter on a new line, or if 
 		/// <paramref name="haveEqualSpacing"/> is true there will always be an equal amount of space between each
@@ -89,8 +74,8 @@ namespace Advobot.Classes
 		public static string FormatMultiple(bool withMarkDown, bool haveEqualSpacing, params LogCounter[] counters)
 		{
 			var titlesAndCount = (withMarkDown
-				? counters.Select(x => (Title: $"**{x.Title}**:", Count: $"`{x.Count}`"))
-				: counters.Select(x => (Title: $"{x.Title}:", Count: $"{x.Count}"))).ToList();
+				? counters.Select(x => (Title: $"**{x.Name}**:", Count: $"`{x.Count}`"))
+				: counters.Select(x => (Title: $"{x.Name}:", Count: $"{x.Count}"))).ToList();
 
 			if (haveEqualSpacing)
 			{
@@ -116,14 +101,13 @@ namespace Advobot.Classes
 				return sb.ToString();
 			}
 		}
-
 		/// <summary>
 		/// Returns the title and count.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
 		{
-			return $"**{Title}:** {Count}";
+			return $"**{Name}:** {Count}";
 		}
 	}
 }

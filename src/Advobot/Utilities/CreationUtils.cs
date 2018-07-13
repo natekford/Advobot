@@ -4,7 +4,7 @@ using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.InviteList;
-using Advobot.Services.Log;
+using Advobot.Services.Logging;
 using Advobot.Services.Timers;
 using AdvorangesUtils;
 using Discord;

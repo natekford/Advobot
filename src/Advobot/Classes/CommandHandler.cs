@@ -19,10 +19,10 @@ namespace Advobot.Classes
 	/// </summary>
 	public class CommandHandler
 	{
-		private static string _Joiner = "\n" + new string(' ', 28);
-		private IServiceProvider _Provider;
-		private CommandService _Commands;
-		private HelpEntryHolder _HelpEntries;
+		private static readonly string _Joiner = "\n" + new string(' ', 28);
+		private readonly IServiceProvider _Provider;
+		private readonly CommandService _Commands;
+		private readonly HelpEntryHolder _HelpEntries;
 		private IDiscordClient _Client;
 		private IBotSettings _BotSettings;
 		private IGuildSettingsService _GuildSettings;
@@ -233,7 +233,7 @@ namespace Advobot.Classes
 			}
 			else if (result.IsSuccess)
 			{
-				_Logging.SuccessfulCommands.Increment();
+				_Logging.SuccessfulCommands.Add(1);
 				await MessageUtils.DeleteMessageAsync(context.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
 
 				if (settings.ModLogId != 0 && !settings.IgnoredLogChannels.Contains(context.Channel.Id))
@@ -249,7 +249,7 @@ namespace Advobot.Classes
 			}
 			else
 			{
-				_Logging.FailedCommands.Increment();
+				_Logging.FailedCommands.Add(1);
 				await MessageUtils.SendErrorMessageAsync(context, new Error(result.ErrorReason)).CAF();
 			}
 
@@ -262,7 +262,7 @@ namespace Advobot.Classes
 			response += result.ErrorReason == null ? "" : $"{_Joiner}Error: {result.ErrorReason}";
 
 			ConsoleUtils.WriteLine(response, result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
-			_Logging.AttemptedCommands.Increment();
+			_Logging.AttemptedCommands.Add(1);
 		}
 	}
 }

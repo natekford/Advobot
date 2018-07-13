@@ -4,14 +4,14 @@ using Discord;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Services.Log.Loggers
+namespace Advobot.Services.Logging.Loggers
 {
 	internal sealed class BotLogger : Logger, IBotLogger
 	{
-		internal BotLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
+		internal BotLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <summary>
-		/// Logs system messages from the Discord .Net library.
+		/// Creates an instance of <see cref="BotLogger"/>.
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns></returns>
