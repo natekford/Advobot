@@ -87,23 +87,23 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Returns a string saying how many commands, successes, and failures.
 		/// </summary>
-		/// <param name="withMarkDown"></param>
+		/// <param name="markdown"></param>
 		/// <param name="equalSpacing"></param>
 		/// <returns></returns>
-		string FormatLoggedCommands(bool withMarkDown, bool equalSpacing);
+		string FormatLoggedCommands(bool markdown, bool equalSpacing);
 		/// <summary>
 		/// Returns a string saying how many users actions have happened.
 		/// </summary>
-		/// <param name="withMarkDown"></param>
+		/// <param name="markdown"></param>
 		/// <param name="equalSpacing"></param>
 		/// <returns></returns>
-		string FormatLoggedUserActions(bool withMarkDown, bool equalSpacing);
+		string FormatLoggedUserActions(bool markdown, bool equalSpacing);
 		/// <summary>
 		/// Returns a string saying how many message actions have happened.
 		/// </summary>
-		/// <param name="withMarkDown"></param>
+		/// <param name="markdown"></param>
 		/// <param name="equalSpacing"></param>
 		/// <returns></returns>
-		string FormatLoggedMessageActions(bool withMarkDown, bool equalSpacing);
+		string FormatLoggedMessageActions(bool markdown, bool equalSpacing);
 	}
 }

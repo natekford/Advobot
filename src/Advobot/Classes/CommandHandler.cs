@@ -207,7 +207,8 @@ namespace Advobot.Classes
 			}
 			//Prefix
 			var argPos = -1;
-			if (!userMessage.HasStringPrefix(String.IsNullOrWhiteSpace(settings.Prefix) ? _BotSettings.Prefix : settings.Prefix, ref argPos) &&
+			var prefix = String.IsNullOrWhiteSpace(settings.Prefix) ? _BotSettings.Prefix : settings.Prefix;
+			if (!userMessage.HasStringPrefix(prefix, ref argPos) &&
 				!userMessage.HasMentionPrefix(_Client.CurrentUser, ref argPos))
 			{
 				return;

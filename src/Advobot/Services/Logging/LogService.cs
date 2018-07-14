@@ -1,12 +1,14 @@
 ﻿using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Services.Logging.Loggers;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Advobot.Services.Logging
 {
@@ -75,13 +77,13 @@ namespace Advobot.Services.Logging
 				.ToDictionary(k => k.Name, v => (LogCounter)v.GetValue(this));
 
 			BotLogger = new BotLogger(services);
-			BotLogger.LogCounterIncrement += OnLogCounterIncrement;
 			GuildLogger = new GuildLogger(services);
-			GuildLogger.LogCounterIncrement += OnLogCounterIncrement;
 			UserLogger = new UserLogger(services);
-			UserLogger.LogCounterIncrement += OnLogCounterIncrement;
 			MessageLogger = new MessageLogger(services);
-			MessageLogger.LogCounterIncrement += OnLogCounterIncrement;
+			foreach (var prop in GetType().GetProperties().Where(x => x.PropertyType.GetInterfaces().Contains(typeof(ILogger))))
+			{
+				((ILogger)prop.GetValue(this)).LogCounterIncrement += OnLogCounterIncrement;
+			}
 
 			switch (services.GetRequiredService<IDiscordClient>())
 			{
@@ -116,29 +118,61 @@ namespace Advobot.Services.Logging
 			}
 		}
 
+		/// <inheritdoc />
+		public string FormatLoggedCommands(bool markdown, bool equalSpacing)
+		{
+			return FormatMultiple(_LoggedCommands, markdown, equalSpacing);
+		}
+		/// <inheritdoc />
+		public string FormatLoggedUserActions(bool markdown, bool equalSpacing)
+		{
+			return FormatMultiple(_LoggedUserActions, markdown, equalSpacing);
+		}
+		/// <inheritdoc />
+		public string FormatLoggedMessageActions(bool markdown, bool equalSpacing)
+		{
+			return FormatMultiple(_LoggedMessageActions.Concat(_LoggedAttachments), markdown, equalSpacing);
+		}
 		/// <summary>
 		/// Increments the specified log counter.
 		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="args"></param>
-		private void OnLogCounterIncrement(object source, LogCounterIncrementEventArgs args)
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void OnLogCounterIncrement(object sender, LogCounterIncrementEventArgs e)
 		{
-			_Counters[args.Name].Add(args.Count);
+			_Counters[e.Name].Add(e.Count);
 		}
-		/// <inheritdoc />
-		public string FormatLoggedCommands(bool withMarkDown, bool equalSpacing)
+		/// <summary>
+		/// Return a formatted string in which the format is each counter on a new line, or if 
+		/// <paramref name="haveEqualSpacing"/> is true there will always be an equal amount of space between each
+		/// title and count.
+		/// </summary>
+		/// <param name="withMarkDown"></param>
+		/// <param name="haveEqualSpacing"></param>
+		/// <param name="counters"></param>
+		/// <returns></returns>
+		private string FormatMultiple(IEnumerable<LogCounter> counters, bool withMarkDown, bool haveEqualSpacing)
 		{
-			return LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedCommands);
-		}
-		/// <inheritdoc />
-		public string FormatLoggedUserActions(bool withMarkDown, bool equalSpacing)
-		{
-			return LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedUserActions);
-		}
-		/// <inheritdoc />
-		public string FormatLoggedMessageActions(bool withMarkDown, bool equalSpacing)
-		{
-			return LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedMessageActions.Concat(_LoggedAttachments).ToArray());
+			var titlesAndCount = (withMarkDown
+				? counters.Select(x => (Title: $"**{x.Name}**:", Count: $"`{x.Count}`"))
+				: counters.Select(x => (Title: $"{x.Name}:", Count: $"{x.Count}"))).ToList();
+
+			var rightSpacing = titlesAndCount.Select(x => x.Title.Length).DefaultIfEmpty(0).Max() + 1;
+			var leftSpacing = titlesAndCount.Select(x => x.Count.Length).DefaultIfEmpty(0).Max();
+
+			var sb = new StringBuilder();
+			foreach (var (Title, Count) in titlesAndCount)
+			{
+				if (haveEqualSpacing)
+				{
+					sb.AppendLineFeed($"{Title.PadRight(Math.Max(rightSpacing, 0))}{Count.PadLeft(Math.Max(leftSpacing, 0))}");
+				}
+				else
+				{
+					sb.AppendLineFeed($"{Title} {Count}");
+				}
+			}
+			return sb.ToString();
 		}
 	}
 }
