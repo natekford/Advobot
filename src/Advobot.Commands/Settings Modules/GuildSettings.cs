@@ -542,7 +542,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
 		{
-			var textFile = new TextFileInfo("Guild_Settings", Context.GuildSettings.Format(Context.Client, Context.Guild));
+			var textFile = new TextFileInfo("Guild_Settings", Context.GuildSettings.Format(Context.Client, Context.Guild).RemoveAllMarkdown());
 			await MessageUtils.SendMessageAsync(Context.Channel, "**Guild Settings:**", textFile: textFile).CAF();
 		}
 		[Command]
@@ -554,7 +554,7 @@ namespace Advobot.Commands.GuildSettings
 				return;
 			}
 
-			var desc = Context.GuildSettings.Format(Context.Client, Context.Guild, field);
+			var desc = Context.GuildSettings.Format(Context.Client, Context.Guild, field.Name);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper

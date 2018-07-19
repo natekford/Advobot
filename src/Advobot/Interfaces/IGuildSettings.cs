@@ -2,7 +2,9 @@
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
+using Discord.WebSocket;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Advobot.Interfaces
 {
@@ -143,5 +145,12 @@ namespace Advobot.Interfaces
 		/// Whether or not this guild is loaded yet. This is not saved.
 		/// </summary>
 		bool Loaded { get; }
+
+		/// <summary>
+		/// What to do after deserialization.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
+		Task PostDeserializeAsync(SocketGuild guild);
 	}
 }

@@ -22,123 +22,94 @@ namespace Advobot.Classes
 	public class GuildSettings : SettingsBase, IGuildSettings
 	{
 		/// <inheritdoc />
-		[JsonIgnore]
-		public GuildNotification WelcomeMessage
+		[JsonProperty("WelcomeMessage"), Setting(null)]
+		public GuildNotification WelcomeMessage { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("GoodbyeMessage"), Setting(null)]
+		public GuildNotification GoodbyeMessage { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("ListedInvite"), Setting(null)]
+		public ListedInvite ListedInvite { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("Slowmode"), Setting(null)]
+		public Slowmode Slowmode { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("Rules"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public RuleHolder Rules { get; } = new RuleHolder();
+		/// <inheritdoc />
+		[JsonProperty("Prefix"), Setting(null)]
+		public string Prefix { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("ServerLog"), Setting(0)]
+		public ulong ServerLogId { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("ModLog"), Setting(0)]
+		public ulong ModLogId { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("ImageLog"), Setting(0)]
+		public ulong ImageLogId { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("MuteRole"), Setting(0)]
+		public ulong MuteRoleId { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("NonVerboseErrors"), Setting(false)]
+		public bool NonVerboseErrors { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("SpamPrevention"), Setting(NonCompileTimeDefaultValue.ClearDictionaryValues)]
+		public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; } = new Dictionary<SpamType, SpamPreventionInfo>
 		{
-			get => _WelcomeMessage;
-			set => _WelcomeMessage = value;
-		}
+			{ SpamType.Message, null },
+			{ SpamType.LongMessage, null },
+			{ SpamType.Link, null },
+			{ SpamType.Image, null },
+			{ SpamType.Mention, null }
+		};
 		/// <inheritdoc />
-		[JsonIgnore]
-		public GuildNotification GoodbyeMessage
+		[JsonProperty("RaidPrevention"), Setting(NonCompileTimeDefaultValue.ClearDictionaryValues)]
+		public Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; } = new Dictionary<RaidType, RaidPreventionInfo>
 		{
-			get => _GoodbyeMessage;
-			set => _GoodbyeMessage = value;
-		}
+			{ RaidType.Regular, null },
+			{ RaidType.RapidJoins, null }
+		};
 		/// <inheritdoc />
-		[JsonIgnore]
-		public ListedInvite ListedInvite
-		{
-			get => _ListedInvite;
-			set => _ListedInvite = value;
-		}
+		[JsonProperty("PersistentRoles"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<PersistentRole> PersistentRoles { get; } = new List<PersistentRole>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public Slowmode Slowmode
-		{
-			get => _Slowmode;
-			set => _Slowmode = value;
-		}
+		[JsonProperty("BotUsers"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<BotImplementedPermissions> BotUsers { get; } = new List<BotImplementedPermissions>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public RuleHolder Rules => _Rules;
+		[JsonProperty("SelfAssignableGroups"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<SelfAssignableRoles> SelfAssignableGroups { get; } = new List<SelfAssignableRoles>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public string Prefix
-		{
-			get => _Prefix;
-			set => _Prefix = value;
-		}
+		[JsonProperty("Quotes"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<Quote> Quotes { get; } = new List<Quote>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public ulong ServerLogId
-		{
-			get => _ServerLogId;
-			set => _ServerLogId = value;
-		}
+		[JsonProperty("LogActions"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<LogAction> LogActions { get; } = new List<LogAction>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public ulong ModLogId
-		{
-			get => _ModLogId;
-			set => _ModLogId = value;
-		}
+		[JsonProperty("IgnoredCommandChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<ulong> IgnoredCommandChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public ulong ImageLogId
-		{
-			get => _ImageLogId;
-			set => _ImageLogId = value;
-		}
+		[JsonProperty("IgnoredLogChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<ulong> IgnoredLogChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public ulong MuteRoleId
-		{
-			get => _MuteRoleId;
-			set => _MuteRoleId = value;
-		}
+		[JsonProperty("ImageOnlyChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<ulong> ImageOnlyChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public bool NonVerboseErrors
-		{
-			get => _NonVerboseErrors;
-			set => _NonVerboseErrors = value;
-		}
+		[JsonProperty("BannedPhraseStrings"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<BannedPhrase> BannedPhraseStrings { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary => _SpamPrevention;
+		[JsonProperty("BannedPhraseRegex"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<BannedPhrase> BannedPhraseRegex { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary => _RaidPrevention;
+		[JsonProperty("BannedPhraseNames"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<BannedPhrase> BannedPhraseNames { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public List<PersistentRole> PersistentRoles => _PersistentRoles;
+		[JsonProperty("BannedPhrasePunishments"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<BannedPhrasePunishment> BannedPhrasePunishments { get; } = new List<BannedPhrasePunishment>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public List<BotImplementedPermissions> BotUsers => _BotUsers;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<SelfAssignableRoles> SelfAssignableGroups => _SelfAssignableGroups;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<Quote> Quotes => _Quotes;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<LogAction> LogActions => _LogActions;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<ulong> IgnoredCommandChannels => _IgnoredCommandChannels;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<ulong> IgnoredLogChannels => _IgnoredLogChannels;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<ulong> ImageOnlyChannels => _ImageOnlyChannels;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<BannedPhrase> BannedPhraseStrings => _BannedPhraseStrings;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<BannedPhrase> BannedPhraseRegex => _BannedPhraseRegex;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<BannedPhrase> BannedPhraseNames => _BannedPhraseNames;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public List<BannedPhrasePunishment> BannedPhrasePunishments => _BannedPhrasePunishments;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public CommandSettings CommandSettings => _CommandSettings;
+		[JsonProperty("CommandSettings"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public CommandSettings CommandSettings { get; } = new CommandSettings();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public List<SpamPreventionUserInfo> SpamPreventionUsers { get; } = new List<SpamPreventionUserInfo>();
@@ -167,88 +138,16 @@ namespace Advobot.Classes
 		[JsonIgnore]
 		public bool Loaded { get; private set; }
 
-		[JsonProperty("WelcomeMessage"), Setting(null)]
-		private GuildNotification _WelcomeMessage = null;
-		[JsonProperty("GoodbyeMessage"), Setting(null)]
-		private GuildNotification _GoodbyeMessage = null;
-		[JsonProperty("ListedInvite"), Setting(null)]
-		private ListedInvite _ListedInvite = null;
-		[JsonProperty("Slowmode"), Setting(null)]
-		private Slowmode _Slowmode = null;
-		[JsonProperty("ServerLog"), Setting(0)]
-		private ulong _ServerLogId = 0;
-		[JsonProperty("ModLog"), Setting(0)]
-		private ulong _ModLogId = 0;
-		[JsonProperty("ImageLog"), Setting(0)]
-		private ulong _ImageLogId = 0;
-		[JsonProperty("MuteRole"), Setting(0)]
-		private ulong _MuteRoleId = 0;
-		[JsonProperty("Prefix"), Setting(null)]
-		private string _Prefix = null;
-		[JsonProperty("NonVerboseErrors"), Setting(false)]
-		private bool _NonVerboseErrors = false;
-		[JsonProperty("SpamPrevention"), Setting(NonCompileTimeDefaultValue.ClearDictionaryValues)]
-		private Dictionary<SpamType, SpamPreventionInfo> _SpamPrevention = new Dictionary<SpamType, SpamPreventionInfo>
+		/// <inheritdoc />
+		public async Task PostDeserializeAsync(SocketGuild guild)
 		{
-			{ SpamType.Message, null },
-			{ SpamType.LongMessage, null },
-			{ SpamType.Link, null },
-			{ SpamType.Image, null },
-			{ SpamType.Mention, null }
-		};
-		[JsonProperty("RaidPrevention"), Setting(NonCompileTimeDefaultValue.ClearDictionaryValues)]
-		private Dictionary<RaidType, RaidPreventionInfo> _RaidPrevention = new Dictionary<RaidType, RaidPreventionInfo>
-		{
-			{ RaidType.Regular, null },
-			{ RaidType.RapidJoins, null }
-		};
-		[JsonProperty("PersistentRoles"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<PersistentRole> _PersistentRoles = new List<PersistentRole>();
-		[JsonProperty("BotUsers"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<BotImplementedPermissions> _BotUsers = new List<BotImplementedPermissions>();
-		[JsonProperty("SelfAssignableGroups"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<SelfAssignableRoles> _SelfAssignableGroups = new List<SelfAssignableRoles>();
-		[JsonProperty("Quotes"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<Quote> _Quotes = new List<Quote>();
-		[JsonProperty("LogActions"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<LogAction> _LogActions = new List<LogAction>();
-		[JsonProperty("IgnoredCommandChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<ulong> _IgnoredCommandChannels = new List<ulong>();
-		[JsonProperty("IgnoredLogChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<ulong> _IgnoredLogChannels = new List<ulong>();
-		[JsonProperty("ImageOnlyChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<ulong> _ImageOnlyChannels = new List<ulong>();
-		[JsonProperty("BannedPhraseStrings"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<BannedPhrase> _BannedPhraseStrings = new List<BannedPhrase>();
-		[JsonProperty("BannedPhraseRegex"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<BannedPhrase> _BannedPhraseRegex = new List<BannedPhrase>();
-		[JsonProperty("BannedPhraseNames"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<BannedPhrase> _BannedPhraseNames = new List<BannedPhrase>();
-		[JsonProperty("BannedPhrasePunishments"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<BannedPhrasePunishment> _BannedPhrasePunishments = new List<BannedPhrasePunishment>();
-		[JsonProperty("Rules"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private RuleHolder _Rules = new RuleHolder();
-		[JsonProperty("CommandSettings"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private CommandSettings _CommandSettings = new CommandSettings();
-
-		[OnDeserialized]
-		private void OnDeserialized(StreamingContext context)
-		{
-			if (!(context.Context is SocketGuild guild))
-			{
-				throw new InvalidOperationException("The additional streaming context must be a socketguild when deserializing.");
-			}
-
 			GuildId = guild.Id;
-			Task.Run(async () =>
-			{
-				Invites.AddRange((await DiscordUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x)));
-			});
-			foreach (var group in _SelfAssignableGroups ?? Enumerable.Empty<SelfAssignableRoles>())
+			Invites.AddRange((await DiscordUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x)));
+			foreach (var group in SelfAssignableGroups ?? Enumerable.Empty<SelfAssignableRoles>())
 			{
 				group.PostDeserialize(guild);
 			}
-			_ListedInvite?.PostDeserialize(guild);
+			ListedInvite?.PostDeserialize(guild);
 
 			Loaded = true;
 		}

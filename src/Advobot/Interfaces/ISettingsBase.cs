@@ -1,7 +1,7 @@
-﻿using Discord;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using Discord;
 
 namespace Advobot.Interfaces
 {
@@ -16,10 +16,10 @@ namespace Advobot.Interfaces
 		FileInfo FileLocation { get; }
 
 		/// <summary>
-		/// Returns all non-public instance fields with the setting attribute.
+		/// Returns all members with <see cref="Classes.Attributes.SettingAttribute"/>.
 		/// </summary>
 		/// <returns></returns>
-		IReadOnlyDictionary<string, FieldInfo> GetSettings();
+		IReadOnlyDictionary<string, MemberInfo> GetSettings();
 		/// <summary>
 		/// Formats the settings so they are readable by a human.
 		/// </summary>
@@ -32,14 +32,6 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="client"></param>
 		/// <param name="guild"></param>
-		/// <param name="field"></param>
-		/// <returns></returns>
-		string Format(IDiscordClient client, IGuild guild, FieldInfo field);
-		/// <summary>
-		/// Formats a specific setting.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="guild"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
 		string Format(IDiscordClient client, IGuild guild, string name);
@@ -47,12 +39,6 @@ namespace Advobot.Interfaces
 		/// Sets every setting back to its default value.
 		/// </summary>
 		void ResetSettings();
-		/// <summary>
-		/// Sets a setting back to its default value.
-		/// </summary>
-		/// <param name="field"></param>
-		/// <returns></returns>
-		object ResetSetting(FieldInfo field);
 		/// <summary>
 		/// Sets a setting back to its default value.
 		/// </summary>

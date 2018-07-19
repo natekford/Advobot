@@ -1,7 +1,7 @@
-﻿using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Discord.WebSocket;
 
 namespace Advobot.Interfaces
 {
@@ -21,7 +21,7 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		Task<IGuildSettings> GetOrCreateAsync(IGuild guild);
+		Task<IGuildSettings> GetOrCreateAsync(SocketGuild guild);
 		/// <summary>
 		/// Removes the given guild's settings from the module.
 		/// </summary>

@@ -22,14 +22,21 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public abstract FileInfo FileLocation { get; }
 
-		private Dictionary<string, FieldInfo> _Settings;
+		private Dictionary<string, MemberInfo> _Settings;
 
 		/// <inheritdoc />
-		public virtual IReadOnlyDictionary<string, FieldInfo> GetSettings()
+		public virtual IReadOnlyDictionary<string, MemberInfo> GetSettings()
 		{
-			return _Settings ?? (_Settings = GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
-				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase));
+			if (_Settings != null)
+			{
+				return _Settings;
+			}
+
+			var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+			IEnumerable<MemberInfo> fields = GetType().GetFields(flags);
+			IEnumerable<MemberInfo> props = GetType().GetProperties(flags);
+			return _Settings = fields.Concat(props).Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
+				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase);
 		}
 		/// <inheritdoc />
 		public virtual string Format(IDiscordClient client, IGuild guild)
@@ -37,7 +44,7 @@ namespace Advobot.Classes
 			var sb = new StringBuilder();
 			foreach (var kvp in GetSettings())
 			{
-				var formatted = Format(client, guild, kvp.Value);
+				var formatted = Format(client, guild, kvp.Value.GetValue(this));
 				if (String.IsNullOrWhiteSpace(formatted))
 				{
 					continue;
@@ -50,14 +57,9 @@ namespace Advobot.Classes
 			return sb.ToString();
 		}
 		/// <inheritdoc />
-		public virtual string Format(IDiscordClient client, IGuild guild, FieldInfo field)
-		{
-			return Format(client, guild, field.GetValue(this));
-		}
-		/// <inheritdoc />
 		public virtual string Format(IDiscordClient client, IGuild guild, string name)
 		{
-			return Format(client, guild, GetField(name));
+			return Format(client, guild, GetMember(name).GetValue(this));
 		}
 		/// <inheritdoc />
 		public virtual void ResetSettings()
@@ -68,52 +70,61 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		public virtual object ResetSetting(FieldInfo field)
+		public virtual object ResetSetting(string name)
 		{
-			var settingAttr = field.GetCustomAttribute<SettingAttribute>();
+			return ResetSetting(GetMember(name));
+		}
+		/// <inheritdoc />
+		public virtual void SaveSettings()
+		{
+			if (!FileLocation.Exists)
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(FileLocation.FullName));
+				using (var fs = FileLocation.Create())
+				{
+					fs.Close();
+				}
+			}
+			File.WriteAllText(FileLocation.ToString(), IOUtils.Serialize(this));
+		}
+
+		private MemberInfo GetMember(string name)
+		{
+			return GetSettings()[name] ?? throw new ArgumentException("Invalid field name provided.", nameof(name));
+		}
+		private object ResetSetting(MemberInfo member)
+		{
+			var settingAttr = member.GetCustomAttribute<SettingAttribute>();
 			if (settingAttr.NonCompileTimeDefaultValue != default)
 			{
 				object nonCompileTimeValue;
 				switch (settingAttr.NonCompileTimeDefaultValue)
 				{
 					case NonCompileTimeDefaultValue.InstantiateDefaultParameterless:
-						nonCompileTimeValue = Activator.CreateInstance(field.FieldType);
+						nonCompileTimeValue = Activator.CreateInstance(member.GetUnderlyingType());
 						break;
 					case NonCompileTimeDefaultValue.ClearDictionaryValues:
-						var dict = (IDictionary)field.GetValue(this);
+						var dict = (IDictionary)member.GetValue(this);
 						dict.Keys.Cast<object>().ToList().ForEach(x => dict[x] = null);
 						return dict;
 					default:
 						throw new InvalidOperationException("Invalid non compile time default value provided.");
 				}
-				field.SetValue(this, nonCompileTimeValue);
-				return field.GetValue(this);
+				member.SetValue(this, nonCompileTimeValue);
+				return member.GetValue(this);
 			}
 			else
 			{
-				field.SetValue(this, settingAttr.DefaultValue);
-				return field.GetValue(this);
+				member.SetValue(this, settingAttr.DefaultValue);
+				return member.GetValue(this);
 			}
-		}
-		/// <inheritdoc />
-		public virtual object ResetSetting(string name)
-		{
-			return ResetSetting(GetField(name));
-		}
-		/// <inheritdoc />
-		public virtual void SaveSettings()
-		{
-			File.WriteAllText(FileLocation.ToString(), IOUtils.Serialize(this));
-		}
-
-		private FieldInfo GetField(string name)
-		{
-			return GetSettings()[name] ?? throw new ArgumentException("Invalid field name provided.", nameof(name));
 		}
 		private string Format(IDiscordClient client, IGuild guild, object value)
 		{
 			switch (value)
 			{
+				case MemberInfo member:
+					throw new InvalidOperationException("MemberInfo should not be passed directly into here.");
 				case null:
 					return "`Nothing`";
 				case ulong id:

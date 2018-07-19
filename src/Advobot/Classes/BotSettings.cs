@@ -15,12 +15,8 @@ namespace Advobot.Classes
 	public class BotSettings : SettingsBase, IBotSettings
 	{
 		/// <inheritdoc />
-		[JsonIgnore]
-		public LogSeverity LogLevel
-		{
-			get => _LogLevel;
-			set => _LogLevel = value;
-		}
+		[JsonProperty("LogLevel"), Setting(LogSeverity.Warning)]
+		public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;
 		/// <inheritdoc />
 		[JsonIgnore]
 		public string Prefix
@@ -36,26 +32,14 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
-		public string Game
-		{
-			get => _Game;
-			set => _Game = value;
-		}
+		[JsonProperty("Game"), Setting(null)]
+		public string Game { get; set; }
 		/// <inheritdoc />
-		[JsonIgnore]
-		public string Stream
-		{
-			get => _Stream;
-			set => _Stream = value;
-		}
+		[JsonProperty("Stream"), Setting(null)]
+		public string Stream { get; set; }
 		/// <inheritdoc />
-		[JsonIgnore]
-		public bool AlwaysDownloadUsers
-		{
-			get => _AlwaysDownloadUsers;
-			set => _AlwaysDownloadUsers = value;
-		}
+		[JsonProperty("AlwaysDownloadUsers"), Setting(true)]
+		public bool AlwaysDownloadUsers { get; set; } = true;
 		/// <inheritdoc />
 		[JsonIgnore]
 		public int ShardCount
@@ -225,14 +209,14 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
-		public List<ulong> TrustedUsers => _TrustedUsers;
+		[JsonProperty("TrustedUsers"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<ulong> TrustedUsers { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public List<ulong> UsersUnableToDmOwner => _UsersUnableToDmOwner;
+		[JsonProperty("UsersUnableToDmOwner"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<ulong> UsersUnableToDmOwner { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonIgnore]
-		public List<ulong> UsersIgnoredFromCommands => _UsersIgnoredFromCommands;
+		[JsonProperty("UsersIgnoredFromCommands"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<ulong> UsersIgnoredFromCommands { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool Pause { get; set; }
@@ -240,16 +224,8 @@ namespace Advobot.Classes
 		[JsonIgnore]
 		public override FileInfo FileLocation => FileUtils.GetBotSettingsFile();
 
-		[JsonProperty("LogLevel"), Setting(LogSeverity.Warning)]
-		private LogSeverity _LogLevel = LogSeverity.Warning;
 		[JsonProperty("Prefix"), Setting("&&")]
 		private string _Prefix = "&&";
-		[JsonProperty("Game"), Setting(null)]
-		private string _Game = null;
-		[JsonProperty("Stream"), Setting(null)]
-		private string _Stream = null;
-		[JsonProperty("AlwaysDownloadUsers"), Setting(true)]
-		private bool _AlwaysDownloadUsers = true;
 		[JsonProperty("ShardCount"), Setting(1)]
 		private int _ShardCount = 1;
 		[JsonProperty("MessageCacheCount"), Setting(1000)]
@@ -274,11 +250,5 @@ namespace Advobot.Classes
 		private int _MaxBannedNames = 25;
 		[JsonProperty("MaxBannedPunishments"), Setting(10)]
 		private int _MaxBannedPunishments = 10;
-		[JsonProperty("TrustedUsers"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<ulong> _TrustedUsers = new List<ulong>();
-		[JsonProperty("UsersUnableToDmOwner"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<ulong> _UsersUnableToDmOwner = new List<ulong>();
-		[JsonProperty("UsersIgnoredFromCommands"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
-		private List<ulong> _UsersIgnoredFromCommands = new List<ulong>();
 	}
 }

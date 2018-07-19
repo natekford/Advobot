@@ -21,7 +21,7 @@ namespace Advobot
 		/// The path to save the config file to. Does not save any other files here.
 		/// </summary>
 		[JsonIgnore]
-		private static string _SavePath = CeateSavePath();
+		private static readonly string _SavePath = CeateSavePath();
 		/// <summary>
 		/// Holds very low level settings: the bot id, key, and save path.
 		/// </summary>
@@ -147,7 +147,7 @@ namespace Advobot
 		public class ConfigDict
 		{
 			[JsonProperty("Config")]
-			private Dictionary<ConfigKey, string> _ConfigDict = new Dictionary<ConfigKey, string>
+			private readonly Dictionary<ConfigKey, string> _ConfigDict = new Dictionary<ConfigKey, string>
 			{
 				{ ConfigKey.SavePath, null },
 				{ ConfigKey.BotKey, null },

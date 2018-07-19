@@ -42,7 +42,7 @@ namespace Advobot.Commands.BotSettings
 				return;
 			}
 
-			var resp = $"Successfully reset {settingName.FormatTitle().ToLower()} to `{Context.BotSettings.ResetSetting(field)}`.";
+			var resp = $"Successfully reset {settingName.FormatTitle().ToLower()} to `{Context.BotSettings.ResetSetting(field.Name)}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]

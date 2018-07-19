@@ -5,7 +5,7 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Indicates a field is a setting.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Field)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 	public class SettingAttribute : Attribute
 	{
 		/// <summary>
