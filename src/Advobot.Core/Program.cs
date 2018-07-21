@@ -16,10 +16,15 @@ namespace Advobot.Core
 		private static async Task Main()
 		{
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
+			ConsoleUtils.PrintingFlags = 0
+				| ConsolePrintingFlags.Print
+				| ConsolePrintingFlags.LogTime
+				| ConsolePrintingFlags.LogCaller
+				| ConsolePrintingFlags.RemoveDuplicateNewLines;
 
 			//Get the save path
 			var savePath = true;
-			while (!Config.ValidatePath((savePath ? null : Console.ReadLine()), savePath))
+			while (!LowLevelConfig.Config.ValidatePath((savePath ? null : Console.ReadLine()), savePath))
 			{
 				savePath = false;
 			}
@@ -30,7 +35,7 @@ namespace Advobot.Core
 
 			//Get the bot key
 			var botKey = true;
-			while (!await Config.ValidateBotKey(client, (botKey ? null : Console.ReadLine()), botKey).CAF())
+			while (!await LowLevelConfig.Config.ValidateBotKey(client, (botKey ? null : Console.ReadLine()), botKey).CAF())
 			{
 				botKey = false;
 			}

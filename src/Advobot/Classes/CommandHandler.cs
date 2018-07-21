@@ -70,10 +70,10 @@ namespace Advobot.Classes
 		{
 			if (!_Loaded)
 			{
-				if (Config.Configuration[Config.ConfigDict.ConfigKey.BotId] != _Client.CurrentUser.Id.ToString())
+				if (LowLevelConfig.Config.BotId != _Client.CurrentUser.Id)
 				{
-					Config.Configuration[Config.ConfigDict.ConfigKey.BotId] = _Client.CurrentUser.Id.ToString();
-					Config.Save();
+					LowLevelConfig.Config.BotId = _Client.CurrentUser.Id;
+					LowLevelConfig.Config.Save();
 					ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
 					ClientUtils.RestartBot();
 				}
@@ -132,7 +132,7 @@ namespace Advobot.Classes
 		{
 			//Check if the bot was the one that left
 			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild).CAF();
-			if (settings == null || user.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId])
+			if (settings == null || user.Id == LowLevelConfig.Config.BotId)
 			{
 				return;
 			}

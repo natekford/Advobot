@@ -15,7 +15,7 @@ namespace Advobot
 	/// <summary>
 	/// Low level configuration that is necessary for the bot to run. Holds the bot key, bot id, and save path.
 	/// </summary>
-	public static class Config
+	public class LowLevelConfig
 	{
 		/// <summary>
 		/// The path to save the config file to. Does not save any other files here.
@@ -25,8 +25,24 @@ namespace Advobot
 		/// <summary>
 		/// Holds very low level settings: the bot id, key, and save path.
 		/// </summary>
-		[JsonProperty("Config")]
-		public static ConfigDict Configuration = LoadConfigDictionary();
+		[JsonIgnore]
+		public static LowLevelConfig Config = LoadConfigDictionary();
+
+		/// <summary>
+		/// The path the bot's files are in.
+		/// </summary>
+		[JsonProperty("SavePath")]
+		public string SavePath { get; set; }
+		/// <summary>
+		/// The API key for the bot.
+		/// </summary>
+		[JsonProperty("BotKey")]
+		public string BotKey { get; set; }
+		/// <summary>
+		/// The id of the bot.
+		/// </summary>
+		[JsonProperty("BotId")]
+		public ulong BotId { get; set; }
 
 		/// <summary>
 		/// Attempts to set the save path with the given input. Returns a boolean signifying whether the save path is valid or not.
@@ -34,9 +50,9 @@ namespace Advobot
 		/// <param name="input"></param>
 		/// <param name="startup"></param>
 		/// <returns></returns>
-		public static bool ValidatePath(string input, bool startup)
+		public bool ValidatePath(string input, bool startup)
 		{
-			var path = input ?? Configuration[ConfigDict.ConfigKey.SavePath];
+			var path = input ?? Config.SavePath;
 
 			if (startup && !String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 			{
@@ -57,7 +73,7 @@ namespace Advobot
 			if (Directory.Exists(path))
 			{
 				ConsoleUtils.WriteLine("Successfully set the save path as " + path);
-				Configuration[ConfigDict.ConfigKey.SavePath] = path;
+				Config.SavePath = path;
 				Save();
 				return true;
 			}
@@ -72,9 +88,9 @@ namespace Advobot
 		/// <param name="input">The bot key.</param>
 		/// <param name="startup">Whether or not this should be treated as the first attempt at logging in.</param>
 		/// <returns>A boolean signifying whether the login was successful or not.</returns>
-		public static async Task<bool> ValidateBotKey(IDiscordClient client, string input, bool startup)
+		public async Task<bool> ValidateBotKey(IDiscordClient client, string input, bool startup)
 		{
-			var key = input ?? Configuration[ConfigDict.ConfigKey.BotKey];
+			var key = input ?? Config.BotKey;
 
 			if (startup && !String.IsNullOrWhiteSpace(key))
 			{
@@ -100,7 +116,7 @@ namespace Advobot
 				await ClientUtils.LoginAsync(client, key).CAF();
 
 				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
-				Configuration[ConfigDict.ConfigKey.BotKey] = key;
+				Config.BotKey = key;
 				Save();
 				return true;
 			}
@@ -129,62 +145,16 @@ namespace Advobot
 		/// Attempts to load the configuration from <see cref="_SavePath"/> otherwise uses the default initialization for <see cref="ConfigDict"/>.
 		/// </summary>
 		/// <returns></returns>
-		private static ConfigDict LoadConfigDictionary()
+		private static LowLevelConfig LoadConfigDictionary()
 		{
-			return IOUtils.DeserializeFromFile<ConfigDict, ConfigDict>(new FileInfo(_SavePath));
+			return IOUtils.DeserializeFromFile<LowLevelConfig, LowLevelConfig>(new FileInfo(_SavePath)) ?? new LowLevelConfig();
 		}
 		/// <summary>
-		/// Writes the current <see cref="ConfigDict"/> to file.
+		/// Writes the current config to file.
 		/// </summary>
-		public static void Save()
+		public void Save()
 		{
-			File.WriteAllText(_SavePath, IOUtils.Serialize(Configuration));
-		}
-
-		/// <summary>
-		/// Creates a dictionary which only holds the values for <see cref="ConfigKey"/> to be modified.
-		/// </summary>
-		public class ConfigDict
-		{
-			[JsonProperty("Config")]
-			private readonly Dictionary<ConfigKey, string> _ConfigDict = new Dictionary<ConfigKey, string>
-			{
-				{ ConfigKey.SavePath, null },
-				{ ConfigKey.BotKey, null },
-				{ ConfigKey.BotId, "0" }
-			};
-
-			/// <summary>
-			/// Get the config value associated with the key.
-			/// </summary>
-			/// <param name="key"></param>
-			/// <returns></returns>
-			[JsonIgnore]
-			public string this[ConfigKey key]
-			{
-				get => _ConfigDict[key];
-				set => _ConfigDict[key] = value;
-			}
-
-			/// <summary>
-			/// Keys to be used in <see cref="Config.ConfigDict"/>.
-			/// </summary>
-			[Flags]
-			public enum ConfigKey : uint
-			{
-				/// <summary>
-				/// Where everything is saved.
-				/// </summary>
-				SavePath = (1U << 0),
-				/// <summary>
-				/// The key to log into the bot with.
-				/// </summary>
-				BotKey = (1U << 1),
-				/// <summary>
-				/// The id of the bot.
-				/// </summary>
-				BotId = (1U << 2),
-			}
+			File.WriteAllText(_SavePath, IOUtils.Serialize(Config));
 		}
 	}
 }

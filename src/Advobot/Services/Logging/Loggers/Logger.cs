@@ -105,7 +105,7 @@ namespace Advobot.Services.Logging.Loggers
 			//Only a message will have channel as not null
 			if (channel != null && user != null)
 			{
-				var isFromThisBot = user.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId];
+				var isFromThisBot = user.Id == LowLevelConfig.Config.BotId;
 				var isFromBot = !isFromThisBot && (user.IsBot || user.IsWebhook);
 				var isOnIgnoredChannel = settings.IgnoredLogChannels.Contains(channel.Id);
 				switch (logAction)
@@ -120,8 +120,15 @@ namespace Advobot.Services.Logging.Loggers
 			//After a message, only a user will have user as not null
 			if (user != null)
 			{
-				var isFromThisBot = user.Id.ToString() == Config.Configuration[Config.ConfigDict.ConfigKey.BotId];
-				return !isFromThisBot && (user.IsBot || user.IsWebhook);
+				var isFromThisBot = user.Id == LowLevelConfig.Config.BotId;
+				switch (logAction)
+				{
+					case LogAction.UserJoined:
+					case LogAction.UserLeft:
+						return !isFromThisBot;
+					case LogAction.UserUpdated:
+						return !isFromThisBot && !(user.IsBot || user.IsWebhook);
+				}
 			}
 			//After a message and user, guild is the last thing remaining
 			return guild != null;

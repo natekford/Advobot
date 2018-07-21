@@ -263,10 +263,10 @@ namespace Advobot.Commands.BotSettings
 		[Command]
 		public async Task Command()
 		{
-			Config.Configuration[Config.ConfigDict.ConfigKey.SavePath] = null;
-			Config.Configuration[Config.ConfigDict.ConfigKey.BotKey] = null;
-			Config.Configuration[Config.ConfigDict.ConfigKey.BotId] = null;
-			Config.Save();
+			LowLevelConfig.Config.SavePath = null;
+			LowLevelConfig.Config.BotKey = null;
+			LowLevelConfig.Config.BotId = 0;
+			LowLevelConfig.Config.Save();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully reset all properties. Restarting now...").CAF();
 			ClientUtils.RestartBot();
 		}
@@ -282,8 +282,8 @@ namespace Advobot.Commands.BotSettings
 		public async Task Command()
 		{
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully reset the bot key. Shutting down now...").CAF();
-			Config.Configuration[Config.ConfigDict.ConfigKey.BotKey] = null;
-			Config.Save();
+			LowLevelConfig.Config.BotKey = null;
+			LowLevelConfig.Config.Save();
 			ClientUtils.RestartBot();
 		}
 	}
