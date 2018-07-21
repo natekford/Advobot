@@ -229,6 +229,7 @@ namespace Advobot.Classes
 					throw new ArgumentException("invalid type", nameof(_Client));
 			}
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
+			stopwatch.Stop();
 
 			if ((!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)
 			{
