@@ -1,6 +1,7 @@
 ﻿using Advobot;
 using Advobot.Classes;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -36,7 +37,7 @@ namespace Advobot.Windows.Classes
 			else if (!GotKey)
 			{
 				_StartUp = input == null;
-				_StartUp = GotKey = await Config.ValidateBotKey(Provider.GetRequiredService<IDiscordClient>(), input, _StartUp);
+				_StartUp = GotKey = await GetKey(Provider.GetRequiredService<IDiscordClient>(), input, _StartUp).CAF();
 			}
 
 			var somethingWasSet = _StartUp;
@@ -49,7 +50,7 @@ namespace Advobot.Windows.Classes
 		}
 		private bool GetPath(string path, bool startup)
 		{
-			if (Config.ValidatePath(path, startup))
+			if (LowLevelConfig.Config.ValidatePath(path, startup))
 			{
 				Provider = CreationUtils.CreateDefaultServiceProvider<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies());
 				CommandHandler = new CommandHandler(Provider);
@@ -59,7 +60,7 @@ namespace Advobot.Windows.Classes
 		}
 		private async Task<bool> GetKey(IDiscordClient client, string key, bool startup)
 		{
-			return await Config.ValidateBotKey(client, key, startup);
+			return await LowLevelConfig.Config.ValidateBotKey(client, key, startup);
 		}
 	}
 }

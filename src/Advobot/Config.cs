@@ -142,7 +142,7 @@ namespace Advobot
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Advobot", configFileName);
 		}
 		/// <summary>
-		/// Attempts to load the configuration from <see cref="_SavePath"/> otherwise uses the default initialization for <see cref="ConfigDict"/>.
+		/// Attempts to load the configuration from <see cref="_SavePath"/> otherwise uses the default initialization for config.
 		/// </summary>
 		/// <returns></returns>
 		private static LowLevelConfig LoadConfigDictionary()
