@@ -192,6 +192,8 @@ namespace Advobot.Classes
 			if (_BotSettings.Pause
 				|| !(message.Channel is SocketGuildChannel channel)
 				|| !(message is SocketUserMessage userMessage)
+				|| !(userMessage.Author is SocketUser user)
+				|| user.IsBot
 				|| String.IsNullOrWhiteSpace(userMessage.Content))
 			{
 				return;
