@@ -81,7 +81,7 @@ namespace Advobot.Classes.CloseWords
 				}
 				closeWords.Add(closeWord);
 			}
-			List = closeWords.Where(x => x != null && x.Closeness > -1 && x.Closeness <= MaxAllowedCloseness).ToList();
+			List = closeWords.Where(x => x != null && x.Closeness > -1).Take(MaxOutput).ToList();
 		}
 		/// <summary>
 		/// Determines if an object has a similar name to the search term.

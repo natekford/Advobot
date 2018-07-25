@@ -51,7 +51,7 @@ namespace Advobot.Classes.CloseWords
 			out CloseWord closeWord)
 		{
 			var obj = objs.FirstOrDefault(x => !used.Contains(x.Name) && x.Name.CaseInsContains(search));
-			closeWord = obj != null ? new CloseWord(int.MaxValue, obj.Name, obj.ToString()) : null;
+			closeWord = obj != null ? new CloseWord(int.MaxValue, obj.Name, obj.ToString(_Settings)) : null;
 			return obj != null;
 		}
 	}
