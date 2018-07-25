@@ -38,10 +38,24 @@ namespace Advobot.Classes.CloseWords
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="context"></param>
+		protected CloseWords(TimeSpan time, ICommandContext context) : base(time, context) { }
+
+		/// <summary>
+		/// Sends the bots response to let the user know what options they can pick from.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <returns></returns>
+		public async Task SendBotMessageAsync(IMessageChannel channel)
+		{
+			var text = $"Did you mean any of the following:\n{List.FormatNumberedList(x => x.Name)}";
+			MessageIds.Add((await MessageUtils.SendMessageAsync(channel, text).CAF()).Id);
+		}
+		/// <summary>
+		/// Populates the list, this should be called in the constructor as soon as possible.
+		/// </summary>
 		/// <param name="objects"></param>
 		/// <param name="search"></param>
-		protected CloseWords(TimeSpan time, ICommandContext context, IEnumerable<T> objects, string search)
-			: base(time, context)
+		protected void Populate(IEnumerable<T> objects, string search)
 		{
 			var closeWords = new List<CloseWord>();
 			//First loop around to find words that are similar
@@ -68,17 +82,6 @@ namespace Advobot.Classes.CloseWords
 				closeWords.Add(closeWord);
 			}
 			List = closeWords.Where(x => x != null && x.Closeness > -1 && x.Closeness <= MaxAllowedCloseness).ToList();
-		}
-
-		/// <summary>
-		/// Sends the bots response to let the user know what options they can pick from.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <returns></returns>
-		public async Task SendBotMessageAsync(IMessageChannel channel)
-		{
-			var text = $"Did you mean any of the following:\n{List.FormatNumberedList(x => x.Name)}";
-			MessageIds.Add((await MessageUtils.SendMessageAsync(channel, text).CAF()).Id);
 		}
 		/// <summary>
 		/// Determines if an object has a similar name to the search term.

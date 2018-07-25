@@ -72,21 +72,24 @@ namespace Advobot.Windows.Windows
 		}
 		private async Task Start()
 		{
-			Client.HeldObject = _LoginHandler.Provider.GetRequiredService<IDiscordClient>();
-			BotSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IBotSettings>();
-			GuildSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IGuildSettingsService>();
-			LogHolder.HeldObject = _LoginHandler.Provider.GetRequiredService<ILogService>();
-			_Colors = ColorSettings.LoadUISettings();
+			await Dispatcher.InvokeAsync(async () =>
+			{
+				Client.HeldObject = _LoginHandler.Provider.GetRequiredService<IDiscordClient>();
+				BotSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IBotSettings>();
+				GuildSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IGuildSettingsService>();
+				LogHolder.HeldObject = _LoginHandler.Provider.GetRequiredService<ILogService>();
+				_Colors = ColorSettings.LoadUISettings();
 
-			if (Client.HeldObject is DiscordSocketClient socket)
-			{
-				socket.Connected += EnableButtons;
-			}
-			else if (Client.HeldObject is DiscordShardedClient sharded)
-			{
-				sharded.Shards.LastOrDefault().Connected += EnableButtons;
-			}
-			await ClientUtils.StartAsync(Client.HeldObject);
+				if (Client.HeldObject is DiscordSocketClient socket)
+				{
+					socket.Connected += EnableButtons;
+				}
+				else if (Client.HeldObject is DiscordShardedClient sharded)
+				{
+					sharded.Shards.LastOrDefault().Connected += EnableButtons;
+				}
+				await ClientUtils.StartAsync(Client.HeldObject);
+			});
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
@@ -217,7 +220,6 @@ namespace Advobot.Windows.Windows
 				{
 					continue;
 				}
-
 				if (c.Theme == theme)
 				{
 					continue;

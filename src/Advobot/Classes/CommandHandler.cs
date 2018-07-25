@@ -152,7 +152,6 @@ namespace Advobot.Classes
 			--i;
 
 			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild).CAF();
-
 			var quotes = await _Timers.RemoveActiveCloseQuoteAsync(user).CAF();
 			var validQuotes = quotes != null && quotes.List.Count > i;
 			if (validQuotes)
@@ -202,8 +201,7 @@ namespace Advobot.Classes
 			stopwatch.Start();
 
 			//Guild settings
-			var settings = await _GuildSettings.GetOrCreateAsync(channel.Guild).CAF();
-			if (settings == null)
+			if (!(await _GuildSettings.GetOrCreateAsync(channel.Guild).CAF() is IGuildSettings settings))
 			{
 				return;
 			}

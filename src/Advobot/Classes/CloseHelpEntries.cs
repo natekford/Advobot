@@ -1,4 +1,5 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.Classes.Settings;
+using AdvorangesUtils;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,8 @@ namespace Advobot.Classes.CloseWords
 	/// </summary>
 	public sealed class CloseHelpEntries : CloseWords<HelpEntry>
 	{
+		private readonly CommandSettings _Settings;
+
 		/// <summary>
 		/// Initializes the object. Parameterless constructor is used for the database.
 		/// </summary>
@@ -21,9 +24,14 @@ namespace Advobot.Classes.CloseWords
 		/// <param name="time"></param>
 		/// <param name="context"></param>
 		/// <param name="helpEntryHolder"></param>
+		/// <param name="settings"></param>
 		/// <param name="search"></param>
-		public CloseHelpEntries(TimeSpan time, ICommandContext context, HelpEntryHolder helpEntryHolder, string search) 
-			: base(time, context, helpEntryHolder.GetHelpEntries(), search) { }
+		public CloseHelpEntries(TimeSpan time, ICommandContext context, HelpEntryHolder helpEntryHolder, CommandSettings settings, string search) 
+			: base(time, context)
+		{
+			_Settings = settings;
+			Populate(helpEntryHolder.GetHelpEntries(), search);
+		}
 
 		/// <inheritdoc />
 		protected override bool IsCloseWord(HelpEntry obj, string search, out CloseWord closeWord)
@@ -32,7 +40,7 @@ namespace Advobot.Classes.CloseWords
 			var aliasCloseness = obj.Aliases.Select(x => FindCloseness(x, search)).DefaultIfEmpty(int.MaxValue).Min();
 			var closeness = Math.Min(nameCloseness, aliasCloseness);
 			var success = closeness < MaxAllowedCloseness;
-			closeWord = success ? new CloseWord(closeness, obj.Name, obj.ToString()) : null;
+			closeWord = success ? new CloseWord(closeness, obj.Name, obj.ToString(_Settings)) : null;
 			return success;
 		}
 		/// <inheritdoc />

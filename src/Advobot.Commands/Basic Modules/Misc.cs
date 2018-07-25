@@ -19,18 +19,18 @@ namespace Advobot.Commands.Misc
 	[DefaultEnabled(true, false)]
 	public sealed class Help : NonSavingModuleBase
 	{
-		private static string _GeneralHelp =
+		private static readonly string _GeneralHelp =
 			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)}` for the list of commands.\n" +
 			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Help)} [Command]` for help with a command.";
-		private static string _BasicSyntax =
+		private static readonly string _BasicSyntax =
 			"`[]` means required.\n" +
 			"`<>` means optional.\n" +
 			"`|` means or.";
-		private static string _MentionSyntax =
+		private static readonly string _MentionSyntax =
 			"`User` means `@User|\"Username\"`.\n" +
 			"`Role` means `@Role|\"Role Name\"`.\n" +
 			"`Channel` means `#Channel|\"Channel Name\"`.";
-		private static string _Links =
+		private static readonly string _Links =
 			$"[GitHub Repository]({Constants.REPO})\n" +
 			$"[Discord Server]({Constants.DISCORD_INV})";
 
@@ -57,14 +57,15 @@ namespace Advobot.Commands.Misc
 				var embed = new EmbedWrapper
 				{
 					Title = helpEntry.Name,
-					Description = helpEntry.ToString().Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix())
+					Description = helpEntry.ToString(Context.GuildSettings.CommandSettings)
+						.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix())
 				};
 				embed.TryAddFooter("Help", null, out _);
 				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 				return;
 			}
 
-			var closeHelps = new CloseHelpEntries(default, Context, Context.HelpEntries, commandName);
+			var closeHelps = new CloseHelpEntries(default, Context, Context.HelpEntries, Context.GuildSettings.CommandSettings, commandName);
 			if (closeHelps.List.Any())
 			{
 				await closeHelps.SendBotMessageAsync(Context.Channel).CAF();

@@ -48,7 +48,7 @@ namespace Advobot.Windows.Classes
 		public static SolidColorBrush DarkModeJsonValue => BrushUtils.CreateBrush("#0051FF");
 		public static SolidColorBrush DarkModeJsonParamName => BrushUtils.CreateBrush("#057500");
 
-		private static string _FileLoc = "UISettings.json";
+		private static readonly string _FileLoc = "UISettings.json";
 
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;

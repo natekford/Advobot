@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using Advobot.Classes.Settings;
 
 namespace Advobot.Classes
 {
@@ -41,6 +42,12 @@ namespace Advobot.Classes
 		/// </summary>
 		public bool AbleToBeToggled { get; }
 
+		private readonly string _A;
+		private readonly string _U;
+		private readonly string _E;
+		private readonly string _B;
+		private readonly string _D;
+
 		internal HelpEntry(string name, string usage, string perms, string desc, string[] aliases, string category, bool defEnabled, bool toggleable)
 		{
 			if (String.IsNullOrWhiteSpace(name))
@@ -56,6 +63,12 @@ namespace Advobot.Classes
 			Category = category;
 			DefaultEnabled = defEnabled;
 			AbleToBeToggled = toggleable;
+
+			_A = $"**Aliases:** {String.Join(", ", Aliases)}\n";
+			_U = $"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n";
+			_E = $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n";
+			_B = $"**Base Permission(s):**\n{BasePerm}\n";
+			_D = $"**Description:**\n{Description}";
 		}
 
 		/// <summary>
@@ -64,11 +77,16 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public override string ToString()
 		{
-			return $"**Aliases:** {String.Join(", ", Aliases)}\n" +
-				$"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n" +
-				$"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n\n" +
-				$"**Base Permission(s):**\n{BasePerm}\n\n" +
-				$"**Description:**\n{Description}";
+			return $"{_A}{_U}{_E}\n{_B}\n{_D}";
+		}
+		/// <summary>
+		/// Returns a string with all the information about the command and whether it's currently enabled.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <returns></returns>
+		public string ToString(CommandSettings settings)
+		{
+			return $"{_A}{_U}{_E}**Currently Enabled:** {(settings.IsCommandEnabled(this) ? "Yes" : "No" )}\n\n{_B}\n{_D}";
 		}
 	}
 }

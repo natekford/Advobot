@@ -141,6 +141,15 @@ namespace Advobot.Classes.Settings
 			_CommandValues.Add(helpEntry.Name, helpEntry.DefaultEnabled);
 			return helpEntry.DefaultEnabled;
 		}
+		/// <summary>
+		/// Checks whether the command is enabled on the guild.
+		/// </summary>
+		/// <param name="helpEntry"></param>
+		/// <returns></returns>
+		public bool IsCommandEnabled(HelpEntry helpEntry)
+		{
+			return _CommandValues[helpEntry.Name];
+		}
 
 		private static bool ModifyCommand(IDictionary<string, bool> dict, HelpEntry helpEntry, bool? enable)
 		{

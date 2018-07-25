@@ -24,8 +24,10 @@ namespace Advobot.Classes.CloseWords
 		/// <param name="context"></param>
 		/// <param name="settings"></param>
 		/// <param name="search"></param>
-		public CloseQuotes(TimeSpan time, ICommandContext context, IGuildSettings settings, string search) 
-			: base(time, context, settings.Quotes, search) { }
+		public CloseQuotes(TimeSpan time, ICommandContext context, IGuildSettings settings, string search)  : base(time, context)
+		{
+			Populate(settings.Quotes, search);
+		}
 
 		/// <inheritdoc />
 		protected override bool IsCloseWord(Quote obj, string search, out CloseWord closeWord)

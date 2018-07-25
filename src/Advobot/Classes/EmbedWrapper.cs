@@ -239,7 +239,7 @@ namespace Advobot.Classes
 			Color = Base,
 			Timestamp = DateTimeOffset.UtcNow
 		};
-		private bool _ThrowOnInvalid;
+		private readonly bool _ThrowOnInvalid;
 		private List<EmbedError> _Errors = new List<EmbedError>();
 		private Dictionary<string, string> _FailedValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 

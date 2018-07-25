@@ -72,16 +72,15 @@ namespace Advobot.Commands.BannedPhrases
 				eval.Add(regex);
 			}
 
-			var desc = $"The given regex matches the given string: `{matchesMessage}`." +
-				$"The given regex matches empty strings: `{matchesEmpty}`." +
-				$"The given regex matches spaces: `{matchesSpace}`." +
-				$"The given regex matches new lines: `{matchesNewLine}`." +
-				$"The given regex matches random strings: `{matchesRandom}`." +
-				$"The given regex is `{(okToUse ? "GOOD" : "BAD")}`.";
 			var embed = new EmbedWrapper
 			{
 				Title = regex,
-				Description = desc
+				Description = $"The given regex matches the given string: `{matchesMessage}`." +
+					$"The given regex matches empty strings: `{matchesEmpty}`." +
+					$"The given regex matches spaces: `{matchesSpace}`." +
+					$"The given regex matches new lines: `{matchesNewLine}`." +
+					$"The given regex matches random strings: `{matchesRandom}`." +
+					$"The given regex is `{(okToUse ? "GOOD" : "BAD")}`.",
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
@@ -102,19 +101,19 @@ namespace Advobot.Commands.BannedPhrases
 			{
 				await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseRegex, nameof(Regex)).CAF();
 			}
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
-			public async Task Add([Optional] uint position)
+			[Command(nameof(ShowEvaluated)), ShortAlias(nameof(ShowEvaluated))]
+			public async Task ShowEvaluated()
 			{
-				if (position == default)
+				var embed = new EmbedWrapper
 				{
-					var embed = new EmbedWrapper
-					{
-						Title = "Evaluted Regex",
-						Description = Context.GuildSettings.EvaluatedRegex.FormatNumberedList(x => x.ToString())
-					};
-					await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-					return;
-				}
+					Title = "Evaluted Regex",
+					Description = Context.GuildSettings.EvaluatedRegex.FormatNumberedList(x => x)
+				};
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+			}
+			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			public async Task Add(uint position)
+			{
 				if (position > Context.GuildSettings.EvaluatedRegex.Count)
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error("Invalid position to add at.")).CAF();
@@ -317,7 +316,7 @@ namespace Advobot.Commands.BannedPhrases
 			}
 
 			phrase.Punishment = punishment;
-			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment.ToString()}.";
+			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
 		}
 		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, int position, Punishment punishment) where T : BannedPhrase
@@ -331,7 +330,7 @@ namespace Advobot.Commands.BannedPhrases
 			--position;
 			var phrase = list[position];
 			phrase.Punishment = punishment;
-			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment.ToString()}.";
+			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
 		}
 	}
@@ -365,14 +364,12 @@ namespace Advobot.Commands.BannedPhrases
 					await MessageUtils.SendErrorMessageAsync(Context, new Error("Do not use zero.")).CAF();
 					return;
 				}
-
 				if (Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
 				{
 					var error = new Error("A punishment already exists for that number of banned phrases said.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
-
 				if (Context.GuildSettings.BannedPhrasePunishments.Count >= Context.BotSettings.MaxBannedPunishments)
 				{
 					var error = new Error($"You cannot have more than `{Context.BotSettings.MaxBannedPunishments}` banned phrase punishments at a time.");
@@ -408,26 +405,20 @@ namespace Advobot.Commands.BannedPhrases
 
 				var p = new BannedPhrasePunishment(role, (int)position, (int)time);
 				Context.GuildSettings.BannedPhrasePunishments.Add(p);
-				var resp = $"Successfully added the following banned phrase punishment: {p.ToString(Context.Guild as SocketGuild)}.";
+				var resp = $"Successfully added the following banned phrase punishment: {p.ToString(Context.Guild)}.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(uint position)
 		{
-			if (position == default || position > Context.GuildSettings.BannedPhrasePunishments.Count)
+			var removed = Context.GuildSettings.BannedPhrasePunishments.RemoveAll(x => x.NumberOfRemoves == position);
+			if (removed < 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Invalid position to remove at.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"No punishment has the position `{position}`.")).CAF();
 				return;
 			}
 
-			if (!Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("No punishment has the supplied position.")).CAF();
-				return;
-			}
-
-			Context.GuildSettings.BannedPhrasePunishments.RemoveAll(x => x.NumberOfRemoves == position);
 			var resp = $"Successfully removed the banned phrase punishment at `{position}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
