@@ -1,5 +1,12 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.ImageResizing;
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -7,12 +14,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using ImageMagick;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Emotes
 {
@@ -21,31 +22,10 @@ namespace Advobot.Commands.Emotes
 		"Requires either an emote to copy, or the name and file to make an emote out of.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
-	[Queue(1)]
+	[RateLimit(1)]
 	public sealed class CreateEmote : NonSavingModuleBase
 	{
-		private static ImageResizer<EmoteResizerArguments> _Resizer = new ImageResizer<EmoteResizerArguments>(4, "emote", async (c, s, f, n, o) =>
-		{
-			switch (f)
-			{
-				case MagickFormat.Jpg:
-				case MagickFormat.Jpeg:
-				case MagickFormat.Png:
-					if (c.Guild.Emotes.Where(x => !x.Animated).Count() >= 50)
-					{
-						return new Error("there are already 50 non animated emotes.");
-					}
-					break;
-				case MagickFormat.Gif:
-					if (c.Guild.Emotes.Where(x => x.Animated).Count() >= 50)
-					{
-						return new Error("there are already 50 animated emotes.");
-					}
-					break;
-			}
-			await c.Guild.CreateEmoteAsync(n, new Image(s), default, o).CAF();
-			return null;
-		});
+		private static EmoteResizer _Resizer = new EmoteResizer(4);
 
 		[Command]
 		public async Task Command(Emote emote)

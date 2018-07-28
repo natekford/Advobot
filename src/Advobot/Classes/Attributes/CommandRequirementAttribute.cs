@@ -1,8 +1,8 @@
-﻿using Discord;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.Interfaces;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Classes.Attributes
@@ -11,7 +11,7 @@ namespace Advobot.Classes.Attributes
 	/// Checks to make sure the bot has admin, the bot is loaded, the guild is loaded, the channel isn't ignored from commands, and the command is enabled for the user.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class)]
-	public class CommandRequirementAttribute : PreconditionAttribute
+	public sealed class CommandRequirementAttribute : PreconditionAttribute
 	{
 		/// <summary>
 		/// Makes sure all the required checks are passed. Otherwise returns an error string.
@@ -22,22 +22,18 @@ namespace Advobot.Classes.Attributes
 		/// <returns></returns>
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			if (!(context is AdvobotSocketCommandContext advobotCommandContext))
+			if (!(context is AdvobotSocketCommandContext aContext))
 			{
-				return Task.FromResult(PreconditionResult.FromError((string)null));
+				throw new ArgumentException("Invalid context provided.");
 			}
-			if (!(advobotCommandContext.Guild.CurrentUser is SocketGuildUser bot))
+			if (!(aContext.Guild.CurrentUser is SocketGuildUser bot))
 			{
 				return Task.FromResult(PreconditionResult.FromError("Unable to get the bot."));
 			}
-			//Eh, I guess it works enough without the admin permission
-			/*
-			if (!bot.GuildPermissions.Administrator)
+			if (!(aContext.GuildSettings is IGuildSettings settings))
 			{
-				return Task.FromResult(PreconditionResult.FromError($"This bot will not function without the `{nameof(GuildPermission.Administrator)}` permission."));
-			}*/
-
-			var settings = advobotCommandContext.GuildSettings;
+				return Task.FromResult(PreconditionResult.FromError("Unable to get the guild settings."));
+			}
 			if (!settings.Loaded)
 			{
 				return Task.FromResult(PreconditionResult.FromError("Wait until the guild is loaded."));
@@ -47,7 +43,6 @@ namespace Advobot.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromError((string)null));
 			}
-
 			return Task.FromResult(PreconditionResult.FromSuccess());
 		}
 	}

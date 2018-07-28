@@ -3,9 +3,9 @@
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// Holds information about what how to send a text file through Discord.
+	/// Holds information about what to name and put in a text file.
 	/// </summary>
-	public class TextFileInfo
+	public sealed class TextFileInfo
 	{
 		/// <summary>
 		/// The name of the text file. This may have invalid characters for file names in it, but Discord will just remove those.
@@ -26,16 +26,5 @@ namespace Advobot.Classes
 
 		private string _Name;
 		private string _Text;
-
-		/// <summary>
-		/// Creates an instance of textfileinfo.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="text"></param>
-		public TextFileInfo(string name = null, string text = null)
-		{
-			Name = name;
-			Text = text;
-		}
 	}
 }

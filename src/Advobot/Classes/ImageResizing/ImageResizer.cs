@@ -1,9 +1,4 @@
-﻿using Advobot.Interfaces;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Discord;
-using ImageMagick;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
@@ -13,15 +8,20 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Advobot.Interfaces;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord;
+using ImageMagick;
 using Context = Advobot.Classes.AdvobotSocketCommandContext;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.ImageResizing
 {
 	/// <summary>
 	/// Runs image resizing in background threads. The arguments get enqueued, then the image is resized, and finally the callback is invoked in order to use the resized image.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class ImageResizer<T> where T : IImageResizerArguments
+	public abstract class ImageResizer<T> where T : IImageResizerArguments
     {
 		private static readonly string FfmpegLocation = FindFfmpeg();
 		private const long MaxDownloadLengthInBytes = 10000000;
@@ -29,8 +29,7 @@ namespace Advobot.Classes
 		private ConcurrentQueue<ImageCreationArguments> _Args = new ConcurrentQueue<ImageCreationArguments>();
 		private ConcurrentDictionary<ulong, object> _CurrentlyWorkingGuilds = new ConcurrentDictionary<ulong, object>();
 		private SemaphoreSlim _SemaphoreSlim;
-		private Func<Context, MemoryStream, MagickFormat, string, RequestOptions, Task<Error>> _Callback;
-		private string _Type;
+		private readonly string _Type;
 
 		/// <summary>
 		/// Returns true if there are any available threads to run.
@@ -47,11 +46,10 @@ namespace Advobot.Classes
 		/// <param name="threads">How many threads to run in the background.</param>
 		/// <param name="type">Guild icon, bot icon, emote, webhook icon, etc. (only used in response messages, nothing important)</param>
 		/// <param name="callback">What to do with the resized stream.</param>
-		public ImageResizer(int threads, string type, Func<Context, MemoryStream, MagickFormat, string, RequestOptions, Task<Error>> callback)
+		public ImageResizer(int threads, string type)
 		{
 			_SemaphoreSlim = new SemaphoreSlim(threads);
 			_Type = type;
-			_Callback = callback;
 		}
 
 		/// <summary>
@@ -101,7 +99,7 @@ namespace Advobot.Classes
 						{
 							await MessageUtils.SendErrorMessageAsync(d.Context, new Error($"Failed to create the {_Type}. Reason: {resp.Error}.")).CAF();
 						}
-						else if (await _Callback(d.Context, resp.Stream, resp.Format, d.NameOrId, d.Options).CAF() is Error error)
+						else if (await UseResizedImageStream(d.Context, resp.Stream, resp.Format, d.NameOrId, d.Options).CAF() is Error error)
 						{
 							await MessageUtils.SendErrorMessageAsync(d.Context, error).CAF();
 						}
@@ -115,6 +113,16 @@ namespace Advobot.Classes
 				_SemaphoreSlim.Release();
 			}).CAF();
 		}
+		/// <summary>
+		/// Attempts to use the resized image stream for something. Returns an error if there is failure, otherwise returns null.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="stream"></param>
+		/// <param name="format"></param>
+		/// <param name="name"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		protected abstract Task<Error> UseResizedImageStream(Context context, MemoryStream stream, MagickFormat format, string name, RequestOptions options);
 		/// <summary>
 		/// Uses the image stream for the function passed into the constructor.
 		/// Returns null if successful, returns an error string otherwise.
@@ -226,10 +234,7 @@ namespace Advobot.Classes
 			{
 				//Get rid of the update message
 				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("image stream used")).CAF();
-				if (response != null)
-				{
-					response.Dispose();
-				}
+				response?.Dispose();
 				//stream isn't disposed here cause it's returned
 			}
 		}

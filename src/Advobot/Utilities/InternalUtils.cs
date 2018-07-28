@@ -25,11 +25,12 @@ namespace Advobot.Utilities
 			ISnowflakeEntity target,
 			ICommandContext context,
 			IEnumerable<ObjectVerification> checks,
+			string type,
 			Func<ObjectVerification, VerifiedObjectResult?> extraChecks = null)
 		{
 			if (target == null)
 			{
-				return new VerifiedObjectResult(null, CommandError.ObjectNotFound, "Unable to find a matching channel.");
+				return new VerifiedObjectResult(null, CommandError.ObjectNotFound, $"Unable to find a matching {type.ToLower()}.");
 			}
 			if (!(context.User is SocketGuildUser invokingUser && invokingUser.Guild.CurrentUser is SocketGuildUser bot))
 			{
@@ -40,12 +41,12 @@ namespace Advobot.Utilities
 				if (!InternalCanModify(invokingUser, target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
-						$"You are unable to make the given changes to the channel: `{target.Format()}`.");
+						$"You are unable to make the given changes to the {type.ToLower()}: `{target.Format()}`.");
 				}
 				if (!InternalCanModify(bot, target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
-						$"I am unable to make the given changes to the channel: `{target.Format()}`.");
+						$"I am unable to make the given changes to the {type.ToLower()}: `{target.Format()}`.");
 				}
 				if (extraChecks?.Invoke(check) is VerifiedObjectResult result)
 				{

@@ -250,7 +250,12 @@ namespace Advobot.Commands.Gets
 		{
 			var users = Context.Guild.GetUsersByJoinDate().ToArray();
 			var text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.ToReadable()}`");
-			await MessageUtils.SendMessageAsync(Context.Channel, $"**User Join List:**", textFile: new TextFileInfo("User_Joins", text)).CAF();
+			var tf = new TextFileInfo
+			{
+				Name = "User_Joins",
+				Text = text,
+			};
+			await MessageUtils.SendMessageAsync(Context.Channel, $"**User Join List:**", textFile: tf).CAF();
 		}
 	}
 
@@ -278,8 +283,12 @@ namespace Advobot.Commands.Gets
 				}
 				else
 				{
-					var textFile = new TextFileInfo($"{channel?.Name}_Messages", formattedMessagesBuilder.ToString());
-					await MessageUtils.SendMessageAsync(Context.Channel, $"**{count} Messages:**", textFile: textFile).CAF();
+					var tf = new TextFileInfo
+					{
+						Name = $"{channel?.Name}_Messages",
+						Text = formattedMessagesBuilder.ToString()
+					};
+					await MessageUtils.SendMessageAsync(Context.Channel, $"**{count} Messages:**", textFile: tf).CAF();
 					return;
 				}
 			}

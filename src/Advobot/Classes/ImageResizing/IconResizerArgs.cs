@@ -1,8 +1,8 @@
-﻿using Advobot.Interfaces;
+﻿using System.Collections.Immutable;
+using Advobot.Interfaces;
 using ImageMagick;
-using System.Collections.Immutable;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.ImageResizing
 {
 	/// <summary>
 	/// Arguments used when resizing an icon. For bots, guilds, etc.
@@ -24,7 +24,7 @@ namespace Advobot.Classes
 		public Percentage ColorFuzzing { get; set; }
 
 		/// <summary>
-		/// Creates an instance of icon resizer arguments.
+		/// Creates an instance of <see cref="IconResizerArguments"/>.
 		/// </summary>
 		public IconResizerArguments()
 		{

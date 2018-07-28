@@ -31,6 +31,7 @@ namespace Advobot.Classes.Attributes
 			| GuildPermission.ManageWebhooks
 			| GuildPermission.MoveMembers
 			| GuildPermission.MuteMembers;
+		private static ulong _BotOwnerId;
 
 		/// <summary>
 		/// Preconditions that need to be met before the command fires successfully.
@@ -38,7 +39,7 @@ namespace Advobot.Classes.Attributes
 		public Precondition Requirements { get; }
 
 		/// <summary>
-		/// Initializes the attribute.
+		/// Creates an instance of <see cref="OtherRequirementAttribute"/>.
 		/// </summary>
 		/// <param name="requirements"></param>
 		public OtherRequirementAttribute(Precondition requirements)
@@ -55,40 +56,40 @@ namespace Advobot.Classes.Attributes
 		/// <returns></returns>
 		public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (!(context is AdvobotSocketCommandContext advobotCommandContext && context.User is SocketGuildUser user))
+			if (!(context is AdvobotSocketCommandContext aContext))
 			{
-				return PreconditionResult.FromError((string)null);
+				throw new ArgumentException("Invalid context provided.");
 			}
-
-			var permissions = (Requirements & Precondition.GenericPerms) != 0;
-			var guildOwner = (Requirements & Precondition.GuildOwner) != 0;
-			var trustedUser = (Requirements & Precondition.TrustedUser) != 0;
-			var botOwner = (Requirements & Precondition.BotOwner) != 0;
-
-			if (permissions)
+			if (!(context.User is SocketGuildUser user))
+			{
+				return PreconditionResult.FromError("Unable to get the current user.");
+			}
+			if ((Requirements & Precondition.GenericPerms) != 0)
 			{
 				var guildBits = user.GuildPermissions.RawValue;
-				var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
-
-				var userPerms = guildBits | botBits;
-				if ((userPerms & (ulong)USER_HAS_A_PERMISSION_PERMS) != 0)
+				var botBits = aContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
+				if (((guildBits | botBits) & (ulong)USER_HAS_A_PERMISSION_PERMS) != 0)
 				{
 					return PreconditionResult.FromSuccess();
 				}
 			}
-			if (guildOwner && advobotCommandContext.Guild.OwnerId == user.Id)
+			if ((Requirements & Precondition.GuildOwner) != 0 && aContext.Guild.OwnerId == user.Id)
 			{
 				return PreconditionResult.FromSuccess();
 			}
-			if (trustedUser && advobotCommandContext.BotSettings.TrustedUsers.Contains(user.Id))
+			if ((Requirements & Precondition.TrustedUser) != 0 && aContext.BotSettings.TrustedUsers.Contains(user.Id))
 			{
 				return PreconditionResult.FromSuccess();
 			}
-			if (botOwner && (await ClientUtils.GetBotOwnerAsync(advobotCommandContext.Client).CAF()).Id == user.Id)
+			if ((Requirements & Precondition.BotOwner) != 0 && await GetOwnerIdAsync(aContext.Client).CAF() == user.Id)
 			{
 				return PreconditionResult.FromSuccess();
 			}
 			return PreconditionResult.FromError((string)null);
+		}
+		private static async Task<ulong> GetOwnerIdAsync(DiscordSocketClient client)
+		{
+			return _BotOwnerId != 0 ? _BotOwnerId : (_BotOwnerId = (await ClientUtils.GetBotOwnerAsync(client).CAF()).Id);
 		}
 
 		/// <summary>

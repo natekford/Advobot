@@ -14,19 +14,19 @@ namespace Advobot.Classes
 	/// </summary>
 	public sealed class ListedInviteGatherer
 	{
-		private string _Code;
-		private string _Name;
-		private bool _HasGlobalEmotes;
-		private uint? _UserCount;
-		private CountTarget _UserCountTarget;
-		private string[] _Keywords;
+		private readonly string _Code;
+		private readonly string _Name;
+		private readonly bool _HasGlobalEmotes;
+		private readonly uint? _UserCount;
+		private readonly CountTarget _UserCountTarget;
+		private readonly string[] _Keywords;
 
 		/// <summary>
-		/// Initializes an instance of listed invite gatherer.
+		/// Creates an instance of <see cref="ListedInviteGatherer"/>.
 		/// </summary>
 		public ListedInviteGatherer() : this(null, null, false, null, default) { }
 		/// <summary>
-		/// Creates a gatherer using user input.
+		/// Creates an instance of <see cref="ListedInviteGatherer"/> with user input.
 		/// </summary>
 		/// <param name="code"></param>
 		/// <param name="name"></param>
@@ -77,7 +77,7 @@ namespace Advobot.Classes
 			}
 			if (_UserCount != null)
 			{
-				invites = invites.GetInvitesFromCount(_UserCountTarget, _UserCount, x => x.Guild.Users.Count);
+				invites = invites.GetInvitesFromCount(_UserCountTarget, _UserCount ?? 0, x => (uint)x.Guild.Users.Count);
 				wentIntoAny = true;
 			}
 			return wentIntoAny ? Enumerable.Empty<ListedInvite>() : invites;

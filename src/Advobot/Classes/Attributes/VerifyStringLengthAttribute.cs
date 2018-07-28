@@ -29,10 +29,10 @@ namespace Advobot.Classes.Attributes
 			{ Target.Emote,        (2, 32,   "emote name") },
 		};
 
-		private int Min;
-		private int Max;
-		private string TooShort;
-		private string TooLong;
+		private readonly int Min;
+		private readonly int Max;
+		private readonly string TooShort;
+		private readonly string TooLong;
 
 		/// <summary>
 		/// Sets the values by looking up <paramref name="target"/> in a dictionary.
@@ -41,14 +41,14 @@ namespace Advobot.Classes.Attributes
 		/// <exception cref="NotSupportedException">Only supports some of the values in <see cref="Target"></see>/></exception>
 		public VerifyStringLengthAttribute(Target target)
 		{
-			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var minAndMaxAndError))
+			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var temp))
 			{
-				TooShort = $"A {minAndMaxAndError.Name} must be at least `{(Min = minAndMaxAndError.Min)}` characters long.";
-				TooLong = $"A {minAndMaxAndError.Name} must be at most `{(Max = minAndMaxAndError.Max)}` characters long.";
+				TooShort = $"A {temp.Name} must be at least `{(Min = temp.Min)}` characters long.";
+				TooLong = $"A {temp.Name} must be at most `{(Max = temp.Max)}` characters long.";
 			}
 			else
 			{
-				throw new NotSupportedException($"{target.ToString()} doesn't have a min and max and error output.");
+				throw new NotSupportedException($"{target} doesn't have a min and max and error output.");
 			}
 		}
 

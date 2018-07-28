@@ -11,7 +11,7 @@ namespace Advobot.Classes.Attributes
 	public class ShortAliasAttribute : AliasAttribute 
 	{
 		/// <summary>
-		/// Initializes the attribute.
+		/// Creates an instance of <see cref="ShortAliasAttribute"/>.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="otherAliases"></param>
@@ -22,9 +22,8 @@ namespace Advobot.Classes.Attributes
 			var initialism = new Initialism(name, otherAliases, false);
 			if (String.IsNullOrWhiteSpace(initialism.ToString()))
 			{
-				throw new ArgumentException("must have at least one capital letter", nameof(name));
+				throw new ArgumentException("Must have at least one capital letter.", nameof(name));
 			}
-
 			return initialism.Aliases.ToArray();
 		}
 	}

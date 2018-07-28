@@ -16,8 +16,8 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
-		private ImmutableList<ObjectVerification> _Checks;
-		private bool _IfNullCheckFromContext;
+		private readonly ImmutableList<ObjectVerification> _Checks;
+		private readonly bool _IfNullCheckFromContext;
 
 		/// <summary>
 		/// Sets the variables saying what checks to use and if to use the values in the context if null.
@@ -38,11 +38,7 @@ namespace Advobot.Classes.Attributes
 		/// <param name="value"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<PreconditionResult> CheckPermissionsAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			object value,
-			IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (value != null)
 			{
@@ -96,7 +92,7 @@ namespace Advobot.Classes.Attributes
 					result = role.Verify(context, _Checks);
 					break;
 				default:
-					result = new VerifiedObjectResult(value, CommandError.Exception, $"Please notify Advorange of this failure: {nameof(GetPreconditionResult)}");
+					result = new VerifiedObjectResult(value, CommandError.Exception, $"{nameof(GetPreconditionResult)} has had an unexpected error.");
 					break;
 			}
 			return result.IsSuccess ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(result);

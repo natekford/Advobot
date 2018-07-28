@@ -1,16 +1,17 @@
-﻿using Advobot.Classes.Attributes;
-using Advobot.Interfaces;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Discord;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Advobot.Classes.Attributes;
+using Advobot.Enums;
+using Advobot.Interfaces;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Classes
 {

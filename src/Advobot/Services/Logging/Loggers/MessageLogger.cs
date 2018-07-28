@@ -151,8 +151,11 @@ namespace Advobot.Services.Logging.Loggers
 						sb.AppendLineFeed(m.Format(false));
 					}
 
-					var text = sb.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
-					var tf = new TextFileInfo("Deleted_Messages", text);
+					var tf = new TextFileInfo
+					{
+						Name = "Deleted_Messages",
+						Text = sb.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines(),
+					};
 					await MessageUtils.SendMessageAsync(c, $"**{messages.Count()} Deleted Messages:**", textFile: tf).CAF();
 				}
 			});

@@ -14,7 +14,7 @@ namespace Advobot.Classes.Attributes
 		public int Length { get; }
 
 		/// <summary>
-		/// <paramref name="length"/>is used for params arguments.
+		/// Creates an instance of <see cref="NamedArgumentAttribute"/>.
 		/// </summary>
 		/// <param name="length"></param>
 		public NamedArgumentAttribute(int length = 0)

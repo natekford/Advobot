@@ -1,11 +1,12 @@
-﻿using Advobot.Classes.Attributes;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using Advobot.Classes.Attributes;
+using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using Discord;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
 
 namespace Advobot.Classes
 {

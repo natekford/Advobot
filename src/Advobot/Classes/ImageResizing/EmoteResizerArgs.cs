@@ -1,10 +1,10 @@
-﻿using Advobot.Classes.Attributes;
+﻿using System;
+using System.Collections.Immutable;
+using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using ImageMagick;
-using System;
-using System.Collections.Immutable;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.ImageResizing
 {
 	/// <summary>
 	/// Arguments used when resizing an emote.

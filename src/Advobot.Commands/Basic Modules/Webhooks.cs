@@ -1,11 +1,4 @@
-﻿using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +6,14 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Classes.ImageResizing;
+using Advobot.Enums;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord;
+using Discord.Commands;
 
 namespace Advobot.Commands.Webhooks
 {
@@ -104,15 +105,7 @@ namespace Advobot.Commands.Webhooks
 	[DefaultEnabled(true)]
 	public sealed class ModifyWebhookIcon : NonSavingModuleBase
 	{
-		private static ImageResizer<IconResizerArguments> _Resizer = new ImageResizer<IconResizerArguments>(4, "webhook icon", async (c, s, f, n, o) =>
-		{
-			if (!(await c.Guild.GetWebhookAsync(Convert.ToUInt64(n)).CAF() is IWebhook webhook))
-			{
-				return new Error("Unable to find the webhook to update.");
-			}
-			await webhook.ModifyAsync(x => x.Image = new Image(s), o).CAF();
-			return null;
-		});
+		private static WebhookIconResizer _Resizer = new WebhookIconResizer(4);
 
 		[Command]
 		public async Task Command(IWebhook webhook, Uri url)

@@ -83,10 +83,10 @@ namespace Advobot.Commands.GuildList
 	[DefaultEnabled(true)]
 	public sealed class GetGuildListing : NonSavingModuleBase
 	{
-		private static string _GHeader = "Guild Name".PadRight(25);
-		private static string _UHeader = "URL".PadRight(35);
-		private static string _MHeader = "Member Count".PadRight(14);
-		private static string _EHeader = "Global Emotes";
+		private static readonly string _GHeader = "Guild Name".PadRight(25);
+		private static readonly string _UHeader = "URL".PadRight(35);
+		private static readonly string _MHeader = "Member Count".PadRight(14);
+		private static readonly string _EHeader = "Global Emotes";
 
 		[Command]
 		public async Task Command([Remainder] NamedArguments<ListedInviteGatherer> args)
@@ -126,8 +126,12 @@ namespace Advobot.Commands.GuildList
 					var e = x.HasGlobalEmotes ? "Yes" : "";
 					return $"{n}{u}{m}{e}";
 				});
-				var textFile = new TextFileInfo("Guilds", $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{String.Join("\n", formatted)}");
-				await MessageUtils.SendMessageAsync(Context.Channel, "**Guilds:**", textFile: textFile).CAF();
+				var tf = new TextFileInfo
+				{
+					Name = "Guilds",
+					Text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{String.Join("\n", formatted)}",
+				};
+				await MessageUtils.SendMessageAsync(Context.Channel, "**Guilds:**", textFile: tf).CAF();
 			}
 			else
 			{

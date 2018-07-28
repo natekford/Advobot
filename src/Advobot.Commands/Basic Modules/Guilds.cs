@@ -1,15 +1,15 @@
-﻿using Advobot;
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.ImageResizing;
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Guilds
 {
@@ -93,9 +93,9 @@ namespace Advobot.Commands.Guilds
 			"vip-us-west"
 		};
 
-		private static string _BaseRegions = String.Join("\n", _ValidRegionIDs);
-		private static string _VIPRegions = String.Join("\n", _VIPRegionIDs);
-		private static string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
+		private static readonly string _BaseRegions = String.Join("\n", _ValidRegionIDs);
+		private static readonly string _VIPRegions = String.Join("\n", _VIPRegionIDs);
+		private static readonly string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
 
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
@@ -218,11 +218,7 @@ namespace Advobot.Commands.Guilds
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildIcon : NonSavingModuleBase
 	{
-		private static ImageResizer<IconResizerArguments> _Resizer = new ImageResizer<IconResizerArguments>(4, "guild icon", async (c, s, f, n, o) =>
-		{
-			await c.Guild.ModifyAsync(x => x.Icon = new Image(s), o).CAF();
-			return null;
-		});
+		private static GuildIconResizer _Resizer = new GuildIconResizer(4);
 
 		[Command]
 		public async Task Command(Uri url)
@@ -260,18 +256,14 @@ namespace Advobot.Commands.Guilds
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildSplash : NonSavingModuleBase
 	{
-		private static ImageResizer<IconResizerArguments> _Resizer = new ImageResizer<IconResizerArguments>(4, "guild splash", async (c, s, f, n, o) =>
-		{
-			await c.Guild.ModifyAsync(x => x.Splash = new Image(s), o).CAF();
-			return null;
-		});
+		private static GuildSplashResizer _Resizer = new GuildSplashResizer(4);
 
 		[Command]
 		public async Task Command(Uri url)
 		{
 			if (!Context.Guild.Features.CaseInsContains(Constants.INVITE_SPLASH))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild needs to be partnered."));
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild needs to be partnered before a splash can be set."));
 				return;
 			}
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
@@ -292,7 +284,7 @@ namespace Advobot.Commands.Guilds
 		{
 			if (!Context.Guild.Features.CaseInsContains(Constants.INVITE_SPLASH))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild needs to be partnered."));
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild needs to be partnered before a splah can be removed."));
 				return;
 			}
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))

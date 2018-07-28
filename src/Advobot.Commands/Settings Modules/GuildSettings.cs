@@ -542,8 +542,12 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
 		{
-			var textFile = new TextFileInfo("Guild_Settings", Context.GuildSettings.Format(Context.Client, Context.Guild).RemoveAllMarkdown());
-			await MessageUtils.SendMessageAsync(Context.Channel, "**Guild Settings:**", textFile: textFile).CAF();
+			var tf = new TextFileInfo
+			{
+				Name = "Guild_Settings",
+				Text = Context.GuildSettings.Format(Context.Client, Context.Guild).RemoveAllMarkdown(),
+			};
+			await MessageUtils.SendMessageAsync(Context.Channel, "**Guild Settings:**", textFile: tf).CAF();
 		}
 		[Command]
 		public async Task Command(string settingName)
@@ -566,7 +570,12 @@ namespace Advobot.Commands.GuildSettings
 			}
 			else
 			{
-				await MessageUtils.SendMessageAsync(Context.Channel, $"**{settingName.FormatTitle()}:**", textFile: new TextFileInfo(settingName, desc)).CAF();
+				var tf = new TextFileInfo
+				{
+					Name = settingName,
+					Text = desc,
+				};
+				await MessageUtils.SendMessageAsync(Context.Channel, $"**{settingName.FormatTitle()}:**", textFile: tf).CAF();
 			}
 		}
 	}

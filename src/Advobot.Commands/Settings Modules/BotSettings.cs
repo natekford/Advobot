@@ -1,16 +1,16 @@
-﻿using Advobot;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.ImageResizing;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.BotSettings
 {
@@ -168,8 +168,12 @@ namespace Advobot.Commands.BotSettings
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
 		{
-			var textFile = new TextFileInfo("Bot_Settings", Context.BotSettings.Format(Context.Client, Context.Guild));
-			await MessageUtils.SendMessageAsync(Context.Channel, "**Bot Settings:**", textFile: textFile).CAF();
+			var tf = new TextFileInfo
+			{
+				Name = "Bot_Settings",
+				Text = Context.BotSettings.Format(Context.Client, Context.Guild),
+			};
+			await MessageUtils.SendMessageAsync(Context.Channel, "**Bot Settings:**", textFile: tf).CAF();
 		}
 		[Command]
 		public async Task Command(string settingName)
@@ -192,7 +196,12 @@ namespace Advobot.Commands.BotSettings
 			}
 			else
 			{
-				await MessageUtils.SendMessageAsync(Context.Channel, $"**{settingName.FormatTitle()}:**", textFile: new TextFileInfo(settingName, desc)).CAF();
+				var tf = new TextFileInfo
+				{
+					Name = settingName,
+					Text = desc,
+				};
+				await MessageUtils.SendMessageAsync(Context.Channel, $"**{settingName.FormatTitle()}:**", textFile: tf).CAF();
 			}
 		}
 	}
@@ -218,11 +227,7 @@ namespace Advobot.Commands.BotSettings
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotIcon : NonSavingModuleBase
 	{
-		private static ImageResizer<IconResizerArguments> _Resizer = new ImageResizer<IconResizerArguments>(4, "bot icon", async (c, s, f, n, o) =>
-		{
-			await c.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(s), o).CAF();
-			return null;
-		});
+		private static BotIconResizer _Resizer = new BotIconResizer(4);
 
 		[Command]
 		public async Task Command(Uri url)

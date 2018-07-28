@@ -32,7 +32,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static VerifiedObjectResult Verify(this IRole target, ICommandContext context, IEnumerable<ObjectVerification> checks)
 		{
-			return InternalUtils.InternalVerify(target, context, checks, check =>
+			return InternalUtils.InternalVerify(target, context, checks, "role", check =>
 			{
 				switch (check)
 				{
@@ -63,7 +63,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static VerifiedObjectResult Verify(this IGuildChannel target, ICommandContext context, IEnumerable<ObjectVerification> checks)
 		{
-			return InternalUtils.InternalVerify(target, context, checks);
+			return InternalUtils.InternalVerify(target, context, checks, "channel");
 		}
 		/// <summary>
 		/// Verifies that the user can be edited in specific ways.
@@ -74,7 +74,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static VerifiedObjectResult Verify(this IGuildUser target, ICommandContext context, IEnumerable<ObjectVerification> checks)
 		{
-			return InternalUtils.InternalVerify(target, context, checks);
+			return InternalUtils.InternalVerify(target, context, checks, "user");
 		}
 
 		/// <summary>
@@ -131,7 +131,7 @@ namespace Advobot.Utilities
 				case IUser user:
 					return channel.GetPermissionOverwrite(user);
 				default:
-					throw new ArgumentException("invalid type", nameof(obj));
+					throw new ArgumentException("Invalid type supplied for permission overwrites.", nameof(obj));
 			}
 		}
 		/// <summary>
@@ -155,7 +155,7 @@ namespace Advobot.Utilities
 					await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits), options).CAF();
 					return;
 				default:
-					throw new ArgumentException("invalid type", nameof(obj));
+					throw new ArgumentException("Invalid type supplied for permission overwrites.", nameof(obj));
 			}
 		}
 
@@ -303,7 +303,7 @@ namespace Advobot.Utilities
 				return assemblies;
 			}
 
-			ConsoleUtils.WriteLine($"Unable to find any command assemblies.", ConsoleColor.Red);
+			ConsoleUtils.WriteLine("Unable to find any command assemblies.", ConsoleColor.Red);
 			Console.Read();
 			throw new DllNotFoundException("Unable to find any command assemblies.");
 		}
@@ -348,7 +348,7 @@ namespace Advobot.Utilities
 			//Bots join by being invited by admin, not through invites.
 			if (user.IsBot)
 			{
-				return new CachedInvite("Invited by admin", 0);
+				return new CachedInvite("Invited by admin.", 0);
 			}
 			//No invites means vanity url, linked twitch, or something I don't know
 			var curInvs = (await GetInvitesAsync(user.Guild).CAF()).ToList();
@@ -387,18 +387,18 @@ namespace Advobot.Utilities
 		/// <param name="count"></param>
 		/// <param name="f"></param>
 		/// <returns></returns>
-		public static IEnumerable<T> GetInvitesFromCount<T>(this IEnumerable<T> objects, CountTarget target, uint? count, Func<T, int?> f)
+		public static IEnumerable<T> GetInvitesFromCount<T>(this IEnumerable<T> objects, CountTarget target, uint count, Func<T, uint> f)
 		{
 			switch (target)
 			{
 				case CountTarget.Equal:
-					objects = objects.Where(x => { var val = f(x); return val != null && val == count; });
+					objects = objects.Where(x => f(x) == count);
 					break;
 				case CountTarget.Below:
-					objects = objects.Where(x => { var val = f(x); return val != null && val < count; });
+					objects = objects.Where(x => f(x) < count);
 					break;
 				case CountTarget.Above:
-					objects = objects.Where(x => { var val = f(x); return val != null && val > count; });
+					objects = objects.Where(x => f(x) > count);
 					break;
 			}
 			return objects;

@@ -77,7 +77,6 @@ namespace Advobot.Classes.Attributes
 					? Task.FromResult(PreconditionResult.FromSuccess())
 					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{String.Join("`, `", ValidNumbers)}`"));
 			}
-
 			return num >= Start && num <= End
 				? Task.FromResult(PreconditionResult.FromSuccess())
 				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{Start}` and `{End}`."));

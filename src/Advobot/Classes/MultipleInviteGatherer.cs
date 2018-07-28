@@ -12,22 +12,22 @@ namespace Advobot.Classes
 	/// </summary>
 	public sealed class MultipleInviteGatherer
 	{
-		private ulong? _UserId;
-		private ulong? _ChannelId;
-		private uint? _Uses;
-		private CountTarget _UsesCountTarget;
-		private uint? _Age;
-		private CountTarget _AgeCountTarget;
-		private bool _IsTemporary;
-		private bool _NeverExpires;
-		private bool _NoMaxUses;
+		private readonly ulong? _UserId;
+		private readonly ulong? _ChannelId;
+		private readonly uint? _Uses;
+		private readonly CountTarget _UsesCountTarget;
+		private readonly uint? _Age;
+		private readonly CountTarget _AgeCountTarget;
+		private readonly bool _IsTemporary;
+		private readonly bool _NeverExpires;
+		private readonly bool _NoMaxUses;
 
 		/// <summary>
-		/// Creates an instance of multiple invite gatherer.
+		/// Creates an instance of <see cref="MultipleInviteGatherer"/>.
 		/// </summary>
 		public MultipleInviteGatherer() : this(null, null, null, default, null, default, false, false, false) { }
 		/// <summary>
-		/// Uses user input to create an instance of multiple invite gatherer.
+		/// Creates an instance of <see cref="MultipleInviteGatherer"/> with user input.
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="channelId"></param>
@@ -81,12 +81,12 @@ namespace Advobot.Classes
 			}
 			if (_Uses != null)
 			{
-				invites = invites.GetInvitesFromCount(_UsesCountTarget, _Uses, x => x.Uses);
+				invites = invites.GetInvitesFromCount(_UsesCountTarget, _Uses ?? 0, x => (uint)x.Uses);
 				wentIntoAny = true;
 			}
 			if (_Age != null)
 			{
-				invites = invites.GetInvitesFromCount(_AgeCountTarget, _Age, x => x.MaxAge);
+				invites = invites.GetInvitesFromCount(_AgeCountTarget, _Age ?? 0, x => (uint)x.MaxAge);
 				wentIntoAny = true;
 			}
 			if (_IsTemporary)

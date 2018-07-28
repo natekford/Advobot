@@ -9,16 +9,16 @@ namespace Advobot.Classes.Attributes
 	/// Limits the rate a command can be used.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-	public class QueueAttribute : PreconditionAttribute
+	public class RateLimitAttribute : PreconditionAttribute
 	{
 		private static ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>> _Times = new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>>();
-		private TimeSpan _Time;
+		private readonly TimeSpan _Time;
 
 		/// <summary>
-		/// Initializes the attribute with the supplied value as minutes.
+		/// Creates an instance of <see cref="RateLimitAttribute"/>.
 		/// </summary>
-		/// <param name="minutes"></param>
-		public QueueAttribute(int minutes)
+		/// <param name="minutes">the amount of time in minutes for the rate limit to last.</param>
+		public RateLimitAttribute(int minutes)
 		{
 			_Time = TimeSpan.FromMinutes(minutes);
 		}

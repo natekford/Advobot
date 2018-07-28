@@ -27,21 +27,21 @@ namespace Advobot.Classes.Attributes
 		public string AnyText => String.Join(" | ", _AnyFlags.ToList().Select(x => x.ToString()));
 
 		/// <summary>
-		/// Initializes the attribute.
+		/// Creates an instance of <see cref="PermissionRequirementAttribute"/>.
 		/// </summary>
-		/// <param name="anyOfTheListedPerms"></param>
-		/// <param name="allOfTheListedPerms"></param>
-		public PermissionRequirementAttribute(GuildPermission[] anyOfTheListedPerms, GuildPermission[] allOfTheListedPerms)
+		/// <param name="any">If the user has any permissions from this list then the command will run.</param>
+		/// <param name="all">If the user has all permissions from this list then the command will run.</param>
+		public PermissionRequirementAttribute(GuildPermission[] any, GuildPermission[] all)
 		{
 			var allFlags = (GuildPermission)0;
 			var anyFlags = (GuildPermission)0;
 
 			anyFlags |= GuildPermission.Administrator;
-			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
+			foreach (var perm in any ?? Enumerable.Empty<GuildPermission>())
 			{
 				anyFlags |= perm;
 			}
-			foreach (var perm in allOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
+			foreach (var perm in all ?? Enumerable.Empty<GuildPermission>())
 			{
 				allFlags |= perm;
 			}
@@ -59,22 +59,22 @@ namespace Advobot.Classes.Attributes
 		/// <returns></returns>
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (!(context is AdvobotSocketCommandContext advobotCommandContext && context.User is SocketGuildUser user))
+			if (!(context is AdvobotSocketCommandContext aContext))
 			{
-				return Task.FromResult(PreconditionResult.FromError((string)null));
+				throw new ArgumentException("Invalid context provided.");
+			}
+			if (!(context.User is SocketGuildUser user))
+			{
+				return Task.FromResult(PreconditionResult.FromError("Unable to get the current user."));
 			}
 
 			var guildBits = user.GuildPermissions.RawValue;
-			var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
+			var botBits = aContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 			var userPerms = guildBits | botBits;
 
 			var all = _AllFlags.RawValue != 0 && (userPerms & _AllFlags.RawValue) == _AllFlags.RawValue;
 			var any = userPerms != 0 && _AnyFlags.RawValue != 0 && (userPerms & _AnyFlags.RawValue) != 0;
-			if (all || any)
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-			return Task.FromResult(PreconditionResult.FromError((string)null));
+			return Task.FromResult(all || any ? PreconditionResult.FromSuccess() : PreconditionResult.FromError((string)null));
 		}
 
 		/// <summary>
