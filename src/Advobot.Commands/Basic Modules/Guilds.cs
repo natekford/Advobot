@@ -28,7 +28,7 @@ namespace Advobot.Commands.Guilds
 				await Context.Guild.LeaveAsync().CAF();
 			}
 			//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-			else if (Context.User.Id == (await ClientUtils.GetBotOwnerAsync(Context.Client).CAF()).Id)
+			else if (Context.User.Id == await ClientUtils.GetOwnerIdAsync(Context.Client).CAF())
 			{
 				var guild = Context.Client.GetGuild(guildId);
 				if (guild == null)

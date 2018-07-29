@@ -1,5 +1,5 @@
-﻿using Discord;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Discord;
 
 namespace Advobot.Interfaces
 {
@@ -28,10 +28,6 @@ namespace Advobot.Interfaces
 		/// Whether or not to always download users when joining the guild.
 		/// </summary>
 		bool AlwaysDownloadUsers { get; set; }
-		/// <summary>
-		/// How many shards to use with the bot.
-		/// </summary>
-		int ShardCount { get; set; }
 		/// <summary>
 		/// How many messages to cache at a time.
 		/// </summary>

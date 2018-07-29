@@ -6,7 +6,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Provides information about why something failed to add to an embed.
 	/// </summary>
-	public class EmbedError : Error
+	public sealed class EmbedError : Error
 	{
 		/// <summary>
 		/// The main property which had an error. E.G. field.
@@ -52,7 +52,6 @@ namespace Advobot.Classes
 		{
 			return new EmbedError(property, subProperty, value, "Invalid url.");
 		}
-
 		/// <summary>
 		/// Returns the errors saying the property, sub property, value, and reason.
 		/// </summary>

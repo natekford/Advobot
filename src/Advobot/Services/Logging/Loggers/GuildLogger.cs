@@ -19,7 +19,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		public async Task OnGuildAvailable(SocketGuild guild)
 		{
-			ConsoleUtils.WriteLine($"{guild.Format()} ({ClientUtils.GetShardIdFor(Client, guild)}, {IOUtils.GetMemory().ToString("0.00")}MB)");
+			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {IOUtils.GetMemory().ToString("0.00")}MB)");
 
 			if (!GuildSettings.Contains(guild.Id))
 			{
@@ -76,20 +76,6 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				await guild.LeaveAsync().CAF();
 				return;
-			}
-
-			//Warn if at the maximum else leave
-			var guilds = (await Client.GetGuildsAsync().CAF()).Count;
-			var curMax = ClientUtils.GetShardCount(Client) * 2500;
-			if (guilds > curMax)
-			{
-				await guild.LeaveAsync().CAF();
-				ConsoleUtils.WriteLine($"Left the guild {guild.Format()} due to having too many guilds on the client and not enough shards.");
-				return;
-			}
-			if (guilds + 100 >= curMax)
-			{
-				ConsoleUtils.WriteLine($"The bot currently has {guilds} out of {curMax} possible spots for servers filled. Increase the shard count soon.");
 			}
 
 			if (!GuildSettings.Contains(guild.Id))

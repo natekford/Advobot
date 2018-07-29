@@ -70,18 +70,6 @@ namespace Advobot.Commands.BotSettings
 			[Command(nameof(IBotSettings.AlwaysDownloadUsers)), ShortAlias(nameof(IBotSettings.AlwaysDownloadUsers))]
 			public async Task AlwaysDownloadUsers(bool downloadUsers)
 				=> await CommandRunner((s) => { s.AlwaysDownloadUsers = downloadUsers; return s.AlwaysDownloadUsers; }).CAF();
-			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
-			public async Task ShardCount([VerifyNumber(1, int.MaxValue)] uint count)
-			{
-				var validNum = Context.Client.Guilds.Count / 2500 + 1;
-				if (count < validNum)
-				{
-					var error = new Error($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`.");
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-					return;
-				}
-				await CommandRunner((s) => { s.ShardCount = (int)count; return s.ShardCount; }).CAF();
-			}
 			[Command(nameof(IBotSettings.MessageCacheCount)), ShortAlias(nameof(IBotSettings.MessageCacheCount))]
 			public async Task MessageCacheCount([VerifyNumber(1, int.MaxValue)] uint count)
 				=> await CommandRunner((s) => { s.MessageCacheCount = (int)count; return s.MessageCacheCount; }).CAF();
@@ -273,7 +261,7 @@ namespace Advobot.Commands.BotSettings
 			LowLevelConfig.Config.BotId = 0;
 			LowLevelConfig.Config.Save();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully reset all properties. Restarting now...").CAF();
-			ClientUtils.RestartBot();
+			await ClientUtils.RestartBotAsync(Context.Client).CAF();
 		}
 	}
 
@@ -289,7 +277,7 @@ namespace Advobot.Commands.BotSettings
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully reset the bot key. Shutting down now...").CAF();
 			LowLevelConfig.Config.BotKey = null;
 			LowLevelConfig.Config.Save();
-			ClientUtils.RestartBot();
+			await ClientUtils.RestartBotAsync(Context.Client).CAF();
 		}
 	}
 
@@ -299,11 +287,10 @@ namespace Advobot.Commands.BotSettings
 	[DefaultEnabled(true)]
 	public sealed class DisconnectBot : NonSavingModuleBase
 	{
-		[Command]
-		public Task Command()
+		[Command(RunMode = RunMode.Async)]
+		public async Task Command()
 		{
-			ClientUtils.DisconnectBot(Context.Client);
-			return Task.FromResult(0);
+			await ClientUtils.DisconnectBotAsync(Context.Client).CAF();
 		}
 	}
 
@@ -313,11 +300,10 @@ namespace Advobot.Commands.BotSettings
 	[DefaultEnabled(true)]
 	public sealed class RestartBot : NonSavingModuleBase
 	{
-		[Command]
-		public Task Command()
+		[Command(RunMode = RunMode.Async)]
+		public async Task Command()
 		{
-			ClientUtils.RestartBot();
-			return Task.FromResult(0);
+			await ClientUtils.RestartBotAsync(Context.Client).CAF();
 		}
 	}
 }

@@ -1,4 +1,6 @@
-﻿using Advobot;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.CloseWords;
@@ -7,9 +9,6 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Misc
 {
@@ -180,7 +179,7 @@ namespace Advobot.Commands.Misc
 				return;
 			}
 
-			if (await ClientUtils.GetBotOwnerAsync(Context.Client).CAF() is IUser owner)
+			if ((await Context.Client.GetApplicationInfoAsync().CAF()).Owner is IUser owner)
 			{
 				var cut = message.Substring(0, Math.Min(message.Length, 250));
 				await owner.SendMessageAsync($"From `{Context.User.Format()}` in `{Context.Guild.Format()}`:\n```\n{cut}```").CAF();

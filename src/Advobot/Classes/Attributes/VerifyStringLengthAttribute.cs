@@ -1,8 +1,9 @@
-﻿using Advobot.Enums;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Advobot.Enums;
+using Discord.Commands;
 
 namespace Advobot.Classes.Attributes
 {
@@ -12,7 +13,7 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public sealed class VerifyStringLengthAttribute : ParameterPreconditionAttribute
 	{
-		private static Dictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>
+		private static ImmutableDictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>
 		{
 			{ Target.Guild,        (2, 100,  "guild name") },
 			{ Target.Channel,      (2, 100,  "channel name") },
@@ -27,12 +28,12 @@ namespace Advobot.Classes.Attributes
 			{ Target.RuleCategory, (1, 250,  "rule category") },
 			{ Target.Rule,         (1, 150,  "rule") },
 			{ Target.Emote,        (2, 32,   "emote name") },
-		};
+		}.ToImmutableDictionary();
 
-		private readonly int Min;
-		private readonly int Max;
-		private readonly string TooShort;
-		private readonly string TooLong;
+		private readonly int _Min;
+		private readonly int _Max;
+		private readonly string _TooShort;
+		private readonly string _TooLong;
 
 		/// <summary>
 		/// Sets the values by looking up <paramref name="target"/> in a dictionary.
@@ -43,8 +44,8 @@ namespace Advobot.Classes.Attributes
 		{
 			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var temp))
 			{
-				TooShort = $"A {temp.Name} must be at least `{(Min = temp.Min)}` characters long.";
-				TooLong = $"A {temp.Name} must be at most `{(Max = temp.Max)}` characters long.";
+				_TooShort = $"A {temp.Name} must be at least `{(_Min = temp.Min)}` characters long.";
+				_TooLong = $"A {temp.Name} must be at most `{(_Max = temp.Max)}` characters long.";
 			}
 			else
 			{
@@ -72,13 +73,13 @@ namespace Advobot.Classes.Attributes
 			{
 				throw new NotSupportedException($"{nameof(VerifyStringLengthAttribute)} only supports strings.");
 			}
-			if (str.Length < Min)
+			if (str.Length < _Min)
 			{
-				return Task.FromResult(PreconditionResult.FromError(TooShort));
+				return Task.FromResult(PreconditionResult.FromError(_TooShort));
 			}
-			if (str.Length > Max)
+			if (str.Length > _Max)
 			{
-				return Task.FromResult(PreconditionResult.FromError(TooLong));
+				return Task.FromResult(PreconditionResult.FromError(_TooLong));
 			}
 			return Task.FromResult(PreconditionResult.FromSuccess());
 		}
@@ -89,7 +90,7 @@ namespace Advobot.Classes.Attributes
 		/// <returns></returns>
 		public override string ToString()
 		{
-			return $"({Min} to {Max} chars)";
+			return $"({_Min} to {_Max} chars)";
 		}
 	}
 }

@@ -17,21 +17,20 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Handles user input commands.
 	/// </summary>
-	public class CommandHandler
+	public sealed class CommandHandler
 	{
-		private static readonly string _Joiner = "\n" + new string(' ', 28);
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
 		private readonly HelpEntryHolder _HelpEntries;
-		private IDiscordClient _Client;
-		private IBotSettings _BotSettings;
-		private IGuildSettingsService _GuildSettings;
-		private ITimersService _Timers;
-		private ILogService _Logging;
+		private readonly DiscordShardedClient _Client;
+		private readonly IBotSettings _BotSettings;
+		private readonly IGuildSettingsService _GuildSettings;
+		private readonly ITimersService _Timers;
+		private readonly ILogService _Logging;
 		private bool _Loaded;
 
 		/// <summary>
-		/// Creates an instance of the command handler and gets the required services.
+		/// Creates an instance of <see cref="CommandHandler"/> and gets the required services.
 		/// </summary>
 		/// <param name="provider"></param>
 		public CommandHandler(IServiceProvider provider)
@@ -39,34 +38,20 @@ namespace Advobot.Classes
 			_Provider = provider;
 			_Commands = _Provider.GetRequiredService<CommandService>();
 			_HelpEntries = _Provider.GetRequiredService<HelpEntryHolder>();
-			_Client = _Provider.GetRequiredService<IDiscordClient>();
+			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsService>();
 			_Timers = _Provider.GetRequiredService<ITimersService>();
 			_Logging = _Provider.GetRequiredService<ILogService>();
 
-			switch (_Client)
-			{
-				case DiscordSocketClient socketClient:
-					socketClient.Connected += OnConnected;
-					socketClient.UserJoined += OnUserJoined;
-					socketClient.UserLeft += OnUserLeft;
-					socketClient.MessageReceived += OnMessageReceived;
-					socketClient.MessageReceived += HandleCommand;
-					return;
-				case DiscordShardedClient shardedClient:
-					shardedClient.Shards.Last().Connected += OnConnected;
-					shardedClient.UserJoined += OnUserJoined;
-					shardedClient.UserLeft += OnUserLeft;
-					shardedClient.MessageReceived += OnMessageReceived;
-					shardedClient.MessageReceived += HandleCommand;
-					return;
-				default:
-					throw new ArgumentException("invalid type", nameof(_Client));
-			}
+			_Client.ShardConnected += OnConnected;
+			_Client.UserJoined += OnUserJoined;
+			_Client.UserLeft += OnUserLeft;
+			_Client.MessageReceived += OnMessageReceived;
+			_Client.MessageReceived += HandleCommand;
 		}
 
-		private async Task OnConnected()
+		private async Task OnConnected(DiscordSocketClient client)
 		{
 			if (!_Loaded)
 			{
@@ -75,7 +60,7 @@ namespace Advobot.Classes
 					LowLevelConfig.Config.BotId = _Client.CurrentUser.Id;
 					LowLevelConfig.Config.Save();
 					ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-					ClientUtils.RestartBot();
+					await ClientUtils.RestartBotAsync(client).CAF();
 				}
 
 				await ClientUtils.UpdateGameAsync(_Client, _BotSettings).CAF();
@@ -97,8 +82,8 @@ namespace Advobot.Classes
 			//Banned names
 			if (settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(user.Username)))
 			{
-				var giver = new PunishmentGiver(0, _Timers);
-				await giver.PunishAsync(Punishment.Ban, user.Guild, user.Id, 0, ClientUtils.CreateRequestOptions("banned name")).CAF();
+				var giver = new Punisher(TimeSpan.FromMinutes(0), _Timers);
+				await giver.GiveAsync(Punishment.Ban, user.Guild, user.Id, 0, ClientUtils.CreateRequestOptions("banned name")).CAF();
 			}
 			//Antiraid
 			var antiRaid = settings.RaidPreventionDictionary[RaidType.Regular];
@@ -187,47 +172,20 @@ namespace Advobot.Classes
 		}
 		private async Task HandleCommand(SocketMessage message)
 		{
-			//Bot isn't paused and the message isn't a system message
-			if (_BotSettings.Pause
-				|| !(message.Channel is SocketGuildChannel channel)
-				|| !(message is SocketUserMessage userMessage)
-				|| !(userMessage.Author is SocketUser user)
-				|| user.IsBot
-				|| String.IsNullOrWhiteSpace(userMessage.Content))
-			{
-				return;
-			}
-			var stopwatch = new Stopwatch();
-			stopwatch.Start();
-
-			//Guild settings
-			if (!(await _GuildSettings.GetOrCreateAsync(channel.Guild).CAF() is IGuildSettings settings))
-			{
-				return;
-			}
-			//Prefix
 			var argPos = -1;
-			var prefix = String.IsNullOrWhiteSpace(settings.Prefix) ? _BotSettings.Prefix : settings.Prefix;
-			if (!userMessage.HasStringPrefix(prefix, ref argPos) &&
-				!userMessage.HasMentionPrefix(_Client.CurrentUser, ref argPos))
+			if (_BotSettings.Pause
+				|| String.IsNullOrWhiteSpace(message.Content)
+				|| !(message is SocketUserMessage uMsg)
+				|| !(uMsg.Author is SocketGuildUser user)
+				|| user.IsBot
+				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
+				|| !(uMsg.HasStringPrefix(_BotSettings.InternalGetPrefix(settings), ref argPos) && !uMsg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
 			{
 				return;
 			}
 
-			AdvobotSocketCommandContext context;
-			switch (_Client)
-			{
-				case DiscordSocketClient socketClient:
-					context = new AdvobotSocketCommandContext(_Provider, settings, socketClient, userMessage);
-					break;
-				case DiscordShardedClient shardedClient:
-					context = new AdvobotShardedCommandContext(_Provider, settings, shardedClient, userMessage);
-					break;
-				default:
-					throw new ArgumentException("invalid type", nameof(_Client));
-			}
+			var context = new AdvobotShardedCommandContext(_Provider, settings, _Client, uMsg);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
-			stopwatch.Stop();
 
 			if ((!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)
 			{
@@ -246,7 +204,7 @@ namespace Advobot.Classes
 					};
 					embed.TryAddAuthor(context.User, out _);
 					embed.TryAddFooter("Mod Log", null, out _);
-					await MessageUtils.SendMessageAsync(channel.Guild.GetTextChannel(settings.ModLogId), null, embed).CAF();
+					await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ModLogId), null, embed).CAF();
 				}
 			}
 			else
@@ -255,15 +213,7 @@ namespace Advobot.Classes
 				await MessageUtils.SendErrorMessageAsync(context, new Error(result.ErrorReason)).CAF();
 			}
 
-			var response = $"Guild: {context.Guild.Format()}" +
-				$"{_Joiner}Channel: {context.Channel.Format()}" +
-				$"{_Joiner}User: {context.User.Format()}" +
-				$"{_Joiner}Time: {context.Message.CreatedAt.UtcDateTime.ToReadable()}" +
-				$"{_Joiner}Text: {context.Message.Content}" +
-				$"{_Joiner}Time taken: {stopwatch.ElapsedMilliseconds}ms";
-			response += result.ErrorReason == null ? "" : $"{_Joiner}Error: {result.ErrorReason}";
-
-			ConsoleUtils.WriteLine(response, result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+			ConsoleUtils.WriteLine(context.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 			_Logging.AttemptedCommands.Add(1);
 		}
 	}

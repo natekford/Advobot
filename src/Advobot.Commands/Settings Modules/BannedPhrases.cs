@@ -1,4 +1,11 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
@@ -7,13 +14,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.BannedPhrases
 {
@@ -128,7 +128,7 @@ namespace Advobot.Commands.BannedPhrases
 
 				--position;
 				var regex = Context.GuildSettings.EvaluatedRegex[(int)position];
-				Context.GuildSettings.BannedPhraseRegex.Add(new BannedPhrase(regex));
+				Context.GuildSettings.BannedPhraseRegex.Add(new BannedPhrase(regex, default));
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added the regex `{regex}`.").CAF();
 			}
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
@@ -221,7 +221,7 @@ namespace Advobot.Commands.BannedPhrases
 				return;
 			}
 
-			list.Add((T)new BannedPhrase(text));
+			list.Add((T)new BannedPhrase(text, default));
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, $"Successfully removed the {type} `{text}`.").CAF();
 		}
 		private static async Task Remove<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type) where T : BannedPhrase

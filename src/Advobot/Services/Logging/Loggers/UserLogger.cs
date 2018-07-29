@@ -101,8 +101,7 @@ namespace Advobot.Services.Logging.Loggers
 
 			NotifyLogCounterIncrement(nameof(ILogService.UserChanges), 1);
 
-			var guilds = (await Client.GetGuildsAsync().CAF()).Cast<SocketGuild>();
-			var guildsContainingUser = guilds.Where(g => g.Users.Select(u => u.Id).Contains(afterUser.Id));
+			var guildsContainingUser = Client.Guilds.Where(g => g.Users.Select(u => u.Id).Contains(afterUser.Id));
 			foreach (var guild in guildsContainingUser)
 			{
 				if (!TryGetSettings(guild, out var settings) || settings.ServerLogId == 0)

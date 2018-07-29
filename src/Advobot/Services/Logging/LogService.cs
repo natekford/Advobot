@@ -85,37 +85,18 @@ namespace Advobot.Services.Logging
 				((ILogger)prop.GetValue(this)).LogCounterIncrement += OnLogCounterIncrement;
 			}
 
-			switch (services.GetRequiredService<IDiscordClient>())
-			{
-				case DiscordSocketClient socketClient:
-					socketClient.Log += BotLogger.OnLogMessageSent;
-					socketClient.GuildAvailable += GuildLogger.OnGuildAvailable;
-					socketClient.GuildUnavailable += GuildLogger.OnGuildUnavailable;
-					socketClient.JoinedGuild += GuildLogger.OnJoinedGuild;
-					socketClient.LeftGuild += GuildLogger.OnLeftGuild;
-					socketClient.UserJoined += UserLogger.OnUserJoined;
-					socketClient.UserLeft += UserLogger.OnUserLeft;
-					socketClient.UserUpdated += UserLogger.OnUserUpdated;
-					socketClient.MessageReceived += MessageLogger.OnMessageReceived;
-					socketClient.MessageUpdated += MessageLogger.OnMessageUpdated;
-					socketClient.MessageDeleted += MessageLogger.OnMessageDeleted;
-					return;
-				case DiscordShardedClient shardedClient:
-					shardedClient.Log += BotLogger.OnLogMessageSent;
-					shardedClient.GuildAvailable += GuildLogger.OnGuildAvailable;
-					shardedClient.GuildUnavailable += GuildLogger.OnGuildUnavailable;
-					shardedClient.JoinedGuild += GuildLogger.OnJoinedGuild;
-					shardedClient.LeftGuild += GuildLogger.OnLeftGuild;
-					shardedClient.UserJoined += UserLogger.OnUserJoined;
-					shardedClient.UserLeft += UserLogger.OnUserLeft;
-					shardedClient.UserUpdated += UserLogger.OnUserUpdated;
-					shardedClient.MessageReceived += MessageLogger.OnMessageReceived;
-					shardedClient.MessageUpdated += MessageLogger.OnMessageUpdated;
-					shardedClient.MessageDeleted += MessageLogger.OnMessageDeleted;
-					return;
-				default:
-					throw new ArgumentException("Invalid client.", "Client");
-			}
+			var client = services.GetRequiredService<DiscordShardedClient>();
+			client.Log += BotLogger.OnLogMessageSent;
+			client.GuildAvailable += GuildLogger.OnGuildAvailable;
+			client.GuildUnavailable += GuildLogger.OnGuildUnavailable;
+			client.JoinedGuild += GuildLogger.OnJoinedGuild;
+			client.LeftGuild += GuildLogger.OnLeftGuild;
+			client.UserJoined += UserLogger.OnUserJoined;
+			client.UserLeft += UserLogger.OnUserLeft;
+			client.UserUpdated += UserLogger.OnUserUpdated;
+			client.MessageReceived += MessageLogger.OnMessageReceived;
+			client.MessageUpdated += MessageLogger.OnMessageUpdated;
+			client.MessageDeleted += MessageLogger.OnMessageDeleted;
 		}
 
 		/// <inheritdoc />

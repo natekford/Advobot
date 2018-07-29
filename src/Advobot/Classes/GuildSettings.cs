@@ -1,4 +1,8 @@
-﻿using Advobot.Classes.Attributes;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
@@ -7,12 +11,6 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes
 {

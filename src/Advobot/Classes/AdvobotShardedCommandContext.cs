@@ -24,14 +24,9 @@ namespace Advobot.Classes
 		/// <param name="client"></param>
 		/// <param name="msg"></param>
 		public AdvobotShardedCommandContext(IServiceProvider provider, IGuildSettings settings, DiscordShardedClient client, SocketUserMessage msg)
-			: base(provider, settings, client.GetShard(GetShardId(client, (msg.Channel as SocketGuildChannel)?.Guild)), msg)
+			: base(provider, settings, client.GetShardFor((msg.Channel as SocketGuildChannel)?.Guild), msg)
 		{
 			Client = client;
-		}
-
-		private static int GetShardId(DiscordShardedClient client, IGuild guild)
-		{
-			return guild == null ? 0 : client.GetShardIdFor(guild);
 		}
 
 		IDiscordClient ICommandContext.Client => Client;

@@ -1,4 +1,10 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Punishments;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
@@ -7,12 +13,6 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Advobot.Services.Logging.Loggers
 {
@@ -389,7 +389,7 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			var giver = new PunishmentGiver(0, null);
+			var giver = new Punisher(TimeSpan.FromMinutes(0), null);
 			var options = ClientUtils.CreateRequestOptions("spam prevention");
 			foreach (var spammer in spammers)
 			{
@@ -399,7 +399,7 @@ namespace Advobot.Services.Logging.Loggers
 					continue;
 				}
 
-				await giver.PunishAsync(spammer.Punishment, user.Guild, spammer.UserId, settings.MuteRoleId, options).CAF();
+				await giver.GiveAsync(spammer.Punishment, user.Guild, spammer.UserId, settings.MuteRoleId, options).CAF();
 				spammer.Reset();
 			}
 		}

@@ -1,4 +1,8 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Punishments;
 using Advobot.Classes.Settings;
@@ -9,10 +13,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Users
 {
@@ -69,13 +69,13 @@ namespace Advobot.Commands.Users
 
 			if (user.Roles.Select(x => x.Id).Contains(muteRole.Id))
 			{
-				var remover = new PunishmentRemover(Context.Timers);
+				var remover = new Punisher(TimeSpan.FromMinutes(0), Context.Timers);
 				await remover.UnrolemuteAsync(user, muteRole, GetRequestOptions(reason.Reason)).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
 				return;
 			}
 
-			var giver = new PunishmentGiver(reason.Time, Context.Timers);
+			var giver = new Punisher(TimeSpan.FromMinutes(reason.Time), Context.Timers);
 			await giver.RoleMuteAsync(user, muteRole, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
@@ -93,13 +93,13 @@ namespace Advobot.Commands.Users
 		{
 			if (user.IsMuted)
 			{
-				var remover = new PunishmentRemover(Context.Timers);
+				var remover = new Punisher(TimeSpan.FromMinutes(0), Context.Timers);
 				await remover.UnvoicemuteAsync(user, GetRequestOptions(reason.Reason)).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
 				return;
 			}
 
-			var giver = new PunishmentGiver(reason.Time, Context.Timers);
+			var giver = new Punisher(TimeSpan.FromMinutes(reason.Time), Context.Timers);
 			await giver.VoiceMuteAsync(user, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
@@ -117,13 +117,13 @@ namespace Advobot.Commands.Users
 		{
 			if (user.IsDeafened)
 			{
-				var remover = new PunishmentRemover(Context.Timers);
+				var remover = new Punisher(TimeSpan.FromMinutes(0), Context.Timers);
 				await remover.UndeafenAsync(user, GetRequestOptions(reason.Reason)).CAF();
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, remover.ToString()).CAF();
 				return;
 			}
 
-			var giver = new PunishmentGiver(reason.Time, Context.Timers);
+			var giver = new Punisher(TimeSpan.FromMinutes(reason.Time), Context.Timers);
 			await giver.DeafenAsync(user, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
@@ -209,7 +209,7 @@ namespace Advobot.Commands.Users
 
 		private async Task CommandRunner(ulong userId, ModerationReason reason)
 		{
-			var giver = new PunishmentGiver(0, Context.Timers);
+			var giver = new Punisher(TimeSpan.FromMinutes(0), Context.Timers);
 			await giver.SoftbanAsync(Context.Guild, userId, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
@@ -241,7 +241,7 @@ namespace Advobot.Commands.Users
 				return;
 			}
 
-			var giver = new PunishmentGiver(reason.Time, Context.Timers);
+			var giver = new Punisher(TimeSpan.FromMinutes(reason.Time), Context.Timers);
 			await giver.BanAsync(Context.Guild, userId, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
@@ -256,7 +256,7 @@ namespace Advobot.Commands.Users
 		[Command]
 		public async Task Command(IBan ban, [Optional, Remainder] ModerationReason reason)
 		{
-			var remover = new PunishmentRemover(Context.Timers);
+			var remover = new Punisher(TimeSpan.FromMinutes(0), Context.Timers);
 			await remover.UnbanAsync(Context.Guild, ban.User.Id, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, remover.ToString()).CAF();
 		}
@@ -274,7 +274,7 @@ namespace Advobot.Commands.Users
 			var embed = new EmbedWrapper
 			{
 				Title = $"Ban reason for {ban.User.Format()}",
-				Description = ban.Reason
+				Description = ban.Reason,
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
@@ -289,7 +289,7 @@ namespace Advobot.Commands.Users
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 		{
-			var giver = new PunishmentGiver(0, Context.Timers);
+			var giver = new Punisher(TimeSpan.FromMinutes(0), Context.Timers);
 			await giver.KickAsync(user, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}

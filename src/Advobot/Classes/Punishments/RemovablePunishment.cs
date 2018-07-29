@@ -1,8 +1,9 @@
-﻿using Advobot.Enums;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.Enums;
 using AdvorangesUtils;
 using Discord;
-using System;
-using System.Threading.Tasks;
+using Discord.WebSocket;
 
 namespace Advobot.Classes.Punishments
 {
@@ -63,12 +64,12 @@ namespace Advobot.Classes.Punishments
 		/// Removes the punishment from the user.
 		/// </summary>
 		/// <param name="client"></param>
-		/// <param name="remover"></param>
+		/// <param name="punisher"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task RemoveAsync(IDiscordClient client, PunishmentRemover remover, RequestOptions options)
+		public async Task RemoveAsync(IDiscordClient client, Punisher punisher, RequestOptions options)
 		{
-			if (!(await client.GetGuildAsync(GuildId).CAF() is IGuild guild))
+			if (!(await client.GetGuildAsync(GuildId).CAF() is SocketGuild guild))
 			{
 				return;
 			}
@@ -76,16 +77,16 @@ namespace Advobot.Classes.Punishments
 			switch (PunishmentType)
 			{
 				case Punishment.Ban:
-					await remover.UnbanAsync(guild, UserId, options).CAF();
+					await punisher.UnbanAsync(guild, UserId, options).CAF();
 					return;
 				case Punishment.Deafen:
-					await remover.UndeafenAsync(await guild.GetUserAsync(UserId).CAF(), options).CAF();
+					await punisher.UndeafenAsync(guild.GetUser(UserId), options).CAF();
 					return;
 				case Punishment.VoiceMute:
-					await remover.UnvoicemuteAsync(await guild.GetUserAsync(UserId).CAF(), options).CAF();
+					await punisher.UnvoicemuteAsync(guild.GetUser(UserId), options).CAF();
 					return;
 				case Punishment.RoleMute:
-					await remover.UnrolemuteAsync(await guild.GetUserAsync(UserId).CAF(), guild.GetRole(RoleId), options).CAF();
+					await punisher.UnrolemuteAsync(guild.GetUser(UserId), guild.GetRole(RoleId), options).CAF();
 					return;
 			}
 		}

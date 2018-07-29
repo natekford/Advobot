@@ -1,4 +1,9 @@
-﻿using Advobot.Classes.Punishments;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Advobot.Classes.Punishments;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -6,11 +11,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes.Settings
 {
@@ -21,8 +21,8 @@ namespace Advobot.Classes.Settings
 	{
 		private const int MAX_USERS = 25;
 		private const int MAX_TIME = 60;
-		private static PunishmentGiver _Giver = new PunishmentGiver(0, null);
-		private static RequestOptions _Reason = ClientUtils.CreateRequestOptions("raid prevention");
+		private static readonly Punisher _Giver = new Punisher(TimeSpan.FromMinutes(0), null);
+		private static readonly RequestOptions _Reason = ClientUtils.CreateRequestOptions("raid prevention");
 
 		/// <summary>
 		/// The punishment to give raiders.
@@ -94,7 +94,7 @@ namespace Advobot.Classes.Settings
 		/// <returns></returns>
 		public async Task PunishAsync(IGuildSettings settings, SocketGuildUser user)
 		{
-			await _Giver.PunishAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
+			await _Giver.GiveAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
 		}
 		/// <summary>
 		/// Attempts to create raid prevention.

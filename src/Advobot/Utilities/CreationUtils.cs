@@ -1,4 +1,9 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
@@ -11,12 +16,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
 
 namespace Advobot.Utilities
 {
@@ -43,7 +42,7 @@ namespace Advobot.Utilities
 				.AddSingleton<CommandService>(provider => CreateCommandService(provider, commands))
 				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
 				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>())
-				.AddSingleton<IDiscordClient>(provider => CreateDiscordClient(provider))
+				.AddSingleton<DiscordShardedClient>(provider => CreateDiscordClient(provider))
 				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService<TGuildSettings>(provider))
 				.AddSingleton<ITimersService>(provider => new TimersService(provider))
 				.AddSingleton<ILogService>(provider => new LogService(provider))
@@ -99,7 +98,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="provider">The settings to initialize the client with.</param>
 		/// <returns>A discord client.</returns>
-		internal static IDiscordClient CreateDiscordClient(IServiceProvider provider)
+		internal static DiscordShardedClient CreateDiscordClient(IServiceProvider provider)
 		{
 			var botSettings = provider.GetRequiredService<IBotSettings>();
 			var config = new DiscordSocketConfig
@@ -107,9 +106,8 @@ namespace Advobot.Utilities
 				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
 				MessageCacheSize = botSettings.MessageCacheCount,
 				LogLevel = botSettings.LogLevel,
-				TotalShards = botSettings.ShardCount
 			};
-			return botSettings.ShardCount > 1 ? new DiscordShardedClient(config) : (IDiscordClient)new DiscordSocketClient(config);
+			return new DiscordShardedClient(config);
 		}
 		/// <summary>
 		/// Creates settings that the bot uses.

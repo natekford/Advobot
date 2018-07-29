@@ -6,6 +6,7 @@ using Advobot.Enums;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
+using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.Logging.Loggers
@@ -18,7 +19,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <summary>
 		/// The bot client.
 		/// </summary>
-		protected IDiscordClient Client;
+		protected DiscordShardedClient Client;
 		/// <summary>
 		/// The settings used in the bot.
 		/// </summary>
@@ -41,7 +42,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="provider"></param>
 		protected Logger(IServiceProvider provider)
 		{
-			Client = provider.GetRequiredService<IDiscordClient>();
+			Client = provider.GetRequiredService<DiscordShardedClient>();
 			BotSettings = provider.GetRequiredService<IBotSettings>();
 			GuildSettings = provider.GetRequiredService<IGuildSettingsService>();
 			Timers = provider.GetRequiredService<ITimersService>();

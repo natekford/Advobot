@@ -2,6 +2,7 @@
 using AdvorangesUtils;
 using Discord;
 using Discord.Net;
+using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -88,7 +89,7 @@ namespace Advobot
 		/// <param name="input">The bot key.</param>
 		/// <param name="startup">Whether or not this should be treated as the first attempt at logging in.</param>
 		/// <returns>A boolean signifying whether the login was successful or not.</returns>
-		public async Task<bool> ValidateBotKey(IDiscordClient client, string input, bool startup)
+		public async Task<bool> ValidateBotKey(DiscordShardedClient client, string input, bool startup)
 		{
 			var key = input ?? Config.BotKey;
 
@@ -96,7 +97,7 @@ namespace Advobot
 			{
 				try
 				{
-					await ClientUtils.LoginAsync(client, key).CAF();
+					await client.LoginAsync(TokenType.Bot, key).CAF();
 					return true;
 				}
 				catch (HttpException)
@@ -113,7 +114,7 @@ namespace Advobot
 
 			try
 			{
-				await ClientUtils.LoginAsync(client, key).CAF();
+				await client.LoginAsync(TokenType.Bot, key).CAF();
 
 				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
 				Config.BotKey = key;

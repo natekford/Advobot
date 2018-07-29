@@ -3,6 +3,7 @@ using Advobot.Classes;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace Advobot.Windows.Classes
 			else if (!GotKey)
 			{
 				_StartUp = input == null;
-				_StartUp = GotKey = await GetKey(Provider.GetRequiredService<IDiscordClient>(), input, _StartUp).CAF();
+				_StartUp = GotKey = await GetKey(Provider.GetRequiredService<DiscordShardedClient>(), input, _StartUp).CAF();
 			}
 
 			var somethingWasSet = _StartUp;
@@ -58,7 +59,7 @@ namespace Advobot.Windows.Classes
 			}
 			return false;
 		}
-		private async Task<bool> GetKey(IDiscordClient client, string key, bool startup)
+		private async Task<bool> GetKey(DiscordShardedClient client, string key, bool startup)
 		{
 			return await LowLevelConfig.Config.ValidateBotKey(client, key, startup);
 		}

@@ -1,9 +1,11 @@
-﻿using Advobot.Interfaces;
+﻿using System;
+using System.Diagnostics;
+using Advobot.Interfaces;
+using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Diagnostics;
 
 namespace Advobot.Classes
 {
@@ -12,6 +14,8 @@ namespace Advobot.Classes
 	/// </summary>
 	public class AdvobotSocketCommandContext : SocketCommandContext
 	{
+		private static readonly string _Joiner = "\n" + new string(' ', 28);
+
 		/// <summary>
 		/// The settings for the bot.
 		/// </summary>
@@ -67,7 +71,31 @@ namespace Advobot.Classes
 		/// <returns>Returns the guild prefix if not null, otherwise returns the bot prefix.</returns>
 		public string GetPrefix()
 		{
-			return String.IsNullOrWhiteSpace(GuildSettings.Prefix) ? BotSettings.Prefix : GuildSettings.Prefix;
+			return BotSettings.InternalGetPrefix(GuildSettings);
+		}
+		/// <summary>
+		/// Returns information about the context and how long it's taken to execute.
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			return ToString(null);
+		}
+		/// <summary>
+		/// Returns information about the context and how long it's taken to execute, but also includes any errors.
+		/// </summary>
+		/// <param name="result"></param>
+		/// <returns></returns>
+		public string ToString(IResult result)
+		{
+			var resp = $"Guild: {Guild.Format()}" +
+				$"{_Joiner}Channel: {Channel.Format()}" +
+				$"{_Joiner}User: {User.Format()}" +
+				$"{_Joiner}Time: {Message.CreatedAt.UtcDateTime.ToReadable()}" +
+				$"{_Joiner}Text: {Message.Content}" +
+				$"{_Joiner}Time taken: {ElapsedMilliseconds}ms";
+			resp += result.ErrorReason == null ? "" : $"{_Joiner}Error: {result.ErrorReason}";
+			return resp;
 		}
 	}
 }

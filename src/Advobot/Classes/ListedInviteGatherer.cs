@@ -1,11 +1,11 @@
-﻿using Advobot.Classes.Attributes;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Advobot.Classes
 {

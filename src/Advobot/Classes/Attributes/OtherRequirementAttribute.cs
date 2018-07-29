@@ -31,7 +31,6 @@ namespace Advobot.Classes.Attributes
 			| GuildPermission.ManageWebhooks
 			| GuildPermission.MoveMembers
 			| GuildPermission.MuteMembers;
-		private static ulong _BotOwnerId;
 
 		/// <summary>
 		/// Preconditions that need to be met before the command fires successfully.
@@ -81,15 +80,11 @@ namespace Advobot.Classes.Attributes
 			{
 				return PreconditionResult.FromSuccess();
 			}
-			if ((Requirements & Precondition.BotOwner) != 0 && await GetOwnerIdAsync(aContext.Client).CAF() == user.Id)
+			if ((Requirements & Precondition.BotOwner) != 0 && await ClientUtils.GetOwnerIdAsync(aContext.Client).CAF() == user.Id)
 			{
 				return PreconditionResult.FromSuccess();
 			}
 			return PreconditionResult.FromError((string)null);
-		}
-		private static async Task<ulong> GetOwnerIdAsync(DiscordSocketClient client)
-		{
-			return _BotOwnerId != 0 ? _BotOwnerId : (_BotOwnerId = (await ClientUtils.GetBotOwnerAsync(client).CAF()).Id);
 		}
 
 		/// <summary>

@@ -1,10 +1,11 @@
-﻿using Advobot.Classes.Results;
+﻿using System;
+using System.Collections.Generic;
+using Advobot.Classes.Results;
 using Advobot.Enums;
+using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
 
 namespace Advobot.Utilities
 {
@@ -112,6 +113,16 @@ namespace Advobot.Utilities
 				default:
 					throw new ArgumentException("Must be either IGuildUser, IGuildChannel, or IRole.", nameof(target));
 			}
+		}
+		/// <summary>
+		/// Checks whether to use the bot prefix, or the guild settings prefix.
+		/// </summary>
+		/// <param name="b"></param>
+		/// <param name="g"></param>
+		/// <returns></returns>
+		internal static string InternalGetPrefix(this IBotSettings b, IGuildSettings g)
+		{
+			return String.IsNullOrWhiteSpace(g.Prefix) ? b.Prefix : g.Prefix;
 		}
 	}
 }

@@ -1,4 +1,8 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.CloseWords;
 using Advobot.Classes.Punishments;
 using Advobot.Enums;
@@ -6,12 +10,9 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Discord.WebSocket;
 using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Timer = System.Timers.Timer;
 
 namespace Advobot.Services.Timers
@@ -20,11 +21,11 @@ namespace Advobot.Services.Timers
 	internal sealed class TimersService : ITimersService, IDisposable
 	{
 		private LiteDatabase _Db;
-		private readonly IDiscordClient _Client;
+		private readonly DiscordShardedClient _Client;
 
 		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
 		private readonly Timer _SecondTimer = new Timer(1000);
-		private readonly PunishmentRemover _PunishmentRemover;
+		private readonly Punisher _PunishmentRemover;
 		private readonly RequestOptions _PunishmentReason = ClientUtils.CreateRequestOptions("automatic punishment removal.");
 		private readonly RequestOptions _MessageReason = ClientUtils.CreateRequestOptions("automatic message deletion.");
 
@@ -36,8 +37,8 @@ namespace Advobot.Services.Timers
 
 		public TimersService(IServiceProvider provider)
 		{
-			_Client = provider.GetRequiredService<IDiscordClient>();
-			_PunishmentRemover = new PunishmentRemover(this);
+			_Client = provider.GetRequiredService<DiscordShardedClient>();
+			_PunishmentRemover = new Punisher(TimeSpan.FromMinutes(0), this);
 
 			_RemovablePunishments = new ProcessQueue(1, async () =>
 			{
@@ -54,7 +55,7 @@ namespace Advobot.Services.Timers
 				foreach (var timedMessage in col.Find(x => x.Time < DateTime.UtcNow))
 				{
 					col.Delete(timedMessage.Id);
-					if (!(await _Client.GetUserAsync(timedMessage.UserId).CAF() is IUser user))
+					if (!(_Client.GetUser(timedMessage.UserId) is SocketUser user))
 					{
 						continue;
 					}
@@ -191,13 +192,13 @@ namespace Advobot.Services.Timers
 				{
 					col.Delete(g.Id);
 				}
-				if (!(await _Client.GetGuildAsync(guildGroup.Key).CAF() is IGuild guild))
+				if (!(_Client.GetGuild(guildGroup.Key) is SocketGuild guild))
 				{
 					continue;
 				}
 				foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
 				{
-					if (!(await guild.GetTextChannelAsync(channelGroup.Key).CAF() is ITextChannel channel))
+					if (!(guild.GetTextChannel(channelGroup.Key) is SocketTextChannel channel))
 					{
 						continue;
 					}
@@ -228,8 +229,8 @@ namespace Advobot.Services.Timers
 			{
 				return null;
 			}
-			if (await _Client.GetGuildAsync(entry.GuildId).CAF() is IGuild guild &&
-				await guild.GetTextChannelAsync(entry.ChannelId).CAF() is ITextChannel channel)
+			if (_Client.GetGuild(entry.GuildId) is SocketGuild guild &&
+				guild.GetTextChannel(entry.ChannelId) is SocketTextChannel channel)
 			{
 				var tasks = entry.MessageIds
 					.Where(m => m != 0)

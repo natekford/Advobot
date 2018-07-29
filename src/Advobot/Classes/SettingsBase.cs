@@ -40,7 +40,7 @@ namespace Advobot.Classes
 				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase);
 		}
 		/// <inheritdoc />
-		public virtual string Format(IDiscordClient client, IGuild guild)
+		public virtual string Format(DiscordSocketClient client, IGuild guild)
 		{
 			var sb = new StringBuilder();
 			foreach (var kvp in GetSettings())
@@ -58,7 +58,7 @@ namespace Advobot.Classes
 			return sb.ToString();
 		}
 		/// <inheritdoc />
-		public virtual string Format(IDiscordClient client, IGuild guild, string name)
+		public virtual string Format(DiscordSocketClient client, IGuild guild, string name)
 		{
 			return Format(client, guild, GetMember(name).GetValue(this));
 		}
@@ -120,7 +120,7 @@ namespace Advobot.Classes
 				return member.GetValue(this);
 			}
 		}
-		private string Format(IDiscordClient client, IGuild guild, object value)
+		private string Format(DiscordSocketClient client, IGuild guild, object value)
 		{
 			switch (value)
 			{
@@ -147,11 +147,11 @@ namespace Advobot.Classes
 					}
 					if (client != null)
 					{
-						if (ClientUtils.GetUser(client, id) is IUser u)
+						if (client.GetUser(id) is IUser u)
 						{
 							return $"`{u.Format()}`";
 						}
-						if (ClientUtils.GetGuild(client, id) is IGuild g)
+						if (client.GetGuild(id) is IGuild g)
 						{
 							return $"`{g.Format()}`";
 						}

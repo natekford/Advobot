@@ -1,15 +1,4 @@
-﻿using Advobot.Interfaces;
-using Advobot.Utilities;
-using Advobot.Windows.Classes;
-using Advobot.Windows.Classes.Controls;
-using Advobot.Windows.Enums;
-using Advobot.Windows.Utilities;
-using AdvorangesUtils;
-using Discord;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -20,6 +9,17 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using System.Windows.Threading;
+using Advobot.Interfaces;
+using Advobot.Utilities;
+using Advobot.Windows.Classes;
+using Advobot.Windows.Classes.Controls;
+using Advobot.Windows.Enums;
+using Advobot.Windows.Utilities;
+using AdvorangesUtils;
+using Discord;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace Advobot.Windows.Windows
 {
@@ -31,7 +31,7 @@ namespace Advobot.Windows.Windows
 		/// <summary>
 		/// Holds a reference to the client even when it doesn't exist for XAML binding.
 		/// </summary>
-		public Holder<IDiscordClient> Client { get; private set; } = new Holder<IDiscordClient>();
+		public Holder<DiscordShardedClient> Client { get; private set; } = new Holder<DiscordShardedClient>();
 		/// <summary>
 		/// Holds a reference to the bot settings even when it doesn't exist for XAML binding.
 		/// </summary>
@@ -62,7 +62,7 @@ namespace Advobot.Windows.Windows
 			_LoginHandler.AbleToStart += Start;
 		}
 
-		private async Task EnableButtons()
+		private async Task EnableButtons(DiscordSocketClient client)
 		{
 			await Dispatcher.InvokeAsync(() =>
 			{
@@ -74,20 +74,13 @@ namespace Advobot.Windows.Windows
 		{
 			await Dispatcher.InvokeAsync(async () =>
 			{
-				Client.HeldObject = _LoginHandler.Provider.GetRequiredService<IDiscordClient>();
+				Client.HeldObject = _LoginHandler.Provider.GetRequiredService<DiscordShardedClient>();
 				BotSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IBotSettings>();
 				GuildSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IGuildSettingsService>();
 				LogHolder.HeldObject = _LoginHandler.Provider.GetRequiredService<ILogService>();
 				_Colors = ColorSettings.LoadUISettings();
 
-				if (Client.HeldObject is DiscordSocketClient socket)
-				{
-					socket.Connected += EnableButtons;
-				}
-				else if (Client.HeldObject is DiscordShardedClient sharded)
-				{
-					sharded.Shards.LastOrDefault().Connected += EnableButtons;
-				}
+				Client.HeldObject.ShardConnected += EnableButtons;
 				await ClientUtils.StartAsync(Client.HeldObject);
 			});
 		}
@@ -129,29 +122,13 @@ namespace Advobot.Windows.Windows
 				ConsoleUtils.WriteLine($"The given input '{input}' is not a valid ID.");
 				return;
 			}
-
 			if (TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
 			{
 				ConsoleUtils.WriteLine($"The given input '{input}' is already a trusted user.");
 				return;
 			}
-
-			IUser user;
-			if (Client.HeldObject is DiscordSocketClient socket)
-			{
-				user = socket.GetUser(userId);
-			}
-			else if (Client.HeldObject is DiscordShardedClient sharded)
-			{
-				user = sharded.GetUser(userId);
-			}
-			else
-			{
-				throw new ArgumentException($"invalid passed into {nameof(AddTrustedUser)}", "client");
-			}
-
 			TrustedUsersBox.Text = null;
-			if (user != null)
+			if (Client.HeldObject.GetUser(userId) is SocketUser user)
 			{
 				TrustedUsers.Items.Add(AdvobotTextBox.CreateUserBox(user));
 				TrustedUsers.Items.SortDescriptions.Clear();
@@ -329,7 +306,6 @@ namespace Advobot.Windows.Windows
 						Prefix.Text = s.Prefix;
 						Game.Text = s.Game;
 						Stream.Text = s.Stream;
-						ShardCount.StoredValue = s.ShardCount;
 						MessageCacheCount.StoredValue = s.MessageCacheCount;
 						MaxUserGatherCount.StoredValue = s.MaxUserGatherCount;
 						MaxMessageGatherSize.StoredValue = s.MaxMessageGatherSize;
@@ -373,7 +349,7 @@ namespace Advobot.Windows.Windows
 			switch (MessageBox.Show("Are you sure you want to disconnect the bot?", caption, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
-					ClientUtils.DisconnectBot(Client.HeldObject);
+					ClientUtils.DisconnectBotAsync(Client.HeldObject);
 					return;
 			}
 		}
@@ -405,7 +381,7 @@ namespace Advobot.Windows.Windows
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
 			Uptime.Text = $"Uptime: {Formatting.GetUptime()}";
-			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : ClientUtils.GetLatency(Client.HeldObject))}ms";
+			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : Client.HeldObject.Latency)}ms";
 			Memory.Text = $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB";
 			ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
 		}

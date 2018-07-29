@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Interfaces
 {
@@ -26,7 +27,7 @@ namespace Advobot.Interfaces
 		/// <param name="client"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		string Format(IDiscordClient client, IGuild guild);
+		string Format(DiscordSocketClient client, IGuild guild);
 		/// <summary>
 		/// Formats a specific setting.
 		/// </summary>
@@ -34,7 +35,7 @@ namespace Advobot.Interfaces
 		/// <param name="guild"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		string Format(IDiscordClient client, IGuild guild, string name);
+		string Format(DiscordSocketClient client, IGuild guild, string name);
 		/// <summary>
 		/// Sets every setting back to its default value.
 		/// </summary>

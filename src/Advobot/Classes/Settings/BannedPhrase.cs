@@ -1,4 +1,7 @@
-﻿using Advobot.Classes.Punishments;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes.Punishments;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -7,8 +10,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes.Settings
 {
@@ -17,7 +18,7 @@ namespace Advobot.Classes.Settings
 	/// </summary>
 	public class BannedPhrase : IGuildSetting
 	{
-		private static RequestOptions _Options = ClientUtils.CreateRequestOptions("banned phrase");
+		private static readonly RequestOptions _Options = ClientUtils.CreateRequestOptions("banned phrase");
 
 		/// <summary>
 		/// The phrase which is banned. Can be string or regex pattern.
@@ -35,7 +36,7 @@ namespace Advobot.Classes.Settings
 		/// </summary>
 		/// <param name="phrase"></param>
 		/// <param name="punishment"></param>
-		public BannedPhrase(string phrase, Punishment punishment = default)
+		public BannedPhrase(string phrase, Punishment punishment)
 		{
 			Phrase = phrase;
 			Punishment = punishment;
@@ -58,10 +59,10 @@ namespace Advobot.Classes.Settings
 				return;
 			}
 
-			await new PunishmentGiver(punishment.Time, timers).PunishAsync(Punishment, guild, info.UserId, punishment.RoleId, _Options).CAF();
+			var giver = new Punisher(TimeSpan.FromMinutes(punishment.Time), timers);
+			await giver.GiveAsync(Punishment, guild, info.UserId, punishment.RoleId, _Options).CAF();
 			info.Reset(Punishment);
 		}
-
 		/// <inheritdoc />
 		public override string ToString()
 		{

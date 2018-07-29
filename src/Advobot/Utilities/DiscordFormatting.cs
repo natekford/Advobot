@@ -497,14 +497,14 @@ namespace Advobot.Utilities
 		/// <param name="logModule"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatBotInfo(IDiscordClient client, ILogService logModule, IGuild guild)
+		public static EmbedWrapper FormatBotInfo(DiscordSocketClient client, ILogService logModule, IGuild guild)
 		{
 			var embed = new EmbedWrapper
 			{
 				Description = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.ToReadable()}` (`{Formatting.GetUptime()}`)\n" +
 					$"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`\n" +
-					$"**Current Shard:** `{ClientUtils.GetShardIdFor(client, guild)}`\n" +
-					$"**Latency:** `{ClientUtils.GetLatency(client)}ms`\n" +
+					$"**Current Shard:** `{client.ShardId}`\n" +
+					$"**Latency:** `{client.Latency}ms`\n" +
 					$"**Memory Usage:** `{IOUtils.GetMemory():0.00}MB`\n" +
 					$"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`",
 			};

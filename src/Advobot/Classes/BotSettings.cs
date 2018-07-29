@@ -43,20 +43,6 @@ namespace Advobot.Classes
 		public bool AlwaysDownloadUsers { get; set; } = true;
 		/// <inheritdoc />
 		[JsonIgnore]
-		public int ShardCount
-		{
-			get => _ShardCount;
-			set
-			{
-				if (value < 1)
-				{
-					throw new ArgumentException("Must be greater than 0.", nameof(value));
-				}
-				_ShardCount = value;
-			}
-		}
-		/// <inheritdoc />
-		[JsonIgnore]
 		public int MessageCacheCount
 		{
 			get => _MessageCacheCount;
@@ -227,8 +213,6 @@ namespace Advobot.Classes
 
 		[JsonProperty("Prefix"), Setting("&&")]
 		private string _Prefix = "&&";
-		[JsonProperty("ShardCount"), Setting(1)]
-		private int _ShardCount = 1;
 		[JsonProperty("MessageCacheCount"), Setting(1000)]
 		private int _MessageCacheCount = 1000;
 		[JsonProperty("MaxUserGatherCount"), Setting(100)]

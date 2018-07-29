@@ -1,11 +1,11 @@
-﻿using Advobot.Interfaces;
-using AdvorangesUtils;
-using Discord;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Interfaces;
+using AdvorangesUtils;
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Utilities
 {
@@ -14,53 +14,28 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class ClientUtils
 	{
+		private static ulong _BotOwnerId;
+
 		/// <summary>
-		/// Tries to start the bot.
+		/// Tries to start the bot and start command handling.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		public static async Task StartAsync(IDiscordClient client)
+		public static async Task StartAsync(DiscordShardedClient client)
 		{
-			if (client.ConnectionState != ConnectionState.Disconnected)
-			{
-				return;
-			}
-
 			ConsoleUtils.WriteLine("Connecting the client...");
 			await client.StartAsync().CAF();
 			ConsoleUtils.WriteLine("Successfully connected the client.");
 			await Task.Delay(-1).CAF();
 		}
 		/// <summary>
-		/// Attempts to login with the given key.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="key"></param>
-		/// <returns></returns>
-		/// <exception cref="ArgumentException"></exception>
-		public static async Task LoginAsync(IDiscordClient client, string key)
-		{
-			if (client is DiscordSocketClient socketClient)
-			{
-				await socketClient.LoginAsync(TokenType.Bot, key).CAF();
-			}
-			else if (client is DiscordShardedClient shardedClient)
-			{
-				await shardedClient.LoginAsync(TokenType.Bot, key).CAF();
-			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(client));
-			}
-		}
-		/// <summary>
-		/// Returns the user who owns the bot.
+		/// Gets the id of the bot owner.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		public static async Task<IUser> GetBotOwnerAsync(IDiscordClient client)
+		public static async Task<ulong> GetOwnerIdAsync(DiscordSocketClient client)
 		{
-			return (await client.GetApplicationInfoAsync().CAF()).Owner;
+			return _BotOwnerId != 0 ? _BotOwnerId : (_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id);
 		}
 		/// <summary>
 		/// Updates a given client's stream and game using settings from the <paramref name="botSettings"/> parameter.
@@ -69,7 +44,7 @@ namespace Advobot.Utilities
 		/// <param name="botSettings">The information to update with.</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static async Task UpdateGameAsync(IDiscordClient client, IBotSettings botSettings)
+		public static async Task UpdateGameAsync(DiscordShardedClient client, IBotSettings botSettings)
 		{
 			var game = botSettings.Game;
 			var stream = botSettings.Stream;
@@ -81,127 +56,7 @@ namespace Advobot.Utilities
 				activityType = ActivityType.Streaming;
 			}
 
-			if (client is DiscordSocketClient socketClient)
-			{
-				await socketClient.SetGameAsync(game, stream, activityType).CAF();
-			}
-			else if (client is DiscordShardedClient shardedClient)
-			{
-				await shardedClient.SetGameAsync(game, stream, activityType).CAF();
-			}
-			else
-			{
-				throw new ArgumentException("invalid type", nameof(client));
-			}
-		}
-		/// <summary>
-		/// Returns the user with the supplied id.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		public static IUser GetUser(IDiscordClient client, ulong id)
-		{
-			switch (client)
-			{
-				case DiscordSocketClient socketClient:
-					return socketClient.GetUser(id);
-				case DiscordShardedClient shardedClient:
-					return shardedClient.GetUser(id);
-				default:
-					throw new ArgumentException("invalid type", nameof(client));
-			}
-		}
-		/// <summary>
-		/// Returns the guild with the supplied id.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		public static IGuild GetGuild(IDiscordClient client, ulong id)
-		{
-			switch (client)
-			{
-				case DiscordSocketClient socketClient:
-					return socketClient.GetGuild(id);
-				case DiscordShardedClient shardedClient:
-					return shardedClient.GetGuild(id);
-				default:
-					throw new ArgumentException("invalid type", nameof(client));
-			}
-		}
-		/// <summary>
-		/// Returns the shard id for a <see cref="DiscordSocketClient"/> else returns -1.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <returns></returns>
-		/// <exception cref="ArgumentException"></exception>
-		public static int GetShardId(IDiscordClient client)
-		{
-			switch (client)
-			{
-				case DiscordSocketClient socketClient:
-					return socketClient.ShardId;
-				case DiscordShardedClient _:
-					return -1;
-				default:
-					throw new ArgumentException("invalid type", nameof(client));
-			}
-		}
-		/// <summary>
-		/// Returns the latency for a client.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <returns></returns>
-		/// <exception cref="ArgumentException">/></exception>
-		public static int GetLatency(IDiscordClient client)
-		{
-			switch (client)
-			{
-				case DiscordSocketClient socketClient:
-					return socketClient.Latency;
-				case DiscordShardedClient shardedClient:
-					return shardedClient.Latency;
-				default:
-					throw new ArgumentException("invalid type", nameof(client));
-			}
-		}
-		/// <summary>
-		/// Returns the shard count of a client.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <returns></returns>
-		/// <exception cref="ArgumentException"></exception>
-		public static int GetShardCount(IDiscordClient client)
-		{
-			switch (client)
-			{
-				case DiscordSocketClient socketClient:
-					return 1;
-				case DiscordShardedClient shardedClient:
-					return shardedClient.Shards.Count;
-				default:
-					throw new ArgumentException("invalid type", nameof(client));
-			}
-		}
-		/// <summary>
-		/// Returns the shard id for a guild is on.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		/// <exception cref="ArgumentException"></exception>
-		public static int GetShardIdFor(IDiscordClient client, IGuild guild)
-		{
-			switch (client)
-			{
-				case DiscordSocketClient socketClient:
-					return socketClient.ShardId;
-				case DiscordShardedClient shardedClient:
-					return shardedClient.GetShardIdFor(guild);
-				default:
-					throw new ArgumentException("invalid type", nameof(client));
-			}
+			await client.SetGameAsync(game, stream, activityType).CAF();
 		}
 		/// <summary>
 		/// Creates a new bot that uses the same console. The bot that starts is created using <see cref="Process.Start()"/> and specifying the filename as dotnet and the arguments as the location of the .dll.
@@ -209,8 +64,9 @@ namespace Advobot.Utilities
 		/// The old bot is then killed
 		/// </para>
 		/// </summary>
-		public static void RestartBot()
+		public static async Task RestartBotAsync(IDiscordClient client)
 		{
+			await client.StopAsync().CAF();
 			//For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
 			Process.Start(new ProcessStartInfo
 			{
@@ -223,23 +79,9 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Exits the current application.
 		/// </summary>
-		public static void DisconnectBot(IDiscordClient client)
+		public static async Task DisconnectBotAsync(IDiscordClient client)
 		{
-			switch (client)
-			{
-				//To avoid the client hanging
-#pragma warning disable 4014
-				case DiscordSocketClient socketClient:
-					socketClient.SetStatusAsync(UserStatus.Invisible);
-					break;
-				case DiscordShardedClient shardedClient:
-					shardedClient.SetStatusAsync(UserStatus.Invisible);
-					break;
-				default:
-					throw new ArgumentException("invalid type", nameof(client));
-#pragma warning restore 4014
-			}
-			client.StopAsync();
+			await client.StopAsync().CAF();
 			Environment.Exit(0);
 		}
 		/// <summary>

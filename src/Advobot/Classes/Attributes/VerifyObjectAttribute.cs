@@ -1,12 +1,12 @@
-﻿using Advobot.Classes.Results;
+﻿using System;
+using System.Collections;
+using System.Collections.Immutable;
+using System.Threading.Tasks;
+using Advobot.Classes.Results;
 using Advobot.Enums;
 using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Collections;
-using System.Collections.Immutable;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes.Attributes
 {
