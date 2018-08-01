@@ -212,7 +212,7 @@ namespace Advobot.Commands.BannedPhrases
 			};
 			await MessageUtils.SendMessageAsync(context.Channel, null, embed).CAF();
 		}
-		private static async Task Add<T>(AdvobotSocketCommandContext context, ICollection<T> list, string text, string type, int max) where T : BannedPhrase
+		private static async Task Add<T>(AdvobotCommandContext context, ICollection<T> list, string text, string type, int max) where T : BannedPhrase
 		{
 			if (list.Count >= max)
 			{
@@ -224,7 +224,7 @@ namespace Advobot.Commands.BannedPhrases
 			list.Add((T)new BannedPhrase(text, default));
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, $"Successfully removed the {type} `{text}`.").CAF();
 		}
-		private static async Task Remove<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type) where T : BannedPhrase
+		private static async Task Remove<T>(AdvobotCommandContext context, List<T> list, string text, string type) where T : BannedPhrase
 		{
 			var phrase = list.SingleOrDefault(x => x.Phrase.CaseInsEquals(text));
 			if (phrase == null)
@@ -236,7 +236,7 @@ namespace Advobot.Commands.BannedPhrases
 			list.Remove(phrase);
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, $"Successfully removed the {type} `{phrase.Phrase}`.").CAF();
 		}
-		private static async Task Remove<T>(AdvobotSocketCommandContext context, List<T> list, int position, string type) where T : BannedPhrase
+		private static async Task Remove<T>(AdvobotCommandContext context, List<T> list, int position, string type) where T : BannedPhrase
 		{
 			if (position == default || position > list.Count)
 			{
@@ -297,7 +297,7 @@ namespace Advobot.Commands.BannedPhrases
 			}
 		}
 
-		private static async Task Show<T>(AdvobotSocketCommandContext context, List<T> list, string type) where T : BannedPhrase
+		private static async Task Show<T>(AdvobotCommandContext context, List<T> list, string type) where T : BannedPhrase
 		{
 			var embed = new EmbedWrapper
 			{
@@ -306,7 +306,7 @@ namespace Advobot.Commands.BannedPhrases
 			};
 			await MessageUtils.SendMessageAsync(context.Channel, null, embed).CAF();
 		}
-		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, string text, string type, Punishment punishment) where T : BannedPhrase
+		private static async Task Modify<T>(AdvobotCommandContext context, List<T> list, string text, string type, Punishment punishment) where T : BannedPhrase
 		{
 			var phrase = list.SingleOrDefault(x => x.Phrase.CaseInsEquals(text));
 			if (phrase == null)
@@ -319,7 +319,7 @@ namespace Advobot.Commands.BannedPhrases
 			var resp = $"Successfully set the punishment of {phrase.Phrase} to {phrase.Punishment}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(context, resp).CAF();
 		}
-		private static async Task Modify<T>(AdvobotSocketCommandContext context, List<T> list, int position, Punishment punishment) where T : BannedPhrase
+		private static async Task Modify<T>(AdvobotCommandContext context, List<T> list, int position, Punishment punishment) where T : BannedPhrase
 		{
 			if (position == default || position > list.Count)
 			{

@@ -11,7 +11,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Punishments
+namespace Advobot.Classes
 {
 	/// <summary>
 	/// Handles giving and removing certain punishments on a user.
@@ -59,7 +59,8 @@ namespace Advobot.Classes.Punishments
 		/// <summary>
 		/// Creates an instance of <see cref="Punisher"/>.
 		/// </summary>
-		/// <param name="timers"></param>
+		/// <param name="time">How long to give a punishment for. Removing punishments is not affected by this.</param>
+		/// <param name="timers">The timer service to add timed punishments to.</param>
 		public Punisher(TimeSpan time, ITimersService timers)
 		{
 			_Time = time;

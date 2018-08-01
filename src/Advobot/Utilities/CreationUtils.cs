@@ -7,6 +7,7 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
+using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.InviteList;
 using Advobot.Services.Logging;
@@ -36,13 +37,15 @@ namespace Advobot.Utilities
 			where TBotSettings : IBotSettings, new()
 			where TGuildSettings : IGuildSettings, new()
 		{
-			//I have no idea if I am providing services correctly, but it works.
+			//Not sure why when put into a func provided as an argument there are lots of enumeration errors
 			var helpEntryHolder = new HelpEntryHolder(commands);
+			//I have no idea if I am providing services correctly, but it works.
 			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
 				.AddSingleton<CommandService>(provider => CreateCommandService(provider, commands))
 				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
-				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>())
 				.AddSingleton<DiscordShardedClient>(provider => CreateDiscordClient(provider))
+				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>())
+				.AddSingleton<ICommandHandler>(provider => new CommandHandler(provider))
 				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService<TGuildSettings>(provider))
 				.AddSingleton<ITimersService>(provider => new TimersService(provider))
 				.AddSingleton<ILogService>(provider => new LogService(provider))
@@ -68,7 +71,6 @@ namespace Advobot.Utilities
 			cmds.AddTypeReader<Color>(new ColorTypeReader());
 			cmds.AddTypeReader<Uri>(new UriTypeReader());
 			cmds.AddTypeReader<ModerationReason>(new ModerationReasonTypeReader());
-			cmds.AddTypeReader<RuleCategory>(new RuleCategoryTypeReader());
 
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()

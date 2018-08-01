@@ -1,12 +1,11 @@
-﻿using Advobot.Classes.Punishments;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes.CloseWords
 {
@@ -99,11 +98,7 @@ namespace Advobot.Classes.CloseWords
 		/// <param name="search"></param>
 		/// <param name="closeWord"></param>
 		/// <returns></returns>
-		protected abstract bool TryGetCloseWord(
-			IEnumerable<T> objs,
-			IEnumerable<string> used,
-			string search,
-			out CloseWord closeWord);
+		protected abstract bool TryGetCloseWord(IEnumerable<T> objs, IEnumerable<string> used, string search, out CloseWord closeWord);
 		/// <summary>
 		/// Returns a value gotten from using Damerau Levenshtein distance to compare the source and target.
 		/// </summary>
@@ -196,7 +191,7 @@ namespace Advobot.Classes.CloseWords
 		/// <summary>
 		/// Holds an object which has a name and text and its closeness.
 		/// </summary>
-		public class CloseWord
+		public sealed class CloseWord
 		{
 			/// <summary>
 			/// How close the name is to the search term.

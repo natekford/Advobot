@@ -59,7 +59,7 @@ namespace Advobot.Classes.Attributes
 		/// <returns></returns>
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (!(context is AdvobotSocketCommandContext aContext))
+			if (!(context is AdvobotCommandContext aContext))
 			{
 				throw new ArgumentException("Invalid context provided.");
 			}

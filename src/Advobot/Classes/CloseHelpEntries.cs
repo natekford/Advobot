@@ -39,20 +39,13 @@ namespace Advobot.Classes.CloseWords
 			var nameCloseness = FindCloseness(obj.Name, search);
 			var aliasCloseness = obj.Aliases.Select(x => FindCloseness(x, search)).DefaultIfEmpty(int.MaxValue).Min();
 			var closeness = Math.Min(nameCloseness, aliasCloseness);
-			var success = closeness < MaxAllowedCloseness;
-			closeWord = success ? new CloseWord(closeness, obj.Name, obj.ToString(_Settings)) : null;
-			return success;
+			return (closeWord = closeness < MaxAllowedCloseness ? new CloseWord(closeness, obj.Name, obj.ToString(_Settings)) : null) != null;
 		}
 		/// <inheritdoc />
-		protected override bool TryGetCloseWord(
-			IEnumerable<HelpEntry> objs,
-			IEnumerable<string> used,
-			string search,
-			out CloseWord closeWord)
+		protected override bool TryGetCloseWord(IEnumerable<HelpEntry> objs, IEnumerable<string> used, string search, out CloseWord closeWord)
 		{
 			var obj = objs.FirstOrDefault(x => !used.Contains(x.Name) && x.Name.CaseInsContains(search));
-			closeWord = obj != null ? new CloseWord(int.MaxValue, obj.Name, obj.ToString(_Settings)) : null;
-			return obj != null;
+			return (closeWord = obj != null ? new CloseWord(int.MaxValue, obj.Name, obj.ToString(_Settings)) : null) != null;
 		}
 	}
 }

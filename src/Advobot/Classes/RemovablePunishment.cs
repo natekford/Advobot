@@ -5,12 +5,12 @@ using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Punishments
+namespace Advobot.Classes
 {
 	/// <summary>
 	/// Punishments that will be removed after the time has passed.
 	/// </summary>
-	public class RemovablePunishment : DatabaseEntry
+	public sealed class RemovablePunishment : DatabaseEntry
 	{
 		/// <summary>
 		/// The type of punishment that was given.
@@ -67,9 +67,9 @@ namespace Advobot.Classes.Punishments
 		/// <param name="punisher"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task RemoveAsync(IDiscordClient client, Punisher punisher, RequestOptions options)
+		public async Task RemoveAsync(DiscordShardedClient client, Punisher punisher, RequestOptions options)
 		{
-			if (!(await client.GetGuildAsync(GuildId).CAF() is SocketGuild guild))
+			if (!(client.GetGuild(GuildId) is SocketGuild guild))
 			{
 				return;
 			}

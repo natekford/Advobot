@@ -1,23 +1,22 @@
-﻿using Advobot.Classes.Punishments;
+﻿using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Advobot.Classes
+namespace Advobot.Services.Commands
 {
 	/// <summary>
 	/// Handles user input commands.
 	/// </summary>
-	public sealed class CommandHandler
+	internal sealed class CommandHandler : ICommandHandler
 	{
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
@@ -33,7 +32,7 @@ namespace Advobot.Classes
 		/// Creates an instance of <see cref="CommandHandler"/> and gets the required services.
 		/// </summary>
 		/// <param name="provider"></param>
-		public CommandHandler(IServiceProvider provider)
+		internal CommandHandler(IServiceProvider provider)
 		{
 			_Provider = provider;
 			_Commands = _Provider.GetRequiredService<CommandService>();
@@ -53,32 +52,37 @@ namespace Advobot.Classes
 
 		private async Task OnConnected(DiscordSocketClient client)
 		{
-			if (!_Loaded)
-			{
-				if (LowLevelConfig.Config.BotId != _Client.CurrentUser.Id)
-				{
-					LowLevelConfig.Config.BotId = _Client.CurrentUser.Id;
-					LowLevelConfig.Config.Save();
-					ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-					await ClientUtils.RestartBotAsync(client).CAF();
-				}
-
-				await ClientUtils.UpdateGameAsync(_Client, _BotSettings).CAF();
-
-				var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
-				ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; Prefix: {_BotSettings.Prefix}; Launch Time: {startTime:n}ms");
-				_Timers.Start();
-				_Loaded = true;
-			}
-		}
-		private async Task OnUserJoined(SocketGuildUser user)
-		{
-			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild).CAF();
-			if (settings == null)
+			if (_Loaded)
 			{
 				return;
 			}
 
+			if (LowLevelConfig.Config.BotId != client.CurrentUser.Id)
+			{
+				LowLevelConfig.Config.BotId = client.CurrentUser.Id;
+				LowLevelConfig.Config.Save();
+				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
+				await ClientUtils.RestartBotAsync(client).CAF();
+			}
+
+			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();
+			_Timers.Start();
+
+			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
+			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; Prefix: {_BotSettings.Prefix}; Launch Time: {startTime:n}ms");
+
+			_Loaded = true;
+		}
+		private async Task OnUserJoined(SocketGuildUser user)
+		{
+			if (!_Loaded)
+			{
+				return;
+			}
+			if (!(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
+			{
+				return;
+			}
 			//Banned names
 			if (settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(user.Username)))
 			{
@@ -115,9 +119,12 @@ namespace Advobot.Classes
 		}
 		private async Task OnUserLeft(SocketGuildUser user)
 		{
+			if (!_Loaded)
+			{
+				return;
+			}
 			//Check if the bot was the one that left
-			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild).CAF();
-			if (settings == null || user.Id == LowLevelConfig.Config.BotId)
+			if (user.Id == LowLevelConfig.Config.BotId || !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
 			{
 				return;
 			}
@@ -130,6 +137,10 @@ namespace Advobot.Classes
 		}
 		private async Task OnMessageReceived(SocketMessage message)
 		{
+			if (!_Loaded)
+			{
+				return;
+			}
 			if (!(message.Author is SocketGuildUser user) || _Timers == null || !int.TryParse(message.Content, out var i) || i < 0 || i > 7)
 			{
 				return;
@@ -154,7 +165,7 @@ namespace Advobot.Classes
 			var validHelpEntries = helpEntries != null && helpEntries.List.Count > i;
 			if (validHelpEntries)
 			{
-				var prefix = String.IsNullOrWhiteSpace(settings.Prefix) ? _BotSettings.Prefix : settings.Prefix;
+				var prefix = _BotSettings.InternalGetPrefix(settings);
 				var help = helpEntries.List[i];
 				var embed = new EmbedWrapper
 				{
@@ -170,8 +181,13 @@ namespace Advobot.Classes
 				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("help entry or quote")).CAF();
 			}
 		}
-		private async Task HandleCommand(SocketMessage message)
+		/// <inheritdoc />
+		public async Task HandleCommand(SocketMessage message)
 		{
+			if (!_Loaded)
+			{
+				return;
+			}
 			var argPos = -1;
 			if (_BotSettings.Pause
 				|| String.IsNullOrWhiteSpace(message.Content)
@@ -184,7 +200,7 @@ namespace Advobot.Classes
 				return;
 			}
 
-			var context = new AdvobotShardedCommandContext(_Provider, settings, _Client, uMsg);
+			var context = new AdvobotCommandContext(_Provider, settings, _Client, uMsg);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 
 			if ((!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)

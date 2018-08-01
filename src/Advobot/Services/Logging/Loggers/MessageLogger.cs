@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.Punishments;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;

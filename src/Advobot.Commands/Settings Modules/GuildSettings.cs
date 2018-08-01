@@ -545,7 +545,7 @@ namespace Advobot.Commands.GuildSettings
 			var tf = new TextFileInfo
 			{
 				Name = "Guild_Settings",
-				Text = Context.GuildSettings.Format(Context.Client, Context.Guild).RemoveAllMarkdown(),
+				Text = Context.GuildSettings.ToString(Context.Client, Context.Guild).RemoveAllMarkdown(),
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, "**Guild Settings:**", textFile: tf).CAF();
 		}
@@ -558,7 +558,7 @@ namespace Advobot.Commands.GuildSettings
 				return;
 			}
 
-			var desc = Context.GuildSettings.Format(Context.Client, Context.Guild, field.Name);
+			var desc = Context.GuildSettings.ToString(Context.Client, Context.Guild, field.Name);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper

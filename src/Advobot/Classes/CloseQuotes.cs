@@ -11,7 +11,7 @@ namespace Advobot.Classes.CloseWords
 	/// <summary>
 	/// Implementation of <see cref="CloseWords{T}"/> which searches through <see cref="IGuildSettings.Quotes"/>.
 	/// </summary>
-	public class CloseQuotes : CloseWords<Quote>
+	public sealed class CloseQuotes : CloseWords<Quote>
 	{
 		/// <summary>
 		/// Initializes the object. Parameterless constructor is used for the database.
@@ -33,20 +33,13 @@ namespace Advobot.Classes.CloseWords
 		protected override bool IsCloseWord(Quote obj, string search, out CloseWord closeWord)
 		{
 			var closeness = FindCloseness(obj.Name, search);
-			var success = closeness < MaxAllowedCloseness;
-			closeWord = success ? new CloseWord(closeness, obj.Name, obj.Description) : null;
-			return success;
+			return (closeWord = closeness < MaxAllowedCloseness ? new CloseWord(closeness, obj.Name, obj.Description) : null) != null;
 		}
 		/// <inheritdoc />
-		protected override bool TryGetCloseWord(
-			IEnumerable<Quote> objs,
-			IEnumerable<string> used,
-			string search,
-			out CloseWord closeWord)
+		protected override bool TryGetCloseWord(IEnumerable<Quote> objs, IEnumerable<string> used, string search, out CloseWord closeWord)
 		{
 			var obj = objs.FirstOrDefault(x => !used.Contains(x.Name) && x.Name.CaseInsContains(search));
-			closeWord = obj != null ? new CloseWord(int.MaxValue, obj.Name, obj.ToString()) : null;
-			return obj != null;
+			return (closeWord = obj != null ? new CloseWord(int.MaxValue, obj.Name, obj.ToString()) : null) != null;
 		}
 	}
 }

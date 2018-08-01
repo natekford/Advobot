@@ -10,18 +10,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.Settings
 {
 	/// <summary>
 	/// Holds rules on a guild.
 	/// </summary>
-	public class RuleHolder : IGuildSetting
+	public sealed class RuleHolder : IGuildSetting
 	{
 		/// <summary>
 		/// Holds the categories for rules which in turn hold the rules.
 		/// </summary>
 		[JsonProperty]
-		public Dictionary<RuleCategory, List<string>> Categories = new Dictionary<RuleCategory, List<string>>();
+		public Dictionary<string, List<string>> Categories = new Dictionary<string, List<string>>();
 
 		/// <summary>
 		/// Sends the rules to the specified channel.
@@ -56,7 +56,7 @@ namespace Advobot.Classes
 		/// <param name="category"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		public async Task<IEnumerable<IUserMessage>> SendCategoryAsync(RuleFormatter formatter, RuleCategory category, IMessageChannel channel)
+		public async Task<IEnumerable<IUserMessage>> SendCategoryAsync(RuleFormatter formatter, string category, IMessageChannel channel)
 		{
 			return await PrivateSendCategoryAsync(ToString(formatter, category), channel).CAF();
 		}
@@ -116,7 +116,7 @@ namespace Advobot.Classes
 			var index = 0;
 			foreach (var kvp in Categories)
 			{
-				sb.AppendLineFeed(formatter.FormatName(kvp.Key.Name));
+				sb.AppendLineFeed(formatter.FormatName(kvp.Key));
 				for (var r = 0; r < kvp.Value.Count; ++r)
 				{
 					sb.AppendLineFeed(formatter.FormatRule(kvp.Value[r], r, kvp.Value.Count));
@@ -131,11 +131,11 @@ namespace Advobot.Classes
 		/// <param name="formatter"></param>
 		/// <param name="category"></param>
 		/// <returns></returns>
-		public string ToString(RuleFormatter formatter, RuleCategory category)
+		public string ToString(RuleFormatter formatter, string category)
 		{
 			var c = Categories[category];
 			var sb = new StringBuilder();
-			sb.AppendLineFeed(formatter.FormatName(category.Name));
+			sb.AppendLineFeed(formatter.FormatName(category));
 			for (var r = 0; r < c.Count; ++r)
 			{
 				sb.AppendLineFeed(formatter.FormatRule(c[r], r, c.Count));

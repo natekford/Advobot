@@ -63,23 +63,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static string Format(this IChannel channel)
 		{
-			string type;
-			switch (channel)
-			{
-				case IMessageChannel message:
-					type = "text";
-					break;
-				case IVoiceChannel voice:
-					type = "voice";
-					break;
-				case ICategoryChannel category:
-					type = "category";
-					break;
-				default:
-					type = "unknown";
-					break;
-			}
-			return channel != null ? $"'{channel.Name.EscapeBackTicks()}' ({type}) ({channel.Id})" : "Irretrievable Channel";
+			return channel != null ? $"'{channel.Name.EscapeBackTicks()}' ({channel.GetStringType()}) ({channel.Id})" : "Irretrievable Channel";
 		}
 		/// <summary>
 		/// Returns a string with the guild's name and id.
@@ -115,20 +99,9 @@ namespace Advobot.Utilities
 
 			var text = String.IsNullOrEmpty(msg.Content) ? "Empty message content" : msg.Content;
 			var time = msg.CreatedAt.ToString("HH:mm:ss");
-
-			string header;
-			if (withMentions)
-			{
-				var userMention = msg.Author.Mention;
-				var channelMention = ((ITextChannel)msg.Channel).Mention;
-				header = $"`[{time}]` {channelMention} {userMention} `{msg.Id}`";
-			}
-			else
-			{
-				var user = msg.Author.Format();
-				var channel = msg.Channel.Format();
-				header = $"`[{time}]` `{channel}` `{user}` `{msg.Id}`";
-			}
+			var header = withMentions
+				? $"`[{time}]` {((ITextChannel)msg.Channel).Mention} {msg.Author.Mention} `{msg.Id}`"
+				: $"`[{time}]` `{msg.Channel.Format()}` `{msg.Author.Format()}` `{msg.Id}`";
 
 			var content = new StringBuilder($"{header}\n```\n{text.EscapeBackTicks()}");
 			foreach (var embed in embeds)
@@ -152,6 +125,8 @@ namespace Advobot.Utilities
 			{
 				case StreamingGame sg:
 					return $"**Current Stream:** [{sg.Name.EscapeBackTicks()}]({sg.Url})";
+				case RichGame rg:
+					return $"**Current Game:** `{rg.Name.EscapeBackTicks()}` `{rg.State.EscapeBackTicks()}`";
 				case Game g:
 					return $"**Current Game:** `{g.Name.EscapeBackTicks()}`";
 				default:
@@ -190,7 +165,7 @@ namespace Advobot.Utilities
 				Description = user.FormatInfo() +
 					$"**Nickname:** `{user.Nickname?.EscapeBackTicks() ?? "No nickname"}`\n" +
 					$"**Joined:** `{user.JoinedAt?.UtcDateTime.ToReadable()}` " +
-						$"(`{guild.Users.OrderBy(x => x.JoinedAt?.Ticks ?? 0).Select(x => x.Id).ToList().IndexOf(user.Id) + 1}` to join the guild)\n\n" +
+						$"(`#{guild.Users.OrderBy(x => x.JoinedAt?.Ticks ?? 0).Select(x => x.Id).ToList().IndexOf(user.Id) + 1}`)\n\n" +
 					$"{user.Activity.Format()}\n" +
 					$"**Online status:** `{user.Status}`\n",
 				Color = roles.LastOrDefault(x => x.Color.RawValue != 0)?.Color,
@@ -199,13 +174,13 @@ namespace Advobot.Utilities
 			embed.TryAddAuthor(user, out _);
 			embed.TryAddFooter("Guild User Info", null, out _);
 
-			if (channels.Count() != 0)
+			if (channels.Any())
 			{
 				embed.TryAddField("Channels", $"`{String.Join("`, `", channels)}`", false, out _);
 			}
-			if (roles.Count() != 0)
+			if (roles.Any())
 			{
-				embed.TryAddField("Roles", $"`{String.Join(", ", roles.Select(x => x.Name))}`", false, out _);
+				embed.TryAddField("Roles", $"`{String.Join("`, `", roles.Select(x => x.Name))}`", false, out _);
 			}
 			if (user.VoiceChannel != null)
 			{
@@ -264,7 +239,7 @@ namespace Advobot.Utilities
 		/// <param name="guildSettings"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatChannelInfo(IGuildSettings guildSettings, SocketGuildChannel channel)
+		public static EmbedWrapper FormatChannelInfo(SocketGuildChannel channel, IGuildSettings guildSettings)
 		{
 			var overwriteNames = channel.PermissionOverwrites.Select(o =>
 			{
@@ -354,35 +329,26 @@ namespace Advobot.Utilities
 				switch (user.Status)
 				{
 					case UserStatus.Offline:
-						++offline;
-						break;
+						++offline; break;
 					case UserStatus.Online:
-						++online;
-						break;
+						++online; break;
 					case UserStatus.Idle:
-						++idle;
-						break;
+						++idle; break;
 					case UserStatus.AFK:
-						++afk;
-						break;
+						++afk; break;
 					case UserStatus.DoNotDisturb:
-						++donotdisturb;
-						break;
+						++donotdisturb; break;
 				}
 				switch (user.Activity?.Type)
 				{
 					case ActivityType.Playing:
-						++playing;
-						break;
+						++playing; break;
 					case ActivityType.Listening:
-						++listening;
-						break;
+						++listening; break;
 					case ActivityType.Streaming:
-						++streaming;
-						break;
+						++streaming; break;
 					case ActivityType.Watching:
-						++watching;
-						break;
+						++watching; break;
 				}
 				if (user.IsWebhook)
 				{ ++webhooks; }
@@ -497,13 +463,13 @@ namespace Advobot.Utilities
 		/// <param name="logModule"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatBotInfo(DiscordSocketClient client, ILogService logModule, IGuild guild)
+		public static EmbedWrapper FormatBotInfo(DiscordShardedClient client, SocketGuild guild, ILogService logModule)
 		{
 			var embed = new EmbedWrapper
 			{
 				Description = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.ToReadable()}` (`{Formatting.GetUptime()}`)\n" +
 					$"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`\n" +
-					$"**Current Shard:** `{client.ShardId}`\n" +
+					$"**Current Shard:** `{client.GetShardIdFor(guild)}`\n" +
 					$"**Latency:** `{client.Latency}ms`\n" +
 					$"**Memory Usage:** `{IOUtils.GetMemory():0.00}MB`\n" +
 					$"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`",
@@ -515,9 +481,24 @@ namespace Advobot.Utilities
 			embed.TryAddFooter($"Versions [Bot: {Version.VERSION_NUMBER}] [API: {Constants.API_VERSION}]", null, out _);
 			return embed;
 		}
+
 		private static string FormatInfo(this ISnowflakeEntity obj)
 		{
 			return $"**Id:** `{obj.Id}`\n{obj.CreatedAt.UtcDateTime.ToCreatedAt()}\n\n";
+		}
+		private static string GetStringType(this IChannel channel)
+		{
+			switch (channel)
+			{
+				case IMessageChannel message:
+					return "text";
+				case IVoiceChannel voice:
+					return "voice";
+				case ICategoryChannel category:
+					return "category";
+				default:
+					return "unknown";
+			}
 		}
 	}
 }

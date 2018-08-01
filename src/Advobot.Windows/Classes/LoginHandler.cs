@@ -1,19 +1,18 @@
-﻿using Advobot;
+﻿using System;
+using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Threading.Tasks;
 
 namespace Advobot.Windows.Classes
 {
 	internal class LoginHandler
 	{
 		public IServiceProvider Provider { get; private set; }
-		public CommandHandler CommandHandler { get; private set; }
+		public ICommandHandler CommandHandler { get; private set; }
 
 		private bool _StartUp = true;
 		public bool GotPath { get; private set; }
@@ -54,7 +53,7 @@ namespace Advobot.Windows.Classes
 			if (LowLevelConfig.Config.ValidatePath(path, startup))
 			{
 				Provider = CreationUtils.CreateDefaultServiceProvider<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies());
-				CommandHandler = new CommandHandler(Provider);
+				CommandHandler = Provider.GetRequiredService<ICommandHandler>();
 				return true;
 			}
 			return false;

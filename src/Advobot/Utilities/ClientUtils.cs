@@ -10,7 +10,7 @@ using Discord.WebSocket;
 namespace Advobot.Utilities
 {
 	/// <summary>
-	/// Actions done on an <see cref="IDiscordClient"/>.
+	/// Actions done on discord clients.
 	/// </summary>
 	public static class ClientUtils
 	{
@@ -21,7 +21,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		public static async Task StartAsync(DiscordShardedClient client)
+		public static async Task StartAsync(BaseSocketClient client)
 		{
 			ConsoleUtils.WriteLine("Connecting the client...");
 			await client.StartAsync().CAF();
@@ -33,7 +33,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		public static async Task<ulong> GetOwnerIdAsync(DiscordSocketClient client)
+		public static async Task<ulong> GetOwnerIdAsync(BaseSocketClient client)
 		{
 			return _BotOwnerId != 0 ? _BotOwnerId : (_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id);
 		}
@@ -44,7 +44,7 @@ namespace Advobot.Utilities
 		/// <param name="botSettings">The information to update with.</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static async Task UpdateGameAsync(DiscordShardedClient client, IBotSettings botSettings)
+		public static async Task UpdateGameAsync(BaseSocketClient client, IBotSettings botSettings)
 		{
 			var game = botSettings.Game;
 			var stream = botSettings.Stream;
@@ -64,7 +64,7 @@ namespace Advobot.Utilities
 		/// The old bot is then killed
 		/// </para>
 		/// </summary>
-		public static async Task RestartBotAsync(IDiscordClient client)
+		public static async Task RestartBotAsync(BaseSocketClient client)
 		{
 			await client.StopAsync().CAF();
 			//For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
@@ -79,7 +79,7 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Exits the current application.
 		/// </summary>
-		public static async Task DisconnectBotAsync(IDiscordClient client)
+		public static async Task DisconnectBotAsync(BaseSocketClient client)
 		{
 			await client.StopAsync().CAF();
 			Environment.Exit(0);

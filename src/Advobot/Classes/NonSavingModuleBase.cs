@@ -10,7 +10,7 @@ namespace Advobot.Classes
 	/// Shorter way to write the used modulebase and also has every command go through the <see cref="CommandRequirementAttribute"/> first.
 	/// </summary>
 	[CommandRequirement]
-	public abstract class NonSavingModuleBase : ModuleBase<AdvobotSocketCommandContext>
+	public abstract class NonSavingModuleBase : ModuleBase<AdvobotCommandContext>
 	{
 		/// <summary>
 		/// Gets a request options that mainly is used for the reason in the audit log.

@@ -159,7 +159,7 @@ namespace Advobot.Commands.BotSettings
 			var tf = new TextFileInfo
 			{
 				Name = "Bot_Settings",
-				Text = Context.BotSettings.Format(Context.Client, Context.Guild),
+				Text = Context.BotSettings.ToString(Context.Client, Context.Guild),
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, "**Bot Settings:**", textFile: tf).CAF();
 		}
@@ -172,7 +172,7 @@ namespace Advobot.Commands.BotSettings
 				return;
 			}
 
-			var desc = Context.BotSettings.Format(Context.Client, Context.Guild);
+			var desc = Context.BotSettings.ToString(Context.Client, Context.Guild);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper

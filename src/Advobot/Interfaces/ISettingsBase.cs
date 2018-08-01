@@ -27,7 +27,7 @@ namespace Advobot.Interfaces
 		/// <param name="client"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		string Format(DiscordSocketClient client, IGuild guild);
+		string ToString(DiscordShardedClient client, SocketGuild guild);
 		/// <summary>
 		/// Formats a specific setting.
 		/// </summary>
@@ -35,7 +35,7 @@ namespace Advobot.Interfaces
 		/// <param name="guild"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		string Format(DiscordSocketClient client, IGuild guild, string name);
+		string ToString(DiscordShardedClient client, SocketGuild guild, string name);
 		/// <summary>
 		/// Sets every setting back to its default value.
 		/// </summary>

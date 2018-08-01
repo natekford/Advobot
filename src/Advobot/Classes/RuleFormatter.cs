@@ -3,42 +3,45 @@ using Advobot.Enums;
 using AdvorangesUtils;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
+using System.Linq;
 
 namespace Advobot.Classes
 {
 	/// <summary>
 	/// Formats rules to look nice.
 	/// </summary>
-	public class RuleFormatter
+	public sealed class RuleFormatter
 	{
-		private static Dictionary<RuleFormat, MarkDownFormat> _DefaultTitleFormats = new Dictionary<RuleFormat, MarkDownFormat>
+		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat> _DefaultTitleFormats = new Dictionary<RuleFormat, MarkDownFormat>
 		{
 			{ default, MarkDownFormat.Bold },
 			{ RuleFormat.Numbers, MarkDownFormat.Bold },
 			{ RuleFormat.Dashes, MarkDownFormat.Code },
 			{ RuleFormat.Bullets, MarkDownFormat.Bold },
 			{ RuleFormat.Bold, MarkDownFormat.Bold | MarkDownFormat.Italics }
-		};
-		private static Dictionary<RuleFormat, MarkDownFormat> _DefaultRuleFormats = new Dictionary<RuleFormat, MarkDownFormat>
+		}.ToImmutableDictionary();
+		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat> _DefaultRuleFormats = new Dictionary<RuleFormat, MarkDownFormat>
 		{
 			{ default, default },
 			{ RuleFormat.Numbers, default },
 			{ RuleFormat.Dashes, default },
 			{ RuleFormat.Bullets, default },
 			{ RuleFormat.Bold, MarkDownFormat.Bold }
-		};
+		}.ToImmutableDictionary();
+		private static readonly ImmutableArray<MarkDownFormat> _MarkDownFormats = Enum.GetValues(typeof(MarkDownFormat)).Cast<MarkDownFormat>().ToImmutableArray();
 
-		private RuleFormat _Format;
-		private MarkDownFormat _TitleMarkDownFormat;
-		private MarkDownFormat _RuleMarkDownFormat;
-		private RuleFormatOption _Options;
-		private char _CharAfterNumbers;
+		private readonly RuleFormat _RuleFormat;
+		private readonly MarkDownFormat _TitleMarkDownFormat;
+		private readonly MarkDownFormat _RuleMarkDownFormat;
+		private readonly RuleFormatOption _Options;
+		private readonly char _CharAfterNumbers;
 
 		/// <summary>
 		/// Creates an instance of rule formatter.
 		/// </summary>
-		public RuleFormatter() : this(default) { }
+		public RuleFormatter() : this(default, default, default, '.') { }
 		/// <summary>
 		/// Uses user input to create a rule formatter.
 		/// </summary>
@@ -49,13 +52,13 @@ namespace Advobot.Classes
 		/// <param name="formatOptions"></param>
 		[NamedArgumentConstructor]
 		private RuleFormatter(
-			[NamedArgument] RuleFormat format = default,
-			[NamedArgument] MarkDownFormat titleFormat = default,
-			[NamedArgument] MarkDownFormat ruleFormat = default,
-			[NamedArgument] char charAfterNumbers = '.',
+			[NamedArgument] RuleFormat format,
+			[NamedArgument] MarkDownFormat titleFormat,
+			[NamedArgument] MarkDownFormat ruleFormat,
+			[NamedArgument] char charAfterNumbers,
 			[NamedArgument(10)] params RuleFormatOption[] formatOptions)
 		{
-			_Format = format == default ? RuleFormat.Numbers : format;
+			_RuleFormat = format == default ? RuleFormat.Numbers : format;
 			_TitleMarkDownFormat = titleFormat;
 			_RuleMarkDownFormat = ruleFormat;
 			_CharAfterNumbers = charAfterNumbers;
@@ -77,7 +80,7 @@ namespace Advobot.Classes
 			{
 				n = n + "\n";
 			}
-			return AddMarkDown(_TitleMarkDownFormat == default ? _DefaultTitleFormats[_Format] : _TitleMarkDownFormat, n);
+			return AddMarkDown(_TitleMarkDownFormat == default ? _DefaultTitleFormats[_RuleFormat] : _TitleMarkDownFormat, n);
 		}
 		/// <summary>
 		/// Format the rule itself.
@@ -89,18 +92,13 @@ namespace Advobot.Classes
 		public string FormatRule(string rule, int index, int rulesInCategory)
 		{
 			string r;
-			switch (_Format)
+			switch (_RuleFormat)
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bold:
-					if (_Options.HasFlag(RuleFormatOption.NumbersSameLength))
-					{
-						r = $"`{(index + 1).ToString().PadLeft(rulesInCategory.ToString().Length, '0')}";
-					}
-					else
-					{
-						r = $"`{index + 1}`";
-					}
+					r = _Options.HasFlag(RuleFormatOption.NumbersSameLength)
+						? $"`{(index + 1).ToString().PadLeft(rulesInCategory.ToString().Length, '0')}"
+						: $"`{index + 1}`";
 					break;
 				case RuleFormat.Dashes:
 					r = $"-";
@@ -114,15 +112,12 @@ namespace Advobot.Classes
 			}
 
 			r = $"{r}{rule}";
-			r = _CharAfterNumbers != default
-				? AddCharAfterNumbers(r, _CharAfterNumbers)
-				: r;
-			r = r.Trim(' ');
+			r = (_CharAfterNumbers != default ? AddCharAfterNumbers(r, _CharAfterNumbers) : r).Trim();
 			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
 			{
 				r = r + "\n";
 			}
-			return AddMarkDown(_RuleMarkDownFormat == default ? _DefaultRuleFormats[_Format] : _RuleMarkDownFormat, r);
+			return AddMarkDown(_RuleMarkDownFormat == default ? _DefaultRuleFormats[_RuleFormat] : _RuleMarkDownFormat, r);
 		}
 		private string AddCharAfterNumbers(string text, char charToAdd)
 		{
@@ -143,7 +138,7 @@ namespace Advobot.Classes
 		}
 		private string AddMarkDown(MarkDownFormat formattingOptions, string text)
 		{
-			foreach (MarkDownFormat md in Enum.GetValues(typeof(MarkDownFormat)))
+			foreach (MarkDownFormat md in _MarkDownFormats)
 			{
 				if (!formattingOptions.HasFlag(md))
 				{
@@ -159,6 +154,9 @@ namespace Advobot.Classes
 						break;
 					case MarkDownFormat.Code:
 						text = $"`{text.EscapeBackTicks()}`";
+						break;
+					case MarkDownFormat.StrikeThrough:
+						text = $"~~{text.EscapeBackTicks()}~~";
 						break;
 				}
 			}

@@ -20,6 +20,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="context"></param>
 		/// <param name="checks"></param>
+		/// <param name="type"></param>
 		/// <param name="extraChecks"></param>
 		/// <returns></returns>
 		internal static VerifiedObjectResult InternalVerify(
@@ -122,7 +123,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		internal static string InternalGetPrefix(this IBotSettings b, IGuildSettings g)
 		{
-			return String.IsNullOrWhiteSpace(g.Prefix) ? b.Prefix : g.Prefix;
+			return String.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g?.Prefix;
 		}
 	}
 }

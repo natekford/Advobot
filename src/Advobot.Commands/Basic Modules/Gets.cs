@@ -24,7 +24,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
 		public async Task Bot()
 		{
-			var embed = DiscordFormatting.FormatBotInfo(Context.Client, Context.Logging, Context.Guild);
+			var embed = DiscordFormatting.FormatBotInfo(Context.Client, Context.Guild, Context.Logging);
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
@@ -42,7 +42,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel([Remainder] SocketGuildChannel channel)
 		{
-			var embed = DiscordFormatting.FormatChannelInfo(Context.GuildSettings, channel);
+			var embed = DiscordFormatting.FormatChannelInfo(channel, Context.GuildSettings);
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]

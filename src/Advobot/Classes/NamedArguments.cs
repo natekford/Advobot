@@ -20,13 +20,13 @@ namespace Advobot.Classes
 		/// </summary>
 		public static ImmutableList<string> ArgNames { get; }
 
-		private static ConstructorInfo _Constructor;
-		private static bool _HasParams;
-		private static int _ParamsLength;
-		private static string _ParamsName;
+		private static readonly ConstructorInfo _Constructor;
+		private static readonly bool _HasParams;
+		private static readonly int _ParamsLength;
+		private static readonly string _ParamsName;
 
-		private Dictionary<string, string> _Args;
-		private List<string> _ParamArgs;
+		private readonly Dictionary<string, string> _Args;
+		private readonly List<string> _ParamArgs;
 
 		/// <summary>
 		/// Sets the constructor, argnames, and params information.
@@ -128,7 +128,7 @@ namespace Advobot.Classes
 		/// <param name="obj"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public bool TryCreateObject(object[] additionalArgs, out T obj, out Error error)
+		public bool TryCreateObject(IEnumerable<object> additionalArgs, out T obj, out Error error)
 		{
 			var additionalArgsList = new List<object>(additionalArgs);
 			try
@@ -204,44 +204,27 @@ namespace Advobot.Classes
 				return Nullable.GetUnderlyingType(type) != null ? null : CreateDefault(type);
 			}
 
-			var t = Nullable.GetUnderlyingType(type) ?? type;
+			type = Nullable.GetUnderlyingType(type) ?? type;
 			//If the type is an enum see if it's a valid name. If invalid then return default
-			if (t.IsEnum)
+			if (type.IsEnum)
 			{
-				if (type.GetCustomAttribute<FlagsAttribute>() == null)
-				{
-					return Enum.IsDefined(type, value)
-						? Enum.Parse(type, value, true)
-						: Activator.CreateInstance(type);
-				}
-
-				//Allow people to 'OR' things together (kind of)
-				var e = (ulong)Activator.CreateInstance(type);
-				foreach (var s in value.Split('|'))
-				{
-					if (Enum.IsDefined(type, s))
-					{
-						e |= (ulong)Enum.Parse(type, s, true);
-					}
-				}
-				return Enum.ToObject(type, e);
+				return CreateEnum(type, value);
 			}
 
 			//I think ConvertFromInvariantString works with commas, but only if the computer's culture is set to one that uses it. 
 			//Can't really test that easily because I CBA to switch my computer's language.
-			if (TypeDescriptor.GetConverter(t) is TypeConverter converter && converter.IsValid(value))
+			if (TypeDescriptor.GetConverter(type) is TypeConverter converter && converter.IsValid(value))
 			{
 				return converter.ConvertFromInvariantString(value);
 			}
 
 			//If there's only one constructor that accepts strings, use that one
 			//Method signatures mean there will only be one constructor that accepts 1 string if it does exist
-			var constructor = t.GetConstructors().SingleOrDefault(x =>
+			return type.GetConstructors().SingleOrDefault(x =>
 			{
 				var parameters = x.GetParameters();
 				return parameters.Length == 1 && parameters[0].ParameterType == typeof(string);
-			});
-			return constructor != null ? constructor.Invoke(new object[] { value }) : CreateDefault(t);
+			})?.Invoke(new object[] { value }) ?? CreateDefault(type);
 		}
 		/// <summary>
 		/// Value types and classes with parameterless constructors can be created with no parameters.
@@ -255,16 +238,35 @@ namespace Advobot.Classes
 			{
 				return Activator.CreateInstance(type);
 			}
-
 			if (createParameterless)
 			{
-				var constructor = type.GetConstructors().SingleOrDefault(x => !x.GetParameters().Any());
-				if (constructor != null)
-				{
-					return constructor.Invoke(new object[0]);
-				}
+				return type.GetConstructors().SingleOrDefault(x => !x.GetParameters().Any())?.Invoke(new object[0]);
 			}
 			return null;
+		}
+		/// <summary>
+		/// Creates an enum from the supplied string. Attempts to parse first regularly, then attempts to parse as flags.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		private object CreateEnum(Type type, string value)
+		{
+			if (type.GetCustomAttribute<FlagsAttribute>() == null)
+			{
+				return Enum.IsDefined(type, value) ? Enum.Parse(type, value, true) : Activator.CreateInstance(type);
+			}
+
+			//Allow people to 'OR' things together (kind of)
+			var e = (ulong)Activator.CreateInstance(type);
+			foreach (var s in value.Split('|'))
+			{
+				if (Enum.IsDefined(type, s))
+				{
+					e |= (ulong)Enum.Parse(type, s, true);
+				}
+			}
+			return Enum.ToObject(type, e);
 		}
 	}
 }

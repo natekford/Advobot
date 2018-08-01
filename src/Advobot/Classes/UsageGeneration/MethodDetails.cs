@@ -7,7 +7,7 @@ namespace Advobot.Classes.UsageGeneration
 	/// <summary>
 	/// Information about a method to be used in <see cref="UsageGenerator"/>.
 	/// </summary>
-	internal class MethodDetails
+	internal sealed class MethodDetails
 	{
 		public int Deepness { get; }
 		public string Name { get; }

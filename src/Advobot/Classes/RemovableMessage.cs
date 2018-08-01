@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Classes.Punishments
+namespace Advobot.Classes
 {
 	/// <summary>
 	/// Messages that will get deleted after the time has passed.

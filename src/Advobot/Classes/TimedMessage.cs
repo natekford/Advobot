@@ -6,7 +6,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Sends a message to the author after the time has passed.
 	/// </summary>
-	public class TimedMessage : DatabaseEntry
+	public sealed class TimedMessage : DatabaseEntry
 	{
 		/// <summary>
 		/// The user to send the message to.

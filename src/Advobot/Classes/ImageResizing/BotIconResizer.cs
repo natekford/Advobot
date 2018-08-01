@@ -18,7 +18,7 @@ namespace Advobot.Classes.ImageResizing
 		public BotIconResizer(int threads) : base(threads, "bot icon") { }
 
 		/// <inheritdoc />
-		protected override async Task<Error> UseResizedImageStream(AdvobotSocketCommandContext context, MemoryStream stream, MagickFormat format, string name, RequestOptions options)
+		protected override async Task<Error> UseResizedImageStream(AdvobotCommandContext context, MemoryStream stream, MagickFormat format, string name, RequestOptions options)
 		{
 			await context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream), options).CAF();
 			return null;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.WebSocket;
@@ -30,7 +31,7 @@ namespace Advobot.Core
 			}
 
 			var provider = CreationUtils.CreateDefaultServiceProvider<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies());
-			var commandHandler = new CommandHandler(provider);
+			var commandHandler = provider.GetService<ICommandHandler>();
 			var client = provider.GetService<DiscordShardedClient>();
 
 			//Get the bot key

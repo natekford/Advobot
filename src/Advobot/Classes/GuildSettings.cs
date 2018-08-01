@@ -17,7 +17,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Holds settings for a guild..
 	/// </summary>
-	public class GuildSettings : SettingsBase, IGuildSettings
+	public sealed class GuildSettings : SettingsBase, IGuildSettings
 	{
 		/// <inheritdoc />
 		[JsonProperty("WelcomeMessage"), Setting(null)]

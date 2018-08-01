@@ -9,7 +9,7 @@ namespace Advobot.Classes.UserInformation
 	/// <summary>
 	/// Holds a user and the counts of which punishments they should get.
 	/// </summary>
-	public class BannedPhraseUserInfo : UserInfo
+	public sealed class BannedPhraseUserInfo : UserInfo
 	{
 		/// <summary>
 		/// The amount of messages that gave them a kick punishment.
@@ -50,72 +50,6 @@ namespace Advobot.Classes.UserInformation
 		public BannedPhraseUserInfo(SocketGuildUser user) : base(user) { }
 
 		/// <summary>
-		/// Increases the banned phrase count for that punishment by one.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		public int Increment(Punishment type)
-		{
-			switch (type)
-			{
-				case Punishment.Kick:
-					return Interlocked.Increment(ref _Kick);
-				case Punishment.Ban:
-					return Interlocked.Increment(ref _Ban);
-				case Punishment.Deafen:
-					return Interlocked.Increment(ref _Deafen);
-				case Punishment.VoiceMute:
-					return Interlocked.Increment(ref _VoiceMute);
-				case Punishment.Softban:
-					return Interlocked.Increment(ref _Softban);
-				case Punishment.RoleMute:
-					return Interlocked.Increment(ref _RoleMute);
-				default:
-					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
-			}
-		}
-		/// <summary>
-		/// Sets the banned phrase count for that punishment back to zero.
-		/// </summary>
-		/// <param name="type"></param>
-		public void Reset(Punishment type)
-		{
-			switch (type)
-			{
-				case Punishment.Kick:
-					Interlocked.Exchange(ref _Kick, 0);
-					return;
-				case Punishment.Ban:
-					Interlocked.Exchange(ref _Ban, 0);
-					return;
-				case Punishment.Deafen:
-					Interlocked.Exchange(ref _Deafen, 0);
-					return;
-				case Punishment.VoiceMute:
-					Interlocked.Exchange(ref _VoiceMute, 0);
-					return;
-				case Punishment.Softban:
-					Interlocked.Exchange(ref _Softban, 0);
-					return;
-				case Punishment.RoleMute:
-					Interlocked.Exchange(ref _RoleMute, 0);
-					return;
-				default:
-					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
-			}
-		}
-		/// <inheritdoc />
-		public override void Reset()
-		{
-			Interlocked.Exchange(ref _Kick, 0);
-			Interlocked.Exchange(ref _Ban, 0);
-			Interlocked.Exchange(ref _Deafen, 0);
-			Interlocked.Exchange(ref _VoiceMute, 0);
-			Interlocked.Exchange(ref _Softban, 0);
-			Interlocked.Exchange(ref _RoleMute, 0);
-		}
-
-		/// <summary>
 		/// Returns the value of the specified punishment.
 		/// </summary>
 		/// <param name="type"></param>
@@ -144,6 +78,65 @@ namespace Advobot.Classes.UserInformation
 			}
 		}
 
+		/// <summary>
+		/// Increases the banned phrase count for that punishment by one.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public int Increment(Punishment type)
+		{
+			switch (type)
+			{
+				case Punishment.Kick:
+					return Interlocked.Increment(ref _Kick);
+				case Punishment.Ban:
+					return Interlocked.Increment(ref _Ban);
+				case Punishment.Deafen:
+					return Interlocked.Increment(ref _Deafen);
+				case Punishment.VoiceMute:
+					return Interlocked.Increment(ref _VoiceMute);
+				case Punishment.Softban:
+					return Interlocked.Increment(ref _Softban);
+				case Punishment.RoleMute:
+					return Interlocked.Increment(ref _RoleMute);
+				default:
+					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
+			}
+		}
+		/// <summary>
+		/// Sets the banned phrase count for that punishment back to zero.
+		/// </summary>
+		/// <param name="type"></param>
+		public int Reset(Punishment type)
+		{
+			switch (type)
+			{
+				case Punishment.Kick:
+					return Interlocked.Exchange(ref _Kick, 0);
+				case Punishment.Ban:
+					return Interlocked.Exchange(ref _Ban, 0);
+				case Punishment.Deafen:
+					return Interlocked.Exchange(ref _Deafen, 0);
+				case Punishment.VoiceMute:
+					return Interlocked.Exchange(ref _VoiceMute, 0);
+				case Punishment.Softban:
+					return Interlocked.Exchange(ref _Softban, 0);
+				case Punishment.RoleMute:
+					return Interlocked.Exchange(ref _RoleMute, 0);
+				default:
+					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
+			}
+		}
+		/// <inheritdoc />
+		public override void Reset()
+		{
+			Interlocked.Exchange(ref _Kick, 0);
+			Interlocked.Exchange(ref _Ban, 0);
+			Interlocked.Exchange(ref _Deafen, 0);
+			Interlocked.Exchange(ref _VoiceMute, 0);
+			Interlocked.Exchange(ref _Softban, 0);
+			Interlocked.Exchange(ref _RoleMute, 0);
+		}
 		/// <summary>
 		/// Returns the count of each punishment type.
 		/// </summary>

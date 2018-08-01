@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Advobot.Classes.Punishments;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;

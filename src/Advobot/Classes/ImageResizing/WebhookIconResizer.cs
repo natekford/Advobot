@@ -19,7 +19,7 @@ namespace Advobot.Classes.ImageResizing
 		public WebhookIconResizer(int threads) : base(threads, "webhook icon") { }
 
 		/// <inheritdoc />
-		protected override async Task<Error> UseResizedImageStream(AdvobotSocketCommandContext context, MemoryStream stream, MagickFormat format, string name, RequestOptions options)
+		protected override async Task<Error> UseResizedImageStream(AdvobotCommandContext context, MemoryStream stream, MagickFormat format, string name, RequestOptions options)
 		{
 			if (!(await context.Guild.GetWebhookAsync(Convert.ToUInt64(name)).CAF() is IWebhook webhook))
 			{

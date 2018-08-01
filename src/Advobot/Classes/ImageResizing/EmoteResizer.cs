@@ -16,11 +16,10 @@ namespace Advobot.Classes.ImageResizing
 		/// Creates an instance of <see cref="EmoteResizer"/>.
 		/// </summary>
 		/// <param name="threads"></param>
-		/// <param name="type"></param>
 		public EmoteResizer(int threads) : base(threads, "emote") { }
 
 		/// <inheritdoc />
-		protected override async Task<Error> UseResizedImageStream(AdvobotSocketCommandContext context, MemoryStream stream, MagickFormat format, string name, RequestOptions options)
+		protected override async Task<Error> UseResizedImageStream(AdvobotCommandContext context, MemoryStream stream, MagickFormat format, string name, RequestOptions options)
 		{
 			switch (format)
 			{

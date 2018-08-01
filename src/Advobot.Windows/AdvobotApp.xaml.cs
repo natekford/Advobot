@@ -9,7 +9,7 @@ namespace Advobot.Windows
 	/// <summary>
 	/// Interaction logic for AdvobotApp.xaml
 	/// </summary>
-	public partial class AdvobotApp : Application, IDisposable
+	public sealed partial class AdvobotApp : Application, IDisposable
 	{
 		private BindingListener _Listener = new BindingListener();
 
@@ -31,8 +31,8 @@ namespace Advobot.Windows
 			DispatcherUnhandledException += (dueSender, dueE) =>
 			{
 				//Display to the user what happened and also log it
-				MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{dueE.Exception}", "UNHANDLED EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
 				IOUtils.LogUncaughtException(dueE.Exception);
+				MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{dueE.Exception}", "UNHANDLED EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
 				dueE.Handled = true;
 				Shutdown();
 			};
@@ -45,7 +45,6 @@ namespace Advobot.Windows
 			MainWindow = new AdvobotWindow();
 			MainWindow.Show();
 		}
-
 		/// <inheritdoc />
 		public void Dispose()
 		{

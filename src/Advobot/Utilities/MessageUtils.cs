@@ -1,14 +1,13 @@
-﻿using Advobot.Classes;
-using Advobot.Classes.Punishments;
-using Advobot.Interfaces;
-using AdvorangesUtils;
-using Discord;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Classes;
+using Advobot.Interfaces;
+using AdvorangesUtils;
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Utilities
 {
@@ -81,7 +80,7 @@ namespace Advobot.Utilities
 		/// <param name="secondStr"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(AdvobotSocketCommandContext context, string secondStr, TimeSpan time = default)
+		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(AdvobotCommandContext context, string secondStr, TimeSpan time = default)
 		{
 			return await MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)context.Channel, context.Message, secondStr, context.Timers, time).CAF();
 		}
@@ -111,7 +110,7 @@ namespace Advobot.Utilities
 		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> SendErrorMessageAsync(AdvobotSocketCommandContext context, Error error, TimeSpan time = default)
+		public static async Task<RemovableMessage> SendErrorMessageAsync(AdvobotCommandContext context, Error error, TimeSpan time = default)
 		{
 			return await SendErrorMessageAsync((SocketTextChannel)context.Channel, context.GuildSettings, context.Message, error, context.Timers, time).CAF();
 		}
@@ -150,31 +149,24 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, RequestOptions options, IUser fromUser = null)
 		{
-			if (fromUser == null)
-			{
-				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).FlattenAsync().CAF();
-				return await DeleteMessagesAsync(channel, messages, options).CAF();
-			}
-
 			var deletedCount = 0;
 			while (requestCount > 0)
 			{
-				var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before).FlattenAsync().CAF()).ToList();
-				if (!messages.Any())
+				var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF()).ToList();
+				fromMessage = messages.LastOrDefault();
+
+				//Get messages from a targetted user if one is supplied
+				var userMessages = fromUser == null ? messages : messages.Where(x => x.Author.Id == fromUser.Id);
+				var cutMessages = userMessages.Take(requestCount).ToList();
+
+				//If less messages are deleted than gathered, that means there are some that are too old meaning we can stop
+				var deletedThisIteration = await DeleteMessagesAsync(channel, cutMessages, options).CAF();
+				deletedCount += deletedThisIteration;
+				requestCount -= deletedThisIteration;
+				if (deletedThisIteration < cutMessages.Count)
 				{
 					break;
 				}
-				fromMessage = messages.Last();
-
-				//Get messages from a targetted user
-				var userMessages = messages.Where(x => x.Author.Id == fromUser.Id).Take(Math.Min(requestCount, 100)).ToList();
-				if (!userMessages.Any())
-				{
-					break;
-				}
-				deletedCount += await DeleteMessagesAsync(channel, userMessages, options).CAF();
-
-				requestCount -= userMessages.Count();
 			}
 			return deletedCount;
 		}
@@ -187,12 +179,23 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, RequestOptions options)
 		{
-			var validMessages = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14);
+			var validMessages = messages?.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14)?.ToList();
+			if (validMessages == null || !validMessages.Any())
+			{
+				return 0;
+			}
 
 			try
 			{
-				await channel.DeleteMessagesAsync(validMessages, options).CAF();
-				return validMessages.Count();
+				if (validMessages.Count == 1)
+				{
+					await validMessages[0].DeleteAsync(options).CAF();
+				}
+				else
+				{
+					await channel.DeleteMessagesAsync(validMessages, options).CAF();
+				}
+				return validMessages.Count;
 			}
 			catch
 			{
@@ -200,27 +203,14 @@ namespace Advobot.Utilities
 			}
 		}
 		/// <summary>
-		/// Deletes the passed in message directly.
+		/// Deletes the passed in message directly. Will only delete messages under 14 days old.
 		/// </summary>
 		/// <param name="message"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
 		public static async Task<int> DeleteMessageAsync(IMessage message, RequestOptions options)
 		{
-			if (message == null || (DateTime.UtcNow - message.CreatedAt.UtcDateTime).TotalDays > 14)
-			{
-				return 0;
-			}
-
-			try
-			{
-				await message.DeleteAsync(options).CAF();
-				return 1;
-			}
-			catch
-			{
-				return 0;
-			}
+			return await DeleteMessagesAsync((ITextChannel)message.Channel, new[] { message }, options).CAF();
 		}
 
 		private static string SanitizeContent(this IMessageChannel channel, string content)
@@ -233,7 +223,7 @@ namespace Advobot.Utilities
 			{
 				content = ZERO_LENGTH_CHAR + content;
 			}
-			if (channel is SocketGuildChannel guildChannel)
+			if (channel is IGuildChannel guildChannel)
 			{
 				content = content.CaseInsReplace(guildChannel.Guild.EveryoneRole.Mention, $"@{ZERO_LENGTH_CHAR}everyone"); //Everyone and Here have the same role
 			}

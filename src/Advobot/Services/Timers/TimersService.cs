@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.CloseWords;
-using Advobot.Classes.Punishments;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -89,6 +87,7 @@ namespace Advobot.Services.Timers
 			};
 		}
 
+		/// <inheritdoc />
 		public void Start()
 		{
 			//Use mode=exclusive to not have ioexceptions
@@ -100,13 +99,14 @@ namespace Advobot.Services.Timers
 			_MinuteTimer.Enabled = true;
 			_SecondTimer.Enabled = true;
 		}
+		/// <inheritdoc />
 		public void Dispose()
 		{
 			_MinuteTimer.Stop();
 			_SecondTimer.Stop();
 			_Db.Dispose();
 		}
-
+		/// <inheritdoc />
 		public async Task AddAsync(RemovablePunishment punishment)
 		{
 			var col = _Db.GetCollection<RemovablePunishment>();
@@ -118,22 +118,26 @@ namespace Advobot.Services.Timers
 			}
 			col.Insert(punishment);
 		}
+		/// <inheritdoc />
 		public async Task AddAsync(CloseHelpEntries helpEntries)
 		{
 			var col = _Db.GetCollection<CloseHelpEntries>();
 			await RemoveRemovableMessage(col, helpEntries.UserId).CAF();
 			col.Insert(helpEntries);
 		}
+		/// <inheritdoc />
 		public async Task AddAsync(CloseQuotes quotes)
 		{
 			var col = _Db.GetCollection<CloseQuotes>();
 			await RemoveRemovableMessage(col, quotes.UserId).CAF();
 			col.Insert(quotes);
 		}
+		/// <inheritdoc />
 		public void Add(RemovableMessage message)
 		{
 			_Db.GetCollection<RemovableMessage>().Insert(message);
 		}
+		/// <inheritdoc />
 		public void Add(TimedMessage message)
 		{
 			var col = _Db.GetCollection<TimedMessage>();
@@ -141,28 +145,7 @@ namespace Advobot.Services.Timers
 			col.Delete(x => x.UserId == message.UserId);
 			col.Insert(message);
 		}
-
-		public bool Update(RemovablePunishment punishment)
-		{
-			return _Db.GetCollection<RemovablePunishment>().Upsert(punishment);
-		}
-		public bool Update(CloseHelpEntries help)
-		{
-			return _Db.GetCollection<CloseHelpEntries>().Upsert(help);
-		}
-		public bool Update(CloseQuotes quote)
-		{
-			return _Db.GetCollection<CloseQuotes>().Upsert(quote);
-		}
-		public bool Update(RemovableMessage message)
-		{
-			return _Db.GetCollection<RemovableMessage>().Upsert(message);
-		}
-		public bool Update(TimedMessage message)
-		{
-			return _Db.GetCollection<TimedMessage>().Upsert(message);
-		}
-
+		/// <inheritdoc />
 		public async Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, Punishment punishment)
 		{
 			var col = _Db.GetCollection<RemovablePunishment>();
@@ -174,10 +157,12 @@ namespace Advobot.Services.Timers
 			}
 			return entry;
 		}
+		/// <inheritdoc />
 		public async Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(IUser user)
 		{
 			return await RemoveRemovableMessage(_Db.GetCollection<CloseHelpEntries>(), user.Id).CAF();
 		}
+		/// <inheritdoc />
 		public async Task<CloseQuotes> RemoveActiveCloseQuoteAsync(IUser user)
 		{
 			return await RemoveRemovableMessage(_Db.GetCollection<CloseQuotes>(), user.Id).CAF();
@@ -207,18 +192,7 @@ namespace Advobot.Services.Timers
 						.SelectMany(g => g.MessageIds)
 						.Select(async m => m == 0 ? null : await channel.GetMessageAsync(m).CAF());
 					var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
-					if (!messages.Any())
-					{
-						continue;
-					}
-					else if (messages.Count == 1)
-					{
-						await MessageUtils.DeleteMessageAsync(messages.First(), _MessageReason).CAF();
-					}
-					else
-					{
-						await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
-					}
+					await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
 				}
 			}
 		}
@@ -240,33 +214,6 @@ namespace Advobot.Services.Timers
 			}
 			col.Delete(entry.Id);
 			return entry;
-		}
-
-		private class ProcessQueue
-		{
-			readonly Func<Task> _T;
-			readonly SemaphoreSlim _Semaphore;
-
-			public ProcessQueue(int threads, Func<Task> t)
-			{
-				_Semaphore = new SemaphoreSlim(threads);
-				_T = t;
-			}
-
-			public void Process()
-			{
-				if (_Semaphore.CurrentCount <= 0)
-				{
-					return;
-				}
-
-				Task.Run(async () =>
-				{
-					await _Semaphore.WaitAsync().CAF();
-					await _T().CAF();
-					_Semaphore.Release();
-				});
-			}
 		}
 
 		//ITimersService

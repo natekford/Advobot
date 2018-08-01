@@ -40,7 +40,7 @@ namespace Advobot.Classes
 				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase);
 		}
 		/// <inheritdoc />
-		public virtual string Format(DiscordSocketClient client, IGuild guild)
+		public virtual string ToString(DiscordShardedClient client, SocketGuild guild)
 		{
 			var sb = new StringBuilder();
 			foreach (var kvp in GetSettings())
@@ -58,7 +58,7 @@ namespace Advobot.Classes
 			return sb.ToString();
 		}
 		/// <inheritdoc />
-		public virtual string Format(DiscordSocketClient client, IGuild guild, string name)
+		public virtual string ToString(DiscordShardedClient client, SocketGuild guild, string name)
 		{
 			return Format(client, guild, GetMember(name).GetValue(this));
 		}
@@ -91,7 +91,7 @@ namespace Advobot.Classes
 
 		private MemberInfo GetMember(string name)
 		{
-			return GetSettings()[name] ?? throw new ArgumentException("Invalid field name provided.", nameof(name));
+			return GetSettings()[name] ?? throw new ArgumentException("Invalid member name provided.", nameof(name));
 		}
 		private object ResetSetting(MemberInfo member)
 		{
@@ -120,7 +120,7 @@ namespace Advobot.Classes
 				return member.GetValue(this);
 			}
 		}
-		private string Format(DiscordSocketClient client, IGuild guild, object value)
+		private string Format(DiscordShardedClient client, SocketGuild guild, object value)
 		{
 			switch (value)
 			{
@@ -130,17 +130,17 @@ namespace Advobot.Classes
 					return "`Nothing`";
 				case ulong id:
 				{
-					if (guild is SocketGuild sg)
+					if (guild != null)
 					{
-						if (sg?.GetChannel(id) is IChannel c)
+						if (guild?.GetChannel(id) is IChannel c)
 						{
 							return $"`{c.Format()}`";
 						}
-						if (sg?.GetRole(id) is IRole r)
+						if (guild?.GetRole(id) is IRole r)
 						{
 							return $"`{r.Format()}`";
 						}
-						if (sg?.GetUser(id) is IUser u)
+						if (guild?.GetUser(id) is IUser u)
 						{
 							return $"`{u.Format()}`";
 						}
@@ -161,7 +161,7 @@ namespace Advobot.Classes
 				case string str: //Strings are char[], so this case needs to be above ienumerable
 					return String.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
 				case IGuildSetting setting:
-					return setting.ToString();
+					return setting.ToString(guild);
 				case IDictionary dict: //Has to be above IEnumerable too
 					var keys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
 					return String.Join("\n", keys.Select(x => $"{Format(client, guild, x)}: {Format(client, guild, dict[x])}"));

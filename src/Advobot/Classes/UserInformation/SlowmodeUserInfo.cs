@@ -7,7 +7,7 @@ namespace Advobot.Classes.UserInformation
 	/// <summary>
 	/// Holds how many messages a user has left and when to reset them.
 	/// </summary>
-	public class SlowmodeUserInfo : UserInfo
+	public sealed class SlowmodeUserInfo : UserInfo
 	{
 		/// <summary>
 		/// The amount of messages the user has currently sent.

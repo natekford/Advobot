@@ -12,10 +12,10 @@ namespace Advobot.Classes
 	/// </summary>
 	public sealed class Initialism
 	{
-		private static Dictionary<string, string> _ShortenedPhrases = new Dictionary<string, string>
+		private static readonly ImmutableDictionary<string, string> _ShortenedPhrases = new Dictionary<string, string>
 		{
 			{ "clear", "clr" }
-		};
+		}.ToImmutableDictionary();
 
 		/// <summary>
 		/// The original supplied name.

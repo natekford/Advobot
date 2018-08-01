@@ -10,9 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// A <see cref="SocketCommandContext"/> which contains <see cref="IBotSettings"/>, <see cref="IGuildSettings"/>, <see cref="ILogService"/>, and <see cref="ITimersService"/>.
+	/// A <see cref="ShardedCommandContext"/> which contains <see cref="IBotSettings"/>, <see cref="IGuildSettings"/>, <see cref="ILogService"/>, and <see cref="ITimersService"/>.
 	/// </summary>
-	public class AdvobotSocketCommandContext : SocketCommandContext
+	public class AdvobotCommandContext : ShardedCommandContext
 	{
 		private static readonly string _Joiner = "\n" + new string(' ', 28);
 
@@ -48,13 +48,13 @@ namespace Advobot.Classes
 		private Stopwatch _Stopwatch = new Stopwatch();
 
 		/// <summary>
-		/// Creates an instance of <see cref="AdvobotSocketCommandContext"/>.
+		/// Creates an instance of <see cref="AdvobotCommandContext"/>.
 		/// </summary>
 		/// <param name="provider"></param>
 		/// <param name="settings"></param>
 		/// <param name="client"></param>
 		/// <param name="msg"></param>
-		public AdvobotSocketCommandContext(IServiceProvider provider, IGuildSettings settings, DiscordSocketClient client, SocketUserMessage msg) : base(client, msg)
+		public AdvobotCommandContext(IServiceProvider provider, IGuildSettings settings, DiscordShardedClient client, SocketUserMessage msg) : base(client, msg)
 		{
 			_Stopwatch.Start();
 			BotSettings = provider.GetRequiredService<IBotSettings>();

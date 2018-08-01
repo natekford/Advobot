@@ -18,7 +18,7 @@ namespace Advobot.Classes.ImageResizing
 		public GuildSplashResizer(int threads) : base(threads, "guild splash") { }
 
 		/// <inheritdoc />
-		protected override async Task<Error> UseResizedImageStream(AdvobotSocketCommandContext context, MemoryStream stream, MagickFormat format, string name, RequestOptions options)
+		protected override async Task<Error> UseResizedImageStream(AdvobotCommandContext context, MemoryStream stream, MagickFormat format, string name, RequestOptions options)
 		{
 			await context.Guild.ModifyAsync(x => x.Splash = new Image(stream), options).CAF();
 			return null;

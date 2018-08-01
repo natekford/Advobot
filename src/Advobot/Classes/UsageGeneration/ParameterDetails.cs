@@ -5,6 +5,7 @@ using Discord.Commands;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -15,9 +16,9 @@ namespace Advobot.Classes.UsageGeneration
 	/// <summary>
 	/// Information about a parameter to be used in <see cref="UsageGenerator"/>.
 	/// </summary>
-	internal class ParameterDetails
+	internal sealed class ParameterDetails
 	{
-		private static Dictionary<Type, Type> _TypeSwitcher = new Dictionary<Type, Type>
+		private static readonly ImmutableDictionary<Type, Type> _TypeSwitcher = new Dictionary<Type, Type>
 		{
 			{ typeof(BanTypeReader), typeof(IBan) },
 			{ typeof(BypassUserLimitTypeReader), typeof(string) },
@@ -27,15 +28,16 @@ namespace Advobot.Classes.UsageGeneration
 			{ typeof(GuildPermissionsTypeReader), typeof(GuildPermissions) },
 			{ typeof(InviteTypeReader), typeof(IInvite) },
 			{ typeof(PruneTypeReader), typeof(string) },
-		};
-		private static Dictionary<Type, string> _NameSwitcher = new Dictionary<Type, string>
+			{ typeof(RuleCategoryTypeReader), typeof(string) },
+		}.ToImmutableDictionary();
+		private static readonly ImmutableDictionary<Type, string> _NameSwitcher = new Dictionary<Type, string>
 		{
 			{ typeof(BypassUserLimitTypeReader), BypassUserLimitTypeReader.BYPASS_STRING },
 			{ typeof(BanTypeReader), "UserId|Username#Discriminator" },
 			{ typeof(ColorTypeReader), "Hexadecimal|R/G/B|Name" },
 			{ typeof(EmoteTypeReader), "EmoteId|Name" },
 			{ typeof(PruneTypeReader), PruneTypeReader.PRUNE_STRING }
-		};
+		}.ToImmutableDictionary();
 
 		public int Deepness { get; private set; }
 		public string Name { get; private set; }
@@ -44,7 +46,6 @@ namespace Advobot.Classes.UsageGeneration
 		public bool IsParams { get; private set; }
 		public bool IsRemainder { get; private set; }
 		public int Occurences { get; private set; }
-
 		public Type Type { get; private set; }
 		public string TypeName { get; private set; }
 
@@ -63,8 +64,7 @@ namespace Advobot.Classes.UsageGeneration
 
 		private void SetType(ParameterInfo parameter)
 		{
-			var overrideTypeReaderAttr = parameter.GetCustomAttribute<OverrideTypeReaderAttribute>();
-			var typeReader = overrideTypeReaderAttr?.TypeReader;
+			var typeReader = parameter.GetCustomAttribute<OverrideTypeReaderAttribute>()?.TypeReader;
 			var pType = parameter.ParameterType;
 
 			if (typeReader != null)
@@ -119,7 +119,7 @@ namespace Advobot.Classes.UsageGeneration
 			{
 				if (!IsRemainder)
 				{
-					throw new ArgumentException($"requires {nameof(RemainderAttribute)}", Type.FullName);
+					throw new ArgumentException($"Named arguments requires {nameof(RemainderAttribute)}.", Type.FullName);
 				}
 
 				var result = Type.GetProperty(nameof(NamedArguments<object>.ArgNames)).GetValue(null);

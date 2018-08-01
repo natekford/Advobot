@@ -13,7 +13,7 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using ImageMagick;
-using Context = Advobot.Classes.AdvobotSocketCommandContext;
+using Context = Advobot.Classes.AdvobotCommandContext;
 
 namespace Advobot.Classes.ImageResizing
 {
@@ -26,9 +26,9 @@ namespace Advobot.Classes.ImageResizing
 		private static readonly string FfmpegLocation = FindFfmpeg();
 		private const long MaxDownloadLengthInBytes = 10000000;
 
-		private ConcurrentQueue<ImageCreationArguments> _Args = new ConcurrentQueue<ImageCreationArguments>();
-		private ConcurrentDictionary<ulong, object> _CurrentlyWorkingGuilds = new ConcurrentDictionary<ulong, object>();
-		private SemaphoreSlim _SemaphoreSlim;
+		private readonly ConcurrentQueue<ImageCreationArguments<T>> _Args = new ConcurrentQueue<ImageCreationArguments<T>>();
+		private readonly ConcurrentDictionary<ulong, object> _CurrentlyWorkingGuilds = new ConcurrentDictionary<ulong, object>();
+		private readonly SemaphoreSlim _SemaphoreSlim;
 		private readonly string _Type;
 
 		/// <summary>
@@ -45,7 +45,6 @@ namespace Advobot.Classes.ImageResizing
 		/// </summary>
 		/// <param name="threads">How many threads to run in the background.</param>
 		/// <param name="type">Guild icon, bot icon, emote, webhook icon, etc. (only used in response messages, nothing important)</param>
-		/// <param name="callback">What to do with the resized stream.</param>
 		public ImageResizer(int threads, string type)
 		{
 			_SemaphoreSlim = new SemaphoreSlim(threads);
@@ -71,7 +70,7 @@ namespace Advobot.Classes.ImageResizing
 		/// <param name="nameOrId">The name for an emote, or the id for a webhook.</param>
 		public void EnqueueArguments(Context context, T args, Uri uri, RequestOptions options, string nameOrId = null)
 		{
-			_Args.Enqueue(new ImageCreationArguments
+			_Args.Enqueue(new ImageCreationArguments<T>
 			{
 				Context = context,
 				Args = args,
@@ -235,7 +234,7 @@ namespace Advobot.Classes.ImageResizing
 				//Get rid of the update message
 				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("image stream used")).CAF();
 				response?.Dispose();
-				//stream isn't disposed here cause it's returned
+				//Stream isn't disposed here cause it's returned
 			}
 		}
 		/// <summary>
@@ -381,54 +380,6 @@ namespace Advobot.Classes.ImageResizing
 				}
 			}
 			return null;
-		}
-
-		/// <summary>
-		/// The result of the resizing.
-		/// </summary>
-		public sealed class ResizedImageResult : IDisposable
-		{
-			/// <summary>
-			/// The resized image's data.
-			/// </summary>
-			public MemoryStream Stream { get; }
-			/// <summary>
-			/// The format of the image.
-			/// </summary>
-			public MagickFormat Format { get; }
-			/// <summary>
-			/// Any error gotten when resizing.
-			/// </summary>
-			public string Error { get; }
-			/// <summary>
-			/// Whether or not it was resized successfully.
-			/// </summary>
-			public bool IsSuccess { get; }
-
-			internal ResizedImageResult(MemoryStream stream, MagickFormat format, string error)
-			{
-				stream?.Seek(0, SeekOrigin.Begin);
-				Stream = stream;
-				Format = format;
-				Error = error;
-				IsSuccess = error == null && stream != null;
-			}
-
-			/// <summary>
-			/// Disposes <see cref="Stream"/>.
-			/// </summary>
-			public void Dispose()
-			{
-				Stream?.Dispose();
-			}
-		}
-		private struct ImageCreationArguments
-		{
-			public Context Context;
-			public T Args;
-			public Uri Uri;
-			public RequestOptions Options;
-			public string NameOrId;
 		}
 	}
 }

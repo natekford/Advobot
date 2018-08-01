@@ -20,5 +20,9 @@ namespace Advobot.Enums
 		/// Add backticks in markdown.
 		/// </summary>
 		Code = (1U << 2),
+		/// <summary>
+		/// Puts a line through the text in markdown.
+		/// </summary>
+		StrikeThrough = (1U << 3),
 	}
 }

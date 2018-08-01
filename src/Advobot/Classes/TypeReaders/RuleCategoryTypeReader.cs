@@ -1,8 +1,6 @@
-﻿using AdvorangesUtils;
-using Discord.Commands;
-using System;
-using System.Linq;
+﻿using System;
 using System.Threading.Tasks;
+using Discord.Commands;
 
 namespace Advobot.Classes.TypeReaders
 {
@@ -20,12 +18,9 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			if (context is AdvobotSocketCommandContext advobotCommandContext
-				&& advobotCommandContext.GuildSettings.Rules?.Categories?.FirstOrDefault(x => x.Key.Name.CaseInsEquals(input)) != null)
-			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(input));
-			}
-			return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a rule category matching the supplied input."));
+			return context is AdvobotCommandContext aContext && (aContext.GuildSettings.Rules?.Categories?.ContainsKey(input) ?? false)
+				? Task.FromResult(TypeReaderResult.FromSuccess(input))
+				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a rule category matching the supplied input."));
 		}
 	}
 }

@@ -13,7 +13,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The time in minutes to give for a punishment.
 		/// </summary>
-		public int Time { get; }
+		public TimeSpan Time { get; }
 		/// <summary>
 		/// The reason for a punishment.
 		/// </summary>
@@ -27,12 +27,12 @@ namespace Advobot.Classes
 		{
 			if (input == null)
 			{
-				Time = -1;
+				Time = default;
 				Reason = null;
 				return;
 			}
 
-			Time = -1;
+			Time = default;
 			var sb = new StringBuilder();
 			foreach (var part in input.Split(' '))
 			{
@@ -42,7 +42,7 @@ namespace Advobot.Classes
 				}
 				else if (uint.TryParse(part.Split(':').Last(), out var time))
 				{
-					Time = (int)Math.Min(time, 60 * 24 * 7);
+					Time = TimeSpan.FromMinutes((int)Math.Min(time, 60 * 24 * 7));
 				}
 			}
 			Reason = sb.ToString();

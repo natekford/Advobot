@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Punishments;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
@@ -75,7 +74,7 @@ namespace Advobot.Commands.Users
 				return;
 			}
 
-			var giver = new Punisher(TimeSpan.FromMinutes(reason.Time), Context.Timers);
+			var giver = new Punisher(reason.Time, Context.Timers);
 			await giver.RoleMuteAsync(user, muteRole, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
@@ -99,7 +98,7 @@ namespace Advobot.Commands.Users
 				return;
 			}
 
-			var giver = new Punisher(TimeSpan.FromMinutes(reason.Time), Context.Timers);
+			var giver = new Punisher(reason.Time, Context.Timers);
 			await giver.VoiceMuteAsync(user, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
@@ -123,7 +122,7 @@ namespace Advobot.Commands.Users
 				return;
 			}
 
-			var giver = new Punisher(TimeSpan.FromMinutes(reason.Time), Context.Timers);
+			var giver = new Punisher(reason.Time, Context.Timers);
 			await giver.DeafenAsync(user, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
@@ -241,7 +240,7 @@ namespace Advobot.Commands.Users
 				return;
 			}
 
-			var giver = new Punisher(TimeSpan.FromMinutes(reason.Time), Context.Timers);
+			var giver = new Punisher(reason.Time, Context.Timers);
 			await giver.BanAsync(Context.Guild, userId, GetRequestOptions(reason.Reason)).CAF();
 			await MessageUtils.SendMessageAsync(Context.Channel, giver.ToString()).CAF();
 		}
@@ -341,19 +340,6 @@ namespace Advobot.Commands.Users
 
 		private async Task CommandRunner(int requestCount, IUser user, SocketTextChannel channel)
 		{
-			/* I don't know if anyone actually cares about this. 
-			 * If someone ever does I guess I can uncomment it or make it a setting.
-			var serverLog = Context.GuildSettings.ServerLog?.Id == channel.Id;
-			var modLog = Context.GuildSettings.ModLog?.Id == channel.Id;
-			var imageLog = Context.GuildSettings.ImageLog?.Id == channel.Id;
-			if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
-			{
-				var owner = await Context.Guild.GetOwnerAsync().CAF();
-				var m = $"`{Context.User.FormatUser()}` is trying to delete messages from a log channel: `{channel.FormatChannel()}`.";
-				await owner.SendMessageAsync(m).CAF();
-				return;
-			}*/
-
 			//If not the context channel then get the first message in that channel
 			var messageToStartAt = Context.Message.Channel.Id == channel.Id
 				? Context.Message
@@ -381,8 +367,7 @@ namespace Advobot.Commands.Users
 	[Group(nameof(ModifySlowmode)), TopLevelShortAlias(typeof(ModifySlowmode))]
 	[Summary("First arg is how many messages can be sent in a timeframe. " +
 		"Second arg is the timeframe. " +
-		"Third arg is guildwide; true means yes, false means no. " +
-		"Fourth are the list of roles that are immune to slowmode.")]
+		"Third are the list of roles that are immune to slowmode.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifySlowmode : GuildSettingsSavingModuleBase
