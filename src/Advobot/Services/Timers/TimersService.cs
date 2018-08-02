@@ -63,15 +63,15 @@ namespace Advobot.Services.Timers
 			});
 			_RemovableMessages = new ProcessQueue(1, async () =>
 			{
-				await HandleRemovableMessages(_Db.GetCollection<RemovableMessage>()).CAF();
+				await RemoveRemovableMessages(_Db.GetCollection<RemovableMessage>()).CAF();
 			});
 			_CloseHelpEntries = new ProcessQueue(1, async () =>
 			{
-				await HandleRemovableMessages(_Db.GetCollection<CloseHelpEntries>()).CAF();
+				await RemoveRemovableMessages(_Db.GetCollection<CloseHelpEntries>()).CAF();
 			});
 			_CloseQuotes = new ProcessQueue(1, async () =>
 			{
-				await HandleRemovableMessages(_Db.GetCollection<CloseQuotes>()).CAF();
+				await RemoveRemovableMessages(_Db.GetCollection<CloseQuotes>()).CAF();
 			});
 
 			_MinuteTimer.Elapsed += (sender, e) =>
@@ -122,14 +122,14 @@ namespace Advobot.Services.Timers
 		public async Task AddAsync(CloseHelpEntries helpEntries)
 		{
 			var col = _Db.GetCollection<CloseHelpEntries>();
-			await RemoveRemovableMessage(col, helpEntries.UserId).CAF();
+			await HandleRemovableMessage(col, helpEntries.GuildId, helpEntries.UserId).CAF();
 			col.Insert(helpEntries);
 		}
 		/// <inheritdoc />
 		public async Task AddAsync(CloseQuotes quotes)
 		{
 			var col = _Db.GetCollection<CloseQuotes>();
-			await RemoveRemovableMessage(col, quotes.UserId).CAF();
+			await HandleRemovableMessage(col, quotes.GuildId, quotes.UserId).CAF();
 			col.Insert(quotes);
 		}
 		/// <inheritdoc />
@@ -146,10 +146,10 @@ namespace Advobot.Services.Timers
 			col.Insert(message);
 		}
 		/// <inheritdoc />
-		public async Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, Punishment punishment)
+		public async Task<RemovablePunishment> RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment)
 		{
 			var col = _Db.GetCollection<RemovablePunishment>();
-			var entry = col.FindOne(x => x.UserId == userId && x.GuildId == guild.Id && x.PunishmentType == punishment);
+			var entry = col.FindOne(x => x.UserId == userId && x.GuildId == guildId && x.PunishmentType == punishment);
 			if (entry != null)
 			{
 				col.Delete(entry.Id);
@@ -158,17 +158,23 @@ namespace Advobot.Services.Timers
 			return entry;
 		}
 		/// <inheritdoc />
-		public async Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(IUser user)
+		public async Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(ulong guildId, ulong userId)
 		{
-			return await RemoveRemovableMessage(_Db.GetCollection<CloseHelpEntries>(), user.Id).CAF();
+			return await HandleRemovableMessage(_Db.GetCollection<CloseHelpEntries>(), guildId, userId).CAF();
 		}
 		/// <inheritdoc />
-		public async Task<CloseQuotes> RemoveActiveCloseQuoteAsync(IUser user)
+		public async Task<CloseQuotes> RemoveActiveCloseQuoteAsync(ulong guildId, ulong userId)
 		{
-			return await RemoveRemovableMessage(_Db.GetCollection<CloseQuotes>(), user.Id).CAF();
+			return await HandleRemovableMessage(_Db.GetCollection<CloseQuotes>(), guildId, userId).CAF();
 		}
 
-		private async Task HandleRemovableMessages<T>(LiteCollection<T> col) where T : RemovableMessage
+		/// <summary>
+		/// Deletes messages past their expiry time.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="col"></param>
+		/// <returns></returns>
+		private async Task RemoveRemovableMessages<T>(LiteCollection<T> col) where T : RemovableMessage
 		{
 			foreach (var guildGroup in col.Find(x => x.Time < DateTime.UtcNow).GroupBy(x => x.GuildId))
 			{
@@ -196,9 +202,17 @@ namespace Advobot.Services.Timers
 				}
 			}
 		}
-		private async Task<T> RemoveRemovableMessage<T>(LiteCollection<T> col, ulong userId) where T : RemovableMessage
+		/// <summary>
+		/// Retrieves close quotes and help entries before they're deleted.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="col"></param>
+		/// <param name="guildId"></param>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		private async Task<T> HandleRemovableMessage<T>(LiteCollection<T> col, ulong guildId, ulong userId) where T : RemovableMessage
 		{
-			var entry = col.FindOne(x => x.UserId == userId);
+			var entry = col.FindOne(x => x.GuildId == guildId && x.UserId == userId);
 			if (entry == null)
 			{
 				return null;

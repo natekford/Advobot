@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Classes.CloseWords;
+using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -16,7 +18,7 @@ namespace Advobot.Services.Commands
 	/// <summary>
 	/// Handles user input commands.
 	/// </summary>
-	internal sealed class CommandHandler : ICommandHandler
+	internal sealed class CommandHandlerService : ICommandHandlerService
 	{
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
@@ -29,10 +31,10 @@ namespace Advobot.Services.Commands
 		private bool _Loaded;
 
 		/// <summary>
-		/// Creates an instance of <see cref="CommandHandler"/> and gets the required services.
+		/// Creates an instance of <see cref="CommandHandlerService"/> and gets the required services.
 		/// </summary>
 		/// <param name="provider"></param>
-		internal CommandHandler(IServiceProvider provider)
+		internal CommandHandlerService(IServiceProvider provider)
 		{
 			_Provider = provider;
 			_Commands = _Provider.GetRequiredService<CommandService>();
@@ -50,13 +52,17 @@ namespace Advobot.Services.Commands
 			_Client.MessageReceived += HandleCommand;
 		}
 
+		/// <summary>
+		/// Handles the bot using the correct settings, the game displayed, and the timers starting.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <returns></returns>
 		private async Task OnConnected(DiscordSocketClient client)
 		{
 			if (_Loaded)
 			{
 				return;
 			}
-
 			if (LowLevelConfig.Config.BotId != client.CurrentUser.Id)
 			{
 				LowLevelConfig.Config.BotId = client.CurrentUser.Id;
@@ -66,20 +72,20 @@ namespace Advobot.Services.Commands
 			}
 
 			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();
-			_Timers.Start();
 
+			_Timers.Start();
+			_Loaded = true;
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; Prefix: {_BotSettings.Prefix}; Launch Time: {startTime:n}ms");
-
-			_Loaded = true;
 		}
+		/// <summary>
+		/// Handles banned names, anti raid, persistent roles, and the welcome message.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
 		private async Task OnUserJoined(SocketGuildUser user)
 		{
-			if (!_Loaded)
-			{
-				return;
-			}
-			if (!(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
+			if (!_Loaded || !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
 			{
 				return;
 			}
@@ -90,13 +96,11 @@ namespace Advobot.Services.Commands
 				await giver.GiveAsync(Punishment.Ban, user.Guild, user.Id, 0, ClientUtils.CreateRequestOptions("banned name")).CAF();
 			}
 			//Antiraid
-			var antiRaid = settings.RaidPreventionDictionary[RaidType.Regular];
-			if (antiRaid != null && antiRaid.Enabled)
+			if (settings.RaidPreventionDictionary[RaidType.Regular] is RaidPreventionInfo antiRaid && antiRaid.Enabled)
 			{
 				await antiRaid.PunishAsync(settings, user).CAF();
 			}
-			var antiJoin = settings.RaidPreventionDictionary[RaidType.RapidJoins];
-			if (antiJoin != null && antiJoin.Enabled)
+			if (settings.RaidPreventionDictionary[RaidType.RapidJoins] is RaidPreventionInfo antiJoin && antiJoin.Enabled)
 			{
 				antiJoin.Add(user.JoinedAt?.UtcDateTime ?? default);
 				if (antiJoin.GetSpamCount() >= antiJoin.UserCount)
@@ -117,66 +121,67 @@ namespace Advobot.Services.Commands
 				await settings.WelcomeMessage.SendAsync(user.Guild, user).CAF();
 			}
 		}
+		/// <summary>
+		/// Handles the goodbye message.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
 		private async Task OnUserLeft(SocketGuildUser user)
 		{
-			if (!_Loaded)
-			{
-				return;
-			}
 			//Check if the bot was the one that left
-			if (user.Id == LowLevelConfig.Config.BotId || !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
+			if (!_Loaded
+				|| user.Id == LowLevelConfig.Config.BotId
+				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
 			{
 				return;
 			}
-
 			//Goodbye message
 			if (settings.GoodbyeMessage != null)
 			{
 				await settings.GoodbyeMessage.SendAsync(user.Guild, user).CAF();
 			}
 		}
+		/// <summary>
+		/// Handles close quotes and help entries.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		private async Task OnMessageReceived(SocketMessage message)
 		{
-			if (!_Loaded)
-			{
-				return;
-			}
-			if (!(message.Author is SocketGuildUser user) || _Timers == null || !int.TryParse(message.Content, out var i) || i < 0 || i > 7)
+			if (!_Loaded
+				|| _Timers == null
+				|| !int.TryParse(message.Content, out var i) || i < 0 || i > 7
+				|| !((message.Channel as SocketTextChannel)?.Guild is SocketGuild guild)
+				|| !(await _GuildSettings.GetOrCreateAsync(guild).CAF() is IGuildSettings settings))
 			{
 				return;
 			}
 			--i;
 
-			var settings = await _GuildSettings.GetOrCreateAsync(user.Guild).CAF();
-			var quotes = await _Timers.RemoveActiveCloseQuoteAsync(user).CAF();
-			var validQuotes = quotes != null && quotes.List.Count > i;
-			if (validQuotes)
+			var deleteMessage = false;
+			if (await _Timers.RemoveActiveCloseQuoteAsync(guild.Id, message.Author.Id).CAF() is CloseQuotes q && q.List.Count > i)
 			{
-				var quote = quotes.List[i];
 				var embed = new EmbedWrapper
 				{
-					Title = quote.Name,
-					Description = quote.Text,
+					Title = q.List[i].Name,
+					Description = q.List[i].Text,
 				};
 				embed.TryAddFooter("Quote", null, out _);
 				await MessageUtils.SendMessageAsync(message.Channel, null, embed).CAF();
+				deleteMessage = true;
 			}
-			var helpEntries = await _Timers.RemoveActiveCloseHelpAsync(user).CAF();
-			var validHelpEntries = helpEntries != null && helpEntries.List.Count > i;
-			if (validHelpEntries)
+			if (await _Timers.RemoveActiveCloseHelpAsync(guild.Id, message.Author.Id).CAF() is CloseHelpEntries h && h.List.Count > i)
 			{
-				var prefix = _BotSettings.InternalGetPrefix(settings);
-				var help = helpEntries.List[i];
 				var embed = new EmbedWrapper
 				{
-					Title = help.Name,
-					Description = help.Text.Replace(Constants.PLACEHOLDER_PREFIX, prefix),
+					Title = h.List[i].Name,
+					Description = h.List[i].Text.Replace(Constants.PLACEHOLDER_PREFIX, _BotSettings.InternalGetPrefix(settings)),
 				};
 				embed.TryAddFooter("Help", null, out _);
 				await MessageUtils.SendMessageAsync(message.Channel, null, embed).CAF();
+				deleteMessage = true;
 			}
-
-			if (validQuotes || validHelpEntries)
+			if (deleteMessage)
 			{
 				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("help entry or quote")).CAF();
 			}
@@ -184,12 +189,9 @@ namespace Advobot.Services.Commands
 		/// <inheritdoc />
 		public async Task HandleCommand(SocketMessage message)
 		{
-			if (!_Loaded)
-			{
-				return;
-			}
 			var argPos = -1;
-			if (_BotSettings.Pause
+			if (!_Loaded
+				|| _BotSettings.Pause
 				|| String.IsNullOrWhiteSpace(message.Content)
 				|| !(message is SocketUserMessage uMsg)
 				|| !(uMsg.Author is SocketGuildUser user)

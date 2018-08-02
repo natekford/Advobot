@@ -78,15 +78,7 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public virtual void SaveSettings()
 		{
-			if (!FileLocation.Exists)
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(FileLocation.FullName));
-				using (var fs = FileLocation.Create())
-				{
-					fs.Close();
-				}
-			}
-			File.WriteAllText(FileLocation.ToString(), IOUtils.Serialize(this));
+			FileUtils.SafeWriteAllText(FileLocation, IOUtils.Serialize(this));
 		}
 
 		private MemberInfo GetMember(string name)

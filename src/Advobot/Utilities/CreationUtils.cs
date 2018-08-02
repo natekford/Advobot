@@ -27,35 +27,35 @@ namespace Advobot.Utilities
 	{
 		/// <summary>
 		/// Creates services the bot uses. The explicit implementations will always be the same; if wanting to customize
-		/// them do not use this method.
+		/// them then remove them from the collection and put in your own implementations.
 		/// </summary>
 		/// <typeparam name="TBotSettings"></typeparam>
 		/// <typeparam name="TGuildSettings"></typeparam>
 		/// <param name="commands">The assemblies holding commands.</param>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static IServiceProvider CreateDefaultServiceProvider<TBotSettings, TGuildSettings>(IEnumerable<Assembly> commands)
+		public static IServiceCollection CreateDefaultServiceCollection<TBotSettings, TGuildSettings>(IEnumerable<Assembly> commands)
 			where TBotSettings : IBotSettings, new()
 			where TGuildSettings : IGuildSettings, new()
 		{
 			//Not sure why when put into a func provided as an argument there are lots of enumeration errors
 			var helpEntryHolder = new HelpEntryHolder(commands);
 			//I have no idea if I am providing services correctly, but it works.
-			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
+			return new ServiceCollection()
 				.AddSingleton<CommandService>(provider => CreateCommandService(provider, commands))
 				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
 				.AddSingleton<DiscordShardedClient>(provider => CreateDiscordClient(provider))
 				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>())
-				.AddSingleton<ICommandHandler>(provider => new CommandHandler(provider))
+				.AddSingleton<ICommandHandlerService>(provider => new CommandHandlerService(provider))
 				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService<TGuildSettings>(provider))
 				.AddSingleton<ITimersService>(provider => new TimersService(provider))
 				.AddSingleton<ILogService>(provider => new LogService(provider))
-				.AddSingleton<IInviteListService>(provider => new InviteListService(provider)));
+				.AddSingleton<IInviteListService>(provider => new InviteListService(provider));
 		}
 		/// <summary>
-		/// Creates the <see cref="CommandService"/> for the bot. Add in typereaders and modules.
+		/// Creates the <see cref="CommandService"/> for the bot. Adds in typereaders and modules.
 		/// </summary>
 		/// <returns></returns>
-		internal static CommandService CreateCommandService(IServiceProvider provider, IEnumerable<Assembly> commandAssemblies)
+		private static CommandService CreateCommandService(IServiceProvider provider, IEnumerable<Assembly> commandAssemblies)
 		{
 			var cmds = new CommandService(new CommandServiceConfig
 			{
@@ -96,27 +96,26 @@ namespace Advobot.Utilities
 			return cmds;
 		}
 		/// <summary>
-		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="provider"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
+		/// Creates a sharded client with the supplied settings from the <see cref="IBotSettings"/> in the provider.
 		/// </summary>
 		/// <param name="provider">The settings to initialize the client with.</param>
 		/// <returns>A discord client.</returns>
-		internal static DiscordShardedClient CreateDiscordClient(IServiceProvider provider)
+		private static DiscordShardedClient CreateDiscordClient(IServiceProvider provider)
 		{
 			var botSettings = provider.GetRequiredService<IBotSettings>();
-			var config = new DiscordSocketConfig
+			return new DiscordShardedClient(new DiscordSocketConfig
 			{
 				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
 				MessageCacheSize = botSettings.MessageCacheCount,
 				LogLevel = botSettings.LogLevel,
-			};
-			return new DiscordShardedClient(config);
+			});
 		}
 		/// <summary>
-		/// Creates settings that the bot uses.
+		/// Creates settings used globally by the bot.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
-		internal static IBotSettings CreateBotSettings<T>() where T : IBotSettings, new()
+		private static IBotSettings CreateBotSettings<T>() where T : IBotSettings, new()
 		{
 			return IOUtils.DeserializeFromFile<IBotSettings, T>(FileUtils.GetBotSettingsFile());
 		}

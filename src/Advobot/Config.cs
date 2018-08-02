@@ -1,33 +1,32 @@
-﻿using Advobot.Utilities;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Advobot
 {
 	/// <summary>
 	/// Low level configuration that is necessary for the bot to run. Holds the bot key, bot id, and save path.
 	/// </summary>
-	public class LowLevelConfig
+	public sealed class LowLevelConfig
 	{
 		/// <summary>
 		/// The path to save the config file to. Does not save any other files here.
 		/// </summary>
 		[JsonIgnore]
-		private static readonly string _SavePath = CeateSavePath();
+		private static readonly FileInfo _SavePath = CeateSavePath();
 		/// <summary>
-		/// Holds very low level settings: the bot id, key, and save path.
+		/// Holds very low level settings: the bot id, key, and save path. This is a singleton instance.
 		/// </summary>
 		[JsonIgnore]
-		public static LowLevelConfig Config = LoadConfigDictionary();
+		public static readonly LowLevelConfig Config = LoadConfigDictionary();
 
 		/// <summary>
 		/// The path the bot's files are in.
@@ -131,7 +130,7 @@ namespace Advobot
 		/// Creates a path similar to C:/Users/User/Appdata/Local/Advobot/Advobot1.config.
 		/// </summary>
 		/// <returns></returns>
-		private static string CeateSavePath()
+		private static FileInfo CeateSavePath()
 		{
 			//Start by grabbing the entry assembly location then cutting out everything but the file name
 			//Use entry so console and ui applications can have diff configs
@@ -140,7 +139,8 @@ namespace Advobot
 			var count = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length;
 			//Add the config file into the local application data folder under Advobot
 			var configFileName = currentName + count + ".config";
-			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Advobot", configFileName);
+			var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Advobot", configFileName);
+			return new FileInfo(path);
 		}
 		/// <summary>
 		/// Attempts to load the configuration from <see cref="_SavePath"/> otherwise uses the default initialization for config.
@@ -148,14 +148,14 @@ namespace Advobot
 		/// <returns></returns>
 		private static LowLevelConfig LoadConfigDictionary()
 		{
-			return IOUtils.DeserializeFromFile<LowLevelConfig, LowLevelConfig>(new FileInfo(_SavePath)) ?? new LowLevelConfig();
+			return IOUtils.DeserializeFromFile<LowLevelConfig, LowLevelConfig>(_SavePath) ?? new LowLevelConfig();
 		}
 		/// <summary>
 		/// Writes the current config to file.
 		/// </summary>
 		public void Save()
 		{
-			File.WriteAllText(_SavePath, IOUtils.Serialize(Config));
+			FileUtils.SafeWriteAllText(_SavePath, IOUtils.Serialize(Config));
 		}
 	}
 }

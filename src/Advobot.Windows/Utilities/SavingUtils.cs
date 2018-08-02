@@ -67,7 +67,7 @@ namespace Advobot.Windows.Utilities
 
 			try
 			{
-				File.WriteAllText(fi.ToString(), text);
+				FileUtils.SafeWriteAllText(fi, text);
 				return ToolTipReason.FileSavingSuccess;
 			}
 			catch

@@ -321,6 +321,7 @@ namespace Advobot.Classes.ImageResizing
 				case MagickFormat.Png:
 					using (var image = new MagickImage(ms))
 					{
+						image.ColorFuzz = args.ColorFuzzing;
 						image.Scale(new MagickGeometry
 						{
 							IgnoreAspectRatio = true,
@@ -328,7 +329,6 @@ namespace Advobot.Classes.ImageResizing
 							Height = height = (int)Math.Min(128, image.Height / shrinkFactor),
 						});
 
-						//Clear the stream and overwrite it
 						ms.SetLength(0);
 						image.Write(ms);
 					}

@@ -307,7 +307,7 @@ namespace Advobot.Classes
 		private async Task AfterRemoveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions options)
 		{
 			var sb = new StringBuilder($"Successfully {Removed[type]} `{user?.Format() ?? "`Unknown User`"}`. ");
-			if (_Timers != null && (await _Timers.RemovePunishmentAsync(guild, user?.Id ?? 0, type).CAF()).UserId != 0)
+			if (_Timers != null && (await _Timers.RemovePunishmentAsync(guild.Id, user?.Id ?? 0, type).CAF()).UserId != 0)
 			{
 				sb.Append($"Removed all timed {type.ToString().FormatTitle().ToLower()} punishments on them. ");
 			}

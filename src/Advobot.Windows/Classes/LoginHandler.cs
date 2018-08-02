@@ -12,7 +12,7 @@ namespace Advobot.Windows.Classes
 	internal class LoginHandler
 	{
 		public IServiceProvider Provider { get; private set; }
-		public ICommandHandler CommandHandler { get; private set; }
+		public ICommandHandlerService CommandHandler { get; private set; }
 
 		private bool _StartUp = true;
 		public bool GotPath { get; private set; }
@@ -52,8 +52,9 @@ namespace Advobot.Windows.Classes
 		{
 			if (LowLevelConfig.Config.ValidatePath(path, startup))
 			{
-				Provider = CreationUtils.CreateDefaultServiceProvider<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies());
-				CommandHandler = Provider.GetRequiredService<ICommandHandler>();
+				var services = CreationUtils.CreateDefaultServiceCollection<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies());
+				Provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
+				CommandHandler = Provider.GetRequiredService<ICommandHandlerService>();
 				return true;
 			}
 			return false;

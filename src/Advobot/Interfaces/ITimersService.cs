@@ -50,22 +50,24 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Removes the punishment from the database and returns it.
 		/// </summary>
-		/// <param name="guild"></param>
+		/// <param name="guildId"></param>
 		/// <param name="userId"></param>
 		/// <param name="punishment"></param>
 		/// <returns></returns>
-		Task<RemovablePunishment> RemovePunishmentAsync(IGuild guild, ulong userId, Punishment punishment);
+		Task<RemovablePunishment> RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment);
 		/// <summary>
 		/// Removes the close help from the database and returns it.
 		/// </summary>
-		/// <param name="user"></param>
+		/// <param name="guildId"></param>
+		/// <param name="userId"></param>
 		/// <returns></returns>
-		Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(IUser user);
+		Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(ulong guildId, ulong userId);
 		/// <summary>
 		/// Removes the close quotes from the database and returns it.
 		/// </summary>
-		/// <param name="user"></param>
+		/// <param name="guildId"></param>
+		/// <param name="userId"></param>
 		/// <returns></returns>
-		Task<CloseQuotes> RemoveActiveCloseQuoteAsync(IUser user);
+		Task<CloseQuotes> RemoveActiveCloseQuoteAsync(ulong guildId, ulong userId);
 	}
 }
