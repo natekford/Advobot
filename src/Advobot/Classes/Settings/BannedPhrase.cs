@@ -49,7 +49,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="info"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings settings, SocketGuild guild, BannedPhraseUserInfo info, ITimersService timers)
+		public async Task PunishAsync(IGuildSettings settings, SocketGuild guild, BannedPhraseUserInfo info, ITimerService timers)
 		{
 			var count = info.Increment(Punishment);
 			var punishment = settings.BannedPhrasePunishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);

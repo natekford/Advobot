@@ -30,11 +30,11 @@ namespace Advobot.Classes
 		public ulong RoleId { get; set; }
 
 		/// <summary>
-		/// Initializes the object. Parameterless constructor is used for the database.
+		/// Creates an instance of <see cref="RemovablePunishment"/>. Parameterless constructor is used for the database.
 		/// </summary>
 		public RemovablePunishment() : base(default) { }
 		/// <summary>
-		/// Creates an instance of removable punishment on the supplied user.
+		/// Creates an instance of <see cref="RemovablePunishment"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="punishment"></param>
@@ -48,14 +48,13 @@ namespace Advobot.Classes
 			RoleId = 0;
 		}
 		/// <summary>
-		/// Creates an instance of removable punishment on the supplied user with the supplied role as the punishment.
+		/// Creates an instance of <see cref="RemovablePunishment"/>.
 		/// </summary>
 		/// <param name="time"></param>
-		/// <param name="punishment"></param>
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <param name="role"></param>
-		public RemovablePunishment(TimeSpan time, Punishment punishment, IGuild guild, IUser user, IRole role) : this(time, punishment, guild, user)
+		public RemovablePunishment(TimeSpan time, IRole role, IGuild guild, IUser user) : this(time, Punishment.RoleMute, guild, user)
 		{
 			RoleId = role.Id;
 		}

@@ -2,20 +2,14 @@
 using Advobot.Classes;
 using Advobot.Classes.CloseWords;
 using Advobot.Enums;
-using Discord;
 
 namespace Advobot.Interfaces
 {
 	/// <summary>
 	/// Abstraction for a timers module. Handles timed punishments, close words, and timed message deletion/sending.
 	/// </summary>
-	public interface ITimersService
+	public interface ITimerService
 	{
-		/// <summary>
-		/// Starts the second, minute, and hour timers.
-		/// </summary>
-		void Start();
-
 		/// <summary>
 		/// Removes all older instances, undoes their current punishment, and stores <paramref name="punishment"/>.
 		/// </summary>

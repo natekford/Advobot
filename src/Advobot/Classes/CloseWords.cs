@@ -18,11 +18,11 @@ namespace Advobot.Classes.CloseWords
 		/// <summary>
 		/// The max allowed closeness before a word will not be added.
 		/// </summary>
-		public int MaxAllowedCloseness { get; set; } = 4;
+		public static int MaxAllowedCloseness { get; set; } = 4;
 		/// <summary>
 		/// The max allowed output to add to <see cref="List"/>.
 		/// </summary>
-		public int MaxOutput { get; set; } = 5;
+		public static int MaxOutput { get; set; } = 5;
 		/// <summary>
 		/// The gathered words.
 		/// </summary>

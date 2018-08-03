@@ -12,6 +12,7 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.InviteList;
 using Advobot.Services.Logging;
 using Advobot.Services.Timers;
+using Advobot.Services.Levels;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -45,9 +46,10 @@ namespace Advobot.Utilities
 				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
 				.AddSingleton<DiscordShardedClient>(provider => CreateDiscordClient(provider))
 				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>())
+				.AddSingleton<ILevelService>(provider => new LevelService(provider, new LevelServiceArguments()))
 				.AddSingleton<ICommandHandlerService>(provider => new CommandHandlerService(provider))
 				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService<TGuildSettings>(provider))
-				.AddSingleton<ITimersService>(provider => new TimersService(provider))
+				.AddSingleton<ITimerService>(provider => new TimerService(provider))
 				.AddSingleton<ILogService>(provider => new LogService(provider))
 				.AddSingleton<IInviteListService>(provider => new InviteListService(provider));
 		}

@@ -1,7 +1,4 @@
 ﻿using Advobot.Classes;
-using Discord;
-using Discord.WebSocket;
-using System.Threading.Tasks;
 
 namespace Advobot.Interfaces
 {

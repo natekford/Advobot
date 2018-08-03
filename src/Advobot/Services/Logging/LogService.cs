@@ -1,14 +1,13 @@
-﻿using Advobot.Classes;
-using Advobot.Interfaces;
-using Advobot.Services.Logging.Loggers;
-using AdvorangesUtils;
-using Discord;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Advobot.Classes;
+using Advobot.Interfaces;
+using Advobot.Services.Logging.Loggers;
+using AdvorangesUtils;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.Logging
 {

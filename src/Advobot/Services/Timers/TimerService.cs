@@ -15,30 +15,33 @@ using Timer = System.Timers.Timer;
 
 namespace Advobot.Services.Timers
 {
-	//I have absolutely no idea if this class works as intended under stress.
-	internal sealed class TimersService : ITimersService, IDisposable
+	/// <summary>
+	/// Handles time based punishments and message removal
+	/// </summary>
+	/// <remarks>
+	/// I have absolutely no idea if this class works as intended under stress.
+	/// </remarks>
+	internal sealed class TimerService : ITimerService, IUsesDatabase, IDisposable
 	{
 		private LiteDatabase _Db;
 		private readonly DiscordShardedClient _Client;
-
 		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
 		private readonly Timer _SecondTimer = new Timer(1000);
 		private readonly Punisher _PunishmentRemover;
 		private readonly RequestOptions _PunishmentReason = ClientUtils.CreateRequestOptions("automatic punishment removal.");
 		private readonly RequestOptions _MessageReason = ClientUtils.CreateRequestOptions("automatic message deletion.");
+		private readonly ProcessingQueue _RemovablePunishments;
+		private readonly ProcessingQueue _TimedMessages;
+		private readonly ProcessingQueue _RemovableMessages;
+		private readonly ProcessingQueue _CloseHelpEntries;
+		private readonly ProcessingQueue _CloseQuotes;
 
-		private readonly ProcessQueue _RemovablePunishments;
-		private readonly ProcessQueue _TimedMessages;
-		private readonly ProcessQueue _RemovableMessages;
-		private readonly ProcessQueue _CloseHelpEntries;
-		private readonly ProcessQueue _CloseQuotes;
-
-		public TimersService(IServiceProvider provider)
+		public TimerService(IServiceProvider provider)
 		{
 			_Client = provider.GetRequiredService<DiscordShardedClient>();
 			_PunishmentRemover = new Punisher(TimeSpan.FromMinutes(0), this);
 
-			_RemovablePunishments = new ProcessQueue(1, async () =>
+			_RemovablePunishments = new ProcessingQueue(1, async () =>
 			{
 				var col = _Db.GetCollection<RemovablePunishment>();
 				foreach (var punishment in col.Find(x => x.Time < DateTime.UtcNow))
@@ -47,7 +50,7 @@ namespace Advobot.Services.Timers
 					await punishment.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
 				}
 			});
-			_TimedMessages = new ProcessQueue(1, async () =>
+			_TimedMessages = new ProcessingQueue(1, async () =>
 			{
 				var col = _Db.GetCollection<TimedMessage>();
 				foreach (var timedMessage in col.Find(x => x.Time < DateTime.UtcNow))
@@ -61,15 +64,15 @@ namespace Advobot.Services.Timers
 					await user.SendMessageAsync(timedMessage.Text).CAF();
 				}
 			});
-			_RemovableMessages = new ProcessQueue(1, async () =>
+			_RemovableMessages = new ProcessingQueue(1, async () =>
 			{
 				await RemoveRemovableMessages(_Db.GetCollection<RemovableMessage>()).CAF();
 			});
-			_CloseHelpEntries = new ProcessQueue(1, async () =>
+			_CloseHelpEntries = new ProcessingQueue(1, async () =>
 			{
 				await RemoveRemovableMessages(_Db.GetCollection<CloseHelpEntries>()).CAF();
 			});
-			_CloseQuotes = new ProcessQueue(1, async () =>
+			_CloseQuotes = new ProcessingQueue(1, async () =>
 			{
 				await RemoveRemovableMessages(_Db.GetCollection<CloseQuotes>()).CAF();
 			});
@@ -231,12 +234,12 @@ namespace Advobot.Services.Timers
 		}
 
 		//ITimersService
-		Task ITimersService.AddAsync(RemovableMessage message)
+		Task ITimerService.AddAsync(RemovableMessage message)
 		{
 			Add(message);
 			return Task.FromResult(0);
 		}
-		Task ITimersService.AddAsync(TimedMessage message)
+		Task ITimerService.AddAsync(TimedMessage message)
 		{
 			Add(message);
 			return Task.FromResult(0);

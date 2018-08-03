@@ -29,11 +29,11 @@ namespace Advobot.Classes
 		public List<ulong> MessageIds { get; set; }
 
 		/// <summary>
-		/// Initializes the object. Parameterless constructor is used for the database.
+		/// Creates an instance of <see cref="RemovableMessage"/>. Parameterless constructor is used for the database.
 		/// </summary>
 		public RemovableMessage() : base(default) { }
 		/// <summary>
-		/// Creates an instance of removable messages with the supplied messages on the guild/channel in the context.
+		/// Creates an instance of <see cref="RemovableMessage"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="context"></param>

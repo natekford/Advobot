@@ -28,8 +28,7 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			var color = ParseColor(input);
-			return color != null
+			return ParseColor(input) is Color color
 				? Task.FromResult(TypeReaderResult.FromSuccess(color))
 				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching color."));
 		}
@@ -41,7 +40,6 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public static Color? ParseColor(string input)
 		{
-			Color? color = null;
 			if (input == null)
 			{
 				return null;
@@ -49,12 +47,12 @@ namespace Advobot.Classes.TypeReaders
 			//By name
 			if (_Colors.TryGetValue(input, out var temp))
 			{
-				color = temp;
+				return temp;
 			}
 			//By hex (trimming characters that are sometimes at the beginning of hex numbers)
 			else if (uint.TryParse(input.Replace("0x", "").TrimStart('&', 'h', '#', 'x'), NumberStyles.HexNumber, null, out var hex))
 			{
-				color = new Color(hex);
+				return new Color(hex);
 			}
 			//By RGB
 			else if (input.Contains('/'))
@@ -65,7 +63,7 @@ namespace Advobot.Classes.TypeReaders
 					byte.TryParse(colorRgb[1], out var g) &&
 					byte.TryParse(colorRgb[2], out var b))
 				{
-					color = new Color(Math.Min(r, (byte)255), Math.Min(g, (byte)255), Math.Min(b, (byte)255));
+					return new Color(Math.Min(r, (byte)255), Math.Min(g, (byte)255), Math.Min(b, (byte)255));
 				}
 			}
 			return null;

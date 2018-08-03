@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// A <see cref="ShardedCommandContext"/> which contains <see cref="IBotSettings"/>, <see cref="IGuildSettings"/>, <see cref="ILogService"/>, and <see cref="ITimersService"/>.
+	/// A <see cref="ShardedCommandContext"/> which contains <see cref="IBotSettings"/>, <see cref="IGuildSettings"/>, <see cref="ILogService"/>, and <see cref="ITimerService"/>.
 	/// </summary>
 	public class AdvobotCommandContext : ShardedCommandContext
 	{
@@ -27,7 +27,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Holds timed objects, like removable messages.
 		/// </summary>
-		public ITimersService Timers { get; }
+		public ITimerService Timers { get; }
 		/// <summary>
 		/// The invite list for the bot.
 		/// </summary>
@@ -59,7 +59,7 @@ namespace Advobot.Classes
 			_Stopwatch.Start();
 			BotSettings = provider.GetRequiredService<IBotSettings>();
 			Logging = provider.GetRequiredService<ILogService>();
-			Timers = provider.GetRequiredService<ITimersService>();
+			Timers = provider.GetRequiredService<ITimerService>();
 			InviteList = provider.GetRequiredService<IInviteListService>();
 			HelpEntries = provider.GetRequiredService<HelpEntryHolder>();
 			GuildSettings = settings;

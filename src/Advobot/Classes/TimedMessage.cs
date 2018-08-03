@@ -18,11 +18,11 @@ namespace Advobot.Classes
 		public string Text { get; set; }
 
 		/// <summary>
-		/// Initializes the object. Parameterless constructor is used for the database.
+		/// Creates an instance of <see cref="TimedMessage"/>. Parameterless constructor is used for the database.
 		/// </summary>
 		public TimedMessage() : base(default) { }
 		/// <summary>
-		/// Creates an instance of timedmessage.
+		/// Creates an instance of <see cref="TimedMessage"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="author"></param>

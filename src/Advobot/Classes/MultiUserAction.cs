@@ -21,7 +21,7 @@ namespace Advobot.Classes
 		private readonly CancellationTokenSource _CancelToken;
 		private readonly SocketTextChannel _Channel;
 		private readonly SocketUserMessage _Message;
-		private readonly ITimersService _Timers;
+		private readonly ITimerService _Timers;
 		private readonly List<SocketGuildUser> _Users;
 
 		/// <summary>
@@ -30,7 +30,7 @@ namespace Advobot.Classes
 		/// <param name="context"></param>
 		/// <param name="timers"></param>
 		/// <param name="users"></param>
-		public MultiUserAction(AdvobotCommandContext context, ITimersService timers, IEnumerable<SocketGuildUser> users)
+		public MultiUserAction(AdvobotCommandContext context, ITimerService timers, IEnumerable<SocketGuildUser> users)
 		{
 			_CancelToken = new CancellationTokenSource();
 			_CancelTokens.AddOrUpdate(context.Guild.Id, _CancelToken, (oldKey, oldValue) =>

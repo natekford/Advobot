@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.CloseWords;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Services.Levels;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -25,8 +27,9 @@ namespace Advobot.Services.Commands
 		private readonly HelpEntryHolder _HelpEntries;
 		private readonly DiscordShardedClient _Client;
 		private readonly IBotSettings _BotSettings;
+		private readonly ILevelService _Levels;
 		private readonly IGuildSettingsService _GuildSettings;
-		private readonly ITimersService _Timers;
+		private readonly ITimerService _Timers;
 		private readonly ILogService _Logging;
 		private bool _Loaded;
 
@@ -41,8 +44,9 @@ namespace Advobot.Services.Commands
 			_HelpEntries = _Provider.GetRequiredService<HelpEntryHolder>();
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
+			_Levels = _Provider.GetRequiredService<ILevelService>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsService>();
-			_Timers = _Provider.GetRequiredService<ITimersService>();
+			_Timers = _Provider.GetRequiredService<ITimerService>();
 			_Logging = _Provider.GetRequiredService<ILogService>();
 
 			_Client.ShardConnected += OnConnected;
@@ -72,8 +76,15 @@ namespace Advobot.Services.Commands
 			}
 
 			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();
+			//Start everything which uses a database now that we know we're using the correct bot id.
+			foreach (var field in GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+			{
+				if (field.GetValue(this) is IUsesDatabase temp)
+				{
+					temp.Start();
+				}
+			}
 
-			_Timers.Start();
 			_Loaded = true;
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; Prefix: {_BotSettings.Prefix}; Launch Time: {startTime:n}ms");

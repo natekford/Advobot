@@ -54,14 +54,14 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The timer service to add punishments to or remove punishments from.
 		/// </summary>
-		private readonly ITimersService _Timers;
+		private readonly ITimerService _Timers;
 
 		/// <summary>
 		/// Creates an instance of <see cref="Punisher"/>.
 		/// </summary>
 		/// <param name="time">How long to give a punishment for. Removing punishments is not affected by this.</param>
 		/// <param name="timers">The timer service to add timed punishments to.</param>
-		public Punisher(TimeSpan time, ITimersService timers)
+		public Punisher(TimeSpan time, ITimerService timers)
 		{
 			_Time = time;
 			_Timers = timers;

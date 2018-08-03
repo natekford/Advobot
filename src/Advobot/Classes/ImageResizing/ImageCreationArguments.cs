@@ -4,12 +4,12 @@ using Discord;
 
 namespace Advobot.Classes.ImageResizing
 {
-	internal struct ImageCreationArguments<T> where T : IImageResizerArguments
+	internal sealed class ImageCreationArguments<T> where T : IImageResizerArguments
 	{
-		public AdvobotCommandContext Context;
-		public T Args;
-		public Uri Uri;
-		public RequestOptions Options;
-		public string NameOrId;
+		public AdvobotCommandContext Context { get; set; }
+		public T Args { get; set; }
+		public Uri Uri { get; set; }
+		public RequestOptions Options { get; set; }
+		public string NameOrId { get; set; }
 	}
 }

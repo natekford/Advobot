@@ -13,10 +13,12 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The id of the object for LiteDB.
 		/// </summary>
+		[BsonId]
 		public ObjectId Id { get; set; }
 		/// <summary>
 		/// The UTC time to do an action at.
 		/// </summary>
+		[BsonField("Time")]
 		public DateTime Time { get; set; }
 
 		/// <summary>
@@ -25,6 +27,7 @@ namespace Advobot.Classes
 		/// <param name="time"></param>
 		public DatabaseEntry(TimeSpan time)
 		{
+			Id = ObjectId.NewObjectId();
 			Time = DateTime.UtcNow.Add(time.Equals(default) ? _Default : time);
 		}
 	}

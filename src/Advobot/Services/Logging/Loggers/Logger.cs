@@ -31,7 +31,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <summary>
 		/// Timers for punishments.
 		/// </summary>
-		protected ITimersService Timers;
+		protected ITimerService Timers;
 
 		/// <inheritdoc />
 		public event LogCounterIncrementEventHandler LogCounterIncrement;
@@ -45,7 +45,7 @@ namespace Advobot.Services.Logging.Loggers
 			Client = provider.GetRequiredService<DiscordShardedClient>();
 			BotSettings = provider.GetRequiredService<IBotSettings>();
 			GuildSettings = provider.GetRequiredService<IGuildSettingsService>();
-			Timers = provider.GetRequiredService<ITimersService>();
+			Timers = provider.GetRequiredService<ITimerService>();
 		}
 
 		/// <summary>
