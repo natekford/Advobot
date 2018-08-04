@@ -42,7 +42,7 @@ namespace Advobot.Services.Levels
 		}
 
 		/// <inheritdoc />
-		public void AddExperience(SocketUserMessage message, int experience)
+		public void AddExperience(IGuildSettings settings, SocketUserMessage message, int experience)
 		{
 			if (message.Author.Id != UserId)
 			{

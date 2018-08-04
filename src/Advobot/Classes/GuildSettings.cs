@@ -91,6 +91,9 @@ namespace Advobot.Classes
 		[JsonProperty("IgnoredLogChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
 		public List<ulong> IgnoredLogChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
+		[JsonProperty("IgnoredXpChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		public List<ulong> IgnoredXpChannels { get; } = new List<ulong>();
+		/// <inheritdoc />
 		[JsonProperty("ImageOnlyChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
 		public List<ulong> ImageOnlyChannels { get; } = new List<ulong>();
 		/// <inheritdoc />

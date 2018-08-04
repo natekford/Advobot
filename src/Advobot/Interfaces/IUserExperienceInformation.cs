@@ -30,9 +30,10 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Adds experience to the user if the author of the message is this user.
 		/// </summary>
+		/// <param name="settings"></param>
 		/// <param name="message"></param>
 		/// <param name="experience"></param>
-		void AddExperience(SocketUserMessage message, int experience);
+		void AddExperience(IGuildSettings settings, SocketUserMessage message, int experience);
 		/// <summary>
 		/// Removes the experience from the user if the author of the message is this user.
 		/// </summary>

@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Advobot.Utilities;
 
 namespace Advobot.Windows.Classes.Controls
 {
@@ -52,7 +51,6 @@ namespace Advobot.Windows.Classes.Controls
 			base.EndInit();
 			Text = DefaultValue.ToString();
 		}
-
 		private void OnTextChanged(object sender, TextChangedEventArgs e)
 		{
 			//Update the stored value
@@ -66,7 +64,6 @@ namespace Advobot.Windows.Classes.Controls
 		{
 			e.Handled = !String.IsNullOrWhiteSpace(e.Text) && _NumberRegex.IsMatch(e.Text);
 		}
-
 		private void OnPaste(object sender, DataObjectPastingEventArgs e)
 		{
 			if (!e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true) || !(e.Source is TextBox tb))
@@ -115,32 +112,26 @@ namespace Advobot.Windows.Classes.Controls
 		}
 		private void UpdateStoredValue(int value)
 		{
-			if (value > MaxValue)
-			{
-				value = MaxValue;
-			}
-			else if (value < MinValue)
-			{
-				value = MinValue;
-			}
-
-			if (StoredValue == value)
-			{
-			}
-			else
+			value = Math.Max(MinValue, Math.Min(MaxValue, value));
+			if (StoredValue != value)
 			{
 				StoredValue = value;
 			}
 		}
-
 		private static void UpdateMaxLength(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			var nb = d as AdvobotNumberBox;
+			if (!(d is AdvobotNumberBox nb))
+			{
+				return;
+			}
 			nb.MaxLength = Math.Max(nb.MinValue.ToString().Length, nb.MaxValue.ToString().Length);
 		}
 		private static void UpdateText(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			var nb = d as AdvobotNumberBox;
+			if (!(d is AdvobotNumberBox nb))
+			{
+				return;
+			}
 			nb.Text = e.NewValue.ToString();
 		}
 	}

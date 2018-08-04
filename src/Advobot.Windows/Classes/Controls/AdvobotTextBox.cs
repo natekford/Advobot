@@ -32,7 +32,6 @@ namespace Advobot.Windows.Classes.Controls
 			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
 			SetResourceReference(BorderBrushProperty, ColorTarget.BaseBorder);
 		}
-
 		public static AdvobotTextBox CreateComboBoxItem(string text, object tag)
 		{
 			return new AdvobotTextBox
@@ -47,12 +46,10 @@ namespace Advobot.Windows.Classes.Controls
 				Foreground = Brushes.Black
 			};
 		}
-
 		public static AdvobotTextBox CreateUserBox(IUser user)
 		{
 			var name = user.Username.AllCharsWithinLimit() ? user.Username : "Non-Standard Name";
-			var text = $"'{name}#{user.Discriminator}' ({user.Id})";
-			return CreateComboBoxItem(text, user.Id);
+			return CreateComboBoxItem($"'{name}#{user.Discriminator}' ({user.Id})", user.Id);
 		}
 	}
 }

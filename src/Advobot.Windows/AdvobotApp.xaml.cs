@@ -2,6 +2,7 @@
 using Advobot.Windows.Windows;
 using AdvorangesUtils;
 using System;
+using System.Threading;
 using System.Windows;
 
 namespace Advobot.Windows
@@ -41,7 +42,7 @@ namespace Advobot.Windows
 				IOUtils.LogUncaughtException(ueE.ExceptionObject);
 			};
 
-			SyntaxHighlighting.LoadJsonHighlighting();
+			SyntaxHighlightingUtils.LoadJsonHighlighting();
 			MainWindow = new AdvobotWindow();
 			MainWindow.Show();
 		}

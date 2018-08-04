@@ -30,9 +30,8 @@ namespace Advobot.Core
 				savePath = false;
 			}
 
-			var services = CreationUtils.CreateDefaultServiceCollection<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies());
-			var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
-			var commandHandler = provider.GetService<ICommandHandlerService>();
+			var provider = CreationUtils.CreateDefaultServices<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies()).BuildServiceProvider();
+			provider.GetRequiredService<ICommandHandlerService>().RestartRequired += ClientUtils.RestartBotAsync;
 			var client = provider.GetService<DiscordShardedClient>();
 
 			//Get the bot key

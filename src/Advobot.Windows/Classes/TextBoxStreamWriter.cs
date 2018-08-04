@@ -1,5 +1,4 @@
-﻿using AdvorangesUtils;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -9,8 +8,8 @@ namespace Advobot.Windows.Classes
 {
 	internal class TextBoxStreamWriter : TextWriter
 	{
-		private TextBoxBase _Output;
-		private bool _IgnoreNewLines;
+		private readonly TextBoxBase _Output;
+		private readonly bool _IgnoreNewLines;
 		private string _CurrentLineText;
 
 		public TextBoxStreamWriter(TextBoxBase output)

@@ -4,15 +4,14 @@ using System.Xml;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 
-namespace Advobot.Windows.Classes
+namespace Advobot.Windows
 {
-	internal static class SyntaxHighlighting
+	internal static class SyntaxHighlightingUtils
 	{
 		public static void LoadJsonHighlighting()
 		{
 			LoadSyntaxHighlighting("Advobot.Windows.Resources.JsonSyntaxHighlighting.xshd", "Json", new[] { ".json" });
 		}
-
 		public static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
 		{
 			using (var r = new XmlTextReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(loc))

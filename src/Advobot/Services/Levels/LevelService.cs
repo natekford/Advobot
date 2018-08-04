@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using LiteDB;
@@ -56,20 +57,21 @@ namespace Advobot.Services.Levels
 			_Db.Dispose();
 		}
 		/// <inheritdoc />
-		public Task AddExperience(SocketMessage message)
+		public async Task AddExperience(SocketMessage message)
 		{
-			if (_Db == null || message.Author.IsBot || message.Author.IsWebhook || !(message is SocketUserMessage msg))
+			if (_Db == null
+				|| message.Author.IsBot
+				|| message.Author.IsWebhook
+				|| !(message is SocketUserMessage msg)
+				|| !(await _GuildSettings.GetOrCreateAsync((msg.Channel as SocketTextChannel)?.Guild).CAF() is IGuildSettings settings)
+				|| !(GetUserInformation(message.Author.Id) is UserExperienceInformation info)
+				|| info.Time > (DateTime.UtcNow - _Time))
 			{
-				return Task.FromResult(0);
+				return;
 			}
-			var info = (UserExperienceInformation)GetUserInformation(message.Author.Id);
-			if (info.Time > (DateTime.UtcNow - _Time))
-			{
-				return Task.FromResult(0);
-			}
-			info.AddExperience(msg, _BaseExperience);
+			info.AddExperience(settings, msg, _BaseExperience);
 			_Db.GetCollection<UserExperienceInformation>().Update(info);
-			return Task.FromResult(0);
+			return;
 		}
 		/// <inheritdoc />
 		public Task RemoveExperience(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)

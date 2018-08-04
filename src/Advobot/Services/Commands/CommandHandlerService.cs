@@ -8,7 +8,6 @@ using Advobot.Classes.CloseWords;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Services.Levels;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -22,6 +21,9 @@ namespace Advobot.Services.Commands
 	/// </summary>
 	internal sealed class CommandHandlerService : ICommandHandlerService
 	{
+		/// <inheritdoc />
+		public event Func<BaseSocketClient, Task> RestartRequired;
+
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
 		private readonly HelpEntryHolder _HelpEntries;
@@ -49,7 +51,7 @@ namespace Advobot.Services.Commands
 			_Timers = _Provider.GetRequiredService<ITimerService>();
 			_Logging = _Provider.GetRequiredService<ILogService>();
 
-			_Client.ShardConnected += OnConnected;
+			_Client.ShardReady += OnReady;
 			_Client.UserJoined += OnUserJoined;
 			_Client.UserLeft += OnUserLeft;
 			_Client.MessageReceived += OnMessageReceived;
@@ -61,7 +63,7 @@ namespace Advobot.Services.Commands
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		private async Task OnConnected(DiscordSocketClient client)
+		private async Task OnReady(DiscordSocketClient client)
 		{
 			if (_Loaded)
 			{
@@ -72,7 +74,9 @@ namespace Advobot.Services.Commands
 				LowLevelConfig.Config.BotId = client.CurrentUser.Id;
 				LowLevelConfig.Config.Save();
 				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-				await ClientUtils.RestartBotAsync(client).CAF();
+				RestartRequired?.Invoke(_Client);
+				_Loaded = false;
+				return;
 			}
 
 			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();

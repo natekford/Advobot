@@ -17,14 +17,14 @@ namespace Advobot.Windows.Windows
 	internal partial class FileViewingWindow : ModalWindow
 	{
 		private FileInfo _File;
-		private Type _GuildSettingsType;
+		private Type _FileType;
 
-		public FileViewingWindow() : this(null, null, null) { }
-		public FileViewingWindow(AdvobotWindow mainWindow, string text, FileInfo fileInfo) : base(mainWindow)
+		public FileViewingWindow() : this(null, null, null, null) { }
+		public FileViewingWindow(AdvobotWindow mainWindow, Type fileType, FileInfo fileInfo, string text) : base(mainWindow)
 		{
 			InitializeComponent();
-			_GuildSettingsType = mainWindow.GuildSettings.HeldObject.GuildSettingsType;
 			_File = fileInfo;
+			_FileType = fileType;
 			SpecificFileOutput.Tag = fileInfo;
 			SpecificFileOutput.Clear();
 			SpecificFileOutput.AppendText(text);
@@ -67,7 +67,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void SaveFile(object sender, RoutedEventArgs e)
 		{
-			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(SpecificFileOutput, _GuildSettingsType).GetReason());
+			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(SpecificFileOutput, _FileType).GetReason());
 		}
 		private void SaveFileWithCtrlS(object sender, KeyEventArgs e)
 		{

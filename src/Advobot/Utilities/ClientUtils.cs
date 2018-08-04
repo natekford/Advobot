@@ -59,10 +59,7 @@ namespace Advobot.Utilities
 			await client.SetGameAsync(game, stream, activityType).CAF();
 		}
 		/// <summary>
-		/// Creates a new bot that uses the same console. The bot that starts is created using <see cref="Process.Start()"/> and specifying the filename as dotnet and the arguments as the location of the .dll.
-		/// <para>
-		/// The old bot is then killed
-		/// </para>
+		/// Restarts the application correctly if it's a .Net Core application.
 		/// </summary>
 		public static async Task RestartBotAsync(BaseSocketClient client)
 		{

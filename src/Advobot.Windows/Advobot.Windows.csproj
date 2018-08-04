@@ -150,8 +150,7 @@
       <DependentUpon>AdvobotApp.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utilities\BrushUtils.cs" />
-    <Compile Include="Classes\CompGuild.cs" />
-    <Compile Include="Classes\SyntaxHighlighting.cs" />
+    <Compile Include="Utilities\SyntaxHighlightingUtils.cs" />
     <Compile Include="Interfaces\IAdvobotControl.cs" />
     <Compile Include="Windows\AdvobotWindow.xaml.cs">
       <DependentUpon>AdvobotWindow.xaml</DependentUpon>
@@ -168,9 +167,8 @@
     <Compile Include="Classes\ModalWindow.cs" />
     <Compile Include="Classes\Converters\FontResizeConverter.cs" />
     <Compile Include="Classes\Converters\NullToBoolConverter.cs" />
-    <Compile Include="Classes\Converters\NavigateUriConverter.cs" />
+    <Compile Include="Classes\Converters\UriConverter.cs" />
     <Compile Include="Classes\Holder.cs" />
-    <Compile Include="Classes\LoginHandler.cs" />
     <Compile Include="Classes\TextBoxStreamWriter.cs" />
     <Compile Include="Classes\ColorSettings.cs" />
     <Compile Include="Enums\ColorTarget.cs" />

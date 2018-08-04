@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Advobot.Windows.Enums;
@@ -32,24 +33,22 @@ namespace Advobot.Windows.Classes.Controls
 			HorizontalContentAlignment = HorizontalAlignment.Center;
 			SetResourceReferences();
 		}
+
 		public void SetResourceReferences()
 		{
 			SetResourceReference(BackgroundProperty, ColorTarget.BaseBackground);
 			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
 			SetResourceReference(BorderBrushProperty, ColorTarget.BaseBorder);
 		}
-
 		private static void SourceEnumCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			var enumType = (Type)e.NewValue;
-
-			var source = new List<object>();
-			foreach (var enumVal in Enum.GetValues(enumType) ?? throw new ArgumentException("must be an enum.", nameof(enumType)))
+			if (!(d is AdvobotComboBox cb))
 			{
-				source.Add(AdvobotTextBox.CreateComboBoxItem(Enum.GetName(enumType, enumVal), enumVal));
+				return;
 			}
 
-			((AdvobotComboBox)d).ItemsSource = source;
+			var type = (Type)e.NewValue;
+			cb.ItemsSource = Enum.GetValues(type).Cast<object>().Select(x => AdvobotTextBox.CreateComboBoxItem(Enum.GetName(type, x), x));
 		}
 		/// <summary>
 		/// Returns textboxes with the text as the string and the tag as the string too.

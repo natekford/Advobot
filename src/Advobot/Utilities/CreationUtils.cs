@@ -34,7 +34,7 @@ namespace Advobot.Utilities
 		/// <typeparam name="TGuildSettings"></typeparam>
 		/// <param name="commands">The assemblies holding commands.</param>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static IServiceCollection CreateDefaultServiceCollection<TBotSettings, TGuildSettings>(IEnumerable<Assembly> commands)
+		public static IServiceCollection CreateDefaultServices<TBotSettings, TGuildSettings>(IEnumerable<Assembly> commands)
 			where TBotSettings : IBotSettings, new()
 			where TGuildSettings : IGuildSettings, new()
 		{

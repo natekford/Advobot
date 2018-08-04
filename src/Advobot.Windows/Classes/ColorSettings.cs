@@ -15,7 +15,7 @@ using System.Windows.Media;
 
 namespace Advobot.Windows.Classes
 {
-	internal class ColorSettings
+	internal sealed class ColorSettings
 	{
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> LightModeProperties { get; private set; } = GetColorProperties("LightMode");
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> DarkModeProperties { get; private set; } = GetColorProperties("DarkMode");
@@ -48,7 +48,7 @@ namespace Advobot.Windows.Classes
 		public static SolidColorBrush DarkModeJsonValue => BrushUtils.CreateBrush("#0051FF");
 		public static SolidColorBrush DarkModeJsonParamName => BrushUtils.CreateBrush("#057500");
 
-		private static readonly FileInfo _SavePath = FileUtils.GetBaseBotDirectoryFile("UISettings.json");
+		private static FileInfo _SavePath => FileUtils.GetBaseBotDirectoryFile("UISettings.json");
 
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;

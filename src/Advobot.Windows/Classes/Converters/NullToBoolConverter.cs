@@ -7,7 +7,7 @@ namespace Advobot.Windows.Classes.Converters
 	/// <summary>
 	/// Returns true if the object is not null or whitespace.
 	/// </summary>
-	public class NullToBoolConverter : IValueConverter
+	public sealed class NullToBoolConverter : IValueConverter
 	{
 		/// <summary>
 		/// Checks if the value is null or whitespace.

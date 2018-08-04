@@ -15,11 +15,7 @@ namespace Advobot.Windows.Classes.Controls
 		public double FontResizeValue
 		{
 			get => _FRV;
-			set
-			{
-				SetAllChildrenToFontSizeProperty(this);
-				_FRV = value;
-			}
+			set => SetAllChildrenToFontSizeProperty(this, _FRV = value);
 		}
 
 		public AdvobotGrid()
@@ -32,7 +28,7 @@ namespace Advobot.Windows.Classes.Controls
 			base.EndInit();
 			if (_FRV > 0)
 			{
-				SetAllChildrenToFontSizeProperty(this);
+				SetAllChildrenToFontSizeProperty(this, _FRV);
 			}
 		}
 		public void SetResourceReferences()
@@ -41,17 +37,16 @@ namespace Advobot.Windows.Classes.Controls
 			SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
 			SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
 		}
-
-		private void SetAllChildrenToFontSizeProperty(DependencyObject parent)
+		private static void SetAllChildrenToFontSizeProperty(DependencyObject parent, double value)
 		{
 			foreach (var child in parent.GetChildren())
 			{
 				//Don't set it on controls with it already set
 				if (child is IFontResizeValue frv && frv.FontResizeValue == default)
 				{
-					frv.FontResizeValue = _FRV;
+					frv.FontResizeValue = value;
 				}
-				SetAllChildrenToFontSizeProperty(child);
+				SetAllChildrenToFontSizeProperty(child, value);
 			}
 		}
 	}

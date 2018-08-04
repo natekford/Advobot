@@ -7,7 +7,7 @@ namespace Advobot.Windows.Classes.Converters
 	/// <summary>
 	/// Converts a string to a uri.
 	/// </summary>
-	public class UriConverter : IValueConverter
+	public sealed class UriConverter : IValueConverter
 	{
 		/// <summary>
 		/// Converts the passed in value to a uri.

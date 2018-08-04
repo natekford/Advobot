@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using System.Windows.Threading;
+using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using Advobot.Windows.Classes;
@@ -28,6 +29,8 @@ namespace Advobot.Windows.Windows
 	/// </summary>
 	public partial class AdvobotWindow : Window
 	{
+		private static readonly string _Caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+
 		/// <summary>
 		/// Holds a reference to the client even when it doesn't exist for XAML binding.
 		/// </summary>
@@ -37,17 +40,16 @@ namespace Advobot.Windows.Windows
 		/// </summary>
 		public Holder<IBotSettings> BotSettings { get; private set; } = new Holder<IBotSettings>();
 		/// <summary>
-		/// Holds a reference to the guild settings service even when it doesn't exist for XAML binding.
-		/// </summary>
-		public Holder<IGuildSettingsService> GuildSettings { get; private set; } = new Holder<IGuildSettingsService>();
-		/// <summary>
 		/// Holds a reference to the log service even when it doesn't exist for XAML binding.
 		/// </summary>
 		public Holder<ILogService> LogHolder { get; private set; } = new Holder<ILogService>();
 
-		private ColorSettings _Colors = new ColorSettings();
-		private LoginHandler _LoginHandler = new LoginHandler();
 		private MenuType _LastButtonClicked;
+		private IServiceProvider _Provider;
+		private ColorSettings _Colors;
+		private bool _GotPath;
+		private bool _GotKey;
+		private bool _StartUp;
 
 		/// <summary>
 		/// Creates an instance of advobotwindow.
@@ -59,38 +61,60 @@ namespace Advobot.Windows.Windows
 			Console.SetOut(new TextBoxStreamWriter(Output));
 			//Start the timer that shows latency, memory usage, etc.
 			((DispatcherTimer)Resources["ApplicationInformationTimer"]).Start();
-			_LoginHandler.AbleToStart += Start;
 		}
 
+		private async Task<bool> AttemptToStart(string input)
+		{
+			if (!_GotPath)
+			{
+				//Null means it's from the loaded event, which is start up so it's telling the bot to look up the config value
+				_StartUp = input == null;
+				//Set startup to whatever returned value is so it can be used in GotKey, and then after GotKey in the last if statement
+				_StartUp = _GotPath = LowLevelConfig.Config.ValidatePath(input, _StartUp);
+				if (_GotPath)
+				{
+					_Provider = CreationUtils.CreateDefaultServices<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies()).BuildServiceProvider();
+				}
+			}
+			else if (!_GotKey)
+			{
+				_StartUp = input == null;
+				_StartUp = _GotKey = await LowLevelConfig.Config.ValidateBotKey(_Provider.GetRequiredService<DiscordShardedClient>(), input, _StartUp);
+			}
+
+			var somethingWasSet = _StartUp;
+			if (_StartUp && _GotKey && _GotPath)
+			{
+				_StartUp = false;
+				await Dispatcher.InvokeAsync(async () =>
+				{
+					Client.HeldObject = _Provider.GetRequiredService<DiscordShardedClient>();
+					BotSettings.HeldObject = _Provider.GetRequiredService<IBotSettings>();
+					LogHolder.HeldObject = _Provider.GetRequiredService<ILogService>();
+
+					Client.HeldObject.ShardReady += EnableButtons;
+					_Provider.GetRequiredService<ICommandHandlerService>().RestartRequired += Restart;
+					await ClientUtils.StartAsync(Client.HeldObject).CAF();
+				});
+			}
+			return somethingWasSet;
+		}
 		private async Task EnableButtons(DiscordSocketClient client)
 		{
 			await Dispatcher.InvokeAsync(() =>
 			{
 				ButtonMenu.IsEnabled = true;
 				OutputContextMenu.IsEnabled = true;
-			});
-		}
-		private async Task Start()
-		{
-			await Dispatcher.InvokeAsync(async () =>
-			{
-				Client.HeldObject = _LoginHandler.Provider.GetRequiredService<DiscordShardedClient>();
-				BotSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IBotSettings>();
-				GuildSettings.HeldObject = _LoginHandler.Provider.GetRequiredService<IGuildSettingsService>();
-				LogHolder.HeldObject = _LoginHandler.Provider.GetRequiredService<ILogService>();
 				_Colors = ColorSettings.LoadUISettings();
-
-				Client.HeldObject.ShardConnected += EnableButtons;
-				await ClientUtils.StartAsync(Client.HeldObject);
 			});
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
 			//Send null once to check if a path is set in the config
 			//If it is set, then send null again to check for the bot key
-			if (await _LoginHandler.AttemptToStart(null))
+			if (await AttemptToStart(null))
 			{
-				await _LoginHandler.AttemptToStart(null);
+				await AttemptToStart(null);
 			}
 		}
 		private async void AcceptInput(object sender, RoutedEventArgs e)
@@ -100,11 +124,11 @@ namespace Advobot.Windows.Windows
 			{
 				return;
 			}
-			ConsoleUtils.WriteLine(input);
 
-			if (!_LoginHandler.CanLogin)
+			ConsoleUtils.WriteLine(input);
+			if (!(_GotPath && _GotKey))
 			{
-				await _LoginHandler.AttemptToStart(input);
+				await AttemptToStart(input);
 			}
 		}
 		private void AcceptInputWithKey(object sender, KeyEventArgs e)
@@ -116,15 +140,14 @@ namespace Advobot.Windows.Windows
 		}
 		private void AddTrustedUser(object sender, RoutedEventArgs e)
 		{
-			var input = TrustedUsersBox.Text;
-			if (!ulong.TryParse(input, out var userId))
+			if (!ulong.TryParse(TrustedUsersBox.Text, out var userId))
 			{
-				ConsoleUtils.WriteLine($"The given input '{input}' is not a valid ID.");
+				ConsoleUtils.WriteLine($"The given input '{TrustedUsersBox.Text}' is not a valid ID.");
 				return;
 			}
 			if (TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
 			{
-				ConsoleUtils.WriteLine($"The given input '{input}' is already a trusted user.");
+				ConsoleUtils.WriteLine($"The given input '{TrustedUsersBox.Text}' is already a trusted user.");
 				return;
 			}
 			TrustedUsersBox.Text = null;
@@ -139,11 +162,11 @@ namespace Advobot.Windows.Windows
 		{
 			TrustedUsers.Items.Remove(TrustedUsers.SelectedItem);
 		}
-		private void SaveSettings(object sender, RoutedEventArgs e)
+		private async void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			SavingUtils.SaveSettings(SettingsMenuDisplay, BotSettings.HeldObject);
 			//In a task.run since the result is unimportant and unused
-			Task.Run(async () => await ClientUtils.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject));
+			await ClientUtils.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject).CAF();
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -193,7 +216,7 @@ namespace Advobot.Windows.Windows
 			//Has to go after the textboxes so the theme will be applied
 			foreach (var cb in children.OfType<AdvobotComboBox>())
 			{
-				if (!(cb.SelectedItem is AdvobotTextBox tb) || !(tb.Tag is ColorTheme theme))
+				if (!(cb.SelectedItem is AdvobotTextBox tb && tb.Tag is ColorTheme theme))
 				{
 					continue;
 				}
@@ -221,32 +244,25 @@ namespace Advobot.Windows.Windows
 		}
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
-			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
-			switch (MessageBox.Show("Are you sure you want to clear the output window?", caption, MessageBoxButton.OKCancel))
+			if (MessageBox.Show("Are you sure you want to clear the output window?", _Caption, MessageBoxButton.OKCancel) == MessageBoxResult.OK)
 			{
-				case MessageBoxResult.OK:
-					Output.Clear();
-					return;
+				Output.Clear();
 			}
 		}
 		private void SearchForFile(object sender, RoutedEventArgs e)
 		{
-			using (var dialog = new CommonOpenFileDialog { DefaultDirectory = FileUtils.GetBaseBotDirectory().FullName })
+			using (var d = new CommonOpenFileDialog { DefaultDirectory = FileUtils.GetBaseBotDirectory().FullName })
 			{
-				switch (dialog.ShowDialog())
+				if (d.ShowDialog() == CommonFileDialogResult.Ok && SavingUtils.TryGetFileText(d.FileName, out var text, out var file))
 				{
-					case CommonFileDialogResult.Ok:
-						if (SavingUtils.TryGetFileText(dialog.FileName, out var text, out var fileInfo))
-						{
-							new FileViewingWindow(this, text, fileInfo).ShowDialog();
-						}
-						break;
+					var type = _Provider.GetRequiredService<IGuildSettingsService>().GuildSettingsType;
+					new FileViewingWindow(this, type, file, text).ShowDialog();
 				}
 			}
 		}
 		private void OpenModal(object sender, RoutedEventArgs e)
 		{
-			if (!(sender is FrameworkElement ele) || !(ele.Tag is Modal m))
+			if (!(sender is FrameworkElement ele && ele.Tag is Modal m))
 			{
 				return;
 			}
@@ -265,77 +281,71 @@ namespace Advobot.Windows.Windows
 		}
 		private void OpenMenu(object sender, RoutedEventArgs e)
 		{
-			if (!(sender is FrameworkElement ele))
+			if (!(sender is FrameworkElement ele && ele.Tag is MenuType type))
 			{
 				return;
 			}
 
 			//Hide everything so stuff doesn't overlap
-			MainMenu.Visibility = Visibility.Collapsed;
-			SettingsMenu.Visibility = Visibility.Collapsed;
-			ColorsMenu.Visibility = Visibility.Collapsed;
-			InfoMenu.Visibility = Visibility.Collapsed;
-
-			var type = ele.Tag as MenuType? ?? default;
+			MainMenu.Visibility = SettingsMenu.Visibility = ColorsMenu.Visibility = InfoMenu.Visibility = Visibility.Collapsed;
 			if (type == _LastButtonClicked)
 			{
 				//If clicking the same button then resize the output window to the regular size
 				ElementUtils.SetColSpan(Output, Grid.GetColumnSpan(Output) + (Layout.ColumnDefinitions.Count - 1));
 				_LastButtonClicked = default;
+				return;
 			}
-			else
+
+			//Resize the regular output window and have the menubox appear
+			ElementUtils.SetColSpan(Output, Grid.GetColumnSpan(Output) - (Layout.ColumnDefinitions.Count - 1));
+			_LastButtonClicked = type;
+
+			switch (type)
 			{
-				//Resize the regular output window and have the menubox appear
-				ElementUtils.SetColSpan(Output, Grid.GetColumnSpan(Output) - (Layout.ColumnDefinitions.Count - 1));
-				_LastButtonClicked = type;
+				case MenuType.Main:
+					MainMenu.Visibility = Visibility.Visible;
+					return;
+				case MenuType.Info:
+					InfoMenu.Visibility = Visibility.Visible;
+					return;
+				case MenuType.Settings:
+					var s = BotSettings.HeldObject;
+					var llSelected = LogLevel.Items.OfType<TextBox>()
+						.SingleOrDefault(x => x?.Tag is LogSeverity ls && ls == s.LogLevel);
 
-				switch (type)
-				{
-					case MenuType.Main:
-						MainMenu.Visibility = Visibility.Visible;
-						return;
-					case MenuType.Info:
-						InfoMenu.Visibility = Visibility.Visible;
-						return;
-					case MenuType.Settings:
-						var s = BotSettings.HeldObject;
-						var llSelected = LogLevel.Items.OfType<TextBox>()
-							.SingleOrDefault(x => x?.Tag is LogSeverity ls && ls == s.LogLevel);
+					AlwaysDownloadUsers.IsChecked = s.AlwaysDownloadUsers;
+					Prefix.Text = s.Prefix;
+					Game.Text = s.Game;
+					Stream.Text = s.Stream;
+					MessageCacheCount.StoredValue = s.MessageCacheCount;
+					MaxUserGatherCount.StoredValue = s.MaxUserGatherCount;
+					MaxMessageGatherSize.StoredValue = s.MaxMessageGatherSize;
+					LogLevel.SelectedItem = llSelected;
 
-						AlwaysDownloadUsers.IsChecked = s.AlwaysDownloadUsers;
-						Prefix.Text = s.Prefix;
-						Game.Text = s.Game;
-						Stream.Text = s.Stream;
-						MessageCacheCount.StoredValue = s.MessageCacheCount;
-						MaxUserGatherCount.StoredValue = s.MaxUserGatherCount;
-						MaxMessageGatherSize.StoredValue = s.MaxMessageGatherSize;
-						LogLevel.SelectedItem = llSelected;
+					SettingsMenu.Visibility = Visibility.Visible;
+					return;
+				case MenuType.Colors:
+					var c = _Colors;
+					var tcbSelected = ThemesComboBox.Items.OfType<TextBox>()
+						.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
 
-						SettingsMenu.Visibility = Visibility.Visible;
-						return;
-					case MenuType.Colors:
-						var c = _Colors;
-						var tcbSelected = ThemesComboBox.Items.OfType<TextBox>()
-							.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
+					ThemesComboBox.SelectedItem = tcbSelected;
+					BaseBackground.Text = c[ColorTarget.BaseBackground]?.ToString();
+					BaseForeground.Text = c[ColorTarget.BaseForeground]?.ToString();
+					BaseBorder.Text = c[ColorTarget.BaseBorder]?.ToString();
+					ButtonBackground.Text = c[ColorTarget.ButtonBackground]?.ToString();
+					ButtonForeground.Text = c[ColorTarget.ButtonForeground]?.ToString();
+					ButtonBorder.Text = c[ColorTarget.ButtonBorder]?.ToString();
+					ButtonDisabledBackground.Text = c[ColorTarget.ButtonDisabledBackground]?.ToString();
+					ButtonDisabledForeground.Text = c[ColorTarget.ButtonDisabledForeground]?.ToString();
+					ButtonDisabledBorder.Text = c[ColorTarget.ButtonDisabledBorder]?.ToString();
+					ButtonMouseOverBackground.Text = c[ColorTarget.ButtonMouseOverBackground]?.ToString();
+					JsonDigits.Text = c[ColorTarget.JsonDigits]?.ToString();
+					JsonValue.Text = c[ColorTarget.JsonValue]?.ToString();
+					JsonParamName.Text = c[ColorTarget.JsonParamName]?.ToString();
 
-						ThemesComboBox.SelectedItem = tcbSelected;
-						BaseBackground.Text = c[ColorTarget.BaseBackground]?.ToString();
-						BaseForeground.Text = c[ColorTarget.BaseForeground]?.ToString();
-						BaseBorder.Text = c[ColorTarget.BaseBorder]?.ToString();
-						ButtonBackground.Text = c[ColorTarget.ButtonBackground]?.ToString();
-						ButtonForeground.Text = c[ColorTarget.ButtonForeground]?.ToString();
-						ButtonBorder.Text = c[ColorTarget.ButtonBorder]?.ToString();
-						ButtonDisabledBackground.Text = c[ColorTarget.ButtonDisabledBackground]?.ToString();
-						ButtonDisabledForeground.Text = c[ColorTarget.ButtonDisabledForeground]?.ToString();
-						ButtonDisabledBorder.Text = c[ColorTarget.ButtonDisabledBorder]?.ToString();
-						ButtonMouseOverBackground.Text = c[ColorTarget.ButtonMouseOverBackground]?.ToString();
-						JsonDigits.Text = c[ColorTarget.JsonDigits]?.ToString();
-						JsonValue.Text = c[ColorTarget.JsonValue]?.ToString();
-						JsonParamName.Text = c[ColorTarget.JsonParamName]?.ToString();
-
-						ColorsMenu.Visibility = Visibility.Visible;
-						return;
-				}
+					ColorsMenu.Visibility = Visibility.Visible;
+					return;
 			}
 		}
 		private void OpenHyperLink(object sender, RequestNavigateEventArgs e)
@@ -343,39 +353,30 @@ namespace Advobot.Windows.Windows
 			Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
 			e.Handled = true;
 		}
-		private void Disconnect(object sender, RoutedEventArgs e)
+		private async void Disconnect(object sender, RoutedEventArgs e)
 		{
-			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
-			switch (MessageBox.Show("Are you sure you want to disconnect the bot?", caption, MessageBoxButton.OKCancel))
+			if (MessageBox.Show("Are you sure you want to disconnect the bot?", _Caption, MessageBoxButton.OKCancel) == MessageBoxResult.OK)
 			{
-				case MessageBoxResult.OK:
-					ClientUtils.DisconnectBotAsync(Client.HeldObject);
-					return;
+				await ClientUtils.DisconnectBotAsync(Client.HeldObject).CAF();
 			}
 		}
-		private void Restart(object sender, RoutedEventArgs e)
+		private async void Restart(object sender, RoutedEventArgs e)
 		{
-			var caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
-			switch (MessageBox.Show("Are you sure you want to restart the bot?", caption, MessageBoxButton.OKCancel))
+			if (MessageBox.Show("Are you sure you want to restart the bot?", _Caption, MessageBoxButton.OKCancel) == MessageBoxResult.OK)
 			{
-				case MessageBoxResult.OK:
-					Process.Start(Application.ResourceAssembly.Location);
-					Application.Current.Shutdown();
-					return;
+				await Restart(Client.HeldObject).CAF();
 			}
+		}
+		private static async Task Restart(BaseSocketClient client)
+		{
+			await client.StopAsync().CAF();
+			Process.Start(Application.ResourceAssembly.Location);
+			Environment.Exit(0);
 		}
 		private void Pause(object sender, RoutedEventArgs e)
 		{
-			if (BotSettings.HeldObject.Pause)
-			{
-				PauseButton.Content = "Pause";
-				ConsoleUtils.WriteLine("The bot is now unpaused.");
-			}
-			else
-			{
-				PauseButton.Content = "Unpause";
-				ConsoleUtils.WriteLine("The bot is now paused.");
-			}
+			PauseButton.Content = BotSettings.HeldObject.Pause ? "Pause" : "Unpause";
+			ConsoleUtils.WriteLine($"The bot is now {(BotSettings.HeldObject.Pause ? "unpaused" : "paused")}.");
 			BotSettings.HeldObject.Pause = !BotSettings.HeldObject.Pause;
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
@@ -387,7 +388,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)
 		{
-			if (!(sender is FrameworkElement fe) || !(fe.ToolTip is ToolTip tt))
+			if (!(sender is FrameworkElement fe && fe.ToolTip is ToolTip tt))
 			{
 				return;
 			}

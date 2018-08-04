@@ -2,6 +2,6 @@
 {
 	internal interface IUnescapedText
 	{
-		string UnescapedText { set; }
+		string UnescapedText { get; set; }
 	}
 }

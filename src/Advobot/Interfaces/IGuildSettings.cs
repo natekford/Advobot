@@ -90,6 +90,10 @@ namespace Advobot.Interfaces
 		/// </summary>
 		List<ulong> IgnoredLogChannels { get; }
 		/// <summary>
+		/// Channels ignored from gaining xp in.
+		/// </summary>
+		List<ulong> IgnoredXpChannels { get; }
+		/// <summary>
 		/// Channels which have messages deleted in them unless they have an image attached.
 		/// </summary>
 		List<ulong> ImageOnlyChannels { get; }
