@@ -47,12 +47,13 @@ namespace Advobot.Windows
 				}
 				catch (ArgumentException) { }
 			}
-			var config = LowLevelConfig.LoadConfigDictionary(parsed.CurrentInstance);
+			var config = parsed.CreateConfig();
 
 			SyntaxHighlightingUtils.LoadJsonHighlighting();
 			//Make sure it's restarted with the correct instance number for config reasons
 			MainWindow = new AdvobotWindow(config);
 			MainWindow.Show();
+			ConsoleUtils.DebugWrite($"Args: {parsed.CurrentInstance}|{parsed.PreviousProcessId}");
 		}
 		private void LogException(object exception, EventArgs e)
 		{

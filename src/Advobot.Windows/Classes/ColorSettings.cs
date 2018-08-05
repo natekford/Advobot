@@ -1,10 +1,4 @@
-﻿using Advobot.Utilities;
-using Advobot.Windows.Enums;
-using Advobot.Windows.Utilities;
-using AdvorangesUtils;
-using ICSharpCode.AvalonEdit.Highlighting;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -12,6 +6,13 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
+using Advobot.Classes;
+using Advobot.Utilities;
+using Advobot.Windows.Enums;
+using Advobot.Windows.Utilities;
+using AdvorangesUtils;
+using ICSharpCode.AvalonEdit.Highlighting;
+using Newtonsoft.Json;
 
 namespace Advobot.Windows.Classes
 {

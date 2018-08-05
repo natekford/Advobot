@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -87,11 +88,11 @@ namespace Advobot.Services.Levels
 				|| !(info.RemoveMessageHash(cached.Id) is MessageHash hash)
 				|| hash.MessageId == 0)
 			{
-				return Task.FromResult(0);
+				return Task.CompletedTask;
 			}
 			info.RemoveExperience(message, hash.ExperienceGiven);
 			_Db.GetCollection<UserExperienceInformation>().Update(info);
-			return Task.FromResult(0);
+			return Task.CompletedTask;
 		}
 		/// <inheritdoc />
 		public int CalculateLevel(int experience)

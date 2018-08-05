@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -43,7 +45,7 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			var path = FileUtils.GetGuildSettingsFile(_Config, guild.Id);
+			var path = FileUtils.GetBaseBotDirectoryFile(_Config, Path.Combine("GuildSettings", $"{guild.Id}.json"));
 			settings = IOUtils.DeserializeFromFile<IGuildSettings, T>(path, _JsonSettings);
 			await settings.PostDeserializeAsync(guild).CAF();
 
@@ -76,7 +78,7 @@ namespace Advobot.Services.GuildSettings
 		Task IGuildSettingsService.RemoveAsync(ulong guildId)
 		{
 			Remove(guildId);
-			return Task.FromResult(0);
+			return Task.CompletedTask;
 		}
 	}
 }

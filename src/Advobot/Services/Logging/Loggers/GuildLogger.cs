@@ -19,12 +19,11 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		public async Task OnGuildAvailable(SocketGuild guild)
 		{
+			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
+			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {IOUtils.GetMemory().ToString("0.00")}MB)");
-
 			if (!GuildSettings.Contains(guild.Id))
 			{
-				NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
-				NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 				await GuildSettings.GetOrCreateAsync(guild).CAF();
 			}
 		}
@@ -35,6 +34,8 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		public Task OnGuildUnavailable(SocketGuild guild)
 		{
+			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);
+			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), -1);
 			ConsoleUtils.WriteLine($"Guild is now offline {guild.Format()}.");
 			return Task.CompletedTask;
 		}
@@ -45,6 +46,8 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		public async Task OnJoinedGuild(SocketGuild guild)
 		{
+			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
+			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 			ConsoleUtils.WriteLine($"Bot has joined {guild.Format()}.");
 
 			//Determine what percentage of bot users to leave at
@@ -70,7 +73,6 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				percentage = .2;
 			}
-
 			//Leave if too many bots
 			if ((double)guild.Users.Count(x => x.IsBot) / users > percentage)
 			{
@@ -80,8 +82,6 @@ namespace Advobot.Services.Logging.Loggers
 
 			if (!GuildSettings.Contains(guild.Id))
 			{
-				NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
-				NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 				await GuildSettings.GetOrCreateAsync(guild).CAF();
 			}
 		}
@@ -92,10 +92,9 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		public async Task OnLeftGuild(SocketGuild guild)
 		{
-			ConsoleUtils.WriteLine($"Bot has left {guild.Format()}.");
-
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), -1);
+			ConsoleUtils.WriteLine($"Bot has left {guild.Format()}.");
 			await GuildSettings.RemoveAsync(guild.Id).CAF();
 		}
 	}

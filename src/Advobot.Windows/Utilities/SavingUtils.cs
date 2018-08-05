@@ -1,4 +1,11 @@
-﻿using Advobot.Interfaces;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using Advobot.Classes;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using Advobot.Windows.Classes.Controls;
 using Advobot.Windows.Enums;
@@ -6,12 +13,6 @@ using AdvorangesUtils;
 using Discord;
 using ICSharpCode.AvalonEdit;
 using Newtonsoft.Json;
-using System;
-using System.IO;
-using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace Advobot.Windows.Utilities
 {

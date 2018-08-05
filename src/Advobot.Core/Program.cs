@@ -24,7 +24,8 @@ namespace Advobot.Core
 				| ConsolePrintingFlags.RemoveDuplicateNewLines;
 
 			var parsed = new AdvobotStartupArgs(args);
-			var config = LowLevelConfig.LoadConfigDictionary(parsed.CurrentInstance);
+			ConsoleUtils.DebugWrite($"Args: {parsed.CurrentInstance}|{parsed.PreviousProcessId}");
+			var config = parsed.CreateConfig();
 
 			//Get the save path
 			var savePath = true;

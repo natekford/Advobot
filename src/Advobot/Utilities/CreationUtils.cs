@@ -123,7 +123,7 @@ namespace Advobot.Utilities
 		private static IBotSettings CreateBotSettings<T>(IServiceProvider provider) where T : IBotSettings, new()
 		{
 			var config = provider.GetRequiredService<LowLevelConfig>();
-			return IOUtils.DeserializeFromFile<IBotSettings, T>(FileUtils.GetBotSettingsFile(config));
+			return IOUtils.DeserializeFromFile<IBotSettings, T>(FileUtils.GetBaseBotDirectoryFile(config, "BotSettings.json"));
 		}
 	}
 }

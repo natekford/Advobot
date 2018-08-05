@@ -10,7 +10,7 @@ using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot
+namespace Advobot.Classes
 {
 	/// <summary>
 	/// Low level configuration that is necessary for the bot to run. Holds the bot key, bot id, and save path.
@@ -18,15 +18,10 @@ namespace Advobot
 	public sealed class LowLevelConfig
 	{
 		/// <summary>
-		/// The instance this is of the bot.
+		/// The instance number of the bot at launch.
 		/// </summary>
 		[JsonIgnore]
 		public int InstanceNumber { get; private set; }
-		/// <summary>
-		/// The path to this config's location.
-		/// </summary>
-		[JsonIgnore]
-		public FileInfo ConfigPath { get; private set; }
 		/// <summary>
 		/// The path the bot's files are in.
 		/// </summary>
@@ -42,6 +37,8 @@ namespace Advobot
 		/// </summary>
 		[JsonProperty("BotId")]
 		public ulong BotId { get; set; }
+		[JsonIgnore]
+		private FileInfo ConfigPath;
 
 		/// <summary>
 		/// Attempts to set the save path with the given input. Returns a boolean signifying whether the save path is valid or not.
@@ -143,7 +140,7 @@ namespace Advobot
 		/// Attempts to load the configuration from with the supplied instance number otherwise uses the default initialization for config.
 		/// </summary>
 		/// <returns></returns>
-		public static LowLevelConfig LoadConfigDictionary(int instance = -1)
+		public static LowLevelConfig Load(int instance)
 		{
 			//Start by grabbing the entry assembly location then cutting out everything but the file name
 			//Use entry so console and ui applications can have diff configs

@@ -1,4 +1,6 @@
 ﻿using Advobot.Classes;
+using Advobot.Classes.Settings;
+using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -14,7 +16,7 @@ namespace Advobot.Services.Logging.Loggers
 		internal UserLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <summary>
-		/// Checks for banned names and raid prevention, logs their join to the server log, or says the welcome message.
+		/// Logs the user joining.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <returns></returns>
@@ -22,7 +24,6 @@ namespace Advobot.Services.Logging.Loggers
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), 1);
 			NotifyLogCounterIncrement(nameof(ILogService.UserJoins), 1);
-
 			if (!TryGetSettings(user, out var settings)
 				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
 				|| settings.ServerLogId == 0)
@@ -54,7 +55,50 @@ namespace Advobot.Services.Logging.Loggers
 			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
 		}
 		/// <summary>
-		/// Does nothing if the bot is the user, logs their leave to the server log, or says the goodbye message.
+		/// Handles banned names, anti raid, persistent roles, and the welcome message.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public async Task OnUserJoinedActions(SocketGuildUser user)
+		{
+			if (!(await GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
+			{
+				return;
+			}
+			//Banned names
+			if (settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(user.Username)))
+			{
+				var giver = new Punisher(TimeSpan.FromMinutes(0), Timers);
+				await giver.GiveAsync(Punishment.Ban, user.Guild, user.Id, 0, ClientUtils.CreateRequestOptions("banned name")).CAF();
+			}
+			//Antiraid
+			if (settings.RaidPreventionDictionary[RaidType.Regular] is RaidPreventionInfo antiRaid && antiRaid.Enabled)
+			{
+				await antiRaid.PunishAsync(settings, user).CAF();
+			}
+			if (settings.RaidPreventionDictionary[RaidType.RapidJoins] is RaidPreventionInfo antiJoin && antiJoin.Enabled)
+			{
+				antiJoin.Add(user.JoinedAt?.UtcDateTime ?? default);
+				if (antiJoin.GetSpamCount() >= antiJoin.UserCount)
+				{
+					await antiJoin.PunishAsync(settings, user).CAF();
+				}
+			}
+			//Persistent roles
+			var roles = settings.PersistentRoles.Where(x => x.UserId == user.Id)
+				.Select(x => user.Guild.GetRole(x.RoleId)).Where(x => x != null).ToList();
+			if (roles.Any())
+			{
+				await user.AddRolesAsync(roles, ClientUtils.CreateRequestOptions("persistent roles")).CAF();
+			}
+			//Welcome message
+			if (settings.WelcomeMessage != null)
+			{
+				await settings.WelcomeMessage.SendAsync(user.Guild, user).CAF();
+			}
+		}
+		/// <summary>
+		/// Logs the user leaving.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <returns></returns>
@@ -62,7 +106,6 @@ namespace Advobot.Services.Logging.Loggers
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -1);
 			NotifyLogCounterIncrement(nameof(ILogService.UserLeaves), 1);
-
 			if (!TryGetSettings(user, out var settings)
 				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
 				|| settings.ServerLogId == 0)
@@ -87,6 +130,24 @@ namespace Advobot.Services.Logging.Loggers
 			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
 		}
 		/// <summary>
+		/// Handles the goodbye message.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public async Task OnUserLeftActions(SocketGuildUser user)
+		{
+			//Check if the bot was the one that left
+			if (user.Id == Config.BotId || !(await GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
+			{
+				return;
+			}
+			//Goodbye message
+			if (settings.GoodbyeMessage != null)
+			{
+				await settings.GoodbyeMessage.SendAsync(user.Guild, user).CAF();
+			}
+		}
+		/// <summary>
 		/// Logs their name change to every server that has OnUserUpdated enabled.
 		/// </summary>
 		/// <param name="beforeUser"></param>
@@ -94,12 +155,11 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 		{
+			NotifyLogCounterIncrement(nameof(ILogService.UserChanges), 1);
 			if (BotSettings.Pause || beforeUser.Username.CaseInsEquals(afterUser.Username))
 			{
 				return;
 			}
-
-			NotifyLogCounterIncrement(nameof(ILogService.UserChanges), 1);
 
 			var guildsContainingUser = Client.Guilds.Where(g => g.Users.Select(u => u.Id).Contains(afterUser.Id));
 			foreach (var guild in guildsContainingUser)

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Classes.CloseWords;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -34,9 +35,10 @@ namespace Advobot.Services.Logging.Loggers
 			//For some meme server
 			if (message.Author is SocketGuildUser author && author.Guild.Id == 294173126697418752)
 			{
-				if (author.Username != "jeff" && author.Nickname != "jeff" && author.Guild.CurrentUser.HasHigherPosition(author))
+				const string name = "jeff";
+				if (author.Username != name && author.Nickname != name && author.Guild.CurrentUser.HasHigherPosition(author))
 				{
-					await author.ModifyAsync(x => x.Nickname = "jeff", ClientUtils.CreateRequestOptions("my nama jeff")).CAF();
+					await author.ModifyAsync(x => x.Nickname = name, ClientUtils.CreateRequestOptions($"my nama {name}")).CAF();
 				}
 			}
 
@@ -51,10 +53,12 @@ namespace Advobot.Services.Logging.Loggers
 			await HandleSlowmodeAsync(settings, user, msg).CAF();
 			await HandleSpamPreventionAsync(settings, user, msg).CAF();
 			await HandleBannedPhrasesAsync(settings, user, msg).CAF();
+			await HandleCloseWords(settings, user, msg).CAF();
 		}
 		/// <inheritdoc />
 		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
+			NotifyLogCounterIncrement(nameof(ILogService.MessageEdits), 1);
 			if (!(message is SocketUserMessage msg) || !(msg.Author is SocketGuildUser user) || !TryGetSettings(message, out var settings))
 			{
 				return;
@@ -77,16 +81,15 @@ namespace Advobot.Services.Logging.Loggers
 		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
 			//Ignore uncached messages since not much can be done with them
+			NotifyLogCounterIncrement(nameof(ILogService.MessageDeletes), 1);
 			if (!cached.HasValue
 				|| !(cached.Value is IMessage message)
 				|| !(channel is SocketGuildChannel guildChannel)
 				|| !TryGetSettings(message, out var settings)
 				|| settings.ServerLogId == 0)
 			{
-				return Task.FromResult(0);
+				return Task.CompletedTask;
 			}
-
-			NotifyLogCounterIncrement(nameof(ILogService.MessageDeletes), 1);
 
 			var msgDeletion = settings.MessageDeletion;
 			msgDeletion.Messages.Add(message);
@@ -159,7 +162,7 @@ namespace Advobot.Services.Logging.Loggers
 				}
 			});
 
-			return Task.FromResult(0);
+			return Task.CompletedTask;
 		}
 
 		/// <summary>
@@ -169,7 +172,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="user"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		private async Task HandleChannelSettingsAsync(IGuildSettings settings, IGuildUser user, IMessage message)
+		private async Task HandleChannelSettingsAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
 			if (!user.GuildPermissions.Administrator
 				&& settings.ImageOnlyChannels.Contains(message.Channel.Id)
@@ -253,43 +256,10 @@ namespace Advobot.Services.Logging.Loggers
 			}
 		}
 		/// <summary>
-		/// Logs the text difference to the server log if set.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="user"></param>
-		/// <param name="before"></param>
-		/// <param name="after"></param>
-		/// <returns></returns>
-		private async Task HandleMessageEdittedLoggingAsync(IGuildSettings settings, SocketGuildUser user, IMessage before, SocketMessage after)
-		{
-			if (settings.ServerLogId == 0)
-			{
-				return;
-			}
-
-			var bMsgContent = (before?.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-			var aMsgContent = (after.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-			if (bMsgContent == aMsgContent)
-			{
-				return;
-			}
-
-			NotifyLogCounterIncrement(nameof(ILogService.MessageEdits), 1);
-			var embed = new EmbedWrapper
-			{
-				Color = EmbedWrapper.MessageEdit
-			};
-			embed.TryAddAuthor(after.Author, out _);
-			embed.TryAddField("Before:", $"`{(bMsgContent.Length > 750 ? "Long message" : bMsgContent)}`", true, out _);
-			embed.TryAddField("After:", $"`{(aMsgContent.Length > 750 ? "Long message" : aMsgContent)}`", false, out _);
-			embed.TryAddFooter("Message Updated", null, out _);
-			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
-		}
-		/// <summary>
 		/// Checks the message against the slowmode.
 		/// </summary>
 		/// <returns></returns>
-		private async Task HandleSlowmodeAsync(IGuildSettings settings, SocketGuildUser user, IMessage message)
+		private async Task HandleSlowmodeAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
 			//Don't bother doing stuff on the user if they're immune
 			var slowmode = settings.Slowmode;
@@ -433,6 +403,81 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("banned phrase")).CAF();
 			}
+		}
+		/// <summary>
+		/// If there are any active close quotes/help entries, handles them and removes them from the database.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="user"></param>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		private async Task HandleCloseWords(IGuildSettings settings, SocketGuildUser user, SocketUserMessage message)
+		{
+			if (Timers == null || !int.TryParse(message.Content, out var i) || i < 0 || i > 7)
+			{
+				return;
+			}
+			--i;
+
+			var deleteMessage = false;
+			if (await Timers.RemoveActiveCloseQuoteAsync(user.Guild.Id, message.Author.Id).CAF() is CloseQuotes q && q.List.Count > i)
+			{
+				var embed = new EmbedWrapper
+				{
+					Title = q.List[i].Name,
+					Description = q.List[i].Text,
+				};
+				embed.TryAddFooter("Quote", null, out _);
+				await MessageUtils.SendMessageAsync(message.Channel, null, embed).CAF();
+				deleteMessage = true;
+			}
+			if (await Timers.RemoveActiveCloseHelpAsync(user.Guild.Id, message.Author.Id).CAF() is CloseHelpEntries h && h.List.Count > i)
+			{
+				var embed = new EmbedWrapper
+				{
+					Title = h.List[i].Name,
+					Description = h.List[i].Text.Replace(Constants.PLACEHOLDER_PREFIX, BotSettings.InternalGetPrefix(settings)),
+				};
+				embed.TryAddFooter("Help", null, out _);
+				await MessageUtils.SendMessageAsync(message.Channel, null, embed).CAF();
+				deleteMessage = true;
+			}
+			if (deleteMessage)
+			{
+				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("help entry or quote")).CAF();
+			}
+		}
+		/// <summary>
+		/// Logs the text difference to the server log if set.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="user"></param>
+		/// <param name="before"></param>
+		/// <param name="after"></param>
+		/// <returns></returns>
+		private async Task HandleMessageEdittedLoggingAsync(IGuildSettings settings, SocketGuildUser user, IMessage before, SocketMessage after)
+		{
+			if (settings.ServerLogId == 0)
+			{
+				return;
+			}
+
+			var bMsgContent = (before?.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
+			var aMsgContent = (after.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
+			if (bMsgContent == aMsgContent)
+			{
+				return;
+			}
+
+			var embed = new EmbedWrapper
+			{
+				Color = EmbedWrapper.MessageEdit
+			};
+			embed.TryAddAuthor(after.Author, out _);
+			embed.TryAddField("Before:", $"`{(bMsgContent.Length > 750 ? "Long message" : bMsgContent)}`", true, out _);
+			embed.TryAddField("After:", $"`{(aMsgContent.Length > 750 ? "Long message" : aMsgContent)}`", false, out _);
+			embed.TryAddFooter("Message Updated", null, out _);
+			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
 		}
 	}
 }

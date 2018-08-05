@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Diagnostics;
 using AdvorangesSettingParser;
-using AdvorangesUtils;
 
 namespace Advobot.Classes
 {
@@ -33,23 +32,22 @@ namespace Advobot.Classes
 		}
 
 		/// <summary>
+		/// Creates low level config using the passed in startup args.
+		/// </summary>
+		/// <returns></returns>
+		public LowLevelConfig CreateConfig()
+		{
+			return LowLevelConfig.Load(CurrentInstance);
+		}
+		/// <summary>
 		/// Generates a string which can be passed into the next instance as command line arguments.
 		/// </summary>
-		/// <param name="previousProcessId"></param>
-		/// <param name="currentInstance"></param>
+		/// <param name="config"></param>
 		/// <returns></returns>
-		public static string GenerateArgs(int? previousProcessId = null, int? currentInstance = null)
+		public static string GenerateArgs(LowLevelConfig config)
 		{
-			var parts = new List<string>();
-			if (previousProcessId != null)
-			{
-				parts.Add($"-{nameof(PreviousProcessId)} {previousProcessId}");
-			}
-			if (currentInstance != null)
-			{
-				parts.Add($"-{nameof(CurrentInstance)} {currentInstance}");
-			}
-			return parts.JoinNonNullStrings(" ");
+			return $"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} " +
+				$"-{nameof(CurrentInstance)} {config.InstanceNumber}";
 		}
 	}
 }

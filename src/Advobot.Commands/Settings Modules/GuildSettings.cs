@@ -1,17 +1,18 @@
-﻿using Advobot.Commands.Misc;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
+using Advobot.Commands.Misc;
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildSettings
 {
@@ -589,7 +590,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command]
 		public async Task Command()
 		{
-			var file = FileUtils.GetGuildSettingsFile(Context.Config, Context.Guild.Id);
+			var file = FileUtils.GetBaseBotDirectoryFile(Context.Config, Path.Combine("GuildSettings", $"{Context.Guild.Id}.json"));
 			if (!file.Exists)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild settings file does not exist.")).CAF();

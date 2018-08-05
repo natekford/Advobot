@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Advobot.Classes;
 
 namespace Advobot.Utilities
 {
@@ -18,28 +19,12 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\File
 		/// </summary>
+		/// <param name="config"></param>
 		/// <param name="fileName"></param>
 		/// <returns></returns>
 		public static FileInfo GetBaseBotDirectoryFile(LowLevelConfig config, string fileName)
 		{
 			return new FileInfo(Path.Combine(GetBaseBotDirectory(config).FullName, fileName));
-		}
-		/// <summary>
-		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\GuildSettings\GuildId.json
-		/// </summary>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		public static FileInfo GetGuildSettingsFile(LowLevelConfig config, ulong id)
-		{
-			return GetBaseBotDirectoryFile(config, Path.Combine("GuildSettings", $"{id}.json"));
-		}
-		/// <summary>
-		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\BotSettings.json
-		/// </summary>
-		/// <returns></returns>
-		public static FileInfo GetBotSettingsFile(LowLevelConfig config)
-		{
-			return GetBaseBotDirectoryFile(config, "BotSettings.json");
 		}
 		/// <summary>
 		/// Makes sure the directory and file exists then writes the text to the file.

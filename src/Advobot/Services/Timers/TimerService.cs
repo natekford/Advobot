@@ -239,12 +239,12 @@ namespace Advobot.Services.Timers
 		Task ITimerService.AddAsync(RemovableMessage message)
 		{
 			Add(message);
-			return Task.FromResult(0);
+			return Task.CompletedTask;
 		}
 		Task ITimerService.AddAsync(TimedMessage message)
 		{
 			Add(message);
-			return Task.FromResult(0);
+			return Task.CompletedTask;
 		}
 	}
 }

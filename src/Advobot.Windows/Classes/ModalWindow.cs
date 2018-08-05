@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using Advobot.Classes;
 
 namespace Advobot.Windows.Classes.Controls
 {
@@ -25,6 +26,7 @@ namespace Advobot.Windows.Classes.Controls
 		/// Creates an instance of modalwindow.
 		/// </summary>
 		/// <param name="mainWindow"></param>
+		/// <param name="config"></param>
 		public ModalWindow(Window mainWindow, LowLevelConfig config)
 		{
 			Window = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));

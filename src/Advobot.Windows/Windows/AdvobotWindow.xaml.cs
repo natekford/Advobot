@@ -366,14 +366,13 @@ namespace Advobot.Windows.Windows
 		{
 			if (MessageBox.Show("Are you sure you want to restart the bot?", _Caption, MessageBoxButton.OKCancel) == MessageBoxResult.OK)
 			{
-				await Restart(Client.HeldObject).CAF();
+				await Restart(_Config, Client.HeldObject).CAF();
 			}
 		}
-		private static async Task Restart(BaseSocketClient client)
+		private static async Task Restart(LowLevelConfig config, BaseSocketClient client)
 		{
 			await client.StopAsync().CAF();
-			var args = AdvobotStartupArgs.GenerateArgs(Process.GetCurrentProcess().Id, LowLevelConfig.GetDuplicateProccessesCount());
-			Process.Start(Application.ResourceAssembly.Location, args);
+			Process.Start(Application.ResourceAssembly.Location, AdvobotStartupArgs.GenerateArgs(config));
 			Environment.Exit(0);
 		}
 		private void Pause(object sender, RoutedEventArgs e)
