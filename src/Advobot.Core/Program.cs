@@ -14,7 +14,7 @@ namespace Advobot.Core
 	/// </summary>
 	public class ConsoleLauncher
 	{
-		private static async Task Main()
+		private static async Task Main(string[] args)
 		{
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
 			ConsoleUtils.PrintingFlags = 0
@@ -23,20 +23,23 @@ namespace Advobot.Core
 				| ConsolePrintingFlags.LogCaller
 				| ConsolePrintingFlags.RemoveDuplicateNewLines;
 
+			var parsed = new AdvobotStartupArgs(args);
+			var config = LowLevelConfig.LoadConfigDictionary(parsed.CurrentInstance);
+
 			//Get the save path
 			var savePath = true;
-			while (!LowLevelConfig.Config.ValidatePath((savePath ? null : Console.ReadLine()), savePath))
+			while (!config.ValidatePath((savePath ? null : Console.ReadLine()), savePath))
 			{
 				savePath = false;
 			}
 
-			var provider = CreationUtils.CreateDefaultServices<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies()).BuildServiceProvider();
+			var provider = CreationUtils.CreateDefaultServices<BotSettings, GuildSettings>(config).BuildServiceProvider();
 			provider.GetRequiredService<ICommandHandlerService>().RestartRequired += ClientUtils.RestartBotAsync;
 			var client = provider.GetService<DiscordShardedClient>();
 
 			//Get the bot key
 			var botKey = true;
-			while (!await LowLevelConfig.Config.ValidateBotKey(client, (botKey ? null : Console.ReadLine()), botKey).CAF())
+			while (!await config.ValidateBotKey(client, (botKey ? null : Console.ReadLine()), botKey).CAF())
 			{
 				botKey = false;
 			}

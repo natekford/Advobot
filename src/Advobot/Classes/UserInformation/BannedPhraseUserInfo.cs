@@ -73,7 +73,7 @@ namespace Advobot.Classes.UserInformation
 					case Punishment.RoleMute:
 						return _RoleMute;
 					default:
-						throw new ArgumentException("Invalid punishment type provided.", nameof(type));
+						return -1;
 				}
 			}
 		}
@@ -100,7 +100,7 @@ namespace Advobot.Classes.UserInformation
 				case Punishment.RoleMute:
 					return Interlocked.Increment(ref _RoleMute);
 				default:
-					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
+					return -1;
 			}
 		}
 		/// <summary>
@@ -124,7 +124,7 @@ namespace Advobot.Classes.UserInformation
 				case Punishment.RoleMute:
 					return Interlocked.Exchange(ref _RoleMute, 0);
 				default:
-					throw new ArgumentException("Invalid punishment type provided.", nameof(type));
+					return -1;
 			}
 		}
 		/// <inheritdoc />

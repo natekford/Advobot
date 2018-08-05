@@ -12,18 +12,23 @@ namespace Advobot.Windows.Classes.Controls
 		/// The owning window.
 		/// </summary>
 		protected Window Window;
+		/// <summary>
+		/// The low level configuration of the bot.
+		/// </summary>
+		protected LowLevelConfig Config;
 
 		/// <summary>
 		/// Creates an instance of modalwindow.
 		/// </summary>
-		public ModalWindow() : this(null) { }
+		public ModalWindow() : this(null, null) { }
 		/// <summary>
 		/// Creates an instance of modalwindow.
 		/// </summary>
 		/// <param name="mainWindow"></param>
-		public ModalWindow(Window mainWindow)
+		public ModalWindow(Window mainWindow, LowLevelConfig config)
 		{
-			Window = mainWindow ?? throw new ArgumentException("cannot be null", nameof(mainWindow));
+			Window = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
+			Config = config ?? throw new ArgumentNullException(nameof(config));
 			Window.Opacity = .25;
 		}
 

@@ -209,7 +209,7 @@ namespace Advobot.Classes
 		public bool Pause { get; set; }
 		/// <inheritdoc />
 		[JsonIgnore]
-		public override FileInfo FileLocation => FileUtils.GetBotSettingsFile();
+		public override string FileName => "BotSettings.json";
 
 		[JsonProperty("Prefix"), Setting("&&")]
 		private string _Prefix = "&&";

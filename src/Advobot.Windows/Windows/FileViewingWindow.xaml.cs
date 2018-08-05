@@ -19,12 +19,13 @@ namespace Advobot.Windows.Windows
 		private FileInfo _File;
 		private Type _FileType;
 
-		public FileViewingWindow() : this(null, null, null, null) { }
-		public FileViewingWindow(AdvobotWindow mainWindow, Type fileType, FileInfo fileInfo, string text) : base(mainWindow)
+		public FileViewingWindow() : this(null, null, null, null, null) { }
+		public FileViewingWindow(AdvobotWindow mainWindow, LowLevelConfig config, Type fileType, FileInfo fileInfo, string text)
+			: base(mainWindow, config)
 		{
 			InitializeComponent();
-			_File = fileInfo;
-			_FileType = fileType;
+			_File = fileInfo ?? throw new ArgumentNullException(nameof(fileInfo));
+			_FileType = fileType ?? throw new ArgumentNullException(nameof(fileType));
 			SpecificFileOutput.Tag = fileInfo;
 			SpecificFileOutput.Clear();
 			SpecificFileOutput.AppendText(text);
@@ -67,7 +68,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void SaveFile(object sender, RoutedEventArgs e)
 		{
-			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(SpecificFileOutput, _FileType).GetReason());
+			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(Config, SpecificFileOutput, _FileType).GetReason());
 		}
 		private void SaveFileWithCtrlS(object sender, KeyEventArgs e)
 		{

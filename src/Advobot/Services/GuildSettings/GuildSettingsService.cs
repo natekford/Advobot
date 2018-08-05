@@ -6,6 +6,7 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -13,13 +14,18 @@ namespace Advobot.Services.GuildSettings
 {
 	internal sealed class GuildSettingsService<T> : IGuildSettingsService where T : IGuildSettings, new()
 	{
+		private static readonly JsonSerializerSettings _JsonSettings = new JsonSerializerSettings() { Converters = new[] { new StringEnumConverter() }, };
+
 		/// <inheritdoc />
 		public Type GuildSettingsType => typeof(T);
 
-		private ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
-		private static readonly JsonSerializerSettings _JsonSettings = new JsonSerializerSettings() { Converters = new[] { new StringEnumConverter() }, };
+		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
+		private readonly LowLevelConfig _Config;
 
-		public GuildSettingsService(IServiceProvider provider) { }
+		public GuildSettingsService(IServiceProvider provider)
+		{
+			_Config = provider.GetRequiredService<LowLevelConfig>();
+		}
 
 		/// <inheritdoc />
 		public void Remove(ulong guildId)
@@ -37,13 +43,13 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			var path = FileUtils.GetGuildSettingsFile(guild.Id);
+			var path = FileUtils.GetGuildSettingsFile(_Config, guild.Id);
 			settings = IOUtils.DeserializeFromFile<IGuildSettings, T>(path, _JsonSettings);
 			await settings.PostDeserializeAsync(guild).CAF();
 
 			if (!path.Exists)
 			{
-				settings.SaveSettings();
+				settings.SaveSettings(_Config);
 			}
 			if (!_GuildSettings.TryAdd(guild.Id, settings))
 			{

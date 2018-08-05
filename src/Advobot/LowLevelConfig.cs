@@ -18,16 +18,15 @@ namespace Advobot
 	public sealed class LowLevelConfig
 	{
 		/// <summary>
-		/// The path to save the config file to. Does not save any other files here.
+		/// The instance this is of the bot.
 		/// </summary>
 		[JsonIgnore]
-		private static readonly FileInfo _SavePath = CeateSavePath();
+		public int InstanceNumber { get; private set; }
 		/// <summary>
-		/// Holds very low level settings: the bot id, key, and save path. This is a singleton instance.
+		/// The path to this config's location.
 		/// </summary>
 		[JsonIgnore]
-		public static readonly LowLevelConfig Config = LoadConfigDictionary();
-
+		public FileInfo ConfigPath { get; private set; }
 		/// <summary>
 		/// The path the bot's files are in.
 		/// </summary>
@@ -37,7 +36,7 @@ namespace Advobot
 		/// The API key for the bot.
 		/// </summary>
 		[JsonProperty("BotKey")]
-		public string BotKey { get; set; }
+		private string BotKey { get; set; }
 		/// <summary>
 		/// The id of the bot.
 		/// </summary>
@@ -52,7 +51,7 @@ namespace Advobot
 		/// <returns></returns>
 		public bool ValidatePath(string input, bool startup)
 		{
-			var path = input ?? Config.SavePath;
+			var path = input ?? SavePath;
 
 			if (startup && !String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 			{
@@ -73,7 +72,7 @@ namespace Advobot
 			if (Directory.Exists(path))
 			{
 				ConsoleUtils.WriteLine("Successfully set the save path as " + path);
-				Config.SavePath = path;
+				SavePath = path;
 				Save();
 				return true;
 			}
@@ -90,7 +89,7 @@ namespace Advobot
 		/// <returns>A boolean signifying whether the login was successful or not.</returns>
 		public async Task<bool> ValidateBotKey(DiscordShardedClient client, string input, bool startup)
 		{
-			var key = input ?? Config.BotKey;
+			var key = input ?? BotKey;
 
 			if (startup && !String.IsNullOrWhiteSpace(key))
 			{
@@ -116,7 +115,7 @@ namespace Advobot
 				await client.LoginAsync(TokenType.Bot, key).CAF();
 
 				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
-				Config.BotKey = key;
+				BotKey = key;
 				Save();
 				return true;
 			}
@@ -127,35 +126,45 @@ namespace Advobot
 			}
 		}
 		/// <summary>
-		/// Creates a path similar to C:/Users/User/Appdata/Local/Advobot/Advobot1.config.
+		/// Sets the bot key to null.
 		/// </summary>
-		/// <returns></returns>
-		private static FileInfo CeateSavePath()
+		public void ClearBotKey()
 		{
-			//Start by grabbing the entry assembly location then cutting out everything but the file name
-			//Use entry so console and ui applications can have diff configs
-			var currentName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
-			//Count how many exist with that name so they can be saved as Advobot1, Advobot2, etc.
-			var count = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length;
-			//Add the config file into the local application data folder under Advobot
-			var configFileName = currentName + count + ".config";
-			var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Advobot", configFileName);
-			return new FileInfo(path);
-		}
-		/// <summary>
-		/// Attempts to load the configuration from <see cref="_SavePath"/> otherwise uses the default initialization for config.
-		/// </summary>
-		/// <returns></returns>
-		private static LowLevelConfig LoadConfigDictionary()
-		{
-			return IOUtils.DeserializeFromFile<LowLevelConfig, LowLevelConfig>(_SavePath) ?? new LowLevelConfig();
+			BotKey = null;
 		}
 		/// <summary>
 		/// Writes the current config to file.
 		/// </summary>
 		public void Save()
 		{
-			FileUtils.SafeWriteAllText(_SavePath, IOUtils.Serialize(Config));
+			FileUtils.SafeWriteAllText(ConfigPath, IOUtils.Serialize(this));
+		}
+		/// <summary>
+		/// Attempts to load the configuration from with the supplied instance number otherwise uses the default initialization for config.
+		/// </summary>
+		/// <returns></returns>
+		public static LowLevelConfig LoadConfigDictionary(int instance = -1)
+		{
+			//Start by grabbing the entry assembly location then cutting out everything but the file name
+			//Use entry so console and ui applications can have diff configs
+			var currentName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
+			//Count how many exist with that name so they can be saved as Advobot1, Advobot2, etc.
+			instance = instance == -1 ? GetDuplicateProccessesCount() : instance;
+			//Add the config file into the local application data folder under Advobot
+			var appdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+			var path = new FileInfo(Path.Combine(appdata, "Advobot", currentName + instance + ".config"));
+			var config = IOUtils.DeserializeFromFile<LowLevelConfig, LowLevelConfig>(path) ?? new LowLevelConfig();
+			config.InstanceNumber = instance;
+			config.ConfigPath = path;
+			return config;
+		}
+		/// <summary>
+		/// Returns how many instances of the bot are currently running.
+		/// </summary>
+		/// <returns></returns>
+		public static int GetDuplicateProccessesCount()
+		{
+			return Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length;
 		}
 	}
 }

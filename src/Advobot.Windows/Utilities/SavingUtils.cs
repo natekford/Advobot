@@ -20,34 +20,37 @@ namespace Advobot.Windows.Utilities
 		/// <summary>
 		/// Saves the text of <paramref name="editor"/> to file.
 		/// </summary>
+		/// <param name="config"></param>
 		/// <param name="editor"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextEditor editor, Type type = null)
+		public static ToolTipReason SaveFile(LowLevelConfig config, TextEditor editor, Type type = null)
 		{
-			return SaveFile(editor, editor.Text, type);
+			return SaveFile(config, editor, editor.Text, type);
 		}
 		/// <summary>
 		/// Saves the text of <paramref name="tb"/> to file.
 		/// </summary>
+		/// <param name="config"></param>
 		/// <param name="tb"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(TextBox tb, Type type = null)
+		public static ToolTipReason SaveFile(LowLevelConfig config, TextBox tb, Type type = null)
 		{
-			return SaveFile(tb, tb.Text, type);
+			return SaveFile(config, tb, tb.Text, type);
 		}
 		/// <summary>
 		/// Attempts to save a file and returns a value indicating the result.
 		/// </summary>
+		/// <param name="config"></param>
 		/// <param name="control"></param>
 		/// <param name="text"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		private static ToolTipReason SaveFile(Control control, string text, Type type)
+		private static ToolTipReason SaveFile(LowLevelConfig config, Control control, string text, Type type)
 		{
 			//If no valid tag just save to a new file with its name being the control's name
-			var tag = control.Tag ?? CreateFileInfo(control);
+			var tag = control.Tag ?? CreateFileInfo(config, control);
 			if (!(tag is FileInfo fi))
 			{
 				return ToolTipReason.InvalidFilePath;
@@ -78,20 +81,22 @@ namespace Advobot.Windows.Utilities
 		/// <summary>
 		/// Creates a <see cref="FileInfo"/> based off of <paramref name="control"/> name.
 		/// </summary>
+		/// <param name="config"></param>
 		/// <param name="control"></param>
 		/// <returns></returns>
-		private static FileInfo CreateFileInfo(Control control)
+		private static FileInfo CreateFileInfo(LowLevelConfig config, Control control)
 		{
-			var baseDir = FileUtils.GetBaseBotDirectory().FullName;
+			var baseDir = FileUtils.GetBaseBotDirectory(config).FullName;
 			var fileName = $"{control.Name}_{AdvorangesUtils.Formatting.ToSaving()}.txt";
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}
 		/// <summary>
 		/// Saves every setting that is a child of <paramref name="parent"/>.
 		/// </summary>
+		/// <param name="config"></param>
 		/// <param name="parent"></param>
 		/// <param name="botSettings"></param>
-		public static void SaveSettings(Grid parent, IBotSettings botSettings)
+		public static void SaveSettings(LowLevelConfig config, Grid parent, IBotSettings botSettings)
 		{
 			foreach (var child in parent.GetChildren().OfType<FrameworkElement>())
 			{
@@ -105,7 +110,7 @@ namespace Advobot.Windows.Utilities
 					ConsoleUtils.WriteLine($"Failed to save {child.Name}.");
 				}
 			}
-			botSettings.SaveSettings();
+			botSettings.SaveSettings(config);
 		}
 		private static bool? SaveSetting(FrameworkElement ele, IBotSettings botSettings)
 		{

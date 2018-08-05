@@ -41,6 +41,10 @@ namespace Advobot.Classes
 		/// </summary>
 		public HelpEntryHolder HelpEntries { get; }
 		/// <summary>
+		/// Low level config for the bot.
+		/// </summary>
+		public LowLevelConfig Config { get; }
+		/// <summary>
 		/// The time since starting the command.
 		/// </summary>
 		public long ElapsedMilliseconds => _Stopwatch.ElapsedMilliseconds;
@@ -62,6 +66,7 @@ namespace Advobot.Classes
 			Timers = provider.GetRequiredService<ITimerService>();
 			InviteList = provider.GetRequiredService<IInviteListService>();
 			HelpEntries = provider.GetRequiredService<HelpEntryHolder>();
+			Config = provider.GetRequiredService<LowLevelConfig>();
 			GuildSettings = settings;
 		}
 

@@ -13,7 +13,7 @@ namespace Advobot.Classes
 		/// <param name="command"></param>
 		protected override void AfterExecute(CommandInfo command)
 		{
-			Context.BotSettings.SaveSettings();
+			Context.BotSettings.SaveSettings(Context.Config);
 			base.AfterExecute(command);
 		}
 	}

@@ -21,7 +21,7 @@ namespace Advobot.Classes
 	public abstract class SettingsBase : ISettingsBase
 	{
 		/// <inheritdoc />
-		public abstract FileInfo FileLocation { get; }
+		public abstract string FileName { get; }
 
 		private Dictionary<string, MemberInfo> _Settings;
 
@@ -76,9 +76,9 @@ namespace Advobot.Classes
 			return ResetSetting(GetMember(name));
 		}
 		/// <inheritdoc />
-		public virtual void SaveSettings()
+		public virtual void SaveSettings(LowLevelConfig config)
 		{
-			FileUtils.SafeWriteAllText(FileLocation, IOUtils.Serialize(this));
+			FileUtils.SafeWriteAllText(FileUtils.GetBaseBotDirectoryFile(config, FileName), IOUtils.Serialize(this));
 		}
 
 		private MemberInfo GetMember(string name)

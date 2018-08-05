@@ -25,6 +25,7 @@ namespace Advobot.Services.Timers
 	{
 		private LiteDatabase _Db;
 		private readonly DiscordShardedClient _Client;
+		private readonly LowLevelConfig _Config;
 		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
 		private readonly Timer _SecondTimer = new Timer(1000);
 		private readonly Punisher _PunishmentRemover;
@@ -39,6 +40,7 @@ namespace Advobot.Services.Timers
 		public TimerService(IServiceProvider provider)
 		{
 			_Client = provider.GetRequiredService<DiscordShardedClient>();
+			_Config = provider.GetRequiredService<LowLevelConfig>();
 			_PunishmentRemover = new Punisher(TimeSpan.FromMinutes(0), this);
 
 			_RemovablePunishments = new ProcessingQueue(1, async () =>
@@ -96,7 +98,7 @@ namespace Advobot.Services.Timers
 			//Use mode=exclusive to not have ioexceptions
 			_Db = new LiteDatabase(new ConnectionString
 			{
-				Filename = FileUtils.GetBaseBotDirectoryFile("TimedDatabase.db").FullName,
+				Filename = FileUtils.GetBaseBotDirectoryFile(_Config, "TimedDatabase.db").FullName,
 				Mode = FileMode.Exclusive,
 			});
 			_MinuteTimer.Enabled = true;

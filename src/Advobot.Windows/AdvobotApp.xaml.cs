@@ -1,9 +1,11 @@
-﻿using Advobot.Windows.Classes;
-using Advobot.Windows.Windows;
-using AdvorangesUtils;
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows;
+using Advobot.Classes;
+using Advobot.Windows.Classes;
+using Advobot.Windows.Windows;
+using AdvorangesUtils;
 
 namespace Advobot.Windows
 {
@@ -29,22 +31,35 @@ namespace Advobot.Windows
 		/// <param name="e"></param>
 		public void OnStartup(object sender, StartupEventArgs e)
 		{
-			DispatcherUnhandledException += (dueSender, dueE) =>
+			DispatcherUnhandledException += (dueSender, dueE) => LogException(dueE.Exception, dueE);
+			AppDomain.CurrentDomain.UnhandledException += (ueSender, ueE) => LogException(ueE.ExceptionObject, ueE);
+
+			var parsed = new AdvobotStartupArgs(e.Args);
+			//Wait until the old process is killed
+			if (parsed.PreviousProcessId != -1)
 			{
-				//Display to the user what happened and also log it
-				IOUtils.LogUncaughtException(dueE.Exception);
-				MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{dueE.Exception}", "UNHANDLED EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
-				dueE.Handled = true;
-				Shutdown();
-			};
-			AppDomain.CurrentDomain.UnhandledException += (ueSender, ueE) =>
-			{
-				IOUtils.LogUncaughtException(ueE.ExceptionObject);
-			};
+				try
+				{
+					while (Process.GetProcessById(parsed.PreviousProcessId) != null)
+					{
+						Thread.Sleep(25);
+					}
+				}
+				catch (ArgumentException) { }
+			}
+			var config = LowLevelConfig.LoadConfigDictionary(parsed.CurrentInstance);
 
 			SyntaxHighlightingUtils.LoadJsonHighlighting();
-			MainWindow = new AdvobotWindow();
+			//Make sure it's restarted with the correct instance number for config reasons
+			MainWindow = new AdvobotWindow(config);
 			MainWindow.Show();
+		}
+		private void LogException(object exception, EventArgs e)
+		{
+			//Display to the user what happened and also log it
+			IOUtils.LogUncaughtException(exception);
+			MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{exception}", "UNHANDLED EXCEPTION", MessageBoxButton.OK, MessageBoxImage.Error);
+			Shutdown();
 		}
 		/// <inheritdoc />
 		public void Dispose()

@@ -32,12 +32,14 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <typeparam name="TBotSettings"></typeparam>
 		/// <typeparam name="TGuildSettings"></typeparam>
+		/// <param name="config">Low level config which is crucial to the bot.</param>
 		/// <param name="commands">The assemblies holding commands.</param>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static IServiceCollection CreateDefaultServices<TBotSettings, TGuildSettings>(IEnumerable<Assembly> commands)
+		public static IServiceCollection CreateDefaultServices<TBotSettings, TGuildSettings>(LowLevelConfig config, IEnumerable<Assembly> commands = null)
 			where TBotSettings : IBotSettings, new()
 			where TGuildSettings : IGuildSettings, new()
 		{
+			commands = commands ?? DiscordUtils.GetCommandAssemblies();
 			//Not sure why when put into a func provided as an argument there are lots of enumeration errors
 			var helpEntryHolder = new HelpEntryHolder(commands);
 			//I have no idea if I am providing services correctly, but it works.
@@ -45,7 +47,8 @@ namespace Advobot.Utilities
 				.AddSingleton<CommandService>(provider => CreateCommandService(provider, commands))
 				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
 				.AddSingleton<DiscordShardedClient>(provider => CreateDiscordClient(provider))
-				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>())
+				.AddSingleton<LowLevelConfig>(config)
+				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>(provider))
 				.AddSingleton<ILevelService>(provider => new LevelService(provider, new LevelServiceArguments()))
 				.AddSingleton<ICommandHandlerService>(provider => new CommandHandlerService(provider))
 				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService<TGuildSettings>(provider))
@@ -117,9 +120,10 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
-		private static IBotSettings CreateBotSettings<T>() where T : IBotSettings, new()
+		private static IBotSettings CreateBotSettings<T>(IServiceProvider provider) where T : IBotSettings, new()
 		{
-			return IOUtils.DeserializeFromFile<IBotSettings, T>(FileUtils.GetBotSettingsFile());
+			var config = provider.GetRequiredService<LowLevelConfig>();
+			return IOUtils.DeserializeFromFile<IBotSettings, T>(FileUtils.GetBotSettingsFile(config));
 		}
 	}
 }

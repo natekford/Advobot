@@ -28,6 +28,7 @@ namespace Advobot.Services.Commands
 		private readonly CommandService _Commands;
 		private readonly HelpEntryHolder _HelpEntries;
 		private readonly DiscordShardedClient _Client;
+		private readonly LowLevelConfig _Config;
 		private readonly IBotSettings _BotSettings;
 		private readonly ILevelService _Levels;
 		private readonly IGuildSettingsService _GuildSettings;
@@ -45,6 +46,7 @@ namespace Advobot.Services.Commands
 			_Commands = _Provider.GetRequiredService<CommandService>();
 			_HelpEntries = _Provider.GetRequiredService<HelpEntryHolder>();
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
+			_Config = _Provider.GetRequiredService<LowLevelConfig>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_Levels = _Provider.GetRequiredService<ILevelService>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsService>();
@@ -69,10 +71,10 @@ namespace Advobot.Services.Commands
 			{
 				return;
 			}
-			if (LowLevelConfig.Config.BotId != client.CurrentUser.Id)
+			if (_Config.BotId != client.CurrentUser.Id)
 			{
-				LowLevelConfig.Config.BotId = client.CurrentUser.Id;
-				LowLevelConfig.Config.Save();
+				_Config.BotId = client.CurrentUser.Id;
+				_Config.Save();
 				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
 				RestartRequired?.Invoke(_Client);
 				_Loaded = false;
@@ -145,7 +147,7 @@ namespace Advobot.Services.Commands
 		{
 			//Check if the bot was the one that left
 			if (!_Loaded
-				|| user.Id == LowLevelConfig.Config.BotId
+				|| user.Id == _Config.BotId
 				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
 			{
 				return;

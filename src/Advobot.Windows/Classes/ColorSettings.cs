@@ -48,8 +48,6 @@ namespace Advobot.Windows.Classes
 		public static SolidColorBrush DarkModeJsonValue => BrushUtils.CreateBrush("#0051FF");
 		public static SolidColorBrush DarkModeJsonParamName => BrushUtils.CreateBrush("#057500");
 
-		private static FileInfo _SavePath => FileUtils.GetBaseBotDirectoryFile("UISettings.json");
-
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;
 		[JsonProperty("Theme")]
@@ -106,13 +104,22 @@ namespace Advobot.Windows.Classes
 		/// <summary>
 		/// Saves custom colors and the current theme.
 		/// </summary>
-		public void SaveSettings()
+		public void SaveSettings(LowLevelConfig config)
 		{
-			FileUtils.SafeWriteAllText(_SavePath, IOUtils.Serialize(this));
+			FileUtils.SafeWriteAllText(GetSavePath(config), IOUtils.Serialize(this));
 		}
-		public static ColorSettings LoadUISettings()
+		/// <summary>
+		/// Loads the UI settings from file.
+		/// </summary>
+		/// <param name="config"></param>
+		/// <returns></returns>
+		public static ColorSettings LoadUISettings(LowLevelConfig config)
 		{
-			return IOUtils.DeserializeFromFile<ColorSettings, ColorSettings>(_SavePath);
+			return IOUtils.DeserializeFromFile<ColorSettings, ColorSettings>(GetSavePath(config));
+		}
+		private static FileInfo GetSavePath(LowLevelConfig config)
+		{
+			return FileUtils.GetBaseBotDirectoryFile(config, "UISettings.json");
 		}
 
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)

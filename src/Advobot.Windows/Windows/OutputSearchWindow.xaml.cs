@@ -14,8 +14,8 @@ namespace Advobot.Windows.Windows
 	/// </summary>
 	internal partial class OutputSearchWindow : ModalWindow
 	{
-		public OutputSearchWindow() : this(null) { }
-		public OutputSearchWindow(Window mainWindow) : base(mainWindow)
+		public OutputSearchWindow() : this(null, null) { }
+		public OutputSearchWindow(Window mainWindow, LowLevelConfig config) : base(mainWindow, config)
 		{
 			InitializeComponent();
 			OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleUtils.WrittenLines.Keys.ToArray());
@@ -43,7 +43,7 @@ namespace Advobot.Windows.Windows
 		{
 			if (ConsoleSearchOutput.Text.Length > 0)
 			{
-				var response = SavingUtils.SaveFile(ConsoleSearchOutput);
+				var response = SavingUtils.SaveFile(Config, ConsoleSearchOutput);
 				ToolTipUtils.EnableTimedToolTip(Layout, response.GetReason());
 			}
 		}

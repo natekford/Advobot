@@ -168,7 +168,7 @@ namespace Advobot.Utilities
 		public static bool HasHigherPosition(this IGuildUser invoker, IGuildUser target)
 		{
 			//User is the bot
-			if (target.Id == invoker.Id && target.Id == LowLevelConfig.Config.BotId)
+			if (target.Id == invoker.Id && target is SocketGuildUser user && target.Id == user.Guild.CurrentUser.Id)
 			{
 				return true;
 			}

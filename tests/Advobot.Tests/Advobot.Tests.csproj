@@ -14,6 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AdvorangesSettingParser" Version="1.0.0" />
     <PackageReference Include="AdvorangesUtils" Version="1.0.9">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>

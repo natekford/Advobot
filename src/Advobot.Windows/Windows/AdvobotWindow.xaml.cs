@@ -47,16 +47,18 @@ namespace Advobot.Windows.Windows
 		private MenuType _LastButtonClicked;
 		private IServiceProvider _Provider;
 		private ColorSettings _Colors;
+		private LowLevelConfig _Config;
 		private bool _GotPath;
 		private bool _GotKey;
 		private bool _StartUp;
 
 		/// <summary>
-		/// Creates an instance of advobotwindow.
+		/// Creates an instance of <see cref="AdvobotWindow"/>.
 		/// </summary>
-		public AdvobotWindow()
+		public AdvobotWindow(LowLevelConfig config)
 		{
 			InitializeComponent();
+			_Config = config;
 			//Make console output show up in the window
 			Console.SetOut(new TextBoxStreamWriter(Output));
 			//Start the timer that shows latency, memory usage, etc.
@@ -70,16 +72,16 @@ namespace Advobot.Windows.Windows
 				//Null means it's from the loaded event, which is start up so it's telling the bot to look up the config value
 				_StartUp = input == null;
 				//Set startup to whatever returned value is so it can be used in GotKey, and then after GotKey in the last if statement
-				_StartUp = _GotPath = LowLevelConfig.Config.ValidatePath(input, _StartUp);
+				_StartUp = _GotPath = _Config.ValidatePath(input, _StartUp);
 				if (_GotPath)
 				{
-					_Provider = CreationUtils.CreateDefaultServices<BotSettings, GuildSettings>(DiscordUtils.GetCommandAssemblies()).BuildServiceProvider();
+					_Provider = CreationUtils.CreateDefaultServices<BotSettings, GuildSettings>(_Config).BuildServiceProvider();
 				}
 			}
 			else if (!_GotKey)
 			{
 				_StartUp = input == null;
-				_StartUp = _GotKey = await LowLevelConfig.Config.ValidateBotKey(_Provider.GetRequiredService<DiscordShardedClient>(), input, _StartUp);
+				_StartUp = _GotKey = await _Config.ValidateBotKey(_Provider.GetRequiredService<DiscordShardedClient>(), input, _StartUp);
 			}
 
 			var somethingWasSet = _StartUp;
@@ -105,7 +107,7 @@ namespace Advobot.Windows.Windows
 			{
 				ButtonMenu.IsEnabled = true;
 				OutputContextMenu.IsEnabled = true;
-				_Colors = ColorSettings.LoadUISettings();
+				_Colors = ColorSettings.LoadUISettings(_Config);
 			});
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
@@ -164,7 +166,7 @@ namespace Advobot.Windows.Windows
 		}
 		private async void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			SavingUtils.SaveSettings(SettingsMenuDisplay, BotSettings.HeldObject);
+			SavingUtils.SaveSettings(_Config, SettingsMenuDisplay, BotSettings.HeldObject);
 			//In a task.run since the result is unimportant and unused
 			await ClientUtils.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject).CAF();
 		}
@@ -229,7 +231,7 @@ namespace Advobot.Windows.Windows
 				ConsoleUtils.WriteLine($"Successfully updated the theme to {c.Theme.ToString().FormatTitle().ToLower()}.");
 			}
 
-			c.SaveSettings();
+			c.SaveSettings(_Config);
 		}
 		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -240,7 +242,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
-			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(Output).GetReason());
+			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(_Config, Output).GetReason());
 		}
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
@@ -251,12 +253,12 @@ namespace Advobot.Windows.Windows
 		}
 		private void SearchForFile(object sender, RoutedEventArgs e)
 		{
-			using (var d = new CommonOpenFileDialog { DefaultDirectory = FileUtils.GetBaseBotDirectory().FullName })
+			using (var d = new CommonOpenFileDialog { DefaultDirectory = FileUtils.GetBaseBotDirectory(_Config).FullName })
 			{
 				if (d.ShowDialog() == CommonFileDialogResult.Ok && SavingUtils.TryGetFileText(d.FileName, out var text, out var file))
 				{
 					var type = _Provider.GetRequiredService<IGuildSettingsService>().GuildSettingsType;
-					new FileViewingWindow(this, type, file, text).ShowDialog();
+					new FileViewingWindow(this, _Config, type, file, text).ShowDialog();
 				}
 			}
 		}
@@ -270,13 +272,13 @@ namespace Advobot.Windows.Windows
 			switch (m)
 			{
 				case Modal.OutputSearch:
-					new OutputSearchWindow(this).ShowDialog();
+					new OutputSearchWindow(this, _Config).ShowDialog();
 					break;
 				//This modal should not be opened through this method, it should be opened through SearchForFile
 				case Modal.FileViewing:
 					return;
 				default:
-					throw new ArgumentException("invalid type supplied", nameof(m));
+					throw new ArgumentException("Invalid modal type supplied.", nameof(m));
 			}
 		}
 		private void OpenMenu(object sender, RoutedEventArgs e)
@@ -370,7 +372,8 @@ namespace Advobot.Windows.Windows
 		private static async Task Restart(BaseSocketClient client)
 		{
 			await client.StopAsync().CAF();
-			Process.Start(Application.ResourceAssembly.Location);
+			var args = AdvobotStartupArgs.GenerateArgs(Process.GetCurrentProcess().Id, LowLevelConfig.GetDuplicateProccessesCount());
+			Process.Start(Application.ResourceAssembly.Location, args);
 			Environment.Exit(0);
 		}
 		private void Pause(object sender, RoutedEventArgs e)

@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// Holds settings for a guild..
+	/// Holds settings for a guild.
 	/// </summary>
 	public sealed class GuildSettings : SettingsBase, IGuildSettings
 	{
@@ -131,7 +131,7 @@ namespace Advobot.Classes
 		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public override FileInfo FileLocation => FileUtils.GetGuildSettingsFile(GuildId);
+		public override string FileName => Path.Combine("GuildSettings", $"{GuildId}.json");
 		/// <inheritdoc />
 		[JsonIgnore]
 		public ulong GuildId { get; private set; }

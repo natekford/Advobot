@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using Discord;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces
@@ -12,9 +10,9 @@ namespace Advobot.Interfaces
 	public interface ISettingsBase
 	{
 		/// <summary>
-		/// The location to save the serialized file.
+		/// The name of the file.
 		/// </summary>
-		FileInfo FileLocation { get; }
+		string FileName { get; }
 
 		/// <summary>
 		/// Returns all members with <see cref="Classes.Attributes.SettingAttribute"/>.
@@ -49,6 +47,6 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Serializes this object and then overwrites the file.
 		/// </summary>
-		void SaveSettings();
+		void SaveSettings(LowLevelConfig config);
 	}
 }

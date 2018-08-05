@@ -83,16 +83,8 @@ namespace Advobot.Classes
 			_Args = ArgNames.ToDictionary(x => x, x => default(string), StringComparer.OrdinalIgnoreCase);
 			_ParamArgs = new List<string>();
 
-			//Split by spaces except when in quotes
-			var split = input.Split('"').Select((x, index) =>
-			{
-				return index % 2 == 0
-					? x.Split(' ')
-					: new[] { x };
-			}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x));
-
 			//Split by colons. Left half is key, right half is value.
-			var argKvps = split.Select(x =>
+			var argKvps = input.SplitLikeCommandLine().Select(x =>
 			{
 				var kvp = x?.Split(new[] { ':' }, 2);
 				return kvp?.Length == 2

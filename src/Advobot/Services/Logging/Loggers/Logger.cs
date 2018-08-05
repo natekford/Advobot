@@ -32,6 +32,10 @@ namespace Advobot.Services.Logging.Loggers
 		/// Timers for punishments.
 		/// </summary>
 		protected ITimerService Timers;
+		/// <summary>
+		/// Low level configuration for the bot.
+		/// </summary>
+		protected LowLevelConfig Config;
 
 		/// <inheritdoc />
 		public event LogCounterIncrementEventHandler LogCounterIncrement;
@@ -106,7 +110,7 @@ namespace Advobot.Services.Logging.Loggers
 			//Only a message will have channel as not null
 			if (channel != null && user != null)
 			{
-				var isFromThisBot = user.Id == LowLevelConfig.Config.BotId;
+				var isFromThisBot = user.Id == Config.BotId;
 				var isFromBot = !isFromThisBot && (user.IsBot || user.IsWebhook);
 				var isOnIgnoredChannel = settings.IgnoredLogChannels.Contains(channel.Id);
 				switch (logAction)
@@ -121,7 +125,7 @@ namespace Advobot.Services.Logging.Loggers
 			//After a message, only a user will have user as not null
 			if (user != null)
 			{
-				var isFromThisBot = user.Id == LowLevelConfig.Config.BotId;
+				var isFromThisBot = user.Id == Config.BotId;
 				switch (logAction)
 				{
 					case LogAction.UserJoined:

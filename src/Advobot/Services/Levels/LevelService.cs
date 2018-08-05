@@ -18,6 +18,7 @@ namespace Advobot.Services.Levels
 		private LiteDatabase _Db;
 		private readonly DiscordShardedClient _Client;
 		private readonly IGuildSettingsService _GuildSettings;
+		private readonly LowLevelConfig _Config;
 		private readonly double _Log;
 		private readonly double _Pow;
 		private readonly TimeSpan _Time;
@@ -32,6 +33,7 @@ namespace Advobot.Services.Levels
 		{
 			_Client = services.GetRequiredService<DiscordShardedClient>();
 			_GuildSettings = services.GetRequiredService<IGuildSettingsService>();
+			_Config = services.GetRequiredService<LowLevelConfig>();
 			_Log = args.Log;
 			_Pow = args.Pow;
 			_Time = args.Time;
@@ -47,7 +49,7 @@ namespace Advobot.Services.Levels
 			//Use mode=exclusive to not have ioexceptions
 			_Db = new LiteDatabase(new ConnectionString
 			{
-				Filename = FileUtils.GetBaseBotDirectoryFile("LevelDatabase.db").FullName,
+				Filename = FileUtils.GetBaseBotDirectoryFile(_Config, "LevelDatabase.db").FullName,
 				Mode = FileMode.Exclusive,
 			}, new BsonMapper { IncludeNonPublic = true, });
 		}
@@ -76,13 +78,14 @@ namespace Advobot.Services.Levels
 		/// <inheritdoc />
 		public Task RemoveExperience(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
-			if (!cached.HasValue || !(cached.Value is SocketUserMessage message))
-			{
-				return Task.FromResult(0);
-			}
-			var info = (UserExperienceInformation)GetUserInformation(message.Author.Id);
-			var hash = info.RemoveMessageHash(cached.Id);
-			if (hash.MessageId == 0)
+			if (_Db == null
+				|| !cached.HasValue
+				|| cached.Value.Author.IsBot
+				|| cached.Value.Author.IsWebhook
+				|| !(cached.Value is SocketUserMessage message)
+				|| !(GetUserInformation(message.Author.Id) is UserExperienceInformation info)
+				|| !(info.RemoveMessageHash(cached.Id) is MessageHash hash)
+				|| hash.MessageId == 0)
 			{
 				return Task.FromResult(0);
 			}
