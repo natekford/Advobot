@@ -19,7 +19,7 @@ namespace Advobot.Classes
 		[JsonProperty("LogLevel"), Setting(LogSeverity.Warning)]
 		public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("Prefix"), Setting("&&")]
 		public string Prefix
 		{
 			get => _Prefix;
@@ -42,7 +42,7 @@ namespace Advobot.Classes
 		[JsonProperty("AlwaysDownloadUsers"), Setting(true)]
 		public bool AlwaysDownloadUsers { get; set; } = true;
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MessageCacheCount"), Setting(1000)]
 		public int MessageCacheCount
 		{
 			get => _MessageCacheCount;
@@ -56,7 +56,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxUserGatherCount"), Setting(100)]
 		public int MaxUserGatherCount
 		{
 			get => _MaxUserGatherCount;
@@ -70,7 +70,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxMessageGatherSize"), Setting(500000)]
 		public int MaxMessageGatherSize
 		{
 			get => _MaxMessageGatherSize;
@@ -84,7 +84,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxRuleCategories"), Setting(20)]
 		public int MaxRuleCategories
 		{
 			get => _MaxRuleCategories;
@@ -98,7 +98,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxRulesPerCategory"), Setting(20)]
 		public int MaxRulesPerCategory
 		{
 			get => _MaxRulesPerCategory;
@@ -112,7 +112,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxSelfAssignableRoleGroups"), Setting(10)]
 		public int MaxSelfAssignableRoleGroups
 		{
 			get => _MaxSelfAssignableRoleGroups;
@@ -126,7 +126,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxQuotes"), Setting(500)]
 		public int MaxQuotes
 		{
 			get => _MaxQuotes;
@@ -140,7 +140,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxBannedStrings"), Setting(50)]
 		public int MaxBannedStrings
 		{
 			get => _MaxBannedStrings;
@@ -154,7 +154,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxBannedRegex"), Setting(25)]
 		public int MaxBannedRegex
 		{
 			get => _MaxBannedRegex;
@@ -168,7 +168,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxBannedNames"), Setting(25)]
 		public int MaxBannedNames
 		{
 			get => _MaxBannedNames;
@@ -182,7 +182,7 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonIgnore]
+		[JsonProperty("MaxBannedPunishments"), Setting(10)]
 		public int MaxBannedPunishments
 		{
 			get => _MaxBannedPunishments;
@@ -211,29 +211,29 @@ namespace Advobot.Classes
 		[JsonIgnore]
 		public override string FileName => "BotSettings.json";
 
-		[JsonProperty("Prefix"), Setting("&&")]
+		[JsonIgnore]
 		private string _Prefix = "&&";
-		[JsonProperty("MessageCacheCount"), Setting(1000)]
+		[JsonIgnore]
 		private int _MessageCacheCount = 1000;
-		[JsonProperty("MaxUserGatherCount"), Setting(100)]
+		[JsonIgnore]
 		private int _MaxUserGatherCount = 100;
-		[JsonProperty("MaxMessageGatherSize"), Setting(500000)]
+		[JsonIgnore]
 		private int _MaxMessageGatherSize = 500000;
-		[JsonProperty("MaxRuleCategories"), Setting(20)]
+		[JsonIgnore]
 		private int _MaxRuleCategories = 20;
-		[JsonProperty("MaxRulesPerCategory"), Setting(20)]
+		[JsonIgnore]
 		private int _MaxRulesPerCategory = 20;
-		[JsonProperty("MaxSelfAssignableRoleGroups"), Setting(10)]
+		[JsonIgnore]
 		private int _MaxSelfAssignableRoleGroups = 10;
-		[JsonProperty("MaxQuotes"), Setting(500)]
+		[JsonIgnore]
 		private int _MaxQuotes = 500;
-		[JsonProperty("MaxBannedStrings"), Setting(50)]
+		[JsonIgnore]
 		private int _MaxBannedStrings = 50;
-		[JsonProperty("MaxBannedRegex"), Setting(25)]
+		[JsonIgnore]
 		private int _MaxBannedRegex = 25;
-		[JsonProperty("MaxBannedNames"), Setting(25)]
+		[JsonIgnore]
 		private int _MaxBannedNames = 25;
-		[JsonProperty("MaxBannedPunishments"), Setting(10)]
+		[JsonIgnore]
 		private int _MaxBannedPunishments = 10;
 	}
 }

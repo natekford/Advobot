@@ -18,13 +18,13 @@ namespace Advobot.Services.Commands
 	internal sealed class CommandHandlerService : ICommandHandlerService
 	{
 		/// <inheritdoc />
-		public event Func<LowLevelConfig, BaseSocketClient, Task> RestartRequired;
+		public event Func<ILowLevelConfig, BaseSocketClient, Task> RestartRequired;
 
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
 		private readonly HelpEntryHolder _HelpEntries;
 		private readonly DiscordShardedClient _Client;
-		private readonly LowLevelConfig _Config;
+		private readonly ILowLevelConfig _Config;
 		private readonly IBotSettings _BotSettings;
 		private readonly ILevelService _Levels;
 		private readonly IGuildSettingsService _GuildSettings;
@@ -42,7 +42,7 @@ namespace Advobot.Services.Commands
 			_Commands = _Provider.GetRequiredService<CommandService>();
 			_HelpEntries = _Provider.GetRequiredService<HelpEntryHolder>();
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
-			_Config = _Provider.GetRequiredService<LowLevelConfig>();
+			_Config = _Provider.GetRequiredService<ILowLevelConfig>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_Levels = _Provider.GetRequiredService<ILevelService>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsService>();

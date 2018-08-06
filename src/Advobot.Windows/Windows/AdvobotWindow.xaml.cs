@@ -46,8 +46,8 @@ namespace Advobot.Windows.Windows
 
 		private MenuType _LastButtonClicked;
 		private IServiceProvider _Provider;
+		private ILowLevelConfig _Config;
 		private ColorSettings _Colors;
-		private LowLevelConfig _Config;
 		private bool _GotPath;
 		private bool _GotKey;
 		private bool _StartUp;
@@ -55,7 +55,7 @@ namespace Advobot.Windows.Windows
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotWindow"/>.
 		/// </summary>
-		public AdvobotWindow(LowLevelConfig config)
+		public AdvobotWindow(ILowLevelConfig config)
 		{
 			InitializeComponent();
 			_Config = config;
@@ -253,7 +253,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void SearchForFile(object sender, RoutedEventArgs e)
 		{
-			using (var d = new CommonOpenFileDialog { DefaultDirectory = FileUtils.GetBaseBotDirectory(_Config).FullName })
+			using (var d = new CommonOpenFileDialog { DefaultDirectory = _Config.GetBaseBotDirectory().FullName })
 			{
 				if (d.ShowDialog() == CommonFileDialogResult.Ok && SavingUtils.TryGetFileText(d.FileName, out var text, out var file))
 				{
@@ -369,10 +369,10 @@ namespace Advobot.Windows.Windows
 				await Restart(_Config, Client.HeldObject).CAF();
 			}
 		}
-		private static async Task Restart(LowLevelConfig config, BaseSocketClient client)
+		private static async Task Restart(ILowLevelConfig config, BaseSocketClient client)
 		{
 			await client.StopAsync().CAF();
-			Process.Start(Application.ResourceAssembly.Location, AdvobotStartupArgs.GenerateArgs(config));
+			Process.Start(Application.ResourceAssembly.Location, config.ToString());
 			Environment.Exit(0);
 		}
 		private void Pause(object sender, RoutedEventArgs e)

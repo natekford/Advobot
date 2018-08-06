@@ -590,7 +590,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command]
 		public async Task Command()
 		{
-			var file = FileUtils.GetBaseBotDirectoryFile(Context.Config, Path.Combine("GuildSettings", $"{Context.Guild.Id}.json"));
+			var file = Context.Config.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{Context.Guild.Id}.json"));
 			if (!file.Exists)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild settings file does not exist.")).CAF();

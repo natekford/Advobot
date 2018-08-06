@@ -23,7 +23,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <summary>
 		/// Low level configuration for the bot.
 		/// </summary>
-		protected LowLevelConfig Config;
+		protected ILowLevelConfig Config;
 		/// <summary>
 		/// The settings used in the bot.
 		/// </summary>
@@ -47,7 +47,7 @@ namespace Advobot.Services.Logging.Loggers
 		protected Logger(IServiceProvider provider)
 		{
 			Client = provider.GetRequiredService<DiscordShardedClient>();
-			Config = provider.GetRequiredService<LowLevelConfig>();
+			Config = provider.GetRequiredService<ILowLevelConfig>();
 			BotSettings = provider.GetRequiredService<IBotSettings>();
 			GuildSettings = provider.GetRequiredService<IGuildSettingsService>();
 			Timers = provider.GetRequiredService<ITimerService>();

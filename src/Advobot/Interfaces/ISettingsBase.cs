@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using Advobot.Classes;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces
@@ -16,10 +15,10 @@ namespace Advobot.Interfaces
 		string FileName { get; }
 
 		/// <summary>
-		/// Returns all members with <see cref="Classes.Attributes.SettingAttribute"/>.
+		/// Returns all properties with <see cref="Classes.Attributes.SettingAttribute"/>.
 		/// </summary>
 		/// <returns></returns>
-		IReadOnlyDictionary<string, MemberInfo> GetSettings();
+		IReadOnlyDictionary<string, PropertyInfo> GetSettings();
 		/// <summary>
 		/// Formats the settings so they are readable by a human.
 		/// </summary>
@@ -48,6 +47,6 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Serializes this object and then overwrites the file.
 		/// </summary>
-		void SaveSettings(LowLevelConfig config);
+		void SaveSettings(ILowLevelConfig config);
 	}
 }

@@ -3,9 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,11 +20,11 @@ namespace Advobot.Services.GuildSettings
 		public Type GuildSettingsType => typeof(T);
 
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
-		private readonly LowLevelConfig _Config;
+		private readonly ILowLevelConfig _Config;
 
 		public GuildSettingsService(IServiceProvider provider)
 		{
-			_Config = provider.GetRequiredService<LowLevelConfig>();
+			_Config = provider.GetRequiredService<ILowLevelConfig>();
 		}
 
 		/// <inheritdoc />
@@ -45,7 +43,7 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			var path = FileUtils.GetBaseBotDirectoryFile(_Config, Path.Combine("GuildSettings", $"{guild.Id}.json"));
+			var path = _Config.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guild.Id}.json"));
 			settings = IOUtils.DeserializeFromFile<IGuildSettings, T>(path, _JsonSettings);
 			await settings.PostDeserializeAsync(guild).CAF();
 

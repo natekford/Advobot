@@ -19,7 +19,7 @@ namespace Advobot.Services.Levels
 		private LiteDatabase _Db;
 		private readonly DiscordShardedClient _Client;
 		private readonly IGuildSettingsService _GuildSettings;
-		private readonly LowLevelConfig _Config;
+		private readonly ILowLevelConfig _Config;
 		private readonly double _Log;
 		private readonly double _Pow;
 		private readonly TimeSpan _Time;
@@ -34,7 +34,7 @@ namespace Advobot.Services.Levels
 		{
 			_Client = services.GetRequiredService<DiscordShardedClient>();
 			_GuildSettings = services.GetRequiredService<IGuildSettingsService>();
-			_Config = services.GetRequiredService<LowLevelConfig>();
+			_Config = services.GetRequiredService<ILowLevelConfig>();
 			_Log = args.Log;
 			_Pow = args.Pow;
 			_Time = args.Time;
@@ -50,7 +50,7 @@ namespace Advobot.Services.Levels
 			//Use mode=exclusive to not have ioexceptions
 			_Db = new LiteDatabase(new ConnectionString
 			{
-				Filename = FileUtils.GetBaseBotDirectoryFile(_Config, "LevelDatabase.db").FullName,
+				Filename = _Config.GetBaseBotDirectoryFile("LevelDatabase.db").FullName,
 				Mode = FileMode.Exclusive,
 			}, new BsonMapper { IncludeNonPublic = true, });
 		}

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -23,20 +22,18 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public abstract string FileName { get; }
 
-		private Dictionary<string, MemberInfo> _Settings;
+		private Dictionary<string, PropertyInfo> _Settings;
 
 		/// <inheritdoc />
-		public virtual IReadOnlyDictionary<string, MemberInfo> GetSettings()
+		public virtual IReadOnlyDictionary<string, PropertyInfo> GetSettings()
 		{
 			if (_Settings != null)
 			{
 				return _Settings;
 			}
 
-			var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-			IEnumerable<MemberInfo> fields = GetType().GetFields(flags);
-			IEnumerable<MemberInfo> props = GetType().GetProperties(flags);
-			return _Settings = fields.Concat(props).Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
+			return _Settings = GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
 				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase);
 		}
 		/// <inheritdoc />
@@ -76,40 +73,40 @@ namespace Advobot.Classes
 			return ResetSetting(GetMember(name));
 		}
 		/// <inheritdoc />
-		public virtual void SaveSettings(LowLevelConfig config)
+		public virtual void SaveSettings(ILowLevelConfig config)
 		{
-			FileUtils.SafeWriteAllText(FileUtils.GetBaseBotDirectoryFile(config, FileName), IOUtils.Serialize(this));
+			FileUtils.SafeWriteAllText(config.GetBaseBotDirectoryFile(FileName), IOUtils.Serialize(this));
 		}
 
-		private MemberInfo GetMember(string name)
+		private PropertyInfo GetMember(string name)
 		{
-			return GetSettings()[name] ?? throw new ArgumentException("Invalid member name provided.", nameof(name));
+			return GetSettings()[name] ?? throw new ArgumentException($"Invalid member name provided: {name}.", nameof(name));
 		}
-		private object ResetSetting(MemberInfo member)
+		private object ResetSetting(PropertyInfo property)
 		{
-			var settingAttr = member.GetCustomAttribute<SettingAttribute>();
+			var settingAttr = property.GetCustomAttribute<SettingAttribute>();
 			if (settingAttr.NonCompileTimeDefaultValue != default)
 			{
 				object nonCompileTimeValue;
 				switch (settingAttr.NonCompileTimeDefaultValue)
 				{
 					case NonCompileTimeDefaultValue.InstantiateDefaultParameterless:
-						nonCompileTimeValue = Activator.CreateInstance(member.GetUnderlyingType());
+						nonCompileTimeValue = Activator.CreateInstance(property.GetUnderlyingType());
 						break;
 					case NonCompileTimeDefaultValue.ClearDictionaryValues:
-						var dict = (IDictionary)member.GetValue(this);
+						var dict = (IDictionary)property.GetValue(this);
 						dict.Keys.Cast<object>().ToList().ForEach(x => dict[x] = null);
 						return dict;
 					default:
 						throw new InvalidOperationException("Invalid non compile time default value provided.");
 				}
-				member.SetValue(this, nonCompileTimeValue);
-				return member.GetValue(this);
+				property.SetValue(this, nonCompileTimeValue);
+				return property.GetValue(this);
 			}
 			else
 			{
-				member.SetValue(this, settingAttr.DefaultValue);
-				return member.GetValue(this);
+				property.SetValue(this, settingAttr.DefaultValue);
+				return property.GetValue(this);
 			}
 		}
 		private string Format(DiscordShardedClient client, SocketGuild guild, object value)

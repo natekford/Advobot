@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
@@ -62,15 +61,14 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Restarts the application correctly if it's a .Net Core application.
 		/// </summary>
-		public static async Task RestartBotAsync(LowLevelConfig config, BaseSocketClient client)
+		public static async Task RestartBotAsync(ILowLevelConfig config, BaseSocketClient client)
 		{
 			await client.StopAsync().CAF();
 			//For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
-			var args = AdvobotStartupArgs.GenerateArgs(config);
 			Process.Start(new ProcessStartInfo
 			{
 				FileName = "dotnet",
-				Arguments = $@"""{Assembly.GetEntryAssembly().Location}"" {args}"
+				Arguments = $@"""{Assembly.GetEntryAssembly().Location}"" {config}"
 			});
 			ConsoleUtils.WriteLine($"Restarted the bot.{Environment.NewLine}");
 			Process.GetCurrentProcess().Kill();

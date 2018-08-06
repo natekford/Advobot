@@ -25,7 +25,7 @@ namespace Advobot.Windows.Utilities
 		/// <param name="editor"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(LowLevelConfig config, TextEditor editor, Type type = null)
+		public static ToolTipReason SaveFile(ILowLevelConfig config, TextEditor editor, Type type = null)
 		{
 			return SaveFile(config, editor, editor.Text, type);
 		}
@@ -36,7 +36,7 @@ namespace Advobot.Windows.Utilities
 		/// <param name="tb"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(LowLevelConfig config, TextBox tb, Type type = null)
+		public static ToolTipReason SaveFile(ILowLevelConfig config, TextBox tb, Type type = null)
 		{
 			return SaveFile(config, tb, tb.Text, type);
 		}
@@ -48,7 +48,7 @@ namespace Advobot.Windows.Utilities
 		/// <param name="text"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		private static ToolTipReason SaveFile(LowLevelConfig config, Control control, string text, Type type)
+		private static ToolTipReason SaveFile(ILowLevelConfig config, Control control, string text, Type type)
 		{
 			//If no valid tag just save to a new file with its name being the control's name
 			var tag = control.Tag ?? CreateFileInfo(config, control);
@@ -85,9 +85,9 @@ namespace Advobot.Windows.Utilities
 		/// <param name="config"></param>
 		/// <param name="control"></param>
 		/// <returns></returns>
-		private static FileInfo CreateFileInfo(LowLevelConfig config, Control control)
+		private static FileInfo CreateFileInfo(ILowLevelConfig config, Control control)
 		{
-			var baseDir = FileUtils.GetBaseBotDirectory(config).FullName;
+			var baseDir = config.GetBaseBotDirectory().FullName;
 			var fileName = $"{control.Name}_{AdvorangesUtils.Formatting.ToSaving()}.txt";
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}
@@ -97,19 +97,15 @@ namespace Advobot.Windows.Utilities
 		/// <param name="config"></param>
 		/// <param name="parent"></param>
 		/// <param name="botSettings"></param>
-		public static void SaveSettings(LowLevelConfig config, Grid parent, IBotSettings botSettings)
+		public static void SaveSettings(ILowLevelConfig config, Grid parent, IBotSettings botSettings)
 		{
 			foreach (var child in parent.GetChildren().OfType<FrameworkElement>())
 			{
-				var result = SaveSetting(child, botSettings);
-				if (result.HasValue && result.Value)
+				if (!(SaveSetting(child, botSettings) is bool value))
 				{
-					ConsoleUtils.WriteLine($"Successfully updated {child.Name}.");
+					continue;
 				}
-				if (result.HasValue && !result.Value)
-				{
-					ConsoleUtils.WriteLine($"Failed to save {child.Name}.");
-				}
+				ConsoleUtils.WriteLine(value ? $"Successfully updated {child.Name}." : $"Failed to save {child.Name}.");
 			}
 			botSettings.SaveSettings(config);
 		}
@@ -183,7 +179,7 @@ namespace Advobot.Windows.Utilities
 					}
 					break;
 				default:
-					throw new ArgumentException("invalid object when attempting to save settings", ele.Name ?? ele.GetType().Name);
+					throw new ArgumentException("Invalid object when attempting to save settings.", ele.Name ?? ele.GetType().Name);
 			}
 			if (value == null)
 			{
@@ -199,7 +195,6 @@ namespace Advobot.Windows.Utilities
 			{
 				return null;
 			}
-
 			property.SetValue(botSettings, value);
 			return true;
 		}

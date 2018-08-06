@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
-using Advobot.Classes;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using Advobot.Windows.Enums;
 using Advobot.Windows.Utilities;
@@ -18,8 +18,8 @@ namespace Advobot.Windows.Classes
 {
 	internal sealed class ColorSettings
 	{
-		public static ImmutableDictionary<ColorTarget, SolidColorBrush> LightModeProperties { get; private set; } = GetColorProperties("LightMode");
-		public static ImmutableDictionary<ColorTarget, SolidColorBrush> DarkModeProperties { get; private set; } = GetColorProperties("DarkMode");
+		public static ImmutableDictionary<ColorTarget, SolidColorBrush> LightModeProperties { get; } = GetColorProperties("LightMode");
+		public static ImmutableDictionary<ColorTarget, SolidColorBrush> DarkModeProperties { get; } = GetColorProperties("DarkMode");
 
 		public static SolidColorBrush LightModeBaseBackground => BrushUtils.CreateBrush("#FFFFFF");
 		public static SolidColorBrush LightModeBaseForeground => BrushUtils.CreateBrush("#000000");
@@ -49,8 +49,6 @@ namespace Advobot.Windows.Classes
 		public static SolidColorBrush DarkModeJsonValue => BrushUtils.CreateBrush("#0051FF");
 		public static SolidColorBrush DarkModeJsonParamName => BrushUtils.CreateBrush("#057500");
 
-		[JsonIgnore]
-		private ColorTheme _Theme = ColorTheme.Classic;
 		[JsonProperty("Theme")]
 		public ColorTheme Theme
 		{
@@ -58,30 +56,54 @@ namespace Advobot.Windows.Classes
 			set
 			{
 				_Theme = value;
-				ActivateTheme();
+				var r = Application.Current.Resources;
+				switch (Theme)
+				{
+					case ColorTheme.Classic:
+						foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
+						{
+							r[ct] = LightModeProperties[ct];
+						}
+						break;
+					case ColorTheme.DarkMode:
+						foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
+						{
+							r[ct] = DarkModeProperties[ct];
+						}
+						break;
+					case ColorTheme.UserMade:
+						foreach (var kvp in _ColorTargets)
+						{
+							r[kvp.Key] = kvp.Value;
+						}
+						break;
+				}
+				SetSyntaxHighlightingColors("Json");
 			}
 		}
 		[JsonProperty("ColorTargets")]
-		private Dictionary<ColorTarget, SolidColorBrush> ColorTargets = new Dictionary<ColorTarget, SolidColorBrush>();
+		private Dictionary<ColorTarget, SolidColorBrush> _ColorTargets = new Dictionary<ColorTarget, SolidColorBrush>();
+		[JsonIgnore]
+		private ColorTheme _Theme = ColorTheme.Classic;
 
 		public ColorSettings()
 		{
-			foreach (var target in Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>())
+			foreach (ColorTarget target in Enum.GetValues(typeof(ColorTarget)))
 			{
-				ColorTargets.Add(target, null);
+				_ColorTargets.Add(target, null);
 			}
 		}
 
 		public SolidColorBrush this[ColorTarget target]
 		{
-			get => ColorTargets[target];
-			set => ColorTargets[target] = value;
+			get => _ColorTargets[target];
+			set => _ColorTargets[target] = value;
 		}
 		public bool TryGetValue(ColorTarget target, out SolidColorBrush brush)
 		{
-			return ColorTargets.TryGetValue(target, out brush);
+			return _ColorTargets.TryGetValue(target, out brush);
 		}
-		public void SetSyntaxHighlightingColors(params string[] names)
+		private void SetSyntaxHighlightingColors(params string[] names)
 		{
 			foreach (var name in names)
 			{
@@ -105,7 +127,7 @@ namespace Advobot.Windows.Classes
 		/// <summary>
 		/// Saves custom colors and the current theme.
 		/// </summary>
-		public void SaveSettings(LowLevelConfig config)
+		public void SaveSettings(ILowLevelConfig config)
 		{
 			FileUtils.SafeWriteAllText(GetSavePath(config), IOUtils.Serialize(this));
 		}
@@ -114,15 +136,14 @@ namespace Advobot.Windows.Classes
 		/// </summary>
 		/// <param name="config"></param>
 		/// <returns></returns>
-		public static ColorSettings LoadUISettings(LowLevelConfig config)
+		public static ColorSettings LoadUISettings(ILowLevelConfig config)
 		{
 			return IOUtils.DeserializeFromFile<ColorSettings, ColorSettings>(GetSavePath(config));
 		}
-		private static FileInfo GetSavePath(LowLevelConfig config)
+		private static FileInfo GetSavePath(ILowLevelConfig config)
 		{
-			return FileUtils.GetBaseBotDirectoryFile(config, "UISettings.json");
+			return config.GetBaseBotDirectoryFile("UISettings.json");
 		}
-
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
 		{
 			return typeof(ColorSettings).GetProperties(BindingFlags.Public | BindingFlags.Static)
@@ -131,32 +152,6 @@ namespace Advobot.Windows.Classes
 					x => (ColorTarget)Enum.Parse(typeof(ColorTarget), x.Name.Replace(prefix, "")),
 					x => (SolidColorBrush)x.GetValue(null)
 				).ToImmutableDictionary();
-		}
-		private void ActivateTheme()
-		{
-			var r = Application.Current.Resources;
-			switch (Theme)
-			{
-				case ColorTheme.Classic:
-					foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
-					{
-						r[ct] = LightModeProperties[ct];
-					}
-					break;
-				case ColorTheme.DarkMode:
-					foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
-					{
-						r[ct] = DarkModeProperties[ct];
-					}
-					break;
-				case ColorTheme.UserMade:
-					foreach (var kvp in ColorTargets)
-					{
-						r[kvp.Key] = kvp.Value;
-					}
-					break;
-			}
-			SetSyntaxHighlightingColors("Json");
 		}
 	}
 }

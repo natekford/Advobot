@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces
@@ -15,7 +14,7 @@ namespace Advobot.Interfaces
 		/// This is abstracted out because .Net Core and .Net Framework applications restart differently.
 		/// This should effectively act as an exception thrown inside an event.
 		/// </summary>
-		event Func<LowLevelConfig, BaseSocketClient, Task> RestartRequired;
+		event Func<ILowLevelConfig, BaseSocketClient, Task> RestartRequired;
 
 		/// <summary>
 		/// Uses the input from the message to execute a command.

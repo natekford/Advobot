@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Advobot.Classes;
+using Advobot.Interfaces;
 using Advobot.Windows.Classes.Controls;
 using Advobot.Windows.Utilities;
 using AdvorangesUtils;
@@ -21,7 +21,7 @@ namespace Advobot.Windows.Windows
 		private Type _FileType;
 
 		public FileViewingWindow() : this(null, null, null, null, null) { }
-		public FileViewingWindow(AdvobotWindow mainWindow, LowLevelConfig config, Type fileType, FileInfo fileInfo, string text)
+		public FileViewingWindow(AdvobotWindow mainWindow, ILowLevelConfig config, Type fileType, FileInfo fileInfo, string text)
 			: base(mainWindow, config)
 		{
 			InitializeComponent();

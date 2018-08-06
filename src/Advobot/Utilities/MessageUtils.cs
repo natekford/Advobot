@@ -38,7 +38,7 @@ namespace Advobot.Utilities
 			if (embedWrapper != null && embedWrapper.Errors.Any())
 			{
 				textFile.Name = textFile.Name ?? "Embed_Errors";
-				textFile.Text = $"{embedWrapper.ToString()}\n\n{textFile.Text}";
+				textFile.Text = $"Embed Errors:\n{embedWrapper}\n\n{textFile.Text}";
 			}
 
 			//Make sure none of the content mentions everyone or doesn't have the zero width character
@@ -77,25 +77,25 @@ namespace Advobot.Utilities
 		/// Waits a few seconds then deletes the newly created message and the context message.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="secondStr"></param>
+		/// <param name="output"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(AdvobotCommandContext context, string secondStr, TimeSpan time = default)
+		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(AdvobotCommandContext context, string output, TimeSpan time = default)
 		{
-			return await MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)context.Channel, context.Message, secondStr, context.Timers, time).CAF();
+			return await MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)context.Channel, context.Message, output, context.Timers, time).CAF();
 		}
 		/// <summary>
 		/// Waits a few seconds then deletes the newly created message and the given message.
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="message"></param>
-		/// <param name="secondStr"></param>
+		/// <param name="output"></param>
 		/// <param name="time"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(SocketTextChannel channel, IUserMessage message, string secondStr, ITimerService timers = null, TimeSpan time = default)
+		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(SocketTextChannel channel, IUserMessage message, string output, ITimerService timers = null, TimeSpan time = default)
 		{
-			var secondMessage = await SendMessageAsync(channel, ZERO_LENGTH_CHAR + secondStr).CAF();
+			var secondMessage = await SendMessageAsync(channel, ZERO_LENGTH_CHAR + output).CAF();
 			var removableMessage = new RemovableMessage(time, channel.Guild, channel, message.Author, message, secondMessage);
 			if (timers != null)
 			{
@@ -112,7 +112,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<RemovableMessage> SendErrorMessageAsync(AdvobotCommandContext context, Error error, TimeSpan time = default)
 		{
-			return await SendErrorMessageAsync((SocketTextChannel)context.Channel, context.GuildSettings, context.Message, error, context.Timers, time).CAF();
+			return await SendErrorMessageAsync((SocketTextChannel)context.Channel, context.Message, error, context.GuildSettings, context.Timers, time).CAF();
 		}
 		/// <summary>
 		/// If the guild has verbose errors enabled then this acts just like makeanddeletesecondarymessage.
@@ -124,7 +124,7 @@ namespace Advobot.Utilities
 		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> SendErrorMessageAsync(SocketTextChannel channel, IGuildSettings settings, IUserMessage message, Error error, ITimerService timers, TimeSpan time = default)
+		public static async Task<RemovableMessage> SendErrorMessageAsync(SocketTextChannel channel, IUserMessage message, Error error, IGuildSettings settings, ITimerService timers = null, TimeSpan time = default)
 		{
 			return settings.NonVerboseErrors ? default : await MakeAndDeleteSecondaryMessageAsync(channel, message, $"**ERROR:** {error.Reason}", timers, time).CAF();
 		}
@@ -136,6 +136,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<IEnumerable<IMessage>> GetMessagesAsync(SocketTextChannel channel, int requestCount)
 		{
+			//TODO: do something similar to delete messages async to get more than 100 messages?
 			return await channel.GetMessagesAsync(requestCount).FlattenAsync().CAF();
 		}
 		/// <summary>
@@ -147,7 +148,7 @@ namespace Advobot.Utilities
 		/// <param name="options"></param>
 		/// <param name="fromUser"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, RequestOptions options, IUser fromUser = null)
+		public static async Task<int> DeleteMessagesAsync(SocketTextChannel channel, IMessage fromMessage, int requestCount, RequestOptions options, IUser fromUser = null)
 		{
 			var deletedCount = 0;
 			while (requestCount > 0)
@@ -155,7 +156,7 @@ namespace Advobot.Utilities
 				var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF()).ToList();
 				fromMessage = messages.LastOrDefault();
 
-				//Get messages from a targetted user if one is supplied
+				//Get messages from a targeted user if one is supplied
 				var userMessages = fromUser == null ? messages : messages.Where(x => x.Author.Id == fromUser.Id);
 				var cutMessages = userMessages.Take(requestCount).ToList();
 
@@ -177,7 +178,7 @@ namespace Advobot.Utilities
 		/// <param name="messages"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, RequestOptions options)
+		public static async Task<int> DeleteMessagesAsync(SocketTextChannel channel, IEnumerable<IMessage> messages, RequestOptions options)
 		{
 			var validMessages = messages?.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14)?.ToList();
 			if (validMessages == null || !validMessages.Any())
@@ -210,7 +211,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<int> DeleteMessageAsync(IMessage message, RequestOptions options)
 		{
-			return await DeleteMessagesAsync((ITextChannel)message.Channel, new[] { message }, options).CAF();
+			return await DeleteMessagesAsync((SocketTextChannel)message.Channel, new[] { message }, options).CAF();
 		}
 
 		private static string SanitizeContent(this IMessageChannel channel, string content)

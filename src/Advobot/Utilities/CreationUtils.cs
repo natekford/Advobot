@@ -35,7 +35,7 @@ namespace Advobot.Utilities
 		/// <param name="config">Low level config which is crucial to the bot.</param>
 		/// <param name="commands">The assemblies holding commands.</param>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static IServiceCollection CreateDefaultServices<TBotSettings, TGuildSettings>(LowLevelConfig config, IEnumerable<Assembly> commands = null)
+		public static IServiceCollection CreateDefaultServices<TBotSettings, TGuildSettings>(ILowLevelConfig config, IEnumerable<Assembly> commands = null)
 			where TBotSettings : IBotSettings, new()
 			where TGuildSettings : IGuildSettings, new()
 		{
@@ -47,7 +47,7 @@ namespace Advobot.Utilities
 				.AddSingleton<CommandService>(provider => CreateCommandService(provider, commands))
 				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
 				.AddSingleton<DiscordShardedClient>(provider => CreateDiscordClient(provider))
-				.AddSingleton<LowLevelConfig>(config)
+				.AddSingleton<ILowLevelConfig>(config)
 				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>(provider))
 				.AddSingleton<ILevelService>(provider => new LevelService(provider, new LevelServiceArguments()))
 				.AddSingleton<ICommandHandlerService>(provider => new CommandHandlerService(provider))
@@ -122,8 +122,8 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		private static IBotSettings CreateBotSettings<T>(IServiceProvider provider) where T : IBotSettings, new()
 		{
-			var config = provider.GetRequiredService<LowLevelConfig>();
-			return IOUtils.DeserializeFromFile<IBotSettings, T>(FileUtils.GetBaseBotDirectoryFile(config, "BotSettings.json"));
+			var config = provider.GetRequiredService<ILowLevelConfig>();
+			return IOUtils.DeserializeFromFile<IBotSettings, T>(config.GetBaseBotDirectoryFile("BotSettings.json"));
 		}
 	}
 }

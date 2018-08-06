@@ -4,6 +4,7 @@ using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,9 +24,8 @@ namespace Advobot.Core
 				| ConsolePrintingFlags.LogCaller
 				| ConsolePrintingFlags.RemoveDuplicateNewLines;
 
-			var parsed = new AdvobotStartupArgs(args);
-			ConsoleUtils.DebugWrite($"Args: {parsed.CurrentInstance}|{parsed.PreviousProcessId}");
-			var config = parsed.CreateConfig();
+			var config = LowLevelConfig.Load(args);
+			ConsoleUtils.DebugWrite($"Args: {config.CurrentInstance}|{config.PreviousProcessId}");
 
 			//Get the save path
 			var savePath = true;

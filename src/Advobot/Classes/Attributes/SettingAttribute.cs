@@ -4,9 +4,9 @@ using Advobot.Enums;
 namespace Advobot.Classes.Attributes
 {
 	/// <summary>
-	/// Indicates a field or property is a setting.
+	/// Indicates a property is a setting.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+	[AttributeUsage(AttributeTargets.Property)]
 	public class SettingAttribute : Attribute
 	{
 		/// <summary>

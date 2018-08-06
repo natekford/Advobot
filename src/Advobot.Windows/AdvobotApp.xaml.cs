@@ -34,26 +34,25 @@ namespace Advobot.Windows
 			DispatcherUnhandledException += (dueSender, dueE) => LogException(dueE.Exception, dueE);
 			AppDomain.CurrentDomain.UnhandledException += (ueSender, ueE) => LogException(ueE.ExceptionObject, ueE);
 
-			var parsed = new AdvobotStartupArgs(e.Args);
+			var config = LowLevelConfig.Load(e.Args);
 			//Wait until the old process is killed
-			if (parsed.PreviousProcessId != -1)
+			if (config.PreviousProcessId != -1)
 			{
 				try
 				{
-					while (Process.GetProcessById(parsed.PreviousProcessId) != null)
+					while (Process.GetProcessById(config.PreviousProcessId) != null)
 					{
 						Thread.Sleep(25);
 					}
 				}
 				catch (ArgumentException) { }
 			}
-			var config = parsed.CreateConfig();
 
 			SyntaxHighlightingUtils.LoadJsonHighlighting();
 			//Make sure it's restarted with the correct instance number for config reasons
 			MainWindow = new AdvobotWindow(config);
 			MainWindow.Show();
-			ConsoleUtils.DebugWrite($"Args: {parsed.CurrentInstance}|{parsed.PreviousProcessId}");
+			ConsoleUtils.DebugWrite($"Args: {config.CurrentInstance}|{config.PreviousProcessId}");
 		}
 		private void LogException(object exception, EventArgs e)
 		{

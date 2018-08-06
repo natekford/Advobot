@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows;
-using Advobot.Classes;
+using Advobot.Interfaces;
 
 namespace Advobot.Windows.Classes.Controls
 {
@@ -16,7 +16,7 @@ namespace Advobot.Windows.Classes.Controls
 		/// <summary>
 		/// The low level configuration of the bot.
 		/// </summary>
-		protected LowLevelConfig Config;
+		protected ILowLevelConfig Config;
 
 		/// <summary>
 		/// Creates an instance of modalwindow.
@@ -27,7 +27,7 @@ namespace Advobot.Windows.Classes.Controls
 		/// </summary>
 		/// <param name="mainWindow"></param>
 		/// <param name="config"></param>
-		public ModalWindow(Window mainWindow, LowLevelConfig config)
+		public ModalWindow(Window mainWindow, ILowLevelConfig config)
 		{
 			Window = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
 			Config = config ?? throw new ArgumentNullException(nameof(config));

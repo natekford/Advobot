@@ -1,12 +1,12 @@
-﻿using Advobot.Classes;
-using Advobot.Windows.Classes.Controls;
-using Advobot.Windows.Utilities;
-using AdvorangesUtils;
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Advobot.Interfaces;
+using Advobot.Windows.Classes.Controls;
+using Advobot.Windows.Utilities;
+using AdvorangesUtils;
 
 namespace Advobot.Windows.Windows
 {
@@ -16,7 +16,7 @@ namespace Advobot.Windows.Windows
 	internal partial class OutputSearchWindow : ModalWindow
 	{
 		public OutputSearchWindow() : this(null, null) { }
-		public OutputSearchWindow(Window mainWindow, LowLevelConfig config) : base(mainWindow, config)
+		public OutputSearchWindow(Window mainWindow, ILowLevelConfig config) : base(mainWindow, config)
 		{
 			InitializeComponent();
 			OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleUtils.WrittenLines.Keys.ToArray());

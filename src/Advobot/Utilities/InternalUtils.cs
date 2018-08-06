@@ -36,7 +36,7 @@ namespace Advobot.Utilities
 			}
 			if (!(context.User is SocketGuildUser invokingUser && invokingUser.Guild.CurrentUser is SocketGuildUser bot))
 			{
-				return new VerifiedObjectResult(target, CommandError.Unsuccessful, "Invalid invoking user or guild or bot.");
+				return new VerifiedObjectResult(target, CommandError.Unsuccessful, "Invalid invoking user or bot.");
 			}
 			foreach (var check in checks)
 			{
@@ -68,22 +68,22 @@ namespace Advobot.Utilities
 		{
 			switch (target)
 			{
-				case IGuildUser guildUser:
+				case IGuildUser user:
 					switch (type)
 					{
 						case ObjectVerification.CanBeMovedFromChannel:
-							return InternalCanModify(invoker, guildUser?.VoiceChannel, ObjectVerification.CanMoveUsers);
+							return InternalCanModify(invoker, user?.VoiceChannel, ObjectVerification.CanMoveUsers);
 						case ObjectVerification.CanBeEdited:
-							return invoker.HasHigherPosition(guildUser);
+							return invoker.HasHigherPosition(user);
 					}
 					return true;
-				case IGuildChannel guildChannel:
+				case IGuildChannel channel:
 					var guildPerms = invoker?.GuildPermissions ?? default;
-					if (guildPerms.Has(GuildPermission.Administrator))
+					if (guildPerms.Administrator)
 					{
 						return true;
 					}
-					var channelPerms = invoker?.GetPermissions(guildChannel) ?? default;
+					var channelPerms = invoker?.GetPermissions(channel) ?? default;
 					switch (type)
 					{
 						case ObjectVerification.CanBeViewed:
@@ -104,11 +104,11 @@ namespace Advobot.Utilities
 							return channelPerms.ManageWebhooks;
 					}
 					return true;
-				case IRole guildRole:
+				case IRole role:
 					switch (type)
 					{
 						case ObjectVerification.CanBeEdited:
-							return invoker is SocketGuildUser socketInvoker && socketInvoker.Hierarchy > guildRole?.Position;
+							return invoker is SocketGuildUser socketInvoker && socketInvoker.Hierarchy > role?.Position;
 					}
 					return true;
 				default:
