@@ -12,7 +12,7 @@ namespace Advobot.Classes
 		/// </summary>
 		public string Name
 		{
-			get => _Name == null ? null : $"{_Name}_{Formatting.ToSaving()}.txt";
+			get => _Name == null ? null : $"{_Name}_{FormattingUtils.ToSaving()}.txt";
 			set => _Name = value?.FormatTitle()?.Replace(' ', '_')?.TrimEnd('_');
 		}
 		/// <summary>

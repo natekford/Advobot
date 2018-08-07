@@ -21,7 +21,7 @@ namespace Advobot.Commands.Webhooks
 	[Summary("Lists all the webhooks on the guild or the specified channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
-	public sealed class GetWebhooks : NonSavingModuleBase
+	public sealed class GetWebhooks : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(ITextChannel channel)
@@ -59,7 +59,7 @@ namespace Advobot.Commands.Webhooks
 	[Summary("Deletes a webhook from the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteWebhook : NonSavingModuleBase
+	public sealed class DeleteWebhook : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IWebhook webhook)
@@ -73,7 +73,7 @@ namespace Advobot.Commands.Webhooks
 	[Summary("Changes the name of a webhook.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyWebhookName : NonSavingModuleBase
+	public sealed class ModifyWebhookName : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IWebhook webhook, [Remainder, VerifyStringLength(Target.Name)] string name)
@@ -88,7 +88,7 @@ namespace Advobot.Commands.Webhooks
 	[Summary("Changes the channel of a webhook.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyWebhookChannel : NonSavingModuleBase
+	public sealed class ModifyWebhookChannel : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IWebhook webhook, [VerifyObject(true, ObjectVerification.CanManageWebhooks)] ITextChannel channel)
@@ -103,7 +103,7 @@ namespace Advobot.Commands.Webhooks
 	[Summary("Changes the icon of a webhook.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyWebhookIcon : NonSavingModuleBase
+	public sealed class ModifyWebhookIcon : AdvobotModuleBase
 	{
 		private static WebhookIconResizer _Resizer = new WebhookIconResizer(4);
 
@@ -141,7 +141,7 @@ namespace Advobot.Commands.Webhooks
 	[Summary("Sends a message through a webhook.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(false)]
-	public sealed class SendMessageThroughWebhook : NonSavingModuleBase
+	public sealed class SendMessageThroughWebhook : AdvobotModuleBase
 	{
 		private static ConcurrentDictionary<ulong, RateLimit> _RateLimits = new ConcurrentDictionary<ulong, RateLimit>();
 

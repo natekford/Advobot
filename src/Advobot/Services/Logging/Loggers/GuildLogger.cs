@@ -17,15 +17,12 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public async Task OnGuildAvailable(SocketGuild guild)
+		public Task OnGuildAvailable(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
-			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {IOUtils.GetMemory().ToString("0.00")}MB)");
-			if (!GuildSettings.Contains(guild.Id))
-			{
-				await GuildSettings.GetOrCreateAsync(guild).CAF();
-			}
+			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {guild.MemberCount}, {IOUtils.GetMemory().ToString("0.00")}MB)");
+			return Task.CompletedTask;
 		}
 		/// <summary>
 		/// Writes to the console telling that the guild is offline.
@@ -79,23 +76,18 @@ namespace Advobot.Services.Logging.Loggers
 				await guild.LeaveAsync().CAF();
 				return;
 			}
-
-			if (!GuildSettings.Contains(guild.Id))
-			{
-				await GuildSettings.GetOrCreateAsync(guild).CAF();
-			}
 		}
 		/// <summary>
 		/// Writes to the console telling that the guild has kicked the bot. Removes the guild's settings.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public async Task OnLeftGuild(SocketGuild guild)
+		public Task OnLeftGuild(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), -1);
 			ConsoleUtils.WriteLine($"Bot has left {guild.Format()}.");
-			await GuildSettings.RemoveAsync(guild.Id).CAF();
+			return Task.CompletedTask;
 		}
 	}
 }

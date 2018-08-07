@@ -23,7 +23,7 @@ namespace Advobot.Commands.BannedPhrases
 		"Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class EvaluateBannedRegex : NonSavingModuleBase
+	public sealed class EvaluateBannedRegex : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyStringLength(Target.Regex)] string regex, [Remainder] string testPhrase)
@@ -91,10 +91,11 @@ namespace Advobot.Commands.BannedPhrases
 		"Banned names ban users if they join and they have them in their name.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyBannedPhrases : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyBannedPhrases : AdvobotModuleBase
 	{
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
-		public sealed class Regex : GuildSettingsSavingModuleBase
+		public sealed class Regex : AdvobotModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -132,7 +133,7 @@ namespace Advobot.Commands.BannedPhrases
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added the regex `{regex}`.").CAF();
 			}
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-			public sealed class Remove : GuildSettingsSavingModuleBase
+			public sealed class Remove : AdvobotModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
@@ -147,7 +148,7 @@ namespace Advobot.Commands.BannedPhrases
 			}
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
-		public sealed class String : GuildSettingsSavingModuleBase
+		public sealed class String : AdvobotModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -160,7 +161,7 @@ namespace Advobot.Commands.BannedPhrases
 				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), Context.BotSettings.MaxBannedStrings).CAF();
 			}
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-			public sealed class Remove : GuildSettingsSavingModuleBase
+			public sealed class Remove : AdvobotModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
@@ -175,7 +176,7 @@ namespace Advobot.Commands.BannedPhrases
 			}
 		}
 		[Group(nameof(Name)), ShortAlias(nameof(Name))]
-		public sealed class Name : GuildSettingsSavingModuleBase
+		public sealed class Name : AdvobotModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -188,7 +189,7 @@ namespace Advobot.Commands.BannedPhrases
 				await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseNames, text, nameof(Name), Context.BotSettings.MaxBannedNames).CAF();
 			}
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-			public sealed class Remove : GuildSettingsSavingModuleBase
+			public sealed class Remove : AdvobotModuleBase
 			{
 				[Command, Priority(1)]
 				public async Task Command(uint position)
@@ -256,10 +257,11 @@ namespace Advobot.Commands.BannedPhrases
 		"`Show` lists the punishments of whatever type was specified.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyPunishmentType : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyPunishmentType : AdvobotModuleBase
 	{
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
-		public sealed class Regex : GuildSettingsSavingModuleBase
+		public sealed class Regex : AdvobotModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -278,7 +280,7 @@ namespace Advobot.Commands.BannedPhrases
 			}
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
-		public sealed class String : GuildSettingsSavingModuleBase
+		public sealed class String : AdvobotModuleBase
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -341,7 +343,8 @@ namespace Advobot.Commands.BannedPhrases
 		"Time is in minutes.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyBannedPhrasePunishments : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyBannedPhrasePunishments : AdvobotModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -354,7 +357,7 @@ namespace Advobot.Commands.BannedPhrases
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
-		public sealed class Add : GuildSettingsSavingModuleBase
+		public sealed class Add : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command(Punishment punishment, uint position, [Optional] uint time)

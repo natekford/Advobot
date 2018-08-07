@@ -30,14 +30,10 @@ namespace Advobot.Utilities
 		/// Creates services the bot uses. The explicit implementations will always be the same; if wanting to customize
 		/// them then remove them from the collection and put in your own implementations.
 		/// </summary>
-		/// <typeparam name="TBotSettings"></typeparam>
-		/// <typeparam name="TGuildSettings"></typeparam>
 		/// <param name="config">Low level config which is crucial to the bot.</param>
 		/// <param name="commands">The assemblies holding commands.</param>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static IServiceCollection CreateDefaultServices<TBotSettings, TGuildSettings>(ILowLevelConfig config, IEnumerable<Assembly> commands = null)
-			where TBotSettings : IBotSettings, new()
-			where TGuildSettings : IGuildSettings, new()
+		public static IServiceCollection CreateDefaultServices(ILowLevelConfig config, IEnumerable<Assembly> commands = null)
 		{
 			commands = commands ?? DiscordUtils.GetCommandAssemblies();
 			//Not sure why when put into a func provided as an argument there are lots of enumeration errors
@@ -46,12 +42,12 @@ namespace Advobot.Utilities
 			return new ServiceCollection()
 				.AddSingleton<CommandService>(provider => CreateCommandService(provider, commands))
 				.AddSingleton<HelpEntryHolder>(helpEntryHolder)
-				.AddSingleton<DiscordShardedClient>(provider => CreateDiscordClient(provider))
+				.AddSingleton<DiscordShardedClient>(provider => CreateDiscordClient(config))
 				.AddSingleton<ILowLevelConfig>(config)
-				.AddSingleton<IBotSettings>(provider => CreateBotSettings<TBotSettings>(provider))
+				.AddSingleton<IBotSettings>(provider => BotSettings.Load<BotSettings>(config))
 				.AddSingleton<ILevelService>(provider => new LevelService(provider, new LevelServiceArguments()))
 				.AddSingleton<ICommandHandlerService>(provider => new CommandHandlerService(provider))
-				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsService<TGuildSettings>(provider))
+				.AddSingleton<IGuildSettingsService>(provider => new GuildSettingsFactory<GuildSettings>(provider))
 				.AddSingleton<ITimerService>(provider => new TimerService(provider))
 				.AddSingleton<ILogService>(provider => new LogService(provider))
 				.AddSingleton<IInviteListService>(provider => new InviteListService(provider));
@@ -103,27 +99,16 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Creates a sharded client with the supplied settings from the <see cref="IBotSettings"/> in the provider.
 		/// </summary>
-		/// <param name="provider">The settings to initialize the client with.</param>
+		/// <param name="config">The settings to initialize the client with.</param>
 		/// <returns>A discord client.</returns>
-		private static DiscordShardedClient CreateDiscordClient(IServiceProvider provider)
+		private static DiscordShardedClient CreateDiscordClient(ILowLevelConfig config)
 		{
-			var botSettings = provider.GetRequiredService<IBotSettings>();
 			return new DiscordShardedClient(new DiscordSocketConfig
 			{
-				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
-				MessageCacheSize = botSettings.MessageCacheCount,
-				LogLevel = botSettings.LogLevel,
+				AlwaysDownloadUsers = config.AlwaysDownloadUsers,
+				MessageCacheSize = config.MessageCacheSize,
+				LogLevel = config.LogLevel,
 			});
-		}
-		/// <summary>
-		/// Creates settings used globally by the bot.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
-		private static IBotSettings CreateBotSettings<T>(IServiceProvider provider) where T : IBotSettings, new()
-		{
-			var config = provider.GetRequiredService<ILowLevelConfig>();
-			return IOUtils.DeserializeFromFile<IBotSettings, T>(config.GetBaseBotDirectoryFile("BotSettings.json"));
 		}
 	}
 }

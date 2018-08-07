@@ -3,12 +3,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesSettingParser;
 using AdvorangesUtils;
 using Discord;
 using Discord.Net;
+using Discord.Rest;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -17,7 +18,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Low level configuration that is necessary for the bot to run. Holds the bot key, bot id, and save path.
 	/// </summary>
-	public class LowLevelConfig : ILowLevelConfig
+	public class LowLevelConfig : SettingsBase, ILowLevelConfig
 	{
 		/// <summary>
 		/// The previous process id of the application. This is used with the .Net Framework version to make sure the old one is killed first when restarting.
@@ -30,11 +31,20 @@ namespace Advobot.Classes
 		[JsonIgnore]
 		public int CurrentInstance { get; private set; } = -1;
 		/// <inheritdoc />
-		[JsonProperty("SavePath")]
+		[JsonProperty("SavePath"), Setting(null)]
 		public string SavePath { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("BotId")]
+		[JsonProperty("BotId"), Setting(0)]
 		public ulong BotId { get; set; }
+		/// <inheritdoc />
+		[JsonProperty("MessageCacheSize"), Setting(10000)]
+		public int MessageCacheSize { get; set; } = 10000;
+		/// <inheritdoc />
+		[JsonProperty("LogLevel"), Setting(LogSeverity.Warning)]
+		public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;
+		/// <inheritdoc />
+		[JsonProperty("AlwaysDownloadUsers"), Setting(true)]
+		public bool AlwaysDownloadUsers { get; set; } = true;
 		/// <summary>
 		/// The API key for the bot.
 		/// </summary>
@@ -51,23 +61,20 @@ namespace Advobot.Classes
 			{
 				return true;
 			}
-
 			if (startup)
 			{
 				ConsoleUtils.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
 				return false;
 			}
-
 			if ("appdata".CaseInsEquals(path))
 			{
 				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			}
-
 			if (Directory.Exists(path))
 			{
-				ConsoleUtils.WriteLine("Successfully set the save path as " + path);
+				ConsoleUtils.WriteLine($"Successfully set the save path as {path}");
 				SavePath = path;
-				Save();
+				SaveSettings();
 				return true;
 			}
 
@@ -75,7 +82,7 @@ namespace Advobot.Classes
 			return false;
 		}
 		/// <inheritdoc />
-		public async Task<bool> ValidateBotKey(DiscordShardedClient client, string input, bool startup)
+		public async Task<bool> ValidateBotKey(BaseSocketClient client, string input, bool startup)
 		{
 			var key = input ?? BotKey;
 
@@ -104,7 +111,7 @@ namespace Advobot.Classes
 
 				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
 				BotKey = key;
-				Save();
+				SaveSettings();
 				return true;
 			}
 			catch (HttpException)
@@ -114,14 +121,28 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
+		public async Task VerifyBotDirectory(Func<ILowLevelConfig, BaseSocketClient, Task> restartCallback)
+		{
+			var client = new DiscordRestClient();
+			await client.LoginAsync(TokenType.Bot, BotKey).CAF();
+
+			if (BotId != client.CurrentUser.Id)
+			{
+				BotId = client.CurrentUser.Id;
+				SaveSettings();
+				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
+				await restartCallback.Invoke(this, null).CAF();
+			}
+		}
+		/// <inheritdoc />
 		public void ResetBotKey()
 		{
 			BotKey = null;
 		}
 		/// <inheritdoc />
-		public void Save()
+		public void SaveSettings()
 		{
-			FileUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
+			SaveSettings(this);
 		}
 		/// <inheritdoc />
 		public DirectoryInfo GetBaseBotDirectory()
@@ -132,6 +153,11 @@ namespace Advobot.Classes
 		public FileInfo GetBaseBotDirectoryFile(string fileName)
 		{
 			return new FileInfo(Path.Combine(GetBaseBotDirectory().FullName, fileName));
+		}
+		/// <inheritdoc />
+		public override FileInfo GetPath(ILowLevelConfig config)
+		{
+			return GetConfigPath(CurrentInstance);
 		}
 		/// <summary>
 		/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
@@ -151,7 +177,7 @@ namespace Advobot.Classes
 
 			//Count how many exist with that name so they can be saved as Advobot1, Advobot2, etc.
 			instance = instance == -1 ? GetDuplicateProccessesCount() : instance;
-			var config = (LowLevelConfig)IOUtils.DeserializeFromFile<ILowLevelConfig, LowLevelConfig>(GetConfigPath(instance)) ?? new LowLevelConfig();
+			var config = IOUtils.DeserializeFromFile<LowLevelConfig>(GetConfigPath(instance)) ?? new LowLevelConfig();
 			config.PreviousProcessId = processId;
 			config.CurrentInstance = instance;
 			return config;

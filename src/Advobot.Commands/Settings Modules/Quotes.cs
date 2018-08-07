@@ -17,7 +17,8 @@ namespace Advobot.Commands.Quotes
 	[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyQuotes : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyQuotes : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(string name, [Remainder] string text)
@@ -60,7 +61,7 @@ namespace Advobot.Commands.Quotes
 	[Summary("Shows the content for the given quote. " +
 		"If nothing is input, then shows the list of the current quotes.")]
 	[DefaultEnabled(false)]
-	public sealed class SayQuote : NonSavingModuleBase
+	public sealed class SayQuote : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()

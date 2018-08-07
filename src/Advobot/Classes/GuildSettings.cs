@@ -17,7 +17,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Holds settings for a guild.
 	/// </summary>
-	public sealed class GuildSettings : SettingsBase, IGuildSettings
+	public class GuildSettings : SettingsBase, IGuildSettings
 	{
 		/// <inheritdoc />
 		[JsonProperty("WelcomeMessage"), Setting(null)]
@@ -131,9 +131,6 @@ namespace Advobot.Classes
 		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public override string FileName => Path.Combine("GuildSettings", $"{GuildId}.json");
-		/// <inheritdoc />
-		[JsonIgnore]
 		public ulong GuildId { get; private set; }
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -151,6 +148,26 @@ namespace Advobot.Classes
 			ListedInvite?.PostDeserialize(guild);
 
 			Loaded = true;
+		}
+		/// <inheritdoc />
+		public override FileInfo GetPath(ILowLevelConfig config)
+		{
+			return StaticGetPath(config, GuildId);
+		}
+		/// <summary>
+		/// Creates an instance of <typeparamref name="T"/> from file.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="config"></param>
+		/// <param name="guildId"></param>
+		/// <returns></returns>
+		public static IGuildSettings Load<T>(ILowLevelConfig config, ulong guildId) where T : class, IGuildSettings, new()
+		{
+			return IOUtils.DeserializeFromFile<T>(StaticGetPath(config, guildId)) ?? new T();
+		}
+		private static FileInfo StaticGetPath(ILowLevelConfig config, ulong guildId)
+		{
+			return config.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
 		}
 	}
 }

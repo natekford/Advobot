@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -19,25 +21,18 @@ namespace Advobot.Classes
 	/// </summary>
 	public abstract class SettingsBase : ISettingsBase
 	{
-		/// <inheritdoc />
-		public abstract string FileName { get; }
-
-		private Dictionary<string, PropertyInfo> _Settings;
+		private ImmutableDictionary<string, PropertyInfo> _S;
 
 		/// <inheritdoc />
-		public virtual IReadOnlyDictionary<string, PropertyInfo> GetSettings()
+		public virtual ImmutableDictionary<string, PropertyInfo> GetSettings()
 		{
-			if (_Settings != null)
-			{
-				return _Settings;
-			}
-
-			return _Settings = GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+			return _S ?? (_S = GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
 				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
-				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase);
+				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase)
+				.ToImmutableDictionary());
 		}
 		/// <inheritdoc />
-		public virtual string ToString(DiscordShardedClient client, SocketGuild guild)
+		public virtual string ToString(BaseSocketClient client, SocketGuild guild)
 		{
 			var sb = new StringBuilder();
 			foreach (var kvp in GetSettings())
@@ -55,9 +50,9 @@ namespace Advobot.Classes
 			return sb.ToString();
 		}
 		/// <inheritdoc />
-		public virtual string ToString(DiscordShardedClient client, SocketGuild guild, string name)
+		public virtual string ToString(BaseSocketClient client, SocketGuild guild, string name)
 		{
-			return Format(client, guild, GetMember(name).GetValue(this));
+			return Format(client, guild, GetProperty(name).GetValue(this));
 		}
 		/// <inheritdoc />
 		public virtual void ResetSettings()
@@ -70,17 +65,19 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public virtual object ResetSetting(string name)
 		{
-			return ResetSetting(GetMember(name));
+			return ResetSetting(GetProperty(name));
 		}
 		/// <inheritdoc />
 		public virtual void SaveSettings(ILowLevelConfig config)
 		{
-			FileUtils.SafeWriteAllText(config.GetBaseBotDirectoryFile(FileName), IOUtils.Serialize(this));
+			IOUtils.SafeWriteAllText(GetPath(config), IOUtils.Serialize(this));
 		}
+		/// <inheritdoc />
+		public abstract FileInfo GetPath(ILowLevelConfig config);
 
-		private PropertyInfo GetMember(string name)
+		private PropertyInfo GetProperty(string name)
 		{
-			return GetSettings()[name] ?? throw new ArgumentException($"Invalid member name provided: {name}.", nameof(name));
+			return GetSettings()[name] ?? throw new ArgumentException($"Invalid property name provided: {name}.", nameof(name));
 		}
 		private object ResetSetting(PropertyInfo property)
 		{
@@ -91,7 +88,7 @@ namespace Advobot.Classes
 				switch (settingAttr.NonCompileTimeDefaultValue)
 				{
 					case NonCompileTimeDefaultValue.InstantiateDefaultParameterless:
-						nonCompileTimeValue = Activator.CreateInstance(property.GetUnderlyingType());
+						nonCompileTimeValue = Activator.CreateInstance(property.PropertyType);
 						break;
 					case NonCompileTimeDefaultValue.ClearDictionaryValues:
 						var dict = (IDictionary)property.GetValue(this);
@@ -109,7 +106,7 @@ namespace Advobot.Classes
 				return property.GetValue(this);
 			}
 		}
-		private string Format(DiscordShardedClient client, SocketGuild guild, object value)
+		private string Format(BaseSocketClient client, SocketGuild guild, object value)
 		{
 			switch (value)
 			{

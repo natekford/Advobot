@@ -17,7 +17,8 @@ namespace Advobot.Commands.GuildList
 	[Summary("Adds or removes a guild from the public guild list.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyGuildListing : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyGuildListing : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(IInvite invite, [Optional] params string[] keywords)
@@ -56,7 +57,7 @@ namespace Advobot.Commands.GuildList
 	[Summary("Bumps the invite on the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
-	public sealed class BumpGuildListing : NonSavingModuleBase
+	public sealed class BumpGuildListing : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -81,7 +82,7 @@ namespace Advobot.Commands.GuildList
 	[Group(nameof(GetGuildListing)), TopLevelShortAlias(typeof(GetGuildListing))]
 	[Summary("Gets an invite meeting the given criteria.")]
 	[DefaultEnabled(true)]
-	public sealed class GetGuildListing : NonSavingModuleBase
+	public sealed class GetGuildListing : AdvobotModuleBase
 	{
 		private static readonly string _GHeader = "Guild Name".PadRight(25);
 		private static readonly string _UHeader = "URL".PadRight(35);

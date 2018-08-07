@@ -417,12 +417,6 @@
                     </Grid.Resources>
 
                     <!-- Titles -->
-                    <controls:AdvobotTitle x:Name="AlwaysDownloadUsersTitle"
-                                           Grid.Column="1">
-                        <TextBlock.ToolTip>
-                            <ToolTip>Whether or not to gather all users in a guild when the bot joins.</ToolTip>
-                        </TextBlock.ToolTip>
-                    </controls:AdvobotTitle>
                     <controls:AdvobotTitle x:Name="PrefixTitle"
                                            Grid.Column="1"
                                            Grid.Row="1">
@@ -444,13 +438,6 @@
                             <ToolTip>Links to a Twitch.TV stream.</ToolTip>
                         </TextBlock.ToolTip>
                     </controls:AdvobotTitle>
-                    <controls:AdvobotTitle x:Name="MessageCacheCountTitle"
-                                           Grid.Column="1"
-                                           Grid.Row="5">
-                        <TextBlock.ToolTip>
-                            <ToolTip>How many messages the bot should keep in storage at a time.</ToolTip>
-                        </TextBlock.ToolTip>
-                    </controls:AdvobotTitle>
                     <controls:AdvobotTitle x:Name="UserGatherCountTitle"
                                            Grid.Column="1"
                                            Grid.Row="6">
@@ -465,13 +452,6 @@
                             <ToolTip>How many KBs worth of messages downloadmessages should gather at maximum.</ToolTip>
                         </TextBlock.ToolTip>
                     </controls:AdvobotTitle>
-                    <controls:AdvobotTitle x:Name="LogLevelTitle"
-                                           Grid.Column="1"
-                                           Grid.Row="8">
-                        <TextBlock.ToolTip>
-                            <ToolTip>Prints out items with an equal to or higher log severity to the console.</ToolTip>
-                        </TextBlock.ToolTip>
-                    </controls:AdvobotTitle>
                     <controls:AdvobotTitle x:Name="TrustedUsersTitle"
                                            Grid.Column="1"
                                            Grid.Row="9">
@@ -481,14 +461,6 @@
                     </controls:AdvobotTitle>
 
                     <!-- Settings -->
-                    <Viewbox x:Name="AlwaysDownloadUsersViewBox"
-                             Grid.Column="2"
-                             Grid.Row="0"
-                             HorizontalAlignment="Left"
-                             VerticalAlignment="Center">
-                        <CheckBox x:Name="AlwaysDownloadUsers"
-                                  Tag="{extensions:NameOf Member=AlwaysDownloadUsers, Type=interfaces:IBotSettings}" />
-                    </Viewbox>
                     <controls:AdvobotTextBox x:Name="Prefix"
                                              Tag="{extensions:NameOf Member=Prefix, Type=interfaces:IBotSettings}"
                                              Grid.Column="2"
@@ -504,13 +476,6 @@
                                              Grid.Column="2"
                                              Grid.Row="3"
                                              MaxLength="25" />
-                    <controls:AdvobotNumberBox x:Name="MessageCacheCount"
-                                               Tag="{extensions:NameOf Member=MessageCacheCount, Type=interfaces:IBotSettings}"
-                                               Grid.Column="2"
-                                               Grid.Row="5"
-                                               MaxLength="6"
-                                               MinValue="1"
-                                               MaxValue="100000" />
                     <controls:AdvobotNumberBox x:Name="MaxUserGatherCount"
                                                Tag="{extensions:NameOf Member=MaxUserGatherCount, Type=interfaces:IBotSettings}"
                                                Grid.Column="2"
@@ -525,11 +490,6 @@
                                                MaxLength="7"
                                                MinValue="1"
                                                MaxValue="10000" />
-                    <controls:AdvobotComboBox x:Name="LogLevel"
-                                              Tag="{extensions:NameOf Member=LogLevel, Type=interfaces:IBotSettings}"
-                                              Grid.Column="2"
-                                              Grid.Row="8"
-                                              SourceEnum="{x:Type discordenums:LogSeverity}" />
                     <controls:AdvobotGrid x:Name="AddTrustedUsersGrid"
                                           Grid.Column="2"
                                           Grid.Row="9">

@@ -20,7 +20,8 @@ namespace Advobot.Commands.GuildSettings
 	[Summary("Makes the bot use the given prefix in the guild.")]
 	[OtherRequirement(Precondition.GuildOwner)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyGuildPrefix : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyGuildPrefix : AdvobotModuleBase
 	{
 		[Command(nameof(Clear)), Priority(1)]
 		public async Task Clear()
@@ -43,10 +44,11 @@ namespace Advobot.Commands.GuildSettings
 		"Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Help) + "`.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true, false)]
-	public sealed class ModifyCommands : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyCommands : AdvobotModuleBase
 	{
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
-		public sealed class Enable : GuildSettingsSavingModuleBase
+		public sealed class Enable : AdvobotModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 			public async Task All()
@@ -90,7 +92,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
-		public sealed class Disable : GuildSettingsSavingModuleBase
+		public sealed class Disable : AdvobotModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 			public async Task All()
@@ -141,10 +143,11 @@ namespace Advobot.Commands.GuildSettings
 		"If a command is input then the bot will instead ignore only that command on the given channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true, false)]
-	public sealed class ModifyIgnoredCommandChannels : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyIgnoredCommandChannels : AdvobotModuleBase
 	{
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
-		public sealed class Enable : GuildSettingsSavingModuleBase
+		public sealed class Enable : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel)
@@ -196,7 +199,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
-		public sealed class Disable : GuildSettingsSavingModuleBase
+		public sealed class Disable : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel)
@@ -251,14 +254,15 @@ namespace Advobot.Commands.GuildSettings
 
 	[Group(nameof(ModifyBotUsers)), TopLevelShortAlias(typeof(ModifyBotUsers))]
 	[Summary("Gives a user permissions in the bot but not on Discord itself. " +
-		"Type `" + nameof(ModifyBotUsers) + " [Show]` to see the available permissions. " +
-		"Type `" + nameof(ModifyBotUsers) + " [Show] [User]` to see the permissions of that user.")]
+		"Type `" + nameof(ModifyBotUsers) + " [" + nameof(Show) + "]` to see the available permissions. " +
+		"Type `" + nameof(ModifyBotUsers) + " [" + nameof(Show) + "] [User]` to see the permissions of that user.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyBotUsers : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyBotUsers : AdvobotModuleBase
 	{
 		[Group(nameof(Show)), ShortAlias(nameof(Show))]
-		public sealed class Show : NonSavingModuleBase
+		public sealed class Show : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -327,14 +331,15 @@ namespace Advobot.Commands.GuildSettings
 
 	[Group(nameof(ModifyPersistentRoles)), TopLevelShortAlias(typeof(ModifyPersistentRoles))]
 	[Summary("Gives a user a role that stays even when they leave and rejoin the server. " +
-		"Type `" + nameof(ModifyPersistentRoles) + " [Show]` to see the which users have persistent roles set up. " +
-		"Type `" + nameof(ModifyPersistentRoles) + " [Show] [User]` to see the persistent roles of that user.")]
+		"Type `" + nameof(ModifyPersistentRoles) + " [" + nameof(Show) + "]`` to see the which users have persistent roles set up. " +
+		"Type `" + nameof(ModifyPersistentRoles) + " [" + nameof(Show) + "]` [User]` to see the persistent roles of that user.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyPersistentRoles : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyPersistentRoles : AdvobotModuleBase
 	{
 		[Group(nameof(Show)), ShortAlias(nameof(Show))]
-		public sealed class Show : NonSavingModuleBase
+		public sealed class Show : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -374,7 +379,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
-		public sealed class Add : GuildSettingsSavingModuleBase
+		public sealed class Add : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
@@ -404,7 +409,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 		}
 		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public sealed class Remove : GuildSettingsSavingModuleBase
+		public sealed class Remove : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
@@ -440,7 +445,8 @@ namespace Advobot.Commands.GuildSettings
 		"Using the command on an already targetted channel turns it off.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyChannelSettings : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyChannelSettings : AdvobotModuleBase
 	{
 		[Command(nameof(ImageOnly)), ShortAlias(nameof(ImageOnly))]
 		public async Task ImageOnly([VerifyObject(true, ObjectVerification.CanBeEdited)] ITextChannel channel)
@@ -466,7 +472,8 @@ namespace Advobot.Commands.GuildSettings
 		"`" + GuildNotification.USER_STRING + "` will be replaced with a mention of the joining user.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyGuildNotifs : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyGuildNotifs : AdvobotModuleBase
 	{
 		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
 		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
@@ -496,7 +503,7 @@ namespace Advobot.Commands.GuildSettings
 	[Summary("Sends the given guild notification in order to test it.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class TestGuildNotifs : NonSavingModuleBase
+	public sealed class TestGuildNotifs : AdvobotModuleBase
 	{
 		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
 		public async Task Welcome()
@@ -528,7 +535,7 @@ namespace Advobot.Commands.GuildSettings
 	[Summary("Displays guild settings.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayGuildSettings : NonSavingModuleBase
+	public sealed class DisplayGuildSettings : AdvobotModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
@@ -585,7 +592,7 @@ namespace Advobot.Commands.GuildSettings
 	[Summary("Sends the file containing all the guild's settings.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class GetFile : NonSavingModuleBase
+	public sealed class GetFile : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()

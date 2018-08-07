@@ -5,6 +5,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Newtonsoft.Json;
 
@@ -207,9 +208,6 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool Pause { get; set; }
-		/// <inheritdoc />
-		[JsonIgnore]
-		public override string FileName => "BotSettings.json";
 
 		[JsonIgnore]
 		private string _Prefix = "&&";
@@ -235,5 +233,24 @@ namespace Advobot.Classes
 		private int _MaxBannedNames = 25;
 		[JsonIgnore]
 		private int _MaxBannedPunishments = 10;
+
+		/// <inheritdoc />
+		public override FileInfo GetPath(ILowLevelConfig config)
+		{
+			return StaticGetPath(config);
+		}
+		/// <summary>
+		/// Creates an instance of <typeparamref name="T"/> from file.
+		/// </summary>
+		/// <param name="config"></param>
+		/// <returns></returns>
+		public static IBotSettings Load<T>(ILowLevelConfig config) where T : class, IBotSettings, new()
+		{
+			return IOUtils.DeserializeFromFile<T>(StaticGetPath(config)) ?? new T();
+		}
+		private static FileInfo StaticGetPath(ILowLevelConfig config)
+		{
+			return config.GetBaseBotDirectoryFile("BotSettings.json");
+		}
 	}
 }

@@ -1,39 +1,35 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace Advobot.Services.GuildSettings
 {
-	internal sealed class GuildSettingsService<T> : IGuildSettingsService where T : IGuildSettings, new()
+	internal sealed class GuildSettingsFactory<T> : IGuildSettingsService where T : class, IGuildSettings, new()
 	{
-		private static readonly JsonSerializerSettings _JsonSettings = new JsonSerializerSettings() { Converters = new[] { new StringEnumConverter() }, };
-
 		/// <inheritdoc />
 		public Type GuildSettingsType => typeof(T);
 
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
 		private readonly ILowLevelConfig _Config;
 
-		public GuildSettingsService(IServiceProvider provider)
+		public GuildSettingsFactory(IServiceProvider provider)
 		{
 			_Config = provider.GetRequiredService<ILowLevelConfig>();
 		}
 
 		/// <inheritdoc />
-		public void Remove(ulong guildId)
+		public Task RemoveAsync(ulong guildId)
 		{
 			if (_GuildSettings.ContainsKey(guildId) && !_GuildSettings.TryRemove(guildId, out _))
 			{
 				ConsoleUtils.WriteLine($"Failed to remove {guildId} from the guild settings holder.", ConsoleColor.Yellow);
 			}
+			return Task.CompletedTask;
 		}
 		/// <inheritdoc />
 		public async Task<IGuildSettings> GetOrCreateAsync(SocketGuild guild)
@@ -43,14 +39,10 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			var path = _Config.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guild.Id}.json"));
-			settings = IOUtils.DeserializeFromFile<IGuildSettings, T>(path, _JsonSettings);
+			settings = Classes.GuildSettings.Load<T>(_Config, guild.Id);
 			await settings.PostDeserializeAsync(guild).CAF();
+			settings.SaveSettings(_Config);
 
-			if (!path.Exists)
-			{
-				settings.SaveSettings(_Config);
-			}
 			if (!_GuildSettings.TryAdd(guild.Id, settings))
 			{
 				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", ConsoleColor.Yellow);
@@ -71,12 +63,6 @@ namespace Advobot.Services.GuildSettings
 		public bool Contains(ulong guildId)
 		{
 			return _GuildSettings.ContainsKey(guildId);
-		}
-
-		Task IGuildSettingsService.RemoveAsync(ulong guildId)
-		{
-			Remove(guildId);
-			return Task.CompletedTask;
 		}
 	}
 }

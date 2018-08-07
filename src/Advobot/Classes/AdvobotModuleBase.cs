@@ -3,6 +3,7 @@ using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
 using System;
+using System.Linq;
 
 namespace Advobot.Classes
 {
@@ -10,7 +11,7 @@ namespace Advobot.Classes
 	/// Shorter way to write the used modulebase and also has every command go through the <see cref="CommandRequirementAttribute"/> first.
 	/// </summary>
 	[CommandRequirement]
-	public abstract class NonSavingModuleBase : ModuleBase<AdvobotCommandContext>
+	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	{
 		/// <summary>
 		/// Gets a request options that mainly is used for the reason in the audit log.
@@ -22,6 +23,24 @@ namespace Advobot.Classes
 			return String.IsNullOrWhiteSpace(reason)
 				? ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}.")
 				: ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}. Reason: {reason}.");
+		}
+		/// <inheritdoc />
+		protected override void AfterExecute(CommandInfo command)
+		{
+			var attributes = command.Attributes.Concat(command.Module.Attributes);
+			if (attributes.Any(x => x.GetType() == typeof(SaveGuildSettingsAttribute)))
+			{
+				Context.GuildSettings.SaveSettings(Context.Config);
+			}
+			if (attributes.Any(x => x.GetType() == typeof(SaveBotSettingsAttribute)))
+			{
+				Context.BotSettings.SaveSettings(Context.Config);
+			}
+			if (attributes.Any(x => x.GetType() == typeof(SaveLowLevelConfigAttribute)))
+			{
+				Context.Config.SaveSettings();
+			}
+			base.AfterExecute(command);
 		}
 	}
 }

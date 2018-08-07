@@ -17,9 +17,6 @@ namespace Advobot.Services.Commands
 	/// </summary>
 	internal sealed class CommandHandlerService : ICommandHandlerService
 	{
-		/// <inheritdoc />
-		public event Func<ILowLevelConfig, BaseSocketClient, Task> RestartRequired;
-
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
 		private readonly HelpEntryHolder _HelpEntries;
@@ -62,16 +59,6 @@ namespace Advobot.Services.Commands
 		{
 			if (_Loaded)
 			{
-				return;
-			}
-			if (_Config.BotId != client.CurrentUser.Id)
-			{
-				_Config.BotId = client.CurrentUser.Id;
-				_Config.Save();
-				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-				RestartRequired?.Invoke(_Config, _Client);
-				_Loaded = false;
-				_BotSettings.Pause = true;
 				return;
 			}
 

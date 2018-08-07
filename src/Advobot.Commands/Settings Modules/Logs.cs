@@ -8,17 +8,19 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Logs
 {
 	[Group(nameof(ModifyLogChannels)), TopLevelShortAlias(typeof(ModifyLogChannels))]
-	[Summary("Puts the serverlog on the specified channel. " +
-		"Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
+	[Summary("Puts the serverlog on the specified channel. The serverlog logs things specified in " + nameof(ModifyLogActions))]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyLogChannels : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyLogChannels : AdvobotModuleBase
 	{
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public async Task Enable(
@@ -84,7 +86,8 @@ namespace Advobot.Commands.Logs
 	[Summary("Ignores all logging info that would have been gotten from a channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyIgnoredLogChannels : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyIgnoredLogChannels : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add([VerifyObject(false, ObjectVerification.CanBeViewed, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
@@ -104,19 +107,21 @@ namespace Advobot.Commands.Logs
 
 	[Group(nameof(ModifyLogActions)), TopLevelShortAlias(typeof(ModifyLogActions))]
 	[Summary("The server log will send messages when these events happen. " +
-		"`Default` overrides the current settings. " +
-		"`Show` displays the possible actions.")]
+		"`" + nameof(ModifyLogActions.Reset) + "` overrides the current settings. " +
+		"`" + nameof(ModifyLogActions.Show) + "` displays the possible actions.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyLogActions : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifyLogActions : AdvobotModuleBase
 	{
-		private static LogAction[] _DefaultLogActions = {
+		private readonly static ImmutableArray<LogAction> _DefaultLogActions = new List<LogAction>
+		{
 			LogAction.UserJoined,
 			LogAction.UserLeft,
 			LogAction.MessageReceived,
 			LogAction.MessageUpdated,
 			LogAction.MessageDeleted
-		};
+		}.ToImmutableArray();
 
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -136,7 +141,7 @@ namespace Advobot.Commands.Logs
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the log actions to the default ones.").CAF();
 		}
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
-		public sealed class Enable : GuildSettingsSavingModuleBase
+		public sealed class Enable : AdvobotModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All))]
 			public async Task All()
@@ -148,11 +153,7 @@ namespace Advobot.Commands.Logs
 			[Command]
 			public async Task Command(params LogAction[] logActions)
 			{
-				if (logActions == null)
-				{
-					logActions = new LogAction[0];
-				}
-
+				logActions = logActions ?? new LogAction[0];
 				//Add in logActions that aren't already in there
 				Context.GuildSettings.LogActions.AddRange(logActions.Except(Context.GuildSettings.LogActions));
 				var resp = $"Successfully enabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.ToString()))}`.";
@@ -160,7 +161,7 @@ namespace Advobot.Commands.Logs
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
-		public sealed class Disable : GuildSettingsSavingModuleBase
+		public sealed class Disable : AdvobotModuleBase
 		{
 			[Command(nameof(All)), ShortAlias(nameof(All))]
 			public async Task All()
@@ -171,11 +172,7 @@ namespace Advobot.Commands.Logs
 			[Command]
 			public async Task Command(params LogAction[] logActions)
 			{
-				if (logActions == null)
-				{
-					logActions = new LogAction[0];
-				}
-
+				logActions = logActions ?? new LogAction[0];
 				//Only remove logactions that are already in there
 				Context.GuildSettings.LogActions.RemoveAll(x => logActions.Contains(x));
 				var resp = $"Successfully disabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.ToString()))}`.";

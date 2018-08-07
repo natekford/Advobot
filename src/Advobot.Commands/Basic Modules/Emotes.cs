@@ -23,7 +23,7 @@ namespace Advobot.Commands.Emotes
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
 	[RateLimit(1)]
-	public sealed class CreateEmote : NonSavingModuleBase
+	public sealed class CreateEmote : AdvobotModuleBase
 	{
 		private static EmoteResizer _Resizer = new EmoteResizer(4);
 
@@ -67,7 +67,7 @@ namespace Advobot.Commands.Emotes
 	[Summary("Deletes the supplied emote from the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteEmote : NonSavingModuleBase
+	public sealed class DeleteEmote : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(GuildEmote emote)
@@ -81,7 +81,7 @@ namespace Advobot.Commands.Emotes
 	[Summary("Changes the name of the supplied emote.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyEmoteName : NonSavingModuleBase
+	public sealed class ModifyEmoteName : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(GuildEmote emote, [VerifyStringLength(Target.Emote), Remainder] string newName)
@@ -95,7 +95,7 @@ namespace Advobot.Commands.Emotes
 		"Your Discord client will need to be restarted after editing this in order to see the emote again, even if you give yourself the roles.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyEmoteRoles : NonSavingModuleBase
+	public sealed class ModifyEmoteRoles : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(
@@ -156,7 +156,7 @@ namespace Advobot.Commands.Emotes
 	[Summary("Lists the emotes in the guild. If there are more than 20 emotes of a specified type, they will be uploaded in a file.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayEmotes : NonSavingModuleBase
+	public sealed class DisplayEmotes : AdvobotModuleBase
 	{
 		[Command(nameof(Managed)), ShortAlias(nameof(Managed))]
 		public async Task Managed()

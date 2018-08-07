@@ -22,7 +22,8 @@ namespace Advobot.Commands.SelfRoles
 		"Add and Remove modify a single role in a group.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifySelfRoles : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class ModifySelfRoles : AdvobotModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(uint groupNumber)
@@ -154,7 +155,7 @@ namespace Advobot.Commands.SelfRoles
 	[Summary("Gives or takes a role depending on if the user has it already. " +
 		"Removes all other roles in the same group unless the group is `0`.")]
 	[DefaultEnabled(false)]
-	public sealed class AssignSelfRole : NonSavingModuleBase
+	public sealed class AssignSelfRole : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(SocketRole role)
@@ -194,7 +195,7 @@ namespace Advobot.Commands.SelfRoles
 	[Summary("Shows the current group numbers that exists on the guild. " +
 		"If a number is input then it shows the roles in that group.")]
 	[DefaultEnabled(false)]
-	public sealed class DisplaySelfRoles : NonSavingModuleBase
+	public sealed class DisplaySelfRoles : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()

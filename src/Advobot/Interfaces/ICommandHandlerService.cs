@@ -10,13 +10,6 @@ namespace Advobot.Interfaces
 	public interface ICommandHandlerService
 	{
 		/// <summary>
-		/// Indicates that the bot needs to be restarted.
-		/// This is abstracted out because .Net Core and .Net Framework applications restart differently.
-		/// This should effectively act as an exception thrown inside an event.
-		/// </summary>
-		event Func<ILowLevelConfig, BaseSocketClient, Task> RestartRequired;
-
-		/// <summary>
 		/// Uses the input from the message to execute a command.
 		/// </summary>
 		/// <param name="message"></param>

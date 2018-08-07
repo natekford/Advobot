@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
+using Discord;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces
@@ -7,7 +9,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for low level configuration in the bot.
 	/// </summary>
-	public interface ILowLevelConfig
+	public interface ILowLevelConfig : ISettingsBase
 	{
 		/// <summary>
 		/// The path the bot's files are in.
@@ -17,6 +19,18 @@ namespace Advobot.Interfaces
 		/// The id of the bot.
 		/// </summary>
 		ulong BotId { get; set; }
+		/// <summary>
+		/// Whether or not to always download users when joining a guild.
+		/// </summary>
+		bool AlwaysDownloadUsers { get; set; }
+		/// <summary>
+		/// How many messages to cache.
+		/// </summary>
+		int MessageCacheSize { get; set; }
+		/// <summary>
+		/// What level to log messages at in the console.
+		/// </summary>
+		LogSeverity LogLevel { get; set; }
 
 		/// <summary>
 		/// Attempts to set the save path with the given input. Returns a boolean signifying whether the save path is valid or not.
@@ -32,7 +46,13 @@ namespace Advobot.Interfaces
 		/// <param name="input">The bot key.</param>
 		/// <param name="startup">Whether or not this should be treated as the first attempt at logging in.</param>
 		/// <returns>A boolean signifying whether the login was successful or not.</returns>
-		Task<bool> ValidateBotKey(DiscordShardedClient client, string input, bool startup);
+		Task<bool> ValidateBotKey(BaseSocketClient client, string input, bool startup);
+		/// <summary>
+		/// Verifies that the correct bot directory is being used, otherwise restarts with the correct bot directory.
+		/// </summary>
+		/// <param name="restartCallback">How to restart if a restart is necessary.</param>
+		/// <returns></returns>
+		Task VerifyBotDirectory(Func<ILowLevelConfig, BaseSocketClient, Task> restartCallback);
 		/// <summary>
 		/// Sets the bot key to null.
 		/// </summary>
@@ -40,7 +60,7 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Writes the current config to file.
 		/// </summary>
-		void Save();
+		void SaveSettings();
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId
 		/// </summary>

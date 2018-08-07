@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Discord;
 
 namespace Advobot.Interfaces
 {
@@ -8,10 +7,6 @@ namespace Advobot.Interfaces
 	/// </summary>
 	public interface IBotSettings : ISettingsBase
 	{
-		/// <summary>
-		/// The log level to use for the discord wrapper.
-		/// </summary>
-		LogSeverity LogLevel { get; set; }
 		/// <summary>
 		/// The prefix for commands.
 		/// </summary>
@@ -24,14 +19,6 @@ namespace Advobot.Interfaces
 		/// The Twitch stream the bot should link to.
 		/// </summary>
 		string Stream { get; set; }
-		/// <summary>
-		/// Whether or not to always download users when joining the guild.
-		/// </summary>
-		bool AlwaysDownloadUsers { get; set; }
-		/// <summary>
-		/// How many messages to cache at a time.
-		/// </summary>
-		int MessageCacheCount { get; set; }
 		/// <summary>
 		/// How many users to gather for commands on users unless the bypass string is said.
 		/// </summary>

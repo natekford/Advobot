@@ -1,13 +1,12 @@
-﻿using Advobot.Classes;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.SpamPrevention
 {
@@ -15,22 +14,12 @@ namespace Advobot.Commands.SpamPrevention
 	[Summary("Spam prevention allows for some protection against mention spammers. " +
 		"Messages is the amount of messages a user has to send with the given amount of mentions before being considered as potential spam. " +
 		"Votes is the amount of users that have to agree with the potential punishment. " +
-		"The spam users are reset every hour. " +
-		"`Show` lists all of the available punishments.")]
+		"The spam users are reset every hour.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventSpam : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class PreventSpam : AdvobotModuleBase
 	{
-		[Command(nameof(Show)), ShortAlias(nameof(Show))]
-		public async Task Show()
-		{
-			var embed = new EmbedWrapper
-			{
-				Title = "Punishment Types",
-				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(Punishment)))}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(SpamType spam, Punishment punishment, uint messageCount, uint votes, uint timeInterval, uint spamAmount)
 		{
@@ -48,62 +37,44 @@ namespace Advobot.Commands.SpamPrevention
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public async Task Enable(SpamType spamType)
 		{
-			var spamPrev = Context.GuildSettings.SpamPreventionDictionary[spamType];
-			if (spamPrev == null)
+			if (!(Context.GuildSettings.SpamPreventionDictionary[spamType] is SpamPreventionInfo antiSpam))
 			{
 				var error = new Error("There must be a spam prevention of that type set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			spamPrev.Enabled = true;
+			antiSpam.Enabled = true;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully enabled the given spam prevention.").CAF();
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public async Task Disable(SpamType spamType)
 		{
-			var spamPrev = Context.GuildSettings.SpamPreventionDictionary[spamType];
-			if (spamPrev == null)
+			if (!(Context.GuildSettings.SpamPreventionDictionary[spamType] is SpamPreventionInfo antiSpam))
 			{
 				var error = new Error("There must be a spam prevention of that type set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			spamPrev.Enabled = false;
+			antiSpam.Enabled = false;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled the given spam prevention.").CAF();
 		}
 	}
 
 	[Group(nameof(PreventRaid)), TopLevelShortAlias(typeof(PreventRaid))]
 	[Summary("Any users who joins from now on will get text muted. " +
-		"Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
-		"Inputting a number means the last x amount of people (up to 25) who have joined will be muted. " +
-		"`Show` lists all of the available punishments.")]
+		"Once `preventraid` is turned off all the users who were muted will be unmuted. " +
+		"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventRaid : GuildSettingsSavingModuleBase
+	[SaveGuildSettings]
+	public sealed class PreventRaid : AdvobotModuleBase
 	{
-		[Command(nameof(Show)), ShortAlias(nameof(Show))]
-		public async Task Show()
-		{
-			var embed = new EmbedWrapper
-			{
-				Title = "Punishment Types",
-				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(Punishment)))}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(RaidType raidType, Punishment punishment, uint userCount, uint interval)
 		{
-			if (!RaidPreventionInfo.TryCreate(
-				raidType,
-				punishment,
-				(int)userCount,
-				(int)interval,
-				out var raidPrevention,
-				out var errorReason))
+			if (!RaidPreventionInfo.TryCreate(raidType, punishment, (int)userCount, (int)interval, out var raidPrevention, out var errorReason))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, errorReason).CAF();
 				return;
@@ -116,22 +87,21 @@ namespace Advobot.Commands.SpamPrevention
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public async Task Enable(RaidType raidType)
 		{
-			var raidPrev = Context.GuildSettings.RaidPreventionDictionary[raidType];
-			if (raidPrev == null)
+			if (!(Context.GuildSettings.RaidPreventionDictionary[raidType] is RaidPreventionInfo antiRaid))
 			{
 				var error = new Error("There must be a raid prevention of that type set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			raidPrev.Enabled = true;
+			antiRaid.Enabled = true;
 			if (raidType == RaidType.Regular)
 			{
 				//Mute the newest joining users
 				var users = Context.Guild.GetUsersByJoinDate().Reverse().ToArray();
-				for (var i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
+				for (var i = 0; i < new[] { antiRaid.UserCount, users.Length, 25 }.Min(); ++i)
 				{
-					await raidPrev.PunishAsync(Context.GuildSettings, users[i]).CAF();
+					await antiRaid.PunishAsync(Context.GuildSettings, users[i]).CAF();
 				}
 			}
 
@@ -140,15 +110,14 @@ namespace Advobot.Commands.SpamPrevention
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public async Task Disable(RaidType raidType)
 		{
-			var raidPrev = Context.GuildSettings.RaidPreventionDictionary[raidType];
-			if (raidPrev == null)
+			if (!(Context.GuildSettings.RaidPreventionDictionary[raidType] is RaidPreventionInfo antiRaid))
 			{
 				var error = new Error("There must be a raid prevention of that type set up before one can be enabled or disabled.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			raidPrev.Enabled = false;
+			antiRaid.Enabled = false;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled the given raid prevention.").CAF();
 		}
 	}

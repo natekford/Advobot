@@ -18,7 +18,7 @@ namespace Advobot.Commands.Guilds
 		"Settings and preferences will be preserved.")]
 	[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class LeaveGuild : NonSavingModuleBase
+	public sealed class LeaveGuild : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Optional] ulong guildId)
@@ -55,7 +55,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("Change the name of the guild to the given name.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildName : NonSavingModuleBase
+	public sealed class ModifyGuildName : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
@@ -69,7 +69,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("Changes the guild server region.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildRegion : NonSavingModuleBase
+	public sealed class ModifyGuildRegion : AdvobotModuleBase
 	{
 		private static string[] _ValidRegionIDs =
 		{
@@ -128,7 +128,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("Changes the guild AFK timeout.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildAfkTimer : NonSavingModuleBase
+	public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyNumber(new[] { 60, 300, 900, 1800, 3600 })] uint time)
@@ -143,7 +143,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("Changes the guild afk channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildAfkChannel : NonSavingModuleBase
+	public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeManaged)] SocketVoiceChannel channel)
@@ -164,7 +164,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("Changes the guild system channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildSystemChannel : NonSavingModuleBase
+	public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeManaged)] SocketTextChannel channel)
@@ -185,7 +185,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("Changes the message notifications to either all messages or mentions only.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildMsgNotif : NonSavingModuleBase
+	public sealed class ModifyGuildMsgNotif : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(DefaultMessageNotifications msgNotifs)
@@ -201,7 +201,7 @@ namespace Advobot.Commands.Guilds
 		"None is the most lenient (no requirements to type), extreme is the harshest (phone verification).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildVerif : NonSavingModuleBase
+	public sealed class ModifyGuildVerif : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(VerificationLevel verif)
@@ -216,7 +216,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("Changes the guild's icon to the given image.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildIcon : NonSavingModuleBase
+	public sealed class ModifyGuildIcon : AdvobotModuleBase
 	{
 		private static GuildIconResizer _Resizer = new GuildIconResizer(4);
 
@@ -254,7 +254,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("Changes the guild splash to the given image. Won't be modified unless the server is a partnered server.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildSplash : NonSavingModuleBase
+	public sealed class ModifyGuildSplash : AdvobotModuleBase
 	{
 		private static GuildSplashResizer _Resizer = new GuildSplashResizer(4);
 
@@ -302,7 +302,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("Creates a guild with the bot as the owner.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class CreateGuild : NonSavingModuleBase
+	public sealed class CreateGuild : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
@@ -319,7 +319,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class SwapGuildOwner : NonSavingModuleBase
+	public sealed class SwapGuildOwner : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -339,7 +339,7 @@ namespace Advobot.Commands.Guilds
 	[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteGuild : NonSavingModuleBase
+	public sealed class DeleteGuild : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()

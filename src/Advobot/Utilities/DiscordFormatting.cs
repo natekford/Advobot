@@ -467,7 +467,7 @@ namespace Advobot.Utilities
 		{
 			var embed = new EmbedWrapper
 			{
-				Description = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.ToReadable()}` (`{Formatting.GetUptime()}`)\n" +
+				Description = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.ToReadable()}` (`{FormattingUtils.GetUptime()}`)\n" +
 					$"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`\n" +
 					$"**Current Shard:** `{client.GetShardIdFor(guild)}`\n" +
 					$"**Latency:** `{client.Latency}ms`\n" +

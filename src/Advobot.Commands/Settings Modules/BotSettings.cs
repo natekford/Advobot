@@ -14,6 +14,7 @@ using Discord.Commands;
 
 namespace Advobot.Commands.BotSettings
 {
+	//TODO: this for low level config
 	[Group(nameof(ModifyBotSettings)), TopLevelShortAlias(typeof(ModifyBotSettings))]
 	[Summary("Modify the given setting on the bot. " +
 		"`Show` lists the setting names. " +
@@ -21,7 +22,8 @@ namespace Advobot.Commands.BotSettings
 		"For lists, a boolean indicating whether or not to add has to be included before the value.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotSettings : BotSettingsSavingModuleBase
+	[SaveBotSettings]
+	public sealed class ModifyBotSettings : AdvobotModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -46,11 +48,8 @@ namespace Advobot.Commands.BotSettings
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]
-		public sealed class Modify : BotSettingsSavingModuleBase
+		public sealed class Modify : AdvobotModuleBase
 		{
-			[Command(nameof(IBotSettings.LogLevel)), ShortAlias(nameof(IBotSettings.LogLevel))]
-			public async Task LogLevel(LogSeverity logLevel)
-				=> await CommandRunner((s) => { s.LogLevel = logLevel; return s.LogLevel; }).CAF();
 			[Command(nameof(IBotSettings.Prefix)), ShortAlias(nameof(IBotSettings.Prefix))]
 			public async Task Prefix([VerifyStringLength(Target.Prefix)] string prefix)
 				=> await CommandRunner((s) => { s.Prefix = prefix; return s.Prefix; }).CAF();
@@ -67,12 +66,6 @@ namespace Advobot.Commands.BotSettings
 				}
 				await CommandRunner((s) => { s.Stream = stream; return s.Stream; }).CAF();
 			}
-			[Command(nameof(IBotSettings.AlwaysDownloadUsers)), ShortAlias(nameof(IBotSettings.AlwaysDownloadUsers))]
-			public async Task AlwaysDownloadUsers(bool downloadUsers)
-				=> await CommandRunner((s) => { s.AlwaysDownloadUsers = downloadUsers; return s.AlwaysDownloadUsers; }).CAF();
-			[Command(nameof(IBotSettings.MessageCacheCount)), ShortAlias(nameof(IBotSettings.MessageCacheCount))]
-			public async Task MessageCacheCount([VerifyNumber(1, int.MaxValue)] uint count)
-				=> await CommandRunner((s) => { s.MessageCacheCount = (int)count; return s.MessageCacheCount; }).CAF();
 			[Command(nameof(IBotSettings.MaxUserGatherCount)), ShortAlias(nameof(IBotSettings.MaxUserGatherCount))]
 			public async Task MaxUserGatherCount([VerifyNumber(1, int.MaxValue)] uint count)
 				=> await CommandRunner((s) => { s.MaxUserGatherCount = (int)count; return s.MaxUserGatherCount; }).CAF();
@@ -141,7 +134,7 @@ namespace Advobot.Commands.BotSettings
 		"`Show` gives a list of the setting names.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayBotSettings : NonSavingModuleBase
+	public sealed class DisplayBotSettings : AdvobotModuleBase
 	{
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
@@ -198,7 +191,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Changes the bot's name to the given name.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotName : NonSavingModuleBase
+	public sealed class ModifyBotName : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Name)] string newName)
@@ -213,7 +206,7 @@ namespace Advobot.Commands.BotSettings
 		"The image must be smaller than 2.5MB.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotIcon : NonSavingModuleBase
+	public sealed class ModifyBotIcon : AdvobotModuleBase
 	{
 		private static BotIconResizer _Resizer = new BotIconResizer(4);
 
@@ -247,45 +240,11 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ResetBotConfig)), TopLevelShortAlias(typeof(ResetBotConfig))]
-	[Summary("Resets bot key, bot id, save path.")]
-	[OtherRequirement(Precondition.BotOwner)]
-	[DefaultEnabled(true)]
-	public sealed class ResetBotConfig : NonSavingModuleBase
-	{
-		[Command]
-		public async Task Command()
-		{
-			Context.Config.SavePath = null;
-			Context.Config.BotId = 0;
-			Context.Config.ResetBotKey();
-			Context.Config.Save();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully reset all properties. Restarting now...").CAF();
-			await ClientUtils.RestartBotAsync(Context.Config, Context.Client).CAF();
-		}
-	}
-
-	[Group(nameof(ResetBotKey)), TopLevelShortAlias(typeof(ResetBotKey))]
-	[Summary("Removes the currently used bot's key so that a different bot can be used instead.")]
-	[OtherRequirement(Precondition.BotOwner)]
-	[DefaultEnabled(true)]
-	public sealed class ResetBotKey : NonSavingModuleBase
-	{
-		[Command]
-		public async Task Command()
-		{
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully reset the bot key. Shutting down now...").CAF();
-			Context.Config.ResetBotKey();
-			Context.Config.Save();
-			await ClientUtils.RestartBotAsync(Context.Config, Context.Client).CAF();
-		}
-	}
-
 	[Group(nameof(DisconnectBot)), TopLevelShortAlias(typeof(DisconnectBot), "runescapeservers")]
 	[Summary("Turns the bot off.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class DisconnectBot : NonSavingModuleBase
+	public sealed class DisconnectBot : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
@@ -298,7 +257,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Restarts the bot.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class RestartBot : NonSavingModuleBase
+	public sealed class RestartBot : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()

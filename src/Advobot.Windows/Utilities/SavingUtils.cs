@@ -71,7 +71,7 @@ namespace Advobot.Windows.Utilities
 
 			try
 			{
-				FileUtils.SafeWriteAllText(fi, text);
+				IOUtils.SafeWriteAllText(fi, text);
 				return ToolTipReason.FileSavingSuccess;
 			}
 			catch
@@ -88,7 +88,7 @@ namespace Advobot.Windows.Utilities
 		private static FileInfo CreateFileInfo(ILowLevelConfig config, Control control)
 		{
 			var baseDir = config.GetBaseBotDirectory().FullName;
-			var fileName = $"{control.Name}_{AdvorangesUtils.Formatting.ToSaving()}.txt";
+			var fileName = $"{control.Name}_{FormattingUtils.ToSaving()}.txt";
 			return new FileInfo(Path.Combine(baseDir, fileName));
 		}
 		/// <summary>
@@ -161,13 +161,6 @@ namespace Advobot.Windows.Utilities
 				case ComboBox cmb:
 					switch (settingName)
 					{
-						case nameof(IBotSettings.LogLevel):
-							if (cmb.SelectedItem is TextBox cmbtb && cmbtb.Tag is LogSeverity ls)
-							{
-								value = ls;
-								break;
-							}
-							return null;
 						case nameof(IBotSettings.TrustedUsers):
 							var updated = cmb.Items.OfType<TextBox>().Select(x => x?.Tag as ulong?).Where(x => x != null).Cast<ulong>();
 							if (botSettings.TrustedUsers.Except(updated).Any() || updated.Except(botSettings.TrustedUsers).Any())

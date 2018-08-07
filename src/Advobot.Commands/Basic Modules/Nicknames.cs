@@ -18,7 +18,7 @@ namespace Advobot.Commands.Nicknames
 		"Inputting no nickname resets their nickname.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyNickName : NonSavingModuleBase
+	public sealed class ModifyNickName : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(
@@ -38,7 +38,7 @@ namespace Advobot.Commands.Nicknames
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ReplaceWordsInNames : NonSavingModuleBase
+	public sealed class ReplaceWordsInNames : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
@@ -60,7 +60,7 @@ namespace Advobot.Commands.Nicknames
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ReplaceByUtf16 : NonSavingModuleBase
+	public sealed class ReplaceByUtf16 : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
@@ -82,7 +82,7 @@ namespace Advobot.Commands.Nicknames
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class RemoveAllNickNames : NonSavingModuleBase
+	public sealed class RemoveAllNickNames : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)

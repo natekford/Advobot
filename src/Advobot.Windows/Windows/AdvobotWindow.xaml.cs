@@ -75,7 +75,7 @@ namespace Advobot.Windows.Windows
 				_StartUp = _GotPath = _Config.ValidatePath(input, _StartUp);
 				if (_GotPath)
 				{
-					_Provider = CreationUtils.CreateDefaultServices<BotSettings, GuildSettings>(_Config).BuildServiceProvider();
+					_Provider = CreationUtils.CreateDefaultServices(_Config).BuildServiceProvider();
 				}
 			}
 			else if (!_GotKey)
@@ -90,12 +90,15 @@ namespace Advobot.Windows.Windows
 				_StartUp = false;
 				await Dispatcher.InvokeAsync(async () =>
 				{
+					//Retrieve the command handler to initialize it.
+					var cmd = _Provider.GetRequiredService<ICommandHandlerService>();
 					Client.HeldObject = _Provider.GetRequiredService<DiscordShardedClient>();
 					BotSettings.HeldObject = _Provider.GetRequiredService<IBotSettings>();
 					LogHolder.HeldObject = _Provider.GetRequiredService<ILogService>();
 
 					Client.HeldObject.ShardReady += EnableButtons;
-					_Provider.GetRequiredService<ICommandHandlerService>().RestartRequired += Restart;
+
+					await _Config.VerifyBotDirectory(Restart).CAF();
 					await ClientUtils.StartAsync(Client.HeldObject).CAF();
 				});
 			}
@@ -107,7 +110,7 @@ namespace Advobot.Windows.Windows
 			{
 				ButtonMenu.IsEnabled = true;
 				OutputContextMenu.IsEnabled = true;
-				_Colors = ColorSettings.LoadUISettings(_Config);
+				_Colors = ColorSettings.Load(_Config);
 			});
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
@@ -312,17 +315,12 @@ namespace Advobot.Windows.Windows
 					return;
 				case MenuType.Settings:
 					var s = BotSettings.HeldObject;
-					var llSelected = LogLevel.Items.OfType<TextBox>()
-						.SingleOrDefault(x => x?.Tag is LogSeverity ls && ls == s.LogLevel);
 
-					AlwaysDownloadUsers.IsChecked = s.AlwaysDownloadUsers;
 					Prefix.Text = s.Prefix;
 					Game.Text = s.Game;
 					Stream.Text = s.Stream;
-					MessageCacheCount.StoredValue = s.MessageCacheCount;
 					MaxUserGatherCount.StoredValue = s.MaxUserGatherCount;
 					MaxMessageGatherSize.StoredValue = s.MaxMessageGatherSize;
-					LogLevel.SelectedItem = llSelected;
 
 					SettingsMenu.Visibility = Visibility.Visible;
 					return;
@@ -371,7 +369,10 @@ namespace Advobot.Windows.Windows
 		}
 		private static async Task Restart(ILowLevelConfig config, BaseSocketClient client)
 		{
-			await client.StopAsync().CAF();
+			if (client != null)
+			{
+				await client.StopAsync().CAF();
+			}
 			Process.Start(Application.ResourceAssembly.Location, config.ToString());
 			Environment.Exit(0);
 		}
@@ -383,7 +384,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
-			Uptime.Text = $"Uptime: {Formatting.GetUptime()}";
+			Uptime.Text = $"Uptime: {FormattingUtils.GetUptime()}";
 			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : Client.HeldObject.Latency)}ms";
 			Memory.Text = $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB";
 			ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";

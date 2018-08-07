@@ -63,7 +63,10 @@ namespace Advobot.Utilities
 		/// </summary>
 		public static async Task RestartBotAsync(ILowLevelConfig config, BaseSocketClient client)
 		{
-			await client.StopAsync().CAF();
+			if (client != null)
+			{
+				await client.StopAsync().CAF();
+			}
 			//For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
 			Process.Start(new ProcessStartInfo
 			{

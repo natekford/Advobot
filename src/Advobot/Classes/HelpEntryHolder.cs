@@ -41,7 +41,7 @@ namespace Advobot.Classes
 				{
 					return e.Types;
 				}
-			}).Where(x => x != null && x.IsSubclassOf(typeof(NonSavingModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
+			}).Where(x => x != null && x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
 			if (!commands.Any())
 			{
 				var assemblyNames = String.Join(", ", commandAssemblies.Select(x => x.GetName().Name));

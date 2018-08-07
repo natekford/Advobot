@@ -34,9 +34,10 @@ namespace Advobot.Core
 				savePath = false;
 			}
 
-			var provider = CreationUtils.CreateDefaultServices<BotSettings, GuildSettings>(config).BuildServiceProvider();
-			provider.GetRequiredService<ICommandHandlerService>().RestartRequired += ClientUtils.RestartBotAsync;
-			var client = provider.GetService<DiscordShardedClient>();
+			var provider = CreationUtils.CreateDefaultServices(config).BuildServiceProvider();
+			//Retrieve the command handler to initialize it.
+			var cmd = provider.GetRequiredService<ICommandHandlerService>();
+			var client = provider.GetRequiredService<DiscordShardedClient>();
 
 			//Get the bot key
 			var botKey = true;
@@ -45,6 +46,7 @@ namespace Advobot.Core
 				botKey = false;
 			}
 
+			await config.VerifyBotDirectory(ClientUtils.RestartBotAsync).CAF();
 			await ClientUtils.StartAsync(client).CAF();
 		}
 	}

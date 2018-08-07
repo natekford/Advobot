@@ -17,7 +17,7 @@ namespace Advobot.Commands.Invites
 	[Summary("Gives a list of all the instant invites on the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayInvites : NonSavingModuleBase
+	public sealed class DisplayInvites : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -54,7 +54,7 @@ namespace Advobot.Commands.Invites
 		"Temp membership means when the user goes offline they get kicked.")]
 	[PermissionRequirement(new[] { GuildPermission.CreateInstantInvite }, null)]
 	[DefaultEnabled(true)]
-	public sealed class CreateInvite : NonSavingModuleBase
+	public sealed class CreateInvite : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(
@@ -86,7 +86,7 @@ namespace Advobot.Commands.Invites
 	[Summary("Deletes the invite with the given code.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteInvite : NonSavingModuleBase
+	public sealed class DeleteInvite : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IInvite invite)
@@ -102,7 +102,7 @@ namespace Advobot.Commands.Invites
 		"IsTemporary, NeverExpires, and NoMaxUses are either `True`, or `False`.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteMultipleInvites : NonSavingModuleBase
+	public sealed class DeleteMultipleInvites : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Remainder] NamedArguments<MultipleInviteGatherer> args)
