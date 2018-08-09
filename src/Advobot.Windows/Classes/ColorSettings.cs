@@ -113,7 +113,7 @@ namespace Advobot.Windows.Classes
 			return _ColorTargets.TryGetValue(target, out brush);
 		}
 		/// <inheritdoc />
-		public override FileInfo GetPath(ILowLevelConfig config)
+		protected override FileInfo GetPath(ILowLevelConfig config)
 		{
 			return StaticGetPath(config);
 		}

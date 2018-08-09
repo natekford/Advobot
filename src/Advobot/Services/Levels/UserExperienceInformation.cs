@@ -48,13 +48,14 @@ namespace Advobot.Services.Levels
 			{
 				return;
 			}
-			//Hash the message content to not possibly keep sensitive info in the bot's database
+
 			var xp = CalculateExperience(message, experience);
-			_MessageHashes.Add(new MessageHash(message, xp));
 			GetChannels((SocketTextChannel)message.Channel)[message.Channel.Id] += xp;
 			Time = DateTime.UtcNow;
 			++MessageCount;
 
+			//Hash the message content to not possibly keep sensitive info in the bot's database
+			_MessageHashes.Add(new MessageHash(message, xp));
 			if (_MessageHashes.Count > _MESSAGE_AMOUNT)
 			{
 				_MessageHashes.RemoveAt(0);
@@ -67,6 +68,7 @@ namespace Advobot.Services.Levels
 			{
 				return;
 			}
+
 			GetChannels((SocketTextChannel)message.Channel)[message.Channel.Id] -= xp;
 			--MessageCount;
 		}
@@ -78,19 +80,20 @@ namespace Advobot.Services.Levels
 		/// <returns></returns>
 		private int CalculateExperience(SocketUserMessage message, int experience)
 		{
+			var rng = new Random();
 			//Be within 20% of the base value
-			var xp = (double)experience * new Random().Next(80, 120) / 100;
+			var xp = (double)experience * rng.Next(80, 120) / 100.0;
 			//Message length adds up to 10% increase capping out at 50 characters (any higher = same)
-			//Reason: Some people just spam short messages for xp and this incentives longer messages which indicates better convos
+			//Reason: Some people just spam short messages for xp and this incentivizes longer messages which indicates better convos
 			var msgLengthFactor = 1 + Math.Min(message.Content.Length, 50) / 50.0 * .1;
 			//Attachments/embeds remove up to 5% of the xp capping out at 5 attachments/embeds
 			//Reason: Marginally disincentivizes lots of images which discourage conversation
 			var attachmentFactor = 1 - Math.Min((message.Attachments.Count + message.Embeds.Count) * .01, .05);
 			//Any messages with the same hash are considered spam and remove up to 60% of the xp
-			//Reason: Disincentivizes spamming which greatly discourage conversation
+			//Reason: Disincentivizes spamming which greatly discourages conversation
 			//The first punishes for spam that was said before and during the last message. This only takes off up to 30% of the xp.
 			//The second punishes for spam that is the same as the last message sent. This takes off up to 60% of the xp.
-			var spamFactor = new Random().Next(0, 2) != 0
+			var spamFactor = rng.Next(0, 2) != 0
 				? 1 - Math.Min((_MessageHashes.Count - _MessageHashes.Select(x => x.Hash).Distinct().Count()) * .1, .3)
 				: 1 - Math.Min((_MessageHashes.Count(x => x.Hash == _MessageHashes.Last().Hash) - 1) * .1, .6);
 			return (int)Math.Round(xp * msgLengthFactor * attachmentFactor * spamFactor);

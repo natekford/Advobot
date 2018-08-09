@@ -1,4 +1,5 @@
-﻿using Advobot.Classes.Settings;
+﻿using Advobot.Classes;
+using Advobot.Classes.Settings;
 using Advobot.Interfaces;
 using Discord;
 using System;
@@ -8,24 +9,35 @@ using System.Linq;
 
 namespace Advobot.Services.InviteList
 {
+	/// <summary>
+	/// Handles holding all <see cref="ListedInvite"/>.
+	/// </summary>
 	internal sealed class InviteListService : IInviteListService
 	{
 		private ConcurrentDictionary<ulong, ListedInvite> _Invites = new ConcurrentDictionary<ulong, ListedInvite>();
 
-		public InviteListService(IServiceProvider provider) { }
+		/// <summary>
+		/// Creates an instance of <see cref="InviteListService"/>.
+		/// </summary>
+		/// <param name="provider"></param>
+		public InviteListService(IIterableServiceProvider provider) { }
 
+		/// <inheritdoc />
 		public bool Add(ListedInvite invite)
 		{
 			return _Invites.TryAdd(invite.Guild.Id, invite);
 		}
+		/// <inheritdoc />
 		public bool Remove(IGuild guild)
 		{
 			return _Invites.TryRemove(guild.Id, out _);
 		}
+		/// <inheritdoc />
 		public IEnumerable<ListedInvite> GetAll()
 		{
 			return _Invites.Values.OrderByDescending(x => x.LastBumped);
 		}
+		/// <inheritdoc />
 		public IEnumerable<ListedInvite> GetAll(params string[] keywords)
 		{
 			return _Invites.Values.Where(x => x.Keywords.Intersect(keywords, StringComparer.OrdinalIgnoreCase).Any())

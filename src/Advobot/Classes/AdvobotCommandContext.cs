@@ -14,7 +14,7 @@ namespace Advobot.Classes
 	/// </summary>
 	public class AdvobotCommandContext : ShardedCommandContext
 	{
-		private static readonly string _Joiner = "\n" + new string(' ', 28);
+		private static readonly string _Joiner = "\n" + new string(' ', 32);
 
 		/// <summary>
 		/// The settings for the bot.
@@ -96,9 +96,8 @@ namespace Advobot.Classes
 			var resp = $"Guild: {Guild.Format()}" +
 				$"{_Joiner}Channel: {Channel.Format()}" +
 				$"{_Joiner}User: {User.Format()}" +
-				$"{_Joiner}Time: {Message.CreatedAt.UtcDateTime.ToReadable()}" +
-				$"{_Joiner}Text: {Message.Content}" +
-				$"{_Joiner}Time taken: {ElapsedMilliseconds}ms";
+				$"{_Joiner}Time: {Message.CreatedAt.UtcDateTime.ToReadable()} ({ElapsedMilliseconds}ms)" +
+				$"{_Joiner}Text: {Message.Content}";
 			resp += result.ErrorReason == null ? "" : $"{_Joiner}Error: {result.ErrorReason}";
 			return resp;
 		}

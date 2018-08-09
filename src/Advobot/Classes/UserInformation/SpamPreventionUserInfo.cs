@@ -30,7 +30,7 @@ namespace Advobot.Classes.UserInformation
 		public Punishment Punishment
 		{
 			get => (Punishment)_Punishment;
-			set => _Punishment = Math.Min((int)value, _Punishment);
+			set => _Punishment = Math.Max((int)value, _Punishment);
 		}
 		/// <summary>
 		/// Who has voted to punish the user.
@@ -91,7 +91,7 @@ namespace Advobot.Classes.UserInformation
 		private List<ulong> _Mention = new List<ulong>();
 
 		/// <summary>
-		/// Creates an instance of spampreventionuserinfo.
+		/// Creates an instance of <see cref="SpamPreventionUserInfo"/>.
 		/// </summary>
 		/// <param name="user"></param>
 		public SpamPreventionUserInfo(SocketGuildUser user) : base(user) { }
@@ -125,7 +125,7 @@ namespace Advobot.Classes.UserInformation
 				case SpamType.Mention:
 					return DiscordUtils.CountItemsInTimeFrame(Mention, timeFrame);
 				default:
-					throw new ArgumentException("Invalid spam type provided.", nameof(type));
+					return -1;
 			}
 		}
 		/// <summary>

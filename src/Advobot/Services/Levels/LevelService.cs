@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -30,7 +28,7 @@ namespace Advobot.Services.Levels
 		/// </summary>
 		/// <param name="services"></param>
 		/// <param name="args"></param>
-		public LevelService(IServiceProvider services, LevelServiceArguments args)
+		public LevelService(IIterableServiceProvider services, LevelServiceArguments args)
 		{
 			_Client = services.GetRequiredService<DiscordShardedClient>();
 			_GuildSettings = services.GetRequiredService<IGuildSettingsService>();
@@ -53,6 +51,7 @@ namespace Advobot.Services.Levels
 				Filename = _Config.GetBaseBotDirectoryFile("LevelDatabase.db").FullName,
 				Mode = FileMode.Exclusive,
 			}, new BsonMapper { IncludeNonPublic = true, });
+			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(LevelService)}.");
 		}
 		/// <inheritdoc />
 		public void Dispose()
@@ -67,14 +66,15 @@ namespace Advobot.Services.Levels
 				|| message.Author.IsWebhook
 				|| !(message is SocketUserMessage msg)
 				|| !(await _GuildSettings.GetOrCreateAsync((msg.Channel as SocketTextChannel)?.Guild).CAF() is IGuildSettings settings)
-				|| !(GetUserInformation(message.Author.Id) is UserExperienceInformation info)
+				|| settings.IgnoredXpChannels.Contains(message.Channel.Id)
+				|| !(GetUserXpInformation(message.Author.Id) is UserExperienceInformation info)
 				|| info.Time > (DateTime.UtcNow - _Time))
 			{
 				return;
 			}
 			info.AddExperience(settings, msg, _BaseExperience);
 			_Db.GetCollection<UserExperienceInformation>().Update(info);
-			return;
+			UpdateUserRank(info, ((SocketTextChannel)msg.Channel).Guild);
 		}
 		/// <inheritdoc />
 		public Task RemoveExperience(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
@@ -83,15 +83,16 @@ namespace Advobot.Services.Levels
 				|| !cached.HasValue
 				|| cached.Value.Author.IsBot
 				|| cached.Value.Author.IsWebhook
-				|| !(cached.Value is SocketUserMessage message)
-				|| !(GetUserInformation(message.Author.Id) is UserExperienceInformation info)
+				|| !(cached.Value is SocketUserMessage msg)
+				|| !(GetUserXpInformation(msg.Author.Id) is UserExperienceInformation info)
 				|| !(info.RemoveMessageHash(cached.Id) is MessageHash hash)
 				|| hash.MessageId == 0)
 			{
 				return Task.CompletedTask;
 			}
-			info.RemoveExperience(message, hash.ExperienceGiven);
+			info.RemoveExperience(msg, hash.ExperienceGiven);
 			_Db.GetCollection<UserExperienceInformation>().Update(info);
+			UpdateUserRank(info, ((SocketTextChannel)msg.Channel).Guild);
 			return Task.CompletedTask;
 		}
 		/// <inheritdoc />
@@ -101,7 +102,17 @@ namespace Advobot.Services.Levels
 			return Math.Min((int)Math.Pow(Math.Log(experience, _Log), _Pow), 0);
 		}
 		/// <inheritdoc />
-		public IUserExperienceInformation GetUserInformation(ulong userId)
+		public (int Rank, int TotalUsers) GetGuildRank(SocketGuild guild, ulong userId)
+		{
+			return GetRank(_Db.GetCollection<LeaderboardPosition>(guild.Id.ToString()), userId);
+		}
+		/// <inheritdoc />
+		public (int Rank, int TotalUsers) GetGlobalRank(ulong userId)
+		{
+			return GetRank(_Db.GetCollection<LeaderboardPosition>("Global"), userId);
+		}
+		/// <inheritdoc />
+		public IUserExperienceInformation GetUserXpInformation(ulong userId)
 		{
 			var col = _Db.GetCollection<UserExperienceInformation>();
 			//Cannot use FindById because key gets converted to double and loses precision.
@@ -111,6 +122,35 @@ namespace Advobot.Services.Levels
 				col.Insert(info = new UserExperienceInformation(userId));
 			}
 			return info;
+		}
+		/// <inheritdoc />
+		public async Task SendUserXpInformation(SocketTextChannel channel, ulong userId, bool global)
+		{
+			var info = GetUserXpInformation(userId);
+			var (rank, totalUsers) = global ? GetGlobalRank(userId) : GetGuildRank(channel.Guild, userId);
+			var experience = global ? info.Experience : info.GetExperience(channel.Guild);
+			var level = CalculateLevel(experience);
+		}
+		private void UpdateUserRank(IUserExperienceInformation info, SocketGuild guild)
+		{
+			_Db.GetCollection<LeaderboardPosition>(guild.Id.ToString()).Upsert(new LeaderboardPosition(info.UserId, info.GetExperience(guild)));
+			_Db.GetCollection<LeaderboardPosition>("Global").Upsert(new LeaderboardPosition(info.UserId, info.Experience));
+		}
+		private (int Rank, int TotalUsers) GetRank(LiteCollection<LeaderboardPosition> col, ulong userId)
+		{
+			var all = col.Find(Query.All(nameof(LeaderboardPosition.Experience), Query.Descending));
+			//Only iterate through 
+			var rank = -1;
+			var total = -1;
+			foreach (var entry in all)
+			{
+				++total;
+				if (rank == -1 && entry.UserId == userId)
+				{
+					rank = total;
+				}
+			}
+			return (rank, total);
 		}
 	}
 }

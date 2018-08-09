@@ -155,7 +155,7 @@ namespace Advobot.Classes
 			return new FileInfo(Path.Combine(GetBaseBotDirectory().FullName, fileName));
 		}
 		/// <inheritdoc />
-		public override FileInfo GetPath(ILowLevelConfig config)
+		protected override FileInfo GetPath(ILowLevelConfig config)
 		{
 			return GetConfigPath(CurrentInstance);
 		}

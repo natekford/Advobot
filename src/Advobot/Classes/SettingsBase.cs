@@ -73,7 +73,7 @@ namespace Advobot.Classes
 			IOUtils.SafeWriteAllText(GetPath(config), IOUtils.Serialize(this));
 		}
 		/// <inheritdoc />
-		public abstract FileInfo GetPath(ILowLevelConfig config);
+		protected abstract FileInfo GetPath(ILowLevelConfig config);
 
 		private PropertyInfo GetProperty(string name)
 		{

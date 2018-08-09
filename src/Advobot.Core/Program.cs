@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +13,7 @@ namespace Advobot.Core
 	/// <summary>
 	/// Starting point for Advobot.
 	/// </summary>
-	public class ConsoleLauncher
+	public sealed class ConsoleLauncher
 	{
 		private static async Task Main(string[] args)
 		{
@@ -34,9 +34,7 @@ namespace Advobot.Core
 				savePath = false;
 			}
 
-			var provider = CreationUtils.CreateDefaultServices(config).BuildServiceProvider();
-			//Retrieve the command handler to initialize it.
-			var cmd = provider.GetRequiredService<ICommandHandlerService>();
+			var provider = new IterableServiceProvider(CreationUtils.CreateDefaultServices(config), true);
 			var client = provider.GetRequiredService<DiscordShardedClient>();
 
 			//Get the bot key
@@ -47,6 +45,10 @@ namespace Advobot.Core
 			}
 
 			await config.VerifyBotDirectory(ClientUtils.RestartBotAsync).CAF();
+			foreach (var db in provider.OfType<IUsesDatabase>())
+			{
+				db.Start();
+			}
 			await ClientUtils.StartAsync(client).CAF();
 		}
 	}

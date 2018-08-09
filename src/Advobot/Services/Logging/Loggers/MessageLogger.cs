@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.CloseWords;
+using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -16,18 +18,25 @@ using Discord.WebSocket;
 
 namespace Advobot.Services.Logging.Loggers
 {
+	/// <summary>
+	/// Handles logging message events.
+	/// </summary>
 	internal sealed class MessageLogger : Logger, IMessageLogger
 	{
-		private static readonly Dictionary<SpamType, Func<IMessage, int?>> _GetSpamNumberFuncs = new Dictionary<SpamType, Func<IMessage, int?>>
+		private static readonly ImmutableDictionary<SpamType, Func<IMessage, int?>> _GetSpamNumberFuncs = new Dictionary<SpamType, Func<IMessage, int?>>
 		{
 			{ SpamType.Message,     m => int.MaxValue },
 			{ SpamType.LongMessage, m => m.Content?.Length },
 			{ SpamType.Link,        m => m.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) },
 			{ SpamType.Image,       m => m.Attachments.Count(x => x.Height != null || x.Width != null) + m.Embeds.Count(x => x.Image != null || x.Video != null) },
 			{ SpamType.Mention,     m => m.MentionedUserIds.Distinct().Count() }
-		};
+		}.ToImmutableDictionary();
 
-		internal MessageLogger(IServiceProvider provider) : base(provider) { }
+		/// <summary>
+		/// Creates an instance of <see cref="MessageLogger"/>.
+		/// </summary>
+		/// <param name="provider"></param>
+		public MessageLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <inheritdoc />
 		public async Task OnMessageReceived(SocketMessage message)
@@ -74,7 +83,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			if (cached.HasValue)
 			{
-				await HandleMessageEdittedLoggingAsync(settings, user, cached.Value, message).CAF();
+				await HandleMessageEditedLoggingAsync(settings, user, cached.Value, message).CAF();
 			}
 		}
 		/// <inheritdoc />
@@ -93,7 +102,7 @@ namespace Advobot.Services.Logging.Loggers
 
 			var msgDeletion = settings.MessageDeletion;
 			msgDeletion.Messages.Add(message);
-			//The old cancel token gets cancled in its getter
+			//The old cancel token gets canceled in its getter
 			var cancelToken = msgDeletion.CancelToken;
 
 			//Has to run on completely separate thread, else prints early
@@ -262,14 +271,11 @@ namespace Advobot.Services.Logging.Loggers
 		private async Task HandleSlowmodeAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
 			//Don't bother doing stuff on the user if they're immune
-			var slowmode = settings.Slowmode;
-			if (!(slowmode?.Enabled ?? false) || user.Roles.Select(x => x.Id).Intersect(slowmode.ImmuneRoleIds).Any())
+			if (!(settings.Slowmode is Slowmode slowmode) || !slowmode.Enabled || user.Roles.Select(x => x.Id).Intersect(slowmode.ImmuneRoleIds).Any())
 			{
 				return;
 			}
-
-			var info = settings.SlowmodeUsers.SingleOrDefault(x => x.UserId == user.Id);
-			if (info == null)
+			if (!(settings.SlowmodeUsers.SingleOrDefault(x => x.UserId == user.Id) is SlowmodeUserInfo info))
 			{
 				settings.SlowmodeUsers.Add(info = new SlowmodeUserInfo(slowmode.Interval, user));
 			}
@@ -455,7 +461,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="before"></param>
 		/// <param name="after"></param>
 		/// <returns></returns>
-		private async Task HandleMessageEdittedLoggingAsync(IGuildSettings settings, SocketGuildUser user, IMessage before, SocketMessage after)
+		private async Task HandleMessageEditedLoggingAsync(IGuildSettings settings, SocketGuildUser user, IMessage before, SocketMessage after)
 		{
 			if (settings.ServerLogId == 0)
 			{

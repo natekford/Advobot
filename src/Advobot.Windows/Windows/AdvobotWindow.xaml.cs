@@ -45,12 +45,11 @@ namespace Advobot.Windows.Windows
 		public Holder<ILogService> LogHolder { get; private set; } = new Holder<ILogService>();
 
 		private MenuType _LastButtonClicked;
-		private IServiceProvider _Provider;
+		private IterableServiceProvider _Provider;
 		private ILowLevelConfig _Config;
 		private ColorSettings _Colors;
 		private bool _GotPath;
 		private bool _GotKey;
-		private bool _StartUp;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotWindow"/>.
@@ -67,27 +66,26 @@ namespace Advobot.Windows.Windows
 
 		private async Task<bool> AttemptToStart(string input)
 		{
+			//Null means it's from the loaded event, which is start up so it's telling the bot to look up the config value
+			var startup = input == null && !(_GotPath && _GotKey);
+			var set = false;
 			if (!_GotPath)
 			{
-				//Null means it's from the loaded event, which is start up so it's telling the bot to look up the config value
-				_StartUp = input == null;
 				//Set startup to whatever returned value is so it can be used in GotKey, and then after GotKey in the last if statement
-				_StartUp = _GotPath = _Config.ValidatePath(input, _StartUp);
+				set = _GotPath = _Config.ValidatePath(input, startup);
 				if (_GotPath)
 				{
-					_Provider = CreationUtils.CreateDefaultServices(_Config).BuildServiceProvider();
+					_Provider = new IterableServiceProvider(CreationUtils.CreateDefaultServices(_Config), true);
 				}
 			}
 			else if (!_GotKey)
 			{
-				_StartUp = input == null;
-				_StartUp = _GotKey = await _Config.ValidateBotKey(_Provider.GetRequiredService<DiscordShardedClient>(), input, _StartUp);
+				set = _GotKey = await _Config.ValidateBotKey(_Provider.GetRequiredService<DiscordShardedClient>(), input, startup);
 			}
 
-			var somethingWasSet = _StartUp;
-			if (_StartUp && _GotKey && _GotPath)
+			if (set && _GotKey && _GotPath)
 			{
-				_StartUp = false;
+				//Was getting some access exceptions on a computer when this was not inside a dispatcher call
 				await Dispatcher.InvokeAsync(async () =>
 				{
 					//Retrieve the command handler to initialize it.
@@ -96,30 +94,27 @@ namespace Advobot.Windows.Windows
 					BotSettings.HeldObject = _Provider.GetRequiredService<IBotSettings>();
 					LogHolder.HeldObject = _Provider.GetRequiredService<ILogService>();
 
-					Client.HeldObject.ShardReady += EnableButtons;
-
 					await _Config.VerifyBotDirectory(Restart).CAF();
-					await ClientUtils.StartAsync(Client.HeldObject).CAF();
+					foreach (var dbUser in _Provider.OfType<IUsesDatabase>())
+					{
+						dbUser.Start();
+					}
+					await ClientUtils.StartAsync(Client).CAF();
 				});
-			}
-			return somethingWasSet;
-		}
-		private async Task EnableButtons(DiscordSocketClient client)
-		{
-			await Dispatcher.InvokeAsync(() =>
-			{
+
+				_Colors = ColorSettings.Load(_Config);
 				ButtonMenu.IsEnabled = true;
 				OutputContextMenu.IsEnabled = true;
-				_Colors = ColorSettings.Load(_Config);
-			});
+			}
+			return set;
 		}
 		private async void AttemptToLogin(object sender, RoutedEventArgs e)
 		{
 			//Send null once to check if a path is set in the config
 			//If it is set, then send null again to check for the bot key
-			if (await AttemptToStart(null))
+			if (await AttemptToStart(null).CAF())
 			{
-				await AttemptToStart(null);
+				await AttemptToStart(null).CAF();
 			}
 		}
 		private async void AcceptInput(object sender, RoutedEventArgs e)
@@ -133,7 +128,7 @@ namespace Advobot.Windows.Windows
 			ConsoleUtils.WriteLine(input);
 			if (!(_GotPath && _GotKey))
 			{
-				await AttemptToStart(input);
+				await AttemptToStart(input).CAF();
 			}
 		}
 		private void AcceptInputWithKey(object sender, KeyEventArgs e)
@@ -170,8 +165,7 @@ namespace Advobot.Windows.Windows
 		private async void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			SavingUtils.SaveSettings(_Config, SettingsMenuDisplay, BotSettings.HeldObject);
-			//In a task.run since the result is unimportant and unused
-			await ClientUtils.UpdateGameAsync(Client.HeldObject, BotSettings.HeldObject).CAF();
+			await ClientUtils.UpdateGameAsync(Client, BotSettings.HeldObject).CAF();
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -357,14 +351,14 @@ namespace Advobot.Windows.Windows
 		{
 			if (MessageBox.Show("Are you sure you want to disconnect the bot?", _Caption, MessageBoxButton.OKCancel) == MessageBoxResult.OK)
 			{
-				await ClientUtils.DisconnectBotAsync(Client.HeldObject).CAF();
+				await ClientUtils.DisconnectBotAsync(Client).CAF();
 			}
 		}
 		private async void Restart(object sender, RoutedEventArgs e)
 		{
 			if (MessageBox.Show("Are you sure you want to restart the bot?", _Caption, MessageBoxButton.OKCancel) == MessageBoxResult.OK)
 			{
-				await Restart(_Config, Client.HeldObject).CAF();
+				await Restart(_Config, Client).CAF();
 			}
 		}
 		private static async Task Restart(ILowLevelConfig config, BaseSocketClient client)

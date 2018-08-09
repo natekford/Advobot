@@ -37,7 +37,7 @@ namespace Advobot.Services.Timers
 		private readonly ProcessingQueue _CloseHelpEntries;
 		private readonly ProcessingQueue _CloseQuotes;
 
-		public TimerService(IServiceProvider provider)
+		public TimerService(IIterableServiceProvider provider)
 		{
 			_Client = provider.GetRequiredService<DiscordShardedClient>();
 			_Config = provider.GetRequiredService<ILowLevelConfig>();
@@ -101,6 +101,7 @@ namespace Advobot.Services.Timers
 				Filename = _Config.GetBaseBotDirectoryFile("TimedDatabase.db").FullName,
 				Mode = FileMode.Exclusive,
 			});
+			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(TimerService)}.");
 			_MinuteTimer.Enabled = true;
 			_SecondTimer.Enabled = true;
 		}

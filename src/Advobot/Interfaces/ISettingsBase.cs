@@ -44,11 +44,5 @@ namespace Advobot.Interfaces
 		/// Serializes this object and then overwrites the file.
 		/// </summary>
 		void SaveSettings(ILowLevelConfig config);
-		/// <summary>
-		/// Gets the path for the file of these settings.
-		/// </summary>
-		/// <param name="config"></param>
-		/// <returns></returns>
-		FileInfo GetPath(ILowLevelConfig config);
 	}
 }

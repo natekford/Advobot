@@ -1,14 +1,21 @@
-﻿using Advobot.Interfaces;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
-using System;
-using System.Threading.Tasks;
 
 namespace Advobot.Services.Logging.Loggers
 {
+	/// <summary>
+	/// Handles logging bot events.
+	/// </summary>
 	internal sealed class BotLogger : Logger, IBotLogger
 	{
-		internal BotLogger(IServiceProvider provider) : base(provider) { }
+		/// <summary>
+		/// Creates an instance of <see cref="BotLogger"/>.
+		/// </summary>
+		/// <param name="provider"></param>
+		public BotLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <summary>
 		/// Creates an instance of <see cref="BotLogger"/>.

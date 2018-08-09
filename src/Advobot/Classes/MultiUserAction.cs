@@ -7,6 +7,7 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 
 namespace Advobot.Classes
@@ -20,7 +21,7 @@ namespace Advobot.Classes
 
 		private readonly CancellationTokenSource _CancelToken;
 		private readonly SocketTextChannel _Channel;
-		private readonly SocketUserMessage _Message;
+		private readonly IUserMessage _Message;
 		private readonly ITimerService _Timers;
 		private readonly List<SocketGuildUser> _Users;
 
@@ -30,7 +31,7 @@ namespace Advobot.Classes
 		/// <param name="context"></param>
 		/// <param name="timers"></param>
 		/// <param name="users"></param>
-		public MultiUserAction(AdvobotCommandContext context, ITimerService timers, IEnumerable<SocketGuildUser> users)
+		public MultiUserAction(ICommandContext context, ITimerService timers, IEnumerable<SocketGuildUser> users)
 		{
 			_CancelToken = new CancellationTokenSource();
 			_CancelTokens.AddOrUpdate(context.Guild.Id, _CancelToken, (oldKey, oldValue) =>
@@ -53,7 +54,7 @@ namespace Advobot.Classes
 		public async Task TakeRolesAsync(SocketRole role, RequestOptions options)
 		{
 			var r = role.Format();
-			await DoActionAsync(nameof(TakeRolesAsync), role, $"take the role `{r}` from", $"took the role `{r} from", options).CAF();
+			await DoActionAsync(nameof(TakeRolesAsync), role, $"take the role `{r}` from", $"took the role `{r}` from", options).CAF();
 		}
 		/// <summary>
 		/// Give a role to multiple users.
@@ -64,7 +65,7 @@ namespace Advobot.Classes
 		public async Task GiveRolesAsync(SocketRole role, RequestOptions options)
 		{
 			var r = role.Format();
-			await DoActionAsync(nameof(GiveRolesAsync), role, $"give the role `{r}` to", $"gave the role `{r} to", options).CAF();
+			await DoActionAsync(nameof(GiveRolesAsync), role, $"give the role `{r}` to", $"gave the role `{r}` to", options).CAF();
 		}
 		/// <summary>
 		/// Modify the nickname of multiple users.
@@ -99,12 +100,11 @@ namespace Advobot.Classes
 				{
 					break;
 				}
-
 				if (i % 10 == 0)
 				{
 					var amtLeft = _Users.Count - i;
 					var time = (int)(amtLeft * 1.2);
-					var newText = $"Attempting to {presentTense} `{amtLeft}` people. ETA on completion: `{time}`.";
+					var newText = $"Attempting to {presentTense} `{amtLeft}` people. ETA on completion: `{time}` seconds.";
 					await msg.ModifyAsync(x => x.Content = newText).CAF();
 				}
 

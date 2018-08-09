@@ -22,7 +22,7 @@ namespace Advobot.Classes
 		public DateTime Time { get; set; }
 
 		/// <summary>
-		/// Creates a database entry with the specified timespan added to utcnow for its removal time.
+		/// Creates a database entry with the specified timespan added to <see cref="DateTime.UtcNow"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		public DatabaseEntry(TimeSpan time)

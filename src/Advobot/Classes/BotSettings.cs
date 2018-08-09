@@ -235,7 +235,7 @@ namespace Advobot.Classes
 		private int _MaxBannedPunishments = 10;
 
 		/// <inheritdoc />
-		public override FileInfo GetPath(ILowLevelConfig config)
+		protected override FileInfo GetPath(ILowLevelConfig config)
 		{
 			return StaticGetPath(config);
 		}

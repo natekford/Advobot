@@ -5,6 +5,7 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.CloseWords;
 using Advobot.Enums;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -144,7 +145,7 @@ namespace Advobot.Commands.Misc
 	[Group(nameof(MessageRole)), TopLevelShortAlias(typeof(MessageRole))]
 	[Summary("Mention an unmentionable role with the given message.")]
 	[OtherRequirement(Precondition.GenericPerms)]
-	[DefaultEnabled(true)]
+	[DefaultEnabled(false)]
 	public sealed class MessageRole : AdvobotModuleBase
 	{
 		[Command]
@@ -179,7 +180,6 @@ namespace Advobot.Commands.Misc
 			{
 				return;
 			}
-
 			if ((await Context.Client.GetApplicationInfoAsync().CAF()).Owner is IUser owner)
 			{
 				var cut = message.Substring(0, Math.Min(message.Length, 250));
@@ -192,11 +192,11 @@ namespace Advobot.Commands.Misc
 		}
 	}
 
-	[Group(nameof(SendTimedMessage)), TopLevelShortAlias(typeof(SendTimedMessage))]
+	[Group(nameof(Remind)), TopLevelShortAlias(typeof(Remind))]
 	[Summary("Sends a message to the person who said the command after the passed in time is up. " +
 		"Potentially may take one minute longer than asked for if the command is input at certain times.")]
 	[DefaultEnabled(true)]
-	public sealed class SendTimedMessage : AdvobotModuleBase
+	public sealed class Remind : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyNumber(1, 10000)] uint minutes, [Remainder] string message)

@@ -48,14 +48,12 @@ namespace Advobot.Utilities
 		{
 			var game = botSettings.Game;
 			var stream = botSettings.Stream;
-
 			var activityType = ActivityType.Playing;
 			if (!String.IsNullOrWhiteSpace(stream))
 			{
-				stream = "https://www.twitch.tv/" + stream.Substring(stream.LastIndexOf('/') + 1);
+				stream = $"https://www.twitch.tv/{stream.Substring(stream.LastIndexOf('/') + 1)}";
 				activityType = ActivityType.Streaming;
 			}
-
 			await client.SetGameAsync(game, stream, activityType).CAF();
 		}
 		/// <summary>
@@ -81,7 +79,10 @@ namespace Advobot.Utilities
 		/// </summary>
 		public static async Task DisconnectBotAsync(BaseSocketClient client)
 		{
-			await client.StopAsync().CAF();
+			if (client != null)
+			{
+				await client.StopAsync().CAF();
+			}
 			Environment.Exit(0);
 		}
 		/// <summary>

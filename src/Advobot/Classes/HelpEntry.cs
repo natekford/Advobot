@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Reflection;
+using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
+using Advobot.Classes.UsageGeneration;
+using AdvorangesUtils;
+using Discord.Commands;
 
 namespace Advobot.Classes
 {
@@ -20,7 +25,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The base permissions to use the command.
 		/// </summary>
-		public string BasePerm { get; }
+		public string BasePerms { get; }
 		/// <summary>
 		/// Describes what the command does.
 		/// </summary>
@@ -28,7 +33,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Other names to invoke the command.
 		/// </summary>
-		public ImmutableList<string> Aliases { get; }
+		public ImmutableArray<string> Aliases { get; }
 		/// <summary>
 		/// The category the command is in.
 		/// </summary>
@@ -42,35 +47,56 @@ namespace Advobot.Classes
 		/// </summary>
 		public bool AbleToBeToggled { get; }
 
-		private readonly string _A;
-		private readonly string _U;
-		private readonly string _E;
-		private readonly string _B;
-		private readonly string _D;
+		private string _A;
+		private string _U;
+		private string _E;
+		private string _B;
+		private string _D;
 
+		/// <summary>
+		/// Creates an instance of <see cref="HelpEntry"/>.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="category"></param>
+		public HelpEntry(Type type, string category)
+		{
+			Name = type.GetCustomAttribute<GroupAttribute>()?.Prefix;
+			Usage = UsageGenerator.GenerateUsage(type);
+			BasePerms = new[]
+			{
+				type.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString(),
+				type.GetCustomAttribute<OtherRequirementAttribute>()?.ToString()
+			}.JoinNonNullStrings(" | ");
+			Description = type.GetCustomAttribute<SummaryAttribute>()?.Text;
+			Aliases = (type.GetCustomAttribute<AliasAttribute>()?.Aliases ?? new string[0]).ToImmutableArray();
+			Category = category;
+			DefaultEnabled = type.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
+			AbleToBeToggled = type.GetCustomAttribute<DefaultEnabledAttribute>()?.AbleToToggle ?? true;
+
+			SetStrings();
+		}
 		internal HelpEntry(string name, string usage, string perms, string desc, string[] aliases, string category, bool defEnabled, bool toggleable)
 		{
-			if (String.IsNullOrWhiteSpace(name))
-			{
-				throw new ArgumentException("cant be null or whitespace", nameof(name));
-			}
-
-			Name = name;
+			Name = name ?? throw new ArgumentException("Name cannott be null or whitespace.", nameof(name));
 			Usage = usage ?? "";
-			BasePerm = String.IsNullOrWhiteSpace(perms) ? "N/A" : perms;
-			Description = String.IsNullOrWhiteSpace(desc) ? "N/A" : desc;
-			Aliases = (aliases ?? new[] { "N/A" }).ToImmutableList();
+			BasePerms = perms ?? "N/A";
+			Description = desc ?? "N/A";
+			Aliases = (aliases ?? new string[0]).ToImmutableArray();
 			Category = category;
 			DefaultEnabled = defEnabled;
 			AbleToBeToggled = toggleable;
 
+			SetStrings();
+		}
+
+		private void SetStrings()
+		{
 			_A = $"**Aliases:** {String.Join(", ", Aliases)}\n";
 			_U = $"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n";
 			_E = $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n";
-			_B = $"**Base Permission(s):**\n{BasePerm}\n";
+			_B = $"**Base Permission(s):**\n{BasePerms}\n";
 			_D = $"**Description:**\n{Description}";
 		}
-
 		/// <summary>
 		/// Returns a string with all the information about the command.
 		/// </summary>

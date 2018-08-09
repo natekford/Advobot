@@ -26,15 +26,13 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Gathers command information from the supplied assemblies.
 		/// </summary>
-		/// <param name="commandAssemblies"></param>
-		public HelpEntryHolder(IEnumerable<Assembly> commandAssemblies)
+		/// <param name="assemblies"></param>
+		public HelpEntryHolder(IEnumerable<Assembly> assemblies)
 		{
-			var commands = commandAssemblies.SelectMany(x =>
+			var commands = assemblies.SelectMany(x =>
 			{
 				try
 				{
-					//Running this on .Net Core leads to an exception for some reason
-					//The exception contains the same amount of commands though.
 					return x.GetTypes();
 				}
 				catch (ReflectionTypeLoadException e)
@@ -44,7 +42,7 @@ namespace Advobot.Classes
 			}).Where(x => x != null && x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null).ToList();
 			if (!commands.Any())
 			{
-				var assemblyNames = String.Join(", ", commandAssemblies.Select(x => x.GetName().Name));
+				var assemblyNames = String.Join(", ", assemblies.Select(x => x.GetName().Name));
 				ConsoleUtils.WriteLine($"The following assemblies have no commands: '{assemblyNames}'.");
 				Console.Read();
 				throw new TypeLoadException($"The following assemblies have no commands: '{assemblyNames}'.");
@@ -65,15 +63,6 @@ namespace Advobot.Classes
 					_CategoryMap[innerNamespace] = category = innerNamespace;
 				}
 
-				var name = command.GetCustomAttribute<GroupAttribute>()?.Prefix;
-				var aliases = command.GetCustomAttribute<AliasAttribute>()?.Aliases;
-				var summary = command.GetCustomAttribute<SummaryAttribute>()?.Text;
-				var usage = UsageGenerator.GenerateUsage(command);
-				var permReqs = command.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
-				var otherReqs = command.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
-				var defaultEnabled = command.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
-				var unableToBeTurnedOff = command.GetCustomAttribute<DefaultEnabledAttribute>()?.AbleToToggle ?? true;
-
 				//These are basically only here so I won't forget something.
 				//Without them the bot should work fine, but may have tiny bugs.
 				VerifyDefaultValueEnabledAttributeExists(command);
@@ -82,16 +71,24 @@ namespace Advobot.Classes
 				VerifyAllAliasesAreDifferent(command);
 				VerifyShortAliasAttribute(command);
 
-				var helpEntry = new HelpEntry(name, usage, new[] { permReqs, otherReqs }.JoinNonNullStrings(" | "),
-					summary, aliases, category, defaultEnabled, unableToBeTurnedOff);
-				_NameMap.Add(name.ToLower(), name);
-				foreach (var alias in aliases ?? new string[0])
+				var helpEntry = new HelpEntry(command, category);
+				foreach (var alias in helpEntry.Aliases)
 				{
-					_NameMap.Add(alias.ToLower(), name);
+					_NameMap.Add(alias, helpEntry.Name);
 				}
-
-				_Source.Add(name, helpEntry);
+				_NameMap.Add(helpEntry.Name, helpEntry.Name);
+				_Source.Add(helpEntry.Name, helpEntry);
 			}
+		}
+
+		/// <summary>
+		/// Attempt to get a command with its name.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public HelpEntry this[string name]
+		{
+			get => _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
 		}
 
 		[Conditional("DEBUG")]
@@ -147,7 +144,6 @@ namespace Advobot.Classes
 				throw new InvalidOperationException($"The class {classType.FullName} needs to have the {nameof(TopLevelShortAliasAttribute)} attribute.");
 			}
 		}
-
 		/// <summary>
 		/// Retrurns an array of <see cref="HelpEntry"/> which have not had their values set in guild settings.
 		/// </summary>
@@ -191,15 +187,6 @@ namespace Advobot.Classes
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
-		}
-		/// <summary>
-		/// Attempt to get a command with its name.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public HelpEntry this[string name]
-		{
-			get => _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
 		}
 	}
 }

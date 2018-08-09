@@ -17,7 +17,7 @@ namespace Advobot.Classes.UserInformation
 		private int _MessagesSent;
 
 		/// <summary>
-		/// Creates an instance of slowmodeuserinfo.
+		/// Creates an instance of <see cref="SlowmodeUserInfo"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="user"></param>
@@ -32,7 +32,7 @@ namespace Advobot.Classes.UserInformation
 			return Interlocked.Increment(ref _MessagesSent);
 		}
 		/// <summary>
-		/// Sets the time to utcnow + time.
+		/// Sets the time to <see cref="DateTime.UtcNow"/> + <paramref name="time"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		public void UpdateTime(TimeSpan time)

@@ -9,6 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.GuildSettings
 {
+	/// <summary>
+	/// Handles guild setting creation and storage.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	internal sealed class GuildSettingsFactory<T> : IGuildSettingsService where T : class, IGuildSettings, new()
 	{
 		/// <inheritdoc />
@@ -17,7 +21,11 @@ namespace Advobot.Services.GuildSettings
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
 		private readonly ILowLevelConfig _Config;
 
-		public GuildSettingsFactory(IServiceProvider provider)
+		/// <summary>
+		/// Creates an instance of <see cref="GuildSettingsFactory{T}"/>.
+		/// </summary>
+		/// <param name="provider"></param>
+		public GuildSettingsFactory(IIterableServiceProvider provider)
 		{
 			_Config = provider.GetRequiredService<ILowLevelConfig>();
 		}

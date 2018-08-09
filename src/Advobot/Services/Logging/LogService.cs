@@ -20,41 +20,41 @@ namespace Advobot.Services.Logging
 	internal sealed class LogService : ILogService
 	{
 		/// <inheritdoc />
-		public LogCounter TotalUsers { get; private set; } = new LogCounter();
+		public LogCounter TotalUsers { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter TotalGuilds { get; private set; } = new LogCounter();
+		public LogCounter TotalGuilds { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter AttemptedCommands { get; private set; } = new LogCounter();
+		public LogCounter AttemptedCommands { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter SuccessfulCommands { get; private set; } = new LogCounter();
+		public LogCounter SuccessfulCommands { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter FailedCommands { get; private set; } = new LogCounter();
+		public LogCounter FailedCommands { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter UserJoins { get; private set; } = new LogCounter();
+		public LogCounter UserJoins { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter UserLeaves { get; private set; } = new LogCounter();
+		public LogCounter UserLeaves { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter UserChanges { get; private set; } = new LogCounter();
+		public LogCounter UserChanges { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter MessageEdits { get; private set; } = new LogCounter();
+		public LogCounter MessageEdits { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter MessageDeletes { get; private set; } = new LogCounter();
+		public LogCounter MessageDeletes { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter Messages { get; private set; } = new LogCounter();
+		public LogCounter Messages { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter Images { get; private set; } = new LogCounter();
+		public LogCounter Images { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter Animated { get; private set; } = new LogCounter();
+		public LogCounter Animated { get; } = new LogCounter();
 		/// <inheritdoc />
-		public LogCounter Files { get; private set; } = new LogCounter();
+		public LogCounter Files { get; } = new LogCounter();
 		/// <inheritdoc />
-		public IBotLogger BotLogger { get; private set; }
+		public IBotLogger BotLogger { get; }
 		/// <inheritdoc />
-		public IGuildLogger GuildLogger { get; private set; }
+		public IGuildLogger GuildLogger { get; }
 		/// <inheritdoc />
-		public IUserLogger UserLogger { get; private set; }
+		public IUserLogger UserLogger { get; }
 		/// <inheritdoc />
-		public IMessageLogger MessageLogger { get; private set; }
+		public IMessageLogger MessageLogger { get; }
 
 		private readonly LogCounter[] _LoggedCommands;
 		private readonly LogCounter[] _LoggedUserActions;
@@ -65,8 +65,8 @@ namespace Advobot.Services.Logging
 		/// <summary>
 		/// Creates an instance of <see cref="LogService"/>.
 		/// </summary>
-		/// <param name="services"></param>
-		public LogService(IServiceProvider services)
+		/// <param name="provider"></param>
+		public LogService(IIterableServiceProvider provider)
 		{
 			_LoggedCommands = new[] { AttemptedCommands, SuccessfulCommands, FailedCommands };
 			_LoggedUserActions = new[] { UserJoins, UserLeaves, UserChanges };
@@ -75,16 +75,20 @@ namespace Advobot.Services.Logging
 			_Counters = GetType().GetProperties().Where(x => x.PropertyType == typeof(LogCounter))
 				.ToDictionary(k => k.Name, v => (LogCounter)v.GetValue(this));
 
-			BotLogger = new BotLogger(services);
-			GuildLogger = new GuildLogger(services);
-			UserLogger = new UserLogger(services);
-			MessageLogger = new MessageLogger(services);
+			BotLogger = new BotLogger(provider);
+			GuildLogger = new GuildLogger(provider);
+			UserLogger = new UserLogger(provider);
+			MessageLogger = new MessageLogger(provider);
 			foreach (var prop in GetType().GetProperties().Where(x => x.PropertyType.GetInterfaces().Contains(typeof(ILogger))))
 			{
 				((ILogger)prop.GetValue(this)).LogCounterIncrement += OnLogCounterIncrement;
 			}
+			foreach (var obj in provider.OfType<ILogger>())
+			{
+				obj.LogCounterIncrement += OnLogCounterIncrement;
+			}
 
-			var client = services.GetRequiredService<DiscordShardedClient>();
+			var client = provider.GetRequiredService<DiscordShardedClient>();
 			client.Log += BotLogger.OnLogMessageSent;
 			client.GuildAvailable += GuildLogger.OnGuildAvailable;
 			client.GuildUnavailable += GuildLogger.OnGuildUnavailable;

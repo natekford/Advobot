@@ -150,7 +150,7 @@ namespace Advobot.Classes
 			Loaded = true;
 		}
 		/// <inheritdoc />
-		public override FileInfo GetPath(ILowLevelConfig config)
+		protected override FileInfo GetPath(ILowLevelConfig config)
 		{
 			return StaticGetPath(config, GuildId);
 		}

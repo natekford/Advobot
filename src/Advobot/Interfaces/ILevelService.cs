@@ -30,10 +30,31 @@ namespace Advobot.Interfaces
 		/// <returns></returns>
 		int CalculateLevel(int experience);
 		/// <summary>
+		/// Gets the rank of the user in the guild, and returns the total amount of users who have gained xp in the guild.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		(int Rank, int TotalUsers) GetGuildRank(SocketGuild guild, ulong userId);
+		/// <summary>
+		/// Gets the rank of the user globally, and returns the total amount of users who have gained xp globally.
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		(int Rank, int TotalUsers) GetGlobalRank(ulong userId);
+		/// <summary>
 		/// Gets the information about a user's xp and its distribution.
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <returns></returns>
-		IUserExperienceInformation GetUserInformation(ulong userId);
+		IUserExperienceInformation GetUserXpInformation(ulong userId);
+		/// <summary>
+		/// Sends the user's xp information to the channel.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="userId">The user to get the information for.</param>
+		/// <param name="global">Whether to include global information. If false, includes only guild information.</param>
+		/// <returns></returns>
+		Task SendUserXpInformation(SocketTextChannel channel, ulong userId, bool global);
 	}
 }

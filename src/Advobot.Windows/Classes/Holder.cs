@@ -33,5 +33,13 @@ namespace Advobot.Windows.Classes
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 		}
+		/// <summary>
+		/// Implicitly converts the holder to its held value.
+		/// </summary>
+		/// <param name="holder"></param>
+		public static implicit operator T(Holder<T> holder)
+		{
+			return holder.HeldObject;
+		}
 	}
 }

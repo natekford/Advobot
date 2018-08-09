@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,62 +24,106 @@ namespace Advobot.Services.Commands
 	{
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
-		private readonly HelpEntryHolder _HelpEntries;
 		private readonly DiscordShardedClient _Client;
 		private readonly ILowLevelConfig _Config;
 		private readonly IBotSettings _BotSettings;
-		private readonly ILevelService _Levels;
 		private readonly IGuildSettingsService _GuildSettings;
-		private readonly ITimerService _Timers;
-		private readonly ILogService _Logging;
 		private bool _Loaded;
+
+		/// <inheritdoc />
+		public event LogCounterIncrementEventHandler LogCounterIncrement;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CommandHandlerService"/> and gets the required services.
 		/// </summary>
 		/// <param name="provider"></param>
-		internal CommandHandlerService(IServiceProvider provider)
+		/// <param name="commands"></param>
+		public CommandHandlerService(IIterableServiceProvider provider, IEnumerable<Assembly> commands)
 		{
 			_Provider = provider;
-			_Commands = _Provider.GetRequiredService<CommandService>();
-			_HelpEntries = _Provider.GetRequiredService<HelpEntryHolder>();
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
 			_Config = _Provider.GetRequiredService<ILowLevelConfig>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
-			_Levels = _Provider.GetRequiredService<ILevelService>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsService>();
-			_Timers = _Provider.GetRequiredService<ITimerService>();
-			_Logging = _Provider.GetRequiredService<ILogService>();
 
-			_Client.ShardReady += OnReady;
+			_Commands = new CommandService(new CommandServiceConfig
+			{
+				CaseSensitiveCommands = false,
+				ThrowOnError = false,
+			});
+			_Commands.AddTypeReader<IInvite>(new InviteTypeReader());
+			_Commands.AddTypeReader<IBan>(new BanTypeReader());
+			_Commands.AddTypeReader<IWebhook>(new WebhookTypeReader());
+			_Commands.AddTypeReader<Emote>(new EmoteTypeReader());
+			_Commands.AddTypeReader<GuildEmote>(new GuildEmoteTypeReader());
+			_Commands.AddTypeReader<Color>(new ColorTypeReader());
+			_Commands.AddTypeReader<Uri>(new UriTypeReader());
+			_Commands.AddTypeReader<ModerationReason>(new ModerationReasonTypeReader());
+			//Add in generic custom argument type readers
+			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()
+				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+				.Any(c => c.GetCustomAttribute<NamedArgumentConstructorAttribute>() != null));
+			foreach (var c in customArgumentsClasses)
+			{
+				var t = typeof(NamedArguments<>).MakeGenericType(c);
+				var tr = (TypeReader)Activator.CreateInstance(typeof(NamedArgumentsTypeReader<>).MakeGenericType(c));
+				_Commands.AddTypeReader(t, tr);
+			}
+
+			_Client.ShardReady += (client) => OnReady(client, commands);
 			_Client.MessageReceived += HandleCommand;
+			_Commands.CommandExecuted += OnCommandExecuted;
 		}
 
+		/// <summary>
+		/// Fires the log counter increment event.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="count"></param>
+		private void NotifyLogCounterIncrement(string name, int count)
+		{
+			LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
+		}
 		/// <summary>
 		/// Handles the bot using the correct settings, the game displayed, and the timers starting.
 		/// </summary>
 		/// <param name="client"></param>
+		/// <param name="commands"></param>
 		/// <returns></returns>
-		private async Task OnReady(DiscordSocketClient client)
+		private async Task OnReady(DiscordSocketClient client, IEnumerable<Assembly> commands)
 		{
 			if (_Loaded)
 			{
 				return;
 			}
+			_Loaded = true;
 
 			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();
-			//Start everything which uses a database now that we know we're using the correct bot id.
-			foreach (var field in GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+			//Add in all the commands
+			foreach (var assembly in commands)
 			{
-				if (field.GetValue(this) is IUsesDatabase temp)
+				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
+			}
+			//Remove all the command which don't have their required service
+			//TODO: also disable these in the helpentryholder if they're disabled here
+			foreach (var module in new List<ModuleInfo>(_Commands.Modules))
+			{
+				foreach (var req in module.Attributes.OfType<RequiredServiceAttribute>())
 				{
-					temp.Start();
+					if (_Provider.GetService(req.ServiceType) == null)
+					{
+						await _Commands.RemoveModuleAsync(module).CAF();
+						ConsoleUtils.DebugWrite($"Removed the module {module.Name} because {req.ServiceType.Name} is missing.");
+						break;
+					}
 				}
 			}
 
-			_Loaded = true;
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
-			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; Prefix: {_BotSettings.Prefix}; Launch Time: {startTime:n}ms");
+			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
+				$"Modules: {_Commands.Modules.Count()}; " +
+				$"Prefix: {_BotSettings.Prefix}; " +
+				$"Launch Time: {startTime:n}ms");
 		}
 		/// <inheritdoc />
 		public async Task HandleCommand(SocketMessage message)
@@ -83,46 +132,54 @@ namespace Advobot.Services.Commands
 			if (!_Loaded
 				|| _BotSettings.Pause
 				|| String.IsNullOrWhiteSpace(message.Content)
-				|| !(message is SocketUserMessage uMsg)
-				|| !(uMsg.Author is SocketGuildUser user)
+				|| !(message is SocketUserMessage msg)
+				|| !(msg.Author is SocketGuildUser user)
 				|| user.IsBot
 				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
-				|| !(uMsg.HasStringPrefix(_BotSettings.InternalGetPrefix(settings), ref argPos) && !uMsg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
+				|| !(msg.HasStringPrefix(_BotSettings.InternalGetPrefix(settings), ref argPos) && !msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
 			{
 				return;
 			}
 
-			var context = new AdvobotCommandContext(_Provider, settings, _Client, uMsg);
+			var context = new AdvobotCommandContext(_Provider, settings, _Client, msg);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
-
-			if ((!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)
+		}
+		/// <summary>
+		/// Handles logging the response to the guild/console.
+		/// </summary>
+		/// <param name="command"></param>
+		/// <param name="context"></param>
+		/// <param name="result"></param>
+		/// <returns></returns>
+		private async Task OnCommandExecuted(CommandInfo command, ICommandContext context, IResult result)
+		{
+			if (!(context is AdvobotCommandContext aContext) || (!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)
 			{
 				return;
 			}
-			else if (result.IsSuccess)
+			if (result.IsSuccess)
 			{
-				_Logging.SuccessfulCommands.Add(1);
-				await MessageUtils.DeleteMessageAsync(context.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
-
-				if (settings.ModLogId != 0 && !settings.IgnoredLogChannels.Contains(context.Channel.Id))
+				NotifyLogCounterIncrement(nameof(ILogService.SuccessfulCommands), 1);
+				await MessageUtils.DeleteMessageAsync(aContext.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
+				if (aContext.GuildSettings.ModLogId != 0 && !aContext.GuildSettings.IgnoredLogChannels.Contains(aContext.Channel.Id))
 				{
 					var embed = new EmbedWrapper
 					{
-						Description = context.Message.Content
+						Description = aContext.Message.Content
 					};
-					embed.TryAddAuthor(context.User, out _);
+					embed.TryAddAuthor(aContext.User, out _);
 					embed.TryAddFooter("Mod Log", null, out _);
-					await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ModLogId), null, embed).CAF();
+					await MessageUtils.SendMessageAsync(aContext.Guild.GetTextChannel(aContext.GuildSettings.ModLogId), null, embed).CAF();
 				}
 			}
 			else
 			{
-				_Logging.FailedCommands.Add(1);
-				await MessageUtils.SendErrorMessageAsync(context, new Error(result.ErrorReason)).CAF();
+				NotifyLogCounterIncrement(nameof(ILogService.FailedCommands), 1);
+				await MessageUtils.SendErrorMessageAsync(aContext, new Error(result.ErrorReason)).CAF();
 			}
 
-			ConsoleUtils.WriteLine(context.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
-			_Logging.AttemptedCommands.Add(1);
+			ConsoleUtils.WriteLine(aContext.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+			NotifyLogCounterIncrement(nameof(ILogService.AttemptedCommands), 1);
 		}
 	}
 }

@@ -1,16 +1,23 @@
-﻿using Advobot.Interfaces;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.WebSocket;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Services.Logging.Loggers
 {
+	/// <summary>
+	/// Handles logging guild events.
+	/// </summary>
 	internal sealed class GuildLogger : Logger, IGuildLogger
 	{
-		internal GuildLogger(IServiceProvider provider) : base(provider) { }
+		/// <summary>
+		/// Creates an instance of <see cref="GuildLogger"/>.
+		/// </summary>
+		/// <param name="provider"></param>
+		public GuildLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <summary>
 		/// Writes to the console telling that the guild is online. If the guild's settings are not loaded, creates them.
