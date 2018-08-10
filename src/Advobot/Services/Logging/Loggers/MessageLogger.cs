@@ -41,49 +41,49 @@ namespace Advobot.Services.Logging.Loggers
 		/// <inheritdoc />
 		public async Task OnMessageReceived(SocketMessage message)
 		{
-			//For some meme server
-			if (message.Author is SocketGuildUser author && author.Guild.Id == 294173126697418752)
-			{
-				const string name = "jeff";
-				if (author.Username != name && author.Nickname != name && author.Guild.CurrentUser.HasHigherPosition(author))
-				{
-					await author.ModifyAsync(x => x.Nickname = name, ClientUtils.CreateRequestOptions($"my nama {name}")).CAF();
-				}
-			}
-
 			NotifyLogCounterIncrement(nameof(ILogService.Messages), 1);
-			if (!(message is SocketUserMessage msg) || !(msg.Author is SocketGuildUser user) || !TryGetSettings(message, out var settings))
+			if (!(message.Author is SocketGuildUser user))
 			{
 				return;
 			}
 
-			await HandleChannelSettingsAsync(settings, user, msg).CAF();
-			await HandleImageLoggingAsync(settings, user, msg).CAF();
-			await HandleSlowmodeAsync(settings, user, msg).CAF();
-			await HandleSpamPreventionAsync(settings, user, msg).CAF();
-			await HandleBannedPhrasesAsync(settings, user, msg).CAF();
-			await HandleCloseWords(settings, user, msg).CAF();
+			//For some meme server
+			if (user.Guild.Id == 294173126697418752)
+			{
+				const string name = "jeff";
+				if (user.Username != name && user.Nickname != name && user.Guild.CurrentUser.HasHigherPosition(user))
+				{
+					await user.ModifyAsync(x => x.Nickname = name, ClientUtils.CreateRequestOptions($"my nama {name}")).CAF();
+				}
+			}
+
+			//Actions which require the ability to log on this channel
+			if (CanLog(LogAction.MessageReceived, message, out var settings))
+			{
+				await HandleImageLoggingAsync(settings, user, message).CAF();
+				await HandleSlowmodeAsync(settings, user, message).CAF();
+				await HandleSpamPreventionAsync(settings, user, message).CAF();
+				await HandleSpamPreventionVotingAsync(settings, user, message).CAF();
+				await HandleBannedPhrasesAsync(settings, user, message).CAF();
+			}
+			//Actions which should happen no matter what
+			await HandleCloseWords(settings, user, message).CAF();
+			await HandleChannelSettingsAsync(settings, user, message).CAF();
 		}
 		/// <inheritdoc />
 		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.MessageEdits), 1);
-			if (!(message is SocketUserMessage msg) || !(msg.Author is SocketGuildUser user) || !TryGetSettings(message, out var settings))
+			if (!(message.Author is SocketGuildUser user))
 			{
 				return;
 			}
 
-			await HandleBannedPhrasesAsync(settings, user, msg).CAF();
-
-			//If the before message is not specified always take that as it should be logged.
-			//If the embed counts are greater take that as logging too.
-			if (cached.Value?.Embeds.Count() < message.Embeds.Count())
+			if (CanLog(LogAction.MessageUpdated, message, out var settings))
 			{
-				await HandleImageLoggingAsync(settings, user, message).CAF();
-			}
-			if (cached.HasValue)
-			{
-				await HandleMessageEditedLoggingAsync(settings, user, cached.Value, message).CAF();
+				await HandleBannedPhrasesAsync(settings, user, message).CAF();
+				await HandleMessageEditedImageLoggingAsync(settings, user, cached.Value as SocketMessage, message).CAF();
+				await HandleMessageEditedLoggingAsync(settings, user, cached.Value as SocketMessage, message).CAF();
 			}
 		}
 		/// <inheritdoc />
@@ -92,26 +92,25 @@ namespace Advobot.Services.Logging.Loggers
 			//Ignore uncached messages since not much can be done with them
 			NotifyLogCounterIncrement(nameof(ILogService.MessageDeletes), 1);
 			if (!cached.HasValue
-				|| !(cached.Value is IMessage message)
+				|| !(cached.Value is SocketMessage message)
 				|| !(channel is SocketGuildChannel guildChannel)
-				|| !TryGetSettings(message, out var settings)
+				|| !CanLog(LogAction.MessageDeleted, message, out var settings)
 				|| settings.ServerLogId == 0)
 			{
 				return Task.CompletedTask;
 			}
 
-			var msgDeletion = settings.MessageDeletion;
-			msgDeletion.Messages.Add(message);
+			settings.MessageDeletion.Messages.Add(message);
 			//The old cancel token gets canceled in its getter
-			var cancelToken = msgDeletion.CancelToken;
+			var cancelToken = settings.MessageDeletion.CancelToken;
 
 			//Has to run on completely separate thread, else prints early
 			Task.Run(async () =>
 			{
 				//Wait three seconds. If a new message comes in then the token will be canceled and this won't continue.
 				//If more than 25 messages just start printing them out so people can't stall the messages forever.
-				var inEmbed = msgDeletion.Messages.Count < 10; //Needs very few messages to fit in an embed
-				if (msgDeletion.Messages.Count < 25)
+				var inEmbed = settings.MessageDeletion.Messages.Count < 10; //Needs very few messages to fit in an embed
+				if (settings.MessageDeletion.Messages.Count < 25)
 				{
 					try
 					{
@@ -124,8 +123,8 @@ namespace Advobot.Services.Logging.Loggers
 				}
 
 				//Give the messages to a new list so they can be removed from the old one
-				var messages = new List<IMessage>(msgDeletion.Messages).OrderBy(x => x?.CreatedAt.Ticks).ToList();
-				msgDeletion.ClearBag();
+				var messages = new List<IMessage>(settings.MessageDeletion.Messages).OrderBy(x => x?.CreatedAt.Ticks).ToList();
+				settings.MessageDeletion.ClearBag();
 
 				var sb = new StringBuilder();
 				while (inEmbed)
@@ -165,12 +164,11 @@ namespace Advobot.Services.Logging.Loggers
 					var tf = new TextFileInfo
 					{
 						Name = "Deleted_Messages",
-						Text = sb.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines(),
+						Text = sb.ToString().RemoveDuplicateNewLines().RemoveAllMarkdown(),
 					};
 					await MessageUtils.SendMessageAsync(c, $"**{messages.Count()} Deleted Messages:**", textFile: tf).CAF();
 				}
 			});
-
 			return Task.CompletedTask;
 		}
 
@@ -275,6 +273,7 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				return;
 			}
+
 			if (!(settings.SlowmodeUsers.SingleOrDefault(x => x.UserId == user.Id) is SlowmodeUserInfo info))
 			{
 				settings.SlowmodeUsers.Add(info = new SlowmodeUserInfo(slowmode.Interval, user));
@@ -284,89 +283,85 @@ namespace Advobot.Services.Logging.Loggers
 				info.Reset();
 			}
 
-			if (info.MessagesSent < slowmode.BaseMessages)
-			{
-				if (info.MessagesSent == 0)
-				{
-					info.UpdateTime(slowmode.Interval);
-				}
-
-				info.Increment();
-			}
-			else
+			if (info.MessagesSent >= slowmode.BaseMessages)
 			{
 				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("slowmode")).CAF();
+				return;
 			}
+			if (info.MessagesSent == 0)
+			{
+				info.UpdateTime(slowmode.Interval);
+			}
+			info.Increment();
 		}
 		/// <summary>
 		/// If the message author can be modified by the bot then their message is checked for any spam matches.
-		/// Then checks if there are any user mentions in thier message for voting on user kicks.
 		/// </summary>
 		/// <returns></returns>
 		private async Task HandleSpamPreventionAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
-			if (user.Guild.CurrentUser.HasHigherPosition(user))
-			{
-				var info = settings.SpamPreventionUsers.SingleOrDefault(x => x.UserId == user.Id);
-				if (info == null)
-				{
-					settings.SpamPreventionUsers.Add(info = new SpamPreventionUserInfo(user));
-				}
-
-				var spam = false;
-				foreach (SpamType type in Enum.GetValues(typeof(SpamType)))
-				{
-					var prev = settings.SpamPreventionDictionary[type];
-					if (prev == null || !prev.Enabled)
-					{
-						continue;
-					}
-
-					var spamAmount = _GetSpamNumberFuncs[type](message) ?? 0;
-					if (spamAmount >= prev.SpamPerMessage)
-					{
-						info.AddSpamInstance(type, message);
-					}
-					if (info.GetSpamAmount(type, prev.TimeInterval) < prev.SpamInstances)
-					{
-						continue;
-					}
-
-					//Make sure they have the lowest vote count required to kick and the most severe punishment type
-					info.VotesRequired = prev.VotesForKick;
-					info.Punishment = prev.Punishment;
-					spam = true;
-				}
-
-				if (spam)
-				{
-					var votesReq = info.VotesRequired - info.UsersWhoHaveAlreadyVoted.Count;
-					var content = $"`{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)message.Channel, null, content, Timers, TimeSpan.FromSeconds(10)).CAF();
-					await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("spam prevention")).CAF();
-				}
-			}
-			if (!message.MentionedUsers.Any())
+			if (!user.Guild.CurrentUser.HasHigherPosition(user))
 			{
 				return;
 			}
-
-			//Get the users who are able to be punished by the spam prevention
-			var spammers = settings.SpamPreventionUsers.Where(x =>
+			if (!(settings.SpamPreventionUsers.SingleOrDefault(x => x.UserId == user.Id) is SpamPreventionUserInfo info))
 			{
-				return x.IsPunishable()
-					&& x.UserId != user.Id
-					&& message.MentionedUsers.Select(u => u.Id).Contains(x.UserId)
-					&& !x.UsersWhoHaveAlreadyVoted.Contains(user.Id);
-			}).ToList();
-			if (!spammers.Any())
+				settings.SpamPreventionUsers.Add(info = new SpamPreventionUserInfo(user));
+			}
+
+			var spam = false;
+			foreach (SpamType type in Enum.GetValues(typeof(SpamType)))
+			{
+				if (!(settings.SpamPreventionDictionary[type] is SpamPreventionInfo prev) || !prev.Enabled)
+				{
+					continue;
+				}
+				if (_GetSpamNumberFuncs[type](message) >= prev.SpamPerMessage)
+				{
+					info.AddSpamInstance(type, message);
+				}
+				if (info.GetSpamAmount(type, prev.TimeInterval) < prev.SpamInstances)
+				{
+					continue;
+				}
+
+				//Make sure they have the lowest vote count required to kick and the most severe punishment type
+				info.VotesRequired = prev.VotesForKick;
+				info.Punishment = prev.Punishment;
+				spam = true;
+			}
+			if (spam)
+			{
+				var votesReq = info.VotesRequired - info.UsersWhoHaveAlreadyVoted.Count;
+				var content = $"`{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)message.Channel, null, content, Timers, TimeSpan.FromSeconds(10)).CAF();
+				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("spam prevention")).CAF();
+			}
+		}
+		/// <summary>
+		/// Checks if there are any mentions to kick a spammer.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="user"></param>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		private async Task HandleSpamPreventionVotingAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
+		{
+			if (!message.MentionedUsers.Any())
 			{
 				return;
 			}
 
 			var giver = new Punisher(TimeSpan.FromMinutes(0), null);
 			var options = ClientUtils.CreateRequestOptions("spam prevention");
-			foreach (var spammer in spammers)
+			//Iterate through the users who are able to be punished by the spam prevention
+			foreach (var spammer in settings.SpamPreventionUsers.Where(x =>
+			{
+				return x.IsPunishable()
+					&& x.UserId != user.Id
+					&& message.MentionedUsers.Select(u => u.Id).Contains(x.UserId)
+					&& !x.UsersWhoHaveAlreadyVoted.Contains(user.Id);
+			}))
 			{
 				spammer.UsersWhoHaveAlreadyVoted.Add(user.Id);
 				if (spammer.UsersWhoHaveAlreadyVoted.Count < spammer.VotesRequired)
@@ -382,7 +377,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// Makes sure a message doesn't have any banned phrases.
 		/// </summary>
 		/// <returns></returns>
-		private async Task HandleBannedPhrasesAsync(IGuildSettings settings, SocketGuildUser user, SocketUserMessage message)
+		private async Task HandleBannedPhrasesAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
 			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
 			if (user.GuildPermissions.Administrator || (DateTime.UtcNow - message.CreatedAt.UtcDateTime).Hours > 0)
@@ -417,7 +412,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="user"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		private async Task HandleCloseWords(IGuildSettings settings, SocketGuildUser user, SocketUserMessage message)
+		private async Task HandleCloseWords(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
 			if (Timers == null || !int.TryParse(message.Content, out var i) || i < 0 || i > 7)
 			{
@@ -454,6 +449,23 @@ namespace Advobot.Services.Logging.Loggers
 			}
 		}
 		/// <summary>
+		/// Logs images if the embed counts don't match.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="user"></param>
+		/// <param name="before"></param>
+		/// <param name="after"></param>
+		/// <returns></returns>
+		private async Task HandleMessageEditedImageLoggingAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage before, SocketMessage after)
+		{
+			//If the before message is not specified always take that as it should be logged.
+			//If the embed counts are greater take that as logging too.
+			if (before?.Embeds.Count() < after.Embeds.Count())
+			{
+				await HandleImageLoggingAsync(settings, user, after).CAF();
+			}
+		}
+		/// <summary>
 		/// Logs the text difference to the server log if set.
 		/// </summary>
 		/// <param name="settings"></param>
@@ -461,7 +473,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="before"></param>
 		/// <param name="after"></param>
 		/// <returns></returns>
-		private async Task HandleMessageEditedLoggingAsync(IGuildSettings settings, SocketGuildUser user, IMessage before, SocketMessage after)
+		private async Task HandleMessageEditedLoggingAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage before, SocketMessage after)
 		{
 			if (settings.ServerLogId == 0)
 			{

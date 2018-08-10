@@ -32,6 +32,11 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<IUserMessage> SendMessageAsync(IMessageChannel channel, string content, EmbedWrapper embedWrapper = null, TextFileInfo textFile = null)
 		{
+			if (channel == null || (content == null && embedWrapper == null && textFile == null))
+			{
+				return null;
+			}
+
 			textFile = textFile ?? new TextFileInfo();
 
 			//Make sure all the information from the embed that didn't fit goes in.

@@ -8,7 +8,7 @@ namespace Advobot.Classes
 	public sealed class LogCounterIncrementEventArgs : EventArgs
 	{
 		/// <summary>
-		/// The name of the log count to increment.
+		/// The name of the log counter to increment.
 		/// </summary>
 		public string Name { get; }
 		/// <summary>

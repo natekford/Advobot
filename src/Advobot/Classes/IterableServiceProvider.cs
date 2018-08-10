@@ -38,7 +38,7 @@ namespace Advobot.Classes
 
 		/// <summary>
 		/// Creates a wrapper around an already existing <see cref="ServiceProvider"/>.
-		/// <paramref name="provider"/> and <paramref name="services"/> must be from the same services.
+		/// <paramref name="provider"/> and <paramref name="services"/> should be the same services.
 		/// </summary>
 		/// <param name="provider"></param>
 		/// <param name="services"></param>
@@ -47,10 +47,21 @@ namespace Advobot.Classes
 		{
 			return new IterableServiceProvider(provider, services, false);
 		}
-		public IEnumerable<T> GetServicesOfType<T>()
+		/// <inheritdoc />
+		public IEnumerable<object> GetServicesExcept<T>()
 		{
-			throw new NotImplementedException();
-			//foreach (var type in _Services.Select(x => x.ServiceType).Where)
+			return GetServicesExcept(typeof(T));
+		}
+		/// <inheritdoc />
+		public IEnumerable<object> GetServicesExcept(params Type[] types)
+		{
+			foreach (var type in _Services.Select(x => x.ServiceType))
+			{
+				if (!types.Contains(type))
+				{
+					yield return _Provider.GetService(type);
+				}
+			}
 		}
 		/// <inheritdoc />
 		public void Dispose()
@@ -65,8 +76,6 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public IEnumerator<object> GetEnumerator()
 		{
-			//TODO: fix stackoverflow error which occurs here.
-			//probs kinda big fix to do so maybe just remove this class?
 			foreach (var type in _Services.Select(x => x.ServiceType))
 			{
 				yield return _Provider.GetService(type);

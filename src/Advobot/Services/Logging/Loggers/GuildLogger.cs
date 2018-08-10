@@ -24,12 +24,12 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public Task OnGuildAvailable(SocketGuild guild)
+		public async Task OnGuildAvailable(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {guild.MemberCount}, {IOUtils.GetMemory().ToString("0.00")}MB)");
-			return Task.CompletedTask;
+			await GuildSettings.GetOrCreateAsync(guild).CAF();
 		}
 		/// <summary>
 		/// Writes to the console telling that the guild is offline.
@@ -89,12 +89,12 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public Task OnLeftGuild(SocketGuild guild)
+		public async Task OnLeftGuild(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), -1);
 			ConsoleUtils.WriteLine($"Bot has left {guild.Format()}.");
-			return Task.CompletedTask;
+			await GuildSettings.RemoveAsync(guild.Id).CAF();
 		}
 	}
 }

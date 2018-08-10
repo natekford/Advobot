@@ -83,7 +83,7 @@ namespace Advobot.Services.Logging
 			{
 				((ILogger)prop.GetValue(this)).LogCounterIncrement += OnLogCounterIncrement;
 			}
-			foreach (var obj in provider.OfType<ILogger>())
+			foreach (var obj in provider.GetServicesExcept<ILogService>().OfType<ILogger>())
 			{
 				obj.LogCounterIncrement += OnLogCounterIncrement;
 			}

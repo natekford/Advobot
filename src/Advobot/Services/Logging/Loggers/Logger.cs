@@ -21,10 +21,6 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		protected DiscordShardedClient Client;
 		/// <summary>
-		/// Low level configuration for the bot.
-		/// </summary>
-		protected ILowLevelConfig Config;
-		/// <summary>
 		/// The settings used in the bot.
 		/// </summary>
 		protected IBotSettings BotSettings;
@@ -47,7 +43,6 @@ namespace Advobot.Services.Logging.Loggers
 		protected Logger(IServiceProvider provider)
 		{
 			Client = provider.GetRequiredService<DiscordShardedClient>();
-			Config = provider.GetRequiredService<ILowLevelConfig>();
 			BotSettings = provider.GetRequiredService<IBotSettings>();
 			GuildSettings = provider.GetRequiredService<IGuildSettingsService>();
 			Timers = provider.GetRequiredService<ITimerService>();
@@ -63,81 +58,62 @@ namespace Advobot.Services.Logging.Loggers
 			LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
 		}
 		/// <summary>
-		/// Attempts to get guild settings from a random discord object.
+		/// Attempts to get guild settings from a random Discord object.
+		/// Returns false if unable to be logged due to settings on the guild.
+		/// Returns true if able to be logged.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
+		/// <param name="action"></param>
 		/// <param name="obj"></param>
-		/// <param name="settings"></param>
-		/// <param name="caller"></param>
+		/// <param name="settings">This can be set if the method returns false.</param>
 		/// <returns></returns>
-		protected bool TryGetSettings<T>(T obj, out IGuildSettings settings, [CallerMemberName] string caller = null) where T : ISnowflakeEntity, IEntity<ulong>
-		{
-			var name = caller ?? throw new ArgumentException("Value cannot be null", nameof(caller));
-			var action = Enum.GetValues(typeof(LogAction)).Cast<LogAction>().First(x => name.CaseInsContains(x.ToString()));
-			return TryGetSettings(action, obj, out settings);
-		}
-		private bool TryGetSettings<T>(LogAction logAction, T obj, out IGuildSettings settings) where T : ISnowflakeEntity, IEntity<ulong>
+		protected bool CanLog<T>(LogAction action, T obj, out IGuildSettings settings) where T : ISnowflakeEntity
 		{
 			settings = default;
-
-			IGuildChannel channel;
-			IGuildUser user;
-			IGuild guild;
+			var channel = default(SocketGuildChannel);
+			var user = default(SocketGuildUser);
+			var guild = default(SocketGuild);
 			switch (obj)
 			{
-				case IMessage tempMessage:
-					user = tempMessage.Author as IGuildUser;
-					channel = tempMessage.Channel as IGuildChannel;
-					guild = channel?.Guild;
+				case SocketMessage tempM:
+					user = (SocketGuildUser)tempM.Author;
+					channel = (SocketGuildChannel)tempM.Channel;
+					guild = channel.Guild;
 					break;
-				case IGuildUser tempUser:
-					user = tempUser;
-					channel = default;
+				case SocketGuildUser tempU:
+					user = tempU;
 					guild = user.Guild;
 					break;
-				case IGuild tempGuild:
-					user = default;
-					channel = default;
-					guild = tempGuild;
+				case SocketGuild tempG:
+					guild = tempG;
 					break;
 				default:
 					return false;
 			}
-
-			if (BotSettings.Pause || !GuildSettings.TryGet(guild?.Id ?? 0, out settings) || !settings.LogActions.Contains(logAction))
+			if (BotSettings.Pause || !GuildSettings.TryGet(guild.Id, out settings) || !settings.LogActions.Contains(action))
 			{
 				return false;
 			}
-			//Only a message will have channel as not null
-			if (channel != null && user != null)
+
+			switch (action)
 			{
-				var isFromThisBot = user.Id == Config.BotId;
-				var isFromBot = !isFromThisBot && (user.IsBot || user.IsWebhook);
-				var isOnIgnoredChannel = settings.IgnoredLogChannels.Contains(channel.Id);
-				switch (logAction)
-				{
-					case LogAction.MessageReceived:
-					case LogAction.MessageUpdated:
-						return !isFromThisBot && !isFromBot && !isOnIgnoredChannel;
-					default:
-						return !isOnIgnoredChannel;
-				}
+				//Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
+				case LogAction.MessageReceived:
+				case LogAction.MessageUpdated:
+					return !(user.IsBot || user.IsWebhook) && !settings.IgnoredLogChannels.Contains(channel.Id);
+				//Log all deleted messages, no matter the source user, unless they're on an unlogged channel
+				case LogAction.MessageDeleted:
+					return !settings.IgnoredLogChannels.Contains(channel.Id);
+				//Only log if it wasn't this bot that left
+				case LogAction.UserJoined:
+				case LogAction.UserLeft:
+					return user.Id != guild.CurrentUser.Id;
+				//Only log if it wasn't any bot that was updated.
+				case LogAction.UserUpdated:
+					return !(user.IsBot || user.IsWebhook);
+				default:
+					throw new InvalidOperationException($"Invalid log action supplied: {action}.");
 			}
-			//After a message, only a user will have user as not null
-			if (user != null)
-			{
-				var isFromThisBot = user.Id == Config.BotId;
-				switch (logAction)
-				{
-					case LogAction.UserJoined:
-					case LogAction.UserLeft:
-						return !isFromThisBot;
-					case LogAction.UserUpdated:
-						return !isFromThisBot && !(user.IsBot || user.IsWebhook);
-				}
-			}
-			//After a message and user, guild is the last thing remaining
-			return guild != null;
 		}
 	}
 }

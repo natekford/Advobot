@@ -1,13 +1,14 @@
-﻿using Advobot.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Advobot.Enums;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Advobot.Classes.Settings
 {
@@ -63,7 +64,7 @@ namespace Advobot.Classes.Settings
 		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
 		public bool ModifyCommandValue(HelpEntry helpEntry, bool enable)
 		{
-			return ModifyCommand(_CommandValues, helpEntry, enable);
+			return ModifyOverride(_CommandValues, helpEntry, enable);
 		}
 		/// <summary>
 		/// Enabled/disables/removes overrides on specified commands for a specified object. Object can be channel, role, or user.
@@ -99,7 +100,7 @@ namespace Advobot.Classes.Settings
 		{
 			var outerDict = _OverrideDict[target];
 			var innerDict = outerDict.TryGetValue(obj.Id, out var inner) ? inner : outerDict[obj.Id] = new Dictionary<string, bool>();
-			return ModifyCommand(innerDict, helpEntry, enable);
+			return ModifyOverride(innerDict, helpEntry, enable);
 		}
 		/// <summary>
 		/// Returns a value indicating whether or not the command is enabled in the current context.
@@ -148,33 +149,15 @@ namespace Advobot.Classes.Settings
 		/// <returns></returns>
 		public bool IsCommandEnabled(HelpEntry helpEntry)
 		{
-			return _CommandValues[helpEntry.Name];
+			//If already added, cool, use that value
+			if (_CommandValues.TryGetValue(helpEntry.Name, out var val))
+			{
+				return val;
+			}
+			//If not, darn, use default value, but also set it
+			_CommandValues.Add(helpEntry.Name, helpEntry.DefaultEnabled);
+			return helpEntry.DefaultEnabled;
 		}
-
-		private static bool ModifyCommand(IDictionary<string, bool> dict, HelpEntry helpEntry, bool? enable)
-		{
-			if (!helpEntry.AbleToBeToggled)
-			{
-				return false;
-			}
-			if (enable == null)
-			{
-				if (!dict.ContainsKey(helpEntry.Name))
-				{
-					return false;
-				}
-				dict.Remove(helpEntry.Name);
-				return true;
-			}
-			if (dict.TryGetValue(helpEntry.Name, out var value) && value == enable)
-			{
-				return false;
-			}
-
-			dict[helpEntry.Name] = enable.Value;
-			return true;
-		}
-
 		/// <inheritdoc />
 		public override string ToString()
 		{
@@ -230,24 +213,28 @@ namespace Advobot.Classes.Settings
 			}
 			return sb.ToString();
 		}
-	}
+		private static bool ModifyOverride(IDictionary<string, bool> dict, HelpEntry helpEntry, bool? enable)
+		{
+			if (!helpEntry.AbleToBeToggled)
+			{
+				return false;
+			}
+			if (enable == null)
+			{
+				if (!dict.ContainsKey(helpEntry.Name))
+				{
+					return false;
+				}
+				dict.Remove(helpEntry.Name);
+				return true;
+			}
+			if (dict.TryGetValue(helpEntry.Name, out var value) && value == enable)
+			{
+				return false;
+			}
 
-	/// <summary>
-	/// The target for command overrides.
-	/// </summary>
-	public enum CommandOverrideTarget
-	{
-		/// <summary>
-		/// Targetting a channel.
-		/// </summary>
-		Channel,
-		/// <summary>
-		/// Targetting a role.
-		/// </summary>
-		Role,
-		/// <summary>
-		/// Targetting a user.
-		/// </summary>
-		User
+			dict[helpEntry.Name] = enable.Value;
+			return true;
+		}
 	}
 }

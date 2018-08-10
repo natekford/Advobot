@@ -24,30 +24,83 @@ namespace Advobot.Services.Logging.Loggers
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), 1);
 			NotifyLogCounterIncrement(nameof(ILogService.UserJoins), 1);
-			if (!TryGetSettings(user, out var settings)
-				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
-				|| settings.ServerLogId == 0)
+			if (CanLog(LogAction.UserJoined, user, out var settings))
+			{
+				await HandleJoinLogging(settings, user).CAF();
+			}
+			await HandleOtherJoinActions(settings, user).CAF();
+		}
+		/// <summary>
+		/// Logs the user leaving.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public async Task OnUserLeft(SocketGuildUser user)
+		{
+			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -1);
+			NotifyLogCounterIncrement(nameof(ILogService.UserLeaves), 1);
+			if (CanLog(LogAction.UserLeft, user, out var settings))
+			{
+				await HandleLeftLogging(settings, user).CAF();
+			}
+			await HandleOtherLeftActions(settings, user).CAF();
+		}
+		/// <summary>
+		/// Logs their name change to every server that has OnUserUpdated enabled.
+		/// </summary>
+		/// <param name="beforeUser"></param>
+		/// <param name="afterUser"></param>
+		/// <returns></returns>
+		public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
+		{
+			NotifyLogCounterIncrement(nameof(ILogService.UserChanges), 1);
+			if (BotSettings.Pause || beforeUser.Username.CaseInsEquals(afterUser.Username))
 			{
 				return;
 			}
 
-			var invite = "";
-			var inviteUserJoinedOn = await DiscordUtils.GetInviteUserJoinedOnAsync(settings, user).CAF();
-			if (inviteUserJoinedOn != null)
+			foreach (var guild in Client.Guilds.Where(g => g.Users.Select(u => u.Id).Contains(afterUser.Id)))
 			{
-				invite = $"**Invite:** {inviteUserJoinedOn.Code}";
+				if (!CanLog(LogAction.UserUpdated, guild, out var settings) || settings.ServerLogId == 0)
+				{
+					continue;
+				}
+
+				var embed = new EmbedWrapper
+				{
+					Color = EmbedWrapper.UserEdit
+				};
+				embed.TryAddAuthor(afterUser, out _);
+				embed.TryAddField("Before:", $"`{beforeUser.Username}`", false, out _);
+				embed.TryAddField("After:", $"`{afterUser.Username}`", false, out _);
+				embed.TryAddFooter("Name Changed", null, out _);
+				await MessageUtils.SendMessageAsync(guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
+			}
+		}
+
+		/// <summary>
+		/// Handles logging joins to the server log.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		private async Task HandleJoinLogging(IGuildSettings settings, SocketGuildUser user)
+		{
+			if (settings.ServerLogId == 0)
+			{
+				return;
 			}
 
-			var ageWarning = "";
-			var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
-			if (userAccAge.TotalHours < 24)
-			{
-				ageWarning = $"**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
-			}
+			var invite = await DiscordUtils.GetInviteUserJoinedOnAsync(settings, user).CAF() is CachedInvite inv
+				? $"**Invite:** {inv.Code}"
+				: "";
+			var age = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime()) is TimeSpan time && time.TotalHours < 24
+				? $"**New Account:** {(int)time.TotalHours} hours, {time.Minutes} minutes old."
+				: "";
 
 			var embed = new EmbedWrapper
 			{
-				Description = $"**ID:** {user.Id}\n{invite}\n{ageWarning}",
+				Description = $"**ID:** {user.Id}\n{invite}\n{age}",
 				Color = EmbedWrapper.Join
 			};
 			embed.TryAddAuthor(user, out _);
@@ -55,16 +108,13 @@ namespace Advobot.Services.Logging.Loggers
 			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
 		}
 		/// <summary>
-		/// Handles banned names, anti raid, persistent roles, and the welcome message.
+		/// Handles banned names, antiraid, persistent roles, and the welcome message.
 		/// </summary>
+		/// <param name="settings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task OnUserJoinedActions(SocketGuildUser user)
+		private async Task HandleOtherJoinActions(IGuildSettings settings, SocketGuildUser user)
 		{
-			if (!(await GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
-			{
-				return;
-			}
 			//Banned names
 			if (settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(user.Username)))
 			{
@@ -98,31 +148,25 @@ namespace Advobot.Services.Logging.Loggers
 			}
 		}
 		/// <summary>
-		/// Logs the user leaving.
+		/// Handles logging leaves to the server log.
 		/// </summary>
+		/// <param name="settings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task OnUserLeft(SocketGuildUser user)
+		private async Task HandleLeftLogging(IGuildSettings settings, SocketGuildUser user)
 		{
-			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -1);
-			NotifyLogCounterIncrement(nameof(ILogService.UserLeaves), 1);
-			if (!TryGetSettings(user, out var settings)
-				|| settings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase))
-				|| settings.ServerLogId == 0)
+			if (settings.ServerLogId == 0)
 			{
 				return;
 			}
 
-			var userStayLength = "";
-			if (user.JoinedAt.HasValue)
-			{
-				var t = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
-				userStayLength = $"**Stayed for:** {t.Days}:{t.Hours:00}:{t.Minutes:00}:{t.Seconds:00}";
-			}
+			var stay = user.JoinedAt.HasValue && (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime()) is TimeSpan time
+				? $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}"
+				: "";
 
 			var embed = new EmbedWrapper
 			{
-				Description = $"**ID:** {user.Id}\n{userStayLength}",
+				Description = $"**ID:** {user.Id}\n{stay}",
 				Color = EmbedWrapper.Leave
 			};
 			embed.TryAddAuthor(user, out _);
@@ -132,52 +176,15 @@ namespace Advobot.Services.Logging.Loggers
 		/// <summary>
 		/// Handles the goodbye message.
 		/// </summary>
+		/// <param name="settings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task OnUserLeftActions(SocketGuildUser user)
+		private async Task HandleOtherLeftActions(IGuildSettings settings, SocketGuildUser user)
 		{
-			//Check if the bot was the one that left
-			if (user.Id == Config.BotId || !(await GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings))
-			{
-				return;
-			}
 			//Goodbye message
 			if (settings.GoodbyeMessage != null)
 			{
 				await settings.GoodbyeMessage.SendAsync(user.Guild, user).CAF();
-			}
-		}
-		/// <summary>
-		/// Logs their name change to every server that has OnUserUpdated enabled.
-		/// </summary>
-		/// <param name="beforeUser"></param>
-		/// <param name="afterUser"></param>
-		/// <returns></returns>
-		public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
-		{
-			NotifyLogCounterIncrement(nameof(ILogService.UserChanges), 1);
-			if (BotSettings.Pause || beforeUser.Username.CaseInsEquals(afterUser.Username))
-			{
-				return;
-			}
-
-			var guildsContainingUser = Client.Guilds.Where(g => g.Users.Select(u => u.Id).Contains(afterUser.Id));
-			foreach (var guild in guildsContainingUser)
-			{
-				if (!TryGetSettings(guild, out var settings) || settings.ServerLogId == 0)
-				{
-					continue;
-				}
-
-				var embed = new EmbedWrapper
-				{
-					Color = EmbedWrapper.UserEdit
-				};
-				embed.TryAddAuthor(afterUser, out _);
-				embed.TryAddField("Before:", $"`{beforeUser.Username}`", false, out _);
-				embed.TryAddField("After:", $"`{afterUser.Username}`", false, out _);
-				embed.TryAddFooter("Name Changed", null, out _);
-				await MessageUtils.SendMessageAsync(guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
 			}
 		}
 	}
