@@ -20,7 +20,7 @@ namespace Advobot.Classes.Settings
 	{
 		private const int MAX_USERS = 25;
 		private const int MAX_TIME = 60;
-		private static readonly Punisher _Giver = new Punisher(TimeSpan.FromMinutes(0), null);
+		private static readonly Punisher _Giver = new Punisher(TimeSpan.FromMinutes(0), default(ITimerService));
 		private static readonly RequestOptions _Reason = ClientUtils.CreateRequestOptions("raid prevention");
 
 		/// <summary>

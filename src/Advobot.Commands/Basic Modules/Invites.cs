@@ -58,7 +58,7 @@ namespace Advobot.Commands.Invites
 	{
 		[Command]
 		public async Task Command(
-			[VerifyObject(true, ObjectVerification.CanCreateInstantInvite)] SocketGuildChannel channel,
+			[VerifyObject(true, Verif.CanCreateInstantInvite)] SocketGuildChannel channel,
 			[Optional, VerifyNumber(new[] { 0, 1800, 3600, 21600, 43200, 86400 })] int time,
 			[Optional, VerifyNumber(new[] { 0, 1, 5, 10, 25, 50, 100 })] int uses,
 			[Optional] bool tempMem)

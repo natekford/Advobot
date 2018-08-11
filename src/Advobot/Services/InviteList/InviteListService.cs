@@ -1,14 +1,14 @@
-﻿using Advobot.Classes;
-using Advobot.Classes.Settings;
-using Advobot.Interfaces;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Advobot.Classes.Settings;
+using Advobot.Interfaces;
+using Discord;
 
 namespace Advobot.Services.InviteList
 {
+	//TODO: make the invites more centralized on this class instead of spread out in guild settings.
 	/// <summary>
 	/// Handles holding all <see cref="ListedInvite"/>.
 	/// </summary>

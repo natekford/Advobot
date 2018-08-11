@@ -20,7 +20,7 @@ namespace Advobot
 		/// <summary>
 		/// Placeholder prefix for easy replacement.
 		/// </summary>
-		public const string PLACEHOLDER_PREFIX = "%PREFIX%";
+		public const string PREFIX = "%PREFIX%";
 		/// <summary>
 		/// The invite to the Discord server.
 		/// </summary>

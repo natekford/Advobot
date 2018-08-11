@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Interfaces;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -130,6 +132,26 @@ namespace Advobot.Services.Levels
 			var (rank, totalUsers) = global ? GetGlobalRank(userId) : GetGuildRank(channel.Guild, userId);
 			var experience = global ? info.Experience : info.GetExperience(channel.Guild);
 			var level = CalculateLevel(experience);
+
+			var name = userId.ToString();
+			var pfp = default(string);
+			var user = channel.Guild.GetUser(userId);
+			if (user != null)
+			{
+				name = user.Format();
+				pfp = user.GetDefaultAvatarUrl();
+			}
+
+			//TODO: implement rest of embed
+			var embed = new EmbedWrapper
+			{
+				Title = $"{(global ? "Global" : "Guild")} xp information for {name}",
+				ThumbnailUrl = pfp,
+			};
+			embed.TryAddAuthor(user, out _);
+			embed.TryAddFooter("Xp Information", null, out _);
+			await MessageUtils.SendMessageAsync(channel, null, embed).CAF();
+
 		}
 		private void UpdateUserRank(IUserExperienceInformation info, SocketGuild guild)
 		{

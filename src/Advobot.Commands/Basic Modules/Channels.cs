@@ -56,7 +56,7 @@ namespace Advobot.Commands.Channels
 	public sealed class SoftDeleteChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] SocketGuildChannel channel)
+		public async Task Command([VerifyObject(false, Verif.CanBeManaged)] SocketGuildChannel channel)
 		{
 			foreach (var overwrite in channel.PermissionOverwrites)
 			{
@@ -95,7 +95,7 @@ namespace Advobot.Commands.Channels
 	public sealed class DeleteChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] SocketGuildChannel channel)
+		public async Task Command([VerifyObject(false, Verif.CanBeManaged)] SocketGuildChannel channel)
 		{
 			await channel.DeleteAsync(GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted `{channel.Format()}`.").CAF();
@@ -142,7 +142,7 @@ namespace Advobot.Commands.Channels
 	public sealed class ModifyChannelPosition : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeReordered)] SocketGuildChannel channel, uint position)
+		public async Task Command([VerifyObject(false, Verif.CanBeReordered)] SocketGuildChannel channel, uint position)
 		{
 			await channel.ModifyAsync(x => x.Position = (int)position, GetRequestOptions()).CAF();
 			var resp = $"Successfully moved `{channel.Format()}` to position `{position}`.";
@@ -167,7 +167,7 @@ namespace Advobot.Commands.Channels
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel channel)
+		public async Task Command([VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel channel)
 		{
 			var roleOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.Role);
 			var userOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.User);
@@ -183,7 +183,7 @@ namespace Advobot.Commands.Channels
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel channel, SocketRole role)
+		public async Task Command([VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel channel, SocketRole role)
 		{
 			if (!channel.PermissionOverwrites.Any())
 			{
@@ -200,7 +200,7 @@ namespace Advobot.Commands.Channels
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel channel, SocketGuildUser user)
+		public async Task Command([VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel channel, SocketGuildUser user)
 		{
 			if (!channel.PermissionOverwrites.Any())
 			{
@@ -255,7 +255,7 @@ namespace Advobot.Commands.Channels
 		[Command]
 		public async Task Command(
 			PermValue action,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel channel,
+			[VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel channel,
 			SocketRole role,
 			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
 		{
@@ -264,7 +264,7 @@ namespace Advobot.Commands.Channels
 		[Command]
 		public async Task Command(
 			PermValue action,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel channel,
+			[VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel channel,
 			SocketGuildUser user,
 			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
 		{
@@ -325,23 +325,23 @@ namespace Advobot.Commands.Channels
 	{
 		[Command]
 		public async Task Command(
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel inputChannel,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel outputChannel)
+			[VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel inputChannel,
+			[VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel outputChannel)
 		{
 			await CommandRunner(inputChannel, outputChannel, default(IGuildUser)).CAF();
 		}
 		[Command]
 		public async Task Command(
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel inputChannel,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel outputChannel,
+			[VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel inputChannel,
+			[VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel outputChannel,
 			SocketRole role)
 		{
 			await CommandRunner(inputChannel, outputChannel, role).CAF();
 		}
 		[Command]
 		public async Task Command(
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel inputChannel,
-			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel outputChannel,
+			[VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel inputChannel,
+			[VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel outputChannel,
 			SocketGuildUser user)
 		{
 			await CommandRunner(inputChannel, outputChannel, user).CAF();
@@ -398,7 +398,7 @@ namespace Advobot.Commands.Channels
 	public sealed class ClearChannelPerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] SocketGuildChannel channel)
+		public async Task Command([VerifyObject(false, Verif.CanModifyPermissions)] SocketGuildChannel channel)
 		{
 			foreach (var overwrite in channel.PermissionOverwrites)
 			{
@@ -424,7 +424,7 @@ namespace Advobot.Commands.Channels
 	public sealed class ModifyChannelNsfw : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] SocketTextChannel channel)
+		public async Task Command([VerifyObject(false, Verif.CanBeManaged)] SocketTextChannel channel)
 		{
 			var isNsfw = channel.IsNsfw;
 			await channel.ModifyAsync(x => x.IsNsfw = !isNsfw).CAF();
@@ -441,7 +441,7 @@ namespace Advobot.Commands.Channels
 	{
 		[Command, Priority(1)]
 		public async Task Command(
-			[VerifyObject(false, ObjectVerification.CanBeManaged)] SocketGuildChannel channel,
+			[VerifyObject(false, Verif.CanBeManaged)] SocketGuildChannel channel,
 			[Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
 			if (channel is ITextChannel && name.Contains(' '))
@@ -491,7 +491,7 @@ namespace Advobot.Commands.Channels
 			}
 
 			var channel = samePos.First();
-			var result = channel.Verify(Context, new[] { ObjectVerification.CanBeManaged });
+			var result = channel.Verify(Context, new[] { Verif.CanBeManaged });
 			if (!result.IsSuccess)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error(result.ErrorReason)).CAF();
@@ -512,7 +512,7 @@ namespace Advobot.Commands.Channels
 	{
 		[Command]
 		public async Task Command(
-			[VerifyObject(false, ObjectVerification.CanBeManaged)] SocketTextChannel channel,
+			[VerifyObject(false, Verif.CanBeManaged)] SocketTextChannel channel,
 			[Optional, Remainder, VerifyStringLength(Target.Topic)] string topic)
 		{
 			var oldTopic = channel.Topic ?? "Nothing";
@@ -534,7 +534,7 @@ namespace Advobot.Commands.Channels
 
 		[Command]
 		public async Task Command(
-			[VerifyObject(false, ObjectVerification.CanBeManaged)] SocketVoiceChannel channel,
+			[VerifyObject(false, Verif.CanBeManaged)] SocketVoiceChannel channel,
 			[VerifyNumber(MIN_USER_LIMIT, MAX_USER_LIMIT)] uint limit)
 		{
 			await channel.ModifyAsync(x => x.UserLimit = (int)limit, GetRequestOptions()).CAF();
@@ -556,7 +556,7 @@ namespace Advobot.Commands.Channels
 
 		[Command]
 		public async Task Command(
-			[VerifyObject(false, ObjectVerification.CanBeManaged)] SocketVoiceChannel channel,
+			[VerifyObject(false, Verif.CanBeManaged)] SocketVoiceChannel channel,
 			[VerifyNumber(MIN_BITRATE, VIP_BITRATE)] uint bitrate)
 		{
 			if (!Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && bitrate > MAX_BITRATE)

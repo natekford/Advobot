@@ -1,15 +1,15 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.CloseWords;
 using Advobot.Classes.Settings;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.Quotes
 {
@@ -80,25 +80,24 @@ namespace Advobot.Commands.Quotes
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
-		[Command]
-		public async Task Command([Optional, Remainder] string name)
+		[Command, Priority(1)]
+		public async Task Command([Remainder] Quote quote)
 		{
-			var quote = Context.GuildSettings.Quotes.SingleOrDefault(x => x.Name.CaseInsEquals(name));
-			if (quote != null)
-			{
-				await MessageUtils.SendMessageAsync(Context.Channel, quote.Description).CAF();
-				return;
-			}
-
-			var closeQuotes = new CloseQuotes(default, Context, Context.GuildSettings, name);
+			await MessageUtils.SendMessageAsync(Context.Channel, quote.Description).CAF();
+		}
+		[Command, Priority(0)]
+		[RequiredService(typeof(ITimerService))]
+		public async Task Command([Remainder] string quote)
+		{
+			var timers = Context.Provider.GetRequiredService<ITimerService>();
+			var closeQuotes = new CloseQuotes(default, Context, Context.GuildSettings, quote);
 			if (closeQuotes.List.Any())
 			{
 				await closeQuotes.SendBotMessageAsync(Context.Channel).CAF();
-				await Context.Timers.AddAsync(closeQuotes).CAF();
+				await timers.AddAsync(closeQuotes).CAF();
 				return;
 			}
-
-			await MessageUtils.SendErrorMessageAsync(Context, new Error($"No quote has the name `{name}`.")).CAF();
+			await MessageUtils.SendErrorMessageAsync(Context, new Error($"No quote has the name `{quote}`.")).CAF();
 		}
 	}
 }

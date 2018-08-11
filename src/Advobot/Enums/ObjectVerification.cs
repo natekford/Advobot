@@ -6,7 +6,7 @@ namespace Advobot.Enums
 	/// For use in <see cref="Classes.Attributes.VerifyObjectAttribute"/> inheriting classes to determine what to check.
 	/// </summary>
 	[Flags]
-	public enum ObjectVerification : uint
+	public enum Verif : uint
 	{
 		/// <summary>
 		/// No verification. This is generic.

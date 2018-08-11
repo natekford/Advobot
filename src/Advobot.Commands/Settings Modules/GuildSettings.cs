@@ -13,6 +13,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.GuildSettings
 {
@@ -45,6 +46,7 @@ namespace Advobot.Commands.GuildSettings
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true, false)]
 	[SaveGuildSettings]
+	[RequiredService(typeof(HelpEntryHolder))]
 	public sealed class ModifyCommands : AdvobotModuleBase
 	{
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
@@ -53,27 +55,30 @@ namespace Advobot.Commands.GuildSettings
 			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 			public async Task All()
 			{
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Context.HelpEntries.GetHelpEntries(), true);
+				var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(helpEntries.GetHelpEntries(), true);
 				var text = commands.Any() ? String.Join("`, `", commands) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
 			}
 			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
 			public async Task Category(string category)
 			{
-				if (!Context.HelpEntries.GetCategories().CaseInsContains(category))
+				var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+				if (!helpEntries.GetCategories().CaseInsContains(category))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{category}` is not a valid category.")).CAF();
 					return;
 				}
 				//Only grab commands that are already disabled and in the same category and are able to be changed.
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Context.HelpEntries.GetHelpEntiresFromCategory(category), true);
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(helpEntries.GetHelpEntiresFromCategory(category), true);
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x)) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully enabled the following commands: `{text}`.").CAF();
 			}
 			[Command]
 			public async Task Command(string commandName)
 			{
-				if (!(Context.HelpEntries[commandName] is HelpEntry helpEntry))
+				var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+				if (!(helpEntries[commandName] is HelpEntry helpEntry))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
@@ -98,27 +103,30 @@ namespace Advobot.Commands.GuildSettings
 			public async Task All()
 			{
 				//Only grab commands that are already enabled and are able to be changed.
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Context.HelpEntries.GetHelpEntries(), false);
+				var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(helpEntries.GetHelpEntries(), false);
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x)) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
 			}
 			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
 			public async Task Category(string category)
 			{
-				if (!Context.HelpEntries.GetCategories().CaseInsContains(category))
+				var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+				if (!helpEntries.GetCategories().CaseInsContains(category))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{category}` is not a valid category.")).CAF();
 					return;
 				}
 				//Only grab commands that are already enabled and in the same category and are able to be changed.
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(Context.HelpEntries.GetHelpEntiresFromCategory(category), false);
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(helpEntries.GetHelpEntiresFromCategory(category), false);
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x)) : "None";
 				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully disabled the following commands: `{text}`.").CAF();
 			}
 			[Command]
 			public async Task Command(string commandName)
 			{
-				if (!(Context.HelpEntries[commandName] is HelpEntry helpEntry))
+				var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+				if (!(helpEntries[commandName] is HelpEntry helpEntry))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
 				}
@@ -150,7 +158,7 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Enable : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel)
+			public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel)
 			{
 				if (!Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -164,45 +172,40 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
+			[RequiredService(typeof(HelpEntryHolder))]
 			public async Task Category(
-				[VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel,
+				[VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel,
 				string category)
 			{
-				if (!Context.HelpEntries.GetCategories().CaseInsContains(category))
+				var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+				if (!helpEntries.GetCategories().CaseInsContains(category))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{category}` is not a valid category.")).CAF();
 					return;
 				}
-				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(Context.HelpEntries.GetHelpEntiresFromCategory(category), true, CommandOverrideTarget.Channel, channel);
+				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(helpEntries.GetHelpEntiresFromCategory(category), true, CommandOverrideTarget.Channel, channel);
 				var resp = $"Successfully stopped ignoring the following commands on `{channel.Format()}`: `{String.Join("`, `", commands)}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command(
-				[VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel, 
-				string commandName)
+			[RequiredService(typeof(HelpEntryHolder))]
+			public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, HelpEntry helpEntry)
 			{
-				if (!(Context.HelpEntries[commandName] is HelpEntry helpEntry))
+				if (!Context.GuildSettings.CommandSettings.ModifyOverride(helpEntry, true, CommandOverrideTarget.Channel, channel))
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
-				}
-				else if (!Context.GuildSettings.CommandSettings.ModifyOverride(helpEntry, true, CommandOverrideTarget.Channel, channel))
-				{
-					var error = new Error($"`{commandName}` is already unignored on `{channel.Format()}`.");
+					var error = new Error($"`{helpEntry.Name}` is already unignored on `{channel.Format()}`.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+					return;
 				}
-				else
-				{
-					var resp = $"Successfully stopped ignoring the command `{commandName}` on `{channel.Format()}`.";
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-				}
+				var resp = $"Successfully stopped ignoring the command `{helpEntry.Name}` on `{channel.Format()}`.";
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public sealed class Disable : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel)
+			public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel)
 			{
 				if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -216,38 +219,33 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
+			[RequiredService(typeof(HelpEntryHolder))]
 			public async Task Category(
-				[VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel,
+				[VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel,
 				string category)
 			{
-				if (!Context.HelpEntries.GetCategories().CaseInsContains(category))
+				var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+				if (!helpEntries.GetCategories().CaseInsContains(category))
 				{
 					await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{category}` is not a valid category.")).CAF();
 					return;
 				}
-				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(Context.HelpEntries.GetHelpEntiresFromCategory(category), false, CommandOverrideTarget.Channel, channel);
+				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(helpEntries.GetHelpEntiresFromCategory(category), false, CommandOverrideTarget.Channel, channel);
 				var resp = $"Successfully started disabled the following commands on `{channel.Format()}`: `{String.Join("`, `", commands)}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command(
-				[VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeEdited)] ITextChannel channel, 
-				string commandName)
+			[RequiredService(typeof(HelpEntryHolder))]
+			public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, HelpEntry helpEntry)
 			{
-				if (!(Context.HelpEntries[commandName] is HelpEntry helpEntry))
+				if (!Context.GuildSettings.CommandSettings.ModifyOverride(helpEntry, false, CommandOverrideTarget.Channel, channel))
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new Error($"{commandName} is not a command.")).CAF();
-				}
-				else if (!Context.GuildSettings.CommandSettings.ModifyOverride(helpEntry, false, CommandOverrideTarget.Channel, channel))
-				{
-					var error = new Error($"`{commandName}` is already ignored on `{channel.Format()}`.");
+					var error = new Error($"`{helpEntry.Name}` is already ignored on `{channel.Format()}`.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+					return;
 				}
-				else
-				{
-					var resp = $"Successfully started ignoring the command `{commandName}` on `{channel.Format()}`.";
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-				}
+				var resp = $"Successfully started ignoring the command `{helpEntry.Name}` on `{channel.Format()}`.";
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 	}
@@ -382,13 +380,13 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Add : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
-				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			public async Task Command([VerifyObject(false, Verif.CanBeEdited)] IUser user,
+				[VerifyObject(false, Verif.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(user.Id, role).CAF();
 			}
 			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
-			public async Task Command(ulong userId, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			public async Task Command(ulong userId, [VerifyObject(false, Verif.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(userId, role).CAF();
 			}
@@ -412,13 +410,13 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Remove : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
-				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			public async Task Command([VerifyObject(false, Verif.CanBeEdited)] IUser user,
+				[VerifyObject(false, Verif.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(user.Id, role).CAF();
 			}
 			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
-			public async Task Command(ulong userId, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			public async Task Command(ulong userId, [VerifyObject(false, Verif.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(userId, role).CAF();
 			}
@@ -449,7 +447,7 @@ namespace Advobot.Commands.GuildSettings
 	public sealed class ModifyChannelSettings : AdvobotModuleBase
 	{
 		[Command(nameof(ImageOnly)), ShortAlias(nameof(ImageOnly))]
-		public async Task ImageOnly([VerifyObject(true, ObjectVerification.CanBeEdited)] ITextChannel channel)
+		public async Task ImageOnly([VerifyObject(true, Verif.CanBeEdited)] ITextChannel channel)
 		{
 			if (Context.GuildSettings.ImageOnlyChannels.Contains(channel.Id))
 			{
@@ -476,7 +474,7 @@ namespace Advobot.Commands.GuildSettings
 	public sealed class ModifyGuildNotifs : AdvobotModuleBase
 	{
 		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
-		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
+		public async Task Welcome([VerifyObject(true, Verif.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 		{
 			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
 			{
@@ -487,7 +485,7 @@ namespace Advobot.Commands.GuildSettings
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the welcome message.").CAF();
 		}
 		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
-		public async Task Goodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
+		public async Task Goodbye([VerifyObject(true, Verif.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 		{
 			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
 			{

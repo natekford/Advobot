@@ -26,9 +26,9 @@ namespace Advobot.Utilities
 		internal static VerifiedObjectResult InternalVerify(
 			ISnowflakeEntity target,
 			ICommandContext context,
-			IEnumerable<ObjectVerification> checks,
+			IEnumerable<Verif> checks,
 			string type,
-			Func<ObjectVerification, VerifiedObjectResult?> extraChecks = null)
+			Func<Verif, VerifiedObjectResult?> extraChecks = null)
 		{
 			if (target == null)
 			{
@@ -64,16 +64,16 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		internal static bool InternalCanModify(IGuildUser invoker, ISnowflakeEntity target, ObjectVerification type)
+		internal static bool InternalCanModify(IGuildUser invoker, ISnowflakeEntity target, Verif type)
 		{
 			switch (target)
 			{
 				case IGuildUser user:
 					switch (type)
 					{
-						case ObjectVerification.CanBeMovedFromChannel:
-							return InternalCanModify(invoker, user?.VoiceChannel, ObjectVerification.CanMoveUsers);
-						case ObjectVerification.CanBeEdited:
+						case Verif.CanBeMovedFromChannel:
+							return InternalCanModify(invoker, user?.VoiceChannel, Verif.CanMoveUsers);
+						case Verif.CanBeEdited:
 							return invoker.HasHigherPosition(user);
 					}
 					return true;
@@ -86,28 +86,28 @@ namespace Advobot.Utilities
 					var channelPerms = invoker?.GetPermissions(channel) ?? default;
 					switch (type)
 					{
-						case ObjectVerification.CanBeViewed:
+						case Verif.CanBeViewed:
 							return channelPerms.ViewChannel;
-						case ObjectVerification.CanCreateInstantInvite:
+						case Verif.CanCreateInstantInvite:
 							return channelPerms.ViewChannel && channelPerms.CreateInstantInvite;
-						case ObjectVerification.CanBeManaged:
+						case Verif.CanBeManaged:
 							return channelPerms.ViewChannel && channelPerms.ManageChannel;
-						case ObjectVerification.CanModifyPermissions:
+						case Verif.CanModifyPermissions:
 							return channelPerms.ViewChannel && channelPerms.ManageChannel && channelPerms.ManageRoles;
-						case ObjectVerification.CanBeReordered:
+						case Verif.CanBeReordered:
 							return channelPerms.ViewChannel && guildPerms.ManageChannels;
-						case ObjectVerification.CanDeleteMessages:
+						case Verif.CanDeleteMessages:
 							return channelPerms.ViewChannel && channelPerms.ManageMessages;
-						case ObjectVerification.CanMoveUsers:
+						case Verif.CanMoveUsers:
 							return channelPerms.MoveMembers;
-						case ObjectVerification.CanManageWebhooks:
+						case Verif.CanManageWebhooks:
 							return channelPerms.ManageWebhooks;
 					}
 					return true;
 				case IRole role:
 					switch (type)
 					{
-						case ObjectVerification.CanBeEdited:
+						case Verif.CanBeEdited:
 							return invoker is SocketGuildUser socketInvoker && socketInvoker.Hierarchy > role?.Position;
 					}
 					return true;

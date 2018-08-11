@@ -17,33 +17,21 @@ namespace Advobot.Classes
 		private static readonly string _Joiner = "\n" + new string(' ', 32);
 
 		/// <summary>
-		/// The settings for the bot.
-		/// </summary>
-		public IBotSettings BotSettings { get; }
-		/// <summary>
-		/// The logging for the bot.
-		/// </summary>
-		public ILogService Logging { get; }
-		/// <summary>
-		/// Holds timed objects, like removable messages.
-		/// </summary>
-		public ITimerService Timers { get; }
-		/// <summary>
-		/// The invite list for the bot.
-		/// </summary>
-		public IInviteListService InviteList { get; }
-		/// <summary>
 		/// The settings for the guild.
 		/// </summary>
 		public IGuildSettings GuildSettings { get; }
 		/// <summary>
-		/// Low level config for the bot.
+		/// The settings for the bot.
+		/// </summary>
+		public IBotSettings BotSettings { get; }
+		/// <summary>
+		/// The extremely basic settings for the bot.
 		/// </summary>
 		public ILowLevelConfig Config { get; }
 		/// <summary>
-		/// The help entries for all the commands.
+		/// The services that are available.
 		/// </summary>
-		public HelpEntryHolder HelpEntries { get; }
+		public IServiceProvider Provider { get; }
 		/// <summary>
 		/// The time since starting the command.
 		/// </summary>
@@ -61,13 +49,10 @@ namespace Advobot.Classes
 		public AdvobotCommandContext(IServiceProvider provider, IGuildSettings settings, DiscordShardedClient client, SocketUserMessage msg) : base(client, msg)
 		{
 			_Stopwatch.Start();
-			BotSettings = provider.GetRequiredService<IBotSettings>();
-			Logging = provider.GetRequiredService<ILogService>();
-			Timers = provider.GetRequiredService<ITimerService>();
-			InviteList = provider.GetRequiredService<IInviteListService>();
-			Config = provider.GetRequiredService<ILowLevelConfig>();
-			HelpEntries = provider.GetRequiredService<HelpEntryHolder>();
 			GuildSettings = settings;
+			BotSettings = provider.GetRequiredService<IBotSettings>();
+			Config = provider.GetRequiredService<ILowLevelConfig>();
+			Provider = provider;
 		}
 
 		/// <summary>

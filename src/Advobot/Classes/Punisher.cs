@@ -10,6 +10,7 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Classes
 {
@@ -56,6 +57,12 @@ namespace Advobot.Classes
 		/// </summary>
 		private readonly ITimerService _Timers;
 
+		/// <summary>
+		/// Creates an instance of <see cref="Punisher"/>.
+		/// </summary>
+		/// <param name="time"></param>
+		/// <param name="provider"></param>
+		public Punisher(TimeSpan time, IServiceProvider provider) : this(time, provider.GetService<ITimerService>()) { }
 		/// <summary>
 		/// Creates an instance of <see cref="Punisher"/>.
 		/// </summary>

@@ -146,7 +146,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeManaged)] SocketVoiceChannel channel)
+		public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeManaged)] SocketVoiceChannel channel)
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel>(channel), GetRequestOptions()).CAF();
 			var resp = $"Successfully set the guild AFK channel to `{channel.Format()}`.";
@@ -167,7 +167,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(true, ObjectVerification.CanBeViewed, ObjectVerification.CanBeManaged)] SocketTextChannel channel)
+		public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeManaged)] SocketTextChannel channel)
 		{
 			await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel>(channel), GetRequestOptions()).CAF();
 			var resp = $"Successfully set the guild system channel to `{channel.Format()}`.";

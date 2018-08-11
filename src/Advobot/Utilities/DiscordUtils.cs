@@ -30,20 +30,20 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="checks"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult Verify(this IRole target, ICommandContext context, IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult Verify(this IRole target, ICommandContext context, IEnumerable<Verif> checks)
 		{
 			return InternalUtils.InternalVerify(target, context, checks, "role", check =>
 			{
 				switch (check)
 				{
-					case ObjectVerification.IsNotEveryone:
+					case Verif.IsNotEveryone:
 						if (context.Guild.EveryoneRole.Id == target.Id)
 						{
 							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 								"The everyone role cannot be modified in that way.");
 						}
 						return null;
-					case ObjectVerification.IsNotManaged:
+					case Verif.IsNotManaged:
 						if (target.IsManaged)
 						{
 							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
@@ -61,7 +61,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="checks"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult Verify(this IGuildChannel target, ICommandContext context, IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult Verify(this IGuildChannel target, ICommandContext context, IEnumerable<Verif> checks)
 		{
 			return InternalUtils.InternalVerify(target, context, checks, "channel");
 		}
@@ -72,7 +72,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="checks"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult Verify(this IGuildUser target, ICommandContext context, IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult Verify(this IGuildUser target, ICommandContext context, IEnumerable<Verif> checks)
 		{
 			return InternalUtils.InternalVerify(target, context, checks, "user");
 		}
@@ -183,7 +183,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invoker, IGuildChannel target, ObjectVerification type)
+		public static bool CanModify(this IGuildUser invoker, IGuildChannel target, Verif type)
 		{
 			return InternalUtils.InternalCanModify(invoker, target, type);
 		}
@@ -194,7 +194,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invoker, IRole target, ObjectVerification type)
+		public static bool CanModify(this IGuildUser invoker, IRole target, Verif type)
 		{
 			return InternalUtils.InternalCanModify(invoker, target, type);
 		}
@@ -205,7 +205,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invoker, IGuildUser target, ObjectVerification type)
+		public static bool CanModify(this IGuildUser invoker, IGuildUser target, Verif type)
 		{
 			return InternalUtils.InternalCanModify(invoker, target, type);
 		}

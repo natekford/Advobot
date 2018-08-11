@@ -460,24 +460,28 @@ namespace Advobot.Utilities
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about the bot.
 		/// </summary>
 		/// <param name="client"></param>
-		/// <param name="logModule"></param>
+		/// <param name="logging"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatBotInfo(DiscordShardedClient client, SocketGuild guild, ILogService logModule)
+		public static EmbedWrapper FormatBotInfo(DiscordShardedClient client, SocketGuild guild, ILogService logging)
 		{
 			var embed = new EmbedWrapper
 			{
 				Description = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.ToReadable()}` (`{FormattingUtils.GetUptime()}`)\n" +
-					$"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`\n" +
+					//TODO: see if this is laggy
+					$"**Guild/User Count:** `{client.Guilds.Count}`/`{client.Guilds.SelectMany(x => x.Users).Count()}`\n" +
 					$"**Current Shard:** `{client.GetShardIdFor(guild)}`\n" +
 					$"**Latency:** `{client.Latency}ms`\n" +
 					$"**Memory Usage:** `{IOUtils.GetMemory():0.00}MB`\n" +
 					$"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`",
 			};
 			embed.TryAddAuthor(client.CurrentUser, out _);
-			embed.TryAddField("Users", logModule.FormatLoggedUserActions(true, false).Trim('\n', '\r'), false, out _);
-			embed.TryAddField("Messages", logModule.FormatLoggedMessageActions(true, false).Trim('\n', '\r'), false, out _);
-			embed.TryAddField("Commands", logModule.FormatLoggedCommands(true, false).Trim('\n', '\r'), false, out _);
+			if (logging != null)
+			{
+				embed.TryAddField("Users", logging.FormatLoggedUserActions(true, false).Trim('\n', '\r'), false, out _);
+				embed.TryAddField("Messages", logging.FormatLoggedMessageActions(true, false).Trim('\n', '\r'), false, out _);
+				embed.TryAddField("Commands", logging.FormatLoggedCommands(true, false).Trim('\n', '\r'), false, out _);
+			}
 			embed.TryAddFooter($"Versions [Bot: {Version.VERSION_NUMBER}] [API: {Constants.API_VERSION}]", null, out _);
 			return embed;
 		}

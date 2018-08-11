@@ -8,6 +8,7 @@ using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Utilities
 {
@@ -87,7 +88,9 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(AdvobotCommandContext context, string output, TimeSpan time = default)
 		{
-			return await MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)context.Channel, context.Message, output, context.Timers, time).CAF();
+			var channel = (SocketTextChannel)context.Channel;
+			var timers = context.Provider.GetService<ITimerService>();
+			return await MakeAndDeleteSecondaryMessageAsync(channel, context.Message, output, timers, time).CAF();
 		}
 		/// <summary>
 		/// Waits a few seconds then deletes the newly created message and the given message.
@@ -117,7 +120,9 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<RemovableMessage> SendErrorMessageAsync(AdvobotCommandContext context, Error error, TimeSpan time = default)
 		{
-			return await SendErrorMessageAsync((SocketTextChannel)context.Channel, context.Message, error, context.GuildSettings, context.Timers, time).CAF();
+			var channel = (SocketTextChannel)context.Channel;
+			var timers = context.Provider.GetService<ITimerService>();
+			return await SendErrorMessageAsync(channel, context.Message, error, context.GuildSettings, timers, time).CAF();
 		}
 		/// <summary>
 		/// If the guild has verbose errors enabled then this acts just like makeanddeletesecondarymessage.
@@ -129,7 +134,7 @@ namespace Advobot.Utilities
 		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> SendErrorMessageAsync(SocketTextChannel channel, IUserMessage message, Error error, IGuildSettings settings, ITimerService timers = null, TimeSpan time = default)
+		public static async Task<RemovableMessage> SendErrorMessageAsync(SocketTextChannel channel, IUserMessage message, Error error, IGuildSettings settings, ITimerService timers, TimeSpan time = default)
 		{
 			return settings.NonVerboseErrors ? default : await MakeAndDeleteSecondaryMessageAsync(channel, message, $"**ERROR:** {error.Reason}", timers, time).CAF();
 		}

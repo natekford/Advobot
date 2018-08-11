@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildList
 {
+	/*
 	[Group(nameof(ModifyGuildListing)), TopLevelShortAlias(typeof(ModifyGuildListing))]
 	[Summary("Adds or removes a guild from the public guild list.")]
 	[PermissionRequirement(null, null)]
@@ -140,5 +141,5 @@ namespace Advobot.Commands.GuildList
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
-	}
+	}*/
 }

@@ -1,17 +1,19 @@
-﻿using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Enums;
+using Advobot.Interfaces;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.Gets
 {
@@ -24,7 +26,7 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
 		public async Task Bot()
 		{
-			var embed = DiscordFormatting.FormatBotInfo(Context.Client, Context.Guild, Context.Logging);
+			var embed = DiscordFormatting.FormatBotInfo(Context.Client, Context.Guild, Context.Provider.GetService<ILogService>());
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
@@ -267,7 +269,7 @@ namespace Advobot.Commands.Gets
 	public sealed class GetMessages : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(int number, [Optional, VerifyObject(true, ObjectVerification.CanBeViewed)] SocketTextChannel channel)
+		public async Task Command(int number, [Optional, VerifyObject(true, Verif.CanBeViewed)] SocketTextChannel channel)
 		{
 			channel = channel ?? (SocketTextChannel)Context.Channel;
 			var messages = await MessageUtils.GetMessagesAsync(channel, Math.Min(number, 1000)).CAF();

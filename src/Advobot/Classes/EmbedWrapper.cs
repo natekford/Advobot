@@ -454,7 +454,7 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public bool TryAddAuthor(IUser user, out List<EmbedError> errors)
 		{
-			return TryAddAuthor(user.Username, user.GetAvatarUrl(), user.GetAvatarUrl(), out errors);
+			return TryAddAuthor(user?.Username, user?.GetAvatarUrl(), user?.GetAvatarUrl(), out errors);
 		}
 		/// <summary>
 		/// Attempts to modify the footer. Does nothing if fails.

@@ -20,7 +20,7 @@ namespace Advobot.Classes.TypeReaders
 		{
 			return context is AdvobotCommandContext aContext && (aContext.GuildSettings.Rules?.Categories?.ContainsKey(input) ?? false)
 				? Task.FromResult(TypeReaderResult.FromSuccess(input))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a rule category matching the supplied input."));
+				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"Unable to find a rule category matching `{input}`."));
 		}
 	}
 }

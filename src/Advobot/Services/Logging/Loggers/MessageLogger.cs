@@ -352,7 +352,7 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			var giver = new Punisher(TimeSpan.FromMinutes(0), null);
+			var giver = new Punisher(TimeSpan.FromMinutes(0), default(ITimerService));
 			var options = ClientUtils.CreateRequestOptions("spam prevention");
 			//Iterate through the users who are able to be punished by the spam prevention
 			foreach (var spammer in settings.SpamPreventionUsers.Where(x =>
@@ -437,7 +437,7 @@ namespace Advobot.Services.Logging.Loggers
 				var embed = new EmbedWrapper
 				{
 					Title = h.List[i].Name,
-					Description = h.List[i].Text.Replace(Constants.PLACEHOLDER_PREFIX, BotSettings.InternalGetPrefix(settings)),
+					Description = h.List[i].Text.Replace(Constants.PREFIX, BotSettings.InternalGetPrefix(settings)),
 				};
 				embed.TryAddFooter("Help", null, out _);
 				await MessageUtils.SendMessageAsync(message.Channel, null, embed).CAF();

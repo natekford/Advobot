@@ -386,7 +386,7 @@ namespace Advobot.Commands.BannedPhrases
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] SocketRole role, uint position, [Optional] uint time)
+			public async Task Command([VerifyObject(false, Verif.CanBeEdited)] SocketRole role, uint position, [Optional] uint time)
 			{
 				if (position == default)
 				{

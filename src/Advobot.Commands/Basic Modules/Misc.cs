@@ -11,6 +11,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.Misc
 {
@@ -21,8 +22,8 @@ namespace Advobot.Commands.Misc
 	public sealed class Help : AdvobotModuleBase
 	{
 		private static readonly string _GeneralHelp =
-			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)}` for the list of commands.\n" +
-			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Help)} [Command]` for help with a command.";
+			$"Type `{Constants.PREFIX}{nameof(Commands)}` for the list of commands.\n" +
+			$"Type `{Constants.PREFIX}{nameof(Help)} [Command]` for help with a command.";
 		private static readonly string _BasicSyntax =
 			"`[]` means required.\n" +
 			"`<>` means optional.\n" +
@@ -41,7 +42,7 @@ namespace Advobot.Commands.Misc
 			var embed = new EmbedWrapper
 			{
 				Title = "General Help",
-				Description = _GeneralHelp.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix())
+				Description = _GeneralHelp.Replace(Constants.PREFIX, Context.GetPrefix())
 			};
 			embed.TryAddField("Basic Syntax", _BasicSyntax, true, out _);
 			embed.TryAddField("Mention Syntax", _MentionSyntax, true, out _);
@@ -49,32 +50,33 @@ namespace Advobot.Commands.Misc
 			embed.TryAddFooter("Help", null, out _);
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
-		[Command]
-		public async Task Command(string commandName)
+		[Command, Priority(1)]
+		[RequiredService(typeof(HelpEntryHolder))]
+		public async Task Command([Remainder] HelpEntry command)
 		{
-			var helpEntry = Context.HelpEntries[commandName];
-			if (helpEntry != null)
+			var embed = new EmbedWrapper
 			{
-				var embed = new EmbedWrapper
-				{
-					Title = helpEntry.Name,
-					Description = helpEntry.ToString(Context.GuildSettings.CommandSettings)
-						.Replace(Constants.PLACEHOLDER_PREFIX, Context.GetPrefix())
-				};
-				embed.TryAddFooter("Help", null, out _);
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-				return;
-			}
-
-			var closeHelps = new CloseHelpEntries(default, Context, Context.HelpEntries, Context.GuildSettings.CommandSettings, commandName);
+				Title = command.Name,
+				Description = command.ToString(Context.GuildSettings.CommandSettings).Replace(Constants.PREFIX, Context.GetPrefix())
+			};
+			embed.TryAddFooter("Help", null, out _);
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+		}
+		[Command, Priority(0)]
+		[RequiredService(typeof(HelpEntryHolder))]
+		[RequiredService(typeof(ITimerService))]
+		public async Task Command([Remainder] string command)
+		{
+			var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+			var timers = Context.Provider.GetRequiredService<ITimerService>();
+			var closeHelps = new CloseHelpEntries(default, Context, helpEntries, Context.GuildSettings.CommandSettings, command);
 			if (closeHelps.List.Any())
 			{
 				await closeHelps.SendBotMessageAsync(Context.Channel).CAF();
-				await Context.Timers.AddAsync(closeHelps).CAF();
+				await timers.AddAsync(closeHelps).CAF();
 				return;
 			}
-
-			await MessageUtils.SendErrorMessageAsync(Context, new Error("Nonexistent command.")).CAF();
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Unable to find any commands similar to `{command}`.").CAF();
 		}
 	}
 
@@ -82,22 +84,25 @@ namespace Advobot.Commands.Misc
 	[Summary("Prints out the commands in that category of the command list. " +
 		"Inputting nothing will list the command categories.")]
 	[DefaultEnabled(true)]
+	[RequiredService(typeof(HelpEntryHolder))]
 	public sealed class Commands : AdvobotModuleBase
 	{
 		[Command(nameof(All)), ShortAlias(nameof(All))]
 		public async Task All()
 		{
+			var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
 			var embed = new EmbedWrapper
 			{
 				Title = "All Commands",
-				Description = $"`{String.Join("`, `", Context.HelpEntries.GetHelpEntries().Select(x => x.Name))}`"
+				Description = $"`{String.Join("`, `", helpEntries.GetHelpEntries().Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command(string category)
 		{
-			if (!Context.HelpEntries.GetCategories().CaseInsContains(category))
+			var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+			if (!helpEntries.GetCategories().CaseInsContains(category))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{category}` is not a valid category.")).CAF();
 				return;
@@ -105,18 +110,19 @@ namespace Advobot.Commands.Misc
 			var embed = new EmbedWrapper
 			{
 				Title = category,
-				Description = $"`{String.Join("`, `", Context.HelpEntries.GetHelpEntiresFromCategory(category).Select(x => x.Name))}`"
+				Description = $"`{String.Join("`, `", helpEntries.GetHelpEntiresFromCategory(category).Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command()
 		{
+			var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
 			var embed = new EmbedWrapper
 			{
 				Title = "Categories",
 				Description = $"Type `{Context.GetPrefix()}{nameof(Commands)} [Category]` for commands from that category.\n\n" +
-					$"`{String.Join("`, `", Context.HelpEntries.GetCategories())}`",
+					$"`{String.Join("`, `", helpEntries.GetCategories())}`",
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
@@ -149,7 +155,7 @@ namespace Advobot.Commands.Misc
 	public sealed class MessageRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsNotEveryone)] IRole role, [Remainder] string message)
+		public async Task Command([VerifyObject(false, Verif.CanBeEdited, Verif.IsNotEveryone)] IRole role, [Remainder] string message)
 		{
 			if (role.IsMentionable)
 			{
@@ -196,13 +202,15 @@ namespace Advobot.Commands.Misc
 	[Summary("Sends a message to the person who said the command after the passed in time is up. " +
 		"Potentially may take one minute longer than asked for if the command is input at certain times.")]
 	[DefaultEnabled(true)]
+	[RequiredService(typeof(ITimerService))]
 	public sealed class Remind : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyNumber(1, 10000)] uint minutes, [Remainder] string message)
 		{
-			await Context.Timers.AddAsync(new TimedMessage(TimeSpan.FromMinutes(minutes), Context.User as IGuildUser, message)).CAF();
-			await MessageUtils.SendMessageAsync(Context.Channel, $"Will send the message in around `{minutes}` minute(s).").CAF();
+			var timers = Context.Provider.GetRequiredService<ITimerService>();
+			await timers.AddAsync(new TimedMessage(TimeSpan.FromMinutes(minutes), Context.User, message)).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, $"Will remind in `{minutes}` minute(s).").CAF();
 		}
 	}
 

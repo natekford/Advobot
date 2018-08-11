@@ -92,7 +92,7 @@ namespace Advobot.Classes
 		private void SetStrings()
 		{
 			_A = $"**Aliases:** {String.Join(", ", Aliases)}\n";
-			_U = $"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}\n";
+			_U = $"**Usage:** {Constants.PREFIX}{Name} {Usage}\n";
 			_E = $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n";
 			_B = $"**Base Permission(s):**\n{BasePerms}\n";
 			_D = $"**Description:**\n{Description}";

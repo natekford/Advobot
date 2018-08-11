@@ -22,7 +22,6 @@ namespace Advobot.Classes
 		private readonly CancellationTokenSource _CancelToken;
 		private readonly SocketTextChannel _Channel;
 		private readonly IUserMessage _Message;
-		private readonly ITimerService _Timers;
 		private readonly List<SocketGuildUser> _Users;
 
 		/// <summary>
@@ -31,7 +30,7 @@ namespace Advobot.Classes
 		/// <param name="context"></param>
 		/// <param name="timers"></param>
 		/// <param name="users"></param>
-		public MultiUserAction(ICommandContext context, ITimerService timers, IEnumerable<SocketGuildUser> users)
+		public MultiUserAction(ICommandContext context, IEnumerable<SocketGuildUser> users)
 		{
 			_CancelToken = new CancellationTokenSource();
 			_CancelTokens.AddOrUpdate(context.Guild.Id, _CancelToken, (oldKey, oldValue) =>
@@ -41,7 +40,6 @@ namespace Advobot.Classes
 			});
 			_Channel = (SocketTextChannel)context.Channel;
 			_Message = context.Message;
-			_Timers = timers;
 			_Users = users.ToList();
 		}
 
@@ -131,8 +129,7 @@ namespace Advobot.Classes
 			}
 
 			await MessageUtils.DeleteMessageAsync(msg, options).CAF();
-			var response = $"Successfully {pastTense} `{successCount}` users.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(_Channel, _Message, response, _Timers).CAF();
+			await MessageUtils.SendMessageAsync(_Channel, $"Successfully {pastTense} `{successCount}` users.").CAF();
 		}
 	}
 }

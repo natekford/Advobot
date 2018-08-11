@@ -5,7 +5,7 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Indicates that the targetted module requires the specified type.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
 	public sealed class RequiredServiceAttribute : Attribute
 	{
 		/// <summary>

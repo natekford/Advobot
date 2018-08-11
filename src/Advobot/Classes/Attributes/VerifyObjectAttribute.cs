@@ -16,7 +16,7 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
-		private readonly ImmutableList<ObjectVerification> _Checks;
+		private readonly ImmutableList<Verif> _Checks;
 		private readonly bool _IfNullCheckFromContext;
 
 		/// <summary>
@@ -24,7 +24,7 @@ namespace Advobot.Classes.Attributes
 		/// </summary>
 		/// <param name="ifNullCheckFromContext"></param>
 		/// <param name="checks"></param>
-		public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
+		public VerifyObjectAttribute(bool ifNullCheckFromContext, params Verif[] checks)
 		{
 			_Checks = checks.ToImmutableList();
 			_IfNullCheckFromContext = ifNullCheckFromContext;
