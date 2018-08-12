@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -28,7 +27,6 @@ namespace Advobot.Classes
 		/// Creates an instance of multi user action and cancels all previous instances.
 		/// </summary>
 		/// <param name="context"></param>
-		/// <param name="timers"></param>
 		/// <param name="users"></param>
 		public MultiUserAction(ICommandContext context, IEnumerable<SocketGuildUser> users)
 		{

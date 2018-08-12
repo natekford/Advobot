@@ -17,7 +17,7 @@ using ImageMagick;
 
 namespace Advobot.Commands.Emotes
 {
-	[Group(nameof(CreateEmote)), TopLevelShortAlias(typeof(CreateEmote))]
+	[Category(typeof(CreateEmote)), Group(nameof(CreateEmote)), TopLevelShortAlias(typeof(CreateEmote))]
 	[Summary("Adds an emote to the server. " +
 		"Requires either an emote to copy, or the name and file to make an emote out of.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
@@ -63,7 +63,7 @@ namespace Advobot.Commands.Emotes
 		}
 	}
 
-	[Group(nameof(DeleteEmote)), TopLevelShortAlias(typeof(DeleteEmote))]
+	[Category(typeof(DeleteEmote)), Group(nameof(DeleteEmote)), TopLevelShortAlias(typeof(DeleteEmote))]
 	[Summary("Deletes the supplied emote from the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
@@ -77,7 +77,7 @@ namespace Advobot.Commands.Emotes
 		}
 	}
 
-	[Group(nameof(ModifyEmoteName)), TopLevelShortAlias(typeof(ModifyEmoteName))]
+	[Category(typeof(ModifyEmoteName)), Group(nameof(ModifyEmoteName)), TopLevelShortAlias(typeof(ModifyEmoteName))]
 	[Summary("Changes the name of the supplied emote.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
@@ -90,7 +90,7 @@ namespace Advobot.Commands.Emotes
 		}
 	}
 
-	[Group(nameof(ModifyEmoteRoles)), TopLevelShortAlias(typeof(ModifyEmoteRoles))]
+	[Category(typeof(ModifyEmoteRoles)), Group(nameof(ModifyEmoteRoles)), TopLevelShortAlias(typeof(ModifyEmoteRoles))]
 	[Summary("Changes the roles which are ALL necessary to use an emote. " +
 		"Your Discord client will need to be restarted after editing this in order to see the emote again, even if you give yourself the roles.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
@@ -152,7 +152,7 @@ namespace Advobot.Commands.Emotes
 		}
 	}
 
-	[Group(nameof(DisplayEmotes)), TopLevelShortAlias(typeof(DisplayEmotes))]
+	[Category(typeof(DisplayEmotes)), Group(nameof(DisplayEmotes)), TopLevelShortAlias(typeof(DisplayEmotes))]
 	[Summary("Lists the emotes in the guild. If there are more than 20 emotes of a specified type, they will be uploaded in a file.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
@@ -176,12 +176,16 @@ namespace Advobot.Commands.Emotes
 
 		private async Task CommandRunner(List<GuildEmote> emotes, [CallerMemberName] string caller = "")
 		{
+			if (!emotes.Any())
+			{
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"This guild has no {caller.ToLower()} emotes.").CAF();
+				return;
+			}
+
 			var embed = new EmbedWrapper
 			{
 				Title = "Emotes",
-				Description = emotes.Any()
-					? emotes.FormatNumberedList(x => $"{x} `{x.Name}`")
-					: $"This guild has no {caller.ToLower()} emotes.",
+				Description = emotes.FormatNumberedList(x => $"{x} `{x.Name}`")
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}

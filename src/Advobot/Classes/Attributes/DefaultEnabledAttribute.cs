@@ -18,7 +18,7 @@ namespace Advobot.Classes.Attributes
 		public bool AbleToToggle { get; }
 
 		/// <summary>
-		/// Sets the values.
+		/// Creates an instance of <see cref="DefaultEnabledAttribute"/>.
 		/// </summary>
 		/// <param name="enabled"></param>
 		/// <param name="ableToToggle"></param>

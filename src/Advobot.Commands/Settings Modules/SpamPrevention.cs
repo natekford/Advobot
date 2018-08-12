@@ -10,7 +10,7 @@ using Discord.Commands;
 
 namespace Advobot.Commands.SpamPrevention
 {
-	[Group(nameof(PreventSpam)), TopLevelShortAlias(typeof(PreventSpam))]
+	[Category(typeof(PreventSpam)), Group(nameof(PreventSpam)), TopLevelShortAlias(typeof(PreventSpam))]
 	[Summary("Spam prevention allows for some protection against mention spammers. " +
 		"Messages is the amount of messages a user has to send with the given amount of mentions before being considered as potential spam. " +
 		"Votes is the amount of users that have to agree with the potential punishment. " +
@@ -62,7 +62,7 @@ namespace Advobot.Commands.SpamPrevention
 		}
 	}
 
-	[Group(nameof(PreventRaid)), TopLevelShortAlias(typeof(PreventRaid))]
+	[Category(typeof(PreventRaid)), Group(nameof(PreventRaid)), TopLevelShortAlias(typeof(PreventRaid))]
 	[Summary("Any users who joins from now on will get text muted. " +
 		"Once `preventraid` is turned off all the users who were muted will be unmuted. " +
 		"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]

@@ -17,7 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.Gets
 {
-	[Group(nameof(GetInfo)), TopLevelShortAlias(typeof(GetInfo))]
+	[Category(typeof(GetInfo)), Group(nameof(GetInfo)), TopLevelShortAlias(typeof(GetInfo))]
 	[Summary("Shows information about the given object. " +
 		"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
@@ -83,7 +83,7 @@ namespace Advobot.Commands.Gets
 		}
 	}
 
-	[Group(nameof(GetUsersWithReason)), TopLevelShortAlias(typeof(GetUsersWithReason))]
+	[Category(typeof(GetUsersWithReason)), Group(nameof(GetUsersWithReason)), TopLevelShortAlias(typeof(GetUsersWithReason))]
 	[Summary("Gets users with a variable reason. " +
 		"`Count` specifies if to say the count. " +
 		"`Nickname` specifies if to include nickanmes. " +
@@ -173,7 +173,7 @@ namespace Advobot.Commands.Gets
 		}
 	}
 
-	[Group(nameof(GetUserAvatar)), TopLevelShortAlias(typeof(GetUserAvatar))]
+	[Category(typeof(GetUserAvatar)), Group(nameof(GetUserAvatar)), TopLevelShortAlias(typeof(GetUserAvatar))]
 	[Summary("Shows the URL of the given user's avatar. Must supply a format, can supply a size, and can specify which user.")]
 	[DefaultEnabled(true)]
 	public sealed class GetUserAvatar : AdvobotModuleBase
@@ -190,7 +190,7 @@ namespace Advobot.Commands.Gets
 		}
 	}
 
-	[Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(typeof(GetUserJoinedAt))]
+	[Category(typeof(GetUserJoinedAt)), Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(typeof(GetUserJoinedAt))]
 	[Summary("Shows the user which joined the guild in that position.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
@@ -207,7 +207,7 @@ namespace Advobot.Commands.Gets
 		}
 	}
 
-	[Group(nameof(GetGuilds)), TopLevelShortAlias(typeof(GetGuilds))]
+	[Category(typeof(GetGuilds)), Group(nameof(GetGuilds)), TopLevelShortAlias(typeof(GetGuilds))]
 	[Summary("Lists the name, id, and owner of every guild the bot is on.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -241,7 +241,7 @@ namespace Advobot.Commands.Gets
 		}
 	}
 
-	[Group(nameof(GetUserJoinList)), TopLevelShortAlias(typeof(GetUserJoinList))]
+	[Category(typeof(GetUserJoinList)), Group(nameof(GetUserJoinList)), TopLevelShortAlias(typeof(GetUserJoinList))]
 	[Summary("Lists most of the users who have joined the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
@@ -261,7 +261,7 @@ namespace Advobot.Commands.Gets
 		}
 	}
 
-	[Group(nameof(GetMessages)), TopLevelShortAlias(typeof(GetMessages))]
+	[Category(typeof(GetMessages)), Group(nameof(GetMessages)), TopLevelShortAlias(typeof(GetMessages))]
 	[Summary("Downloads the past x amount of messages. " +
 		"Up to 1000 messages or 500KB worth of formatted text.")]
 	[PermissionRequirement(null, null)]
@@ -297,7 +297,7 @@ namespace Advobot.Commands.Gets
 		}
 	}
 
-	[Group(nameof(GetPermNamesFromValue)), TopLevelShortAlias(typeof(GetPermNamesFromValue))]
+	[Category(typeof(GetPermNamesFromValue)), Group(nameof(GetPermNamesFromValue)), TopLevelShortAlias(typeof(GetPermNamesFromValue))]
 	[Summary("Lists all the perms that come from the given value.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
@@ -329,7 +329,7 @@ namespace Advobot.Commands.Gets
 		}
 	}
 
-	[Group(nameof(GetEnumNames)), TopLevelShortAlias(typeof(GetEnumNames))]
+	[Category(typeof(GetEnumNames)), Group(nameof(GetEnumNames)), TopLevelShortAlias(typeof(GetEnumNames))]
 	[Summary("Prints out all the options of an enum.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
@@ -360,7 +360,7 @@ namespace Advobot.Commands.Gets
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"No enum has the name `{enumName}`.")).CAF();
 				return;
 			}
-			if (matchingNames.Count() > 1)
+			if (matchingNames.Count > 1)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Too many enums have the name `{enumName}`.")).CAF();
 				return;

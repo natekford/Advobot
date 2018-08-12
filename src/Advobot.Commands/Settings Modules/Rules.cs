@@ -12,7 +12,7 @@ using Discord.Commands;
 
 namespace Advobot.Commands.Rules
 {
-	[Group(nameof(ModifyRuleCategories)), TopLevelShortAlias(typeof(ModifyRuleCategories))]
+	[Category(typeof(ModifyRuleCategories)), Group(nameof(ModifyRuleCategories)), TopLevelShortAlias(typeof(ModifyRuleCategories))]
 	[Summary("Modifies the rule categories which hold rules.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -51,7 +51,7 @@ namespace Advobot.Commands.Rules
 		}
 	}
 
-	[Group(nameof(ModifyRules)), TopLevelShortAlias(typeof(ModifyRules))]
+	[Category(typeof(ModifyRules)), Group(nameof(ModifyRules)), TopLevelShortAlias(typeof(ModifyRules))]
 	[Summary("Modifies the rules which are saved in the bot settings.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -92,7 +92,7 @@ namespace Advobot.Commands.Rules
 		}
 	}
 
-	[Group(nameof(PrintOutRules)), TopLevelShortAlias(typeof(PrintOutRules))]
+	[Category(typeof(PrintOutRules)), Group(nameof(PrintOutRules)), TopLevelShortAlias(typeof(PrintOutRules))]
 	[Summary("Prints out the rules with given formatting options. " +
 		"`Format` uses the `" + nameof(RuleFormat) + "` enum. " +
 		"`TitleFormat` and `RuleFormat` use the `" + nameof(MarkDownFormat) + "` enum. " +

@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
+using Advobot.Services.HelpEntries;
 using Advobot.Services.InviteList;
 using Advobot.Services.Levels;
 using Advobot.Services.Logging;
@@ -33,8 +32,8 @@ namespace Advobot.Utilities
 			commands = commands ?? DiscordUtils.GetCommandAssemblies();
 			//I have no idea if I am providing services correctly, but it works.
 			var s = new ServiceCollection();
-			s.AddSingleton<HelpEntryHolder>(p => new HelpEntryHolder(commands));
 			s.AddSingleton<DiscordShardedClient>(p => CreateDiscordClient(config));
+			s.AddSingleton<IHelpEntryService>(p => new HelpEntryService());
 			s.AddSingleton<ILowLevelConfig>(config);
 			s.AddSingleton<IBotSettings>(p => BotSettings.Load<BotSettings>(config));
 			s.AddSingleton<ILevelService>(p => new LevelService(s.Create(p), new LevelServiceArguments()));

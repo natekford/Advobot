@@ -15,7 +15,7 @@ using Discord.Commands;
 namespace Advobot.Commands.BotSettings
 {
 	//TODO: this for low level config
-	[Group(nameof(ModifyBotSettings)), TopLevelShortAlias(typeof(ModifyBotSettings))]
+	[Category(typeof(ModifyBotSettings)), Group(nameof(ModifyBotSettings)), TopLevelShortAlias(typeof(ModifyBotSettings))]
 	[Summary("Modify the given setting on the bot. " +
 		"`Show` lists the setting names. " +
 		"`Reset` resets a setting back to default. " +
@@ -129,7 +129,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(DisplayBotSettings)), TopLevelShortAlias(typeof(DisplayBotSettings))]
+	[Category(typeof(DisplayBotSettings)), Group(nameof(DisplayBotSettings)), TopLevelShortAlias(typeof(DisplayBotSettings))]
 	[Summary("Displays global settings. " +
 		"`Show` gives a list of the setting names.")]
 	[OtherRequirement(Precondition.BotOwner)]
@@ -187,7 +187,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ModifyBotName)), TopLevelShortAlias(typeof(ModifyBotName))]
+	[Category(typeof(ModifyBotName)), Group(nameof(ModifyBotName)), TopLevelShortAlias(typeof(ModifyBotName))]
 	[Summary("Changes the bot's name to the given name.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -201,7 +201,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ModifyBotIcon)), TopLevelShortAlias(typeof(ModifyBotIcon))]
+	[Category(typeof(ModifyBotIcon)), Group(nameof(ModifyBotIcon)), TopLevelShortAlias(typeof(ModifyBotIcon))]
 	[Summary("Changes the bot's icon to the given image. " +
 		"The image must be smaller than 2.5MB.")]
 	[OtherRequirement(Precondition.BotOwner)]
@@ -240,7 +240,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(DisconnectBot)), TopLevelShortAlias(typeof(DisconnectBot), "runescapeservers")]
+	[Category(typeof(DisconnectBot)), Group(nameof(DisconnectBot)), TopLevelShortAlias(typeof(DisconnectBot), "runescapeservers")]
 	[Summary("Turns the bot off.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -253,7 +253,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(RestartBot)), TopLevelShortAlias(typeof(RestartBot))]
+	[Category(typeof(RestartBot)), Group(nameof(RestartBot)), TopLevelShortAlias(typeof(RestartBot))]
 	[Summary("Restarts the bot.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]

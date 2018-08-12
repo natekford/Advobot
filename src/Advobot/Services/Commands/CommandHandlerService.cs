@@ -55,13 +55,13 @@ namespace Advobot.Services.Commands
 			_Commands.AddTypeReader<IInvite>(new InviteTypeReader());
 			_Commands.AddTypeReader<IBan>(new BanTypeReader());
 			_Commands.AddTypeReader<IWebhook>(new WebhookTypeReader());
+			_Commands.AddTypeReader<IHelpEntry>(new HelpEntryTypeReader());
 			_Commands.AddTypeReader<Emote>(new EmoteTypeReader());
 			_Commands.AddTypeReader<GuildEmote>(new GuildEmoteTypeReader());
 			_Commands.AddTypeReader<Color>(new ColorTypeReader());
 			_Commands.AddTypeReader<Uri>(new UriTypeReader());
 			_Commands.AddTypeReader<ModerationReason>(new ModerationReasonTypeReader());
 			_Commands.AddTypeReader<Quote>(new QuoteTypeReader());
-			_Commands.AddTypeReader<HelpEntry>(new HelpEntryTypeReader());
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()
 				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
@@ -121,6 +121,7 @@ namespace Advobot.Services.Commands
 					}
 				}
 			}
+			_Provider.GetRequiredService<IHelpEntryService>().Add(_Commands.Modules);
 
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +

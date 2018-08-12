@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.GuildList
 {
 	/*
-	[Group(nameof(ModifyGuildListing)), TopLevelShortAlias(typeof(ModifyGuildListing))]
+	[Group(nameof(ModifyGuildListing)), Group(nameof(aaa)), TopLevelShortAlias(typeof(ModifyGuildListing))]
 	[Summary("Adds or removes a guild from the public guild list.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -54,7 +54,7 @@ namespace Advobot.Commands.GuildList
 		}
 	}
 
-	[Group(nameof(BumpGuildListing)), TopLevelShortAlias(typeof(BumpGuildListing))]
+	[Group(nameof(BumpGuildListing)), Group(nameof(aaa)), TopLevelShortAlias(typeof(BumpGuildListing))]
 	[Summary("Bumps the invite on the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
@@ -80,7 +80,7 @@ namespace Advobot.Commands.GuildList
 		}
 	}
 
-	[Group(nameof(GetGuildListing)), TopLevelShortAlias(typeof(GetGuildListing))]
+	[Group(nameof(GetGuildListing)), Group(nameof(aaa)), TopLevelShortAlias(typeof(GetGuildListing))]
 	[Summary("Gets an invite meeting the given criteria.")]
 	[DefaultEnabled(true)]
 	public sealed class GetGuildListing : AdvobotModuleBase

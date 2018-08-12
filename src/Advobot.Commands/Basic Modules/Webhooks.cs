@@ -17,7 +17,7 @@ using Discord.Commands;
 
 namespace Advobot.Commands.Webhooks
 {
-	[Group(nameof(GetWebhooks)), TopLevelShortAlias(typeof(GetWebhooks))]
+	[Category(typeof(GetWebhooks)), Group(nameof(GetWebhooks)), TopLevelShortAlias(typeof(GetWebhooks))]
 	[Summary("Lists all the webhooks on the guild or the specified channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
@@ -55,7 +55,7 @@ namespace Advobot.Commands.Webhooks
 		}
 	}
 
-	[Group(nameof(DeleteWebhook)), TopLevelShortAlias(typeof(DeleteWebhook))]
+	[Category(typeof(DeleteWebhook)), Group(nameof(DeleteWebhook)), TopLevelShortAlias(typeof(DeleteWebhook))]
 	[Summary("Deletes a webhook from the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
@@ -69,7 +69,7 @@ namespace Advobot.Commands.Webhooks
 		}
 	}
 
-	[Group(nameof(ModifyWebhookName)), TopLevelShortAlias(typeof(ModifyWebhookName))]
+	[Category(typeof(ModifyWebhookName)), Group(nameof(ModifyWebhookName)), TopLevelShortAlias(typeof(ModifyWebhookName))]
 	[Summary("Changes the name of a webhook.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
@@ -84,7 +84,7 @@ namespace Advobot.Commands.Webhooks
 		}
 	}
 
-	[Group(nameof(ModifyWebhookChannel)), TopLevelShortAlias(typeof(ModifyWebhookChannel))]
+	[Category(typeof(ModifyWebhookChannel)), Group(nameof(ModifyWebhookChannel)), TopLevelShortAlias(typeof(ModifyWebhookChannel))]
 	[Summary("Changes the channel of a webhook.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
@@ -99,7 +99,7 @@ namespace Advobot.Commands.Webhooks
 		}
 	}
 
-	[Group(nameof(ModifyWebhookIcon)), TopLevelShortAlias(typeof(ModifyWebhookIcon))]
+	[Category(typeof(ModifyWebhookIcon)), Group(nameof(ModifyWebhookIcon)), TopLevelShortAlias(typeof(ModifyWebhookIcon))]
 	[Summary("Changes the icon of a webhook.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
@@ -137,7 +137,7 @@ namespace Advobot.Commands.Webhooks
 		}
 	}
 
-	[Group(nameof(SendMessageThroughWebhook)), TopLevelShortAlias(typeof(SendMessageThroughWebhook))]
+	[Category(typeof(SendMessageThroughWebhook)), Group(nameof(SendMessageThroughWebhook)), TopLevelShortAlias(typeof(SendMessageThroughWebhook))]
 	[Summary("Sends a message through a webhook.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(false)]

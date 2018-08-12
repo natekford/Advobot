@@ -2,8 +2,6 @@
 using System.Threading.Tasks;
 using Advobot.Interfaces;
 using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Classes.Attributes
 {
@@ -13,6 +11,7 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public sealed class CommandRequirementAttribute : PreconditionAttribute
 	{
+		//TODO: rework this?
 		/// <summary>
 		/// Makes sure all the required checks are passed. Otherwise returns an error string.
 		/// </summary>
@@ -26,22 +25,17 @@ namespace Advobot.Classes.Attributes
 			{
 				throw new ArgumentException("Invalid context provided.");
 			}
-			if (!(aContext.Guild.CurrentUser is SocketGuildUser bot))
-			{
-				return Task.FromResult(PreconditionResult.FromError("Unable to get the bot."));
-			}
-			if (!(aContext.GuildSettings is IGuildSettings settings))
+			if (!(aContext.GuildSettings is IGuildSettings s))
 			{
 				return Task.FromResult(PreconditionResult.FromError("Unable to get the guild settings."));
 			}
-			if (!settings.Loaded)
+			if (!s.Loaded)
 			{
 				return Task.FromResult(PreconditionResult.FromError("Wait until the guild is loaded."));
 			}
-			if (settings.IgnoredCommandChannels.Contains(context.Channel.Id)
-				|| !settings.CommandSettings.IsCommandEnabled(services.GetRequiredService<HelpEntryHolder>(), context, command))
+			if (s.IgnoredCommandChannels.Contains(context.Channel.Id) || !s.CommandSettings.IsCommandEnabled(context, command))
 			{
-				return Task.FromResult(PreconditionResult.FromError((string)null));
+				return Task.FromResult(PreconditionResult.FromError(default(string)));
 			}
 			return Task.FromResult(PreconditionResult.FromSuccess());
 		}

@@ -1,4 +1,5 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -46,81 +47,82 @@ namespace Advobot.Classes.UsageGeneration
 		/// <returns></returns>
 		public static string GenerateUsage(Type command)
 		{
-			if (command.IsNested)
+			return GenerateUsage(command, c => c.IsNested, (c, l, i) => GetAllNestedClassesAndMethods(c, l, i));
+		}
+		/// <summary>
+		/// Generates a string indicating how the command is used.
+		/// </summary>
+		/// <param name="module"></param>
+		/// <returns></returns>
+		public static string GenerateUsage(ModuleInfo module)
+		{
+			return GenerateUsage(module, m => m.IsSubmodule, (m, l, i) => GetAllNestedClassesAndMethods(m, l, i));
+		}
+		private static string GenerateUsage<T>(T obj, Func<T, bool> nested, Action<T, MemberLists, int> fillLists)
+		{
+			if (nested(obj))
 			{
-				throw new ArgumentException("only use this method on a non nested class", nameof(command));
+				throw new ArgumentException("Only use this method on a non nested module.");
 			}
 
-			var classes = new List<ClassDetails>();
-			var methods = new List<MethodDetails>();
-			var parameters = new List<ParameterDetails>();
-			GetAllNestedClassesAndMethods(command, classes, methods, parameters);
-			RemoveDuplicateClasses(ref classes);
-			RemoveDuplicateMethods(ref methods);
-			RemoveDuplicateParameters(ref parameters);
-
-			return CreateText(classes, methods, parameters);
+			var lists = new MemberLists();
+			fillLists(obj, lists, 0);
+			lists.RemoveDuplicates();
+			return CreateText(lists);
 		}
-		private static void GetAllNestedClassesAndMethods(Type command, List<ClassDetails> classes, List<MethodDetails> methods, List<ParameterDetails> parameters, int deepness = 0)
+		private static void GetAllNestedClassesAndMethods(ModuleInfo module, MemberLists lists, int deepness = 0)
 		{
-			foreach (var method in GetCommands(command))
+			foreach (var method in module.Commands)
 			{
-				var m = new MethodDetails(deepness, method);
-				methods.Add(m);
-
-				var p = method.GetParameters();
-				for (var i = 0; i < p.Length; ++i)
+				if (method.Name != "Command")
 				{
-					parameters.Add(new ParameterDetails((m.Name != null ? 1 : 0) + deepness + i, p[i]));
+					var m = new MethodDetails(deepness, method.Name, method.Parameters.Count);
+					lists.Methods.Add(m);
+				}
+
+				var parameters = method.Parameters;
+				for (var i = 0; i < parameters.Count; ++i)
+				{
+					var pDeepness = (method.Name != "Command" ? 1 : 0) + deepness + i;
+					var p = parameters[i];
+					lists.Parameters.Add(new ParameterDetails(deepness, p));
 				}
 			}
-
-			foreach (var type in GetNestedCommandClasses(command))
+			foreach (var nested in module.Submodules)
 			{
-				classes.Add(new ClassDetails(deepness, type));
-				GetAllNestedClassesAndMethods(type, classes, methods, parameters, deepness + 1);
+				lists.Classes.Add(new ClassDetails(deepness, nested.Name));
+				GetAllNestedClassesAndMethods(nested, lists, deepness + 1);
 			}
 		}
-		private static IEnumerable<Type> GetNestedCommandClasses(Type command)
+		private static void GetAllNestedClassesAndMethods(Type type, MemberLists lists, int deepness = 0)
 		{
-			return command.GetNestedTypes(BindingFlags.Instance | BindingFlags.Public)
-				.Where(x => x.GetCustomAttribute<GroupAttribute>() != null);
-		}
-		private static IEnumerable<MethodInfo> GetCommands(Type command)
-		{
-			return command.GetMethods(BindingFlags.Instance | BindingFlags.Public)
-				.Where(x => x.GetCustomAttribute<CommandAttribute>() != null);
-		}
-		private static void RemoveDuplicateClasses(ref List<ClassDetails> classes)
-		{
-			classes = classes
-				.GroupBy(x => new { x.Name, x.Deepness })
-				.Select(g => g.First()).ToList();
-		}
-		private static void RemoveDuplicateMethods(ref List<MethodDetails> methods)
-		{
-			methods = methods
-				.GroupBy(x => new { x.Name, x.Deepness })
-				.Select(g => g.OrderByDescending(x => x.ArgCount).First()).ToList();
-		}
-		private static void RemoveDuplicateParameters(ref List<ParameterDetails> parameters)
-		{
-			parameters = parameters
-				.GroupBy(x => new { x.Name, x.Deepness })
-				.Select(g =>
+			var flags = BindingFlags.Instance | BindingFlags.Public;
+			foreach (var method in type.GetMethods(flags).Where(x => x.GetCustomAttribute<CommandAttribute>() != null))
+			{
+				var m = new MethodDetails(deepness, method.GetCustomAttribute<CommandAttribute>().Text, method.GetParameters().Length);
+				lists.Methods.Add(m);
+
+				var parameters = method.GetParameters();
+				for (var i = 0; i < parameters.Length; ++i)
 				{
-					var param = g.First();
-					param.SetOccurences(g.Count());
-					return param;
-				}).ToList();
+					var pDeepness = (m.Name != null ? 1 : 0) + deepness + i;
+					var p = parameters[i];
+					lists.Parameters.Add(new ParameterDetails(deepness, p));
+				}
+			}
+			foreach (var nested in type.GetNestedTypes(flags).Where(x => x.GetCustomAttribute<GroupAttribute>() != null))
+			{
+				lists.Classes.Add(new ClassDetails(deepness, nested.GetCustomAttribute<GroupAttribute>().Prefix));
+				GetAllNestedClassesAndMethods(nested, lists, deepness + 1);
+			}
 		}
-		private static string CreateText(List<ClassDetails> classes, List<MethodDetails> methods, List<ParameterDetails> parameters)
+		private static string CreateText(MemberLists lists)
 		{
 			//Don't include classes because they will always be 1 behind deepest methods at minimum.
 			var upperBounds = new[]
 			{
-				methods.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
-				parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0)
+				lists.Methods.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
+				lists.Parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0)
 			};
 			var maximumUpperBounds = upperBounds.Max(); //Highest of the two highs
 			var minimumUpperBounds = upperBounds.Min(); //Lowest of the two highs
@@ -129,25 +131,25 @@ namespace Advobot.Classes.UsageGeneration
 			for (var i = 0; i <= maximumUpperBounds; ++i)
 			{
 				//t = thisIteration
-				var tClasses = classes.Where(x => x.Deepness == i).ToList();
-				var tMethods = methods.Where(x => x.Deepness == i).ToList();
-				var tParams = parameters.Where(x => x.Deepness == i).ToList();
+				var tClasses = lists.Classes.Where(x => x.Deepness == i).ToList();
+				var tMethods = lists.Methods.Where(x => x.Deepness == i).ToList();
+				var tParams = lists.Parameters.Where(x => x.Deepness == i).ToList();
 
 				var optional = false;
 				if (i >= minimumUpperBounds)
 				{
 					//Methods from before this iteration with no arguments means that anything after is optional
-					var mNoName = methods.Where(x => x.Deepness <= i - minimumUpperBounds)
+					var mNoName = lists.Methods.Where(x => x.Deepness <= i - minimumUpperBounds)
 						.Any(x => x.Name == null && x.HasNoArgs);
 					//Additional -1 to account for method names
-					var mName = methods.Where(x => x.Deepness <= i - minimumUpperBounds - 1)
+					var mName = lists.Methods.Where(x => x.Deepness <= i - minimumUpperBounds - 1)
 						.Any(x => x.Name != null && x.HasNoArgs);
 					var m = mNoName || mName;
 
 					//Any decrease in total arg count from an increment of i indicates that a command could
 					//be used at position i - 1 with x args but at position i with x - y args
 					//meaning that x - y args are optional
-					var pCnt = parameters.Where(x => x.Deepness < i).GroupBy(x => x.Deepness)
+					var pCnt = lists.Parameters.Where(x => x.Deepness < i).GroupBy(x => x.Deepness)
 						.Select(x => x.Sum(y => y.Occurences)).DefaultIfEmpty(0)
 						.Min() > tParams.Sum(x => x.Occurences);
 					//Parameters marked with the optional attribute are optional
@@ -159,7 +161,7 @@ namespace Advobot.Classes.UsageGeneration
 					//and thus are optional
 					var bT = tParams.Any() && tMethods.Any(x => x.Name == null && x.HasNoArgs);
 					//Additional -1 to account for method names
-					var bL = tParams.Any() && methods.Where(x => x.Deepness == i - 1).Any(x => x.Name != null && x.HasNoArgs);
+					var bL = tParams.Any() && lists.Methods.Where(x => x.Deepness == i - 1).Any(x => x.Name != null && x.HasNoArgs);
 					var b = bT || bL;
 
 					optional = m || p || b;
@@ -194,6 +196,43 @@ namespace Advobot.Classes.UsageGeneration
 			var converted = options.Select(x => x.ToString()).Where(x => !String.IsNullOrWhiteSpace(x));
 			var addOrToEnd = converted.Any(x => !String.IsNullOrWhiteSpace(x)) ? "|" : "";
 			sb.Append(converted.JoinNonNullStrings("|") + addOrToEnd);
+		}
+
+		private sealed class MemberLists
+		{
+			public List<ClassDetails> Classes { get; private set; } = new List<ClassDetails>();
+			public List<MethodDetails> Methods { get; private set; } = new List<MethodDetails>();
+			public List<ParameterDetails> Parameters { get; private set; } = new List<ParameterDetails>();
+
+			public void RemoveDuplicates()
+			{
+				RemoveDuplicateClasses();
+				RemoveDuplicateMethods();
+				RemoveDuplicateParameters();
+			}
+			private void RemoveDuplicateClasses()
+			{
+				Classes = Classes
+					.GroupBy(x => new { x.Name, x.Deepness })
+					.Select(g => g.First()).ToList();
+			}
+			private void RemoveDuplicateMethods()
+			{
+				Methods = Methods
+					.GroupBy(x => new { x.Name, x.Deepness })
+					.Select(g => g.OrderByDescending(x => x.ArgCount).First()).ToList();
+			}
+			private void RemoveDuplicateParameters()
+			{
+				Parameters = Parameters
+					.GroupBy(x => new { x.Name, x.Deepness })
+					.Select(g =>
+					{
+						var param = g.First();
+						param.SetOccurences(g.Count());
+						return param;
+					}).ToList();
+			}
 		}
 	}
 }

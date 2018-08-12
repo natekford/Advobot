@@ -17,7 +17,7 @@ using Discord.WebSocket;
 
 namespace Advobot.Commands.BannedPhrases
 {
-	[Group(nameof(EvaluateBannedRegex)), TopLevelShortAlias(typeof(EvaluateBannedRegex))]
+	[Category(typeof(EvaluateBannedRegex)), Group(nameof(EvaluateBannedRegex)), TopLevelShortAlias(typeof(EvaluateBannedRegex))]
 	[Summary("Evaluates a regex (case is ignored). " +
 		"The regex are also restricted to a 5,000 tick timeout. " +
 		"Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
@@ -86,7 +86,7 @@ namespace Advobot.Commands.BannedPhrases
 		}
 	}
 
-	[Group(nameof(ModifyBannedPhrases)), TopLevelShortAlias(typeof(ModifyBannedPhrases))]
+	[Category(typeof(ModifyBannedPhrases)), Group(nameof(ModifyBannedPhrases)), TopLevelShortAlias(typeof(ModifyBannedPhrases))]
 	[Summary("Banned regex and strings delete messages if they are detected in them. " +
 		"Banned names ban users if they join and they have them in their name.")]
 	[PermissionRequirement(null, null)]
@@ -252,7 +252,7 @@ namespace Advobot.Commands.BannedPhrases
 		}
 	}
 
-	[Group(nameof(ModifyPunishmentType)), TopLevelShortAlias(typeof(ModifyPunishmentType))]
+	[Category(typeof(ModifyPunishmentType)), Group(nameof(ModifyPunishmentType)), TopLevelShortAlias(typeof(ModifyPunishmentType))]
 	[Summary("Changes the punishment type of the input string or regex to the given type. " +
 		"`Show` lists the punishments of whatever type was specified.")]
 	[PermissionRequirement(null, null)]
@@ -337,7 +337,7 @@ namespace Advobot.Commands.BannedPhrases
 		}
 	}
 
-	[Group(nameof(ModifyBannedPhrasePunishments)), TopLevelShortAlias(typeof(ModifyBannedPhrasePunishments))]
+	[Category(typeof(ModifyBannedPhrasePunishments)), Group(nameof(ModifyBannedPhrasePunishments)), TopLevelShortAlias(typeof(ModifyBannedPhrasePunishments))]
 	[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. " +
 		"Each message removed adds one to the total. " +
 		"Time is in minutes.")]

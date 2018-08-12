@@ -49,7 +49,7 @@ namespace Advobot.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			if (typeof(ITextChannel).IsAssignableFrom(parameter.Type))
+			else if (typeof(ITextChannel).IsAssignableFrom(parameter.Type))
 			{
 				value = context.Channel as ITextChannel;
 			}

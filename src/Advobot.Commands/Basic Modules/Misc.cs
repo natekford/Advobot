@@ -10,12 +10,11 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.Rest;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.Misc
 {
-	[Group(nameof(Help)), TopLevelShortAlias(typeof(Help))]
+	[Category(typeof(Help)), Group(nameof(Help)), TopLevelShortAlias(typeof(Help))]
 	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 		"If left blank will provide general help.")]
 	[DefaultEnabled(true, false)]
@@ -51,8 +50,8 @@ namespace Advobot.Commands.Misc
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command, Priority(1)]
-		[RequiredService(typeof(HelpEntryHolder))]
-		public async Task Command([Remainder] HelpEntry command)
+		[RequiredService(typeof(IHelpEntryService))]
+		public async Task Command([Remainder] IHelpEntry command)
 		{
 			var embed = new EmbedWrapper
 			{
@@ -63,11 +62,11 @@ namespace Advobot.Commands.Misc
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command, Priority(0)]
-		[RequiredService(typeof(HelpEntryHolder))]
+		[RequiredService(typeof(IHelpEntryService))]
 		[RequiredService(typeof(ITimerService))]
 		public async Task Command([Remainder] string command)
 		{
-			var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
 			var timers = Context.Provider.GetRequiredService<ITimerService>();
 			var closeHelps = new CloseHelpEntries(default, Context, helpEntries, Context.GuildSettings.CommandSettings, command);
 			if (closeHelps.List.Any())
@@ -80,17 +79,17 @@ namespace Advobot.Commands.Misc
 		}
 	}
 
-	[Group(nameof(Commands)), TopLevelShortAlias(typeof(Commands))]
+	[Category(typeof(Commands)), Group(nameof(Commands)), TopLevelShortAlias(typeof(Commands))]
 	[Summary("Prints out the commands in that category of the command list. " +
 		"Inputting nothing will list the command categories.")]
 	[DefaultEnabled(true)]
-	[RequiredService(typeof(HelpEntryHolder))]
+	[RequiredService(typeof(IHelpEntryService))]
 	public sealed class Commands : AdvobotModuleBase
 	{
 		[Command(nameof(All)), ShortAlias(nameof(All))]
 		public async Task All()
 		{
-			var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
 			var embed = new EmbedWrapper
 			{
 				Title = "All Commands",
@@ -101,7 +100,7 @@ namespace Advobot.Commands.Misc
 		[Command]
 		public async Task Command(string category)
 		{
-			var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
 			if (!helpEntries.GetCategories().CaseInsContains(category))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{category}` is not a valid category.")).CAF();
@@ -110,14 +109,14 @@ namespace Advobot.Commands.Misc
 			var embed = new EmbedWrapper
 			{
 				Title = category,
-				Description = $"`{String.Join("`, `", helpEntries.GetHelpEntiresFromCategory(category).Select(x => x.Name))}`"
+				Description = $"`{String.Join("`, `", helpEntries.GetHelpEntries(category).Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
 		public async Task Command()
 		{
-			var helpEntries = Context.Provider.GetRequiredService<HelpEntryHolder>();
+			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
 			var embed = new EmbedWrapper
 			{
 				Title = "Categories",
@@ -128,7 +127,7 @@ namespace Advobot.Commands.Misc
 		}
 	}
 
-	[Group(nameof(MakeAnEmbed)), TopLevelShortAlias(typeof(MakeAnEmbed))]
+	[Category(typeof(MakeAnEmbed)), Group(nameof(MakeAnEmbed)), TopLevelShortAlias(typeof(MakeAnEmbed))]
 	[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. " +
 		"FieldInfo can have up to 25 arguments supplied. " +
 		"Each must be formatted like the following: `" + CustomEmbed.FIELD_FORMAT + "`.")]
@@ -148,7 +147,7 @@ namespace Advobot.Commands.Misc
 		}
 	}
 
-	[Group(nameof(MessageRole)), TopLevelShortAlias(typeof(MessageRole))]
+	[Category(typeof(MessageRole)), Group(nameof(MessageRole)), TopLevelShortAlias(typeof(MessageRole))]
 	[Summary("Mention an unmentionable role with the given message.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
@@ -172,7 +171,7 @@ namespace Advobot.Commands.Misc
 		}
 	}
 
-	[Group(nameof(MessageBotOwner)), TopLevelShortAlias(typeof(MessageBotOwner))]
+	[Category(typeof(MessageBotOwner)), Group(nameof(MessageBotOwner)), TopLevelShortAlias(typeof(MessageBotOwner))]
 	[Summary("Sends a message to the bot owner with the given text. " +
 		"Messages will be cut down to 250 characters.")]
 	[OtherRequirement(Precondition.GenericPerms)]
@@ -198,7 +197,7 @@ namespace Advobot.Commands.Misc
 		}
 	}
 
-	[Group(nameof(Remind)), TopLevelShortAlias(typeof(Remind))]
+	[Category(typeof(Remind)), Group(nameof(Remind)), TopLevelShortAlias(typeof(Remind))]
 	[Summary("Sends a message to the person who said the command after the passed in time is up. " +
 		"Potentially may take one minute longer than asked for if the command is input at certain times.")]
 	[DefaultEnabled(true)]
@@ -214,7 +213,7 @@ namespace Advobot.Commands.Misc
 		}
 	}
 
-	[Group(nameof(Test)), TopLevelShortAlias(typeof(Test))]
+	[Category(typeof(Test)), Group(nameof(Test)), TopLevelShortAlias(typeof(Test))]
 	[Summary("Mostly just makes the bot say test.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]

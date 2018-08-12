@@ -1,4 +1,8 @@
-﻿using Advobot;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.TypeReaders;
@@ -8,15 +12,10 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Channels
 {
-	[Group(nameof(CreateChannel)), TopLevelShortAlias(typeof(CreateChannel))]
+	[Category(typeof(CreateChannel)), Group(nameof(CreateChannel)), TopLevelShortAlias(typeof(CreateChannel))]
 	[Summary("Adds a channel to the guild of the given type with the given name. " +
 		"Text channel names cannot contain any spaces.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -49,7 +48,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(SoftDeleteChannel)), TopLevelShortAlias(typeof(SoftDeleteChannel))]
+	[Category(typeof(SoftDeleteChannel)), Group(nameof(SoftDeleteChannel)), TopLevelShortAlias(typeof(SoftDeleteChannel))]
 	[Summary("Makes everyone unable to see the channel.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
@@ -88,7 +87,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(DeleteChannel)), TopLevelShortAlias(typeof(DeleteChannel))]
+	[Category(typeof(DeleteChannel)), Group(nameof(DeleteChannel)), TopLevelShortAlias(typeof(DeleteChannel))]
 	[Summary("Deletes the channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -102,7 +101,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(DisplayChannelPosition)), TopLevelShortAlias(typeof(DisplayChannelPosition))]
+	[Category(typeof(DisplayChannelPosition)), Group(nameof(DisplayChannelPosition)), TopLevelShortAlias(typeof(DisplayChannelPosition))]
 	[Summary("Lists the positions of each text or voice channel on the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -135,7 +134,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(ModifyChannelPosition)), TopLevelShortAlias(typeof(ModifyChannelPosition))]
+	[Category(typeof(ModifyChannelPosition)), Group(nameof(ModifyChannelPosition)), TopLevelShortAlias(typeof(ModifyChannelPosition))]
 	[Summary("Position zero is the top most position, counting up goes down..")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -150,7 +149,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(DisplayChannelPerms)), TopLevelShortAlias(typeof(DisplayChannelPerms))]
+	[Category(typeof(DisplayChannelPerms)), Group(nameof(DisplayChannelPerms)), TopLevelShortAlias(typeof(DisplayChannelPerms))]
 	[Summary("Shows permissions on a channel. Can show permission types, all perms on a channel, or the overwrites on a specific user/role.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(false)]
@@ -178,8 +177,8 @@ namespace Advobot.Commands.Channels
 			{
 				Title = channel.Format()
 			};
-			embed.TryAddField("Role", $"`{(roleNames.Any() ? String.Join("`, `", roleNames) : "None")}`", true, out _);
-			embed.TryAddField("User", $"`{(userNames.Any() ? String.Join("`, `", userNames) : "None")}`", false, out _);
+			embed.TryAddField("Roles", $"`{(roleNames.Any() ? String.Join("`, `", roleNames) : "None")}`", true, out _);
+			embed.TryAddField("Users", $"`{(userNames.Any() ? String.Join("`, `", userNames) : "None")}`", false, out _);
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command]
@@ -187,7 +186,7 @@ namespace Advobot.Commands.Channels
 		{
 			if (!channel.PermissionOverwrites.Any())
 			{
-				var error = new Error($"Unable to show permissions for `{role.Format()}` on `{channel.Format()}`.");
+				var error = new Error($"There are no overwrites on `{channel.Format()}`.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
@@ -204,7 +203,7 @@ namespace Advobot.Commands.Channels
 		{
 			if (!channel.PermissionOverwrites.Any())
 			{
-				var error = new Error($"Unable to show permissions for `{user.Format()}` on `{channel.Format()}`.");
+				var error = new Error($"There are no overwrites on `{channel.Format()}`.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
@@ -246,7 +245,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(ModifyChannelPerms)), TopLevelShortAlias(typeof(ModifyChannelPerms))]
+	[Category(typeof(ModifyChannelPerms)), Group(nameof(ModifyChannelPerms)), TopLevelShortAlias(typeof(ModifyChannelPerms))]
 	[Summary("Permissions must be separated by a `/` or their rawvalue can be said instead.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
@@ -315,7 +314,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(CopyChannelPerms)), TopLevelShortAlias(typeof(CopyChannelPerms))]
+	[Category(typeof(CopyChannelPerms)), Group(nameof(CopyChannelPerms)), TopLevelShortAlias(typeof(CopyChannelPerms))]
 	[Summary("Copy permissions from one channel to another. " +
 		"Works for a role, a user, or everything. " +
 		"If nothing is specified, copies everything.")]
@@ -391,7 +390,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(ClearChannelPerms)), TopLevelShortAlias(typeof(ClearChannelPerms))]
+	[Category(typeof(ClearChannelPerms)), Group(nameof(ClearChannelPerms)), TopLevelShortAlias(typeof(ClearChannelPerms))]
 	[Summary("Removes all permissions set on a channel.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
@@ -417,7 +416,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(ModifyChannelNsfw)), TopLevelShortAlias(typeof(ModifyChannelNsfw))]
+	[Category(typeof(ModifyChannelNsfw)), Group(nameof(ModifyChannelNsfw)), TopLevelShortAlias(typeof(ModifyChannelNsfw))]
 	[Summary("Toggles the NSFW option on a channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -433,7 +432,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(ModifyChannelName)), TopLevelShortAlias(typeof(ModifyChannelName))]
+	[Category(typeof(ModifyChannelName)), Group(nameof(ModifyChannelName)), TopLevelShortAlias(typeof(ModifyChannelName))]
 	[Summary("Changes the name of the channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -503,7 +502,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(ModifyChannelTopic)), TopLevelShortAlias(typeof(ModifyChannelTopic))]
+	[Category(typeof(ModifyChannelTopic)), Group(nameof(ModifyChannelTopic)), TopLevelShortAlias(typeof(ModifyChannelTopic))]
 	[Summary("Changes the topic of a channel to whatever is input. " +
 		"Clears the topic if nothing is input")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -522,7 +521,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(ModifyChannelLimit)), TopLevelShortAlias(typeof(ModifyChannelLimit))]
+	[Category(typeof(ModifyChannelLimit)), Group(nameof(ModifyChannelLimit)), TopLevelShortAlias(typeof(ModifyChannelLimit))]
 	[Summary("Changes the limit to how many users can be in a voice channel. " +
 		"The limit ranges from 0 (no limit) to 99.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -543,7 +542,7 @@ namespace Advobot.Commands.Channels
 		}
 	}
 
-	[Group(nameof(ModifyChannelBitRate)), TopLevelShortAlias(typeof(ModifyChannelBitRate))]
+	[Category(typeof(ModifyChannelBitRate)), Group(nameof(ModifyChannelBitRate)), TopLevelShortAlias(typeof(ModifyChannelBitRate))]
 	[Summary("Changes the bitrate on a voice channel. " +
 		"Lowest is 8, highest is 96 (unless on a partnered guild, then it goes up to 128), default is 64.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]

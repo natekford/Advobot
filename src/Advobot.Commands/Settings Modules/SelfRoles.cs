@@ -1,4 +1,9 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
@@ -7,15 +12,10 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.SelfRoles
 {
-	[Group(nameof(ModifySelfRoles)), TopLevelShortAlias(typeof(ModifySelfRoles))]
+	[Category(typeof(ModifySelfRoles)), Group(nameof(ModifySelfRoles)), TopLevelShortAlias(typeof(ModifySelfRoles))]
 	[Summary("Adds a role to the self assignable list. " +
 		"Roles can be grouped together which means only one role in the group can be self assigned at a time. " +
 		"Create and Delete modify the entire group. " +
@@ -151,7 +151,7 @@ namespace Advobot.Commands.SelfRoles
 		}
 	}
 
-	[Group(nameof(AssignSelfRole)), TopLevelShortAlias(typeof(AssignSelfRole))]
+	[Category(typeof(AssignSelfRole)), Group(nameof(AssignSelfRole)), TopLevelShortAlias(typeof(AssignSelfRole))]
 	[Summary("Gives or takes a role depending on if the user has it already. " +
 		"Removes all other roles in the same group unless the group is `0`.")]
 	[DefaultEnabled(false)]
@@ -191,7 +191,7 @@ namespace Advobot.Commands.SelfRoles
 		}
 	}
 
-	[Group(nameof(DisplaySelfRoles)), TopLevelShortAlias(typeof(DisplaySelfRoles))]
+	[Category(typeof(DisplaySelfRoles)), Group(nameof(DisplaySelfRoles)), TopLevelShortAlias(typeof(DisplaySelfRoles))]
 	[Summary("Shows the current group numbers that exists on the guild. " +
 		"If a number is input then it shows the roles in that group.")]
 	[DefaultEnabled(false)]

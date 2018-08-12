@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.Quotes
 {
-	[Group(nameof(ModifyQuotes)), TopLevelShortAlias(typeof(ModifyQuotes))]
+	[Category(typeof(ModifyQuotes)), Group(nameof(ModifyQuotes)), TopLevelShortAlias(typeof(ModifyQuotes))]
 	[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -57,7 +57,7 @@ namespace Advobot.Commands.Quotes
 		}
 	}
 
-	[Group(nameof(SayQuote)), TopLevelShortAlias(typeof(SayQuote))]
+	[Category(typeof(SayQuote)), Group(nameof(SayQuote)), TopLevelShortAlias(typeof(SayQuote))]
 	[Summary("Shows the content for the given quote. " +
 		"If nothing is input, then shows the list of the current quotes.")]
 	[DefaultEnabled(false)]

@@ -1,4 +1,8 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Utilities;
@@ -6,14 +10,10 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Invites
 {
-	[Group(nameof(DisplayInvites)), TopLevelShortAlias(typeof(DisplayInvites))]
+	[Category(typeof(DisplayInvites)), Group(nameof(DisplayInvites)), TopLevelShortAlias(typeof(DisplayInvites))]
 	[Summary("Gives a list of all the instant invites on the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(true)]
@@ -47,7 +47,7 @@ namespace Advobot.Commands.Invites
 		}
 	}
 
-	[Group(nameof(CreateInvite)), TopLevelShortAlias(typeof(CreateInvite))]
+	[Category(typeof(CreateInvite)), Group(nameof(CreateInvite)), TopLevelShortAlias(typeof(CreateInvite))]
 	[Summary("Creates an invite on the given channel. " +
 		"No time specifies to not expire. " +
 		"No uses has no usage limit. " +
@@ -82,7 +82,7 @@ namespace Advobot.Commands.Invites
 		}
 	}
 
-	[Group(nameof(DeleteInvite)), TopLevelShortAlias(typeof(DeleteInvite))]
+	[Category(typeof(DeleteInvite)), Group(nameof(DeleteInvite)), TopLevelShortAlias(typeof(DeleteInvite))]
 	[Summary("Deletes the invite with the given code.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -96,7 +96,7 @@ namespace Advobot.Commands.Invites
 		}
 	}
 
-	[Group(nameof(DeleteMultipleInvites)), TopLevelShortAlias(typeof(DeleteMultipleInvites))]
+	[Category(typeof(DeleteMultipleInvites)), Group(nameof(DeleteMultipleInvites)), TopLevelShortAlias(typeof(DeleteMultipleInvites))]
 	[Summary("Deletes all invites satisfying the given conditions. " +
 		"CountTarget parameters are either `Equal`, `Below`, or `Above`. " +
 		"IsTemporary, NeverExpires, and NoMaxUses are either `True`, or `False`.")]

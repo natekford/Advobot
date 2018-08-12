@@ -1,30 +1,17 @@
-﻿using System.Linq;
-using System.Reflection;
-using Discord.Commands;
-
-namespace Advobot.Classes.UsageGeneration
+﻿namespace Advobot.Classes.UsageGeneration
 {
 	/// <summary>
 	/// Information about a method to be used in <see cref="UsageGenerator"/>.
 	/// </summary>
-	internal sealed class MethodDetails
+	internal sealed class MethodDetails : UsageDetails
 	{
-		public int Deepness { get; }
-		public string Name { get; }
 		public bool HasNoArgs { get; }
 		public int ArgCount { get; }
 
-		public MethodDetails(int deepness, MethodInfo method)
+		public MethodDetails(int deepness, string name, int parameters) : base(deepness, name)
 		{
-			Deepness = deepness;
-			Name = method.GetCustomAttribute<CommandAttribute>()?.Text;
-			ArgCount = method.GetParameters().Length;
+			ArgCount = parameters;
 			HasNoArgs = ArgCount == 0;
-		}
-
-		public override string ToString()
-		{
-			return Name;
 		}
 	}
 }

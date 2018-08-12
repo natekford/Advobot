@@ -1,4 +1,9 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -7,15 +12,10 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Commands.Logs
 {
-	[Group(nameof(ModifyLogChannels)), TopLevelShortAlias(typeof(ModifyLogChannels))]
+	[Category(typeof(ModifyLogChannels)), Group(nameof(ModifyLogChannels)), TopLevelShortAlias(typeof(ModifyLogChannels))]
 	[Summary("Puts the serverlog on the specified channel. The serverlog logs things specified in " + nameof(ModifyLogActions))]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -82,7 +82,7 @@ namespace Advobot.Commands.Logs
 		}
 	}
 
-	[Group(nameof(ModifyIgnoredLogChannels)), TopLevelShortAlias(typeof(ModifyIgnoredLogChannels))]
+	[Category(typeof(ModifyIgnoredLogChannels)), Group(nameof(ModifyIgnoredLogChannels)), TopLevelShortAlias(typeof(ModifyIgnoredLogChannels))]
 	[Summary("Ignores all logging info that would have been gotten from a channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -105,7 +105,7 @@ namespace Advobot.Commands.Logs
 		}
 	}
 
-	[Group(nameof(ModifyLogActions)), TopLevelShortAlias(typeof(ModifyLogActions))]
+	[Category(typeof(ModifyLogActions)), Group(nameof(ModifyLogActions)), TopLevelShortAlias(typeof(ModifyLogActions))]
 	[Summary("The server log will send messages when these events happen. " +
 		"`" + nameof(ModifyLogActions.Reset) + "` overrides the current settings. " +
 		"`" + nameof(ModifyLogActions.Show) + "` displays the possible actions.")]
