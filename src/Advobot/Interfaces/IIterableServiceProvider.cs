@@ -10,13 +10,18 @@ namespace Advobot.Interfaces
 	public interface IIterableServiceProvider : IEnumerable, IEnumerable<object>, IServiceProvider, IDisposable
 	{
 		/// <summary>
-		/// Returns all but the specified type so a <see cref="StackOverflowException"/> will not occur.
+		/// Returns the type of every service, no matter the scope.
+		/// </summary>
+		/// <returns></returns>
+		IEnumerable<Type> GetAllTypes();
+		/// <summary>
+		/// Returns all but the specified singleton so a <see cref="StackOverflowException"/> will not occur.
 		/// </summary>
 		/// <typeparam name="T">The type of services to not return.</typeparam>
 		/// <returns></returns>
 		IEnumerable<object> GetServicesExcept<T>();
 		/// <summary>
-		/// Returns all but the specified types so a <see cref="StackOverflowException"/> will not occur.
+		/// Returns all but the specified singletons so a <see cref="StackOverflowException"/> will not occur.
 		/// </summary>
 		/// <param name="types">The types of services to not return.</param>
 		/// <returns></returns>

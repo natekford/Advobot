@@ -8,7 +8,7 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Checks to make sure the bot has admin, the bot is loaded, the guild is loaded, the channel isn't ignored from commands, and the command is enabled for the user.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 	public sealed class CommandRequirementAttribute : PreconditionAttribute
 	{
 		//TODO: rework this?

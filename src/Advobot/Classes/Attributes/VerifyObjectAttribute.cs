@@ -13,7 +13,7 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Verifies the parameter this attribute is targetting fits all of the given conditions.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Parameter)]
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
 		private readonly ImmutableList<Verif> _Checks;

@@ -7,8 +7,8 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Shortens an alias down to an initialism. 
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-	public class ShortAliasAttribute : AliasAttribute 
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public sealed class ShortAliasAttribute : AliasAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ShortAliasAttribute"/>.

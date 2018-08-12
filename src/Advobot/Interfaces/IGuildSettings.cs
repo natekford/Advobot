@@ -22,10 +22,6 @@ namespace Advobot.Interfaces
 		/// </summary>
 		GuildNotification GoodbyeMessage { get; set; }
 		/// <summary>
-		/// An invite listed by the bot for other people to join.
-		/// </summary>
-		ListedInvite ListedInvite { get; set; }
-		/// <summary>
 		/// The slowmode on the guild.
 		/// </summary>
 		Slowmode Slowmode { get; set; }

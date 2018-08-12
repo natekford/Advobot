@@ -11,6 +11,7 @@ namespace Advobot.Classes
 	/// Shorter way to write the used modulebase and also has every command go through the <see cref="CommandRequirementAttribute"/> first.
 	/// </summary>
 	[CommandRequirement]
+	[RequireContext(ContextType.Guild)]
 	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	{
 		/// <summary>

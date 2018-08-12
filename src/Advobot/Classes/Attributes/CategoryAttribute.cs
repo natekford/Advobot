@@ -6,7 +6,7 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Specifies the category this module belongs to.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 	public sealed class CategoryAttribute : Attribute
 	{
 		/// <summary>

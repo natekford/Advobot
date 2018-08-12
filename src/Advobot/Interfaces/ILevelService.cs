@@ -13,7 +13,7 @@ namespace Advobot.Interfaces
 		/// Adds experience to the author of the supplied message.
 		/// </summary>
 		/// <param name="message"></param>
-		Task AddExperience(SocketMessage message);
+		Task AddExperienceAsync(SocketMessage message);
 		/// <summary>
 		/// Removes experience from the author of the supplied message.
 		/// This is reliant upon keeping messages cached, which can be disrupted by a bot restart.
@@ -22,7 +22,7 @@ namespace Advobot.Interfaces
 		/// <param name="cached"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		Task RemoveExperience(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel);
+		Task RemoveExperienceAsync(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel);
 		/// <summary>
 		/// Calculates the level from the given experience.
 		/// </summary>
@@ -55,6 +55,6 @@ namespace Advobot.Interfaces
 		/// <param name="userId">The user to get the information for.</param>
 		/// <param name="global">Whether to include global information. If false, includes only guild information.</param>
 		/// <returns></returns>
-		Task SendUserXpInformation(SocketTextChannel channel, ulong userId, bool global);
+		Task SendUserXpInformationAsync(SocketTextChannel channel, ulong userId, bool global);
 	}
 }

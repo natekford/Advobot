@@ -28,20 +28,20 @@ namespace Advobot.Services.Levels
 		/// <summary>
 		/// Creates an instance of <see cref="LevelService"/>.
 		/// </summary>
-		/// <param name="services"></param>
+		/// <param name="provider"></param>
 		/// <param name="args"></param>
-		public LevelService(IIterableServiceProvider services, LevelServiceArguments args)
+		public LevelService(IIterableServiceProvider provider, LevelServiceArguments args)
 		{
-			_Client = services.GetRequiredService<DiscordShardedClient>();
-			_GuildSettings = services.GetRequiredService<IGuildSettingsService>();
-			_Config = services.GetRequiredService<ILowLevelConfig>();
+			_Client = provider.GetRequiredService<DiscordShardedClient>();
+			_GuildSettings = provider.GetRequiredService<IGuildSettingsService>();
+			_Config = provider.GetRequiredService<ILowLevelConfig>();
 			_Log = args.Log;
 			_Pow = args.Pow;
 			_Time = args.Time;
 			_BaseExperience = args.BaseExperience;
 
-			_Client.MessageReceived += AddExperience;
-			_Client.MessageDeleted += RemoveExperience;
+			_Client.MessageReceived += AddExperienceAsync;
+			_Client.MessageDeleted += RemoveExperienceAsync;
 		}
 
 		/// <inheritdoc />
@@ -58,13 +58,12 @@ namespace Advobot.Services.Levels
 		/// <inheritdoc />
 		public void Dispose()
 		{
-			_Db.Dispose();
+			_Db?.Dispose();
 		}
 		/// <inheritdoc />
-		public async Task AddExperience(SocketMessage message)
+		public async Task AddExperienceAsync(SocketMessage message)
 		{
-			if (_Db == null
-				|| message.Author.IsBot
+			if (message.Author.IsBot
 				|| message.Author.IsWebhook
 				|| !(message is SocketUserMessage msg)
 				|| !(await _GuildSettings.GetOrCreateAsync((msg.Channel as SocketTextChannel)?.Guild).CAF() is IGuildSettings settings)
@@ -79,10 +78,9 @@ namespace Advobot.Services.Levels
 			UpdateUserRank(info, ((SocketTextChannel)msg.Channel).Guild);
 		}
 		/// <inheritdoc />
-		public Task RemoveExperience(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
+		public Task RemoveExperienceAsync(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
-			if (_Db == null
-				|| !cached.HasValue
+			if (!cached.HasValue
 				|| cached.Value.Author.IsBot
 				|| cached.Value.Author.IsWebhook
 				|| !(cached.Value is SocketUserMessage msg)
@@ -126,7 +124,7 @@ namespace Advobot.Services.Levels
 			return info;
 		}
 		/// <inheritdoc />
-		public async Task SendUserXpInformation(SocketTextChannel channel, ulong userId, bool global)
+		public async Task SendUserXpInformationAsync(SocketTextChannel channel, ulong userId, bool global)
 		{
 			var info = GetUserXpInformation(userId);
 			var (rank, totalUsers) = global ? GetGlobalRank(userId) : GetGuildRank(channel.Guild, userId);
@@ -151,7 +149,6 @@ namespace Advobot.Services.Levels
 			embed.TryAddAuthor(user, out _);
 			embed.TryAddFooter("Xp Information", null, out _);
 			await MessageUtils.SendMessageAsync(channel, null, embed).CAF();
-
 		}
 		private void UpdateUserRank(IUserExperienceInformation info, SocketGuild guild)
 		{

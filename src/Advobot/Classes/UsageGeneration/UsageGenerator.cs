@@ -85,7 +85,7 @@ namespace Advobot.Classes.UsageGeneration
 				{
 					var pDeepness = (method.Name != "Command" ? 1 : 0) + deepness + i;
 					var p = parameters[i];
-					lists.Parameters.Add(new ParameterDetails(deepness, p));
+					lists.Parameters.Add(new ParameterDetails(pDeepness, p));
 				}
 			}
 			foreach (var nested in module.Submodules)
@@ -107,7 +107,7 @@ namespace Advobot.Classes.UsageGeneration
 				{
 					var pDeepness = (m.Name != null ? 1 : 0) + deepness + i;
 					var p = parameters[i];
-					lists.Parameters.Add(new ParameterDetails(deepness, p));
+					lists.Parameters.Add(new ParameterDetails(pDeepness, p));
 				}
 			}
 			foreach (var nested in type.GetNestedTypes(flags).Where(x => x.GetCustomAttribute<GroupAttribute>() != null))

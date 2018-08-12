@@ -5,8 +5,8 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Specifies the default value for whether a command is enabled or not.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class)]
-	public class DefaultEnabledAttribute : Attribute
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+	public sealed class DefaultEnabledAttribute : Attribute
 	{
 		/// <summary>
 		/// Whether or not the command is enabled by default.

@@ -1,88 +1,78 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Settings;
 using Advobot.Enums;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.GuildList
 {
-	/*
-	[Group(nameof(ModifyGuildListing)), Group(nameof(aaa)), TopLevelShortAlias(typeof(ModifyGuildListing))]
+	[Category(typeof(ModifyGuildListing)), Group(nameof(ModifyGuildListing)), TopLevelShortAlias(typeof(ModifyGuildListing))]
 	[Summary("Adds or removes a guild from the public guild list.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
+	[RequiredService(typeof(IInviteListService))]
 	public sealed class ModifyGuildListing : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(IInvite invite, [Optional] params string[] keywords)
 		{
-			if (Context.GuildSettings.ListedInvite != null)
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild is already listed.")).CAF();
-				return;
-			}
-
+			var inviteList = Context.Provider.GetRequiredService<IInviteListService>();
 			if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Don't provide invites that expire.")).CAF();
 				return;
 			}
-
-			Context.GuildSettings.ListedInvite = new ListedInvite(invite, keywords);
-			var resp = $"Successfully set the listed invite to the following:\n{Context.GuildSettings.ListedInvite}.";
+			var listedInvite = inviteList.Add(Context.Guild, invite, keywords);
+			var resp = $"Successfully set the listed invite to the following:\n{listedInvite}.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
-			if (Context.GuildSettings.ListedInvite == null)
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild is already unlisted.")).CAF();
-				return;
-			}
-
-			Context.GuildSettings.ListedInvite = null;
+			var inviteList = Context.Provider.GetRequiredService<IInviteListService>();
+			inviteList.Remove(Context.Guild.Id);
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the listed invite.").CAF();
 		}
 	}
 
-	[Group(nameof(BumpGuildListing)), Group(nameof(aaa)), TopLevelShortAlias(typeof(BumpGuildListing))]
+	[Category(typeof(BumpGuildListing)), Group(nameof(BumpGuildListing)), TopLevelShortAlias(typeof(BumpGuildListing))]
 	[Summary("Bumps the invite on the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
+	[RequiredService(typeof(IInviteListService))]
 	public sealed class BumpGuildListing : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
 		{
-			if (Context.GuildSettings.ListedInvite == null)
+			var inviteList = Context.Provider.GetRequiredService<IInviteListService>();
+			if (!(inviteList.GetListedInvite(Context.Guild.Id) is IListedInvite invite))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("There is no invite to bump.")).CAF();
 				return;
 			}
-
-			if ((DateTime.UtcNow - Context.GuildSettings.ListedInvite.LastBumped).TotalHours < 1)
+			if ((DateTime.UtcNow - invite.Time).TotalHours < 1)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("Last bump is too recent.")).CAF();
 				return;
 			}
-
-			Context.GuildSettings.ListedInvite.UpdateLastBumped();
+			await invite.BumpAsync(Context.Guild).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully bumped the invite.").CAF();
 		}
 	}
 
-	[Group(nameof(GetGuildListing)), Group(nameof(aaa)), TopLevelShortAlias(typeof(GetGuildListing))]
+	[Category(typeof(GetGuildListing)), Group(nameof(GetGuildListing)), TopLevelShortAlias(typeof(GetGuildListing))]
 	[Summary("Gets an invite meeting the given criteria.")]
 	[DefaultEnabled(true)]
+	[RequiredService(typeof(IInviteListService))]
 	public sealed class GetGuildListing : AdvobotModuleBase
 	{
 		private static readonly string _GHeader = "Guild Name".PadRight(25);
@@ -98,13 +88,15 @@ namespace Advobot.Commands.GuildList
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-			var invites = obj.GatherInvites(Context.InviteList).ToList();
+			var inviteList = Context.Provider.GetRequiredService<IInviteListService>();
+			var invites = obj.GatherInvites(inviteList).ToList();
 			if (!invites.Any())
 			{
 				error = new Error("No guild could be found that matches the given specifications.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
 			}
-			else if (invites.Count() <= 5)
+			if (invites.Count <= 5)
 			{
 				var embed = new EmbedWrapper
 				{
@@ -113,18 +105,19 @@ namespace Advobot.Commands.GuildList
 				foreach (var invite in invites)
 				{
 					var e = invite.HasGlobalEmotes ? "**Has global emotes**" : "";
-					var text = $"**URL:** {invite.Url}\n**Members:** {invite.Guild.MemberCount}\n{e}";
-					embed.TryAddField(invite.Guild.Name, text, true, out _);
+					var text = $"**URL:** {invite.Url}\n**Members:** {invite.GuildMemberCount}\n{e}";
+					embed.TryAddField(invite.GuildName, text, true, out _);
 				}
 				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				return;
 			}
-			else if (invites.Count() <= 15)
+			if (invites.Count <= 50)
 			{
 				var formatted = invites.Select(x =>
 				{
-					var n = x.Guild.Name.Substring(0, Math.Min(x.Guild.Name.Length, _GHeader.Length)).PadRight(25);
+					var n = x.GuildName.Substring(0, Math.Min(x.GuildName.Length, _GHeader.Length)).PadRight(25);
 					var u = x.Url.PadRight(35);
-					var m = x.Guild.MemberCount.ToString().PadRight(14);
+					var m = x.GuildMemberCount.ToString().PadRight(14);
 					var e = x.HasGlobalEmotes ? "Yes" : "";
 					return $"{n}{u}{m}{e}";
 				});
@@ -134,12 +127,10 @@ namespace Advobot.Commands.GuildList
 					Text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{String.Join("\n", formatted)}",
 				};
 				await MessageUtils.SendMessageAsync(Context.Channel, "**Guilds:**", textFile: tf).CAF();
+				return;
 			}
-			else
-			{
-				var resp = $"`{invites.Count()}` results returned. Please narrow your search.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-			}
+			var resp = $"`{invites.Count}` results returned. Please narrow your search.";
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
-	}*/
+	}
 }

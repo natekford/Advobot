@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -56,9 +55,9 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="inviteListService"></param>
 		/// <returns></returns>
-		public IEnumerable<ListedInvite> GatherInvites(IInviteListService inviteListService)
+		public IEnumerable<IListedInvite> GatherInvites(IInviteListService inviteListService)
 		{
-			var invites = _Keywords.Any() ? inviteListService.GetAll(_Keywords) : inviteListService.GetAll();
+			var invites = (_Keywords.Any() ? inviteListService.GetAll(int.MaxValue, _Keywords) : inviteListService.GetAll(int.MaxValue)).Where(x => !x.Expired);
 			var wentIntoAny = false;
 			if (_Code != null)
 			{
@@ -67,7 +66,7 @@ namespace Advobot.Classes
 			}
 			if (_Name != null)
 			{
-				invites = invites.Where(x => x.Guild.Name.CaseInsEquals(_Name));
+				invites = invites.Where(x => x.GuildName.CaseInsEquals(_Name));
 				wentIntoAny = true;
 			}
 			if (_HasGlobalEmotes)
@@ -77,10 +76,10 @@ namespace Advobot.Classes
 			}
 			if (_UserCount != null)
 			{
-				invites = invites.GetInvitesFromCount(_UserCountTarget, _UserCount ?? 0, x => (uint)x.Guild.Users.Count);
+				invites = invites.GetInvitesFromCount(_UserCountTarget, _UserCount ?? 0, x => (uint)x.GuildMemberCount);
 				wentIntoAny = true;
 			}
-			return wentIntoAny ? Enumerable.Empty<ListedInvite>() : invites;
+			return wentIntoAny ? Enumerable.Empty<IListedInvite>() : invites;
 		}
 	}
 }

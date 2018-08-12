@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// Allows a way to get all the services from a service provider.
+	/// Allows a way to get all the singleton services from a service provider.
 	/// Acts as a wrapper around a service provider.
 	/// </summary>
 	public class IterableServiceProvider : IIterableServiceProvider
@@ -29,7 +29,7 @@ namespace Advobot.Classes
 			_Provider = provider;
 			if (instantiateInCtor)
 			{
-				foreach (var type in _Services.Select(x => x.ServiceType))
+				foreach (var type in GetSingletonTypes())
 				{
 					_Provider.GetService(type);
 				}
@@ -47,6 +47,19 @@ namespace Advobot.Classes
 		{
 			return new IterableServiceProvider(provider, services, false);
 		}
+		/// <summary>
+		/// Gets all the singletons from the provider.
+		/// </summary>
+		/// <returns></returns>
+		private IEnumerable<Type> GetSingletonTypes()
+		{
+			return _Services.Where(x => x.Lifetime == ServiceLifetime.Singleton).Select(x => x.ServiceType);
+		}
+		/// <inheritdoc />
+		public IEnumerable<Type> GetAllTypes()
+		{
+			return _Services.Select(x => x.ServiceType);
+		}
 		/// <inheritdoc />
 		public IEnumerable<object> GetServicesExcept<T>()
 		{
@@ -55,7 +68,7 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public IEnumerable<object> GetServicesExcept(params Type[] types)
 		{
-			foreach (var type in _Services.Select(x => x.ServiceType))
+			foreach (var type in GetSingletonTypes())
 			{
 				if (!types.Contains(type))
 				{
@@ -76,7 +89,7 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public IEnumerator<object> GetEnumerator()
 		{
-			foreach (var type in _Services.Select(x => x.ServiceType))
+			foreach (var type in GetSingletonTypes())
 			{
 				yield return _Provider.GetService(type);
 			}

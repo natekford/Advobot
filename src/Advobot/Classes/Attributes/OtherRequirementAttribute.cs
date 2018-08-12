@@ -14,8 +14,8 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Checks if a user has any permissions that would generally be needed for a command, if the user is the guild owner, if the user if the bot owner, or if the user is a trusted user.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class)]
-	public class OtherRequirementAttribute : PreconditionAttribute
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+	public sealed class OtherRequirementAttribute : PreconditionAttribute
 	{
 		private const GuildPermission USER_HAS_A_PERMISSION_PERMS = 0
 			| GuildPermission.Administrator

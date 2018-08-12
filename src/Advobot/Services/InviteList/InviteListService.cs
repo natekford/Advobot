@@ -1,47 +1,109 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Classes.Settings;
+using System.Threading.Tasks;
 using Advobot.Interfaces;
+using AdvorangesUtils;
 using Discord;
+using Discord.WebSocket;
+using LiteDB;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.InviteList
 {
-	//TODO: make the invites more centralized on this class instead of spread out in guild settings.
 	/// <summary>
-	/// Handles holding all <see cref="ListedInvite"/>.
+	/// Handles holding all <see cref="IListedInvite"/>.
 	/// </summary>
-	internal sealed class InviteListService : IInviteListService
+	internal sealed class InviteListService : IInviteListService, IUsesDatabase, IDisposable
 	{
-		private ConcurrentDictionary<ulong, ListedInvite> _Invites = new ConcurrentDictionary<ulong, ListedInvite>();
+		private LiteDatabase _Db;
+		private readonly ILowLevelConfig _Config;
 
 		/// <summary>
 		/// Creates an instance of <see cref="InviteListService"/>.
 		/// </summary>
 		/// <param name="provider"></param>
-		public InviteListService(IIterableServiceProvider provider) { }
+		public InviteListService(IIterableServiceProvider provider)
+		{
+			_Config = provider.GetRequiredService<ILowLevelConfig>();
+		}
 
 		/// <inheritdoc />
-		public bool Add(ListedInvite invite)
+		public void Start()
 		{
-			return _Invites.TryAdd(invite.Guild.Id, invite);
+			//Use mode=exclusive to not have ioexceptions
+			_Db = new LiteDatabase(new ConnectionString
+			{
+				Filename = _Config.GetBaseBotDirectoryFile("InviteDatabase.db").FullName,
+				Mode = FileMode.Exclusive,
+			});
+			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(InviteListService)}.");
 		}
 		/// <inheritdoc />
-		public bool Remove(IGuild guild)
+		public void Dispose()
 		{
-			return _Invites.TryRemove(guild.Id, out _);
+			_Db?.Dispose();
 		}
 		/// <inheritdoc />
-		public IEnumerable<ListedInvite> GetAll()
+		public IListedInvite Add(SocketGuild guild, IInvite invite, IEnumerable<string> keywords)
 		{
-			return _Invites.Values.OrderByDescending(x => x.LastBumped);
+			var col = _Db.GetCollection<ListedInvite>();
+			col.Delete(x => x.GuildId == guild.Id);
+			var listedInvite = new ListedInvite(guild, invite, keywords);
+			col.Insert(listedInvite);
+			return listedInvite;
 		}
 		/// <inheritdoc />
-		public IEnumerable<ListedInvite> GetAll(params string[] keywords)
+		public void Remove(ulong guildId)
 		{
-			return _Invites.Values.Where(x => x.Keywords.Intersect(keywords, StringComparer.OrdinalIgnoreCase).Any())
-				.OrderByDescending(x => x.LastBumped);
+			_Db.GetCollection<ListedInvite>().Delete(x => x.GuildId == guildId);
+		}
+		/// <inheritdoc />
+		public async Task Update(SocketGuild guild)
+		{
+			if (!(GetListedInvite(guild.Id) is ListedInvite invite))
+			{
+				return;
+			}
+			await invite.UpdateAsync(guild).CAF();
+			_Db.GetCollection<ListedInvite>().Update(invite);
+		}
+		/// <inheritdoc />
+		public async Task Bump(SocketGuild guild)
+		{
+			if (!(GetListedInvite(guild.Id) is ListedInvite invite))
+			{
+				return;
+			}
+			await invite.BumpAsync(guild).CAF();
+			_Db.GetCollection<ListedInvite>().Update(invite);
+		}
+		/// <inheritdoc />
+		public IEnumerable<IListedInvite> GetAll(int limit)
+		{
+			return _Db.GetCollection<ListedInvite>().Find(Query.All(nameof(ListedInvite.Time), Query.Descending), 0, limit);
+		}
+		/// <inheritdoc />
+		public IEnumerable<IListedInvite> GetAll(int limit, params string[] keywords)
+		{
+			var count = 0;
+			foreach (var invite in GetAll(int.MaxValue))
+			{
+				if (!invite.Keywords.Intersect(keywords, StringComparer.OrdinalIgnoreCase).Any())
+				{
+					continue;
+				}
+				yield return invite;
+				if (++count >= limit)
+				{
+					yield break;
+				}
+			}
+		}
+		/// <inheritdoc />
+		public IListedInvite GetListedInvite(ulong guildId)
+		{
+			return _Db.GetCollection<ListedInvite>().FindOne(x => x.GuildId == guildId);
 		}
 	}
 }

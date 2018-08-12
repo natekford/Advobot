@@ -10,11 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// A <see cref="ShardedCommandContext"/> which contains <see cref="IBotSettings"/>, <see cref="IGuildSettings"/>, <see cref="ILogService"/>, and <see cref="ITimerService"/>.
+	/// A <see cref="ShardedCommandContext"/> which contains settings and the service provider.
 	/// </summary>
 	public class AdvobotCommandContext : ShardedCommandContext
 	{
-		private static readonly string _Joiner = "\n" + new string(' ', 32);
+		private static readonly string _Joiner = "\n" + new string(' ', 28);
 
 		/// <summary>
 		/// The settings for the guild.

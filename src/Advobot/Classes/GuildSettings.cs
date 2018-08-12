@@ -26,9 +26,6 @@ namespace Advobot.Classes
 		[JsonProperty("GoodbyeMessage"), Setting(null)]
 		public GuildNotification GoodbyeMessage { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("ListedInvite"), Setting(null)]
-		public ListedInvite ListedInvite { get; set; }
-		/// <inheritdoc />
 		[JsonProperty("Slowmode"), Setting(null)]
 		public Slowmode Slowmode { get; set; }
 		/// <inheritdoc />
@@ -145,8 +142,6 @@ namespace Advobot.Classes
 			{
 				group.PostDeserialize(guild);
 			}
-			ListedInvite?.PostDeserialize(guild);
-
 			Loaded = true;
 		}
 		/// <inheritdoc />

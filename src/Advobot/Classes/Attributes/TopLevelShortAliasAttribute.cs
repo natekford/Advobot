@@ -10,8 +10,8 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Shortens any non nested command class' name to a unique initialism or other short name.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class)]
-	public class TopLevelShortAliasAttribute : AliasAttribute
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+	public sealed class TopLevelShortAliasAttribute : AliasAttribute
 	{
 		private static Dictionary<Type, Initialism> _AlreadyUsedInUpperMostClasses = new Dictionary<Type, Initialism>();
 

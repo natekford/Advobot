@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -75,7 +76,6 @@ namespace Advobot.Services.Commands
 
 			_Client.ShardReady += (client) => OnReady(client, commands);
 			_Client.MessageReceived += HandleCommand;
-			_Commands.CommandExecuted += OnCommandExecuted;
 		}
 
 		/// <summary>
@@ -107,20 +107,6 @@ namespace Advobot.Services.Commands
 			{
 				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
 			}
-			//Remove all the command which don't have their required service
-			//TODO: also disable these in the helpentryholder if they're disabled here
-			foreach (var module in new List<ModuleInfo>(_Commands.Modules))
-			{
-				foreach (var req in module.Attributes.OfType<RequiredServiceAttribute>())
-				{
-					if (_Provider.GetService(req.ServiceType) == null)
-					{
-						await _Commands.RemoveModuleAsync(module).CAF();
-						ConsoleUtils.DebugWrite($"Removed the module {module.Name} because {req.ServiceType.Name} is missing.");
-						break;
-					}
-				}
-			}
 			_Provider.GetRequiredService<IHelpEntryService>().Add(_Commands.Modules);
 
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
@@ -147,16 +133,7 @@ namespace Advobot.Services.Commands
 
 			var context = new AdvobotCommandContext(_Provider, settings, _Client, msg);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
-		}
-		/// <summary>
-		/// Handles logging the response to the guild/console.
-		/// </summary>
-		/// <param name="command"></param>
-		/// <param name="context"></param>
-		/// <param name="result"></param>
-		/// <returns></returns>
-		private async Task OnCommandExecuted(CommandInfo command, ICommandContext context, IResult result)
-		{
+
 			if (!(context is AdvobotCommandContext aContext) || (!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)
 			{
 				return;

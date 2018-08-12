@@ -8,8 +8,8 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Limits the rate a command can be used.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-	public class RateLimitAttribute : PreconditionAttribute
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public sealed class RateLimitAttribute : PreconditionAttribute
 	{
 		private static ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>> _Times = new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>>();
 		private readonly TimeSpan _Time;

@@ -9,7 +9,7 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Makes sure the passed in number is in the supplied list.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Parameter)]
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class VerifyNumberAttribute : ParameterPreconditionAttribute
 	{
 		/// <summary>

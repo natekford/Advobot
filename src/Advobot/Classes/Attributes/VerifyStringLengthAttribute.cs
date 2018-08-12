@@ -10,7 +10,7 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides errors stating the min/max if under/over.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Parameter)]
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class VerifyStringLengthAttribute : ParameterPreconditionAttribute
 	{
 		private static ImmutableDictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>

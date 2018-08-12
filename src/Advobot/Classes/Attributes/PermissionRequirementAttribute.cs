@@ -11,8 +11,8 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Checks if the user has all of the permissions supplied for allOfTheListedPerms or if the user has any of the permissions supplied for anyOfTheListedPerms.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class)]
-	public class PermissionRequirementAttribute : PreconditionAttribute
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+	public sealed class PermissionRequirementAttribute : PreconditionAttribute
 	{
 		private GuildPermissions _AllFlags;
 		private GuildPermissions _AnyFlags;

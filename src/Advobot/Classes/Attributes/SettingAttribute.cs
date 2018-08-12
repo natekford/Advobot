@@ -6,8 +6,8 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Indicates a property is a setting.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Property)]
-	public class SettingAttribute : Attribute
+	[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+	public sealed class SettingAttribute : Attribute
 	{
 		/// <summary>
 		/// The default value of the setting.

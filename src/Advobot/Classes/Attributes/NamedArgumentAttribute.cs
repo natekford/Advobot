@@ -5,8 +5,8 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Only use on primitives (nullable allowed) or enums.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Parameter)]
-	public class NamedArgumentAttribute : Attribute
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+	public sealed class NamedArgumentAttribute : Attribute
 	{
 		/// <summary>
 		/// Specifies the acceptable amount of objects in the params array.
