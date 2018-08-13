@@ -28,28 +28,24 @@ namespace Advobot.Core
 			ConsoleUtils.DebugWrite($"Args: {config.CurrentInstance}|{config.PreviousProcessId}");
 
 			//Get the save path
-			var savePath = true;
-			while (!config.ValidatePath((savePath ? null : Console.ReadLine()), savePath))
+			var startup = true;
+			while (!config.ValidatedPath)
 			{
-				savePath = false;
+				startup = config.ValidatePath((startup ? null : Console.ReadLine()), startup);
+			}
+			//Get the bot key
+			startup = true;
+			while (!config.ValidatedKey)
+			{
+				startup = await config.ValidateBotKey((startup ? null : Console.ReadLine()), startup, ClientUtils.RestartBotAsync).CAF();
 			}
 
 			var provider = new IterableServiceProvider(CreationUtils.CreateDefaultServices(config), true);
-			var client = provider.GetRequiredService<DiscordShardedClient>();
-
-			//Get the bot key
-			var botKey = true;
-			while (!await config.ValidateBotKey(client, (botKey ? null : Console.ReadLine()), botKey).CAF())
-			{
-				botKey = false;
-			}
-
-			await config.VerifyBotDirectory(ClientUtils.RestartBotAsync).CAF();
 			foreach (var db in provider.OfType<IUsesDatabase>())
 			{
 				db.Start();
 			}
-			await ClientUtils.StartAsync(client).CAF();
+			await config.StartAsync(provider.GetRequiredService<DiscordShardedClient>());
 		}
 	}
 }

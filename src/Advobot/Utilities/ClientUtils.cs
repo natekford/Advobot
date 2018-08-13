@@ -20,9 +20,11 @@ namespace Advobot.Utilities
 		/// Tries to start the bot and start command handling.
 		/// </summary>
 		/// <param name="client"></param>
+		/// <param name="botKey"></param>
 		/// <returns></returns>
-		public static async Task StartAsync(BaseSocketClient client)
+		public static async Task StartAsync(BaseSocketClient client, string botKey)
 		{
+			await client.LoginAsync(TokenType.Bot, botKey).CAF();
 			ConsoleUtils.WriteLine("Connecting the client...");
 			await client.StartAsync().CAF();
 			ConsoleUtils.WriteLine("Successfully connected the client.");

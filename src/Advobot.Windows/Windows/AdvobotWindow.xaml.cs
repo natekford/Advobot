@@ -48,8 +48,6 @@ namespace Advobot.Windows.Windows
 		private IterableServiceProvider _Provider;
 		private ILowLevelConfig _Config;
 		private ColorSettings _Colors;
-		private bool _GotPath;
-		private bool _GotKey;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotWindow"/>.
@@ -67,23 +65,23 @@ namespace Advobot.Windows.Windows
 		private async Task<bool> AttemptToStart(string input)
 		{
 			//Null means it's from the loaded event, which is start up so it's telling the bot to look up the config value
-			var startup = input == null && !(_GotPath && _GotKey);
+			var startup = input == null && !(_Config.ValidatedPath && _Config.ValidatedKey);
 			var set = false;
-			if (!_GotPath)
+			if (!_Config.ValidatedPath)
 			{
 				//Set startup to whatever returned value is so it can be used in GotKey, and then after GotKey in the last if statement
-				set = _GotPath = _Config.ValidatePath(input, startup);
-				if (_GotPath)
+				set = _Config.ValidatePath(input, startup);
+				if (_Config.ValidatedPath)
 				{
 					_Provider = new IterableServiceProvider(CreationUtils.CreateDefaultServices(_Config), true);
 				}
 			}
-			else if (!_GotKey)
+			else if (!_Config.ValidatedKey)
 			{
-				set = _GotKey = await _Config.ValidateBotKey(_Provider.GetRequiredService<DiscordShardedClient>(), input, startup);
+				set = await _Config.ValidateBotKey(input, startup, Restart);
 			}
 
-			if (set && _GotKey && _GotPath)
+			if (set && _Config.ValidatedKey && _Config.ValidatedPath)
 			{
 				//Was getting some access exceptions on a computer when this was not inside a dispatcher call
 				await Dispatcher.InvokeAsync(async () =>
@@ -94,12 +92,11 @@ namespace Advobot.Windows.Windows
 					BotSettings.HeldObject = _Provider.GetRequiredService<IBotSettings>();
 					LogHolder.HeldObject = _Provider.GetRequiredService<ILogService>();
 
-					await _Config.VerifyBotDirectory(Restart).CAF();
 					foreach (var dbUser in _Provider.OfType<IUsesDatabase>())
 					{
 						dbUser.Start();
 					}
-					await ClientUtils.StartAsync(Client).CAF();
+					await _Config.StartAsync(Client).CAF();
 				});
 
 				_Colors = ColorSettings.Load(_Config);
@@ -126,7 +123,7 @@ namespace Advobot.Windows.Windows
 			}
 
 			ConsoleUtils.WriteLine(input);
-			if (!(_GotPath && _GotKey))
+			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
 			{
 				await AttemptToStart(input).CAF();
 			}

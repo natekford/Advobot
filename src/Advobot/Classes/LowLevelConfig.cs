@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
+using Advobot.Utilities;
 using AdvorangesSettingParser;
 using AdvorangesUtils;
 using Discord;
@@ -50,7 +51,15 @@ namespace Advobot.Classes
 		/// </summary>
 		[JsonProperty("BotKey")]
 		private string BotKey { get; set; }
+		/// <inheritdoc />
+		[JsonIgnore]
+		public bool ValidatedPath { get; private set; }
+		/// <inheritdoc />
+		[JsonIgnore]
+		public bool ValidatedKey { get; private set; }
 
+		[JsonIgnore]
+		private readonly DiscordRestClient _TestClient = new DiscordRestClient();
 
 		/// <inheritdoc />
 		public bool ValidatePath(string input, bool startup)
@@ -59,7 +68,7 @@ namespace Advobot.Classes
 
 			if (startup && !String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 			{
-				return true;
+				return ValidatedPath = true;
 			}
 			if (startup)
 			{
@@ -75,14 +84,14 @@ namespace Advobot.Classes
 				ConsoleUtils.WriteLine($"Successfully set the save path as {path}");
 				SavePath = path;
 				SaveSettings();
-				return true;
+				return ValidatedPath = true;
 			}
 
 			ConsoleUtils.WriteLine("Invalid directory. Please enter a valid directory:", ConsoleColor.Red);
 			return false;
 		}
 		/// <inheritdoc />
-		public async Task<bool> ValidateBotKey(BaseSocketClient client, string input, bool startup)
+		public async Task<bool> ValidateBotKey(string input, bool startup, Func<ILowLevelConfig, BaseSocketClient, Task> restartCallback)
 		{
 			var key = input ?? BotKey;
 
@@ -90,8 +99,9 @@ namespace Advobot.Classes
 			{
 				try
 				{
-					await client.LoginAsync(TokenType.Bot, key).CAF();
-					return true;
+					await _TestClient.LoginAsync(TokenType.Bot, key).CAF();
+					await ValidateBotId(restartCallback).CAF();
+					return ValidatedKey = true;
 				}
 				catch (HttpException)
 				{
@@ -107,12 +117,12 @@ namespace Advobot.Classes
 
 			try
 			{
-				await client.LoginAsync(TokenType.Bot, key).CAF();
-
+				await _TestClient.LoginAsync(TokenType.Bot, key).CAF();
 				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
 				BotKey = key;
 				SaveSettings();
-				return true;
+				await ValidateBotId(restartCallback).CAF();
+				return ValidatedKey = true;
 			}
 			catch (HttpException)
 			{
@@ -120,19 +130,24 @@ namespace Advobot.Classes
 				return false;
 			}
 		}
-		/// <inheritdoc />
-		public async Task VerifyBotDirectory(Func<ILowLevelConfig, BaseSocketClient, Task> restartCallback)
+		private async Task ValidateBotId(Func<ILowLevelConfig, BaseSocketClient, Task> restartCallback)
 		{
-			var client = new DiscordRestClient();
-			await client.LoginAsync(TokenType.Bot, BotKey).CAF();
-
-			if (BotId != client.CurrentUser.Id)
+			if (BotId != _TestClient.CurrentUser.Id)
 			{
-				BotId = client.CurrentUser.Id;
+				BotId = _TestClient.CurrentUser.Id;
 				SaveSettings();
 				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
 				await restartCallback.Invoke(this, null).CAF();
 			}
+		}
+		/// <inheritdoc />
+		public async Task StartAsync(BaseSocketClient client)
+		{
+			if (!(ValidatedPath && ValidatedKey))
+			{
+				throw new InvalidOperationException($"Either path of key has not been validated yet.");
+			}
+			await ClientUtils.StartAsync(client, BotKey);
 		}
 		/// <inheritdoc />
 		public void ResetBotKey()
