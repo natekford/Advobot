@@ -74,16 +74,13 @@ namespace Advobot.Classes.UsageGeneration
 		{
 			foreach (var method in module.Commands)
 			{
-				if (method.Name != "Command")
-				{
-					var m = new MethodDetails(deepness, method.Name, method.Parameters.Count);
-					lists.Methods.Add(m);
-				}
+				var m = new MethodDetails(deepness, method.Name != "Command" ? method.Name : null, method.Parameters.Count);
+				lists.Methods.Add(m);
 
 				var parameters = method.Parameters;
 				for (var i = 0; i < parameters.Count; ++i)
 				{
-					var pDeepness = (method.Name != "Command" ? 1 : 0) + deepness + i;
+					var pDeepness = (m.Name != null ? 1 : 0) + deepness + i;
 					var p = parameters[i];
 					lists.Parameters.Add(new ParameterDetails(pDeepness, p));
 				}

@@ -29,13 +29,13 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		Task Update(SocketGuild guild);
+		Task UpdateAsync(SocketGuild guild);
 		/// <summary>
 		/// Updates the guild's stats, makes sure the invite is not expired, and bumps the time.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		Task Bump(SocketGuild guild);
+		Task BumpAsync(SocketGuild guild);
 		/// <summary>
 		/// Get every invite from the list.
 		/// <paramref name="limit"/> is how many records this will search, not necessarily how many it will return.

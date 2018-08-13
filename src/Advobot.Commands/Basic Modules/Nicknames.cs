@@ -22,8 +22,8 @@ namespace Advobot.Commands.Nicknames
 	{
 		[Command]
 		public async Task Command(
-			[VerifyObject(false, Verif.CanBeEdited)] SocketGuildUser user,
-			[Optional, VerifyStringLength(Target.Nickname)] string nickname)
+			[ValidateObject(false, Verif.CanBeEdited)] SocketGuildUser user,
+			[Optional, ValidateString(Target.Nickname)] string nickname)
 		{
 			await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, GetRequestOptions()).CAF();
 			var response = nickname == null
@@ -42,8 +42,8 @@ namespace Advobot.Commands.Nicknames
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
-			[VerifyStringLength(Target.Nickname)] string search,
-			[VerifyStringLength(Target.Nickname)] string replace,
+			[ValidateString(Target.Nickname)] string search,
+			[ValidateString(Target.Nickname)] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser).Where(x =>
@@ -65,7 +65,7 @@ namespace Advobot.Commands.Nicknames
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
 			uint upperLimit,
-			[VerifyStringLength(Target.Nickname)] string replace,
+			[ValidateString(Target.Nickname)] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser).Where(x =>

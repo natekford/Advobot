@@ -26,7 +26,7 @@ namespace Advobot.Commands.BannedPhrases
 	public sealed class EvaluateBannedRegex : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyStringLength(Target.Regex)] string regex, [Remainder] string testPhrase)
+		public async Task Command([ValidateString(Target.Regex)] string regex, [Remainder] string testPhrase)
 		{
 			Regex regexOutput;
 			try
@@ -386,7 +386,7 @@ namespace Advobot.Commands.BannedPhrases
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command([VerifyObject(false, Verif.CanBeEdited)] SocketRole role, uint position, [Optional] uint time)
+			public async Task Command([ValidateObject(false, Verif.CanBeEdited)] SocketRole role, uint position, [Optional] uint time)
 			{
 				if (position == default)
 				{

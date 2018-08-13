@@ -14,7 +14,7 @@ namespace Advobot.Classes.Attributes
 	/// Verifies the parameter this attribute is targetting fits all of the given conditions.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
+	public sealed class ValidateObjectAttribute : ParameterPreconditionAttribute
 	{
 		private readonly ImmutableList<Verif> _Checks;
 		private readonly bool _IfNullCheckFromContext;
@@ -24,7 +24,7 @@ namespace Advobot.Classes.Attributes
 		/// </summary>
 		/// <param name="ifNullCheckFromContext"></param>
 		/// <param name="checks"></param>
-		public VerifyObjectAttribute(bool ifNullCheckFromContext, params Verif[] checks)
+		public ValidateObjectAttribute(bool ifNullCheckFromContext, params Verif[] checks)
 		{
 			_Checks = checks.ToImmutableList();
 			_IfNullCheckFromContext = ifNullCheckFromContext;

@@ -10,7 +10,7 @@ namespace Advobot.Classes.Attributes
 	/// Makes sure the passed in number is in the supplied list.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class VerifyNumberAttribute : ParameterPreconditionAttribute
+	public sealed class ValidateNumberAttribute : ParameterPreconditionAttribute
 	{
 		/// <summary>
 		/// Allowed numbers. If the range method is used this will be empty.
@@ -29,7 +29,7 @@ namespace Advobot.Classes.Attributes
 		/// Valid numbers which are the randomly supplied values.
 		/// </summary>
 		/// <param name="numbers"></param>
-		public VerifyNumberAttribute(int[] numbers)
+		public ValidateNumberAttribute(int[] numbers)
 		{
 			if (numbers.Length > 50)
 			{
@@ -45,7 +45,7 @@ namespace Advobot.Classes.Attributes
 		/// </summary>
 		/// <param name="start"></param>
 		/// <param name="end"></param>
-		public VerifyNumberAttribute(int start, int end)
+		public ValidateNumberAttribute(int start, int end)
 		{
 			ValidNumbers = new int[0].ToImmutableList();
 			Start = start;
@@ -69,7 +69,7 @@ namespace Advobot.Classes.Attributes
 			}
 			if (!int.TryParse(value.ToString(), out var num))
 			{
-				throw new NotSupportedException($"{nameof(VerifyNumberAttribute)} only supports {nameof(Int32)}.");
+				throw new NotSupportedException($"{nameof(ValidateNumberAttribute)} only supports {nameof(Int32)}.");
 			}
 			if (ValidNumbers.Any())
 			{

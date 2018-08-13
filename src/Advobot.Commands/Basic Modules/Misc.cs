@@ -50,7 +50,7 @@ namespace Advobot.Commands.Misc
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command, Priority(1)]
-		[RequiredService(typeof(IHelpEntryService))]
+		[RequiredServices(typeof(IHelpEntryService))]
 		public async Task Command([Remainder] IHelpEntry command)
 		{
 			var embed = new EmbedWrapper
@@ -62,8 +62,7 @@ namespace Advobot.Commands.Misc
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command, Priority(0)]
-		[RequiredService(typeof(IHelpEntryService))]
-		[RequiredService(typeof(ITimerService))]
+		[RequiredServices(typeof(IHelpEntryService), typeof(ITimerService))]
 		public async Task Command([Remainder] string command)
 		{
 			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
@@ -83,7 +82,7 @@ namespace Advobot.Commands.Misc
 	[Summary("Prints out the commands in that category of the command list. " +
 		"Inputting nothing will list the command categories.")]
 	[DefaultEnabled(true)]
-	[RequiredService(typeof(IHelpEntryService))]
+	[RequiredServices(typeof(IHelpEntryService))]
 	public sealed class Commands : AdvobotModuleBase
 	{
 		[Command(nameof(All)), ShortAlias(nameof(All))]
@@ -154,7 +153,7 @@ namespace Advobot.Commands.Misc
 	public sealed class MessageRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, Verif.CanBeEdited, Verif.IsNotEveryone)] IRole role, [Remainder] string message)
+		public async Task Command([ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone)] IRole role, [Remainder] string message)
 		{
 			if (role.IsMentionable)
 			{
@@ -201,11 +200,11 @@ namespace Advobot.Commands.Misc
 	[Summary("Sends a message to the person who said the command after the passed in time is up. " +
 		"Potentially may take one minute longer than asked for if the command is input at certain times.")]
 	[DefaultEnabled(true)]
-	[RequiredService(typeof(ITimerService))]
+	[RequiredServices(typeof(ITimerService))]
 	public sealed class Remind : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyNumber(1, 10000)] uint minutes, [Remainder] string message)
+		public async Task Command([ValidateNumber(1, 10000)] uint minutes, [Remainder] string message)
 		{
 			var timers = Context.Provider.GetRequiredService<ITimerService>();
 			await timers.AddAsync(new TimedMessage(TimeSpan.FromMinutes(minutes), Context.User, message)).CAF();

@@ -55,7 +55,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
+		public async Task Command([Remainder, ValidateString(Target.Guild)] string name)
 		{
 			await Context.Guild.ModifyAsync(x => x.Name = name, GetRequestOptions()).CAF();
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the guild name to `{name}`.").CAF();
@@ -128,7 +128,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyNumber(new[] { 60, 300, 900, 1800, 3600 })] uint time)
+		public async Task Command([ValidateNumber(new[] { 60, 300, 900, 1800, 3600 })] uint time)
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkTimeout = (int)time, GetRequestOptions()).CAF();
 			var resp = $"Successfully set the guild AFK timeout to `{time}`.";
@@ -143,7 +143,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeManaged)] SocketVoiceChannel channel)
+		public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeManaged)] SocketVoiceChannel channel)
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel>(channel), GetRequestOptions()).CAF();
 			var resp = $"Successfully set the guild AFK channel to `{channel.Format()}`.";
@@ -164,7 +164,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeManaged)] SocketTextChannel channel)
+		public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeManaged)] SocketTextChannel channel)
 		{
 			await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel>(channel), GetRequestOptions()).CAF();
 			var resp = $"Successfully set the guild system channel to `{channel.Format()}`.";
@@ -302,7 +302,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class CreateGuild : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
+		public async Task Command([Remainder, ValidateString(Target.Guild)] string name)
 		{
 			var optimalVoiceRegion = await Context.Client.GetOptimalVoiceRegionAsync().CAF();
 			var guild = await Context.Client.CreateGuildAsync(name, optimalVoiceRegion).CAF();

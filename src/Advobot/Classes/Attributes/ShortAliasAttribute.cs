@@ -17,7 +17,13 @@ namespace Advobot.Classes.Attributes
 		/// <param name="otherAliases"></param>
 		public ShortAliasAttribute(string name, params string[] otherAliases) : base(Shorten(name, otherAliases)) { }
 
-		private static string[] Shorten(string name, string[] otherAliases)
+		/// <summary>
+		/// Shortens the passed in name and returns an array with the shortened version and the other aliases.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="otherAliases"></param>
+		/// <returns></returns>
+		public static string[] Shorten(string name, string[] otherAliases)
 		{
 			var initialism = new Initialism(name, otherAliases, false);
 			if (String.IsNullOrWhiteSpace(initialism.ToString()))

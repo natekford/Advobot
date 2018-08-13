@@ -22,7 +22,13 @@ namespace Advobot.Classes.Attributes
 		/// <param name="otherAliases"></param>
 		public TopLevelShortAliasAttribute(Type classType, params string[] otherAliases) : base(Shorten(classType, otherAliases)) { }
 
-		private static string[] Shorten(Type classType, string[] otherAliases)
+		/// <summary>
+		/// Shortens the class type's name and returns an array with the shortened name and the other aliases.
+		/// </summary>
+		/// <param name="classType"></param>
+		/// <param name="otherAliases"></param>
+		/// <returns></returns>
+		public static string[] Shorten(Type classType, string[] otherAliases)
 		{
 			if (_AlreadyUsedInUpperMostClasses.TryGetValue(classType, out var alreadyCreated))
 			{
@@ -30,13 +36,13 @@ namespace Advobot.Classes.Attributes
 			}
 			if (classType.IsNested)
 			{
-				throw new ArgumentException($"needs to not have the {nameof(TopLevelShortAliasAttribute)} attribute", classType.FullName);
+				throw new ArgumentException($"Needs to not have the {nameof(TopLevelShortAliasAttribute)} attribute.", classType.FullName);
 			}
 
 			var initialism = new Initialism(classType.Name, otherAliases, true);
 			if (String.IsNullOrWhiteSpace(initialism.Edited))
 			{
-				throw new ArgumentException("name must have at least one capital letter", classType.FullName);
+				throw new ArgumentException("Name must have at least one capital letter.", classType.FullName);
 			}
 
 			//Example with:

@@ -34,7 +34,7 @@ namespace Advobot.Commands.Emotes
 		}
 		[Command, Priority(1)]
 		public async Task Command(
-			[VerifyStringLength(Target.Emote)] string name,
+			[ValidateString(Target.Emote)] string name,
 			Uri url,
 			[Optional, Remainder] NamedArguments<EmoteResizerArguments> args)
 		{
@@ -84,7 +84,7 @@ namespace Advobot.Commands.Emotes
 	public sealed class ModifyEmoteName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(GuildEmote emote, [VerifyStringLength(Target.Emote), Remainder] string newName)
+		public async Task Command(GuildEmote emote, [ValidateString(Target.Emote), Remainder] string newName)
 		{
 			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = newName, GetRequestOptions()).CAF();
 		}
@@ -100,7 +100,7 @@ namespace Advobot.Commands.Emotes
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(
 			GuildEmote emote,
-			[VerifyObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
+			[ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
 		{
 			await Context.Guild.ModifyEmoteAsync(emote, x =>
 			{
@@ -119,7 +119,7 @@ namespace Advobot.Commands.Emotes
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(
 			GuildEmote emote,
-			[VerifyObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
+			[ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
 		{
 			if (!emote.RoleIds.Any())
 			{

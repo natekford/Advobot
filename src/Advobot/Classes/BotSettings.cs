@@ -197,13 +197,13 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		[JsonProperty("TrustedUsers"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("TrustedUsers"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<ulong> TrustedUsers { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("UsersUnableToDmOwner"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("UsersUnableToDmOwner"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<ulong> UsersUnableToDmOwner { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("UsersIgnoredFromCommands"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("UsersIgnoredFromCommands"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<ulong> UsersIgnoredFromCommands { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonIgnore]

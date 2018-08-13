@@ -26,10 +26,19 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public virtual ImmutableDictionary<string, PropertyInfo> GetSettings()
 		{
-			return _S ?? (_S = GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+			return _S ?? (_S = GetSettings(GetType()));
+		}
+		/// <summary>
+		/// Gets settings from a type statically.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public static ImmutableDictionary<string, PropertyInfo> GetSettings(Type type)
+		{
+			return type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
 				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
-				.ToDictionary(x => x.Name.Trim('_'), x => x, StringComparer.OrdinalIgnoreCase)
-				.ToImmutableDictionary());
+				.ToDictionary(x => x.Name, x => x)
+				.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 		}
 		/// <inheritdoc />
 		public virtual string ToString(BaseSocketClient client, SocketGuild guild)
@@ -63,9 +72,9 @@ namespace Advobot.Classes
 			}
 		}
 		/// <inheritdoc />
-		public virtual object ResetSetting(string name)
+		public virtual void ResetSetting(string name)
 		{
-			return ResetSetting(GetProperty(name));
+			ResetSetting(GetProperty(name));
 		}
 		/// <inheritdoc />
 		public virtual void SaveSettings(ILowLevelConfig config)
@@ -87,7 +96,7 @@ namespace Advobot.Classes
 				object nonCompileTimeValue;
 				switch (settingAttr.NonCompileTimeDefaultValue)
 				{
-					case NonCompileTimeDefaultValue.InstantiateDefaultParameterless:
+					case NonCompileTimeDefaultValue.Default:
 						nonCompileTimeValue = Activator.CreateInstance(property.PropertyType);
 						break;
 					case NonCompileTimeDefaultValue.ClearDictionaryValues:

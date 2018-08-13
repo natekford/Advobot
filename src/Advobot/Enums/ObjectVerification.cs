@@ -3,7 +3,7 @@
 namespace Advobot.Enums
 {
 	/// <summary>
-	/// For use in <see cref="Classes.Attributes.VerifyObjectAttribute"/> inheriting classes to determine what to check.
+	/// For use in <see cref="Classes.Attributes.ValidateObjectAttribute"/> inheriting classes to determine what to check.
 	/// </summary>
 	[Flags]
 	public enum Verif : uint

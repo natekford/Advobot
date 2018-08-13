@@ -28,19 +28,6 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		protected override void AfterExecute(CommandInfo command)
 		{
-			var attributes = command.Attributes.Concat(command.Module.Attributes);
-			if (attributes.Any(x => x.GetType() == typeof(SaveGuildSettingsAttribute)))
-			{
-				Context.GuildSettings.SaveSettings(Context.Config);
-			}
-			if (attributes.Any(x => x.GetType() == typeof(SaveBotSettingsAttribute)))
-			{
-				Context.BotSettings.SaveSettings(Context.Config);
-			}
-			if (attributes.Any(x => x.GetType() == typeof(SaveLowLevelConfigAttribute)))
-			{
-				Context.Config.SaveSettings();
-			}
 			base.AfterExecute(command);
 		}
 	}

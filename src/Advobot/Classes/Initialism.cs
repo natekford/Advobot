@@ -38,7 +38,7 @@ namespace Advobot.Classes
 
 		internal Initialism(string name, string[] otherAliases, bool topLevel)
 		{
-			var edittingName = name;
+			var editedName = name;
 			var parts = new List<StringBuilder>();
 			var initialism = new StringBuilder();
 
@@ -46,15 +46,15 @@ namespace Advobot.Classes
 			{
 				foreach (var kvp in _ShortenedPhrases)
 				{
-					edittingName = edittingName.CaseInsReplace(kvp.Key, kvp.Value.ToUpper());
+					editedName = editedName.CaseInsReplace(kvp.Key, kvp.Value.ToUpper());
 				}
 				if (name.EndsWith("s"))
 				{
-					edittingName = edittingName.Substring(0, edittingName.Length - 1) + "S";
+					editedName = editedName.Substring(0, editedName.Length - 1) + "S";
 				}
 			}
 
-			foreach (var c in edittingName)
+			foreach (var c in editedName)
 			{
 				if (Char.IsUpper(c))
 				{

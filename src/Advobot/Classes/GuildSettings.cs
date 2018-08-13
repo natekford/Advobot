@@ -29,7 +29,7 @@ namespace Advobot.Classes
 		[JsonProperty("Slowmode"), Setting(null)]
 		public Slowmode Slowmode { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("Rules"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("Rules"), Setting(NonCompileTimeDefaultValue.Default)]
 		public RuleHolder Rules { get; } = new RuleHolder();
 		/// <inheritdoc />
 		[JsonProperty("Prefix"), Setting(null)]
@@ -67,46 +67,46 @@ namespace Advobot.Classes
 			{ RaidType.RapidJoins, null }
 		};
 		/// <inheritdoc />
-		[JsonProperty("PersistentRoles"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("PersistentRoles"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<PersistentRole> PersistentRoles { get; } = new List<PersistentRole>();
 		/// <inheritdoc />
-		[JsonProperty("BotUsers"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("BotUsers"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<BotImplementedPermissions> BotUsers { get; } = new List<BotImplementedPermissions>();
 		/// <inheritdoc />
-		[JsonProperty("SelfAssignableGroups"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("SelfAssignableGroups"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<SelfAssignableRoles> SelfAssignableGroups { get; } = new List<SelfAssignableRoles>();
 		/// <inheritdoc />
-		[JsonProperty("Quotes"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("Quotes"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<Quote> Quotes { get; } = new List<Quote>();
 		/// <inheritdoc />
-		[JsonProperty("LogActions"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("LogActions"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<LogAction> LogActions { get; } = new List<LogAction>();
 		/// <inheritdoc />
-		[JsonProperty("IgnoredCommandChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("IgnoredCommandChannels"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<ulong> IgnoredCommandChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("IgnoredLogChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("IgnoredLogChannels"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<ulong> IgnoredLogChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("IgnoredXpChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("IgnoredXpChannels"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<ulong> IgnoredXpChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("ImageOnlyChannels"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("ImageOnlyChannels"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<ulong> ImageOnlyChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhraseStrings"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("BannedPhraseStrings"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<BannedPhrase> BannedPhraseStrings { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhraseRegex"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("BannedPhraseRegex"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<BannedPhrase> BannedPhraseRegex { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhraseNames"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("BannedPhraseNames"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<BannedPhrase> BannedPhraseNames { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhrasePunishments"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("BannedPhrasePunishments"), Setting(NonCompileTimeDefaultValue.Default)]
 		public List<BannedPhrasePunishment> BannedPhrasePunishments { get; } = new List<BannedPhrasePunishment>();
 		/// <inheritdoc />
-		[JsonProperty("CommandSettings"), Setting(NonCompileTimeDefaultValue.InstantiateDefaultParameterless)]
+		[JsonProperty("CommandSettings"), Setting(NonCompileTimeDefaultValue.Default)]
 		public CommandSettings CommandSettings { get; } = new CommandSettings();
 		/// <inheritdoc />
 		[JsonIgnore]

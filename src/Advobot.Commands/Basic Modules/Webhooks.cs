@@ -76,7 +76,7 @@ namespace Advobot.Commands.Webhooks
 	public sealed class ModifyWebhookName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(IWebhook webhook, [Remainder, VerifyStringLength(Target.Name)] string name)
+		public async Task Command(IWebhook webhook, [Remainder, ValidateString(Target.Name)] string name)
 		{
 			await webhook.ModifyAsync(x => x.Name = name, GetRequestOptions()).CAF();
 			var resp = $"Successfully changed the name of `{webhook.Format()}` to `{name}`.";
@@ -91,7 +91,7 @@ namespace Advobot.Commands.Webhooks
 	public sealed class ModifyWebhookChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(IWebhook webhook, [VerifyObject(true, Verif.CanManageWebhooks)] ITextChannel channel)
+		public async Task Command(IWebhook webhook, [ValidateObject(true, Verif.CanManageWebhooks)] ITextChannel channel)
 		{
 			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GetRequestOptions()).CAF();
 			var resp = $"Successfully set the channel of `{webhook.Format()}` to `{channel.Format()}`.";

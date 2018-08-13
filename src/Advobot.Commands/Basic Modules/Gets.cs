@@ -269,7 +269,7 @@ namespace Advobot.Commands.Gets
 	public sealed class GetMessages : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(int number, [Optional, VerifyObject(true, Verif.CanBeViewed)] SocketTextChannel channel)
+		public async Task Command(int number, [Optional, ValidateObject(true, Verif.CanBeViewed)] SocketTextChannel channel)
 		{
 			channel = channel ?? (SocketTextChannel)Context.Channel;
 			var messages = await MessageUtils.GetMessagesAsync(channel, Math.Min(number, 1000)).CAF();

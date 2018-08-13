@@ -32,7 +32,7 @@ namespace Advobot.Commands.GuildSettings
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully cleared the guild's prefix.").CAF();
 		}
 		[Command]
-		public async Task Command([VerifyStringLength(Target.Prefix)] string newPrefix)
+		public async Task Command([ValidateString(Target.Prefix)] string newPrefix)
 		{
 			Context.GuildSettings.Prefix = newPrefix;
 			var resp = $"Successfully set this guild's prefix to: `{Context.GuildSettings.Prefix}`.";
@@ -47,7 +47,7 @@ namespace Advobot.Commands.GuildSettings
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true, false)]
 	[SaveGuildSettings]
-	[RequiredService(typeof(IHelpEntryService))]
+	[RequiredServices(typeof(IHelpEntryService))]
 	public sealed class ModifyCommands : AdvobotModuleBase
 	{
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
@@ -151,7 +151,7 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Enable : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel)
+			public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel)
 			{
 				if (!Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -165,8 +165,8 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
-			[RequiredService(typeof(IHelpEntryService))]
-			public async Task Category([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, string category)
+			[RequiredServices(typeof(IHelpEntryService))]
+			public async Task Category([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, string category)
 			{
 				var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
 				if (!helpEntries.GetCategories().CaseInsContains(category))
@@ -180,8 +180,8 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			[RequiredService(typeof(IHelpEntryService))]
-			public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, IHelpEntry helpEntry)
+			[RequiredServices(typeof(IHelpEntryService))]
+			public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, IHelpEntry helpEntry)
 			{
 				if (!Context.GuildSettings.CommandSettings.ModifyOverride(new ValueToModify(helpEntry, true), channel))
 				{
@@ -197,7 +197,7 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Disable : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel)
+			public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel)
 			{
 				if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -211,8 +211,8 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
-			[RequiredService(typeof(IHelpEntryService))]
-			public async Task Category([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, string category)
+			[RequiredServices(typeof(IHelpEntryService))]
+			public async Task Category([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, string category)
 			{
 				var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
 				if (!helpEntries.GetCategories().CaseInsContains(category))
@@ -226,8 +226,8 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			[RequiredService(typeof(IHelpEntryService))]
-			public async Task Command([VerifyObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, IHelpEntry helpEntry)
+			[RequiredServices(typeof(IHelpEntryService))]
+			public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, IHelpEntry helpEntry)
 			{
 				if (!Context.GuildSettings.CommandSettings.ModifyOverride(new ValueToModify(helpEntry, false), channel))
 				{
@@ -371,13 +371,13 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Add : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public async Task Command([VerifyObject(false, Verif.CanBeEdited)] IUser user,
-				[VerifyObject(false, Verif.CanBeEdited)] IRole role)
+			public async Task Command([ValidateObject(false, Verif.CanBeEdited)] IUser user,
+				[ValidateObject(false, Verif.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(user.Id, role).CAF();
 			}
 			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
-			public async Task Command(ulong userId, [VerifyObject(false, Verif.CanBeEdited)] IRole role)
+			public async Task Command(ulong userId, [ValidateObject(false, Verif.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(userId, role).CAF();
 			}
@@ -401,13 +401,13 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Remove : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public async Task Command([VerifyObject(false, Verif.CanBeEdited)] IUser user,
-				[VerifyObject(false, Verif.CanBeEdited)] IRole role)
+			public async Task Command([ValidateObject(false, Verif.CanBeEdited)] IUser user,
+				[ValidateObject(false, Verif.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(user.Id, role).CAF();
 			}
 			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
-			public async Task Command(ulong userId, [VerifyObject(false, Verif.CanBeEdited)] IRole role)
+			public async Task Command(ulong userId, [ValidateObject(false, Verif.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(userId, role).CAF();
 			}
@@ -438,7 +438,7 @@ namespace Advobot.Commands.GuildSettings
 	public sealed class ModifyChannelSettings : AdvobotModuleBase
 	{
 		[Command(nameof(ImageOnly)), ShortAlias(nameof(ImageOnly))]
-		public async Task ImageOnly([VerifyObject(true, Verif.CanBeEdited)] ITextChannel channel)
+		public async Task ImageOnly([ValidateObject(true, Verif.CanBeEdited)] ITextChannel channel)
 		{
 			if (Context.GuildSettings.ImageOnlyChannels.Contains(channel.Id))
 			{
@@ -465,7 +465,7 @@ namespace Advobot.Commands.GuildSettings
 	public sealed class ModifyGuildNotifs : AdvobotModuleBase
 	{
 		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
-		public async Task Welcome([VerifyObject(true, Verif.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
+		public async Task Welcome([ValidateObject(true, Verif.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 		{
 			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
 			{
@@ -476,7 +476,7 @@ namespace Advobot.Commands.GuildSettings
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the welcome message.").CAF();
 		}
 		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
-		public async Task Goodbye([VerifyObject(true, Verif.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
+		public async Task Goodbye([ValidateObject(true, Verif.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 		{
 			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
 			{

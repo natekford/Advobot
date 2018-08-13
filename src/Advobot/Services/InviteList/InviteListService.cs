@@ -59,7 +59,7 @@ namespace Advobot.Services.InviteList
 			_Db.GetCollection<ListedInvite>().Delete(x => x.GuildId == guildId);
 		}
 		/// <inheritdoc />
-		public async Task Update(SocketGuild guild)
+		public async Task UpdateAsync(SocketGuild guild)
 		{
 			if (!(GetListedInvite(guild.Id) is ListedInvite invite))
 			{
@@ -69,7 +69,7 @@ namespace Advobot.Services.InviteList
 			_Db.GetCollection<ListedInvite>().Update(invite);
 		}
 		/// <inheritdoc />
-		public async Task Bump(SocketGuild guild)
+		public async Task BumpAsync(SocketGuild guild)
 		{
 			if (!(GetListedInvite(guild.Id) is ListedInvite invite))
 			{

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Advobot.Enums;
+using AdvorangesUtils;
 using Discord.Commands;
 
 namespace Advobot.Classes.Attributes
@@ -11,7 +12,7 @@ namespace Advobot.Classes.Attributes
 	/// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides errors stating the min/max if under/over.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class VerifyStringLengthAttribute : ParameterPreconditionAttribute
+	public sealed class ValidateStringAttribute : ParameterPreconditionAttribute
 	{
 		private static ImmutableDictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>
 		{
@@ -30,6 +31,7 @@ namespace Advobot.Classes.Attributes
 			{ Target.Emote,        (2, 32,   "emote name") },
 		}.ToImmutableDictionary();
 
+		private readonly Target _Target;
 		private readonly int _Min;
 		private readonly int _Max;
 		private readonly string _TooShort;
@@ -40,8 +42,9 @@ namespace Advobot.Classes.Attributes
 		/// </summary>
 		/// <param name="target"></param>
 		/// <exception cref="NotSupportedException">Only supports some of the values in <see cref="Target"></see>/></exception>
-		public VerifyStringLengthAttribute(Target target)
+		public ValidateStringAttribute(Target target)
 		{
+			_Target = target;
 			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var temp))
 			{
 				_TooShort = $"A {temp.Name} must be at least `{(_Min = temp.Min)}` characters long.";
@@ -71,7 +74,7 @@ namespace Advobot.Classes.Attributes
 			}
 			if (!(value is string str))
 			{
-				throw new NotSupportedException($"{nameof(VerifyStringLengthAttribute)} only supports strings.");
+				throw new NotSupportedException($"{nameof(ValidateStringAttribute)} only supports strings.");
 			}
 			if (str.Length < _Min)
 			{
@@ -80,6 +83,16 @@ namespace Advobot.Classes.Attributes
 			if (str.Length > _Max)
 			{
 				return Task.FromResult(PreconditionResult.FromError(_TooLong));
+			}
+			//Extra checks
+			switch (_Target)
+			{
+				case Target.Stream:
+					if (!RegexUtils.IsValidTwitchName(str))
+					{
+						return Task.FromResult(PreconditionResult.FromError($"`{str}` is not a valid Twitch stream name."));
+					}
+					break;
 			}
 			return Task.FromResult(PreconditionResult.FromSuccess());
 		}

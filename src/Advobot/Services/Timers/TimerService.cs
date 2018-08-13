@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.CloseWords;
@@ -24,8 +27,10 @@ namespace Advobot.Services.Timers
 	internal sealed class TimerService : ITimerService, IUsesDatabase, IDisposable
 	{
 		private LiteDatabase _Db;
+		private ConcurrentBag<ulong> _AlreadyDeletedMessages = new ConcurrentBag<ulong>();
 		private readonly DiscordShardedClient _Client;
 		private readonly ILowLevelConfig _Config;
+		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
 		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
 		private readonly Timer _SecondTimer = new Timer(1000);
 		private readonly Punisher _PunishmentRemover;
@@ -79,6 +84,12 @@ namespace Advobot.Services.Timers
 				await RemoveRemovableMessages(_Db.GetCollection<CloseQuotes>()).CAF();
 			});
 
+			_HourTimer.Elapsed += (sender, e) =>
+			{
+				//Clear this bag every hour because most of these errors only happen a few seconds after input
+				//Meaning there's not much of a need for longer term storage of message ids
+				Interlocked.Exchange(ref _AlreadyDeletedMessages, new ConcurrentBag<ulong>());
+			};
 			_MinuteTimer.Elapsed += (sender, e) =>
 			{
 				_RemovablePunishments.Process();
@@ -89,6 +100,12 @@ namespace Advobot.Services.Timers
 				_RemovableMessages.Process();
 				_CloseHelpEntries.Process();
 				_CloseQuotes.Process();
+			};
+
+			_Client.MessageDeleted += (cached, channel) =>
+			{
+				_AlreadyDeletedMessages.Add(cached.Id);
+				return Task.CompletedTask;
 			};
 		}
 
@@ -200,10 +217,7 @@ namespace Advobot.Services.Timers
 						continue;
 					}
 
-					var tasks = channelGroup
-						.SelectMany(g => g.MessageIds)
-						.Select(async m => m == 0 ? null : await channel.GetMessageAsync(m).CAF());
-					var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
+					var messages = await GetValidMessages(channel, channelGroup.SelectMany(g => g.MessageIds)).CAF();
 					await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
 				}
 			}
@@ -218,22 +232,35 @@ namespace Advobot.Services.Timers
 		/// <returns></returns>
 		private async Task<T> HandleRemovableMessage<T>(LiteCollection<T> col, ulong guildId, ulong userId) where T : RemovableMessage
 		{
-			var entry = col.FindOne(x => x.GuildId == guildId && x.UserId == userId);
-			if (entry == null)
+			if (!(col.FindOne(x => x.GuildId == guildId && x.UserId == userId) is T entry))
 			{
 				return null;
 			}
 			if (_Client.GetGuild(entry.GuildId) is SocketGuild guild &&
 				guild.GetTextChannel(entry.ChannelId) is SocketTextChannel channel)
 			{
-				var tasks = entry.MessageIds
-					.Where(m => m != 0)
-					.Select(async m => m == 0 ? null : await channel.GetMessageAsync(m).CAF());
-				var messages = (await Task.WhenAll(tasks).CAF()).Where(x => x != null).ToList();
+				var messages = await GetValidMessages(channel, entry.MessageIds).CAF();
 				await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
 			}
 			col.Delete(entry.Id);
 			return entry;
+		}
+		/// <summary>
+		/// Attempts to get every message unless it has already been deleted or the id is 0.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="ids"></param>
+		/// <returns></returns>
+		private async Task<IMessage[]> GetValidMessages(SocketTextChannel channel, IEnumerable<ulong> ids)
+		{
+			var alreadyDeleted = new List<ulong>(_AlreadyDeletedMessages);
+			var tasks = new List<Task<IMessage>>();
+			foreach (var id in ids.Where(x => x != 0 && !alreadyDeleted.Contains(x)))
+			{
+				_AlreadyDeletedMessages.Add(id);
+				tasks.Add(channel.GetMessageAsync(id));
+			}
+			return await Task.WhenAll(tasks).CAF();
 		}
 
 		//ITimersService

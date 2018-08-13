@@ -28,7 +28,6 @@ namespace Advobot.Classes.UsageGeneration
 			{ typeof(GuildPermissionsTypeReader), typeof(GuildPermissions) },
 			{ typeof(InviteTypeReader), typeof(IInvite) },
 			{ typeof(PruneTypeReader), typeof(string) },
-			{ typeof(RuleCategoryTypeReader), typeof(string) },
 		}.ToImmutableDictionary();
 		private static readonly ImmutableDictionary<Type, string> _NameSwitcher = new Dictionary<Type, string>
 		{
@@ -107,8 +106,8 @@ namespace Advobot.Classes.UsageGeneration
 		private static string GetText(Type parameterType, IEnumerable<Attribute> attrs, bool isRemainder)
 		{
 			var text = "";
-			text += attrs.GetAttribute<VerifyNumberAttribute>() is VerifyNumberAttribute v ? $" {v}" : "";
-			text += attrs.GetAttribute<VerifyStringLengthAttribute>() is VerifyStringLengthAttribute s ? $" {s}" : "";
+			text += attrs.GetAttribute<ValidateNumberAttribute>() is ValidateNumberAttribute v ? $" {v}" : "";
+			text += attrs.GetAttribute<ValidateStringAttribute>() is ValidateStringAttribute s ? $" {s}" : "";
 			if (parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() == typeof(NamedArguments<>))
 			{
 				if (!isRemainder)

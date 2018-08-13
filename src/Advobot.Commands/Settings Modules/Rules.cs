@@ -20,7 +20,7 @@ namespace Advobot.Commands.Rules
 	public sealed class ModifyRuleCategories : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add([VerifyStringLength(Target.RuleCategory)] string name)
+		public async Task Add([ValidateString(Target.RuleCategory)] string name)
 		{
 			if (Context.GuildSettings.Rules.Categories.Keys.CaseInsContains(name))
 			{
@@ -34,7 +34,7 @@ namespace Advobot.Commands.Rules
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(ChangeName)), ShortAlias(nameof(ChangeName))]
-		public async Task ChangeName([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [VerifyStringLength(Target.RuleCategory)] string newName)
+		public async Task ChangeName([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [ValidateString(Target.RuleCategory)] string newName)
 		{
 			var oldVal = Context.GuildSettings.Rules.Categories[category];
 			Context.GuildSettings.Rules.Categories.Remove(category);
@@ -59,7 +59,7 @@ namespace Advobot.Commands.Rules
 	public sealed class ModifyRules : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [VerifyStringLength(Target.Rule)] string rule)
+		public async Task Add([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [ValidateString(Target.Rule)] string rule)
 		{
 			if (Context.GuildSettings.Rules.Categories[category].CaseInsContains(rule))
 			{
@@ -71,7 +71,7 @@ namespace Advobot.Commands.Rules
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added a rule in `{category}`.").CAF();
 		}
 		[Command(nameof(Insert)), ShortAlias(nameof(Insert))]
-		public async Task Insert([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, uint index, [VerifyStringLength(Target.Rule)] string rule)
+		public async Task Insert([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, uint index, [ValidateString(Target.Rule)] string rule)
 		{
 			var count = Context.GuildSettings.Rules.Categories[category].Count;
 			Context.GuildSettings.Rules.Categories[category].Insert(Math.Min((int)Math.Min(index, int.MaxValue), count - 1), rule);

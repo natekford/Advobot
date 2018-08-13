@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.IO;
 using System.Reflection;
 using Discord.WebSocket;
 
@@ -39,7 +38,7 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		object ResetSetting(string name);
+		void ResetSetting(string name);
 		/// <summary>
 		/// Serializes this object and then overwrites the file.
 		/// </summary>

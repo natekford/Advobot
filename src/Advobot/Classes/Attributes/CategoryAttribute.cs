@@ -22,5 +22,13 @@ namespace Advobot.Classes.Attributes
 		{
 			Category = type.Name.Split('.').Last();
 		}
+		/// <summary>
+		/// Creates an instance of <see cref="CategoryAttribute"/>.
+		/// </summary>
+		/// <param name="name"></param>
+		public CategoryAttribute(string name)
+		{
+			Category = name;
+		}
 	}
 }

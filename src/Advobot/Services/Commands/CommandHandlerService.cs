@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
+using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -107,6 +109,7 @@ namespace Advobot.Services.Commands
 			{
 				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
 			}
+			//await CreateSettingModificationModuleAsync<IBotSettings, BotSettings>(_Provider, _Commands).CAF();
 			_Provider.GetRequiredService<IHelpEntryService>().Add(_Commands.Modules);
 
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
@@ -162,5 +165,100 @@ namespace Advobot.Services.Commands
 			ConsoleUtils.WriteLine(aContext.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 			NotifyLogCounterIncrement(nameof(ILogService.AttemptedCommands), 1);
 		}
+
+		/*
+		private static async Task<ModuleInfo> CreateSettingModificationModuleAsync<TRegistered, TImplementation>(IServiceProvider services, CommandService commands)
+			where TRegistered : ISettingsBase
+			where TImplementation : TRegistered
+		{
+			var type = typeof(TImplementation);
+			var name = $"Modify{type.Name}";
+			return await commands.CreateModuleAsync(name, m =>
+			{
+				m.AddAliases(new TopLevelShortAliasAttribute(type).Aliases);
+				m.WithSummary("test");
+				m.AddAttributes(
+					new CategoryAttribute("Settings"),
+					new OtherRequirementAttribute(Precondition.BotOwner),
+					new DefaultEnabledAttribute(true),
+					new SaveBotSettingsAttribute());
+
+				var resetCmd = "Reset";
+				m.AddCommand(resetCmd, async (context, args, provider, command) =>
+				{
+					if (!(context is AdvobotCommandContext aContext))
+					{
+						return;
+					}
+					var settings = provider.GetRequiredService<TRegistered>();
+					var settingName = (string)args[0];
+					if (!settings.GetSettings().TryGetValue(settingName, out var field))
+					{
+						await MessageUtils.SendErrorMessageAsync(aContext, new Error($"`{settingName}` is not a valid setting.")).CAF();
+						return;
+					}
+					var resp = $"Successfully reset {settingName.FormatTitle().ToLower()} to `{settings.ResetSetting(field.Name)}`.";
+					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(aContext, resp).CAF();
+				}, c =>
+				{
+					c.AddAliases(new ShortAliasAttribute(resetCmd).Aliases);
+					c.AddParameter<string>("settingName", p => { });
+				});
+
+				var modifyCmd = "Modify";
+				m.AddModule(modifyCmd, sm =>
+				{
+					foreach (var setting in services.GetRequiredService<TRegistered>().GetSettings())
+					{
+						var settingName = setting.Key;
+						var settingType = setting.Value.PropertyType;
+						var isList = settingType != typeof(string) && typeof(IList).IsAssignableFrom(settingType);
+						sm.AddCommand(settingName, async (context, args, provider, command) =>
+						{
+							if (!(context is AdvobotCommandContext aContext))
+							{
+								return;
+							}
+
+							var service = provider.GetRequiredService<TRegistered>();
+							var value = args[0];
+							if (!isList)
+							{
+								setting.Value.SetValue(service, value);
+								var resp = $"Successfully set {settingName.FormatTitle().ToLower()} to `{setting.Value.GetValue(service)}`.";
+								await MessageUtils.MakeAndDeleteSecondaryMessageAsync(aContext, resp).CAF();
+								return;
+							}
+
+							var list = (IList)setting.Value.GetValue(service);
+							if ((bool)args[1])
+							{
+								list.Add(value);
+								var resp = $"Successfully added `{value}` to {settingName.FormatTitle().ToLower()}.";
+								await MessageUtils.MakeAndDeleteSecondaryMessageAsync(aContext, resp).CAF();
+							}
+							else
+							{
+								list.Remove(value);
+								var resp = $"Successfully removed `{value}` from {settingName.FormatTitle().ToLower()}.";
+								await MessageUtils.MakeAndDeleteSecondaryMessageAsync(aContext, resp).CAF();
+							}
+						}, c =>
+						{
+							c.AddAliases(new ShortAliasAttribute(settingName).Aliases);
+							if (isList)
+							{
+								c.AddParameter("value", settingType.GetGenericArguments()[0], p => { });
+								c.AddParameter("add", typeof(bool), p => { });
+							}
+							else
+							{
+								c.AddParameter("value", settingType, p => { });
+							}
+						});
+					}
+				});
+			}).CAF();
+		}*/
 	}
 }
