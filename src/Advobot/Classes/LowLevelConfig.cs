@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesSettingParser;
@@ -19,8 +18,23 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Low level configuration that is necessary for the bot to run. Holds the bot key, bot id, and save path.
 	/// </summary>
-	public class LowLevelConfig : SettingsBase, ILowLevelConfig
+	public class LowLevelConfig : ILowLevelConfig
 	{
+		/// <summary>
+		/// The path leading to the bot's directory.
+		/// </summary>
+		[JsonProperty("SavePath")]
+		private string _SavePath;
+		/// <summary>
+		/// The id of the bot.
+		/// </summary>
+		[JsonProperty("BotId")]
+		private ulong _BotId;
+		/// <summary>
+		/// The API key for the bot.
+		/// </summary>
+		[JsonProperty("BotKey")]
+		private string _BotKey;
 		/// <summary>
 		/// The previous process id of the application. This is used with the .Net Framework version to make sure the old one is killed first when restarting.
 		/// </summary>
@@ -32,31 +46,17 @@ namespace Advobot.Classes
 		[JsonIgnore]
 		public int CurrentInstance { get; private set; } = -1;
 		/// <inheritdoc />
-		[JsonProperty("SavePath"), Setting(null)]
-		public string SavePath { get; set; }
-		/// <inheritdoc />
-		[JsonProperty("BotId"), Setting(0)]
-		public ulong BotId { get; set; }
-		/// <inheritdoc />
-		[JsonProperty("MessageCacheSize"), Setting(10000)]
-		public int MessageCacheSize { get; set; } = 10000;
-		/// <inheritdoc />
-		[JsonProperty("LogLevel"), Setting(LogSeverity.Warning)]
-		public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;
-		/// <inheritdoc />
-		[JsonProperty("AlwaysDownloadUsers"), Setting(true)]
-		public bool AlwaysDownloadUsers { get; set; } = true;
-		/// <summary>
-		/// The API key for the bot.
-		/// </summary>
-		[JsonProperty("BotKey")]
-		private string BotKey { get; set; }
-		/// <inheritdoc />
 		[JsonIgnore]
 		public bool ValidatedPath { get; private set; }
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool ValidatedKey { get; private set; }
+		/// <inheritdoc />
+		[JsonIgnore]
+		public DirectoryInfo BaseBotDirectory => Directory.CreateDirectory(Path.Combine(_SavePath, $"Discord_Servers_{_BotId}"));
+		/// <inheritdoc />
+		[JsonIgnore]
+		public string RestartArguments => $"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} -{nameof(CurrentInstance)} {CurrentInstance}";
 
 		[JsonIgnore]
 		private readonly DiscordRestClient _TestClient = new DiscordRestClient();
@@ -64,7 +64,12 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public bool ValidatePath(string input, bool startup)
 		{
-			var path = input ?? SavePath;
+			if (ValidatedPath)
+			{
+				return true;
+			}
+
+			var path = input ?? _SavePath;
 
 			if (startup && !String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 			{
@@ -82,8 +87,8 @@ namespace Advobot.Classes
 			if (Directory.Exists(path))
 			{
 				ConsoleUtils.WriteLine($"Successfully set the save path as {path}");
-				SavePath = path;
-				SaveSettings();
+				_SavePath = path;
+				Save();
 				return ValidatedPath = true;
 			}
 
@@ -91,9 +96,14 @@ namespace Advobot.Classes
 			return false;
 		}
 		/// <inheritdoc />
-		public async Task<bool> ValidateBotKey(string input, bool startup, Func<ILowLevelConfig, BaseSocketClient, Task> restartCallback)
+		public async Task<bool> ValidateBotKey(string input, bool startup, Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
 		{
-			var key = input ?? BotKey;
+			if (ValidatedKey)
+			{
+				return true;
+			}
+
+			var key = input ?? _BotKey;
 
 			if (startup && !String.IsNullOrWhiteSpace(key))
 			{
@@ -119,8 +129,8 @@ namespace Advobot.Classes
 			{
 				await _TestClient.LoginAsync(TokenType.Bot, key).CAF();
 				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
-				BotKey = key;
-				SaveSettings();
+				_BotKey = key;
+				Save();
 				await ValidateBotId(restartCallback).CAF();
 				return ValidatedKey = true;
 			}
@@ -130,14 +140,19 @@ namespace Advobot.Classes
 				return false;
 			}
 		}
-		private async Task ValidateBotId(Func<ILowLevelConfig, BaseSocketClient, Task> restartCallback)
+		/// <summary>
+		/// Makes sure the bot id matches what is stored in file to get the correct directory.
+		/// </summary>
+		/// <param name="restartCallback"></param>
+		/// <returns></returns>
+		private async Task ValidateBotId(Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
 		{
-			if (BotId != _TestClient.CurrentUser.Id)
+			if (_BotId != _TestClient.CurrentUser.Id)
 			{
-				BotId = _TestClient.CurrentUser.Id;
-				SaveSettings();
+				_BotId = _TestClient.CurrentUser.Id;
+				Save();
 				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-				await restartCallback.Invoke(this, null).CAF();
+				await restartCallback.Invoke(null, this).CAF();
 			}
 		}
 		/// <inheritdoc />
@@ -147,32 +162,18 @@ namespace Advobot.Classes
 			{
 				throw new InvalidOperationException($"Either path of key has not been validated yet.");
 			}
-			await ClientUtils.StartAsync(client, BotKey);
+			//Remove the bot key from being easily accessible via reflection
+			client.LoggedIn += () =>
+			{
+				_BotKey = null;
+				return Task.CompletedTask;
+			};
+			await ClientUtils.StartAsync(client, _BotKey);
 		}
 		/// <inheritdoc />
-		public void ResetBotKey()
+		private void Save()
 		{
-			BotKey = null;
-		}
-		/// <inheritdoc />
-		public void SaveSettings()
-		{
-			SaveSettings(this);
-		}
-		/// <inheritdoc />
-		public DirectoryInfo GetBaseBotDirectory()
-		{
-			return Directory.CreateDirectory(Path.Combine(SavePath, $"Discord_Servers_{BotId}"));
-		}
-		/// <inheritdoc />
-		public FileInfo GetBaseBotDirectoryFile(string fileName)
-		{
-			return new FileInfo(Path.Combine(GetBaseBotDirectory().FullName, fileName));
-		}
-		/// <inheritdoc />
-		protected override FileInfo GetPath(ILowLevelConfig config)
-		{
-			return GetConfigPath(CurrentInstance);
+			IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
 		}
 		/// <summary>
 		/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
@@ -191,7 +192,7 @@ namespace Advobot.Classes
 			}.Parse(args);
 
 			//Count how many exist with that name so they can be saved as Advobot1, Advobot2, etc.
-			instance = instance == -1 ? GetDuplicateProccessesCount() : instance;
+			instance = instance == -1 ? Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length : instance;
 			var config = IOUtils.DeserializeFromFile<LowLevelConfig>(GetConfigPath(instance)) ?? new LowLevelConfig();
 			config.PreviousProcessId = processId;
 			config.CurrentInstance = instance;
@@ -210,22 +211,6 @@ namespace Advobot.Classes
 			//Add the config file into the local application data folder under Advobot
 			var appdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 			return new FileInfo(Path.Combine(appdata, "Advobot", currentName + instance + ".config"));
-		}
-		/// <summary>
-		/// Returns how many instances of the bot are currently running.
-		/// </summary>
-		/// <returns></returns>
-		private static int GetDuplicateProccessesCount()
-		{
-			return Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length;
-		}
-		/// <summary>
-		/// Returns arguments used for initializing the bot.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-		{
-			return $"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} -{nameof(CurrentInstance)} {CurrentInstance}";
 		}
 	}
 }

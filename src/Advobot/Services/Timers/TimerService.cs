@@ -29,7 +29,7 @@ namespace Advobot.Services.Timers
 		private LiteDatabase _Db;
 		private ConcurrentBag<ulong> _AlreadyDeletedMessages = new ConcurrentBag<ulong>();
 		private readonly DiscordShardedClient _Client;
-		private readonly ILowLevelConfig _Config;
+		private readonly IBotSettings _Settings;
 		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
 		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
 		private readonly Timer _SecondTimer = new Timer(1000);
@@ -45,7 +45,7 @@ namespace Advobot.Services.Timers
 		public TimerService(IIterableServiceProvider provider)
 		{
 			_Client = provider.GetRequiredService<DiscordShardedClient>();
-			_Config = provider.GetRequiredService<ILowLevelConfig>();
+			_Settings = provider.GetRequiredService<IBotSettings>();
 			_PunishmentRemover = new Punisher(TimeSpan.FromMinutes(0), this);
 
 			_RemovablePunishments = new ProcessingQueue(1, async () =>
@@ -115,7 +115,7 @@ namespace Advobot.Services.Timers
 			//Use mode=exclusive to not have ioexceptions
 			_Db = new LiteDatabase(new ConnectionString
 			{
-				Filename = _Config.GetBaseBotDirectoryFile("TimedDatabase.db").FullName,
+				Filename = _Settings.GetBaseBotDirectoryFile("TimedDatabase.db").FullName,
 				Mode = FileMode.Exclusive,
 			});
 			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(TimerService)}.");

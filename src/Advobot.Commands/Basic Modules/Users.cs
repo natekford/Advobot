@@ -49,7 +49,7 @@ namespace Advobot.Commands.Users
 			{
 				muteRole = await Context.Guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0)).CAF();
 				Context.GuildSettings.MuteRoleId = muteRole.Id;
-				Context.GuildSettings.SaveSettings(Context.Config);
+				Context.GuildSettings.SaveSettings(Context.BotSettings);
 			}
 
 			foreach (var textChannel in Context.Guild.TextChannels)

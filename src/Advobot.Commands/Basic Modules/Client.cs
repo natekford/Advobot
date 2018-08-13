@@ -83,13 +83,13 @@ namespace Advobot.Commands.Client
 	[Summary("Restarts the bot.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	[RequiredServices(typeof(ILowLevelConfig))]
+	[RequiredServices(typeof(IBotSettings))]
 	public sealed class RestartBot : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
 		{
-			await ClientUtils.RestartBotAsync(Context.Config, Context.Client).CAF();
+			await ClientUtils.RestartBotAsync(Context.Client, Context.BotSettings).CAF();
 		}
 	}
 }

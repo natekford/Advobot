@@ -61,7 +61,9 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Restarts the application correctly if it's a .Net Core application.
 		/// </summary>
-		public static async Task RestartBotAsync(ILowLevelConfig config, BaseSocketClient client)
+		/// <param name="client"></param>
+		/// <param name="restartArgs"></param>
+		public static async Task RestartBotAsync(BaseSocketClient client, IRestartArgumentProvider restartArgs)
 		{
 			if (client != null)
 			{
@@ -71,7 +73,7 @@ namespace Advobot.Utilities
 			Process.Start(new ProcessStartInfo
 			{
 				FileName = "dotnet",
-				Arguments = $@"""{Assembly.GetEntryAssembly().Location}"" {config}"
+				Arguments = $@"""{Assembly.GetEntryAssembly().Location}"" {restartArgs.RestartArguments}"
 			});
 			ConsoleUtils.WriteLine($"Restarted the bot.{Environment.NewLine}");
 			Process.GetCurrentProcess().Kill();

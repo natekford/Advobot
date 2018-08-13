@@ -43,8 +43,8 @@ namespace Advobot.Classes
 		[JsonProperty("AlwaysDownloadUsers"), Setting(true)]
 		public bool AlwaysDownloadUsers { get; set; } = true;
 		/// <inheritdoc />
-		[JsonProperty("MessageCacheCount"), Setting(1000)]
-		public int MessageCacheCount
+		[JsonProperty("MessageCacheSize"), Setting(1000)]
+		public int MessageCacheSize
 		{
 			get => _MessageCacheCount;
 			set
@@ -208,6 +208,12 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool Pause { get; set; }
+		/// <inheritdoc />
+		[JsonIgnore]
+		public DirectoryInfo BaseBotDirectory { get; private set; }
+		/// <inheritdoc />
+		[JsonIgnore]
+		public string RestartArguments { get; private set; }
 
 		[JsonIgnore]
 		private string _Prefix = "&&";
@@ -235,22 +241,25 @@ namespace Advobot.Classes
 		private int _MaxBannedPunishments = 10;
 
 		/// <inheritdoc />
-		protected override FileInfo GetPath(ILowLevelConfig config)
+		protected override FileInfo GetPath(IBotDirectoryAccessor accessor)
 		{
-			return StaticGetPath(config);
+			return StaticGetPath(accessor);
 		}
 		/// <summary>
-		/// Creates an instance of <typeparamref name="T"/> from file.
+		/// Creates an instance of <see cref="BotSettings"/> from file.
 		/// </summary>
 		/// <param name="config"></param>
 		/// <returns></returns>
-		public static IBotSettings Load<T>(ILowLevelConfig config) where T : class, IBotSettings, new()
+		public static BotSettings Load(ILowLevelConfig config)
 		{
-			return IOUtils.DeserializeFromFile<T>(StaticGetPath(config)) ?? new T();
+			var settings = IOUtils.DeserializeFromFile<BotSettings>(StaticGetPath(config)) ?? new BotSettings();
+			settings.BaseBotDirectory = config.BaseBotDirectory;
+			settings.RestartArguments = config.RestartArguments;
+			return settings;
 		}
-		private static FileInfo StaticGetPath(ILowLevelConfig config)
+		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor)
 		{
-			return config.GetBaseBotDirectoryFile("BotSettings.json");
+			return accessor.GetBaseBotDirectoryFile("BotSettings.json");
 		}
 	}
 }

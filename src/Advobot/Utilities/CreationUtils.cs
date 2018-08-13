@@ -32,10 +32,9 @@ namespace Advobot.Utilities
 			commands = commands ?? DiscordUtils.GetCommandAssemblies();
 			//I have no idea if I am providing services correctly, but it works.
 			var s = new ServiceCollection();
-			s.AddSingleton<DiscordShardedClient>(p => CreateDiscordClient(config));
+			s.AddSingleton<DiscordShardedClient>(p => CreateDiscordClient(p));
 			s.AddSingleton<IHelpEntryService>(p => new HelpEntryService());
-			s.AddSingleton<ILowLevelConfig>(config);
-			s.AddSingleton<IBotSettings>(p => BotSettings.Load<BotSettings>(config));
+			s.AddSingleton<IBotSettings>(p => BotSettings.Load(config));
 			s.AddSingleton<ILevelService>(p => new LevelService(s.Create(p), new LevelServiceArguments()));
 			s.AddSingleton<ICommandHandlerService>(p => new CommandHandlerService(s.Create(p), commands));
 			s.AddSingleton<IGuildSettingsService>(p => new GuildSettingsFactory<GuildSettings>(s.Create(p)));
@@ -44,22 +43,29 @@ namespace Advobot.Utilities
 			s.AddSingleton<IInviteListService>(p => new InviteListService(s.Create(p)));
 			return s;
 		}
-		private static IterableServiceProvider Create(this ServiceCollection services, IServiceProvider provider)
+		/// <summary>
+		/// Creates an <see cref="IIterableServiceProvider"/> from already existing services.
+		/// </summary>
+		/// <param name="services"></param>
+		/// <param name="provider"></param>
+		/// <returns></returns>
+		private static IIterableServiceProvider Create(this ServiceCollection services, IServiceProvider provider)
 		{
 			return IterableServiceProvider.CreateFromExisting((ServiceProvider)provider, services);
 		}
 		/// <summary>
 		/// Creates a sharded client with the supplied settings from the <see cref="IBotSettings"/> in the provider.
 		/// </summary>
-		/// <param name="config">The settings to initialize the client with.</param>
+		/// <param name="provider"></param>
 		/// <returns>A discord client.</returns>
-		private static DiscordShardedClient CreateDiscordClient(ILowLevelConfig config)
+		private static DiscordShardedClient CreateDiscordClient(IServiceProvider provider)
 		{
+			var settings = provider.GetRequiredService<IBotSettings>();
 			return new DiscordShardedClient(new DiscordSocketConfig
 			{
-				AlwaysDownloadUsers = config.AlwaysDownloadUsers,
-				MessageCacheSize = config.MessageCacheSize,
-				LogLevel = config.LogLevel,
+				AlwaysDownloadUsers = settings.AlwaysDownloadUsers,
+				MessageCacheSize = settings.MessageCacheSize,
+				LogLevel = settings.LogLevel,
 			});
 		}
 	}

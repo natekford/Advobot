@@ -14,9 +14,9 @@ namespace Advobot.Windows.Classes.Controls
 		/// </summary>
 		protected Window Window;
 		/// <summary>
-		/// The low level configuration of the bot.
+		/// The settings of the bot.
 		/// </summary>
-		protected ILowLevelConfig Config;
+		protected IBotSettings Settings;
 
 		/// <summary>
 		/// Creates an instance of modalwindow.
@@ -26,11 +26,11 @@ namespace Advobot.Windows.Classes.Controls
 		/// Creates an instance of modalwindow.
 		/// </summary>
 		/// <param name="mainWindow"></param>
-		/// <param name="config"></param>
-		public ModalWindow(Window mainWindow, ILowLevelConfig config)
+		/// <param name="settings"></param>
+		public ModalWindow(Window mainWindow, IBotSettings settings)
 		{
 			Window = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
-			Config = config ?? throw new ArgumentNullException(nameof(config));
+			Settings = settings ?? throw new ArgumentNullException(nameof(settings));
 			Window.Opacity = .25;
 		}
 

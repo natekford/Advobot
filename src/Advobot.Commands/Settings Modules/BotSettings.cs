@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.ImageResizing;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 
 namespace Advobot.Commands.BotSettings
@@ -92,14 +86,5 @@ namespace Advobot.Commands.BotSettings
 			public async Task UsersIgnoredFromCommands(ulong value, bool add)
 				=> await ModifyListAsync(Context.BotSettings, value, add).CAF();
 		}
-	}
-
-	[Summary("Modify low level configuration on the bot.")]
-	[OtherRequirement(Precondition.BotOwner)]
-	[DefaultEnabled(true)]
-	[SaveLowLevelConfig]
-	public sealed class ModifyLowLevelConfig
-	{
-
 	}
 }

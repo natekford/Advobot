@@ -4,13 +4,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using Advobot.Windows.Classes.Controls;
 using Advobot.Windows.Enums;
 using AdvorangesUtils;
-using Discord;
 using ICSharpCode.AvalonEdit;
 using Newtonsoft.Json;
 
@@ -21,37 +19,37 @@ namespace Advobot.Windows.Utilities
 		/// <summary>
 		/// Saves the text of <paramref name="editor"/> to file.
 		/// </summary>
-		/// <param name="config"></param>
+		/// <param name="accessor"></param>
 		/// <param name="editor"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(ILowLevelConfig config, TextEditor editor, Type type = null)
+		public static ToolTipReason SaveFile(IBotDirectoryAccessor accessor, TextEditor editor, Type type = null)
 		{
-			return SaveFile(config, editor, editor.Text, type);
+			return SaveFile(accessor, editor, editor.Text, type);
 		}
 		/// <summary>
 		/// Saves the text of <paramref name="tb"/> to file.
 		/// </summary>
-		/// <param name="config"></param>
+		/// <param name="accessor"></param>
 		/// <param name="tb"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public static ToolTipReason SaveFile(ILowLevelConfig config, TextBox tb, Type type = null)
+		public static ToolTipReason SaveFile(IBotDirectoryAccessor accessor, TextBox tb, Type type = null)
 		{
-			return SaveFile(config, tb, tb.Text, type);
+			return SaveFile(accessor, tb, tb.Text, type);
 		}
 		/// <summary>
 		/// Attempts to save a file and returns a value indicating the result.
 		/// </summary>
-		/// <param name="config"></param>
+		/// <param name="accessor"></param>
 		/// <param name="control"></param>
 		/// <param name="text"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		private static ToolTipReason SaveFile(ILowLevelConfig config, Control control, string text, Type type)
+		private static ToolTipReason SaveFile(IBotDirectoryAccessor accessor, Control control, string text, Type type)
 		{
 			//If no valid tag just save to a new file with its name being the control's name
-			var tag = control.Tag ?? CreateFileInfo(config, control);
+			var tag = control.Tag ?? CreateFileInfo(accessor, control);
 			if (!(tag is FileInfo fi))
 			{
 				return ToolTipReason.InvalidFilePath;
@@ -82,22 +80,20 @@ namespace Advobot.Windows.Utilities
 		/// <summary>
 		/// Creates a <see cref="FileInfo"/> based off of <paramref name="control"/> name.
 		/// </summary>
-		/// <param name="config"></param>
+		/// <param name="accessor"></param>
 		/// <param name="control"></param>
 		/// <returns></returns>
-		private static FileInfo CreateFileInfo(ILowLevelConfig config, Control control)
+		private static FileInfo CreateFileInfo(IBotDirectoryAccessor accessor, Control control)
 		{
-			var baseDir = config.GetBaseBotDirectory().FullName;
-			var fileName = $"{control.Name}_{FormattingUtils.ToSaving()}.txt";
-			return new FileInfo(Path.Combine(baseDir, fileName));
+			return accessor.GetBaseBotDirectoryFile($"{control.Name}_{FormattingUtils.ToSaving()}.txt");
 		}
 		/// <summary>
 		/// Saves every setting that is a child of <paramref name="parent"/>.
 		/// </summary>
-		/// <param name="config"></param>
+		/// <param name="accessor"></param>
 		/// <param name="parent"></param>
 		/// <param name="botSettings"></param>
-		public static void SaveSettings(ILowLevelConfig config, Grid parent, IBotSettings botSettings)
+		public static void SaveSettings(IBotDirectoryAccessor accessor, Grid parent, IBotSettings botSettings)
 		{
 			foreach (var child in parent.GetChildren().OfType<FrameworkElement>())
 			{
@@ -107,7 +103,7 @@ namespace Advobot.Windows.Utilities
 				}
 				ConsoleUtils.WriteLine(value ? $"Successfully updated {child.Name}." : $"Failed to save {child.Name}.");
 			}
-			botSettings.SaveSettings(config);
+			botSettings.SaveSettings(accessor);
 		}
 		private static bool? SaveSetting(FrameworkElement ele, IBotSettings botSettings)
 		{

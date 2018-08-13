@@ -25,10 +25,6 @@ namespace Advobot.Classes
 		/// </summary>
 		public IBotSettings BotSettings { get; }
 		/// <summary>
-		/// The extremely basic settings for the bot.
-		/// </summary>
-		public ILowLevelConfig Config { get; }
-		/// <summary>
 		/// The services that are available.
 		/// </summary>
 		public IServiceProvider Provider { get; }
@@ -51,7 +47,6 @@ namespace Advobot.Classes
 			_Stopwatch.Start();
 			GuildSettings = settings;
 			BotSettings = provider.GetRequiredService<IBotSettings>();
-			Config = provider.GetRequiredService<ILowLevelConfig>();
 			Provider = provider;
 		}
 

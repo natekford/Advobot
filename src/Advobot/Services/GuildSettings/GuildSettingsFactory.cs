@@ -19,7 +19,7 @@ namespace Advobot.Services.GuildSettings
 		public Type GuildSettingsType => typeof(T);
 
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
-		private readonly ILowLevelConfig _Config;
+		private readonly IBotSettings _Settings;
 
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettingsFactory{T}"/>.
@@ -27,7 +27,7 @@ namespace Advobot.Services.GuildSettings
 		/// <param name="provider"></param>
 		public GuildSettingsFactory(IIterableServiceProvider provider)
 		{
-			_Config = provider.GetRequiredService<ILowLevelConfig>();
+			_Settings = provider.GetRequiredService<IBotSettings>();
 		}
 
 		/// <inheritdoc />
@@ -47,9 +47,9 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			settings = Classes.GuildSettings.Load<T>(_Config, guild.Id);
+			settings = Classes.GuildSettings.Load(_Settings, guild.Id);
 			await settings.PostDeserializeAsync(guild).CAF();
-			settings.SaveSettings(_Config);
+			settings.SaveSettings(_Settings);
 
 			if (!_GuildSettings.TryAdd(guild.Id, settings))
 			{

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;

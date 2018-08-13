@@ -42,6 +42,7 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Serializes this object and then overwrites the file.
 		/// </summary>
-		void SaveSettings(ILowLevelConfig config);
+		/// <param name="accessor">Where to save the bot files.</param>
+		void SaveSettings(IBotDirectoryAccessor accessor);
 	}
 }

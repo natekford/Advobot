@@ -21,8 +21,8 @@ namespace Advobot.Windows.Windows
 		private Type _FileType;
 
 		public FileViewingWindow() : this(null, null, null, null, null) { }
-		public FileViewingWindow(AdvobotWindow mainWindow, ILowLevelConfig config, Type fileType, FileInfo fileInfo, string text)
-			: base(mainWindow, config)
+		public FileViewingWindow(AdvobotWindow mainWindow, IBotSettings settings, Type fileType, FileInfo fileInfo, string text)
+			: base(mainWindow, settings)
 		{
 			InitializeComponent();
 			_File = fileInfo ?? throw new ArgumentNullException(nameof(fileInfo));
@@ -69,7 +69,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void SaveFile(object sender, RoutedEventArgs e)
 		{
-			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(Config, SpecificFileOutput, _FileType).GetReason());
+			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(Settings, SpecificFileOutput, _FileType).GetReason());
 		}
 		private void SaveFileWithCtrlS(object sender, KeyEventArgs e)
 		{

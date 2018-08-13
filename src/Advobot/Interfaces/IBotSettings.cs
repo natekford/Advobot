@@ -1,12 +1,25 @@
 ﻿using System.Collections.Generic;
+using Discord;
 
 namespace Advobot.Interfaces
 {
 	/// <summary>
 	/// Holds bot settings.
 	/// </summary>
-	public interface IBotSettings : ISettingsBase
+	public interface IBotSettings : ISettingsBase, IRestartArgumentProvider, IBotDirectoryAccessor
 	{
+		/// <summary>
+		/// Whether or not to always download users when joining a guild.
+		/// </summary>
+		bool AlwaysDownloadUsers { get; set; }
+		/// <summary>
+		/// How many messages to cache.
+		/// </summary>
+		int MessageCacheSize { get; set; }
+		/// <summary>
+		/// What level to log messages at in the console.
+		/// </summary>
+		LogSeverity LogLevel { get; set; }
 		/// <summary>
 		/// The prefix for commands.
 		/// </summary>

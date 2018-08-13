@@ -1,9 +1,8 @@
-﻿using Advobot.Classes.Attributes;
+﻿using System;
+using Advobot.Classes.Attributes;
 using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
 
 namespace Advobot.Classes
 {

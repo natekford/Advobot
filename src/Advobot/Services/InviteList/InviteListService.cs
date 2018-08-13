@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -17,7 +18,7 @@ namespace Advobot.Services.InviteList
 	internal sealed class InviteListService : IInviteListService, IUsesDatabase, IDisposable
 	{
 		private LiteDatabase _Db;
-		private readonly ILowLevelConfig _Config;
+		private readonly IBotSettings _Settings;
 
 		/// <summary>
 		/// Creates an instance of <see cref="InviteListService"/>.
@@ -25,7 +26,7 @@ namespace Advobot.Services.InviteList
 		/// <param name="provider"></param>
 		public InviteListService(IIterableServiceProvider provider)
 		{
-			_Config = provider.GetRequiredService<ILowLevelConfig>();
+			_Settings = provider.GetRequiredService<IBotSettings>();
 		}
 
 		/// <inheritdoc />
@@ -34,7 +35,7 @@ namespace Advobot.Services.InviteList
 			//Use mode=exclusive to not have ioexceptions
 			_Db = new LiteDatabase(new ConnectionString
 			{
-				Filename = _Config.GetBaseBotDirectoryFile("InviteDatabase.db").FullName,
+				Filename = _Settings.GetBaseBotDirectoryFile("InviteDatabase.db").FullName,
 				Mode = FileMode.Exclusive,
 			});
 			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(InviteListService)}.");

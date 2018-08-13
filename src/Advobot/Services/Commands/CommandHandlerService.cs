@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -10,7 +8,6 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -29,7 +26,6 @@ namespace Advobot.Services.Commands
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
 		private readonly DiscordShardedClient _Client;
-		private readonly ILowLevelConfig _Config;
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsService _GuildSettings;
 		private bool _Loaded;
@@ -46,7 +42,6 @@ namespace Advobot.Services.Commands
 		{
 			_Provider = provider;
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
-			_Config = _Provider.GetRequiredService<ILowLevelConfig>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsService>();
 

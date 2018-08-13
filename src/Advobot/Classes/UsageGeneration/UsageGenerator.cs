@@ -1,11 +1,10 @@
-﻿using Advobot.Utilities;
-using AdvorangesUtils;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using AdvorangesUtils;
+using Discord.Commands;
 
 namespace Advobot.Classes.UsageGeneration
 {

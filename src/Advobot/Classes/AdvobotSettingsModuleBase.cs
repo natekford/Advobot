@@ -11,7 +11,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.Commands.Builders;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Classes
 {
@@ -154,15 +153,11 @@ namespace Advobot.Classes
 			var preconditions = command.Preconditions.Concat(command.Module.Preconditions);
 			if (preconditions.Any(x => x is SaveGuildSettingsAttribute))
 			{
-				Context.GuildSettings.SaveSettings(Context.Config);
+				Context.GuildSettings.SaveSettings(Context.BotSettings);
 			}
 			if (preconditions.Any(x => x is SaveBotSettingsAttribute))
 			{
-				Context.BotSettings.SaveSettings(Context.Config);
-			}
-			if (preconditions.Any(x => x is SaveLowLevelConfigAttribute))
-			{
-				Context.Config.SaveSettings();
+				Context.BotSettings.SaveSettings(Context.BotSettings);
 			}
 			base.AfterExecute(command);
 		}

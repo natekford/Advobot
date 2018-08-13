@@ -10,6 +10,7 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Utilities;
 using Advobot.Windows.Enums;
 using Advobot.Windows.Utilities;
 using AdvorangesUtils;
@@ -113,18 +114,18 @@ namespace Advobot.Windows.Classes
 			return _ColorTargets.TryGetValue(target, out brush);
 		}
 		/// <inheritdoc />
-		protected override FileInfo GetPath(ILowLevelConfig config)
+		protected override FileInfo GetPath(IBotDirectoryAccessor accessor)
 		{
-			return StaticGetPath(config);
+			return StaticGetPath(accessor);
 		}
 		/// <summary>
 		/// Loads the UI settings from file.
 		/// </summary>
-		/// <param name="config"></param>
+		/// <param name="accessor"></param>
 		/// <returns></returns>
-		public static ColorSettings Load(ILowLevelConfig config)
+		public static ColorSettings Load(IBotDirectoryAccessor accessor)
 		{
-			return IOUtils.DeserializeFromFile<ColorSettings>(StaticGetPath(config)) ?? new ColorSettings();
+			return IOUtils.DeserializeFromFile<ColorSettings>(StaticGetPath(accessor)) ?? new ColorSettings();
 		}
 		private void SetSyntaxHighlightingColors(params string[] names)
 		{
@@ -147,9 +148,9 @@ namespace Advobot.Windows.Classes
 				}
 			}
 		}
-		private static FileInfo StaticGetPath(ILowLevelConfig config)
+		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor)
 		{
-			return config.GetBaseBotDirectoryFile("UISettings.json");
+			return accessor.GetBaseBotDirectoryFile("UISettings.json");
 		}
 		private static ImmutableDictionary<ColorTarget, SolidColorBrush> GetColorProperties(string prefix)
 		{

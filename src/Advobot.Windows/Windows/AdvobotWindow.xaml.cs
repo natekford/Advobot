@@ -17,7 +17,6 @@ using Advobot.Windows.Classes.Controls;
 using Advobot.Windows.Enums;
 using Advobot.Windows.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -46,8 +45,8 @@ namespace Advobot.Windows.Windows
 
 		private MenuType _LastButtonClicked;
 		private IterableServiceProvider _Provider;
-		private ILowLevelConfig _Config;
 		private ColorSettings _Colors;
+		private ILowLevelConfig _Config;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotWindow"/>.
@@ -161,7 +160,7 @@ namespace Advobot.Windows.Windows
 		}
 		private async void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			SavingUtils.SaveSettings(_Config, SettingsMenuDisplay, BotSettings.HeldObject);
+			SavingUtils.SaveSettings(BotSettings.HeldObject, SettingsMenuDisplay, BotSettings.HeldObject);
 			await ClientUtils.UpdateGameAsync(Client, BotSettings.HeldObject).CAF();
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
@@ -225,7 +224,7 @@ namespace Advobot.Windows.Windows
 				ConsoleUtils.WriteLine($"Successfully updated the theme to {c.Theme.ToString().FormatTitle().ToLower()}.");
 			}
 
-			c.SaveSettings(_Config);
+			c.SaveSettings(BotSettings.HeldObject);
 		}
 		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -236,7 +235,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
-			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(_Config, Output).GetReason());
+			ToolTipUtils.EnableTimedToolTip(Layout, SavingUtils.SaveFile(BotSettings.HeldObject, Output).GetReason());
 		}
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
@@ -247,12 +246,12 @@ namespace Advobot.Windows.Windows
 		}
 		private void SearchForFile(object sender, RoutedEventArgs e)
 		{
-			using (var d = new CommonOpenFileDialog { DefaultDirectory = _Config.GetBaseBotDirectory().FullName })
+			using (var d = new CommonOpenFileDialog { DefaultDirectory = BotSettings.HeldObject.BaseBotDirectory.FullName })
 			{
 				if (d.ShowDialog() == CommonFileDialogResult.Ok && SavingUtils.TryGetFileText(d.FileName, out var text, out var file))
 				{
 					var type = _Provider.GetRequiredService<IGuildSettingsService>().GuildSettingsType;
-					new FileViewingWindow(this, _Config, type, file, text).ShowDialog();
+					new FileViewingWindow(this, BotSettings.HeldObject, type, file, text).ShowDialog();
 				}
 			}
 		}
@@ -266,7 +265,7 @@ namespace Advobot.Windows.Windows
 			switch (m)
 			{
 				case Modal.OutputSearch:
-					new OutputSearchWindow(this, _Config).ShowDialog();
+					new OutputSearchWindow(this, BotSettings.HeldObject).ShowDialog();
 					break;
 				//This modal should not be opened through this method, it should be opened through SearchForFile
 				case Modal.FileViewing:
@@ -355,16 +354,16 @@ namespace Advobot.Windows.Windows
 		{
 			if (MessageBox.Show("Are you sure you want to restart the bot?", _Caption, MessageBoxButton.OKCancel) == MessageBoxResult.OK)
 			{
-				await Restart(_Config, Client).CAF();
+				await Restart(Client, BotSettings.HeldObject).CAF();
 			}
 		}
-		private static async Task Restart(ILowLevelConfig config, BaseSocketClient client)
+		private static async Task Restart(BaseSocketClient client, IRestartArgumentProvider provider)
 		{
 			if (client != null)
 			{
 				await client.StopAsync().CAF();
 			}
-			Process.Start(Application.ResourceAssembly.Location, config.ToString());
+			Process.Start(Application.ResourceAssembly.Location, provider.RestartArguments);
 			Environment.Exit(0);
 		}
 		private void Pause(object sender, RoutedEventArgs e)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -77,12 +76,12 @@ namespace Advobot.Classes
 			ResetSetting(GetProperty(name));
 		}
 		/// <inheritdoc />
-		public virtual void SaveSettings(ILowLevelConfig config)
+		public virtual void SaveSettings(IBotDirectoryAccessor accessor)
 		{
-			IOUtils.SafeWriteAllText(GetPath(config), IOUtils.Serialize(this));
+			IOUtils.SafeWriteAllText(GetPath(accessor), IOUtils.Serialize(this));
 		}
 		/// <inheritdoc />
-		protected abstract FileInfo GetPath(ILowLevelConfig config);
+		protected abstract FileInfo GetPath(IBotDirectoryAccessor accessor);
 
 		private PropertyInfo GetProperty(string name)
 		{

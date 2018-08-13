@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using Advobot.Interfaces;
 
 namespace Advobot.Utilities
 {
@@ -42,6 +44,16 @@ namespace Advobot.Utilities
 				return true;
 			}
 			return IsAssignableFromGeneric(type.BaseType, c);
+		}
+		/// <summary>
+		/// Gets the file inside the bot directory.
+		/// </summary>
+		/// <param name="accessor"></param>
+		/// <param name="fileName"></param>
+		/// <returns></returns>
+		public static FileInfo GetBaseBotDirectoryFile(this IBotDirectoryAccessor accessor, string fileName)
+		{
+			return new FileInfo(Path.Combine(accessor.BaseBotDirectory.FullName, fileName));
 		}
 	}
 }

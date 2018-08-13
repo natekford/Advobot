@@ -145,24 +145,23 @@ namespace Advobot.Classes
 			Loaded = true;
 		}
 		/// <inheritdoc />
-		protected override FileInfo GetPath(ILowLevelConfig config)
+		protected override FileInfo GetPath(IBotDirectoryAccessor accessor)
 		{
-			return StaticGetPath(config, GuildId);
+			return StaticGetPath(accessor, GuildId);
 		}
 		/// <summary>
-		/// Creates an instance of <typeparamref name="T"/> from file.
+		/// Creates an instance of <see cref="GuildSettings"/> from file.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="config"></param>
+		/// <param name="accessor"></param>
 		/// <param name="guildId"></param>
 		/// <returns></returns>
-		public static IGuildSettings Load<T>(ILowLevelConfig config, ulong guildId) where T : class, IGuildSettings, new()
+		public static GuildSettings Load(IBotDirectoryAccessor accessor, ulong guildId)
 		{
-			return IOUtils.DeserializeFromFile<T>(StaticGetPath(config, guildId)) ?? new T();
+			return IOUtils.DeserializeFromFile<GuildSettings>(StaticGetPath(accessor, guildId)) ?? new GuildSettings();
 		}
-		private static FileInfo StaticGetPath(ILowLevelConfig config, ulong guildId)
+		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor, ulong guildId)
 		{
-			return config.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
+			return accessor.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
 		}
 	}
 }
