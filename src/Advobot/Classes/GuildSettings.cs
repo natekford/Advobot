@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
@@ -145,7 +147,7 @@ namespace Advobot.Classes
 			Loaded = true;
 		}
 		/// <inheritdoc />
-		protected override FileInfo GetPath(IBotDirectoryAccessor accessor)
+		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
 		{
 			return StaticGetPath(accessor, GuildId);
 		}
@@ -162,6 +164,12 @@ namespace Advobot.Classes
 		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor, ulong guildId)
 		{
 			return accessor.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
+		}
+
+		///ISettingsProvider
+		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IGuildSettings>.GetSettings()
+		{
+			return GetSettings(typeof(GuildSettings));
 		}
 	}
 }

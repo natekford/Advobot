@@ -250,7 +250,7 @@ namespace Advobot.Windows.Windows
 			{
 				if (d.ShowDialog() == CommonFileDialogResult.Ok && SavingUtils.TryGetFileText(d.FileName, out var text, out var file))
 				{
-					var type = _Provider.GetRequiredService<IGuildSettingsService>().GuildSettingsType;
+					var type = _Provider.GetRequiredService<IGuildSettingsFactory>().GetSettings().First().Value.DeclaringType;
 					new FileViewingWindow(this, BotSettings.HeldObject, type, file, text).ShowDialog();
 				}
 			}

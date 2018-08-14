@@ -27,7 +27,7 @@ namespace Advobot.Services.Commands
 		private readonly CommandService _Commands;
 		private readonly DiscordShardedClient _Client;
 		private readonly IBotSettings _BotSettings;
-		private readonly IGuildSettingsService _GuildSettings;
+		private readonly IGuildSettingsFactory _GuildSettings;
 		private bool _Loaded;
 
 		/// <inheritdoc />
@@ -43,7 +43,7 @@ namespace Advobot.Services.Commands
 			_Provider = provider;
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
-			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsService>();
+			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
 
 			_Commands = new CommandService(new CommandServiceConfig
 			{

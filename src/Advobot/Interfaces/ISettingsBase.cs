@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.IO;
 using System.Reflection;
 using Discord.WebSocket;
 
@@ -14,6 +15,12 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <returns></returns>
 		ImmutableDictionary<string, PropertyInfo> GetSettings();
+		/// <summary>
+		/// Gets the file associated with the settings.
+		/// </summary>
+		/// <param name="accessor"></param>
+		/// <returns></returns>
+		FileInfo GetFile(IBotDirectoryAccessor accessor);
 		/// <summary>
 		/// Formats the settings so they are readable by a human.
 		/// </summary>

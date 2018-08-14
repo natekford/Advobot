@@ -10,6 +10,18 @@ namespace Advobot.Interfaces
 	public interface ILowLevelConfig : IRestartArgumentProvider, IBotDirectoryAccessor
 	{
 		/// <summary>
+		/// The id of the bot.
+		/// </summary>
+		ulong BotId { get; }
+		/// <summary>
+		/// The previous process id of the application. This is used with the .Net Framework version to make sure the old one is killed first when restarting.
+		/// </summary>
+		int PreviousProcessId { get; }
+		/// <summary>
+		/// The instance number of the bot at launch. This is used to find the correct config.
+		/// </summary>
+		int CurrentInstance { get; }
+		/// <summary>
 		/// Whether the path is validated or not.
 		/// </summary>
 		bool ValidatedPath { get; }

@@ -10,63 +10,92 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.Commands.Builders;
 
 namespace Advobot.Classes
 {
 	/// <summary>
 	/// Handles methods for printing out, modifying, and resetting settings.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public abstract class AdvobotSettingsModuleBase<T> : AdvobotModuleBase where T : ISettingsBase
+	/// <typeparam name="TSettings">The settings to </typeparam>
+	/// <typeparam name="TSettingsProvider">Can be a factory of the settings themselves.</typeparam>
+	public abstract class AdvobotSettingsModuleBase<TSettings, TSettingsProvider> : AdvobotModuleBase
+		where TSettings : ISettingsBase
+		where TSettingsProvider : ISettingsProvider<TSettings>
 	{
+		private static bool _AlreadyChecked;
+
+		/// <summary>
+		/// Creates an instance of <see cref="AdvobotSettingsModuleBase{TSettings, TSettingsProvider}"/> which checks that every setting can be modified.
+		/// </summary>
+		/// <param name="provider"></param>
+		public AdvobotSettingsModuleBase(TSettingsProvider provider)
+		{
+			if (!_AlreadyChecked)
+			{
+				var settings = provider.GetSettings().Keys.ToList();
+				foreach (var command in GetType().GetMethods())
+				{
+					settings.RemoveAll(x => x.CaseInsEquals(command.Name));
+				}
+				if (settings.Any())
+				{
+					throw new NotImplementedException($"Settings not modifiable: {String.Join(", ", settings)}");
+				}
+				_AlreadyChecked = true;
+			}
+		}
+		/// <summary>
+		/// Creates an instance of <see cref="AdvobotSettingsModuleBase{TSettings, TSettingsProvider}"/> which does not check that every setting can be modified.
+		/// </summary>
+		public AdvobotSettingsModuleBase() { }
+
 		/// <summary>
 		/// Prints out the names of settings.
 		/// </summary>
-		/// <param name="service"></param>
+		/// <param name="settings"></param>
 		/// <returns></returns>
-		protected async Task ShowNames(T service)
+		protected async Task ShowNames(TSettings settings)
 		{
 			var embed = new EmbedWrapper
 			{
-				Title = service.GetType().Name.FormatTitle(),
-				Description = $"`{String.Join("`, `", service.GetSettings().Keys)}`"
+				Title = settings.GetType().Name.FormatTitle(),
+				Description = $"`{String.Join("`, `", settings.GetSettings().Keys)}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		/// <summary>
 		/// Prints out all the settings.
 		/// </summary>
-		/// <param name="service"></param>
+		/// <param name="settings"></param>
 		/// <returns></returns>
-		protected async Task ShowAll(T service)
+		protected async Task ShowAll(TSettings settings)
 		{
 			var tf = new TextFileInfo
 			{
-				Name = service.GetType().Name.FormatTitle().Replace(' ', '_'),
-				Text = service.ToString(Context.Client, Context.Guild),
+				Name = settings.GetType().Name.FormatTitle().Replace(' ', '_'),
+				Text = settings.ToString(Context.Client, Context.Guild),
 			};
-			await MessageUtils.SendMessageAsync(Context.Channel, $"**{service.GetType().Name.FormatTitle()}:**", textFile: tf).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, $"**{settings.GetType().Name.FormatTitle()}:**", textFile: tf).CAF();
 		}
 		/// <summary>
 		/// Prints out the specified setting.
 		/// </summary>
-		/// <param name="service"></param>
+		/// <param name="settings"></param>
 		/// <param name="settingName"></param>
 		/// <returns></returns>
-		protected async Task ShowCommand(T service, string settingName)
+		protected async Task ShowCommand(TSettings settings, string settingName)
 		{
-			if (!(await VerifyProperty(service, settingName).CAF() is PropertyInfo property))
+			if (!(await VerifyProperty(settings, settingName).CAF() is PropertyInfo property))
 			{
 				return;
 			}
 
-			var desc = service.ToString(Context.Client, Context.Guild, property.Name);
+			var desc = settings.ToString(Context.Client, Context.Guild, property.Name);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper
 				{
-					Title = settingName,
+					Title = property.Name.FormatTitle(),
 					Description = desc
 				};
 				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
@@ -75,48 +104,64 @@ namespace Advobot.Classes
 			{
 				var tf = new TextFileInfo
 				{
-					Name = settingName,
+					Name = property.Name.FormatTitle(),
 					Text = desc,
 				};
 				await MessageUtils.SendMessageAsync(Context.Channel, $"**{property.Name.FormatTitle()}:**", textFile: tf).CAF();
 			}
 		}
 		/// <summary>
+		/// Sends the settings file.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="accessor"></param>
+		/// <returns></returns>
+		protected async Task GetFile(TSettings settings, IBotDirectoryAccessor accessor)
+		{
+			var file = settings.GetFile(accessor);
+			if (!file.Exists)
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error("The settings file does not exist.")).CAF();
+				return;
+			}
+			await Context.Channel.SendFileAsync(file.FullName).CAF();
+		}
+		/// <summary>
 		/// Resets the targeted setting.
 		/// </summary>
-		/// <param name="service"></param>
+		/// <param name="settings"></param>
 		/// <param name="settingName"></param>
 		/// <returns></returns>
-		protected async Task Reset(T service, string settingName)
+		protected async Task Reset(TSettings settings, string settingName)
 		{
-			if (!(await VerifyProperty(service, settingName).CAF() is PropertyInfo property))
+			if (!(await VerifyProperty(settings, settingName).CAF() is PropertyInfo property))
 			{
 				return;
 			}
-			service.ResetSetting(property.Name);
+			settings.ResetSetting(property.Name);
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully reset `{property.Name}`.").CAF();
 		}
 		/// <summary>
 		/// Adds or removes the specified object from the list.
 		/// </summary>
-		/// <param name="service"></param>
+		/// <param name="settings"></param>
 		/// <param name="obj"></param>
 		/// <param name="add"></param>
 		/// <param name="settingName"></param>
 		/// <returns></returns>
-		protected async Task ModifyListAsync(T service, object obj, bool add, [CallerMemberName] string settingName = "")
+		protected async Task ModifyListAsync(TSettings settings, object obj, bool add, [CallerMemberName] string settingName = "")
 		{
-			if (!(await VerifyProperty(service, settingName).CAF() is PropertyInfo property))
+			if (!(await VerifyProperty(settings, settingName).CAF() is PropertyInfo property))
 			{
 				return;
 			}
 			if (add)
 			{
-				((IList)property.GetValue(service)).Add(obj);
+				((IList)property.GetValue(settings)).Add(obj);
 			}
 			else
 			{
-				((IList)property.GetValue(service)).Remove(obj);
+				((IList)property.GetValue(settings)).Remove(obj);
 			}
 			var resp = $"Successfully {(add ? "added" : "removed")} `{obj}` {(add ? "to" : "from")} `{property.Name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
@@ -124,23 +169,29 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Sets the property to the supplied value.
 		/// </summary>
-		/// <param name="service"></param>
+		/// <param name="settings"></param>
 		/// <param name="obj"></param>
 		/// <param name="settingName"></param>
 		/// <returns></returns>
-		protected async Task ModifyAsync(T service, object obj, [CallerMemberName] string settingName = "")
+		protected async Task ModifyAsync(TSettings settings, object obj, [CallerMemberName] string settingName = "")
 		{
-			if (!(await VerifyProperty(service, settingName).CAF() is PropertyInfo property))
+			if (!(await VerifyProperty(settings, settingName).CAF() is PropertyInfo property))
 			{
 				return;
 			}
-			property.SetValue(service, Convert.ChangeType(obj, property.PropertyType));
-			var resp = $"Successfully set `{property.Name}` to `{service.ToString(Context.Client, Context.Guild, property.Name)}`.";
+			property.SetValue(settings, Convert.ChangeType(obj, property.PropertyType));
+			var resp = $"Successfully set `{property.Name}` to `{settings.ToString(Context.Client, Context.Guild, property.Name)}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
-		private async Task<PropertyInfo> VerifyProperty(T service, string name)
+		/// <summary>
+		/// Makes sure the settings exist, otherwise prints out to the channel that they don't.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		private async Task<PropertyInfo> VerifyProperty(TSettings settings, string name)
 		{
-			if (!service.GetSettings().TryGetValue(name, out var property))
+			if (!settings.GetSettings().TryGetValue(name, out var property))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{name}` is not a valid setting.")).CAF();
 				return null;
@@ -160,24 +211,6 @@ namespace Advobot.Classes
 				Context.BotSettings.SaveSettings(Context.BotSettings);
 			}
 			base.AfterExecute(command);
-		}
-		/// <inheritdoc />
-		protected override void OnModuleBuilding(CommandService commandService, ModuleBuilder builder)
-		{
-			//TODO: make this work by adding the setting attribute onto the interface?
-			if (builder.Attributes.Any(x => x is SettingModificationAttribute))
-			{
-				var settings = SettingsBase.GetSettings(typeof(T));
-				foreach (var command in builder.Commands)
-				{
-					settings.Remove(command.Name);
-				}
-				if (settings.Any())
-				{
-					throw new NotImplementedException($"Setting not modifiable: {String.Join(", ", settings.Keys)}");
-				}
-			}
-			base.OnModuleBuilding(commandService, builder);
 		}
 	}
 }

@@ -37,7 +37,7 @@ namespace Advobot.Utilities
 			s.AddSingleton<IBotSettings>(p => BotSettings.Load(config));
 			s.AddSingleton<ILevelService>(p => new LevelService(s.Create(p), new LevelServiceArguments()));
 			s.AddSingleton<ICommandHandlerService>(p => new CommandHandlerService(s.Create(p), commands));
-			s.AddSingleton<IGuildSettingsService>(p => new GuildSettingsFactory<GuildSettings>(s.Create(p)));
+			s.AddSingleton<IGuildSettingsFactory>(p => new GuildSettingsFactory<GuildSettings>(s.Create(p)));
 			s.AddSingleton<ITimerService>(p => new TimerService(s.Create(p)));
 			s.AddSingleton<ILogService>(p => new LogService(s.Create(p)));
 			s.AddSingleton<IInviteListService>(p => new InviteListService(s.Create(p)));

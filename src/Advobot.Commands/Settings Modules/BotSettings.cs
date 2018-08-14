@@ -4,6 +4,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Commands.BotSettings
@@ -15,13 +16,16 @@ namespace Advobot.Commands.BotSettings
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	[SaveBotSettings]
-	public sealed class ModifyBotSettings : AdvobotSettingsModuleBase<IBotSettings>
+	public sealed class ModifyBotSettings : AdvobotSettingsModuleBase<IBotSettings, IBotSettings>
 	{
+		[Command(nameof(GetFile)), ShortAlias(nameof(GetFile))]
+		public async Task GetFile()
+			=> await GetFile(Context.BotSettings, Context.BotSettings).CAF();
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
 		public async Task Reset(string settingName)
 			=> await Reset(Context.BotSettings, settingName).CAF();
 		[Group(nameof(Show)), ShortAlias(nameof(Show))]
-		public sealed class Show : AdvobotSettingsModuleBase<IBotSettings>
+		public sealed class Show : AdvobotSettingsModuleBase<IBotSettings, IBotSettings>
 		{
 			[Command(nameof(Names)), ShortAlias(nameof(Names)), Priority(1)]
 			public async Task Names()
@@ -34,9 +38,10 @@ namespace Advobot.Commands.BotSettings
 				=> await ShowCommand(Context.BotSettings, settingName);
 		}
 		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]
-		[SettingModification]
-		public sealed class Modify : AdvobotSettingsModuleBase<IBotSettings>
+		public sealed class Modify : AdvobotSettingsModuleBase<IBotSettings, IBotSettings>
 		{
+			public Modify(IBotSettings settings) : base(settings) { }
+
 			[Command(nameof(IBotSettings.Prefix)), ShortAlias(nameof(IBotSettings.Prefix))]
 			public async Task Prefix([ValidateString(Target.Prefix)] string value)
 				=> await ModifyAsync(Context.BotSettings, value).CAF();
@@ -45,6 +50,15 @@ namespace Advobot.Commands.BotSettings
 				=> await ModifyAsync(Context.BotSettings, value).CAF();
 			[Command(nameof(IBotSettings.Stream)), ShortAlias(nameof(IBotSettings.Stream))]
 			public async Task Stream([ValidateString(Target.Stream)] string value)
+				=> await ModifyAsync(Context.BotSettings, value).CAF();
+			[Command(nameof(IBotSettings.LogLevel)), ShortAlias(nameof(IBotSettings.LogLevel))]
+			public async Task LogLevel(LogSeverity value)
+				=> await ModifyAsync(Context.BotSettings, value).CAF();
+			[Command(nameof(IBotSettings.AlwaysDownloadUsers)), ShortAlias(nameof(IBotSettings.AlwaysDownloadUsers))]
+			public async Task AlwaysDownloadUsers(bool value)
+				=> await ModifyAsync(Context.BotSettings, value).CAF();
+			[Command(nameof(IBotSettings.MessageCacheSize)), ShortAlias(nameof(IBotSettings.MessageCacheSize))]
+			public async Task MessageCacheSize([ValidateNumber(1, int.MaxValue)] uint value)
 				=> await ModifyAsync(Context.BotSettings, value).CAF();
 			[Command(nameof(IBotSettings.MaxUserGatherCount)), ShortAlias(nameof(IBotSettings.MaxUserGatherCount))]
 			public async Task MaxUserGatherCount([ValidateNumber(1, int.MaxValue)] uint value)

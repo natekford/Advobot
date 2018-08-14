@@ -18,7 +18,7 @@ namespace Advobot.Services.Levels
 	{
 		private LiteDatabase _Db;
 		private readonly DiscordShardedClient _Client;
-		private readonly IGuildSettingsService _GuildSettings;
+		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IBotSettings _Settings;
 		private readonly double _Log;
 		private readonly double _Pow;
@@ -33,7 +33,7 @@ namespace Advobot.Services.Levels
 		public LevelService(IIterableServiceProvider provider, LevelServiceArguments args)
 		{
 			_Client = provider.GetRequiredService<DiscordShardedClient>();
-			_GuildSettings = provider.GetRequiredService<IGuildSettingsService>();
+			_GuildSettings = provider.GetRequiredService<IGuildSettingsFactory>();
 			_Settings = provider.GetRequiredService<IBotSettings>();
 			_Log = args.Log;
 			_Pow = args.Pow;

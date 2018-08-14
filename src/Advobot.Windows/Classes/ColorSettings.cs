@@ -114,7 +114,7 @@ namespace Advobot.Windows.Classes
 			return _ColorTargets.TryGetValue(target, out brush);
 		}
 		/// <inheritdoc />
-		protected override FileInfo GetPath(IBotDirectoryAccessor accessor)
+		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
 		{
 			return StaticGetPath(accessor);
 		}

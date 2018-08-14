@@ -24,25 +24,19 @@ namespace Advobot.Classes
 		/// The path leading to the bot's directory.
 		/// </summary>
 		[JsonProperty("SavePath")]
-		private string _SavePath;
-		/// <summary>
-		/// The id of the bot.
-		/// </summary>
-		[JsonProperty("BotId")]
-		private ulong _BotId;
+		public string SavePath { get; private set; }
 		/// <summary>
 		/// The API key for the bot.
 		/// </summary>
 		[JsonProperty("BotKey")]
 		private string _BotKey;
-		/// <summary>
-		/// The previous process id of the application. This is used with the .Net Framework version to make sure the old one is killed first when restarting.
-		/// </summary>
+		/// <inheritdoc />
+		[JsonIgnore]
+		public ulong BotId { get; private set; }
+		/// <inheritdoc />
 		[JsonIgnore]
 		public int PreviousProcessId { get; private set; } = -1;
-		/// <summary>
-		/// The instance number of the bot at launch. This is used to find the correct config.
-		/// </summary>
+		/// <inheritdoc />
 		[JsonIgnore]
 		public int CurrentInstance { get; private set; } = -1;
 		/// <inheritdoc />
@@ -53,7 +47,7 @@ namespace Advobot.Classes
 		public bool ValidatedKey { get; private set; }
 		/// <inheritdoc />
 		[JsonIgnore]
-		public DirectoryInfo BaseBotDirectory => Directory.CreateDirectory(Path.Combine(_SavePath, $"Discord_Servers_{_BotId}"));
+		public DirectoryInfo BaseBotDirectory => Directory.CreateDirectory(Path.Combine(SavePath, $"Discord_Servers_{BotId}"));
 		/// <inheritdoc />
 		[JsonIgnore]
 		public string RestartArguments => $"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} -{nameof(CurrentInstance)} {CurrentInstance}";
@@ -69,7 +63,7 @@ namespace Advobot.Classes
 				return true;
 			}
 
-			var path = input ?? _SavePath;
+			var path = input ?? SavePath;
 
 			if (startup && !String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 			{
@@ -87,7 +81,7 @@ namespace Advobot.Classes
 			if (Directory.Exists(path))
 			{
 				ConsoleUtils.WriteLine($"Successfully set the save path as {path}");
-				_SavePath = path;
+				SavePath = path;
 				Save();
 				return ValidatedPath = true;
 			}
@@ -110,7 +104,7 @@ namespace Advobot.Classes
 				try
 				{
 					await _TestClient.LoginAsync(TokenType.Bot, key).CAF();
-					await ValidateBotId(restartCallback).CAF();
+					BotId = _TestClient.CurrentUser.Id;
 					return ValidatedKey = true;
 				}
 				catch (HttpException)
@@ -128,31 +122,16 @@ namespace Advobot.Classes
 			try
 			{
 				await _TestClient.LoginAsync(TokenType.Bot, key).CAF();
-				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
 				_BotKey = key;
+				BotId = _TestClient.CurrentUser.Id;
 				Save();
-				await ValidateBotId(restartCallback).CAF();
+				ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
 				return ValidatedKey = true;
 			}
 			catch (HttpException)
 			{
 				ConsoleUtils.WriteLine("The given key is invalid. Please enter a valid key:", ConsoleColor.Red);
 				return false;
-			}
-		}
-		/// <summary>
-		/// Makes sure the bot id matches what is stored in file to get the correct directory.
-		/// </summary>
-		/// <param name="restartCallback"></param>
-		/// <returns></returns>
-		private async Task ValidateBotId(Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
-		{
-			if (_BotId != _TestClient.CurrentUser.Id)
-			{
-				_BotId = _TestClient.CurrentUser.Id;
-				Save();
-				ConsoleUtils.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-				await restartCallback.Invoke(null, this).CAF();
 			}
 		}
 		/// <inheritdoc />

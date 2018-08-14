@@ -532,7 +532,7 @@ namespace Advobot.Commands.GuildSettings
 			var embed = new EmbedWrapper
 			{
 				Title = "Setting Names",
-				Description = $"`{String.Join("`, `", Context.GuildSettings.GetSettings().Keys)}`"
+				Description = $"`{String.Join("`, `", ((ISettingsBase)Context.GuildSettings).GetSettings().Keys)}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
@@ -549,7 +549,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command]
 		public async Task Command(string settingName)
 		{
-			if (!Context.GuildSettings.GetSettings().TryGetValue(settingName, out var field))
+			if (!((ISettingsBase)Context.GuildSettings).GetSettings().TryGetValue(settingName, out var field))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting.")).CAF();
 				return;

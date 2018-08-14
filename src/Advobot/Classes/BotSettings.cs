@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -241,7 +242,7 @@ namespace Advobot.Classes
 		private int _MaxBannedPunishments = 10;
 
 		/// <inheritdoc />
-		protected override FileInfo GetPath(IBotDirectoryAccessor accessor)
+		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
 		{
 			return StaticGetPath(accessor);
 		}
@@ -260,6 +261,12 @@ namespace Advobot.Classes
 		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor)
 		{
 			return accessor.GetBaseBotDirectoryFile("BotSettings.json");
+		}
+
+		///ISettingsProvider
+		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IBotSettings>.GetSettings()
+		{
+			return GetSettings(typeof(BotSettings));
 		}
 	}
 }

@@ -78,15 +78,24 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public virtual void SaveSettings(IBotDirectoryAccessor accessor)
 		{
-			IOUtils.SafeWriteAllText(GetPath(accessor), IOUtils.Serialize(this));
+			IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
 		}
 		/// <inheritdoc />
-		protected abstract FileInfo GetPath(IBotDirectoryAccessor accessor);
-
+		public abstract FileInfo GetFile(IBotDirectoryAccessor accessor);
+		/// <summary>
+		/// Gets the property with the specified name.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
 		private PropertyInfo GetProperty(string name)
 		{
 			return GetSettings()[name] ?? throw new ArgumentException($"Invalid property name provided: {name}.", nameof(name));
 		}
+		/// <summary>
+		/// Sets the property to the specified default vaule.
+		/// </summary>
+		/// <param name="property"></param>
+		/// <returns></returns>
 		private object ResetSetting(PropertyInfo property)
 		{
 			var settingAttr = property.GetCustomAttribute<SettingAttribute>();
@@ -114,6 +123,13 @@ namespace Advobot.Classes
 				return property.GetValue(this);
 			}
 		}
+		/// <summary>
+		/// Recursive function for formatting objects.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="guild"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		private string Format(BaseSocketClient client, SocketGuild guild, object value)
 		{
 			switch (value)

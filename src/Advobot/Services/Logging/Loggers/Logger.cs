@@ -27,7 +27,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <summary>
 		/// The settings used in guilds.
 		/// </summary>
-		protected IGuildSettingsService GuildSettings;
+		protected IGuildSettingsFactory GuildSettings;
 		/// <summary>
 		/// Timers for punishments.
 		/// </summary>
@@ -44,7 +44,7 @@ namespace Advobot.Services.Logging.Loggers
 		{
 			Client = provider.GetRequiredService<DiscordShardedClient>();
 			BotSettings = provider.GetRequiredService<IBotSettings>();
-			GuildSettings = provider.GetRequiredService<IGuildSettingsService>();
+			GuildSettings = provider.GetRequiredService<IGuildSettingsFactory>();
 			Timers = provider.GetRequiredService<ITimerService>();
 		}
 

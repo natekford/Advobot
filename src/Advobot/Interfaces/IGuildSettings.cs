@@ -11,7 +11,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Holds guild settings.
 	/// </summary>
-	public interface IGuildSettings : ISettingsBase
+	public interface IGuildSettings : ISettingsBase, ISettingsProvider<IGuildSettings>
 	{
 		/// <summary>
 		/// Message to display when a user joins the guild.

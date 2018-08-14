@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord.WebSocket;
@@ -13,11 +15,8 @@ namespace Advobot.Services.GuildSettings
 	/// Handles guild setting creation and storage.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	internal sealed class GuildSettingsFactory<T> : IGuildSettingsService where T : class, IGuildSettings, new()
+	internal sealed class GuildSettingsFactory<T> : IGuildSettingsFactory where T : class, IGuildSettings, new()
 	{
-		/// <inheritdoc />
-		public Type GuildSettingsType => typeof(T);
-
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
 		private readonly IBotSettings _Settings;
 
@@ -71,6 +70,12 @@ namespace Advobot.Services.GuildSettings
 		public bool Contains(ulong guildId)
 		{
 			return _GuildSettings.ContainsKey(guildId);
+		}
+
+		///ISettingsProvider
+		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IGuildSettings>.GetSettings()
+		{
+			return SettingsBase.GetSettings(typeof(T));
 		}
 	}
 }
