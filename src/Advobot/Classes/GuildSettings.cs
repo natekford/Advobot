@@ -52,8 +52,8 @@ namespace Advobot.Classes
 		[JsonProperty("NonVerboseErrors"), Setting(false)]
 		public bool NonVerboseErrors { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("SpamPrevention"), Setting(NonCompileTimeDefaultValue.ClearDictionaryValues)]
-		public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; } = new Dictionary<SpamType, SpamPreventionInfo>
+		[JsonProperty("SpamPrevention"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
+		public IDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; } = new Dictionary<SpamType, SpamPreventionInfo>
 		{
 			{ SpamType.Message, null },
 			{ SpamType.LongMessage, null },
@@ -62,69 +62,69 @@ namespace Advobot.Classes
 			{ SpamType.Mention, null }
 		};
 		/// <inheritdoc />
-		[JsonProperty("RaidPrevention"), Setting(NonCompileTimeDefaultValue.ClearDictionaryValues)]
-		public Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; } = new Dictionary<RaidType, RaidPreventionInfo>
+		[JsonProperty("RaidPrevention"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
+		public IDictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; } = new Dictionary<RaidType, RaidPreventionInfo>
 		{
 			{ RaidType.Regular, null },
 			{ RaidType.RapidJoins, null }
 		};
 		/// <inheritdoc />
 		[JsonProperty("PersistentRoles"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<PersistentRole> PersistentRoles { get; } = new List<PersistentRole>();
+		public IList<PersistentRole> PersistentRoles { get; } = new List<PersistentRole>();
 		/// <inheritdoc />
 		[JsonProperty("BotUsers"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<BotImplementedPermissions> BotUsers { get; } = new List<BotImplementedPermissions>();
+		public IList<BotImplementedPermissions> BotUsers { get; } = new List<BotImplementedPermissions>();
 		/// <inheritdoc />
 		[JsonProperty("SelfAssignableGroups"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<SelfAssignableRoles> SelfAssignableGroups { get; } = new List<SelfAssignableRoles>();
+		public IList<SelfAssignableRoles> SelfAssignableGroups { get; } = new List<SelfAssignableRoles>();
 		/// <inheritdoc />
 		[JsonProperty("Quotes"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<Quote> Quotes { get; } = new List<Quote>();
+		public IList<Quote> Quotes { get; } = new List<Quote>();
 		/// <inheritdoc />
 		[JsonProperty("LogActions"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<LogAction> LogActions { get; } = new List<LogAction>();
+		public IList<LogAction> LogActions { get; } = new List<LogAction>();
 		/// <inheritdoc />
 		[JsonProperty("IgnoredCommandChannels"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<ulong> IgnoredCommandChannels { get; } = new List<ulong>();
+		public IList<ulong> IgnoredCommandChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("IgnoredLogChannels"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<ulong> IgnoredLogChannels { get; } = new List<ulong>();
+		public IList<ulong> IgnoredLogChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("IgnoredXpChannels"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<ulong> IgnoredXpChannels { get; } = new List<ulong>();
+		public IList<ulong> IgnoredXpChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("ImageOnlyChannels"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<ulong> ImageOnlyChannels { get; } = new List<ulong>();
+		public IList<ulong> ImageOnlyChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("BannedPhraseStrings"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<BannedPhrase> BannedPhraseStrings { get; } = new List<BannedPhrase>();
+		public IList<BannedPhrase> BannedPhraseStrings { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
 		[JsonProperty("BannedPhraseRegex"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<BannedPhrase> BannedPhraseRegex { get; } = new List<BannedPhrase>();
+		public IList<BannedPhrase> BannedPhraseRegex { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
 		[JsonProperty("BannedPhraseNames"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<BannedPhrase> BannedPhraseNames { get; } = new List<BannedPhrase>();
+		public IList<BannedPhrase> BannedPhraseNames { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
 		[JsonProperty("BannedPhrasePunishments"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<BannedPhrasePunishment> BannedPhrasePunishments { get; } = new List<BannedPhrasePunishment>();
+		public IList<BannedPhrasePunishment> BannedPhrasePunishments { get; } = new List<BannedPhrasePunishment>();
 		/// <inheritdoc />
 		[JsonProperty("CommandSettings"), Setting(NonCompileTimeDefaultValue.Default)]
 		public CommandSettings CommandSettings { get; } = new CommandSettings();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public List<SpamPreventionUserInfo> SpamPreventionUsers { get; } = new List<SpamPreventionUserInfo>();
+		public IList<SpamPreventionUserInfo> SpamPreventionUsers { get; } = new List<SpamPreventionUserInfo>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public List<SlowmodeUserInfo> SlowmodeUsers { get; } = new List<SlowmodeUserInfo>();
+		public IList<SlowmodeUserInfo> SlowmodeUsers { get; } = new List<SlowmodeUserInfo>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public List<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
+		public IList<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public List<CachedInvite> Invites { get; } = new List<CachedInvite>();
+		public IList<CachedInvite> Invites { get; } = new List<CachedInvite>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public List<string> EvaluatedRegex { get; } = new List<string>();
+		public IList<string> EvaluatedRegex { get; } = new List<string>();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();

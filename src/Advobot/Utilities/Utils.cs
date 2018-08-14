@@ -55,5 +55,69 @@ namespace Advobot.Utilities
 		{
 			return new FileInfo(Path.Combine(accessor.BaseBotDirectory.FullName, fileName));
 		}
+		/// <summary>
+		/// Adds all of the collection to the list.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="collection"></param>
+		public static void AddRange<T>(this IList<T> list, IEnumerable<T> collection)
+		{
+			if (list == null)
+			{
+				throw new ArgumentNullException(nameof(list));
+			}
+			if (collection == null)
+			{
+				throw new ArgumentNullException(nameof(collection));
+			}
+
+			if (list is List<T> concrete)
+			{
+				concrete.AddRange(collection);
+			}
+			else
+			{
+				foreach (var item in collection)
+				{
+					list.Add(item);
+				}
+			}
+		}
+		/// <summary>
+		/// Removes elements which match the supplied predicate.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="match"></param>
+		public static int RemoveAll<T>(this IList<T> list, Predicate<T> match)
+		{
+			if (list == null)
+			{
+				throw new ArgumentNullException(nameof(list));
+			}
+			if (match == null)
+			{
+				throw new ArgumentNullException(nameof(match));
+			}
+
+			if (list is List<T> concrete)
+			{
+				return concrete.RemoveAll(match);
+			}
+			else
+			{
+				var removedCount = 0;
+				for (int i = list.Count - 1; i >= 0; --i)
+				{
+					if (match(list[i]))
+					{
+						list.RemoveAt(i);
+						++removedCount;
+					}
+				}
+				return removedCount;
+			}
+		}
 	}
 }

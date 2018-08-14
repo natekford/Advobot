@@ -75,15 +75,15 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Users who have permissions only slightly lower than the bot owner.
 		/// </summary>
-		List<ulong> TrustedUsers { get; }
+		IList<ulong> TrustedUsers { get; }
 		/// <summary>
 		/// Users who are not allowed to dm the owner through the bot.
 		/// </summary>
-		List<ulong> UsersUnableToDmOwner { get; }
+		IList<ulong> UsersUnableToDmOwner { get; }
 		/// <summary>
 		/// Users who are ignored from being able to use commands.
 		/// </summary>
-		List<ulong> UsersIgnoredFromCommands { get; }
+		IList<ulong> UsersIgnoredFromCommands { get; }
 		/// <summary>
 		/// Indicates whether or not the bot is currently paused. This setting is not saved.
 		/// </summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
 using Advobot.Classes.Attributes;
@@ -29,17 +30,40 @@ namespace Advobot.Classes
 			{
 				if (String.IsNullOrWhiteSpace(value))
 				{
-					throw new ArgumentException("Must not be null or whitespace.", nameof(value));
+					throw new ArgumentException("Must not be null or whitespace.", nameof(Prefix));
 				}
 				_Prefix = value;
 			}
 		}
 		/// <inheritdoc />
 		[JsonProperty("Game"), Setting(null)]
-		public string Game { get; set; }
+		public string Game
+		{
+			get => _Game;
+			set
+			{
+				var max = ValidateStringAttribute.MinsMaxesAndErrors[Target.Game].Max;
+				if (value?.Length > max)
+				{
+					throw new ArgumentException($"Must not be longer than {max} characters.", nameof(Game));
+				}
+				_Game = value;
+			}
+		}
 		/// <inheritdoc />
 		[JsonProperty("Stream"), Setting(null)]
-		public string Stream { get; set; }
+		public string Stream
+		{
+			get => _Stream;
+			set
+			{
+				if (!RegexUtils.IsValidTwitchName(value))
+				{
+					throw new ArgumentException("Invalid Twitch stream name supplied.");
+				}
+				_Stream = value;
+			}
+		}
 		/// <inheritdoc />
 		[JsonProperty("AlwaysDownloadUsers"), Setting(true)]
 		public bool AlwaysDownloadUsers { get; set; } = true;
@@ -199,13 +223,13 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		[JsonProperty("TrustedUsers"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<ulong> TrustedUsers { get; } = new List<ulong>();
+		public IList<ulong> TrustedUsers { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("UsersUnableToDmOwner"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<ulong> UsersUnableToDmOwner { get; } = new List<ulong>();
+		public IList<ulong> UsersUnableToDmOwner { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("UsersIgnoredFromCommands"), Setting(NonCompileTimeDefaultValue.Default)]
-		public List<ulong> UsersIgnoredFromCommands { get; } = new List<ulong>();
+		public IList<ulong> UsersIgnoredFromCommands { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool Pause { get; set; }
@@ -218,6 +242,10 @@ namespace Advobot.Classes
 
 		[JsonIgnore]
 		private string _Prefix = "&&";
+		[JsonIgnore]
+		private string _Stream;
+		[JsonIgnore]
+		private string _Game;
 		[JsonIgnore]
 		private int _MessageCacheCount = 1000;
 		[JsonIgnore]

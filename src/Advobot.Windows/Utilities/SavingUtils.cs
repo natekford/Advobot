@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using Advobot.Windows.Classes;
 using Advobot.Windows.Classes.Controls;
 using Advobot.Windows.Enums;
 using AdvorangesUtils;
@@ -88,22 +89,83 @@ namespace Advobot.Windows.Utilities
 			return accessor.GetBaseBotDirectoryFile($"{control.Name}_{FormattingUtils.ToSaving()}.txt");
 		}
 		/// <summary>
-		/// Saves every setting that is a child of <paramref name="parent"/>.
+		/// Saves the bot settings inside the parent grid.
 		/// </summary>
 		/// <param name="accessor"></param>
 		/// <param name="parent"></param>
-		/// <param name="botSettings"></param>
-		public static void SaveSettings(IBotDirectoryAccessor accessor, Grid parent, IBotSettings botSettings)
+		/// <param name="settings"></param>
+		public static void SaveBotSettings(IBotDirectoryAccessor accessor, Grid parent, IBotSettings settings)
 		{
 			foreach (var child in parent.GetChildren().OfType<FrameworkElement>())
 			{
-				if (!(SaveSetting(child, botSettings) is bool value))
+				if (!(SaveSetting(child, settings) is bool value))
 				{
 					continue;
 				}
 				ConsoleUtils.WriteLine(value ? $"Successfully updated {child.Name}." : $"Failed to save {child.Name}.");
 			}
-			botSettings.SaveSettings(accessor);
+			settings.SaveSettings(accessor);
+		}
+		/// <summary>
+		/// Saves the color settings inside the parent grid.
+		/// </summary>
+		/// <param name="accessor"></param>
+		/// <param name="parent"></param>
+		/// <param name="settings"></param>
+		public static void SaveColorSettings(IBotDirectoryAccessor accessor, Grid parent, ColorSettings settings)
+		{
+			var children = parent.GetChildren();
+			foreach (var tb in children.OfType<AdvobotTextBox>())
+			{
+				if (!(tb.Tag is ColorTarget target))
+				{
+					continue;
+				}
+
+				var childText = tb.Text;
+				var name = target.ToString().FormatTitle().ToLower();
+				//Removing a brush
+				if (String.IsNullOrWhiteSpace(childText))
+				{
+					if (settings[target] != null)
+					{
+						settings[target] = null;
+						ConsoleUtils.WriteLine($"Successfully removed the custom color for {name}.");
+					}
+				}
+				//Failed to add a brush
+				else if (!BrushUtils.TryCreateBrush(childText, out var brush))
+				{
+					ConsoleUtils.WriteLine($"Invalid custom color supplied for {name}: '{childText}'.");
+				}
+				//Succeeding in adding a brush
+				else if (!BrushUtils.CheckIfSameBrush(settings[target], brush))
+				{
+					settings[target] = brush;
+					ConsoleUtils.WriteLine($"Successfully updated the custom color for {name}: '{childText} ({settings[target].ToString()})'.");
+
+					//Update the text here because if someone has the hex value for yellow but they put in Yellow as a string 
+					//It won't update in the above if statement since they produce the same value
+					tb.Text = settings[target].ToString();
+				}
+			}
+			//Has to go after the textboxes so the theme will be applied
+			foreach (var cb in children.OfType<AdvobotComboBox>())
+			{
+				if (!(cb.SelectedItem is ColorTheme theme))
+				{
+					continue;
+				}
+				if (settings.Theme == theme)
+				{
+					continue;
+				}
+
+				settings.Theme = theme;
+				ConsoleUtils.WriteLine($"Successfully updated the theme to {settings.Theme.ToString().FormatTitle().ToLower()}.");
+			}
+
+			settings.SaveSettings(accessor);
 		}
 		private static bool? SaveSetting(FrameworkElement ele, IBotSettings botSettings)
 		{

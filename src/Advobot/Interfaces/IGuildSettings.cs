@@ -52,63 +52,63 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// To limit spam.
 		/// </summary>
-		Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; }
+		IDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; }
 		/// <summary>
 		/// To limit raids.
 		/// </summary>
-		Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; }
+		IDictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; }
 		/// <summary>
 		/// Roles that persist across a user leaving and rejoining.
 		/// </summary>
-		List<PersistentRole> PersistentRoles { get; }
+		IList<PersistentRole> PersistentRoles { get; }
 		/// <summary>
 		/// Permissions given through the bot and not Discord itself.
 		/// </summary>
-		List<BotImplementedPermissions> BotUsers { get; }
+		IList<BotImplementedPermissions> BotUsers { get; }
 		/// <summary>
 		/// Roles users can assign themselves.
 		/// </summary>
-		List<SelfAssignableRoles> SelfAssignableGroups { get; }
+		IList<SelfAssignableRoles> SelfAssignableGroups { get; }
 		/// <summary>
 		/// Quotes which can be called up through their name.
 		/// </summary>
-		List<Quote> Quotes { get; }
+		IList<Quote> Quotes { get; }
 		/// <summary>
 		/// Actions which get logged. Users joining, leaving, deleting messages, etc.
 		/// </summary>
-		List<LogAction> LogActions { get; }
+		IList<LogAction> LogActions { get; }
 		/// <summary>
 		/// Channels ignored from commands.
 		/// </summary>
-		List<ulong> IgnoredCommandChannels { get; }
+		IList<ulong> IgnoredCommandChannels { get; }
 		/// <summary>
 		/// Channels ignored from the log.
 		/// </summary>
-		List<ulong> IgnoredLogChannels { get; }
+		IList<ulong> IgnoredLogChannels { get; }
 		/// <summary>
 		/// Channels ignored from gaining xp in.
 		/// </summary>
-		List<ulong> IgnoredXpChannels { get; }
+		IList<ulong> IgnoredXpChannels { get; }
 		/// <summary>
 		/// Channels which have messages deleted in them unless they have an image attached.
 		/// </summary>
-		List<ulong> ImageOnlyChannels { get; }
+		IList<ulong> ImageOnlyChannels { get; }
 		/// <summary>
 		/// Deletes messages and punishes users if the strings are found in their messages.
 		/// </summary>
-		List<BannedPhrase> BannedPhraseStrings { get; }
+		IList<BannedPhrase> BannedPhraseStrings { get; }
 		/// <summary>
 		/// Deletes messages and punishes users if the patterns are found in their messages.
 		/// </summary>
-		List<BannedPhrase> BannedPhraseRegex { get; }
+		IList<BannedPhrase> BannedPhraseRegex { get; }
 		/// <summary>
 		/// Banned names for joining users.
 		/// </summary>
-		List<BannedPhrase> BannedPhraseNames { get; }
+		IList<BannedPhrase> BannedPhraseNames { get; }
 		/// <summary>
 		/// Punishments to give when thresholds are reached with banned strings/regex.
 		/// </summary>
-		List<BannedPhrasePunishment> BannedPhrasePunishments { get; }
+		IList<BannedPhrasePunishment> BannedPhrasePunishments { get; }
 		/// <summary>
 		/// List of rules for easy formatting.
 		/// </summary>
@@ -120,23 +120,23 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Users which have been affected by slowmode. This is not saved.
 		/// </summary>
-		List<SlowmodeUserInfo> SlowmodeUsers { get; }
+		IList<SlowmodeUserInfo> SlowmodeUsers { get; }
 		/// <summary>
 		/// Users which have been affected by spam prevention. This is not saved.
 		/// </summary>
-		List<SpamPreventionUserInfo> SpamPreventionUsers { get; }
+		IList<SpamPreventionUserInfo> SpamPreventionUsers { get; }
 		/// <summary>
 		/// Users which have been affected by banned phrases. This is not saved.
 		/// </summary>
-		List<BannedPhraseUserInfo> BannedPhraseUsers { get; }
+		IList<BannedPhraseUserInfo> BannedPhraseUsers { get; }
 		/// <summary>
 		/// Cached invites holding uses. This is not saved.
 		/// </summary>
-		List<CachedInvite> Invites { get; }
+		IList<CachedInvite> Invites { get; }
 		/// <summary>
 		/// Regex which has been evaluted to be mostly safe. This is not saved.
 		/// </summary>
-		List<string> EvaluatedRegex { get; }
+		IList<string> EvaluatedRegex { get; }
 		/// <summary>
 		/// Holds messages which have been deleted and waits to print them out. This is not saved.
 		/// </summary>

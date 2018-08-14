@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using Discord.WebSocket;
@@ -14,7 +15,7 @@ namespace Advobot.Interfaces
 		/// Returns all properties with <see cref="Classes.Attributes.SettingAttribute"/>.
 		/// </summary>
 		/// <returns></returns>
-		ImmutableDictionary<string, PropertyInfo> GetSettings();
+		IReadOnlyDictionary<string, PropertyInfo> GetSettings();
 		/// <summary>
 		/// Gets the file associated with the settings.
 		/// </summary>
@@ -46,6 +47,19 @@ namespace Advobot.Interfaces
 		/// <param name="name"></param>
 		/// <returns></returns>
 		void ResetSetting(string name);
+		/// <summary>
+		/// Sets a setting to the specified value.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		void SetSetting(string name, object value);
+		/// <summary>
+		/// Modifies a list by either adding or removing the specified value.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <param name="add"></param>
+		void ModifyList(string name, object value, bool add);
 		/// <summary>
 		/// Serializes this object and then overwrites the file.
 		/// </summary>

@@ -54,11 +54,7 @@ namespace Advobot.Windows.Classes.Controls
 		private void OnTextChanged(object sender, TextChangedEventArgs e)
 		{
 			//Update the stored value
-			if (!(e.OriginalSource is TextBox tb) || String.IsNullOrWhiteSpace(tb.Text))
-			{
-				return;
-			}
-			UpdateStoredValue(int.TryParse(tb.Text, out var result) ? result : DefaultValue);
+			UpdateStoredValue(int.TryParse(((TextBox)sender).Text, out var result) ? result : DefaultValue);
 		}
 		private void OnPreviewTextInput(object sender, TextCompositionEventArgs e)
 		{
@@ -66,7 +62,7 @@ namespace Advobot.Windows.Classes.Controls
 		}
 		private void OnPaste(object sender, DataObjectPastingEventArgs e)
 		{
-			if (!e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true) || !(e.Source is TextBox tb))
+			if (!e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true))
 			{
 				return;
 			}
@@ -76,6 +72,7 @@ namespace Advobot.Windows.Classes.Controls
 
 			//Append the text in the correct part of the string
 			var sb = new StringBuilder();
+			var tb = (TextBox)e.Source;
 			for (var i = 0; i < tb.MaxLength; ++i)
 			{
 				if (i < tb.CaretIndex)
@@ -120,19 +117,12 @@ namespace Advobot.Windows.Classes.Controls
 		}
 		private static void UpdateMaxLength(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			if (!(d is AdvobotNumberBox nb))
-			{
-				return;
-			}
+			var nb = (AdvobotNumberBox)d;
 			nb.MaxLength = Math.Max(nb.MinValue.ToString().Length, nb.MaxValue.ToString().Length);
 		}
 		private static void UpdateText(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			if (!(d is AdvobotNumberBox nb))
-			{
-				return;
-			}
-			nb.Text = e.NewValue.ToString();
+			((AdvobotNumberBox)d).Text = e.NewValue.ToString();
 		}
 	}
 }

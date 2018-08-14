@@ -4,6 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:classes="clr-namespace:Advobot.Windows.Classes"
+             xmlns:controls="clr-namespace:Advobot.Windows.Classes.Controls"
              xmlns:converters="clr-namespace:Advobot.Windows.Classes.Converters"
              xmlns:enums="clr-namespace:Advobot.Windows.Enums"
              mc:Ignorable="d"
@@ -13,6 +14,7 @@
         <!-- Converters -->
         <converters:UriConverter x:Key="UriConverter" />
         <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+        <converters:EnumerableConverter x:Key="EnumerableConverter" />
         <!-- Colors -->
         <x:Static x:Key="{x:Static enums:ColorTarget.BaseBackground}"
                   Member="classes:ColorSettings.LightModeBaseBackground" />
@@ -35,8 +37,80 @@
         <x:Static x:Key="{x:Static enums:ColorTarget.ButtonMouseOverBackground}"
                   Member="classes:ColorSettings.LightModeButtonMouseOverBackground" />
         <!-- Styles -->
-        <Style x:Key="{x:Static enums:OtherTarget.ButtonStyle}"
-               TargetType="Button">
+        <Style TargetType="Control">
+            <Setter Property="Background"
+                    Value="{DynamicResource {x:Static enums:ColorTarget.BaseBackground}}" />
+            <Setter Property="Foreground"
+                    Value="{DynamicResource {x:Static enums:ColorTarget.BaseForeground}}" />
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}" />
+        </Style>
+        <Style TargetType="controls:AdvobotTextBox"
+               BasedOn="{StaticResource {x:Type Control}}" />
+        <Style TargetType="controls:AdvobotTextEditor"
+               BasedOn="{StaticResource {x:Type Control}}" />
+        <Style TargetType="controls:AdvobotRichTextBox"
+               BasedOn="{StaticResource {x:Type Control}}" />
+        <Style TargetType="controls:AdvobotTreeView"
+               BasedOn="{StaticResource {x:Type Control}}" />
+        <Style TargetType="controls:AdvobotComboBox"
+               BasedOn="{StaticResource {x:Type Control}}">
+            <Setter Property="Foreground"
+                    Value="Black" />
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center" />
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Center" />
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem"
+                           BasedOn="{StaticResource {x:Type Control}}">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate x:Name="ComboBoxItemTemplate"
+                                                 TargetType="ComboBoxItem">
+                                    <Border Name="ComboBoxItemTemplateBorder"
+                                            BorderThickness="1"
+                                            Background="{DynamicResource {x:Static enums:ColorTarget.ButtonBackground}}"
+                                            BorderBrush="{DynamicResource {x:Static enums:ColorTarget.ButtonBorder}}">
+                                        <ContentPresenter x:Name="ComboBoxItemTemplateBorderContentPresenter"
+                                                          Margin="2"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          RecognizesAccessKey="True"
+                                                          TextBlock.Foreground="{DynamicResource {x:Static enums:ColorTarget.ButtonForeground}}" />
+                                    </Border>
+
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver"
+                                                 Value="True">
+                                            <Setter TargetName="ComboBoxItemTemplateBorder"
+                                                    Property="Background"
+                                                    Value="{DynamicResource {x:Static enums:ColorTarget.ButtonMouseOverBackground}}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="controls:AdvobotGrid">
+            <Setter Property="Control.Background"
+                    Value="{DynamicResource {x:Static enums:ColorTarget.BaseBackground}}" />
+            <Setter Property="Control.Foreground"
+                    Value="{DynamicResource {x:Static enums:ColorTarget.BaseForeground}}" />
+            <Setter Property="Control.BorderBrush"
+                    Value="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}" />
+        </Style>
+        <Style TargetType="controls:AdvobotTitle">
+            <Setter Property="VerticalAlignment"
+                    Value="Center" />
+            <Setter Property="TextWrapping"
+                    Value="WrapWithOverflow" />
+        </Style>
+        <Style TargetType="controls:AdvobotButton">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate x:Name="ButtonControlTemplate"

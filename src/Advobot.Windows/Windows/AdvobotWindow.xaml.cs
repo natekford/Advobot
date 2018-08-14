@@ -42,10 +42,13 @@ namespace Advobot.Windows.Windows
 		/// Holds a reference to the log service even when it doesn't exist for XAML binding.
 		/// </summary>
 		public Holder<ILogService> LogHolder { get; private set; } = new Holder<ILogService>();
+		/// <summary>
+		/// Holds a reference to the color settings even when they don't exist for XAML binding.
+		/// </summary>
+		public Holder<ColorSettings> Colors { get; private set; } = new Holder<ColorSettings>();
 
-		private MenuType _LastButtonClicked;
+		private string _LastMenuOpened;
 		private IterableServiceProvider _Provider;
-		private ColorSettings _Colors;
 		private ILowLevelConfig _Config;
 
 		/// <summary>
@@ -98,7 +101,7 @@ namespace Advobot.Windows.Windows
 					await _Config.StartAsync(Client).CAF();
 				});
 
-				_Colors = ColorSettings.Load(_Config);
+				Colors.HeldObject = ColorSettings.Load(_Config);
 				ButtonMenu.IsEnabled = true;
 				OutputContextMenu.IsEnabled = true;
 			}
@@ -158,10 +161,9 @@ namespace Advobot.Windows.Windows
 		{
 			TrustedUsers.Items.Remove(TrustedUsers.SelectedItem);
 		}
-		private async void SaveSettings(object sender, RoutedEventArgs e)
+		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			SavingUtils.SaveSettings(BotSettings.HeldObject, SettingsMenuDisplay, BotSettings.HeldObject);
-			await ClientUtils.UpdateGameAsync(Client, BotSettings.HeldObject).CAF();
+			BotSettings.HeldObject.SaveSettings(BotSettings.HeldObject);
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -172,59 +174,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
-			var c = _Colors;
-			var children = ColorsMenuDisplay.GetChildren();
-			foreach (var tb in children.OfType<AdvobotTextBox>())
-			{
-				if (!(tb.Tag is ColorTarget target))
-				{
-					continue;
-				}
-
-				var childText = tb.Text;
-				var name = target.ToString().FormatTitle().ToLower();
-				//Removing a brush
-				if (String.IsNullOrWhiteSpace(childText))
-				{
-					if (c[target] != null)
-					{
-						c[target] = null;
-						ConsoleUtils.WriteLine($"Successfully removed the custom color for {name}.");
-					}
-				}
-				//Failed to add a brush
-				else if (!BrushUtils.TryCreateBrush(childText, out var brush))
-				{
-					ConsoleUtils.WriteLine($"Invalid custom color supplied for {name}: '{childText}'.");
-				}
-				//Succeeding in adding a brush
-				else if (!BrushUtils.CheckIfSameBrush(c[target], brush))
-				{
-					c[target] = brush;
-					ConsoleUtils.WriteLine($"Successfully updated the custom color for {name}: '{childText} ({c[target].ToString()})'.");
-
-					//Update the text here because if someone has the hex value for yellow but they put in Yellow as a string 
-					//It won't update in the above if statement since they produce the same value
-					tb.Text = c[target].ToString();
-				}
-			}
-			//Has to go after the textboxes so the theme will be applied
-			foreach (var cb in children.OfType<AdvobotComboBox>())
-			{
-				if (!(cb.SelectedItem is AdvobotTextBox tb && tb.Tag is ColorTheme theme))
-				{
-					continue;
-				}
-				if (c.Theme == theme)
-				{
-					continue;
-				}
-
-				c.Theme = theme;
-				ConsoleUtils.WriteLine($"Successfully updated the theme to {c.Theme.ToString().FormatTitle().ToLower()}.");
-			}
-
-			c.SaveSettings(BotSettings.HeldObject);
+			SavingUtils.SaveColorSettings(BotSettings.HeldObject, ColorsMenuDisplay, Colors.HeldObject);
 		}
 		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -276,50 +226,31 @@ namespace Advobot.Windows.Windows
 		}
 		private void OpenMenu(object sender, RoutedEventArgs e)
 		{
-			if (!(sender is FrameworkElement ele && ele.Tag is MenuType type))
+			if (!(sender is FrameworkElement ele))
 			{
 				return;
 			}
 
 			//Hide everything so stuff doesn't overlap
 			MainMenu.Visibility = SettingsMenu.Visibility = ColorsMenu.Visibility = InfoMenu.Visibility = Visibility.Collapsed;
-			if (type == _LastButtonClicked)
+			var sameMenu = _LastMenuOpened == ele.Name;
+			switch (_LastMenuOpened = (sameMenu ? null : ele.Name))
 			{
-				//If clicking the same button then resize the output window to the regular size
-				ElementUtils.SetColSpan(Output, Grid.GetColumnSpan(Output) + (Layout.ColumnDefinitions.Count - 1));
-				_LastButtonClicked = default;
-				return;
-			}
-
-			//Resize the regular output window and have the menubox appear
-			ElementUtils.SetColSpan(Output, Grid.GetColumnSpan(Output) - (Layout.ColumnDefinitions.Count - 1));
-			_LastButtonClicked = type;
-
-			switch (type)
-			{
-				case MenuType.Main:
+				case nameof(MainMenuButton):
 					MainMenu.Visibility = Visibility.Visible;
-					return;
-				case MenuType.Info:
+					break;
+				case nameof(InfoMenuButton):
 					InfoMenu.Visibility = Visibility.Visible;
-					return;
-				case MenuType.Settings:
-					var s = BotSettings.HeldObject;
-
-					Prefix.Text = s.Prefix;
-					Game.Text = s.Game;
-					Stream.Text = s.Stream;
-					MaxUserGatherCount.StoredValue = s.MaxUserGatherCount;
-					MaxMessageGatherSize.StoredValue = s.MaxMessageGatherSize;
-
+					break;
+				case nameof(SettingsMenuButton):
 					SettingsMenu.Visibility = Visibility.Visible;
-					return;
-				case MenuType.Colors:
-					var c = _Colors;
-					var tcbSelected = ThemesComboBox.Items.OfType<TextBox>()
-						.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
+					break;
+				case nameof(ColorsMenuButton):
+					var c = Colors.HeldObject;
+					//var tcbSelected = ThemesComboBox.Items.OfType<TextBox>()
+						//.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
 
-					ThemesComboBox.SelectedItem = tcbSelected;
+					//ThemesComboBox.SelectedItem = tcbSelected;
 					BaseBackground.Text = c[ColorTarget.BaseBackground]?.ToString();
 					BaseForeground.Text = c[ColorTarget.BaseForeground]?.ToString();
 					BaseBorder.Text = c[ColorTarget.BaseBorder]?.ToString();
@@ -335,8 +266,11 @@ namespace Advobot.Windows.Windows
 					JsonParamName.Text = c[ColorTarget.JsonParamName]?.ToString();
 
 					ColorsMenu.Visibility = Visibility.Visible;
-					return;
+					break;
 			}
+
+			//Resize the regular output window and have the menubox appear
+			ElementUtils.SetColSpan(Output, Grid.GetColumnSpan(Output) + (sameMenu ? 1 : -1) * (Layout.ColumnDefinitions.Count - 1));
 		}
 		private void OpenHyperLink(object sender, RequestNavigateEventArgs e)
 		{
@@ -375,7 +309,7 @@ namespace Advobot.Windows.Windows
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
 			Uptime.Text = $"Uptime: {FormattingUtils.GetUptime()}";
-			Latency.Text = $"Latency: {(Client.HeldObject == null ? -1 : Client.HeldObject.Latency)}ms";
+			Latency.Text = $"Latency: {(Client.HeldObject?.CurrentUser == null ? -1 : Client.HeldObject.Latency)}ms";
 			Memory.Text = $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB";
 			ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
 		}

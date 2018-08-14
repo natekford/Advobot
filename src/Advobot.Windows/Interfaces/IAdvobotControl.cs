@@ -1,5 +1,6 @@
 ﻿namespace Advobot.Windows.Interfaces
 {
+	/*
 	internal interface IAdvobotControl
 	{
 		/// <summary>
@@ -7,5 +8,5 @@
 		/// Goes into the constructor of the object implementing this.
 		/// </summary>
 		void SetResourceReferences();
-	}
+	}*/
 }

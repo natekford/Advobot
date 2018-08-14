@@ -19,8 +19,12 @@ using Newtonsoft.Json;
 
 namespace Advobot.Windows.Classes
 {
-	internal sealed class ColorSettings : SettingsBase
+	/// <summary>
+	/// Indicates what colors to use in the UI.
+	/// </summary>
+	public sealed class ColorSettings : SettingsBase
 	{
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> LightModeProperties { get; } = GetColorProperties("LightMode");
 		public static ImmutableDictionary<ColorTarget, SolidColorBrush> DarkModeProperties { get; } = GetColorProperties("DarkMode");
 
@@ -51,7 +55,11 @@ namespace Advobot.Windows.Classes
 		public static SolidColorBrush DarkModeJsonDigits => BrushUtils.CreateBrush("#8700FF");
 		public static SolidColorBrush DarkModeJsonValue => BrushUtils.CreateBrush("#0051FF");
 		public static SolidColorBrush DarkModeJsonParamName => BrushUtils.CreateBrush("#057500");
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
+		/// <summary>
+		/// The current theme to use.
+		/// </summary>
 		[JsonProperty("Theme"), Setting(ColorTheme.Classic)]
 		public ColorTheme Theme
 		{
@@ -82,13 +90,18 @@ namespace Advobot.Windows.Classes
 						break;
 				}
 				SetSyntaxHighlightingColors("Json");
+				NotifyPropertyChanged();
 			}
 		}
-		[JsonProperty("ColorTargets"), Setting(NonCompileTimeDefaultValue.ClearDictionaryValues)]
+		[JsonProperty("ColorTargets"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
 		private Dictionary<ColorTarget, SolidColorBrush> _ColorTargets { get; set; } = new Dictionary<ColorTarget, SolidColorBrush>();
+
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;
 
+		/// <summary>
+		/// Creates an instance of <see cref="ColorSettings"/>.
+		/// </summary>
 		public ColorSettings()
 		{
 			foreach (ColorTarget target in Enum.GetValues(typeof(ColorTarget)))
@@ -97,6 +110,11 @@ namespace Advobot.Windows.Classes
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the color for the specified color target which can be used when the custom theme is enabled.
+		/// </summary>
+		/// <param name="target"></param>
+		/// <returns></returns>
 		public SolidColorBrush this[ColorTarget target]
 		{
 			get => _ColorTargets[target];

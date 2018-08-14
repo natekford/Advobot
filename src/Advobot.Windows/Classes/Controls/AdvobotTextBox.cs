@@ -12,7 +12,7 @@ namespace Advobot.Windows.Classes.Controls
 	/// <summary>
 	/// A <see cref="TextBox"/> which implements some other useful properties and accepts custom colors easily.
 	/// </summary>
-	internal class AdvobotTextBox : TextBox, IFontResizeValue, IAdvobotControl
+	internal class AdvobotTextBox : TextBox, IFontResizeValue
 	{
 		public static readonly DependencyProperty FontResizeValueProperty = DependencyProperty.Register("FontResizeValue", typeof(double), typeof(AdvobotTextBox), new PropertyMetadata(ElementUtils.SetFontResizeProperty));
 		public double FontResizeValue
@@ -21,17 +21,6 @@ namespace Advobot.Windows.Classes.Controls
 			set => SetValue(FontResizeValueProperty, value);
 		}
 
-		public AdvobotTextBox()
-		{
-			SetResourceReferences();
-		}
-
-		public void SetResourceReferences()
-		{
-			SetResourceReference(BackgroundProperty, ColorTarget.BaseBackground);
-			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
-			SetResourceReference(BorderBrushProperty, ColorTarget.BaseBorder);
-		}
 		public static AdvobotTextBox CreateComboBoxItem(string text, object tag)
 		{
 			return new AdvobotTextBox

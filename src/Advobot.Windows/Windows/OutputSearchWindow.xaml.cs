@@ -19,7 +19,7 @@ namespace Advobot.Windows.Windows
 		public OutputSearchWindow(Window mainWindow, IBotSettings settings) : base(mainWindow, settings)
 		{
 			InitializeComponent();
-			OutputNamesComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleUtils.WrittenLines.Keys.ToArray());
+			OutputNamesComboBox.ItemsSource = ConsoleUtils.WrittenLines.Keys;
 		}
 
 		private void Search(object sender, RoutedEventArgs e)

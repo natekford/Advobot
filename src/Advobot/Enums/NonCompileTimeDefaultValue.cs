@@ -16,7 +16,7 @@
 		/// <summary>
 		/// Clear all of the values from the dictionary, but keep the keys.
 		/// </summary>
-		ClearDictionaryValues,
+		ResetDictionaryValues,
 		/// <summary>
 		/// Removes every entry from the list.
 		/// </summary>

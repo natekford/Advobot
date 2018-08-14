@@ -10,13 +10,14 @@ namespace Advobot.Windows.Classes
 	{
 		private readonly TextBoxBase _Output;
 		private readonly bool _IgnoreNewLines;
-		private string _CurrentLineText;
+		private readonly StringBuilder _CurrentLineText = new StringBuilder();
+
+		public override Encoding Encoding => Encoding.UTF32;
 
 		public TextBoxStreamWriter(TextBoxBase output)
 		{
 			_Output = output;
-			//RTB will have extra new lines if they are printed out
-			_IgnoreNewLines = output is RichTextBox;
+			_IgnoreNewLines = output is RichTextBox; //RTB will have extra new lines if they are printed out
 		}
 
 		public override void Write(char value)
@@ -27,14 +28,12 @@ namespace Advobot.Windows.Classes
 			{
 				return;
 			}
-
 			if (value.Equals('\n'))
 			{
-				Write(_CurrentLineText);
-				_CurrentLineText = null;
+				Write(_CurrentLineText.ToString());
+				_CurrentLineText.Clear();
 			}
-
-			_CurrentLineText += value;
+			_CurrentLineText.Append(value);
 		}
 		public override void Write(string value)
 		{
@@ -43,8 +42,7 @@ namespace Advobot.Windows.Classes
 				return;
 			}
 
-			_Output.Dispatcher.InvokeAsync(() => _Output.AppendText(value), DispatcherPriority.ContextIdle);
+			_Output.Dispatcher.Invoke(() => _Output.AppendText(value), DispatcherPriority.ContextIdle);
 		}
-		public override Encoding Encoding => Encoding.UTF32;
 	}
 }

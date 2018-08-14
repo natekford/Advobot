@@ -12,7 +12,7 @@ namespace Advobot.Windows.Classes.Controls
 	/// <summary>
 	/// A <see cref="ComboBox"/> which implements some other useful properties and accepts custom colors easily.
 	/// </summary>
-	internal class AdvobotComboBox : ComboBox, IFontResizeValue, IAdvobotControl
+	internal class AdvobotComboBox : ComboBox, IFontResizeValue
 	{
 		public static readonly DependencyProperty FontResizeValueProperty = DependencyProperty.Register("FontResizeValue", typeof(double), typeof(AdvobotComboBox), new PropertyMetadata(ElementUtils.SetFontResizeProperty));
 		public double FontResizeValue
@@ -27,19 +27,6 @@ namespace Advobot.Windows.Classes.Controls
 			set => SetValue(SourceEnumProperty, value);
 		}
 
-		public AdvobotComboBox()
-		{
-			VerticalContentAlignment = VerticalAlignment.Center;
-			HorizontalContentAlignment = HorizontalAlignment.Center;
-			SetResourceReferences();
-		}
-
-		public void SetResourceReferences()
-		{
-			SetResourceReference(BackgroundProperty, ColorTarget.BaseBackground);
-			SetResourceReference(ForegroundProperty, ColorTarget.BaseForeground);
-			SetResourceReference(BorderBrushProperty, ColorTarget.BaseBorder);
-		}
 		private static void SourceEnumCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
 			if (!(d is AdvobotComboBox cb))
@@ -47,20 +34,7 @@ namespace Advobot.Windows.Classes.Controls
 				return;
 			}
 
-			var type = (Type)e.NewValue;
-			cb.ItemsSource = Enum.GetValues(type).Cast<object>().Select(x => AdvobotTextBox.CreateComboBoxItem(Enum.GetName(type, x), x));
-		}
-		/// <summary>
-		/// Returns textboxes with the text as the string and the tag as the string too.
-		/// </summary>
-		/// <param name="strings"></param>
-		/// <returns></returns>
-		public static IEnumerable<TextBox> CreateComboBoxSourceOutOfStrings(params string[] strings)
-		{
-			foreach (var s in strings)
-			{
-				yield return AdvobotTextBox.CreateComboBoxItem(s, s);
-			}
+			cb.ItemsSource = Enum.GetValues((Type)e.NewValue);
 		}
 	}
 }

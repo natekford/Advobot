@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using Advobot.Classes;
 using Advobot.Windows.Classes;
+using Advobot.Windows.Classes.Converters;
 using Advobot.Windows.Windows;
 using AdvorangesUtils;
 

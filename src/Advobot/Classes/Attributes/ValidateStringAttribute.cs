@@ -14,7 +14,10 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class ValidateStringAttribute : ParameterPreconditionAttribute
 	{
-		private static ImmutableDictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>
+		/// <summary>
+		/// Shows the mins and maxes of each respective target.
+		/// </summary>
+		public static ImmutableDictionary<Target, (int Min, int Max, string Name)> MinsMaxesAndErrors = new Dictionary<Target, (int, int, string)>
 		{
 			{ Target.Guild,        (2, 100,  "guild name") },
 			{ Target.Channel,      (2, 100,  "channel name") },
@@ -45,7 +48,7 @@ namespace Advobot.Classes.Attributes
 		public ValidateStringAttribute(Target target)
 		{
 			_Target = target;
-			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var temp))
+			if (MinsMaxesAndErrors.TryGetValue(target, out var temp))
 			{
 				_TooShort = $"A {temp.Name} must be at least `{(_Min = temp.Min)}` characters long.";
 				_TooLong = $"A {temp.Name} must be at most `{(_Max = temp.Max)}` characters long.";

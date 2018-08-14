@@ -18,12 +18,6 @@ namespace Advobot.Windows.Classes.Controls
 			set => SetValue(FontResizeValueProperty, value);
 		}
 
-		public AdvobotTitle()
-		{
-			VerticalAlignment = VerticalAlignment.Center;
-			TextWrapping = TextWrapping.WrapWithOverflow;
-		}
-
 		public override void EndInit()
 		{
 			base.EndInit();

@@ -2,6 +2,7 @@
 
 namespace Advobot.Windows.Enums
 {
+	/*
 	/// <summary>
 	/// Used in determining what menu to open, and if to close the menu instead.
 	/// </summary>
@@ -12,5 +13,5 @@ namespace Advobot.Windows.Enums
 		Info = (1U << 1),
 		Settings = (1U << 2),
 		Colors = (1U << 3),
-	}
+	}*/
 }

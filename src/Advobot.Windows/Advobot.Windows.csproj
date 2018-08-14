@@ -139,12 +139,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Controls\AdvobotModificationGrid.xaml.cs">
+      <DependentUpon>AdvobotModificationGrid.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Classes\Controls\AdvobotNumberBox.xaml.cs">
       <DependentUpon>AdvobotNumberBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="Classes\Controls\AdvobotRepeatButton.cs" />
     <Compile Include="Classes\Controls\AdvobotTitle.cs" />
+    <Compile Include="Classes\Converters\TestConverter.cs" />
     <Compile Include="Classes\DpiDecorator.cs" />
+    <Compile Include="Classes\Validators\PrefixValidationRule.cs" />
+    <Compile Include="Classes\Validators\TwitchStreamValidationRule.cs" />
     <Compile Include="Utilities\CommandHandler.cs" />
     <Compile Include="Utilities\ElementUtils.cs" />
     <Compile Include="Utilities\SavingUtils.cs" />
@@ -230,6 +236,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Page Include="Classes\Controls\AdvobotModificationGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Classes\Controls\AdvobotNumberBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

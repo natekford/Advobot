@@ -155,14 +155,7 @@ namespace Advobot.Classes
 			{
 				return;
 			}
-			if (add)
-			{
-				((IList)property.GetValue(settings)).Add(obj);
-			}
-			else
-			{
-				((IList)property.GetValue(settings)).Remove(obj);
-			}
+			settings.ModifyList(property.Name, obj, add);
 			var resp = $"Successfully {(add ? "added" : "removed")} `{obj}` {(add ? "to" : "from")} `{property.Name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
@@ -179,7 +172,7 @@ namespace Advobot.Classes
 			{
 				return;
 			}
-			property.SetValue(settings, Convert.ChangeType(obj, property.PropertyType));
+			settings.SetSetting(property.Name, obj);
 			var resp = $"Successfully set `{property.Name}` to `{settings.ToString(Context.Client, Context.Guild, property.Name)}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}

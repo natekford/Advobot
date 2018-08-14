@@ -123,7 +123,7 @@ namespace Advobot.Classes.Settings
 
 			//If they get here it means they're not in the command values currently so they should just use the default value.
 			var defaultEnabled = topModule.Attributes.GetAttribute<DefaultEnabledAttribute>().Enabled;
-			_CommandValues.Add(command.Name, defaultEnabled);
+			_CommandValues.Add(name, defaultEnabled);
 			return defaultEnabled;
 		}
 		/// <summary>

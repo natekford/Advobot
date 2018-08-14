@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Advobot.Classes.Attributes;
 using Advobot.Enums;
@@ -18,12 +21,15 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Abstract class for settings.
 	/// </summary>
-	public abstract class SettingsBase : ISettingsBase
+	public abstract class SettingsBase : ISettingsBase, INotifyPropertyChanged
 	{
 		private ImmutableDictionary<string, PropertyInfo> _S;
 
 		/// <inheritdoc />
-		public virtual ImmutableDictionary<string, PropertyInfo> GetSettings()
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		/// <inheritdoc />
+		public virtual IReadOnlyDictionary<string, PropertyInfo> GetSettings()
 		{
 			return _S ?? (_S = GetSettings(GetType()));
 		}
@@ -73,7 +79,31 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public virtual void ResetSetting(string name)
 		{
-			ResetSetting(GetProperty(name));
+			var property = GetProperty(name);
+			ResetSetting(property);
+			NotifyPropertyChanged(property.Name);
+		}
+		/// <inheritdoc />
+		public virtual void SetSetting(string name, object value)
+		{
+			var property = GetProperty(name);
+			property.SetValue(this, Convert.ChangeType(value, property.PropertyType));
+			NotifyPropertyChanged(property.Name);
+		}
+		/// <inheritdoc />
+		public virtual void ModifyList(string name, object value, bool add)
+		{
+			var property = GetProperty(name);
+			var list = (IList)property.GetValue(this);
+			if (add && !list.Contains(value))
+			{
+				list.Add(value);
+			}
+			else
+			{
+				list.Remove(value);
+			}
+			NotifyPropertyChanged(property.Name);
 		}
 		/// <inheritdoc />
 		public virtual void SaveSettings(IBotDirectoryAccessor accessor)
@@ -82,6 +112,14 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		public abstract FileInfo GetFile(IBotDirectoryAccessor accessor);
+		/// <summary>
+		/// Fires the property changed event.
+		/// </summary>
+		/// <param name="name"></param>
+		protected void NotifyPropertyChanged([CallerMemberName] string name = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+		}
 		/// <summary>
 		/// Gets the property with the specified name.
 		/// </summary>
@@ -107,7 +145,7 @@ namespace Advobot.Classes
 					case NonCompileTimeDefaultValue.Default:
 						nonCompileTimeValue = Activator.CreateInstance(property.PropertyType);
 						break;
-					case NonCompileTimeDefaultValue.ClearDictionaryValues:
+					case NonCompileTimeDefaultValue.ResetDictionaryValues:
 						var dict = (IDictionary)property.GetValue(this);
 						dict.Keys.Cast<object>().ToList().ForEach(x => dict[x] = null);
 						return dict;

@@ -1,12 +1,21 @@
-﻿using System;
-
-namespace Advobot.Windows.Enums
+﻿namespace Advobot.Windows.Enums
 {
-	[Flags]
-	internal enum ColorTheme : uint
+	/// <summary>
+	/// Indicates what theme to use in the UI.
+	/// </summary>
+	public enum ColorTheme
 	{
-		Classic = (1U << 0),
-		DarkMode = (1U << 1),
-		UserMade = (1U << 2)
+		/// <summary>
+		/// Light theme.
+		/// </summary>
+		Classic,
+		/// <summary>
+		/// Dark theme.
+		/// </summary>
+		DarkMode,
+		/// <summary>
+		/// Custom theme.
+		/// </summary>
+		UserMade,
 	}
 }
