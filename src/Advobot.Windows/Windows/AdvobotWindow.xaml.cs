@@ -80,7 +80,7 @@ namespace Advobot.Windows.Windows
 			}
 			else if (!_Config.ValidatedKey)
 			{
-				set = await _Config.ValidateBotKey(input, startup, Restart);
+				set = await _Config.ValidateBotKey(input, startup, UIUtils.Restart);
 			}
 
 			if (set && _Config.ValidatedKey && _Config.ValidatedPath)
@@ -118,7 +118,7 @@ namespace Advobot.Windows.Windows
 		}
 		private async void AcceptInput(object sender, RoutedEventArgs e)
 		{
-			var input = CommandHandler.GatherInput(InputBox);
+			var input = UIUtils.GatherInput(InputBox);
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				return;
@@ -137,30 +137,6 @@ namespace Advobot.Windows.Windows
 				AcceptInput(sender, e);
 			}
 		}
-		private void AddTrustedUser(object sender, RoutedEventArgs e)
-		{
-			if (!ulong.TryParse(TrustedUsersBox.Text, out var userId))
-			{
-				ConsoleUtils.WriteLine($"The given input '{TrustedUsersBox.Text}' is not a valid ID.");
-				return;
-			}
-			if (TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
-			{
-				ConsoleUtils.WriteLine($"The given input '{TrustedUsersBox.Text}' is already a trusted user.");
-				return;
-			}
-			TrustedUsersBox.Text = null;
-			if (Client.HeldObject.GetUser(userId) is SocketUser user)
-			{
-				TrustedUsers.Items.Add(AdvobotTextBox.CreateUserBox(user));
-				TrustedUsers.Items.SortDescriptions.Clear();
-				TrustedUsers.Items.SortDescriptions.Add(new SortDescription("Text", ListSortDirection.Ascending));
-			}
-		}
-		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
-		{
-			TrustedUsers.Items.Remove(TrustedUsers.SelectedItem);
-		}
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			BotSettings.HeldObject.SaveSettings(BotSettings.HeldObject);
@@ -174,7 +150,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
-			SavingUtils.SaveColorSettings(BotSettings.HeldObject, ColorsMenuDisplay, Colors.HeldObject);
+			Colors.HeldObject.SaveSettings(BotSettings.HeldObject);
 		}
 		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -246,25 +222,6 @@ namespace Advobot.Windows.Windows
 					SettingsMenu.Visibility = Visibility.Visible;
 					break;
 				case nameof(ColorsMenuButton):
-					var c = Colors.HeldObject;
-					//var tcbSelected = ThemesComboBox.Items.OfType<TextBox>()
-						//.SingleOrDefault(x => x?.Tag is ColorTheme t && t == c.Theme);
-
-					//ThemesComboBox.SelectedItem = tcbSelected;
-					BaseBackground.Text = c[ColorTarget.BaseBackground]?.ToString();
-					BaseForeground.Text = c[ColorTarget.BaseForeground]?.ToString();
-					BaseBorder.Text = c[ColorTarget.BaseBorder]?.ToString();
-					ButtonBackground.Text = c[ColorTarget.ButtonBackground]?.ToString();
-					ButtonForeground.Text = c[ColorTarget.ButtonForeground]?.ToString();
-					ButtonBorder.Text = c[ColorTarget.ButtonBorder]?.ToString();
-					ButtonDisabledBackground.Text = c[ColorTarget.ButtonDisabledBackground]?.ToString();
-					ButtonDisabledForeground.Text = c[ColorTarget.ButtonDisabledForeground]?.ToString();
-					ButtonDisabledBorder.Text = c[ColorTarget.ButtonDisabledBorder]?.ToString();
-					ButtonMouseOverBackground.Text = c[ColorTarget.ButtonMouseOverBackground]?.ToString();
-					JsonDigits.Text = c[ColorTarget.JsonDigits]?.ToString();
-					JsonValue.Text = c[ColorTarget.JsonValue]?.ToString();
-					JsonParamName.Text = c[ColorTarget.JsonParamName]?.ToString();
-
 					ColorsMenu.Visibility = Visibility.Visible;
 					break;
 			}
@@ -288,17 +245,8 @@ namespace Advobot.Windows.Windows
 		{
 			if (MessageBox.Show("Are you sure you want to restart the bot?", _Caption, MessageBoxButton.OKCancel) == MessageBoxResult.OK)
 			{
-				await Restart(Client, BotSettings.HeldObject).CAF();
+				await UIUtils.Restart(Client, BotSettings.HeldObject).CAF();
 			}
-		}
-		private static async Task Restart(BaseSocketClient client, IRestartArgumentProvider provider)
-		{
-			if (client != null)
-			{
-				await client.StopAsync().CAF();
-			}
-			Process.Start(Application.ResourceAssembly.Location, provider.RestartArguments);
-			Environment.Exit(0);
 		}
 		private void Pause(object sender, RoutedEventArgs e)
 		{
@@ -323,6 +271,10 @@ namespace Advobot.Windows.Windows
 			var pos = e.GetPosition(fe);
 			tt.HorizontalOffset = pos.X + 10;
 			tt.VerticalOffset = pos.Y + 10;
+		}
+		private void UserListModified(object sender, UserListModificationEventArgs e)
+		{
+			BotSettings.HeldObject.ModifyList((string)((FrameworkElement)sender).Tag, e.Value, e.Add);
 		}
 	}
 }

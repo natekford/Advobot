@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Advobot.Windows.Enums;
 using Advobot.Windows.Interfaces;
 using Advobot.Windows.Utilities;
 
@@ -12,15 +9,25 @@ namespace Advobot.Windows.Classes.Controls
 	/// <summary>
 	/// A <see cref="ComboBox"/> which implements some other useful properties and accepts custom colors easily.
 	/// </summary>
-	internal class AdvobotComboBox : ComboBox, IFontResizeValue
+	public class AdvobotComboBox : ComboBox, IFontResizeValue
 	{
-		public static readonly DependencyProperty FontResizeValueProperty = DependencyProperty.Register("FontResizeValue", typeof(double), typeof(AdvobotComboBox), new PropertyMetadata(ElementUtils.SetFontResizeProperty));
+		/// <summary>
+		/// <see cref="DependencyProperty"/> for <see cref="FontResizeValue"/>.
+		/// </summary>
+		public static readonly DependencyProperty FontResizeValueProperty = DependencyProperty.Register(nameof(FontResizeValue), typeof(double), typeof(AdvobotComboBox), new PropertyMetadata(ElementUtils.SetFontResizeProperty));
+		/// <inheritdoc />
 		public double FontResizeValue
 		{
 			get => (double)GetValue(FontResizeValueProperty);
 			set => SetValue(FontResizeValueProperty, value);
 		}
-		public static readonly DependencyProperty SourceEnumProperty = DependencyProperty.Register("SourceEnum", typeof(Type), typeof(AdvobotComboBox), new PropertyMetadata(SourceEnumCallback));
+		/// <summary>
+		/// <see cref="DependencyProperty"/> for <see cref="SourceEnum"/>.
+		/// </summary>
+		public static readonly DependencyProperty SourceEnumProperty = DependencyProperty.Register(nameof(SourceEnum), typeof(Type), typeof(AdvobotComboBox), new PropertyMetadata(SourceEnumCallback));
+		/// <summary>
+		/// An enum to make the item source out of.
+		/// </summary>
 		public Type SourceEnum
 		{
 			get => (Type)GetValue(SourceEnumProperty);
@@ -29,12 +36,7 @@ namespace Advobot.Windows.Classes.Controls
 
 		private static void SourceEnumCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			if (!(d is AdvobotComboBox cb))
-			{
-				return;
-			}
-
-			cb.ItemsSource = Enum.GetValues((Type)e.NewValue);
+			((AdvobotComboBox)d).ItemsSource = Enum.GetValues((Type)e.NewValue);
 		}
 	}
 }

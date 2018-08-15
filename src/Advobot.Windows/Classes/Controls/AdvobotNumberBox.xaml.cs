@@ -10,46 +10,77 @@ namespace Advobot.Windows.Classes.Controls
 	/// <summary>
 	/// Interaction logic for AdvobotNumberBox.xaml
 	/// </summary>
-	internal partial class AdvobotNumberBox : AdvobotTextBox
+	public partial class AdvobotNumberBox : AdvobotTextBox
 	{
 		private static Regex _NumberRegex = new Regex(@"[^\d-]", RegexOptions.Compiled);
 
+		/// <summary>
+		/// Indicates the default value for this instance.
+		/// </summary>
 		public static readonly DependencyProperty DefaultValueProperty = DependencyProperty.Register("DefaultValue", typeof(int), typeof(AdvobotNumberBox), new PropertyMetadata(0));
+		/// <summary>
+		/// The default value for this instance.
+		/// </summary>
 		public int DefaultValue
 		{
 			get => (int)GetValue(DefaultValueProperty);
 			set => SetValue(DefaultValueProperty, value);
 		}
+		/// <summary>
+		/// Indicates the biggest number allowed.
+		/// </summary>
 		public static readonly DependencyProperty MaxValueProperty = DependencyProperty.Register("MaxValue", typeof(int), typeof(AdvobotNumberBox), new PropertyMetadata(int.MaxValue, UpdateMaxLength));
+		/// <summary>
+		/// The biggest number allowed.
+		/// </summary>
 		public int MaxValue
 		{
 			get => (int)GetValue(MaxValueProperty);
 			set => SetValue(MaxValueProperty, value);
 		}
+		/// <summary>
+		/// Indicates the smallest number allowed.
+		/// </summary>
 		public static readonly DependencyProperty MinValueProperty = DependencyProperty.Register("MinValue", typeof(int), typeof(AdvobotNumberBox), new PropertyMetadata(int.MinValue, UpdateMaxLength));
+		/// <summary>
+		/// The smallest number allowed.
+		/// </summary>
 		public int MinValue
 		{
 			get => (int)GetValue(MinValueProperty);
 			set => SetValue(MinValueProperty, value);
 		}
 		private static readonly DependencyPropertyKey StoredValuePropertyKey = DependencyProperty.RegisterReadOnly("StoredValue", typeof(int), typeof(AdvobotNumberBox), new PropertyMetadata(0, UpdateText));
+		/// <summary>
+		/// Indicates the current value.
+		/// </summary>
 		public static readonly DependencyProperty StoredValueProperty = StoredValuePropertyKey.DependencyProperty;
+		/// <summary>
+		/// The current value.
+		/// </summary>
 		public int StoredValue
 		{
 			get => (int)GetValue(StoredValueProperty);
 			set => SetValue(StoredValuePropertyKey, value);
 		}
 
+		/// <summary>
+		/// Creates an instance of <see cref="AdvobotNumberBox"/>.
+		/// </summary>
 		public AdvobotNumberBox()
 		{
 			InitializeComponent();
 			DataObject.AddPastingHandler(this, OnPaste);
 		}
 
+		/// <inheritdoc />
 		public override void EndInit()
 		{
 			base.EndInit();
-			Text = DefaultValue.ToString();
+			if (String.IsNullOrWhiteSpace(Text))
+			{
+				Text = DefaultValue.ToString();
+			}
 		}
 		private void OnTextChanged(object sender, TextChangedEventArgs e)
 		{

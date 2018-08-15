@@ -139,19 +139,28 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Controls\AdvobotModificationGrid.xaml.cs">
-      <DependentUpon>AdvobotModificationGrid.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Classes\Controls\AdvobotComboBox.cs" />
     <Compile Include="Classes\Controls\AdvobotNumberBox.xaml.cs">
       <DependentUpon>AdvobotNumberBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="Classes\Controls\AdvobotRepeatButton.cs" />
     <Compile Include="Classes\Controls\AdvobotTitle.cs" />
-    <Compile Include="Classes\Converters\TestConverter.cs" />
+    <Compile Include="Classes\Bindings\ColorBoxBinding.xaml.cs">
+      <DependentUpon>ColorBoxBinding.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Classes\Controls\AdvobotUserListComboBox.xaml.cs">
+      <DependentUpon>AdvobotUserListComboBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Classes\Converters\ColorConverter.cs" />
+    <Compile Include="Classes\Converters\EnumerableConverter.cs" />
     <Compile Include="Classes\DpiDecorator.cs" />
+    <Compile Include="Classes\UserListModificationEventArgs.cs" />
+    <Compile Include="Classes\UserListModificationEventHandler.cs" />
+    <Compile Include="Classes\Validators\ColorValidator.cs" />
     <Compile Include="Classes\Validators\PrefixValidationRule.cs" />
     <Compile Include="Classes\Validators\TwitchStreamValidationRule.cs" />
-    <Compile Include="Utilities\CommandHandler.cs" />
+    <Compile Include="Classes\Validators\UserIdValidationRule.cs" />
+    <Compile Include="Utilities\UIUtils.cs" />
     <Compile Include="Utilities\ElementUtils.cs" />
     <Compile Include="Utilities\SavingUtils.cs" />
     <Compile Include="Utilities\ToolTipUtils.cs" />
@@ -166,7 +175,6 @@
     </Compile>
     <Compile Include="Classes\BindingListener.cs" />
     <Compile Include="Classes\Controls\AdvobotButton.cs" />
-    <Compile Include="Classes\Controls\AdvobotComboBox.cs" />
     <Compile Include="Classes\Controls\AdvobotGrid.cs" />
     <Compile Include="Classes\Controls\AdvobotRichTextBox.cs" />
     <Compile Include="Classes\Controls\AdvobotRun.cs" />
@@ -236,11 +244,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
-    <Page Include="Classes\Controls\AdvobotModificationGrid.xaml">
+    <Page Include="Classes\Controls\AdvobotNumberBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Classes\Controls\AdvobotNumberBox.xaml">
+    <Page Include="Classes\Bindings\ColorBoxBinding.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Classes\Controls\AdvobotUserListComboBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

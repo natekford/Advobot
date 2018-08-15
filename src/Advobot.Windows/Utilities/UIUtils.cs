@@ -1,9 +1,15 @@
-﻿using AdvorangesUtils;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using Advobot.Interfaces;
+using AdvorangesUtils;
+using Discord.WebSocket;
 
 namespace Advobot.Windows.Utilities
 {
-	internal static class CommandHandler
+	internal static class UIUtils
 	{
 		/// <summary>
 		/// Returns the text of the textbox and clears the textbox.
@@ -43,6 +49,21 @@ namespace Advobot.Windows.Utilities
 		public static bool FindCommand(string name, string args)
 		{
 			return false;
+		}
+		/// <summary>
+		/// Restarts the client using a .Net Framework implementation.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="provider"></param>
+		/// <returns></returns>
+		public static async Task Restart(BaseSocketClient client, IRestartArgumentProvider provider)
+		{
+			if (client != null)
+			{
+				await client.StopAsync().CAF();
+			}
+			Process.Start(Application.ResourceAssembly.Location, provider.RestartArguments);
+			Environment.Exit(0);
 		}
 	}
 }

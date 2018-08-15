@@ -59,7 +59,8 @@ namespace Advobot.Interfaces
 		/// <param name="name"></param>
 		/// <param name="value"></param>
 		/// <param name="add"></param>
-		void ModifyList(string name, object value, bool add);
+		/// <param name="allowDuplicates"></param>
+		void ModifyList(string name, object value, bool add, bool allowDuplicates = false);
 		/// <summary>
 		/// Serializes this object and then overwrites the file.
 		/// </summary>

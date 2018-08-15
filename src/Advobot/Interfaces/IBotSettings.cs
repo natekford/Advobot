@@ -13,14 +13,6 @@ namespace Advobot.Interfaces
 		/// </summary>
 		bool AlwaysDownloadUsers { get; set; }
 		/// <summary>
-		/// How many messages to cache.
-		/// </summary>
-		int MessageCacheSize { get; set; }
-		/// <summary>
-		/// What level to log messages at in the console.
-		/// </summary>
-		LogSeverity LogLevel { get; set; }
-		/// <summary>
 		/// The prefix for commands.
 		/// </summary>
 		string Prefix { get; set; }
@@ -32,6 +24,10 @@ namespace Advobot.Interfaces
 		/// The Twitch stream the bot should link to.
 		/// </summary>
 		string Stream { get; set; }
+		/// <summary>
+		/// How many messages to cache.
+		/// </summary>
+		int MessageCacheSize { get; set; }
 		/// <summary>
 		/// How many users to gather for commands on users unless the bypass string is said.
 		/// </summary>
@@ -72,6 +68,10 @@ namespace Advobot.Interfaces
 		/// How many banned punishments should be the maximum.
 		/// </summary>
 		int MaxBannedPunishments { get; set; }
+		/// <summary>
+		/// What level to log messages at in the console.
+		/// </summary>
+		LogSeverity LogLevel { get; set; }
 		/// <summary>
 		/// Users who have permissions only slightly lower than the bot owner.
 		/// </summary>

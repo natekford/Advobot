@@ -1,13 +1,13 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows.Controls;
+using Advobot.Windows.Utilities;
 
 namespace Advobot.Windows.Classes.Validators
 {
 	/// <summary>
 	/// Validation rule for the bot prefix.
 	/// </summary>
-	public sealed class PrefixValidationRule : ValidationRule
+	public sealed class ColorValidator : ValidationRule
 	{
 		/// <summary>
 		/// Determines whether the passed in object is a valid prefix.
@@ -17,9 +17,9 @@ namespace Advobot.Windows.Classes.Validators
 		/// <returns></returns>
 		public override ValidationResult Validate(object value, CultureInfo cultureInfo)
 		{
-			return !String.IsNullOrWhiteSpace(value.ToString())
+			return !(value is string str) || BrushUtils.TryCreateBrush(str, out var brush)
 				? ValidationResult.ValidResult
-				: new ValidationResult(false, "Invalid prefix.");
+				: new ValidationResult(false, "Invalid color supplied.");
 		}
 	}
 }

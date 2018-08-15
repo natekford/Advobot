@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using Advobot.Windows.Enums;
 using Advobot.Windows.Interfaces;
 using Advobot.Windows.Utilities;
 
@@ -9,33 +8,35 @@ namespace Advobot.Windows.Classes.Controls
 	/// <summary>
 	/// A <see cref="Grid"/> which implements some other useful properties and accepts custom colors easily.
 	/// </summary>
-	internal class AdvobotGrid : Grid, IFontResizeValue
+	public class AdvobotGrid : Grid, IFontResizeValue
 	{
-		private double _FRV;
+		/// <summary>
+		/// <see cref="DependencyProperty"/> for <see cref="FontResizeValue"/>.
+		/// </summary>
+		public static readonly DependencyProperty FontResizeValueProperty = DependencyProperty.Register(nameof(FontResizeValue), typeof(double), typeof(AdvobotGrid), new PropertyMetadata(SetAllChildrenToFontSizeProperty));
+		/// <inheritdoc />
 		public double FontResizeValue
 		{
-			get => _FRV;
-			set => SetAllChildrenToFontSizeProperty(this, _FRV = value);
+			get => (double)GetValue(FontResizeValueProperty);
+			set => SetValue(FontResizeValueProperty, value);
 		}
 
+		/// <inheritdoc />
 		public override void EndInit()
 		{
 			base.EndInit();
-			if (_FRV > 0)
-			{
-				SetAllChildrenToFontSizeProperty(this, _FRV);
-			}
+			SetAllChildrenToFontSizeProperty(this, new DependencyPropertyChangedEventArgs(FontResizeValueProperty, default, FontResizeValue));
 		}
-		private static void SetAllChildrenToFontSizeProperty(DependencyObject parent, double value)
+		private static void SetAllChildrenToFontSizeProperty(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			foreach (var child in parent.GetChildren())
+			foreach (var child in d.GetChildren())
 			{
 				//Don't set it on controls with it already set
 				if (child is IFontResizeValue frv && frv.FontResizeValue == default)
 				{
-					frv.FontResizeValue = value;
+					frv.FontResizeValue = (double)e.NewValue;
 				}
-				SetAllChildrenToFontSizeProperty(child, value);
+				SetAllChildrenToFontSizeProperty(child, e);
 			}
 		}
 	}

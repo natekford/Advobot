@@ -24,7 +24,7 @@ namespace Advobot.Windows.Classes.Converters
 			return ((IEnumerable)value).OfType<object>();
 		}
 		/// <summary>
-		/// Returns value.
+		/// Not implemented.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <param name="targetType"></param>

@@ -42,7 +42,7 @@ namespace Advobot.Windows.Classes
 				return;
 			}
 
-			_Output.Dispatcher.Invoke(() => _Output.AppendText(value), DispatcherPriority.ContextIdle);
+			_Output.Dispatcher.InvokeAsync(() => _Output.AppendText(value), DispatcherPriority.ContextIdle);
 		}
 	}
 }

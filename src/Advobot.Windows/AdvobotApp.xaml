@@ -15,6 +15,7 @@
         <converters:UriConverter x:Key="UriConverter" />
         <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
         <converters:EnumerableConverter x:Key="EnumerableConverter" />
+        <converters:ColorConverter x:Key="ColorConverter" />
         <!-- Colors -->
         <x:Static x:Key="{x:Static enums:ColorTarget.BaseBackground}"
                   Member="classes:ColorSettings.LightModeBaseBackground" />
@@ -36,6 +37,42 @@
                   Member="classes:ColorSettings.LightModeButtonDisabledBorder" />
         <x:Static x:Key="{x:Static enums:ColorTarget.ButtonMouseOverBackground}"
                   Member="classes:ColorSettings.LightModeButtonMouseOverBackground" />
+        <!-- Templates -->
+        <ControlTemplate x:Key="ButtonControlTemplate"
+                         TargetType="ButtonBase">
+            <Border Name="ButtonControlTemplateBorder"
+                    BorderThickness="1"
+                    Background="{DynamicResource {x:Static enums:ColorTarget.ButtonBackground}}"
+                    BorderBrush="{DynamicResource {x:Static enums:ColorTarget.ButtonBorder}}">
+                <ContentPresenter x:Name="ButtonControlTemplateBorderContentPresenter"
+                                  Margin="2"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  RecognizesAccessKey="True"
+                                  TextBlock.Foreground="{DynamicResource {x:Static enums:ColorTarget.ButtonForeground}}" />
+            </Border>
+
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver"
+                         Value="True">
+                    <Setter TargetName="ButtonControlTemplateBorder"
+                            Property="Background"
+                            Value="{DynamicResource {x:Static enums:ColorTarget.ButtonMouseOverBackground}}" />
+                </Trigger>
+                <Trigger Property="IsEnabled"
+                         Value="False">
+                    <Setter TargetName="ButtonControlTemplateBorder"
+                            Property="Background"
+                            Value="{DynamicResource {x:Static enums:ColorTarget.ButtonDisabledBackground}}" />
+                    <Setter TargetName="ButtonControlTemplateBorder"
+                            Property="BorderBrush"
+                            Value="{DynamicResource {x:Static enums:ColorTarget.ButtonDisabledBorder}}" />
+                    <Setter TargetName="ButtonControlTemplateBorderContentPresenter"
+                            Property="TextBlock.Foreground"
+                            Value="{DynamicResource {x:Static enums:ColorTarget.ButtonDisabledForeground}}" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
         <!-- Styles -->
         <Style TargetType="Control">
             <Setter Property="Background"
@@ -111,72 +148,12 @@
                     Value="WrapWithOverflow" />
         </Style>
         <Style TargetType="controls:AdvobotButton">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate x:Name="ButtonControlTemplate"
-                                     TargetType="Button">
-                        <Border Name="ButtonControlTemplateBorder"
-                                BorderThickness="1"
-                                Background="{DynamicResource {x:Static enums:ColorTarget.ButtonBackground}}"
-                                BorderBrush="{DynamicResource {x:Static enums:ColorTarget.ButtonBorder}}">
-                            <ContentPresenter x:Name="ButtonControlTemplateBorderContentPresenter"
-                                              Margin="2"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"
-                                              RecognizesAccessKey="True"
-                                              TextBlock.Foreground="{DynamicResource {x:Static enums:ColorTarget.ButtonForeground}}" />
-                        </Border>
-
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver"
-                                     Value="True">
-                                <Setter TargetName="ButtonControlTemplateBorder"
-                                        Property="Background"
-                                        Value="{DynamicResource {x:Static enums:ColorTarget.ButtonMouseOverBackground}}" />
-                            </Trigger>
-                            <Trigger Property="IsEnabled"
-                                     Value="False">
-                                <Setter TargetName="ButtonControlTemplateBorder"
-                                        Property="Background"
-                                        Value="{DynamicResource {x:Static enums:ColorTarget.ButtonDisabledBackground}}" />
-                                <Setter TargetName="ButtonControlTemplateBorder"
-                                        Property="BorderBrush"
-                                        Value="{DynamicResource {x:Static enums:ColorTarget.ButtonDisabledBorder}}" />
-                                <Setter TargetName="ButtonControlTemplateBorderContentPresenter"
-                                        Property="TextBlock.Foreground"
-                                        Value="{DynamicResource {x:Static enums:ColorTarget.ButtonDisabledForeground}}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="Template"
+                    Value="{StaticResource ButtonControlTemplate}" />
         </Style>
-        <!-- Putting this here so the based on thing doesn't keep displaying an error in the error list -->
-        <Style x:Key="EnableSearchStyle"
-               TargetType="Button"
-               BasedOn="{StaticResource {x:Static enums:OtherTarget.ButtonStyle}}">
-            <Style.Triggers>
-                <MultiDataTrigger>
-                    <!-- If both textboxes are null, keep the button disabled -->
-                    <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding Text.Length, ElementName=GuildNameInput}"
-                                   Value="0" />
-                        <Condition Binding="{Binding Text.Length, ElementName=GuildIdInput}"
-                                   Value="0" />
-                    </MultiDataTrigger.Conditions>
-
-                    <MultiDataTrigger.Setters>
-                        <Setter Property="IsEnabled"
-                                Value="False" />
-                    </MultiDataTrigger.Setters>
-                </MultiDataTrigger>
-                <!-- If there is no value in the combobox, keep the button disabled -->
-                <DataTrigger Binding="{Binding SelectedItem, ElementName=FileTypeComboBox}"
-                             Value="{x:Null}">
-                    <Setter Property="IsEnabled"
-                            Value="False" />
-                </DataTrigger>
-            </Style.Triggers>
+        <Style TargetType="controls:AdvobotRepeatButton">
+            <Setter Property="Template"
+                    Value="{StaticResource ButtonControlTemplate}" />
         </Style>
     </Application.Resources>
 </Application>

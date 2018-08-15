@@ -7,7 +7,7 @@ namespace Advobot.Windows.Classes.Controls
 	/// <summary>
 	/// Because you can't use \n, \r, \t etc. in XAML without them being escaped.
 	/// </summary>
-	internal class AdvobotRun : Run, IUnescapedText
+	public class AdvobotRun : Run, IUnescapedText
 	{
 		/// <summary>
 		/// Sets <see cref="Run.Text"/> to the supplied value but unescaped.

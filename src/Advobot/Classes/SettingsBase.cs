@@ -91,17 +91,17 @@ namespace Advobot.Classes
 			NotifyPropertyChanged(property.Name);
 		}
 		/// <inheritdoc />
-		public virtual void ModifyList(string name, object value, bool add)
+		public virtual void ModifyList(string name, object value, bool add, bool allowDuplicates = false)
 		{
 			var property = GetProperty(name);
 			var list = (IList)property.GetValue(this);
-			if (add && !list.Contains(value))
-			{
-				list.Add(value);
-			}
-			else
+			if (!add)
 			{
 				list.Remove(value);
+			}
+			else if (allowDuplicates || !list.Contains(value))
+			{
+				list.Add(value);
 			}
 			NotifyPropertyChanged(property.Name);
 		}

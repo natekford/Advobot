@@ -1,5 +1,4 @@
 ﻿<local:AdvobotTextBox x:Class="Advobot.Windows.Classes.Controls.AdvobotNumberBox"
-                      x:ClassModifier="internal"
                       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -14,6 +13,24 @@
     <local:AdvobotTextBox.Template>
         <ControlTemplate TargetType="local:AdvobotTextBox">
             <Grid>
+                <Grid.Resources>
+                    <Style TargetType="local:AdvobotRepeatButton"
+                           BasedOn="{StaticResource {x:Type local:AdvobotRepeatButton}}">
+                        <Setter Property="FontFamily"
+                                Value="Segoe UI Symbol" />
+                        <Setter Property="FontResizeValue"
+                                Value=".01" />
+                        <Setter Property="ClickMode"
+                                Value="Press" />
+                        <Setter Property="BorderThickness"
+                                Value="{Binding Path=BorderThickness, RelativeSource={RelativeSource AncestorType={x:Type local:AdvobotTextBox}}}" />
+                        <Setter Property="BorderBrush"
+                                Value="{Binding Path=BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type local:AdvobotTextBox}}}" />
+                        <Setter Property="IsEnabled"
+                                Value="{Binding Path=IsEnabled, RelativeSource={RelativeSource AncestorType={x:Type local:AdvobotTextBox}}}" />
+                    </Style>
+                </Grid.Resources>
+                
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition />
@@ -39,25 +56,13 @@
                 <local:AdvobotRepeatButton x:Name="UpButton"
                                            Grid.Row="0"
                                            Grid.Column="1"
-                                           FontFamily="Segoe UI Symbol"
-                                           FontResizeValue=".01"
                                            Content="&#xE110;"
-                                           ClickMode="Press"
-                                           Click="OnUpButtonClick"
-                                           BorderThickness="{TemplateBinding BorderThickness}"
-                                           BorderBrush="{TemplateBinding BorderBrush}"
-                                           IsEnabled="{TemplateBinding IsEnabled}" />
+                                           Click="OnUpButtonClick"/>
                 <local:AdvobotRepeatButton x:Name="DownButton"
                                            Grid.Row="1"
                                            Grid.Column="1"
-                                           FontFamily="Segoe UI Symbol"
-                                           FontResizeValue=".01"
                                            Content="&#xE1FD;"
-                                           ClickMode="Press"
-                                           Click="OnDownButtonClick"
-                                           BorderThickness="{TemplateBinding BorderThickness}"
-                                           BorderBrush="{TemplateBinding BorderBrush}"
-                                           IsEnabled="{TemplateBinding IsEnabled}" />
+                                           Click="OnDownButtonClick"/>
             </Grid>
         </ControlTemplate>
     </local:AdvobotTextBox.Template>

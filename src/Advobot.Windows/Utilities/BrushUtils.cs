@@ -22,17 +22,14 @@ namespace Advobot.Windows.Utilities
 			{
 				return rgb;
 			}
-
 			if (TryCreateBrushFromStringName(input, out var name))
 			{
 				return name;
 			}
-
 			if (TryCreateBrushFromStringHex(input, out var hex))
 			{
 				return hex;
 			}
-
 			return default;
 		}
 		public static bool TryCreateBrush(string input, out SolidColorBrush brush)

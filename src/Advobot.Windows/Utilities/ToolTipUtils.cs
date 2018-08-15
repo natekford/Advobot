@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,31 +11,24 @@ namespace Advobot.Windows.Utilities
 {
 	internal static class ToolTipUtils
 	{
-		private static Dictionary<ToolTipReason, string> _ToolTipReasons = new Dictionary<ToolTipReason, string>
+		private static readonly ImmutableDictionary<ToolTipReason, string> _ToolTipReasons = new Dictionary<ToolTipReason, string>
 		{
 			{ ToolTipReason.FileSavingFailure, "Failed to save the file." },
 			{ ToolTipReason.FileSavingSuccess, "Successfully saved the file." },
 			{ ToolTipReason.InvalidFilePath, "Unable to gather the path for this file." }
-		};
+		}.ToImmutableDictionary();
 		private static CancellationTokenSource _ToolTipCancellationTokenSource;
 
 		public static void EnableTimedToolTip(FrameworkElement element, string text, int timeInMS = 2500)
 		{
 			if (!(element.ToolTip is ToolTip tt))
 			{
-				if (element.ToolTip == null)
+				element.ToolTip = tt = new ToolTip
 				{
-					element.ToolTip = tt = new ToolTip
-					{
-						IsOpen = false,
-						Visibility = Visibility.Collapsed,
-						Placement = PlacementMode.Relative
-					};
-				}
-				else
-				{
-					return;
-				}
+					IsOpen = false,
+					Visibility = Visibility.Collapsed,
+					Placement = PlacementMode.Relative
+				};
 			}
 
 			tt.Content = text;

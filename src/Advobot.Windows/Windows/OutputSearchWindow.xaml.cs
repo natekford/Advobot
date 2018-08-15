@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -24,13 +23,10 @@ namespace Advobot.Windows.Windows
 
 		private void Search(object sender, RoutedEventArgs e)
 		{
-			if (OutputNamesComboBox.SelectedItem is TextBox tb)
+			ConsoleSearchOutput.Clear();
+			foreach (var line in ConsoleUtils.WrittenLines[(string)OutputNamesComboBox.SelectedItem])
 			{
-				ConsoleSearchOutput.Clear();
-				foreach (var line in ConsoleUtils.WrittenLines[tb.Text])
-				{
-					ConsoleSearchOutput.AppendText($"{line}{Environment.NewLine}");
-				}
+				ConsoleSearchOutput.AppendText($"{line}{Environment.NewLine}");
 			}
 		}
 		private void SaveWithCtrlS(object sender, KeyEventArgs e)
@@ -50,11 +46,8 @@ namespace Advobot.Windows.Windows
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)
 		{
-			if (!(sender is FrameworkElement fe) || !(fe.ToolTip is ToolTip tt))
-			{
-				return;
-			}
-
+			var fe = (FrameworkElement)sender;
+			var tt = (ToolTip)fe.ToolTip;
 			var pos = e.GetPosition(fe);
 			tt.HorizontalOffset = pos.X + 10;
 			tt.VerticalOffset = pos.Y + 10;

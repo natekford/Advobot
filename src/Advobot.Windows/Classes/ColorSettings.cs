@@ -67,25 +67,24 @@ namespace Advobot.Windows.Classes
 			set
 			{
 				_Theme = value;
-				var r = Application.Current.Resources;
 				switch (Theme)
 				{
 					case ColorTheme.Classic:
 						foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
 						{
-							r[ct] = LightModeProperties[ct];
+							Application.Current.Resources[ct] = LightModeProperties[ct];
 						}
 						break;
 					case ColorTheme.DarkMode:
 						foreach (ColorTarget ct in Enum.GetValues(typeof(ColorTarget)))
 						{
-							r[ct] = DarkModeProperties[ct];
+							Application.Current.Resources[ct] = DarkModeProperties[ct];
 						}
 						break;
 					case ColorTheme.UserMade:
 						foreach (var kvp in _ColorTargets)
 						{
-							r[kvp.Key] = kvp.Value;
+							Application.Current.Resources[kvp.Key] = kvp.Value;
 						}
 						break;
 				}
@@ -118,7 +117,14 @@ namespace Advobot.Windows.Classes
 		public SolidColorBrush this[ColorTarget target]
 		{
 			get => _ColorTargets[target];
-			set => _ColorTargets[target] = value;
+			set
+			{
+				_ColorTargets[target] = value;
+				if (_Theme == ColorTheme.UserMade)
+				{
+					Application.Current.Resources[target] = value;
+				}
+			}
 		}
 
 		/// <summary>

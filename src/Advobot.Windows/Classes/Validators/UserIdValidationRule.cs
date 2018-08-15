@@ -5,21 +5,21 @@ using System.Windows.Controls;
 namespace Advobot.Windows.Classes.Validators
 {
 	/// <summary>
-	/// Validation rule for the bot prefix.
+	/// Validation rule for user ids.
 	/// </summary>
-	public sealed class PrefixValidationRule : ValidationRule
+	public sealed class UserIdValidationRule : ValidationRule
 	{
 		/// <summary>
-		/// Determines whether the passed in object is a valid prefix.
+		/// Determines whether the passed in object is a valid user id.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <param name="cultureInfo"></param>
 		/// <returns></returns>
 		public override ValidationResult Validate(object value, CultureInfo cultureInfo)
 		{
-			return !String.IsNullOrWhiteSpace(value.ToString())
+			return !(value is string str) || String.IsNullOrWhiteSpace(str) || ulong.TryParse(str, out var ul)
 				? ValidationResult.ValidResult
-				: new ValidationResult(false, "Invalid prefix.");
+				: new ValidationResult(false, "Invalid user id.");
 		}
 	}
 }
