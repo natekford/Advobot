@@ -74,6 +74,7 @@
 
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>Advobot</RootNamespace>
   </PropertyGroup>
 
 </Project>

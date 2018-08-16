@@ -1,7 +1,7 @@
 # Advobot
-This is a bot I've been working on since October 2016. I don't really know how to program and thought it would be fun to learn via this.
+The console or .Net Core UI versions run on any OS that supports .Net Core 2.1. The .Net Framework UI version only runs on Windows.
 
-The non-UI version should run on any OS that supports .Net Core 2.0. The UI version only runs on Windows since it's created in WPF.
+When wanting to run more than one bot at a time, supply the command line argument "-instance [number]" where the number is not 1 or a number supplied for any other currently running bots.
 
 **Regular Features**
 * **Help:** Help command lists a short description of a command and how to use it.

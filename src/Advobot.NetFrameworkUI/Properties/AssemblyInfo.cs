@@ -7,7 +7,7 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Advobot")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription(".Net Framework UI for Advobot.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Advobot")]
 [assembly: AssemblyProduct("Advobot")]

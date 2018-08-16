@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
@@ -207,7 +208,7 @@ namespace Advobot.Classes
 		{
 			var processId = -1;
 			var instance = -1;
-			//No help command because this is not intended to be used more than semi internally
+			//No help command because this is not intended to be used more than internally
 			new SettingParser(false, "-", "--", "/")
 			{
 				//Don't bother adding descriptions because of the aforementioned removal
@@ -215,8 +216,8 @@ namespace Advobot.Classes
 				new Setting<int>(new[] { nameof(CurrentInstance), "instance" }, x => instance = x)
 			}.Parse(args);
 
-			//Count how many exist with that name so they can be saved as Advobot1, Advobot2, etc.
-			instance = instance == -1 ? Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length : instance;
+			//Instance is for the config so they can be named Advobot1, Advobot2, etc.
+			instance = instance < 1 ? 1 : instance;
 			var config = IOUtils.DeserializeFromFile<LowLevelConfig>(GetConfigPath(instance)) ?? new LowLevelConfig();
 			config.PreviousProcessId = processId;
 			config.CurrentInstance = instance;
@@ -229,12 +230,9 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		private static FileInfo GetConfigPath(int instance)
 		{
-			//Start by grabbing the entry assembly location then cutting out everything but the file name
-			//Use entry so console and ui applications can have diff configs
-			var currentName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
 			//Add the config file into the local application data folder under Advobot
 			var appdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-			return new FileInfo(Path.Combine(appdata, "Advobot", currentName + instance + ".config"));
+			return new FileInfo(Path.Combine(appdata, "Advobot", "Advobot" + instance + ".config"));
 		}
 	}
 }

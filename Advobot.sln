@@ -21,6 +21,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot.NetFrameworkUI", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Tests", "tests\Advobot.Tests\Advobot.Tests.csproj", "{DE77ECB1-50AB-4216-B231-8D2EE5B7BD53}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.NetCoreUI", "src\Advobot.NetCoreUI\Advobot.NetCoreUI.csproj", "{71EB6561-916B-4CA1-9F98-3744E5E2B29B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E4D6F259-4E58-460A-8572-8E04859D2AEB} = {E4D6F259-4E58-460A-8572-8E04859D2AEB}
+		{8C3632B5-6172-4D77-9044-345A64C205A0} = {8C3632B5-6172-4D77-9044-345A64C205A0}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +53,10 @@ Global
 		{DE77ECB1-50AB-4216-B231-8D2EE5B7BD53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE77ECB1-50AB-4216-B231-8D2EE5B7BD53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE77ECB1-50AB-4216-B231-8D2EE5B7BD53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71EB6561-916B-4CA1-9F98-3744E5E2B29B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71EB6561-916B-4CA1-9F98-3744E5E2B29B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71EB6561-916B-4CA1-9F98-3744E5E2B29B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71EB6561-916B-4CA1-9F98-3744E5E2B29B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

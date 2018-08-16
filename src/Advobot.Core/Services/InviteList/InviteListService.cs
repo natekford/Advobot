@@ -32,12 +32,7 @@ namespace Advobot.Services.InviteList
 		/// <inheritdoc />
 		public void Start()
 		{
-			//Use mode=exclusive to not have ioexceptions
-			_Db = new LiteDatabase(new ConnectionString
-			{
-				Filename = _Settings.GetBaseBotDirectoryFile("InviteDatabase.db").FullName,
-				Mode = FileMode.Exclusive,
-			});
+			_Db = _Settings.GetDatabase("InviteDatabase.db");
 			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(InviteListService)}.");
 		}
 		/// <inheritdoc />

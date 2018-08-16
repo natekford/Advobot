@@ -47,13 +47,7 @@ namespace Advobot.Services.Levels
 		/// <inheritdoc />
 		public void Start()
 		{
-			//Use mode=exclusive to not have ioexceptions
-			_Db = new LiteDatabase(new ConnectionString
-			{
-				Filename = _Settings.GetBaseBotDirectoryFile("LevelDatabase.db").FullName,
-				Mode = FileMode.Exclusive,
-			}, new BsonMapper { IncludeNonPublic = true, });
-			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(LevelService)}.");
+			_Db = _Settings.GetDatabase("LevelDatabase.db", new BsonMapper { IncludeNonPublic = true, });
 		}
 		/// <inheritdoc />
 		public void Dispose()

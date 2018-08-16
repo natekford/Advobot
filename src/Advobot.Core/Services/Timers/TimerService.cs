@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -112,13 +113,7 @@ namespace Advobot.Services.Timers
 		/// <inheritdoc />
 		public void Start()
 		{
-			//Use mode=exclusive to not have ioexceptions
-			_Db = new LiteDatabase(new ConnectionString
-			{
-				Filename = _Settings.GetBaseBotDirectoryFile("TimedDatabase.db").FullName,
-				Mode = FileMode.Exclusive,
-			});
-			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(TimerService)}.");
+			_Db = _Settings.GetDatabase("TimedDatabase.db");
 			_HourTimer.Enabled = true;
 			_MinuteTimer.Enabled = true;
 			_SecondTimer.Enabled = true;

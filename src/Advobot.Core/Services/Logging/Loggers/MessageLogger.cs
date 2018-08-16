@@ -105,7 +105,7 @@ namespace Advobot.Services.Logging.Loggers
 			var cancelToken = settings.MessageDeletion.CancelToken;
 
 			//Has to run on completely separate thread, else prints early
-			Task.Run(async () =>
+			_ = Task.Run(async () =>
 			{
 				//Wait three seconds. If a new message comes in then the token will be canceled and this won't continue.
 				//If more than 25 messages just start printing them out so people can't stall the messages forever.
