@@ -1,23 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Version>1.0.0</Version>
+    <PackageId>Advobot.Console</PackageId>
     <Authors>Advorange</Authors>
     <Company>Advorange</Company>
-    <Product>Advobot</Product>
-    <Description>The commands that Advobot uses.</Description>
     <Copyright>Copyright © 2018</Copyright>
-    <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
+    <Product>Advobot</Product>
+    <NeutralLanguage>en</NeutralLanguage>
     <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
-    <NeutralLanguage>English</NeutralLanguage>
+    <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Description>Launches a console instance of Advobot.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile>bin\Debug\netstandard2.0\Advobot.Commands.xml</DocumentationFile>
-    <NoWarn>1701;1702;1705;1591;NU1701</NoWarn>
+    <DocumentationFile>bin\Debug\netcoreapp2.0\Advobot.Console.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;NU1701</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -35,12 +39,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Advobot.Commands\Advobot.Commands.csproj" />
     <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System">
+      <HintPath>System</HintPath>
+    </Reference>
   </ItemGroup>
 
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <PackageReleaseNotes />
   </PropertyGroup>
 
 </Project>

@@ -1,0 +1,84 @@
+﻿<local:AdvobotComboBox x:Class="Advobot.NetFrameworkUI.Classes.Controls.AdvobotUserListCombobox"
+                       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                       xmlns:local="clr-namespace:Advobot.NetFrameworkUI.Classes.Controls"
+                       xmlns:validators="clr-namespace:Advobot.NetFrameworkUI.Classes.Validators"
+                       mc:Ignorable="d"
+                       d:DesignHeight="450"
+                       d:DesignWidth="800">
+
+    <ComboBox.Template>
+        <ControlTemplate TargetType="local:AdvobotComboBox">
+            <Grid>
+                <Grid.Resources>
+                    <Style TargetType="local:AdvobotButton"
+                           BasedOn="{StaticResource {x:Type local:AdvobotButton}}">
+                        <Setter Property="FontResizeValue"
+                                Value=".015" />
+                        <Setter Property="BorderThickness"
+                                Value="{Binding Path=BorderThickness, RelativeSource={RelativeSource AncestorType={x:Type local:AdvobotComboBox}}}" />
+                        <Setter Property="BorderBrush"
+                                Value="{Binding Path=BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type local:AdvobotComboBox}}}" />
+                        <Setter Property="IsEnabled"
+                                Value="False" />
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding Path=(Validation.HasError), ElementName=InputComboBox}"
+                                               Value="False" />
+                                    <Condition Binding="{Binding Path=Text, ElementName=InputComboBox, Converter={StaticResource NullToBoolConverter}}"
+                                               Value="True" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="IsEnabled"
+                                        Value="True" />
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Resources>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <local:AdvobotComboBox x:Name="InputComboBox"
+                                       Grid.Row="0"
+                                       Grid.Column="0"
+                                       Grid.RowSpan="2"
+                                       FontResizeValue="{TemplateBinding FontResizeValue}"
+                                       HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                       VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                       BorderThickness="{TemplateBinding BorderThickness}"
+                                       BorderBrush="{TemplateBinding BorderBrush}"
+                                       IsEnabled="{TemplateBinding IsEnabled}"
+                                       IsEditable="{TemplateBinding IsEditable}"
+                                       ItemsSource="{TemplateBinding ItemsSource}"
+                                       IsTextSearchEnabled="{TemplateBinding IsTextSearchEnabled}">
+                    <ComboBox.Text>
+                        <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType=local:AdvobotUserListCombobox}"
+                                 Path="Text"
+                                 UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <validators:UserIdValidationRule ValidatesOnTargetUpdated="True" />
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </ComboBox.Text>
+                </local:AdvobotComboBox>
+                <local:AdvobotButton Grid.Row="0"
+                                     Grid.Column="1"
+                                     Content="+"
+                                     Click="AddButton_Click" />
+                <local:AdvobotButton Grid.Row="1"
+                                     Grid.Column="1"
+                                     Content="-"
+                                     Click="RemoveButton_Click" />
+            </Grid>
+        </ControlTemplate>
+    </ComboBox.Template>
+</local:AdvobotComboBox>

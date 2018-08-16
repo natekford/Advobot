@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCopyright("Copyright © 2018")]
-[assembly: AssemblyDescription("Core parts for Advobot.")]
+[assembly: AssemblyDescription("Launches a console instance of Advobot.")]
 [assembly: AssemblyProduct("Advobot")]
-[assembly: AssemblyTitle("Advobot.Core")]
+[assembly: AssemblyTitle("Advobot.ConsoleLauncher")]
 [assembly: NeutralResourcesLanguage("en")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("0e09576a-5cce-41c1-8ab1-82fe12955037")]
+[assembly: Guid("0b28de5f-47c5-4423-8d57-014270c7d081")]
 
 // Version information for an assembly consists of the following four values:
 //

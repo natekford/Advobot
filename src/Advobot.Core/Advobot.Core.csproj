@@ -1,26 +1,40 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <Version>1.0.0</Version>
-    <PackageId>Advobot.Core</PackageId>
+    <GenerateAssemblyVersion>false</GenerateAssemblyVersion>
+    <GenerateAssemblyFileVersion>false</GenerateAssemblyFileVersion>
+	  <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Advorange</Authors>
     <Company>Advorange</Company>
-    <Copyright>Copyright © 2018</Copyright>
     <Product>Advobot</Product>
-    <NeutralLanguage>en</NeutralLanguage>
-    <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
+    <Description>The core of Advobot. Classes, interfaces, and actions.</Description>
+    <Copyright>Copyright © 2018</Copyright>
     <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>Launches a console instance of Advobot.</Description>
+    <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
+    <NeutralLanguage>English</NeutralLanguage>
+    <Version>1.0.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <ShouldCreateLogs>True</ShouldCreateLogs>
+    <AdvancedSettingsExpanded>True</AdvancedSettingsExpanded>
+    <UpdateAssemblyVersion>True</UpdateAssemblyVersion>
+    <UpdateAssemblyFileVersion>True</UpdateAssemblyFileVersion>
+    <UpdateAssemblyInfoVersion>True</UpdateAssemblyInfoVersion>
+    <AssemblyFileVersionSettings>DayStamp.DayStamp.DeltaDayStamp.DayStamp</AssemblyFileVersionSettings>
+    <AssemblyInfoVersionSettings>DayStamp.DayStamp.DeltaDayStamp.DayStamp</AssemblyInfoVersionSettings>
+    <AssemblyVersionSettings>DayStamp.DayStamp.DeltaDayStamp.DayStamp</AssemblyVersionSettings>
+    <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile>bin\Debug\netcoreapp2.0\Advobot.Core.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netstandard2.0\Advobot.Core.xml</DocumentationFile>
     <NoWarn>1701;1702;1705;NU1701</NoWarn>
   </PropertyGroup>
 
@@ -33,20 +47,29 @@
     <PackageReference Include="AdvorangesUtils" Version="1.0.10">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00979" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00981" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.6.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Advobot.Commands\Advobot.Commands.csproj" />
-    <ProjectReference Include="..\Advobot\Advobot.csproj" />
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System">
-      <HintPath>System</HintPath>
-    </Reference>
+    <Compile Update="AssemblyVersion.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AssemblyVersion.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="AssemblyVersion.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <OutputFileName>AssemblyVersion.cs</OutputFileName>  
+      <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
   <PropertyGroup>

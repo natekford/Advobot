@@ -1,0 +1,589 @@
+﻿<Window x:Class="Advobot.NetFrameworkUI.Windows.AdvobotWindow"
+        x:Name="AdvobotWin"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:interfaces="clr-namespace:Advobot.Interfaces;assembly=Advobot.Core"
+        xmlns:core="clr-namespace:Advobot;assembly=Advobot.Core"
+        xmlns:classes="clr-namespace:Advobot.NetFrameworkUI.Classes"
+        xmlns:controls="clr-namespace:Advobot.NetFrameworkUI.Classes.Controls"
+        xmlns:extensions="clr-namespace:Advobot.NetFrameworkUI.Classes.Extensions"
+        xmlns:enums="clr-namespace:Advobot.NetFrameworkUI.Enums"
+        xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
+        xmlns:validators="clr-namespace:Advobot.NetFrameworkUI.Classes.Validators"
+        xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
+        mc:Ignorable="d"
+        Title="Advobot"
+        WindowState="Maximized"
+        FontFamily="Courier New"
+        Loaded="AttemptToLogin"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+
+    <Window.Resources>
+        <threading:DispatcherTimer x:Key="ApplicationInformationTimer"
+                                   Interval="00:00:00:01"
+                                   Tick="UpdateApplicationInfo" />
+    </Window.Resources>
+
+    <classes:DpiDecorator x:Name="DpiDecorator">
+        <controls:AdvobotGrid x:Name="Layout"
+                              MouseMove="MoveToolTip">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="2*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.ToolTip>
+                <ToolTip x:Name="ActualToolTip"
+                         IsOpen="False"
+                         Visibility="Collapsed"
+                         Placement="Relative" />
+            </Grid.ToolTip>
+
+            <!-- Output -->
+            <controls:AdvobotTextBox x:Name="Output"
+                                     Grid.ColumnSpan="2"
+                                     FontResizeValue=".022"
+                                     VerticalScrollBarVisibility="Visible"
+                                     TextWrapping="Wrap"
+                                     IsReadOnly="True">
+                <controls:AdvobotTextBox.ContextMenu>
+                    <ContextMenu x:Name="OutputContextMenu"
+                                 IsEnabled="False">
+                        <MenuItem Header="Search For..."
+                                  Click="OpenModal"
+                                  Tag="{x:Static enums:Modal.OutputSearch}" />
+                        <MenuItem Header="Save Output Log"
+                                  Click="SaveOutput" />
+                        <MenuItem Header="Clear Output Log"
+                                  Click="ClearOutput" />
+                    </ContextMenu>
+                </controls:AdvobotTextBox.ContextMenu>
+            </controls:AdvobotTextBox>
+
+            <!-- Input -->
+            <controls:AdvobotGrid x:Name="Input"
+                                  Grid.Row="2"
+                                  Grid.RowSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="8*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <controls:AdvobotTextBox x:Name="InputBox"
+                                         MaxLength="250"
+                                         MaxLines="5"
+                                         MaxHeight="1000"
+                                         FontResizeValue=".040"
+                                         TextWrapping="Wrap"
+                                         KeyUp="AcceptInputWithKey" />
+                <controls:AdvobotButton x:Name="InputButton"
+                                        Grid.Column="1"
+                                        FontResizeValue=".015"
+                                        Content="Enter"
+                                        Click="AcceptInput"
+                                        IsEnabled="{Binding Text, ElementName=InputBox, Converter={StaticResource NullToBoolConverter}}" />
+            </controls:AdvobotGrid>
+
+            <!-- Application Info Bar -->
+            <controls:AdvobotGrid x:Name="ApplicationInfoBar"
+                                  Grid.Row="1"
+                                  FontResizeValue=".020">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <Grid.Resources>
+                    <Style TargetType="controls:AdvobotTextBox"
+                           BasedOn="{StaticResource {x:Type controls:AdvobotTextBox}}">
+                        <Setter Property="IsReadOnly"
+                                Value="True" />
+                        <Setter Property="HorizontalContentAlignment"
+                                Value="Center" />
+                        <Setter Property="VerticalContentAlignment"
+                                Value="Center" />
+                    </Style>
+                </Grid.Resources>
+
+                <controls:AdvobotTextBox x:Name="Uptime" />
+                <controls:AdvobotTextBox x:Name="Latency"
+                                         Grid.Column="1" />
+                <controls:AdvobotTextBox x:Name="Memory"
+                                         Grid.Column="2" />
+                <controls:AdvobotTextBox x:Name="ThreadCount"
+                                         Grid.Column="3" />
+            </controls:AdvobotGrid>
+
+            <!-- Menu Buttons -->
+            <controls:AdvobotGrid x:Name="ButtonMenu"
+                                  Grid.Column="1"
+                                  Grid.Row="1"
+                                  Grid.RowSpan="3"
+                                  FontResizeValue=".015"
+                                  IsEnabled="False">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <controls:AdvobotButton x:Name="MainMenuButton"
+                                        Content="Main"
+                                        Click="OpenMenu" />
+                <controls:AdvobotButton x:Name="InfoMenuButton"
+                                        Grid.Column="1"
+                                        Content="Info"
+                                        Click="OpenMenu" />
+                <controls:AdvobotButton x:Name="ColorsMenuButton"
+                                        Grid.Column="2"
+                                        Content="Colors"
+                                        Click="OpenMenu" />
+                <controls:AdvobotButton x:Name="SettingsMenuButton"
+                                        Grid.Column="3"
+                                        Content="Settings"
+                                        Click="OpenMenu" />
+            </controls:AdvobotGrid>
+
+            <!-- Main Menu -->
+            <controls:AdvobotGrid x:Name="MainMenu"
+                                  Grid.Column="1"
+                                  FontResizeValue=".015"
+                                  Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <controls:AdvobotRichTextBox x:Name="MainMenuDisplay"
+                                             Grid.ColumnSpan="3"
+                                             IsReadOnly="True"
+                                             IsDocumentEnabled="True"
+                                             BorderThickness="0">
+                    <FlowDocument>
+                        <Paragraph>
+                            <controls:AdvobotRun UnescapedText="Latency:\n\tTime it takes for a command to reach the bot." />
+                            <LineBreak />
+                            <controls:AdvobotRun UnescapedText="Memory:\n\tAmount of RAM the program is using." />
+                            <LineBreak />
+                            <controls:AdvobotRun UnescapedText="Threads:\n\tWhere all the actions in the bot happen." />
+                            <LineBreak />
+                            <controls:AdvobotRun UnescapedText="Shards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard." />
+                            <LineBreak />
+                            <LineBreak />
+                            <controls:AdvobotRun UnescapedText="API Wrapper Version: " />
+                            <controls:AdvobotRun UnescapedText="{x:Static core:Constants.API_VERSION}" />
+                            <LineBreak />
+                            <controls:AdvobotRun UnescapedText="Bot Version: " />
+                            <controls:AdvobotRun UnescapedText="{x:Static core:Constants.BOT_VERSION}" />
+                            <LineBreak />
+                            <LineBreak />
+                            <Hyperlink IsEnabled="True"
+                                       RequestNavigate="OpenHyperLink"
+                                       NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static core:Constants.REPO}}">
+                                GitHub repository for Advobot
+                            </Hyperlink>
+                            <LineBreak />
+                            <Hyperlink IsEnabled="True"
+                                       RequestNavigate="OpenHyperLink"
+                                       NavigateUri="{Binding Converter={StaticResource UriConverter}, Source={x:Static core:Constants.DISCORD_INV}}">
+                                Join the Discord server for additional help.
+                            </Hyperlink>
+                        </Paragraph>
+                    </FlowDocument>
+                </controls:AdvobotRichTextBox>
+                <!-- Bot Buttons -->
+                <controls:AdvobotButton x:Name="DisconnectButton"
+                                        Grid.Row="1"
+                                        Content="Disconnect"
+                                        Click="Disconnect" />
+                <controls:AdvobotButton x:Name="RestartButton"
+                                        Grid.Column="1"
+                                        Grid.Row="1"
+                                        Content="Restart"
+                                        Click="Restart" />
+                <controls:AdvobotButton x:Name="PauseButton"
+                                        Grid.Column="2"
+                                        Grid.Row="1"
+                                        Content="Pause"
+                                        Click="Pause" />
+
+                <Border BorderBrush="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}"
+                        BorderThickness="1"
+                        Grid.RowSpan="1000"
+                        Grid.ColumnSpan="1000" />
+            </controls:AdvobotGrid>
+
+            <!-- Info Menu -->
+            <controls:AdvobotGrid x:Name="InfoMenu"
+                                  Grid.Column="1"
+                                  FontResizeValue=".018"
+                                  Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="15*" />
+                    <RowDefinition Height="5*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="6*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.Resources>
+                    <Style TargetType="controls:AdvobotTextBox"
+                           BasedOn="{StaticResource {x:Type controls:AdvobotTextBox}}">
+                        <Setter Property="BorderThickness"
+                                Value="0" />
+                        <Setter Property="IsReadOnly"
+                                Value="True" />
+                        <Setter Property="HorizontalContentAlignment"
+                                Value="Right" />
+                        <Setter Property="VerticalContentAlignment"
+                                Value="Center" />
+                    </Style>
+                </Grid.Resources>
+
+                <!-- Titles -->
+                <UniformGrid Grid.Column="1"
+                             Columns="1">
+                    <controls:AdvobotTitle x:Name="GuildsTitle" />
+                    <controls:AdvobotTitle x:Name="UsersTitle" />
+                    <controls:AdvobotTitle x:Name="AttemptedCommandsTitle" />
+                    <controls:AdvobotTitle x:Name="SuccessfulCommandsTitle" />
+                    <controls:AdvobotTitle x:Name="FailedCommandsTitle" />
+                    <controls:AdvobotTitle x:Name="UserJoinsTitle" />
+                    <controls:AdvobotTitle x:Name="UserLeavesTitle" />
+                    <controls:AdvobotTitle x:Name="UserChangesTitle" />
+                    <controls:AdvobotTitle x:Name="MessageEditsTitle" />
+                    <controls:AdvobotTitle x:Name="MessageDeletesTitle" />
+                    <controls:AdvobotTitle x:Name="ImagesTitle" />
+                    <controls:AdvobotTitle x:Name="AnimatedContentTitle" />
+                    <controls:AdvobotTitle x:Name="FilesTitle" />
+                </UniformGrid>
+
+                <!-- Output -->
+                <UniformGrid Grid.Column="2"
+                             Columns="1">
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.TotalGuilds.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.TotalUsers.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.AttemptedCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.SuccessfulCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.FailedCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.UserJoins.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.UserLeaves.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.UserChanges.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.MessageEdits.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.MessageDeletes.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.Images.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.Animated.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.Files.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                </UniformGrid>
+
+                <!-- File Search Button -->
+                <controls:AdvobotButton x:Name="FileSearchButton"
+                                        Grid.ColumnSpan="4"
+                                        Grid.Row="2"
+                                        Content="Search For File"
+                                        Click="SearchForFile" />
+
+                <Border BorderBrush="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}"
+                        BorderThickness="1"
+                        Grid.RowSpan="1000"
+                        Grid.ColumnSpan="1000" />
+            </controls:AdvobotGrid>
+
+            <!-- Colors Menu -->
+            <controls:AdvobotGrid x:Name="ColorsMenu"
+                                  Grid.Column="1"
+                                  FontResizeValue=".018"
+                                  KeyUp="SaveColorsWithCtrlS"
+                                  Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="15*" />
+                    <RowDefinition Height="5*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="8*" />
+                    <ColumnDefinition Width="4*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.Resources>
+                    <Style TargetType="controls:AdvobotColorBox"
+                           BasedOn="{StaticResource {x:Type controls:AdvobotTextBox}}">
+                        <Setter Property="VerticalContentAlignment"
+                                Value="Center" />
+                        <Setter Property="MaxLength"
+                                Value="15" />
+                    </Style>
+                </Grid.Resources>
+
+                <!-- Titles -->
+                <UniformGrid Grid.Column="1"
+                             Columns="1">
+                    <controls:AdvobotTitle x:Name="ThemeTitle" />
+                    <controls:AdvobotTitle x:Name="BaseBackgroundTitle" />
+                    <controls:AdvobotTitle x:Name="BaseForegroundTitle" />
+                    <controls:AdvobotTitle x:Name="BaseBorderTitle" />
+                    <controls:AdvobotTitle x:Name="ButtonBackgroundTitle" />
+                    <controls:AdvobotTitle x:Name="ButtonForegroundTitle" />
+                    <controls:AdvobotTitle x:Name="ButtonBorderTitle" />
+                    <controls:AdvobotTitle x:Name="ButtonDisabledBackgroundTitle" />
+                    <controls:AdvobotTitle x:Name="ButtonDisabledForegroundTitle" />
+                    <controls:AdvobotTitle x:Name="ButtonDisabledBorderTitle" />
+                    <controls:AdvobotTitle x:Name="ButtonMouseOverBackgroundTitle" />
+                    <controls:AdvobotTitle x:Name="JsonDigitsTitle" />
+                    <controls:AdvobotTitle x:Name="JsonValueTitle" />
+                    <controls:AdvobotTitle x:Name="JsonParamNameTitle" />
+                </UniformGrid>
+
+                <!-- Settings -->
+                <UniformGrid Grid.Column="2"
+                             Columns="1">
+                    <controls:AdvobotComboBox SourceEnum="{x:Type enums:ColorTheme}"
+                                              SelectedItem="{Binding Colors.HeldObject.Theme, UpdateSourceTrigger=PropertyChanged}"
+                                              IsSynchronizedWithCurrentItem="True" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)BaseBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)BaseForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)BaseBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonDisabledBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonDisabledForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonDisabledBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonMouseOverBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)JsonDigits]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)JsonValue]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)JsonParamName]" />
+                </UniformGrid>
+
+                <!--Save Colors Button -->
+                <controls:AdvobotButton x:Name="SaveColorsButton"
+                                        Grid.ColumnSpan="4"
+                                        Grid.Row="2"
+                                        Content="Save Colors"
+                                        Click="SaveColors" />
+
+                <Border BorderBrush="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}"
+                        BorderThickness="1"
+                        Grid.RowSpan="1000"
+                        Grid.ColumnSpan="1000" />
+            </controls:AdvobotGrid>
+
+            <!-- Settings Menu -->
+            <controls:AdvobotGrid x:Name="SettingsMenu"
+                                  Grid.Column="1"
+                                  FontResizeValue=".015"
+                                  KeyUp="SaveSettingsWithCtrlS"
+                                  Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="19*" />
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="4*" />
+                    <ColumnDefinition Width="4*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.Resources>
+                    <Style TargetType="controls:AdvobotTextBox"
+                           BasedOn="{StaticResource {x:Type controls:AdvobotTextBox}}">
+                        <Setter Property="VerticalContentAlignment"
+                                Value="Center" />
+                    </Style>
+                    <Style TargetType="controls:AdvobotNumberBox">
+                        <Setter Property="VerticalContentAlignment"
+                                Value="Center" />
+                    </Style>
+                    <Style TargetType="controls:AdvobotUserListCombobox">
+                        <Setter Property="HorizontalContentAlignment"
+                                Value="Center" />
+                        <Setter Property="VerticalContentAlignment"
+                                Value="Center" />
+                        <Setter Property="IsEditable"
+                                Value="True" />
+                        <Setter Property="IsTextSearchEnabled"
+                                Value="False" />
+                    </Style>
+                </Grid.Resources>
+
+                <!-- Titles -->
+                <UniformGrid Grid.Column="1"
+                             Columns="1">
+                    <controls:AdvobotTitle x:Name="AlwaysDownloadUsersTitle"
+                                           ToolTip="Whether or not to gather all users in a guild when the bot joins. This requires a bot restart." />
+                    <controls:AdvobotTitle x:Name="PrefixTitle"
+                                           ToolTip="The text before a command." />
+                    <controls:AdvobotTitle x:Name="GameTitle"
+                                           ToolTip="The text saying what the bot is playing or streaming." />
+                    <controls:AdvobotTitle x:Name="StreamTitle"
+                                           ToolTip="Links to a Twitch.tv stream." />
+                    <controls:AdvobotTitle x:Name="MessageCacheSizeTitle"
+                                           ToolTip="How many messages the bot should keep in storage at a time. This requires a bot restart." />
+                    <controls:AdvobotTitle x:Name="UserGatherCountTitle"
+                                           ToolTip="How many users multi user targetting commands should target by default." />
+                    <controls:AdvobotTitle x:Name="MessageGatherSizeTitle"
+                                           ToolTip="How many KBs worth of messages downloadmessages should gather at maximum." />
+                    <controls:AdvobotTitle x:Name="RuleCategoriesTitle"
+                                           ToolTip="How many categories can exist.." />
+                    <controls:AdvobotTitle x:Name="RulesPerCategoryTitle"
+                                           ToolTip="How many rules can be in each category." />
+                    <controls:AdvobotTitle x:Name="SelfAssignableRoleGroupsTitle"
+                                           ToolTip="How many self assignable role groups a server can have." />
+                    <controls:AdvobotTitle x:Name="QuotesTitle"
+                                           ToolTip="How many quotes a server can have." />
+                    <controls:AdvobotTitle x:Name="BannedStringsTitle"
+                                           ToolTip="How many strings can be banned from a server." />
+                    <controls:AdvobotTitle x:Name="BannedRegexTitle"
+                                           ToolTip="How many regex patterns can be banned from a server." />
+                    <controls:AdvobotTitle x:Name="BannedNamesTitle"
+                                           ToolTip="How many names can be banned from a server." />
+                    <controls:AdvobotTitle x:Name="BannedPunishmentsTitle"
+                                           ToolTip="How many punishments can be added to a server." />
+                    <controls:AdvobotTitle x:Name="LogLevelTitle"
+                                           ToolTip="Prints out items with an equal to or higher log severity to the console. This requires a bot restart." />
+                    <controls:AdvobotTitle x:Name="TrustedUsersTitle"
+                                           ToolTip="Users in here can use some commands only the bot owner can use otherwise." />
+                    <controls:AdvobotTitle x:Name="UsersUnableToDmOwnerTitle"
+                                           ToolTip="Users in here cannot send DMs to the owner through the bot." />
+                    <controls:AdvobotTitle x:Name="UsersIgnoredFromCommands"
+                                           ToolTip="Users in here cannot use the bot at all." />
+                </UniformGrid>
+
+                <!-- Settings -->
+                <UniformGrid Grid.Column="2"
+                             Columns="1">
+                    <Viewbox HorizontalAlignment="Left"
+                             VerticalAlignment="Center">
+                        <CheckBox x:Name="AlwaysDownloadUsers"
+                                  IsChecked="{Binding BotSettings.HeldObject.AlwaysDownloadUsers, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </Viewbox>
+                    <controls:AdvobotTextBox MaxLength="10">
+                        <controls:AdvobotTextBox.Text>
+                            <Binding Path="BotSettings.HeldObject.Prefix"
+                                     Mode="TwoWay"
+                                     UpdateSourceTrigger="PropertyChanged">
+                                <Binding.ValidationRules>
+                                    <validators:PrefixValidationRule />
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </controls:AdvobotTextBox.Text>
+                    </controls:AdvobotTextBox>
+                    <controls:AdvobotTextBox MaxLength="128"
+                                             Text="{Binding BotSettings.HeldObject.Game, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox MaxLength="25">
+                        <controls:AdvobotTextBox.Text>
+                            <Binding Path="BotSettings.HeldObject.Stream"
+                                     Mode="TwoWay"
+                                     UpdateSourceTrigger="PropertyChanged">
+                                <Binding.ValidationRules>
+                                    <validators:TwitchStreamValidationRule />
+                                </Binding.ValidationRules>
+                            </Binding>
+                        </controls:AdvobotTextBox.Text>
+                    </controls:AdvobotTextBox>
+                    <controls:AdvobotNumberBox MaxLength="7"
+                                               MinValue="1"
+                                               MaxValue="1000000"
+                                               Text="{Binding BotSettings.HeldObject.MessageCacheSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="6"
+                                               MinValue="1"
+                                               MaxValue="500000"
+                                               Text="{Binding BotSettings.HeldObject.MaxUserGatherCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="8"
+                                               MinValue="1"
+                                               MaxValue="10000000"
+                                               Text="{Binding BotSettings.HeldObject.MaxMessageGatherSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="5"
+                                               MinValue="1"
+                                               MaxValue="10000"
+                                               Text="{Binding BotSettings.HeldObject.MaxRuleCategories, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="5"
+                                               MinValue="1"
+                                               MaxValue="10000"
+                                               Text="{Binding BotSettings.HeldObject.MaxRulesPerCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="5"
+                                               MinValue="1"
+                                               MaxValue="10000"
+                                               Text="{Binding BotSettings.HeldObject.MaxSelfAssignableRoleGroups, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="5"
+                                               MinValue="1"
+                                               MaxValue="10000"
+                                               Text="{Binding BotSettings.HeldObject.MaxQuotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="5"
+                                               MinValue="1"
+                                               MaxValue="10000"
+                                               Text="{Binding BotSettings.HeldObject.MaxBannedStrings, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="5"
+                                               MinValue="1"
+                                               MaxValue="10000"
+                                               Text="{Binding BotSettings.HeldObject.MaxBannedRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="5"
+                                               MinValue="1"
+                                               MaxValue="10000"
+                                               Text="{Binding BotSettings.HeldObject.MaxBannedNames, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotNumberBox MaxLength="5"
+                                               MinValue="1"
+                                               MaxValue="10000"
+                                               Text="{Binding BotSettings.HeldObject.MaxBannedPunishments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotComboBox SourceEnum="{x:Type discordenums:LogSeverity}"
+                                              SelectedItem="{Binding BotSettings.HeldObject.LogLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsSynchronizedWithCurrentItem="True" />
+                    <controls:AdvobotUserListCombobox UserListModified="UserListModified"
+                                                      Tag="{extensions:NameOf Member=TrustedUsers, Type={x:Type interfaces:IBotSettings}}"
+                                                      ItemsSource="{Binding Path=BotSettings.HeldObject.TrustedUsers,
+                                                                        Converter={StaticResource EnumerableConverter},
+                                                                        Mode=OneWay,
+                                                                        UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotUserListCombobox UserListModified="UserListModified"
+                                                      Tag="{extensions:NameOf Member=UsersUnableToDmOwner, Type={x:Type interfaces:IBotSettings}}"
+                                                      ItemsSource="{Binding Path=BotSettings.HeldObject.UsersUnableToDmOwner,
+                                                                        Converter={StaticResource EnumerableConverter},
+                                                                        Mode=OneWay,
+                                                                        UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotUserListCombobox UserListModified="UserListModified"
+                                                      Tag="{extensions:NameOf Member=UsersIgnoredFromCommands, Type={x:Type interfaces:IBotSettings}}"
+                                                      ItemsSource="{Binding Path=BotSettings.HeldObject.UsersIgnoredFromCommands,
+                                                                        Converter={StaticResource EnumerableConverter},
+                                                                        Mode=OneWay,
+                                                                        UpdateSourceTrigger=PropertyChanged}" />
+                </UniformGrid>
+
+                <!-- Save Button -->
+                <controls:AdvobotButton x:Name="SaveSettingsButton"
+                                        Grid.Row="2"
+                                        Grid.ColumnSpan="4"
+                                        Content="Save Settings"
+                                        Click="SaveSettings" />
+
+                <Border BorderBrush="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}"
+                        BorderThickness="1"
+                        Grid.RowSpan="1000"
+                        Grid.ColumnSpan="1000" />
+            </controls:AdvobotGrid>
+        </controls:AdvobotGrid>
+    </classes:DpiDecorator>
+</Window>
