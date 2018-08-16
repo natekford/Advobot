@@ -13,17 +13,17 @@ namespace Advobot.Classes
 	/// </summary>
 	public class IterableServiceProvider : IIterableServiceProvider
 	{
-		private readonly ServiceProvider _Provider;
-		private readonly ServiceCollection _Services;
+		private readonly IServiceProvider _Provider;
+		private readonly IServiceCollection _Services;
 
 		/// <summary>
 		/// Creates an instance of <see cref="IterableServiceProvider"/> with the supplied services.
 		/// </summary>
 		/// <param name="services"></param>
 		/// <param name="instantiateInCtor">Whether to instantiate every service in the constructor.</param>
-		public IterableServiceProvider(ServiceCollection services, bool instantiateInCtor)
+		public IterableServiceProvider(IServiceCollection services, bool instantiateInCtor)
 			: this(services.BuildServiceProvider(), services, instantiateInCtor) { }
-		private IterableServiceProvider(ServiceProvider provider, ServiceCollection services, bool instantiateInCtor)
+		private IterableServiceProvider(IServiceProvider provider, IServiceCollection services, bool instantiateInCtor)
 		{
 			_Services = services;
 			_Provider = provider;
@@ -37,13 +37,13 @@ namespace Advobot.Classes
 		}
 
 		/// <summary>
-		/// Creates a wrapper around an already existing <see cref="ServiceProvider"/>.
+		/// Creates a wrapper around an already existing <see cref="IServiceProvider"/>.
 		/// <paramref name="provider"/> and <paramref name="services"/> should be the same services.
 		/// </summary>
 		/// <param name="provider"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public static IterableServiceProvider CreateFromExisting(ServiceProvider provider, ServiceCollection services)
+		public static IterableServiceProvider CreateFromExisting(IServiceProvider provider, IServiceCollection services)
 		{
 			return new IterableServiceProvider(provider, services, false);
 		}
@@ -79,7 +79,10 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public void Dispose()
 		{
-			_Provider.Dispose();
+			if (_Provider is IDisposable disposable)
+			{
+				disposable.Dispose();
+			}
 		}
 		/// <inheritdoc />
 		public object GetService(Type serviceType)

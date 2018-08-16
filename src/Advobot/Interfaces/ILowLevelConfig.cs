@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Interfaces
 {
@@ -51,5 +54,11 @@ namespace Advobot.Interfaces
 		/// <param name="client"></param>
 		/// <returns></returns>
 		Task StartAsync(BaseSocketClient client);
+		/// <summary>
+		/// Creates 
+		/// </summary>
+		/// <param name="commands"></param>
+		/// <returns></returns>
+		IServiceCollection CreateDefaultServices(IEnumerable<Assembly> commands = null);
 	}
 }

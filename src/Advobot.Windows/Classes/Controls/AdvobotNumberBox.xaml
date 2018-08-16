@@ -6,9 +6,7 @@
                       xmlns:local="clr-namespace:Advobot.Windows.Classes.Controls"
                       mc:Ignorable="d"
                       d:DesignHeight="50"
-                      d:DesignWidth="150"
-                      TextChanged="OnTextChanged"
-                      PreviewTextInput="OnPreviewTextInput">
+                      d:DesignWidth="150">
 
     <local:AdvobotTextBox.Template>
         <ControlTemplate TargetType="local:AdvobotTextBox">
@@ -44,6 +42,8 @@
                                       Grid.Row="0"
                                       Grid.Column="0"
                                       Grid.RowSpan="2"
+                                      TextChanged="OnTextChanged"
+                                      PreviewTextInput="OnPreviewTextInput"
                                       HorizontalScrollBarVisibility="Auto"
                                       FontResizeValue="{TemplateBinding FontResizeValue}"
                                       Text="{TemplateBinding Text}"

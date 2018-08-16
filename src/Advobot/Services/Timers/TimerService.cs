@@ -119,6 +119,7 @@ namespace Advobot.Services.Timers
 				Mode = FileMode.Exclusive,
 			});
 			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(TimerService)}.");
+			_HourTimer.Enabled = true;
 			_MinuteTimer.Enabled = true;
 			_SecondTimer.Enabled = true;
 		}

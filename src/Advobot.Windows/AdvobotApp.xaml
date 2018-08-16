@@ -7,6 +7,7 @@
              xmlns:controls="clr-namespace:Advobot.Windows.Classes.Controls"
              xmlns:converters="clr-namespace:Advobot.Windows.Classes.Converters"
              xmlns:enums="clr-namespace:Advobot.Windows.Enums"
+             xmlns:validators="clr-namespace:Advobot.Windows.Classes.Validators"
              mc:Ignorable="d"
              Startup="OnStartup">
 
@@ -16,6 +17,8 @@
         <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
         <converters:EnumerableConverter x:Key="EnumerableConverter" />
         <converters:ColorConverter x:Key="ColorConverter" />
+        <!-- Validators -->
+        <validators:ColorValidator x:Key="ColorValidator" />
         <!-- Colors -->
         <x:Static x:Key="{x:Static enums:ColorTarget.BaseBackground}"
                   Member="classes:ColorSettings.LightModeBaseBackground" />

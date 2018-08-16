@@ -13,7 +13,6 @@
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
         xmlns:validators="clr-namespace:Advobot.Windows.Classes.Validators"
         xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
-        xmlns:bindings="clr-namespace:Advobot.Windows.Classes.Bindings"
         mc:Ignorable="d"
         Title="Advobot"
         WindowState="Maximized"
@@ -23,7 +22,7 @@
 
     <Window.Resources>
         <threading:DispatcherTimer x:Key="ApplicationInformationTimer"
-                                   Interval="00:00:00:00.500"
+                                   Interval="00:00:00:01"
                                    Tick="UpdateApplicationInfo" />
     </Window.Resources>
 
@@ -174,7 +173,8 @@
                 <controls:AdvobotRichTextBox x:Name="MainMenuDisplay"
                                              Grid.ColumnSpan="3"
                                              IsReadOnly="True"
-                                             IsDocumentEnabled="True">
+                                             IsDocumentEnabled="True"
+                                             BorderThickness="0">
                     <FlowDocument>
                         <Paragraph>
                             <controls:AdvobotRun UnescapedText="Latency:\n\tTime it takes for a command to reach the bot." />
@@ -207,6 +207,7 @@
                         </Paragraph>
                     </FlowDocument>
                 </controls:AdvobotRichTextBox>
+                <!-- Bot Buttons -->
                 <controls:AdvobotButton x:Name="DisconnectButton"
                                         Grid.Row="1"
                                         Content="Disconnect"
@@ -221,6 +222,11 @@
                                         Grid.Row="1"
                                         Content="Pause"
                                         Click="Pause" />
+
+                <Border BorderBrush="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}"
+                        BorderThickness="1"
+                        Grid.RowSpan="1000"
+                        Grid.ColumnSpan="1000" />
             </controls:AdvobotGrid>
 
             <!-- Info Menu -->
@@ -229,8 +235,8 @@
                                   FontResizeValue=".018"
                                   Visibility="Collapsed">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="13*" />
-                    <RowDefinition Height="6*" />
+                    <RowDefinition Height="15*" />
+                    <RowDefinition Height="5*" />
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
@@ -296,17 +302,22 @@
                                         Grid.Row="2"
                                         Content="Search For File"
                                         Click="SearchForFile" />
+
+                <Border BorderBrush="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}"
+                        BorderThickness="1"
+                        Grid.RowSpan="1000"
+                        Grid.ColumnSpan="1000" />
             </controls:AdvobotGrid>
 
             <!-- Colors Menu -->
             <controls:AdvobotGrid x:Name="ColorsMenu"
                                   Grid.Column="1"
                                   FontResizeValue=".018"
-                                  Visibility="Collapsed"
-                                  KeyUp="SaveColorsWithCtrlS">
+                                  KeyUp="SaveColorsWithCtrlS"
+                                  Visibility="Collapsed">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="13*" />
-                    <RowDefinition Height="6*" />
+                    <RowDefinition Height="15*" />
+                    <RowDefinition Height="5*" />
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
@@ -317,7 +328,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Grid.Resources>
-                    <Style TargetType="controls:AdvobotTextBox"
+                    <Style TargetType="controls:AdvobotColorBox"
                            BasedOn="{StaticResource {x:Type controls:AdvobotTextBox}}">
                         <Setter Property="VerticalContentAlignment"
                                 Value="Center" />
@@ -351,20 +362,19 @@
                     <controls:AdvobotComboBox SourceEnum="{x:Type enums:ColorTheme}"
                                               SelectedItem="{Binding Colors.HeldObject.Theme, UpdateSourceTrigger=PropertyChanged}"
                                               IsSynchronizedWithCurrentItem="True" />
-                    <!-- Not sure why, but without Path= these throw exceptions -->
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)BaseBackground]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)BaseForeground]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)BaseBorder]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)ButtonBackground]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)ButtonForeground]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)ButtonBorder]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)ButtonDisabledBackground]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)ButtonDisabledForeground]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)ButtonDisabledBorder]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)ButtonMouseOverBackground]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)JsonDigits]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)JsonValue]}" />
-                    <controls:AdvobotTextBox Text="{bindings:ColorBoxBinding Path=Colors.HeldObject[(enums:ColorTarget)JsonParamName]}" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)BaseBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)BaseForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)BaseBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonDisabledBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonDisabledForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonDisabledBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)ButtonMouseOverBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)JsonDigits]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)JsonValue]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[(enums:ColorTarget)JsonParamName]" />
                 </UniformGrid>
 
                 <!--Save Colors Button -->
@@ -373,16 +383,21 @@
                                         Grid.Row="2"
                                         Content="Save Colors"
                                         Click="SaveColors" />
+
+                <Border BorderBrush="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}"
+                        BorderThickness="1"
+                        Grid.RowSpan="1000"
+                        Grid.ColumnSpan="1000" />
             </controls:AdvobotGrid>
 
             <!-- Settings Menu -->
             <controls:AdvobotGrid x:Name="SettingsMenu"
                                   Grid.Column="1"
                                   FontResizeValue=".015"
-                                  Visibility="Collapsed"
-                                  KeyUp="SaveSettingsWithCtrlS">
+                                  KeyUp="SaveSettingsWithCtrlS"
+                                  Visibility="Collapsed">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="18*" />
+                    <RowDefinition Height="19*" />
                     <RowDefinition Height="1*" />
                     <RowDefinition Height="1*" />
                 </Grid.RowDefinitions>
@@ -540,21 +555,21 @@
                     <controls:AdvobotUserListCombobox UserListModified="UserListModified"
                                                       Tag="{extensions:NameOf Member=TrustedUsers, Type={x:Type interfaces:IBotSettings}}"
                                                       ItemsSource="{Binding Path=BotSettings.HeldObject.TrustedUsers,
-                                                                            Converter={StaticResource EnumerableConverter},
-                                                                            Mode=OneWay,
-                                                                            UpdateSourceTrigger=PropertyChanged}" />
+                                                                        Converter={StaticResource EnumerableConverter},
+                                                                        Mode=OneWay,
+                                                                        UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotUserListCombobox UserListModified="UserListModified"
                                                       Tag="{extensions:NameOf Member=UsersUnableToDmOwner, Type={x:Type interfaces:IBotSettings}}"
                                                       ItemsSource="{Binding Path=BotSettings.HeldObject.UsersUnableToDmOwner,
-                                                                            Converter={StaticResource EnumerableConverter},
-                                                                            Mode=OneWay,
-                                                                            UpdateSourceTrigger=PropertyChanged}" />
+                                                                        Converter={StaticResource EnumerableConverter},
+                                                                        Mode=OneWay,
+                                                                        UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotUserListCombobox UserListModified="UserListModified"
                                                       Tag="{extensions:NameOf Member=UsersIgnoredFromCommands, Type={x:Type interfaces:IBotSettings}}"
                                                       ItemsSource="{Binding Path=BotSettings.HeldObject.UsersIgnoredFromCommands,
-                                                                            Converter={StaticResource EnumerableConverter},
-                                                                            Mode=OneWay,
-                                                                            UpdateSourceTrigger=PropertyChanged}" />
+                                                                        Converter={StaticResource EnumerableConverter},
+                                                                        Mode=OneWay,
+                                                                        UpdateSourceTrigger=PropertyChanged}" />
                 </UniformGrid>
 
                 <!-- Save Button -->
@@ -563,6 +578,11 @@
                                         Grid.ColumnSpan="4"
                                         Content="Save Settings"
                                         Click="SaveSettings" />
+
+                <Border BorderBrush="{DynamicResource {x:Static enums:ColorTarget.BaseBorder}}"
+                        BorderThickness="1"
+                        Grid.RowSpan="1000"
+                        Grid.ColumnSpan="1000" />
             </controls:AdvobotGrid>
         </controls:AdvobotGrid>
     </classes:DpiDecorator>

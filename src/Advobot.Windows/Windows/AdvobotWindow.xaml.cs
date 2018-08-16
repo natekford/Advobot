@@ -73,10 +73,6 @@ namespace Advobot.Windows.Windows
 			{
 				//Set startup to whatever returned value is so it can be used in GotKey, and then after GotKey in the last if statement
 				set = _Config.ValidatePath(input, startup);
-				if (_Config.ValidatedPath)
-				{
-					_Provider = new IterableServiceProvider(CreationUtils.CreateDefaultServices(_Config), true);
-				}
 			}
 			else if (!_Config.ValidatedKey)
 			{
@@ -85,25 +81,19 @@ namespace Advobot.Windows.Windows
 
 			if (set && _Config.ValidatedKey && _Config.ValidatedPath)
 			{
-				//Was getting some access exceptions on a computer when this was not inside a dispatcher call
-				await Dispatcher.InvokeAsync(async () =>
+				_Provider = new IterableServiceProvider(_Config.CreateDefaultServices(), true);
+				Client.HeldObject = _Provider.GetRequiredService<DiscordShardedClient>();
+				BotSettings.HeldObject = _Provider.GetRequiredService<IBotSettings>();
+				LogHolder.HeldObject = _Provider.GetRequiredService<ILogService>();
+				Colors.HeldObject = ColorSettings.Load(BotSettings.HeldObject);
+
+				foreach (var dbUser in _Provider.OfType<IUsesDatabase>())
 				{
-					//Retrieve the command handler to initialize it.
-					var cmd = _Provider.GetRequiredService<ICommandHandlerService>();
-					Client.HeldObject = _Provider.GetRequiredService<DiscordShardedClient>();
-					BotSettings.HeldObject = _Provider.GetRequiredService<IBotSettings>();
-					LogHolder.HeldObject = _Provider.GetRequiredService<ILogService>();
-
-					foreach (var dbUser in _Provider.OfType<IUsesDatabase>())
-					{
-						dbUser.Start();
-					}
-					await _Config.StartAsync(Client).CAF();
-				});
-
-				Colors.HeldObject = ColorSettings.Load(_Config);
+					dbUser.Start();
+				}
 				ButtonMenu.IsEnabled = true;
 				OutputContextMenu.IsEnabled = true;
+				await _Config.StartAsync(Client).CAF();
 			}
 			return set;
 		}
@@ -140,6 +130,7 @@ namespace Advobot.Windows.Windows
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			BotSettings.HeldObject.SaveSettings(BotSettings.HeldObject);
+			ConsoleUtils.WriteLine("Successfully saved bot settings.");
 		}
 		private void SaveSettingsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -151,6 +142,7 @@ namespace Advobot.Windows.Windows
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
 			Colors.HeldObject.SaveSettings(BotSettings.HeldObject);
+			ConsoleUtils.WriteLine("Successfully saved color settings.");
 		}
 		private void SaveColorsWithCtrlS(object sender, KeyEventArgs e)
 		{
@@ -183,12 +175,7 @@ namespace Advobot.Windows.Windows
 		}
 		private void OpenModal(object sender, RoutedEventArgs e)
 		{
-			if (!(sender is FrameworkElement ele && ele.Tag is Modal m))
-			{
-				return;
-			}
-
-			switch (m)
+			switch ((Modal)((FrameworkElement)sender).Tag)
 			{
 				case Modal.OutputSearch:
 					new OutputSearchWindow(this, BotSettings.HeldObject).ShowDialog();
@@ -197,20 +184,16 @@ namespace Advobot.Windows.Windows
 				case Modal.FileViewing:
 					return;
 				default:
-					throw new ArgumentException("Invalid modal type supplied.", nameof(m));
+					throw new ArgumentException("Invalid modal type supplied.");
 			}
 		}
 		private void OpenMenu(object sender, RoutedEventArgs e)
 		{
-			if (!(sender is FrameworkElement ele))
-			{
-				return;
-			}
-
 			//Hide everything so stuff doesn't overlap
 			MainMenu.Visibility = SettingsMenu.Visibility = ColorsMenu.Visibility = InfoMenu.Visibility = Visibility.Collapsed;
-			var sameMenu = _LastMenuOpened == ele.Name;
-			switch (_LastMenuOpened = (sameMenu ? null : ele.Name))
+			var name = ((FrameworkElement)sender).Name;
+			var sameMenu = _LastMenuOpened == name;
+			switch (_LastMenuOpened = (sameMenu ? null : name))
 			{
 				case nameof(MainMenuButton):
 					MainMenu.Visibility = Visibility.Visible;
@@ -263,11 +246,8 @@ namespace Advobot.Windows.Windows
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)
 		{
-			if (!(sender is FrameworkElement fe && fe.ToolTip is ToolTip tt))
-			{
-				return;
-			}
-
+			var fe = (FrameworkElement)sender;
+			var tt = (ToolTip)fe.ToolTip;
 			var pos = e.GetPosition(fe);
 			tt.HorizontalOffset = pos.X + 10;
 			tt.VerticalOffset = pos.Y + 10;

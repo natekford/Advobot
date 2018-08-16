@@ -1,9 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
+using Advobot.Services.Commands;
+using Advobot.Services.GuildSettings;
+using Advobot.Services.HelpEntries;
+using Advobot.Services.InviteList;
+using Advobot.Services.Levels;
+using Advobot.Services.Logging;
+using Advobot.Services.Timers;
 using Advobot.Utilities;
 using AdvorangesSettingParser;
 using AdvorangesUtils;
@@ -11,6 +19,7 @@ using Discord;
 using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes
@@ -153,6 +162,42 @@ namespace Advobot.Classes
 		private void Save()
 		{
 			IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
+		}
+		/// <inheritdoc />
+		public IServiceCollection CreateDefaultServices(IEnumerable<Assembly> commands = null)
+		{
+			commands = commands ?? DiscordUtils.GetCommandAssemblies();
+			//I have no idea if I am providing services correctly, but it works.
+			var s = new ServiceCollection();
+			s.AddSingleton<DiscordShardedClient>(p =>
+			{
+				var settings = p.GetRequiredService<IBotSettings>();
+				return new DiscordShardedClient(new DiscordSocketConfig
+				{
+					AlwaysDownloadUsers = settings.AlwaysDownloadUsers,
+					MessageCacheSize = settings.MessageCacheSize,
+					LogLevel = settings.LogLevel,
+				});
+			});
+			s.AddSingleton<IHelpEntryService>(p => new HelpEntryService());
+			s.AddSingleton<IBotSettings>(p => BotSettings.Load(this));
+			s.AddSingleton<ILevelService>(p => new LevelService(Create(s, p), new LevelServiceArguments()));
+			s.AddSingleton<ICommandHandlerService>(p => new CommandHandlerService(Create(s, p), commands));
+			s.AddSingleton<IGuildSettingsFactory>(p => new GuildSettingsFactory<GuildSettings>(Create(s, p)));
+			s.AddSingleton<ITimerService>(p => new TimerService(Create(s, p)));
+			s.AddSingleton<ILogService>(p => new LogService(Create(s, p)));
+			s.AddSingleton<IInviteListService>(p => new InviteListService(Create(s, p)));
+			return s;
+		}
+		/// <summary>
+		/// Creates an <see cref="IIterableServiceProvider"/> from already existing services.
+		/// </summary>
+		/// <param name="services"></param>
+		/// <param name="provider"></param>
+		/// <returns></returns>
+		private IIterableServiceProvider Create(IServiceCollection services, IServiceProvider provider)
+		{
+			return IterableServiceProvider.CreateFromExisting(provider, services);
 		}
 		/// <summary>
 		/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -57,9 +58,12 @@ namespace Advobot.Windows.Classes
 		public static SolidColorBrush DarkModeJsonParamName => BrushUtils.CreateBrush("#057500");
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
+		[JsonProperty("ColorTargets"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
+		private Dictionary<ColorTarget, SolidColorBrush> _ColorTargets { get; set; } = new Dictionary<ColorTarget, SolidColorBrush>();
 		/// <summary>
 		/// The current theme to use.
 		/// </summary>
+		/// <remarks>Has to be under <see cref="_ColorTargets"/> to set property on startup if the theme is <see cref="ColorTheme.UserMade"/>.</remarks>
 		[JsonProperty("Theme"), Setting(ColorTheme.Classic)]
 		public ColorTheme Theme
 		{
@@ -92,22 +96,8 @@ namespace Advobot.Windows.Classes
 				NotifyPropertyChanged();
 			}
 		}
-		[JsonProperty("ColorTargets"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
-		private Dictionary<ColorTarget, SolidColorBrush> _ColorTargets { get; set; } = new Dictionary<ColorTarget, SolidColorBrush>();
-
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;
-
-		/// <summary>
-		/// Creates an instance of <see cref="ColorSettings"/>.
-		/// </summary>
-		public ColorSettings()
-		{
-			foreach (ColorTarget target in Enum.GetValues(typeof(ColorTarget)))
-			{
-				_ColorTargets.Add(target, null);
-			}
-		}
 
 		/// <summary>
 		/// Gets or sets the color for the specified color target which can be used when the custom theme is enabled.
@@ -124,6 +114,17 @@ namespace Advobot.Windows.Classes
 				{
 					Application.Current.Resources[target] = value;
 				}
+			}
+		}
+
+		/// <summary>
+		/// Creates an instance of <see cref="ColorSettings"/>.
+		/// </summary>
+		public ColorSettings()
+		{
+			foreach (ColorTarget target in Enum.GetValues(typeof(ColorTarget)))
+			{
+				_ColorTargets.Add(target, null);
 			}
 		}
 

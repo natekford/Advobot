@@ -74,8 +74,7 @@
                                      Grid.Column="1"
                                      Content="+"
                                      Click="AddButton_Click" />
-                <local:AdvobotButton x:Name="RemoveButton"
-                                     Grid.Row="1"
+                <local:AdvobotButton Grid.Row="1"
                                      Grid.Column="1"
                                      Content="-"
                                      Click="RemoveButton_Click" />
