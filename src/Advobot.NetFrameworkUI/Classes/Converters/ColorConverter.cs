@@ -33,7 +33,7 @@ namespace Advobot.NetFrameworkUI.Classes.Converters
 		/// <returns></returns>
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return BrushUtils.CreateBrush((value ?? "").ToString());
+			return new NetFrameworkBrushFactory().CreateBrush((value ?? "").ToString());
 		}
 	}
 }

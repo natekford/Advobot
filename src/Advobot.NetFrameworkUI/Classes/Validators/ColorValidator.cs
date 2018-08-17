@@ -17,7 +17,7 @@ namespace Advobot.NetFrameworkUI.Classes.Validators
 		/// <returns></returns>
 		public override ValidationResult Validate(object value, CultureInfo cultureInfo)
 		{
-			return !(value is string str) || BrushUtils.TryCreateBrush(str, out var brush)
+			return !(value is string str) || new NetFrameworkBrushFactory().TryCreateBrush(str, out var brush)
 				? ValidationResult.ValidResult
 				: new ValidationResult(false, "Invalid color supplied.");
 		}

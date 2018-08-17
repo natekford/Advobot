@@ -1,4 +1,4 @@
-﻿namespace Advobot.NetFrameworkUI.Enums
+﻿namespace Advobot.Enums
 {
 	/// <summary>
 	/// Indicates what theme to use in the UI.

@@ -1,77 +1,173 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Reactive.Linq;
 using System.Windows.Input;
+using Advobot.Interfaces;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml.MarkupExtensions;
+using Avalonia.Markup.Xaml.Templates;
+using Avalonia.Media;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
 	public class AdvobotNetCoreWindowViewModel : ReactiveObject
 	{
-		private string _OutputValue = "";
-		public string OutputValue
+		private string _Output = "";
+		public string Output
 		{
-			get => _OutputValue;
-			set => this.RaiseAndSetIfChanged(ref _OutputValue, value);
+			get => _Output;
+			set => this.RaiseAndSetIfChanged(ref _Output, value);
 		}
 
-		private string _InputValue = "";
-		public string InputValue
+		private string _Input = "";
+		public string Input
 		{
-			get => _InputValue;
-			set => this.RaiseAndSetIfChanged(ref _InputValue, value);
+			get => _Input;
+			set => this.RaiseAndSetIfChanged(ref _Input, value);
 		}
 
-		private string _UptimeString = "Uptime";
-		public string UptimeString
+		private string _PauseButtonContent;
+		public string PauseButtonContent
 		{
-			get => _UptimeString;
-			set => this.RaiseAndSetIfChanged(ref _UptimeString, value);
+			get => _PauseButtonContent;
+			set => this.RaiseAndSetIfChanged(ref _PauseButtonContent, value);
 		}
 
-		private string _LatencyString = "Latency";
-		public string LatencyString
+		private bool _OpenMainMenu = false;
+		public bool OpenMainMenu
 		{
-			get => _LatencyString;
-			set => this.RaiseAndSetIfChanged(ref _LatencyString, value);
+			get => _OpenMainMenu;
+			set => this.RaiseAndSetIfChanged(ref _OpenMainMenu, value);
 		}
 
-		private string _MemoryString = "Memory";
-		public string MemoryString
+		private bool _OpenInfoMenu = false;
+		public bool OpenInfoMenu
 		{
-			get => _MemoryString;
-			set => this.RaiseAndSetIfChanged(ref _MemoryString, value);
+			get => _OpenInfoMenu;
+			set => this.RaiseAndSetIfChanged(ref _OpenInfoMenu, value);
 		}
 
-		private string _ThreadCountString = "Thread Count";
-		public string ThreadCountString
+		private bool _OpenColorsMenu = false;
+		public bool OpenColorsMenu
 		{
-			get => _ThreadCountString;
-			set => this.RaiseAndSetIfChanged(ref _ThreadCountString, value);
+			get => _OpenColorsMenu;
+			set => this.RaiseAndSetIfChanged(ref _OpenColorsMenu, value);
 		}
 
-		public ReactiveCommand OutputValueCommand { get; }
-		public ReactiveCommand InputValueCommand { get; }
-
-		public AdvobotNetCoreWindowViewModel()
+		private bool _OpenSettingsMenu = false;
+		public bool OpenSettingsMenu
 		{
-			OutputValueCommand = ReactiveCommand.Create<string>(x =>
+			get => _OpenSettingsMenu;
+			set => this.RaiseAndSetIfChanged(ref _OpenSettingsMenu, value);
+		}
+
+		private DiscordShardedClient _Client = null;
+		public DiscordShardedClient Client
+		{
+			get => _Client;
+			set => this.RaiseAndSetIfChanged(ref _Client, value);
+		}
+
+		private IBotSettings _BotSettings = null;
+		public IBotSettings BotSettings
+		{
+			get => _BotSettings;
+			set => this.RaiseAndSetIfChanged(ref _BotSettings, value);
+		}
+
+		private ILogService _LogService = null;
+		public ILogService LogService
+		{
+			get => _LogService;
+			set => this.RaiseAndSetIfChanged(ref _LogService, value);
+		}
+
+		private NetCoreColorSettings _Colors = null;
+		public NetCoreColorSettings Colors
+		{
+			get => _Colors;
+			set => this.RaiseAndSetIfChanged(ref _Colors, value);
+		}
+
+		public IObservable<string> Uptime { get; }
+		public IObservable<string> Latency { get; }
+		public IObservable<string> Memory { get; }
+		public IObservable<string> ThreadCount { get; }
+
+		public ReactiveCommand OutputCommand { get; }
+		public ReactiveCommand InputCommand { get; }
+		public ReactiveCommand OpenMenuCommand { get; }
+		public ReactiveCommand DisconnectCommand { get; }
+		public ReactiveCommand RestartCommand { get; }
+		public ReactiveCommand PauseCommand { get; }
+
+		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
+		{
+			Client = provider.GetRequiredService<DiscordShardedClient>();
+			BotSettings = provider.GetRequiredService<IBotSettings>();
+			LogService = provider.GetRequiredService<ILogService>();
+			Colors = NetCoreColorSettings.Load<NetCoreColorSettings>(BotSettings);
+
+			OutputCommand = ReactiveCommand.Create<string>(x =>
 			{
-				OutputValue += x;
+				Output += x;
 			});
-			InputValueCommand = ReactiveCommand.Create<object>(x =>
+			System.Console.SetOut(new TextBoxStreamWriter(OutputCommand));
+			InputCommand = ReactiveCommand.Create(() =>
 			{
-				OutputValue += Environment.NewLine + InputValue;
-				InputValue = "";
+				ConsoleUtils.WriteLine(Input, name: "UIInput");
+				Input = "";
+			});
+			OpenMenuCommand = ReactiveCommand.Create<string>(x =>
+			{
+				switch (x)
+				{
+					case nameof(OpenMainMenu):
+						OpenInfoMenu = OpenColorsMenu = OpenSettingsMenu = false;
+						OpenMainMenu = !OpenMainMenu && true;
+						break;
+					case nameof(OpenInfoMenu):
+						OpenMainMenu = OpenColorsMenu = OpenSettingsMenu = false;
+						OpenInfoMenu = !OpenInfoMenu && true;
+						break;
+					case nameof(OpenColorsMenu):
+						OpenMainMenu = OpenInfoMenu = OpenSettingsMenu = false;
+						OpenColorsMenu = !OpenColorsMenu && true;
+						break;
+					case nameof(OpenSettingsMenu):
+						OpenMainMenu = OpenInfoMenu = OpenColorsMenu = false;
+						OpenSettingsMenu = !OpenSettingsMenu && true;
+						break;
+				}
+			});
+			DisconnectCommand = ReactiveCommand.CreateFromTask(async () => await ClientUtils.DisconnectBotAsync(Client).CAF());
+			RestartCommand = ReactiveCommand.CreateFromTask(async () => await ClientUtils.RestartBotAsync(Client, BotSettings).CAF());
+			PauseCommand = ReactiveCommand.Create(() =>
+			{
+				PauseButtonContent = BotSettings.Pause ? "Pause" : "Unpause";
+				ConsoleUtils.WriteLine($"The bot is now {(BotSettings.Pause ? "unpaused" : "paused")}.", name: "Pause");
+				BotSettings.Pause = !BotSettings.Pause;
 			});
 
-			System.Console.SetOut(new TextBoxStreamWriter(OutputValueCommand));
+			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));
+			Uptime = timer.Select(x => $"Uptime: {FormattingUtils.GetUptime()}");
+			Latency = timer.Select(x => $"Latency: {(Client?.CurrentUser == null ? -1 : Client.Latency)}ms");
+			Memory = timer.Select(x => $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB");
+			ThreadCount = timer.Select(x => $"Threads: {Utilities.Utils.GetThreadCount()}");
 		}
 
-		public void InputButtonPressed(object sender, KeyEventArgs e)
+		public void EnterKeyPressed(object sender, KeyEventArgs e)
 		{
 			if (e.Key == Key.Enter || e.Key == Key.Return)
 			{
-				((ICommand)InputValueCommand).Execute(e.Key);
+				((ICommand)InputCommand).Execute(e.Key);
 			}
 		}
 	}

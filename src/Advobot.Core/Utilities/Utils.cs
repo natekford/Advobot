@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Advobot.Interfaces;
 
@@ -117,6 +118,17 @@ namespace Advobot.Utilities
 					}
 				}
 				return removedCount;
+			}
+		}
+		/// <summary>
+		/// Gets the amount of threads currently used.
+		/// </summary>
+		/// <returns></returns>
+		public static int GetThreadCount()
+		{
+			using (var proc = Process.GetCurrentProcess())
+			{
+				return proc.Threads.Count;
 			}
 		}
 	}

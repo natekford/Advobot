@@ -45,7 +45,7 @@ namespace Advobot.NetFrameworkUI.Windows
 		/// <summary>
 		/// Holds a reference to the color settings even when they don't exist for XAML binding.
 		/// </summary>
-		public Holder<ColorSettings> Colors { get; private set; } = new Holder<ColorSettings>();
+		public Holder<NetFrameworkColorSettings> Colors { get; private set; } = new Holder<NetFrameworkColorSettings>();
 
 		private string _LastMenuOpened;
 		private IterableServiceProvider _Provider;
@@ -85,7 +85,7 @@ namespace Advobot.NetFrameworkUI.Windows
 				Client.HeldObject = _Provider.GetRequiredService<DiscordShardedClient>();
 				BotSettings.HeldObject = _Provider.GetRequiredService<IBotSettings>();
 				LogHolder.HeldObject = _Provider.GetRequiredService<ILogService>();
-				Colors.HeldObject = ColorSettings.Load(BotSettings.HeldObject);
+				Colors.HeldObject = NetFrameworkColorSettings.Load<NetFrameworkColorSettings>(BotSettings.HeldObject);
 
 				foreach (var dbUser in _Provider.OfType<IUsesDatabase>())
 				{
@@ -242,7 +242,7 @@ namespace Advobot.NetFrameworkUI.Windows
 			Uptime.Text = $"Uptime: {FormattingUtils.GetUptime()}";
 			Latency.Text = $"Latency: {(Client.HeldObject?.CurrentUser == null ? -1 : Client.HeldObject.Latency)}ms";
 			Memory.Text = $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB";
-			ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
+			ThreadCount.Text = $"Threads: {Advobot.Utilities.Utils.GetThreadCount()}";
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)
 		{

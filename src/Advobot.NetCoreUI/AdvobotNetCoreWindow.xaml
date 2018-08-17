@@ -1,14 +1,36 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:Advobot.NetCoreUI.Classes.Converters;assembly=Advobot.NetCoreUI"
+        xmlns:extensions="clr-namespace:Advobot.NetCoreUI.Classes.Extensions;assembly=Advobot.NetCoreUI"
+        xmlns:interfaces="clr-namespace:Advobot.Interfaces;assembly=Advobot.Core"
+        xmlns:classes="clr-namespace:Advobot.NetCoreUI.Classes;assembly=Advobot.NetCoreUI"
+        xmlns:viewmodels="clr-namespace:Advobot.NetCoreUI.Classes.ViewModels;assembly=Advobot.NetCoreUI"
         Title="Advobot.NetCoreUI">
+
+  <Window.Resources>
+    <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+  </Window.Resources>
+
+  <Window.Styles>
+    <Style Selector="TextBox.t1">
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="IsReadOnly" Value="True"/>
+      <Setter Property="TextAlignment" Value="Left"/>
+    </Style>
+    <Style Selector="TextBox.info1">
+      
+    </Style>
+  </Window.Styles>
+  
   <Grid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*">
     <!-- Output -->
-    <TextBox Name="Output" Text="{Binding OutputValue}" Grid.ColumnSpan="2" IsReadOnly="True" />
+    <TextBox Name="Output" Grid.ColumnSpan="2" Text="{Binding Output}" TextWrapping="Wrap" IsReadOnly="True" />
 
     <!-- Input -->
     <Grid Name="InputGrid" Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
-      <TextBox Name="InputTextBox" Text="{Binding Path=InputValue}" MaxHeight="1000" TextWrapping="Wrap" />
-      <Button Content="Enter" Command="{Binding InputValueCommand}" Grid.Column="1" />
+      <!-- Needs Fixing: Press enter to send, Input set to "" in code disables button -->
+      <TextBox Name="InputTextBox" Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" />
+      <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}" IsEnabled="{Binding Input.Length}" />
     </Grid>
 
     <!-- Application Info Bar -->
@@ -17,13 +39,74 @@
         <Style Selector="TextBox">
           <Setter Property="IsReadOnly" Value="True"/>
           <Setter Property="TextAlignment" Value="Center"/>
+          <Setter Property="BorderBrush" Value="{DynamicResource {x:Static classes:NetCoreColorSettings.BaseBorder}}"/>
         </Style>
       </Grid.Styles>
-      
-      <TextBox Text="{Binding UptimeString}" Grid.Column="0" />
-      <TextBox Text="{Binding LatencyString}" Grid.Column="1" />
-      <TextBox Text="{Binding MemoryString}" Grid.Column="2" />
-      <TextBox Text="{Binding ThreadCountString}" Grid.Column="3" />
+
+      <TextBox Grid.Column="0" BorderThickness="1,1,0,1" Text="{Binding Uptime^, Mode=OneWay}" />
+      <TextBox Grid.Column="1" BorderThickness="0,1,0,1" Text="{Binding Latency^, Mode=OneWay}" />
+      <TextBox Grid.Column="2" BorderThickness="0,1,0,1" Text="{Binding Memory^, Mode=OneWay}" />
+      <TextBox Grid.Column="3" BorderThickness="0,1,1,1" Text="{Binding ThreadCount^, Mode=OneWay}" />
+    </Grid>
+
+    <!-- Menu Buttons -->
+    <Grid Name="ButtonMenu" Grid.Row="1" Grid.Column="1" Grid.RowSpan="3" ColumnDefinitions="*,*,*,*" IsEnabled="True">
+      <Button Grid.Column="0" Content="Main" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenMainMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
+      <Button Grid.Column="1" Content="Info" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenInfoMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
+      <Button Grid.Column="2" Content="Colors" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenColorsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
+      <Button Grid.Column="3" Content="Settings" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenSettingsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
+    </Grid>
+
+    <!-- Main Menu -->
+    <Grid Name="MainMenu" Grid.Column="1" RowDefinitions="20*,1*" ColumnDefinitions="*,*,*" IsVisible="{Binding OpenMainMenu}">
+
+      <TextBox Grid.ColumnSpan="3" BorderThickness="1" IsReadOnly="True" TextWrapping="Wrap"
+               BorderBrush="{DynamicResource {x:Static classes:NetCoreColorSettings.BaseBorder}}">
+        Lorem Ipsum
+      </TextBox>
+
+      <!-- Bot Buttons -->
+      <Button Grid.Row="1" Grid.Column="0" Content="Disconnect" Command="{Binding DisconnectCommand}"/>
+      <Button Grid.Row="1" Grid.Column="1" Content="Restart" Command="{Binding RestartCommand}"/>
+      <Button Grid.Row="1" Grid.Column="2" Content="Pause" Command="{Binding PauseCommand}"/>
+    </Grid>
+
+    <!-- Info Menu -->
+    <Grid Name="InfoMenu" Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,6*,3*,1*" IsVisible="{Binding OpenInfoMenu}">
+      <!-- Titles -->
+      <Grid Grid.Column="1" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
+        <TextBox Classes="t1" Grid.Row="0" Text="Guilds"/>
+        <TextBox Classes="t1" Grid.Row="1" Text="Users"/>
+        <TextBox Classes="t1" Grid.Row="2" Text="Attempted Commands"/>
+        <TextBox Classes="t1" Grid.Row="3" Text="Successful Commands"/>
+        <TextBox Classes="t1" Grid.Row="4" Text="Failed Commands"/>
+        <TextBox Classes="t1" Grid.Row="5" Text="User Joins"/>
+        <TextBox Classes="t1" Grid.Row="6" Text="User Leaves"/>
+        <TextBox Classes="t1" Grid.Row="7" Text="User Changes"/>
+        <TextBox Classes="t1" Grid.Row="8" Text="Message Edits"/>
+        <TextBox Classes="t1" Grid.Row="9" Text="Message Deletes"/>
+        <TextBox Classes="t1" Grid.Row="10" Text="Images"/>
+        <TextBox Classes="t1" Grid.Row="11" Text="Animated Content"/>
+        <TextBox Classes="t1" Grid.Row="12" Text="File"/>
+      </Grid>
+
+      <Grid Grid.Column="2" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
+        <TextBox Grid.Row="0" Text="{Binding LogService.TotalGuilds.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="1" Text="{Binding LogService.TotalUsers.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="2" Text="{Binding LogService.AttemptedCommands.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="3" Text="{Binding LogService.SuccessfulCommands.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="4" Text="{Binding LogService.FailedCommands.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="5" Text="{Binding LogService.UserJoins.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="6" Text="{Binding LogService.UserLeaves.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="7" Text="{Binding LogService.UserChanges.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="8" Text="{Binding LogService.MessageEdits.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="9" Text="{Binding LogService.MessageDeletes.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="10" Text="{Binding LogService.Images.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="11" Text="{Binding LogService.Animated.Count, Mode=OneWay}" />
+        <TextBox Grid.Row="12" Text="{Binding LogService.Files.Count, Mode=OneWay}" />
+      </Grid>
+
+      <Border BorderBrush="{DynamicResource {x:Static classes:NetCoreColorSettings.BaseBorder}}" BorderThickness="1" Grid.RowSpan="1000" Grid.ColumnSpan="1000" />
     </Grid>
   </Grid>
 </Window>

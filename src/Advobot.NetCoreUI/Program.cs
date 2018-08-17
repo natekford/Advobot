@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Console;
+using Advobot.NetCoreUI.Classes.ViewModels;
 using AdvorangesUtils;
 using Avalonia;
 using Avalonia.Logging.Serilog;
@@ -19,9 +20,10 @@ namespace Advobot.NetCoreUI
 			var launcher = new AdvobotNetCoreLauncher(args);
 			launcher.SetPath();
 			await launcher.SetBotKey().CAF();
-			_ = Task.Run(async () => await launcher.Start().CAF()).ContinueWith((t) =>
+			//Run the actual Discord bot first, then use this to let the UI also run at the same time but also throw unhandled exceptions
+			_ = Task.Run(async () => await launcher.Start().CAF()).ContinueWith(t =>
 			{
-				ThreadPool.QueueUserWorkItem((w) =>
+				ThreadPool.QueueUserWorkItem(w =>
 				{
 					if (t.Exception != null)
 					{
@@ -33,7 +35,7 @@ namespace Advobot.NetCoreUI
 				});
 			}, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.PreferFairness);
 
-			BuildAvaloniaApp().Start<AdvobotNetCoreWindow>();
+			BuildAvaloniaApp().Start<AdvobotNetCoreWindow>(() => new AdvobotNetCoreWindowViewModel(launcher.GetServiceProvider()));
 		}
 
 		public static AppBuilder BuildAvaloniaApp()

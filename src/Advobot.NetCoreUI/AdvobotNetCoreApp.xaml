@@ -1,7 +1,14 @@
 ﻿<Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Application.Styles>
-        <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default"/>
-        <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseLight.xaml?assembly=Avalonia.Themes.Default"/>
-    </Application.Styles>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:Advobot.NetCoreUI.Classes.Converters;assembly=Advobot.NetCoreUI"
+             xmlns:classes="clr-namespace:Advobot.NetCoreUI.Classes;assembly=Advobot.NetCoreUI"
+             xmlns:advobotenums="clr-namespace:Advobot.Enums;assembly=Advobot.Core">
+  <!-- Don't use Application.Resources because it messes something up with how I'm targetting colors. -->
+  <Application.Styles>
+    <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default"/>
+    <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseLight.xaml?assembly=Avalonia.Themes.Default"/>
+    <Style Selector=":is(TextBlock)">
+      <Setter Property="Foreground" Value="{DynamicResource {x:Static classes:NetCoreColorSettings.BaseForeground}}"/>
+    </Style>
+  </Application.Styles>
 </Application>

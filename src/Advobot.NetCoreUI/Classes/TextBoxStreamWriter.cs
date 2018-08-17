@@ -33,7 +33,7 @@ namespace Advobot.NetCoreUI.Classes
 				return;
 			}
 
-			_Command.Execute(Environment.NewLine + value);
+			_Command.Execute(value + Environment.NewLine);
 		}
 	}
 }

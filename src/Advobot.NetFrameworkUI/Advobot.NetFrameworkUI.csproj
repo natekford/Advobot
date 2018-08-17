@@ -153,6 +153,7 @@
     <Compile Include="Classes\Converters\ColorConverter.cs" />
     <Compile Include="Classes\Converters\EnumerableConverter.cs" />
     <Compile Include="Classes\DpiDecorator.cs" />
+    <Compile Include="Classes\NetFrameworkBrushFactory.cs" />
     <Compile Include="Classes\UserListModificationEventArgs.cs" />
     <Compile Include="Classes\UserListModificationEventHandler.cs" />
     <Compile Include="Classes\Validators\ColorValidator.cs" />
@@ -166,7 +167,6 @@
     <Compile Include="AdvobotApp.xaml.cs">
       <DependentUpon>AdvobotApp.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Utilities\BrushUtils.cs" />
     <Compile Include="Utilities\SyntaxHighlightingUtils.cs" />
     <Compile Include="Interfaces\IAdvobotControl.cs" />
     <Compile Include="Windows\AdvobotWindow.xaml.cs">
@@ -186,10 +186,7 @@
     <Compile Include="Classes\Converters\UriConverter.cs" />
     <Compile Include="Classes\Holder.cs" />
     <Compile Include="Classes\TextBoxStreamWriter.cs" />
-    <Compile Include="Classes\ColorSettings.cs" />
-    <Compile Include="Enums\ColorTarget.cs" />
-    <Compile Include="Enums\ColorTheme.cs" />
-    <Compile Include="Enums\MenuType.cs" />
+    <Compile Include="Classes\NetFrameworkColorSettings.cs" />
     <Compile Include="Enums\Modal.cs" />
     <Compile Include="Enums\OtherTarget.cs" />
     <Compile Include="Classes\Extensions\NameOfExtension.cs" />
