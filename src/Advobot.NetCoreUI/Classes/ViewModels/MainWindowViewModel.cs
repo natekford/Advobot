@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reactive.Linq;
-using System.Windows.Input;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -162,7 +161,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		{
 			if (e.Key == Key.Enter || e.Key == Key.Return)
 			{
-				((ICommand)InputCommand).Execute(e.Key);
+				//((System.Windows.Input.ICommand)InputCommand).Execute(e.Key);
 			}
 		}
 	}

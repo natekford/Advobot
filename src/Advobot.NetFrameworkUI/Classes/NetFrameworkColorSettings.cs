@@ -71,6 +71,21 @@ namespace Advobot.NetFrameworkUI.Classes
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.Classic;
 
+		/// <summary>
+		/// Creates an instance of <see cref="NetFrameworkColorSettings"/> and sets the default theme and colors to classic.
+		/// </summary>
+		public NetFrameworkColorSettings()
+		{
+			Theme = ColorTheme.Classic;
+			foreach (var target in Targets)
+			{
+				if (!_ColorTargets.TryGetValue(target, out var val))
+				{
+					_ColorTargets.Add(target, default);
+				}
+			}
+		}
+
 		/// <inheritdoc />
 		public override SolidColorBrush this[string target]
 		{

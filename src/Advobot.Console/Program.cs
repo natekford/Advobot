@@ -10,7 +10,7 @@ namespace Advobot.Console
 	{
 		private static async Task Main(string[] args)
 		{
-			var launcher = new AdvobotNetCoreLauncher(args);
+			var launcher = new AdvobotConsoleLauncher(args);
 			launcher.SetPath();
 			await launcher.SetBotKey().CAF();
 			await launcher.Start().CAF();

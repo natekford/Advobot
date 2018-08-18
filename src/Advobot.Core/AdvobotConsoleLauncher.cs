@@ -10,23 +10,23 @@ using AdvorangesUtils;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Console
+namespace Advobot
 {
 	using Console = System.Console;
 
 	/// <summary>
 	/// Puts the similarities from launching the console application and the .Net Core UI application into one.
 	/// </summary>
-	public sealed class AdvobotNetCoreLauncher
+	public sealed class AdvobotConsoleLauncher
 	{
 		private readonly ILowLevelConfig _Config;
 		private IIterableServiceProvider _Provider;
 
 		/// <summary>
-		/// Creates an instance of <see cref="AdvobotNetCoreLauncher"/>.
+		/// Creates an instance of <see cref="AdvobotConsoleLauncher"/>.
 		/// </summary>
 		/// <param name="args"></param>
-		public AdvobotNetCoreLauncher(string[] args)
+		public AdvobotConsoleLauncher(string[] args)
 		{
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
 			ConsoleUtils.PrintingFlags = 0

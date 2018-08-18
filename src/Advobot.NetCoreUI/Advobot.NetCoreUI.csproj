@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1;net471</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
@@ -19,16 +19,15 @@
   <ItemGroup>
     <PackageReference Include="AdvorangesSettingParser" Version="1.0.0" />
     <PackageReference Include="AdvorangesUtils" Version="1.0.10" />
-    <PackageReference Include="Avalonia" Version="0.6.2-build5957-beta" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.6.2-build5957-beta" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.6.2-build5957-beta" />
-    <PackageReference Include="ReactiveUI" Version="8.6.1" />
+    <PackageReference Include="Avalonia" Version="0.6.2-build5971-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.6.2-build5971-beta" />
+    <PackageReference Include="ReactiveUI" Version="8.7.1" />
     <PackageReference Include="System.Reactive.Core" Version="4.1.0" />
     <PackageReference Include="System.Reactive.Interfaces" Version="4.1.0" />
     <PackageReference Include="System.Reactive.Linq" Version="4.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Advobot.Console\Advobot.Console.csproj" />
+    <ProjectReference Include="..\Advobot.Commands\Advobot.Commands.csproj" />
     <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
   </ItemGroup>
   <ItemGroup>

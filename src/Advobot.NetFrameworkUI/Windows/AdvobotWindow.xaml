@@ -50,11 +50,25 @@
 
             <!-- Output -->
             <controls:AdvobotTextBox x:Name="Output"
-                                     Grid.ColumnSpan="2"
                                      FontResizeValue=".022"
                                      VerticalScrollBarVisibility="Visible"
                                      TextWrapping="Wrap"
                                      IsReadOnly="True">
+                <controls:AdvobotTextBox.Style>
+                    <Style TargetType="controls:AdvobotTextBox"
+                           BasedOn="{StaticResource {x:Type controls:AdvobotTextBox}}">
+                        <Setter Property="Grid.ColumnSpan"
+                                Value="1" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentOpenMenu}"
+                                         Value="{x:Null}">
+                                <Setter Property="Grid.ColumnSpan"
+                                        Value="2" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </controls:AdvobotTextBox.Style>
+
                 <controls:AdvobotTextBox.ContextMenu>
                     <ContextMenu x:Name="OutputContextMenu"
                                  IsEnabled="False">
@@ -139,28 +153,41 @@
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
 
-                <controls:AdvobotButton x:Name="MainMenuButton"
-                                        Content="Main"
-                                        Click="OpenMenu" />
-                <controls:AdvobotButton x:Name="InfoMenuButton"
-                                        Grid.Column="1"
+                <controls:AdvobotButton Content="Main"
+                                        Command="{Binding MenuCommand}"
+                                        CommandParameter="MainMenu" />
+                <controls:AdvobotButton Grid.Column="1"
                                         Content="Info"
-                                        Click="OpenMenu" />
-                <controls:AdvobotButton x:Name="ColorsMenuButton"
-                                        Grid.Column="2"
+                                        Command="{Binding MenuCommand}"
+                                        CommandParameter="InfoMenu" />
+                <controls:AdvobotButton Grid.Column="2"
                                         Content="Colors"
-                                        Click="OpenMenu" />
-                <controls:AdvobotButton x:Name="SettingsMenuButton"
-                                        Grid.Column="3"
+                                        Command="{Binding MenuCommand}"
+                                        CommandParameter="ColorsMenu" />
+                <controls:AdvobotButton Grid.Column="3"
                                         Content="Settings"
-                                        Click="OpenMenu" />
+                                        Command="{Binding MenuCommand}"
+                                        CommandParameter="SettingsMenu" />
             </controls:AdvobotGrid>
 
             <!-- Main Menu -->
             <controls:AdvobotGrid x:Name="MainMenu"
                                   Grid.Column="1"
-                                  FontResizeValue=".015"
-                                  Visibility="Collapsed">
+                                  FontResizeValue=".015">
+                <controls:AdvobotGrid.Style>
+                    <Style TargetType="controls:AdvobotGrid">
+                        <Setter Property="Visibility"
+                                Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentOpenMenu}"
+                                         Value="MainMenu">
+                                <Setter Property="Visibility"
+                                        Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </controls:AdvobotGrid.Style>
+
                 <Grid.RowDefinitions>
                     <RowDefinition Height="20*" />
                     <RowDefinition Height="1*" />
@@ -233,8 +260,21 @@
             <!-- Info Menu -->
             <controls:AdvobotGrid x:Name="InfoMenu"
                                   Grid.Column="1"
-                                  FontResizeValue=".018"
-                                  Visibility="Collapsed">
+                                  FontResizeValue=".018">
+                <controls:AdvobotGrid.Style>
+                    <Style TargetType="controls:AdvobotGrid">
+                        <Setter Property="Visibility"
+                                Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentOpenMenu}"
+                                         Value="InfoMenu">
+                                <Setter Property="Visibility"
+                                        Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </controls:AdvobotGrid.Style>
+
                 <Grid.RowDefinitions>
                     <RowDefinition Height="15*" />
                     <RowDefinition Height="5*" />
@@ -282,19 +322,19 @@
                 <!-- Output -->
                 <UniformGrid Grid.Column="2"
                              Columns="1">
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.TotalGuilds.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.TotalUsers.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.AttemptedCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.SuccessfulCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.FailedCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.UserJoins.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.UserLeaves.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.UserChanges.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.MessageEdits.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.MessageDeletes.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.Images.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.Animated.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <controls:AdvobotTextBox Text="{Binding LogHolder.HeldObject.Files.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.TotalGuilds.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.TotalUsers.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.AttemptedCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.SuccessfulCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.FailedCommands.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.UserJoins.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.UserLeaves.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.UserChanges.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.MessageEdits.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.MessageDeletes.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.Images.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.Animated.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <controls:AdvobotTextBox Text="{Binding LogService.Files.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
                 </UniformGrid>
 
                 <!-- File Search Button -->
@@ -314,8 +354,21 @@
             <controls:AdvobotGrid x:Name="ColorsMenu"
                                   Grid.Column="1"
                                   FontResizeValue=".018"
-                                  KeyUp="SaveColorsWithCtrlS"
-                                  Visibility="Collapsed">
+                                  KeyUp="SaveColorsWithCtrlS">
+                <controls:AdvobotGrid.Style>
+                    <Style TargetType="controls:AdvobotGrid">
+                        <Setter Property="Visibility"
+                                Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentOpenMenu}"
+                                         Value="ColorsMenu">
+                                <Setter Property="Visibility"
+                                        Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </controls:AdvobotGrid.Style>
+
                 <Grid.RowDefinitions>
                     <RowDefinition Height="15*" />
                     <RowDefinition Height="5*" />
@@ -361,21 +414,21 @@
                 <UniformGrid Grid.Column="2"
                              Columns="1">
                     <controls:AdvobotComboBox SourceEnum="{x:Type advobotenums:ColorTheme}"
-                                              SelectedItem="{Binding Colors.HeldObject.Theme, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedItem="{Binding Colors.Theme, UpdateSourceTrigger=PropertyChanged}"
                                               IsSynchronizedWithCurrentItem="True" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[BaseBackground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[BaseForeground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[BaseBorder]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[ButtonBackground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[ButtonForeground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[ButtonBorder]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[ButtonDisabledBackground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[ButtonDisabledForeground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[ButtonDisabledBorder]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[ButtonMouseOverBackground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[JsonDigits]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[JsonValue]" />
-                    <controls:AdvobotColorBox ColorPath="Colors.HeldObject[JsonParamName]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[BaseBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[BaseForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[BaseBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[ButtonBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[ButtonForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[ButtonBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[ButtonDisabledBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[ButtonDisabledForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[ButtonDisabledBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[ButtonMouseOverBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[JsonDigits]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[JsonValue]" />
+                    <controls:AdvobotColorBox ColorPath="Colors[JsonParamName]" />
                 </UniformGrid>
 
                 <!--Save Colors Button -->
@@ -395,8 +448,21 @@
             <controls:AdvobotGrid x:Name="SettingsMenu"
                                   Grid.Column="1"
                                   FontResizeValue=".015"
-                                  KeyUp="SaveSettingsWithCtrlS"
-                                  Visibility="Collapsed">
+                                  KeyUp="SaveSettingsWithCtrlS">
+                <controls:AdvobotGrid.Style>
+                    <Style TargetType="controls:AdvobotGrid">
+                        <Setter Property="Visibility"
+                                Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentOpenMenu}"
+                                         Value="SettingsMenu">
+                                <Setter Property="Visibility"
+                                        Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </controls:AdvobotGrid.Style>
+
                 <Grid.RowDefinitions>
                     <RowDefinition Height="19*" />
                     <RowDefinition Height="1*" />
@@ -480,11 +546,11 @@
                     <Viewbox HorizontalAlignment="Left"
                              VerticalAlignment="Center">
                         <CheckBox x:Name="AlwaysDownloadUsers"
-                                  IsChecked="{Binding BotSettings.HeldObject.AlwaysDownloadUsers, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                  IsChecked="{Binding BotSettings.AlwaysDownloadUsers, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </Viewbox>
                     <controls:AdvobotTextBox MaxLength="10">
                         <controls:AdvobotTextBox.Text>
-                            <Binding Path="BotSettings.HeldObject.Prefix"
+                            <Binding Path="BotSettings.Prefix"
                                      Mode="TwoWay"
                                      UpdateSourceTrigger="PropertyChanged">
                                 <Binding.ValidationRules>
@@ -494,10 +560,10 @@
                         </controls:AdvobotTextBox.Text>
                     </controls:AdvobotTextBox>
                     <controls:AdvobotTextBox MaxLength="128"
-                                             Text="{Binding BotSettings.HeldObject.Game, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                             Text="{Binding BotSettings.Game, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotTextBox MaxLength="25">
                         <controls:AdvobotTextBox.Text>
-                            <Binding Path="BotSettings.HeldObject.Stream"
+                            <Binding Path="BotSettings.Stream"
                                      Mode="TwoWay"
                                      UpdateSourceTrigger="PropertyChanged">
                                 <Binding.ValidationRules>
@@ -509,65 +575,65 @@
                     <controls:AdvobotNumberBox MaxLength="7"
                                                MinValue="1"
                                                MaxValue="1000000"
-                                               Text="{Binding BotSettings.HeldObject.MessageCacheSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MessageCacheSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="6"
                                                MinValue="1"
                                                MaxValue="500000"
-                                               Text="{Binding BotSettings.HeldObject.MaxUserGatherCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxUserGatherCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="8"
                                                MinValue="1"
                                                MaxValue="10000000"
-                                               Text="{Binding BotSettings.HeldObject.MaxMessageGatherSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxMessageGatherSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="5"
                                                MinValue="1"
                                                MaxValue="10000"
-                                               Text="{Binding BotSettings.HeldObject.MaxRuleCategories, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxRuleCategories, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="5"
                                                MinValue="1"
                                                MaxValue="10000"
-                                               Text="{Binding BotSettings.HeldObject.MaxRulesPerCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxRulesPerCategory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="5"
                                                MinValue="1"
                                                MaxValue="10000"
-                                               Text="{Binding BotSettings.HeldObject.MaxSelfAssignableRoleGroups, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxSelfAssignableRoleGroups, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="5"
                                                MinValue="1"
                                                MaxValue="10000"
-                                               Text="{Binding BotSettings.HeldObject.MaxQuotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxQuotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="5"
                                                MinValue="1"
                                                MaxValue="10000"
-                                               Text="{Binding BotSettings.HeldObject.MaxBannedStrings, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxBannedStrings, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="5"
                                                MinValue="1"
                                                MaxValue="10000"
-                                               Text="{Binding BotSettings.HeldObject.MaxBannedRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxBannedRegex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="5"
                                                MinValue="1"
                                                MaxValue="10000"
-                                               Text="{Binding BotSettings.HeldObject.MaxBannedNames, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxBannedNames, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotNumberBox MaxLength="5"
                                                MinValue="1"
                                                MaxValue="10000"
-                                               Text="{Binding BotSettings.HeldObject.MaxBannedPunishments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                               Text="{Binding BotSettings.MaxBannedPunishments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotComboBox SourceEnum="{x:Type discordenums:LogSeverity}"
-                                              SelectedItem="{Binding BotSettings.HeldObject.LogLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedItem="{Binding BotSettings.LogLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                               IsSynchronizedWithCurrentItem="True" />
                     <controls:AdvobotUserListCombobox UserListModified="UserListModified"
                                                       Tag="{extensions:NameOf Member=TrustedUsers, Type={x:Type interfaces:IBotSettings}}"
-                                                      ItemsSource="{Binding Path=BotSettings.HeldObject.TrustedUsers,
+                                                      ItemsSource="{Binding Path=BotSettings.TrustedUsers,
                                                                             Converter={StaticResource EnumerableConverter},
                                                                             Mode=OneWay,
                                                                             UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotUserListCombobox UserListModified="UserListModified"
                                                       Tag="{extensions:NameOf Member=UsersUnableToDmOwner, Type={x:Type interfaces:IBotSettings}}"
-                                                      ItemsSource="{Binding Path=BotSettings.HeldObject.UsersUnableToDmOwner,
+                                                      ItemsSource="{Binding Path=BotSettings.UsersUnableToDmOwner,
                                                                             Converter={StaticResource EnumerableConverter},
                                                                             Mode=OneWay,
                                                                             UpdateSourceTrigger=PropertyChanged}" />
                     <controls:AdvobotUserListCombobox UserListModified="UserListModified"
                                                       Tag="{extensions:NameOf Member=UsersIgnoredFromCommands, Type={x:Type interfaces:IBotSettings}}"
-                                                      ItemsSource="{Binding Path=BotSettings.HeldObject.UsersIgnoredFromCommands,
+                                                      ItemsSource="{Binding Path=BotSettings.UsersIgnoredFromCommands,
                                                                             Converter={StaticResource EnumerableConverter},
                                                                             Mode=OneWay,
                                                                             UpdateSourceTrigger=PropertyChanged}" />

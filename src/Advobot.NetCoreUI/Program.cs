@@ -1,10 +1,11 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Advobot.Console;
 using Advobot.NetCoreUI.Classes.ViewModels;
 using AdvorangesUtils;
 using Avalonia;
 using Avalonia.Logging.Serilog;
+using Avalonia.Threading;
+using ReactiveUI;
 
 namespace Advobot.NetCoreUI
 {
@@ -14,7 +15,7 @@ namespace Advobot.NetCoreUI
 		{
 			Thread.CurrentThread.TrySetApartmentState(ApartmentState.STA);
 
-			var launcher = new AdvobotNetCoreLauncher(args);
+			var launcher = new AdvobotConsoleLauncher(args);
 			launcher.SetPath();
 			await launcher.SetBotKey().CAF();
 			await launcher.Start().CAF();
@@ -24,7 +25,12 @@ namespace Advobot.NetCoreUI
 
 		public static AppBuilder BuildAvaloniaApp()
 		{
-			return AppBuilder.Configure<AdvobotNetCoreApp>().UsePlatformDetect().UseReactiveUI().LogToDebug();
+			var app = AppBuilder.Configure<AdvobotNetCoreApp>().UsePlatformDetect().LogToDebug();
+			app.AfterSetup(_ =>
+			{
+				RxApp.MainThreadScheduler = AvaloniaScheduler.Instance;
+			});
+			return app;
 		}
 	}
 }

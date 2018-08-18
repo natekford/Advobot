@@ -33,6 +33,7 @@ namespace Advobot.NetFrameworkUI.Classes
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 		}
+
 		/// <summary>
 		/// Implicitly converts the holder to its held value.
 		/// </summary>

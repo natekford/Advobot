@@ -20,7 +20,7 @@ namespace Advobot.Services
 			return new LiteDatabase(new ConnectionString
 			{
 				Filename = file.FullName,
-				Mode = LiteDB.FileMode.Shared,
+				Mode = LiteDB.FileMode.Exclusive, //One of my computer's will throw exceptions if this is shared
 			}, mapper);
 		}
 	}

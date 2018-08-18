@@ -92,6 +92,13 @@ namespace Advobot.NetCoreUI.Classes
 		public NetCoreColorSettings()
 		{
 			Theme = ColorTheme.Classic;
+			foreach (var target in Targets)
+			{
+				if (!_ColorTargets.TryGetValue(target, out var val))
+				{
+					_ColorTargets.Add(target, default);
+				}
+			}
 		}
 
 		/// <inheritdoc />

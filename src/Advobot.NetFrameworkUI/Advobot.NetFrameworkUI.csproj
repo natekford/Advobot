@@ -140,6 +140,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Command.cs" />
     <Compile Include="Classes\Controls\AdvobotColorBox.cs" />
     <Compile Include="Classes\Controls\AdvobotComboBox.cs" />
     <Compile Include="Classes\Controls\AdvobotNumberBox.xaml.cs">
