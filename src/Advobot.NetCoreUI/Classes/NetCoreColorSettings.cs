@@ -37,7 +37,7 @@ namespace Advobot.NetCoreUI.Classes
 		[JsonProperty("ColorTargets"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
 		private Dictionary<string, SolidColorBrush> _ColorTargets { get; set; } = new Dictionary<string, SolidColorBrush>();
 		/// <inheritdoc />
-		[JsonProperty("Theme"), Setting(ColorTheme.Classic)]
+		[JsonProperty("Theme"), Setting(ColorTheme.LightMode)]
 		public override ColorTheme Theme
 		{
 			get => _Theme;
@@ -46,7 +46,7 @@ namespace Advobot.NetCoreUI.Classes
 				_Theme = value;
 				switch (Theme)
 				{
-					case ColorTheme.Classic:
+					case ColorTheme.LightMode:
 						foreach (var ct in Targets)
 						{
 							UpdateResources(ct, LightModeProperties[ct]);
@@ -71,7 +71,7 @@ namespace Advobot.NetCoreUI.Classes
 			}
 		}
 		[JsonIgnore]
-		private ColorTheme _Theme = ColorTheme.Classic;
+		private ColorTheme _Theme = ColorTheme.LightMode;
 		[JsonIgnore]
 		private IResourceDictionary _Resources;
 		[JsonIgnore]
@@ -87,11 +87,11 @@ namespace Advobot.NetCoreUI.Classes
 		}.ToImmutableDictionary();
 
 		/// <summary>
-		/// Creates an instance of <see cref="NetCoreColorSettings"/> and sets the default theme and colors to classic.
+		/// Creates an instance of <see cref="NetCoreColorSettings"/> and sets the default theme and colors to light.
 		/// </summary>
 		public NetCoreColorSettings()
 		{
-			Theme = ColorTheme.Classic;
+			Theme = ColorTheme.LightMode;
 			foreach (var target in Targets)
 			{
 				if (!_ColorTargets.TryGetValue(target, out var val))
@@ -131,11 +131,9 @@ namespace Advobot.NetCoreUI.Classes
 					_Resources[name] = value;
 				}
 			}
-			//Otherwise, if it's like the Json stuff, set it globally.
-			else
-			{
-				Application.Current.Resources[target] = value;
-			}
+
+			//Still set it in the global resource dictionary if we want to access it easily with our names
+			Application.Current.Resources[target] = value;
 		}
 	}
 }

@@ -515,7 +515,7 @@
                     <controls:AdvobotTitle x:Name="MessageGatherSizeTitle"
                                            ToolTip="How many KBs worth of messages downloadmessages should gather at maximum." />
                     <controls:AdvobotTitle x:Name="RuleCategoriesTitle"
-                                           ToolTip="How many categories can exist.." />
+                                           ToolTip="How many categories can exist." />
                     <controls:AdvobotTitle x:Name="RulesPerCategoryTitle"
                                            ToolTip="How many rules can be in each category." />
                     <controls:AdvobotTitle x:Name="SelfAssignableRoleGroupsTitle"

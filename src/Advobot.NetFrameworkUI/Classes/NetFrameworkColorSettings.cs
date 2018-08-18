@@ -36,7 +36,7 @@ namespace Advobot.NetFrameworkUI.Classes
 		[JsonProperty("ColorTargets"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
 		private Dictionary<string, SolidColorBrush> _ColorTargets { get; set; } = new Dictionary<string, SolidColorBrush>();
 		/// <inheritdoc />
-		[JsonProperty("Theme"), Setting(ColorTheme.Classic)]
+		[JsonProperty("Theme"), Setting(ColorTheme.LightMode)]
 		public override ColorTheme Theme
 		{
 			get => _Theme;
@@ -45,7 +45,7 @@ namespace Advobot.NetFrameworkUI.Classes
 				_Theme = value;
 				switch (Theme)
 				{
-					case ColorTheme.Classic:
+					case ColorTheme.LightMode:
 						foreach (var ct in Targets)
 						{
 							Application.Current.Resources[ct] = LightModeProperties[ct];
@@ -69,14 +69,14 @@ namespace Advobot.NetFrameworkUI.Classes
 			}
 		}
 		[JsonIgnore]
-		private ColorTheme _Theme = ColorTheme.Classic;
+		private ColorTheme _Theme = ColorTheme.LightMode;
 
 		/// <summary>
-		/// Creates an instance of <see cref="NetFrameworkColorSettings"/> and sets the default theme and colors to classic.
+		/// Creates an instance of <see cref="NetFrameworkColorSettings"/> and sets the default theme and colors to light.
 		/// </summary>
 		public NetFrameworkColorSettings()
 		{
-			Theme = ColorTheme.Classic;
+			Theme = ColorTheme.LightMode;
 			foreach (var target in Targets)
 			{
 				if (!_ColorTargets.TryGetValue(target, out var val))

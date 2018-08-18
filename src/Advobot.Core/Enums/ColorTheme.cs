@@ -8,7 +8,7 @@
 		/// <summary>
 		/// Light theme.
 		/// </summary>
-		Classic,
+		LightMode,
 		/// <summary>
 		/// Dark theme.
 		/// </summary>

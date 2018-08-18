@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive.Linq;
+using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using System.Linq;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
@@ -90,6 +94,16 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Colors, value);
 		}
 
+		public IEnumerable<ColorTheme> Themes { get; } = Enum.GetValues(typeof(ColorTheme)).Cast<ColorTheme>();
+
+		/*
+		private string _Uptime = null;
+		public string Uptime
+		{
+			get => _Uptime;
+			set => this.RaiseAndSetIfChanged(ref _Uptime, value);
+		}*/
+
 		public IObservable<string> Uptime { get; }
 		public IObservable<string> Latency { get; }
 		public IObservable<string> Memory { get; }
@@ -101,6 +115,10 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public ReactiveCommand DisconnectCommand { get; }
 		public ReactiveCommand RestartCommand { get; }
 		public ReactiveCommand PauseCommand { get; }
+		public ReactiveCommand SaveColorsCommand { get; }
+		public ReactiveCommand SaveBotSettingsCommand { get; }
+
+		public System.Timers.Timer Timer { get; }
 
 		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
 		{
@@ -113,7 +131,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			{
 				Output += x;
 			});
-			System.Console.SetOut(new TextBoxStreamWriter(OutputCommand));
+			Console.SetOut(new TextBoxStreamWriter(OutputCommand));
 			InputCommand = ReactiveCommand.Create(() =>
 			{
 				ConsoleUtils.WriteLine(Input, name: "UIInput");
@@ -149,20 +167,44 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 				ConsoleUtils.WriteLine($"The bot is now {(BotSettings.Pause ? "unpaused" : "paused")}.", name: "Pause");
 				BotSettings.Pause = !BotSettings.Pause;
 			});
+			SaveColorsCommand = ReactiveCommand.Create(() =>
+			{
+				ConsoleUtils.WriteLine("Successfully saved the color settings.");
+				Colors.SaveSettings(BotSettings);
+			});
+			SaveBotSettingsCommand = ReactiveCommand.Create(() =>
+			{
+				ConsoleUtils.WriteLine("Successfully saved the bot settings.");
+				BotSettings.SaveSettings(BotSettings);
+			});
+
+			/*
+			Timer = new System.Timers.Timer
+			{
+				Interval = 1000,
+				Enabled = true,
+			};
+			Timer.Elapsed += (sender, e) =>
+			{
+				Dispatcher.UIThread.InvokeAsync(() => Uptime = $"Uptime: {FormattingUtils.GetUptime()}");
+			};*/
+
+			/*
+			Timer = new DispatcherTimer
+			{
+				Interval = TimeSpan.FromSeconds(1),
+				IsEnabled = true,
+			};
+			Timer.Tick += (sender, e) =>
+			{
+				Uptime = $"Uptime: {FormattingUtils.GetUptime()}";
+			};*/
 
 			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));
 			Uptime = timer.Select(x => $"Uptime: {FormattingUtils.GetUptime()}");
 			Latency = timer.Select(x => $"Latency: {(Client?.CurrentUser == null ? -1 : Client.Latency)}ms");
 			Memory = timer.Select(x => $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB");
 			ThreadCount = timer.Select(x => $"Threads: {Utilities.Utils.GetThreadCount()}");
-		}
-
-		public void EnterKeyPressed(object sender, KeyEventArgs e)
-		{
-			if (e.Key == Key.Enter || e.Key == Key.Return)
-			{
-				//((System.Windows.Input.ICommand)InputCommand).Execute(e.Key);
-			}
 		}
 	}
 }
