@@ -25,15 +25,16 @@
   <Grid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*">
     <!-- Output -->
     <TextBox Name="Output" Grid.ColumnSpan="2" Text="{Binding Output}" TextWrapping="Wrap" IsReadOnly="True" />
-
+    
     <!-- Input -->
     <Grid Name="InputGrid" Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
-      <!-- Needs Fixing: Press enter to send, Input set to "" in code disables button -->
+      <!-- Needs Fixing: Press enter to send, Input set to "" in code does notdisables button -->
       <TextBox Name="InputTextBox" Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" />
       <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}" IsEnabled="{Binding Input.Length}" />
     </Grid>
 
     <!-- Application Info Bar -->
+    <!-- Needs Fixing: stops updating -->
     <Grid Name="ApplicationInfoBar" Grid.Row="1" ColumnDefinitions="*,*,*,*">
       <Grid.Styles>
         <Style Selector="TextBox">

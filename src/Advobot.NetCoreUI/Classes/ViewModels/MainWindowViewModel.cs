@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml.MarkupExtensions;
-using Avalonia.Markup.Xaml.Templates;
-using Avalonia.Media;
+using Avalonia.Threading;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;

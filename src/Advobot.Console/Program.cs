@@ -14,6 +14,7 @@ namespace Advobot.Console
 			launcher.SetPath();
 			await launcher.SetBotKey().CAF();
 			await launcher.Start().CAF();
+			await Task.Delay(-1).CAF();
 		}
 	}
 }

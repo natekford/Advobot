@@ -28,7 +28,6 @@ namespace Advobot.Utilities
 			ConsoleUtils.WriteLine("Connecting the client...");
 			await client.StartAsync().CAF();
 			ConsoleUtils.WriteLine("Successfully connected the client.");
-			await Task.Delay(-1).CAF();
 		}
 		/// <summary>
 		/// Gets the id of the bot owner.
