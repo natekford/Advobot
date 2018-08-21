@@ -2,15 +2,15 @@
 using System.Windows.Controls;
 using AdvorangesUtils;
 
-namespace Advobot.NetFrameworkUI.Classes.Validators
+namespace Advobot.NetFrameworkUI.Classes.ValidationRules
 {
 	/// <summary>
-	/// Validation rule for Twitch.tv stream names.
+	/// Validation rule for Twitch.tv streams.
 	/// </summary>
 	public sealed class TwitchStreamValidationRule : ValidationRule
 	{
 		/// <summary>
-		/// Determines whether the passed in object is a valid name.
+		/// Determines whether the passed in object is a valid Twitch.tv stream.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <param name="cultureInfo"></param>
@@ -19,7 +19,7 @@ namespace Advobot.NetFrameworkUI.Classes.Validators
 		{
 			return RegexUtils.IsValidTwitchName(value.ToString())
 				? ValidationResult.ValidResult
-				: new ValidationResult(false, "Invalid Twitch stream name.");
+				: new ValidationResult(false, "Invalid Twitch stream.");
 		}
 	}
 }

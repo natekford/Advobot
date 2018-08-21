@@ -2,7 +2,7 @@
   "profiles": {
     "Advobot.ConsoleLauncher": {
       "commandName": "Project",
-      "commandLineArgs": "-instance 1000"
+      "commandLineArgs": "-instance 1"
     }
   }
 }

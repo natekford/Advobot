@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
 using Advobot.SharedUI;
 using AdvorangesUtils;
 using ICSharpCode.AvalonEdit.Highlighting;
-using Newtonsoft.Json;
 
 namespace Advobot.NetFrameworkUI.Classes
 {
@@ -17,89 +13,21 @@ namespace Advobot.NetFrameworkUI.Classes
 	/// </summary>
 	public sealed class NetFrameworkColorSettings : ColorSettings<SolidColorBrush, NetFrameworkBrushFactory>
 	{
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-		public static string BaseBackground => nameof(BaseBackground);
-		public static string BaseForeground => nameof(BaseForeground);
-		public static string BaseBorder => nameof(BaseBorder);
-		public static string ButtonBackground => nameof(ButtonBackground);
-		public static string ButtonForeground => nameof(ButtonForeground);
-		public static string ButtonBorder => nameof(ButtonBorder);
-		public static string ButtonDisabledBackground => nameof(ButtonDisabledBackground);
-		public static string ButtonDisabledForeground => nameof(ButtonDisabledForeground);
-		public static string ButtonDisabledBorder => nameof(ButtonDisabledBorder);
-		public static string ButtonMouseOverBackground => nameof(ButtonMouseOverBackground);
-		public static string JsonDigits => nameof(JsonDigits);
-		public static string JsonValue => nameof(JsonValue);
-		public static string JsonParamName => nameof(JsonParamName);
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
-
-		[JsonProperty("ColorTargets"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
-		private Dictionary<string, SolidColorBrush> _ColorTargets { get; set; } = new Dictionary<string, SolidColorBrush>();
-		/// <inheritdoc />
-		[JsonProperty("Theme"), Setting(ColorTheme.LightMode)]
-		public override ColorTheme Theme
-		{
-			get => _Theme;
-			set
-			{
-				_Theme = value;
-				switch (Theme)
-				{
-					case ColorTheme.LightMode:
-						foreach (var ct in Targets)
-						{
-							Application.Current.Resources[ct] = LightModeProperties[ct];
-						}
-						break;
-					case ColorTheme.DarkMode:
-						foreach (var ct in Targets)
-						{
-							Application.Current.Resources[ct] = DarkModeProperties[ct];
-						}
-						break;
-					case ColorTheme.UserMade:
-						foreach (var kvp in _ColorTargets)
-						{
-							Application.Current.Resources[kvp.Key] = kvp.Value;
-						}
-						break;
-				}
-				SetSyntaxHighlightingColors("Json");
-				NotifyPropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		private ColorTheme _Theme = ColorTheme.LightMode;
-
 		/// <summary>
 		/// Creates an instance of <see cref="NetFrameworkColorSettings"/> and sets the default theme and colors to light.
 		/// </summary>
-		public NetFrameworkColorSettings()
-		{
-			Theme = ColorTheme.LightMode;
-			foreach (var target in Targets)
-			{
-				if (!_ColorTargets.TryGetValue(target, out var val))
-				{
-					_ColorTargets.Add(target, default);
-				}
-			}
-		}
+		public NetFrameworkColorSettings() : base() { }
 
 		/// <inheritdoc />
-		public override SolidColorBrush this[string target]
+		protected override void UpdateResources(string target, SolidColorBrush value)
 		{
-			get => _ColorTargets[target];
-			set
-			{
-				_ColorTargets[target] = value;
-				if (_Theme == ColorTheme.UserMade)
-				{
-					Application.Current.Resources[target] = value;
-				}
-			}
+			Application.Current.Resources[target] = value;
 		}
-
+		/// <inheritdoc />
+		protected override void AfterThemeUpdated()
+		{
+			SetSyntaxHighlightingColors("Json");
+		}
 		private void SetSyntaxHighlightingColors(params string[] names)
 		{
 			foreach (var name in names)

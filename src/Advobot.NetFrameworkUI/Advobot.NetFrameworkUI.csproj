@@ -50,19 +50,19 @@
       <HintPath>..\..\packages\AdvorangesUtils.1.0.10\lib\netstandard2.0\AdvorangesUtils.dll</HintPath>
     </Reference>
     <Reference Include="Discord.Net.Commands, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Discord.Net.Commands.2.0.0-beta2-00981\lib\net46\Discord.Net.Commands.dll</HintPath>
+      <HintPath>..\..\packages\Discord.Net.Commands.2.0.0-beta2-00982\lib\net46\Discord.Net.Commands.dll</HintPath>
     </Reference>
     <Reference Include="Discord.Net.Core, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Discord.Net.Core.2.0.0-beta2-00981\lib\net46\Discord.Net.Core.dll</HintPath>
+      <HintPath>..\..\packages\Discord.Net.Core.2.0.0-beta2-00982\lib\net46\Discord.Net.Core.dll</HintPath>
     </Reference>
     <Reference Include="Discord.Net.Rest, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Discord.Net.Rest.2.0.0-beta2-00981\lib\net46\Discord.Net.Rest.dll</HintPath>
+      <HintPath>..\..\packages\Discord.Net.Rest.2.0.0-beta2-00982\lib\net46\Discord.Net.Rest.dll</HintPath>
     </Reference>
     <Reference Include="Discord.Net.Webhook, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Discord.Net.Webhook.2.0.0-beta2-00981\lib\netstandard1.3\Discord.Net.Webhook.dll</HintPath>
+      <HintPath>..\..\packages\Discord.Net.Webhook.2.0.0-beta2-00982\lib\netstandard1.3\Discord.Net.Webhook.dll</HintPath>
     </Reference>
     <Reference Include="Discord.Net.WebSocket, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Discord.Net.WebSocket.2.0.0-beta2-00981\lib\net46\Discord.Net.WebSocket.dll</HintPath>
+      <HintPath>..\..\packages\Discord.Net.WebSocket.2.0.0-beta2-00982\lib\net46\Discord.Net.WebSocket.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.AvalonEdit, Version=5.0.3.0, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
       <HintPath>..\..\packages\AvalonEdit.5.0.4\lib\Net40\ICSharpCode.AvalonEdit.dll</HintPath>
@@ -151,16 +151,16 @@
     <Compile Include="Classes\Controls\AdvobotUserListComboBox.xaml.cs">
       <DependentUpon>AdvobotUserListComboBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Classes\Converters\ColorConverter.cs" />
+    <Compile Include="Classes\Converters\NetFrameworkColorConverter.cs" />
     <Compile Include="Classes\Converters\EnumerableConverter.cs" />
     <Compile Include="Classes\DpiDecorator.cs" />
     <Compile Include="Classes\NetFrameworkBrushFactory.cs" />
     <Compile Include="Classes\UserListModificationEventArgs.cs" />
     <Compile Include="Classes\UserListModificationEventHandler.cs" />
-    <Compile Include="Classes\Validators\ColorValidator.cs" />
-    <Compile Include="Classes\Validators\PrefixValidationRule.cs" />
-    <Compile Include="Classes\Validators\TwitchStreamValidationRule.cs" />
-    <Compile Include="Classes\Validators\UserIdValidationRule.cs" />
+    <Compile Include="Classes\ValidationRules\ColorValidationRule.cs" />
+    <Compile Include="Classes\ValidationRules\PrefixValidationRule.cs" />
+    <Compile Include="Classes\ValidationRules\TwitchStreamValidationRule.cs" />
+    <Compile Include="Classes\ValidationRules\UserIdValidationRule.cs" />
     <Compile Include="Utilities\UIUtils.cs" />
     <Compile Include="Utilities\ElementUtils.cs" />
     <Compile Include="Utilities\SavingUtils.cs" />
@@ -182,8 +182,8 @@
     <Compile Include="Classes\Controls\AdvobotTextEditor.cs" />
     <Compile Include="Classes\Controls\AdvobotTreeView.cs" />
     <Compile Include="Classes\ModalWindow.cs" />
-    <Compile Include="Classes\Converters\FontResizeConverter.cs" />
-    <Compile Include="Classes\Converters\NullToBoolConverter.cs" />
+    <Compile Include="Classes\Converters\NetFrameworkFontResizeConverter.cs" />
+    <Compile Include="Classes\Converters\NetFrameworkNullToBoolConverter.cs" />
     <Compile Include="Classes\Converters\UriConverter.cs" />
     <Compile Include="Classes\Holder.cs" />
     <Compile Include="Classes\TextBoxStreamWriter.cs" />

@@ -7,32 +7,40 @@
         xmlns:classes="clr-namespace:Advobot.NetCoreUI.Classes;assembly=Advobot.NetCoreUI"
         xmlns:viewmodels="clr-namespace:Advobot.NetCoreUI.Classes.ViewModels;assembly=Advobot.NetCoreUI"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
+        xmlns:controls="clr-namespace:Advobot.NetCoreUI.Classes.UserControls;assembly=Advobot.NetCoreUI"
+        xmlns:shared="clr-namespace:Advobot.SharedUI;assembly=Advobot.Core"
         Title="Advobot"
         WindowState="Maximized"
         FontFamily="Courier New">
 
   <Window.Resources>
-    <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+    <converters:NetCoreNullToBoolConverter x:Key="NullToBoolConverter"/>
+    <converters:NetCoreColorConverter x:Key="ColorConverter"/>
+    <converters:NetCoreFontResizeConverter x:Key="FontResizeConverter"/>
   </Window.Resources>
 
   <Window.Styles>
-    <Style Selector="TextBox.t1">
-      <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="IsReadOnly" Value="True"/>
-      <Setter Property="TextAlignment" Value="Left"/>
-    </Style>
     <!-- Needs Fixing: How to center text vertically? -->
     <Style Selector="TextBox.i1">
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="IsReadOnly" Value="True"/>
+      <Setter Property="TextAlignment" Value="Left"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="TextBox.i2">
       <Setter Property="TextAlignment" Value="Center"/>
     </Style>
     <Style Selector="Border.b1">
       <Setter Property="Grid.RowSpan" Value="1000"/>
       <Setter Property="Grid.ColumnSpan" Value="1000"/>
       <Setter Property="BorderThickness" Value="2"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource {x:Static classes:NetCoreColorSettings.BaseBorder}}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"/>
+      <Setter Property="IsHitTestVisible" Value="False"/>
     </Style>
+    <!-- Needs Fixing: Window height starts out as Double.NaN -->
+    <!-- <Style Selector=":is(TextBlock)">
+      <Setter Property="FontSize" Value="{Binding Path=Height, Converter={StaticResource FontResizeConverter}, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+    </Style> -->
   </Window.Styles>
 
   <Grid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*">
@@ -41,18 +49,17 @@
 
     <!-- Input -->
     <Grid Name="InputGrid" Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
-      <!-- Needs Fixing: Input set to "" in code does notdisables button -->
       <TextBox Name="InputTextBox" Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed"/>
-      <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}" IsEnabled="{Binding Input.Length}" />
+      <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}"/>
     </Grid>
 
     <!-- Application Info Bar -->
     <!-- Needs Fixing: Stops updating after 5 seconds no matter what timer implementation is used -->
     <Grid Name="ApplicationInfoBar" Grid.Row="1" ColumnDefinitions="*,*,*,*">
-      <TextBox Classes="i1" Grid.Column="0" Text="{Binding Uptime^, Mode=OneWay}" />
-      <TextBox Classes="i1" Grid.Column="1" Text="{Binding Latency^, Mode=OneWay}" />
-      <TextBox Classes="i1" Grid.Column="2" Text="{Binding Memory^, Mode=OneWay}" />
-      <TextBox Classes="i1" Grid.Column="3" Text="{Binding ThreadCount^, Mode=OneWay}" />
+      <TextBox Classes="i1 i2" Grid.Column="0" Text="{Binding Uptime^, Mode=OneWay}"/>
+      <TextBox Classes="i1 i2" Grid.Column="1" Text="{Binding Latency^, Mode=OneWay}"/>
+      <TextBox Classes="i1 i2" Grid.Column="2" Text="{Binding Memory^, Mode=OneWay}"/>
+      <TextBox Classes="i1 i2" Grid.Column="3" Text="{Binding ThreadCount^, Mode=OneWay}"/>
 
       <Border Classes="b1"/>
     </Grid>
@@ -83,19 +90,19 @@
     <Grid Name="InfoMenu" Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,6*,3*,1*" IsVisible="{Binding OpenInfoMenu}" IsHitTestVisible="{Binding OpenInfoMenu}">
       <!-- Titles -->
       <Grid Grid.Column="1" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
-        <TextBox Classes="t1" Grid.Row="0" Text="Guilds"/>
-        <TextBox Classes="t1" Grid.Row="1" Text="Users"/>
-        <TextBox Classes="t1" Grid.Row="2" Text="Attempted Commands"/>
-        <TextBox Classes="t1" Grid.Row="3" Text="Successful Commands"/>
-        <TextBox Classes="t1" Grid.Row="4" Text="Failed Commands"/>
-        <TextBox Classes="t1" Grid.Row="5" Text="User Joins"/>
-        <TextBox Classes="t1" Grid.Row="6" Text="User Leaves"/>
-        <TextBox Classes="t1" Grid.Row="7" Text="User Changes"/>
-        <TextBox Classes="t1" Grid.Row="8" Text="Message Edits"/>
-        <TextBox Classes="t1" Grid.Row="9" Text="Message Deletes"/>
-        <TextBox Classes="t1" Grid.Row="10" Text="Images"/>
-        <TextBox Classes="t1" Grid.Row="11" Text="Animated Content"/>
-        <TextBox Classes="t1" Grid.Row="12" Text="Files"/>
+        <TextBox Classes="i1" Grid.Row="0" Text="Guilds"/>
+        <TextBox Classes="i1" Grid.Row="1" Text="Users"/>
+        <TextBox Classes="i1" Grid.Row="2" Text="Attempted Commands"/>
+        <TextBox Classes="i1" Grid.Row="3" Text="Successful Commands"/>
+        <TextBox Classes="i1" Grid.Row="4" Text="Failed Commands"/>
+        <TextBox Classes="i1" Grid.Row="5" Text="User Joins"/>
+        <TextBox Classes="i1" Grid.Row="6" Text="User Leaves"/>
+        <TextBox Classes="i1" Grid.Row="7" Text="User Changes"/>
+        <TextBox Classes="i1" Grid.Row="8" Text="Message Edits"/>
+        <TextBox Classes="i1" Grid.Row="9" Text="Message Deletes"/>
+        <TextBox Classes="i1" Grid.Row="10" Text="Images"/>
+        <TextBox Classes="i1" Grid.Row="11" Text="Animated Content"/>
+        <TextBox Classes="i1" Grid.Row="12" Text="Files"/>
       </Grid>
 
       <!-- Info -->
@@ -122,25 +129,27 @@
     <Grid Name="ColorsMenu" Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,8*,4*,1*" IsEnabled="True" IsVisible="{Binding OpenColorsMenu}" IsHitTestVisible="{Binding OpenColorsMenu}">
       <!-- Titles -->
       <Grid Grid.Column="1" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
-        <TextBox Classes="t1" Grid.Row="0" Text="Theme"/>
-        <TextBox Classes="t1" Grid.Row="1" Text="Base Background"/>
-        <TextBox Classes="t1" Grid.Row="2" Text="Base Foreground"/>
-        <TextBox Classes="t1" Grid.Row="3" Text="Base Border"/>
-        <TextBox Classes="t1" Grid.Row="4" Text="Button Background"/>
-        <TextBox Classes="t1" Grid.Row="5" Text="Button Foreground"/>
-        <TextBox Classes="t1" Grid.Row="6" Text="Button Border"/>
-        <TextBox Classes="t1" Grid.Row="7" Text="Button Disabled Background"/>
-        <TextBox Classes="t1" Grid.Row="8" Text="Button Disabled Foreground"/>
-        <TextBox Classes="t1" Grid.Row="9" Text="Button Disabled Border"/>
-        <TextBox Classes="t1" Grid.Row="10" Text="Button Mouse Over Background"/>
-        <TextBox Classes="t1" Grid.Row="11" Text="Json Digits"/>
-        <TextBox Classes="t1" Grid.Row="12" Text="Json Value"/>
-        <TextBox Classes="t1" Grid.Row="13" Text="Json Param Name"/>
+        <TextBox Classes="i1" Grid.Row="0" Text="Theme"/>
+        <TextBox Classes="i1" Grid.Row="1" Text="Base Background"/>
+        <TextBox Classes="i1" Grid.Row="2" Text="Base Foreground"/>
+        <TextBox Classes="i1" Grid.Row="3" Text="Base Border"/>
+        <TextBox Classes="i1" Grid.Row="4" Text="Button Background"/>
+        <TextBox Classes="i1" Grid.Row="5" Text="Button Foreground"/>
+        <TextBox Classes="i1" Grid.Row="6" Text="Button Border"/>
+        <TextBox Classes="i1" Grid.Row="7" Text="Button Disabled Background"/>
+        <TextBox Classes="i1" Grid.Row="8" Text="Button Disabled Foreground"/>
+        <TextBox Classes="i1" Grid.Row="9" Text="Button Disabled Border"/>
+        <TextBox Classes="i1" Grid.Row="10" Text="Button Mouse Over Background"/>
+        <TextBox Classes="i1" Grid.Row="11" Text="Json Digits"/>
+        <TextBox Classes="i1" Grid.Row="12" Text="Json Value"/>
+        <TextBox Classes="i1" Grid.Row="13" Text="Json Param Name"/>
       </Grid>
 
       <!-- Colors -->
       <Grid Grid.Column="2" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
         <DropDown Grid.Row="0" Items="{Binding Themes, Mode=OneTime}" SelectedItem="{Binding Colors.Theme}"/>
+        <!-- Needs Fixing: VALIDATION DOES NOTHING -->
+        <TextBox Grid.Row="1" Text="{Binding Path=Colors.BaseBackground, Converter={StaticResource ColorConverter}}"/>
       </Grid>
 
       <!--Save Colors Button -->
@@ -195,9 +204,9 @@
 
       <!-- Settings -->
       <Grid Grid.Column="2">
-        
+        <TextBox Grid.Row="1" Text="{Binding Prefix}"/>
       </Grid>
-      
+
       <!-- Save Settings Button -->
       <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Settings" Command="{Binding SaveBotSettingsCommand}"/>
 

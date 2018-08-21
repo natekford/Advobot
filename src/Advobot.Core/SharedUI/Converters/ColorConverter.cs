@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Globalization;
-using System.Windows.Data;
-using System.Windows.Media;
-using Advobot.NetFrameworkUI.Utilities;
 
-namespace Advobot.NetFrameworkUI.Classes.Converters
+namespace Advobot.SharedUI.Converters
 {
 	/// <summary>
-	/// Converts a <see cref="SolidColorBrush"/>.
+	/// Converts a <typeparamref name="TBrush"/> to a string and vice versa.
 	/// </summary>
-	public sealed class ColorConverter : IValueConverter
+	/// <typeparam name="TBrush"></typeparam>
+	/// <typeparam name="TBrushFactory"></typeparam>
+	public abstract class ColorConverter<TBrush, TBrushFactory> where TBrushFactory : BrushFactory<TBrush>, new()
 	{
+		private static readonly TBrushFactory _Factory = new TBrushFactory();
+
 		/// <summary>
-		/// Casts the value to an IEnumerable then returns a newly created IEnumerable.
+		/// Converts a <typeparamref name="TBrush"/> to a string.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <param name="targetType"></param>
@@ -21,10 +22,10 @@ namespace Advobot.NetFrameworkUI.Classes.Converters
 		/// <returns></returns>
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return (value ?? "").ToString();
+			return value is TBrush brush ? _Factory.FormatBrush(brush) : "";
 		}
 		/// <summary>
-		/// Converts a string to <see cref="SolidColorBrush"/>.
+		/// Converts a string to a <typeparamref name="TBrush"/>.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <param name="targetType"></param>
@@ -33,7 +34,7 @@ namespace Advobot.NetFrameworkUI.Classes.Converters
 		/// <returns></returns>
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return new NetFrameworkBrushFactory().CreateBrush((value ?? "").ToString());
+			return _Factory.CreateBrush((value ?? "").ToString());
 		}
 	}
 }

@@ -1,9 +1,8 @@
 ﻿using Advobot.NetCoreUI.Classes.ViewModels;
-using Avalonia;
+using Advobot.NetCoreUI.Utils;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
-using Advobot.NetCoreUI.Utils;
 
 namespace Advobot.NetCoreUI
 {
@@ -12,9 +11,6 @@ namespace Advobot.NetCoreUI
 		public AdvobotNetCoreWindow()
 		{
 			InitializeComponent();
-#if DEBUG
-			this.AttachDevTools();
-#endif
 		}
 
 		private void InitializeComponent()
@@ -22,7 +18,7 @@ namespace Advobot.NetCoreUI
 			AvaloniaXamlLoader.Load(this);
 		}
 
-		public void EnterKeyPressed(object sender, KeyEventArgs e)
+		private void EnterKeyPressed(object sender, KeyEventArgs e)
 		{
 			if (e.Key == Key.Enter || e.Key == Key.Return)
 			{

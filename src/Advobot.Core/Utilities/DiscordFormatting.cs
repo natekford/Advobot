@@ -159,13 +159,13 @@ namespace Advobot.Utilities
 			}).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)");
 			var channels = textChannels.Concat(voiceChannels).ToList();
 			var roles = user.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).ToList();
+			var join = guild.GetUsersByJoinDate().Select((Val, Index) => new { Val.Id, Index }).First(x => x.Id == user.Id).Index + 1;
 
 			var embed = new EmbedWrapper
 			{
 				Description = user.FormatInfo() +
 					$"**Nickname:** `{user.Nickname?.EscapeBackTicks() ?? "No nickname"}`\n" +
-					$"**Joined:** `{user.JoinedAt?.UtcDateTime.ToReadable()}` " +
-						$"(`#{guild.Users.OrderBy(x => x.JoinedAt?.Ticks ?? 0).Select(x => x.Id).ToList().IndexOf(user.Id) + 1}`)\n\n" +
+					$"**Joined:** `{user.JoinedAt?.UtcDateTime.ToReadable()}` (`#{join}`)\n\n" +
 					$"{user.Activity.Format()}\n" +
 					$"**Online status:** `{user.Status}`\n",
 				Color = roles.LastOrDefault(x => x.Color.RawValue != 0)?.Color,

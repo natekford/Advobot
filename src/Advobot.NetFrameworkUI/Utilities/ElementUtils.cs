@@ -65,7 +65,7 @@ namespace Advobot.NetFrameworkUI.Utilities
 			{
 				Path = new PropertyPath(nameof(FrameworkElement.ActualHeight)),
 				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), ancestorLevel),
-				Converter = new FontResizeConverter(size)
+				Converter = new NetFrameworkFontResizeConverter(size)
 			});
 		}
 		/// <summary>

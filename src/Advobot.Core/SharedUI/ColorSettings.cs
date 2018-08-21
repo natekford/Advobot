@@ -1,13 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Newtonsoft.Json;
 
 namespace Advobot.SharedUI
 {
@@ -52,17 +57,89 @@ namespace Advobot.SharedUI
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
 		/// <summary>
-		/// The current theme to use.
+		/// Colors defined by the user.
 		/// </summary>
-		public abstract ColorTheme Theme { get; set; }
+		[JsonProperty("ColorTargets", Order = 1), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
+		protected Dictionary<string, string> UserDefinedColors { get; set; } = new Dictionary<string, string>();
+		/// <inheritdoc />
+		[JsonProperty("Theme", Order = 2), Setting(ColorTheme.LightMode)]
+		public ColorTheme Theme
+		{
+			get => _Theme;
+			set
+			{
+				_Theme = value;
+				switch (Theme)
+				{
+					case ColorTheme.LightMode:
+						foreach (var ct in Targets)
+						{
+							UpdateResources(ct, LightModeProperties[ct]);
+						}
+						break;
+					case ColorTheme.DarkMode:
+						foreach (var ct in Targets)
+						{
+							UpdateResources(ct, DarkModeProperties[ct]);
+						}
+						break;
+					case ColorTheme.UserMade:
+						foreach (var kvp in UserDefinedColors)
+						{
+							UpdateResources(kvp.Key, kvp.Value is string val ? BrushFactory.CreateBrush(val) : default);
+						}
+						break;
+				}
+				AfterThemeUpdated();
+				NotifyPropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		private ColorTheme _Theme = ColorTheme.LightMode;
+
+		/// <summary>
+		/// Creates an instance of <see cref="ColorSettings{TBrush, TBrushFactory}"/> and sets the default theme and colors to light.
+		/// </summary>
+		public ColorSettings()
+		{
+			Theme = ColorTheme.LightMode;
+			foreach (var target in Targets)
+			{
+				if (!UserDefinedColors.TryGetValue(target, out var val))
+				{
+					UserDefinedColors.Add(target, BrushFactory.FormatBrush(LightModeProperties[target]));
+				}
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the color for the specified color target which can be used when the custom theme is enabled.
 		/// </summary>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public abstract TBrush this[string target] { get; set; }
+		public TBrush this[string target]
+		{
+			get => UserDefinedColors[target] is string val ? BrushFactory.CreateBrush(val) : default;
+			set
+			{
+				UserDefinedColors[target] = value == null ? null : BrushFactory.FormatBrush(value);
+				if (_Theme == ColorTheme.UserMade)
+				{
+					UpdateResources(target, value);
+				}
+			}
+		}
 
+		/// <summary>
+		/// Updates a resource dictionary with the specified value.
+		/// </summary>
+		/// <param name="target"></param>
+		/// <param name="value"></param>
+		protected abstract void UpdateResources(string target, TBrush value);
+		/// <summary>
+		/// Does an action after the theme has been updated.
+		/// </summary>
+		protected virtual void AfterThemeUpdated() { }
 		/// <inheritdoc />
 		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
 		{

@@ -1,108 +1,130 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Reactive.Linq;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.NetCoreUI.Classes.ValidationAttributes;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Threading;
+using Avalonia.Data;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
-using System.Linq;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
-	public class AdvobotNetCoreWindowViewModel : ReactiveObject
+	public class AdvobotNetCoreWindowViewModel : ReactiveObject, INotifyPropertyChanged
 	{
-		private string _Output = "";
 		public string Output
 		{
 			get => _Output;
 			set => this.RaiseAndSetIfChanged(ref _Output, value);
 		}
+		private string _Output = "";
 
-		private string _Input = "";
 		public string Input
 		{
 			get => _Input;
-			set => this.RaiseAndSetIfChanged(ref _Input, value);
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _Input, value);
+				CanInput = value.Length > 0;
+			}
 		}
+		private string _Input = "";
 
-		private string _PauseButtonContent;
+		private bool CanInput
+		{
+			get => _CanInput;
+			set => this.RaiseAndSetIfChanged(ref _CanInput, value);
+		}
+		private bool _CanInput;
+
 		public string PauseButtonContent
 		{
 			get => _PauseButtonContent;
 			set => this.RaiseAndSetIfChanged(ref _PauseButtonContent, value);
 		}
+		private string _PauseButtonContent;
 
-		private bool _OpenMainMenu = false;
 		public bool OpenMainMenu
 		{
 			get => _OpenMainMenu;
 			set => this.RaiseAndSetIfChanged(ref _OpenMainMenu, value);
 		}
+		private bool _OpenMainMenu = false;
 
-		private bool _OpenInfoMenu = false;
 		public bool OpenInfoMenu
 		{
 			get => _OpenInfoMenu;
 			set => this.RaiseAndSetIfChanged(ref _OpenInfoMenu, value);
 		}
+		private bool _OpenInfoMenu = false;
 
-		private bool _OpenColorsMenu = false;
 		public bool OpenColorsMenu
 		{
 			get => _OpenColorsMenu;
 			set => this.RaiseAndSetIfChanged(ref _OpenColorsMenu, value);
 		}
+		private bool _OpenColorsMenu = false;
 
-		private bool _OpenSettingsMenu = false;
 		public bool OpenSettingsMenu
 		{
 			get => _OpenSettingsMenu;
 			set => this.RaiseAndSetIfChanged(ref _OpenSettingsMenu, value);
 		}
+		private bool _OpenSettingsMenu = false;
 
-		private DiscordShardedClient _Client = null;
 		public DiscordShardedClient Client
 		{
 			get => _Client;
 			set => this.RaiseAndSetIfChanged(ref _Client, value);
 		}
+		private DiscordShardedClient _Client = null;
 
-		private IBotSettings _BotSettings = null;
 		public IBotSettings BotSettings
 		{
 			get => _BotSettings;
 			set => this.RaiseAndSetIfChanged(ref _BotSettings, value);
 		}
+		private IBotSettings _BotSettings = null;
 
-		private ILogService _LogService = null;
 		public ILogService LogService
 		{
 			get => _LogService;
 			set => this.RaiseAndSetIfChanged(ref _LogService, value);
 		}
+		private ILogService _LogService = null;
 
-		private NetCoreColorSettings _Colors = null;
 		public NetCoreColorSettings Colors
 		{
 			get => _Colors;
 			set => this.RaiseAndSetIfChanged(ref _Colors, value);
 		}
+		private NetCoreColorSettings _Colors = null;
+
+		public double WindowFontSize
+		{
+			get => _WindowFontSize;
+			set => this.RaiseAndSetIfChanged(ref _WindowFontSize, value);
+		}
+		private double _WindowFontSize = 100;
+
+		[PrefixValidation]
+		public string Prefix
+		{
+			get => BotSettings.Prefix;
+			set
+			{
+				BotSettings.Prefix = value;
+				this.RaisePropertyChanged();
+			}
+		}
 
 		public IEnumerable<ColorTheme> Themes { get; } = Enum.GetValues(typeof(ColorTheme)).Cast<ColorTheme>();
-
-		/*
-		private string _Uptime = null;
-		public string Uptime
-		{
-			get => _Uptime;
-			set => this.RaiseAndSetIfChanged(ref _Uptime, value);
-		}*/
 
 		public IObservable<string> Uptime { get; }
 		public IObservable<string> Latency { get; }
@@ -117,8 +139,6 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public ReactiveCommand PauseCommand { get; }
 		public ReactiveCommand SaveColorsCommand { get; }
 		public ReactiveCommand SaveBotSettingsCommand { get; }
-
-		public System.Timers.Timer Timer { get; }
 
 		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
 		{
@@ -136,7 +156,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			{
 				ConsoleUtils.WriteLine(Input, name: "UIInput");
 				Input = "";
-			});
+			}, this.WhenAnyValue(x => x.CanInput));
 			OpenMenuCommand = ReactiveCommand.Create<string>(x =>
 			{
 				switch (x)
@@ -177,28 +197,6 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 				ConsoleUtils.WriteLine("Successfully saved the bot settings.");
 				BotSettings.SaveSettings(BotSettings);
 			});
-
-			/*
-			Timer = new System.Timers.Timer
-			{
-				Interval = 1000,
-				Enabled = true,
-			};
-			Timer.Elapsed += (sender, e) =>
-			{
-				Dispatcher.UIThread.InvokeAsync(() => Uptime = $"Uptime: {FormattingUtils.GetUptime()}");
-			};*/
-
-			/*
-			Timer = new DispatcherTimer
-			{
-				Interval = TimeSpan.FromSeconds(1),
-				IsEnabled = true,
-			};
-			Timer.Tick += (sender, e) =>
-			{
-				Uptime = $"Uptime: {FormattingUtils.GetUptime()}";
-			};*/
 
 			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));
 			Uptime = timer.Select(x => $"Uptime: {FormattingUtils.GetUptime()}");

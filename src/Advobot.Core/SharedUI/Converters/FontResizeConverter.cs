@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Globalization;
-using System.Windows.Data;
 
-namespace Advobot.NetFrameworkUI.Classes.Converters
+namespace Advobot.SharedUI.Converters
 {
 	/// <summary>
 	/// Resizes text.
 	/// </summary>
-	public sealed class FontResizeConverter : IValueConverter
+	public abstract class FontResizeConverter
 	{
 		/// <summary>
 		/// What to shrink by.
@@ -33,7 +32,15 @@ namespace Advobot.NetFrameworkUI.Classes.Converters
 		/// <returns></returns>
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return Math.Max((int)(System.Convert.ToInt16(value) * ConvertFactor), 1);
+			if (!(value is double dVal))
+			{
+				throw new InvalidOperationException("Unable to resize font if the passed in value is not a double.");
+			}
+			if (double.IsNaN(dVal))
+			{
+				return 1;
+			}
+			return Math.Max((int)(dVal * ConvertFactor), 1);
 		}
 		/// <summary>
 		/// Not implemented.

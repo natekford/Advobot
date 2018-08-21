@@ -13,5 +13,10 @@ namespace Advobot.NetFrameworkUI.Classes
 		{
 			return new SolidColorBrush(Color.FromArgb(bytes[0], bytes[1], bytes[2], bytes[3]));
 		}
+		/// <inheritdoc />
+		protected override byte[] GetBrushBytes(SolidColorBrush brush)
+		{
+			return new[] { brush.Color.A, brush.Color.R, brush.Color.G, brush.Color.B };
+		}
 	}
 }

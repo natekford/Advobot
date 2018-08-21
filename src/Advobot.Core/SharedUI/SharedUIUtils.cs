@@ -33,6 +33,11 @@ namespace Advobot.SharedUI
 		/// <returns></returns>
 		public static bool TryParseColorBytes(string input, out byte[] bytes)
 		{
+			if (input == null)
+			{
+				bytes = default;
+				return false;
+			}
 			if (TryGetColorBytesARGB(input, out var rgb))
 			{
 				bytes = rgb;
@@ -49,12 +54,14 @@ namespace Advobot.SharedUI
 		private static bool TryGetColorBytesARGB(string input, out byte[] bytes)
 		{
 			var split = input.Split('/');
+			//1 or 2 or 5+ means invalid amount of bytes
 			if (split.Length < 3 || split.Length > 4)
 			{
 				bytes = default;
 				return false;
 			}
 
+			//4 length even if only 3 parts, just set first part to 255 in that case to have a fully opaque color
 			bytes = new byte[4];
 			var noA = split.Length == 3;
 			if (noA)
@@ -91,6 +98,7 @@ namespace Advobot.SharedUI
 			if (uint.TryParse(trimmed, NumberStyles.HexNumber, null, out var h))
 			{
 				bytes = BitConverter.GetBytes(h);
+				//Make sure the color won't come out backwards
 				if (BitConverter.IsLittleEndian)
 				{
 					Array.Reverse(bytes);

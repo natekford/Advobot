@@ -6,52 +6,53 @@
              xmlns:classes="clr-namespace:Advobot.NetFrameworkUI.Classes"
              xmlns:controls="clr-namespace:Advobot.NetFrameworkUI.Classes.Controls"
              xmlns:converters="clr-namespace:Advobot.NetFrameworkUI.Classes.Converters"
-             xmlns:validators="clr-namespace:Advobot.NetFrameworkUI.Classes.Validators"
+             xmlns:validationrules="clr-namespace:Advobot.NetFrameworkUI.Classes.ValidationRules"
+             xmlns:shared="clr-namespace:Advobot.SharedUI;assembly=Advobot.Core"
              mc:Ignorable="d"
              Startup="OnStartup">
 
     <Application.Resources>
         <!-- Converters -->
         <converters:UriConverter x:Key="UriConverter" />
-        <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+        <converters:NetFrameworkNullToBoolConverter x:Key="NullToBoolConverter" />
         <converters:EnumerableConverter x:Key="EnumerableConverter" />
-        <converters:ColorConverter x:Key="ColorConverter" />
+        <converters:NetFrameworkColorConverter x:Key="ColorConverter" />
         <!-- Validators -->
-        <validators:ColorValidator x:Key="ColorValidator" />
+        <validationrules:ColorValidationRule x:Key="ColorValidationRule" />
         <!-- Colors -->
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.BaseBackground}"
+        <x:Static x:Key="{x:Static shared:ColorTargets.BaseBackground}"
                   Member="classes:NetFrameworkColorSettings.LightModeBaseBackground" />
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.BaseForeground}"
+        <x:Static x:Key="{x:Static shared:ColorTargets.BaseForeground}"
                   Member="classes:NetFrameworkColorSettings.LightModeBaseForeground" />
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.BaseBorder}"
+        <x:Static x:Key="{x:Static shared:ColorTargets.BaseBorder}"
                   Member="classes:NetFrameworkColorSettings.LightModeBaseBorder" />
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.ButtonBackground}"
+        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonBackground}"
                   Member="classes:NetFrameworkColorSettings.LightModeButtonBackground" />
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.ButtonForeground}"
-                  Member="classes:NetFrameworkColorSettings.LightModeButtonForeground" />
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.ButtonBorder}"
+        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonForeground}"
+                  Member="classes:NetFrameworkColorSettings..LightModeButtonForeground" />
+        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonBorder}"
                   Member="classes:NetFrameworkColorSettings.LightModeButtonBorder" />
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.ButtonDisabledBackground}"
+        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonDisabledBackground}"
                   Member="classes:NetFrameworkColorSettings.LightModeButtonDisabledBackground" />
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.ButtonDisabledForeground}"
+        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonDisabledForeground}"
                   Member="classes:NetFrameworkColorSettings.LightModeButtonDisabledForeground" />
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.ButtonDisabledBorder}"
+        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonDisabledBorder}"
                   Member="classes:NetFrameworkColorSettings.LightModeButtonDisabledBorder" />
-        <x:Static x:Key="{x:Static classes:NetFrameworkColorSettings.ButtonMouseOverBackground}"
+        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonMouseOverBackground}"
                   Member="classes:NetFrameworkColorSettings.LightModeButtonMouseOverBackground" />
         <!-- Templates -->
         <ControlTemplate x:Key="ButtonControlTemplate"
                          TargetType="ButtonBase">
             <Border Name="ButtonControlTemplateBorder"
                     BorderThickness="1"
-                    Background="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonBackground}}"
-                    BorderBrush="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonBorder}}">
+                    Background="{DynamicResource {x:Static shared:ColorTargets.ButtonBackground}}"
+                    BorderBrush="{DynamicResource {x:Static shared:ColorTargets.ButtonBorder}}">
                 <ContentPresenter x:Name="ButtonControlTemplateBorderContentPresenter"
                                   Margin="2"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center"
                                   RecognizesAccessKey="True"
-                                  TextBlock.Foreground="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonForeground}}" />
+                                  TextBlock.Foreground="{DynamicResource {x:Static shared:ColorTargets.ButtonForeground}}" />
             </Border>
 
             <ControlTemplate.Triggers>
@@ -59,30 +60,30 @@
                          Value="True">
                     <Setter TargetName="ButtonControlTemplateBorder"
                             Property="Background"
-                            Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonMouseOverBackground}}" />
+                            Value="{DynamicResource {x:Static shared:ColorTargets.ButtonMouseOverBackground}}" />
                 </Trigger>
                 <Trigger Property="IsEnabled"
                          Value="False">
                     <Setter TargetName="ButtonControlTemplateBorder"
                             Property="Background"
-                            Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonDisabledBackground}}" />
+                            Value="{DynamicResource {x:Static shared:ColorTargets.ButtonDisabledBackground}}" />
                     <Setter TargetName="ButtonControlTemplateBorder"
                             Property="BorderBrush"
-                            Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonDisabledBorder}}" />
+                            Value="{DynamicResource {x:Static shared:ColorTargets.ButtonDisabledBorder}}" />
                     <Setter TargetName="ButtonControlTemplateBorderContentPresenter"
                             Property="TextBlock.Foreground"
-                            Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonDisabledForeground}}" />
+                            Value="{DynamicResource {x:Static shared:ColorTargets.ButtonDisabledForeground}}" />
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
         <!-- Styles -->
         <Style TargetType="Control">
             <Setter Property="Background"
-                    Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseBackground}}" />
+                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseBackground}}" />
             <Setter Property="Foreground"
-                    Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseForeground}}" />
+                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseForeground}}" />
             <Setter Property="BorderBrush"
-                    Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseBorder}}" />
+                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}" />
         </Style>
         <Style TargetType="controls:AdvobotTextBox"
                BasedOn="{StaticResource {x:Type Control}}" />
@@ -110,14 +111,14 @@
                                                  TargetType="ComboBoxItem">
                                     <Border Name="ComboBoxItemTemplateBorder"
                                             BorderThickness="1"
-                                            Background="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonBackground}}"
-                                            BorderBrush="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonBorder}}">
+                                            Background="{DynamicResource {x:Static shared:ColorTargets.ButtonBackground}}"
+                                            BorderBrush="{DynamicResource {x:Static shared:ColorTargets.ButtonBorder}}">
                                         <ContentPresenter x:Name="ComboBoxItemTemplateBorderContentPresenter"
                                                           Margin="2"
                                                           HorizontalAlignment="Center"
                                                           VerticalAlignment="Center"
                                                           RecognizesAccessKey="True"
-                                                          TextBlock.Foreground="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonForeground}}" />
+                                                          TextBlock.Foreground="{DynamicResource {x:Static shared:ColorTargets.ButtonForeground}}" />
                                     </Border>
 
                                     <ControlTemplate.Triggers>
@@ -125,7 +126,7 @@
                                                  Value="True">
                                             <Setter TargetName="ComboBoxItemTemplateBorder"
                                                     Property="Background"
-                                                    Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.ButtonMouseOverBackground}}" />
+                                                    Value="{DynamicResource {x:Static shared:ColorTargets.ButtonMouseOverBackground}}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -137,11 +138,11 @@
         </Style>
         <Style TargetType="controls:AdvobotGrid">
             <Setter Property="Control.Background"
-                    Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseBackground}}" />
+                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseBackground}}" />
             <Setter Property="Control.Foreground"
-                    Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseForeground}}" />
+                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseForeground}}" />
             <Setter Property="Control.BorderBrush"
-                    Value="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseBorder}}" />
+                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}" />
         </Style>
         <Style TargetType="controls:AdvobotTitle">
             <Setter Property="VerticalAlignment"

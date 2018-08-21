@@ -2,7 +2,7 @@
 using System.Windows.Data;
 using System.Windows.Input;
 using Advobot.NetFrameworkUI.Classes.Converters;
-using Advobot.NetFrameworkUI.Classes.Validators;
+using Advobot.NetFrameworkUI.Classes.ValidationRules;
 
 namespace Advobot.NetFrameworkUI.Classes.Controls
 {
@@ -58,10 +58,10 @@ namespace Advobot.NetFrameworkUI.Classes.Controls
 			var binding = new Binding
 			{
 				Path = (PropertyPath)e.NewValue,
-				Converter = new ColorConverter(),
+				Converter = new NetFrameworkColorConverter(),
 				UpdateSourceTrigger = UpdateSourceTrigger.LostFocus,
 			};
-			binding.ValidationRules.Add(new ColorValidator());
+			binding.ValidationRules.Add(new ColorValidationRule());
 			((FrameworkElement)d).SetBinding(TextProperty, binding);
 		}
 	}

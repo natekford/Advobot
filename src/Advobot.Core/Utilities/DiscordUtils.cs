@@ -314,7 +314,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static IEnumerable<SocketGuildUser> GetUsersByJoinDate(this SocketGuild guild)
 		{
-			return guild.Users.OrderBy(x => x.JoinedAt?.Ticks ?? 0);
+			return guild.Users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.Value.Ticks);
 		}
 		/// <summary>
 		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.

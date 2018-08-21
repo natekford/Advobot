@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Globalization;
-using System.Windows.Data;
 
-namespace Advobot.NetFrameworkUI.Classes.Converters
+namespace Advobot.SharedUI.Converters
 {
 	/// <summary>
 	/// Returns true if the object is not null or whitespace.
 	/// </summary>
-	public sealed class NullToBoolConverter : IValueConverter
+	public abstract class NullToBoolConverter
 	{
 		/// <summary>
 		/// Checks if the value is null or whitespace.

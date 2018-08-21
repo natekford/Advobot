@@ -9,11 +9,12 @@
         xmlns:classes="clr-namespace:Advobot.NetFrameworkUI.Classes"
         xmlns:controls="clr-namespace:Advobot.NetFrameworkUI.Classes.Controls"
         xmlns:extensions="clr-namespace:Advobot.NetFrameworkUI.Classes.Extensions"
-        xmlns:validators="clr-namespace:Advobot.NetFrameworkUI.Classes.Validators"
+        xmlns:validationrules="clr-namespace:Advobot.NetFrameworkUI.Classes.ValidationRules"
         xmlns:enums="clr-namespace:Advobot.NetFrameworkUI.Enums"
         xmlns:core="clr-namespace:Advobot;assembly=Advobot.Core"
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
         xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
+        xmlns:shared="clr-namespace:Advobot.SharedUI;assembly=Advobot.Core"
         mc:Ignorable="d"
         Title="Advobot"
         WindowState="Maximized"
@@ -251,7 +252,7 @@
                                         Content="Pause"
                                         Click="Pause" />
 
-                <Border BorderBrush="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseBorder}}"
+                <Border BorderBrush="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"
                         BorderThickness="1"
                         Grid.RowSpan="1000"
                         Grid.ColumnSpan="1000" />
@@ -344,7 +345,7 @@
                                         Content="Search For File"
                                         Click="SearchForFile" />
 
-                <Border BorderBrush="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseBorder}}"
+                <Border BorderBrush="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"
                         BorderThickness="1"
                         Grid.RowSpan="1000"
                         Grid.ColumnSpan="1000" />
@@ -438,7 +439,7 @@
                                         Content="Save Colors"
                                         Click="SaveColors" />
 
-                <Border BorderBrush="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseBorder}}"
+                <Border BorderBrush="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"
                         BorderThickness="1"
                         Grid.RowSpan="1000"
                         Grid.ColumnSpan="1000" />
@@ -554,7 +555,7 @@
                                      Mode="TwoWay"
                                      UpdateSourceTrigger="PropertyChanged">
                                 <Binding.ValidationRules>
-                                    <validators:PrefixValidationRule />
+                                    <validationrules:PrefixValidationRule />
                                 </Binding.ValidationRules>
                             </Binding>
                         </controls:AdvobotTextBox.Text>
@@ -567,7 +568,7 @@
                                      Mode="TwoWay"
                                      UpdateSourceTrigger="PropertyChanged">
                                 <Binding.ValidationRules>
-                                    <validators:TwitchStreamValidationRule />
+                                    <validationrules:TwitchStreamValidationRule />
                                 </Binding.ValidationRules>
                             </Binding>
                         </controls:AdvobotTextBox.Text>
@@ -646,7 +647,7 @@
                                         Content="Save Settings"
                                         Click="SaveSettings" />
 
-                <Border BorderBrush="{DynamicResource {x:Static classes:NetFrameworkColorSettings.BaseBorder}}"
+                <Border BorderBrush="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"
                         BorderThickness="1"
                         Grid.RowSpan="1000"
                         Grid.ColumnSpan="1000" />

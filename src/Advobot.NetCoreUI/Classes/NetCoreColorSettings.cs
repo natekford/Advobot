@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
+using Advobot.NetCoreUI.Classes.ValidationAttributes;
 using Advobot.SharedUI;
+using AdvorangesUtils;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
-using Newtonsoft.Json;
-using AdvorangesUtils;
 using Avalonia.Styling;
-using System.Collections.Immutable;
+using Newtonsoft.Json;
 
 namespace Advobot.NetCoreUI.Classes
 {
@@ -20,101 +18,34 @@ namespace Advobot.NetCoreUI.Classes
 	/// </summary>
 	public sealed class NetCoreColorSettings : ColorSettings<SolidColorBrush, NetCoreBrushFactory>
 	{
-		public static string BaseBackground => nameof(BaseBackground);
-		public static string BaseForeground => nameof(BaseForeground);
-		public static string BaseBorder => nameof(BaseBorder);
-		public static string ButtonBackground => nameof(ButtonBackground);
-		public static string ButtonForeground => nameof(ButtonForeground);
-		public static string ButtonBorder => nameof(ButtonBorder);
-		//public static string ButtonDisabledBackground => nameof(ButtonDisabledBackground);
-		//public static string ButtonDisabledForeground => nameof(ButtonDisabledForeground);
-		//public static string ButtonDisabledBorder => nameof(ButtonDisabledBorder);
-		public static string ButtonMouseOverBackground => nameof(ButtonMouseOverBackground);
-		//public static string JsonDigits => nameof(JsonDigits);
-		//public static string JsonValue => nameof(JsonValue);
-		//public static string JsonParamName => nameof(JsonParamName);
-
-		[JsonProperty("ColorTargets"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
-		private Dictionary<string, SolidColorBrush> _ColorTargets { get; set; } = new Dictionary<string, SolidColorBrush>();
-		/// <inheritdoc />
-		[JsonProperty("Theme"), Setting(ColorTheme.LightMode)]
-		public override ColorTheme Theme
+		[JsonIgnore, ColorValidation]
+		public SolidColorBrush BaseBackground
 		{
-			get => _Theme;
-			set
-			{
-				_Theme = value;
-				switch (Theme)
-				{
-					case ColorTheme.LightMode:
-						foreach (var ct in Targets)
-						{
-							UpdateResources(ct, LightModeProperties[ct]);
-						}
-						break;
-					case ColorTheme.DarkMode:
-						foreach (var ct in Targets)
-						{
-							UpdateResources(ct, DarkModeProperties[ct]);
-						}
-						break;
-					case ColorTheme.UserMade:
-						foreach (var kvp in _ColorTargets)
-						{
-							UpdateResources(kvp.Key, kvp.Value);
-						}
-						break;
-				}
-				//TODO: put this into .Net Core UI eventually?
-				//SetSyntaxHighlightingColors("Json");
-				NotifyPropertyChanged();
-			}
+			get => this[ColorTargets.BaseBackground];
+			set => this[ColorTargets.BaseBackground] = value;
 		}
-		[JsonIgnore]
-		private ColorTheme _Theme = ColorTheme.LightMode;
+
 		[JsonIgnore]
 		private IResourceDictionary _Resources;
 		[JsonIgnore]
 		private readonly ImmutableDictionary<string, string[]> _ColorNameMappings = new Dictionary<string, string[]>
 		{
-			{ BaseBackground, new[] { "ThemeBackgroundBrush" } },
+			{ ColorTargets.BaseBackground, new[] { "ThemeBackgroundBrush" } },
 			//{ BaseForeground, "ThemeAccentBrush" },
-			{ BaseBorder, new[] { "ThemeBorderMidBrush", "ThemeBorderDarkBrush" } },
-			{ ButtonBackground, new[] { "ThemeControlMidBrush" } },
-			{ ButtonForeground, new[] { "ThemeForegroundBrush" } },
-			{ ButtonBorder, new[] { "ThemeBorderLightBrush" } },
-			{ ButtonMouseOverBackground, new[] { "ThemeBorderMidBrush" } },
+			{ ColorTargets.BaseBorder, new[] { "ThemeBorderMidBrush", "ThemeBorderDarkBrush" } },
+			{ ColorTargets.ButtonBackground, new[] { "ThemeControlMidBrush" } },
+			{ ColorTargets.ButtonForeground, new[] { "ThemeForegroundBrush" } },
+			{ ColorTargets.ButtonBorder, new[] { "ThemeBorderLightBrush" } },
+			{ ColorTargets.ButtonMouseOverBackground, new[] { "ThemeBorderMidBrush" } },
 		}.ToImmutableDictionary();
 
 		/// <summary>
 		/// Creates an instance of <see cref="NetCoreColorSettings"/> and sets the default theme and colors to light.
 		/// </summary>
-		public NetCoreColorSettings()
-		{
-			Theme = ColorTheme.LightMode;
-			foreach (var target in Targets)
-			{
-				if (!_ColorTargets.TryGetValue(target, out var val))
-				{
-					_ColorTargets.Add(target, default);
-				}
-			}
-		}
+		public NetCoreColorSettings() : base() { }
 
 		/// <inheritdoc />
-		public override SolidColorBrush this[string target]
-		{
-			get => _ColorTargets[target];
-			set
-			{
-				_ColorTargets[target] = value;
-				if (_Theme == ColorTheme.UserMade)
-				{
-					UpdateResources(target, value);
-				}
-			}
-		}
-		private void UpdateResources(string target, SolidColorBrush value)
+		protected override void UpdateResources(string target, SolidColorBrush value)
 		{
 			if (_Resources == null)
 			{

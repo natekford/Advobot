@@ -2,24 +2,24 @@
 using System.Globalization;
 using System.Windows.Controls;
 
-namespace Advobot.NetFrameworkUI.Classes.Validators
+namespace Advobot.NetFrameworkUI.Classes.ValidationRules
 {
 	/// <summary>
-	/// Validation rule for user ids.
+	/// Validation rule for bot prefixes.
 	/// </summary>
-	public sealed class UserIdValidationRule : ValidationRule
+	public sealed class PrefixValidationRule : ValidationRule
 	{
 		/// <summary>
-		/// Determines whether the passed in object is a valid user id.
+		/// Determines whether the passed in object is a valid prefix.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <param name="cultureInfo"></param>
 		/// <returns></returns>
 		public override ValidationResult Validate(object value, CultureInfo cultureInfo)
 		{
-			return !(value is string str) || String.IsNullOrWhiteSpace(str) || ulong.TryParse(str, out var ul)
+			return !String.IsNullOrWhiteSpace(value.ToString())
 				? ValidationResult.ValidResult
-				: new ValidationResult(false, "Invalid user id.");
+				: new ValidationResult(false, "Invalid prefix.");
 		}
 	}
 }
