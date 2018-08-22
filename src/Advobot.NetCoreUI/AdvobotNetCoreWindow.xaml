@@ -8,7 +8,7 @@
         xmlns:viewmodels="clr-namespace:Advobot.NetCoreUI.Classes.ViewModels;assembly=Advobot.NetCoreUI"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:Advobot.NetCoreUI.Classes.UserControls;assembly=Advobot.NetCoreUI"
-        xmlns:shared="clr-namespace:Advobot.SharedUI;assembly=Advobot.Core"
+        xmlns:colors="clr-namespace:Advobot.SharedUI.Colors;assembly=Advobot.Core"
         Title="Advobot"
         WindowState="Maximized"
         FontFamily="Courier New">
@@ -30,11 +30,14 @@
     <Style Selector="TextBox.i2">
       <Setter Property="TextAlignment" Value="Center"/>
     </Style>
+    <Style Selector="TextBox.i3">
+      <Setter Property="TextAlignment" Value="Right"/>
+    </Style>
     <Style Selector="Border.b1">
       <Setter Property="Grid.RowSpan" Value="1000"/>
       <Setter Property="Grid.ColumnSpan" Value="1000"/>
       <Setter Property="BorderThickness" Value="2"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"/>
       <Setter Property="IsHitTestVisible" Value="False"/>
     </Style>
     <!-- Needs Fixing: Window height starts out as Double.NaN -->
@@ -55,22 +58,24 @@
 
     <!-- Application Info Bar -->
     <!-- Needs Fixing: Stops updating after 5 seconds no matter what timer implementation is used -->
-    <Grid Name="ApplicationInfoBar" Grid.Row="1" ColumnDefinitions="*,*,*,*">
-      <TextBox Classes="i1 i2" Grid.Column="0" Text="{Binding Uptime^, Mode=OneWay}"/>
-      <TextBox Classes="i1 i2" Grid.Column="1" Text="{Binding Latency^, Mode=OneWay}"/>
-      <TextBox Classes="i1 i2" Grid.Column="2" Text="{Binding Memory^, Mode=OneWay}"/>
-      <TextBox Classes="i1 i2" Grid.Column="3" Text="{Binding ThreadCount^, Mode=OneWay}"/>
+    <Grid Name="ApplicationInfoBar" Grid.Row="1">
+      <UniformGrid Rows="1">
+        <TextBox Classes="i1 i2" Text="{Binding Uptime^, Mode=OneWay}"/>
+        <TextBox Classes="i1 i2" Text="{Binding Latency^, Mode=OneWay}"/>
+        <TextBox Classes="i1 i2" Text="{Binding Memory^, Mode=OneWay}"/>
+        <TextBox Classes="i1 i2" Text="{Binding ThreadCount^, Mode=OneWay}"/>
+      </UniformGrid>
 
       <Border Classes="b1"/>
     </Grid>
 
     <!-- Menu Buttons -->
-    <Grid Name="ButtonMenu" Grid.Row="1" Grid.Column="1" Grid.RowSpan="3" ColumnDefinitions="*,*,*,*">
-      <Button Grid.Column="0" Content="Main" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenMainMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
-      <Button Grid.Column="1" Content="Info" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenInfoMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
-      <Button Grid.Column="2" Content="Colors" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenColorsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
-      <Button Grid.Column="3" Content="Settings" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenSettingsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
-    </Grid>
+    <UniformGrid Name="ButtonMenu" Grid.Row="1" Grid.Column="1" Grid.RowSpan="3" Rows="1">
+      <Button Content="Main" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenMainMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
+      <Button Content="Info" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenInfoMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
+      <Button Content="Colors" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenColorsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
+      <Button Content="Settings" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenSettingsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
+    </UniformGrid>
 
     <!-- Main Menu -->
     <Grid Name="MainMenu" Grid.Column="1" RowDefinitions="20*,1*" ColumnDefinitions="*,*,*" IsVisible="{Binding OpenMainMenu}" IsHitTestVisible="{Binding OpenMainMenu}">
@@ -89,38 +94,38 @@
     <!-- Info Menu -->
     <Grid Name="InfoMenu" Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,6*,3*,1*" IsVisible="{Binding OpenInfoMenu}" IsHitTestVisible="{Binding OpenInfoMenu}">
       <!-- Titles -->
-      <Grid Grid.Column="1" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
-        <TextBox Classes="i1" Grid.Row="0" Text="Guilds"/>
-        <TextBox Classes="i1" Grid.Row="1" Text="Users"/>
-        <TextBox Classes="i1" Grid.Row="2" Text="Attempted Commands"/>
-        <TextBox Classes="i1" Grid.Row="3" Text="Successful Commands"/>
-        <TextBox Classes="i1" Grid.Row="4" Text="Failed Commands"/>
-        <TextBox Classes="i1" Grid.Row="5" Text="User Joins"/>
-        <TextBox Classes="i1" Grid.Row="6" Text="User Leaves"/>
-        <TextBox Classes="i1" Grid.Row="7" Text="User Changes"/>
-        <TextBox Classes="i1" Grid.Row="8" Text="Message Edits"/>
-        <TextBox Classes="i1" Grid.Row="9" Text="Message Deletes"/>
-        <TextBox Classes="i1" Grid.Row="10" Text="Images"/>
-        <TextBox Classes="i1" Grid.Row="11" Text="Animated Content"/>
-        <TextBox Classes="i1" Grid.Row="12" Text="Files"/>
-      </Grid>
+      <UniformGrid Grid.Column="1" Columns="1">
+        <TextBox Classes="i1" Text="Guilds"/>
+        <TextBox Classes="i1" Text="Users"/>
+        <TextBox Classes="i1" Text="Attempted Commands"/>
+        <TextBox Classes="i1" Text="Successful Commands"/>
+        <TextBox Classes="i1" Text="Failed Commands"/>
+        <TextBox Classes="i1" Text="User Joins"/>
+        <TextBox Classes="i1" Text="User Leaves"/>
+        <TextBox Classes="i1" Text="User Changes"/>
+        <TextBox Classes="i1" Text="Message Edits"/>
+        <TextBox Classes="i1" Text="Message Deletes"/>
+        <TextBox Classes="i1" Text="Images"/>
+        <TextBox Classes="i1" Text="Animated Content"/>
+        <TextBox Classes="i1" Text="Files"/>
+      </UniformGrid>
 
       <!-- Info -->
-      <Grid Grid.Column="2" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
-        <TextBox Classes="i1" Grid.Row="0" Text="{Binding LogService.TotalGuilds.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="1" Text="{Binding LogService.TotalUsers.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="2" Text="{Binding LogService.AttemptedCommands.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="3" Text="{Binding LogService.SuccessfulCommands.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="4" Text="{Binding LogService.FailedCommands.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="5" Text="{Binding LogService.UserJoins.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="6" Text="{Binding LogService.UserLeaves.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="7" Text="{Binding LogService.UserChanges.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="8" Text="{Binding LogService.MessageEdits.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="9" Text="{Binding LogService.MessageDeletes.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="10" Text="{Binding LogService.Images.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="11" Text="{Binding LogService.Animated.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1" Grid.Row="12" Text="{Binding LogService.Files.Count, Mode=OneWay}"/>
-      </Grid>
+      <UniformGrid Grid.Column="2" Columns="1">
+        <TextBox Classes="i1 i3" Text="{Binding LogService.TotalGuilds.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.TotalUsers.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.AttemptedCommands.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.SuccessfulCommands.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.FailedCommands.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.UserJoins.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.UserLeaves.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.UserChanges.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.MessageEdits.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.MessageDeletes.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.Images.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.Animated.Count, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding LogService.Files.Count, Mode=OneWay}"/>
+      </UniformGrid>
 
       <Border Classes="b1"/>
     </Grid>
@@ -128,29 +133,29 @@
     <!-- Colors Menu -->
     <Grid Name="ColorsMenu" Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,8*,4*,1*" IsEnabled="True" IsVisible="{Binding OpenColorsMenu}" IsHitTestVisible="{Binding OpenColorsMenu}">
       <!-- Titles -->
-      <Grid Grid.Column="1" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
-        <TextBox Classes="i1" Grid.Row="0" Text="Theme"/>
-        <TextBox Classes="i1" Grid.Row="1" Text="Base Background"/>
-        <TextBox Classes="i1" Grid.Row="2" Text="Base Foreground"/>
-        <TextBox Classes="i1" Grid.Row="3" Text="Base Border"/>
-        <TextBox Classes="i1" Grid.Row="4" Text="Button Background"/>
-        <TextBox Classes="i1" Grid.Row="5" Text="Button Foreground"/>
-        <TextBox Classes="i1" Grid.Row="6" Text="Button Border"/>
-        <TextBox Classes="i1" Grid.Row="7" Text="Button Disabled Background"/>
-        <TextBox Classes="i1" Grid.Row="8" Text="Button Disabled Foreground"/>
-        <TextBox Classes="i1" Grid.Row="9" Text="Button Disabled Border"/>
-        <TextBox Classes="i1" Grid.Row="10" Text="Button Mouse Over Background"/>
-        <TextBox Classes="i1" Grid.Row="11" Text="Json Digits"/>
-        <TextBox Classes="i1" Grid.Row="12" Text="Json Value"/>
-        <TextBox Classes="i1" Grid.Row="13" Text="Json Param Name"/>
-      </Grid>
+      <UniformGrid Grid.Column="1" Columns="1">
+        <TextBox Classes="i1" Text="Theme"/>
+        <TextBox Classes="i1" Text="Base Background"/>
+        <TextBox Classes="i1" Text="Base Foreground"/>
+        <TextBox Classes="i1" Text="Base Border"/>
+        <TextBox Classes="i1" Text="Button Background"/>
+        <TextBox Classes="i1" Text="Button Foreground"/>
+        <TextBox Classes="i1" Text="Button Border"/>
+        <TextBox Classes="i1" Text="Button Disabled Background"/>
+        <TextBox Classes="i1" Text="Button Disabled Foreground"/>
+        <TextBox Classes="i1" Text="Button Disabled Border"/>
+        <TextBox Classes="i1" Text="Button Mouse Over Background"/>
+        <TextBox Classes="i1" Text="Json Digits"/>
+        <TextBox Classes="i1" Text="Json Value"/>
+        <TextBox Classes="i1" Text="Json Param Name"/>
+      </UniformGrid>
 
       <!-- Colors -->
-      <Grid Grid.Column="2" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
-        <DropDown Grid.Row="0" Items="{Binding Themes, Mode=OneTime}" SelectedItem="{Binding Colors.Theme}"/>
+      <UniformGrid Grid.Column="2" Columns="1">
+        <DropDown Items="{Binding Themes, Mode=OneTime}" SelectedItem="{Binding Colors.Theme}"/>
         <!-- Needs Fixing: VALIDATION DOES NOTHING -->
-        <TextBox Grid.Row="1" Text="{Binding Path=Colors.BaseBackground, Converter={StaticResource ColorConverter}}"/>
-      </Grid>
+        <TextBox Text="{Binding Path=Colors.UserDefinedColors[BaseBackground], Converter={StaticResource ColorConverter}}"/>
+      </UniformGrid>
 
       <!--Save Colors Button -->
       <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Colors" Command="{Binding SaveColorsCommand}"/>
@@ -161,51 +166,51 @@
     <!-- Settings Menu -->
     <Grid Name="SettingsMenu" Grid.Column="1" RowDefinitions="19*,1*,1*" ColumnDefinitions="1*,4*,4*,1*" IsVisible="{Binding OpenSettingsMenu}" IsHitTestVisible="{Binding OpenSettingsMenu}">
       <!-- Titles -->
-      <Grid Grid.Column="1" RowDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*">
-        <TextBox Classes="t1" Grid.Row="0" Text="Always Download Users"
+      <UniformGrid Grid.Column="1" Columns="1">
+        <TextBox Classes="t1" Text="Always Download Users"
                  ToolTip.Tip="Whether or not to gather all users in a guild when the bot joins. This requires a bot restart."/>
-        <TextBox Classes="t1" Grid.Row="1" Text="Prefix"
+        <TextBox Classes="t1" Text="Prefix"
                  ToolTip.Tip="The text before a command." />
-        <TextBox Classes="t1" Grid.Row="2" Text="Game"
+        <TextBox Classes="t1" Text="Game"
                  ToolTip.Tip="The text saying what the bot is playing or streaming."/>
-        <TextBox Classes="t1" Grid.Row="3" Text="Stream"
+        <TextBox Classes="t1" Text="Stream"
                  ToolTip.Tip="Links to a Twitch.tv stream."/>
-        <TextBox Classes="t1" Grid.Row="4" Text="Message Cache Size"
+        <TextBox Classes="t1" Text="Message Cache Size"
                  ToolTip.Tip="How many messages the bot should keep in storage at a time. This requires a bot restart."/>
-        <TextBox Classes="t1" Grid.Row="5" Text="User Gather Count"
+        <TextBox Classes="t1" Text="User Gather Count"
                  ToolTip.Tip="How many users multi user targetting commands should target by default."/>
-        <TextBox Classes="t1" Grid.Row="6" Text="Message Gather Size"
+        <TextBox Classes="t1" Text="Message Gather Size"
                  ToolTip.Tip="How many KBs worth of messages downloadmessages should gather at maximum."/>
-        <TextBox Classes="t1" Grid.Row="7" Text="Rule Categories"
+        <TextBox Classes="t1" Text="Rule Categories"
                  ToolTip.Tip="How many categories can exist."/>
-        <TextBox Classes="t1" Grid.Row="8" Text="Rules Per Category"
+        <TextBox Classes="t1" Text="Rules Per Category"
                  ToolTip.Tip="How many rules can be in each category."/>
-        <TextBox Classes="t1" Grid.Row="9" Text="Self Assignable Role Groups"
+        <TextBox Classes="t1" Text="Self Assignable Role Groups"
                  ToolTip.Tip="How many self assignable role groups a server can have."/>
-        <TextBox Classes="t1" Grid.Row="10" Text="Quotes"
+        <TextBox Classes="t1" Text="Quotes"
                  ToolTip.Tip="How many quotes a server can have."/>
-        <TextBox Classes="t1" Grid.Row="11" Text="Banned Strings"
+        <TextBox Classes="t1" Text="Banned Strings"
                  ToolTip.Tip="How many strings can be banned from a server."/>
-        <TextBox Classes="t1" Grid.Row="12" Text="Banned Regex"
+        <TextBox Classes="t1" Text="Banned Regex"
                  ToolTip.Tip="How many regex patterns can be banned from a server."/>
-        <TextBox Classes="t1" Grid.Row="13" Text="Banned Names"
+        <TextBox Classes="t1" Text="Banned Names"
                  ToolTip.Tip="How many names can be banned from a server."/>
-        <TextBox Classes="t1" Grid.Row="13" Text="Banned Punishments"
+        <TextBox Classes="t1" Text="Banned Punishments"
                  ToolTip.Tip="How many punishments can be added to a server."/>
-        <TextBox Classes="t1" Grid.Row="13" Text="Log Level"
+        <TextBox Classes="t1" Text="Log Level"
                  ToolTip.Tip="Prints out items with an equal to or higher log severity to the console. This requires a bot restart."/>
-        <TextBox Classes="t1" Grid.Row="13" Text="Trusted Users"
+        <TextBox Classes="t1" Text="Trusted Users"
                  ToolTip.Tip="Users in here can use some commands only the bot owner can use otherwise."/>
-        <TextBox Classes="t1" Grid.Row="13" Text="Users Unable To Dm Owner"
+        <TextBox Classes="t1" Text="Users Unable To Dm Owner"
                  ToolTip.Tip="Users in here cannot send DMs to the owner through the bot."/>
-        <TextBox Classes="t1" Grid.Row="13" Text="Users Ignored From Commands"
+        <TextBox Classes="t1" Text="Users Ignored From Commands"
                  ToolTip.Tip="Users in here cannot use the bot at all."/>
-      </Grid>
+      </UniformGrid>
 
       <!-- Settings -->
-      <Grid Grid.Column="2">
-        <TextBox Grid.Row="1" Text="{Binding Prefix}"/>
-      </Grid>
+      <UniformGrid Grid.Column="2" Columns="1">
+        <TextBox Text="{Binding Prefix}"/>
+      </UniformGrid>
 
       <!-- Save Settings Button -->
       <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Settings" Command="{Binding SaveBotSettingsCommand}"/>

@@ -1,5 +1,6 @@
 ﻿using System.Windows.Data;
 using System.Windows.Media;
+using Advobot.NetFrameworkUI.Classes.Colors;
 using Advobot.SharedUI.Converters;
 
 namespace Advobot.NetFrameworkUI.Classes.Converters

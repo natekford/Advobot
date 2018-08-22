@@ -7,7 +7,7 @@
              xmlns:controls="clr-namespace:Advobot.NetFrameworkUI.Classes.Controls"
              xmlns:converters="clr-namespace:Advobot.NetFrameworkUI.Classes.Converters"
              xmlns:validationrules="clr-namespace:Advobot.NetFrameworkUI.Classes.ValidationRules"
-             xmlns:shared="clr-namespace:Advobot.SharedUI;assembly=Advobot.Core"
+             xmlns:colors="clr-namespace:Advobot.SharedUI.Colors;assembly=Advobot.Core"
              mc:Ignorable="d"
              Startup="OnStartup">
 
@@ -20,39 +20,29 @@
         <!-- Validators -->
         <validationrules:ColorValidationRule x:Key="ColorValidationRule" />
         <!-- Colors -->
-        <x:Static x:Key="{x:Static shared:ColorTargets.BaseBackground}"
-                  Member="classes:NetFrameworkColorSettings.LightModeBaseBackground" />
-        <x:Static x:Key="{x:Static shared:ColorTargets.BaseForeground}"
-                  Member="classes:NetFrameworkColorSettings.LightModeBaseForeground" />
-        <x:Static x:Key="{x:Static shared:ColorTargets.BaseBorder}"
-                  Member="classes:NetFrameworkColorSettings.LightModeBaseBorder" />
-        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonBackground}"
-                  Member="classes:NetFrameworkColorSettings.LightModeButtonBackground" />
-        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonForeground}"
-                  Member="classes:NetFrameworkColorSettings..LightModeButtonForeground" />
-        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonBorder}"
-                  Member="classes:NetFrameworkColorSettings.LightModeButtonBorder" />
-        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonDisabledBackground}"
-                  Member="classes:NetFrameworkColorSettings.LightModeButtonDisabledBackground" />
-        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonDisabledForeground}"
-                  Member="classes:NetFrameworkColorSettings.LightModeButtonDisabledForeground" />
-        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonDisabledBorder}"
-                  Member="classes:NetFrameworkColorSettings.LightModeButtonDisabledBorder" />
-        <x:Static x:Key="{x:Static shared:ColorTargets.ButtonMouseOverBackground}"
-                  Member="classes:NetFrameworkColorSettings.LightModeButtonMouseOverBackground" />
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.BaseBackground}"/>
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.BaseForeground}" />
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.BaseBorder}" />
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.ButtonBackground}" />
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.ButtonForeground}" />
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.ButtonBorder}" />
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.ButtonDisabledBackground}" />
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.ButtonDisabledForeground}" />
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.ButtonDisabledBorder}" />
+        <SolidColorBrush x:Key="{x:Static colors:ColorTargets.ButtonMouseOverBackground}" />
         <!-- Templates -->
         <ControlTemplate x:Key="ButtonControlTemplate"
                          TargetType="ButtonBase">
             <Border Name="ButtonControlTemplateBorder"
                     BorderThickness="1"
-                    Background="{DynamicResource {x:Static shared:ColorTargets.ButtonBackground}}"
-                    BorderBrush="{DynamicResource {x:Static shared:ColorTargets.ButtonBorder}}">
+                    Background="{DynamicResource {x:Static colors:ColorTargets.ButtonBackground}}"
+                    BorderBrush="{DynamicResource {x:Static colors:ColorTargets.ButtonBorder}}">
                 <ContentPresenter x:Name="ButtonControlTemplateBorderContentPresenter"
                                   Margin="2"
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center"
                                   RecognizesAccessKey="True"
-                                  TextBlock.Foreground="{DynamicResource {x:Static shared:ColorTargets.ButtonForeground}}" />
+                                  TextBlock.Foreground="{DynamicResource {x:Static colors:ColorTargets.ButtonForeground}}" />
             </Border>
 
             <ControlTemplate.Triggers>
@@ -60,30 +50,30 @@
                          Value="True">
                     <Setter TargetName="ButtonControlTemplateBorder"
                             Property="Background"
-                            Value="{DynamicResource {x:Static shared:ColorTargets.ButtonMouseOverBackground}}" />
+                            Value="{DynamicResource {x:Static colors:ColorTargets.ButtonMouseOverBackground}}" />
                 </Trigger>
                 <Trigger Property="IsEnabled"
                          Value="False">
                     <Setter TargetName="ButtonControlTemplateBorder"
                             Property="Background"
-                            Value="{DynamicResource {x:Static shared:ColorTargets.ButtonDisabledBackground}}" />
+                            Value="{DynamicResource {x:Static colors:ColorTargets.ButtonDisabledBackground}}" />
                     <Setter TargetName="ButtonControlTemplateBorder"
                             Property="BorderBrush"
-                            Value="{DynamicResource {x:Static shared:ColorTargets.ButtonDisabledBorder}}" />
+                            Value="{DynamicResource {x:Static colors:ColorTargets.ButtonDisabledBorder}}" />
                     <Setter TargetName="ButtonControlTemplateBorderContentPresenter"
                             Property="TextBlock.Foreground"
-                            Value="{DynamicResource {x:Static shared:ColorTargets.ButtonDisabledForeground}}" />
+                            Value="{DynamicResource {x:Static colors:ColorTargets.ButtonDisabledForeground}}" />
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
         <!-- Styles -->
         <Style TargetType="Control">
             <Setter Property="Background"
-                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseBackground}}" />
+                    Value="{DynamicResource {x:Static colors:ColorTargets.BaseBackground}}" />
             <Setter Property="Foreground"
-                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseForeground}}" />
+                    Value="{DynamicResource {x:Static colors:ColorTargets.BaseForeground}}" />
             <Setter Property="BorderBrush"
-                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}" />
+                    Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}" />
         </Style>
         <Style TargetType="controls:AdvobotTextBox"
                BasedOn="{StaticResource {x:Type Control}}" />
@@ -111,14 +101,14 @@
                                                  TargetType="ComboBoxItem">
                                     <Border Name="ComboBoxItemTemplateBorder"
                                             BorderThickness="1"
-                                            Background="{DynamicResource {x:Static shared:ColorTargets.ButtonBackground}}"
-                                            BorderBrush="{DynamicResource {x:Static shared:ColorTargets.ButtonBorder}}">
+                                            Background="{DynamicResource {x:Static colors:ColorTargets.ButtonBackground}}"
+                                            BorderBrush="{DynamicResource {x:Static colors:ColorTargets.ButtonBorder}}">
                                         <ContentPresenter x:Name="ComboBoxItemTemplateBorderContentPresenter"
                                                           Margin="2"
                                                           HorizontalAlignment="Center"
                                                           VerticalAlignment="Center"
                                                           RecognizesAccessKey="True"
-                                                          TextBlock.Foreground="{DynamicResource {x:Static shared:ColorTargets.ButtonForeground}}" />
+                                                          TextBlock.Foreground="{DynamicResource {x:Static colors:ColorTargets.ButtonForeground}}" />
                                     </Border>
 
                                     <ControlTemplate.Triggers>
@@ -126,7 +116,7 @@
                                                  Value="True">
                                             <Setter TargetName="ComboBoxItemTemplateBorder"
                                                     Property="Background"
-                                                    Value="{DynamicResource {x:Static shared:ColorTargets.ButtonMouseOverBackground}}" />
+                                                    Value="{DynamicResource {x:Static colors:ColorTargets.ButtonMouseOverBackground}}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -138,11 +128,11 @@
         </Style>
         <Style TargetType="controls:AdvobotGrid">
             <Setter Property="Control.Background"
-                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseBackground}}" />
+                    Value="{DynamicResource {x:Static colors:ColorTargets.BaseBackground}}" />
             <Setter Property="Control.Foreground"
-                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseForeground}}" />
+                    Value="{DynamicResource {x:Static colors:ColorTargets.BaseForeground}}" />
             <Setter Property="Control.BorderBrush"
-                    Value="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}" />
+                    Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}" />
         </Style>
         <Style TargetType="controls:AdvobotTitle">
             <Setter Property="VerticalAlignment"

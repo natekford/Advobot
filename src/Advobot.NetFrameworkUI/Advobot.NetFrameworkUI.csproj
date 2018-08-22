@@ -154,7 +154,7 @@
     <Compile Include="Classes\Converters\NetFrameworkColorConverter.cs" />
     <Compile Include="Classes\Converters\EnumerableConverter.cs" />
     <Compile Include="Classes\DpiDecorator.cs" />
-    <Compile Include="Classes\NetFrameworkBrushFactory.cs" />
+    <Compile Include="Classes\Colors\NetFrameworkBrushFactory.cs" />
     <Compile Include="Classes\UserListModificationEventArgs.cs" />
     <Compile Include="Classes\UserListModificationEventHandler.cs" />
     <Compile Include="Classes\ValidationRules\ColorValidationRule.cs" />
@@ -187,7 +187,7 @@
     <Compile Include="Classes\Converters\UriConverter.cs" />
     <Compile Include="Classes\Holder.cs" />
     <Compile Include="Classes\TextBoxStreamWriter.cs" />
-    <Compile Include="Classes\NetFrameworkColorSettings.cs" />
+    <Compile Include="Classes\Colors\NetFrameworkColorSettings.cs" />
     <Compile Include="Enums\Modal.cs" />
     <Compile Include="Enums\OtherTarget.cs" />
     <Compile Include="Classes\Extensions\NameOfExtension.cs" />

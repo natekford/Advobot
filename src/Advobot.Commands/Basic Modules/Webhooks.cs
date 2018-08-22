@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -14,6 +15,7 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
+using Discord.Webhook;
 
 namespace Advobot.Commands.Webhooks
 {
@@ -138,47 +140,28 @@ namespace Advobot.Commands.Webhooks
 	}
 
 	[Category(typeof(SendMessageThroughWebhook)), Group(nameof(SendMessageThroughWebhook)), TopLevelShortAlias(typeof(SendMessageThroughWebhook))]
-	[Summary("Sends a message through a webhook.")]
+	[Summary("Sends a message through a webhook. Use this command if you're annoying.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(false)]
 	public sealed class SendMessageThroughWebhook : AdvobotModuleBase
 	{
-		private static ConcurrentDictionary<ulong, RateLimit> _RateLimits = new ConcurrentDictionary<ulong, RateLimit>();
+		private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks = new ConcurrentDictionary<ulong, ulong>();
+		private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients = new ConcurrentDictionary<ulong, DiscordWebhookClient>();
 
-		[Command]
+		[Command(RunMode = RunMode.Async)]
 		public async Task Command(IWebhook webhook, [Remainder] string text)
 		{
-			if (_RateLimits.TryGetValue(Context.Guild.Id, out var rateLimit) && rateLimit.Messages < 1 && DateTime.UtcNow < rateLimit.Time)
+			var webhookId = _GuildsToWebhooks.AddOrUpdate(Context.Guild.Id, webhook.Id, (k, v) =>
 			{
-				var error = new Error($"Cannot send a new message to the webhook until `{rateLimit.Time.ToLongTimeString()}` UTC");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-
-			var req = (HttpWebRequest)WebRequest.Create($"https://canary.discordapp.com/api/webhooks/{webhook.Id}/{webhook.Token}");
-			req.Proxy = new WebProxy();
-			req.Credentials = CredentialCache.DefaultCredentials;
-			req.Method = HttpMethod.Post.Method;
-			req.Accept = req.ContentType = "application/json";
-
-			var bytes = new ASCIIEncoding().GetBytes($@"{{ ""content"":""{text}"" }}");
-			req.ContentLength = bytes.Length;
-			using (var s = await req.GetRequestStreamAsync().CAF())
-			{
-				await s.WriteAsync(bytes, 0, bytes.Length).CAF();
-			}
-
-			var resp = (HttpWebResponse)(await req.GetResponseAsync().CAF());
-			rateLimit = _RateLimits.GetOrAdd(Context.Guild.Id, new RateLimit());
-			var headers = resp.Headers;
-			rateLimit.Time = (new DateTime(1970, 1, 1) + TimeSpan.FromSeconds(Convert.ToInt64(resp.Headers["X-RateLimit-Reset"]))).ToUniversalTime();
-			rateLimit.Messages = Convert.ToInt32(resp.Headers["X-RateLimit-Remaining"]);
-		}
-
-		private struct RateLimit
-		{
-			public int Messages { get; set; }
-			public DateTime Time { get; set; }
+				//If the most recently used webhook does not match the id of the supplied one, remove that client
+				if (v != webhook.Id)
+				{
+					_Clients.TryRemove(v, out var removed);
+				}
+				return webhook.Id;
+			});
+			//If the client already exists, use that, otherwise create a new client
+			await _Clients.GetOrAdd(webhookId, _ => new DiscordWebhookClient(webhook)).SendMessageAsync(text).CAF();
 		}
 	}
 }

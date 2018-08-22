@@ -1,7 +1,7 @@
-﻿using Advobot.SharedUI;
+﻿using Advobot.SharedUI.Colors;
 using Avalonia.Media;
 
-namespace Advobot.NetCoreUI.Classes
+namespace Advobot.NetCoreUI.Classes.Colors
 {
 	/// <summary>
 	/// Factory for <see cref="SolidColorBrush"/>.

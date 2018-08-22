@@ -1,4 +1,5 @@
-﻿using Advobot.SharedUI.Converters;
+﻿using Advobot.NetCoreUI.Classes.Colors;
+using Advobot.SharedUI.Converters;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 

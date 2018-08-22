@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Advobot.NetCoreUI.Classes.Colors;
 
 namespace Advobot.NetCoreUI.Classes.ValidationAttributes
 {

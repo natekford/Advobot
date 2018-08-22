@@ -13,6 +13,7 @@ using System.Windows.Threading;
 using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.NetFrameworkUI.Classes;
+using Advobot.NetFrameworkUI.Classes.Colors;
 using Advobot.NetFrameworkUI.Enums;
 using Advobot.NetFrameworkUI.Utilities;
 using Advobot.Utilities;

@@ -1,4 +1,4 @@
-﻿namespace Advobot.SharedUI
+﻿namespace Advobot.SharedUI.Colors
 {
 	/// <summary>
 	/// Targets to put colors on.

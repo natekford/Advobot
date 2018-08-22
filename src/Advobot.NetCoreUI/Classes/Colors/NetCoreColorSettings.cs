@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Advobot.NetCoreUI.Classes.ValidationAttributes;
-using Advobot.SharedUI;
+using Advobot.SharedUI.Colors;
 using AdvorangesUtils;
 using Avalonia;
 using Avalonia.Controls;
@@ -11,20 +10,13 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Newtonsoft.Json;
 
-namespace Advobot.NetCoreUI.Classes
+namespace Advobot.NetCoreUI.Classes.Colors
 {
 	/// <summary>
 	/// Color settings for Advobot's .Net Core UI.
 	/// </summary>
 	public sealed class NetCoreColorSettings : ColorSettings<SolidColorBrush, NetCoreBrushFactory>
 	{
-		[JsonIgnore, ColorValidation]
-		public SolidColorBrush BaseBackground
-		{
-			get => this[ColorTargets.BaseBackground];
-			set => this[ColorTargets.BaseBackground] = value;
-		}
-
 		[JsonIgnore]
 		private IResourceDictionary _Resources;
 		[JsonIgnore]
@@ -45,7 +37,7 @@ namespace Advobot.NetCoreUI.Classes
 		public NetCoreColorSettings() : base() { }
 
 		/// <inheritdoc />
-		protected override void UpdateResources(string target, SolidColorBrush value)
+		protected override void UpdateResource(string target, SolidColorBrush value)
 		{
 			if (_Resources == null)
 			{

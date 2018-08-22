@@ -119,12 +119,14 @@ namespace Advobot.Services.Commands
 			var argPos = -1;
 			if (!_Loaded
 				|| _BotSettings.Pause
-				|| String.IsNullOrWhiteSpace(message.Content)
+				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
+				|| message.Author.IsBot
+				|| string.IsNullOrWhiteSpace(message.Content)
 				|| !(message is SocketUserMessage msg)
 				|| !(msg.Author is SocketGuildUser user)
-				|| user.IsBot
 				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
-				|| !(msg.HasStringPrefix(_BotSettings.InternalGetPrefix(settings), ref argPos) && !msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
+				|| !(msg.HasStringPrefix(_BotSettings.InternalGetPrefix(settings), ref argPos)
+						|| msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
 			{
 				return;
 			}
@@ -132,128 +134,33 @@ namespace Advobot.Services.Commands
 			var context = new AdvobotCommandContext(_Provider, settings, _Client, msg);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 
-			if (!(context is AdvobotCommandContext aContext) || (!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)
+			if ((!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)
 			{
 				return;
 			}
 			if (result.IsSuccess)
 			{
 				NotifyLogCounterIncrement(nameof(ILogService.SuccessfulCommands), 1);
-				await MessageUtils.DeleteMessageAsync(aContext.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
-				if (aContext.GuildSettings.ModLogId != 0 && !aContext.GuildSettings.IgnoredLogChannels.Contains(aContext.Channel.Id))
+				await MessageUtils.DeleteMessageAsync(context.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
+				if (context.GuildSettings.ModLogId != 0 && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
 					var embed = new EmbedWrapper
 					{
-						Description = aContext.Message.Content
+						Description = context.Message.Content
 					};
-					embed.TryAddAuthor(aContext.User, out _);
+					embed.TryAddAuthor(context.User, out _);
 					embed.TryAddFooter("Mod Log", null, out _);
-					await MessageUtils.SendMessageAsync(aContext.Guild.GetTextChannel(aContext.GuildSettings.ModLogId), null, embed).CAF();
+					await MessageUtils.SendMessageAsync(context.Guild.GetTextChannel(context.GuildSettings.ModLogId), null, embed).CAF();
 				}
 			}
 			else
 			{
 				NotifyLogCounterIncrement(nameof(ILogService.FailedCommands), 1);
-				await MessageUtils.SendErrorMessageAsync(aContext, new Error(result.ErrorReason)).CAF();
+				await MessageUtils.SendErrorMessageAsync(context, new Error(result.ErrorReason)).CAF();
 			}
 
-			ConsoleUtils.WriteLine(aContext.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+			ConsoleUtils.WriteLine(context.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 			NotifyLogCounterIncrement(nameof(ILogService.AttemptedCommands), 1);
 		}
-
-		/*
-		private static async Task<ModuleInfo> CreateSettingModificationModuleAsync<TRegistered, TImplementation>(IServiceProvider services, CommandService commands)
-			where TRegistered : ISettingsBase
-			where TImplementation : TRegistered
-		{
-			var type = typeof(TImplementation);
-			var name = $"Modify{type.Name}";
-			return await commands.CreateModuleAsync(name, m =>
-			{
-				m.AddAliases(new TopLevelShortAliasAttribute(type).Aliases);
-				m.WithSummary("test");
-				m.AddAttributes(
-					new CategoryAttribute("Settings"),
-					new OtherRequirementAttribute(Precondition.BotOwner),
-					new DefaultEnabledAttribute(true),
-					new SaveBotSettingsAttribute());
-
-				var resetCmd = "Reset";
-				m.AddCommand(resetCmd, async (context, args, provider, command) =>
-				{
-					if (!(context is AdvobotCommandContext aContext))
-					{
-						return;
-					}
-					var settings = provider.GetRequiredService<TRegistered>();
-					var settingName = (string)args[0];
-					if (!settings.GetSettings().TryGetValue(settingName, out var field))
-					{
-						await MessageUtils.SendErrorMessageAsync(aContext, new Error($"`{settingName}` is not a valid setting.")).CAF();
-						return;
-					}
-					var resp = $"Successfully reset {settingName.FormatTitle().ToLower()} to `{settings.ResetSetting(field.Name)}`.";
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(aContext, resp).CAF();
-				}, c =>
-				{
-					c.AddAliases(new ShortAliasAttribute(resetCmd).Aliases);
-					c.AddParameter<string>("settingName", p => { });
-				});
-
-				var modifyCmd = "Modify";
-				m.AddModule(modifyCmd, sm =>
-				{
-					foreach (var setting in services.GetRequiredService<TRegistered>().GetSettings())
-					{
-						var settingName = setting.Key;
-						var settingType = setting.Value.PropertyType;
-						var isList = settingType != typeof(string) && typeof(IList).IsAssignableFrom(settingType);
-						sm.AddCommand(settingName, async (context, args, provider, command) =>
-						{
-							if (!(context is AdvobotCommandContext aContext))
-							{
-								return;
-							}
-
-							var service = provider.GetRequiredService<TRegistered>();
-							var value = args[0];
-							if (!isList)
-							{
-								setting.Value.SetValue(service, value);
-								var resp = $"Successfully set {settingName.FormatTitle().ToLower()} to `{setting.Value.GetValue(service)}`.";
-								await MessageUtils.MakeAndDeleteSecondaryMessageAsync(aContext, resp).CAF();
-								return;
-							}
-
-							var list = (IList)setting.Value.GetValue(service);
-							if ((bool)args[1])
-							{
-								list.Add(value);
-								var resp = $"Successfully added `{value}` to {settingName.FormatTitle().ToLower()}.";
-								await MessageUtils.MakeAndDeleteSecondaryMessageAsync(aContext, resp).CAF();
-							}
-							else
-							{
-								list.Remove(value);
-								var resp = $"Successfully removed `{value}` from {settingName.FormatTitle().ToLower()}.";
-								await MessageUtils.MakeAndDeleteSecondaryMessageAsync(aContext, resp).CAF();
-							}
-						}, c =>
-						{
-							c.AddAliases(new ShortAliasAttribute(settingName).Aliases);
-							if (isList)
-							{
-								c.AddParameter("value", settingType.GetGenericArguments()[0], p => { });
-								c.AddParameter("add", typeof(bool), p => { });
-							}
-							else
-							{
-								c.AddParameter("value", settingType, p => { });
-							}
-						});
-					}
-				});
-			}).CAF();
-		}*/
 	}
 }

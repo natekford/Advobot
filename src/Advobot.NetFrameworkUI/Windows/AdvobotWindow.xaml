@@ -14,7 +14,7 @@
         xmlns:core="clr-namespace:Advobot;assembly=Advobot.Core"
         xmlns:discordenums="clr-namespace:Discord;assembly=Discord.Net.Core"
         xmlns:threading="clr-namespace:System.Windows.Threading;assembly=WindowsBase"
-        xmlns:shared="clr-namespace:Advobot.SharedUI;assembly=Advobot.Core"
+        xmlns:colors="clr-namespace:Advobot.SharedUI.Colors;assembly=Advobot.Core"
         mc:Ignorable="d"
         Title="Advobot"
         WindowState="Maximized"
@@ -252,7 +252,7 @@
                                         Content="Pause"
                                         Click="Pause" />
 
-                <Border BorderBrush="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"
+                <Border BorderBrush="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"
                         BorderThickness="1"
                         Grid.RowSpan="1000"
                         Grid.ColumnSpan="1000" />
@@ -345,7 +345,7 @@
                                         Content="Search For File"
                                         Click="SearchForFile" />
 
-                <Border BorderBrush="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"
+                <Border BorderBrush="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"
                         BorderThickness="1"
                         Grid.RowSpan="1000"
                         Grid.ColumnSpan="1000" />
@@ -417,19 +417,19 @@
                     <controls:AdvobotComboBox SourceEnum="{x:Type advobotenums:ColorTheme}"
                                               SelectedItem="{Binding Colors.Theme, UpdateSourceTrigger=PropertyChanged}"
                                               IsSynchronizedWithCurrentItem="True" />
-                    <controls:AdvobotColorBox ColorPath="Colors[BaseBackground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[BaseForeground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[BaseBorder]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[ButtonBackground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[ButtonForeground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[ButtonBorder]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[ButtonDisabledBackground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[ButtonDisabledForeground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[ButtonDisabledBorder]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[ButtonMouseOverBackground]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[JsonDigits]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[JsonValue]" />
-                    <controls:AdvobotColorBox ColorPath="Colors[JsonParamName]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[BaseBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[BaseForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[BaseBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[ButtonBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[ButtonForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[ButtonBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[ButtonDisabledBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[ButtonDisabledForeground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[ButtonDisabledBorder]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[ButtonMouseOverBackground]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[JsonDigits]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[JsonValue]" />
+                    <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[JsonParamName]" />
                 </UniformGrid>
 
                 <!--Save Colors Button -->
@@ -439,7 +439,7 @@
                                         Content="Save Colors"
                                         Click="SaveColors" />
 
-                <Border BorderBrush="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"
+                <Border BorderBrush="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"
                         BorderThickness="1"
                         Grid.RowSpan="1000"
                         Grid.ColumnSpan="1000" />
@@ -647,7 +647,7 @@
                                         Content="Save Settings"
                                         Click="SaveSettings" />
 
-                <Border BorderBrush="{DynamicResource {x:Static shared:ColorTargets.BaseBorder}}"
+                <Border BorderBrush="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"
                         BorderThickness="1"
                         Grid.RowSpan="1000"
                         Grid.ColumnSpan="1000" />

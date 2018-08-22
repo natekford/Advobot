@@ -1,4 +1,4 @@
-﻿namespace Advobot.SharedUI
+﻿namespace Advobot.SharedUI.Colors
 {
 	/// <summary>
 	/// Specifies how to create a brush.

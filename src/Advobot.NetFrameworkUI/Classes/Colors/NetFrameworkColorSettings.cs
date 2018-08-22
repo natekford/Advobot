@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using Advobot.SharedUI;
+using Advobot.SharedUI.Colors;
 using AdvorangesUtils;
 using ICSharpCode.AvalonEdit.Highlighting;
 
-namespace Advobot.NetFrameworkUI.Classes
+namespace Advobot.NetFrameworkUI.Classes.Colors
 {
 	/// <summary>
 	/// Color settings for Advobot's .Net Framework UI.
@@ -19,7 +19,7 @@ namespace Advobot.NetFrameworkUI.Classes
 		public NetFrameworkColorSettings() : base() { }
 
 		/// <inheritdoc />
-		protected override void UpdateResources(string target, SolidColorBrush value)
+		protected override void UpdateResource(string target, SolidColorBrush value)
 		{
 			Application.Current.Resources[target] = value;
 		}
@@ -38,13 +38,13 @@ namespace Advobot.NetFrameworkUI.Classes
 				{
 					//E.G.: Highlighting name is json, color name is Param, searches for jsonParam
 					var colorName = highlighting.Name + namedColor.Name;
-					if (!(Targets.SingleOrDefault(x => x.CaseInsEquals(colorName)) is string str))
+					if (!(LightMode.Keys.SingleOrDefault(x => x.CaseInsEquals(colorName)) is string str))
 					{
 						continue;
 					}
 
 					//Get the set color, if one doesn't exist, use the default light mode
-					var color = ((SolidColorBrush)Application.Current.Resources[str])?.Color ?? LightModeProperties[str].Color;
+					var color = ((SolidColorBrush)Application.Current.Resources[str])?.Color ?? LightMode[str].Color;
 					namedColor.Foreground = new SimpleHighlightingBrush(color);
 				}
 			}

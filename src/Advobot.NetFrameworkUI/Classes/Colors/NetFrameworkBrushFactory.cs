@@ -1,7 +1,7 @@
 ﻿using System.Windows.Media;
-using Advobot.SharedUI;
+using Advobot.SharedUI.Colors;
 
-namespace Advobot.NetFrameworkUI.Classes
+namespace Advobot.NetFrameworkUI.Classes.Colors
 {
 	/// <summary>
 	/// Factory for <see cref="SolidColorBrush"/>.

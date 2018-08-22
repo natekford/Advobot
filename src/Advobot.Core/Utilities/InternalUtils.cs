@@ -13,7 +13,7 @@ namespace Advobot.Utilities
 	/// Utilities intended to be only used internally.
 	/// </summary>
 	internal static class InternalUtils
-    {
+	{
 		/// <summary>
 		/// Generic verify restricted to IGuildUser, IGuildChannel, and IRole.
 		/// </summary>
@@ -123,7 +123,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		internal static string InternalGetPrefix(this IBotSettings b, IGuildSettings g)
 		{
-			return String.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g?.Prefix;
+			return string.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g?.Prefix;
 		}
 	}
 }
