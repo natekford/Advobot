@@ -67,11 +67,11 @@ namespace Advobot.Utilities
 						writer.Write(textFile.Text.Trim());
 						writer.Flush();
 						stream.Seek(0, SeekOrigin.Begin);
-						return await channel.SendFileAsync(stream, textFile.Name, content, embed: embedWrapper?.Build()).CAF();
+						return await channel.SendFileAsync(stream, textFile.Name, content, embed: embedWrapper).CAF();
 					}
 				}
 
-				return await channel.SendMessageAsync(content, embed: embedWrapper?.Build()).CAF();
+				return await channel.SendMessageAsync(content, embed: embedWrapper).CAF();
 			}
 			//If the message fails to send, then return the error
 			catch (Exception e)

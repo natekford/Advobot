@@ -13,12 +13,13 @@ namespace Advobot.SharedUI.Colors
 	/// <summary>
 	/// Indicates what colors to use in the UI.
 	/// </summary>
-	public abstract class ColorSettings<TBrush, TBrushFactory> : SettingsBase where TBrushFactory : BrushFactory<TBrush>, new()
+	public abstract class ColorSettings<TBrush, TBrushFactory> : SettingsBase, IColorSettings<TBrush>
+		where TBrushFactory : BrushFactory<TBrush>, new()
 	{
 		/// <summary>
 		/// A light color UI theme.
 		/// </summary>
-		public static Theme<TBrush, TBrushFactory> LightMode { get; } = new Theme<TBrush, TBrushFactory>
+		public static ITheme<TBrush> LightMode { get; } = new Theme<TBrush, TBrushFactory>
 		{
 			{ ColorTargets.BaseBackground,            "#FFFFFF" },
 			{ ColorTargets.BaseForeground,            "#000000" },
@@ -37,7 +38,7 @@ namespace Advobot.SharedUI.Colors
 		/// <summary>
 		/// A dark color UI theme.
 		/// </summary>
-		public static Theme<TBrush, TBrushFactory> DarkMode { get; } = new Theme<TBrush, TBrushFactory>
+		public static ITheme<TBrush> DarkMode { get; } = new Theme<TBrush, TBrushFactory>
 		{
 			{ ColorTargets.BaseBackground,            "#1C1C1C" },
 			{ ColorTargets.BaseForeground,            "#E1E1E1" },
@@ -58,7 +59,7 @@ namespace Advobot.SharedUI.Colors
 		/// Colors defined by the user.
 		/// </summary>
 		[JsonProperty("ColorTargets", Order = 1), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
-		public Theme<TBrush, TBrushFactory> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
+		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
 		/// <inheritdoc />
 		[JsonProperty("Theme", Order = 2), Setting(ColorTheme.LightMode)]
 		public ColorTheme Theme
@@ -86,13 +87,17 @@ namespace Advobot.SharedUI.Colors
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.LightMode;
 
+		static ColorSettings()
+		{
+			LightMode.Freeze();
+			DarkMode.Freeze();
+		}
+
 		/// <summary>
 		/// Creates an instance of <see cref="ColorSettings{TBrush, TBrushFactory}"/> and sets the default theme and colors to light.
 		/// </summary>
 		public ColorSettings()
 		{
-			LightMode.Freeze();
-			DarkMode.Freeze();
 			Theme = ColorTheme.LightMode;
 			foreach (var key in LightMode.Keys)
 			{
@@ -108,10 +113,10 @@ namespace Advobot.SharedUI.Colors
 		{
 			if (Theme == ColorTheme.UserMade)
 			{
-				UpdateResource(e.PropertyName, ((Theme<TBrush, TBrushFactory>)sender)[e.PropertyName]);
+				UpdateResource(e.PropertyName, ((ITheme<TBrush>)sender)[e.PropertyName]);
 			}
 		}
-		private void UpdateResources(Theme<TBrush, TBrushFactory> theme)
+		private void UpdateResources(ITheme<TBrush> theme)
 		{
 			foreach (var key in theme.Keys)
 			{

@@ -153,7 +153,6 @@
       <!-- Colors -->
       <UniformGrid Grid.Column="2" Columns="1">
         <DropDown Items="{Binding Themes, Mode=OneTime}" SelectedItem="{Binding Colors.Theme}"/>
-        <!-- Needs Fixing: VALIDATION DOES NOTHING -->
         <TextBox Text="{Binding Path=Colors.UserDefinedColors[BaseBackground], Converter={StaticResource ColorConverter}}"/>
       </UniformGrid>
 
@@ -208,8 +207,26 @@
       </UniformGrid>
 
       <!-- Settings -->
-      <UniformGrid Grid.Column="2" Columns="1">
+      <UniformGrid Grid.Column="2" Columns="1" DataContext="{Binding BotSettingsViewModel}">
+        <CheckBox IsChecked="{Binding AlwaysDownloadUsers}"/>
         <TextBox Text="{Binding Prefix}"/>
+        <TextBox Text="{Binding Game}"/>
+        <TextBox Text="{Binding Stream}"/>
+        <TextBox Text="{Binding MessageCacheSize}"/>
+        <TextBox Text="{Binding MaxUserGatherCount}"/>
+        <TextBox Text="{Binding MaxMessageGatherSize}"/>
+        <TextBox Text="{Binding MaxRuleCategories}"/>
+        <TextBox Text="{Binding MaxRulesPerCategory}"/>
+        <TextBox Text="{Binding MaxSelfAssignableRoleGroups}"/>
+        <TextBox Text="{Binding MaxQuotes}"/>
+        <TextBox Text="{Binding MaxBannedStrings}"/>
+        <TextBox Text="{Binding MaxBannedRegex}"/>
+        <TextBox Text="{Binding MaxBannedNames}"/>
+        <TextBox Text="{Binding MaxBannedPunishments}"/>
+        <DropDown Items="{Binding LogLevels, Mode=OneTime}" SelectedItem="{Binding LogLevel}"/>
+        <DropDown Items="{Binding TrustedUsers}"/>
+        <DropDown Items="{Binding UsersUnableToDmOwner}"/>
+        <DropDown Items="{Binding UsersIgnoredFromCommands}"/>
       </UniformGrid>
 
       <!-- Save Settings Button -->

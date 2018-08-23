@@ -125,7 +125,6 @@ namespace Advobot.NetFrameworkUI.Windows
 			Console.SetOut(new TextBoxStreamWriter(Output));
 			//Start the timer that shows latency, memory usage, etc.
 			((DispatcherTimer)Resources["ApplicationInformationTimer"]).Start();
-
 		}
 
 		private async Task<bool> AttemptToStart(string input)

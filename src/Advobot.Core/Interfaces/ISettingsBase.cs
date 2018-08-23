@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using Discord.WebSocket;
@@ -9,7 +10,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for the already abstract class.
 	/// </summary>
-	public interface ISettingsBase
+	public interface ISettingsBase : INotifyPropertyChanged
 	{
 		/// <summary>
 		/// Returns all properties with <see cref="Classes.Attributes.SettingAttribute"/>.

@@ -25,61 +25,42 @@ namespace Advobot.Commands.Gets
 	{
 		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
 		public async Task Bot()
-		{
-			var embed = DiscordFormatting.FormatBotInfo(Context.Client, Context.Guild, Context.Provider.GetService<ILogService>());
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+			=> await SendAsync(DiscordFormatting.FormatBotInfo(Context.Client, Context.Provider.GetService<ILogService>())).CAF();
+		[Command(nameof(Shards)), ShortAlias(nameof(Shards))]
+		public async Task Shards()
+			=> await SendAsync(DiscordFormatting.FormatShardsInfo(Context.Client)).CAF();
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
-		{
-			var embed = DiscordFormatting.FormatGuildInfo(Context.Guild);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+			=> await SendAsync(DiscordFormatting.FormatGuildInfo(Context.Guild)).CAF();
 		[Command(nameof(GuildUsers)), ShortAlias(nameof(GuildUsers))]
 		public async Task GuildUsers()
-		{
-			var embed = DiscordFormatting.FormatAllGuildUsersInfo(Context.Guild);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+			=> await SendAsync(DiscordFormatting.FormatAllGuildUsersInfo(Context.Guild)).CAF();
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel([Remainder] SocketGuildChannel channel)
-		{
-			var embed = DiscordFormatting.FormatChannelInfo(channel, Context.GuildSettings);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+			=> await SendAsync(DiscordFormatting.FormatChannelInfo(channel, Context.GuildSettings)).CAF();
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
 		public async Task Role([Remainder] SocketRole role)
-		{
-			var embed = DiscordFormatting.FormatRoleInfo(role);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+			=> await SendAsync(DiscordFormatting.FormatRoleInfo(role)).CAF();
 		[Command(nameof(User)), ShortAlias(nameof(User))]
 		public async Task User([Remainder] SocketUser user)
-		{
-			var embed = user is SocketGuildUser guildUser
+			=> await SendAsync(user is SocketGuildUser guildUser
 				? DiscordFormatting.FormatGuildUserInfo(guildUser)
-				: DiscordFormatting.FormatUserInfo(user);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+				: DiscordFormatting.FormatUserInfo(user)).CAF();
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
 		public async Task Emote([Remainder] Emote emote)
-		{
-			var embed = emote is GuildEmote guildEmote
+			=> await SendAsync(emote is GuildEmote guildEmote
 				? DiscordFormatting.FormatGuildEmoteInfo(Context.Guild, guildEmote)
-				: DiscordFormatting.FormatEmoteInfo(emote);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+				: DiscordFormatting.FormatEmoteInfo(emote)).CAF();
 		[Command(nameof(Invite)), ShortAlias(nameof(Invite))]
 		public async Task Invite([Remainder] IInvite invite)
-		{
-			var embed = DiscordFormatting.FormatInviteInfo(invite as IInviteMetadata);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+			=> await SendAsync(DiscordFormatting.FormatInviteInfo(invite as IInviteMetadata)).CAF();
 		[Command(nameof(Webhook)), ShortAlias(nameof(Webhook))]
 		public async Task Webhook([Remainder] IWebhook webhook)
+			=> await SendAsync(DiscordFormatting.FormatWebhookInfo(Context.Guild, webhook)).CAF();
+
+		private async Task SendAsync(EmbedWrapper wrapper)
 		{
-			var embed = DiscordFormatting.FormatWebhookInfo(Context.Guild, webhook);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, null, wrapper).CAF();
 		}
 	}
 
@@ -174,19 +155,14 @@ namespace Advobot.Commands.Gets
 	}
 
 	[Category(typeof(GetUserAvatar)), Group(nameof(GetUserAvatar)), TopLevelShortAlias(typeof(GetUserAvatar))]
-	[Summary("Shows the URL of the given user's avatar. Must supply a format, can supply a size, and can specify which user.")]
+	[Summary("Shows the URL of the given user's avatar.")]
 	[DefaultEnabled(true)]
 	public sealed class GetUserAvatar : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(ImageFormat format, [Optional] IUser user, [Optional] ushort size)
+		public async Task Command([Optional] IUser user)
 		{
-			await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl(format, size == 0 ? (ushort)128 : size)).CAF();
-		}
-		[Command, Priority(1)]
-		public async Task Command(ImageFormat format, [Optional] ushort size, [Optional] IUser user)
-		{
-			await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl(format, size == 0 ? (ushort)128 : size)).CAF();
+			await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl()).CAF();
 		}
 	}
 

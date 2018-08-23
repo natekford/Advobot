@@ -724,5 +724,14 @@ namespace Advobot.Classes
 		{
 			return String.Join("\n\n", _FailedValues.Select(x => $"{x.Key}:\n{x.Value}"));
 		}
+
+		/// <summary>
+		/// Converts an <see cref="EmbedWrapper"/> to a <see cref="Embed"/>.
+		/// </summary>
+		/// <param name="wrapper"></param>
+		public static implicit operator Embed(EmbedWrapper wrapper)
+		{
+			return wrapper?.Build();
+		}
 	}
 }

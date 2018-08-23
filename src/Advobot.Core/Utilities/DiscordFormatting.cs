@@ -1,12 +1,11 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Linq;
+using System.Text;
+using Advobot.Classes;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 
 namespace Advobot.Utilities
 {
@@ -63,7 +62,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static string Format(this IChannel channel)
 		{
-			return channel != null ? $"'{channel.Name.EscapeBackTicks()}' ({channel.GetStringType()}) ({channel.Id})" : "Irretrievable Channel";
+			return channel != null ? $"'{channel.Name.EscapeBackTicks()}' ({channel.GetChannelType()}) ({channel.Id})" : "Irretrievable Channel";
 		}
 		/// <summary>
 		/// Returns a string with the guild's name and id.
@@ -97,7 +96,7 @@ namespace Advobot.Utilities
 			});
 			var attachments = msg.Attachments.Select(x => x.Filename).ToList();
 
-			var text = String.IsNullOrEmpty(msg.Content) ? "Empty message content" : msg.Content;
+			var text = string.IsNullOrEmpty(msg.Content) ? "Empty message content" : msg.Content;
 			var time = msg.CreatedAt.ToString("HH:mm:ss");
 			var header = withMentions
 				? $"`[{time}]` {((ITextChannel)msg.Channel).Mention} {msg.Author.Mention} `{msg.Id}`"
@@ -110,7 +109,7 @@ namespace Advobot.Utilities
 			}
 			if (attachments.Any())
 			{
-				content.AppendLineFeed($" + {String.Join(" + ", attachments).EscapeBackTicks()}");
+				content.AppendLineFeed($" + {string.Join(" + ", attachments).EscapeBackTicks()}");
 			}
 			return content.Append("```").ToString();
 		}
@@ -140,7 +139,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static string Format(this IWebhook webhook)
 		{
-			return webhook != null ? $"'{webhook.Name}' ({webhook.Id})" : "Irretrievable Webhooks";
+			return webhook != null ? $"'{webhook.Name.EscapeBackTicks()}' ({webhook.Id})" : "Irretrievable Webhook";
 		}
 
 		/// <summary>
@@ -176,11 +175,11 @@ namespace Advobot.Utilities
 
 			if (channels.Any())
 			{
-				embed.TryAddField("Channels", $"`{String.Join("`, `", channels)}`", false, out _);
+				embed.TryAddField("Channels", $"`{string.Join("`, `", channels)}`", false, out _);
 			}
 			if (roles.Any())
 			{
-				embed.TryAddField("Roles", $"`{String.Join("`, `", roles.Select(x => x.Name))}`", false, out _);
+				embed.TryAddField("Roles", $"`{string.Join("`, `", roles.Select(x => x.Name))}`", false, out _);
 			}
 			if (user.VoiceChannel != null)
 			{
@@ -226,7 +225,7 @@ namespace Advobot.Utilities
 					$"**Is Managed:** `{role.IsManaged}`\n" +
 					$"**Is Mentionable:** `{role.IsMentionable}`\n\n" +
 					$"**User Count:** `{role.Guild.Users.Count(u => u.Roles.Any(r => r.Id == role.Id))}`\n" +
-					$"**Permissions:** `{String.Join("`, `", Enum.GetValues(typeof(GuildPermission)).Cast<GuildPermission>().Where(x => role.Permissions.Has(x)))}`",
+					$"**Permissions:** `{string.Join("`, `", Enum.GetValues(typeof(GuildPermission)).Cast<GuildPermission>().Where(x => role.Permissions.Has(x)))}`",
 				Color = role.Color
 			};
 			embed.TryAddAuthor(role.Format(), null, null, out _);
@@ -264,7 +263,7 @@ namespace Advobot.Utilities
 					$"**Is Modlog:** `{guildSettings.ModLogId == channel.Id}`\n" +
 					$"**Is Imagelog:** `{guildSettings.ImageLogId == channel.Id}`\n\n" +
 					$"**User Count:** `{channel.Users.Count}`\n" +
-					$"**Overwrites:** `{String.Join("`, `", overwriteNames)}`",
+					$"**Overwrites:** `{string.Join("`, `", overwriteNames)}`",
 			};
 			embed.TryAddAuthor(channel.Format(), null, null, out _);
 			embed.TryAddFooter("Channel Info", null, out _);
@@ -306,7 +305,7 @@ namespace Advobot.Utilities
 					$"**AFK Channel:** `{guild.AFKChannel?.Format() ?? "None"}` (Time: `{guild.AFKTimeout / 60}`)\n" +
 					$"**System Channel:** `{guild.SystemChannel?.Format() ?? "None"}`\n" +
 					$"**Embed Channel:** `{guild.EmbedChannel?.Format() ?? "None"}`\n" +
-					(guild.Features.Any() ? $"**Features:** `{String.Join("`, `", guild.Features)}`" : ""),
+					(guild.Features.Any() ? $"**Features:** `{string.Join("`, `", guild.Features)}`" : ""),
 				Color = guild.Owner.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).LastOrDefault(x => x.Color.RawValue != 0)?.Color,
 				ThumbnailUrl = guild.IconUrl
 			};
@@ -329,26 +328,35 @@ namespace Advobot.Utilities
 				switch (user.Status)
 				{
 					case UserStatus.Offline:
-						++offline; break;
+						++offline;
+						break;
 					case UserStatus.Online:
-						++online; break;
+						++online;
+						break;
 					case UserStatus.Idle:
-						++idle; break;
+						++idle;
+						break;
 					case UserStatus.AFK:
-						++afk; break;
+						++afk;
+						break;
 					case UserStatus.DoNotDisturb:
-						++donotdisturb; break;
+						++donotdisturb;
+						break;
 				}
 				switch (user.Activity?.Type)
 				{
 					case ActivityType.Playing:
-						++playing; break;
+						++playing;
+						break;
 					case ActivityType.Listening:
-						++listening; break;
+						++listening;
+						break;
 					case ActivityType.Streaming:
-						++streaming; break;
+						++streaming;
+						break;
 					case ActivityType.Watching:
-						++watching; break;
+						++watching;
+						break;
 				}
 				if (user.IsWebhook)
 				{ ++webhooks; }
@@ -392,7 +400,7 @@ namespace Advobot.Utilities
 		{
 			var embed = new EmbedWrapper
 			{
-				Description = emote.FormatInfo(), 
+				Description = emote.FormatInfo(),
 				ThumbnailUrl = emote.Url,
 			};
 			embed.TryAddAuthor(emote.Name, null, null, out _);
@@ -409,10 +417,10 @@ namespace Advobot.Utilities
 		{
 			var embed = new EmbedWrapper
 			{
-				Description = emote.FormatInfo() + 
+				Description = emote.FormatInfo() +
 					$"**Is Managed:** `{emote.IsManaged}`\n" +
 					$"**Requires Colons:** `{emote.RequireColons}`\n\n" +
-					$"**Roles:** `{String.Join("`, `", emote.RoleIds.Select(x => guild.GetRole(x)).OrderBy(x => x.Position).Select(x => x.Name))}`",
+					$"**Roles:** `{string.Join("`, `", emote.RoleIds.Select(x => guild.GetRole(x)).OrderBy(x => x.Position).Select(x => x.Name))}`",
 				ThumbnailUrl = emote.Url,
 			};
 			embed.TryAddAuthor(emote.Name, null, null, out _);
@@ -461,28 +469,54 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="client"></param>
 		/// <param name="logging"></param>
-		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static EmbedWrapper FormatBotInfo(DiscordShardedClient client, SocketGuild guild, ILogService logging)
+		public static EmbedWrapper FormatBotInfo(DiscordShardedClient client, ILogService logging)
 		{
 			var embed = new EmbedWrapper
 			{
-				Description = $"**Online Since:** `{Process.GetCurrentProcess().StartTime.ToReadable()}` (`{FormattingUtils.GetUptime()}`)\n" +
-					//TODO: see if this is laggy
-					$"**Guild/User Count:** `{client.Guilds.Count}`/`{client.Guilds.SelectMany(x => x.Users).Count()}`\n" +
-					$"**Current Shard:** `{client.GetShardIdFor(guild)}`\n" +
-					$"**Latency:** `{client.Latency}ms`\n" +
+				Description = $"**Online Since:** `{Utils.GetStartTime().ToReadable()}` (`{FormattingUtils.GetUptime()}`)\n" +
+					$"**Guild/User Count:** `{logging.TotalGuilds.Count}`/`{logging.TotalUsers.Count}`\n" +
+					$"**Latency:** `{client.Latency}`\n" +
 					$"**Memory Usage:** `{IOUtils.GetMemory():0.00}MB`\n" +
-					$"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`",
+					$"**Thread Count:** `{Utils.GetThreadCount()}`\n" +
+					$"**Shard Count:** `{client.Shards.Count}`",
 			};
 			embed.TryAddAuthor(client.CurrentUser, out _);
-			if (logging != null)
-			{
-				embed.TryAddField("Users", logging.FormatLoggedUserActions(true, false).Trim('\n', '\r'), false, out _);
-				embed.TryAddField("Messages", logging.FormatLoggedMessageActions(true, false).Trim('\n', '\r'), false, out _);
-				embed.TryAddField("Commands", logging.FormatLoggedCommands(true, false).Trim('\n', '\r'), false, out _);
-			}
+			embed.TryAddField("Users", logging.FormatLoggedUserActions(true, false).Trim('\n', '\r'), true, out _);
+			embed.TryAddField("Messages", logging.FormatLoggedMessageActions(true, false).Trim('\n', '\r'), true, out _);
+			embed.TryAddField("Commands", logging.FormatLoggedCommands(true, false).Trim('\n', '\r'), true, out _);
 			embed.TryAddFooter($"Versions [Bot: {Version.VERSION_NUMBER}] [API: {Constants.API_VERSION}]", null, out _);
+			return embed;
+		}
+		/// <summary>
+		/// Returns a new <see cref="EmbedWrapper"/> containing information about the bot's shards.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <returns></returns>
+		public static EmbedWrapper FormatShardsInfo(DiscordShardedClient client)
+		{
+			var shardInfo = "";
+			foreach (var shard in client.Shards)
+			{
+				var statusEmoji = "";
+				switch (shard.ConnectionState)
+				{
+					case ConnectionState.Disconnected:
+					case ConnectionState.Disconnecting:
+						statusEmoji = "\u274C"; //❌
+						break;
+					case ConnectionState.Connected:
+					case ConnectionState.Connecting:
+						statusEmoji = "\u2705"; //✅
+						break;
+				}
+				shardInfo += $"Shard `{shard.ShardId}`: `{statusEmoji} ({shard.Latency}ms)`";
+			}
+			var embed = new EmbedWrapper
+			{
+				Description = shardInfo,
+			};
+			embed.TryAddAuthor(client.CurrentUser, out _);
 			return embed;
 		}
 
@@ -490,7 +524,7 @@ namespace Advobot.Utilities
 		{
 			return $"**Id:** `{obj.Id}`\n{obj.CreatedAt.UtcDateTime.ToCreatedAt()}\n\n";
 		}
-		private static string GetStringType(this IChannel channel)
+		private static string GetChannelType(this IChannel channel)
 		{
 			switch (channel)
 			{

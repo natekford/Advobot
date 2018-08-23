@@ -133,5 +133,16 @@ namespace Advobot.Utilities
 				return proc.Threads.Count;
 			}
 		}
+		/// <summary>
+		/// Gets the start time of the program.
+		/// </summary>
+		/// <returns></returns>
+		public static DateTime GetStartTime()
+		{
+			using (var proc = Process.GetCurrentProcess())
+			{
+				return proc.StartTime;
+			}
+		}
 	}
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.NetCoreUI.Classes.Colors;
@@ -12,10 +13,11 @@ using AdvorangesUtils;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using Advobot.NetCoreUI.Utils;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
-	public class AdvobotNetCoreWindowViewModel : ReactiveObject, INotifyPropertyChanged
+	public class AdvobotNetCoreWindowViewModel : ReactiveObject
 	{
 		public string Output
 		{
@@ -112,16 +114,12 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private double _WindowFontSize = 100;
 
-		[PrefixValidation]
-		public string Prefix
+		public BotSettingsViewModel BotSettingsViewModel
 		{
-			get => BotSettings.Prefix;
-			set
-			{
-				BotSettings.Prefix = value;
-				this.RaisePropertyChanged();
-			}
+			get => _BotSettingsViewModel;
+			private set => this.RaiseAndSetIfChanged(ref _BotSettingsViewModel, value);
 		}
+		private BotSettingsViewModel _BotSettingsViewModel;
 
 		public IEnumerable<ColorTheme> Themes { get; } = Enum.GetValues(typeof(ColorTheme)).Cast<ColorTheme>();
 
@@ -145,6 +143,8 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			BotSettings = provider.GetRequiredService<IBotSettings>();
 			LogService = provider.GetRequiredService<ILogService>();
 			Colors = NetCoreColorSettings.Load<NetCoreColorSettings>(BotSettings);
+
+			BotSettingsViewModel = new BotSettingsViewModel(BotSettings);
 
 			OutputCommand = ReactiveCommand.Create<string>(x =>
 			{

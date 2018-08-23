@@ -1,4 +1,9 @@
-﻿using System.Windows.Input;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
+using System.Windows.Input;
+using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Utils
 {

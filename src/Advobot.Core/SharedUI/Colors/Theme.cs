@@ -11,8 +11,7 @@ namespace Advobot.SharedUI.Colors
 	/// </summary>
 	/// <typeparam name="TBrush"></typeparam>
 	/// <typeparam name="TBrushFactory"></typeparam>
-	public class Theme<TBrush, TBrushFactory> : IDictionary<string, TBrush>, INotifyPropertyChanged
-		where TBrushFactory : BrushFactory<TBrush>, new()
+	public class Theme<TBrush, TBrushFactory> : ITheme<TBrush> where TBrushFactory : BrushFactory<TBrush>, new()
 	{
 		[JsonProperty("Brushes")]
 		private readonly Dictionary<string, string> _Brushes = new Dictionary<string, string>();
