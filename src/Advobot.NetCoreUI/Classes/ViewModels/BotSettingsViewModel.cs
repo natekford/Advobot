@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Advobot.Interfaces;
 using Advobot.NetCoreUI.Classes.ValidationAttributes;
 using Avalonia.Threading;
 using Discord;
-using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
@@ -103,8 +100,6 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public IList<ulong> TrustedUsers { get; } = new ObservableCollection<ulong>();
 		public IList<ulong> UsersUnableToDmOwner { get; } = new ObservableCollection<ulong>();
 		public IList<ulong> UsersIgnoredFromCommands { get; } = new ObservableCollection<ulong>();
-
-		public IEnumerable<LogSeverity> LogLevels { get; } = Enum.GetValues(typeof(LogSeverity)).Cast<LogSeverity>();
 
 		private readonly IBotSettings _BotSettings;
 

@@ -11,7 +11,7 @@ namespace Advobot.SharedUI.Converters
 		/// <summary>
 		/// What to shrink by.
 		/// </summary>
-		public double ConvertFactor { get; }
+		public double ConvertFactor { get; set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="FontResizeConverter"/>.
@@ -53,6 +53,15 @@ namespace Advobot.SharedUI.Converters
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			throw new NotImplementedException();
+		}
+
+		/// <summary>
+		/// Gets the current main window height if the 
+		/// </summary>
+		/// <returns></returns>
+		protected virtual double GetWindowHeightIfNaN()
+		{
+			return 0;
 		}
 	}
 }

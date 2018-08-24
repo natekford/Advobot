@@ -1,4 +1,4 @@
-﻿namespace Advobot.Enums
+﻿namespace Advobot.SharedUI
 {
 	/// <summary>
 	/// Indicates what theme to use in the UI.

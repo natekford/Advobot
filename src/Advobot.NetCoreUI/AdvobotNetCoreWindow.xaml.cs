@@ -1,4 +1,5 @@
-﻿using Advobot.NetCoreUI.Classes.ViewModels;
+﻿using System;
+using Advobot.NetCoreUI.Classes.ViewModels;
 using Advobot.NetCoreUI.Utils;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -24,6 +25,11 @@ namespace Advobot.NetCoreUI
 			{
 				((AdvobotNetCoreWindowViewModel)DataContext).InputCommand.Execute(null);
 			}
+		}
+		private void OnActivated(object sender, EventArgs e)
+		{
+			//Because unless the state is changed directly after creation the height will be double.NaN
+			WindowState = WindowState.Maximized;
 		}
 	}
 }

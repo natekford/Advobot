@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
-using Advobot.Interfaces;
 using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
@@ -11,7 +11,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 	{
 		private readonly Dictionary<string, bool> _ValidProperties = new Dictionary<string, bool>();
 
-		public SettingsViewModel(ISettingsBase settings)
+		public SettingsViewModel(INotifyPropertyChanged settings)
 		{
 			settings.PropertyChanged += (sender, e) =>
 			{
@@ -24,6 +24,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		{
 			if (!_ValidProperties.TryGetValue(propertyName, out var val))
 			{
+				//Default to true since any values loaded from file have to be valid
 				_ValidProperties.Add(propertyName, val = true);
 			}
 			return val;

@@ -11,7 +11,7 @@ namespace Advobot.NetCoreUI.Classes.Converters
 		/// <summary>
 		/// Creates an instance of <see cref="NetCoreFontResizeConverter"/>.
 		/// </summary>
-		public NetCoreFontResizeConverter() : base(.02) { }
+		public NetCoreFontResizeConverter() : base(.015) { }
 		/// <summary>
 		/// Creates an instance of <see cref="NetCoreFontResizeConverter"/>.
 		/// </summary>

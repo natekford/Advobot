@@ -8,15 +8,18 @@
         xmlns:viewmodels="clr-namespace:Advobot.NetCoreUI.Classes.ViewModels;assembly=Advobot.NetCoreUI"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:Advobot.NetCoreUI.Classes.UserControls;assembly=Advobot.NetCoreUI"
+        xmlns:shared="clr-namespace:Advobot.SharedUI;assembly=Advobot.Core"
         xmlns:colors="clr-namespace:Advobot.SharedUI.Colors;assembly=Advobot.Core"
+        xmlns:discord="clr-namespace:Discord;assembly=Discord.Net.Core"
         Title="Advobot"
-        WindowState="Maximized"
-        FontFamily="Courier New">
+        FontFamily="Courier New"
+        Activated="OnActivated">
 
   <Window.Resources>
     <converters:NetCoreNullToBoolConverter x:Key="NullToBoolConverter"/>
     <converters:NetCoreColorConverter x:Key="ColorConverter"/>
     <converters:NetCoreFontResizeConverter x:Key="FontResizeConverter"/>
+    <RelativeSource x:Key="WindowSource" Mode="FindAncestor" AncestorType="{x:Type Window}"/>
   </Window.Resources>
 
   <Window.Styles>
@@ -26,6 +29,7 @@
       <Setter Property="IsReadOnly" Value="True"/>
       <Setter Property="TextAlignment" Value="Left"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
     <Style Selector="TextBox.i2">
       <Setter Property="TextAlignment" Value="Center"/>
@@ -40,20 +44,23 @@
       <Setter Property="BorderBrush" Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"/>
       <Setter Property="IsHitTestVisible" Value="False"/>
     </Style>
-    <!-- Needs Fixing: Window height starts out as Double.NaN -->
-    <!-- <Style Selector=":is(TextBlock)">
-      <Setter Property="FontSize" Value="{Binding Path=Height, Converter={StaticResource FontResizeConverter}, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
-    </Style> -->
+    <!--
+    <Style Selector=":is(TextBlock)">
+      <Setter Property="FontSize" Value="{Binding Height, Converter={StaticResource FontResizeConverter}, RelativeSource={StaticResource WindowSource}}"/>
+    </Style>-->
+    <Style Selector=":is(TextBlock)">
+      <Setter Property="TemplatedControl.FontResize" Value="500"/>
+    </Style>
   </Window.Styles>
 
   <Grid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*">
     <!-- Output -->
-    <TextBox Name="Output" Grid.ColumnSpan="1" Text="{Binding Output}" TextWrapping="Wrap" IsReadOnly="True" />
+    <TextBox Name="Output" Grid.ColumnSpan="1" Text="{Binding Output}" classes:ResizableFont.FontResize=".5" TextWrapping="Wrap" IsReadOnly="True"/>
 
     <!-- Input -->
     <Grid Name="InputGrid" Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
       <TextBox Name="InputTextBox" Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed"/>
-      <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}"/>
+      <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}" />
     </Grid>
 
     <!-- Application Info Bar -->
@@ -79,9 +86,7 @@
 
     <!-- Main Menu -->
     <Grid Name="MainMenu" Grid.Column="1" RowDefinitions="20*,1*" ColumnDefinitions="*,*,*" IsVisible="{Binding OpenMainMenu}" IsHitTestVisible="{Binding OpenMainMenu}">
-      <TextBox Grid.ColumnSpan="3" BorderThickness="1" IsReadOnly="True" TextWrapping="Wrap">
-        Lorem Ipsum
-      </TextBox>
+      <TextBox Grid.ColumnSpan="3" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding MainMenuText, Mode=OneTime}"/>
 
       <!-- Bot Buttons -->
       <Button Grid.Row="1" Grid.Column="0" Content="Disconnect" Command="{Binding DisconnectCommand}"/>
@@ -152,7 +157,7 @@
 
       <!-- Colors -->
       <UniformGrid Grid.Column="2" Columns="1">
-        <DropDown Items="{Binding Themes, Mode=OneTime}" SelectedItem="{Binding Colors.Theme}"/>
+        <DropDown classes:SourceEnum.SourceEnum="{x:Type shared:ColorTheme}" SelectedItem="{Binding Colors.Theme}"/>
         <TextBox Text="{Binding Path=Colors.UserDefinedColors[BaseBackground], Converter={StaticResource ColorConverter}}"/>
       </UniformGrid>
 
@@ -166,43 +171,43 @@
     <Grid Name="SettingsMenu" Grid.Column="1" RowDefinitions="19*,1*,1*" ColumnDefinitions="1*,4*,4*,1*" IsVisible="{Binding OpenSettingsMenu}" IsHitTestVisible="{Binding OpenSettingsMenu}">
       <!-- Titles -->
       <UniformGrid Grid.Column="1" Columns="1">
-        <TextBox Classes="t1" Text="Always Download Users"
+        <TextBox Classes="i1" Text="Always Download Users"
                  ToolTip.Tip="Whether or not to gather all users in a guild when the bot joins. This requires a bot restart."/>
-        <TextBox Classes="t1" Text="Prefix"
+        <TextBox Classes="i1" Text="Prefix"
                  ToolTip.Tip="The text before a command." />
-        <TextBox Classes="t1" Text="Game"
+        <TextBox Classes="i1" Text="Game"
                  ToolTip.Tip="The text saying what the bot is playing or streaming."/>
-        <TextBox Classes="t1" Text="Stream"
+        <TextBox Classes="i1" Text="Stream"
                  ToolTip.Tip="Links to a Twitch.tv stream."/>
-        <TextBox Classes="t1" Text="Message Cache Size"
+        <TextBox Classes="i1" Text="Message Cache Size"
                  ToolTip.Tip="How many messages the bot should keep in storage at a time. This requires a bot restart."/>
-        <TextBox Classes="t1" Text="User Gather Count"
+        <TextBox Classes="i1" Text="User Gather Count"
                  ToolTip.Tip="How many users multi user targetting commands should target by default."/>
-        <TextBox Classes="t1" Text="Message Gather Size"
+        <TextBox Classes="i1" Text="Message Gather Size"
                  ToolTip.Tip="How many KBs worth of messages downloadmessages should gather at maximum."/>
-        <TextBox Classes="t1" Text="Rule Categories"
+        <TextBox Classes="i1" Text="Rule Categories"
                  ToolTip.Tip="How many categories can exist."/>
-        <TextBox Classes="t1" Text="Rules Per Category"
+        <TextBox Classes="i1" Text="Rules Per Category"
                  ToolTip.Tip="How many rules can be in each category."/>
-        <TextBox Classes="t1" Text="Self Assignable Role Groups"
+        <TextBox Classes="i1" Text="Self Assignable Role Groups"
                  ToolTip.Tip="How many self assignable role groups a server can have."/>
-        <TextBox Classes="t1" Text="Quotes"
+        <TextBox Classes="i1" Text="Quotes"
                  ToolTip.Tip="How many quotes a server can have."/>
-        <TextBox Classes="t1" Text="Banned Strings"
+        <TextBox Classes="i1" Text="Banned Strings"
                  ToolTip.Tip="How many strings can be banned from a server."/>
-        <TextBox Classes="t1" Text="Banned Regex"
+        <TextBox Classes="i1" Text="Banned Regex"
                  ToolTip.Tip="How many regex patterns can be banned from a server."/>
-        <TextBox Classes="t1" Text="Banned Names"
+        <TextBox Classes="i1" Text="Banned Names"
                  ToolTip.Tip="How many names can be banned from a server."/>
-        <TextBox Classes="t1" Text="Banned Punishments"
+        <TextBox Classes="i1" Text="Banned Punishments"
                  ToolTip.Tip="How many punishments can be added to a server."/>
-        <TextBox Classes="t1" Text="Log Level"
+        <TextBox Classes="i1" Text="Log Level"
                  ToolTip.Tip="Prints out items with an equal to or higher log severity to the console. This requires a bot restart."/>
-        <TextBox Classes="t1" Text="Trusted Users"
+        <TextBox Classes="i1" Text="Trusted Users"
                  ToolTip.Tip="Users in here can use some commands only the bot owner can use otherwise."/>
-        <TextBox Classes="t1" Text="Users Unable To Dm Owner"
+        <TextBox Classes="i1" Text="Users Unable To Dm Owner"
                  ToolTip.Tip="Users in here cannot send DMs to the owner through the bot."/>
-        <TextBox Classes="t1" Text="Users Ignored From Commands"
+        <TextBox Classes="i1" Text="Users Ignored From Commands"
                  ToolTip.Tip="Users in here cannot use the bot at all."/>
       </UniformGrid>
 
@@ -223,7 +228,7 @@
         <TextBox Text="{Binding MaxBannedRegex}"/>
         <TextBox Text="{Binding MaxBannedNames}"/>
         <TextBox Text="{Binding MaxBannedPunishments}"/>
-        <DropDown Items="{Binding LogLevels, Mode=OneTime}" SelectedItem="{Binding LogLevel}"/>
+        <DropDown classes:SourceEnum.SourceEnum="{x:Type discord:LogSeverity}" SelectedItem="{Binding LogLevel}"/>
         <DropDown Items="{Binding TrustedUsers}"/>
         <DropDown Items="{Binding UsersUnableToDmOwner}"/>
         <DropDown Items="{Binding UsersIgnoredFromCommands}"/>

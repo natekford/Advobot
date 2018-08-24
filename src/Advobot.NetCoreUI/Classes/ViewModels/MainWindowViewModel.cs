@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.NetCoreUI.Classes.Colors;
-using Advobot.NetCoreUI.Classes.ValidationAttributes;
+using Advobot.SharedUI;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
-using Advobot.NetCoreUI.Utils;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
@@ -25,6 +21,8 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _Output, value);
 		}
 		private string _Output = "";
+
+		public string MainMenuText => "Test\n\n\n\ntest";
 
 		public string Input
 		{
@@ -120,8 +118,6 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			private set => this.RaiseAndSetIfChanged(ref _BotSettingsViewModel, value);
 		}
 		private BotSettingsViewModel _BotSettingsViewModel;
-
-		public IEnumerable<ColorTheme> Themes { get; } = Enum.GetValues(typeof(ColorTheme)).Cast<ColorTheme>();
 
 		public IObservable<string> Uptime { get; }
 		public IObservable<string> Latency { get; }
