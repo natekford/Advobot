@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 
@@ -39,7 +38,7 @@ namespace Advobot.Services.HelpEntries
 				{
 					return e.Types;
 				}
-			}).Where(x => x.GetCustomAttribute<GroupAttribute>() != null && x.IsAssignableFromGeneric(typeof(ModuleBase<>)));
+			}).Where(x => x.GetCustomAttribute<GroupAttribute>() != null && x.InheritsFromGeneric(typeof(ModuleBase<>)));
 			foreach (var type in types)
 			{
 				VerifyCommandType(type);
@@ -153,7 +152,7 @@ namespace Advobot.Services.HelpEntries
 					var intersected = both[i].Intersect(both[j], StringComparer.OrdinalIgnoreCase).ToList();
 					if (intersected.Any())
 					{
-						throw new InvalidOperationException($"The following aliases in {name} have conflicts: {String.Join(" + ", intersected)}");
+						throw new InvalidOperationException($"The following aliases in {name} have conflicts: {string.Join(" + ", intersected)}");
 					}
 				}
 			}

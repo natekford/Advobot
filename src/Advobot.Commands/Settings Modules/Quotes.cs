@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
@@ -34,7 +33,7 @@ namespace Advobot.Commands.Quotes
 				await MessageUtils.SendErrorMessageAsync(Context, new Error($"A quote already has the name `{name}`.")).CAF();
 				return;
 			}
-			if (String.IsNullOrWhiteSpace(text))
+			if (string.IsNullOrWhiteSpace(text))
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("A quote requires text to be added.")).CAF();
 				return;
@@ -76,7 +75,7 @@ namespace Advobot.Commands.Quotes
 			var embed = new EmbedWrapper
 			{
 				Title = "Quotes",
-				Description = $"`{String.Join("`, `", quotes.Select(x => x.Name))}`"
+				Description = $"`{string.Join("`, `", quotes.Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}

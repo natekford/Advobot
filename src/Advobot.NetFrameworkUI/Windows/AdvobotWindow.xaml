@@ -30,6 +30,7 @@
 
     <classes:DpiDecorator x:Name="DpiDecorator">
         <controls:AdvobotGrid x:Name="Layout"
+                              FontResizeValue=".02"
                               MouseMove="MoveToolTip">
             <Grid.RowDefinitions>
                 <RowDefinition Height="20*" />
@@ -51,7 +52,6 @@
 
             <!-- Output -->
             <controls:AdvobotTextBox x:Name="Output"
-                                     FontResizeValue=".022"
                                      VerticalScrollBarVisibility="Visible"
                                      TextWrapping="Wrap"
                                      IsReadOnly="True">
@@ -97,12 +97,10 @@
                                          MaxLength="250"
                                          MaxLines="5"
                                          MaxHeight="1000"
-                                         FontResizeValue=".040"
                                          TextWrapping="Wrap"
                                          KeyUp="AcceptInputWithKey" />
                 <controls:AdvobotButton x:Name="InputButton"
                                         Grid.Column="1"
-                                        FontResizeValue=".015"
                                         Content="Enter"
                                         Click="AcceptInput"
                                         IsEnabled="{Binding Text, ElementName=InputBox, Converter={StaticResource NullToBoolConverter}}" />
@@ -110,8 +108,7 @@
 
             <!-- Application Info Bar -->
             <controls:AdvobotGrid x:Name="ApplicationInfoBar"
-                                  Grid.Row="1"
-                                  FontResizeValue=".020">
+                                  Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition />
@@ -145,7 +142,6 @@
                                   Grid.Column="1"
                                   Grid.Row="1"
                                   Grid.RowSpan="3"
-                                  FontResizeValue=".015"
                                   IsEnabled="False">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
@@ -173,8 +169,7 @@
 
             <!-- Main Menu -->
             <controls:AdvobotGrid x:Name="MainMenu"
-                                  Grid.Column="1"
-                                  FontResizeValue=".015">
+                                  Grid.Column="1">
                 <controls:AdvobotGrid.Style>
                     <Style TargetType="controls:AdvobotGrid">
                         <Setter Property="Visibility"
@@ -206,19 +201,19 @@
                                              BorderThickness="0">
                     <FlowDocument>
                         <Paragraph>
-                            <controls:AdvobotRun UnescapedText="Latency:\n\tTime it takes for a command to reach the bot." />
-                            <LineBreak />
-                            <controls:AdvobotRun UnescapedText="Memory:\n\tAmount of RAM the program is using." />
-                            <LineBreak />
-                            <controls:AdvobotRun UnescapedText="Threads:\n\tWhere all the actions in the bot happen." />
-                            <LineBreak />
-                            <controls:AdvobotRun UnescapedText="Shards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard." />
+                            <controls:AdvobotRun UnescapedText="Latency: Time it takes for a command to reach the bot." />
                             <LineBreak />
                             <LineBreak />
-                            <controls:AdvobotRun UnescapedText="API Wrapper Version: " />
+                            <controls:AdvobotRun UnescapedText="Memory: Amount of RAM the program is using." />
+                            <LineBreak />
+                            <LineBreak />
+                            <controls:AdvobotRun UnescapedText="Threads: Where all the actions in the bot happen." />
+                            <LineBreak />
+                            <LineBreak />
+                            <controls:AdvobotRun UnescapedText="API Wrapper Version:" />
                             <controls:AdvobotRun UnescapedText="{x:Static core:Constants.API_VERSION}" />
                             <LineBreak />
-                            <controls:AdvobotRun UnescapedText="Bot Version: " />
+                            <controls:AdvobotRun UnescapedText="Bot Version:" />
                             <controls:AdvobotRun UnescapedText="{x:Static core:Constants.BOT_VERSION}" />
                             <LineBreak />
                             <LineBreak />
@@ -252,16 +247,12 @@
                                         Content="Pause"
                                         Click="Pause" />
 
-                <Border BorderBrush="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"
-                        BorderThickness="1"
-                        Grid.RowSpan="1000"
-                        Grid.ColumnSpan="1000" />
+                <Border Style="{StaticResource GridBorder}"/>
             </controls:AdvobotGrid>
 
             <!-- Info Menu -->
             <controls:AdvobotGrid x:Name="InfoMenu"
-                                  Grid.Column="1"
-                                  FontResizeValue=".018">
+                                  Grid.Column="1">
                 <controls:AdvobotGrid.Style>
                     <Style TargetType="controls:AdvobotGrid">
                         <Setter Property="Visibility"
@@ -345,16 +336,13 @@
                                         Content="Search For File"
                                         Click="SearchForFile" />
 
-                <Border BorderBrush="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"
-                        BorderThickness="1"
-                        Grid.RowSpan="1000"
-                        Grid.ColumnSpan="1000" />
+                <Border Style="{StaticResource GridBorder}"/>
             </controls:AdvobotGrid>
 
             <!-- Colors Menu -->
             <controls:AdvobotGrid x:Name="ColorsMenu"
                                   Grid.Column="1"
-                                  FontResizeValue=".018"
+                                  FontResizeValue=".015"
                                   KeyUp="SaveColorsWithCtrlS">
                 <controls:AdvobotGrid.Style>
                     <Style TargetType="controls:AdvobotGrid">
@@ -414,7 +402,7 @@
                 <!-- Settings -->
                 <UniformGrid Grid.Column="2"
                              Columns="1">
-                    <controls:AdvobotComboBox SourceEnum="{x:Type advobotenums:ColorTheme}"
+                    <controls:AdvobotComboBox SourceEnum="{x:Type colors:ColorTheme}"
                                               SelectedItem="{Binding Colors.Theme, UpdateSourceTrigger=PropertyChanged}"
                                               IsSynchronizedWithCurrentItem="True" />
                     <controls:AdvobotColorBox ColorPath="Colors.UserDefinedColors[BaseBackground]" />
@@ -439,10 +427,7 @@
                                         Content="Save Colors"
                                         Click="SaveColors" />
 
-                <Border BorderBrush="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"
-                        BorderThickness="1"
-                        Grid.RowSpan="1000"
-                        Grid.ColumnSpan="1000" />
+                <Border Style="{StaticResource GridBorder}"/>
             </controls:AdvobotGrid>
 
             <!-- Settings Menu -->
@@ -647,10 +632,7 @@
                                         Content="Save Settings"
                                         Click="SaveSettings" />
 
-                <Border BorderBrush="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"
-                        BorderThickness="1"
-                        Grid.RowSpan="1000"
-                        Grid.ColumnSpan="1000" />
+                <Border Style="{StaticResource GridBorder}"/>
             </controls:AdvobotGrid>
         </controls:AdvobotGrid>
     </classes:DpiDecorator>

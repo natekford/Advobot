@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.TypeReaders;
-using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
@@ -117,7 +117,7 @@ namespace Advobot.Classes.UsageGeneration
 
 				var result = parameterType.GetProperty(nameof(NamedArguments<object>.ArgNames)).GetValue(null);
 				var argNames = ((IEnumerable)result).Cast<string>().Select(x => CapitalizeFirstLetter(x));
-				text += $" ({String.Join("|", argNames)})";
+				text += $" ({string.Join("|", argNames)})";
 			}
 			return text;
 		}
@@ -132,7 +132,7 @@ namespace Advobot.Classes.UsageGeneration
 				var names = Enum.GetNames(Type);
 				if (names.Length <= 7)
 				{
-					return $"{TypeName}: {String.Join("|", names)}{Text}";
+					return $"{TypeName}: {string.Join("|", names)}{Text}";
 				}
 			}
 			return $"{TypeName}: {Name}{Text}";

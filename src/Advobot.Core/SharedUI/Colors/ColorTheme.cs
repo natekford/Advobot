@@ -1,4 +1,4 @@
-﻿namespace Advobot.SharedUI
+﻿namespace Advobot.SharedUI.Colors
 {
 	/// <summary>
 	/// Indicates what theme to use in the UI.

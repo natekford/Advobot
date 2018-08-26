@@ -93,14 +93,14 @@ namespace Advobot.Commands.Logs
 		public async Task Add([ValidateObject(false, Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
-			var resp = $"Successfully ignored the following channels: `{String.Join("`, `", channels.Select(x => x.Format()))}`.";
+			var resp = $"Successfully ignored the following channels: `{string.Join("`, `", channels.Select(x => x.Format()))}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove([ValidateObject(false, Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
-			var resp = $"Successfully unignored the following channels: `{String.Join("`, `", channels.Select(x => x.Format()))}`.";
+			var resp = $"Successfully unignored the following channels: `{string.Join("`, `", channels.Select(x => x.Format()))}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -114,7 +114,7 @@ namespace Advobot.Commands.Logs
 	[SaveGuildSettings]
 	public sealed class ModifyLogActions : AdvobotModuleBase
 	{
-		private readonly static ImmutableArray<LogAction> _DefaultLogActions = new List<LogAction>
+		private static readonly ImmutableArray<LogAction> _DefaultLogActions = new List<LogAction>
 		{
 			LogAction.UserJoined,
 			LogAction.UserLeft,
@@ -129,7 +129,7 @@ namespace Advobot.Commands.Logs
 			var embed = new EmbedWrapper
 			{
 				Title = "Log Actions",
-				Description = $"`{String.Join("`, `", Enum.GetNames(typeof(LogAction)))}`"
+				Description = $"`{string.Join("`, `", Enum.GetNames(typeof(LogAction)))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
@@ -156,7 +156,7 @@ namespace Advobot.Commands.Logs
 				logActions = logActions ?? new LogAction[0];
 				//Add in logActions that aren't already in there
 				Context.GuildSettings.LogActions.AddRange(logActions.Except(Context.GuildSettings.LogActions));
-				var resp = $"Successfully enabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.ToString()))}`.";
+				var resp = $"Successfully enabled the following log actions: `{string.Join("`, `", logActions.Select(x => x.ToString()))}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
@@ -175,7 +175,7 @@ namespace Advobot.Commands.Logs
 				logActions = logActions ?? new LogAction[0];
 				//Only remove logactions that are already in there
 				Context.GuildSettings.LogActions.RemoveAll(x => logActions.Contains(x));
-				var resp = $"Successfully disabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.ToString()))}`.";
+				var resp = $"Successfully disabled the following log actions: `{string.Join("`, `", logActions.Select(x => x.ToString()))}`.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}

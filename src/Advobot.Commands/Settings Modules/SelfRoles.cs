@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -141,10 +140,10 @@ namespace Advobot.Commands.SelfRoles
 
 			var actionName = caller.ToLower() + "d";
 			var modified = rolesModified.Any()
-				? $"Successfully {actionName} the following role(s): `{String.Join("`, `", rolesModified.Select(x => x.Format()))}`."
+				? $"Successfully {actionName} the following role(s): `{string.Join("`, `", rolesModified.Select(x => x.Format()))}`."
 				: null;
 			var notModified = rolesNotModified.Any()
-				? $"Failed to {actionName} the following role(s): `{String.Join("`, `", rolesNotModified.Select(x => x.Format()))}`."
+				? $"Failed to {actionName} the following role(s): `{string.Join("`, `", rolesNotModified.Select(x => x.Format()))}`."
 				: null;
 			var resp = new[] { modified, notModified }.JoinNonNullStrings(" ");
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
@@ -182,7 +181,7 @@ namespace Advobot.Commands.SelfRoles
 				if (otherRoles.Any())
 				{
 					await user.RemoveRolesAsync(otherRoles, GetRequestOptions("self role removal")).CAF();
-					removedRoles = $", and removed `{String.Join("`, `", otherRoles.Select(x => x.Format()))}`";
+					removedRoles = $", and removed `{string.Join("`, `", otherRoles.Select(x => x.Format()))}`";
 				}
 			}
 
@@ -211,7 +210,7 @@ namespace Advobot.Commands.SelfRoles
 			var embed = new EmbedWrapper
 			{
 				Title = "Self Assignable Role Groups",
-				Description = $"`{String.Join("`, `", groupNumbers)}`"
+				Description = $"`{string.Join("`, `", groupNumbers)}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}

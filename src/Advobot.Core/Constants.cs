@@ -1,18 +1,22 @@
-﻿using System.Reflection;
-using Discord;
+﻿using Discord;
+using System.Reflection;
 
 namespace Advobot
 {
-	/// <summary>
-	/// Global values expected to stay the same.
-	/// </summary>
-	public static class Constants
+    /// <summary>
+    /// Global values expected to stay the same.
+    /// </summary>
+    public static class Constants
 	{
-		//Regex for checking any awaits are non ConfigureAwait(false): ^(?!.*CAF\(\)).*await.*$
-		/// <summary>
-		/// The bot's version.
-		/// </summary>
-		public const string BOT_VERSION = Version.VERSION_NUMBER;
+        //Regex for checking any awaits are non ConfigureAwait(false): ^(?!.*CAF\(\)).*await.*$
+        /// <summary>
+        /// The zero length character to put before every message.
+        /// </summary>
+        public const string ZERO_LENGTH_CHAR = "\u180E";
+        /// <summary>
+        /// The bot's version.
+        /// </summary>
+        public const string BOT_VERSION = Version.VERSION_NUMBER;
 		/// <summary>
 		/// The Discord api wrapper version.
 		/// </summary>

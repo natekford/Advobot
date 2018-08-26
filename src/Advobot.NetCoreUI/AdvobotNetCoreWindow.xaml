@@ -7,7 +7,7 @@
         xmlns:classes="clr-namespace:Advobot.NetCoreUI.Classes;assembly=Advobot.NetCoreUI"
         xmlns:viewmodels="clr-namespace:Advobot.NetCoreUI.Classes.ViewModels;assembly=Advobot.NetCoreUI"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
-        xmlns:controls="clr-namespace:Advobot.NetCoreUI.Classes.UserControls;assembly=Advobot.NetCoreUI"
+        xmlns:controls="clr-namespace:Advobot.NetCoreUI.Classes.Controls;assembly=Advobot.NetCoreUI"
         xmlns:shared="clr-namespace:Advobot.SharedUI;assembly=Advobot.Core"
         xmlns:colors="clr-namespace:Advobot.SharedUI.Colors;assembly=Advobot.Core"
         xmlns:discord="clr-namespace:Discord;assembly=Discord.Net.Core"
@@ -19,7 +19,6 @@
     <converters:NetCoreNullToBoolConverter x:Key="NullToBoolConverter"/>
     <converters:NetCoreColorConverter x:Key="ColorConverter"/>
     <converters:NetCoreFontResizeConverter x:Key="FontResizeConverter"/>
-    <RelativeSource x:Key="WindowSource" Mode="FindAncestor" AncestorType="{x:Type Window}"/>
   </Window.Resources>
 
   <Window.Styles>
@@ -44,28 +43,21 @@
       <Setter Property="BorderBrush" Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"/>
       <Setter Property="IsHitTestVisible" Value="False"/>
     </Style>
-    <!--
-    <Style Selector=":is(TextBlock)">
-      <Setter Property="FontSize" Value="{Binding Height, Converter={StaticResource FontResizeConverter}, RelativeSource={StaticResource WindowSource}}"/>
-    </Style>-->
-    <Style Selector=":is(TextBlock)">
-      <Setter Property="TemplatedControl.FontResize" Value="500"/>
-    </Style>
   </Window.Styles>
 
-  <Grid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*">
+  <controls:DynamicFontSizeGrid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*" DynamicFontSize=".02">
     <!-- Output -->
-    <TextBox Name="Output" Grid.ColumnSpan="1" Text="{Binding Output}" classes:ResizableFont.FontResize=".5" TextWrapping="Wrap" IsReadOnly="True"/>
+    <!-- Needs AcceptsReturn to be true to wrap correctly -->
+    <TextBox Grid.ColumnSpan="{Binding OutputColumnSpan}" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"/>
 
     <!-- Input -->
-    <Grid Name="InputGrid" Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
-      <TextBox Name="InputTextBox" Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed"/>
+    <Grid Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
+      <TextBox Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed"/>
       <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}" />
     </Grid>
 
     <!-- Application Info Bar -->
-    <!-- Needs Fixing: Stops updating after 5 seconds no matter what timer implementation is used -->
-    <Grid Name="ApplicationInfoBar" Grid.Row="1">
+    <Grid Grid.Row="1">
       <UniformGrid Rows="1">
         <TextBox Classes="i1 i2" Text="{Binding Uptime^, Mode=OneWay}"/>
         <TextBox Classes="i1 i2" Text="{Binding Latency^, Mode=OneWay}"/>
@@ -77,7 +69,7 @@
     </Grid>
 
     <!-- Menu Buttons -->
-    <UniformGrid Name="ButtonMenu" Grid.Row="1" Grid.Column="1" Grid.RowSpan="3" Rows="1">
+    <UniformGrid Grid.Row="1" Grid.Column="1" Grid.RowSpan="3" Rows="1">
       <Button Content="Main" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenMainMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
       <Button Content="Info" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenInfoMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
       <Button Content="Colors" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenColorsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}"/>
@@ -85,7 +77,8 @@
     </UniformGrid>
 
     <!-- Main Menu -->
-    <Grid Name="MainMenu" Grid.Column="1" RowDefinitions="20*,1*" ColumnDefinitions="*,*,*" IsVisible="{Binding OpenMainMenu}" IsHitTestVisible="{Binding OpenMainMenu}">
+    <Grid Grid.Column="1" RowDefinitions="20*,1*" ColumnDefinitions="*,*,*" IsVisible="{Binding OpenMainMenu}">
+      <!-- Need to use &#xD; for new lines in XAML -->
       <TextBox Grid.ColumnSpan="3" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding MainMenuText, Mode=OneTime}"/>
 
       <!-- Bot Buttons -->
@@ -97,7 +90,7 @@
     </Grid>
 
     <!-- Info Menu -->
-    <Grid Name="InfoMenu" Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,6*,3*,1*" IsVisible="{Binding OpenInfoMenu}" IsHitTestVisible="{Binding OpenInfoMenu}">
+    <Grid Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,6*,3*,1*" IsVisible="{Binding OpenInfoMenu}">
       <!-- Titles -->
       <UniformGrid Grid.Column="1" Columns="1">
         <TextBox Classes="i1" Text="Guilds"/>
@@ -136,7 +129,8 @@
     </Grid>
 
     <!-- Colors Menu -->
-    <Grid Name="ColorsMenu" Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,8*,4*,1*" IsEnabled="True" IsVisible="{Binding OpenColorsMenu}" IsHitTestVisible="{Binding OpenColorsMenu}">
+    <Grid Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,8*,4*,1*" IsEnabled="True" IsVisible="{Binding OpenColorsMenu}"
+          controls:DynamicFontSizeGrid.OverrideDynamicFontSize=".015">
       <!-- Titles -->
       <UniformGrid Grid.Column="1" Columns="1">
         <TextBox Classes="i1" Text="Theme"/>
@@ -157,8 +151,8 @@
 
       <!-- Colors -->
       <UniformGrid Grid.Column="2" Columns="1">
-        <DropDown classes:SourceEnum.SourceEnum="{x:Type shared:ColorTheme}" SelectedItem="{Binding Colors.Theme}"/>
-        <TextBox Text="{Binding Path=Colors.UserDefinedColors[BaseBackground], Converter={StaticResource ColorConverter}}"/>
+        <DropDown classes:SourceEnum.SourceEnum="{x:Type colors:ColorTheme}" SelectedItem="{Binding ColorsViewModel.Theme}"/>
+        <TextBox Text="{Binding Path=ColorsViewModel[BaseBackground]}"/>
       </UniformGrid>
 
       <!--Save Colors Button -->
@@ -168,7 +162,8 @@
     </Grid>
 
     <!-- Settings Menu -->
-    <Grid Name="SettingsMenu" Grid.Column="1" RowDefinitions="19*,1*,1*" ColumnDefinitions="1*,4*,4*,1*" IsVisible="{Binding OpenSettingsMenu}" IsHitTestVisible="{Binding OpenSettingsMenu}">
+    <Grid Grid.Column="1" RowDefinitions="19*,1*,1*" ColumnDefinitions="1*,4*,4*,1*" IsVisible="{Binding OpenSettingsMenu}"
+          controls:DynamicFontSizeGrid.OverrideDynamicFontSize=".015">
       <!-- Titles -->
       <UniformGrid Grid.Column="1" Columns="1">
         <TextBox Classes="i1" Text="Always Download Users"
@@ -239,5 +234,5 @@
 
       <Border Classes="b1"/>
     </Grid>
-  </Grid>
+  </controls:DynamicFontSizeGrid>
 </Window>

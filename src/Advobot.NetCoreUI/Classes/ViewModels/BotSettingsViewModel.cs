@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Linq;
 using Advobot.Interfaces;
 using Advobot.NetCoreUI.Classes.ValidationAttributes;
 using Avalonia.Threading;

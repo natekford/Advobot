@@ -28,7 +28,7 @@ namespace Advobot.Services.Logging.Loggers
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
-			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {guild.MemberCount}, {IOUtils.GetMemory().ToString("0.00")}MB)");
+			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {guild.MemberCount}, {ProcessInfoUtils.GetMemory().ToString("0.00")}MB)");
 			await GuildSettings.GetOrCreateAsync(guild).CAF();
 		}
 		/// <summary>

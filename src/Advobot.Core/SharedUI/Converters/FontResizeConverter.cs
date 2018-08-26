@@ -54,14 +54,5 @@ namespace Advobot.SharedUI.Converters
 		{
 			throw new NotImplementedException();
 		}
-
-		/// <summary>
-		/// Gets the current main window height if the 
-		/// </summary>
-		/// <returns></returns>
-		protected virtual double GetWindowHeightIfNaN()
-		{
-			return 0;
-		}
 	}
 }

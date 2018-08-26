@@ -107,11 +107,10 @@ namespace Advobot.Services.Commands
 			//await CreateSettingModificationModuleAsync<IBotSettings, BotSettings>(_Provider, _Commands).CAF();
 			_Provider.GetRequiredService<IHelpEntryService>().Add(_Commands.Modules);
 
-			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
 				$"Modules: {_Commands.Modules.Count()}; " +
 				$"Prefix: {_BotSettings.Prefix}; " +
-				$"Launch Time: {startTime:n}ms");
+				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
 		}
 		/// <inheritdoc />
 		public async Task HandleCommand(SocketMessage message)

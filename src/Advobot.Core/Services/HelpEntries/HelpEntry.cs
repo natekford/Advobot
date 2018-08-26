@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -7,7 +6,6 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UsageGeneration;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 
@@ -54,7 +52,7 @@ namespace Advobot.Services.HelpEntries
 			{
 				attrs.GetAttribute<PermissionRequirementAttribute>()?.ToString(),
 				attrs.GetAttribute<OtherRequirementAttribute>()?.ToString()
-			}.JoinNonNullStrings(" | ") is string str && !String.IsNullOrWhiteSpace(str) ? str : "N/A";
+			}.JoinNonNullStrings(" | ") is string str && !string.IsNullOrWhiteSpace(str) ? str : "N/A";
 			Category = attrs.GetAttribute<CategoryAttribute>().Category ?? throw new ArgumentException(nameof(CategoryAttribute));
 			DefaultEnabled = attrs.GetAttribute<DefaultEnabledAttribute>().Enabled;
 			Description = attrs.GetAttribute<SummaryAttribute>().Text ?? throw new ArgumentException(nameof(SummaryAttribute));
@@ -76,7 +74,7 @@ namespace Advobot.Services.HelpEntries
 			{
 				attrs.GetAttribute<PermissionRequirementAttribute>()?.ToString(),
 				attrs.GetAttribute<OtherRequirementAttribute>()?.ToString()
-			}.JoinNonNullStrings(" | ") is string str && !String.IsNullOrWhiteSpace(str) ? str : "N/A";
+			}.JoinNonNullStrings(" | ") is string str && !string.IsNullOrWhiteSpace(str) ? str : "N/A";
 			Category = attrs.GetAttribute<CategoryAttribute>().Category ?? throw new ArgumentException(nameof(CategoryAttribute));
 			DefaultEnabled = attrs.GetAttribute<DefaultEnabledAttribute>().Enabled;
 			Description = module.Summary ?? throw new ArgumentException(nameof(SummaryAttribute));
@@ -88,7 +86,7 @@ namespace Advobot.Services.HelpEntries
 
 		private void SetStrings()
 		{
-			_A = $"**Aliases:** {String.Join(", ", Aliases)}\n";
+			_A = $"**Aliases:** {string.Join(", ", Aliases)}\n";
 			_U = $"**Usage:** {Constants.PREFIX}{Name} {Usage}\n";
 			_E = $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n";
 			_B = $"**Base Permission(s):**\n{BasePerms}\n";
@@ -106,7 +104,7 @@ namespace Advobot.Services.HelpEntries
 			{
 				val = DefaultEnabled;
 			}
-			return $"{_A}{_U}{_E}**Currently Enabled:** {(val ? "Yes" : "No" )}\n\n{_B}\n{_D}";
+			return $"{_A}{_U}{_E}**Currently Enabled:** {(val ? "Yes" : "No")}\n\n{_B}\n{_D}";
 		}
 	}
 }

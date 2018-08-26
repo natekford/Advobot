@@ -277,10 +277,10 @@ namespace Advobot.NetFrameworkUI.Windows
 		}
 		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
-			Uptime.Text = $"Uptime: {FormattingUtils.GetUptime()}";
+			Uptime.Text = $"Uptime: {ProcessInfoUtils.GetUptime():dd\\.hh\\:mm\\:ss}";
 			Latency.Text = $"Latency: {(Client?.CurrentUser == null ? -1 : Client.Latency)}ms";
-			Memory.Text = $"Memory: {IOUtils.GetMemory().ToString("0.00")}MB";
-			ThreadCount.Text = $"Threads: {Advobot.Utilities.Utils.GetThreadCount()}";
+			Memory.Text = $"Memory: {ProcessInfoUtils.GetMemoryMB():0.00}MB";
+			ThreadCount.Text = $"Threads: {ProcessInfoUtils.GetThreadCount()}";
 		}
 		private void MoveToolTip(object sender, MouseEventArgs e)
 		{

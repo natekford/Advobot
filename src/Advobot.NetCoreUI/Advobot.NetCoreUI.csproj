@@ -18,7 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AdvorangesSettingParser" Version="1.0.0" />
-    <PackageReference Include="AdvorangesUtils" Version="1.0.10" />
+    <PackageReference Include="AdvorangesUtils" Version="1.0.11" />
     <PackageReference Include="Avalonia" Version="0.6.2-build6010-beta" />
     <PackageReference Include="Avalonia.Desktop" Version="0.6.2-build6010-beta" />
     <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00982" />
@@ -45,6 +45,9 @@
     <Compile Update="AdvobotNetCoreWindow.xaml.cs">
       <DependentUpon>AdvobotNetCoreWindow.xaml</DependentUpon>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
   </ItemGroup>
 
   <PropertyGroup>

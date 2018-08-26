@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Advobot.Classes.Attributes;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -169,20 +168,20 @@ namespace Advobot.Classes.Settings
 				var enabledKvps = kvp.Value.Where(x => x.Value);
 				if (enabledKvps.Any())
 				{
-					overrides += $"\t**Enabled:** `{String.Join("`, `", kvp.Value)}`\n";
+					overrides += $"\t**Enabled:** `{string.Join("`, `", kvp.Value)}`\n";
 				}
 				var disabledKvps = kvp.Value.Where(x => !x.Value);
 				if (disabledKvps.Any())
 				{
-					overrides += $"\t**Disabled:** `{String.Join("`, `", kvp.Value)}`\n";
+					overrides += $"\t**Disabled:** `{string.Join("`, `", kvp.Value)}`\n";
 				}
 
-				if (!String.IsNullOrWhiteSpace(overrides))
+				if (!string.IsNullOrWhiteSpace(overrides))
 				{
 					sb.AppendLine($"{title}\n{overrides}");
 				}
 			}
-			return $"{String.Join("\n", _CommandValues.Select(x => $"`{x.Key}:` `{x.Value}`"))}\n\n{sb}".TrimEnd();
+			return $"{string.Join("\n", _CommandValues.Select(x => $"`{x.Key}:` `{x.Value}`"))}\n\n{sb}".TrimEnd();
 		}
 		private static bool ModifyOverride(IDictionary<string, bool> dict, ValueToModify newValue)
 		{

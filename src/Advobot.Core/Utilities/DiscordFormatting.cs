@@ -474,11 +474,11 @@ namespace Advobot.Utilities
 		{
 			var embed = new EmbedWrapper
 			{
-				Description = $"**Online Since:** `{Utils.GetStartTime().ToReadable()}` (`{FormattingUtils.GetUptime()}`)\n" +
+				Description = $"**Online Since:** `{ProcessInfoUtils.GetStartTime().ToReadable()}` (`{FormattingUtils.GetUptime()}`)\n" +
 					$"**Guild/User Count:** `{logging.TotalGuilds.Count}`/`{logging.TotalUsers.Count}`\n" +
 					$"**Latency:** `{client.Latency}`\n" +
-					$"**Memory Usage:** `{IOUtils.GetMemory():0.00}MB`\n" +
-					$"**Thread Count:** `{Utils.GetThreadCount()}`\n" +
+					$"**Memory Usage:** `{ProcessInfoUtils.GetMemory():0.00}MB`\n" +
+					$"**Thread Count:** `{ProcessInfoUtils.GetThreadCount()}`\n" +
 					$"**Shard Count:** `{client.Shards.Count}`",
 			};
 			embed.TryAddAuthor(client.CurrentUser, out _);

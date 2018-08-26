@@ -17,10 +17,6 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class MessageUtils
 	{
-		/// <summary>
-		/// The zero length character to put before every message.
-		/// </summary>
-		public const string ZERO_LENGTH_CHAR = "\u180E";
 		private static readonly char[] _InvalidChars = Path.GetInvalidFileNameChars();
 
 		/// <summary>
@@ -53,7 +49,7 @@ namespace Advobot.Utilities
 			{
 				textFile.Name = textFile.Name ?? "Long_Message";
 				textFile.Text = $"Message Content:\n{content}\n\n{textFile.Text}";
-				content = $"{ZERO_LENGTH_CHAR}Response is too long; sent as text file instead.";
+				content = $"{Constants.ZERO_LENGTH_CHAR}Response is too long; sent as text file instead.";
 			}
 
 			try
@@ -103,7 +99,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(SocketTextChannel channel, IUserMessage message, string output, ITimerService timers = null, TimeSpan time = default)
 		{
-			var secondMessage = await SendMessageAsync(channel, ZERO_LENGTH_CHAR + output).CAF();
+			var secondMessage = await SendMessageAsync(channel, Constants.ZERO_LENGTH_CHAR + output).CAF();
 			var removableMessage = new RemovableMessage(time, channel.Guild, channel, message.Author, message, secondMessage);
 			if (timers != null)
 			{
@@ -228,21 +224,21 @@ namespace Advobot.Utilities
 		{
 			if (content == null)
 			{
-				return ZERO_LENGTH_CHAR;
+				return Constants.ZERO_LENGTH_CHAR;
 			}
-			if (!content.StartsWith(ZERO_LENGTH_CHAR))
+			if (!content.StartsWith(Constants.ZERO_LENGTH_CHAR))
 			{
-				content = ZERO_LENGTH_CHAR + content;
+				content = Constants.ZERO_LENGTH_CHAR + content;
 			}
 			if (channel is IGuildChannel guildChannel)
 			{
-				content = content.CaseInsReplace(guildChannel.Guild.EveryoneRole.Mention, $"@{ZERO_LENGTH_CHAR}everyone"); //Everyone and Here have the same role
+				content = content.CaseInsReplace(guildChannel.Guild.EveryoneRole.Mention, $"@{Constants.ZERO_LENGTH_CHAR}everyone"); //Everyone and Here have the same role
 			}
 			return content
-				.CaseInsReplace("@everyone", $"@{ZERO_LENGTH_CHAR}everyone")
-				.CaseInsReplace("@here", $"@{ZERO_LENGTH_CHAR}here")
-				.CaseInsReplace("discord.gg", $"discord{ZERO_LENGTH_CHAR}.gg")
-				.CaseInsReplace("\tts", $"\\{ZERO_LENGTH_CHAR}tts");
+				.CaseInsReplace("@everyone", $"@{Constants.ZERO_LENGTH_CHAR}everyone")
+				.CaseInsReplace("@here", $"@{Constants.ZERO_LENGTH_CHAR}here")
+				.CaseInsReplace("discord.gg", $"discord{Constants.ZERO_LENGTH_CHAR}.gg")
+				.CaseInsReplace("\tts", $"\\{Constants.ZERO_LENGTH_CHAR}tts");
 		}
 	}
 }

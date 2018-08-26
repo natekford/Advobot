@@ -148,5 +148,15 @@
             <Setter Property="Template"
                     Value="{StaticResource ButtonControlTemplate}" />
         </Style>
+        <Style TargetType="Border" x:Key="GridBorder">
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+            <Setter Property="Grid.RowSpan"
+                    Value="1000"/>
+            <Setter Property="Grid.ColumnSpan"
+                    Value="1000"/>
+        </Style>
     </Application.Resources>
 </Application>
