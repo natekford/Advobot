@@ -106,11 +106,11 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private string _JsonParamName;
 
-		private readonly IColorSettings<SolidColorBrush> _Colors;
+		private readonly IColorSettings<ISolidColorBrush> _Colors;
 		private readonly NetCoreBrushFactory _Factory = new NetCoreBrushFactory();
 		private readonly ColorValidationAttribute _Validator = new ColorValidationAttribute();
 
-		public ColorsViewModel(IColorSettings<SolidColorBrush> colors) : base(colors)
+		public ColorsViewModel(IColorSettings<ISolidColorBrush> colors) : base(colors)
 		{
 			_Colors = colors;
 		}

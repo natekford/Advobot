@@ -15,7 +15,7 @@ namespace Advobot.NetCoreUI.Classes.Colors
 	/// <summary>
 	/// Color settings for Advobot's .Net Core UI.
 	/// </summary>
-	public sealed class NetCoreColorSettings : ColorSettings<SolidColorBrush, NetCoreBrushFactory>
+	public sealed class NetCoreColorSettings : ColorSettings<ISolidColorBrush, NetCoreBrushFactory>
 	{
 		[JsonIgnore]
 		private IResourceDictionary _Resources;
@@ -37,7 +37,7 @@ namespace Advobot.NetCoreUI.Classes.Colors
 		public NetCoreColorSettings() : base() { }
 
 		/// <inheritdoc />
-		protected override void UpdateResource(string target, SolidColorBrush value)
+		protected override void UpdateResource(string target, ISolidColorBrush value)
 		{
 			if (_Resources == null)
 			{

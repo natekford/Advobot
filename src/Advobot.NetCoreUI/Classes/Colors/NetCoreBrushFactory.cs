@@ -6,15 +6,15 @@ namespace Advobot.NetCoreUI.Classes.Colors
 	/// <summary>
 	/// Factory for <see cref="SolidColorBrush"/>.
 	/// </summary>
-	public sealed class NetCoreBrushFactory : BrushFactory<SolidColorBrush>
+	public sealed class NetCoreBrushFactory : BrushFactory<ISolidColorBrush>
 	{
 		/// <inheritdoc />
-		protected override SolidColorBrush CreateBrush(byte[] bytes)
+		protected override ISolidColorBrush CreateBrush(byte[] bytes)
 		{
 			return new SolidColorBrush(Color.FromArgb(bytes[0], bytes[1], bytes[2], bytes[3]));
 		}
 		/// <inheritdoc />
-		protected override byte[] GetBrushBytes(SolidColorBrush brush)
+		protected override byte[] GetBrushBytes(ISolidColorBrush brush)
 		{
 			return new[] { brush.Color.A, brush.Color.R, brush.Color.G, brush.Color.B };
 		}

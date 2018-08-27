@@ -8,5 +8,5 @@ namespace Advobot.NetCoreUI.Classes.Converters
 	/// <summary>
 	/// Converts a <see cref="SolidColorBrush"/>.
 	/// </summary>
-	public sealed class NetCoreColorConverter : ColorConverter<SolidColorBrush, NetCoreBrushFactory>, IValueConverter { }
+	public sealed class NetCoreColorConverter : ColorConverter<ISolidColorBrush, NetCoreBrushFactory>, IValueConverter { }
 }
