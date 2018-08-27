@@ -11,12 +11,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
+using Newtonsoft.Json;
+using Advobot.NetCoreUI.Utils;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
 	public class AdvobotNetCoreWindowViewModel : ReactiveObject
 	{
-		public string MainMenuText => "Test\n\n\n\ntest";
+		public string MainMenuText =>
+			"Latency: Time it takes for a command to reach the bot.\n\n" + 
+			"Memory: Amount of RAM the program is using.\n\n" +
+			"Threads: Where all the actions in the bot happen.\n\n" +
+			$"API wrapper version: {Constants.API_VERSION}\n" +
+			$"Bot version: {Constants.BOT_VERSION}\n\n" +
+			$"Github repository for Advobot: {Constants.REPO}" +
+			$"Join the Discord server for additional help: {Constants.DISCORD_INV}";
 
 		public string Output
 		{
@@ -82,14 +92,18 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public IObservable<string> Memory { get; }
 		public IObservable<string> ThreadCount { get; }
 
-		public ReactiveCommand OutputCommand { get; }
-		public ReactiveCommand InputCommand { get; }
-		public ReactiveCommand OpenMenuCommand { get; }
-		public ReactiveCommand DisconnectCommand { get; }
-		public ReactiveCommand RestartCommand { get; }
-		public ReactiveCommand PauseCommand { get; }
-		public ReactiveCommand SaveColorsCommand { get; }
-		public ReactiveCommand SaveBotSettingsCommand { get; }
+		public ICommand OutputCommand { get; }
+		public ICommand InputCommand { get; }
+		public ICommand OpenMenuCommand { get; }
+		public ICommand DisconnectCommand { get; }
+		public ICommand RestartCommand { get; }
+		public ICommand PauseCommand { get; }
+		public ICommand OpenFileSearchWindowCommand { get; }
+		public ICommand SaveColorsCommand { get; }
+		public ICommand SaveBotSettingsCommand { get; }
+		public ICommand ClearOutputCommand { get; }
+		public ICommand SaveOutputCommand { get; }
+		public ICommand OpenOutputSearchWindowCommand { get; }
 
 		public DiscordShardedClient Client
 		{
@@ -160,15 +174,25 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 				ConsoleUtils.WriteLine($"The bot is now {(BotSettings.Pause ? "unpaused" : "paused")}.", name: "Pause");
 				BotSettings.Pause = !BotSettings.Pause;
 			});
+			OpenFileSearchWindowCommand = ReactiveCommand.Create(() =>
+			{
+				throw new NotImplementedException();
+			});
 			SaveColorsCommand = ReactiveCommand.Create(() =>
 			{
 				ConsoleUtils.WriteLine("Successfully saved the color settings.", name: "Saving");
 				Colors.SaveSettings(BotSettings);
-			});
+			}, this.WhenAnyValue(x => x.OpenColorsMenu));
 			SaveBotSettingsCommand = ReactiveCommand.Create(() =>
 			{
 				ConsoleUtils.WriteLine("Successfully saved the bot settings.", name: "Saving");
 				BotSettings.SaveSettings(BotSettings);
+			}, this.WhenAnyValue(x => x.OpenSettingsMenu));
+			ClearOutputCommand = ReactiveCommand.Create(() => Output = "");
+			SaveOutputCommand = ReactiveCommand.Create(() => NetCoreUIUtils.Save(BotSettings, "Output", Output));
+			OpenOutputSearchWindowCommand = ReactiveCommand.Create(() =>
+			{
+				throw new NotImplementedException();
 			});
 
 			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));

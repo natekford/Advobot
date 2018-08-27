@@ -102,6 +102,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		{
 			_Colors = colors;
 		}
+		
 		private string Get([CallerMemberName] string propertyName = "")
 		{
 			return IsValid(propertyName)

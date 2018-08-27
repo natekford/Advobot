@@ -48,7 +48,15 @@
   <controls:DynamicFontSizeGrid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*" DynamicFontSize=".02">
     <!-- Output -->
     <!-- Needs AcceptsReturn to be true to wrap correctly -->
-    <TextBox Grid.ColumnSpan="{Binding OutputColumnSpan}" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"/>
+    <TextBox Grid.ColumnSpan="{Binding OutputColumnSpan}" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True">
+      <TextBox.ContextMenu>
+        <ContextMenu>
+          <Button Content="Clear Output" Command="{Binding ClearOutputCommand}"/>
+          <Button Content="Save Output" Command="{Binding SaveOutputCommand}"/>
+          <Button Content="Search Output" Command="{Binding OpenOutputSearchWindowCommand}"/>
+        </ContextMenu>
+      </TextBox.ContextMenu>
+    </TextBox>
 
     <!-- Input -->
     <Grid Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
@@ -79,7 +87,10 @@
     <!-- Main Menu -->
     <Grid Grid.Column="1" RowDefinitions="20*,1*" ColumnDefinitions="*,*,*" IsVisible="{Binding OpenMainMenu}">
       <!-- Need to use &#xD; for new lines in XAML -->
-      <TextBox Grid.ColumnSpan="3" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding MainMenuText, Mode=OneTime}"/>
+      <Grid Grid.ColumnSpan="3">
+        <!-- TODO: add more TB's -->
+        <TextBox IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding MainMenuText, Mode=OneTime}"/>
+      </Grid>
 
       <!-- Bot Buttons -->
       <Button Grid.Row="1" Grid.Column="0" Content="Disconnect" Command="{Binding DisconnectCommand}"/>
@@ -125,6 +136,9 @@
         <TextBox Classes="i1 i3" Text="{Binding LogService.Files.Count, Mode=OneWay}"/>
       </UniformGrid>
 
+      <!-- Search for file button -->
+      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Search For File" Command="{Binding OpenFileSearchWindowCommand}"/>
+
       <Border Classes="b1"/>
     </Grid>
 
@@ -168,7 +182,7 @@
       </UniformGrid>
 
       <!--Save Colors Button -->
-      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Colors" Command="{Binding SaveColorsCommand}"/>
+      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Colors" HotKey="Ctrl+s" Command="{Binding SaveColorsCommand}"/>
 
       <Border Classes="b1"/>
     </Grid>
@@ -242,7 +256,7 @@
       </UniformGrid>
 
       <!-- Save Settings Button -->
-      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Settings" Command="{Binding SaveBotSettingsCommand}"/>
+      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Settings" HotKey="Ctrl+s" Command="{Binding SaveBotSettingsCommand}"/>
 
       <Border Classes="b1"/>
     </Grid>
