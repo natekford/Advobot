@@ -16,7 +16,7 @@ namespace Advobot.NetCoreUI.Classes.ValidationAttributes
 		/// <returns></returns>
 		protected override ValidationResult IsValid(object value, ValidationContext validationContext)
 		{
-			return RegexUtils.IsValidTwitchName(value.ToString())
+			return RegexUtils.IsValidTwitchName(value?.ToString())
 				? ValidationResult.Success
 				: new ValidationResult("Invalid Twitch stream.");
 		}

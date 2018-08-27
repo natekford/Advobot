@@ -35,7 +35,15 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			{
 				setter(newValue);
 			}
-			this.RaiseAndSetIfChanged(ref backingField, newValue, propertyName);
+			//If same value, don't bother setting it, just say it was changed
+			if (EqualityComparer<T>.Default.Equals(backingField, newValue))
+			{
+				this.RaisePropertyChanged(propertyName);
+			}
+			else
+			{
+				this.RaiseAndSetIfChanged(ref backingField, newValue, propertyName);
+			}
 		}
 	}
 }
