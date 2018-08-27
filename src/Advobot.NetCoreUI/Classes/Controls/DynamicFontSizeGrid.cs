@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Linq;
-using Advobot.NetCoreUI.Classes.Converters;
+﻿using Advobot.NetCoreUI.Classes.Converters;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
+using System;
+using System.Collections.Concurrent;
+using System.Linq;
 
 namespace Advobot.NetCoreUI.Classes.Controls
 {
@@ -14,7 +14,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 	/// </summary>
 	public class DynamicFontSizeGrid : Grid
 	{
-        private static readonly ConcurrentDictionary<TemplatedControl, IDisposable> _Bindings
+		private static readonly ConcurrentDictionary<TemplatedControl, IDisposable> _Bindings
 			= new ConcurrentDictionary<TemplatedControl, IDisposable>();
 
 		public static readonly StyledProperty<double> DynamicFontSizeProperty =
@@ -35,15 +35,15 @@ namespace Advobot.NetCoreUI.Classes.Controls
 
 		public static void SetOverrideDynamicFontSize(Control obj, double value)
 		{
-            if (obj is Panel panel)
-            {
-                SetAllChildren(panel, value);
-            }
-            if (obj is TemplatedControl templatedControl)
-            {
-                SetChild(templatedControl, value);
-            }
-            obj.SetValue(OverrideDynamicFontSizeProperty, value);
+			if (obj is Panel panel)
+			{
+				SetAllChildren(panel, value);
+			}
+			if (obj is TemplatedControl templatedControl)
+			{
+				SetChild(templatedControl, value);
+			}
+			obj.SetValue(OverrideDynamicFontSizeProperty, value);
 		}
 		public static double GetOverrideDynamicFontSize(Control obj)
 		{
@@ -74,7 +74,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 			foreach (var child in parent.Children.OfType<Panel>())
 			{
 				var overrideValue = GetOverrideDynamicFontSize(child);
-                //If the override isn't set, and this is a dynamic font size grid, use its current value
+				//If the override isn't set, and this is a dynamic font size grid, use its current value
 				if (!(overrideValue > 0) && child is DynamicFontSizeGrid dynamicFontSizeGrid)
 				{
 					overrideValue = GetDynamicFontSize(dynamicFontSizeGrid);

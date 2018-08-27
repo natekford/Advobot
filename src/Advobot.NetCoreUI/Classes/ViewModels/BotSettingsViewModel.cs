@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using Advobot.Interfaces;
+﻿using Advobot.Interfaces;
 using Advobot.NetCoreUI.Classes.ValidationAttributes;
 using Avalonia.Threading;
 using Discord;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {

@@ -1,5 +1,4 @@
-﻿using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Interfaces;
 
 namespace Advobot.SharedUI.Colors
 {

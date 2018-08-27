@@ -150,9 +150,21 @@
       </UniformGrid>
 
       <!-- Colors -->
-      <UniformGrid Grid.Column="2" Columns="1">
-        <DropDown classes:SourceEnum.SourceEnum="{x:Type colors:ColorTheme}" SelectedItem="{Binding ColorsViewModel.Theme}"/>
-        <TextBox Text="{Binding Path=ColorsViewModel[BaseBackground]}"/>
+      <UniformGrid Grid.Column="2" Columns="1" DataContext="{Binding ColorsViewModel}">
+        <DropDown classes:SourceEnum.SourceEnum="{x:Type colors:ColorTheme}" SelectedItem="{Binding Theme}"/>
+        <TextBox Text="{Binding BaseBackground}"/>
+        <TextBox Text="{Binding BaseForeground}"/>
+        <TextBox Text="{Binding BaseBorder}"/>
+        <TextBox Text="{Binding ButtonBackground}"/>
+        <TextBox Text="{Binding ButtonForeground}"/>
+        <TextBox Text="{Binding ButtonBorder}"/>
+        <TextBox Text="{Binding ButtonDisabledBackground}"/>
+        <TextBox Text="{Binding ButtonDisabledForeground}"/>
+        <TextBox Text="{Binding ButtonDisabledBorder}"/>
+        <TextBox Text="{Binding ButtonMouseOverBackground}"/>
+        <TextBox Text="{Binding JsonDigits}"/>
+        <TextBox Text="{Binding JsonValue}"/>
+        <TextBox Text="{Binding JsonParamName}"/>
       </UniformGrid>
 
       <!--Save Colors Button -->

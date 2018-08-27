@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
-using Advobot.Interfaces;
+﻿using Advobot.Interfaces;
 using Advobot.NetCoreUI.Classes.Colors;
-using Advobot.SharedUI;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
@@ -59,14 +57,14 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private BotSettingsViewModel _BotSettingsViewModel;
 
-        public ColorsViewModel ColorsViewModel
-        {
-            get => _ColorsViewModel;
-            private set => this.RaiseAndSetIfChanged(ref _ColorsViewModel, value);
-        }
-        private ColorsViewModel _ColorsViewModel;
+		public ColorsViewModel ColorsViewModel
+		{
+			get => _ColorsViewModel;
+			private set => this.RaiseAndSetIfChanged(ref _ColorsViewModel, value);
+		}
+		private ColorsViewModel _ColorsViewModel;
 
-        public int OutputColumnSpan
+		public int OutputColumnSpan
 		{
 			get => _OutputColumnSpan;
 			private set => this.RaiseAndSetIfChanged(ref _OutputColumnSpan, value);
@@ -93,35 +91,35 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public ReactiveCommand SaveColorsCommand { get; }
 		public ReactiveCommand SaveBotSettingsCommand { get; }
 
-        public DiscordShardedClient Client
-        {
-            get => _Client;
-            set => this.RaiseAndSetIfChanged(ref _Client, value);
-        }
-        private DiscordShardedClient _Client = null;
+		public DiscordShardedClient Client
+		{
+			get => _Client;
+			set => this.RaiseAndSetIfChanged(ref _Client, value);
+		}
+		private DiscordShardedClient _Client = null;
 
-        public IBotSettings BotSettings
-        {
-            get => _BotSettings;
-            set => this.RaiseAndSetIfChanged(ref _BotSettings, value);
-        }
-        private IBotSettings _BotSettings = null;
+		public IBotSettings BotSettings
+		{
+			get => _BotSettings;
+			set => this.RaiseAndSetIfChanged(ref _BotSettings, value);
+		}
+		private IBotSettings _BotSettings = null;
 
-        public ILogService LogService
-        {
-            get => _LogService;
-            set => this.RaiseAndSetIfChanged(ref _LogService, value);
-        }
-        private ILogService _LogService = null;
+		public ILogService LogService
+		{
+			get => _LogService;
+			set => this.RaiseAndSetIfChanged(ref _LogService, value);
+		}
+		private ILogService _LogService = null;
 
-        public NetCoreColorSettings Colors
-        {
-            get => _Colors;
-            set => this.RaiseAndSetIfChanged(ref _Colors, value);
-        }
-        private NetCoreColorSettings _Colors = null;
+		public NetCoreColorSettings Colors
+		{
+			get => _Colors;
+			set => this.RaiseAndSetIfChanged(ref _Colors, value);
+		}
+		private NetCoreColorSettings _Colors = null;
 
-        public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
+		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
 		{
 			Client = provider.GetRequiredService<DiscordShardedClient>();
 			BotSettings = provider.GetRequiredService<IBotSettings>();
@@ -129,7 +127,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			Colors = NetCoreColorSettings.Load<NetCoreColorSettings>(BotSettings);
 
 			BotSettingsViewModel = new BotSettingsViewModel(BotSettings);
-            ColorsViewModel = new ColorsViewModel(Colors);
+			ColorsViewModel = new ColorsViewModel(Colors);
 
 			OutputCommand = ReactiveCommand.Create<string>(x => Output += x);
 			Console.SetOut(new TextBoxStreamWriter(OutputCommand));
@@ -174,14 +172,14 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			});
 
 			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));
-            var space = 23; //??????????????????????????????????????????????????????
-            //Not sure how this happens, but unless the strings are past a specific length they fail to update in the UI.
-            //The padding also has to be done on the right, not the left.
-            //For the regular font size and only 4 textboxes inside the grid, this requires 29 characters.
-            //For .02 dynamic font size and only 4 textboxes inside the grid, this requires 23 characters.
-            //The more textboxes inside the grid, the less characters required because the less width each textbox gets.
-            Uptime = timer.Select(x => $"Uptime: {ProcessInfoUtils.GetUptime():dd\\.hh\\:mm\\:ss}".PadRight(space));
-            Latency = timer.Select(x => $"Latency: {(Client?.CurrentUser == null ? -1 : Client.Latency)}ms".PadRight(space));
+			var space = 23; //??????????????????????????????????????????????????????
+			//Not sure how this happens, but unless the strings are past a specific length they fail to update in the UI.
+			//The padding also has to be done on the right, not the left.
+			//For the regular font size and only 4 textboxes inside the grid, this requires 29 characters.
+			//For .02 dynamic font size and only 4 textboxes inside the grid, this requires 23 characters.
+			//The more textboxes inside the grid, the less characters required because the less width each textbox gets.
+			Uptime = timer.Select(x => $"Uptime: {ProcessInfoUtils.GetUptime():dd\\.hh\\:mm\\:ss}".PadRight(space));
+			Latency = timer.Select(x => $"Latency: {(Client?.CurrentUser == null ? -1 : Client.Latency)}ms".PadRight(space));
 			Memory = timer.Select(x => $"Memory: {ProcessInfoUtils.GetMemoryMB():0.00}MB".PadRight(space));
 			ThreadCount = timer.Select(x => $"Threads: {ProcessInfoUtils.GetThreadCount()}".PadRight(space));
 		}
