@@ -162,12 +162,12 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			});
 			SaveColorsCommand = ReactiveCommand.Create(() =>
 			{
-				ConsoleUtils.WriteLine("Successfully saved the color settings.");
+				ConsoleUtils.WriteLine("Successfully saved the color settings.", name: "Saving");
 				Colors.SaveSettings(BotSettings);
 			});
 			SaveBotSettingsCommand = ReactiveCommand.Create(() =>
 			{
-				ConsoleUtils.WriteLine("Successfully saved the bot settings.");
+				ConsoleUtils.WriteLine("Successfully saved the bot settings.", name: "Saving");
 				BotSettings.SaveSettings(BotSettings);
 			});
 
