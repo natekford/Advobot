@@ -22,7 +22,7 @@
   </Window.Resources>
 
   <Window.Styles>
-    <!-- Needs Fixing: How to center text vertically? -->
+    <!-- How to center text vertically? -->
     <Style Selector="TextBox.i1">
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="IsReadOnly" Value="True"/>
@@ -87,10 +87,8 @@
     <!-- Main Menu -->
     <Grid Grid.Column="1" RowDefinitions="20*,1*" ColumnDefinitions="*,*,*" IsVisible="{Binding OpenMainMenu}">
       <!-- Need to use &#xD; for new lines in XAML -->
-      <Grid Grid.ColumnSpan="3">
-        <!-- TODO: add more TB's -->
-        <TextBox IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding MainMenuText, Mode=OneTime}"/>
-      </Grid>
+      <!-- TODO: Add in hyperlinks when they get added. -->
+      <TextBox Grid.ColumnSpan="3" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding MainMenuText, Mode=OneTime}"/>
 
       <!-- Bot Buttons -->
       <Button Grid.Row="1" Grid.Column="0" Content="Disconnect" Command="{Binding DisconnectCommand}"/>
@@ -238,24 +236,25 @@
         <TextBox Text="{Binding Prefix}"/>
         <TextBox Text="{Binding Game}"/>
         <TextBox Text="{Binding Stream}"/>
-        <TextBox Text="{Binding MessageCacheSize}"/>
-        <TextBox Text="{Binding MaxUserGatherCount}"/>
-        <TextBox Text="{Binding MaxMessageGatherSize}"/>
-        <TextBox Text="{Binding MaxRuleCategories}"/>
-        <TextBox Text="{Binding MaxRulesPerCategory}"/>
-        <TextBox Text="{Binding MaxSelfAssignableRoleGroups}"/>
-        <TextBox Text="{Binding MaxQuotes}"/>
-        <TextBox Text="{Binding MaxBannedStrings}"/>
-        <TextBox Text="{Binding MaxBannedRegex}"/>
-        <TextBox Text="{Binding MaxBannedNames}"/>
-        <TextBox Text="{Binding MaxBannedPunishments}"/>
+        <controls:NumberBox StoredValue="{Binding MessageCacheSize}" MinValue="0" MaxValue="1000000"/>
+        <controls:NumberBox StoredValue="{Binding MaxUserGatherCount}" MinValue="0" MaxValue="500000"/>
+        <controls:NumberBox StoredValue="{Binding MaxMessageGatherSize}" MinValue="0" MaxValue="10000000"/>
+        <controls:NumberBox StoredValue="{Binding MaxRuleCategories}" MinValue="0" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxRulesPerCategory}" MinValue="0" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxSelfAssignableRoleGroups}" MinValue="0" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxQuotes}" MinValue="0" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxBannedStrings}" MinValue="0" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxBannedRegex}" MinValue="0" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxBannedNames}" MinValue="0" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxBannedPunishments}" MinValue="0" MaxValue="10000"/>
         <DropDown classes:SourceEnum.SourceEnum="{x:Type discord:LogSeverity}" SelectedItem="{Binding LogLevel}"/>
-        <DropDown Items="{Binding TrustedUsers}"/>
-        <DropDown Items="{Binding UsersUnableToDmOwner}"/>
-        <DropDown Items="{Binding UsersIgnoredFromCommands}"/>
+        <controls:UserListEditor UserList="{Binding TrustedUsers}"/>
+        <controls:UserListEditor UserList="{Binding UsersUnableToDmOwner}"/>
+        <controls:UserListEditor UserList="{Binding UsersIgnoredFromCommands}"/>
       </UniformGrid>
 
       <!-- Save Settings Button -->
+      <!-- TODO: Wait for hotkey scopes so this doesn't conflict with the color saving hotkey -->
       <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Settings" HotKey="Ctrl+s" Command="{Binding SaveBotSettingsCommand}"/>
 
       <Border Classes="b1"/>

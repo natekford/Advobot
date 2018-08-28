@@ -18,21 +18,19 @@ namespace Advobot.NetCoreUI.Classes.Controls
 			= new ConcurrentDictionary<TemplatedControl, IDisposable>();
 
 		public static readonly StyledProperty<double> DynamicFontSizeProperty =
-			AvaloniaProperty.Register<DynamicFontSizeGrid, double>("DynamicFontSize");
-
-		public static void SetDynamicFontSize(DynamicFontSizeGrid obj, double value)
+			AvaloniaProperty.Register<DynamicFontSizeGrid, double>(nameof(DynamicFontSize));
+		public double DynamicFontSize
 		{
-			SetAllChildren(obj, value);
-			obj.SetValue(DynamicFontSizeProperty, value);
-		}
-		public static double GetDynamicFontSize(DynamicFontSizeGrid obj)
-		{
-			return obj.GetValue(DynamicFontSizeProperty);
+			get => GetValue(DynamicFontSizeProperty);
+			set
+			{
+				SetAllChildren(this, value);
+				SetValue(DynamicFontSizeProperty, value);
+			}
 		}
 
 		public static readonly AttachedProperty<double> OverrideDynamicFontSizeProperty =
 			AvaloniaProperty.RegisterAttached<DynamicFontSizeGrid, Control, double>("OverrideDynamicFontSize");
-
 		public static void SetOverrideDynamicFontSize(Control obj, double value)
 		{
 			if (obj is Panel panel)
@@ -52,10 +50,9 @@ namespace Advobot.NetCoreUI.Classes.Controls
 
 		public override void EndInit()
 		{
-			var val = GetDynamicFontSize(this);
-			if (val > 0)
+			if (DynamicFontSize > 0)
 			{
-				SetAllChildren(this, val);
+				SetAllChildren(this, DynamicFontSize);
 			}
 			base.EndInit();
 		}
@@ -77,7 +74,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				//If the override isn't set, and this is a dynamic font size grid, use its current value
 				if (!(overrideValue > 0) && child is DynamicFontSizeGrid dynamicFontSizeGrid)
 				{
-					overrideValue = GetDynamicFontSize(dynamicFontSizeGrid);
+					overrideValue = dynamicFontSizeGrid.DynamicFontSize;
 				}
 				if (double.IsNaN(overrideValue))
 				{

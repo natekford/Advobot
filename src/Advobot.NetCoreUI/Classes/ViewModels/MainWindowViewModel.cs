@@ -1,31 +1,31 @@
-﻿using Advobot.Interfaces;
-using Advobot.NetCoreUI.Classes.Colors;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using ReactiveUI;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using Newtonsoft.Json;
+using Advobot.Interfaces;
+using Advobot.NetCoreUI.Classes.Colors;
 using Advobot.NetCoreUI.Utils;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Avalonia.Controls;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
 	public class AdvobotNetCoreWindowViewModel : ReactiveObject
 	{
 		public string MainMenuText =>
-			"Latency: Time it takes for a command to reach the bot.\n\n" + 
+			"Latency: Time it takes for a command to reach the bot.\n\n" +
 			"Memory: Amount of RAM the program is using.\n\n" +
 			"Threads: Where all the actions in the bot happen.\n\n" +
 			$"API wrapper version: {Constants.API_VERSION}\n" +
 			$"Bot version: {Constants.BOT_VERSION}\n\n" +
-			$"Github repository for Advobot: {Constants.REPO}" +
+			$"Github repository for Advobot: {Constants.REPO}\n" +
 			$"Join the Discord server for additional help: {Constants.DISCORD_INV}";
 
 		public string Output
@@ -189,7 +189,11 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 				BotSettings.SaveSettings(BotSettings);
 			}, this.WhenAnyValue(x => x.OpenSettingsMenu));
 			ClearOutputCommand = ReactiveCommand.Create(() => Output = "");
-			SaveOutputCommand = ReactiveCommand.Create(() => NetCoreUIUtils.Save(BotSettings, "Output", Output));
+			SaveOutputCommand = ReactiveCommand.Create(() =>
+			{
+				var success = NetCoreUIUtils.Save(BotSettings, "Output", Output);
+				ConsoleUtils.WriteLine(NetCoreUIUtils.GetSaveResponse(success), name: "Saving Output");
+			});
 			OpenOutputSearchWindowCommand = ReactiveCommand.Create(() =>
 			{
 				throw new NotImplementedException();
@@ -197,11 +201,11 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 
 			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));
 			var space = 23; //??????????????????????????????????????????????????????
-			//Not sure how this happens, but unless the strings are past a specific length they fail to update in the UI.
-			//The padding also has to be done on the right, not the left.
-			//For the regular font size and only 4 textboxes inside the grid, this requires 29 characters.
-			//For .02 dynamic font size and only 4 textboxes inside the grid, this requires 23 characters.
-			//The more textboxes inside the grid, the less characters required because the less width each textbox gets.
+							//Not sure how this happens, but unless the strings are past a specific length they fail to update in the UI.
+							//The padding also has to be done on the right, not the left.
+							//For the regular font size and only 4 textboxes inside the grid, this requires 29 characters.
+							//For .02 dynamic font size and only 4 textboxes inside the grid, this requires 23 characters.
+							//The more textboxes inside the grid, the less characters required because the less width each textbox gets.
 			Uptime = timer.Select(x => $"Uptime: {ProcessInfoUtils.GetUptime():dd\\.hh\\:mm\\:ss}".PadRight(space));
 			Latency = timer.Select(x => $"Latency: {(Client?.CurrentUser == null ? -1 : Client.Latency)}ms".PadRight(space));
 			Memory = timer.Select(x => $"Memory: {ProcessInfoUtils.GetMemoryMB():0.00}MB".PadRight(space));

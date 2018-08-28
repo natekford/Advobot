@@ -1,9 +1,9 @@
-﻿using ReactiveUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
+using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
@@ -35,15 +35,8 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			{
 				setter(newValue);
 			}
-			//If same value, don't bother setting it, just say it was changed
-			if (EqualityComparer<T>.Default.Equals(backingField, newValue))
-			{
-				this.RaisePropertyChanged(propertyName);
-			}
-			else
-			{
-				this.RaiseAndSetIfChanged(ref backingField, newValue, propertyName);
-			}
+			backingField = newValue;
+			this.RaisePropertyChanged(propertyName);
 		}
 	}
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using Advobot.Classes.Attributes;
+﻿using Advobot.Classes.Attributes;
 using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
@@ -20,14 +19,9 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public RequestOptions GetRequestOptions(string reason = "")
 		{
-			return String.IsNullOrWhiteSpace(reason)
+			return string.IsNullOrWhiteSpace(reason)
 				? ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}.")
 				: ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}. Reason: {reason}.");
-		}
-		/// <inheritdoc />
-		protected override void AfterExecute(CommandInfo command)
-		{
-			base.AfterExecute(command);
 		}
 	}
 }
