@@ -48,7 +48,6 @@ namespace Advobot.NetFrameworkUI
 				catch (ArgumentException) { }
 			}
 
-			SyntaxHighlightingUtils.LoadJsonHighlighting();
 			//Make sure it's restarted with the correct instance number for config reasons
 			MainWindow = new AdvobotWindow(config);
 			MainWindow.Show();

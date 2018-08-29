@@ -19,7 +19,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 {
 	public class AdvobotNetCoreWindowViewModel : ReactiveObject
 	{
-		public string MainMenuText =>
+		public string MainMenuText { get; } =
 			"Latency: Time it takes for a command to reach the bot.\n\n" +
 			"Memory: Amount of RAM the program is using.\n\n" +
 			"Threads: Where all the actions in the bot happen.\n\n" +
@@ -60,6 +60,13 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private string _PauseButtonContent;
 
+		public int OutputColumnSpan
+		{
+			get => _OutputColumnSpan;
+			private set => this.RaiseAndSetIfChanged(ref _OutputColumnSpan, value);
+		}
+		private int _OutputColumnSpan = 2;
+
 		public BotSettingsViewModel BotSettingsViewModel
 		{
 			get => _BotSettingsViewModel;
@@ -73,13 +80,6 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			private set => this.RaiseAndSetIfChanged(ref _ColorsViewModel, value);
 		}
 		private ColorsViewModel _ColorsViewModel;
-
-		public int OutputColumnSpan
-		{
-			get => _OutputColumnSpan;
-			private set => this.RaiseAndSetIfChanged(ref _OutputColumnSpan, value);
-		}
-		private int _OutputColumnSpan = 2;
 
 		public bool OpenMainMenu => GetMenuStatus();
 		public bool OpenInfoMenu => GetMenuStatus();
@@ -176,7 +176,10 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			});
 			OpenFileSearchWindowCommand = ReactiveCommand.Create(() =>
 			{
-				throw new NotImplementedException();
+				return new FileSearchWindow
+				{
+					DataContext = new FileSearchWindowViewModel(),
+				}.ShowDialog();
 			});
 			SaveColorsCommand = ReactiveCommand.Create(() =>
 			{
@@ -194,9 +197,12 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 				var success = NetCoreUIUtils.Save(BotSettings, "Output", Output);
 				ConsoleUtils.WriteLine(NetCoreUIUtils.GetSaveResponse(success), name: "Saving Output");
 			});
-			OpenOutputSearchWindowCommand = ReactiveCommand.Create(() =>
+			OpenOutputSearchWindowCommand = ReactiveCommand.CreateFromTask(() =>
 			{
-				throw new NotImplementedException();
+				return new OutputSearchWindow
+				{
+					DataContext = new OutputSearchWindowViewModel(BotSettings)
+				}.ShowDialog();
 			});
 
 			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));

@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
+using System.Xml;
 using Advobot.SharedUI.Colors;
 using AdvorangesUtils;
 using Avalonia;
@@ -8,6 +11,8 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Styling;
+using AvaloniaEdit.Highlighting;
+using AvaloniaEdit.Highlighting.Xshd;
 using Newtonsoft.Json;
 
 namespace Advobot.NetCoreUI.Classes.Colors
@@ -17,6 +22,13 @@ namespace Advobot.NetCoreUI.Classes.Colors
 	/// </summary>
 	public sealed class NetCoreColorSettings : ColorSettings<ISolidColorBrush, NetCoreBrushFactory>
 	{
+		private static readonly string AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+
+		static NetCoreColorSettings()
+		{
+			LoadSyntaxHighlighting($"{AssemblyName}.Resources.JsonSyntaxHighlighting.xshd", "Json", new[] { ".json" });
+		}
+
 		[JsonIgnore]
 		private IResourceDictionary _Resources;
 		[JsonIgnore]
@@ -57,6 +69,65 @@ namespace Advobot.NetCoreUI.Classes.Colors
 
 			//Still set it in the global resource dictionary if we want to access it easily with our names
 			Application.Current.Resources[target] = value;
+			UpdateSyntaxHighlightingColor(target, value);
+		}
+		/// <inheritdoc />
+		protected override void AfterThemeUpdated()
+		{
+			SetSyntaxHighlightingColors("Json");
+		}
+		//TODO: remove returns after avaloniaedit is uploaded onto nuget past 0.6.0
+		private void SetSyntaxHighlightingColors(params string[] names)
+		{
+			return;
+			foreach (var name in names)
+			{
+				var highlighting = HighlightingManager.Instance.GetDefinition(name)
+					?? throw new ArgumentException($"{name} is not a valid highlighting.", name);
+
+				foreach (var namedColor in highlighting.NamedHighlightingColors)
+				{
+					//E.G.: Highlighting name is json, color name is Param, searches for jsonParam
+					var colorName = highlighting.Name + namedColor.Name;
+					if (!(LightMode.Keys.SingleOrDefault(x => x.CaseInsEquals(colorName)) is string str))
+					{
+						continue;
+					}
+
+					//Get the set color, if one doesn't exist, use the default light mode
+					var color = ((ISolidColorBrush)Application.Current.Resources[str])?.Color ?? LightMode[str].Color;
+					namedColor.Foreground = new SimpleHighlightingBrush(color);
+				}
+			}
+		}
+		private void UpdateSyntaxHighlightingColor(string target, ISolidColorBrush value)
+		{
+			return;
+			foreach (var highlighting in HighlightingManager.Instance.HighlightingDefinitions)
+			{
+				if (!target.CaseInsStartsWith(highlighting.Name))
+				{
+					continue;
+				}
+				foreach (var color in highlighting.NamedHighlightingColors)
+				{
+					if (!target.CaseInsEquals(highlighting.Name + color.Name))
+					{
+						continue;
+					}
+					color.Foreground = new SimpleHighlightingBrush(value.Color);
+				}
+			}
+		}
+		private static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
+		{
+			return;
+			using (var r = new XmlTextReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(loc))
+				?? throw new InvalidOperationException($"{loc} is missing."))
+			{
+				var highlighting = HighlightingLoader.Load(r, HighlightingManager.Instance);
+				HighlightingManager.Inst‌​ance.RegisterHighlighting(name, extensions, highlighting);
+			}
 		}
 	}
 }

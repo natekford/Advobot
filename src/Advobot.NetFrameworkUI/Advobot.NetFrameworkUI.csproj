@@ -71,7 +71,7 @@
       <HintPath>..\..\packages\LiteDB.4.1.4\lib\net40\LiteDB.dll</HintPath>
     </Reference>
     <Reference Include="Magick.NET-Q8-AnyCPU, Version=7.6.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Magick.NET-Q8-AnyCPU.7.6.0\lib\net40\Magick.NET-Q8-AnyCPU.dll</HintPath>
+      <HintPath>..\..\packages\Magick.NET-Q8-AnyCPU.7.6.0.1\lib\net40\Magick.NET-Q8-AnyCPU.dll</HintPath>
     </Reference>
     <Reference Include="MetadataExtractor, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\MetadataExtractor.2.0.0\lib\net45\MetadataExtractor.dll</HintPath>
@@ -168,7 +168,6 @@
     <Compile Include="AdvobotApp.xaml.cs">
       <DependentUpon>AdvobotApp.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Utilities\SyntaxHighlightingUtils.cs" />
     <Compile Include="Interfaces\IAdvobotControl.cs" />
     <Compile Include="Windows\AdvobotWindow.xaml.cs">
       <DependentUpon>AdvobotWindow.xaml</DependentUpon>

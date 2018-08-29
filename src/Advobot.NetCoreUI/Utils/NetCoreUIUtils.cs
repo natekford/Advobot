@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
+using System.Reflection;
 using System.Windows.Input;
-using ReactiveUI;
-using Newtonsoft.Json;
-using AdvorangesUtils;
+using System.Xml;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesUtils;
+using AvaloniaEdit.Highlighting;
+using AvaloniaEdit.Highlighting.Xshd;
+using Newtonsoft.Json;
 
 namespace Advobot.NetCoreUI.Utils
 {
@@ -16,6 +16,8 @@ namespace Advobot.NetCoreUI.Utils
 	/// </summary>
 	public static class NetCoreUIUtils
 	{
+		public static string AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+
 		/// <summary>
 		/// Because <see cref="ReactiveUI.ReactiveCommand"/> implements this method explicitly.
 		/// </summary>

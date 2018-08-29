@@ -61,7 +61,7 @@
     <!-- Input -->
     <Grid Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
       <TextBox Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed"/>
-      <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}" />
+      <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}"/>
     </Grid>
 
     <!-- Application Info Bar -->
