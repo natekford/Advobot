@@ -1,12 +1,10 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Windows.Input;
-using System.Xml;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using AvaloniaEdit.Highlighting;
-using AvaloniaEdit.Highlighting.Xshd;
 using Newtonsoft.Json;
 
 namespace Advobot.NetCoreUI.Utils
@@ -27,9 +25,12 @@ namespace Advobot.NetCoreUI.Utils
 		{
 			command.Execute(parameter);
 		}
-		public static bool Save(IBotDirectoryAccessor accessor, string fileName, string text, Type deserializeType = null)
+		public static FileInfo GenerateFileName(this IBotDirectoryAccessor accessor, string fileName, string ext = "txt")
 		{
-			var file = accessor.GetBaseBotDirectoryFile($"{fileName}_{FormattingUtils.ToSaving()}.txt");
+			return accessor.GetBaseBotDirectoryFile($"{fileName}_{FormattingUtils.ToSaving()}.{ext}");
+		}
+		public static SaveResponse Save(this FileInfo file, string text, Type deserializeType = null)
+		{
 			if (deserializeType != null)
 			{
 				try
@@ -39,27 +40,45 @@ namespace Advobot.NetCoreUI.Utils
 				catch (JsonReaderException jre)
 				{
 					jre.Write();
-					return false;
+					return SaveResponse.DeserializationError;
 				}
 			}
 
 			try
 			{
 				IOUtils.SafeWriteAllText(file, text);
-				return true;
+				return SaveResponse.Success;
 			}
 			catch
 			{
-				return false;
+				return SaveResponse.Failure;
 			}
 		}
-		public static string GetSaveResponse(bool? success)
+		//TODO: make this notify in the window instead of only in main 
+		public static string SaveAndGetResponse(this FileInfo file, string text, Type deserializationType = null)
 		{
-			if (!(success is bool val))
-			{
-				return "File not found.";
-			}
-			return val ? "Successfully saved." : "Failed to save.";
+			return file.Save(text, deserializationType).GetSaveResponse(file);
 		}
+		public static string GetSaveResponse(this SaveResponse response, FileInfo file)
+		{
+			switch (response)
+			{
+				case SaveResponse.Failure:
+					return $"Unable to correctly save {file}.";
+				case SaveResponse.Success:
+					return $"Successfully saved {file}.";
+				case SaveResponse.DeserializationError:
+					return $"Deserialization error occurred during saving {file}. This is caused by putting invalid values in Json.";
+				default:
+					throw new ArgumentException(nameof(response));
+			}
+		}
+	}
+
+	public enum SaveResponse
+	{
+		Failure,
+		Success,
+		DeserializationError,
 	}
 }

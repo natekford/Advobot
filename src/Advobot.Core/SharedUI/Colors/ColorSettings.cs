@@ -55,9 +55,7 @@ namespace Advobot.SharedUI.Colors
 			{ ColorTargets.JsonParamName,             "#057500" },
 		};
 
-		/// <summary>
-		/// Colors defined by the user.
-		/// </summary>
+		/// <inheritdoc />
 		[JsonProperty("ColorTargets", Order = 1), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
 		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
 		/// <inheritdoc />

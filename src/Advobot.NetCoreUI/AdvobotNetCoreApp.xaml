@@ -11,5 +11,21 @@
     <Style Selector=":is(TextBlock)">
       <Setter Property="Foreground" Value="{DynamicResource {x:Static colors:ColorTargets.BaseForeground}}"/>
     </Style>
+    <!-- How to center text vertically? -->
+    <Style Selector="TextBox.i1">
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="IsReadOnly" Value="True"/>
+      <Setter Property="TextAlignment" Value="Left"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="AcceptsReturn" Value="True"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style Selector="Border.b1">
+      <Setter Property="Grid.RowSpan" Value="1000"/>
+      <Setter Property="Grid.ColumnSpan" Value="1000"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"/>
+      <Setter Property="IsHitTestVisible" Value="False"/>
+    </Style>
   </Application.Styles>
 </Application>

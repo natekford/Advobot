@@ -1,11 +1,12 @@
-﻿using Advobot.Classes;
+﻿using System.ComponentModel;
+using Advobot.Classes;
 
 namespace Advobot.Interfaces
 {
 	/// <summary>
 	/// Abstraction for a log module. Handles counts of actions, and which commands have been ran. 
 	/// </summary>
-	public interface ILogService
+	public interface ILogService : INotifyPropertyChanged
 	{
 		/// <summary>
 		/// How many users does the bot encompass.

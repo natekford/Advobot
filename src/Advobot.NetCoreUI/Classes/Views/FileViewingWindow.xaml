@@ -1,0 +1,20 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Advobot.NetCoreUI.Classes.Controls;assembly=Advobot.NetCoreUI"
+        xmlns:avaloniaedit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        Name="FileViewingWindow"
+        Title="{Binding WindowTitle}"
+        FontFamily="Courier New"
+        Activated="OnActivated">
+
+  <controls:DynamicFontSizeGrid RowDefinitions="20*,1*,1*,1*,1*" ColumnDefinitions="7*,1*" DynamicFontSize=".02">
+    <!-- TODO: Uncomment when this nuget package is updated past 0.6.0 -->
+    <!-- <avaloniaedit:TextEditor Grid.RowSpan="5" Text="{Binding Output}" VerticalScrollBarVisibility="Visible" SyntaxHighlighting="Json" ShowLineNumbers="True" WordWrap="True"/> -->
+    <TextBox Grid.RowSpan="5" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True"/>
+
+    <Button Grid.Row="1" Grid.Column="1" Content="Save" HotKey="Ctrl+s" Command="{Binding SaveCommand}"/>
+    <Button Grid.Row="2" Grid.Column="1" Content="Copy" Command="{Binding CopyCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+    <Button Grid.Row="3" Grid.Column="1" Content="Close" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+    <Button Grid.Row="4" Grid.Column="1" Content="Delete" Command="{Binding DeleteCommand}"/>
+  </controls:DynamicFontSizeGrid>
+</Window>

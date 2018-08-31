@@ -296,5 +296,9 @@ namespace Advobot.Classes
 		{
 			return GetSettings(typeof(BotSettings));
 		}
+		DirectoryInfo ISettingsProvider<IBotSettings>.GetDirectory(IBotDirectoryAccessor accessor)
+		{
+			return GetFile(accessor).Directory;
+		}
 	}
 }

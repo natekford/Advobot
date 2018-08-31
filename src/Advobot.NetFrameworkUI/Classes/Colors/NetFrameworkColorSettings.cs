@@ -81,9 +81,7 @@ namespace Advobot.NetFrameworkUI.Classes.Colors
 		}
 		private static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
 		{
-			var ass = Assembly.GetExecutingAssembly();
-			var s = ass.GetManifestResourceStream(loc);
-			using (var r = new XmlTextReader(s)
+			using (var r = new XmlTextReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(loc))
 				?? throw new InvalidOperationException($"{loc} is missing."))
 			{
 				var highlighting = HighlightingLoader.Load(r, HighlightingManager.Instance);

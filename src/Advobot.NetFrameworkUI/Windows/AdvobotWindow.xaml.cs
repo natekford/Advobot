@@ -172,7 +172,7 @@ namespace Advobot.NetFrameworkUI.Windows
 		private async void AcceptInput(object sender, RoutedEventArgs e)
 		{
 			var input = UIUtils.GatherInput(InputBox);
-			if (String.IsNullOrWhiteSpace(input))
+			if (string.IsNullOrWhiteSpace(input))
 			{
 				return;
 			}

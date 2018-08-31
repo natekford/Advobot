@@ -73,7 +73,6 @@ namespace Advobot.Services.Logging.Loggers
 		/// <inheritdoc />
 		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
-			NotifyLogCounterIncrement(nameof(ILogService.MessageEdits), 1);
 			if (!(message.Author is SocketGuildUser user))
 			{
 				return;
@@ -487,6 +486,7 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
+			NotifyLogCounterIncrement(nameof(ILogService.MessageEdits), 1);
 			var embed = new EmbedWrapper
 			{
 				Color = EmbedWrapper.MessageEdit

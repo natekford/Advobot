@@ -19,7 +19,8 @@
   <ItemGroup>
     <None Remove="Classes\Controls\NumberBox.xaml" />
     <None Remove="Classes\Controls\UserListEditor.xaml" />
-    <None Remove="FileSearchWindow.xaml" />
+    <None Remove="Classes\Views\MessageBox.xaml" />
+    <None Remove="FileViewingWindow.xaml" />
     <None Remove="OutputSearchWindow.xaml" />
   </ItemGroup>
   <ItemGroup>
@@ -28,12 +29,7 @@
     <PackageReference Include="Avalonia" Version="0.6.2-build6032-beta" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.6.0" />
     <PackageReference Include="Avalonia.Desktop" Version="0.6.2-build6032-beta" />
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00982" />
-    <PackageReference Include="Discord.Net.Commands" Version="2.0.0-beta2-00982" />
-    <PackageReference Include="Discord.Net.Core" Version="2.0.0-beta2-00982" />
-    <PackageReference Include="Discord.Net.Rest" Version="2.0.0-beta2-00982" />
-    <PackageReference Include="Discord.Net.Webhook" Version="2.0.0-beta2-00982" />
-    <PackageReference Include="Discord.Net.WebSocket" Version="2.0.0-beta2-00982" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00984" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.6.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
@@ -50,8 +46,11 @@
     <Compile Update="AdvobotNetCoreApp.xaml.cs">
       <DependentUpon>AdvobotNetCoreApp.xaml</DependentUpon>
     </Compile>
-    <Compile Update="AdvobotNetCoreWindow.xaml.cs">
+    <Compile Update="Classes\Views\AdvobotNetCoreWindow.xaml.cs">
       <DependentUpon>AdvobotNetCoreWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Classes\Views\FileViewingWindow.xaml.cs">
+      <DependentUpon>FileViewingWindow.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -61,15 +60,26 @@
     <EmbeddedResource Update="Classes\Controls\UserListEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Update="FileSearchWindow.xaml">
+    <EmbeddedResource Update="Classes\Views\FileViewingWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Update="OutputSearchWindow.xaml">
+    <EmbeddedResource Update="Classes\Views\MessageBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Classes\Views\OutputSearchWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\JsonSyntaxHighlighting.xshd" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Classes\Views\FileViewingWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Classes\Views\OutputSearchWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
   </ItemGroup>
 
   <PropertyGroup>

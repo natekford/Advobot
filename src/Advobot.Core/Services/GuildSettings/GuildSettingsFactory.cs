@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -76,6 +77,10 @@ namespace Advobot.Services.GuildSettings
 		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IGuildSettings>.GetSettings()
 		{
 			return SettingsBase.GetSettings(typeof(T));
+		}
+		DirectoryInfo ISettingsProvider<IGuildSettings>.GetDirectory(IBotDirectoryAccessor accessor)
+		{
+			return new DirectoryInfo(Path.Combine(accessor.BaseBotDirectory.FullName, "GuildSettings"));
 		}
 	}
 }

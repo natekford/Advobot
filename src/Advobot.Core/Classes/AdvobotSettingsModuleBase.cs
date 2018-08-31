@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -30,16 +29,14 @@ namespace Advobot.Classes
 		/// <param name="provider"></param>
 		public AdvobotSettingsModuleBase(TSettingsProvider provider)
 		{
+			//Make sure in the modify command that every setting has a method to invoke
 			if (!_AlreadyChecked)
 			{
-				var settings = provider.GetSettings().Keys.ToList();
-				foreach (var command in GetType().GetMethods())
+				var implemented = GetType().GetMethods().Select(x => x.Name);
+				var unimplemented = provider.GetSettings().Keys.Where(x => !implemented.CaseInsContains(x));
+				if (unimplemented.Any())
 				{
-					settings.RemoveAll(x => x.CaseInsEquals(command.Name));
-				}
-				if (settings.Any())
-				{
-					throw new NotImplementedException($"Settings not modifiable: {String.Join(", ", settings)}");
+					throw new NotImplementedException($"Settings not modifiable: {string.Join(", ", unimplemented)}");
 				}
 				_AlreadyChecked = true;
 			}
@@ -59,7 +56,7 @@ namespace Advobot.Classes
 			var embed = new EmbedWrapper
 			{
 				Title = settings.GetType().Name.FormatTitle(),
-				Description = $"`{String.Join("`, `", settings.GetSettings().Keys)}`"
+				Description = $"`{string.Join("`, `", settings.GetSettings().Keys)}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}

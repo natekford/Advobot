@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using Advobot.Classes;
@@ -62,6 +63,9 @@ namespace Advobot.Services.Logging
 		private readonly LogCounter[] _LoggedAttachments;
 		private readonly Dictionary<string, LogCounter> _Counters;
 
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		/// <summary>
 		/// Creates an instance of <see cref="LogService"/>.
 		/// </summary>
@@ -79,13 +83,24 @@ namespace Advobot.Services.Logging
 			GuildLogger = new GuildLogger(provider);
 			UserLogger = new UserLogger(provider);
 			MessageLogger = new MessageLogger(provider);
-			foreach (var prop in GetType().GetProperties().Where(x => x.PropertyType.GetInterfaces().Contains(typeof(ILogger))))
+
+			var values = GetType().GetProperties().Select(x => x.GetValue(this));
+			//Look through all the fields on this, e.g. BotLogger, GuildLogger, etc.
+			foreach (var logger in values.OfType<ILogger>())
 			{
-				((ILogger)prop.GetValue(this)).LogCounterIncrement += OnLogCounterIncrement;
+				logger.LogCounterIncrement += OnLogCounterIncrement;
 			}
-			foreach (var obj in provider.GetServicesExcept<ILogService>().OfType<ILogger>())
+			//Look through all the services, e.g. CommandHandlerService.
+			foreach (var logger in provider.GetServicesExcept<ILogService>().OfType<ILogger>())
 			{
-				obj.LogCounterIncrement += OnLogCounterIncrement;
+				logger.LogCounterIncrement += OnLogCounterIncrement;
+			}
+			foreach (var counter in values.OfType<LogCounter>())
+			{
+				counter.PropertyChanged += (sender, e) =>
+				{
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(counter.Name.Replace(" ", "")));
+				};
 			}
 
 			var client = provider.GetRequiredService<DiscordShardedClient>();

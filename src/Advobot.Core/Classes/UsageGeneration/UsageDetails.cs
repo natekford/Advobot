@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Classes.UsageGeneration
+﻿namespace Advobot.Classes.UsageGeneration
 {
 	/// <summary>
 	/// Information about something to be used in <see cref="UsageGenerator"/>.
@@ -13,7 +11,7 @@ namespace Advobot.Classes.UsageGeneration
 		public UsageDetails(int deepness, string name)
 		{
 			Deepness = deepness;
-			Name = !String.IsNullOrWhiteSpace(name) ? CapitalizeFirstLetter(name) : name;
+			Name = !string.IsNullOrWhiteSpace(name) ? CapitalizeFirstLetter(name) : name;
 		}
 
 		protected static string CapitalizeFirstLetter(string n)

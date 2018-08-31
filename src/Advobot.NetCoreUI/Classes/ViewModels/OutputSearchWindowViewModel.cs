@@ -76,24 +76,13 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			}, this.WhenAnyValue(x => x.CanSearch));
 			SaveCommand = ReactiveCommand.Create(() =>
 			{
-				if (Output.Length == 0)
+				if (Output.Length != 0)
 				{
-					return;
+					var response = _Accessor.GenerateFileName("Output_Search").SaveAndGetResponse(Output);
+					ConsoleUtils.WriteLine(response, name: "Saving Output Search");
 				}
-				var success = NetCoreUIUtils.Save(_Accessor, "Output_Search", Output);
-				//TODO: make this notify in the window instead of only in main window
-				ConsoleUtils.WriteLine(NetCoreUIUtils.GetSaveResponse(success), name: "Saving Output Search");
 			}, this.WhenAnyValue(x => x.CanSaveOutput));
 			CloseCommand = ReactiveCommand.Create<Window>(window => window?.Close());
 		}
-		/*
-		private void MoveToolTip(object sender, MouseEventArgs e)
-		{
-			var fe = (FrameworkElement)sender;
-			var tt = (ToolTip)fe.ToolTip;
-			var pos = e.GetPosition(fe);
-			tt.HorizontalOffset = pos.X + 10;
-			tt.VerticalOffset = pos.Y + 10;
-        }*/
 	}
 }

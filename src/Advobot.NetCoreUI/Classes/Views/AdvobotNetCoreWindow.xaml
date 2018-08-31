@@ -11,9 +11,11 @@
         xmlns:shared="clr-namespace:Advobot.SharedUI;assembly=Advobot.Core"
         xmlns:colors="clr-namespace:Advobot.SharedUI.Colors;assembly=Advobot.Core"
         xmlns:discord="clr-namespace:Discord;assembly=Discord.Net.Core"
+        Name="MainWindow"
         Title="Advobot"
         FontFamily="Courier New"
-        Activated="OnActivated">
+        Activated="OnActivated"
+        Closed="OnClosed">
 
   <Window.Resources>
     <converters:NetCoreNullToBoolConverter x:Key="NullToBoolConverter"/>
@@ -22,26 +24,11 @@
   </Window.Resources>
 
   <Window.Styles>
-    <!-- How to center text vertically? -->
-    <Style Selector="TextBox.i1">
-      <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="IsReadOnly" Value="True"/>
-      <Setter Property="TextAlignment" Value="Left"/>
-      <Setter Property="VerticalAlignment" Value="Center"/>
-      <Setter Property="TextWrapping" Value="Wrap"/>
-    </Style>
     <Style Selector="TextBox.i2">
-      <Setter Property="TextAlignment" Value="Center"/>
+      <Setter Property="HorizontalAlignment" Value="Center"/>
     </Style>
     <Style Selector="TextBox.i3">
-      <Setter Property="TextAlignment" Value="Right"/>
-    </Style>
-    <Style Selector="Border.b1">
-      <Setter Property="Grid.RowSpan" Value="1000"/>
-      <Setter Property="Grid.ColumnSpan" Value="1000"/>
-      <Setter Property="BorderThickness" Value="2"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}"/>
-      <Setter Property="IsHitTestVisible" Value="False"/>
+      <Setter Property="TextAlignment" Value="Left"/>
     </Style>
   </Window.Styles>
 
@@ -61,7 +48,7 @@
     <!-- Input -->
     <Grid Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
       <TextBox Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed"/>
-      <Button Grid.Column="1" Content="Enter" Command="{Binding InputCommand}"/>
+      <Button Grid.Column="1" Content="Enter" Command="{Binding TakeInputCommand}"/>
     </Grid>
 
     <!-- Application Info Bar -->
@@ -118,24 +105,24 @@
       </UniformGrid>
 
       <!-- Info -->
-      <UniformGrid Grid.Column="2" Columns="1">
-        <TextBox Classes="i1 i3" Text="{Binding LogService.TotalGuilds.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.TotalUsers.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.AttemptedCommands.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.SuccessfulCommands.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.FailedCommands.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.UserJoins.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.UserLeaves.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.UserChanges.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.MessageEdits.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.MessageDeletes.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.Images.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.Animated.Count, Mode=OneWay}"/>
-        <TextBox Classes="i1 i3" Text="{Binding LogService.Files.Count, Mode=OneWay}"/>
+      <UniformGrid Grid.Column="2" Columns="1" DataContext="{Binding LogServiceViewModel}">
+        <TextBox Classes="i1 i3" Text="{Binding TotalGuilds, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding TotalUsers, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding AttemptedCommands, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding SuccessfulCommands, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding FailedCommands, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding UserJoins, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding UserLeaves, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding UserChanges, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding MessageEdits, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding MessageDeletes, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding Images, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding Animated, Mode=OneWay}"/>
+        <TextBox Classes="i1 i3" Text="{Binding Files, Mode=OneWay}"/>
       </UniformGrid>
 
       <!-- Search for file button -->
-      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Search For File" Command="{Binding OpenFileSearchWindowCommand}"/>
+      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Search For File" Command="{Binding OpenFileSearchWindowCommand}" CommandParameter="{Binding ElementName=MainWindow}"/>
 
       <Border Classes="b1"/>
     </Grid>

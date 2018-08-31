@@ -170,5 +170,9 @@ namespace Advobot.Classes
 		{
 			return GetSettings(typeof(GuildSettings));
 		}
+		DirectoryInfo ISettingsProvider<IGuildSettings>.GetDirectory(IBotDirectoryAccessor accessor)
+		{
+			return GetFile(accessor).Directory;
+		}
 	}
 }

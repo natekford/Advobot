@@ -1,6 +1,8 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Advobot.NetCoreUI.Classes.ViewModels;
+using Advobot.NetCoreUI.Classes.Views;
 using AdvorangesUtils;
 using Avalonia;
 using Avalonia.Logging.Serilog;
@@ -29,6 +31,11 @@ namespace Advobot.NetCoreUI
 			app.AfterSetup(_ =>
 			{
 				RxApp.MainThreadScheduler = AvaloniaScheduler.Instance;
+				/* Not sure how to get this to work, uncaught exceptions in Avalonia either don't trigger it or don't work correctly
+				AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+				{
+					MessageBox.Show($"UNHANDLED EXCEPTION:\n\n{e.ExceptionObject}", "UNHANDLED EXCEPTION", null);
+				};*/
 			});
 			return app;
 		}
