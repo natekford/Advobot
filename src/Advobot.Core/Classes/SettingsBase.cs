@@ -30,9 +30,7 @@ namespace Advobot.Classes
 
 		/// <inheritdoc />
 		public virtual IReadOnlyDictionary<string, PropertyInfo> GetSettings()
-		{
-			return _S ?? (_S = GetSettings(GetType()));
-		}
+			=> _S ?? (_S = GetSettings(GetType()));
 		/// <summary>
 		/// Gets settings from a type statically.
 		/// </summary>
@@ -52,7 +50,7 @@ namespace Advobot.Classes
 			foreach (var kvp in GetSettings())
 			{
 				var formatted = Format(client, guild, kvp.Value.GetValue(this));
-				if (String.IsNullOrWhiteSpace(formatted))
+				if (string.IsNullOrWhiteSpace(formatted))
 				{
 					continue;
 				}
@@ -65,9 +63,7 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		public virtual string ToString(BaseSocketClient client, SocketGuild guild, string name)
-		{
-			return Format(client, guild, GetProperty(name).GetValue(this));
-		}
+			=> Format(client, guild, GetProperty(name).GetValue(this));
 		/// <inheritdoc />
 		public virtual void ResetSettings()
 		{
@@ -107,9 +103,7 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		public virtual void SaveSettings(IBotDirectoryAccessor accessor)
-		{
-			IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
-		}
+			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
 		/// <inheritdoc />
 		public abstract FileInfo GetFile(IBotDirectoryAccessor accessor);
 		/// <summary>
@@ -117,18 +111,14 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="name"></param>
 		protected void NotifyPropertyChanged([CallerMemberName] string name = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-		}
+			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 		/// <summary>
 		/// Gets the property with the specified name.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
 		private PropertyInfo GetProperty(string name)
-		{
-			return GetSettings()[name] ?? throw new ArgumentException($"Invalid property name provided: {name}.", nameof(name));
-		}
+			=> GetSettings()[name] ?? throw new ArgumentException($"Invalid property name provided: {name}.", nameof(name));
 		/// <summary>
 		/// Sets the property to the specified default vaule.
 		/// </summary>
@@ -207,14 +197,14 @@ namespace Advobot.Classes
 					return id.ToString();
 				}
 				case string str: //Strings are char[], so this case needs to be above ienumerable
-					return String.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
+					return string.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`";
 				case IGuildSetting setting:
 					return setting.ToString(guild);
 				case IDictionary dict: //Has to be above IEnumerable too
 					var keys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
-					return String.Join("\n", keys.Select(x => $"{Format(client, guild, x)}: {Format(client, guild, dict[x])}"));
+					return string.Join("\n", keys.Select(x => $"{Format(client, guild, x)}: {Format(client, guild, dict[x])}"));
 				case IEnumerable enumerable:
-					return String.Join("\n", enumerable.Cast<object>().Select(x => Format(client, guild, x)));
+					return string.Join("\n", enumerable.Cast<object>().Select(x => Format(client, guild, x)));
 				default:
 					return $"`{value}`";
 			}

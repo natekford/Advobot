@@ -44,27 +44,19 @@ namespace Advobot.Classes
 		/// <param name="services"></param>
 		/// <returns></returns>
 		public static IterableServiceProvider CreateFromExisting(IServiceProvider provider, IServiceCollection services)
-		{
-			return new IterableServiceProvider(provider, services, false);
-		}
+			=> new IterableServiceProvider(provider, services, false);
 		/// <summary>
-		/// Gets all the singletons from the provider.
+		/// Gets all the singleton types from the provider.
 		/// </summary>
 		/// <returns></returns>
 		private IEnumerable<Type> GetSingletonTypes()
-		{
-			return _Services.Where(x => x.Lifetime == ServiceLifetime.Singleton).Select(x => x.ServiceType);
-		}
+			=> _Services.Where(x => x.Lifetime == ServiceLifetime.Singleton).Select(x => x.ServiceType);
 		/// <inheritdoc />
 		public IEnumerable<Type> GetAllTypes()
-		{
-			return _Services.Select(x => x.ServiceType);
-		}
+			=> _Services.Select(x => x.ServiceType);
 		/// <inheritdoc />
 		public IEnumerable<object> GetServicesExcept<T>()
-		{
-			return GetServicesExcept(typeof(T));
-		}
+			=> GetServicesExcept(typeof(T));
 		/// <inheritdoc />
 		public IEnumerable<object> GetServicesExcept(params Type[] types)
 		{
@@ -86,9 +78,7 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		public object GetService(Type serviceType)
-		{
-			return _Provider.GetService(serviceType);
-		}
+			=> _Provider.GetService(serviceType);
 		/// <inheritdoc />
 		public IEnumerator<object> GetEnumerator()
 		{
@@ -99,8 +89,6 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
+			=> GetEnumerator();
 	}
 }

@@ -25,6 +25,7 @@ namespace Advobot.Services.HelpEntries
 		{
 			get => _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
 		}
+
 		/// <inheritdoc />
 		public void Add(IEnumerable<Assembly> assemblies)
 		{
@@ -80,13 +81,18 @@ namespace Advobot.Services.HelpEntries
 		/// <inheritdoc />
 		public void Remove(IHelpEntry helpEntry)
 		{
-			throw new NotImplementedException();
+			foreach (var kvp in _Source.Where(x => x.Value.Name == helpEntry.Name).ToList())
+			{
+				_Source.Remove(kvp.Key);
+				foreach (var kvp2 in _NameMap.Where(x => x.Value == kvp.Key).ToList())
+				{
+					_NameMap.Remove(kvp2.Key);
+				}
+			}
 		}
 		/// <inheritdoc />
 		public IHelpEntry[] GetUnsetCommands(IEnumerable<string> setCommands)
-		{
-			return _Source.Values.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
-		}
+			=> _Source.Values.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
 		/// <inheritdoc />
 		public IHelpEntry[] GetHelpEntries(string category = null)
 		{
@@ -96,19 +102,13 @@ namespace Advobot.Services.HelpEntries
 		}
 		/// <inheritdoc />
 		public string[] GetCategories()
-		{
-			return _Source.Values.Select(x => x.Category).Distinct().ToArray();
-		}
+			=> _Source.Values.Select(x => x.Category).Distinct().ToArray();
 		/// <inheritdoc />
 		public IEnumerator<IHelpEntry> GetEnumerator()
-		{
-			return _Source.Values.GetEnumerator();
-		}
+			=> _Source.Values.GetEnumerator();
 		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
+			=> GetEnumerator();
 		[Conditional("DEBUG")]
 		private void VerifyCommandType(Type type)
 		{

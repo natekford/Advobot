@@ -9,7 +9,7 @@ namespace Advobot.NetCoreUI.Classes.Extensions
 	/// Acts as nameof(x) for XAML.
 	/// </summary>
 	[MarkupExtensionReturnType(typeof(string))]
-	public class NameOfExtension : MarkupExtension
+	public sealed class NameOfExtension : MarkupExtension
 	{
 		/// <summary>
 		/// The type to check the name from.
@@ -21,10 +21,7 @@ namespace Advobot.NetCoreUI.Classes.Extensions
 		[ConstructorArgument("member")]
 		public string Member { get; set; }
 
-		public NameOfExtension()
-		{
-		}
-
+		public NameOfExtension() { }
 		public NameOfExtension(string member)
 		{
 			Member = member;

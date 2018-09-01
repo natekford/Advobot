@@ -128,13 +128,9 @@ namespace Advobot.Services.Levels
 		}
 		/// <inheritdoc />
 		public int GetExperience(SocketGuild guild)
-		{
-			return _Experience.TryGetValue(guild.Id, out var channels) ? channels.Values.Sum() : 0;
-		}
+			=> _Experience.TryGetValue(guild.Id, out var channels) ? channels.Values.Sum() : 0;
 		/// <inheritdoc />
 		public int GetExperience(SocketTextChannel channel)
-		{
-			return _Experience.TryGetValue(channel.Guild.Id, out var channels) && channels.TryGetValue(channel.Id, out var xp) ? xp : 0;
-		}
+			=> _Experience.TryGetValue(channel.Guild.Id, out var channels) && channels.TryGetValue(channel.Id, out var xp) ? xp : 0;
 	}
 }

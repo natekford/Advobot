@@ -1,9 +1,8 @@
-﻿using AdvorangesUtils;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using AdvorangesUtils;
 
 namespace Advobot.Classes
 {
@@ -56,7 +55,7 @@ namespace Advobot.Classes
 
 			foreach (var c in editedName)
 			{
-				if (Char.IsUpper(c))
+				if (char.IsUpper(c))
 				{
 					initialism.Append(c);
 					//ToString HAS to be called here or else it uses the capacity int constructor

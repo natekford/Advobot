@@ -63,7 +63,6 @@ namespace Advobot.Classes.Attributes
 			}
 			return Task.FromResult(GetPreconditionResult(context, value));
 		}
-
 		private PreconditionResult GetPreconditionResult(ICommandContext context, object value)
 		{
 			VerifiedObjectResult result;

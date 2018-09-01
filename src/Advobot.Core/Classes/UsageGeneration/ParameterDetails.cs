@@ -122,9 +122,7 @@ namespace Advobot.Classes.UsageGeneration
 			return text;
 		}
 		public void SetOccurences(int occurences)
-		{
-			Occurences = occurences;
-		}
+			=> Occurences = occurences;
 		public override string ToString()
 		{
 			if (Type.IsEnum)

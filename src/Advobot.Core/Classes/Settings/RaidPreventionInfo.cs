@@ -64,9 +64,7 @@ namespace Advobot.Classes.Settings
 		/// </summary>
 		/// <returns></returns>
 		public int GetSpamCount()
-		{
-			return DiscordUtils.CountItemsInTimeFrame(_TimeList, TimeInterval);
-		}
+			=> DiscordUtils.CountItemsInTimeFrame(_TimeList, TimeInterval);
 		/// <summary>
 		/// Adds the time to the list.
 		/// </summary>
@@ -82,9 +80,7 @@ namespace Advobot.Classes.Settings
 		/// Removes every value from the time list.
 		/// </summary>
 		public void Reset()
-		{
-			Interlocked.Exchange(ref _TimeList, new List<ulong>());
-		}
+			=> Interlocked.Exchange(ref _TimeList, new List<ulong>());
 		/// <summary>
 		/// Punishes a user.
 		/// </summary>
@@ -92,9 +88,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public async Task PunishAsync(IGuildSettings settings, SocketGuildUser user)
-		{
-			await _Giver.GiveAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
-		}
+			=> await _Giver.GiveAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
 		/// <summary>
 		/// Attempts to create raid prevention.
 		/// </summary>
@@ -137,8 +131,6 @@ namespace Advobot.Classes.Settings
 		}
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+			=> ToString();
 	}
 }

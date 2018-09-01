@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -31,7 +30,7 @@ namespace Advobot.Commands.Invites
 
 			var lenForCode = invites.Max(x => x.Code.Length);
 			var lenForUses = invites.Max(x => x.Uses).ToString().Length;
-			var desc = String.Join("\n", invites.FormatNumberedList(x =>
+			var desc = string.Join("\n", invites.FormatNumberedList(x =>
 			{
 				var code = x.Code.PadRight(lenForCode);
 				var uses = x.Uses.ToString().PadRight(lenForUses);

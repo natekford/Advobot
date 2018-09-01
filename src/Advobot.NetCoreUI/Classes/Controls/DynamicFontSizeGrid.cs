@@ -1,11 +1,11 @@
-﻿using Advobot.NetCoreUI.Classes.Converters;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using Advobot.NetCoreUI.Classes.Converters;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
-using System;
-using System.Collections.Concurrent;
-using System.Linq;
 
 namespace Advobot.NetCoreUI.Classes.Controls
 {
@@ -44,9 +44,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 			obj.SetValue(OverrideDynamicFontSizeProperty, value);
 		}
 		public static double GetOverrideDynamicFontSize(Control obj)
-		{
-			return obj.GetValue(OverrideDynamicFontSizeProperty);
-		}
+			=> obj.GetValue(OverrideDynamicFontSizeProperty);
 
 		public override void EndInit()
 		{

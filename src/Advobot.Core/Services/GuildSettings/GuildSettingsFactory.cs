@@ -59,28 +59,18 @@ namespace Advobot.Services.GuildSettings
 		}
 		/// <inheritdoc />
 		public IEnumerable<IGuildSettings> GetAll()
-		{
-			return _GuildSettings.Values;
-		}
+			=> _GuildSettings.Values;
 		/// <inheritdoc />
 		public bool TryGet(ulong guildId, out IGuildSettings settings)
-		{
-			return _GuildSettings.TryGetValue(guildId, out settings);
-		}
+			=> _GuildSettings.TryGetValue(guildId, out settings);
 		/// <inheritdoc />
 		public bool Contains(ulong guildId)
-		{
-			return _GuildSettings.ContainsKey(guildId);
-		}
+			=> _GuildSettings.ContainsKey(guildId);
 
 		///ISettingsProvider
 		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IGuildSettings>.GetSettings()
-		{
-			return SettingsBase.GetSettings(typeof(T));
-		}
+			=> SettingsBase.GetSettings(typeof(T));
 		DirectoryInfo ISettingsProvider<IGuildSettings>.GetDirectory(IBotDirectoryAccessor accessor)
-		{
-			return new DirectoryInfo(Path.Combine(accessor.BaseBotDirectory.FullName, "GuildSettings"));
-		}
+			=> new DirectoryInfo(Path.Combine(accessor.BaseBotDirectory.FullName, "GuildSettings"));
 	}
 }

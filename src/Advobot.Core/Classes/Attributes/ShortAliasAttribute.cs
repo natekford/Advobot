@@ -26,7 +26,7 @@ namespace Advobot.Classes.Attributes
 		public static string[] Shorten(string name, string[] otherAliases)
 		{
 			var initialism = new Initialism(name, otherAliases, false);
-			if (String.IsNullOrWhiteSpace(initialism.ToString()))
+			if (string.IsNullOrWhiteSpace(initialism.ToString()))
 			{
 				throw new ArgumentException("Must have at least one capital letter.", nameof(name));
 			}

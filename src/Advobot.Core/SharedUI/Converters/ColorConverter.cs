@@ -22,9 +22,7 @@ namespace Advobot.SharedUI.Converters
 		/// <param name="culture"></param>
 		/// <returns></returns>
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return value is TBrush brush ? _Factory.FormatBrush(brush) : "";
-		}
+			=> value is TBrush brush ? _Factory.FormatBrush(brush) : "";
 		/// <summary>
 		/// Converts a string to a <typeparamref name="TBrush"/>.
 		/// </summary>
@@ -34,8 +32,6 @@ namespace Advobot.SharedUI.Converters
 		/// <param name="culture"></param>
 		/// <returns></returns>
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return _Factory.CreateBrush((value ?? "").ToString());
-		}
+			=> _Factory.CreateBrush((value ?? "").ToString());
 	}
 }

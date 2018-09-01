@@ -1,36 +1,33 @@
-﻿using System;
-
-namespace Advobot.Enums
+﻿namespace Advobot.Enums
 {
 	/// <summary>
 	/// Allows certain guild events to be logged when these are in <see cref="Interfaces.IGuildSettings.LogActions"/>.
 	/// </summary>
-	[Flags]
-	public enum LogAction : uint
+	public enum LogAction
 	{
 		/// <summary>
 		/// Log users joining the guild.
 		/// </summary>
-		UserJoined = (1U << 0),
+		UserJoined,
 		/// <summary>
 		/// Log users leaving the guild.
 		/// </summary>
-		UserLeft = (1U << 1),
+		UserLeft,
 		/// <summary>
 		/// Log users changing their name.
 		/// </summary>
-		UserUpdated = (1U << 2),
+		UserUpdated,
 		/// <summary>
 		/// Log messages being received.
 		/// </summary>
-		MessageReceived = (1U << 3),
+		MessageReceived,
 		/// <summary>
 		/// Log messages being edited.
 		/// </summary>
-		MessageUpdated = (1U << 4),
+		MessageUpdated,
 		/// <summary>
 		/// Log messages being deleted.
 		/// </summary>
-		MessageDeleted = (1U << 5),
+		MessageDeleted,
 	}
 }

@@ -1,11 +1,11 @@
-﻿using Advobot.Enums;
-using Advobot.Utilities;
-using Discord;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Advobot.Enums;
+using Advobot.Utilities;
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Classes.UserInformation
 {
@@ -101,9 +101,7 @@ namespace Advobot.Classes.UserInformation
 		/// </summary>
 		/// <returns></returns>
 		public bool IsPunishable()
-		{
-			return _Punishment != default && _VotesRequired != int.MaxValue;
-		}
+			=> _Punishment != default && _VotesRequired != int.MaxValue;
 		/// <summary>
 		/// Returns the spam amount for the supplied spam type. Time frame limits the max count by how close instances are.
 		/// </summary>

@@ -45,9 +45,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="value">The command to change.</param>
 		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
 		public bool ModifyCommandValue(ValueToModify value)
-		{
-			return ModifyOverride(_CommandValues, value);
-		}
+			=> ModifyOverride(_CommandValues, value);
 		/// <summary>
 		/// Enabled/disables/removes overrides on specified commands for a specified object. Object can be channel, role, or user.
 		/// </summary>
@@ -132,14 +130,10 @@ namespace Advobot.Classes.Settings
 		/// <param name="name"></param>
 		/// <returns></returns>
 		public bool? IsCommandEnabled(string name)
-		{
-			return _CommandValues.TryGetValue(name, out var val) ? val : (bool?)null;
-		}
+			=> _CommandValues.TryGetValue(name, out var val) ? val : (bool?)null;
 		/// <inheritdoc />
 		public override string ToString()
-		{
-			return ToString(null);
-		}
+			=> ToString(null);
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{

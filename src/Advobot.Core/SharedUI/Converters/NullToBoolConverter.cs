@@ -17,9 +17,7 @@ namespace Advobot.SharedUI.Converters
 		/// <param name="culture"></param>
 		/// <returns></returns>
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			return value is string s ? !String.IsNullOrWhiteSpace(s) : value != null;
-		}
+			=> value is string s ? !string.IsNullOrWhiteSpace(s) : value != null;
 		/// <summary>
 		/// Not implemented.
 		/// </summary>
@@ -30,8 +28,6 @@ namespace Advobot.SharedUI.Converters
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
+			=> throw new NotImplementedException();
 	}
 }

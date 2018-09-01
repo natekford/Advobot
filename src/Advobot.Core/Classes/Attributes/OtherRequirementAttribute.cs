@@ -1,13 +1,13 @@
-﻿using Advobot.Enums;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes.Attributes
 {
@@ -86,7 +86,6 @@ namespace Advobot.Classes.Attributes
 			}
 			return PreconditionResult.FromError((string)null);
 		}
-
 		/// <summary>
 		/// Returns the preconditions in a readable format.
 		/// </summary>
@@ -110,7 +109,7 @@ namespace Advobot.Classes.Attributes
 			{
 				text.Add("Bot Owner");
 			}
-			return $"[{String.Join(" | ", text)}]";
+			return $"[{string.Join(" | ", text)}]";
 		}
 	}
 }

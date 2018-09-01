@@ -1,10 +1,10 @@
-﻿using Advobot.Classes.Settings;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Advobot.Classes.Settings;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord.Commands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Advobot.Classes.CloseWords
 {
@@ -24,7 +24,7 @@ namespace Advobot.Classes.CloseWords
 		/// <param name="context"></param>
 		/// <param name="settings"></param>
 		/// <param name="search"></param>
-		public CloseQuotes(TimeSpan time, ICommandContext context, IGuildSettings settings, string search)  : base(time, context)
+		public CloseQuotes(TimeSpan time, ICommandContext context, IGuildSettings settings, string search) : base(time, context)
 		{
 			Populate(settings.Quotes, search);
 		}

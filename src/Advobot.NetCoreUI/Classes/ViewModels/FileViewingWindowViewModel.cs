@@ -11,7 +11,7 @@ using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
-	public class FileViewingWindowViewModel : ReactiveObject
+	public sealed class FileViewingWindowViewModel : ReactiveObject
 	{
 		private static readonly string _Caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
 
@@ -86,9 +86,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			}
 		}
 		private void Save()
-		{
-			Save(_File, Output, "Saving File");
-		}
+			=> Save(_File, Output, "Saving File");
 		private async Task Copy(Window window)
 		{
 			var newPath = await new SaveFileDialog

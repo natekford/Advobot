@@ -99,7 +99,7 @@ namespace Advobot.Classes
 				}
 
 				//Fields cannot be set if the name or text is null
-				if (String.IsNullOrWhiteSpace(dict[FIELD_NAME]) || String.IsNullOrWhiteSpace(dict[FIELD_TEXT]))
+				if (string.IsNullOrWhiteSpace(dict[FIELD_NAME]) || string.IsNullOrWhiteSpace(dict[FIELD_TEXT]))
 				{
 					continue;
 				}

@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
@@ -48,13 +44,11 @@ namespace Advobot.Commands.Webhooks
 				return;
 			}
 			var parts = webhooks.Select(x => FormatWebhooks(Context.Guild.GetTextChannel(x.Key), x));
-			await MessageUtils.SendMessageAsync(Context.Channel, String.Join("\n\n", parts)).CAF();
+			await MessageUtils.SendMessageAsync(Context.Channel, string.Join("\n\n", parts)).CAF();
 		}
 
 		private string FormatWebhooks(ITextChannel channel, IEnumerable<IWebhook> webhooks)
-		{
-			return $"**{channel.Format()}**:\n{String.Join("\n", webhooks.Select(x => $"`{x.Format()}`"))}";
-		}
+			=> $"**{channel.Format()}**:\n{string.Join("\n", webhooks.Select(x => $"`{x.Format()}`"))}";
 	}
 
 	[Category(typeof(DeleteWebhook)), Group(nameof(DeleteWebhook)), TopLevelShortAlias(typeof(DeleteWebhook))]

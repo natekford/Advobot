@@ -27,7 +27,7 @@ namespace Advobot.Commands.Roles
 			[ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
 		{
 			await user.AddRolesAsync(roles, GetRequestOptions()).CAF();
-			var resp = $"Successfully gave `{String.Join("`, `", roles.Select(x => x.Format()))}` to `{user.Format()}`.";
+			var resp = $"Successfully gave `{string.Join("`, `", roles.Select(x => x.Format()))}` to `{user.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -44,7 +44,7 @@ namespace Advobot.Commands.Roles
 			[ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
 		{
 			await user.RemoveRolesAsync(roles, GetRequestOptions()).CAF();
-			var resp = $"Successfully took `{String.Join("`, `", roles.Select(x => x.Format()))}` from `{user.Format()}`.";
+			var resp = $"Successfully took `{string.Join("`, `", roles.Select(x => x.Format()))}` from `{user.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
@@ -126,7 +126,7 @@ namespace Advobot.Commands.Roles
 			var embed = new EmbedWrapper
 			{
 				Title = "Role Positions",
-				Description = String.Join("\n", Context.Guild.Roles.OrderByDescending(x => x.Position).Select(x =>
+				Description = string.Join("\n", Context.Guild.Roles.OrderByDescending(x => x.Position).Select(x =>
 				{
 					return x.Id == Context.Guild.EveryoneRole.Id
 						? $"`{x.Position.ToString("00")}.` Everyone"
@@ -154,7 +154,7 @@ namespace Advobot.Commands.Roles
 				var embed = new EmbedWrapper
 				{
 					Title = "Guild Permission Types",
-					Description = $"`{String.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`"
+					Description = $"`{string.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`"
 				};
 				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
@@ -165,27 +165,27 @@ namespace Advobot.Commands.Roles
 				var embed = new EmbedWrapper
 				{
 					Title = role.Name,
-					Description = $"`{(currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission")}`"
+					Description = $"`{(currentRolePerms.Any() ? string.Join("`, `", currentRolePerms) : "No permission")}`"
 				};
 				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 		}
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
 		public async Task Allow(
-			[ValidateObject(false, Verif.CanBeEdited)] SocketRole role, 
+			[ValidateObject(false, Verif.CanBeEdited)] SocketRole role,
 			[Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
 			var givenPerms = (await CommandRunner(role, PermValue.Allow, permissions).CAF()).ToList();
-			var resp = $"Successfully allowed `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.Format()}`.";
+			var resp = $"Successfully allowed `{(givenPerms.Any() ? string.Join("`, `", givenPerms) : "Nothing")}` for `{role.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Deny)), ShortAlias(nameof(Deny))]
 		public async Task Deny(
-			[ValidateObject(false, Verif.CanBeEdited)] SocketRole role, 
+			[ValidateObject(false, Verif.CanBeEdited)] SocketRole role,
 			[Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
 			var givenPerms = (await CommandRunner(role, PermValue.Deny, permissions).CAF()).ToList();
-			var resp = $"Successfully denied `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.Format()}`.";
+			var resp = $"Successfully denied `{(givenPerms.Any() ? string.Join("`, `", givenPerms) : "Nothing")}` for `{role.Format()}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 
@@ -241,7 +241,7 @@ namespace Advobot.Commands.Roles
 			{
 				immovableEnums.Any() ? "Output role had some permissions unable to be removed by you." : null,
 				failedEnums.Any() ? "Input role had some permission unable to be copied by you." : null,
-				$"`{outputRole.Format()}` now has the following permissions: `{(newEnums.Any() ? String.Join("`, `", newEnums) : "Nothing")}`.",
+				$"`{outputRole.Format()}` now has the following permissions: `{(newEnums.Any() ? string.Join("`, `", newEnums) : "Nothing")}`.",
 			}.JoinNonNullStrings(" ");
 
 			await outputRole.ModifyAsync(x => x.Permissions = new GuildPermissions(newRoleBits), GetRequestOptions()).CAF();
@@ -263,7 +263,7 @@ namespace Advobot.Commands.Roles
 			var response = new[]
 			{
 				immovablePerms.Any() ? "Role had some permissions unable to be cleared by you." : null,
-				$"`{role.Format()}` now has the following permissions: `{(immovablePerms.Any() ? String.Join("`, `", immovablePerms) : "Nothing")}`.",
+				$"`{role.Format()}` now has the following permissions: `{(immovablePerms.Any() ? string.Join("`, `", immovablePerms) : "Nothing")}`.",
 			}.JoinNonNullStrings(" ");
 
 			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovableBits), GetRequestOptions()).CAF();

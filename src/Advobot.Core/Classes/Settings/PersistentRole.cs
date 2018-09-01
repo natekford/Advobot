@@ -35,9 +35,7 @@ namespace Advobot.Classes.Settings
 
 		/// <inheritdoc />
 		public override string ToString()
-		{
-			return $"**User Id:** `{UserId}`\n**Role Id:&& `{RoleId}`";
-		}
+			=> $"**User Id:** `{UserId}`\n**Role Id:&& `{RoleId}`";
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{

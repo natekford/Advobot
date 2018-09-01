@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -36,10 +35,7 @@ namespace Advobot.Services.InviteList
 			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(InviteListService)}.");
 		}
 		/// <inheritdoc />
-		public void Dispose()
-		{
-			_Db?.Dispose();
-		}
+		public void Dispose() => _Db?.Dispose();
 		/// <inheritdoc />
 		public IListedInvite Add(SocketGuild guild, IInvite invite, IEnumerable<string> keywords)
 		{
@@ -51,9 +47,7 @@ namespace Advobot.Services.InviteList
 		}
 		/// <inheritdoc />
 		public void Remove(ulong guildId)
-		{
-			_Db.GetCollection<ListedInvite>().Delete(x => x.GuildId == guildId);
-		}
+			=> _Db.GetCollection<ListedInvite>().Delete(x => x.GuildId == guildId);
 		/// <inheritdoc />
 		public async Task UpdateAsync(SocketGuild guild)
 		{
@@ -76,9 +70,7 @@ namespace Advobot.Services.InviteList
 		}
 		/// <inheritdoc />
 		public IEnumerable<IListedInvite> GetAll(int limit)
-		{
-			return _Db.GetCollection<ListedInvite>().Find(Query.All(nameof(ListedInvite.Time), Query.Descending), 0, limit);
-		}
+			=> _Db.GetCollection<ListedInvite>().Find(Query.All(nameof(ListedInvite.Time), Query.Descending), 0, limit);
 		/// <inheritdoc />
 		public IEnumerable<IListedInvite> GetAll(int limit, params string[] keywords)
 		{
@@ -98,8 +90,6 @@ namespace Advobot.Services.InviteList
 		}
 		/// <inheritdoc />
 		public IListedInvite GetListedInvite(ulong guildId)
-		{
-			return _Db.GetCollection<ListedInvite>().FindOne(x => x.GuildId == guildId);
-		}
+			=> _Db.GetCollection<ListedInvite>().FindOne(x => x.GuildId == guildId);
 	}
 }

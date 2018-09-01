@@ -22,7 +22,7 @@ namespace Advobot.Utilities
 	/// Actions done on discord objects.
 	/// </summary>
 	public static class DiscordUtils
-    {
+	{
 		/// <summary>
 		/// Verifies that the role can be edited in specific ways.
 		/// </summary>
@@ -62,9 +62,7 @@ namespace Advobot.Utilities
 		/// <param name="checks"></param>
 		/// <returns></returns>
 		public static VerifiedObjectResult Verify(this IGuildChannel target, ICommandContext context, IEnumerable<Verif> checks)
-		{
-			return InternalUtils.InternalVerify(target, context, checks, "channel");
-		}
+			=> InternalUtils.InternalVerify(target, context, checks, "channel");
 		/// <summary>
 		/// Verifies that the user can be edited in specific ways.
 		/// </summary>
@@ -73,9 +71,7 @@ namespace Advobot.Utilities
 		/// <param name="checks"></param>
 		/// <returns></returns>
 		public static VerifiedObjectResult Verify(this IGuildUser target, ICommandContext context, IEnumerable<Verif> checks)
-		{
-			return InternalUtils.InternalVerify(target, context, checks, "user");
-		}
+			=> InternalUtils.InternalVerify(target, context, checks, "user");
 
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.
@@ -184,9 +180,7 @@ namespace Advobot.Utilities
 		/// <param name="type"></param>
 		/// <returns></returns>
 		public static bool CanModify(this IGuildUser invoker, IGuildChannel target, Verif type)
-		{
-			return InternalUtils.InternalCanModify(invoker, target, type);
-		}
+			=> InternalUtils.InternalCanModify(invoker, target, type);
 		/// <summary>
 		/// Returns true if the user can edit the role in the specified way.
 		/// </summary>
@@ -195,9 +189,7 @@ namespace Advobot.Utilities
 		/// <param name="type"></param>
 		/// <returns></returns>
 		public static bool CanModify(this IGuildUser invoker, IRole target, Verif type)
-		{
-			return InternalUtils.InternalCanModify(invoker, target, type);
-		}
+			=> InternalUtils.InternalCanModify(invoker, target, type);
 		/// <summary>
 		/// Returns true if the user can edit the user in the specified way.
 		/// </summary>
@@ -206,9 +198,7 @@ namespace Advobot.Utilities
 		/// <param name="type"></param>
 		/// <returns></returns>
 		public static bool CanModify(this IGuildUser invoker, IGuildUser target, Verif type)
-		{
-			return InternalUtils.InternalCanModify(invoker, target, type);
-		}
+			=> InternalUtils.InternalCanModify(invoker, target, type);
 
 		/// <summary>
 		/// Counts how many times something has occurred within a given timeframe.
@@ -313,9 +303,7 @@ namespace Advobot.Utilities
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public static IEnumerable<SocketGuildUser> GetUsersByJoinDate(this SocketGuild guild)
-		{
-			return guild.Users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.Value.Ticks);
-		}
+			=> guild.Users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.Value.Ticks);
 		/// <summary>
 		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
 		/// </summary>
@@ -323,9 +311,7 @@ namespace Advobot.Utilities
 		/// <param name="invokingUser"></param>
 		/// <returns></returns>
 		public static IEnumerable<SocketGuildUser> GetEditableUsers(this SocketGuild guild, SocketGuildUser invokingUser)
-		{
-			return guild.Users.Where(x => invokingUser.HasHigherPosition(x) && guild.CurrentUser.HasHigherPosition(x));
-		}
+			=> guild.Users.Where(x => invokingUser.HasHigherPosition(x) && guild.CurrentUser.HasHigherPosition(x));
 		/// <summary>
 		/// Checks if the bot can get invites before trying to get invites.
 		/// </summary>

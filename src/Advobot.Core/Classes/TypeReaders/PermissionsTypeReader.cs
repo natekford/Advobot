@@ -1,9 +1,9 @@
-﻿using AdvorangesUtils;
-using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AdvorangesUtils;
+using Discord;
+using Discord.Commands;
 
 namespace Advobot.Classes.TypeReaders
 {
@@ -13,8 +13,8 @@ namespace Advobot.Classes.TypeReaders
 	/// <typeparam name="T"></typeparam>
 	public abstract class PermissionsTypeReader<T> : TypeReader where T : struct, IComparable, IConvertible, IFormattable
 	{
-		private static char[] _SplitChars = new[] { '/', ' ', ',' };
-		private static char[] _TrimChars = new[] { '"' };
+		private static readonly char[] _SplitChars = new[] { '/', ' ', ',' };
+		private static readonly char[] _TrimChars = new[] { '"' };
 
 		internal PermissionsTypeReader() { }
 
@@ -38,7 +38,7 @@ namespace Advobot.Classes.TypeReaders
 				return Task.FromResult(TypeReaderResult.FromSuccess((ulong)(object)value));
 			}
 
-			var str = $"Invalid permission(s) provided: `{String.Join("`, `", invalidPerms)}`.";
+			var str = $"Invalid permission(s) provided: `{string.Join("`, `", invalidPerms)}`.";
 			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, str));
 		}
 	}

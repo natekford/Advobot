@@ -59,9 +59,7 @@ namespace Advobot.Commands.Gets
 			=> await SendAsync(DiscordFormatting.FormatWebhookInfo(Context.Guild, webhook)).CAF();
 
 		private async Task SendAsync(EmbedWrapper wrapper)
-		{
-			await MessageUtils.SendMessageAsync(Context.Channel, null, wrapper).CAF();
-		}
+			=> await MessageUtils.SendMessageAsync(Context.Channel, null, wrapper).CAF();
 	}
 
 	[Category(typeof(GetUsersWithReason)), Group(nameof(GetUsersWithReason)), TopLevelShortAlias(typeof(GetUsersWithReason))]
@@ -75,24 +73,16 @@ namespace Advobot.Commands.Gets
 	{
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
 		public async Task Role(SocketRole role, params SearchOptions[] additionalSearchOptions)
-		{
-			await CommandRunner(Target.Role, role, additionalSearchOptions).CAF();
-		}
+			=> await CommandRunner(Target.Role, role, additionalSearchOptions).CAF();
 		[Command(nameof(Name)), ShortAlias(nameof(Name))]
 		public async Task Name(string name, params SearchOptions[] additionalSearchOptions)
-		{
-			await CommandRunner(Target.Name, name, additionalSearchOptions).CAF();
-		}
+			=> await CommandRunner(Target.Name, name, additionalSearchOptions).CAF();
 		[Command(nameof(Game)), ShortAlias(nameof(Game))]
 		public async Task Game(string game, params SearchOptions[] additionalSearchOptions)
-		{
-			await CommandRunner(Target.Game, game, additionalSearchOptions).CAF();
-		}
+			=> await CommandRunner(Target.Game, game, additionalSearchOptions).CAF();
 		[Command(nameof(Stream)), ShortAlias(nameof(Stream))]
 		public async Task Stream(params SearchOptions[] additionalSearchOptions)
-		{
-			await CommandRunner(Target.Stream, null, additionalSearchOptions).CAF();
-		}
+			=> await CommandRunner(Target.Stream, null, additionalSearchOptions).CAF();
 
 		private async Task CommandRunner(Target targetType, object obj, SearchOptions[] additionalSearchOptions)
 		{
@@ -161,9 +151,7 @@ namespace Advobot.Commands.Gets
 	{
 		[Command]
 		public async Task Command([Optional] IUser user)
-		{
-			await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl()).CAF();
-		}
+			=> await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl()).CAF();
 	}
 
 	[Category(typeof(GetUserJoinedAt)), Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(typeof(GetUserJoinedAt))]
@@ -288,7 +276,7 @@ namespace Advobot.Commands.Gets
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
 				return;
 			}
-			var resp = $"The number `{number}` has the following guild permissions: `{String.Join("`, `", perms)}`.";
+			var resp = $"The number `{number}` has the following guild permissions: `{string.Join("`, `", perms)}`.";
 			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
@@ -300,7 +288,7 @@ namespace Advobot.Commands.Gets
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
 				return;
 			}
-			var resp = $"The number `{number}` has the following channel permissions: `{String.Join("`, `", perms)}`.";
+			var resp = $"The number `{number}` has the following channel permissions: `{string.Join("`, `", perms)}`.";
 			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 	}
@@ -323,7 +311,7 @@ namespace Advobot.Commands.Gets
 			var embed = new EmbedWrapper
 			{
 				Title = "Enums",
-				Description = $"`{String.Join("`, `", _Enums.Select(x => x.Name))}`"
+				Description = $"`{string.Join("`, `", _Enums.Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
@@ -346,7 +334,7 @@ namespace Advobot.Commands.Gets
 			var embed = new EmbedWrapper
 			{
 				Title = e.Name,
-				Description = $"`{String.Join("`, `", Enum.GetNames(e))}`"
+				Description = $"`{string.Join("`, `", Enum.GetNames(e))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}

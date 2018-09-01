@@ -37,27 +37,18 @@ namespace Advobot.Classes.Settings
 		/// </summary>
 		/// <param name="flags"></param>
 		public void AddPermissions(ulong flags)
-		{
-			Permissions |= flags;
-		}
+			=> Permissions |= flags;
 		/// <summary>
 		/// Removes permissions from the user.
 		/// </summary>
 		/// <param name="flags"></param>
 		public void RemovePermissions(ulong flags)
-		{
-			Permissions &= ~flags;
-		}
-
+			=> Permissions &= ~flags;
 		/// <inheritdoc />
 		public override string ToString()
-		{
-			return $"**User:** `{UserId}`\n**Permissions:** `{Permissions}`";
-		}
+			=> $"**User:** `{UserId}`\n**Permissions:** `{Permissions}`";
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
-		{
-			return $"**User:** `{guild.GetUser(UserId).Format()}`\n**Permissions:** `{Permissions}`";
-		}
+			=> $"**User:** `{guild.GetUser(UserId).Format()}`\n**Permissions:** `{Permissions}`";
 	}
 }

@@ -7,7 +7,7 @@ using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
-	public class SettingsViewModel : ReactiveObject
+	public abstract class SettingsViewModel : ReactiveObject
 	{
 		private readonly Dictionary<string, bool> _ValidProperties = new Dictionary<string, bool>();
 

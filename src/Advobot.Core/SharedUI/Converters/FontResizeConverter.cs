@@ -51,8 +51,6 @@ namespace Advobot.SharedUI.Converters
 		/// <param name="culture"></param>
 		/// <returns></returns>
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
+			=> throw new NotImplementedException();
 	}
 }

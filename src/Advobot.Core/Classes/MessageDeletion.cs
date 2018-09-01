@@ -34,13 +34,9 @@ namespace Advobot.Classes
 		/// Clears any messages currently held.
 		/// </summary>
 		public void ClearBag()
-		{
-			Interlocked.Exchange(ref _Messages, new ConcurrentBag<SocketMessage>());
-		}
+			=> Interlocked.Exchange(ref _Messages, new ConcurrentBag<SocketMessage>());
 		/// <inheritdoc />
 		public void Dispose()
-		{
-			_CancelTokenSource?.Dispose();
-		}
+			=> _CancelTokenSource?.Dispose();
 	}
 }

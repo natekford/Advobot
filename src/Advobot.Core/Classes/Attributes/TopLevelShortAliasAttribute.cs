@@ -40,7 +40,7 @@ namespace Advobot.Classes.Attributes
 			}
 
 			var initialism = new Initialism(classType.Name, otherAliases, true);
-			if (String.IsNullOrWhiteSpace(initialism.Edited))
+			if (string.IsNullOrWhiteSpace(initialism.Edited))
 			{
 				throw new ArgumentException("Name must have at least one capital letter.", classType.FullName);
 			}

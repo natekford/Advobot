@@ -1,6 +1,6 @@
-﻿using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Threading;
+using Discord.WebSocket;
 
 namespace Advobot.Classes.UserInformation
 {
@@ -28,21 +28,15 @@ namespace Advobot.Classes.UserInformation
 		/// </summary>
 		/// <returns></returns>
 		public int Increment()
-		{
-			return Interlocked.Increment(ref _MessagesSent);
-		}
+			=> Interlocked.Increment(ref _MessagesSent);
 		/// <summary>
 		/// Sets the time to <see cref="DateTime.UtcNow"/> + <paramref name="time"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		public void UpdateTime(TimeSpan time)
-		{
-			Time = DateTime.UtcNow.Add(time);
-		}
+			=> Time = DateTime.UtcNow.Add(time);
 		/// <inheritdoc />
 		public override void Reset()
-		{
-			Interlocked.Exchange(ref _MessagesSent, 0);
-		}
+			=> Interlocked.Exchange(ref _MessagesSent, 0);
 	}
 }

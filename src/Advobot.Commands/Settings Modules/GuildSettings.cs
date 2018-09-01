@@ -371,16 +371,13 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Add : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public async Task Command([ValidateObject(false, Verif.CanBeEdited)] IUser user,
+			public async Task Command(
+				[ValidateObject(false, Verif.CanBeEdited)] IUser user,
 				[ValidateObject(false, Verif.CanBeEdited)] IRole role)
-			{
-				await CommandRunner(user.Id, role).CAF();
-			}
+				=> await CommandRunner(user.Id, role).CAF();
 			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
 			public async Task Command(ulong userId, [ValidateObject(false, Verif.CanBeEdited)] IRole role)
-			{
-				await CommandRunner(userId, role).CAF();
-			}
+				=> await CommandRunner(userId, role).CAF();
 
 			private async Task CommandRunner(ulong userId, IRole role)
 			{
@@ -401,16 +398,13 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Remove : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public async Task Command([ValidateObject(false, Verif.CanBeEdited)] IUser user,
+			public async Task Command(
+				[ValidateObject(false, Verif.CanBeEdited)] IUser user,
 				[ValidateObject(false, Verif.CanBeEdited)] IRole role)
-			{
-				await CommandRunner(user.Id, role).CAF();
-			}
+				=> await CommandRunner(user.Id, role).CAF();
 			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
 			public async Task Command(ulong userId, [ValidateObject(false, Verif.CanBeEdited)] IRole role)
-			{
-				await CommandRunner(userId, role).CAF();
-			}
+				=> await CommandRunner(userId, role).CAF();
 
 			private async Task CommandRunner(ulong userId, IRole role)
 			{

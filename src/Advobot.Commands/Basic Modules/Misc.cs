@@ -92,7 +92,7 @@ namespace Advobot.Commands.Misc
 			var embed = new EmbedWrapper
 			{
 				Title = "All Commands",
-				Description = $"`{String.Join("`, `", helpEntries.GetHelpEntries().Select(x => x.Name))}`"
+				Description = $"`{string.Join("`, `", helpEntries.GetHelpEntries().Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
@@ -108,7 +108,7 @@ namespace Advobot.Commands.Misc
 			var embed = new EmbedWrapper
 			{
 				Title = category,
-				Description = $"`{String.Join("`, `", helpEntries.GetHelpEntries(category).Select(x => x.Name))}`"
+				Description = $"`{string.Join("`, `", helpEntries.GetHelpEntries(category).Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
@@ -120,7 +120,7 @@ namespace Advobot.Commands.Misc
 			{
 				Title = "Categories",
 				Description = $"Type `{Context.GetPrefix()}{nameof(Commands)} [Category]` for commands from that category.\n\n" +
-					$"`{String.Join("`, `", helpEntries.GetCategories())}`",
+					$"`{string.Join("`, `", helpEntries.GetCategories())}`",
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
@@ -220,8 +220,6 @@ namespace Advobot.Commands.Misc
 	{
 		[Command]
 		public async Task Command()
-		{
-			await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
-		}
+			=> await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
 	}
 }

@@ -70,9 +70,7 @@ namespace Advobot.Classes
 		/// <param name="options"></param>
 		/// <returns></returns>
 		public async Task ModifyNicknamesAsync(string replace, RequestOptions options)
-		{
-			await DoActionAsync(nameof(ModifyNicknamesAsync), replace, "nickname", "nicknamed", options).CAF();
-		}
+			=> await DoActionAsync(nameof(ModifyNicknamesAsync), replace, "nickname", "nicknamed", options).CAF();
 		/// <summary>
 		/// Move multiple users.
 		/// </summary>
@@ -80,9 +78,7 @@ namespace Advobot.Classes
 		/// <param name="options"></param>
 		/// <returns></returns>
 		public async Task MoveUsersAsync(SocketVoiceChannel outputChannel, RequestOptions options)
-		{
-			await DoActionAsync(nameof(MoveUsersAsync), outputChannel, "move", "moved", options).CAF();
-		}
+			=> await DoActionAsync(nameof(MoveUsersAsync), outputChannel, "move", "moved", options).CAF();
 
 		private async Task DoActionAsync(string action, object obj, string presentTense, string pastTense, RequestOptions options)
 		{

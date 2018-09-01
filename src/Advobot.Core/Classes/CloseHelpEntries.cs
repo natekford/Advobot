@@ -27,7 +27,7 @@ namespace Advobot.Classes.CloseWords
 		/// <param name="helpEntries"></param>
 		/// <param name="settings"></param>
 		/// <param name="search"></param>
-		public CloseHelpEntries(TimeSpan time, ICommandContext context, IHelpEntryService helpEntries, CommandSettings settings, string search) 
+		public CloseHelpEntries(TimeSpan time, ICommandContext context, IHelpEntryService helpEntries, CommandSettings settings, string search)
 			: base(time, context)
 		{
 			_Settings = settings;

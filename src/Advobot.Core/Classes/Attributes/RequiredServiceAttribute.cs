@@ -49,8 +49,6 @@ namespace Advobot.Classes.Attributes
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-		{
-			return String.Join(", ", ServiceTypes.Select(x => x.Name));
-		}
+			=> string.Join(", ", ServiceTypes.Select(x => x.Name));
 	}
 }

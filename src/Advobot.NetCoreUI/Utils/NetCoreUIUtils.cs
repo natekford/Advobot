@@ -22,13 +22,9 @@ namespace Advobot.NetCoreUI.Utils
 		/// <param name="command"></param>
 		/// <param name="parameter"></param>
 		public static void Execute(this ICommand command, object parameter)
-		{
-			command.Execute(parameter);
-		}
+			=> command.Execute(parameter);
 		public static FileInfo GenerateFileName(this IBotDirectoryAccessor accessor, string fileName, string ext = "txt")
-		{
-			return accessor.GetBaseBotDirectoryFile($"{fileName}_{FormattingUtils.ToSaving()}.{ext}");
-		}
+			=> accessor.GetBaseBotDirectoryFile($"{fileName}_{FormattingUtils.ToSaving()}.{ext}");
 		public static SaveResponse Save(this FileInfo file, string text, Type deserializeType = null)
 		{
 			if (deserializeType != null)
@@ -55,10 +51,7 @@ namespace Advobot.NetCoreUI.Utils
 			}
 		}
 		//TODO: make this notify in the window instead of only in main 
-		public static string SaveAndGetResponse(this FileInfo file, string text, Type deserializationType = null)
-		{
-			return file.Save(text, deserializationType).GetSaveResponse(file);
-		}
+		public static string SaveAndGetResponse(this FileInfo file, string text, Type deserializationType = null) => file.Save(text, deserializationType).GetSaveResponse(file);
 		public static string GetSaveResponse(this SaveResponse response, FileInfo file)
 		{
 			switch (response)

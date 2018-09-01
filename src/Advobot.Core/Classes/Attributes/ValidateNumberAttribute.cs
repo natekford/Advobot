@@ -75,20 +75,17 @@ namespace Advobot.Classes.Attributes
 			{
 				return ValidNumbers.Contains(num)
 					? Task.FromResult(PreconditionResult.FromSuccess())
-					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{String.Join("`, `", ValidNumbers)}`"));
+					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{string.Join("`, `", ValidNumbers)}`"));
 			}
 			return num >= Start && num <= End
 				? Task.FromResult(PreconditionResult.FromSuccess())
 				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{Start}` and `{End}`."));
 		}
-
 		/// <summary>
 		/// Returns a string indicating what the valid numbers are.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-		{
-			return ValidNumbers.Any() ? $"({String.Join(", ", ValidNumbers)}" : $"({Start} to {End})";
-		}
+			=> ValidNumbers.Any() ? $"({string.Join(", ", ValidNumbers)}" : $"({Start} to {End})";
 	}
 }

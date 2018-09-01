@@ -133,21 +133,15 @@ namespace Advobot.SharedUI.Colors
 		protected virtual void AfterThemeUpdated() { }
 		/// <inheritdoc />
 		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
-		{
-			return StaticGetPath(accessor);
-		}
+			=> StaticGetPath(accessor);
 		/// <summary>
 		/// Loads the UI settings from file.
 		/// </summary>
 		/// <param name="accessor"></param>
 		/// <returns></returns>
 		public static T Load<T>(IBotDirectoryAccessor accessor) where T : ColorSettings<TBrush, TBrushFactory>, new()
-		{
-			return IOUtils.DeserializeFromFile<T>(StaticGetPath(accessor)) ?? new T();
-		}
+			=> IOUtils.DeserializeFromFile<T>(StaticGetPath(accessor)) ?? new T();
 		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor)
-		{
-			return accessor.GetBaseBotDirectoryFile("UISettings.json");
-		}
+			=> accessor.GetBaseBotDirectoryFile("UISettings.json");
 	}
 }

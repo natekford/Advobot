@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,9 +51,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="name"></param>
 		/// <param name="count"></param>
 		protected void NotifyLogCounterIncrement(string name, int count)
-		{
-			LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
-		}
+			=> LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
 		/// <summary>
 		/// Attempts to get guild settings from a random Discord object.
 		/// Returns false if unable to be logged due to settings on the guild.

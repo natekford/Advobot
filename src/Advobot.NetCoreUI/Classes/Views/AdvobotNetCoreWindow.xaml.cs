@@ -7,7 +7,7 @@ using Avalonia.Markup.Xaml;
 
 namespace Advobot.NetCoreUI.Classes.Views
 {
-	public class AdvobotNetCoreWindow : Window
+	public sealed class AdvobotNetCoreWindow : Window
 	{
 		public AdvobotNetCoreWindow()
 		{
@@ -18,10 +18,7 @@ namespace Advobot.NetCoreUI.Classes.Views
 		}
 
 		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
-
+			=> AvaloniaXamlLoader.Load(this);
 		private void EnterKeyPressed(object sender, KeyEventArgs e)
 		{
 			if (e.Key == Key.Enter || e.Key == Key.Return)
@@ -35,8 +32,6 @@ namespace Advobot.NetCoreUI.Classes.Views
 			WindowState = WindowState.Maximized;
 		}
 		private void OnClosed(object sender, EventArgs e)
-		{
-			Environment.Exit(0);
-		}
+			=> Environment.Exit(0);
 	}
 }

@@ -56,16 +56,12 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="propertyName"></param>
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
+			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		/// <summary>
 		/// Returns the title and count.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-		{
-			return $"**{Name}:** {Count}";
-		}
+			=> $"**{Name}:** {Count}";
 	}
 }

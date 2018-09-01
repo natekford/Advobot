@@ -6,28 +6,32 @@
 	public enum Punishment
 	{
 		/// <summary>
+		/// Indicates this is the default value and to do nothing.
+		/// </summary>
+		Nothing,
+		/// <summary>
 		/// Make a user unable to hear anything.
 		/// </summary>
-		Deafen = 1,
+		Deafen,
 		/// <summary>
 		/// Make a user unable to speak in voice chat.
 		/// </summary>
-		VoiceMute = 2,
+		VoiceMute,
 		/// <summary>
 		/// Make a user unable to type in text chat.
 		/// </summary>
-		RoleMute = 3,
+		RoleMute,
 		/// <summary>
 		/// Remove a user from the server.
 		/// </summary>
-		Kick = 4,
+		Kick,
 		/// <summary>
 		/// Remove a user from the server and delete their recent messages.
 		/// </summary>
-		Softban = 5,
+		Softban,
 		/// <summary>
 		/// Ban a user from the server.
 		/// </summary>
-		Ban = 6,
+		Ban,
 	}
 }

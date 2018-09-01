@@ -24,7 +24,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		public Task OnLogMessageSent(LogMessage message)
 		{
-			if (!String.IsNullOrWhiteSpace(message.Message))
+			if (!string.IsNullOrWhiteSpace(message.Message))
 			{
 				ConsoleUtils.WriteLine(message.Message, name: message.Source);
 			}

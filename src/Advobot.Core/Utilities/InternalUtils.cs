@@ -122,8 +122,6 @@ namespace Advobot.Utilities
 		/// <param name="g"></param>
 		/// <returns></returns>
 		internal static string InternalGetPrefix(this IBotSettings b, IGuildSettings g)
-		{
-			return string.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g?.Prefix;
-		}
+			=> string.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g?.Prefix;
 	}
 }

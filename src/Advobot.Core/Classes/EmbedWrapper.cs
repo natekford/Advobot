@@ -1,10 +1,10 @@
-﻿using AdvorangesUtils;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using AdvorangesUtils;
+using Discord;
 
 namespace Advobot.Classes
 {
@@ -453,9 +453,7 @@ namespace Advobot.Classes
 		/// <param name="errors"></param>
 		/// <returns></returns>
 		public bool TryAddAuthor(IUser user, out List<EmbedError> errors)
-		{
-			return TryAddAuthor(user?.Username, user?.GetAvatarUrl(), user?.GetAvatarUrl(), out errors);
-		}
+			=> TryAddAuthor(user?.Username, user?.GetAvatarUrl(), user?.GetAvatarUrl(), out errors);
 		/// <summary>
 		/// Attempts to modify the footer. Does nothing if fails.
 		/// </summary>
@@ -511,11 +509,11 @@ namespace Advobot.Classes
 			{
 				errors.Add(new EmbedError(nameof(Fields), null, null, $"Max fields is {EmbedBuilder.MaxFieldCount}."));
 			}
-			if (String.IsNullOrWhiteSpace(name))
+			if (string.IsNullOrWhiteSpace(name))
 			{
 				errors.Add(new EmbedError(nameof(Fields), nameof(EmbedFieldBuilder.Name), name, $"Cannot be null or whitespace."));
 			}
-			if (String.IsNullOrWhiteSpace(value))
+			if (string.IsNullOrWhiteSpace(value))
 			{
 				errors.Add(new EmbedError(nameof(Fields), nameof(EmbedFieldBuilder.Value), value, $"Cannot be null or whitespace."));
 			}
@@ -628,18 +626,14 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <returns></returns>
 		public Embed Build()
-		{
-			return _Builder.Build();
-		}
+			=> _Builder.Build();
 		/// <summary>
 		/// Returns true if the passed in string is a valid Url.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
 		private bool IsValidUrl(string input)
-		{
-			return String.IsNullOrEmpty(input) || (Uri.TryCreate(input, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp));
-		}
+			=> string.IsNullOrEmpty(input) || (Uri.TryCreate(input, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp));
 		/// <summary>
 		/// Returns the calculated length of an embed.
 		/// Can ignore the length of title, author, description, or footer
@@ -712,18 +706,14 @@ namespace Advobot.Classes
 		/// <param name="caller"></param>
 		/// <returns></returns>
 		private ArgumentException CreateException(IEnumerable<EmbedError> errors, [CallerMemberName] string caller = "")
-		{
-			return new ArgumentException(String.Join("\n", errors), caller);
-		}
+			=> new ArgumentException(string.Join("\n", errors), caller);
 
 		/// <summary>
 		/// Returns all the failed values.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-		{
-			return String.Join("\n\n", _FailedValues.Select(x => $"{x.Key}:\n{x.Value}"));
-		}
+			=> string.Join("\n\n", _FailedValues.Select(x => $"{x.Key}:\n{x.Value}"));
 
 		/// <summary>
 		/// Converts an <see cref="EmbedWrapper"/> to a <see cref="Embed"/>.

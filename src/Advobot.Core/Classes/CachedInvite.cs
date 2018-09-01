@@ -1,5 +1,5 @@
-﻿using Discord;
-using System.Threading;
+﻿using System.Threading;
+using Discord;
 
 namespace Advobot.Classes
 {
@@ -39,8 +39,6 @@ namespace Advobot.Classes
 		/// Increments the stored uses.
 		/// </summary>
 		public void IncrementUses()
-		{
-			Interlocked.Increment(ref _Uses);
-		}
+			=> Interlocked.Increment(ref _Uses);
 	}
 }

@@ -109,8 +109,6 @@ namespace Advobot
 		/// </summary>
 		/// <returns></returns>
 		public async Task Start()
-		{
-			await _Config.StartAsync(GetServiceProvider().GetRequiredService<DiscordShardedClient>());
-		}
+			=> await _Config.StartAsync(GetServiceProvider().GetRequiredService<DiscordShardedClient>());
 	}
 }

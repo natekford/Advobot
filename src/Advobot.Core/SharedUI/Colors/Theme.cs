@@ -70,79 +70,51 @@ namespace Advobot.SharedUI.Colors
 		/// <param name="target"></param>
 		/// <param name="value"></param>
 		public void Add(string target, string value)
-		{
-			SetBrush(target, _BrushFactory.CreateBrush(value));
-		}
+			=> SetBrush(target, _BrushFactory.CreateBrush(value));
 		/// <summary>
 		/// Adds the brush to the theme.
 		/// </summary>
 		/// <param name="target"></param>
 		/// <param name="value"></param>
 		public void Add(string target, TBrush value)
-		{
-			SetBrush(target, value);
-		}
+			=> SetBrush(target, value);
 		/// <summary>
 		/// Prevents the theme from being modified.
 		/// </summary>
 		public void Freeze()
-		{
-			_Frozen = true;
-		}
+			=> _Frozen = true;
 		/// <inheritdoc />
 		public IEnumerator<TBrush> GetEnumerator()
-		{
-			return _RuntimeBrushes.Values.GetEnumerator();
-		}
+			=> _RuntimeBrushes.Values.GetEnumerator();
 		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return _RuntimeBrushes.Values.GetEnumerator();
-		}
+			=> _RuntimeBrushes.Values.GetEnumerator();
 		/// <inheritdoc />
 		public bool ContainsKey(string key)
-		{
-			return _RuntimeBrushes.ContainsKey(key);
-		}
+			=> _RuntimeBrushes.ContainsKey(key);
 		/// <inheritdoc />
 		public bool Remove(string key)
-		{
-			return _RuntimeBrushes.Remove(key);
-		}
+			=> _RuntimeBrushes.Remove(key);
 		/// <inheritdoc />
 		public bool TryGetValue(string key, out TBrush value)
-		{
-			return _RuntimeBrushes.TryGetValue(key, out value);
-		}
+			=> _RuntimeBrushes.TryGetValue(key, out value);
 		/// <inheritdoc />
 		public void Add(KeyValuePair<string, TBrush> item)
-		{
-			((IDictionary<string, TBrush>)_RuntimeBrushes).Add(item);
-		}
+			=> ((IDictionary<string, TBrush>)_RuntimeBrushes).Add(item);
 		/// <inheritdoc />
 		public void Clear()
-		{
-			_RuntimeBrushes.Clear();
-		}
+			=> _RuntimeBrushes.Clear();
 		/// <inheritdoc />
 		public bool Contains(KeyValuePair<string, TBrush> item)
-		{
-			return ((IDictionary<string, TBrush>)_RuntimeBrushes).Contains(item);
-		}
+			=> ((IDictionary<string, TBrush>)_RuntimeBrushes).Contains(item);
 		/// <inheritdoc />
 		public void CopyTo(KeyValuePair<string, TBrush>[] array, int arrayIndex)
-		{
-			((IDictionary<string, TBrush>)_RuntimeBrushes).CopyTo(array, arrayIndex);
-		}
+			=> ((IDictionary<string, TBrush>)_RuntimeBrushes).CopyTo(array, arrayIndex);
 		/// <inheritdoc />
 		public bool Remove(KeyValuePair<string, TBrush> item)
-		{
-			return ((IDictionary<string, TBrush>)_RuntimeBrushes).Remove(item);
-		}
+			=> ((IDictionary<string, TBrush>)_RuntimeBrushes).Remove(item);
 		/// <inheritdoc />
 		IEnumerator<KeyValuePair<string, TBrush>> IEnumerable<KeyValuePair<string, TBrush>>.GetEnumerator()
-		{
-			return ((IDictionary<string, TBrush>)_RuntimeBrushes).GetEnumerator();
-		}
+			=> ((IDictionary<string, TBrush>)_RuntimeBrushes).GetEnumerator();
 	}
 }

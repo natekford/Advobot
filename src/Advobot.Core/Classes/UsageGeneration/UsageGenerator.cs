@@ -45,18 +45,14 @@ namespace Advobot.Classes.UsageGeneration
 		/// <param name="command"></param>
 		/// <returns></returns>
 		public static string GenerateUsage(Type command)
-		{
-			return GenerateUsage(command, c => c.IsNested, (c, l, i) => GetAllNestedClassesAndMethods(c, l, i));
-		}
+			=> GenerateUsage(command, c => c.IsNested, (c, l, i) => GetAllNestedClassesAndMethods(c, l, i));
 		/// <summary>
 		/// Generates a string indicating how the command is used.
 		/// </summary>
 		/// <param name="module"></param>
 		/// <returns></returns>
 		public static string GenerateUsage(ModuleInfo module)
-		{
-			return GenerateUsage(module, m => m.IsSubmodule, (m, l, i) => GetAllNestedClassesAndMethods(m, l, i));
-		}
+			=> GenerateUsage(module, m => m.IsSubmodule, (m, l, i) => GetAllNestedClassesAndMethods(m, l, i));
 		private static string GenerateUsage<T>(T obj, Func<T, bool> nested, Action<T, MemberLists, int> fillLists)
 		{
 			if (nested(obj))
@@ -189,8 +185,8 @@ namespace Advobot.Classes.UsageGeneration
 		}
 		private static void AddOptions<T>(StringBuilder sb, IEnumerable<T> options)
 		{
-			var converted = options.Select(x => x.ToString()).Where(x => !String.IsNullOrWhiteSpace(x));
-			var addOrToEnd = converted.Any(x => !String.IsNullOrWhiteSpace(x)) ? "|" : "";
+			var converted = options.Select(x => x.ToString()).Where(x => !string.IsNullOrWhiteSpace(x));
+			var addOrToEnd = converted.Any(x => !string.IsNullOrWhiteSpace(x)) ? "|" : "";
 			sb.Append(converted.JoinNonNullStrings("|") + addOrToEnd);
 		}
 

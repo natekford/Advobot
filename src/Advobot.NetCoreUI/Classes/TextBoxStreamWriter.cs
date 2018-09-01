@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 namespace Advobot.NetCoreUI.Classes
 {
-	internal class TextBoxStreamWriter : TextWriter
+	public sealed class TextBoxStreamWriter : TextWriter
 	{
 		private readonly ICommand _Command;
 		private readonly StringBuilder _CurrentLineText = new StringBuilder();
@@ -28,7 +28,7 @@ namespace Advobot.NetCoreUI.Classes
 		}
 		public override void Write(string value)
 		{
-			if (String.IsNullOrWhiteSpace(value))
+			if (string.IsNullOrWhiteSpace(value))
 			{
 				return;
 			}

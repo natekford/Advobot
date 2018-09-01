@@ -1,11 +1,11 @@
-﻿using Advobot.Interfaces;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Immutable;
-using System.Linq;
 
 namespace Advobot.Classes.Settings
 {
@@ -36,7 +36,7 @@ namespace Advobot.Classes.Settings
 		public bool Enabled { get; set; }
 
 		[JsonProperty("Interval")]
-		private int _Interval;
+		private readonly int _Interval;
 		[JsonProperty("ImmuneRoleIds")]
 		private ulong[] _ImmuneRoleIds;
 
@@ -58,14 +58,14 @@ namespace Advobot.Classes.Settings
 		{
 			return $"**Base messages:** `{BaseMessages}`\n" +
 				$"**Time interval:** `{_Interval}`\n" +
-				$"**Immune Role Ids:** `{String.Join("`, `", _ImmuneRoleIds)}`";
+				$"**Immune Role Ids:** `{string.Join("`, `", _ImmuneRoleIds)}`";
 		}
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{
 			return $"**Base messages:** `{BaseMessages}`\n" +
 				$"**Time interval:** `{_Interval}`\n" +
-				$"**Immune Role Ids:** `{String.Join("`, `", ImmuneRoleIds.Select(x => guild.GetRole(x).Format()))}`";
+				$"**Immune Role Ids:** `{string.Join("`, `", ImmuneRoleIds.Select(x => guild.GetRole(x).Format()))}`";
 		}
 	}
 }

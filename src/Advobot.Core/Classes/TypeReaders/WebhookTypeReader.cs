@@ -1,9 +1,9 @@
-﻿using AdvorangesUtils;
-using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AdvorangesUtils;
+using Discord;
+using Discord.Commands;
 
 namespace Advobot.Classes.TypeReaders
 {
@@ -11,7 +11,7 @@ namespace Advobot.Classes.TypeReaders
 	/// Attempts to find an <see cref="IWebhook"/> on a guild.
 	/// </summary>
 	public sealed class WebhookTypeReader : TypeReader
-    {
+	{
 		/// <summary>
 		/// Checks for any webhooks matching the input. Input is tested as a webhook id and a username.
 		/// </summary>

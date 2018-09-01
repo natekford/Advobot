@@ -119,28 +119,20 @@ namespace Advobot.Services.Logging
 
 		/// <inheritdoc />
 		public string FormatLoggedCommands(bool markdown, bool equalSpacing)
-		{
-			return FormatMultiple(_LoggedCommands, markdown, equalSpacing);
-		}
+			=> FormatMultiple(_LoggedCommands, markdown, equalSpacing);
 		/// <inheritdoc />
 		public string FormatLoggedUserActions(bool markdown, bool equalSpacing)
-		{
-			return FormatMultiple(_LoggedUserActions, markdown, equalSpacing);
-		}
+			=> FormatMultiple(_LoggedUserActions, markdown, equalSpacing);
 		/// <inheritdoc />
 		public string FormatLoggedMessageActions(bool markdown, bool equalSpacing)
-		{
-			return FormatMultiple(_LoggedMessageActions.Concat(_LoggedAttachments), markdown, equalSpacing);
-		}
+			=> FormatMultiple(_LoggedMessageActions.Concat(_LoggedAttachments), markdown, equalSpacing);
 		/// <summary>
 		/// Increments the specified log counter.
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		private void OnLogCounterIncrement(object sender, LogCounterIncrementEventArgs e)
-		{
-			_Counters[e.Name].Add(e.Count);
-		}
+			=> _Counters[e.Name].Add(e.Count);
 		/// <summary>
 		/// Return a formatted string in which the format is each counter on a new line, or if 
 		/// <paramref name="haveEqualSpacing"/> is true there will always be an equal amount of space between each

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace Advobot.Classes
 {
@@ -41,17 +40,11 @@ namespace Advobot.Classes
 		}
 
 		internal static EmbedError LengthRemaining(string property, string subProperty, object value, int remainingLength)
-		{
-			return new EmbedError(property, subProperty, value, $"Remaining length is {remainingLength}.", remainingLength);
-		}
+			=> new EmbedError(property, subProperty, value, $"Remaining length is {remainingLength}.", remainingLength);
 		internal static EmbedError MaxLength(string property, string subProperty, object value, int maxLength)
-		{
-			return new EmbedError(property, subProperty, value, $"Max length is {maxLength}.", maxLength);
-		}
+			=> new EmbedError(property, subProperty, value, $"Max length is {maxLength}.", maxLength);
 		internal static EmbedError Url(string property, string subProperty, object value)
-		{
-			return new EmbedError(property, subProperty, value, "Invalid url.");
-		}
+			=> new EmbedError(property, subProperty, value, "Invalid url.");
 		/// <summary>
 		/// Returns the errors saying the property, sub property, value, and reason.
 		/// </summary>
@@ -59,7 +52,7 @@ namespace Advobot.Classes
 		public override string ToString()
 		{
 			var sb = new StringBuilder(Property);
-			if (!String.IsNullOrWhiteSpace(SubProperty))
+			if (!string.IsNullOrWhiteSpace(SubProperty))
 			{
 				sb.Append("." + SubProperty);
 			}

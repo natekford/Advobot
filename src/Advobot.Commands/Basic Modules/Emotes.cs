@@ -29,9 +29,7 @@ namespace Advobot.Commands.Emotes
 
 		[Command]
 		public async Task Command(Emote emote)
-		{
-			await Command(emote.Name, new Uri(emote.Url)).CAF();
-		}
+			=> await Command(emote.Name, new Uri(emote.Url)).CAF();
 		[Command, Priority(1)]
 		public async Task Command(
 			[ValidateString(Target.Emote)] string name,
@@ -85,9 +83,7 @@ namespace Advobot.Commands.Emotes
 	{
 		[Command]
 		public async Task Command(GuildEmote emote, [ValidateString(Target.Emote), Remainder] string newName)
-		{
-			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = newName, GetRequestOptions()).CAF();
-		}
+			=> await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = newName, GetRequestOptions()).CAF();
 	}
 
 	[Category(typeof(ModifyEmoteRoles)), Group(nameof(ModifyEmoteRoles)), TopLevelShortAlias(typeof(ModifyEmoteRoles))]
@@ -113,7 +109,7 @@ namespace Advobot.Commands.Emotes
 					x.Roles = Optional.Create<IEnumerable<IRole>>(roles.Distinct());
 				}
 			}, GetRequestOptions()).CAF();
-			var resp = $"Successfully added `{String.Join("`, `", roles.Select(x => x.Format()))}` as roles necessary to use `{emote}`.";
+			var resp = $"Successfully added `{string.Join("`, `", roles.Select(x => x.Format()))}` as roles necessary to use `{emote}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
@@ -134,7 +130,7 @@ namespace Advobot.Commands.Emotes
 					x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Select(q => q.Id).Contains(r.Id)));
 				}
 			}, GetRequestOptions()).CAF();
-			var resp = $"Successfully removed `{String.Join("`, `", roles.Select(x => x.Format()))}` as roles necessary to use `{emote}`.";
+			var resp = $"Successfully removed `{string.Join("`, `", roles.Select(x => x.Format()))}` as roles necessary to use `{emote}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(RemoveAll)), ShortAlias(nameof(RemoveAll))]
@@ -160,21 +156,15 @@ namespace Advobot.Commands.Emotes
 	{
 		[Command(nameof(Managed)), ShortAlias(nameof(Managed))]
 		public async Task Managed()
-		{
-			await CommandRunner(Context.Guild.Emotes.Where(x => x.IsManaged).ToList()).CAF();
-		}
+			=> await CommandRunner(Context.Guild.Emotes.Where(x => x.IsManaged)).CAF();
 		[Command(nameof(Local)), ShortAlias(nameof(Local))]
 		public async Task Local()
-		{
-			await CommandRunner(Context.Guild.Emotes.Where(x => !x.IsManaged && !x.Animated).ToList()).CAF();
-		}
+			=> await CommandRunner(Context.Guild.Emotes.Where(x => !x.IsManaged && !x.Animated)).CAF();
 		[Command(nameof(Animated)), ShortAlias(nameof(Animated))]
 		public async Task Animated()
-		{
-			await CommandRunner(Context.Guild.Emotes.Where(x => x.Animated).ToList()).CAF();
-		}
+			=> await CommandRunner(Context.Guild.Emotes.Where(x => x.Animated)).CAF();
 
-		private async Task CommandRunner(List<GuildEmote> emotes, [CallerMemberName] string caller = "")
+		private async Task CommandRunner(IEnumerable<GuildEmote> emotes, [CallerMemberName] string caller = "")
 		{
 			if (!emotes.Any())
 			{

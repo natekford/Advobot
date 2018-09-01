@@ -28,7 +28,7 @@ namespace Advobot.Classes
 			get => _Prefix;
 			set
 			{
-				if (String.IsNullOrWhiteSpace(value))
+				if (string.IsNullOrWhiteSpace(value))
 				{
 					throw new ArgumentException("Must not be null or whitespace.", nameof(Prefix));
 				}
@@ -271,9 +271,7 @@ namespace Advobot.Classes
 
 		/// <inheritdoc />
 		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
-		{
-			return StaticGetPath(accessor);
-		}
+			=> StaticGetPath(accessor);
 		/// <summary>
 		/// Creates an instance of <see cref="BotSettings"/> from file.
 		/// </summary>
@@ -287,18 +285,12 @@ namespace Advobot.Classes
 			return settings;
 		}
 		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor)
-		{
-			return accessor.GetBaseBotDirectoryFile("BotSettings.json");
-		}
+			=> accessor.GetBaseBotDirectoryFile("BotSettings.json");
 
 		///ISettingsProvider
 		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IBotSettings>.GetSettings()
-		{
-			return GetSettings(typeof(BotSettings));
-		}
+			=> GetSettings(typeof(BotSettings));
 		DirectoryInfo ISettingsProvider<IBotSettings>.GetDirectory(IBotDirectoryAccessor accessor)
-		{
-			return GetFile(accessor).Directory;
-		}
+			=> GetFile(accessor).Directory;
 	}
 }

@@ -94,9 +94,7 @@ namespace Advobot.Services.HelpEntries
 		}
 		/// <inheritdoc />
 		public override string ToString()
-		{
-			return $"{_A}{_U}{_E}\n{_B}\n{_D}";
-		}
+			=> $"{_A}{_U}{_E}\n{_B}\n{_D}";
 		/// <inheritdoc />
 		public string ToString(CommandSettings settings)
 		{

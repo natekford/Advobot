@@ -38,7 +38,7 @@ namespace Advobot.Classes
 			[NamedArgument] string code,
 			[NamedArgument] string name,
 			[NamedArgument] bool hasGlobalEmotes,
-			[NamedArgument] uint? userCount, 
+			[NamedArgument] uint? userCount,
 			[NamedArgument] CountTarget userCountTarget,
 			[NamedArgument] params string[] keywords)
 		{

@@ -190,7 +190,7 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		private object ConvertValue(Type type, string value)
 		{
-			if (String.IsNullOrWhiteSpace(value))
+			if (string.IsNullOrWhiteSpace(value))
 			{
 				//If the type is nullable and value is null then allowed to return null, otherwise try to make not null 
 				return Nullable.GetUnderlyingType(type) != null ? null : CreateDefault(type);

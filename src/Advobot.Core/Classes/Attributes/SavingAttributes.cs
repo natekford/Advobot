@@ -14,6 +14,7 @@ namespace Advobot.Classes.Attributes
 		/// </summary>
 		public SaveGuildSettingsAttribute() : base(typeof(IGuildSettings), typeof(IBotSettings)) { }
 	}
+
 	/// <summary>
 	/// Indicates after the command has executed bot settings should be saved.
 	/// </summary>

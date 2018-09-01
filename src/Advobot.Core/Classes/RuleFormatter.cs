@@ -1,11 +1,11 @@
-﻿using Advobot.Classes.Attributes;
-using Advobot.Enums;
-using AdvorangesUtils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Linq;
+using System.Text;
+using Advobot.Classes.Attributes;
+using Advobot.Enums;
+using AdvorangesUtils;
 
 namespace Advobot.Classes
 {
@@ -129,7 +129,7 @@ namespace Advobot.Classes
 
 				//If the last character in a string then add a period since it's the end
 				//If the next character after is not a number add a period too
-				if (Char.IsNumber(c) && (i + 1 == text.Length || !Char.IsNumber(text[i + 1])))
+				if (char.IsNumber(c) && (i + 1 == text.Length || !char.IsNumber(text[i + 1])))
 				{
 					sb.Append(charToAdd);
 				}

@@ -46,14 +46,10 @@ namespace Advobot.Services.Levels
 
 		/// <inheritdoc />
 		public void Start()
-		{
-			_Db = _Settings.GetDatabase("LevelDatabase.db", new BsonMapper { IncludeNonPublic = true, });
-		}
+			=> _Db = _Settings.GetDatabase("LevelDatabase.db", new BsonMapper { IncludeNonPublic = true, });
 		/// <inheritdoc />
 		public void Dispose()
-		{
-			_Db?.Dispose();
-		}
+			=> _Db?.Dispose();
 		/// <inheritdoc />
 		public async Task AddExperienceAsync(SocketMessage message)
 		{
@@ -97,14 +93,10 @@ namespace Advobot.Services.Levels
 		}
 		/// <inheritdoc />
 		public (int Rank, int TotalUsers) GetGuildRank(SocketGuild guild, ulong userId)
-		{
-			return GetRank(_Db.GetCollection<LeaderboardPosition>(guild.Id.ToString()), userId);
-		}
+			=> GetRank(_Db.GetCollection<LeaderboardPosition>(guild.Id.ToString()), userId);
 		/// <inheritdoc />
 		public (int Rank, int TotalUsers) GetGlobalRank(ulong userId)
-		{
-			return GetRank(_Db.GetCollection<LeaderboardPosition>("Global"), userId);
-		}
+			=> GetRank(_Db.GetCollection<LeaderboardPosition>("Global"), userId);
 		/// <inheritdoc />
 		public IUserExperienceInformation GetUserXpInformation(ulong userId)
 		{

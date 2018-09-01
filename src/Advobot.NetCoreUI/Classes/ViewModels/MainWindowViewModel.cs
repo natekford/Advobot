@@ -23,7 +23,7 @@ using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
-	public class AdvobotNetCoreWindowViewModel : ReactiveObject
+	public sealed class AdvobotNetCoreWindowViewModel : ReactiveObject
 	{
 		private static readonly string _Caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
 
@@ -143,13 +143,8 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 
 		private bool GetMenuStatus([CallerMemberName] string menu = "")
-		{
-			return OpenMenus.GetOrAdd(menu, false);
-		}
-		private void PrintOutput(string value)
-		{
-			Output += value;
-		}
+			=> OpenMenus.GetOrAdd(menu, false);
+		private void PrintOutput(string value) => Output += value;
 		private void TakeInput()
 		{
 			ConsoleUtils.WriteLine(Input, name: "UIInput");
@@ -229,9 +224,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			ConsoleUtils.WriteLine(response, name: "Saving Output");
 		}
 		private Task OpenOutputSearchWindowAsync()
-		{
-			return new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog();
-		}
+			=> new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog();
 
 		private Type GetDeserializationType(string fileName)
 		{

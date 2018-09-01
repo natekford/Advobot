@@ -17,9 +17,7 @@
 		/// <param name="input"></param>
 		/// <returns></returns>
 		public T CreateBrush(string input)
-		{
-			return CreateBrush(SharedUIUtils.ParseColorBytes(input));
-		}
+			=> CreateBrush(SharedUIUtils.ParseColorBytes(input));
 		/// <summary>
 		/// Attempts to create a brush from the input.
 		/// </summary>

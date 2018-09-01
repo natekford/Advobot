@@ -23,8 +23,6 @@ namespace Advobot.NetCoreUI.Classes
 			obj.SetValue(SourceEnumProperty, value);
 		}
 		public static Type GetSourceEnum(DropDown obj)
-		{
-			return obj.GetValue(SourceEnumProperty);
-		}
+			=> obj.GetValue(SourceEnumProperty);
 	}
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -153,9 +152,7 @@ namespace Advobot.Services.Timers
 		}
 		/// <inheritdoc />
 		public void Add(RemovableMessage message)
-		{
-			_Db.GetCollection<RemovableMessage>().Insert(message);
-		}
+			=> _Db.GetCollection<RemovableMessage>().Insert(message);
 		/// <inheritdoc />
 		public void Add(TimedMessage message)
 		{
@@ -178,14 +175,10 @@ namespace Advobot.Services.Timers
 		}
 		/// <inheritdoc />
 		public async Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(ulong guildId, ulong userId)
-		{
-			return await HandleRemovableMessage(_Db.GetCollection<CloseHelpEntries>(), guildId, userId).CAF();
-		}
+			=> await HandleRemovableMessage(_Db.GetCollection<CloseHelpEntries>(), guildId, userId).CAF();
 		/// <inheritdoc />
 		public async Task<CloseQuotes> RemoveActiveCloseQuoteAsync(ulong guildId, ulong userId)
-		{
-			return await HandleRemovableMessage(_Db.GetCollection<CloseQuotes>(), guildId, userId).CAF();
-		}
+			=> await HandleRemovableMessage(_Db.GetCollection<CloseQuotes>(), guildId, userId).CAF();
 
 		/// <summary>
 		/// Deletes messages past their expiry time.

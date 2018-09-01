@@ -8,12 +8,12 @@ using Discord.Commands;
 namespace Advobot.Classes.TypeReaders
 {
 	/// <summary>
-	/// Attempts to find an <see cref="Emote"/>.
+	/// Attempts to find a <see cref="GuildEmote"/> on the guild.
 	/// </summary>
-	public sealed class EmoteTypeReader : TypeReader
+	public sealed class GuildEmoteTypeReader : TypeReader
 	{
 		/// <summary>
-		/// Checks for any emotes matching the input. Input is tested as an emote id, then emote name.
+		/// Checks for any guild emotes matching the input. Input is tested as an emote id, then emote name.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="input"></param>
@@ -22,11 +22,12 @@ namespace Advobot.Classes.TypeReaders
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			IEmote emote = null;
+			//Can still tryparse it, but want to make sure this emote is on the current guild, so just pass the id down
 			if (Emote.TryParse(input, out var tempEmote))
 			{
-				emote = tempEmote;
+				input = tempEmote.Id.ToString();
 			}
-			else if (ulong.TryParse(input, out var emoteId))
+			if (ulong.TryParse(input, out var emoteId))
 			{
 				emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == emoteId);
 			}

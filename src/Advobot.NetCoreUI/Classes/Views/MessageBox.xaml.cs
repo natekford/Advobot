@@ -18,9 +18,7 @@ namespace Advobot.NetCoreUI.Classes.Views
 		}
 
 		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+			=> AvaloniaXamlLoader.Load(this);
 
 		public static Task<string> Show(string messageBoxText, string caption, IEnumerable<string> options)
 		{

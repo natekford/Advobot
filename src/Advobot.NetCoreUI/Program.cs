@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Advobot.NetCoreUI.Classes.ViewModels;
 using Advobot.NetCoreUI.Classes.Views;

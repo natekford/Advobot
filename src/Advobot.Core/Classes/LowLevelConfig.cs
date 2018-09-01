@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
@@ -75,7 +74,7 @@ namespace Advobot.Classes
 
 			var path = input ?? SavePath;
 
-			if (startup && !String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
+			if (startup && !string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 			{
 				return ValidatedPath = true;
 			}
@@ -109,7 +108,7 @@ namespace Advobot.Classes
 
 			var key = input ?? _BotKey;
 
-			if (startup && !String.IsNullOrWhiteSpace(key))
+			if (startup && !string.IsNullOrWhiteSpace(key))
 			{
 				try
 				{
@@ -160,10 +159,7 @@ namespace Advobot.Classes
 			await ClientUtils.StartAsync(client, _BotKey);
 		}
 		/// <inheritdoc />
-		private void Save()
-		{
-			IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
-		}
+		private void Save() => IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
 		/// <inheritdoc />
 		public IServiceCollection CreateDefaultServices(IEnumerable<Assembly> commands = null)
 		{
@@ -196,10 +192,7 @@ namespace Advobot.Classes
 		/// <param name="services"></param>
 		/// <param name="provider"></param>
 		/// <returns></returns>
-		private IIterableServiceProvider Create(IServiceCollection services, IServiceProvider provider)
-		{
-			return IterableServiceProvider.CreateFromExisting(provider, services);
-		}
+		private IIterableServiceProvider Create(IServiceCollection services, IServiceProvider provider) => IterableServiceProvider.CreateFromExisting(provider, services);
 		/// <summary>
 		/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
 		/// </summary>

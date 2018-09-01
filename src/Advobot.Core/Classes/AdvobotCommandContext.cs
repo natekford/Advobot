@@ -55,17 +55,13 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <returns>Returns the guild prefix if not null, otherwise returns the bot prefix.</returns>
 		public string GetPrefix()
-		{
-			return BotSettings.InternalGetPrefix(GuildSettings);
-		}
+			=> BotSettings.InternalGetPrefix(GuildSettings);
 		/// <summary>
 		/// Returns information about the context and how long it's taken to execute.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-		{
-			return ToString(null);
-		}
+			=> ToString(null);
 		/// <summary>
 		/// Returns information about the context and how long it's taken to execute, but also includes any errors.
 		/// </summary>

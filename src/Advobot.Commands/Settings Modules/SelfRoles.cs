@@ -26,24 +26,16 @@ namespace Advobot.Commands.SelfRoles
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(uint groupNumber)
-		{
-			await CommandRunner(groupNumber).CAF();
-		}
+			=> await CommandRunner(groupNumber).CAF();
 		[Command(nameof(Delete)), ShortAlias(nameof(Delete))]
 		public async Task Delete(uint groupNumber)
-		{
-			await CommandRunner(groupNumber).CAF();
-		}
+			=> await CommandRunner(groupNumber).CAF();
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(uint groupNumber, [ValidateObject(false, Verif.CanBeEdited)] params IRole[] roles)
-		{
-			await CommandRunner(groupNumber, roles).CAF();
-		}
+			=> await CommandRunner(groupNumber, roles).CAF();
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(uint groupNumber, [ValidateObject(false, Verif.CanBeEdited)] params IRole[] roles)
-		{
-			await CommandRunner(groupNumber, roles).CAF();
-		}
+			=> await CommandRunner(groupNumber, roles).CAF();
 
 		private async Task CommandRunner(uint groupNum, [CallerMemberName] string caller = "")
 		{

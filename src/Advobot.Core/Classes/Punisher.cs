@@ -22,7 +22,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Strings for saying the type of punishment given.
 		/// </summary>
-		private readonly static ImmutableDictionary<Punishment, string> Given = new Dictionary<Punishment, string>
+		private static readonly ImmutableDictionary<Punishment, string> Given = new Dictionary<Punishment, string>
 		{
 			{ Punishment.Kick, "kicked" },
 			{ Punishment.Ban, "banned" },
@@ -34,7 +34,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Strings for saying the type of punishment removed.
 		/// </summary>
-		private readonly static ImmutableDictionary<Punishment, string> Removed = new Dictionary<Punishment, string>
+		private static readonly ImmutableDictionary<Punishment, string> Removed = new Dictionary<Punishment, string>
 		{
 			{ Punishment.Kick, "unkicked" }, //Doesn't make sense
 			{ Punishment.Ban, "unbanned" },
@@ -331,8 +331,6 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-		{
-			return String.Join("\n", _Actions);
-		}
+			=> string.Join("\n", _Actions);
 	}
 }

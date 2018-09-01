@@ -1,12 +1,11 @@
-﻿using Advobot.Classes.Attributes;
+﻿using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes.Settings
 {
@@ -67,7 +66,7 @@ namespace Advobot.Classes.Settings
 			Description = description;
 			ThumbUrl = thumbUrl;
 			ChannelId = channelId;
-			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbUrl)))
+			if (!(string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(description) && string.IsNullOrWhiteSpace(thumbUrl)))
 			{
 				Embed = new EmbedWrapper
 				{

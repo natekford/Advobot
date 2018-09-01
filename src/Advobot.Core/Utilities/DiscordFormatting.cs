@@ -43,36 +43,28 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public static string Format(this IUser user)
-		{
-			return user != null ? $"'{user.Username.EscapeBackTicks()}#{user.Discriminator}' ({user.Id})" : "Irretrievable User";
-		}
+			=> user != null ? $"'{user.Username.EscapeBackTicks()}#{user.Discriminator}' ({user.Id})" : "Irretrievable User";
 		/// <summary>
 		/// Returns a string with the role's name and id.
 		/// </summary>
 		/// <param name="role"></param>
 		/// <returns></returns>
 		public static string Format(this IRole role)
-		{
-			return role != null ? $"'{role.Name.EscapeBackTicks()}' ({role.Id})" : "Irretrievable Role";
-		}
+			=> role != null ? $"'{role.Name.EscapeBackTicks()}' ({role.Id})" : "Irretrievable Role";
 		/// <summary>
 		/// Returns a string with the channel's name and id.
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <returns></returns>
 		public static string Format(this IChannel channel)
-		{
-			return channel != null ? $"'{channel.Name.EscapeBackTicks()}' ({channel.GetChannelType()}) ({channel.Id})" : "Irretrievable Channel";
-		}
+			=> channel != null ? $"'{channel.Name.EscapeBackTicks()}' ({channel.GetChannelType()}) ({channel.Id})" : "Irretrievable Channel";
 		/// <summary>
 		/// Returns a string with the guild's name and id.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public static string Format(this IGuild guild)
-		{
-			return guild != null ? $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})" : "Irretrievable Guild";
-		}
+			=> guild != null ? $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})" : "Irretrievable Guild";
 		/// <summary>
 		/// Returns a string with the messages content, embeds, and attachments listed.
 		/// </summary>
@@ -138,9 +130,7 @@ namespace Advobot.Utilities
 		/// <param name="webhook"></param>
 		/// <returns></returns>
 		public static string Format(this IWebhook webhook)
-		{
-			return webhook != null ? $"'{webhook.Name.EscapeBackTicks()}' ({webhook.Id})" : "Irretrievable Webhook";
-		}
+			=> webhook != null ? $"'{webhook.Name.EscapeBackTicks()}' ({webhook.Id})" : "Irretrievable Webhook";
 
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a user on a guild.
@@ -521,9 +511,7 @@ namespace Advobot.Utilities
 		}
 
 		private static string FormatInfo(this ISnowflakeEntity obj)
-		{
-			return $"**Id:** `{obj.Id}`\n{obj.CreatedAt.UtcDateTime.ToCreatedAt()}\n\n";
-		}
+			=> $"**Id:** `{obj.Id}`\n{obj.CreatedAt.UtcDateTime.ToCreatedAt()}\n\n";
 		private static string GetChannelType(this IChannel channel)
 		{
 			switch (channel)

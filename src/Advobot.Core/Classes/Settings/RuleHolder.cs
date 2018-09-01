@@ -1,14 +1,13 @@
-﻿using Advobot.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes.Settings
 {
@@ -34,9 +33,9 @@ namespace Advobot.Classes.Settings
 			var messages = new List<IUserMessage>();
 
 			var formattedCategories = Categories.Select(x => ToString(formatter, x.Key)).ToList();
-			var formattedRules = String.Join("\n", formattedCategories);
+			var formattedRules = string.Join("\n", formattedCategories);
 			//If all of the rules can be sent in one message, do that.
-			if (!String.IsNullOrWhiteSpace(formattedRules) && formattedRules.Length <= 2000)
+			if (!string.IsNullOrWhiteSpace(formattedRules) && formattedRules.Length <= 2000)
 			{
 				messages.Add(await MessageUtils.SendMessageAsync(channel, formattedRules).CAF());
 				return messages;
@@ -57,14 +56,12 @@ namespace Advobot.Classes.Settings
 		/// <param name="channel"></param>
 		/// <returns></returns>
 		public async Task<IEnumerable<IUserMessage>> SendCategoryAsync(RuleFormatter formatter, string category, IMessageChannel channel)
-		{
-			return await PrivateSendCategoryAsync(ToString(formatter, category), channel).CAF();
-		}
+			=> await PrivateSendCategoryAsync(ToString(formatter, category), channel).CAF();
 		private async Task<IEnumerable<IUserMessage>> PrivateSendCategoryAsync(string formattedCategory, IMessageChannel channel)
 		{
 			var messages = new List<IUserMessage>();
 			//Null category gets ignored
-			if (String.IsNullOrWhiteSpace(formattedCategory))
+			if (string.IsNullOrWhiteSpace(formattedCategory))
 			{
 				return messages;
 			}
@@ -94,17 +91,12 @@ namespace Advobot.Classes.Settings
 			}
 			return messages;
 		}
-
 		/// <inheritdoc />
 		public override string ToString()
-		{
-			return ToString(new RuleFormatter());
-		}
+			=> ToString(new RuleFormatter());
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+			=> ToString();
 		/// <summary>
 		/// Uses the specified rule formatter to format every rule category.
 		/// </summary>

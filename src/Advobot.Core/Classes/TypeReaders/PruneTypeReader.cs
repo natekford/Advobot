@@ -1,7 +1,7 @@
-﻿using AdvorangesUtils;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using AdvorangesUtils;
+using Discord.Commands;
 
 namespace Advobot.Classes.TypeReaders
 {
@@ -20,8 +20,6 @@ namespace Advobot.Classes.TypeReaders
 		/// <param name="services"></param>
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
-		{
-			return Task.FromResult(TypeReaderResult.FromSuccess(PRUNE_STRING.CaseInsEquals(input)));
-		}
+			=> Task.FromResult(TypeReaderResult.FromSuccess(PRUNE_STRING.CaseInsEquals(input)));
 	}
 }

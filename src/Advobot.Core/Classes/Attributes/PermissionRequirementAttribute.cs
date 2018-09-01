@@ -1,10 +1,10 @@
-﻿using AdvorangesUtils;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes.Attributes
 {
@@ -20,11 +20,11 @@ namespace Advobot.Classes.Attributes
 		/// <summary>
 		/// Returns the names of the flags where all are needed.
 		/// </summary>
-		public string AllText => String.Join(" & ", _AllFlags.ToList().Select(x => x.ToString()));
+		public string AllText => string.Join(" & ", _AllFlags.ToList().Select(x => x.ToString()));
 		/// <summary>
 		/// Returns the names of the flags where any are needed.
 		/// </summary>
-		public string AnyText => String.Join(" | ", _AnyFlags.ToList().Select(x => x.ToString()));
+		public string AnyText => string.Join(" | ", _AnyFlags.ToList().Select(x => x.ToString()));
 
 		/// <summary>
 		/// Creates an instance of <see cref="PermissionRequirementAttribute"/>.
@@ -76,14 +76,11 @@ namespace Advobot.Classes.Attributes
 			var any = userPerms != 0 && _AnyFlags.RawValue != 0 && (userPerms & _AnyFlags.RawValue) != 0;
 			return Task.FromResult(all || any ? PreconditionResult.FromSuccess() : PreconditionResult.FromError((string)null));
 		}
-
 		/// <summary>
 		/// Joins <see cref="AnyText"/> and <see cref="AllText"/>.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-		{
-			return $"[{new[] { AllText, AnyText }.JoinNonNullStrings(" | ")}]";
-		}
+			=> $"[{new[] { AllText, AnyText }.JoinNonNullStrings(" | ")}]";
 	}
 }

@@ -60,8 +60,6 @@ namespace Advobot.NetCoreUI.Classes.Controls
 		}
 
 		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+			=> AvaloniaXamlLoader.Load(this);
 	}
 }

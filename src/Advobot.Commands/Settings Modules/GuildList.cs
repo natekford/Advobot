@@ -124,7 +124,7 @@ namespace Advobot.Commands.GuildList
 				var tf = new TextFileInfo
 				{
 					Name = "Guilds",
-					Text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{String.Join("\n", formatted)}",
+					Text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{string.Join("\n", formatted)}",
 				};
 				await MessageUtils.SendMessageAsync(Context.Channel, "**Guilds:**", textFile: tf).CAF();
 				return;

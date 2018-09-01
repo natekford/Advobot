@@ -3,7 +3,7 @@ using Advobot.Interfaces;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
-	public class LogServiceViewModel : INotifyPropertyChanged
+	public sealed class LogServiceViewModel : INotifyPropertyChanged
 	{
 		public int TotalUsers => _LogService.TotalUsers.Count;
 		public int TotalGuilds => _LogService.TotalGuilds.Count;

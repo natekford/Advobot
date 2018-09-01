@@ -9,7 +9,7 @@ using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
-	public class OutputSearchWindowViewModel : ReactiveObject
+	public sealed class OutputSearchWindowViewModel : ReactiveObject
 	{
 		public string SearchTerm
 		{

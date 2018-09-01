@@ -1,12 +1,11 @@
-﻿using Advobot.Interfaces;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 
 namespace Advobot.Classes.Settings
 {
@@ -74,9 +73,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="role"></param>
 		/// <returns></returns>
 		public bool TryGetRole(ulong id, out IRole role)
-		{
-			return _Roles.TryGetValue(id, out role);
-		}
+			=> _Roles.TryGetValue(id, out role);
 		/// <summary>
 		/// Uses the guild to get all the roles.
 		/// </summary>
@@ -98,13 +95,9 @@ namespace Advobot.Classes.Settings
 
 		/// <inheritdoc />
 		public override string ToString()
-		{
-			return String.Join("\n", _Roles.Select(x => $"**Role:** `{x.Value?.Format() ?? x.Key.ToString()}`"));
-		}
+			=> string.Join("\n", _Roles.Select(x => $"**Role:** `{x.Value?.Format() ?? x.Key.ToString()}`"));
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
-		{
-			return String.Join("\n", _Roles.Select(x => $"**Role:** `{guild.GetRole(x.Key)?.Format() ?? x.Key.ToString()}`"));
-		}
+			=> string.Join("\n", _Roles.Select(x => $"**Role:** `{guild.GetRole(x.Key)?.Format() ?? x.Key.ToString()}`"));
 	}
 }

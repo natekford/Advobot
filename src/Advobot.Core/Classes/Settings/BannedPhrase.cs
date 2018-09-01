@@ -64,13 +64,9 @@ namespace Advobot.Classes.Settings
 		}
 		/// <inheritdoc />
 		public override string ToString()
-		{
-			return $"`{(Punishment == default ? 'N' : Punishment.ToString()[0])}` `{Phrase}`";
-		}
+			=> $"`{(Punishment == default ? 'N' : Punishment.ToString()[0])}` `{Phrase}`";
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+			=> ToString();
 	}
 }

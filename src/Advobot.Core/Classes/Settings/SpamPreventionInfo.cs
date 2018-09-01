@@ -2,7 +2,6 @@
 using Advobot.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
 
 namespace Advobot.Classes.Settings
 {
@@ -105,9 +104,8 @@ namespace Advobot.Classes.Settings
 			{
 				error = new Error($"The {name} must be greater than or equal to `{minValue}`.");
 			}
-			return !String.IsNullOrWhiteSpace(error.Reason);
+			return !string.IsNullOrWhiteSpace(error.Reason);
 		}
-
 		/// <inheritdoc />
 		public override string ToString()
 		{
@@ -118,8 +116,6 @@ namespace Advobot.Classes.Settings
 		}
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
-		{
-			return ToString();
-		}
+			=> ToString();
 	}
 }

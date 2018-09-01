@@ -147,9 +147,7 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
-		{
-			return StaticGetPath(accessor, GuildId);
-		}
+			=> StaticGetPath(accessor, GuildId);
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettings"/> from file.
 		/// </summary>
@@ -157,22 +155,14 @@ namespace Advobot.Classes
 		/// <param name="guildId"></param>
 		/// <returns></returns>
 		public static GuildSettings Load(IBotDirectoryAccessor accessor, ulong guildId)
-		{
-			return IOUtils.DeserializeFromFile<GuildSettings>(StaticGetPath(accessor, guildId)) ?? new GuildSettings();
-		}
+			=> IOUtils.DeserializeFromFile<GuildSettings>(StaticGetPath(accessor, guildId)) ?? new GuildSettings();
 		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor, ulong guildId)
-		{
-			return accessor.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
-		}
+			=> accessor.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
 
 		///ISettingsProvider
 		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IGuildSettings>.GetSettings()
-		{
-			return GetSettings(typeof(GuildSettings));
-		}
+			=> GetSettings(typeof(GuildSettings));
 		DirectoryInfo ISettingsProvider<IGuildSettings>.GetDirectory(IBotDirectoryAccessor accessor)
-		{
-			return GetFile(accessor).Directory;
-		}
+			=> GetFile(accessor).Directory;
 	}
 }

@@ -1,5 +1,5 @@
-﻿using ImageMagick;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
+using ImageMagick;
 
 namespace Advobot.Interfaces
 {

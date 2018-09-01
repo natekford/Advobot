@@ -1,15 +1,15 @@
-﻿using Advobot.Interfaces;
-using Advobot.NetCoreUI.Classes.ValidationAttributes;
-using Avalonia.Threading;
-using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using Advobot.Interfaces;
+using Advobot.NetCoreUI.Classes.ValidationAttributes;
+using Avalonia.Threading;
+using Discord;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {
-	public class BotSettingsViewModel : SettingsViewModel
+	public sealed class BotSettingsViewModel : SettingsViewModel
 	{
 		public bool AlwaysDownloadUsers
 		{
@@ -112,9 +112,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 
 		private static void UseObservableCollectionFromCorrectThread<T>(IList<T> source, IList<T> destination)
-		{
-			UseObservableCollectionFromCorrectThread((ObservableCollection<T>)source, destination);
-		}
+			=> UseObservableCollectionFromCorrectThread((ObservableCollection<T>)source, destination);
 		private static void UseObservableCollectionFromCorrectThread<T, TSource>(TSource source, IList<T> destination)
 			where TSource : IList<T>, INotifyCollectionChanged
 		{

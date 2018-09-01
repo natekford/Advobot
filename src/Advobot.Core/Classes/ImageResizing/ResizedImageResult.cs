@@ -39,8 +39,6 @@ namespace Advobot.Classes.ImageResizing
 		/// Disposes <see cref="Stream"/>.
 		/// </summary>
 		public void Dispose()
-		{
-			Stream?.Dispose();
-		}
+			=> Stream?.Dispose();
 	}
 }

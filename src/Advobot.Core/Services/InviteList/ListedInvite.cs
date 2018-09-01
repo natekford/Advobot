@@ -66,8 +66,6 @@ namespace Advobot.Services.InviteList
 		}
 		/// <inheritdoc />
 		public override string ToString()
-		{
-			return $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", Keywords)}`" : "")}";
-		}
+			=> $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{string.Join("`, `", Keywords)}`" : "")}";
 	}
 }

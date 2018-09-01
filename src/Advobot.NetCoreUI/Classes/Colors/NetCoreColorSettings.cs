@@ -73,9 +73,7 @@ namespace Advobot.NetCoreUI.Classes.Colors
 		}
 		/// <inheritdoc />
 		protected override void AfterThemeUpdated()
-		{
-			SetSyntaxHighlightingColors("Json");
-		}
+			=> SetSyntaxHighlightingColors("Json");
 		//TODO: remove returns after avaloniaedit is uploaded onto nuget past 0.6.0
 		private void SetSyntaxHighlightingColors(params string[] names)
 		{

@@ -1,14 +1,14 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Utilities
 {
@@ -27,7 +27,11 @@ namespace Advobot.Utilities
 		/// <param name="embedWrapper"></param>
 		/// <param name="textFile"></param>
 		/// <returns></returns>
-		public static async Task<IUserMessage> SendMessageAsync(IMessageChannel channel, string content, EmbedWrapper embedWrapper = null, TextFileInfo textFile = null)
+		public static async Task<IUserMessage> SendMessageAsync(
+			IMessageChannel channel,
+			string content,
+			EmbedWrapper embedWrapper = null,
+			TextFileInfo textFile = null)
 		{
 			if (channel == null || (content == null && embedWrapper == null && textFile == null))
 			{
@@ -82,7 +86,10 @@ namespace Advobot.Utilities
 		/// <param name="output"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(AdvobotCommandContext context, string output, TimeSpan time = default)
+		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(
+			AdvobotCommandContext context,
+			string output,
+			TimeSpan time = default)
 		{
 			var channel = (SocketTextChannel)context.Channel;
 			var timers = context.Provider.GetService<ITimerService>();
@@ -97,7 +104,12 @@ namespace Advobot.Utilities
 		/// <param name="time"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(SocketTextChannel channel, IUserMessage message, string output, ITimerService timers = null, TimeSpan time = default)
+		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(
+			SocketTextChannel channel,
+			IUserMessage message,
+			string output,
+			ITimerService timers,
+			TimeSpan time = default)
 		{
 			var secondMessage = await SendMessageAsync(channel, Constants.ZERO_LENGTH_CHAR + output).CAF();
 			var removableMessage = new RemovableMessage(time, channel.Guild, channel, message.Author, message, secondMessage);
@@ -114,7 +126,10 @@ namespace Advobot.Utilities
 		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> SendErrorMessageAsync(AdvobotCommandContext context, Error error, TimeSpan time = default)
+		public static async Task<RemovableMessage> SendErrorMessageAsync(
+			AdvobotCommandContext context,
+			Error error,
+			TimeSpan time = default)
 		{
 			var channel = (SocketTextChannel)context.Channel;
 			var timers = context.Provider.GetService<ITimerService>();
@@ -130,9 +145,17 @@ namespace Advobot.Utilities
 		/// <param name="error"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task<RemovableMessage> SendErrorMessageAsync(SocketTextChannel channel, IUserMessage message, Error error, IGuildSettings settings, ITimerService timers, TimeSpan time = default)
+		public static async Task<RemovableMessage> SendErrorMessageAsync(
+			SocketTextChannel channel,
+			IUserMessage message,
+			Error error,
+			IGuildSettings settings,
+			ITimerService timers,
+			TimeSpan time = default)
 		{
-			return settings.NonVerboseErrors ? default : await MakeAndDeleteSecondaryMessageAsync(channel, message, $"**ERROR:** {error.Reason}", timers, time).CAF();
+			return settings.NonVerboseErrors
+				? default
+				: await MakeAndDeleteSecondaryMessageAsync(channel, message, $"**ERROR:** {error.Reason}", timers, time).CAF();
 		}
 		/// <summary>
 		/// Gets the given count of messages from a channel.
@@ -154,7 +177,12 @@ namespace Advobot.Utilities
 		/// <param name="options"></param>
 		/// <param name="fromUser"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(SocketTextChannel channel, IMessage fromMessage, int requestCount, RequestOptions options, IUser fromUser = null)
+		public static async Task<int> DeleteMessagesAsync(
+			SocketTextChannel channel,
+			IMessage fromMessage,
+			int requestCount,
+			RequestOptions options,
+			IUser fromUser = null)
 		{
 			var deletedCount = 0;
 			while (requestCount > 0)
@@ -216,9 +244,7 @@ namespace Advobot.Utilities
 		/// <param name="options"></param>
 		/// <returns></returns>
 		public static async Task<int> DeleteMessageAsync(IMessage message, RequestOptions options)
-		{
-			return await DeleteMessagesAsync((SocketTextChannel)message.Channel, new[] { message }, options).CAF();
-		}
+			=> await DeleteMessagesAsync((SocketTextChannel)message.Channel, new[] { message }, options).CAF();
 
 		private static string SanitizeContent(this IMessageChannel channel, string content)
 		{

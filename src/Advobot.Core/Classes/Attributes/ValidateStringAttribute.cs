@@ -99,14 +99,11 @@ namespace Advobot.Classes.Attributes
 			}
 			return Task.FromResult(PreconditionResult.FromSuccess());
 		}
-
 		/// <summary>
 		/// Returns a string saying the min and max characters.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-		{
-			return $"({_Min} to {_Max} chars)";
-		}
+			=> $"({_Min} to {_Max} chars)";
 	}
 }

@@ -53,8 +53,6 @@ namespace Advobot.Services.Levels
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-		{
-			return $"{Hash} ({MessageId})";
-		}
+			=> $"{Hash} ({MessageId})";
 	}
 }

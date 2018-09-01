@@ -35,9 +35,7 @@ namespace Advobot.Utilities
 		/// <param name="client"></param>
 		/// <returns></returns>
 		public static async Task<ulong> GetOwnerIdAsync(BaseSocketClient client)
-		{
-			return _BotOwnerId != 0 ? _BotOwnerId : (_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id);
-		}
+			=> _BotOwnerId != 0 ? _BotOwnerId : (_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id);
 		/// <summary>
 		/// Updates a given client's stream and game using settings from the <paramref name="botSettings"/> parameter.
 		/// </summary>
@@ -50,7 +48,7 @@ namespace Advobot.Utilities
 			var game = botSettings.Game;
 			var stream = botSettings.Stream;
 			var activityType = ActivityType.Playing;
-			if (!String.IsNullOrWhiteSpace(stream))
+			if (!string.IsNullOrWhiteSpace(stream))
 			{
 				stream = $"https://www.twitch.tv/{stream.Substring(stream.LastIndexOf('/') + 1)}";
 				activityType = ActivityType.Streaming;

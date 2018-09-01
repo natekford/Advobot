@@ -18,8 +18,6 @@ namespace Advobot.Classes.Attributes
 		/// <param name="services"></param>
 		/// <returns></returns>
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
-		{
-			return Task.FromResult(PreconditionResult.FromError("This command is currently disabled."));
-		}
+			=> Task.FromResult(PreconditionResult.FromError("This command is currently disabled."));
 	}
 }

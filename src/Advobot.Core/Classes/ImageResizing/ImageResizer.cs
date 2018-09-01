@@ -22,7 +22,7 @@ namespace Advobot.Classes.ImageResizing
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	public abstract class ImageResizer<T> where T : IImageResizerArguments
-    {
+	{
 		private static readonly string FfmpegLocation = FindFfmpeg();
 		private const long MaxDownloadLengthInBytes = 10000000;
 
@@ -57,9 +57,7 @@ namespace Advobot.Classes.ImageResizing
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public bool IsGuildAlreadyProcessing(IGuild guild)
-		{
-			return _Args.Any(x => x.Context.Guild.Id == guild.Id) || _CurrentlyWorkingGuilds.Any(x => x.Key == guild.Id);
-		}
+			=> _Args.Any(x => x.Context.Guild.Id == guild.Id) || _CurrentlyWorkingGuilds.Any(x => x.Key == guild.Id);
 		/// <summary>
 		/// Add the arguments to the queue in order to be resized.
 		/// </summary>
@@ -172,7 +170,7 @@ namespace Advobot.Classes.ImageResizing
 						}
 						break;
 					case MagickFormat.Mp4:
-						if (String.IsNullOrWhiteSpace(FfmpegLocation))
+						if (string.IsNullOrWhiteSpace(FfmpegLocation))
 						{
 							return new ResizedImageResult(stream, format, "mp4 is an invalid file format if ffmpeg is not installed");
 						}
@@ -360,7 +358,7 @@ namespace Advobot.Classes.ImageResizing
 			//Check path variables
 			foreach (var part in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(windows ? ';' : ':'))
 			{
-				if (!String.IsNullOrWhiteSpace(part))
+				if (!string.IsNullOrWhiteSpace(part))
 				{
 					directories.Add(new DirectoryInfo(part.Trim()));
 				}

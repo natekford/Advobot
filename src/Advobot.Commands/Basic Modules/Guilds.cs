@@ -90,10 +90,11 @@ namespace Advobot.Commands.Guilds
 			"vip-us-west"
 		};
 
-		private static readonly string _BaseRegions = String.Join("\n", _ValidRegionIDs);
-		private static readonly string _VIPRegions = String.Join("\n", _VIPRegionIDs);
+		private static readonly string _BaseRegions = string.Join("\n", _ValidRegionIDs);
+		private static readonly string _VIPRegions = string.Join("\n", _VIPRegionIDs);
 		private static readonly string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
 
+		//TODO: use bot voice regions field
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{

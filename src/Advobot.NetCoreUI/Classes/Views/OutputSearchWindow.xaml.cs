@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml;
 
 namespace Advobot.NetCoreUI.Classes.Views
 {
-	public class OutputSearchWindow : Window
+	public sealed class OutputSearchWindow : Window
 	{
 		public OutputSearchWindow()
 		{
@@ -16,9 +16,7 @@ namespace Advobot.NetCoreUI.Classes.Views
 		}
 
 		private void InitializeComponent()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+			=> AvaloniaXamlLoader.Load(this);
 		private void OnActivated(object sender, EventArgs e)
 		{
 			//Resize so dynamic font works
