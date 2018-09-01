@@ -1,40 +1,97 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Threading;
 using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.Controls
 {
 	public class UserListEditor : UserControl
 	{
-		public static readonly DirectProperty<UserListEditor, IList<ulong>> UserListProperty =
-			AvaloniaProperty.RegisterDirect<UserListEditor, IList<ulong>>(nameof(UserList), o => o.UserList, (o, v) => o.UserList = v);
-		public IList<ulong> UserList
+		public static readonly DirectProperty<UserListEditor, ObservableCollection<ulong>> UserListProperty =
+			AvaloniaProperty.RegisterDirect<UserListEditor, ObservableCollection<ulong>>(
+				nameof(UserList),
+				o => o.UserList,
+				(o, v) => o.UserList = v);
+		public ObservableCollection<ulong> UserList
 		{
-			get => _UserList;
-			set => SetAndRaise(UserListProperty, ref _UserList, value);
+			get => _DisplayList;
+			set
+			{
+				//If null, no reason to bother creating a display list
+				if ((_ActualList = value) == null)
+				{
+					SetAndRaise(UserListProperty, ref _DisplayList, value);
+					return;
+				}
+
+				//If not null, need to create a display list since the original observable collection
+				//will have an invalid invoking thread for some reason
+				var displayList = new ObservableCollection<ulong>(_ActualList);
+				_ActualList.CollectionChanged += (sender, e) =>
+				{
+					Dispatcher.UIThread.InvokeAsync(() =>
+					{
+						switch (e.Action)
+						{
+							case NotifyCollectionChangedAction.Add:
+								foreach (ulong item in e.NewItems)
+								{
+									displayList.Add(item);
+								}
+								return;
+							case NotifyCollectionChangedAction.Remove:
+								foreach (ulong item in e.OldItems)
+								{
+									displayList.Remove(item);
+								}
+								return;
+							default:
+								throw new NotImplementedException();
+						}
+					});
+				};
+				SetAndRaise(UserListProperty, ref _DisplayList, displayList);
+			}
 		}
-		private IList<ulong> _UserList;
+		private ObservableCollection<ulong> _DisplayList;
+		private ObservableCollection<ulong> _ActualList;
 
-		private ulong AddId { get; set; }
-		private ulong RemoveId { get; set; }
+		public static readonly DirectProperty<UserListEditor, ulong> CurrentIdProperty =
+			AvaloniaProperty.RegisterDirect<UserListEditor, ulong>(
+				nameof(CurrentId),
+				o => o.CurrentId,
+				(o, v) => o.CurrentId = v);
+		public ulong CurrentId
+		{
+			get => _CurrentId;
+			set => SetAndRaise(CurrentIdProperty, ref _CurrentId, value);
+		}
+		private ulong _CurrentId;
 
-		private ICommand ModifyList { get; }
+		private ICommand ModifyListCommand { get; }
 
 		public UserListEditor()
 		{
-			ModifyList = ReactiveCommand.Create<string>(x =>
+			ModifyListCommand = ReactiveCommand.Create<string>(x =>
 			{
-				var errs = DataValidationErrors.GetErrors(this);
+				//Actual has to go before display because display being modified modifies the displayed text
+				//Or we can capture the value in a variable
+				var id = CurrentId;
 				if (!bool.Parse(x))
 				{
-					UserList.Remove(RemoveId);
+					_ActualList.Remove(id);
+					_DisplayList.Remove(id);
 				}
-				else if (!UserList.Contains(AddId))
+				else if (!_ActualList.Contains(id))
 				{
-					UserList.Add(AddId);
+					_ActualList.Add(id);
+					_DisplayList.Add(id);
 				}
 			});
 			InitializeComponent();

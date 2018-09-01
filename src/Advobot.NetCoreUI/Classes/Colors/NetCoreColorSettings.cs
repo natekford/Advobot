@@ -36,7 +36,7 @@ namespace Advobot.NetCoreUI.Classes.Colors
 		{
 			{ ColorTargets.BaseBackground, new[] { "ThemeBackgroundBrush" } },
 			//{ BaseForeground, "ThemeAccentBrush" },
-			{ ColorTargets.BaseBorder, new[] { "ThemeBorderMidBrush", "ThemeBorderDarkBrush" } },
+			{ ColorTargets.BaseBorder, new[] { "ThemeBorderDarkBrush" } },
 			{ ColorTargets.ButtonBackground, new[] { "ThemeControlMidBrush" } },
 			{ ColorTargets.ButtonForeground, new[] { "ThemeForegroundBrush" } },
 			{ ColorTargets.ButtonBorder, new[] { "ThemeBorderLightBrush" } },

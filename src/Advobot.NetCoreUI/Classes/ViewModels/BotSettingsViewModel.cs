@@ -96,56 +96,15 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			get => _BotSettings.LogLevel;
 			set => _BotSettings.LogLevel = value;
 		}
-		public IList<ulong> TrustedUsers { get; } = new ObservableCollection<ulong>();
-		public IList<ulong> UsersUnableToDmOwner { get; } = new ObservableCollection<ulong>();
-		public IList<ulong> UsersIgnoredFromCommands { get; } = new ObservableCollection<ulong>();
+		public ObservableCollection<ulong> TrustedUsers => (ObservableCollection<ulong>)_BotSettings.TrustedUsers;
+		public ObservableCollection<ulong> UsersUnableToDmOwner => (ObservableCollection<ulong>)_BotSettings.UsersUnableToDmOwner;
+		public ObservableCollection<ulong> UsersIgnoredFromCommands => (ObservableCollection<ulong>)_BotSettings.UsersIgnoredFromCommands;
 
 		private readonly IBotSettings _BotSettings;
 
 		public BotSettingsViewModel(IBotSettings botSettings) : base(botSettings)
 		{
 			_BotSettings = botSettings;
-
-			UseObservableCollectionFromCorrectThread(_BotSettings.TrustedUsers, TrustedUsers);
-			UseObservableCollectionFromCorrectThread(_BotSettings.UsersUnableToDmOwner, UsersUnableToDmOwner);
-			UseObservableCollectionFromCorrectThread(_BotSettings.UsersIgnoredFromCommands, UsersIgnoredFromCommands);
-		}
-
-		private static void UseObservableCollectionFromCorrectThread<T>(IList<T> source, IList<T> destination)
-			=> UseObservableCollectionFromCorrectThread((ObservableCollection<T>)source, destination);
-		private static void UseObservableCollectionFromCorrectThread<T, TSource>(TSource source, IList<T> destination)
-			where TSource : IList<T>, INotifyCollectionChanged
-		{
-			//Start by making the lists have the same items
-			foreach (var item in source)
-			{
-				destination.Add(item);
-			};
-			//Then do this so the ui list will update with the settings list
-			source.CollectionChanged += (sender, e) =>
-			{
-				//Get invalid calling thread if this isn't used.
-				Dispatcher.UIThread.InvokeAsync(() =>
-				{
-					switch (e.Action)
-					{
-						case NotifyCollectionChangedAction.Add:
-							foreach (T item in e.NewItems)
-							{
-								destination.Add(item);
-							}
-							return;
-						case NotifyCollectionChangedAction.Remove:
-							foreach (T item in e.OldItems)
-							{
-								destination.Remove(item);
-							}
-							return;
-						default:
-							throw new NotImplementedException();
-					}
-				});
-			};
 		}
 	}
 }
