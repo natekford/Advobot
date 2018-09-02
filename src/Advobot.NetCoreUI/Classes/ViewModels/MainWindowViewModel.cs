@@ -46,20 +46,9 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public string Input
 		{
 			get => _Input;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _Input, value);
-				CanInput = value.Length > 0;
-			}
+			set => this.RaiseAndSetIfChanged(ref _Input, value);
 		}
 		private string _Input = "";
-
-		private bool CanInput
-		{
-			get => _CanInput;
-			set => this.RaiseAndSetIfChanged(ref _CanInput, value);
-		}
-		private bool _CanInput;
 
 		public string PauseButtonContent
 		{
@@ -83,7 +72,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public bool OpenInfoMenu => GetMenuStatus();
 		public bool OpenColorsMenu => GetMenuStatus();
 		public bool OpenSettingsMenu => GetMenuStatus();
-		private ConcurrentDictionary<string, bool> OpenMenus = new ConcurrentDictionary<string, bool>();
+		private ConcurrentDictionary<string, bool> _MenuStatuses = new ConcurrentDictionary<string, bool>();
 
 		public IObservable<string> Uptime { get; }
 		public IObservable<string> Latency { get; }
@@ -123,7 +112,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 
 			PrintOutputCommand = ReactiveCommand.Create<string>(PrintOutput);
 			Console.SetOut(new TextBoxStreamWriter(PrintOutputCommand));
-			TakeInputCommand = ReactiveCommand.Create(TakeInput, this.WhenAnyValue(x => x.CanInput));
+			TakeInputCommand = ReactiveCommand.Create(TakeInput, this.WhenAnyValue(x => x.Input, x => x.Length > 0));
 			OpenMenuCommand = ReactiveCommand.Create<string>(OpenMenu);
 			DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectAsync);
 			RestartCommand = ReactiveCommand.CreateFromTask(RestartAsync);
@@ -143,7 +132,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 
 		private bool GetMenuStatus([CallerMemberName] string menu = "")
-			=> OpenMenus.GetOrAdd(menu, false);
+			=> _MenuStatuses.GetOrAdd(menu, false);
 		private void PrintOutput(string value) => Output += value;
 		private void TakeInput()
 		{
@@ -152,19 +141,19 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private void OpenMenu(string name)
 		{
-			foreach (var key in new List<string>(OpenMenus.Keys))
+			foreach (var key in new List<string>(_MenuStatuses.Keys))
 			{
 				//If not the targeted menu, set to false
 				//If the targeted menu, toggle the visibility
-				var currentValue = OpenMenus[key];
+				var currentValue = _MenuStatuses[key];
 				var newValue = key == name && !currentValue;
 				if (currentValue != newValue)
 				{
-					OpenMenus[key] = newValue;
+					_MenuStatuses[key] = newValue;
 					this.RaisePropertyChanged(key);
 				}
 			}
-			OutputColumnSpan = OpenMenus.Any(kvp => kvp.Value) ? 1 : 2;
+			OutputColumnSpan = _MenuStatuses.Any(kvp => kvp.Value) ? 1 : 2;
 		}
 		private async Task DisconnectAsync()
 		{
@@ -188,6 +177,21 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private async Task OpenFileSearchWindowAsync(Window window)
 		{
+			Type GetDeserializationType(string fileName)
+			{
+				switch (fileName)
+				{
+					case string str when (str == _BotSettings.GetFile().FullName):
+						return _BotSettings.GetType();
+					case string str when (str == _Colors.GetFile(_BotSettings).FullName):
+						return _Colors.GetType();
+					case string str when (Path.GetDirectoryName(str) == _GuildSettings.GetDirectory(_BotSettings).FullName):
+						return _BotSettings.GetType();
+					default:
+						return null;
+				}
+			}
+
 			//Returns array of strings, but AllowMultiple is false so should only have 1
 			var files = await new OpenFileDialog
 			{
@@ -225,20 +229,5 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private Task OpenOutputSearchWindowAsync()
 			=> new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog();
-
-		private Type GetDeserializationType(string fileName)
-		{
-			switch (fileName)
-			{
-				case string str when (str == _BotSettings.GetFile().FullName):
-					return _BotSettings.GetType();
-				case string str when (str == _Colors.GetFile(_BotSettings).FullName):
-					return _Colors.GetType();
-				case string str when (Path.GetDirectoryName(str) == _GuildSettings.GetDirectory(_BotSettings).FullName):
-					return _BotSettings.GetType();
-				default:
-					return null;
-			}
-		}
 	}
 }
