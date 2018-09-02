@@ -12,7 +12,7 @@
     <Style Selector=":is(TextBlock)">
       <Setter Property="Foreground" Value="{DynamicResource {x:Static colors:ColorTargets.BaseForeground}}"/>
     </Style>
-    <!-- How to center text vertically? -->
+    <!-- How to center text vertically without messing with border? -->
     <Style Selector="TextBox.i1">
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="IsReadOnly" Value="True"/>
@@ -20,6 +20,12 @@
       <Setter Property="VerticalAlignment" Value="Center"/>
       <Setter Property="AcceptsReturn" Value="True"/>
       <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style Selector="TextBox.i2">
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="TextBox.i3">
+      <Setter Property="HorizontalAlignment" Value="Left"/>
     </Style>
     <Style Selector="Border.b1">
       <Setter Property="Grid.RowSpan" Value="1000"/>

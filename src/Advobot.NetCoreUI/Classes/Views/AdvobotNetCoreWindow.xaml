@@ -17,21 +17,6 @@
         Activated="OnActivated"
         Closed="OnClosed">
 
-  <Window.Resources>
-    <converters:NetCoreNullToBoolConverter x:Key="NullToBoolConverter"/>
-    <converters:NetCoreColorConverter x:Key="ColorConverter"/>
-    <converters:NetCoreFontResizeConverter x:Key="FontResizeConverter"/>
-  </Window.Resources>
-
-  <Window.Styles>
-    <Style Selector="TextBox.i2">
-      <Setter Property="HorizontalAlignment" Value="Center"/>
-    </Style>
-    <Style Selector="TextBox.i3">
-      <Setter Property="TextAlignment" Value="Left"/>
-    </Style>
-  </Window.Styles>
-
   <controls:DynamicFontSizeGrid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*" DynamicFontSize=".02">
     <!-- Output -->
     <!-- Needs AcceptsReturn to be true to wrap correctly -->
