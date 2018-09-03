@@ -180,7 +180,7 @@
                  ToolTip.Tip="How many categories can exist."/>
         <TextBox Classes="i1" Text="Rules Per Category"
                  ToolTip.Tip="How many rules can be in each category."/>
-        <TextBox Classes="i1" Text="Self Assignable Role Groups"
+        <TextBox Classes="i1" Text="Self Assignable Role&#xD;Groups"
                  ToolTip.Tip="How many self assignable role groups a server can have."/>
         <TextBox Classes="i1" Text="Quotes"
                  ToolTip.Tip="How many quotes a server can have."/>
@@ -196,9 +196,9 @@
                  ToolTip.Tip="Prints out items with an equal to or higher log severity to the console. This requires a bot restart."/>
         <TextBox Classes="i1" Text="Trusted Users"
                  ToolTip.Tip="Users in here can use some commands only the bot owner can use otherwise."/>
-        <TextBox Classes="i1" Text="Users Unable To Dm Owner"
+        <TextBox Classes="i1" Text="Users Unable To Dm&#xD;Owner"
                  ToolTip.Tip="Users in here cannot send DMs to the owner through the bot."/>
-        <TextBox Classes="i1" Text="Users Ignored From Commands"
+        <TextBox Classes="i1" Text="Users Ignored From&#xD;Commands"
                  ToolTip.Tip="Users in here cannot use the bot at all."/>
       </UniformGrid>
 

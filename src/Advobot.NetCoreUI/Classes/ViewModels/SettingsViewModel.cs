@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
