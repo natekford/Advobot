@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -73,17 +74,18 @@ namespace Advobot.NetCoreUI.Classes.Controls
 		}
 		private ulong _CurrentId;
 
-		private static readonly DirectProperty<UserListEditor, bool> CannotExecuteProperty =
+		public static readonly DirectProperty<UserListEditor, bool> HasErrorProperty =
 			AvaloniaProperty.RegisterDirect<UserListEditor, bool>(
-				nameof(CannotExecute),
-				o => o.CannotExecute,
-				(o, v) => o.CannotExecute = v);
-		private bool CannotExecute
+				nameof(HasError),
+				o => o.HasError,
+				(o, v) => o.HasError = v,
+				defaultBindingMode: BindingMode.OneWayToSource);
+		public bool HasError
 		{
-			get => _CannotExecute;
-			set => SetAndRaise(CannotExecuteProperty, ref _CannotExecute, value);
+			get => _HasError;
+			private set => SetAndRaise(HasErrorProperty, ref _HasError, value);
 		}
-		private bool _CannotExecute;
+		private bool _HasError;
 
 		private ICommand ModifyListCommand { get; }
 
@@ -104,7 +106,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 					_ActualList.Add(id);
 					_DisplayList.Add(id);
 				}
-			}, this.WhenAnyValue(x => x.CannotExecute, x => !x));
+			}, this.WhenAnyValue(x => x.HasError, x => !x));
 			InitializeComponent();
 		}
 

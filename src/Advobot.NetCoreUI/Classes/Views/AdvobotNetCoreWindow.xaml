@@ -208,21 +208,21 @@
         <TextBox Text="{Binding Prefix}"/>
         <TextBox Text="{Binding Game}"/>
         <TextBox Text="{Binding Stream}"/>
-        <controls:NumberBox StoredValue="{Binding MessageCacheSize}" MinValue="0" MaxValue="1000000"/>
-        <controls:NumberBox StoredValue="{Binding MaxUserGatherCount}" MinValue="0" MaxValue="500000"/>
-        <controls:NumberBox StoredValue="{Binding MaxMessageGatherSize}" MinValue="0" MaxValue="10000000"/>
-        <controls:NumberBox StoredValue="{Binding MaxRuleCategories}" MinValue="0" MaxValue="10000"/>
-        <controls:NumberBox StoredValue="{Binding MaxRulesPerCategory}" MinValue="0" MaxValue="10000"/>
-        <controls:NumberBox StoredValue="{Binding MaxSelfAssignableRoleGroups}" MinValue="0" MaxValue="10000"/>
-        <controls:NumberBox StoredValue="{Binding MaxQuotes}" MinValue="0" MaxValue="10000"/>
-        <controls:NumberBox StoredValue="{Binding MaxBannedStrings}" MinValue="0" MaxValue="10000"/>
-        <controls:NumberBox StoredValue="{Binding MaxBannedRegex}" MinValue="0" MaxValue="10000"/>
-        <controls:NumberBox StoredValue="{Binding MaxBannedNames}" MinValue="0" MaxValue="10000"/>
-        <controls:NumberBox StoredValue="{Binding MaxBannedPunishments}" MinValue="0" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MessageCacheSize}" HasError="{Binding Errors[MessageCacheSize]}" MaxValue="1000000"/>
+        <controls:NumberBox StoredValue="{Binding MaxUserGatherCount}" HasError="{Binding Errors[MaxUserGatherCount]}" MaxValue="500000"/>
+        <controls:NumberBox StoredValue="{Binding MaxMessageGatherSize}" HasError="{Binding Errors[MaxMessageGatherSize]}" MaxValue="10000000"/>
+        <controls:NumberBox StoredValue="{Binding MaxRuleCategories}" HasError="{Binding Errors[MaxRuleCategories]}" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxRulesPerCategory}" HasError="{Binding Errors[MaxRulesPerCategory]}" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxSelfAssignableRoleGroups}" HasError="{Binding Errors[MaxSelfAssignableRoleGroups]}" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxQuotes}" HasError="{Binding Errors[MaxQuotes]}" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxBannedStrings}" HasError="{Binding Errors[MaxBannedStrings]}" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxBannedRegex}" HasError="{Binding Errors[MaxBannedRegex]}" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxBannedNames}" HasError="{Binding Errors[MaxBannedNames]}" MaxValue="10000"/>
+        <controls:NumberBox StoredValue="{Binding MaxBannedPunishments}" HasError="{Binding Errors[MaxBannedPunishments]}" MaxValue="10000"/>
         <DropDown classes:SourceEnum.SourceEnum="{x:Type discord:LogSeverity}" SelectedItem="{Binding LogLevel}"/>
-        <controls:UserListEditor UserList="{Binding TrustedUsers}"/>
-        <controls:UserListEditor UserList="{Binding UsersUnableToDmOwner}"/>
-        <controls:UserListEditor UserList="{Binding UsersIgnoredFromCommands}"/>
+        <controls:UserListEditor UserList="{Binding TrustedUsers}" HasError="{Binding Errors[TrustedUsers]}" />
+        <controls:UserListEditor UserList="{Binding UsersUnableToDmOwner}" HasError="{Binding Errors[UsersUnableToDmOwner]}" />
+        <controls:UserListEditor UserList="{Binding UsersIgnoredFromCommands}" HasError="{Binding Errors[UsersIgnoredFromCommands]}" />
       </UniformGrid>
 
       <!-- Save Settings Button -->

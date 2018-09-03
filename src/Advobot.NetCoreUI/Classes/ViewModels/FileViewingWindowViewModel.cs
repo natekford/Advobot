@@ -103,7 +103,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		private async Task Close(Window window)
 		{
 			var msg = $"There are unsaved changes. Are you sure you want to close the file {_File.Name}?";
-			if (!_IsDirty || await MessageBox.Show(msg, _Caption, new[] { "Yes", "No" }) == "Yes")
+			if (!_IsDirty || await MessageBox.ShowAsync(msg, _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
 				window?.Close();
 			}
@@ -111,7 +111,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		private async Task Delete()
 		{
 			var msg = $"Are you sure you want to delete the file {_File.Name}?";
-			if (await MessageBox.Show(msg, _Caption, new[] { "Yes", "No" }) == "Yes")
+			if (await MessageBox.ShowAsync(msg, _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
 				DoIO(() =>
 				{
