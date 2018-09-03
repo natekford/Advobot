@@ -14,38 +14,16 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public string SearchTerm
 		{
 			get => _SearchTerm;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _SearchTerm, value);
-				CanSearch = !string.IsNullOrWhiteSpace(value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _SearchTerm, value);
 		}
 		private string _SearchTerm;
-
-		private bool CanSearch
-		{
-			get => _CanSearch;
-			set => this.RaiseAndSetIfChanged(ref _CanSearch, value);
-		}
-		private bool _CanSearch;
 
 		public string Output
 		{
 			get => _Output;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _Output, value);
-				CanSaveOutput = value.Length > 0;
-			}
+			set => this.RaiseAndSetIfChanged(ref _Output, value);
 		}
 		private string _Output;
-
-		private bool CanSaveOutput
-		{
-			get => _CanSaveOutput;
-			set => this.RaiseAndSetIfChanged(ref _CanSaveOutput, value);
-		}
-		private bool _CanSaveOutput;
 
 		public string SaveResponse
 		{
@@ -66,23 +44,26 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		{
 			_Accessor = accessor;
 
-			SearchCommand = ReactiveCommand.Create(() =>
-			{
-				Output = "";
-				foreach (var line in ConsoleUtils.WrittenLines[SearchTerm])
-				{
-					Output += $"{line}{Environment.NewLine}";
-				}
-			}, this.WhenAnyValue(x => x.CanSearch));
-			SaveCommand = ReactiveCommand.Create(() =>
-			{
-				if (Output.Length != 0)
-				{
-					var response = _Accessor.GenerateFileName("Output_Search").SaveAndGetResponse(Output);
-					ConsoleUtils.WriteLine(response, name: "Saving Output Search");
-				}
-			}, this.WhenAnyValue(x => x.CanSaveOutput));
+			SearchCommand = ReactiveCommand.Create(Search, this.WhenAnyValue(x => x.SearchTerm, x => !string.IsNullOrWhiteSpace(x)));
+			SaveCommand = ReactiveCommand.Create(Save, this.WhenAnyValue(x => x.Output, x => x.Length > 0));
 			CloseCommand = ReactiveCommand.Create<Window>(window => window?.Close());
+		}
+
+		private void Search()
+		{
+			Output = "";
+			foreach (var line in ConsoleUtils.WrittenLines[SearchTerm])
+			{
+				Output += $"{line}{Environment.NewLine}";
+			}
+		}
+		private void Save()
+		{
+			if (Output.Length != 0)
+			{
+				var (text, _) = _Accessor.GenerateFileName("Output_Search").SaveAndGetResponse(Output);
+				ConsoleUtils.WriteLine(text);
+			}
 		}
 	}
 }

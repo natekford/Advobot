@@ -7,14 +7,18 @@
         FontFamily="Courier New"
         Activated="OnActivated">
 
-  <controls:DynamicFontSizeGrid RowDefinitions="20*,1*,1*,1*,1*" ColumnDefinitions="7*,1*" DynamicFontSize=".02">
+  <controls:DynamicFontSizeGrid RowDefinitions="5*,15*,4*" ColumnDefinitions="7*,1*" DynamicFontSize=".02">
     <!-- TODO: Uncomment when this nuget package is updated past 0.6.0 -->
-    <!-- <avaloniaedit:TextEditor Grid.RowSpan="5" Text="{Binding Output}" VerticalScrollBarVisibility="Visible" SyntaxHighlighting="Json" ShowLineNumbers="True" WordWrap="True"/> -->
-    <TextBox Grid.RowSpan="5" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True"/>
+    <!-- <avaloniaedit:TextEditor Grid.RowSpan="1000" Text="{Binding Output}" VerticalScrollBarVisibility="Visible" SyntaxHighlighting="Json" ShowLineNumbers="True" WordWrap="True"/> -->
+    <TextBox Grid.RowSpan="1000" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True"/>
+    <TextBox Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"
+             Text="{Binding SavingText}" Background="{Binding SavingBackground}" IsVisible="{Binding SavingOpen}"/>
 
-    <Button Grid.Row="1" Grid.Column="1" Content="Save" HotKey="Ctrl+s" Command="{Binding SaveCommand}"/>
-    <Button Grid.Row="2" Grid.Column="1" Content="Copy" Command="{Binding CopyCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
-    <Button Grid.Row="3" Grid.Column="1" Content="Close" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
-    <Button Grid.Row="4" Grid.Column="1" Content="Delete" Command="{Binding DeleteCommand}"/>
+    <UniformGrid Grid.Row="2" Grid.Column="1" Columns="1">
+      <Button Content="Save" HotKey="Ctrl+s" Command="{Binding SaveCommand}"/>
+      <Button Content="Copy" Command="{Binding CopyCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+      <Button Content="Close" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+      <Button Content="Delete" Command="{Binding DeleteCommand}"/>
+    </UniformGrid>
   </controls:DynamicFontSizeGrid>
 </Window>

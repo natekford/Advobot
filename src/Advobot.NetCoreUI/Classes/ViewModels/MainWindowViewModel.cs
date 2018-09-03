@@ -225,7 +225,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private void SaveOutput()
 		{
-			var response = _BotSettings.GenerateFileName("Output").SaveAndGetResponse(Output);
+			var response = _BotSettings.GenerateFileName("Output").SaveAndGetResponse(Output).Text;
 			ConsoleUtils.WriteLine(response, name: "Saving Output");
 		}
 		private async Task OpenOutputSearchWindowAsync()

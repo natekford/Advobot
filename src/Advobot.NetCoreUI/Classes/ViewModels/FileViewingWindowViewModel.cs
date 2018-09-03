@@ -1,12 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Advobot.NetCoreUI.Classes.Views;
 using Advobot.NetCoreUI.Utils;
 using AdvorangesUtils;
 using Avalonia.Controls;
+using Avalonia.Media;
 using ReactiveUI;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
@@ -21,6 +24,27 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _WindowTitle, value);
 		}
 		private string _WindowTitle;
+
+		public string SavingText
+		{
+			get => _SavingText;
+			set => this.RaiseAndSetIfChanged(ref _SavingText, value);
+		}
+		private string _SavingText;
+
+		public ISolidColorBrush SavingBackground
+		{
+			get => _SavingBackground;
+			set => this.RaiseAndSetIfChanged(ref _SavingBackground, value);
+		}
+		private ISolidColorBrush _SavingBackground;
+
+		public bool SavingOpen
+		{
+			get => _SavingOpen;
+			set => this.RaiseAndSetIfChanged(ref _SavingOpen, value);
+		}
+		private bool _SavingOpen;
 
 		public string Output
 		{
@@ -43,6 +67,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 
 		private readonly FileInfo _File;
 		private readonly Type _FileType;
+		private CancellationTokenSource _SavingNotificationCancelToken;
 
 		public FileViewingWindowViewModel(FileInfo file, Type fileType = null)
 		{
@@ -60,33 +85,40 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			DeleteCommand = ReactiveCommand.CreateFromTask(Delete);
 		}
 
-		private void Save(FileInfo file, string value, string caller)
+		private void Save(FileInfo file, string value, [CallerMemberName] string caller = "")
 		{
-			DoIO(() =>
+			var response = file.Save(value, _FileType);
+			//Only update the last saved info if it was actually saved
+			if (response == SaveStatus.Success)
 			{
-				var response = file.Save(value, _FileType);
-				//Only update the last saved info if it was actually saved
-				if (response == SaveResponse.Success)
-				{
-					_LastSaved = value.GetHashCode();
-					_IsDirty = false;
-				}
-				ConsoleUtils.WriteLine(response.GetSaveResponse(_File), name: caller);
-			});
+				_LastSaved = value.GetHashCode();
+				_IsDirty = false;
+			}
+
+			var (text, brush) = response.GetSaveResponse(_File);
+			HandleResponse(text, brush, caller);
 		}
-		private void DoIO(Action callback)
+		private void HandleResponse(string text, ISolidColorBrush brush, [CallerMemberName] string caller = "")
 		{
-			try
+			_SavingNotificationCancelToken?.Cancel();
+			_SavingNotificationCancelToken?.Dispose();
+			var token = (_SavingNotificationCancelToken = new CancellationTokenSource()).Token;
+
+			SavingText = text;
+			SavingBackground = brush;
+			SavingOpen = true;
+
+			//Run this on a background thread since it isn't intended to block
+			Task.Run(async () =>
 			{
-				callback();
-			}
-			catch (Exception e)
-			{
-				e.Write();
-			}
+				await Task.Delay(5000, token);
+				SavingOpen = false;
+			});
+
+			ConsoleUtils.WriteLine(text, name: caller);
 		}
 		private void Save()
-			=> Save(_File, Output, "Saving File");
+			=> Save(_File, Output);
 		private async Task Copy(Window window)
 		{
 			var newPath = await new SaveFileDialog
@@ -97,7 +129,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			}.ShowAsync(window);
 			if (newPath != null)
 			{
-				Save(new FileInfo(newPath), Output, "Copying File");
+				Save(new FileInfo(newPath), Output);
 			}
 		}
 		private async Task Close(Window window)
@@ -113,11 +145,15 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			var msg = $"Are you sure you want to delete the file {_File.Name}?";
 			if (await MessageBox.ShowAsync(msg, _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
-				DoIO(() =>
+				try
 				{
 					_File.Delete();
-					ConsoleUtils.WriteLine($"Successfully deleted the file {_File}.");
-				});
+					HandleResponse($"Successfully deleted the file {_File}.", Brushes.Yellow);
+				}
+				catch (Exception e)
+				{
+					e.Write();
+				}
 			}
 		}
 	}

@@ -17,7 +17,6 @@ namespace Advobot.NetCoreUI.Classes.Views
 
 		private void InitializeComponent()
 			=> AvaloniaXamlLoader.Load(this);
-		//TODO: make modal window class that implements this since it's shared with OutputSearchWindow
 		private void OnActivated(object sender, EventArgs e)
 		{
 			//Resize so dynamic font works
