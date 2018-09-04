@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
@@ -13,12 +13,12 @@ using AdvorangesUtils;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes
+namespace Advobot.Services.GuildSettings
 {
 	/// <summary>
 	/// Holds settings for a guild.
 	/// </summary>
-	public class GuildSettings : SettingsBase, IGuildSettings
+	internal sealed class GuildSettings : SettingsBase, IGuildSettings
 	{
 		/// <inheritdoc />
 		[JsonProperty("WelcomeMessage"), Setting(null)]
@@ -158,11 +158,5 @@ namespace Advobot.Classes
 			=> IOUtils.DeserializeFromFile<GuildSettings>(StaticGetPath(accessor, guildId)) ?? new GuildSettings();
 		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor, ulong guildId)
 			=> accessor.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
-
-		///ISettingsProvider
-		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IGuildSettings>.GetSettings()
-			=> GetSettings(typeof(GuildSettings));
-		DirectoryInfo ISettingsProvider<IGuildSettings>.GetDirectory(IBotDirectoryAccessor accessor)
-			=> GetFile(accessor).Directory;
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
@@ -18,6 +19,45 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.GuildSettings
 {
+	/*
+	[Category(typeof(ModifyGuildSettings)), Group(nameof(ModifyGuildSettings)), TopLevelShortAlias(typeof(ModifyGuildSettings))]
+	[Summary("Modify the given setting on the guild.")]
+	[OtherRequirement(Precondition.GuildOwner)]
+	[DefaultEnabled(false)]
+	[SaveGuildSettings]
+	public sealed class ModifyGuildSettings : AdvobotSettingsModuleBase<IGuildSettings, IGuildSettingsFactory>
+	{
+		[Command(nameof(GetFile)), ShortAlias(nameof(GetFile))]
+		public async Task GetFile()
+			=> await GetFile(Context.GuildSettings, Context.BotSettings).CAF();
+		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
+		public async Task Reset(string settingName)
+			=> await Reset(Context.GuildSettings, settingName).CAF();
+		[Group(nameof(Show)), ShortAlias(nameof(Show))]
+		public sealed class Show : AdvobotSettingsModuleBase<IGuildSettings, IGuildSettingsFactory>
+		{
+			[Command(nameof(Names)), ShortAlias(nameof(Names)), Priority(1)]
+			public async Task Names()
+				=> await ShowNames(Context.GuildSettings).CAF();
+			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
+			public async Task All()
+				=> await ShowAll(Context.GuildSettings).CAF();
+			[Command]
+			public async Task Command(string settingName)
+				=> await ShowCommand(Context.GuildSettings, settingName).CAF();
+		}
+		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]
+		public sealed class Modify : AdvobotSettingsModuleBase<IGuildSettings, IGuildSettingsFactory>
+		{
+			[Command(nameof(IGuildSettings.Prefix)), ShortAlias(nameof(IGuildSettings.Prefix))]
+			public async Task Prefix([ValidateString(Target.Prefix)] string value)
+				=> await ModifyAsync(Context.GuildSettings, value).CAF();
+			[Command(nameof(IGuildSettings.ServerLogId)), ShortAlias(nameof(IGuildSettings.ServerLogId))]
+			public async Task ServerLogId([Optional, ValidateObject(false, Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel channel)
+				=> await ModifyAsync(Context.GuildSettings, channel?.Id ?? 0).CAF();
+		}
+	}*/
+
 	[Category(typeof(ModifyGuildPrefix)), Group(nameof(ModifyGuildPrefix)), TopLevelShortAlias(typeof(ModifyGuildPrefix))]
 	[Summary("Makes the bot use the given prefix in the guild.")]
 	[OtherRequirement(Precondition.GuildOwner)]
@@ -549,7 +589,7 @@ namespace Advobot.Commands.GuildSettings
 				return;
 			}
 
-			var desc = Context.GuildSettings.ToString(Context.Client, Context.Guild, field.Name);
+			var desc = Context.GuildSettings.FormatSetting(Context.Client, Context.Guild, field.Name);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper

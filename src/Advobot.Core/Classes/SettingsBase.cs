@@ -62,55 +62,32 @@ namespace Advobot.Classes
 			return sb.ToString();
 		}
 		/// <inheritdoc />
-		public virtual string ToString(BaseSocketClient client, SocketGuild guild, string name)
+		public virtual string FormatSetting(BaseSocketClient client, SocketGuild guild, string name)
 			=> Format(client, guild, GetProperty(name).GetValue(this));
+		/// <inheritdoc />
+		public virtual string FormatValue(BaseSocketClient client, SocketGuild guild, object value)
+			=> Format(client, guild, value);
 		/// <inheritdoc />
 		public virtual void ResetSettings()
 		{
-			foreach (var field in GetSettings())
+			foreach (var kvp in GetSettings())
 			{
-				ResetSetting(field.Value);
+				ResetSetting(kvp.Value);
 			}
 		}
 		/// <inheritdoc />
 		public virtual void ResetSetting(string name)
-		{
-			var property = GetProperty(name);
-			ResetSetting(property);
-			NotifyPropertyChanged(property.Name);
-		}
+			=> ResetSetting(GetProperty(name));
 		/// <inheritdoc />
-		public virtual void SetSetting(string name, object value)
-		{
-			var property = GetProperty(name);
-			property.SetValue(this, Convert.ChangeType(value, property.PropertyType));
-			NotifyPropertyChanged(property.Name);
-		}
-		/// <inheritdoc />
-		public virtual void ModifyList(string name, object value, bool add, bool allowDuplicates = false)
-		{
-			var property = GetProperty(name);
-			var list = (IList)property.GetValue(this);
-			if (!add)
-			{
-				list.Remove(value);
-			}
-			else if (allowDuplicates || !list.Contains(value))
-			{
-				list.Add(value);
-			}
-			NotifyPropertyChanged(property.Name);
-		}
+		public virtual void SetSetting<T>(string name, T value)
+			=> SetSetting(GetProperty(name), value);
 		/// <inheritdoc />
 		public virtual void SaveSettings(IBotDirectoryAccessor accessor)
 			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
 		/// <inheritdoc />
 		public abstract FileInfo GetFile(IBotDirectoryAccessor accessor);
-		/// <summary>
-		/// Fires the property changed event.
-		/// </summary>
-		/// <param name="name"></param>
-		protected void NotifyPropertyChanged([CallerMemberName] string name = "")
+		/// <inheritdoc />
+		public void RaisePropertyChanged([CallerMemberName] string name = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 		/// <summary>
 		/// Gets the property with the specified name.
@@ -120,7 +97,19 @@ namespace Advobot.Classes
 		private PropertyInfo GetProperty(string name)
 			=> GetSettings()[name] ?? throw new ArgumentException($"Invalid property name provided: {name}.", nameof(name));
 		/// <summary>
-		/// Sets the property to the specified default vaule.
+		/// Sets the property to the specified value.
+		/// </summary>
+		/// <param name="property"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		private object SetSetting(PropertyInfo property, object value)
+		{
+			property.SetValue(this, Convert.ChangeType(value, property.PropertyType));
+			RaisePropertyChanged(property.Name);
+			return property.GetValue(this);
+		}
+		/// <summary>
+		/// Sets the property to the specified default value.
 		/// </summary>
 		/// <param name="property"></param>
 		/// <returns></returns>
@@ -143,13 +132,13 @@ namespace Advobot.Classes
 						throw new InvalidOperationException("Invalid non compile time default value provided.");
 				}
 				property.SetValue(this, nonCompileTimeValue);
-				return property.GetValue(this);
 			}
 			else
 			{
 				property.SetValue(this, settingAttr.DefaultValue);
-				return property.GetValue(this);
 			}
+			RaisePropertyChanged(property.Name);
+			return property.GetValue(this);
 		}
 		/// <summary>
 		/// Recursive function for formatting objects.

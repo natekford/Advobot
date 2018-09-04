@@ -6,7 +6,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Holds bot settings.
 	/// </summary>
-	public interface IBotSettings : ISettingsBase, IRestartArgumentProvider, IBotDirectoryAccessor, ISettingsProvider<IBotSettings>
+	public interface IBotSettings : ISettingsBase, IRestartArgumentProvider, IBotDirectoryAccessor
 	{
 		/// <summary>
 		/// Whether or not to always download users when joining a guild.

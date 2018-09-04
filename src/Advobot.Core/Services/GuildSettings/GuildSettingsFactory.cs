@@ -47,7 +47,7 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			settings = Classes.GuildSettings.Load(_Settings, guild.Id);
+			settings = GuildSettings.Load(_Settings, guild.Id);
 			await settings.PostDeserializeAsync(guild).CAF();
 			settings.SaveSettings(_Settings);
 
@@ -66,11 +66,8 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		public bool Contains(ulong guildId)
 			=> _GuildSettings.ContainsKey(guildId);
-
-		///ISettingsProvider
-		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IGuildSettings>.GetSettings()
-			=> SettingsBase.GetSettings(typeof(T));
-		DirectoryInfo ISettingsProvider<IGuildSettings>.GetDirectory(IBotDirectoryAccessor accessor)
+		/// <inheritdoc />
+		public DirectoryInfo GetDirectory(IBotDirectoryAccessor accessor)
 			=> new DirectoryInfo(Path.Combine(accessor.BaseBotDirectory.FullName, "GuildSettings"));
 	}
 }

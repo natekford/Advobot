@@ -59,6 +59,7 @@ namespace Advobot.Services.Commands
 			_Commands.AddTypeReader<Uri>(new UriTypeReader());
 			_Commands.AddTypeReader<ModerationReason>(new ModerationReasonTypeReader());
 			_Commands.AddTypeReader<Quote>(new QuoteTypeReader());
+			_Commands.AddTypeReader<AddBoolean>(new AddBooleanTypeReader());
 			//Add in generic custom argument type readers
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()
 				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)

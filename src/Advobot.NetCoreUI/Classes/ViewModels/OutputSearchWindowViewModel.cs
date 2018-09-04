@@ -25,13 +25,6 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private string _Output;
 
-		public string SaveResponse
-		{
-			get => _SaveResponse;
-			set => this.RaiseAndSetIfChanged(ref _SaveResponse, value);
-		}
-		private string _SaveResponse;
-
 		public IEnumerable<string> Keys => ConsoleUtils.WrittenLines.Keys;
 
 		public ICommand SearchCommand { get; }
@@ -59,11 +52,8 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private void Save()
 		{
-			if (Output.Length != 0)
-			{
-				var (text, _) = _Accessor.GenerateFileName("Output_Search").SaveAndGetResponse(Output);
-				ConsoleUtils.WriteLine(text);
-			}
+			var (text, _) = _Accessor.GenerateFileName("Output_Search").SaveAndGetResponse(Output);
+			ConsoleUtils.WriteLine(text);
 		}
 	}
 }

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -17,42 +19,15 @@ namespace Advobot.Classes
 	/// </summary>
 	/// <typeparam name="TSettings">The settings to </typeparam>
 	/// <typeparam name="TSettingsProvider">Can be a factory of the settings themselves.</typeparam>
-	public abstract class AdvobotSettingsModuleBase<TSettings, TSettingsProvider> : AdvobotModuleBase
-		where TSettings : ISettingsBase
-		where TSettingsProvider : ISettingsProvider<TSettings>
+	public abstract class AdvobotSettingsModuleBase<TSettings, TSettingsProvider> : AdvobotModuleBase where TSettings : ISettingsBase
 	{
-		private static bool _AlreadyChecked;
-
-		/// <summary>
-		/// Creates an instance of <see cref="AdvobotSettingsModuleBase{TSettings, TSettingsProvider}"/> which checks that every setting can be modified.
-		/// </summary>
-		/// <param name="provider"></param>
-		public AdvobotSettingsModuleBase(TSettingsProvider provider)
-		{
-			//Make sure in the modify command that every setting has a method to invoke
-			if (!_AlreadyChecked)
-			{
-				var implemented = GetType().GetMethods().Select(x => x.Name);
-				var unimplemented = provider.GetSettings().Keys.Where(x => !implemented.CaseInsContains(x));
-				if (unimplemented.Any())
-				{
-					throw new NotImplementedException($"Settings not modifiable: {string.Join(", ", unimplemented)}");
-				}
-				_AlreadyChecked = true;
-			}
-		}
-		/// <summary>
-		/// Creates an instance of <see cref="AdvobotSettingsModuleBase{TSettings, TSettingsProvider}"/> which does not check that every setting can be modified.
-		/// </summary>
-		public AdvobotSettingsModuleBase() { }
-
 		/// <summary>
 		/// Prints out the names of settings.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <returns></returns>
-		protected async Task ShowNames(TSettings settings)
+		protected async Task ShowNamesAsync()
 		{
+			var settings = GetSettings();
 			var embed = new EmbedWrapper
 			{
 				Title = settings.GetType().Name.FormatTitle(),
@@ -63,10 +38,10 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Prints out all the settings.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <returns></returns>
-		protected async Task ShowAll(TSettings settings)
+		protected async Task ShowAllAsync()
 		{
+			var settings = GetSettings();
 			var tf = new TextFileInfo
 			{
 				Name = settings.GetType().Name.FormatTitle().Replace(' ', '_'),
@@ -77,17 +52,17 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Prints out the specified setting.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <param name="settingName"></param>
 		/// <returns></returns>
-		protected async Task ShowCommand(TSettings settings, string settingName)
+		protected async Task ShowAsync(string settingName)
 		{
-			if (!(await VerifyProperty(settings, settingName).CAF() is PropertyInfo property))
+			var settings = GetSettings();
+			if (!(await VerifyAsync(settings, settingName).CAF() is PropertyInfo property))
 			{
 				return;
 			}
 
-			var desc = settings.ToString(Context.Client, Context.Guild, property.Name);
+			var desc = settings.FormatSetting(Context.Client, Context.Guild, property.Name);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper
@@ -110,12 +85,11 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Sends the settings file.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <param name="accessor"></param>
 		/// <returns></returns>
-		protected async Task GetFile(TSettings settings, IBotDirectoryAccessor accessor)
+		protected async Task GetFileAsync(IBotDirectoryAccessor accessor)
 		{
-			var file = settings.GetFile(accessor);
+			var file = GetSettings().GetFile(accessor);
 			if (!file.Exists)
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("The settings file does not exist.")).CAF();
@@ -126,12 +100,12 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Resets the targeted setting.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <param name="settingName"></param>
 		/// <returns></returns>
-		protected async Task Reset(TSettings settings, string settingName)
+		protected async Task ResetAsync(string settingName)
 		{
-			if (!(await VerifyProperty(settings, settingName).CAF() is PropertyInfo property))
+			var settings = GetSettings();
+			if (!(await VerifyAsync(settings, settingName).CAF() is PropertyInfo property))
 			{
 				return;
 			}
@@ -139,47 +113,61 @@ namespace Advobot.Classes
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully reset `{property.Name}`.").CAF();
 		}
 		/// <summary>
-		/// Adds or removes the specified object from the list.
+		/// Adds or removes the specified object from the list while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
 		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="obj"></param>
+		/// <param name="property"></param>
+		/// <param name="value"></param>
 		/// <param name="add"></param>
-		/// <param name="settingName"></param>
 		/// <returns></returns>
-		protected async Task ModifyListAsync(TSettings settings, object obj, bool add, [CallerMemberName] string settingName = "")
+		protected async Task ModifyListAsync<T>(Expression<Func<TSettings, IList<T>>> property, T value, bool add)
 		{
-			if (!(await VerifyProperty(settings, settingName).CAF() is PropertyInfo property))
+			var settings = GetSettings();
+			var expr = (MemberExpression)property.Body;
+			var prop = (PropertyInfo)expr.Member;
+			var list = (IList<T>)prop.GetValue(settings);
+
+			if (!add)
 			{
-				return;
+				list.Remove(value);
 			}
-			settings.ModifyList(property.Name, obj, add);
-			var resp = $"Successfully {(add ? "added" : "removed")} `{obj}` {(add ? "to" : "from")} `{property.Name}`.";
+			else if (!list.Contains(value))
+			{
+				list.Add(value);
+			}
+
+			settings.RaisePropertyChanged(prop.Name);
+			var resp = $"Successfully {(add ? "added" : "removed")} `{value}` {(add ? "to" : "from")} `{prop.Name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		/// <summary>
-		/// Sets the property to the supplied value.
+		/// Sets the property to the supplied value while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
 		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="obj"></param>
-		/// <param name="settingName"></param>
+		/// <param name="property"></param>
+		/// <param name="newValue"></param>
 		/// <returns></returns>
-		protected async Task ModifyAsync(TSettings settings, object obj, [CallerMemberName] string settingName = "")
+		protected async Task ModifyAsync<T>(Expression<Func<TSettings, T>> property, T newValue)
 		{
-			if (!(await VerifyProperty(settings, settingName).CAF() is PropertyInfo property))
-			{
-				return;
-			}
-			settings.SetSetting(property.Name, obj);
-			var resp = $"Successfully set `{property.Name}` to `{settings.ToString(Context.Client, Context.Guild, property.Name)}`.";
+			var settings = GetSettings();
+			var expr = (MemberExpression)property.Body;
+			var prop = (PropertyInfo)expr.Member;
+			prop.SetValue(settings, newValue);
+
+			settings.RaisePropertyChanged(prop.Name);
+			var resp = $"Successfully set `{prop.Name}` to `{settings.FormatValue(Context.Client, Context.Guild, newValue)}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
+		/// <summary>
+		/// Returns the settings this module is targetting.
+		/// </summary>
+		/// <returns></returns>
+		protected abstract TSettings GetSettings();
 		/// <summary>
 		/// Makes sure the settings exist, otherwise prints out to the channel that they don't.
 		/// </summary>
 		/// <param name="settings"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		private async Task<PropertyInfo> VerifyProperty(TSettings settings, string name)
+		private async Task<PropertyInfo> VerifyAsync(TSettings settings, string name)
 		{
 			if (!settings.GetSettings().TryGetValue(name, out var property))
 			{

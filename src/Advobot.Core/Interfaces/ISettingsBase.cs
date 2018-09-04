@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces
@@ -36,7 +37,15 @@ namespace Advobot.Interfaces
 		/// <param name="guild"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		string ToString(BaseSocketClient client, SocketGuild guild, string name);
+		string FormatSetting(BaseSocketClient client, SocketGuild guild, string name);
+		/// <summary>
+		/// Formats a specific value.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="guild"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		string FormatValue(BaseSocketClient client, SocketGuild guild, object value);
 		/// <summary>
 		/// Sets every setting back to its default value.
 		/// </summary>
@@ -52,15 +61,12 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="value"></param>
-		void SetSetting(string name, object value);
+		void SetSetting<T>(string name, T value);
 		/// <summary>
-		/// Modifies a list by either adding or removing the specified value.
+		/// Raises the <see cref="INotifyPropertyChanged.PropertyChanged"/> event.
 		/// </summary>
 		/// <param name="name"></param>
-		/// <param name="value"></param>
-		/// <param name="add"></param>
-		/// <param name="allowDuplicates"></param>
-		void ModifyList(string name, object value, bool add, bool allowDuplicates = false);
+		void RaisePropertyChanged([CallerMemberName] string name = "");
 		/// <summary>
 		/// Serializes this object and then overwrites the file.
 		/// </summary>

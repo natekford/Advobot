@@ -286,11 +286,5 @@ namespace Advobot.Classes
 		}
 		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor)
 			=> accessor.GetBaseBotDirectoryFile("BotSettings.json");
-
-		///ISettingsProvider
-		IReadOnlyDictionary<string, PropertyInfo> ISettingsProvider<IBotSettings>.GetSettings()
-			=> GetSettings(typeof(BotSettings));
-		DirectoryInfo ISettingsProvider<IBotSettings>.GetDirectory(IBotDirectoryAccessor accessor)
-			=> GetFile(accessor).Directory;
 	}
 }

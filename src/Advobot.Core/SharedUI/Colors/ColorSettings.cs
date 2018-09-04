@@ -79,7 +79,7 @@ namespace Advobot.SharedUI.Colors
 						break;
 				}
 				AfterThemeUpdated();
-				NotifyPropertyChanged();
+				RaisePropertyChanged();
 			}
 		}
 		[JsonIgnore]

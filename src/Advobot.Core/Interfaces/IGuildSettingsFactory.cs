@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 
@@ -7,7 +8,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for a guild settings module. Handles containing guild settings and adding/removing them.
 	/// </summary>
-	public interface IGuildSettingsFactory : ISettingsProvider<IGuildSettings>
+	public interface IGuildSettingsFactory
 	{
 		/// <summary>
 		/// If the given guild is already in the module this will return its settings.
@@ -40,5 +41,11 @@ namespace Advobot.Interfaces
 		/// <param name="guildId"></param>
 		/// <returns></returns>
 		bool Contains(ulong guildId);
+		/// <summary>
+		/// Returns the directory these files are stored in.
+		/// </summary>
+		/// <param name="accessor"></param>
+		/// <returns></returns>
+		DirectoryInfo GetDirectory(IBotDirectoryAccessor accessor);
 	}
 }
