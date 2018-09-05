@@ -10,7 +10,7 @@ namespace Advobot.Classes.Attributes
 	/// Indicates that the targetted module requires the specified type.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class RequiredServices : PreconditionAttribute
+	public class RequireServices : PreconditionAttribute
 	{
 		/// <summary>
 		/// The types of service this module requires.
@@ -18,10 +18,10 @@ namespace Advobot.Classes.Attributes
 		public ImmutableArray<Type> ServiceTypes { get; }
 
 		/// <summary>
-		/// Creates an instance of <see cref="RequiredServices"/>.
+		/// Creates an instance of <see cref="RequireServices"/>.
 		/// </summary>
 		/// <param name="serviceTypes"></param>
-		public RequiredServices(params Type[] serviceTypes)
+		public RequireServices(params Type[] serviceTypes)
 		{
 			ServiceTypes = serviceTypes.ToImmutableArray();
 		}

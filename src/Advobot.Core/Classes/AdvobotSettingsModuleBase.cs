@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
@@ -18,8 +17,7 @@ namespace Advobot.Classes
 	/// Handles methods for printing out, modifying, and resetting settings.
 	/// </summary>
 	/// <typeparam name="TSettings">The settings to </typeparam>
-	/// <typeparam name="TSettingsProvider">Can be a factory of the settings themselves.</typeparam>
-	public abstract class AdvobotSettingsModuleBase<TSettings, TSettingsProvider> : AdvobotModuleBase where TSettings : ISettingsBase
+	public abstract class AdvobotSettingsModuleBase<TSettings> : AdvobotModuleBase where TSettings : ISettingsBase
 	{
 		/// <summary>
 		/// Prints out the names of settings.
@@ -124,7 +122,7 @@ namespace Advobot.Classes
 			var settings = GetSettings();
 			var expr = (MemberExpression)property.Body;
 			var prop = (PropertyInfo)expr.Member;
-			var list = (IList<T>)prop.GetValue(settings);
+			var list = property.Compile()(settings);
 
 			if (!add)
 			{
@@ -136,24 +134,25 @@ namespace Advobot.Classes
 			}
 
 			settings.RaisePropertyChanged(prop.Name);
-			var resp = $"Successfully {(add ? "added" : "removed")} `{value}` {(add ? "to" : "from")} `{prop.Name}`.";
+			var resp = $"Successfully {(add ? "added" : "removed")} `{FormatValue(settings, value)}` {(add ? "to" : "from")} `{prop.Name}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		/// <summary>
 		/// Sets the property to the supplied value while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
 		/// </summary>
 		/// <param name="property"></param>
-		/// <param name="newValue"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
-		protected async Task ModifyAsync<T>(Expression<Func<TSettings, T>> property, T newValue)
+		protected async Task ModifyAsync<T>(Expression<Func<TSettings, T>> property, T value)
 		{
+			//This uses Expression<Func<TSettings, T>> instead of Action<TSettings, T> so the property name can be gotten from the same arg
 			var settings = GetSettings();
 			var expr = (MemberExpression)property.Body;
 			var prop = (PropertyInfo)expr.Member;
-			prop.SetValue(settings, newValue);
+			prop.SetValue(settings, value);
 
 			settings.RaisePropertyChanged(prop.Name);
-			var resp = $"Successfully set `{prop.Name}` to `{settings.FormatValue(Context.Client, Context.Guild, newValue)}`.";
+			var resp = $"Successfully set `{prop.Name}` to `{FormatValue(settings, value)}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		/// <summary>
@@ -161,6 +160,18 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <returns></returns>
 		protected abstract TSettings GetSettings();
+		/// <summary>
+		/// Saves the settings this module is targetting.
+		/// </summary>
+		protected abstract void SaveSettings();
+		/// <summary>
+		/// Returns the value as a string.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		private string FormatValue(TSettings settings, object value)
+			=> settings.FormatValue(Context.Client, Context.Guild, value);
 		/// <summary>
 		/// Makes sure the settings exist, otherwise prints out to the channel that they don't.
 		/// </summary>
@@ -179,15 +190,7 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		protected override void AfterExecute(CommandInfo command)
 		{
-			var preconditions = command.Preconditions.Concat(command.Module.Preconditions);
-			if (preconditions.Any(x => x is SaveGuildSettingsAttribute))
-			{
-				Context.GuildSettings.SaveSettings(Context.BotSettings);
-			}
-			if (preconditions.Any(x => x is SaveBotSettingsAttribute))
-			{
-				Context.BotSettings.SaveSettings(Context.BotSettings);
-			}
+			SaveSettings();
 			base.AfterExecute(command);
 		}
 	}

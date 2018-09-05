@@ -3,11 +3,12 @@ using Advobot.Interfaces;
 
 namespace Advobot.Classes.Attributes
 {
+	/*
 	/// <summary>
 	/// Indicates after the command has executed guild settings should be saved.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class SaveGuildSettingsAttribute : RequiredServices
+	public sealed class SaveGuildSettingsAttribute : RequireServices
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="SaveGuildSettingsAttribute"/>.
@@ -19,11 +20,11 @@ namespace Advobot.Classes.Attributes
 	/// Indicates after the command has executed bot settings should be saved.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class SaveBotSettingsAttribute : RequiredServices
+	public sealed class SaveBotSettingsAttribute : RequireServices
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="SaveBotSettingsAttribute"/>.
 		/// </summary>
 		public SaveBotSettingsAttribute() : base(typeof(IBotSettings)) { }
-	}
+	}*/
 }

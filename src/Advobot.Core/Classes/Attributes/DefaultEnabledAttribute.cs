@@ -15,17 +15,15 @@ namespace Advobot.Classes.Attributes
 		/// <summary>
 		/// Whether or not the command can be toggled.
 		/// </summary>
-		public bool AbleToToggle { get; }
+		public bool AbleToToggle { get; set; } = true;
 
 		/// <summary>
 		/// Creates an instance of <see cref="DefaultEnabledAttribute"/>.
 		/// </summary>
 		/// <param name="enabled"></param>
-		/// <param name="ableToToggle"></param>
-		public DefaultEnabledAttribute(bool enabled, bool ableToToggle = true)
+		public DefaultEnabledAttribute(bool enabled)
 		{
 			Enabled = enabled;
-			AbleToToggle = ableToToggle;
 		}
 	}
 }

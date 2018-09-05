@@ -15,6 +15,7 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
+using Newtonsoft.Json;
 
 namespace Advobot.Classes
 {
@@ -23,14 +24,14 @@ namespace Advobot.Classes
 	/// </summary>
 	public abstract class SettingsBase : ISettingsBase, INotifyPropertyChanged
 	{
-		private ImmutableDictionary<string, PropertyInfo> _S;
+		private ImmutableDictionary<string, PropertyInfo> _Settings;
 
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <inheritdoc />
 		public virtual IReadOnlyDictionary<string, PropertyInfo> GetSettings()
-			=> _S ?? (_S = GetSettings(GetType()));
+			=> _Settings ?? (_Settings = GetSettings(GetType()));
 		/// <summary>
 		/// Gets settings from a type statically.
 		/// </summary>
@@ -63,7 +64,7 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		public virtual string FormatSetting(BaseSocketClient client, SocketGuild guild, string name)
-			=> Format(client, guild, GetProperty(name).GetValue(this));
+			=> Format(client, guild, GetSettings()[name].GetValue(this));
 		/// <inheritdoc />
 		public virtual string FormatValue(BaseSocketClient client, SocketGuild guild, object value)
 			=> Format(client, guild, value);
@@ -77,10 +78,10 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		public virtual void ResetSetting(string name)
-			=> ResetSetting(GetProperty(name));
+			=> ResetSetting(GetSettings()[name]);
 		/// <inheritdoc />
 		public virtual void SetSetting<T>(string name, T value)
-			=> SetSetting(GetProperty(name), value);
+			=> SetSetting(GetSettings()[name], value);
 		/// <inheritdoc />
 		public virtual void SaveSettings(IBotDirectoryAccessor accessor)
 			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
@@ -89,13 +90,6 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public void RaisePropertyChanged([CallerMemberName] string name = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-		/// <summary>
-		/// Gets the property with the specified name.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		private PropertyInfo GetProperty(string name)
-			=> GetSettings()[name] ?? throw new ArgumentException($"Invalid property name provided: {name}.", nameof(name));
 		/// <summary>
 		/// Sets the property to the specified value.
 		/// </summary>

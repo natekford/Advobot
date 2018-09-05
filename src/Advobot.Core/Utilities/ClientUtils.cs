@@ -34,7 +34,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		public static async Task<ulong> GetOwnerIdAsync(BaseSocketClient client)
+		public static async Task<ulong> GetOwnerIdAsync(IDiscordClient client)
 			=> _BotOwnerId != 0 ? _BotOwnerId : (_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id);
 		/// <summary>
 		/// Updates a given client's stream and game using settings from the <paramref name="botSettings"/> parameter.

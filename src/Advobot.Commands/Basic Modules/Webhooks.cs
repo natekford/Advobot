@@ -87,7 +87,9 @@ namespace Advobot.Commands.Webhooks
 	public sealed class ModifyWebhookChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(IWebhook webhook, [ValidateObject(true, Verif.CanManageWebhooks)] ITextChannel channel)
+		public async Task Command(
+			IWebhook webhook,
+			[ValidateObject(Verif.CanManageWebhooks, IfNullCheckFromContext = true)] ITextChannel channel)
 		{
 			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GetRequestOptions()).CAF();
 			var resp = $"Successfully set the channel of `{webhook.Format()}` to `{channel.Format()}`.";

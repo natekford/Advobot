@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UsageGeneration;
@@ -48,11 +50,7 @@ namespace Advobot.Services.HelpEntries
 			var attrs = type.GetCustomAttributes();
 			AbleToBeToggled = attrs.GetAttribute<DefaultEnabledAttribute>().AbleToToggle;
 			Aliases = (attrs.GetAttribute<AliasAttribute>()?.Aliases ?? new[] { "N/A" }).ToImmutableArray();
-			BasePerms = new[]
-			{
-				attrs.GetAttribute<PermissionRequirementAttribute>()?.ToString(),
-				attrs.GetAttribute<OtherRequirementAttribute>()?.ToString()
-			}.JoinNonNullStrings(" | ") is string str && !string.IsNullOrWhiteSpace(str) ? str : "N/A";
+			BasePerms = FormatPreconditions(attrs.OfType<PreconditionAttribute>());
 			Category = attrs.GetAttribute<CategoryAttribute>().Category ?? throw new ArgumentException(nameof(CategoryAttribute));
 			DefaultEnabled = attrs.GetAttribute<DefaultEnabledAttribute>().Enabled;
 			Description = attrs.GetAttribute<SummaryAttribute>().Text ?? throw new ArgumentException(nameof(SummaryAttribute));
@@ -70,11 +68,7 @@ namespace Advobot.Services.HelpEntries
 			var attrs = module.Attributes;
 			AbleToBeToggled = attrs.GetAttribute<DefaultEnabledAttribute>().AbleToToggle;
 			Aliases = (module.Aliases.Any() ? module.Aliases : new[] { "N/A" }).ToImmutableArray();
-			BasePerms = new[]
-			{
-				attrs.GetAttribute<PermissionRequirementAttribute>()?.ToString(),
-				attrs.GetAttribute<OtherRequirementAttribute>()?.ToString()
-			}.JoinNonNullStrings(" | ") is string str && !string.IsNullOrWhiteSpace(str) ? str : "N/A";
+			BasePerms = FormatPreconditions(attrs.OfType<PreconditionAttribute>());
 			Category = attrs.GetAttribute<CategoryAttribute>().Category ?? throw new ArgumentException(nameof(CategoryAttribute));
 			DefaultEnabled = attrs.GetAttribute<DefaultEnabledAttribute>().Enabled;
 			Description = module.Summary ?? throw new ArgumentException(nameof(SummaryAttribute));
@@ -84,11 +78,32 @@ namespace Advobot.Services.HelpEntries
 			SetStrings();
 		}
 
+		private string FormatPreconditions(IEnumerable<PreconditionAttribute> preconditions)
+		{
+			if (!preconditions.Any())
+			{
+				return "N/A";
+			}
+			if (preconditions.Any(x => x.Group == null))
+			{
+				return preconditions.Select(x => x.ToString()).JoinNonNullStrings(" & ");
+			}
+
+			var groups = preconditions.GroupBy(x => x.Group);
+			if (groups.Count() == 1)
+			{
+				return groups.Single().Select(x => x.ToString()).JoinNonNullStrings(" | ");
+			}
+
+			var conditions = groups.Select(g => g.Select(c => c.ToString()).JoinNonNullStrings(" | "));
+			var withParens = conditions.Select(x => $"({x})");
+			return withParens.JoinNonNullStrings(" & ");
+		}
 		private void SetStrings()
 		{
 			_A = $"**Aliases:** {string.Join(", ", Aliases)}\n";
 			_U = $"**Usage:** {Constants.PREFIX}{Name} {Usage}\n";
-			_E = $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}\n";
+			_E = $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}{(AbleToBeToggled ? "" : " (Not toggleable)")}\n";
 			_B = $"**Base Permission(s):**\n{BasePerms}\n";
 			_D = $"**Description:**\n{Description}";
 		}

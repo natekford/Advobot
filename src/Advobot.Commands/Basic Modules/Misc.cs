@@ -17,7 +17,7 @@ namespace Advobot.Commands.Misc
 	[Category(typeof(Help)), Group(nameof(Help)), TopLevelShortAlias(typeof(Help))]
 	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 		"If left blank will provide general help.")]
-	[DefaultEnabled(true, false)]
+	[DefaultEnabled(true, AbleToToggle = false)]
 	public sealed class Help : AdvobotModuleBase
 	{
 		private static readonly string _GeneralHelp =
@@ -50,7 +50,7 @@ namespace Advobot.Commands.Misc
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command, Priority(1)]
-		[RequiredServices(typeof(IHelpEntryService))]
+		[RequireServices(typeof(IHelpEntryService))]
 		public async Task Command([Remainder] IHelpEntry command)
 		{
 			var embed = new EmbedWrapper
@@ -62,7 +62,7 @@ namespace Advobot.Commands.Misc
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
 		[Command, Priority(0)]
-		[RequiredServices(typeof(IHelpEntryService), typeof(ITimerService))]
+		[RequireServices(typeof(IHelpEntryService), typeof(ITimerService))]
 		public async Task Command([Remainder] string command)
 		{
 			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
@@ -82,7 +82,7 @@ namespace Advobot.Commands.Misc
 	[Summary("Prints out the commands in that category of the command list. " +
 		"Inputting nothing will list the command categories.")]
 	[DefaultEnabled(true)]
-	[RequiredServices(typeof(IHelpEntryService))]
+	[RequireServices(typeof(IHelpEntryService))]
 	public sealed class Commands : AdvobotModuleBase
 	{
 		[Command(nameof(All)), ShortAlias(nameof(All))]
@@ -130,7 +130,7 @@ namespace Advobot.Commands.Misc
 	[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. " +
 		"FieldInfo can have up to 25 arguments supplied. " +
 		"Each must be formatted like the following: `" + CustomEmbed.FIELD_FORMAT + "`.")]
-	[OtherRequirement(Precondition.GenericPerms)]
+	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
 	[DefaultEnabled(true)]
 	public sealed class MakeAnEmbed : AdvobotModuleBase
 	{
@@ -148,12 +148,12 @@ namespace Advobot.Commands.Misc
 
 	[Category(typeof(MessageRole)), Group(nameof(MessageRole)), TopLevelShortAlias(typeof(MessageRole))]
 	[Summary("Mention an unmentionable role with the given message.")]
-	[OtherRequirement(Precondition.GenericPerms)]
+	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
 	[DefaultEnabled(false)]
 	public sealed class MessageRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone)] IRole role, [Remainder] string message)
+		public async Task Command([ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone)] IRole role, [Remainder] string message)
 		{
 			if (role.IsMentionable)
 			{
@@ -173,7 +173,7 @@ namespace Advobot.Commands.Misc
 	[Category(typeof(MessageBotOwner)), Group(nameof(MessageBotOwner)), TopLevelShortAlias(typeof(MessageBotOwner))]
 	[Summary("Sends a message to the bot owner with the given text. " +
 		"Messages will be cut down to 250 characters.")]
-	[OtherRequirement(Precondition.GenericPerms)]
+	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
 	[DefaultEnabled(false)]
 	public sealed class MessageBotOwner : AdvobotModuleBase
 	{
@@ -200,7 +200,7 @@ namespace Advobot.Commands.Misc
 	[Summary("Sends a message to the person who said the command after the passed in time is up. " +
 		"Potentially may take one minute longer than asked for if the command is input at certain times.")]
 	[DefaultEnabled(true)]
-	[RequiredServices(typeof(ITimerService))]
+	[RequireServices(typeof(ITimerService))]
 	public sealed class Remind : AdvobotModuleBase
 	{
 		[Command]
@@ -214,7 +214,7 @@ namespace Advobot.Commands.Misc
 
 	[Category(typeof(Test)), Group(nameof(Test)), TopLevelShortAlias(typeof(Test))]
 	[Summary("Mostly just makes the bot say test.")]
-	[OtherRequirement(Precondition.BotOwner)]
+	[RequireBotOwner]
 	[DefaultEnabled(true)]
 	public sealed class Test : AdvobotModuleBase
 	{

@@ -19,48 +19,51 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.GuildSettings
 {
-	/*
+	[Category(typeof(ShowGuildSettings)), Group(nameof(ShowGuildSettings)), TopLevelShortAlias(typeof(ShowGuildSettings))]
+	[Summary("Shows information about guild settings.")]
+	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[DefaultEnabled(true)]
+	public sealed class ShowGuildSettings : AdvobotSettingsModuleBase<IGuildSettings>
+	{
+		[Command(nameof(GetFileAsync)), ShortAlias(nameof(GetFileAsync)), Priority(1)]
+		public async Task GetFile()
+			=> await GetFileAsync(Context.BotSettings).CAF();
+		[Command(nameof(Names)), ShortAlias(nameof(Names)), Priority(1)]
+		public async Task Names()
+			=> await ShowNamesAsync().CAF();
+		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
+		public async Task All()
+			=> await ShowAllAsync().CAF();
+		[Command]
+		public async Task Command(string settingName)
+			=> await ShowAsync(settingName).CAF();
+
+		protected override IGuildSettings GetSettings() => Context.GuildSettings;
+		protected override void SaveSettings() { return; }
+	}
+
 	[Category(typeof(ModifyGuildSettings)), Group(nameof(ModifyGuildSettings)), TopLevelShortAlias(typeof(ModifyGuildSettings))]
 	[Summary("Modify the given setting on the guild.")]
-	[OtherRequirement(Precondition.GuildOwner)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
-	public sealed class ModifyGuildSettings : AdvobotSettingsModuleBase<IGuildSettings, IGuildSettingsFactory>
+	public sealed class ModifyGuildSettings : AdvobotSettingsModuleBase<IGuildSettings>
 	{
-		[Command(nameof(GetFile)), ShortAlias(nameof(GetFile))]
-		public async Task GetFile()
-			=> await GetFile(Context.GuildSettings, Context.BotSettings).CAF();
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
 		public async Task Reset(string settingName)
-			=> await Reset(Context.GuildSettings, settingName).CAF();
-		[Group(nameof(Show)), ShortAlias(nameof(Show))]
-		public sealed class Show : AdvobotSettingsModuleBase<IGuildSettings, IGuildSettingsFactory>
-		{
-			[Command(nameof(Names)), ShortAlias(nameof(Names)), Priority(1)]
-			public async Task Names()
-				=> await ShowNames(Context.GuildSettings).CAF();
-			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
-			public async Task All()
-				=> await ShowAll(Context.GuildSettings).CAF();
-			[Command]
-			public async Task Command(string settingName)
-				=> await ShowCommand(Context.GuildSettings, settingName).CAF();
-		}
-		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]
-		public sealed class Modify : AdvobotSettingsModuleBase<IGuildSettings, IGuildSettingsFactory>
-		{
-			[Command(nameof(IGuildSettings.Prefix)), ShortAlias(nameof(IGuildSettings.Prefix))]
-			public async Task Prefix([ValidateString(Target.Prefix)] string value)
-				=> await ModifyAsync(Context.GuildSettings, value).CAF();
-			[Command(nameof(IGuildSettings.ServerLogId)), ShortAlias(nameof(IGuildSettings.ServerLogId))]
-			public async Task ServerLogId([Optional, ValidateObject(false, Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel channel)
-				=> await ModifyAsync(Context.GuildSettings, channel?.Id ?? 0).CAF();
-		}
-	}*/
+			=> await ResetAsync(settingName).CAF();
+		[Command(nameof(IGuildSettings.Prefix)), ShortAlias(nameof(IGuildSettings.Prefix))]
+		public async Task Prefix([ValidateString(Target.Prefix)] string value)
+			=> await ModifyAsync(x => x.Prefix, value).CAF();
+		[Command(nameof(IGuildSettings.ServerLogId)), ShortAlias(nameof(IGuildSettings.ServerLogId))]
+		public async Task ServerLogId([Optional, ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel channel)
+			=> await ModifyAsync(x => x.ServerLogId, channel?.Id ?? 0).CAF();
+
+		protected override IGuildSettings GetSettings() => Context.GuildSettings;
+		protected override void SaveSettings() => Context.GuildSettings.SaveSettings(Context.BotSettings);
+	}
 
 	[Category(typeof(ModifyGuildPrefix)), Group(nameof(ModifyGuildPrefix)), TopLevelShortAlias(typeof(ModifyGuildPrefix))]
 	[Summary("Makes the bot use the given prefix in the guild.")]
-	[OtherRequirement(Precondition.GuildOwner)]
+	[RequireGuildOwner]
 	[DefaultEnabled(false)]
 	[SaveGuildSettings]
 	public sealed class ModifyGuildPrefix : AdvobotModuleBase
@@ -85,9 +88,9 @@ namespace Advobot.Commands.GuildSettings
 		"Can turn all commands in a category on or off too. " +
 		"Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Help) + "`.")]
 	[PermissionRequirement(null, null)]
-	[DefaultEnabled(true, false)]
+	[DefaultEnabled(true, AbleToToggle = false)]
 	[SaveGuildSettings]
-	[RequiredServices(typeof(IHelpEntryService))]
+	[RequireServices(typeof(IHelpEntryService))]
 	public sealed class ModifyCommands : AdvobotModuleBase
 	{
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
@@ -183,7 +186,7 @@ namespace Advobot.Commands.GuildSettings
 	[Summary("The bot will ignore commands said on these channels. " +
 		"If a command is input then the bot will instead ignore only that command on the given channel.")]
 	[PermissionRequirement(null, null)]
-	[DefaultEnabled(true, false)]
+	[DefaultEnabled(true, AbleToToggle = false)]
 	[SaveGuildSettings]
 	public sealed class ModifyIgnoredCommandChannels : AdvobotModuleBase
 	{
@@ -191,7 +194,8 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Enable : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel)
+			public async Task Command(
+				[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel)
 			{
 				if (!Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -205,8 +209,10 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
-			[RequiredServices(typeof(IHelpEntryService))]
-			public async Task Category([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, string category)
+			[RequireServices(typeof(IHelpEntryService))]
+			public async Task Category(
+				[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel,
+				string category)
 			{
 				var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
 				if (!helpEntries.GetCategories().CaseInsContains(category))
@@ -220,8 +226,10 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			[RequiredServices(typeof(IHelpEntryService))]
-			public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, IHelpEntry helpEntry)
+			[RequireServices(typeof(IHelpEntryService))]
+			public async Task Command(
+				[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel,
+				IHelpEntry helpEntry)
 			{
 				if (!Context.GuildSettings.CommandSettings.ModifyOverride(new ValueToModify(helpEntry, true), channel))
 				{
@@ -237,7 +245,8 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Disable : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel)
+			public async Task Command(
+				[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel)
 			{
 				if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -251,8 +260,10 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
-			[RequiredServices(typeof(IHelpEntryService))]
-			public async Task Category([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, string category)
+			[RequireServices(typeof(IHelpEntryService))]
+			public async Task Category(
+				[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel,
+				string category)
 			{
 				var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
 				if (!helpEntries.GetCategories().CaseInsContains(category))
@@ -266,8 +277,10 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			[RequiredServices(typeof(IHelpEntryService))]
-			public async Task Command([ValidateObject(true, Verif.CanBeViewed, Verif.CanBeEdited)] ITextChannel channel, IHelpEntry helpEntry)
+			[RequireServices(typeof(IHelpEntryService))]
+			public async Task Command(
+				[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel,
+				IHelpEntry helpEntry)
 			{
 				if (!Context.GuildSettings.CommandSettings.ModifyOverride(new ValueToModify(helpEntry, false), channel))
 				{
@@ -412,11 +425,11 @@ namespace Advobot.Commands.GuildSettings
 		{
 			[Command, Priority(1)]
 			public async Task Command(
-				[ValidateObject(false, Verif.CanBeEdited)] IUser user,
-				[ValidateObject(false, Verif.CanBeEdited)] IRole role)
+				[ValidateObject(Verif.CanBeEdited)] IUser user,
+				[ValidateObject(Verif.CanBeEdited)] IRole role)
 				=> await CommandRunner(user.Id, role).CAF();
 			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
-			public async Task Command(ulong userId, [ValidateObject(false, Verif.CanBeEdited)] IRole role)
+			public async Task Command(ulong userId, [ValidateObject(Verif.CanBeEdited)] IRole role)
 				=> await CommandRunner(userId, role).CAF();
 
 			private async Task CommandRunner(ulong userId, IRole role)
@@ -439,11 +452,11 @@ namespace Advobot.Commands.GuildSettings
 		{
 			[Command, Priority(1)]
 			public async Task Command(
-				[ValidateObject(false, Verif.CanBeEdited)] IUser user,
-				[ValidateObject(false, Verif.CanBeEdited)] IRole role)
+				[ValidateObject(Verif.CanBeEdited)] IUser user,
+				[ValidateObject(Verif.CanBeEdited)] IRole role)
 				=> await CommandRunner(user.Id, role).CAF();
 			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
-			public async Task Command(ulong userId, [ValidateObject(false, Verif.CanBeEdited)] IRole role)
+			public async Task Command(ulong userId, [ValidateObject(Verif.CanBeEdited)] IRole role)
 				=> await CommandRunner(userId, role).CAF();
 
 			private async Task CommandRunner(ulong userId, IRole role)
@@ -472,7 +485,7 @@ namespace Advobot.Commands.GuildSettings
 	public sealed class ModifyChannelSettings : AdvobotModuleBase
 	{
 		[Command(nameof(ImageOnly)), ShortAlias(nameof(ImageOnly))]
-		public async Task ImageOnly([ValidateObject(true, Verif.CanBeEdited)] ITextChannel channel)
+		public async Task ImageOnly([ValidateObject(Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel)
 		{
 			if (Context.GuildSettings.ImageOnlyChannels.Contains(channel.Id))
 			{
@@ -499,7 +512,7 @@ namespace Advobot.Commands.GuildSettings
 	public sealed class ModifyGuildNotifs : AdvobotModuleBase
 	{
 		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
-		public async Task Welcome([ValidateObject(true, Verif.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
+		public async Task Welcome([ValidateObject(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 		{
 			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
 			{
@@ -510,7 +523,7 @@ namespace Advobot.Commands.GuildSettings
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the welcome message.").CAF();
 		}
 		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
-		public async Task Goodbye([ValidateObject(true, Verif.CanModifyPermissions)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
+		public async Task Goodbye([ValidateObject(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 		{
 			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
 			{
@@ -551,82 +564,6 @@ namespace Advobot.Commands.GuildSettings
 			}
 
 			await notif.SendAsync(Context.Guild as SocketGuild, null).CAF();
-		}
-	}
-
-	[Category(typeof(DisplayGuildSettings)), Group(nameof(DisplayGuildSettings)), TopLevelShortAlias(typeof(DisplayGuildSettings))]
-	[Summary("Displays guild settings.")]
-	[PermissionRequirement(null, null)]
-	[DefaultEnabled(true)]
-	public sealed class DisplayGuildSettings : AdvobotModuleBase
-	{
-		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
-		public async Task Show()
-		{
-			var embed = new EmbedWrapper
-			{
-				Title = "Setting Names",
-				Description = $"`{string.Join("`, `", ((ISettingsBase)Context.GuildSettings).GetSettings().Keys)}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
-		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
-		public async Task All()
-		{
-			var tf = new TextFileInfo
-			{
-				Name = "Guild_Settings",
-				Text = Context.GuildSettings.ToString(Context.Client, Context.Guild).RemoveAllMarkdown(),
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, "**Guild Settings:**", textFile: tf).CAF();
-		}
-		[Command]
-		public async Task Command(string settingName)
-		{
-			if (!((ISettingsBase)Context.GuildSettings).GetSettings().TryGetValue(settingName, out var field))
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{settingName}` is not a valid setting.")).CAF();
-				return;
-			}
-
-			var desc = Context.GuildSettings.FormatSetting(Context.Client, Context.Guild, field.Name);
-			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
-			{
-				var embed = new EmbedWrapper
-				{
-					Title = settingName,
-					Description = desc
-				};
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-			}
-			else
-			{
-				var tf = new TextFileInfo
-				{
-					Name = settingName,
-					Text = desc,
-				};
-				await MessageUtils.SendMessageAsync(Context.Channel, $"**{settingName.FormatTitle()}:**", textFile: tf).CAF();
-			}
-		}
-	}
-
-	[Category(typeof(GetFile)), Group(nameof(GetFile)), TopLevelShortAlias(typeof(GetFile))]
-	[Summary("Sends the file containing all the guild's settings.")]
-	[PermissionRequirement(null, null)]
-	[DefaultEnabled(false)]
-	public sealed class GetFile : AdvobotModuleBase
-	{
-		[Command]
-		public async Task Command()
-		{
-			var file = Context.BotSettings.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{Context.Guild.Id}.json"));
-			if (!file.Exists)
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild settings file does not exist.")).CAF();
-				return;
-			}
-			await Context.Channel.SendFileAsync(file.FullName).CAF();
 		}
 	}
 }

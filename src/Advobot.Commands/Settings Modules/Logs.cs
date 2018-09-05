@@ -25,7 +25,7 @@ namespace Advobot.Commands.Logs
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public async Task Enable(
 			LogChannelType logChannelType,
-			[ValidateObject(false, Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel channel)
+			[ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel channel)
 		{
 			if (!SetLogChannel(Context.GuildSettings, logChannelType, channel.Id))
 			{
@@ -90,14 +90,14 @@ namespace Advobot.Commands.Logs
 	public sealed class ModifyIgnoredLogChannels : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add([ValidateObject(false, Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
+		public async Task Add([ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
 			var resp = $"Successfully ignored the following channels: `{string.Join("`, `", channels.Select(x => x.Format()))}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove([ValidateObject(false, Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
+		public async Task Remove([ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
 			var resp = $"Successfully unignored the following channels: `{string.Join("`, `", channels.Select(x => x.Format()))}`.";

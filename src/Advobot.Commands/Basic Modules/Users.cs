@@ -136,7 +136,7 @@ namespace Advobot.Commands.Users
 	public sealed class MoveUser : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(SocketGuildUser user, [ValidateObject(false, Verif.CanMoveUsers)] SocketVoiceChannel channel)
+		public async Task Command(SocketGuildUser user, [ValidateObject(Verif.CanMoveUsers)] SocketVoiceChannel channel)
 		{
 			if (user.VoiceChannel == null)
 			{
@@ -164,8 +164,8 @@ namespace Advobot.Commands.Users
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
-			[ValidateObject(false, Verif.CanMoveUsers)] SocketVoiceChannel inputChannel,
-			[ValidateObject(false, Verif.CanMoveUsers)] SocketVoiceChannel outputChannel,
+			[ValidateObject(Verif.CanMoveUsers)] SocketVoiceChannel inputChannel,
+			[ValidateObject(Verif.CanMoveUsers)] SocketVoiceChannel outputChannel,
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = inputChannel.Users.Take(bypass ? int.MaxValue : Context.BotSettings.MaxUserGatherCount);
@@ -198,7 +198,7 @@ namespace Advobot.Commands.Users
 	{
 		[Command, Priority(1)]
 		public async Task Command(
-			[ValidateObject(false, Verif.CanBeEdited)] IGuildUser user,
+			[ValidateObject(Verif.CanBeEdited)] IGuildUser user,
 			[Optional, Remainder] ModerationReason reason)
 			=> await CommandRunner(user.Id, reason).CAF();
 		[Command]
@@ -222,7 +222,7 @@ namespace Advobot.Commands.Users
 	{
 		[Command, Priority(1)]
 		public async Task Command(
-			[ValidateObject(false, Verif.CanBeEdited)] IGuildUser user,
+			[ValidateObject(Verif.CanBeEdited)] IGuildUser user,
 			[Optional, Remainder] ModerationReason reason)
 			=> await CommandRunner(user.Id, reason).CAF();
 		[Command]
@@ -283,7 +283,7 @@ namespace Advobot.Commands.Users
 	public sealed class Kick : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateObject(false, Verif.CanBeEdited)] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+		public async Task Command([ValidateObject(Verif.CanBeEdited)] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 		{
 			var giver = new Punisher(TimeSpan.FromMinutes(0), default(ITimerService));
 			await giver.KickAsync(user, GetRequestOptions(reason.Reason)).CAF();
@@ -322,12 +322,12 @@ namespace Advobot.Commands.Users
 		public async Task Command(
 			uint requestCount,
 			[Optional] IGuildUser user,
-			[Optional, ValidateObject(true, Verif.CanDeleteMessages)] SocketTextChannel channel)
+			[Optional, ValidateObject(Verif.CanDeleteMessages, IfNullCheckFromContext = true)] SocketTextChannel channel)
 			=> await CommandRunner((int)requestCount, user, channel ?? (SocketTextChannel)Context.Channel).CAF();
 		[Command]
 		public async Task Command(
 			uint requestCount,
-			[Optional, ValidateObject(true, Verif.CanDeleteMessages)] SocketTextChannel channel,
+			[Optional, ValidateObject(Verif.CanDeleteMessages, IfNullCheckFromContext = true)] SocketTextChannel channel,
 			[Optional] IGuildUser user)
 			=> await CommandRunner((int)requestCount, user, channel ?? (SocketTextChannel)Context.Channel).CAF();
 
@@ -412,7 +412,7 @@ namespace Advobot.Commands.Users
 		[Command(nameof(GiveRole)), ShortAlias(nameof(GiveRole))]
 		public async Task GiveRole(
 			SocketRole targetRole,
-			[ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] SocketRole givenRole,
+			[ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] SocketRole givenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			if (targetRole.Id == givenRole.Id)
@@ -426,18 +426,18 @@ namespace Advobot.Commands.Users
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
 		public async Task TakeRole(
 			SocketRole targetRole,
-			[ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] SocketRole takenRole,
+			[ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] SocketRole takenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			=> await CommandRunner(targetRole, bypass, async (m) => await m.TakeRolesAsync(takenRole, GetRequestOptions()).CAF());
 		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
 		public async Task GiveNickname(
-			[ValidateObject(false, Verif.CanBeEdited)] SocketRole targetRole,
+			[ValidateObject(Verif.CanBeEdited)] SocketRole targetRole,
 			[ValidateString(Target.Nickname)] string nickname,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			=> await CommandRunner(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(nickname, GetRequestOptions()).CAF());
 		[Command(nameof(TakeNickname)), ShortAlias(nameof(TakeNickname))]
 		public async Task TakeNickname(
-			[ValidateObject(false, Verif.CanBeEdited)] SocketRole targetRole,
+			[ValidateObject(Verif.CanBeEdited)] SocketRole targetRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			=> await CommandRunner(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(null, GetRequestOptions()).CAF());
 

@@ -18,7 +18,7 @@ namespace Advobot.Commands.GuildList
 	[Summary("Adds or removes a guild from the public guild list.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[RequiredServices(typeof(IInviteListService))]
+	[RequireServices(typeof(IInviteListService))]
 	public sealed class ModifyGuildListing : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
@@ -47,7 +47,7 @@ namespace Advobot.Commands.GuildList
 	[Summary("Bumps the invite on the guild.")]
 	[OtherRequirement(Precondition.GenericPerms)]
 	[DefaultEnabled(false)]
-	[RequiredServices(typeof(IInviteListService))]
+	[RequireServices(typeof(IInviteListService))]
 	public sealed class BumpGuildListing : AdvobotModuleBase
 	{
 		[Command]
@@ -72,7 +72,7 @@ namespace Advobot.Commands.GuildList
 	[Category(typeof(GetGuildListing)), Group(nameof(GetGuildListing)), TopLevelShortAlias(typeof(GetGuildListing))]
 	[Summary("Gets an invite meeting the given criteria.")]
 	[DefaultEnabled(true)]
-	[RequiredServices(typeof(IInviteListService))]
+	[RequireServices(typeof(IInviteListService))]
 	public sealed class GetGuildListing : AdvobotModuleBase
 	{
 		private static readonly string _GHeader = "Guild Name".PadRight(25);

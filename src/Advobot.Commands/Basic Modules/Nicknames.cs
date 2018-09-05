@@ -22,7 +22,7 @@ namespace Advobot.Commands.Nicknames
 	{
 		[Command]
 		public async Task Command(
-			[ValidateObject(false, Verif.CanBeEdited)] SocketGuildUser user,
+			[ValidateObject(Verif.CanBeEdited)] SocketGuildUser user,
 			[Optional, ValidateString(Target.Nickname)] string nickname)
 		{
 			await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, GetRequestOptions()).CAF();

@@ -16,18 +16,20 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class ValidateObjectAttribute : ParameterPreconditionAttribute
 	{
+		/// <summary>
+		/// Whether or not to check from the passed in context for arguments.
+		/// </summary>
+		public bool IfNullCheckFromContext { get; set; }
+
 		private readonly ImmutableList<Verif> _Checks;
-		private readonly bool _IfNullCheckFromContext;
 
 		/// <summary>
 		/// Sets the variables saying what checks to use and if to use the values in the context if null.
 		/// </summary>
-		/// <param name="ifNullCheckFromContext"></param>
 		/// <param name="checks"></param>
-		public ValidateObjectAttribute(bool ifNullCheckFromContext, params Verif[] checks)
+		public ValidateObjectAttribute(params Verif[] checks)
 		{
 			_Checks = checks.ToImmutableList();
-			_IfNullCheckFromContext = ifNullCheckFromContext;
 		}
 
 		/// <summary>
@@ -45,7 +47,7 @@ namespace Advobot.Classes.Attributes
 				return Task.FromResult(GetPreconditionResult(context, value));
 			}
 			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-			if (!_IfNullCheckFromContext)
+			if (!IfNullCheckFromContext)
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}

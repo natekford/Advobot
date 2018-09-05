@@ -83,7 +83,7 @@ namespace Advobot.Commands.Quotes
 		public async Task Command([Remainder] Quote quote)
 			=> await MessageUtils.SendMessageAsync(Context.Channel, quote.Description).CAF();
 		[Command, Priority(0)]
-		[RequiredServices(typeof(ITimerService))]
+		[RequireServices(typeof(ITimerService))]
 		public async Task Command([Remainder] string quote)
 		{
 			var timers = Context.Provider.GetRequiredService<ITimerService>();

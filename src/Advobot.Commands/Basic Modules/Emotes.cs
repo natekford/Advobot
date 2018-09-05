@@ -96,7 +96,7 @@ namespace Advobot.Commands.Emotes
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(
 			GuildEmote emote,
-			[ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
+			[ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
 		{
 			await Context.Guild.ModifyEmoteAsync(emote, x =>
 			{
@@ -115,7 +115,7 @@ namespace Advobot.Commands.Emotes
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(
 			GuildEmote emote,
-			[ValidateObject(false, Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
+			[ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
 		{
 			if (!emote.RoleIds.Any())
 			{

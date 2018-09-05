@@ -14,7 +14,7 @@ namespace Advobot.Commands.Client
 {
 	[Category(typeof(ModifyBotName)), Group(nameof(ModifyBotName)), TopLevelShortAlias(typeof(ModifyBotName))]
 	[Summary("Changes the bot's name to the given name.")]
-	[OtherRequirement(Precondition.BotOwner)]
+	[RequireBotOwner]
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotName : AdvobotModuleBase
 	{
@@ -29,7 +29,7 @@ namespace Advobot.Commands.Client
 	[Category(typeof(ModifyBotIcon)), Group(nameof(ModifyBotIcon)), TopLevelShortAlias(typeof(ModifyBotIcon))]
 	[Summary("Changes the bot's icon to the given image. " +
 		"The image must be smaller than 2.5MB.")]
-	[OtherRequirement(Precondition.BotOwner)]
+	[RequireBotOwner]
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotIcon : AdvobotModuleBase
 	{
@@ -68,7 +68,7 @@ namespace Advobot.Commands.Client
 
 	[Category(typeof(DisconnectBot)), Group(nameof(DisconnectBot)), TopLevelShortAlias(typeof(DisconnectBot), "runescapeservers")]
 	[Summary("Turns the bot off.")]
-	[OtherRequirement(Precondition.BotOwner)]
+	[RequireBotOwner]
 	[DefaultEnabled(true)]
 	public sealed class DisconnectBot : AdvobotModuleBase
 	{
@@ -79,9 +79,9 @@ namespace Advobot.Commands.Client
 
 	[Category(typeof(RestartBot)), Group(nameof(RestartBot)), TopLevelShortAlias(typeof(RestartBot))]
 	[Summary("Restarts the bot.")]
-	[OtherRequirement(Precondition.BotOwner)]
+	[RequireBotOwner]
 	[DefaultEnabled(true)]
-	[RequiredServices(typeof(IBotSettings))]
+	[RequireServices(typeof(IBotSettings))]
 	public sealed class RestartBot : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
