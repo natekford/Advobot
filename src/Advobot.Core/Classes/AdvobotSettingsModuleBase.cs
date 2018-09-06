@@ -124,13 +124,20 @@ namespace Advobot.Classes
 			var prop = (PropertyInfo)expr.Member;
 			var list = property.Compile()(settings);
 
-			if (!add)
+			if (list.Contains(value) == add)
+			{
+				var nothingModified = $"`{FormatValue(settings, value)}` is already {(add ? "added to" : "removed from")} `{prop.Name}`";
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, nothingModified).CAF();
+				return;
+			}
+			if (add)
+			{
+
+				list.Add(value);
+			}
+			else
 			{
 				list.Remove(value);
-			}
-			else if (!list.Contains(value))
-			{
-				list.Add(value);
 			}
 
 			settings.RaisePropertyChanged(prop.Name);
@@ -161,10 +168,6 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		protected abstract TSettings GetSettings();
 		/// <summary>
-		/// Saves the settings this module is targetting.
-		/// </summary>
-		protected abstract void SaveSettings();
-		/// <summary>
 		/// Returns the value as a string.
 		/// </summary>
 		/// <param name="settings"></param>
@@ -187,10 +190,21 @@ namespace Advobot.Classes
 			}
 			return property;
 		}
-		/// <inheritdoc />
+	}
+
+	/// <summary>
+	/// Handles saving settings in addition to other things.
+	/// </summary>
+	/// <typeparam name="TSettings"></typeparam>
+	public abstract class AdvobotSettingsSavingModuleBase<TSettings> : AdvobotSettingsModuleBase<TSettings> where TSettings : ISettingsBase
+	{
+		/// <summary>
+		/// Saves the settings then calls the base <see cref="ModuleBase{T}.AfterExecute(CommandInfo)"/>.
+		/// </summary>
+		/// <param name="command"></param>
 		protected override void AfterExecute(CommandInfo command)
 		{
-			SaveSettings();
+			GetSettings().SaveSettings(Context.BotSettings);
 			base.AfterExecute(command);
 		}
 	}

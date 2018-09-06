@@ -14,7 +14,8 @@ namespace Advobot.Commands.Invites
 {
 	[Category(typeof(DisplayInvites)), Group(nameof(DisplayInvites)), TopLevelShortAlias(typeof(DisplayInvites))]
 	[Summary("Gives a list of all the instant invites on the guild.")]
-	[OtherRequirement(Precondition.GenericPerms)]
+	//TODO: is manageguild the correct permission for this?
+	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayInvites : AdvobotModuleBase
 	{

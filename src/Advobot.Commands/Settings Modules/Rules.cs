@@ -97,7 +97,7 @@ namespace Advobot.Commands.Rules
 		"`Format` uses the `" + nameof(RuleFormat) + "` enum. " +
 		"`TitleFormat` and `RuleFormat` use the `" + nameof(MarkDownFormat) + "` enum. " +
 		"`FormatOptions` use the `" + nameof(RuleFormatOption) + "` enum.")]
-	[OtherRequirement(Precondition.GenericPerms)]
+	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
 	[DefaultEnabled(false)]
 	public sealed class PrintOutRules : AdvobotModuleBase
 	{

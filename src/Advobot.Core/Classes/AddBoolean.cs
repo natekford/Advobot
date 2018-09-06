@@ -17,8 +17,8 @@ namespace Advobot.Classes
 		/// </summary>
 		public readonly bool Value;
 
-		private static readonly IEnumerable<string> TrueVals = new[] { "true", "add" };
-		private static readonly IEnumerable<string> FalseVals = new[] { "false", "remove" };
+		private static readonly IEnumerable<string> TrueVals = new[] { "true", "add", "enable" };
+		private static readonly IEnumerable<string> FalseVals = new[] { "false", "remove", "disable" };
 
 		private AddBoolean(bool value)
 		{

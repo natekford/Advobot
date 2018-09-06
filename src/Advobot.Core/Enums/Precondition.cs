@@ -2,6 +2,7 @@
 
 namespace Advobot.Enums
 {
+	/*
 	/// <summary>
 	/// Used in <see cref="Classes.Attributes.OtherRequirementAttribute"/> to perform various checks.
 	/// </summary>
@@ -24,5 +25,5 @@ namespace Advobot.Enums
 		/// If a user is the owner of the bot.
 		/// </summary>
 		BotOwner = (1U << 3),
-	}
+	}*/
 }

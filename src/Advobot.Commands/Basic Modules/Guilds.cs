@@ -16,7 +16,8 @@ namespace Advobot.Commands.Guilds
 	[Category(typeof(LeaveGuild)), Group(nameof(LeaveGuild)), TopLevelShortAlias(typeof(LeaveGuild))]
 	[Summary("Makes the bot leave the guild. " +
 		"Settings and preferences will be preserved.")]
-	[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
+	//TODO: better group name
+	[RequireBotOwner(Group = nameof(LeaveGuild)), RequireGuildOwner(Group = nameof(LeaveGuild))]
 	[DefaultEnabled(true)]
 	public sealed class LeaveGuild : AdvobotModuleBase
 	{
@@ -300,7 +301,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(CreateGuild)), Group(nameof(CreateGuild)), TopLevelShortAlias(typeof(CreateGuild))]
 	[Summary("Creates a guild with the bot as the owner.")]
-	[OtherRequirement(Precondition.BotOwner)]
+	[RequireBotOwner]
 	[DefaultEnabled(true)]
 	public sealed class CreateGuild : AdvobotModuleBase
 	{
@@ -317,7 +318,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(SwapGuildOwner)), Group(nameof(SwapGuildOwner)), TopLevelShortAlias(typeof(SwapGuildOwner))]
 	[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
-	[OtherRequirement(Precondition.BotOwner)]
+	[RequireBotOwner]
 	[DefaultEnabled(true)]
 	public sealed class SwapGuildOwner : AdvobotModuleBase
 	{
@@ -337,7 +338,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(DeleteGuild)), Group(nameof(DeleteGuild)), TopLevelShortAlias(typeof(DeleteGuild))]
 	[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
-	[OtherRequirement(Precondition.BotOwner)]
+	[RequireBotOwner]
 	[DefaultEnabled(true)]
 	public sealed class DeleteGuild : AdvobotModuleBase
 	{

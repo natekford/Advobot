@@ -56,6 +56,9 @@ namespace Advobot.Classes.Attributes
 			=> "hey";
 	}
 
+	/// <summary>
+	/// Requires guild owner before this command will execute.
+	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 	public sealed class RequireGuildOwner : PreconditionAttribute
 	{
@@ -80,6 +83,9 @@ namespace Advobot.Classes.Attributes
 			=> "Guild Owner";
 	}
 
+	/// <summary>
+	/// Requires bot owner before this command will execute.
+	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 	public sealed class RequireBotOwner : PreconditionAttribute
 	{
@@ -104,6 +110,9 @@ namespace Advobot.Classes.Attributes
 			=> "Bot Owner";
 	}
 
+	/// <summary>
+	/// Requires trusted user status before this command will execute.
+	/// </summary>
 	[Obsolete("Remove this for safety reasons? Or let trusted users exist?")]
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 	public sealed class RequireTrustedUser : PreconditionAttribute

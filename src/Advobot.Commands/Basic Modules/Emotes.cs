@@ -150,7 +150,7 @@ namespace Advobot.Commands.Emotes
 
 	[Category(typeof(DisplayEmotes)), Group(nameof(DisplayEmotes)), TopLevelShortAlias(typeof(DisplayEmotes))]
 	[Summary("Lists the emotes in the guild. If there are more than 20 emotes of a specified type, they will be uploaded in a file.")]
-	[OtherRequirement(Precondition.GenericPerms)]
+	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayEmotes : AdvobotModuleBase
 	{
