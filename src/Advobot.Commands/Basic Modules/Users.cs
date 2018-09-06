@@ -363,8 +363,7 @@ namespace Advobot.Commands.Users
 		"Third are the list of roles that are immune to slowmode.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
-	[SaveGuildSettings]
-	public sealed class ModifySlowmode : AdvobotModuleBase
+	public sealed class ModifySlowmode : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create([ValidateNumber(1, 5)] uint messages, [ValidateNumber(1, 30)] uint interval, [Optional] params SocketRole[] immuneRoles)
@@ -400,6 +399,8 @@ namespace Advobot.Commands.Users
 			Context.GuildSettings.Slowmode.Enabled = false;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled slowmode.").CAF();
 		}
+
+		protected override IGuildSettings GetSettings() => Context.GuildSettings;
 	}
 
 	[Category(typeof(ForAllWithRole)), Group(nameof(ForAllWithRole)), TopLevelShortAlias(typeof(ForAllWithRole))]

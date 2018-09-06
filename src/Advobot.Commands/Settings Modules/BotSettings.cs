@@ -29,7 +29,6 @@ namespace Advobot.Commands.BotSettings
 			=> await ShowAsync(settingName).CAF();
 
 		protected override IBotSettings GetSettings() => Context.BotSettings;
-		protected override void SaveSettings() { return; }
 	}
 
 	[Category(typeof(ModifyBotSettings)), Group(nameof(ModifyBotSettings)), TopLevelShortAlias(typeof(ModifyBotSettings))]
@@ -102,6 +101,5 @@ namespace Advobot.Commands.BotSettings
 			=> await ModifyListAsync(x => x.UsersIgnoredFromCommands, value, add).CAF();
 
 		protected override IBotSettings GetSettings() => Context.BotSettings;
-		protected override void SaveSettings() => Context.BotSettings.SaveSettings(Context.BotSettings);
 	}
 }

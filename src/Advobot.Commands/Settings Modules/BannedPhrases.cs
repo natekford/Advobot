@@ -91,11 +91,10 @@ namespace Advobot.Commands.BannedPhrases
 		"Banned names ban users if they join and they have them in their name.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
-	public sealed class ModifyBannedPhrases : AdvobotModuleBase
+	public sealed class ModifyBannedPhrases : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
-		public sealed class Regex : AdvobotModuleBase
+		public sealed class Regex : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -142,7 +141,7 @@ namespace Advobot.Commands.BannedPhrases
 			}
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
-		public sealed class String : AdvobotModuleBase
+		public sealed class String : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -162,7 +161,7 @@ namespace Advobot.Commands.BannedPhrases
 			}
 		}
 		[Group(nameof(Name)), ShortAlias(nameof(Name))]
-		public sealed class Name : AdvobotModuleBase
+		public sealed class Name : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -235,11 +234,10 @@ namespace Advobot.Commands.BannedPhrases
 		"`Show` lists the punishments of whatever type was specified.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
-	public sealed class ModifyPunishmentType : AdvobotModuleBase
+	public sealed class ModifyPunishmentType : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
-		public sealed class Regex : AdvobotModuleBase
+		public sealed class Regex : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()
@@ -252,7 +250,7 @@ namespace Advobot.Commands.BannedPhrases
 				=> await Modify(Context, Context.GuildSettings.BannedPhraseRegex, text, nameof(Regex), punishment).CAF();
 		}
 		[Group(nameof(String)), ShortAlias(nameof(String))]
-		public sealed class String : AdvobotModuleBase
+		public sealed class String : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
 			[Command(nameof(Show)), ShortAlias(nameof(Show))]
 			public async Task Show()

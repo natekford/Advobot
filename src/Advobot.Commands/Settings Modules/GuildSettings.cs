@@ -53,9 +53,34 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(IGuildSettings.Prefix)), ShortAlias(nameof(IGuildSettings.Prefix))]
 		public async Task Prefix([ValidateString(Target.Prefix)] string value)
 			=> await ModifyAsync(x => x.Prefix, value).CAF();
+		public async Task NonVerboseErrors(AddBoolean value)
+			=> await ModifyAsync(x => x.NonVerboseErrors, value);
+		//TODO: validate removing log
+		//TODO: validate invoker has higher role than bot
 		[Command(nameof(IGuildSettings.ServerLogId)), ShortAlias(nameof(IGuildSettings.ServerLogId))]
-		public async Task ServerLogId([Optional, ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel channel)
-			=> await ModifyAsync(x => x.ServerLogId, channel?.Id ?? 0).CAF();
+		public async Task ServerLogId([Optional, ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+			=> await ModifyAsync(x => x.ServerLogId, value?.Id ?? 0).CAF();
+		[Command(nameof(IGuildSettings.ModLogId)), ShortAlias(nameof(IGuildSettings.ModLogId))]
+		public async Task ModLogId([Optional, ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+			=> await ModifyAsync(x => x.ModLogId, value?.Id ?? 0).CAF();
+		[Command(nameof(IGuildSettings.ImageLogId)), ShortAlias(nameof(IGuildSettings.ImageLogId))]
+		public async Task ImageLogId([Optional, ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+			=> await ModifyAsync(x => x.ImageLogId, value?.Id ?? 0).CAF();
+		[Command(nameof(IGuildSettings.MuteRoleId)), ShortAlias(nameof(IGuildSettings.MuteRoleId))]
+		public async Task MuteRoleId([ValidateObject(Verif.IsNotEveryone, Verif.IsNotManaged, Verif.CanBeEdited)] SocketRole value)
+			=> await ModifyAsync(x => x.MuteRoleId, value.Id);
+		public async Task LogActions(AddBoolean add, LogAction value)
+			=> await ModifyListAsync(x => x.LogActions, value, add);
+		public async Task ImageOnlyChannels(AddBoolean add, [ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+			=> await ModifyListAsync(x => x.ImageOnlyChannels, value.Id, add);
+		public async Task IgnoredLogChannels(AddBoolean add, [ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+			=> await ModifyListAsync(x => x.IgnoredLogChannels, value.Id, add);
+		public async Task IgnoredXpChannels(AddBoolean add, [ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+			=> await ModifyListAsync(x => x.IgnoredXpChannels, value.Id, add);
+
+		public async Task IgnoredCommandChannels(AddBoolean add, [ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+			=> await ModifyListAsync(x => x.IgnoredCommandChannels, value.Id, add);
+		
 
 		protected override IGuildSettings GetSettings() => Context.GuildSettings;
 	}
@@ -224,8 +249,7 @@ namespace Advobot.Commands.GuildSettings
 		"Type `" + nameof(ModifyBotUsers) + " [" + nameof(Show) + "] [User]` to see the permissions of that user.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
-	public sealed class ModifyBotUsers : AdvobotModuleBase
+	public sealed class ModifyBotUsers : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
 		[Group(nameof(Show)), ShortAlias(nameof(Show))]
 		public sealed class Show : AdvobotModuleBase
@@ -293,6 +317,8 @@ namespace Advobot.Commands.GuildSettings
 			var resp = $"Successfully removed the following bot permissions from `{user.Format()}`: `{takenPerms}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
+
+		protected override IGuildSettings GetSettings() => Context.GuildSettings;
 	}
 
 	[Category(typeof(ModifyPersistentRoles)), Group(nameof(ModifyPersistentRoles)), TopLevelShortAlias(typeof(ModifyPersistentRoles))]

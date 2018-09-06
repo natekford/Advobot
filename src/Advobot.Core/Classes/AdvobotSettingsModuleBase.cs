@@ -113,16 +113,15 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Adds or removes the specified object from the list while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
 		/// </summary>
-		/// <param name="property"></param>
+		/// <param name="propertySelector"></param>
 		/// <param name="value"></param>
 		/// <param name="add"></param>
 		/// <returns></returns>
-		protected async Task ModifyListAsync<T>(Expression<Func<TSettings, IList<T>>> property, T value, bool add)
+		protected async Task ModifyListAsync<T>(Expression<Func<TSettings, IList<T>>> propertySelector, T value, bool add)
 		{
 			var settings = GetSettings();
-			var expr = (MemberExpression)property.Body;
-			var prop = (PropertyInfo)expr.Member;
-			var list = property.Compile()(settings);
+			var prop = GetProperty(propertySelector);
+			var list = propertySelector.Compile()(settings);
 
 			if (list.Contains(value) == add)
 			{
@@ -147,20 +146,38 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Sets the property to the supplied value while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
 		/// </summary>
-		/// <param name="property"></param>
+		/// <param name="propertySelector"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected async Task ModifyAsync<T>(Expression<Func<TSettings, T>> property, T value)
+		protected async Task ModifyAsync<TValue>(Expression<Func<TSettings, TValue>> propertySelector, TValue value)
 		{
 			//This uses Expression<Func<TSettings, T>> instead of Action<TSettings, T> so the property name can be gotten from the same arg
 			var settings = GetSettings();
-			var expr = (MemberExpression)property.Body;
-			var prop = (PropertyInfo)expr.Member;
+			var prop = GetProperty(propertySelector);
 			prop.SetValue(settings, value);
 
 			settings.RaisePropertyChanged(prop.Name);
 			var resp = $"Successfully set `{prop.Name}` to `{FormatValue(settings, value)}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+		}
+		protected async Task ModifyAsync<TValue, TValidation>(
+			Expression<Func<TSettings, TValue>> propertySelector,
+			TValidation value,
+			Func<TValidation, (bool Valid, TValue Converted)> validation)
+		{
+			var (Valid, Converted) = validation(value);
+			if (!Valid)
+			{
+				var resp = $"The supplied value `{FormatValue(GetSettings(), value)}` is invalid for `{GetProperty(propertySelector).Name}`";
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				return;
+			}
+			await ModifyAsync(propertySelector, Converted).CAF();
+		}
+		private PropertyInfo GetProperty<TValue>(Expression<Func<TSettings, TValue>> propertySelector)
+		{
+			var expr = (MemberExpression)propertySelector.Body;
+			return (PropertyInfo)expr.Member;
 		}
 		/// <summary>
 		/// Returns the settings this module is targetting.
