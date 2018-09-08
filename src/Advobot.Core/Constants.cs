@@ -12,7 +12,7 @@ namespace Advobot
 		/// <summary>
 		/// The zero length character to put before every message.
 		/// </summary>
-		public const string ZERO_LENGTH_CHAR = "\u180E";
+		public const string ZERO_LENGTH_CHAR = "\u200b";
 		/// <summary>
 		/// The bot's version.
 		/// </summary>

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Discord.WebSocket;
 
@@ -13,10 +12,10 @@ namespace Advobot.Interfaces
 	public interface ISettingsBase : INotifyPropertyChanged
 	{
 		/// <summary>
-		/// Returns all properties with <see cref="Classes.Attributes.SettingAttribute"/>.
+		/// Returns the registered settings.
 		/// </summary>
 		/// <returns></returns>
-		IReadOnlyDictionary<string, PropertyInfo> GetSettings();
+		IReadOnlyDictionary<string, ISetting> GetSettings();
 		/// <summary>
 		/// Gets the file associated with the settings.
 		/// </summary>

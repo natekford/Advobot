@@ -1,4 +1,5 @@
-﻿using Advobot.Interfaces;
+﻿using System;
+using Advobot.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -7,7 +8,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds a name and description.
 	/// </summary>
-	public class Quote : IGuildSetting
+	public class Quote : IGuildSetting, INameable
 	{
 		/// <summary>
 		/// The name of the quote.
@@ -27,8 +28,8 @@ namespace Advobot.Classes.Settings
 		/// <param name="description"></param>
 		public Quote(string name, string description)
 		{
-			Name = name;
-			Description = description;
+			Name = name ?? throw new ArgumentException(name, nameof(name));
+			Description = description ?? throw new ArgumentException(description, nameof(description));
 		}
 
 		/// <inheritdoc />

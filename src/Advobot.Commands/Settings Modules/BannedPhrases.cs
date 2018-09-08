@@ -9,6 +9,7 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -17,6 +18,7 @@ using Discord.WebSocket;
 
 namespace Advobot.Commands.BannedPhrases
 {
+	/*
 	[Category(typeof(EvaluateBannedRegex)), Group(nameof(EvaluateBannedRegex)), TopLevelShortAlias(typeof(EvaluateBannedRegex))]
 	[Summary("Evaluates a regex (case is ignored). " +
 		"The regex are also restricted to a 5,000 tick timeout. " +
@@ -390,4 +392,5 @@ namespace Advobot.Commands.BannedPhrases
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
+	*/
 }

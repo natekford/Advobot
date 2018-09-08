@@ -51,6 +51,9 @@ namespace Advobot.NetCoreUI.Classes.Controls
 									displayList.Remove(item);
 								}
 								return;
+							case NotifyCollectionChangedAction.Reset:
+								displayList.Clear();
+								return;
 							default:
 								throw new NotImplementedException();
 						}

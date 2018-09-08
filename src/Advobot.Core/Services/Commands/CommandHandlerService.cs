@@ -28,6 +28,7 @@ namespace Advobot.Services.Commands
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private bool _Loaded;
+		private ulong _OwnerId;
 
 		/// <inheritdoc />
 		public event LogCounterIncrementEventHandler LogCounterIncrement;
@@ -95,6 +96,7 @@ namespace Advobot.Services.Commands
 				return;
 			}
 			_Loaded = true;
+			_OwnerId = await ClientUtils.GetOwnerIdAsync(_Client).CAF();
 
 			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();
 			//Add in all the commands
@@ -116,7 +118,8 @@ namespace Advobot.Services.Commands
 			var argPos = -1;
 			if (!_Loaded
 				|| _BotSettings.Pause
-				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
+				//Disallow running commands if the user is blocked, unless the owner of the bot blocks themselves either accidentally or idiotically
+				|| (_BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id) && message.Author.Id != _OwnerId)
 				|| message.Author.IsBot
 				|| string.IsNullOrWhiteSpace(message.Content)
 				|| !(message is SocketUserMessage msg)
@@ -131,7 +134,7 @@ namespace Advobot.Services.Commands
 			var context = new AdvobotCommandContext(_Provider, settings, _Client, msg);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 
-			if ((!result.IsSuccess && result.ErrorReason == null) || result.Error == CommandError.UnknownCommand)
+			if (result.CanBeIgnored() || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => x.CanBeIgnored())))
 			{
 				return;
 			}
@@ -159,5 +162,11 @@ namespace Advobot.Services.Commands
 			ConsoleUtils.WriteLine(context.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 			NotifyLogCounterIncrement(nameof(ILogService.AttemptedCommands), 1);
 		}
+	}
+
+	internal static class CommandHandlerUtils
+	{
+		public static bool CanBeIgnored(this IResult result)
+			=> result.Error == CommandError.UnknownCommand || (!result.IsSuccess && result.ErrorReason == null);
 	}
 }

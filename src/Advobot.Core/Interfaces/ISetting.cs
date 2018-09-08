@@ -1,22 +1,55 @@
-﻿using Discord.WebSocket;
-
-namespace Advobot.Interfaces
+﻿namespace Advobot.Interfaces
 {
 	/// <summary>
-	/// Formatting for a class defined as a setting.
+	/// Specifies how to get and set a setting.
 	/// </summary>
-	public interface IGuildSetting
+	/// <typeparam name="T"></typeparam>
+	public interface ISetting<T>
 	{
 		/// <summary>
-		/// Returns the setting in a human readable format.
+		/// The name of the setting.
 		/// </summary>
-		/// <returns></returns>
-		string ToString();
+		string Name { get; }
+
 		/// <summary>
-		/// Returns the setting in a human readable format.
+		/// Sets the setting to its default value.
 		/// </summary>
-		/// <param name="guild">The guild to format in specific for.</param>
+		void Reset();
+		/// <summary>
+		/// Gets the current value of the setting.
+		/// </summary>
 		/// <returns></returns>
-		string ToString(SocketGuild guild);
+		T GetValue();
+		/// <summary>
+		/// Sets the setting to the specified value.
+		/// </summary>
+		/// <param name="newValue"></param>
+		void SetValue(T newValue);
+	}
+
+	/// <summary>
+	/// Specifies how to get and set a setting.
+	/// </summary>
+	public interface ISetting
+	{
+		/// <summary>
+		/// The name of the setting.
+		/// </summary>
+		string Name { get; }
+
+		/// <summary>
+		/// Sets the setting to its default value.
+		/// </summary>
+		void Reset();
+		/// <summary>
+		/// Gets the current value of the setting.
+		/// </summary>
+		/// <returns></returns>
+		object GetValue();
+		/// <summary>
+		/// Sets the setting to the specified value.
+		/// </summary>
+		/// <param name="newValue"></param>
+		void SetValue(object newValue);
 	}
 }

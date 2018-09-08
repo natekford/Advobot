@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Enums;
@@ -56,10 +57,10 @@ namespace Advobot.SharedUI.Colors
 		};
 
 		/// <inheritdoc />
-		[JsonProperty("ColorTargets", Order = 1), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
+		[JsonProperty("ColorTargets", Order = 1)]
 		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
 		/// <inheritdoc />
-		[JsonProperty("Theme", Order = 2), Setting(ColorTheme.LightMode)]
+		[JsonProperty("Theme", Order = 2)]
 		public ColorTheme Theme
 		{
 			get => _Theme;
@@ -96,6 +97,9 @@ namespace Advobot.SharedUI.Colors
 		/// </summary>
 		public ColorSettings()
 		{
+			RegisterSetting(this, x => x.UserDefinedColors, (s, v) => { v.Keys.ToList().ForEach(x => v[x] = default); return v; });
+			RegisterSetting(this, x => x.Theme, (s, v) => ColorTheme.LightMode);
+
 			Theme = ColorTheme.LightMode;
 			foreach (var key in LightMode.Keys)
 			{

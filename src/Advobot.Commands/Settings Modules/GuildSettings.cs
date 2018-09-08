@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -41,21 +42,33 @@ namespace Advobot.Commands.GuildSettings
 		protected override IGuildSettings GetSettings() => Context.GuildSettings;
 	}
 
+	public class NameableEqualityComparer : IEqualityComparer<INameable>
+	{
+		public bool Equals(INameable x, INameable y) => x?.Name == y?.Name;
+		public int GetHashCode(INameable obj) => obj.GetHashCode();
+	}
+
 	[Category(typeof(ModifyGuildSettings)), Group(nameof(ModifyGuildSettings)), TopLevelShortAlias(typeof(ModifyGuildSettings))]
 	[Summary("Modify the given setting on the guild.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyGuildSettings : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
+		static ModifyGuildSettings()
+		{
+			RegisterEqualityComparer<Quote>(new NameableEqualityComparer());
+		}
+
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
 		public async Task Reset(string settingName)
 			=> await ResetAsync(settingName).CAF();
 		[Command(nameof(IGuildSettings.Prefix)), ShortAlias(nameof(IGuildSettings.Prefix))]
 		public async Task Prefix([ValidateString(Target.Prefix)] string value)
 			=> await ModifyAsync(x => x.Prefix, value).CAF();
+		[Command(nameof(IGuildSettings.NonVerboseErrors)), ShortAlias(nameof(IGuildSettings.NonVerboseErrors))]
 		public async Task NonVerboseErrors(AddBoolean value)
-			=> await ModifyAsync(x => x.NonVerboseErrors, value);
-		//TODO: validate removing log
+			=> await ModifyAsync(x => x.NonVerboseErrors, value).CAF();
+		//TODO: rewrite the log channel stuff? or not cause the user has to be admin to execute this meaning they can see every channel
 		//TODO: validate invoker has higher role than bot
 		[Command(nameof(IGuildSettings.ServerLogId)), ShortAlias(nameof(IGuildSettings.ServerLogId))]
 		public async Task ServerLogId([Optional, ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
@@ -68,20 +81,35 @@ namespace Advobot.Commands.GuildSettings
 			=> await ModifyAsync(x => x.ImageLogId, value?.Id ?? 0).CAF();
 		[Command(nameof(IGuildSettings.MuteRoleId)), ShortAlias(nameof(IGuildSettings.MuteRoleId))]
 		public async Task MuteRoleId([ValidateObject(Verif.IsNotEveryone, Verif.IsNotManaged, Verif.CanBeEdited)] SocketRole value)
-			=> await ModifyAsync(x => x.MuteRoleId, value.Id);
-		public async Task LogActions(AddBoolean add, LogAction value)
-			=> await ModifyListAsync(x => x.LogActions, value, add);
-		public async Task ImageOnlyChannels(AddBoolean add, [ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
-			=> await ModifyListAsync(x => x.ImageOnlyChannels, value.Id, add);
-		public async Task IgnoredLogChannels(AddBoolean add, [ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
-			=> await ModifyListAsync(x => x.IgnoredLogChannels, value.Id, add);
-		public async Task IgnoredXpChannels(AddBoolean add, [ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
-			=> await ModifyListAsync(x => x.IgnoredXpChannels, value.Id, add);
+			=> await ModifyAsync(x => x.MuteRoleId, value.Id).CAF();
+		[Command(nameof(IGuildSettings.LogActions)), ShortAlias(nameof(IGuildSettings.LogActions))]
+		public async Task LogActions(AddBoolean add, params LogAction[] values)
+			=> await ModifyCollectionAsync(x => x.LogActions, add, values).CAF();
+		[Command(nameof(IGuildSettings.ImageOnlyChannels)), ShortAlias(nameof(IGuildSettings.ImageOnlyChannels))]
+		public async Task ImageOnlyChannels(
+			AddBoolean add,
+			[ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] values)
+			=> await ModifyCollectionAsync(x => x.ImageOnlyChannels, add, values.Select(x => x.Id)).CAF();
+		[Command(nameof(IGuildSettings.IgnoredLogChannels)), ShortAlias(nameof(IGuildSettings.IgnoredLogChannels))]
+		public async Task IgnoredLogChannels(
+			AddBoolean add,
+			[ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] values)
+			=> await ModifyCollectionAsync(x => x.IgnoredLogChannels, add, values.Select(x => x.Id)).CAF();
+		[Command(nameof(IGuildSettings.IgnoredXpChannels)), ShortAlias(nameof(IGuildSettings.IgnoredXpChannels))]
+		public async Task IgnoredXpChannels(
+			AddBoolean add,
+			[ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] values)
+			=> await ModifyCollectionAsync(x => x.IgnoredXpChannels, add, values.Select(x => x.Id)).CAF();
+		[Command(nameof(IGuildSettings.IgnoredCommandChannels)), ShortAlias(nameof(IGuildSettings.IgnoredCommandChannels))]
+		public async Task IgnoredCommandChannels(
+			AddBoolean add,
+			[ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] values)
+			=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, add, values.Select(x => x.Id)).CAF();
 
-		public async Task IgnoredCommandChannels(AddBoolean add, [ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
-			=> await ModifyListAsync(x => x.IgnoredCommandChannels, value.Id, add);
+		[Command(nameof(IGuildSettings.Quotes)), ShortAlias(nameof(IGuildSettings.Quotes))]
+		public async Task Quotes(AddBoolean add, string name, [Optional, Remainder] string text)
+			=> await ModifyCollectionAsync(x => x.Quotes, add, new Quote(name, text ?? "")).CAF();
 		
-
 		protected override IGuildSettings GetSettings() => Context.GuildSettings;
 	}
 
@@ -145,11 +173,12 @@ namespace Advobot.Commands.GuildSettings
 	[DefaultEnabled(true, AbleToToggle = false)]
 	public sealed class ModifyIgnoredCommandChannels : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
+		/*
 		[Command]
 		public async Task Command(
 			AddBoolean enable,
 			[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel)
-			=> await ModifyListAsync(x => x.IgnoredCommandChannels, channel.Id, enable).CAF();
+			=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, enable, channel.Id).CAF();*/
 		[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
 		[RequireServices(typeof(IHelpEntryService))]
 		public async Task Category(

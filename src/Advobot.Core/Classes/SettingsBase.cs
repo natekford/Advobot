@@ -1,21 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using Newtonsoft.Json;
 
 namespace Advobot.Classes
 {
@@ -24,33 +21,20 @@ namespace Advobot.Classes
 	/// </summary>
 	public abstract class SettingsBase : ISettingsBase, INotifyPropertyChanged
 	{
-		private ImmutableDictionary<string, PropertyInfo> _Settings;
+		private readonly Dictionary<string, ISetting> _Settings = new Dictionary<string, ISetting>(StringComparer.OrdinalIgnoreCase);
 
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <inheritdoc />
-		public virtual IReadOnlyDictionary<string, PropertyInfo> GetSettings()
-			=> _Settings ?? (_Settings = GetSettings(GetType()));
-		/// <summary>
-		/// Gets settings from a type statically.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		public static ImmutableDictionary<string, PropertyInfo> GetSettings(Type type)
-		{
-			return type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-				.Where(x => x.GetCustomAttribute<SettingAttribute>() != null)
-				.ToDictionary(x => x.Name, x => x)
-				.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
-		}
+		public virtual IReadOnlyDictionary<string, ISetting> GetSettings() => _Settings;
 		/// <inheritdoc />
 		public virtual string ToString(BaseSocketClient client, SocketGuild guild)
 		{
 			var sb = new StringBuilder();
 			foreach (var kvp in GetSettings())
 			{
-				var formatted = Format(client, guild, kvp.Value.GetValue(this));
+				var formatted = Format(client, guild, kvp.Value.GetValue());
 				if (string.IsNullOrWhiteSpace(formatted))
 				{
 					continue;
@@ -64,7 +48,7 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		public virtual string FormatSetting(BaseSocketClient client, SocketGuild guild, string name)
-			=> Format(client, guild, GetSettings()[name].GetValue(this));
+			=> Format(client, guild, GetSettings()[name].GetValue());
 		/// <inheritdoc />
 		public virtual string FormatValue(BaseSocketClient client, SocketGuild guild, object value)
 			=> Format(client, guild, value);
@@ -91,48 +75,62 @@ namespace Advobot.Classes
 		public void RaisePropertyChanged([CallerMemberName] string name = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 		/// <summary>
+		/// Adds the setting to the settings base.
+		/// </summary>
+		/// <typeparam name="TSource"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
+		/// <param name="source"></param>
+		/// <param name="propertySelector"></param>
+		/// <param name="defaultValueFactory"></param>
+		/// <returns></returns>
+		protected ISetting RegisterSetting<TSource, TValue>(
+			TSource source,
+			Expression<Func<TSource, TValue>> propertySelector,
+			Func<TSource, TValue, TValue> defaultValueFactory) where TSource : ISettingsBase
+		{
+			var setting = new Setting<TSource, TValue>(source, propertySelector, defaultValueFactory);
+			_Settings.Add(setting.Name, setting);
+			return setting;
+		}
+		/// <summary>
+		/// Throws an argument exception if the condition is true.
+		/// </summary>
+		/// <param name="backingField"></param>
+		/// <param name="value"></param>
+		/// <param name="condition"></param>
+		/// <param name="msg"></param>
+		/// <param name="caller"></param>
+		protected void ThrowIfElseSet<T>(ref T backingField, T value, Func<T, bool> condition, string msg, [CallerMemberName] string caller = "")
+		{
+			if (condition(value))
+			{
+				throw new ArgumentException(msg, caller);
+			}
+			backingField = value;
+			RaisePropertyChanged(caller);
+		}
+		/// <summary>
 		/// Sets the property to the specified value.
 		/// </summary>
-		/// <param name="property"></param>
+		/// <param name="setting"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		private object SetSetting(PropertyInfo property, object value)
+		private object SetSetting(ISetting setting, object value)
 		{
-			property.SetValue(this, Convert.ChangeType(value, property.PropertyType));
-			RaisePropertyChanged(property.Name);
-			return property.GetValue(this);
+			setting.SetValue(value);
+			RaisePropertyChanged(setting.Name);
+			return setting.GetValue();
 		}
 		/// <summary>
 		/// Sets the property to the specified default value.
 		/// </summary>
-		/// <param name="property"></param>
+		/// <param name="setting"></param>
 		/// <returns></returns>
-		private object ResetSetting(PropertyInfo property)
+		private object ResetSetting(ISetting setting)
 		{
-			var settingAttr = property.GetCustomAttribute<SettingAttribute>();
-			if (settingAttr.NonCompileTimeDefaultValue != default)
-			{
-				object nonCompileTimeValue;
-				switch (settingAttr.NonCompileTimeDefaultValue)
-				{
-					case NonCompileTimeDefaultValue.Default:
-						nonCompileTimeValue = Activator.CreateInstance(property.PropertyType);
-						break;
-					case NonCompileTimeDefaultValue.ResetDictionaryValues:
-						var dict = (IDictionary)property.GetValue(this);
-						dict.Keys.Cast<object>().ToList().ForEach(x => dict[x] = null);
-						return dict;
-					default:
-						throw new InvalidOperationException("Invalid non compile time default value provided.");
-				}
-				property.SetValue(this, nonCompileTimeValue);
-			}
-			else
-			{
-				property.SetValue(this, settingAttr.DefaultValue);
-			}
-			RaisePropertyChanged(property.Name);
-			return property.GetValue(this);
+			setting.Reset();
+			RaisePropertyChanged(setting.Name);
+			return setting.GetValue();
 		}
 		/// <summary>
 		/// Recursive function for formatting objects.

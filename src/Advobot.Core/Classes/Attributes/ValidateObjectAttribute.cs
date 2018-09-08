@@ -10,6 +10,7 @@ using Discord.Commands;
 
 namespace Advobot.Classes.Attributes
 {
+	//TODO: split into separate attributes for types?
 	/// <summary>
 	/// Verifies the parameter this attribute is targetting fits all of the given conditions.
 	/// </summary>
@@ -93,7 +94,7 @@ namespace Advobot.Classes.Attributes
 					result = role.Verify(context, _Checks);
 					break;
 				default:
-					result = new VerifiedObjectResult(value, CommandError.Exception, $"{nameof(GetPreconditionResult)} has had an unexpected error.");
+					result = new VerifiedObjectResult(value, CommandError.Exception, $"{nameof(GetPreconditionResult)} has had an unexpected value passed to it.");
 					break;
 			}
 			return result.IsSuccess ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(result);

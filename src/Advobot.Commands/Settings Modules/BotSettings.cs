@@ -37,7 +37,7 @@ namespace Advobot.Commands.BotSettings
 		"For lists, a boolean indicating whether or not to add has to be included before the value.")]
 	[RequireBotOwner]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotSettings : AdvobotSettingsModuleBase<IBotSettings>
+	public sealed class ModifyBotSettings : AdvobotSettingsSavingModuleBase<IBotSettings>
 	{
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset)), Priority(1)]
 		public async Task Reset(string settingName)
@@ -91,14 +91,14 @@ namespace Advobot.Commands.BotSettings
 		public async Task MaxBannedPunishments([ValidateNumber(1, int.MaxValue)] int value)
 			=> await ModifyAsync(x => x.MaxBannedPunishments, value).CAF();
 		[Command(nameof(IBotSettings.TrustedUsers)), ShortAlias(nameof(IBotSettings.TrustedUsers))]
-		public async Task TrustedUsers(AddBoolean add, ulong value)
-			=> await ModifyListAsync(x => x.TrustedUsers, value, add).CAF();
+		public async Task TrustedUsers(AddBoolean add, params ulong[] values)
+			=> await ModifyCollectionAsync(x => x.TrustedUsers, add, values).CAF();
 		[Command(nameof(IBotSettings.UsersUnableToDmOwner)), ShortAlias(nameof(IBotSettings.UsersUnableToDmOwner))]
-		public async Task UsersUnableToDmOwner(AddBoolean add, ulong value)
-			=> await ModifyListAsync(x => x.UsersUnableToDmOwner, value, add).CAF();
+		public async Task UsersUnableToDmOwner(AddBoolean add, params ulong[] values)
+			=> await ModifyCollectionAsync(x => x.UsersUnableToDmOwner, add, values).CAF();
 		[Command(nameof(IBotSettings.UsersIgnoredFromCommands)), ShortAlias(nameof(IBotSettings.UsersIgnoredFromCommands))]
-		public async Task UsersIgnoredFromCommands(AddBoolean add, ulong value)
-			=> await ModifyListAsync(x => x.UsersIgnoredFromCommands, value, add).CAF();
+		public async Task UsersIgnoredFromCommands(AddBoolean add, params ulong[] values)
+			=> await ModifyCollectionAsync(x => x.UsersIgnoredFromCommands, add, values).CAF();
 
 		protected override IBotSettings GetSettings() => Context.BotSettings;
 	}

@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
+using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;

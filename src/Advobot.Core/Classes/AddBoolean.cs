@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using AdvorangesUtils;
 
 namespace Advobot.Classes
@@ -13,13 +15,38 @@ namespace Advobot.Classes
 	public struct AddBoolean
 	{
 		/// <summary>
+		/// Values that will set the stored bool to true.
+		/// </summary>
+		public static readonly ImmutableArray<string> TrueVals = new[] { "true", "add", "enable", "set" }.ToImmutableArray();
+		/// <summary>
+		/// Values that will set the stored bool to false.
+		/// </summary>
+		public static readonly ImmutableArray<string> FalseVals = new[] { "false", "remove", "disable", "unset" }.ToImmutableArray();
+
+		/// <summary>
 		/// The value of the boolean.
 		/// </summary>
 		public readonly bool Value;
 
-		private static readonly IEnumerable<string> TrueVals = new[] { "true", "add", "enable" };
-		private static readonly IEnumerable<string> FalseVals = new[] { "false", "remove", "disable" };
-
+		/// <summary>
+		/// Creates an instance of <see cref="AddBoolean"/>.
+		/// </summary>
+		/// <param name="value"></param>
+		public AddBoolean(string value)
+		{
+			if (TrueVals.CaseInsContains(value))
+			{
+				Value = true;
+			}
+			else if (FalseVals.CaseInsContains(value))
+			{
+				Value = false;
+			}
+			else
+			{
+				throw new ArgumentException(value, nameof(value));
+			}
+		}
 		private AddBoolean(bool value)
 		{
 			Value = value;

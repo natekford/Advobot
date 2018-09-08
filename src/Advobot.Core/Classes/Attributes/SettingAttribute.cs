@@ -3,6 +3,7 @@ using Advobot.Enums;
 
 namespace Advobot.Classes.Attributes
 {
+	/*
 	/// <summary>
 	/// Indicates a property is a setting.
 	/// </summary>
@@ -34,5 +35,5 @@ namespace Advobot.Classes.Attributes
 		{
 			DefaultValue = defaultValue;
 		}
-	}
+	}*/
 }

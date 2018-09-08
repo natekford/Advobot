@@ -3,7 +3,6 @@ using Advobot.Interfaces;
 
 namespace Advobot.Classes.Attributes
 {
-	/*
 	/// <summary>
 	/// Indicates after the command has executed guild settings should be saved.
 	/// </summary>
@@ -26,5 +25,5 @@ namespace Advobot.Classes.Attributes
 		/// Creates an instance of <see cref="SaveBotSettingsAttribute"/>.
 		/// </summary>
 		public SaveBotSettingsAttribute() : base(typeof(IBotSettings)) { }
-	}*/
+	}
 }

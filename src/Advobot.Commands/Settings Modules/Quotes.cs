@@ -65,8 +65,7 @@ namespace Advobot.Commands.Quotes
 		[Command]
 		public async Task Command()
 		{
-			var quotes = Context.GuildSettings.Quotes;
-			if (!quotes.Any())
+			if (!Context.GuildSettings.Quotes.Any())
 			{
 				await MessageUtils.SendErrorMessageAsync(Context, new Error("There are currently no quotes.")).CAF();
 				return;
@@ -75,7 +74,7 @@ namespace Advobot.Commands.Quotes
 			var embed = new EmbedWrapper
 			{
 				Title = "Quotes",
-				Description = $"`{string.Join("`, `", quotes.Select(x => x.Name))}`"
+				Description = $"`{string.Join("`, `", Context.GuildSettings.Quotes.Select(x => x.Name))}`"
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}

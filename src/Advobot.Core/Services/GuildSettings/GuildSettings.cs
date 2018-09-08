@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
@@ -20,38 +20,47 @@ namespace Advobot.Services.GuildSettings
 	/// </summary>
 	internal sealed class GuildSettings : SettingsBase, IGuildSettings
 	{
+		private static readonly ImmutableArray<LogAction> _DefaultLogActions = new List<LogAction>
+		{
+			LogAction.UserJoined,
+			LogAction.UserLeft,
+			LogAction.MessageReceived,
+			LogAction.MessageUpdated,
+			LogAction.MessageDeleted,
+		}.ToImmutableArray();
+
 		/// <inheritdoc />
-		[JsonProperty("WelcomeMessage"), Setting(null)]
+		[JsonProperty("WelcomeMessage")]
 		public GuildNotification WelcomeMessage { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("GoodbyeMessage"), Setting(null)]
+		[JsonProperty("GoodbyeMessage")]
 		public GuildNotification GoodbyeMessage { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("Slowmode"), Setting(null)]
+		[JsonProperty("Slowmode")]
 		public Slowmode Slowmode { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("Rules"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("Rules")]
 		public RuleHolder Rules { get; } = new RuleHolder();
 		/// <inheritdoc />
-		[JsonProperty("Prefix"), Setting(null)]
+		[JsonProperty("Prefix")]
 		public string Prefix { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("ServerLog"), Setting(0)]
+		[JsonProperty("ServerLog")]
 		public ulong ServerLogId { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("ModLog"), Setting(0)]
+		[JsonProperty("ModLog")]
 		public ulong ModLogId { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("ImageLog"), Setting(0)]
+		[JsonProperty("ImageLog")]
 		public ulong ImageLogId { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("MuteRole"), Setting(0)]
+		[JsonProperty("MuteRole")]
 		public ulong MuteRoleId { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("NonVerboseErrors"), Setting(false)]
+		[JsonProperty("NonVerboseErrors")]
 		public bool NonVerboseErrors { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("SpamPrevention"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
+		[JsonProperty("SpamPrevention")]
 		public IDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; } = new Dictionary<SpamType, SpamPreventionInfo>
 		{
 			{ SpamType.Message, null },
@@ -61,53 +70,53 @@ namespace Advobot.Services.GuildSettings
 			{ SpamType.Mention, null }
 		};
 		/// <inheritdoc />
-		[JsonProperty("RaidPrevention"), Setting(NonCompileTimeDefaultValue.ResetDictionaryValues)]
+		[JsonProperty("RaidPrevention")]
 		public IDictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; } = new Dictionary<RaidType, RaidPreventionInfo>
 		{
 			{ RaidType.Regular, null },
 			{ RaidType.RapidJoins, null }
 		};
 		/// <inheritdoc />
-		[JsonProperty("PersistentRoles"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("PersistentRoles")]
 		public IList<PersistentRole> PersistentRoles { get; } = new List<PersistentRole>();
 		/// <inheritdoc />
-		[JsonProperty("BotUsers"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("BotUsers")]
 		public IList<BotImplementedPermissions> BotUsers { get; } = new List<BotImplementedPermissions>();
 		/// <inheritdoc />
-		[JsonProperty("SelfAssignableGroups"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("SelfAssignableGroups")]
 		public IList<SelfAssignableRoles> SelfAssignableGroups { get; } = new List<SelfAssignableRoles>();
 		/// <inheritdoc />
-		[JsonProperty("Quotes"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("Quotes")]
 		public IList<Quote> Quotes { get; } = new List<Quote>();
 		/// <inheritdoc />
-		[JsonProperty("LogActions"), Setting(NonCompileTimeDefaultValue.Default)]
-		public IList<LogAction> LogActions { get; } = new List<LogAction>();
+		[JsonProperty("LogActions")]
+		public IList<LogAction> LogActions { get; } = new List<LogAction>(_DefaultLogActions);
 		/// <inheritdoc />
-		[JsonProperty("IgnoredCommandChannels"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("IgnoredCommandChannels")]
 		public IList<ulong> IgnoredCommandChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("IgnoredLogChannels"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("IgnoredLogChannels")]
 		public IList<ulong> IgnoredLogChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("IgnoredXpChannels"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("IgnoredXpChannels")]
 		public IList<ulong> IgnoredXpChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("ImageOnlyChannels"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("ImageOnlyChannels")]
 		public IList<ulong> ImageOnlyChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhraseStrings"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("BannedPhraseStrings")]
 		public IList<BannedPhrase> BannedPhraseStrings { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhraseRegex"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("BannedPhraseRegex")]
 		public IList<BannedPhrase> BannedPhraseRegex { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhraseNames"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("BannedPhraseNames")]
 		public IList<BannedPhrase> BannedPhraseNames { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhrasePunishments"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("BannedPhrasePunishments")]
 		public IList<BannedPhrasePunishment> BannedPhrasePunishments { get; } = new List<BannedPhrasePunishment>();
 		/// <inheritdoc />
-		[JsonProperty("CommandSettings"), Setting(NonCompileTimeDefaultValue.Default)]
+		[JsonProperty("CommandSettings")]
 		public CommandSettings CommandSettings { get; } = new CommandSettings();
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -133,6 +142,39 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool Loaded { get; private set; }
+
+		/// <summary>
+		/// Creates an instance of <see cref="GuildSettings"/>.
+		/// </summary>
+		public GuildSettings()
+		{
+			RegisterSetting(this, x => x.WelcomeMessage, (s, v) => null);
+			RegisterSetting(this, x => x.GoodbyeMessage, (s, v) => null);
+			RegisterSetting(this, x => x.Slowmode, (s, v) => null);
+			RegisterSetting(this, x => x.Rules, (s, v) => new RuleHolder());
+			RegisterSetting(this, x => x.Prefix, (s, v) => null);
+			RegisterSetting(this, x => x.ServerLogId, (s, v) => 0);
+			RegisterSetting(this, x => x.ModLogId, (s, v) => 0);
+			RegisterSetting(this, x => x.ImageLogId, (s, v) => 0);
+			RegisterSetting(this, x => x.MuteRoleId, (s, v) => 0);
+			RegisterSetting(this, x => x.NonVerboseErrors, (s, v) => false);
+			RegisterSetting(this, x => x.SpamPreventionDictionary, (s, v) => { v.Keys.ToList().ForEach(x => v[x] = null); return v; });
+			RegisterSetting(this, x => x.RaidPreventionDictionary, (s, v) => { v.Keys.ToList().ForEach(x => v[x] = null); return v; });
+			RegisterSetting(this, x => x.PersistentRoles, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.BotUsers, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.SelfAssignableGroups, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.Quotes, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.LogActions, (s, v) => { v.Clear(); v.AddRange(_DefaultLogActions); return v; });
+			RegisterSetting(this, x => x.IgnoredCommandChannels, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.IgnoredLogChannels, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.IgnoredXpChannels, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.ImageOnlyChannels, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.BannedPhraseStrings, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.BannedPhraseRegex, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.BannedPhraseNames, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.BannedPhrasePunishments, (s, v) => { v.Clear(); return v; });
+			RegisterSetting(this, x => x.CommandSettings, (s, v) => new CommandSettings());
+		}
 
 		/// <inheritdoc />
 		public async Task PostDeserializeAsync(SocketGuild guild)
