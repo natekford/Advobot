@@ -7,7 +7,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for giving experience and rewards for chatting.
 	/// </summary>
-	public interface ILevelService
+	public interface ILevelService : IUsesDatabase
 	{
 		/// <summary>
 		/// Adds experience to the author of the supplied message.

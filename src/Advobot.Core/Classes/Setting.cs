@@ -18,26 +18,26 @@ namespace Advobot.Classes
 		private readonly TSource _Source;
 		private readonly Func<TSource, TValue> _Getter;
 		private readonly Action<TSource, TValue> _Setter;
-		private readonly Func<TSource, TValue, TValue> _DefaultValueFactory;
+		private readonly Func<TSource, TValue, TValue> _UpdateValueFactory;
 
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{TSource, TValue}"/> which uses the passed in factory to either generate a value of modify the current value.
 		/// </summary>
 		/// <param name="source"></param>
 		/// <param name="propertySelector"></param>
-		/// <param name="defaultValueFactory">This will be invoked even if there is no setter.</param>
-		public Setting(TSource source, Expression<Func<TSource, TValue>> propertySelector, Func<TSource, TValue, TValue> defaultValueFactory)
+		/// <param name="updateValueFactory">This will be invoked even if there is no setter.</param>
+		public Setting(TSource source, Expression<Func<TSource, TValue>> propertySelector, Func<TSource, TValue, TValue> updateValueFactory)
 			: this(source, propertySelector, GenerateSetter(propertySelector))
 		{
-			_DefaultValueFactory = defaultValueFactory;
+			_UpdateValueFactory = updateValueFactory;
 		}
 		/// <summary>
 		/// Creates an instance of <see cref="Setting{TSource, TValue}"/> which resets a reference value.
 		/// </summary>
 		/// <param name="source"></param>
 		/// <param name="propertySelector"></param>
-		/// <param name="resetter"></param>
-		public Setting(TSource source, Expression<Func<TSource, TValue>> propertySelector, Action<TSource, TValue> resetter)
+		/// <param name="defaultValueFactory"></param>
+		public Setting(TSource source, Expression<Func<TSource, TValue>> propertySelector, Action<TSource, TValue> defaultValueFactory)
 		{
 			var expr = (MemberExpression)propertySelector.Body;
 			var prop = (PropertyInfo)expr.Member;
@@ -45,7 +45,7 @@ namespace Advobot.Classes
 
 			_Source = source;
 			_Getter = propertySelector.Compile();
-			_Setter = resetter;
+			_Setter = defaultValueFactory;
 		}
 
 		private static Action<TSource, TValue> GenerateSetter(Expression<Func<TSource, TValue>> propertySelector)
@@ -61,8 +61,13 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public void Reset()
 		{
-			var defaultValue = _DefaultValueFactory(_Source, GetValue());
-			_Setter?.Invoke(_Source, defaultValue);
+			var value = GetValue();
+			//If there is an update value factory, invoke it so the current value can be updated.
+			if (_UpdateValueFactory != null)
+			{
+				value = _UpdateValueFactory(_Source, GetValue());
+			}
+			_Setter?.Invoke(_Source, value);
 		}
 		/// <inheritdoc />
 		public void SetValue(TValue newValue) => _Setter(_Source, newValue);

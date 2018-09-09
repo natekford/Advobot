@@ -27,23 +27,22 @@ namespace Advobot.Services.Commands
 		private readonly DiscordShardedClient _Client;
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
+		private readonly ILogService _Logging;
 		private bool _Loaded;
 		private ulong _OwnerId;
-
-		/// <inheritdoc />
-		public event LogCounterIncrementEventHandler LogCounterIncrement;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CommandHandlerService"/> and gets the required services.
 		/// </summary>
 		/// <param name="provider"></param>
 		/// <param name="commands"></param>
-		public CommandHandlerService(IIterableServiceProvider provider, IEnumerable<Assembly> commands)
+		public CommandHandlerService(IServiceProvider provider, IEnumerable<Assembly> commands)
 		{
 			_Provider = provider;
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
+			_Logging = _Provider.GetService<ILogService>();
 
 			_Commands = new CommandService(new CommandServiceConfig
 			{
@@ -76,13 +75,6 @@ namespace Advobot.Services.Commands
 			_Client.MessageReceived += HandleCommand;
 		}
 
-		/// <summary>
-		/// Fires the log counter increment event.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="count"></param>
-		private void NotifyLogCounterIncrement(string name, int count)
-			=> LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
 		/// <summary>
 		/// Handles the bot using the correct settings, the game displayed, and the timers starting.
 		/// </summary>
@@ -134,13 +126,13 @@ namespace Advobot.Services.Commands
 			var context = new AdvobotCommandContext(_Provider, settings, _Client, msg);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 
-			if (result.CanBeIgnored() || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => x.CanBeIgnored())))
+			if (CanBeIgnored(result) || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(x))))
 			{
 				return;
 			}
 			if (result.IsSuccess)
 			{
-				NotifyLogCounterIncrement(nameof(ILogService.SuccessfulCommands), 1);
+				_Logging?.SuccessfulCommands?.Add(1);
 				await MessageUtils.DeleteMessageAsync(context.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
 				if (context.GuildSettings.ModLogId != 0 && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
@@ -155,18 +147,14 @@ namespace Advobot.Services.Commands
 			}
 			else
 			{
-				NotifyLogCounterIncrement(nameof(ILogService.FailedCommands), 1);
+				_Logging?.FailedCommands?.Add(1);
 				await MessageUtils.SendErrorMessageAsync(context, new Error(result.ErrorReason)).CAF();
 			}
 
+			_Logging?.AttemptedCommands?.Add(1);
 			ConsoleUtils.WriteLine(context.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
-			NotifyLogCounterIncrement(nameof(ILogService.AttemptedCommands), 1);
 		}
-	}
-
-	internal static class CommandHandlerUtils
-	{
-		public static bool CanBeIgnored(this IResult result)
+		private bool CanBeIgnored(IResult result)
 			=> result.Error == CommandError.UnknownCommand || (!result.IsSuccess && result.ErrorReason == null);
 	}
 }

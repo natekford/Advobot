@@ -4,6 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Classes.DatabaseWrappers;
+using Advobot.Classes.DatabaseWrappers.LiteDB;
+using Advobot.Classes.DatabaseWrappers.MongoDB;
 using Advobot.Interfaces;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
@@ -51,6 +54,12 @@ namespace Advobot.Classes
 		public int CurrentInstance { get; private set; } = -1;
 		/// <inheritdoc />
 		[JsonIgnore]
+		public DatabaseType DatabaseType { get; private set; } = DatabaseType.LiteDB;
+		/// <inheritdoc />
+		[JsonIgnore]
+		public string DatabaseConnectionString { get; private set; } = "";
+		/// <inheritdoc />
+		[JsonIgnore]
 		public bool ValidatedPath { get; private set; }
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -60,7 +69,13 @@ namespace Advobot.Classes
 		public DirectoryInfo BaseBotDirectory => Directory.CreateDirectory(Path.Combine(SavePath, $"Discord_Servers_{BotId}"));
 		/// <inheritdoc />
 		[JsonIgnore]
-		public string RestartArguments => $"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} -{nameof(CurrentInstance)} {CurrentInstance}";
+		public string RestartArguments => new[]
+		{
+			$"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id}",
+			$"-{nameof(CurrentInstance)} {CurrentInstance}",
+			$"-{nameof(DatabaseType)} {DatabaseType}",
+			$"-{nameof(DatabaseConnectionString)} {DatabaseConnectionString}",
+		}.JoinNonNullStrings(" ");
 
 		[JsonIgnore]
 		private readonly DiscordRestClient _TestClient = new DiscordRestClient();
@@ -162,9 +177,15 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		private void Save() => IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
 		/// <inheritdoc />
-		public IServiceCollection CreateDefaultServices(IEnumerable<Assembly> commands = null)
+		public IServiceCollection CreateDefaultServices(IEnumerable<Assembly> commands)
 		{
-			commands = commands ?? DiscordUtils.GetCommandAssemblies();
+			T StartDatabase<T>(T db) where T : IUsesDatabase
+			{
+				db.Start();
+				return db;
+			}
+
+			commands = commands ?? throw new ArgumentException($"{nameof(commands)} cannot be null.");
 			//I have no idea if I am providing services correctly, but it works.
 			var s = new ServiceCollection();
 			s.AddSingleton<DiscordShardedClient>(p =>
@@ -179,21 +200,27 @@ namespace Advobot.Classes
 			});
 			s.AddSingleton<IHelpEntryService>(p => new HelpEntryService());
 			s.AddSingleton<IBotSettings>(p => BotSettings.Load(this));
-			s.AddSingleton<ILevelService>(p => new LevelService(Create(s, p), new LevelServiceArguments()));
-			s.AddSingleton<ICommandHandlerService>(p => new CommandHandlerService(Create(s, p), commands));
-			s.AddSingleton<IGuildSettingsFactory>(p => new GuildSettingsFactory<GuildSettings>(Create(s, p)));
-			s.AddSingleton<ITimerService>(p => new TimerService(Create(s, p)));
-			s.AddSingleton<ILogService>(p => new LogService(Create(s, p)));
-			s.AddSingleton<IInviteListService>(p => new InviteListService(Create(s, p)));
+			s.AddSingleton<ICommandHandlerService>(p => new CommandHandlerService(p, commands));
+			s.AddSingleton<IGuildSettingsFactory>(p => new GuildSettingsFactory<GuildSettings>(p));
+			s.AddSingleton<ILogService>(p => new LogService(p));
+			s.AddSingleton<ILevelService>(p => StartDatabase(new LevelService(p, new LevelServiceArguments())));
+			s.AddSingleton<ITimerService>(p => StartDatabase(new TimerService(p)));
+			s.AddSingleton<IInviteListService>(p => StartDatabase(new InviteListService(p)));
+
+			switch (DatabaseType)
+			{
+				//-DatabaseType LiteDB (or no arguments supplied at all)
+				case DatabaseType.LiteDB:
+					s.AddSingleton<IDatabaseWrapperFactory>(p => new LiteDBWrapperFactory(p));
+					break;
+				//-DatabaseType MongoDB -DatabaseConnectionString "mongodb://localhost:27017"
+				case DatabaseType.MongoDB:
+					s.AddSingleton<IDatabaseWrapperFactory>(p => new MongoDBWrapperFactory(p));
+					s.AddSingleton<MongoDB.Driver.IMongoClient>(p => new MongoDB.Driver.MongoClient(DatabaseConnectionString));
+					break;
+			}
 			return s;
 		}
-		/// <summary>
-		/// Creates an <see cref="IIterableServiceProvider"/> from already existing services.
-		/// </summary>
-		/// <param name="services"></param>
-		/// <param name="provider"></param>
-		/// <returns></returns>
-		private IIterableServiceProvider Create(IServiceCollection services, IServiceProvider provider) => IterableServiceProvider.CreateFromExisting(provider, services);
 		/// <summary>
 		/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
 		/// </summary>
@@ -202,12 +229,17 @@ namespace Advobot.Classes
 		{
 			var processId = -1;
 			var instance = -1;
+			var databaseType = DatabaseType.LiteDB;
+			var connectionString = "";
 			//No help command because this is not intended to be used more than internally
 			new SettingParser(false, "-", "--", "/")
 			{
 				//Don't bother adding descriptions because of the aforementioned removal
 				new Setting<int>(new[] { nameof(PreviousProcessId), "procid" }, x => processId = x),
-				new Setting<int>(new[] { nameof(CurrentInstance), "instance" }, x => instance = x)
+				new Setting<int>(new[] { nameof(CurrentInstance), "instance" }, x => instance = x),
+				new Setting<DatabaseType>(new[] { nameof(DatabaseType), "db" }, x => databaseType = x,
+					s => (Enum.TryParse<DatabaseType>(s, out var value), value)),
+				new Setting<string>(new[] { nameof(DatabaseConnectionString), "conn" }, x => connectionString = x),
 			}.Parse(args);
 
 			//Instance is for the config so they can be named Advobot1, Advobot2, etc.
@@ -215,6 +247,8 @@ namespace Advobot.Classes
 			var config = IOUtils.DeserializeFromFile<LowLevelConfig>(GetConfigPath(instance)) ?? new LowLevelConfig();
 			config.PreviousProcessId = processId;
 			config.CurrentInstance = instance;
+			config.DatabaseType = databaseType;
+			config.DatabaseConnectionString = connectionString;
 			return config;
 		}
 		/// <summary>

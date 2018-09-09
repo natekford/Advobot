@@ -13,10 +13,6 @@ namespace Advobot.Interfaces
 		/// </summary>
 		ulong UserId { get; }
 		/// <summary>
-		/// The current total experience of the user.
-		/// </summary>
-		int Experience { get; }
-		/// <summary>
 		/// How many messages this has used for adding experience.
 		/// This can be useful for finding the average xp gained per message.
 		/// This is not 100% accurate however.
@@ -40,6 +36,11 @@ namespace Advobot.Interfaces
 		/// <param name="message"></param>
 		/// <param name="experience"></param>
 		void RemoveExperience(SocketUserMessage message, int experience);
+		/// <summary>
+		/// Gets the experience a user has in total.
+		/// </summary>
+		/// <returns></returns>
+		int GetExperience();
 		/// <summary>
 		/// Gets the experience a user has in a specific guild.
 		/// </summary>

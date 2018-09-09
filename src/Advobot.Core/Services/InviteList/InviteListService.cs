@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Classes.DatabaseWrappers;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.InviteList
@@ -14,63 +14,61 @@ namespace Advobot.Services.InviteList
 	/// <summary>
 	/// Handles holding all <see cref="IListedInvite"/>.
 	/// </summary>
-	internal sealed class InviteListService : IInviteListService, IUsesDatabase, IDisposable
+	public class InviteListService : IInviteListService, IUsesDatabase, IDisposable
 	{
-		private LiteDatabase _Db;
-		private readonly IBotSettings _Settings;
+		/// <inheritdoc />
+		public string DatabaseName => "InviteList";
+		/// <summary>
+		/// The database being used. This can be any database type, or even just a simple dictionary.
+		/// </summary>
+		protected IDatabaseWrapper DbWrapper { get; set; }
+		/// <summary>
+		/// The factory for creating <see cref="DbWrapper"/>.
+		/// </summary>
+		protected IDatabaseWrapperFactory DatabaseFactory { get; }
+		/// <summary>
+		/// The settings this bot uses.
+		/// </summary>
+		protected IBotSettings Settings { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="InviteListService"/>.
 		/// </summary>
 		/// <param name="provider"></param>
-		public InviteListService(IIterableServiceProvider provider)
+		public InviteListService(IServiceProvider provider)
 		{
-			_Settings = provider.GetRequiredService<IBotSettings>();
+			Settings = provider.GetRequiredService<IBotSettings>();
+			DatabaseFactory = provider.GetRequiredService<IDatabaseWrapperFactory>();
 		}
 
 		/// <inheritdoc />
-		public void Start()
-		{
-			_Db = _Settings.GetDatabase("InviteDatabase.db");
-			ConsoleUtils.DebugWrite($"Started the database connection for {nameof(InviteListService)}.");
-		}
-		/// <inheritdoc />
-		public void Dispose() => _Db?.Dispose();
-		/// <inheritdoc />
 		public IListedInvite Add(SocketGuild guild, IInvite invite, IEnumerable<string> keywords)
 		{
-			var col = _Db.GetCollection<ListedInvite>();
-			col.Delete(x => x.GuildId == guild.Id);
 			var listedInvite = new ListedInvite(guild, invite, keywords);
-			col.Insert(listedInvite);
+			DbWrapper.ExecuteQuery(DBQuery<ListedInvite>.Delete(x => x.GuildId == guild.Id));
+			DbWrapper.ExecuteQuery(DBQuery<ListedInvite>.Insert(new[] { listedInvite }));
 			return listedInvite;
 		}
 		/// <inheritdoc />
 		public void Remove(ulong guildId)
-			=> _Db.GetCollection<ListedInvite>().Delete(x => x.GuildId == guildId);
+			=> DbWrapper.ExecuteQuery(DBQuery<ListedInvite>.Delete(x => x.GuildId == guildId));
 		/// <inheritdoc />
 		public async Task UpdateAsync(SocketGuild guild)
 		{
-			if (!(GetListedInvite(guild.Id) is ListedInvite invite))
-			{
-				return;
-			}
+			var invite = (ListedInvite)GetListedInvite(guild.Id);
 			await invite.UpdateAsync(guild).CAF();
-			_Db.GetCollection<ListedInvite>().Update(invite);
+			DbWrapper.ExecuteQuery(DBQuery<ListedInvite>.Update(new[] { invite }));
 		}
 		/// <inheritdoc />
 		public async Task BumpAsync(SocketGuild guild)
 		{
-			if (!(GetListedInvite(guild.Id) is ListedInvite invite))
-			{
-				return;
-			}
+			var invite = (ListedInvite)GetListedInvite(guild.Id);
 			await invite.BumpAsync(guild).CAF();
-			_Db.GetCollection<ListedInvite>().Update(invite);
+			DbWrapper.ExecuteQuery(DBQuery<ListedInvite>.Update(new[] { invite }));
 		}
 		/// <inheritdoc />
 		public IEnumerable<IListedInvite> GetAll(int limit)
-			=> _Db.GetCollection<ListedInvite>().Find(Query.All(nameof(ListedInvite.Time), Query.Descending), 0, limit);
+			=> DbWrapper.ExecuteQuery(DBQuery<ListedInvite>.GetAll()).OrderByDescending(x => x.Time);
 		/// <inheritdoc />
 		public IEnumerable<IListedInvite> GetAll(int limit, params string[] keywords)
 		{
@@ -90,6 +88,14 @@ namespace Advobot.Services.InviteList
 		}
 		/// <inheritdoc />
 		public IListedInvite GetListedInvite(ulong guildId)
-			=> _Db.GetCollection<ListedInvite>().FindOne(x => x.GuildId == guildId);
+			=> DbWrapper.ExecuteQuery(DBQuery<ListedInvite>.Get(x => x.GuildId == guildId)).Single();
+		/// <inheritdoc />
+		public void Start()
+		{
+			DbWrapper = DatabaseFactory.CreateWrapper(DatabaseName);
+			ConsoleUtils.DebugWrite($"Started the database connection for {DatabaseName}.");
+		}
+		/// <inheritdoc />
+		public void Dispose() => DbWrapper.Dispose();
 	}
 }

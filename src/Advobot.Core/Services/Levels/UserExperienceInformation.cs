@@ -4,7 +4,6 @@ using System.Linq;
 using Advobot.Classes;
 using Advobot.Interfaces;
 using Discord.WebSocket;
-using LiteDB;
 
 namespace Advobot.Services.Levels
 {
@@ -16,17 +15,13 @@ namespace Advobot.Services.Levels
 		private const int _MESSAGE_AMOUNT = 10;
 
 		/// <inheritdoc />
-		[BsonField("UserId")]
-		public ulong UserId { get; private set; }
+		public ulong UserId { get; set; }
 		/// <inheritdoc />
-		[BsonIgnore]
-		public int Experience => _Experience.Sum(g => g.Value.Sum(c => c.Value));
-		[BsonField("MessageCount")]
-		public int MessageCount { get; private set; }
-		[BsonField("Experience")]
-		private Dictionary<ulong, Dictionary<ulong, int>> _Experience { get; set; } = new Dictionary<ulong, Dictionary<ulong, int>>();
-		[BsonField("MessageHashes")]
-		private List<MessageHash> _MessageHashes { get; set; } = new List<MessageHash>(_MESSAGE_AMOUNT);
+		public int MessageCount { get; set; }
+		/// <inheritdoc />
+		public Dictionary<ulong, Dictionary<ulong, int>> Experience { get; set; } = new Dictionary<ulong, Dictionary<ulong, int>>();
+		/// <inheritdoc />
+		public List<MessageHash> MessageHashes { get; set; } = new List<MessageHash>(_MESSAGE_AMOUNT);
 
 		/// <summary>
 		/// Creates an instance of <see cref="UserExperienceInformation"/>.
@@ -55,10 +50,10 @@ namespace Advobot.Services.Levels
 			++MessageCount;
 
 			//Hash the message content to not possibly keep sensitive info in the bot's database
-			_MessageHashes.Add(new MessageHash(message, xp));
-			if (_MessageHashes.Count > _MESSAGE_AMOUNT)
+			MessageHashes.Add(new MessageHash(message, xp));
+			if (MessageHashes.Count > _MESSAGE_AMOUNT)
 			{
-				_MessageHashes.RemoveAt(0);
+				MessageHashes.RemoveAt(0);
 			}
 		}
 		/// <inheritdoc />
@@ -94,8 +89,8 @@ namespace Advobot.Services.Levels
 			//The first punishes for spam that was said before and during the last message. This only takes off up to 30% of the xp.
 			//The second punishes for spam that is the same as the last message sent. This takes off up to 60% of the xp.
 			var spamFactor = rng.Next(0, 2) != 0
-				? 1 - Math.Min((_MessageHashes.Count - _MessageHashes.Select(x => x.Hash).Distinct().Count()) * .1, .3)
-				: 1 - Math.Min((_MessageHashes.Count(x => x.Hash == _MessageHashes.Last().Hash) - 1) * .1, .6);
+				? 1 - Math.Min((MessageHashes.Count - MessageHashes.Select(x => x.Hash).Distinct().Count()) * .1, .3)
+				: 1 - Math.Min((MessageHashes.Count(x => x.Hash == MessageHashes.Last().Hash) - 1) * .1, .6);
 			return (int)Math.Round(xp * msgLengthFactor * attachmentFactor * spamFactor);
 		}
 		/// <summary>
@@ -105,9 +100,9 @@ namespace Advobot.Services.Levels
 		/// <returns></returns>
 		private Dictionary<ulong, int> GetChannels(SocketTextChannel channel)
 		{
-			if (!_Experience.TryGetValue(channel.Guild.Id, out var channels))
+			if (!Experience.TryGetValue(channel.Guild.Id, out var channels))
 			{
-				_Experience.Add(channel.Guild.Id, channels = new Dictionary<ulong, int>());
+				Experience.Add(channel.Guild.Id, channels = new Dictionary<ulong, int>());
 			}
 			if (!channels.TryGetValue(channel.Id, out var _))
 			{
@@ -122,15 +117,18 @@ namespace Advobot.Services.Levels
 		/// <returns></returns>
 		public MessageHash RemoveMessageHash(ulong messageId)
 		{
-			var hash = _MessageHashes.SingleOrDefault(x => x.MessageId == messageId);
-			_MessageHashes.Remove(hash);
+			var hash = MessageHashes.SingleOrDefault(x => x.MessageId == messageId);
+			MessageHashes.Remove(hash);
 			return hash;
 		}
 		/// <inheritdoc />
+		public int GetExperience()
+			=> Experience.Sum(g => g.Value.Sum(c => c.Value));
+		/// <inheritdoc />
 		public int GetExperience(SocketGuild guild)
-			=> _Experience.TryGetValue(guild.Id, out var channels) ? channels.Values.Sum() : 0;
+			=> Experience.TryGetValue(guild.Id, out var channels) ? channels.Values.Sum() : 0;
 		/// <inheritdoc />
 		public int GetExperience(SocketTextChannel channel)
-			=> _Experience.TryGetValue(channel.Guild.Id, out var channels) && channels.TryGetValue(channel.Id, out var xp) ? xp : 0;
+			=> Experience.TryGetValue(channel.Guild.Id, out var channels) && channels.TryGetValue(channel.Id, out var xp) ? xp : 0;
 	}
 }

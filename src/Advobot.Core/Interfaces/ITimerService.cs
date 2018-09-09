@@ -8,38 +8,38 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for a timers module. Handles timed punishments, close words, and timed message deletion/sending.
 	/// </summary>
-	public interface ITimerService
+	public interface ITimerService : IUsesDatabase
 	{
 		/// <summary>
-		/// Removes all older instances, undoes their current punishment, and stores <paramref name="punishment"/>.
+		/// Removes all older instances, undoes their current punishment, and stores <paramref name="value"/>.
 		/// </summary>
-		/// <param name="punishment"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
-		Task AddAsync(RemovablePunishment punishment);
+		Task AddAsync(RemovablePunishment value);
 		/// <summary>
-		/// Removes all older instances, deletes the bot's message, and stores <paramref name="helpEntries"/>.
+		/// Removes all older instances, deletes the bot's message, and stores <paramref name="value"/>.
 		/// </summary>
-		/// <param name="helpEntries"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
-		Task AddAsync(CloseHelpEntries helpEntries);
+		Task AddAsync(CloseHelpEntries value);
 		/// <summary>
-		/// Removes all older instances, deletes the bot's message, and stores <paramref name="quotes"/>.
+		/// Removes all older instances, deletes the bot's message, and stores <paramref name="value"/>.
 		/// </summary>
-		/// <param name="quotes"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
-		Task AddAsync(CloseQuotes quotes);
+		Task AddAsync(CloseQuotes value);
 		/// <summary>
-		/// Stores <paramref name="message"/>.
+		/// Stores <paramref name="value"/>.
 		/// </summary>
-		/// <param name="message"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
-		Task AddAsync(RemovableMessage message);
+		Task AddAsync(RemovableMessage value);
 		/// <summary>
-		/// Stores <paramref name="message"/>.
+		/// Stores <paramref name="value"/>.
 		/// </summary>
-		/// <param name="message"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
-		Task AddAsync(TimedMessage message);
+		Task AddAsync(TimedMessage value);
 
 		/// <summary>
 		/// Removes the punishment from the database and returns it.

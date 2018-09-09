@@ -25,7 +25,7 @@ namespace Advobot.Services.GuildSettings
 		/// Creates an instance of <see cref="GuildSettingsFactory{T}"/>.
 		/// </summary>
 		/// <param name="provider"></param>
-		public GuildSettingsFactory(IIterableServiceProvider provider)
+		public GuildSettingsFactory(IServiceProvider provider)
 		{
 			_Settings = provider.GetRequiredService<IBotSettings>();
 		}

@@ -50,6 +50,7 @@
     <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00988" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.7.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.7.0" />
   </ItemGroup>
 
   <ItemGroup>

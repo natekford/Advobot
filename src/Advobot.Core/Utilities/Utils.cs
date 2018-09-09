@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using Advobot.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Utilities
 {
@@ -31,5 +34,19 @@ namespace Advobot.Utilities
 		/// <param name="obj"></param>
 		public static void SaveSettings<T>(this T obj) where T : IBotDirectoryAccessor, ISettingsBase
 			=> obj.SaveSettings(obj);
+		/// <summary>
+		/// Creates a provider and initializes all of its singletons.
+		/// </summary>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		public static IServiceProvider CreateProvider(this IServiceCollection services)
+		{
+			var provider = services.BuildServiceProvider();
+			foreach (var service in services.Where(x => x.Lifetime == ServiceLifetime.Singleton))
+			{
+				provider.GetRequiredService(service.ServiceType);
+			}
+			return provider;
+		}
 	}
 }

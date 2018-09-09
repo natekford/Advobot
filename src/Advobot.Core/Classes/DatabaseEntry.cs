@@ -1,5 +1,4 @@
 ﻿using System;
-using LiteDB;
 
 namespace Advobot.Classes
 {
@@ -11,14 +10,13 @@ namespace Advobot.Classes
 		private static TimeSpan _Default = TimeSpan.FromSeconds(3);
 
 		/// <summary>
-		/// The id of the object for LiteDB.
+		/// The id of the object.
+		/// This is not necessarily as unique as a regular <see cref="Guid"/> because sometimes it is created from a user's id.
 		/// </summary>
-		[BsonId]
-		public ObjectId Id { get; set; }
+		public Guid Id { get; set; }
 		/// <summary>
 		/// The UTC time to do an action at.
 		/// </summary>
-		[BsonField("Time")]
 		public DateTime Time { get; set; }
 
 		/// <summary>
@@ -27,7 +25,7 @@ namespace Advobot.Classes
 		/// <param name="time"></param>
 		public DatabaseEntry(TimeSpan time)
 		{
-			Id = ObjectId.NewObjectId();
+			Id = Guid.NewGuid();
 			Time = DateTime.UtcNow.Add(time.Equals(default) ? _Default : time);
 		}
 	}

@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -12,15 +13,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot
 {
-	using Console = System.Console;
-
 	/// <summary>
 	/// Puts the similarities from launching the console application and the .Net Core UI application into one.
 	/// </summary>
 	public sealed class AdvobotConsoleLauncher
 	{
 		private readonly ILowLevelConfig _Config;
-		private IIterableServiceProvider _Provider;
+		private IServiceCollection _Services;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotConsoleLauncher"/>.
@@ -29,6 +28,7 @@ namespace Advobot
 		public AdvobotConsoleLauncher(string[] args)
 		{
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
+			Console.Title = "Advobot";
 			ConsoleUtils.PrintingFlags = 0
 				| ConsolePrintingFlags.Print
 				| ConsolePrintingFlags.LogTime
@@ -58,57 +58,62 @@ namespace Advobot
 			}
 		}
 		/// <summary>
+		/// Gets the path and bot key from user input if they're not already stored in file.
+		/// </summary>
+		/// <returns></returns>
+		public async Task GetPathAndKey()
+		{
+			SetPath();
+			await SetBotKey().CAF();
+		}
+		/// <summary>
 		/// Sets the path to use for the bot.
 		/// </summary>
-		public void SetPath()
+		private void SetPath()
 		{
 			//Get the save path
 			var startup = true;
 			while (!_Config.ValidatedPath)
 			{
-				startup = _Config.ValidatePath((startup ? null : Console.ReadLine()), startup);
+				startup = _Config.ValidatePath(startup ? null : Console.ReadLine(), startup);
 			}
 		}
 		/// <summary>
 		/// Sets the bot key to use for the bot.
 		/// </summary>
 		/// <returns></returns>
-		public async Task SetBotKey()
+		private async Task SetBotKey()
 		{
 			//Get the bot key
 			var startup = true;
 			while (!_Config.ValidatedKey)
 			{
-				startup = await _Config.ValidateBotKey((startup ? null : Console.ReadLine()), startup, ClientUtils.RestartBotAsync).CAF();
+				startup = await _Config.ValidateBotKey(startup ? null : Console.ReadLine(), startup, ClientUtils.RestartBotAsync).CAF();
 			}
 		}
 		/// <summary>
-		/// Gets the services this bot will use.
+		/// Returns the default services for the bot if both the path and key have been set.
 		/// </summary>
 		/// <returns></returns>
-		public IIterableServiceProvider GetServiceProvider()
+		public IServiceCollection GetDefaultServices(IEnumerable<Assembly> commands)
 		{
 			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
 			{
-				throw new InvalidOperationException("Attempted to get the service provider before the path and key have been set.");
+				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
 			}
-			if (_Provider != null)
-			{
-				return _Provider;
-			}
-
-			_Provider = new IterableServiceProvider(_Config.CreateDefaultServices(), true);
-			foreach (var db in _Provider.OfType<IUsesDatabase>())
-			{
-				db.Start();
-			}
-			return _Provider;
+			return _Services ?? (_Services = _Config.CreateDefaultServices(commands));
 		}
 		/// <summary>
 		/// Creates the service provider and starts the Discord bot.
 		/// </summary>
 		/// <returns></returns>
-		public async Task Start()
-			=> await _Config.StartAsync(GetServiceProvider().GetRequiredService<DiscordShardedClient>());
+		public async Task Start(IServiceProvider provider)
+		{
+			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
+			{
+				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
+			}
+			await _Config.StartAsync(provider.GetRequiredService<DiscordShardedClient>());
+		}
 	}
 }

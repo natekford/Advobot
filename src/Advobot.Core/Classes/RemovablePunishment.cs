@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Enums;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -10,8 +13,13 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Punishments that will be removed after the time has passed.
 	/// </summary>
-	public sealed class RemovablePunishment : DatabaseEntry
+	public class RemovablePunishment : DatabaseEntry
 	{
+		/// <summary>
+		/// Cached request options for punishments.
+		/// </summary>
+		protected static RequestOptions PunishmentReason { get; } = ClientUtils.CreateRequestOptions("automatic punishment removal.");
+
 		/// <summary>
 		/// The type of punishment that was given.
 		/// </summary>
@@ -60,32 +68,51 @@ namespace Advobot.Classes
 		}
 
 		/// <summary>
-		/// Removes the punishment from the user.
+		/// Processes the removable punishments in a way which is more efficient.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <param name="punisher"></param>
-		/// <param name="options"></param>
+		/// <param name="punishments"></param>
 		/// <returns></returns>
-		public async Task RemoveAsync(DiscordShardedClient client, Punisher punisher, RequestOptions options)
+		public static async Task ProcessRemovablePunishments(
+			BaseSocketClient client,
+			Punisher punisher,
+			IEnumerable<RemovablePunishment> punishments)
 		{
-			if (!(client.GetGuild(GuildId) is SocketGuild guild))
+			foreach (var guildGroup in punishments.Where(x => x != null).GroupBy(x => x.GuildId))
 			{
-				return;
+				if (!(client.GetGuild(guildGroup.Key) is SocketGuild guild))
+				{
+					continue;
+				}
+				foreach (var punishmentGroup in guildGroup.GroupBy(x => x.PunishmentType))
+				{
+					await Task.WhenAll(punishmentGroup.Select(x => Handle(guild, punisher, x))).CAF();
+				}
 			}
-
-			switch (PunishmentType)
+		}
+		/// <summary>
+		/// Simple case for the punishment type.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="punisher"></param>
+		/// <param name="p"></param>
+		/// <returns></returns>
+		private static async Task Handle(SocketGuild guild, Punisher punisher, RemovablePunishment p)
+		{
+			switch (p.PunishmentType)
 			{
 				case Punishment.Ban:
-					await punisher.UnbanAsync(guild, UserId, options).CAF();
+					await punisher.UnbanAsync(guild, p.UserId, PunishmentReason).CAF();
 					return;
 				case Punishment.Deafen:
-					await punisher.UndeafenAsync(guild.GetUser(UserId), options).CAF();
+					await punisher.UndeafenAsync(guild.GetUser(p.UserId), PunishmentReason).CAF();
 					return;
 				case Punishment.VoiceMute:
-					await punisher.UnvoicemuteAsync(guild.GetUser(UserId), options).CAF();
+					await punisher.UnvoicemuteAsync(guild.GetUser(p.UserId), PunishmentReason).CAF();
 					return;
 				case Punishment.RoleMute:
-					await punisher.UnrolemuteAsync(guild.GetUser(UserId), guild.GetRole(RoleId), options).CAF();
+					await punisher.UnrolemuteAsync(guild.GetUser(p.UserId), guild.GetRole(p.RoleId), PunishmentReason).CAF();
 					return;
 			}
 		}

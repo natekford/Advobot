@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Advobot.Utilities;
 using AdvorangesUtils;
 
 namespace Advobot.Console
@@ -11,9 +12,10 @@ namespace Advobot.Console
 		private static async Task Main(string[] args)
 		{
 			var launcher = new AdvobotConsoleLauncher(args);
-			launcher.SetPath();
-			await launcher.SetBotKey().CAF();
-			await launcher.Start().CAF();
+			await launcher.GetPathAndKey().CAF();
+			var services = launcher.GetDefaultServices(DiscordUtils.GetCommandAssemblies());
+			var provider = services.CreateProvider();
+			await launcher.Start(provider).CAF();
 			await Task.Delay(-1).CAF();
 		}
 	}

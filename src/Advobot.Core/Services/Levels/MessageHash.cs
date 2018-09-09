@@ -8,7 +8,7 @@ namespace Advobot.Services.Levels
 	/// <summary>
 	/// Holds the id of the message and the hash of the message's content.
 	/// </summary>
-	internal struct MessageHash
+	internal class MessageHash
 	{
 		/// <summary>
 		/// The id of the guild the message was sent on.

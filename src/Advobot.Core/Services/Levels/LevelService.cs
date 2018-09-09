@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Classes.DatabaseWrappers;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.Levels
@@ -14,57 +15,73 @@ namespace Advobot.Services.Levels
 	/// <summary>
 	/// Service for giving people experience for chatting and rewards for certain levels.
 	/// </summary>
-	internal sealed class LevelService : ILevelService, IUsesDatabase, IDisposable
+	public class LevelService : DatabaseWrapperConsumer, ILevelService
 	{
-		private LiteDatabase _Db;
-		private readonly DiscordShardedClient _Client;
-		private readonly IGuildSettingsFactory _GuildSettings;
-		private readonly IBotSettings _Settings;
-		private readonly double _Log;
-		private readonly double _Pow;
-		private readonly TimeSpan _Time;
-		private readonly int _BaseExperience;
+		/// <inheritdoc />
+		public override string DatabaseName => "LevelService";
+		/// <summary>
+		/// The settings this bot uses.
+		/// </summary>
+		protected IBotSettings Settings { get; }
+		/// <summary>
+		/// The settings for each individual guild.
+		/// </summary>
+		protected IGuildSettingsFactory GuildSettings { get; }
+		/// <summary>
+		/// The bot client.
+		/// </summary>
+		protected DiscordShardedClient Client { get; }
+		/// <summary>
+		/// Used in calculating XP.
+		/// </summary>
+		protected double Log { get; }
+		/// <summary>
+		/// Used in calculating XP.
+		/// </summary>
+		protected double Pow { get; }
+		/// <summary>
+		/// The time between when XP can be gained again.
+		/// </summary>
+		protected TimeSpan Time { get; }
+		/// <summary>
+		/// Base XP per message.
+		/// </summary>
+		protected int BaseExperience { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="LevelService"/>.
 		/// </summary>
 		/// <param name="provider"></param>
 		/// <param name="args"></param>
-		public LevelService(IIterableServiceProvider provider, LevelServiceArguments args)
+		public LevelService(IServiceProvider provider, LevelServiceArguments args) : base(provider)
 		{
-			_Client = provider.GetRequiredService<DiscordShardedClient>();
-			_GuildSettings = provider.GetRequiredService<IGuildSettingsFactory>();
-			_Settings = provider.GetRequiredService<IBotSettings>();
-			_Log = args.Log;
-			_Pow = args.Pow;
-			_Time = args.Time;
-			_BaseExperience = args.BaseExperience;
+			Client = provider.GetRequiredService<DiscordShardedClient>();
+			GuildSettings = provider.GetRequiredService<IGuildSettingsFactory>();
+			Settings = provider.GetRequiredService<IBotSettings>();
+			Log = args.Log;
+			Pow = args.Pow;
+			Time = args.Time;
+			BaseExperience = args.BaseExperience;
 
-			_Client.MessageReceived += AddExperienceAsync;
-			_Client.MessageDeleted += RemoveExperienceAsync;
+			Client.MessageReceived += AddExperienceAsync;
+			Client.MessageDeleted += RemoveExperienceAsync;
 		}
 
-		/// <inheritdoc />
-		public void Start()
-			=> _Db = _Settings.GetDatabase("LevelDatabase.db", new BsonMapper { IncludeNonPublic = true, });
-		/// <inheritdoc />
-		public void Dispose()
-			=> _Db?.Dispose();
 		/// <inheritdoc />
 		public async Task AddExperienceAsync(SocketMessage message)
 		{
 			if (message.Author.IsBot
 				|| message.Author.IsWebhook
 				|| !(message is SocketUserMessage msg)
-				|| !(await _GuildSettings.GetOrCreateAsync((msg.Channel as SocketTextChannel)?.Guild).CAF() is IGuildSettings settings)
+				|| !(await GuildSettings.GetOrCreateAsync((msg.Channel as SocketTextChannel)?.Guild).CAF() is IGuildSettings settings)
 				|| settings.IgnoredXpChannels.Contains(message.Channel.Id)
 				|| !(GetUserXpInformation(message.Author.Id) is UserExperienceInformation info)
-				|| info.Time > (DateTime.UtcNow - _Time))
+				|| info.Time > (DateTime.UtcNow - Time))
 			{
 				return;
 			}
-			info.AddExperience(settings, msg, _BaseExperience);
-			_Db.GetCollection<UserExperienceInformation>().Update(info);
+			info.AddExperience(settings, msg, BaseExperience);
+			DatabaseWrapper.ExecuteQuery(DBQuery<UserExperienceInformation>.Update(new[] { info }));
 			UpdateUserRank(info, ((SocketTextChannel)msg.Channel).Guild);
 		}
 		/// <inheritdoc />
@@ -81,7 +98,7 @@ namespace Advobot.Services.Levels
 				return Task.CompletedTask;
 			}
 			info.RemoveExperience(msg, hash.ExperienceGiven);
-			_Db.GetCollection<UserExperienceInformation>().Update(info);
+			DatabaseWrapper.ExecuteQuery(DBQuery<UserExperienceInformation>.Update(new[] { info }));
 			UpdateUserRank(info, ((SocketTextChannel)msg.Channel).Guild);
 			return Task.CompletedTask;
 		}
@@ -89,32 +106,30 @@ namespace Advobot.Services.Levels
 		public int CalculateLevel(int experience)
 		{
 			//No negative levels
-			return Math.Min((int)Math.Pow(Math.Log(experience, _Log), _Pow), 0);
+			return Math.Min((int)Math.Pow(Math.Log(experience, Log), Pow), 0);
 		}
 		/// <inheritdoc />
-		public (int Rank, int TotalUsers) GetGuildRank(SocketGuild guild, ulong userId)
-			=> GetRank(_Db.GetCollection<LeaderboardPosition>(guild.Id.ToString()), userId);
+		public (int Rank, int TotalUsers) GetGuildRank(SocketGuild guild, ulong userId) => GetRank(guild.Id.ToString(), userId);
 		/// <inheritdoc />
-		public (int Rank, int TotalUsers) GetGlobalRank(ulong userId)
-			=> GetRank(_Db.GetCollection<LeaderboardPosition>("Global"), userId);
+		public (int Rank, int TotalUsers) GetGlobalRank(ulong userId) => GetRank("Global", userId);
 		/// <inheritdoc />
 		public IUserExperienceInformation GetUserXpInformation(ulong userId)
 		{
-			var col = _Db.GetCollection<UserExperienceInformation>();
-			//Cannot use FindById because key gets converted to double and loses precision.
-			//Can cast to decimal to avoid that, but would rather not in case there are other issues with that.
-			if (!(col.FindOne(x => x.UserId == userId) is UserExperienceInformation info))
+			var values = DatabaseWrapper.ExecuteQuery(DBQuery<UserExperienceInformation>.Get(x => x.UserId == userId, 1));
+			if (!values.Any())
 			{
-				col.Insert(info = new UserExperienceInformation(userId));
+				var value = new UserExperienceInformation(userId);
+				DatabaseWrapper.ExecuteQuery(DBQuery<UserExperienceInformation>.Insert(new[] { value }));
+				return value;
 			}
-			return info;
+			return values.Single();
 		}
 		/// <inheritdoc />
 		public async Task SendUserXpInformationAsync(SocketTextChannel channel, ulong userId, bool global)
 		{
 			var info = GetUserXpInformation(userId);
 			var (rank, totalUsers) = global ? GetGlobalRank(userId) : GetGuildRank(channel.Guild, userId);
-			var experience = global ? info.Experience : info.GetExperience(channel.Guild);
+			var experience = global ? info.GetExperience() : info.GetExperience(channel.Guild);
 			var level = CalculateLevel(experience);
 
 			var name = userId.ToString();
@@ -138,13 +153,14 @@ namespace Advobot.Services.Levels
 		}
 		private void UpdateUserRank(IUserExperienceInformation info, SocketGuild guild)
 		{
-			_Db.GetCollection<LeaderboardPosition>(guild.Id.ToString()).Upsert(new LeaderboardPosition(info.UserId, info.GetExperience(guild)));
-			_Db.GetCollection<LeaderboardPosition>("Global").Upsert(new LeaderboardPosition(info.UserId, info.Experience));
+			UpsertRank(guild.Id.ToString(), info.UserId, info.GetExperience(guild));
+			UpsertRank("Global", info.UserId, info.GetExperience());
 		}
-		private (int Rank, int TotalUsers) GetRank(LiteCollection<LeaderboardPosition> col, ulong userId)
+		private (int Rank, int TotalUsers) GetRank(string collectionName, ulong userId)
 		{
-			var all = col.Find(Query.All(nameof(LeaderboardPosition.Experience), Query.Descending));
-			//Only iterate through 
+			var options = DBQuery<LeaderboardPosition>.GetAll();
+			options.CollectionName = collectionName;
+			var all = DatabaseWrapper.ExecuteQuery(options).OrderByDescending(x => x.Experience);
 			var rank = -1;
 			var total = -1;
 			foreach (var entry in all)
@@ -156,6 +172,15 @@ namespace Advobot.Services.Levels
 				}
 			}
 			return (rank, total);
+		}
+		private void UpsertRank(string collectionName, ulong userId, int experience)
+		{
+			var deleteQuery = DBQuery<LeaderboardPosition>.Delete(x => x.UserId == userId);
+			deleteQuery.CollectionName = collectionName;
+			DatabaseWrapper.ExecuteQuery(deleteQuery);
+			var insertQuery = DBQuery<LeaderboardPosition>.Insert(new[] { new LeaderboardPosition(userId, experience) });
+			insertQuery.CollectionName = collectionName;
+			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Classes.DatabaseWrappers;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,6 +25,14 @@ namespace Advobot.Interfaces
 		/// The instance number of the bot at launch. This is used to find the correct config.
 		/// </summary>
 		int CurrentInstance { get; }
+		/// <summary>
+		/// The type of database to use for services which require a database.
+		/// </summary>
+		DatabaseType DatabaseType { get; }
+		/// <summary>
+		/// The string to connect to the database with.
+		/// </summary>
+		string DatabaseConnectionString { get; }
 		/// <summary>
 		/// Whether the path is validated or not.
 		/// </summary>
@@ -55,10 +64,11 @@ namespace Advobot.Interfaces
 		/// <returns></returns>
 		Task StartAsync(BaseSocketClient client);
 		/// <summary>
-		/// Creates 
+		/// Creates the default services this program uses.
+		/// <paramref name="commands"/> are the commands this bot will have.
 		/// </summary>
 		/// <param name="commands"></param>
 		/// <returns></returns>
-		IServiceCollection CreateDefaultServices(IEnumerable<Assembly> commands = null);
+		IServiceCollection CreateDefaultServices(IEnumerable<Assembly> commands);
 	}
 }

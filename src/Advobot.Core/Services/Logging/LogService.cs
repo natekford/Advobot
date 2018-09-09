@@ -70,7 +70,7 @@ namespace Advobot.Services.Logging
 		/// Creates an instance of <see cref="LogService"/>.
 		/// </summary>
 		/// <param name="provider"></param>
-		public LogService(IIterableServiceProvider provider)
+		public LogService(IServiceProvider provider)
 		{
 			_LoggedCommands = new[] { AttemptedCommands, SuccessfulCommands, FailedCommands };
 			_LoggedUserActions = new[] { UserJoins, UserLeaves, UserChanges };
@@ -87,11 +87,6 @@ namespace Advobot.Services.Logging
 			var values = GetType().GetProperties().Select(x => x.GetValue(this));
 			//Look through all the fields on this, e.g. BotLogger, GuildLogger, etc.
 			foreach (var logger in values.OfType<ILogger>())
-			{
-				logger.LogCounterIncrement += OnLogCounterIncrement;
-			}
-			//Look through all the services, e.g. CommandHandlerService.
-			foreach (var logger in provider.GetServicesExcept<ILogService>().OfType<ILogger>())
 			{
 				logger.LogCounterIncrement += OnLogCounterIncrement;
 			}

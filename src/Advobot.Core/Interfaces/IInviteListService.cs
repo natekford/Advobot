@@ -8,7 +8,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for an invite list module. Handles a list of server invites.
 	/// </summary>
-	public interface IInviteListService
+	public interface IInviteListService : IUsesDatabase
 	{
 		/// <summary>
 		/// Adds an invite to the list.

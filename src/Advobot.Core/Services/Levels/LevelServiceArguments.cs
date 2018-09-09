@@ -5,7 +5,7 @@ namespace Advobot.Services.Levels
 	/// <summary>
 	/// Arguments used when creating <see cref="LevelService"/>.
 	/// </summary>
-	internal sealed class LevelServiceArguments
+	public sealed class LevelServiceArguments
 	{
 		/// <summary>
 		/// Part of the level formula. Bigger means levels get lower.

@@ -83,7 +83,7 @@ namespace Advobot.Classes
 		/// <param name="options"></param>
 		/// <param name="days"></param>
 		/// <returns></returns>
-		public async Task BanAsync(SocketGuild guild, ulong userId, RequestOptions options, int days = 1)
+		public async Task BanAsync(SocketGuild guild, ulong userId, RequestOptions options = null, int days = 1)
 		{
 			await guild.AddBanAsync(userId, days, null, options).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
@@ -96,7 +96,7 @@ namespace Advobot.Classes
 		/// <param name="userId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task SoftbanAsync(SocketGuild guild, ulong userId, RequestOptions options)
+		public async Task SoftbanAsync(SocketGuild guild, ulong userId, RequestOptions options = null)
 		{
 			await guild.AddBanAsync(userId, 1, null, options).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
@@ -109,7 +109,7 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task KickAsync(SocketGuildUser user, RequestOptions options)
+		public async Task KickAsync(SocketGuildUser user, RequestOptions options = null)
 		{
 			await user.KickAsync(null, options).CAF();
 			await AfterGiveAsync(Punishment.Kick, user?.Guild, user, options).CAF();
@@ -121,7 +121,7 @@ namespace Advobot.Classes
 		/// <param name="role"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task RoleMuteAsync(SocketGuildUser user, IRole role, RequestOptions options)
+		public async Task RoleMuteAsync(SocketGuildUser user, IRole role, RequestOptions options = null)
 		{
 			await user.AddRoleAsync(role, options).CAF();
 			await AfterGiveAsync(Punishment.RoleMute, user?.Guild, user, options).CAF();
@@ -132,7 +132,7 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task VoiceMuteAsync(SocketGuildUser user, RequestOptions options)
+		public async Task VoiceMuteAsync(SocketGuildUser user, RequestOptions options = null)
 		{
 			await user.ModifyAsync(x => x.Mute = true, options).CAF();
 			await AfterGiveAsync(Punishment.VoiceMute, user?.Guild, user, options).CAF();
@@ -143,7 +143,7 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task DeafenAsync(SocketGuildUser user, RequestOptions options)
+		public async Task DeafenAsync(SocketGuildUser user, RequestOptions options = null)
 		{
 			await user.ModifyAsync(x => x.Deaf = true, options).CAF();
 			await AfterGiveAsync(Punishment.Deafen, user?.Guild, user, options).CAF();
@@ -157,7 +157,7 @@ namespace Advobot.Classes
 		/// <param name="roleId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task GiveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions options)
+		public async Task GiveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions options = null)
 		{
 			//Ban and softban both work without having to get the user
 			switch (type)
@@ -194,7 +194,7 @@ namespace Advobot.Classes
 					return;
 			}
 		}
-		private async Task AfterGiveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions options)
+		private async Task AfterGiveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions options = null)
 		{
 			var sb = new StringBuilder($"Successfully {Given[type]} `{user.Format()}`. ");
 			if (!_Time.Equals(default) && _Timers != null)
@@ -203,7 +203,7 @@ namespace Advobot.Classes
 				await _Timers.AddAsync(new RemovablePunishment(_Time, type, guild, user)).CAF();
 				sb.Append($"They will be {Removed[type]} in `{_Time}` minutes. ");
 			}
-			if (options.AuditLogReason != null)
+			if (options?.AuditLogReason != null)
 			{
 				sb.Append($"The provided reason is `{options.AuditLogReason.EscapeBackTicks().TrimEnd('.', ' ')}`. ");
 			}
@@ -219,7 +219,7 @@ namespace Advobot.Classes
 		/// <param name="userId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task UnbanAsync(SocketGuild guild, ulong userId, RequestOptions options)
+		public async Task UnbanAsync(SocketGuild guild, ulong userId, RequestOptions options = null)
 		{
 			var ban = (await guild.GetBansAsync().CAF()).SingleOrDefault(x => x.User.Id == userId);
 			await guild.RemoveBanAsync(userId, options).CAF();
@@ -232,7 +232,7 @@ namespace Advobot.Classes
 		/// <param name="role"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task UnrolemuteAsync(SocketGuildUser user, IRole role, RequestOptions options)
+		public async Task UnrolemuteAsync(SocketGuildUser user, IRole role, RequestOptions options = null)
 		{
 			if (user != null)
 			{
@@ -246,7 +246,7 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task UnvoicemuteAsync(SocketGuildUser user, RequestOptions options)
+		public async Task UnvoicemuteAsync(SocketGuildUser user, RequestOptions options = null)
 		{
 			if (user != null)
 			{
@@ -260,7 +260,7 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task UndeafenAsync(SocketGuildUser user, RequestOptions options)
+		public async Task UndeafenAsync(SocketGuildUser user, RequestOptions options = null)
 		{
 			if (user != null)
 			{
@@ -277,7 +277,7 @@ namespace Advobot.Classes
 		/// <param name="roleId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task RemoveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions options)
+		public async Task RemoveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions options = null)
 		{
 			switch (type)
 			{
@@ -311,14 +311,14 @@ namespace Advobot.Classes
 					return;
 			}
 		}
-		private async Task AfterRemoveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions options)
+		private async Task AfterRemoveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions options = null)
 		{
 			var sb = new StringBuilder($"Successfully {Removed[type]} `{user?.Format() ?? "`Unknown User`"}`. ");
 			if (_Timers != null && (await _Timers.RemovePunishmentAsync(guild.Id, user?.Id ?? 0, type).CAF()).UserId != 0)
 			{
 				sb.Append($"Removed all timed {type.ToString().FormatTitle().ToLower()} punishments on them. ");
 			}
-			if (options.AuditLogReason != null)
+			if (options?.AuditLogReason != null)
 			{
 				sb.Append($"The provided reason is `{options.AuditLogReason.EscapeBackTicks().TrimEnd('.', ' ')}`. ");
 			}

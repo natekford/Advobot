@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Advobot.NetCoreUI.Classes.ViewModels;
 using Advobot.NetCoreUI.Classes.Views;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Avalonia;
 using Avalonia.Logging.Serilog;
@@ -16,10 +17,11 @@ namespace Advobot.NetCoreUI
 		private static async Task Main(string[] args)
 		{
 			var launcher = new AdvobotConsoleLauncher(args);
-			launcher.SetPath();
-			await launcher.SetBotKey().CAF();
-			await launcher.Start().CAF();
-			BuildAvaloniaApp().Start<AdvobotNetCoreWindow>(() => new AdvobotNetCoreWindowViewModel(launcher.GetServiceProvider()));
+			await launcher.GetPathAndKey().CAF();
+			var services = launcher.GetDefaultServices(DiscordUtils.GetCommandAssemblies());
+			var provider = services.CreateProvider();
+			await launcher.Start(provider).CAF();
+			BuildAvaloniaApp().Start<AdvobotNetCoreWindow>(() => new AdvobotNetCoreWindowViewModel(provider));
 		}
 		public static AppBuilder BuildAvaloniaApp()
 		{

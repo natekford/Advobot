@@ -1,267 +1,211 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.CloseWords;
+using Advobot.Classes.DatabaseWrappers;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.WebSocket;
-using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 using Timer = System.Timers.Timer;
 
 namespace Advobot.Services.Timers
 {
 	/// <summary>
-	/// Handles time based punishments and message removal
+	/// Handles timed things.
 	/// </summary>
 	/// <remarks>
 	/// I have absolutely no idea if this class works as intended under stress.
 	/// </remarks>
-	internal sealed class TimerService : ITimerService, IUsesDatabase, IDisposable
+	public class TimerService : DatabaseWrapperConsumer, ITimerService
 	{
-		private LiteDatabase _Db;
-		private ConcurrentBag<ulong> _AlreadyDeletedMessages = new ConcurrentBag<ulong>();
-		private readonly DiscordShardedClient _Client;
-		private readonly IBotSettings _Settings;
-		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
-		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
-		private readonly Timer _SecondTimer = new Timer(1000);
-		private readonly Punisher _PunishmentRemover;
-		private readonly RequestOptions _PunishmentReason = ClientUtils.CreateRequestOptions("automatic punishment removal.");
-		private readonly RequestOptions _MessageReason = ClientUtils.CreateRequestOptions("automatic message deletion.");
-		private readonly ProcessingQueue _RemovablePunishments;
-		private readonly ProcessingQueue _TimedMessages;
-		private readonly ProcessingQueue _RemovableMessages;
-		private readonly ProcessingQueue _CloseHelpEntries;
-		private readonly ProcessingQueue _CloseQuotes;
-
-		public TimerService(IIterableServiceProvider provider)
+		/// <inheritdoc />
+		public override string DatabaseName => "TimedDatabase";
+		/// <summary>
+		/// The discord client for the bot.
+		/// </summary>
+		protected DiscordShardedClient Client { get; }
+		/// <summary>
+		/// A timer which ticks once an hour. This will not tick every x:00, instead every 3600 seconds after the bot is start.
+		/// </summary>
+		protected Timer HourTimer { get; } = new Timer(60 * 60 * 1000);
+		/// <summary>
+		/// A timer which ticks once a minute. This will not tick every x:xx, instead every 60 seconds after the bot is start.
+		/// </summary>
+		protected Timer MinuteTimer { get; } = new Timer(60 * 1000);
+		/// <summary>
+		/// A timer which ticks once a second. This will not tick every x:xx:xx, instead every 1 second after the bot is start.
+		/// </summary>
+		protected Timer SecondTimer { get; } = new Timer(1000);
+		/// <summary>
+		/// Used for giving and removing punishments.
+		/// </summary>
+		protected Punisher Punisher { get; }
+		/// <summary>
+		/// Queue responsible for processing punishments.
+		/// </summary>
+		protected ProcessingQueue RemovablePunishments { get; }
+		/// <summary>
+		/// Queue responsible for processing punishments.
+		/// </summary>
+		protected ProcessingQueue TimedMessages { get; }
+		/// <summary>
+		/// Queue responsible for processing removable messages..
+		/// </summary>
+		protected ProcessingQueue RemovableMessages { get; }
+		/// <summary>
+		/// Queue responsible for processing close help entries.
+		/// </summary>
+		protected ProcessingQueue CloseHelpEntries { get; }
+		/// <summary>
+		/// Queue responsible for processing close quotes..
+		/// </summary>
+		protected ProcessingQueue CloseQuotes { get; }
+		/// <summary>
+		/// Cached message ids which have already been deleted so there are less exceptions given when deleting messages.
+		/// </summary>
+		protected ConcurrentBag<ulong> AlreadyDeletedMessages
 		{
-			_Client = provider.GetRequiredService<DiscordShardedClient>();
-			_Settings = provider.GetRequiredService<IBotSettings>();
-			_PunishmentRemover = new Punisher(TimeSpan.FromMinutes(0), this);
+			get => _AlreadyDeletedMessages;
+			set => _AlreadyDeletedMessages = value;
+		}
+		private ConcurrentBag<ulong> _AlreadyDeletedMessages = new ConcurrentBag<ulong>();
 
-			_RemovablePunishments = new ProcessingQueue(1, async () =>
-			{
-				var col = _Db.GetCollection<RemovablePunishment>();
-				foreach (var punishment in col.Find(x => x.Time < DateTime.UtcNow))
-				{
-					col.Delete(punishment.Id);
-					await punishment.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
-				}
-			});
-			_TimedMessages = new ProcessingQueue(1, async () =>
-			{
-				var col = _Db.GetCollection<TimedMessage>();
-				foreach (var timedMessage in col.Find(x => x.Time < DateTime.UtcNow))
-				{
-					col.Delete(timedMessage.Id);
-					if (!(_Client.GetUser(timedMessage.UserId) is SocketUser user))
-					{
-						continue;
-					}
+		/// <summary>
+		/// Creates an instance of <see cref="TimerService"/>.
+		/// </summary>
+		/// <param name="provider"></param>
+		public TimerService(IServiceProvider provider) : base(provider)
+		{
+			Client = provider.GetRequiredService<DiscordShardedClient>();
+			Punisher = new Punisher(TimeSpan.FromMinutes(0), this);
 
-					await user.SendMessageAsync(timedMessage.Text).CAF();
-				}
-			});
-			_RemovableMessages = new ProcessingQueue(1, async () =>
+			RemovablePunishments = new ProcessingQueue(1, async () =>
 			{
-				await RemoveRemovableMessages(_Db.GetCollection<RemovableMessage>()).CAF();
+				var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovablePunishment>.Delete(x => x.Time < DateTime.UtcNow));
+				await RemovablePunishment.ProcessRemovablePunishments(Client, Punisher, values);
 			});
-			_CloseHelpEntries = new ProcessingQueue(1, async () =>
+			TimedMessages = new ProcessingQueue(1, async () =>
 			{
-				await RemoveRemovableMessages(_Db.GetCollection<CloseHelpEntries>()).CAF();
+				var values = DatabaseWrapper.ExecuteQuery(DBQuery<TimedMessage>.Delete(x => x.Time < DateTime.UtcNow));
+				await TimedMessage.ProcessTimedMessages(Client, values).CAF();
 			});
-			_CloseQuotes = new ProcessingQueue(1, async () =>
+			RemovableMessages = new ProcessingQueue(1, async () =>
 			{
-				await RemoveRemovableMessages(_Db.GetCollection<CloseQuotes>()).CAF();
+				var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableMessage>.Delete(x => x.Time < DateTime.UtcNow));
+				await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+			});
+			CloseHelpEntries = new ProcessingQueue(1, async () =>
+			{
+				var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseHelpEntries>.Delete(x => x.Time < DateTime.UtcNow));
+				await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+			});
+			CloseQuotes = new ProcessingQueue(1, async () =>
+			{
+				var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseQuotes>.Delete(x => x.Time < DateTime.UtcNow));
+				await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
 			});
 
-			_HourTimer.Elapsed += (sender, e) =>
+			HourTimer.Elapsed += (sender, e) =>
 			{
 				//Clear this bag every hour because most of these errors only happen a few seconds after input
 				//Meaning there's not much of a need for longer term storage of message ids
 				Interlocked.Exchange(ref _AlreadyDeletedMessages, new ConcurrentBag<ulong>());
 			};
-			_MinuteTimer.Elapsed += (sender, e) =>
+			MinuteTimer.Elapsed += (sender, e) =>
 			{
-				_RemovablePunishments.Process();
-				_TimedMessages.Process();
+				RemovablePunishments.Process();
+				TimedMessages.Process();
 			};
-			_SecondTimer.Elapsed += (sender, e) =>
+			SecondTimer.Elapsed += (sender, e) =>
 			{
-				_RemovableMessages.Process();
-				_CloseHelpEntries.Process();
-				_CloseQuotes.Process();
+				RemovableMessages.Process();
+				CloseHelpEntries.Process();
+				CloseQuotes.Process();
 			};
 
-			_Client.MessageDeleted += (cached, channel) =>
+			Client.MessageDeleted += (cached, channel) =>
 			{
-				_AlreadyDeletedMessages.Add(cached.Id);
+				AlreadyDeletedMessages.Add(cached.Id);
 				return Task.CompletedTask;
 			};
 		}
 
 		/// <inheritdoc />
-		public void Start()
+		public async Task AddAsync(RemovablePunishment value)
 		{
-			_Db = _Settings.GetDatabase("TimedDatabase.db");
-			_HourTimer.Enabled = true;
-			_MinuteTimer.Enabled = true;
-			_SecondTimer.Enabled = true;
+			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovablePunishment>.Delete(
+				x => x.UserId == value.UserId && x.GuildId == value.GuildId && x.PunishmentType == value.PunishmentType));
+			await RemovablePunishment.ProcessRemovablePunishments(Client, Punisher, values);
+			DatabaseWrapper.ExecuteQuery(DBQuery<RemovablePunishment>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
-		public void Dispose()
+		public async Task AddAsync(CloseHelpEntries value)
 		{
-			_MinuteTimer.Stop();
-			_SecondTimer.Stop();
-			_Db.Dispose();
+			var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseHelpEntries>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
+			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+			DatabaseWrapper.ExecuteQuery(DBQuery<CloseHelpEntries>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
-		public async Task AddAsync(RemovablePunishment punishment)
+		public async Task AddAsync(CloseQuotes value)
 		{
-			var col = _Db.GetCollection<RemovablePunishment>();
-			var entry = col.FindOne(x => x.UserId == punishment.UserId && x.GuildId == punishment.GuildId && x.PunishmentType == punishment.PunishmentType);
-			if (entry != null)
-			{
-				col.Delete(entry.Id);
-				await entry.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
-			}
-			col.Insert(punishment);
+			var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseQuotes>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
+			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+			DatabaseWrapper.ExecuteQuery(DBQuery<CloseQuotes>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
-		public async Task AddAsync(CloseHelpEntries helpEntries)
+		public Task AddAsync(RemovableMessage value)
 		{
-			var col = _Db.GetCollection<CloseHelpEntries>();
-			await HandleRemovableMessage(col, helpEntries.GuildId, helpEntries.UserId).CAF();
-			col.Insert(helpEntries);
+			DatabaseWrapper.ExecuteQuery(DBQuery<RemovableMessage>.Insert(new[] { value }));
+			return Task.FromResult(0);
 		}
 		/// <inheritdoc />
-		public async Task AddAsync(CloseQuotes quotes)
+		public Task AddAsync(TimedMessage value)
 		{
-			var col = _Db.GetCollection<CloseQuotes>();
-			await HandleRemovableMessage(col, quotes.GuildId, quotes.UserId).CAF();
-			col.Insert(quotes);
-		}
-		/// <inheritdoc />
-		public void Add(RemovableMessage message)
-			=> _Db.GetCollection<RemovableMessage>().Insert(message);
-		/// <inheritdoc />
-		public void Add(TimedMessage message)
-		{
-			var col = _Db.GetCollection<TimedMessage>();
-			//Only allow one timed message per user at a time.
-			col.Delete(x => x.UserId == message.UserId);
-			col.Insert(message);
+			DatabaseWrapper.ExecuteQuery(DBQuery<TimedMessage>.Insert(new[] { value }));
+			return Task.FromResult(0);
 		}
 		/// <inheritdoc />
 		public async Task<RemovablePunishment> RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment)
 		{
-			var col = _Db.GetCollection<RemovablePunishment>();
-			var entry = col.FindOne(x => x.UserId == userId && x.GuildId == guildId && x.PunishmentType == punishment);
-			if (entry != null)
-			{
-				col.Delete(entry.Id);
-				await entry.RemoveAsync(_Client, _PunishmentRemover, _PunishmentReason).CAF();
-			}
-			return entry;
+			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovablePunishment>.Delete(
+				x => x.UserId == userId && x.GuildId == guildId && x.PunishmentType == punishment));
+			await RemovablePunishment.ProcessRemovablePunishments(Client, Punisher, values).CAF();
+			return values.SingleOrDefault();
 		}
 		/// <inheritdoc />
 		public async Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(ulong guildId, ulong userId)
-			=> await HandleRemovableMessage(_Db.GetCollection<CloseHelpEntries>(), guildId, userId).CAF();
+		{
+			var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseHelpEntries>.Delete(x => x.GuildId == guildId && x.UserId == userId));
+			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+			return values.SingleOrDefault();
+		}
 		/// <inheritdoc />
 		public async Task<CloseQuotes> RemoveActiveCloseQuoteAsync(ulong guildId, ulong userId)
-			=> await HandleRemovableMessage(_Db.GetCollection<CloseQuotes>(), guildId, userId).CAF();
-
-		/// <summary>
-		/// Deletes messages past their expiry time.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="col"></param>
-		/// <returns></returns>
-		private async Task RemoveRemovableMessages<T>(LiteCollection<T> col) where T : RemovableMessage
 		{
-			foreach (var guildGroup in col.Find(x => x.Time < DateTime.UtcNow).GroupBy(x => x.GuildId))
-			{
-				//Remove them from the database
-				foreach (var g in guildGroup)
-				{
-					col.Delete(g.Id);
-				}
-				if (!(_Client.GetGuild(guildGroup.Key) is SocketGuild guild))
-				{
-					continue;
-				}
-				foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
-				{
-					if (!(guild.GetTextChannel(channelGroup.Key) is SocketTextChannel channel))
-					{
-						continue;
-					}
-
-					var messages = await GetValidMessages(channel, channelGroup.SelectMany(g => g.MessageIds)).CAF();
-					await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
-				}
-			}
+			var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseQuotes>.Delete(x => x.GuildId == guildId && x.UserId == userId));
+			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+			return values.SingleOrDefault();
 		}
-		/// <summary>
-		/// Retrieves close quotes and help entries before they're deleted.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="col"></param>
-		/// <param name="guildId"></param>
-		/// <param name="userId"></param>
-		/// <returns></returns>
-		private async Task<T> HandleRemovableMessage<T>(LiteCollection<T> col, ulong guildId, ulong userId) where T : RemovableMessage
+		/// <inheritdoc />
+		protected override void AfterStart()
 		{
-			if (!(col.FindOne(x => x.GuildId == guildId && x.UserId == userId) is T entry))
-			{
-				return null;
-			}
-			if (_Client.GetGuild(entry.GuildId) is SocketGuild guild &&
-				guild.GetTextChannel(entry.ChannelId) is SocketTextChannel channel)
-			{
-				var messages = await GetValidMessages(channel, entry.MessageIds).CAF();
-				await MessageUtils.DeleteMessagesAsync(channel, messages, _MessageReason).CAF();
-			}
-			col.Delete(entry.Id);
-			return entry;
+			HourTimer.Start();
+			MinuteTimer.Start();
+			SecondTimer.Start();
+			base.AfterStart();
 		}
-		/// <summary>
-		/// Attempts to get every message unless it has already been deleted or the id is 0.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="ids"></param>
-		/// <returns></returns>
-		private async Task<IMessage[]> GetValidMessages(SocketTextChannel channel, IEnumerable<ulong> ids)
+		/// <inheritdoc />
+		protected override void BeforeDispose()
 		{
-			var alreadyDeleted = new List<ulong>(_AlreadyDeletedMessages);
-			var tasks = new List<Task<IMessage>>();
-			foreach (var id in ids.Where(x => x != 0 && !alreadyDeleted.Contains(x)))
-			{
-				_AlreadyDeletedMessages.Add(id);
-				tasks.Add(channel.GetMessageAsync(id));
-			}
-			return await Task.WhenAll(tasks).CAF();
-		}
-
-		//ITimersService
-		Task ITimerService.AddAsync(RemovableMessage message)
-		{
-			Add(message);
-			return Task.CompletedTask;
-		}
-		Task ITimerService.AddAsync(TimedMessage message)
-		{
-			Add(message);
-			return Task.CompletedTask;
+			HourTimer.Dispose();
+			MinuteTimer.Dispose();
+			SecondTimer.Dispose();
+			base.BeforeDispose();
 		}
 	}
 }

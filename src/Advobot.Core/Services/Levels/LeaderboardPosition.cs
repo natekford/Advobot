@@ -1,5 +1,4 @@
 ﻿using Advobot.Classes;
-using LiteDB;
 
 namespace Advobot.Services.Levels
 {
@@ -27,7 +26,6 @@ namespace Advobot.Services.Levels
 		{
 			UserId = userId;
 			Experience = experience;
-			Id = new ObjectId(UserId.ToString().PadLeft(24, '0'));
 		}
 	}
 }
