@@ -81,7 +81,7 @@ namespace Advobot.Services.GuildSettings
 		public IList<PersistentRole> PersistentRoles { get; } = new List<PersistentRole>();
 		/// <inheritdoc />
 		[JsonProperty("BotUsers")]
-		public IList<BotImplementedPermissions> BotUsers { get; } = new List<BotImplementedPermissions>();
+		public IList<BotUser> BotUsers { get; } = new List<BotUser>();
 		/// <inheritdoc />
 		[JsonProperty("SelfAssignableGroups")]
 		public IList<SelfAssignableRoles> SelfAssignableGroups { get; } = new List<SelfAssignableRoles>();

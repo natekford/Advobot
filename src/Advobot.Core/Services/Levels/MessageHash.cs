@@ -34,6 +34,10 @@ namespace Advobot.Services.Levels
 		/// <summary>
 		/// Creates an instance of <see cref="MessageHash"/>.
 		/// </summary>
+		public MessageHash() { }
+		/// <summary>
+		/// Creates an instance of <see cref="MessageHash"/>.
+		/// </summary>
 		/// <param name="message"></param>
 		/// <param name="xp"></param>
 		public MessageHash(SocketUserMessage message, int xp)

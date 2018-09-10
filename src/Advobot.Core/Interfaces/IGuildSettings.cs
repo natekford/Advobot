@@ -64,7 +64,7 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Permissions given through the bot and not Discord itself.
 		/// </summary>
-		IList<BotImplementedPermissions> BotUsers { get; }
+		IList<BotUser> BotUsers { get; }
 		/// <summary>
 		/// Roles users can assign themselves.
 		/// </summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using Advobot.Interfaces;
 using Discord.WebSocket;
 
 namespace Advobot.Classes.UserInformation
@@ -6,7 +7,7 @@ namespace Advobot.Classes.UserInformation
 	/// <summary>
 	/// Holds a user and a time.
 	/// </summary>
-	public abstract class UserInfo
+	public abstract class UserInfo : ITargetsUser
 	{
 		/// <summary>
 		/// The time to reset the user.
@@ -16,21 +17,14 @@ namespace Advobot.Classes.UserInformation
 		/// The id of the guild the user is on.
 		/// </summary>
 		public ulong GuildId { get; }
-		/// <summary>
-		/// The id of the user.
-		/// </summary>
+		/// <inheritdoc />
 		public ulong UserId { get; }
 
 		/// <summary>
 		/// Creates an instance of userinfo with the supplied user and time as datetime.utcnow.
 		/// </summary>
 		/// <param name="user"></param>
-		public UserInfo(SocketGuildUser user)
-		{
-			Time = DateTime.UtcNow;
-			GuildId = user.Guild.Id;
-			UserId = user.Id;
-		}
+		public UserInfo(SocketGuildUser user) : this(TimeSpan.Zero, user) { }
 		/// <summary>
 		/// Creates an instance of userinfo with the supplied user and time.
 		/// </summary>

@@ -26,12 +26,17 @@ namespace Advobot.Utilities
 		/// <param name="content"></param>
 		/// <param name="embedWrapper"></param>
 		/// <param name="textFile"></param>
+		/// <param name="allowZeroWidthLengthMessages">
+		/// If there is no content passed in the content will become only a single zero width space.
+		/// This ends up taking up extra space if used with embeds or files.
+		/// </param>
 		/// <returns></returns>
 		public static async Task<IUserMessage> SendMessageAsync(
 			IMessageChannel channel,
 			string content,
 			EmbedWrapper embedWrapper = null,
-			TextFileInfo textFile = null)
+			TextFileInfo textFile = null,
+			bool allowZeroWidthLengthMessages = false)
 		{
 			if (channel == null || (content == null && embedWrapper == null && textFile == null))
 			{
@@ -56,6 +61,13 @@ namespace Advobot.Utilities
 				content = $"{Constants.ZERO_LENGTH_CHAR}Response is too long; sent as text file instead.";
 			}
 
+			//Can clear the content if it's going to only be a zero length space and there's an embed
+			//Otherwise there will be unecessary empty space
+			if (!allowZeroWidthLengthMessages && content == Constants.ZERO_LENGTH_CHAR && embedWrapper != null)
+			{
+				content = "";
+			}
+
 			try
 			{
 				//If the file name and text exists, then attempt to send as a file instead of message
@@ -70,7 +82,6 @@ namespace Advobot.Utilities
 						return await channel.SendFileAsync(stream, textFile.Name, content, embed: embedWrapper).CAF();
 					}
 				}
-
 				return await channel.SendMessageAsync(content, embed: embedWrapper).CAF();
 			}
 			//If the message fails to send, then return the error

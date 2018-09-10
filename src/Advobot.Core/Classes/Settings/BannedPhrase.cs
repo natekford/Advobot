@@ -28,7 +28,7 @@ namespace Advobot.Classes.Settings
 		/// The type of punishment associated with this phrase.
 		/// </summary>
 		[JsonProperty]
-		public Punishment Punishment;
+		public Punishment Punishment { get; set; }
 
 		/// <summary>
 		/// Creates an instance of banned phrase.

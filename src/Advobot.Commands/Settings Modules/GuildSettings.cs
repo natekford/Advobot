@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.EqualityComparers;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
-using Advobot.Commands.Misc;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -38,14 +37,11 @@ namespace Advobot.Commands.GuildSettings
 		[Command]
 		public async Task Command(string settingName)
 			=> await ShowAsync(settingName).CAF();
+		[Command]
+		public async Task Command(string settingName, IUser user)
+			=> await ShowAsync(settingName, user).CAF();
 
 		protected override IGuildSettings GetSettings() => Context.GuildSettings;
-	}
-
-	public class NameableEqualityComparer : IEqualityComparer<INameable>
-	{
-		public bool Equals(INameable x, INameable y) => x?.Name == y?.Name;
-		public int GetHashCode(INameable obj) => obj.GetHashCode();
 	}
 
 	[Category(typeof(ModifyGuildSettings)), Group(nameof(ModifyGuildSettings)), TopLevelShortAlias(typeof(ModifyGuildSettings))]
@@ -54,11 +50,6 @@ namespace Advobot.Commands.GuildSettings
 	[DefaultEnabled(false)]
 	public sealed class ModifyGuildSettings : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
-		static ModifyGuildSettings()
-		{
-			RegisterEqualityComparer<Quote>(new NameableEqualityComparer());
-		}
-
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
 		public async Task Reset(string settingName)
 			=> await ResetAsync(settingName).CAF();
@@ -108,8 +99,42 @@ namespace Advobot.Commands.GuildSettings
 
 		[Command(nameof(IGuildSettings.Quotes)), ShortAlias(nameof(IGuildSettings.Quotes))]
 		public async Task Quotes(AddBoolean add, string name, [Optional, Remainder] string text)
-			=> await ModifyCollectionAsync(x => x.Quotes, add, new Quote(name, text ?? "")).CAF();
-		
+			=> await ModifyCollectionAsync(x => x.Quotes, add, new[] { new Quote(name, text ?? "") }, NameableEqualityComparer.Default).CAF();
+
+
+		//TODO: go back to old way in separate command because this is kind of unwieldy?
+		[Command(nameof(IGuildSettings.BotUsers)), ShortAlias(nameof(IGuildSettings.BotUsers))]
+		public async Task BotUsers(AddBoolean add, IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
+			=> await ModifyCollectionValuesAsync(
+				x => x.BotUsers,
+				x => x.UserId == user.Id,
+				() => new BotUser(user.Id),
+				x => x.ModifyPermissions(add, (IGuildUser)Context.User, permissions),
+				x => $"Successfully {(add ? "removed" : "added")} the following bot permissions on `{user.Format()}`: `{x}`.");
+
+		[Command(nameof(IGuildSettings.WelcomeMessage)), ShortAlias(nameof(IGuildSettings.WelcomeMessage))]
+		public async Task WelcomeMessage([ValidateObject(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
+		{
+			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+			Context.GuildSettings.WelcomeMessage = obj;
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the welcome message.").CAF();
+		}
+		[Command(nameof(IGuildSettings.GoodbyeMessage)), ShortAlias(nameof(IGuildSettings.GoodbyeMessage))]
+		public async Task GoodbyeMessage([ValidateObject(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
+		{
+			if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
+			}
+			Context.GuildSettings.GoodbyeMessage = obj;
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the goodbye message.").CAF();
+		}
+
 		protected override IGuildSettings GetSettings() => Context.GuildSettings;
 	}
 
@@ -272,6 +297,7 @@ namespace Advobot.Commands.GuildSettings
 		protected override IGuildSettings GetSettings() => Context.GuildSettings;
 	}
 
+	/*
 	[Category(typeof(ModifyBotUsers)), Group(nameof(ModifyBotUsers)), TopLevelShortAlias(typeof(ModifyBotUsers))]
 	[Summary("Gives a user permissions in the bot but not on Discord itself. " +
 		"Type `" + nameof(ModifyBotUsers) + " [" + nameof(Show) + "]` to see the available permissions. " +
@@ -280,75 +306,46 @@ namespace Advobot.Commands.GuildSettings
 	[DefaultEnabled(false)]
 	public sealed class ModifyBotUsers : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
-		[Group(nameof(Show)), ShortAlias(nameof(Show))]
-		public sealed class Show : AdvobotModuleBase
-		{
-			[Command]
-			public async Task Command()
-			{
-				var embed = new EmbedWrapper
-				{
-					Title = "Bot Permissions",
-					Description = $"`{string.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`"
-				};
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-			}
-			[Command]
-			public async Task Command(IUser user)
-			{
-				var botUser = Context.GuildSettings.BotUsers.SingleOrDefault(x => x.UserId == user.Id);
-				if (botUser == null || botUser.Permissions == 0)
-				{
-					var error = new Error("That user has no extra permissions from the bot.");
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-					return;
-				}
-
-				var embed = new EmbedWrapper
-				{
-					Title = $"Permissions for {user.Format()}",
-					Description = $"`{string.Join("`, `", EnumUtils.GetFlagNames((GuildPermission)botUser.Permissions))}`"
-				};
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-			}
-		}
-		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
+		[Command(nameof(Show)), ShortAlias(nameof(Show))]
+		public async Task Show(IUser user)
 		{
 			var botUser = Context.GuildSettings.BotUsers.SingleOrDefault(x => x.UserId == user.Id);
-			if (botUser == null)
+			if (botUser == null || botUser.Permissions == 0)
 			{
-				Context.GuildSettings.BotUsers.Add(botUser = new BotImplementedPermissions(user.Id, permissions));
+				var error = new Error($"`{user.Format()}` has no extra permissions from the bot.");
+				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				return;
 			}
 
-			permissions |= ((IGuildUser)Context.User).GuildPermissions.RawValue;
-			botUser.AddPermissions(permissions);
-
-			var givenPerms = string.Join("`, `", EnumUtils.GetFlagNames((GuildPermission)permissions));
-			var resp = $"Successfully gave `{user.Format()}` the following bot permissions: `{givenPerms}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			var embed = new EmbedWrapper
+			{
+				Title = $"Permissions for {user.Format()}",
+				Description = $"`{string.Join("`, `", EnumUtils.GetFlagNames((GuildPermission)botUser.Permissions))}`"
+			};
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
-		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
+		[Command]
+		public async Task Command(AddBoolean add, IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
-			permissions |= ((IGuildUser)Context.User).GuildPermissions.RawValue;
-
-			var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id);
-			if (botUser == null)
+			var botUser = Context.GuildSettings.BotUsers.SingleOrDefault(x => x.UserId == user.Id);
+			if (add && botUser == null)
+			{
+				Context.GuildSettings.BotUsers.Add(botUser = new BotUser(user.Id, permissions));
+			}
+			if (!add && botUser == null)
 			{
 				var error = new Error($"`{user.Format()}` does not have any bot permissions to remove");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
-			botUser.RemovePermissions(permissions);
 
-			var takenPerms = string.Join("`, `", EnumUtils.GetFlagNames((GuildPermission)permissions));
-			var resp = $"Successfully removed the following bot permissions from `{user.Format()}`: `{takenPerms}`.";
+			var modifiedPerms = string.Join("`, `", botUser.ModifyPermissions(add, (IGuildUser)Context.User, permissions));
+			var resp = $"Successfully {(add ? "removed" : "added")} the following bot permissions on `{user.Format()}`: `{modifiedPerms}`.";
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 
 		protected override IGuildSettings GetSettings() => Context.GuildSettings;
-	}
+	}*/
 
 	[Category(typeof(ModifyPersistentRoles)), Group(nameof(ModifyPersistentRoles)), TopLevelShortAlias(typeof(ModifyPersistentRoles))]
 	[Summary("Gives a user a role that stays even when they leave and rejoin the server. " +
@@ -394,7 +391,7 @@ namespace Advobot.Commands.GuildSettings
 				var embed = new EmbedWrapper
 				{
 					Title = "Persistent Roles",
-					Description = roles.FormatNumberedList(x => x.ToString(Context.Guild as SocketGuild))
+					Description = roles.FormatNumberedList(x => x.ToString(Context.Guild))
 				};
 				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
@@ -455,6 +452,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
+	/* Implemented by editing the image only list
 	[Category(typeof(ModifyChannelSettings)), Group(nameof(ModifyChannelSettings)), TopLevelShortAlias(typeof(ModifyChannelSettings))]
 	[Summary("Image only works solely on attachments. " +
 		"Using the command on an already targetted channel turns it off.")]
@@ -479,8 +477,9 @@ namespace Advobot.Commands.GuildSettings
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
-	}
+	}*/
 
+	/*
 	[Category(typeof(ModifyGuildNotifs)), Group(nameof(ModifyGuildNotifs)), TopLevelShortAlias(typeof(ModifyGuildNotifs))]
 	[Summary("The bot send a message to the given channel when the self explantory event happens. " +
 		"`" + GuildNotification.USER_MENTION + "` will be replaced with the formatted user. " +
@@ -512,7 +511,7 @@ namespace Advobot.Commands.GuildSettings
 			Context.GuildSettings.GoodbyeMessage = obj;
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the goodbye message.").CAF();
 		}
-	}
+	}*/
 
 	[Category(typeof(TestGuildNotifs)), Group(nameof(TestGuildNotifs)), TopLevelShortAlias(typeof(TestGuildNotifs))]
 	[Summary("Sends the given guild notification in order to test it.")]

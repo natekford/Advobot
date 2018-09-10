@@ -1,5 +1,8 @@
-﻿using Advobot.Interfaces;
+﻿using System.Collections.Generic;
+using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -8,11 +11,9 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Extra permissions within the bot given to a user on a guild.
 	/// </summary>
-	public class BotImplementedPermissions : IGuildSetting
+	public class BotUser : IGuildSetting, ITargetsUser
 	{
-		/// <summary>
-		/// The id of the user.
-		/// </summary>
+		/// <inheritdoc />
 		[JsonProperty]
 		public ulong UserId { get; }
 		/// <summary>
@@ -26,7 +27,7 @@ namespace Advobot.Classes.Settings
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="permissions"></param>
-		public BotImplementedPermissions(ulong userId, ulong permissions)
+		public BotUser(ulong userId, ulong permissions = 0)
 		{
 			UserId = userId;
 			Permissions = permissions;
@@ -44,6 +45,39 @@ namespace Advobot.Classes.Settings
 		/// <param name="flags"></param>
 		public void RemovePermissions(ulong flags)
 			=> Permissions &= ~flags;
+		/// <summary>
+		/// Validates that the invoker has the permissions they are modifying and then returns the names of the successfully applied permissions.
+		/// </summary>
+		/// <param name="invoker"></param>
+		/// <param name="flags"></param>
+		/// <returns></returns>
+		public IEnumerable<string> AddPermissions(IGuildUser invoker, ulong flags)
+		{
+			var validFlags = flags |= invoker.GuildPermissions.RawValue;
+			AddPermissions(validFlags);
+			return EnumUtils.GetFlagNames((GuildPermission)validFlags);
+		}
+		/// <summary>
+		/// Validates that the invoker has the permissions they are modifying and then returns the names of the successfully removed permissions.
+		/// </summary>
+		/// <param name="invoker"></param>
+		/// <param name="flags"></param>
+		/// <returns></returns>
+		public IEnumerable<string> RemovePermissions(IGuildUser invoker, ulong flags)
+		{
+			var validFlags = flags |= invoker.GuildPermissions.RawValue;
+			RemovePermissions(validFlags);
+			return EnumUtils.GetFlagNames((GuildPermission)validFlags);
+		}
+		/// <summary>
+		/// Validates the invoker has the permissions they are modifying and then returns the names of the successfully modified permissions.
+		/// </summary>
+		/// <param name="add"></param>
+		/// <param name="invoker"></param>
+		/// <param name="flags"></param>
+		/// <returns></returns>
+		public IEnumerable<string> ModifyPermissions(bool add, IGuildUser invoker, ulong flags)
+			=> add ? AddPermissions(invoker, flags) : RemovePermissions(invoker, flags);
 		/// <inheritdoc />
 		public override string ToString()
 			=> $"**User:** `{UserId}`\n**Permissions:** `{Permissions}`";

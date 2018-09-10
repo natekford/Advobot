@@ -15,25 +15,13 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Handles methods for printing out, modifying, and resetting settings.
 	/// </summary>
-	/// <typeparam name="TSettings">The settings to </typeparam>
+	/// <typeparam name="TSettings">The settings to modify.</typeparam>
+	/// <remarks>
+	/// This uses expression a lot so the property name can be gotten from the same argument.
+	/// This essentially acts as reflection but with more type safety and resistance to refactoring issues.
+	/// </remarks>
 	public abstract class AdvobotSettingsModuleBase<TSettings> : AdvobotModuleBase where TSettings : ISettingsBase
 	{
-		private static readonly Dictionary<Type, object> _Comparers = new Dictionary<Type, object>();
-
-		/// <summary>
-		/// Registers the equality comparer so it can be used when modifying values/lists.
-		/// </summary>
-		/// <param name="comparer"></param>
-		public static void RegisterEqualityComparer<T>(IEqualityComparer<T> comparer)
-			=> _Comparers.Add(typeof(T), comparer);
-		/// <summary>
-		/// Gets the equality comparer registered for the specified type.
-		/// If no equality comparer is found, will return the default one.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
-		public static IEqualityComparer<T> GetEqualityComparer<T>()
-			=> _Comparers.TryGetValue(typeof(T), out var comparer) ? (IEqualityComparer<T>)comparer : EqualityComparer<T>.Default;
 		/// <summary>
 		/// Prints out the names of settings.
 		/// </summary>
@@ -96,6 +84,50 @@ namespace Advobot.Classes
 			}
 		}
 		/// <summary>
+		/// Prints out the values which target the specified user. If the setting does not support that, instead prints out an error.
+		/// </summary>
+		/// <param name="settingName"></param>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		protected async Task ShowAsync(string settingName, IUser user)
+		{
+			var settings = GetSettings();
+			if (!(await VerifyAsync(settings, settingName).CAF() is ISetting property))
+			{
+				return;
+			}
+
+			var value = property.GetValue();
+			var title = property.Name.FormatTitle();
+
+			IEnumerable<ITargetsUser> values;
+			if (value is IEnumerable<ITargetsUser> temp1)
+			{
+				values = temp1;
+			}
+			//I don't know if this one should ever occur, but if it does, it's relatively easy to handle anyways
+			else if (value is ITargetsUser temp2)
+			{
+				values = new[] { temp2 };
+			}
+			//If doesn't target users, then reply that
+			else
+			{
+				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{title}` does not target users directly.")).CAF();
+				return;
+			}
+
+			var userValues = values.Where(x => x.UserId == user.Id).ToList();
+			var description = userValues.Count == 0 ? "None" : userValues.FormatNumberedList(x => FormatValue(settings, x));
+			var embed = new EmbedWrapper
+			{
+				Title = $"{title} | {user.Format()}",
+				Description = description,
+			};
+			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+			return;
+		}
+		/// <summary>
 		/// Sends the settings file.
 		/// </summary>
 		/// <param name="accessor"></param>
@@ -132,19 +164,18 @@ namespace Advobot.Classes
 		/// <param name="propertySelector"></param>
 		/// <param name="add"></param>
 		/// <param name="values"></param>
+		/// <param name="comparer"></param>
 		/// <returns></returns>
 		protected async Task ModifyCollectionAsync<TValue>(
 			Expression<Func<TSettings, ICollection<TValue>>> propertySelector,
 			bool add,
-			IEnumerable<TValue> values)
+			IEnumerable<TValue> values,
+			IEqualityComparer<TValue> comparer = default)
 		{
-			var settings = GetSettings();
-			var prop = GetProperty(propertySelector);
-			var list = propertySelector.Compile()(settings);
-
+			var (settings, prop, list) = GetEverything(propertySelector);
 			var failures = new List<TValue>();
 			var successes = new List<TValue>();
-			var comparer = GetEqualityComparer<TValue>();
+			comparer = comparer ?? EqualityComparer<TValue>.Default;
 			foreach (var value in values)
 			{
 				//Not in and trying to remove = failure
@@ -179,7 +210,7 @@ namespace Advobot.Classes
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, new[] { success, failure }.JoinNonNullStrings("\n")).CAF();
 		}
 		/// <summary>
-		/// Invokes <see cref="ModifyCollectionAsync{TValue}(Expression{Func{TSettings, ICollection{TValue}}}, bool, IEnumerable{TValue})"/>.
+		/// Adds or removes the specified objects from the list while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
 		/// </summary>
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="propertySelector"></param>
@@ -192,7 +223,8 @@ namespace Advobot.Classes
 			params TValue[] values)
 			=> await ModifyCollectionAsync(propertySelector, add, (IEnumerable<TValue>)values);
 		/// <summary>
-		/// Acts as <see cref="ModifyCollectionAsync{TValue}(Expression{Func{TSettings, ICollection{TValue}}}, bool, IEnumerable{TValue})"/> but with a passed in converter/validation callback.
+		/// Adds or removes the specified objects from the list while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
+		/// This method allows conversion/validation. Any failures during validation will send an error message and not set the value.
 		/// </summary>
 		/// <typeparam name="TValue"></typeparam>
 		/// <typeparam name="TOriginal"></typeparam>
@@ -200,12 +232,14 @@ namespace Advobot.Classes
 		/// <param name="validation"></param>
 		/// <param name="add"></param>
 		/// <param name="values"></param>
+		/// <param name="comparer"></param>
 		/// <returns></returns>
 		protected async Task ModifyCollectionAsync<TValue, TOriginal>(
 			Expression<Func<TSettings, ICollection<TValue>>> propertySelector,
 			Func<TOriginal, (bool Valid, TValue Converted)> validation,
 			bool add,
-			IEnumerable<TOriginal> values)
+			IEnumerable<TOriginal> values,
+			IEqualityComparer<TValue> comparer = default)
 		{
 			var validValues = new List<TValue>();
 			foreach (var value in values)
@@ -219,25 +253,64 @@ namespace Advobot.Classes
 				await SendValidationError(value, GetProperty(propertySelector)).CAF();
 				return;
 			}
-			await ModifyCollectionAsync(propertySelector, add, validValues.ToArray()).CAF();
+			await ModifyCollectionAsync(propertySelector, add, validValues, comparer).CAF();
+		}
+		/// <summary>
+		/// Modifies the matching values. This will only add if a value is not found and <paramref name="valueCreationFactory"/> is not null.
+		/// </summary>
+		/// <typeparam name="TValue"></typeparam>
+		/// <typeparam name="TResponse"></typeparam>
+		/// <param name="propertySelector"></param>
+		/// <param name="valueSelector"></param>
+		/// <param name="valueCreationFactory"></param>
+		/// <param name="updateCallback"></param>
+		/// <param name="formatResponse"></param>
+		/// <returns></returns>
+		protected async Task ModifyCollectionValuesAsync<TValue, TResponse>(
+			Expression<Func<TSettings, ICollection<TValue>>> propertySelector,
+			Func<TValue, bool> valueSelector,
+			Func<TValue> valueCreationFactory,
+			Func<TValue, TResponse> updateCallback,
+			Func<TResponse, string> formatResponse)
+		{
+			var (settings, prop, list) = GetEverything(propertySelector);
+
+			var matchingValues = list.Where(valueSelector).ToList();
+			if (matchingValues.Count == 0)
+			{
+				if (valueCreationFactory == null)
+				{
+#warning return error here
+					var error = new Error("todo: put in error");
+					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+					return;
+				}
+				var newValue = valueCreationFactory();
+				matchingValues.Add(newValue);
+				list.Add(newValue);
+			}
+
+			//Use select to get all the responses after updating every value instead of a simple foreach
+			var responses = matchingValues.Select(x => formatResponse(updateCallback(x)));
+			var resp = string.Join("\n", responses);
+			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 		/// <summary>
 		/// Sets the property to the supplied value while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
 		/// </summary>
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="propertySelector"></param>
+		/// <param name="comparer"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
 		protected async Task ModifyAsync<TValue>(
 			Expression<Func<TSettings, TValue>> propertySelector,
-			TValue value)
+			TValue value,
+			IEqualityComparer<TValue> comparer = default)
 		{
-			//This uses Expression<Func<TSettings, T>> instead of Action<TSettings, T> so the property name can be gotten from the same arg
-			var settings = GetSettings();
-			var prop = GetProperty(propertySelector);
-			var currentValue = propertySelector.Compile()(settings);
+			var (settings, prop, currentValue) = GetEverything(propertySelector);
 			//If the same value is passed in, return a message to the user that they're the same
-			if (GetEqualityComparer<TValue>().Equals(currentValue, value))
+			if ((comparer ?? EqualityComparer<TValue>.Default).Equals(currentValue, value))
 			{
 				var same = $"The passed in value for `{prop.Name}` is the current value: {FormatValue(settings, currentValue)}.";
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, same).CAF();
@@ -252,19 +325,21 @@ namespace Advobot.Classes
 			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		/// <summary>
-		/// Acts as <see cref="ModifyAsync{TValue}(Expression{Func{TSettings, TValue}}, TValue)"/> but with a passed in converter/validation callback.
-		/// Any errors during conversion/validation will lead to sending an error message.
+		/// Sets the property to the supplied value while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
+		/// This method allows conversion/validation. Any failures during validation will send an error message and not set the value.
 		/// </summary>
 		/// <typeparam name="TValue">The type to convert to.</typeparam>
 		/// <typeparam name="TOriginal">The passed in type.</typeparam>
 		/// <param name="propertySelector"></param>
 		/// <param name="validation"></param>
 		/// <param name="value"></param>
+		/// <param name="comparer"></param>
 		/// <returns></returns>
 		protected async Task ModifyAsync<TValue, TOriginal>(
 			Expression<Func<TSettings, TValue>> propertySelector,
 			Func<TOriginal, (bool Valid, TValue Converted)> validation,
-			TOriginal value)
+			TOriginal value,
+			IEqualityComparer<TValue> comparer = default)
 		{
 			var (Valid, Converted) = validation(value);
 			if (!Valid)
@@ -272,7 +347,7 @@ namespace Advobot.Classes
 				await SendValidationError(value, GetProperty(propertySelector)).CAF();
 				return;
 			}
-			await ModifyAsync(propertySelector, Converted).CAF();
+			await ModifyAsync(propertySelector, Converted, comparer).CAF();
 		}
 		/// <summary>
 		/// Returns the settings this module is targetting.
@@ -333,6 +408,13 @@ namespace Advobot.Classes
 				return null;
 			}
 			return property;
+		}
+		private (TSettings Settings, PropertyInfo Property, T Value) GetEverything<T>(Expression<Func<TSettings, T>> propertySelector)
+		{
+			var settings = GetSettings();
+			var prop = GetProperty(propertySelector);
+			var value = propertySelector.Compile()(settings);
+			return (settings, prop, value);
 		}
 	}
 

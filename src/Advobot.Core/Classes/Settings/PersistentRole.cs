@@ -9,11 +9,9 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Roles which are given back to users when they rejoin a guild.
 	/// </summary>
-	public class PersistentRole : IGuildSetting
+	public class PersistentRole : IGuildSetting, ITargetsUser
 	{
-		/// <summary>
-		/// The id of the user to give the role to.
-		/// </summary>
+		/// <inheritdoc />
 		[JsonProperty]
 		public ulong UserId { get; }
 		/// <summary>
