@@ -21,54 +21,54 @@ namespace Advobot.Services.Timers
 	/// <remarks>
 	/// I have absolutely no idea if this class works as intended under stress.
 	/// </remarks>
-	public class TimerService : DatabaseWrapperConsumer, ITimerService
+	internal sealed class TimerService : DatabaseWrapperConsumer, ITimerService
 	{
 		/// <inheritdoc />
 		public override string DatabaseName => "TimedDatabase";
 		/// <summary>
 		/// The discord client for the bot.
 		/// </summary>
-		protected DiscordShardedClient Client { get; }
+		private DiscordShardedClient Client { get; }
 		/// <summary>
 		/// A timer which ticks once an hour. This will not tick every x:00, instead every 3600 seconds after the bot is start.
 		/// </summary>
-		protected Timer HourTimer { get; } = new Timer(60 * 60 * 1000);
+		private Timer HourTimer { get; } = new Timer(60 * 60 * 1000);
 		/// <summary>
 		/// A timer which ticks once a minute. This will not tick every x:xx, instead every 60 seconds after the bot is start.
 		/// </summary>
-		protected Timer MinuteTimer { get; } = new Timer(60 * 1000);
+		private Timer MinuteTimer { get; } = new Timer(60 * 1000);
 		/// <summary>
 		/// A timer which ticks once a second. This will not tick every x:xx:xx, instead every 1 second after the bot is start.
 		/// </summary>
-		protected Timer SecondTimer { get; } = new Timer(1000);
+		private Timer SecondTimer { get; } = new Timer(1000);
 		/// <summary>
 		/// Used for giving and removing punishments.
 		/// </summary>
-		protected Punisher Punisher { get; }
+		private Punisher Punisher { get; }
 		/// <summary>
 		/// Queue responsible for processing punishments.
 		/// </summary>
-		protected ProcessingQueue RemovablePunishments { get; }
+		private ProcessingQueue RemovablePunishments { get; }
 		/// <summary>
 		/// Queue responsible for processing punishments.
 		/// </summary>
-		protected ProcessingQueue TimedMessages { get; }
+		private ProcessingQueue TimedMessages { get; }
 		/// <summary>
 		/// Queue responsible for processing removable messages..
 		/// </summary>
-		protected ProcessingQueue RemovableMessages { get; }
+		private ProcessingQueue RemovableMessages { get; }
 		/// <summary>
 		/// Queue responsible for processing close help entries.
 		/// </summary>
-		protected ProcessingQueue CloseHelpEntries { get; }
+		private ProcessingQueue CloseHelpEntries { get; }
 		/// <summary>
 		/// Queue responsible for processing close quotes..
 		/// </summary>
-		protected ProcessingQueue CloseQuotes { get; }
+		private ProcessingQueue CloseQuotes { get; }
 		/// <summary>
 		/// Cached message ids which have already been deleted so there are less exceptions given when deleting messages.
 		/// </summary>
-		protected ConcurrentBag<ulong> AlreadyDeletedMessages
+		private ConcurrentBag<ulong> AlreadyDeletedMessages
 		{
 			get => _AlreadyDeletedMessages;
 			set => _AlreadyDeletedMessages = value;

@@ -18,9 +18,13 @@ namespace Advobot.Services.Levels
 		public ulong UserId { get; set; }
 		/// <inheritdoc />
 		public int MessageCount { get; set; }
-		/// <inheritdoc />
+		/// <summary>
+		/// The experience this user has in each guild, then each individual channel.
+		/// </summary>
 		public Dictionary<ulong, Dictionary<ulong, int>> Experience { get; set; } = new Dictionary<ulong, Dictionary<ulong, int>>();
-		/// <inheritdoc />
+		/// <summary>
+		/// The past few messages a user has sent (hashes) so spam can be given less XP.
+		/// </summary>
 		public List<MessageHash> MessageHashes { get; set; } = new List<MessageHash>(_MESSAGE_AMOUNT);
 
 		/// <summary>

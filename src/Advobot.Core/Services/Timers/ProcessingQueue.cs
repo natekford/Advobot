@@ -8,7 +8,7 @@ namespace Advobot.Services.Timers
 	/// <summary>
 	/// Uses however many supplied threads to run a separate supplied task on all of them.
 	/// </summary>
-	public sealed class ProcessingQueue
+	internal sealed class ProcessingQueue
 	{
 		private readonly Func<Task> _T;
 		private readonly SemaphoreSlim _Semaphore;

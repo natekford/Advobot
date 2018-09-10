@@ -13,7 +13,7 @@ namespace Advobot.Services.InviteList
 	/// <summary>
 	/// Lists an invite for use in <see cref="IInviteListService"/>.
 	/// </summary>
-	internal class ListedInvite : DatabaseEntry, IListedInvite
+	internal sealed class ListedInvite : DatabaseEntry, IListedInvite
 	{
 		/// <inheritdoc />
 		public string Code { get; set; }

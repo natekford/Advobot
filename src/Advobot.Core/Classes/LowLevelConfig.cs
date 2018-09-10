@@ -203,7 +203,7 @@ namespace Advobot.Classes
 			s.AddSingleton<ICommandHandlerService>(p => new CommandHandlerService(p, commands));
 			s.AddSingleton<IGuildSettingsFactory>(p => new GuildSettingsFactory<GuildSettings>(p));
 			s.AddSingleton<ILogService>(p => new LogService(p));
-			s.AddSingleton<ILevelService>(p => StartDatabase(new LevelService(p, new LevelServiceArguments())));
+			s.AddSingleton<ILevelService>(p => StartDatabase(new LevelService(p)));
 			s.AddSingleton<ITimerService>(p => StartDatabase(new TimerService(p)));
 			s.AddSingleton<IInviteListService>(p => StartDatabase(new InviteListService(p)));
 

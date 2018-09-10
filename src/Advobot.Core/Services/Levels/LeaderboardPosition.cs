@@ -2,6 +2,9 @@
 
 namespace Advobot.Services.Levels
 {
+	/// <summary>
+	/// Holds the user id and experience a user has.
+	/// </summary>
 	internal sealed class LeaderboardPosition : DatabaseEntry
 	{
 		/// <summary>

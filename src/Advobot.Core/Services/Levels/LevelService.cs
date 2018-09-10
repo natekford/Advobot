@@ -15,39 +15,44 @@ namespace Advobot.Services.Levels
 	/// <summary>
 	/// Service for giving people experience for chatting and rewards for certain levels.
 	/// </summary>
-	public class LevelService : DatabaseWrapperConsumer, ILevelService
+	internal sealed class LevelService : DatabaseWrapperConsumer, ILevelService
 	{
 		/// <inheritdoc />
-		public override string DatabaseName => "LevelService";
+		public override string DatabaseName => "LevelDatabase";
 		/// <summary>
 		/// The settings this bot uses.
 		/// </summary>
-		protected IBotSettings Settings { get; }
+		private IBotSettings Settings { get; }
 		/// <summary>
 		/// The settings for each individual guild.
 		/// </summary>
-		protected IGuildSettingsFactory GuildSettings { get; }
+		private IGuildSettingsFactory GuildSettings { get; }
 		/// <summary>
 		/// The bot client.
 		/// </summary>
-		protected DiscordShardedClient Client { get; }
+		private DiscordShardedClient Client { get; }
 		/// <summary>
 		/// Used in calculating XP.
 		/// </summary>
-		protected double Log { get; }
+		private double Log { get; }
 		/// <summary>
 		/// Used in calculating XP.
 		/// </summary>
-		protected double Pow { get; }
+		private double Pow { get; }
 		/// <summary>
 		/// The time between when XP can be gained again.
 		/// </summary>
-		protected TimeSpan Time { get; }
+		private TimeSpan Time { get; }
 		/// <summary>
 		/// Base XP per message.
 		/// </summary>
-		protected int BaseExperience { get; }
+		private int BaseExperience { get; }
 
+		/// <summary>
+		/// Creates an instance of <see cref="LevelService"/>.
+		/// </summary>
+		/// <param name="provider"></param>
+		public LevelService(IServiceProvider provider) : this(provider, new LevelServiceArguments()) { }
 		/// <summary>
 		/// Creates an instance of <see cref="LevelService"/>.
 		/// </summary>
