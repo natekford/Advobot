@@ -43,7 +43,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AdvorangesSettingParser" Version="1.0.0" />
+    <PackageReference Include="AdvorangesSettingParser" Version="1.0.2" />
     <PackageReference Include="AdvorangesUtils" Version="1.0.11">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>

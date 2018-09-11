@@ -29,28 +29,40 @@ namespace Advobot.Classes.TypeReaders
 		{
 			var obj = new T();
 			var response = obj.Parser.Parse(input);
-			if (response.Errors.Length != 0)
+			if (response.Errors.Any())
 			{
 				var str = string.Join("\n", response.Errors);
 				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, $"The following are parsing errors:\n{str}."));
 			}
-			if (response.UnusedParts.Length != 0)
+			if (response.UnusedParts.Any())
 			{
 				var str = string.Join("\n", response.UnusedParts);
-				return Task.FromResult(TypeReaderResult.FromError(CommandError.BadArgCount, $"There following are unused parts:\n{str}."));
+				return Task.FromResult(TypeReaderResult.FromError(CommandError.BadArgCount, $"The following are unused parts:\n{str}."));
+			}
+			if (!obj.Parser.AreAllSet())
+			{
+				var str = string.Join("`, `", obj.Parser.GetNeededSettings());
+				var resp = $"The following parts are required to be set: `{str}`.";
+				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, resp));
 			}
 			return Task.FromResult(TypeReaderResult.FromSuccess(obj));
 		}
 	}
 
+	/// <summary>
+	/// Indicates this class can be parsed from a string.
+	/// </summary>
 	public interface IParsable
 	{
-		SettingParser Parser { get; }
+		/// <summary>
+		/// Specifies how to parse settings onto this object.
+		/// </summary>
+		ISettingParser Parser { get; }
 	}
 
 	public class Mock : IParsable
 	{
-		public SettingParser Parser { get; }
+		public ISettingParser Parser { get; }
 
 		public int Dog { get; private set; }
 		public string Fish { get; private set; }

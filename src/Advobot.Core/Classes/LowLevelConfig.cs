@@ -232,13 +232,13 @@ namespace Advobot.Classes
 			var databaseType = DatabaseType.LiteDB;
 			var connectionString = "";
 			//No help command because this is not intended to be used more than internally
-			new SettingParser(false, "-", "--", "/")
+			new SettingParser(false)
 			{
 				//Don't bother adding descriptions because of the aforementioned removal
 				new Setting<int>(new[] { nameof(PreviousProcessId), "procid" }, x => processId = x),
 				new Setting<int>(new[] { nameof(CurrentInstance), "instance" }, x => instance = x),
 				new Setting<DatabaseType>(new[] { nameof(DatabaseType), "db" }, x => databaseType = x,
-					s => (Enum.TryParse<DatabaseType>(s, out var value), value)),
+					parser: s => (Enum.TryParse<DatabaseType>(s, out var value), value)),
 				new Setting<string>(new[] { nameof(DatabaseConnectionString), "conn" }, x => connectionString = x),
 			}.Parse(args);
 
