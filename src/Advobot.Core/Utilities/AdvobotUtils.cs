@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Advobot.Interfaces;
+using AdvorangesSettingParser;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Utilities
@@ -9,7 +10,7 @@ namespace Advobot.Utilities
 	/// <summary>
 	/// Random utilities.
 	/// </summary>
-	public static class Utils
+	public static class AdvobotUtils
 	{
 		/// <summary>
 		/// Gets the file inside the bot directory.
@@ -47,6 +48,26 @@ namespace Advobot.Utilities
 				provider.GetRequiredService(service.ServiceType);
 			}
 			return provider;
+		}
+		/// <summary>
+		/// Regular <see cref="Enum.TryParse{TEnum}(string, out TEnum)"/> except case insenstive.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="s"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static bool TryParseCaseIns<T>(string s, out T value) where T : struct, Enum
+			=> Enum.TryParse(s, true, out value);
+		/// <summary>
+		/// Acts as an empty <see cref="TryParseDelegate{T}"/>.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		[Obsolete("Only intended to be temporary until the tryparses are set up.")]
+		public static bool EmptyTryParse<T>(string s, out T value)
+		{
+			value = default;
+			return true;
 		}
 	}
 }

@@ -24,12 +24,12 @@
     <None Remove="OutputSearchWindow.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AdvorangesSettingParser" Version="1.0.2" />
+    <PackageReference Include="AdvorangesSettingParser" Version="1.1.0" />
     <PackageReference Include="AdvorangesUtils" Version="1.0.11" />
-    <PackageReference Include="Avalonia" Version="0.6.2-build6191-beta" />
+    <PackageReference Include="Avalonia" Version="0.6.2-build6217-beta" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.6.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.6.2-build6191-beta" />
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00989" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.6.2-build6217-beta" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-00991" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.7.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />

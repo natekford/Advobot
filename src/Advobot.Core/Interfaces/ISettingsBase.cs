@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using AdvorangesSettingParser;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces
@@ -15,7 +16,7 @@ namespace Advobot.Interfaces
 		/// Returns the registered settings.
 		/// </summary>
 		/// <returns></returns>
-		IReadOnlyDictionary<string, ISetting> GetSettings();
+		IReadOnlyDictionary<string, ICompleteSetting> GetSettings();
 		/// <summary>
 		/// Gets the file associated with the settings.
 		/// </summary>

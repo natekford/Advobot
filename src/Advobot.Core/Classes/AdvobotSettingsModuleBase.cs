@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesSettingParser;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -58,17 +59,17 @@ namespace Advobot.Classes
 		protected async Task ShowAsync(string settingName)
 		{
 			var settings = GetSettings();
-			if (!(await VerifyAsync(settings, settingName).CAF() is ISetting property))
+			if (!(await VerifyAsync(settings, settingName).CAF() is ICompleteSetting property))
 			{
 				return;
 			}
 
-			var desc = settings.FormatSetting(Context.Client, Context.Guild, property.Name);
+			var desc = settings.FormatSetting(Context.Client, Context.Guild, property.MainName);
 			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				var embed = new EmbedWrapper
 				{
-					Title = property.Name.FormatTitle(),
+					Title = property.MainName.FormatTitle(),
 					Description = desc
 				};
 				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
@@ -77,10 +78,10 @@ namespace Advobot.Classes
 			{
 				var tf = new TextFileInfo
 				{
-					Name = property.Name.FormatTitle(),
+					Name = property.MainName.FormatTitle(),
 					Text = desc,
 				};
-				await MessageUtils.SendMessageAsync(Context.Channel, $"**{property.Name.FormatTitle()}:**", textFile: tf).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, $"**{property.MainName.FormatTitle()}:**", textFile: tf).CAF();
 			}
 		}
 		/// <summary>
@@ -92,13 +93,13 @@ namespace Advobot.Classes
 		protected async Task ShowAsync(string settingName, IUser user)
 		{
 			var settings = GetSettings();
-			if (!(await VerifyAsync(settings, settingName).CAF() is ISetting property))
+			if (!(await VerifyAsync(settings, settingName).CAF() is ICompleteSetting property))
 			{
 				return;
 			}
 
 			var value = property.GetValue();
-			var title = property.Name.FormatTitle();
+			var title = property.MainName.FormatTitle();
 
 			IEnumerable<ITargetsUser> values;
 			if (value is IEnumerable<ITargetsUser> temp1)
@@ -154,8 +155,8 @@ namespace Advobot.Classes
 			{
 				return;
 			}
-			settings.ResetSetting(setting.Name);
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully reset `{setting.Name}`.").CAF();
+			settings.ResetSetting(setting.MainName);
+			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully reset `{setting.MainName}`.").CAF();
 		}
 		/// <summary>
 		/// Adds or removes the specified objects from the list while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
@@ -400,7 +401,7 @@ namespace Advobot.Classes
 		/// <param name="settings"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		private async Task<ISetting> VerifyAsync(TSettings settings, string name)
+		private async Task<ICompleteSetting> VerifyAsync(TSettings settings, string name)
 		{
 			if (!settings.GetSettings().TryGetValue(name, out var property))
 			{

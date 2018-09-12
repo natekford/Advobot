@@ -72,9 +72,9 @@ namespace Advobot.Classes.TypeReaders
 		{
 			Parser = new SettingParser
 			{
-				new Setting<int>(new[] { nameof(Dog), "d" }, x => Dog = x),
-				new Setting<string>(new[] { nameof(Fish), "f" }, x => Fish = x),
-				new Setting<ulong>(new[] { nameof(Cat), "c" }, x => Cat = x),
+				new Setting<int>(() => Dog),
+				new Setting<string>(() => Fish),
+				new Setting<ulong>(() => Cat),
 			};
 		}
 	}

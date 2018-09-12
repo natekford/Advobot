@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesSettingParser;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -21,13 +22,17 @@ namespace Advobot.Classes
 	/// </summary>
 	public abstract class SettingsBase : ISettingsBase, INotifyPropertyChanged
 	{
-		private readonly Dictionary<string, ISetting> _Settings = new Dictionary<string, ISetting>(StringComparer.OrdinalIgnoreCase);
+		/// <summary>
+		/// Parses settings, but in this use case mainly doesn't handle direct strings.
+		/// </summary>
+		protected SettingParser Parser = new SettingParser();
 
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <inheritdoc />
-		public virtual IReadOnlyDictionary<string, ISetting> GetSettings() => _Settings;
+		public virtual IReadOnlyDictionary<string, ICompleteSetting> GetSettings()
+			=> Parser.GetSettings().ToDictionary(x => x.MainName, x => (ICompleteSetting)x, StringComparer.OrdinalIgnoreCase);
 		/// <inheritdoc />
 		public virtual string ToString(BaseSocketClient client, SocketGuild guild)
 		{
@@ -75,24 +80,6 @@ namespace Advobot.Classes
 		public void RaisePropertyChanged([CallerMemberName] string name = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 		/// <summary>
-		/// Adds the setting to the settings base.
-		/// </summary>
-		/// <typeparam name="TSource"></typeparam>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="source"></param>
-		/// <param name="propertySelector"></param>
-		/// <param name="defaultValueFactory"></param>
-		/// <returns></returns>
-		protected ISetting RegisterSetting<TSource, TValue>(
-			TSource source,
-			Expression<Func<TSource, TValue>> propertySelector,
-			Func<TSource, TValue, TValue> defaultValueFactory) where TSource : ISettingsBase
-		{
-			var setting = new Setting<TSource, TValue>(source, propertySelector, defaultValueFactory);
-			_Settings.Add(setting.Name, setting);
-			return setting;
-		}
-		/// <summary>
 		/// Throws an argument exception if the condition is true.
 		/// </summary>
 		/// <param name="backingField"></param>
@@ -110,15 +97,47 @@ namespace Advobot.Classes
 			RaisePropertyChanged(caller);
 		}
 		/// <summary>
+		/// Adds the setting.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="selector"></param>
+		/// <param name="reset"></param>
+		/// <param name="parser"></param>
+		protected void RegisterSetting<T>(Expression<Func<T>> selector, Func<T, T> reset, TryParseDelegate<T> parser = default)
+			=> Parser.Add(new Setting<T>(selector, parser: parser) { ResetValueFactory = reset, });
+		/// <summary>
+		/// Clears the list.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="x"></param>
+		/// <returns></returns>
+		protected IList<T> ClearList<T>(IList<T> x)
+		{
+			x.Clear();
+			return x;
+		}
+		/// <summary>
+		/// Resets the values in a dictionary.
+		/// </summary>
+		/// <typeparam name="TK"></typeparam>
+		/// <typeparam name="TV"></typeparam>
+		/// <param name="x"></param>
+		/// <returns></returns>
+		protected IDictionary<TK, TV> ResetDictionary<TK, TV>(IDictionary<TK, TV> x)
+		{
+			x.Keys.ToList().ForEach(k => x[k] = default);
+			return x;
+		}
+		/// <summary>
 		/// Sets the property to the specified value.
 		/// </summary>
 		/// <param name="setting"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		private object SetSetting(ISetting setting, object value)
+		private object SetSetting(ICompleteSetting setting, object value)
 		{
-			setting.SetValue(value);
-			RaisePropertyChanged(setting.Name);
+			setting.Set(value);
+			RaisePropertyChanged(setting.MainName);
 			return setting.GetValue();
 		}
 		/// <summary>
@@ -126,10 +145,10 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="setting"></param>
 		/// <returns></returns>
-		private object ResetSetting(ISetting setting)
+		private object ResetSetting(ICompleteSetting setting)
 		{
 			setting.Reset();
-			RaisePropertyChanged(setting.Name);
+			RaisePropertyChanged(setting.MainName);
 			return setting.GetValue();
 		}
 		/// <summary>

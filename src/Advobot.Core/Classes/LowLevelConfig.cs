@@ -235,11 +235,10 @@ namespace Advobot.Classes
 			new SettingParser(false)
 			{
 				//Don't bother adding descriptions because of the aforementioned removal
-				new Setting<int>(new[] { nameof(PreviousProcessId), "procid" }, x => processId = x),
-				new Setting<int>(new[] { nameof(CurrentInstance), "instance" }, x => instance = x),
-				new Setting<DatabaseType>(new[] { nameof(DatabaseType), "db" }, x => databaseType = x,
-					parser: s => (Enum.TryParse<DatabaseType>(s, out var value), value)),
-				new Setting<string>(new[] { nameof(DatabaseConnectionString), "conn" }, x => connectionString = x),
+				new Setting<int>(() => processId),
+				new Setting<int>(() => instance),
+				new Setting<DatabaseType>(() => databaseType, parser: AdvobotUtils.TryParseCaseIns),
+				new Setting<string>(() => connectionString),
 			}.Parse(args);
 
 			//Instance is for the config so they can be named Advobot1, Advobot2, etc.

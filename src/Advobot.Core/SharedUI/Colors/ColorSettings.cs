@@ -58,7 +58,7 @@ namespace Advobot.SharedUI.Colors
 
 		/// <inheritdoc />
 		[JsonProperty("ColorTargets", Order = 1)]
-		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
+		public ITheme<TBrush> UserDefinedColors { get; private set; } = new Theme<TBrush, TBrushFactory>();
 		/// <inheritdoc />
 		[JsonProperty("Theme", Order = 2)]
 		public ColorTheme Theme
@@ -97,8 +97,8 @@ namespace Advobot.SharedUI.Colors
 		/// </summary>
 		public ColorSettings()
 		{
-			RegisterSetting(this, x => x.UserDefinedColors, (s, v) => { v.Keys.ToList().ForEach(x => v[x] = default); return v; });
-			RegisterSetting(this, x => x.Theme, (s, v) => ColorTheme.LightMode);
+			RegisterSetting(() => UserDefinedColors, x => (ITheme<TBrush>)ResetDictionary(x), AdvobotUtils.EmptyTryParse);
+			RegisterSetting(() => Theme, x => ColorTheme.LightMode, AdvobotUtils.TryParseCaseIns);
 
 			Theme = ColorTheme.LightMode;
 			foreach (var key in LightMode.Keys)

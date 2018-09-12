@@ -127,13 +127,13 @@ namespace Advobot.Services.BotSettings
 		}
 		/// <inheritdoc />
 		[JsonProperty("TrustedUsers")]
-		public IList<ulong> TrustedUsers { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> TrustedUsers { get; private set; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("UsersUnableToDmOwner")]
-		public IList<ulong> UsersUnableToDmOwner { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> UsersUnableToDmOwner { get; private set; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("UsersIgnoredFromCommands")]
-		public IList<ulong> UsersIgnoredFromCommands { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> UsersIgnoredFromCommands { get; private set; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool Pause { get; set; }
@@ -178,27 +178,27 @@ namespace Advobot.Services.BotSettings
 		/// </summary>
 		public BotSettings()
 		{
-			//For all these value types, create completely new values
-			RegisterSetting(this, x => x.LogLevel, (s, v) => LogSeverity.Warning);
-			RegisterSetting(this, x => x.Prefix, (s, v) => "&&");
-			RegisterSetting(this, x => x.Game, (s, v) => null);
-			RegisterSetting(this, x => x.Stream, (s, v) => null);
-			RegisterSetting(this, x => x.AlwaysDownloadUsers, (s, v) => true);
-			RegisterSetting(this, x => x.MessageCacheSize, (s, v) => 1000);
-			RegisterSetting(this, x => x.MaxUserGatherCount, (s, v) => 100);
-			RegisterSetting(this, x => x.MaxMessageGatherSize, (s, v) => 500000);
-			RegisterSetting(this, x => x.MaxRuleCategories, (s, v) => 20);
-			RegisterSetting(this, x => x.MaxRulesPerCategory, (s, v) => 20);
-			RegisterSetting(this, x => x.MaxSelfAssignableRoleGroups, (s, v) => 10);
-			RegisterSetting(this, x => x.MaxQuotes, (s, v) => 500);
-			RegisterSetting(this, x => x.MaxBannedStrings, (s, v) => 50);
-			RegisterSetting(this, x => x.MaxBannedRegex, (s, v) => 25);
-			RegisterSetting(this, x => x.MaxBannedNames, (s, v) => 25);
-			RegisterSetting(this, x => x.MaxBannedPunishments, (s, v) => 10);
-			//Clear the lists but retain the same reference
-			RegisterSetting(this, x => x.TrustedUsers, (s, v) => { v.Clear(); return v; });
-			RegisterSetting(this, x => x.UsersUnableToDmOwner, (s, v) => { v.Clear(); return v; });
-			RegisterSetting(this, x => x.UsersIgnoredFromCommands, (s, v) => { v.Clear(); return v; });
+			IList<T> ClearList<T>(IList<T> x) { x.Clear(); return x; }
+
+			RegisterSetting(() => LogLevel, x => LogSeverity.Warning, AdvobotUtils.TryParseCaseIns);
+			RegisterSetting(() => Prefix, x => "&&");
+			RegisterSetting(() => Game, x => null);
+			RegisterSetting(() => Stream, x => null);
+			RegisterSetting(() => AlwaysDownloadUsers, x => true);
+			RegisterSetting(() => MessageCacheSize, x => 1000);
+			RegisterSetting(() => MaxUserGatherCount, x => 100);
+			RegisterSetting(() => MaxMessageGatherSize, x => 500000);
+			RegisterSetting(() => MaxRuleCategories, x => 20);
+			RegisterSetting(() => MaxRulesPerCategory, x => 20);
+			RegisterSetting(() => MaxSelfAssignableRoleGroups, x => 10);
+			RegisterSetting(() => MaxQuotes, x => 500);
+			RegisterSetting(() => MaxBannedStrings, x => 50);
+			RegisterSetting(() => MaxBannedRegex, x => 25);
+			RegisterSetting(() => MaxBannedNames, x => 25);
+			RegisterSetting(() => MaxBannedPunishments, x => 10);
+			RegisterSetting(() => TrustedUsers, ClearList, AdvobotUtils.EmptyTryParse);
+			RegisterSetting(() => UsersUnableToDmOwner, ClearList, AdvobotUtils.EmptyTryParse);
+			RegisterSetting(() => UsersIgnoredFromCommands, ClearList, AdvobotUtils.EmptyTryParse);
 		}
 
 		/// <inheritdoc />
