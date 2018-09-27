@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using AdvorangesSettingParser;
+using AdvorangesSettingParser.Interfaces;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces
@@ -10,13 +11,8 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for something which has settings.
 	/// </summary>
-	public interface ISettingsBase : INotifyPropertyChanged
+	public interface ISettingsBase : INotifyPropertyChanged, IParsable
 	{
-		/// <summary>
-		/// Returns the registered settings.
-		/// </summary>
-		/// <returns></returns>
-		IReadOnlyDictionary<string, ICompleteSetting> GetSettings();
 		/// <summary>
 		/// Gets the file associated with the settings.
 		/// </summary>

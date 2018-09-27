@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -10,6 +11,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to find an <see cref="IWebhook"/> on a guild.
 	/// </summary>
+	[TypeReaderTargetType(typeof(IWebhook))]
 	public sealed class WebhookTypeReader : TypeReader
 	{
 		/// <summary>

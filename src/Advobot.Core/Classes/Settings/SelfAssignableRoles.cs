@@ -18,20 +18,19 @@ namespace Advobot.Classes.Settings
 		/// The group number all the roles belong to.
 		/// </summary>
 		[JsonProperty]
-		public int Group { get; }
+		public int Group { get; private set; }
 		/// <summary>
-		/// The roles in the group.
+		/// The ids of the roles.
 		/// </summary>
-		[JsonIgnore]
-		public ImmutableList<IRole> Roles => _Roles.Values.ToImmutableList();
-
 		[JsonProperty("Roles")]
-		private List<ulong> _RoleIds = new List<ulong>();
-		[JsonIgnore]
-		private Dictionary<ulong, IRole> _Roles = new Dictionary<ulong, IRole>();
+		public IList<ulong> Roles { get; } = new List<ulong>();
 
 		/// <summary>
-		/// Creates an instance of selfassignableroles.
+		/// Creates an instance of <see cref="SelfAssignableRoles"/>.
+		/// </summary>
+		public SelfAssignableRoles() { }
+		/// <summary>
+		/// Creates an instance of <see cref="SelfAssignableRoles"/>.
 		/// </summary>
 		/// <param name="group"></param>
 		public SelfAssignableRoles(int group)
@@ -47,10 +46,9 @@ namespace Advobot.Classes.Settings
 		{
 			foreach (var role in roles)
 			{
-				if (!_Roles.ContainsKey(role.Id))
+				if (!Roles.Contains(role.Id))
 				{
-					_Roles.Add(role.Id, role);
-					_RoleIds.Add(role.Id);
+					Roles.Add(role.Id);
 				}
 			}
 		}
@@ -62,42 +60,28 @@ namespace Advobot.Classes.Settings
 		{
 			foreach (var role in roles)
 			{
-				_Roles.Remove(role.Id);
-				_RoleIds.Remove(role.Id);
+				Roles.Remove(role.Id);
 			}
 		}
-		/// <summary>
-		/// Attempts to get the role from the group.
-		/// </summary>
-		/// <param name="id"></param>
-		/// <param name="role"></param>
-		/// <returns></returns>
-		public bool TryGetRole(ulong id, out IRole role)
-			=> _Roles.TryGetValue(id, out role);
 		/// <summary>
 		/// Uses the guild to get all the roles.
 		/// </summary>
 		/// <param name="guild"></param>
 		public void PostDeserialize(SocketGuild guild)
 		{
-			foreach (var roleId in _RoleIds)
+			foreach (var roleId in Roles.ToList())
 			{
-				var role = guild.GetRole(roleId);
-				if (role == null)
+				if (!(guild.GetRole(roleId) is IRole role))
 				{
-					_RoleIds.Remove(roleId);
-					continue;
+					Roles.Remove(roleId);
 				}
-
-				_Roles.Add(roleId, role);
 			}
 		}
-
 		/// <inheritdoc />
 		public override string ToString()
-			=> string.Join("\n", _Roles.Select(x => $"**Role:** `{x.Value?.Format() ?? x.Key.ToString()}`"));
+			=> $"**Role Ids:**\n{string.Join("\n", Roles)}";
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
-			=> string.Join("\n", _Roles.Select(x => $"**Role:** `{guild.GetRole(x.Key)?.Format() ?? x.Key.ToString()}`"));
+			=> $"**Role Ids:**\n{Roles.Join("\n", x => guild.GetRole(x)?.Format())}";
 	}
 }

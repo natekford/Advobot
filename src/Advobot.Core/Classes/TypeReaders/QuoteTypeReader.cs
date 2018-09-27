@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -10,6 +11,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to find a quote with the supplied name.
 	/// </summary>
+	[TypeReaderTargetType(typeof(Quote))]
 	public sealed class QuoteTypeReader : TypeReader
 	{
 		/// <summary>

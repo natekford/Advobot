@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using Advobot.Enums;
+using Advobot.Utilities;
 using Discord.WebSocket;
 
 namespace Advobot.Classes.UserInformation
@@ -141,6 +142,6 @@ namespace Advobot.Classes.UserInformation
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> string.Join("/", GetType().GetProperties().Select(x => $"{x.Name[0]}{x.GetValue(this)}"));
+			=> GetType().GetProperties().Join("/", x => $"{x.Name[0]}{x.GetValue(this)}");
 	}
 }

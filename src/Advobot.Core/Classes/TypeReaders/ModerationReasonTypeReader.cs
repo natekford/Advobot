@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using Discord.Commands;
 
 namespace Advobot.Classes.TypeReaders
@@ -7,6 +8,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to create a moderation reason with a time from a string.
 	/// </summary>
+	[TypeReaderTargetType(typeof(ModerationReason))]
 	public sealed class ModerationReasonTypeReader : TypeReader
 	{
 		/// <summary>

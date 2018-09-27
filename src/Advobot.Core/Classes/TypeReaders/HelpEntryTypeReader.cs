@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +10,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to find a help entry with the supplied name.
 	/// </summary>
+	[TypeReaderTargetType(typeof(IHelpEntry))]
 	public sealed class HelpEntryTypeReader : TypeReader
 	{
 		/// <summary>

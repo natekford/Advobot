@@ -14,7 +14,6 @@ namespace Advobot.Commands.Invites
 {
 	[Category(typeof(DisplayInvites)), Group(nameof(DisplayInvites)), TopLevelShortAlias(typeof(DisplayInvites))]
 	[Summary("Gives a list of all the instant invites on the guild.")]
-	//TODO: is manageguild the correct permission for this?
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayInvites : AdvobotModuleBase
@@ -25,7 +24,7 @@ namespace Advobot.Commands.Invites
 			var invites = (await Context.Guild.GetInvitesAsync().CAF()).OrderByDescending(x => x.Uses).ToList();
 			if (!invites.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild has no invites.")).CAF();
+				await ReplyErrorAsync(new Error("This guild has no invites.")).CAF();
 				return;
 			}
 
@@ -38,12 +37,11 @@ namespace Advobot.Commands.Invites
 				var inviter = x.Inviter.Format();
 				return $"`{code}` `{uses}` `{inviter}`";
 			}));
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "Instant Invite List",
-				Description = desc
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Description = desc,
+			}).CAF();
 		}
 	}
 
@@ -77,8 +75,7 @@ namespace Advobot.Commands.Invites
 				? "Users will be kicked when they go offline unless they get a role."
 				: "Users will not be kicked when they go offline and do not have a role.";
 			var joined = new[] { inv.Url, timeOutputStr, usesOutputStr, tempOutputStr }.JoinNonNullStrings("\n");
-			var resp = $"Here is your invite for `{channel.Format()}`: {joined}";
-			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
+			await ReplyAsync($"Here is your invite for `{channel.Format()}`: {joined}").CAF();
 		}
 	}
 
@@ -92,7 +89,7 @@ namespace Advobot.Commands.Invites
 		public async Task Command(IInvite invite)
 		{
 			await invite.DeleteAsync(GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the invite `{invite.Code}`.").CAF();
+			await ReplyTimedAsync($"Successfully deleted the invite `{invite.Code}`.").CAF();
 		}
 	}
 
@@ -105,17 +102,12 @@ namespace Advobot.Commands.Invites
 	public sealed class DeleteMultipleInvites : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command([Remainder] NamedArguments<MultipleInviteGatherer> args)
+		public async Task Command([Remainder] LocalInviteGatherer gatherer)
 		{
-			if (!args.TryCreateObject(new object[0], out var obj, out var error))
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-			var invites = obj.GatherInvites(await Context.Guild.GetInvitesAsync().CAF()).ToList();
+			var invites = gatherer.GatherInvites(await Context.Guild.GetInvitesAsync().CAF()).ToList();
 			if (!invites.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("No invites satisfied the given conditions.")).CAF();
+				await ReplyErrorAsync(new Error("No invites satisfied the given conditions.")).CAF();
 				return;
 			}
 
@@ -123,9 +115,7 @@ namespace Advobot.Commands.Invites
 			{
 				await invite.DeleteAsync(GetRequestOptions()).CAF();
 			}
-
-			var resp = $"Successfully deleted `{invites.Count()}` instant invites.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully deleted `{invites.Count()}` instant invites.").CAF();
 		}
 	}
 }

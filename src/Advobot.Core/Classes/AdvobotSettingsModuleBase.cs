@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesSettingParser;
+using AdvorangesSettingParser.Implementation;
+using AdvorangesSettingParser.Implementation.Instance;
+using AdvorangesSettingParser.Interfaces;
+using AdvorangesSettingParser.Results;
+using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -24,18 +30,22 @@ namespace Advobot.Classes
 	public abstract class AdvobotSettingsModuleBase<TSettings> : AdvobotModuleBase where TSettings : ISettingsBase
 	{
 		/// <summary>
+		/// Returns the settings this module is targetting.
+		/// </summary>
+		/// <returns></returns>
+		protected abstract TSettings Settings { get; }
+
+		/// <summary>
 		/// Prints out the names of settings.
 		/// </summary>
 		/// <returns></returns>
 		protected async Task ShowNamesAsync()
 		{
-			var settings = GetSettings();
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
-				Title = settings.GetType().Name.FormatTitle(),
-				Description = $"`{string.Join("`, `", settings.GetSettings().Keys)}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Title = Settings.GetType().Name.FormatTitle(),
+				Description = $"`{Settings.SettingParser.Join("`, `", x => x.MainName)}`"
+			}).CAF();
 		}
 		/// <summary>
 		/// Prints out all the settings.
@@ -43,13 +53,11 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		protected async Task ShowAllAsync()
 		{
-			var settings = GetSettings();
-			var tf = new TextFileInfo
+			await ReplyFileAsync($"**{Settings.GetType().Name.FormatTitle()}:**", new TextFileInfo
 			{
-				Name = settings.GetType().Name.FormatTitle().Replace(' ', '_'),
-				Text = settings.ToString(Context.Client, Context.Guild),
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, $"**{settings.GetType().Name.FormatTitle()}:**", textFile: tf).CAF();
+				Name = Settings.GetType().Name.FormatTitle().Replace(' ', '_'),
+				Text = Settings.ToString(Context.Client, Context.Guild),
+			}).CAF();
 		}
 		/// <summary>
 		/// Prints out the specified setting.
@@ -58,30 +66,27 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		protected async Task ShowAsync(string settingName)
 		{
-			var settings = GetSettings();
-			if (!(await VerifyAsync(settings, settingName).CAF() is ICompleteSetting property))
+			if (!(await VerifySettingAsync(settingName).CAF() is ISetting setting))
 			{
 				return;
 			}
 
-			var desc = settings.FormatSetting(Context.Client, Context.Guild, property.MainName);
-			if (desc.Length <= EmbedBuilder.MaxDescriptionLength)
+			var description = FormatValue(setting.GetValue());
+			if (description.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
-				var embed = new EmbedWrapper
+				await ReplyEmbedAsync(new EmbedWrapper
 				{
-					Title = property.MainName.FormatTitle(),
-					Description = desc
-				};
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+					Title = setting.MainName.FormatTitle(),
+					Description = description,
+				}).CAF();
 			}
 			else
 			{
-				var tf = new TextFileInfo
+				await ReplyFileAsync($"**{setting.MainName.FormatTitle()}:**", new TextFileInfo
 				{
-					Name = property.MainName.FormatTitle(),
-					Text = desc,
-				};
-				await MessageUtils.SendMessageAsync(Context.Channel, $"**{property.MainName.FormatTitle()}:**", textFile: tf).CAF();
+					Name = setting.MainName.FormatTitle(),
+					Text = description,
+				}).CAF();
 			}
 		}
 		/// <summary>
@@ -90,16 +95,15 @@ namespace Advobot.Classes
 		/// <param name="settingName"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		protected async Task ShowAsync(string settingName, IUser user)
+		protected async Task ShowUserAsync(string settingName, IUser user)
 		{
-			var settings = GetSettings();
-			if (!(await VerifyAsync(settings, settingName).CAF() is ICompleteSetting property))
+			if (!(await VerifySettingAsync(settingName).CAF() is ISetting setting))
 			{
 				return;
 			}
 
-			var value = property.GetValue();
-			var title = property.MainName.FormatTitle();
+			var value = setting.GetValue();
+			var title = setting.MainName.FormatTitle();
 
 			IEnumerable<ITargetsUser> values;
 			if (value is IEnumerable<ITargetsUser> temp1)
@@ -114,19 +118,17 @@ namespace Advobot.Classes
 			//If doesn't target users, then reply that
 			else
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{title}` does not target users directly.")).CAF();
+				await ReplyErrorAsync(new Error($"`{title}` does not target users directly.")).CAF();
 				return;
 			}
 
 			var userValues = values.Where(x => x.UserId == user.Id).ToList();
-			var description = userValues.Count == 0 ? "None" : userValues.FormatNumberedList(x => FormatValue(settings, x));
-			var embed = new EmbedWrapper
+			var description = userValues.Count == 0 ? "None" : userValues.FormatNumberedList(x => FormatValue(x));
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = $"{title} | {user.Format()}",
 				Description = description,
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-			return;
+			}).CAF();
 		}
 		/// <summary>
 		/// Sends the settings file.
@@ -135,10 +137,10 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		protected async Task GetFileAsync(IBotDirectoryAccessor accessor)
 		{
-			var file = GetSettings().GetFile(accessor);
+			var file = Settings.GetFile(accessor);
 			if (!file.Exists)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("The settings file does not exist.")).CAF();
+				await ReplyErrorAsync(new Error("The settings file does not exist.")).CAF();
 				return;
 			}
 			await Context.Channel.SendFileAsync(file.FullName).CAF();
@@ -150,272 +152,171 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		protected async Task ResetAsync(string settingName)
 		{
-			var settings = GetSettings();
-			if (!(await VerifyAsync(settings, settingName).CAF() is ISetting setting))
+			if (!(await VerifySettingAsync(settingName).CAF() is ISetting setting))
 			{
 				return;
 			}
-			settings.ResetSetting(setting.MainName);
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully reset `{setting.MainName}`.").CAF();
+			Settings.ResetSetting(setting.MainName);
+			await ReplyTimedAsync($"Successfully reset `{setting.MainName}`.").CAF();
 		}
 		/// <summary>
 		/// Adds or removes the specified objects from the list while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
 		/// </summary>
 		/// <typeparam name="TValue"></typeparam>
-		/// <param name="propertySelector"></param>
+		/// <param name="selector"></param>
 		/// <param name="add"></param>
 		/// <param name="values"></param>
-		/// <param name="comparer"></param>
 		/// <returns></returns>
-		protected async Task ModifyCollectionAsync<TValue>(
-			Expression<Func<TSettings, ICollection<TValue>>> propertySelector,
-			bool add,
-			IEnumerable<TValue> values,
-			IEqualityComparer<TValue> comparer = default)
+		protected async Task ModifyCollectionAsync<TValue>(Expression<Func<TSettings, ICollection<TValue>>> selector, bool add, IEnumerable<TValue> values)
 		{
-			var (settings, prop, list) = GetEverything(propertySelector);
-			var failures = new List<TValue>();
-			var successes = new List<TValue>();
-			comparer = comparer ?? EqualityComparer<TValue>.Default;
-			foreach (var value in values)
-			{
-				//Not in and trying to remove = failure
-				//Is in and trying to add = failure
-				//This should function the same as .Contains() then .Single() afterwards, except this only iterates once
-				var obj = list.SingleOrDefault(x => comparer.Equals(x, value));
-				if (comparer.Equals(obj, value) == add)
-				{
-					failures.Add(value);
-					continue;
-				}
+			var (settings, setting, source, name) = GetCollection(selector);
+			var context = new CollectionModificationContext { Action = add ? CMAction.AddIfMissing : CMAction.Remove };
+			var results = values.Select(x => setting.ModifyCollection(source, x, context));
+			settings.RaisePropertyChanged(name);
 
-				if (add)
-				{
-					list.Add(value);
-					successes.Add(value);
-				}
-				else
-				{
-					list.Remove(obj);
-					successes.Add(obj);
-				}
-			}
-			settings.RaisePropertyChanged(prop.Name);
-
+			var successes = results.Where(x => x.IsSuccess).OfType<SetValueResult>().Select(x => FormatValue(x.Value)).ToArray();
+			var failures = results.Where(x => !x.IsSuccess).OfType<SetValueResult>().Select(x => FormatValue(x.Value)).ToArray();
 			var success = successes.Any()
-				? $"Successfully {(add ? "added" : "removed")} `{FormatValues(settings, successes)}` {(add ? "to" : "from")} `{prop.Name}`."
+				? $"Successfully {(add ? "added" : "removed")} `{string.Join("`, `", successes)}` {(add ? "to" : "from")} `{name}`."
 				: null;
 			var failure = failures.Any()
-				? $"`{FormatValues(settings, failures)}` {(failures.Count == 1 ? "is" : "are")} already {(add ? "added to" : "removed from")} `{prop.Name}`"
+				? $"`{string.Join("`, `", failures)}` {(failures.Length == 1 ? "is" : "are")} already {(add ? "added to" : "removed from")} `{name}`"
 				: null;
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, new[] { success, failure }.JoinNonNullStrings("\n")).CAF();
+			await ReplyTimedAsync(new[] { success, failure }.JoinNonNullStrings("\n")).CAF();
 		}
 		/// <summary>
-		/// Adds or removes the specified objects from the list while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
+		/// Modifies the matching values. This will only add if a value is not found and <paramref name="creationFactory"/> is not null.
 		/// </summary>
 		/// <typeparam name="TValue"></typeparam>
-		/// <param name="propertySelector"></param>
-		/// <param name="add"></param>
-		/// <param name="values"></param>
-		/// <returns></returns>
-		protected async Task ModifyCollectionAsync<TValue>(
-			Expression<Func<TSettings, ICollection<TValue>>> propertySelector,
-			bool add,
-			params TValue[] values)
-			=> await ModifyCollectionAsync(propertySelector, add, (IEnumerable<TValue>)values);
-		/// <summary>
-		/// Adds or removes the specified objects from the list while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
-		/// This method allows conversion/validation. Any failures during validation will send an error message and not set the value.
-		/// </summary>
-		/// <typeparam name="TValue"></typeparam>
-		/// <typeparam name="TOriginal"></typeparam>
-		/// <param name="propertySelector"></param>
-		/// <param name="validation"></param>
-		/// <param name="add"></param>
-		/// <param name="values"></param>
-		/// <param name="comparer"></param>
-		/// <returns></returns>
-		protected async Task ModifyCollectionAsync<TValue, TOriginal>(
-			Expression<Func<TSettings, ICollection<TValue>>> propertySelector,
-			Func<TOriginal, (bool Valid, TValue Converted)> validation,
-			bool add,
-			IEnumerable<TOriginal> values,
-			IEqualityComparer<TValue> comparer = default)
-		{
-			var validValues = new List<TValue>();
-			foreach (var value in values)
-			{
-				var (Valid, Converted) = validation(value);
-				if (Valid)
-				{
-					validValues.Add(Converted);
-					continue;
-				}
-				await SendValidationError(value, GetProperty(propertySelector)).CAF();
-				return;
-			}
-			await ModifyCollectionAsync(propertySelector, add, validValues, comparer).CAF();
-		}
-		/// <summary>
-		/// Modifies the matching values. This will only add if a value is not found and <paramref name="valueCreationFactory"/> is not null.
-		/// </summary>
-		/// <typeparam name="TValue"></typeparam>
-		/// <typeparam name="TResponse"></typeparam>
-		/// <param name="propertySelector"></param>
-		/// <param name="valueSelector"></param>
-		/// <param name="valueCreationFactory"></param>
+		/// <param name="selector"></param>
+		/// <param name="predicate"></param>
+		/// <param name="creationFactory"></param>
 		/// <param name="updateCallback"></param>
-		/// <param name="formatResponse"></param>
 		/// <returns></returns>
-		protected async Task ModifyCollectionValuesAsync<TValue, TResponse>(
-			Expression<Func<TSettings, ICollection<TValue>>> propertySelector,
-			Func<TValue, bool> valueSelector,
-			Func<TValue> valueCreationFactory,
-			Func<TValue, TResponse> updateCallback,
-			Func<TResponse, string> formatResponse)
+		protected async Task ModifyCollectionValuesAsync<TValue>(
+			Expression<Func<TSettings, ICollection<TValue>>> selector,
+			Func<TValue, bool> predicate,
+			Func<TValue> creationFactory,
+			Func<TValue, string> updateCallback)
 		{
-			var (settings, prop, list) = GetEverything(propertySelector);
+			var (settings, setting, list, name) = GetCollection(selector);
 
-			var matchingValues = list.Where(valueSelector).ToList();
+			var matchingValues = list.Where(predicate).ToList();
 			if (matchingValues.Count == 0)
 			{
-				if (valueCreationFactory == null)
+				if (creationFactory == null)
 				{
 #warning return error here
-					var error = new Error("todo: put in error");
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+					await ReplyErrorAsync(new Error("todo: put in error")).CAF();
 					return;
 				}
-				var newValue = valueCreationFactory();
+				var newValue = creationFactory();
 				matchingValues.Add(newValue);
 				list.Add(newValue);
 			}
 
-			//Use select to get all the responses after updating every value instead of a simple foreach
-			var responses = matchingValues.Select(x => formatResponse(updateCallback(x)));
-			var resp = string.Join("\n", responses);
-			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
+			var response = new StringBuilder();
+			for (int i = 0; i < matchingValues.Count; ++i)
+			{
+				response.AppendLineFeed(updateCallback(matchingValues[i]));
+			}
+			await ReplyAsync(response.ToString()).CAF();
 		}
 		/// <summary>
 		/// Sets the property to the supplied value while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
 		/// </summary>
 		/// <typeparam name="TValue"></typeparam>
-		/// <param name="propertySelector"></param>
-		/// <param name="comparer"></param>
+		/// <param name="selector"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected async Task ModifyAsync<TValue>(
-			Expression<Func<TSettings, TValue>> propertySelector,
-			TValue value,
-			IEqualityComparer<TValue> comparer = default)
+		protected async Task ModifyAsync<TValue>(Expression<Func<TSettings, TValue>> selector, TValue value)
 		{
-			var (settings, prop, currentValue) = GetEverything(propertySelector);
+			var (settings, setting, currentValue, name) = GetValue(selector);
 			//If the same value is passed in, return a message to the user that they're the same
-			if ((comparer ?? EqualityComparer<TValue>.Default).Equals(currentValue, value))
+			if (setting.EqualityComparer.Equals(currentValue, value))
 			{
-				var same = $"The passed in value for `{prop.Name}` is the current value: {FormatValue(settings, currentValue)}.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, same).CAF();
+				await ReplyTimedAsync(DuplicateResponse(settings, currentValue, name)).CAF();
+				return;
+			}
+			var valid = setting.Validation(value);
+			if (!valid.IsSuccess)
+			{
+				await ReplyTimedAsync(InvalidResponse(settings, value, name)).CAF();
 				return;
 			}
 
-			prop.SetValue(settings, value);
-			settings.RaisePropertyChanged(prop.Name);
+			setting.SetValue(value);
+			settings.RaisePropertyChanged(name);
 
-			var resp = $"Successfully set `{prop.Name}` to {FormatValue(settings, value)}. " +
-				$"Previous value was: {FormatValue(settings, currentValue)}.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully set `{name}` to {FormatValue(value)}. Previous value was: {FormatValue(currentValue)}.").CAF();
 		}
-		/// <summary>
-		/// Sets the property to the supplied value while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
-		/// This method allows conversion/validation. Any failures during validation will send an error message and not set the value.
-		/// </summary>
-		/// <typeparam name="TValue">The type to convert to.</typeparam>
-		/// <typeparam name="TOriginal">The passed in type.</typeparam>
-		/// <param name="propertySelector"></param>
-		/// <param name="validation"></param>
-		/// <param name="value"></param>
-		/// <param name="comparer"></param>
-		/// <returns></returns>
-		protected async Task ModifyAsync<TValue, TOriginal>(
-			Expression<Func<TSettings, TValue>> propertySelector,
-			Func<TOriginal, (bool Valid, TValue Converted)> validation,
-			TOriginal value,
-			IEqualityComparer<TValue> comparer = default)
-		{
-			var (Valid, Converted) = validation(value);
-			if (!Valid)
-			{
-				await SendValidationError(value, GetProperty(propertySelector)).CAF();
-				return;
-			}
-			await ModifyAsync(propertySelector, Converted, comparer).CAF();
-		}
-		/// <summary>
-		/// Returns the settings this module is targetting.
-		/// </summary>
-		/// <returns></returns>
-		protected abstract TSettings GetSettings();
-		/// <summary>
-		/// Gets the targetted property from the expression.
-		/// </summary>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="propertySelector"></param>
-		/// <returns></returns>
-		private PropertyInfo GetProperty<TValue>(Expression<Func<TSettings, TValue>> propertySelector)
-		{
-			var expr = (MemberExpression)propertySelector.Body;
-			return (PropertyInfo)expr.Member;
-		}
-		/// <summary>
-		/// Returns the values as a string.
-		/// </summary>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="settings"></param>
-		/// <param name="values"></param>
-		/// <returns></returns>
-		private string FormatValues<TValue>(TSettings settings, IEnumerable<TValue> values)
-			=> string.Join("`, `", values.Select(x => FormatValue(settings, x)));
 		/// <summary>
 		/// Returns the value as a string.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		private string FormatValue(TSettings settings, object value)
-			=> settings.FormatValue(Context.Client, Context.Guild, value);
+		private string FormatValue(object value)
+			=> Settings.FormatValue(Context.Client, Context.Guild, value);
 		/// <summary>
 		/// Sends an error to the discord channel saying the passed in value is invalid.
 		/// </summary>
-		/// <typeparam name="TOriginal"></typeparam>
+		/// <param name="settings"></param>
 		/// <param name="value"></param>
-		/// <param name="property"></param>
+		/// <param name="name"></param>
 		/// <returns></returns>
-		private async Task SendValidationError<TOriginal>(TOriginal value, PropertyInfo property)
-		{
-			var error = new Error($"The supplied value `{FormatValue(GetSettings(), value)}` is invalid for `{property.Name}`");
-			await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-		}
+		private string InvalidResponse(TSettings settings, object value, string name)
+			=> $"The supplied value `{FormatValue(value)}` is invalid for `{name}`";
+		/// <summary>
+		/// Returns an error indicating there is 
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="value"></param>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		private string DuplicateResponse(TSettings settings, object value, string name)
+			=> $"The passed in value for `{name}` matches the current value: {FormatValue(value)}.";
 		/// <summary>
 		/// Makes sure the settings exist, otherwise prints out to the channel that they don't.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		private async Task<ICompleteSetting> VerifyAsync(TSettings settings, string name)
+		private async Task<ISetting> VerifySettingAsync(string name)
 		{
-			if (!settings.GetSettings().TryGetValue(name, out var property))
+			if (!Settings.SettingParser.TryGetSetting(name, PrefixState.NotPrefixed, out var property))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{name}` is not a valid setting.")).CAF();
+				await ReplyErrorAsync(new Error($"`{name}` is not a valid setting.")).CAF();
 				return null;
 			}
 			return property;
 		}
-		private (TSettings Settings, PropertyInfo Property, T Value) GetEverything<T>(Expression<Func<TSettings, T>> propertySelector)
+		private SettingContext<TSettings, Setting<T>, T> GetValue<T>(Expression<Func<TSettings, T>> selector)
+			=> new SettingContext<TSettings, Setting<T>, T>(Settings, selector);
+		private SettingContext<TSettings, CollectionSetting<T>, ICollection<T>> GetCollection<T>(Expression<Func<TSettings, ICollection<T>>> selector)
+			=> new SettingContext<TSettings, CollectionSetting<T>, ICollection<T>>(Settings, selector);
+
+		private class SettingContext<TParentSettings, TSetting, TValue>
+			where TParentSettings : IParsable
+			where TSetting : ISetting
 		{
-			var settings = GetSettings();
-			var prop = GetProperty(propertySelector);
-			var value = propertySelector.Compile()(settings);
-			return (settings, prop, value);
+			public TParentSettings Settings { get; }
+			public TSetting Setting { get; }
+			public TValue Value { get; }
+
+			public SettingContext(TParentSettings parent, Expression<Func<TSettings, TValue>> selector)
+			{
+				Settings = parent;
+				var name = selector.GetMemberExpression().Member.Name;
+				Setting = (TSetting)Settings.SettingParser.GetSetting(name, PrefixState.NotPrefixed);
+				Value = (TValue)Setting.GetValue();
+			}
+
+			public void Deconstruct(out TParentSettings settings, out TSetting setting, out TValue value, out string name)
+			{
+				settings = Settings;
+				setting = Setting;
+				value = Value;
+				name = Setting.MainName;
+			}
 		}
 	}
 
@@ -431,7 +332,7 @@ namespace Advobot.Classes
 		/// <param name="command"></param>
 		protected override void AfterExecute(CommandInfo command)
 		{
-			GetSettings().SaveSettings(Context.BotSettings);
+			Settings.SaveSettings(BotSettings);
 			base.AfterExecute(command);
 		}
 	}

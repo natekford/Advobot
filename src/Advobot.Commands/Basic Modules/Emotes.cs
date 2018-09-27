@@ -34,30 +34,20 @@ namespace Advobot.Commands.Emotes
 		public async Task Command(
 			[ValidateString(Target.Emote)] string name,
 			Uri url,
-			[Optional, Remainder] NamedArguments<EmoteResizerArguments> args)
+			[Optional, Remainder] EmoteResizerArguments args)
 		{
-			EmoteResizerArguments obj;
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on creating an emote.")).CAF();
-				return;
-			}
-			else if (args == null)
-			{
-				obj = new EmoteResizerArguments();
-			}
-			else if (!args.TryCreateObject(new object[] { 5, new Percentage(30) }, out obj, out var error))
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				await ReplyErrorAsync(new Error("Currently already working on creating an emote.")).CAF();
 				return;
 			}
 
-			_Resizer.EnqueueArguments(Context, obj, url, GetRequestOptions(), name);
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in emote creation queue: {_Resizer.QueueCount}.").CAF();
+			_Resizer.EnqueueArguments(Context, args, url, GetRequestOptions(), name);
 			if (_Resizer.CanStart)
 			{
 				_Resizer.StartProcessing();
 			}
+			await ReplyTimedAsync($"Position in emote creation queue: {_Resizer.QueueCount}.").CAF();
 		}
 	}
 
@@ -71,7 +61,7 @@ namespace Advobot.Commands.Emotes
 		public async Task Command(GuildEmote emote)
 		{
 			await Context.Guild.DeleteEmoteAsync(emote, GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the emote `{emote.Name}`.").CAF();
+			await ReplyTimedAsync($"Successfully deleted the emote `{emote.Name}`.").CAF();
 		}
 	}
 
@@ -82,8 +72,11 @@ namespace Advobot.Commands.Emotes
 	public sealed class ModifyEmoteName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(GuildEmote emote, [ValidateString(Target.Emote), Remainder] string newName)
-			=> await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = newName, GetRequestOptions()).CAF();
+		public async Task Command(GuildEmote emote, [ValidateString(Target.Emote), Remainder] string name)
+		{
+			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = name, GetRequestOptions()).CAF();
+			await ReplyTimedAsync($"Successfully changed the emote name to `{name}`.").CAF();
+		}
 	}
 
 	[Category(typeof(ModifyEmoteRoles)), Group(nameof(ModifyEmoteRoles)), TopLevelShortAlias(typeof(ModifyEmoteRoles))]
@@ -109,8 +102,7 @@ namespace Advobot.Commands.Emotes
 					x.Roles = Optional.Create<IEnumerable<IRole>>(roles.Distinct());
 				}
 			}, GetRequestOptions()).CAF();
-			var resp = $"Successfully added `{string.Join("`, `", roles.Select(x => x.Format()))}` as roles necessary to use `{emote}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully added `{roles.Join("`, `", x => x.Format())}` as roles necessary to use `{emote}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(
@@ -119,7 +111,7 @@ namespace Advobot.Commands.Emotes
 		{
 			if (!emote.RoleIds.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"The emote {emote} does not have any restricting roles.")).CAF();
+				await ReplyErrorAsync(new Error($"The emote `{emote}` does not have any restricting roles.")).CAF();
 				return;
 			}
 
@@ -130,21 +122,19 @@ namespace Advobot.Commands.Emotes
 					x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Select(q => q.Id).Contains(r.Id)));
 				}
 			}, GetRequestOptions()).CAF();
-			var resp = $"Successfully removed `{string.Join("`, `", roles.Select(x => x.Format()))}` as roles necessary to use `{emote}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully removed `{roles.Join("`, `", x => x.Format())}` as roles necessary to use `{emote}`.").CAF();
 		}
 		[Command(nameof(RemoveAll)), ShortAlias(nameof(RemoveAll))]
 		public async Task RemoveAll(GuildEmote emote)
 		{
 			if (!emote.RoleIds.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"The emote {emote} does not have any restricting roles.")).CAF();
+				await ReplyErrorAsync(new Error($"The emote `{emote}` does not have any restricting roles.")).CAF();
 				return;
 			}
 
 			await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create<IEnumerable<IRole>>(null), GetRequestOptions()).CAF();
-			var resp = $"Successfully removed all roles necessary to use `{emote}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully removed all roles necessary to use `{emote}`.").CAF();
 		}
 	}
 
@@ -168,16 +158,14 @@ namespace Advobot.Commands.Emotes
 		{
 			if (!emotes.Any())
 			{
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"This guild has no {caller.ToLower()} emotes.").CAF();
+				await ReplyErrorAsync(new Error($"This guild has no {caller.ToLower()} emotes.")).CAF();
 				return;
 			}
-
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "Emotes",
-				Description = emotes.FormatNumberedList(x => $"{x} `{x.Name}`")
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Description = emotes.FormatNumberedList(x => $"{x} `{x.Name}`"),
+			}).CAF();
 		}
 	}
 }

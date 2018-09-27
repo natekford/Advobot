@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.Classes.Attributes
@@ -49,6 +50,6 @@ namespace Advobot.Classes.Attributes
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> string.Join(", ", ServiceTypes.Select(x => x.Name));
+			=> ServiceTypes.Join(", ", x => x.Name);
 	}
 }

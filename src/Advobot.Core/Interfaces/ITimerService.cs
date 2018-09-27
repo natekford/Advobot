@@ -21,13 +21,7 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		Task AddAsync(CloseHelpEntries value);
-		/// <summary>
-		/// Removes all older instances, deletes the bot's message, and stores <paramref name="value"/>.
-		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		Task AddAsync(CloseQuotes value);
+		Task AddAsync(RemovableCloseWords value);
 		/// <summary>
 		/// Stores <paramref name="value"/>.
 		/// </summary>
@@ -40,7 +34,6 @@ namespace Advobot.Interfaces
 		/// <param name="value"></param>
 		/// <returns></returns>
 		Task AddAsync(TimedMessage value);
-
 		/// <summary>
 		/// Removes the punishment from the database and returns it.
 		/// </summary>
@@ -50,18 +43,11 @@ namespace Advobot.Interfaces
 		/// <returns></returns>
 		Task<RemovablePunishment> RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment);
 		/// <summary>
-		/// Removes the close help from the database and returns it.
+		/// Removes the close help or quotes from the database and returns it.
 		/// </summary>
 		/// <param name="guildId"></param>
 		/// <param name="userId"></param>
 		/// <returns></returns>
-		Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(ulong guildId, ulong userId);
-		/// <summary>
-		/// Removes the close quotes from the database and returns it.
-		/// </summary>
-		/// <param name="guildId"></param>
-		/// <param name="userId"></param>
-		/// <returns></returns>
-		Task<CloseQuotes> RemoveActiveCloseQuoteAsync(ulong guildId, ulong userId);
+		Task<RemovableCloseWords> RemoveActiveCloseWords(ulong guildId, ulong userId);
 	}
 }

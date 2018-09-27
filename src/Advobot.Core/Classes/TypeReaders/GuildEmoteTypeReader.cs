@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -10,6 +11,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to find a <see cref="GuildEmote"/> on the guild.
 	/// </summary>
+	[TypeReaderTargetType(typeof(GuildEmote))]
 	public sealed class GuildEmoteTypeReader : TypeReader
 	{
 		/// <summary>

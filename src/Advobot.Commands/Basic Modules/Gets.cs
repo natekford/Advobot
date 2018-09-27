@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -13,7 +14,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.Gets
 {
@@ -23,124 +23,71 @@ namespace Advobot.Commands.Gets
 	[DefaultEnabled(true)]
 	public sealed class GetInfo : AdvobotModuleBase
 	{
+		public ILogService Logging { get; set; }
+
 		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
 		public async Task Bot()
-			=> await SendAsync(DiscordFormatting.FormatBotInfo(Context.Client, Context.Provider.GetService<ILogService>())).CAF();
+			=> await ReplyEmbedAsync(DiscordFormatting.FormatBotInfo(Context.Client, Logging)).CAF();
 		[Command(nameof(Shards)), ShortAlias(nameof(Shards))]
 		public async Task Shards()
-			=> await SendAsync(DiscordFormatting.FormatShardsInfo(Context.Client)).CAF();
+			=> await ReplyEmbedAsync(DiscordFormatting.FormatShardsInfo(Context.Client)).CAF();
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
-			=> await SendAsync(DiscordFormatting.FormatGuildInfo(Context.Guild)).CAF();
+			=> await ReplyEmbedAsync(DiscordFormatting.FormatGuildInfo(Context.Guild)).CAF();
 		[Command(nameof(GuildUsers)), ShortAlias(nameof(GuildUsers))]
 		public async Task GuildUsers()
-			=> await SendAsync(DiscordFormatting.FormatAllGuildUsersInfo(Context.Guild)).CAF();
+			=> await ReplyEmbedAsync(DiscordFormatting.FormatAllGuildUsersInfo(Context.Guild)).CAF();
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel([Remainder] SocketGuildChannel channel)
-			=> await SendAsync(DiscordFormatting.FormatChannelInfo(channel, Context.GuildSettings)).CAF();
+			=> await ReplyEmbedAsync(DiscordFormatting.FormatChannelInfo(channel, Context.GuildSettings)).CAF();
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
 		public async Task Role([Remainder] SocketRole role)
-			=> await SendAsync(DiscordFormatting.FormatRoleInfo(role)).CAF();
+			=> await ReplyEmbedAsync(DiscordFormatting.FormatRoleInfo(role)).CAF();
 		[Command(nameof(User)), ShortAlias(nameof(User))]
 		public async Task User([Remainder] SocketUser user)
-			=> await SendAsync(user is SocketGuildUser guildUser
+			=> await ReplyEmbedAsync(user is SocketGuildUser guildUser
 				? DiscordFormatting.FormatGuildUserInfo(guildUser)
 				: DiscordFormatting.FormatUserInfo(user)).CAF();
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
 		public async Task Emote([Remainder] Emote emote)
-			=> await SendAsync(emote is GuildEmote guildEmote
+			=> await ReplyEmbedAsync(emote is GuildEmote guildEmote
 				? DiscordFormatting.FormatGuildEmoteInfo(Context.Guild, guildEmote)
 				: DiscordFormatting.FormatEmoteInfo(emote)).CAF();
 		[Command(nameof(Invite)), ShortAlias(nameof(Invite))]
 		public async Task Invite([Remainder] IInvite invite)
-			=> await SendAsync(DiscordFormatting.FormatInviteInfo(invite as IInviteMetadata)).CAF();
+			=> await ReplyEmbedAsync(DiscordFormatting.FormatInviteInfo(invite as IInviteMetadata)).CAF();
 		[Command(nameof(Webhook)), ShortAlias(nameof(Webhook))]
 		public async Task Webhook([Remainder] IWebhook webhook)
-			=> await SendAsync(DiscordFormatting.FormatWebhookInfo(Context.Guild, webhook)).CAF();
-
-		private async Task SendAsync(EmbedWrapper wrapper)
-			=> await MessageUtils.SendMessageAsync(Context.Channel, null, wrapper).CAF();
+			=> await ReplyEmbedAsync(DiscordFormatting.FormatWebhookInfo(Context.Guild, webhook)).CAF();
 	}
 
 	[Category(typeof(GetUsersWithReason)), Group(nameof(GetUsersWithReason)), TopLevelShortAlias(typeof(GetUsersWithReason))]
-	[Summary("Gets users with a variable reason. " +
-		"`Count` specifies if to say the count. " +
-		"`Nickname` specifies if to include nickanmes. " +
-		"`Exact` specifies if only exact matches apply.")]
+	[Summary("Finds users with either a role, a name, a game, or who are streaming.")]
 	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
 	[DefaultEnabled(true)]
 	public sealed class GetUsersWithReason : AdvobotModuleBase
 	{
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
-		public async Task Role(SocketRole role, params SearchOptions[] additionalSearchOptions)
-			=> await CommandRunner(Target.Role, role, additionalSearchOptions).CAF();
+		public async Task Role(SocketRole role)
+			=> await AAA($"Users With The Role '{role.Name}'", x => x.Roles.Select(r => r.Id).Contains(role.Id)).CAF();
 		[Command(nameof(Name)), ShortAlias(nameof(Name))]
-		public async Task Name(string name, params SearchOptions[] additionalSearchOptions)
-			=> await CommandRunner(Target.Name, name, additionalSearchOptions).CAF();
+		public async Task Name(string name)
+			=> await AAA($"Users With Names/Nicknames Containing '{name}'", x => x.Username.CaseInsContains(name) || x.Nickname.CaseInsContains(name)).CAF();
 		[Command(nameof(Game)), ShortAlias(nameof(Game))]
-		public async Task Game(string game, params SearchOptions[] additionalSearchOptions)
-			=> await CommandRunner(Target.Game, game, additionalSearchOptions).CAF();
+		public async Task Game(string game)
+			=> await AAA($"Users With Games Containing '{game}'", x => x.Activity is Game g && g.Name.CaseInsContains(game)).CAF();
 		[Command(nameof(Stream)), ShortAlias(nameof(Stream))]
-		public async Task Stream(params SearchOptions[] additionalSearchOptions)
-			=> await CommandRunner(Target.Stream, null, additionalSearchOptions).CAF();
+		public async Task Stream()
+			=> await AAA("Users Who Are Streaming", x => x.Activity is StreamingGame).CAF();
 
-		private async Task CommandRunner(Target targetType, object obj, SearchOptions[] additionalSearchOptions)
+		private async Task AAA(string title, Func<SocketGuildUser, bool> predicate)
 		{
-			var count = additionalSearchOptions.Contains(SearchOptions.Count);
-			var nickname = additionalSearchOptions.Contains(SearchOptions.Nickname);
-			var exact = additionalSearchOptions.Contains(SearchOptions.Exact);
-
-			string title;
-			var users = Context.Guild.Users.AsEnumerable();
-			switch (targetType)
-			{
-				case Target.Role:
-					var role = obj as IRole;
-					title = $"Users With The Role '{role?.Name}'";
-					users = users.Where(u => u.Roles.Select(r => r.Id).Contains(role?.Id ?? 0));
-					break;
-				case Target.Name:
-					var name = obj.ToString();
-					title = $"Users With Names Containing '{obj}'";
-					users = users.Where(x => exact ? x.Username.CaseInsEquals(name) || (nickname && x.Nickname.CaseInsEquals(name))
-												   : x.Username.CaseInsContains(name) || (nickname && x.Nickname.CaseInsContains(name)));
-					break;
-				case Target.Game:
-					var game = obj.ToString();
-					title = $"Users With Games Containing '{obj}'";
-					users = users.Where(x =>
-					{
-						if (!(x.Activity is Game g))
-						{
-							return false;
-						}
-						return exact ? g.Name.CaseInsEquals(game) : g.Name.CaseInsContains(game);
-					});
-					break;
-				case Target.Stream:
-					title = "Users Who Are Streaming";
-					users = users.Where(x => x.Activity is StreamingGame);
-					break;
-				default:
-					return;
-			}
-
-			var desc = count
-				? $"**Count:** `{users.Count()}`"
-				: users.OrderBy(x => x.JoinedAt).FormatNumberedList(x => x.Format());
-			var embed = new EmbedWrapper
+			var users = Context.Guild.Users.Where(predicate);
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = title,
-				Description = desc
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
-
-		public enum SearchOptions
-		{
-			Count,
-			Nickname,
-			Exact
+				Description = users.OrderBy(x => x.JoinedAt).FormatNumberedList(x => x.Format()),
+			}).CAF();
 		}
 	}
 
@@ -166,8 +113,7 @@ namespace Advobot.Commands.Gets
 			var users = Context.Guild.GetUsersByJoinDate().ToArray();
 			var newPos = Math.Min((int)position, users.Length);
 			var user = users[newPos - 1];
-			var text = $"`{user.Format()}` is `#{newPos}` to join the guild on `{user.JoinedAt?.UtcDateTime.ToReadable()}`.";
-			await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
+			await ReplyAsync($"`{user.Format()}` is `#{newPos}` to join the guild on `{user.JoinedAt?.UtcDateTime.ToReadable()}`.").CAF();
 		}
 	}
 
@@ -181,27 +127,21 @@ namespace Advobot.Commands.Gets
 		public async Task Command()
 		{
 			var guilds = Context.Client.Guilds;
-			if (guilds.Count() <= EmbedBuilder.MaxFieldCount)
+			if (guilds.Count <= EmbedBuilder.MaxFieldCount)
 			{
-				var embed = new EmbedWrapper
-				{
-					Title = "Guilds",
-				};
+				var embed = new EmbedWrapper { Title = "Guilds", };
 				foreach (var guild in guilds)
 				{
 					embed.TryAddField(guild.Format(), $"**Owner:** `{guild.Owner.Format()}`", false, out _);
 				}
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				await ReplyEmbedAsync(embed).CAF();
+				return;
 			}
-			else
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
-				var embed = new EmbedWrapper
-				{
-					Title = "Guilds",
-					Description = guilds.FormatNumberedList(x => $"`{x.Format()}` Owner: `{x.Owner.Format()}`"),
-				};
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-			}
+				Title = "Guilds",
+				Description = guilds.FormatNumberedList(x => $"`{x.Format()}` Owner: `{x.Owner.Format()}`"),
+			}).CAF();
 		}
 	}
 
@@ -215,13 +155,11 @@ namespace Advobot.Commands.Gets
 		public async Task Command()
 		{
 			var users = Context.Guild.GetUsersByJoinDate().ToArray();
-			var text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.ToReadable()}`");
-			var tf = new TextFileInfo
+			await ReplyFileAsync($"**User Join List:**", new TextFileInfo
 			{
 				Name = "User_Joins",
-				Text = text,
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, $"**User Join List:**", textFile: tf).CAF();
+				Text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.ToReadable()}`"),
+			}).CAF();
 		}
 	}
 
@@ -242,24 +180,23 @@ namespace Advobot.Commands.Gets
 			var m = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();
 
 			var formattedMessagesBuilder = new StringBuilder();
-			for (int count = 0; count < m.Length; ++count)
+			var count = 0;
+			for (count = 0; count < m.Length; ++count)
 			{
 				var text = m[count].Format(withMentions: false).RemoveAllMarkdown().RemoveDuplicateNewLines();
-				if (formattedMessagesBuilder.Length + text.Length < Context.BotSettings.MaxMessageGatherSize)
+				if (formattedMessagesBuilder.Length + text.Length < BotSettings.MaxMessageGatherSize)
 				{
 					formattedMessagesBuilder.AppendLineFeed(text);
+					continue;
 				}
-				else
-				{
-					var tf = new TextFileInfo
-					{
-						Name = $"{channel?.Name}_Messages",
-						Text = formattedMessagesBuilder.ToString()
-					};
-					await MessageUtils.SendMessageAsync(Context.Channel, $"**{count} Messages:**", textFile: tf).CAF();
-					return;
-				}
+				break;
 			}
+
+			await ReplyFileAsync($"**{count} Messages:**", new TextFileInfo
+			{
+				Name = $"{channel?.Name}_Messages",
+				Text = formattedMessagesBuilder.ToString()
+			}).CAF();
 		}
 	}
 
@@ -275,11 +212,10 @@ namespace Advobot.Commands.Gets
 			var perms = EnumUtils.GetFlagNames((GuildPermission)number);
 			if (!perms.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
+				await ReplyErrorAsync(new Error("The given number holds no permissions.")).CAF();
 				return;
 			}
-			var resp = $"The number `{number}` has the following guild permissions: `{string.Join("`, `", perms)}`.";
-			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
+			await ReplyAsync($"The number `{number}` has the following guild permissions: `{string.Join("`, `", perms)}`.").CAF();
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel(ulong number)
@@ -287,11 +223,10 @@ namespace Advobot.Commands.Gets
 			var perms = EnumUtils.GetFlagNames((ChannelPermission)number);
 			if (!perms.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("The given number holds no permissions.")).CAF();
+				await ReplyErrorAsync(new Error("The given number holds no permissions.")).CAF();
 				return;
 			}
-			var resp = $"The number `{number}` has the following channel permissions: `{string.Join("`, `", perms)}`.";
-			await MessageUtils.SendMessageAsync(Context.Channel, resp).CAF();
+			await ReplyAsync($"The number `{number}` has the following channel permissions: `{string.Join("`, `", perms)}`.").CAF();
 		}
 	}
 
@@ -310,12 +245,11 @@ namespace Advobot.Commands.Gets
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "Enums",
-				Description = $"`{string.Join("`, `", _Enums.Select(x => x.Name))}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Description = $"`{_Enums.Join("`, `", x => x.Name)}`",
+			}).CAF();
 		}
 		[Command]
 		public async Task Command(string enumName)
@@ -323,22 +257,20 @@ namespace Advobot.Commands.Gets
 			var matchingNames = _Enums.Where(x => x.Name.CaseInsEquals(enumName)).ToList();
 			if (!matchingNames.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"No enum has the name `{enumName}`.")).CAF();
+				await ReplyErrorAsync(new Error($"No enum has the name `{enumName}`.")).CAF();
 				return;
 			}
 			if (matchingNames.Count > 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Too many enums have the name `{enumName}`.")).CAF();
+				await ReplyErrorAsync(new Error($"Too many enums have the name `{enumName}`.")).CAF();
 				return;
 			}
 
-			var e = matchingNames.Single();
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
-				Title = e.Name,
-				Description = $"`{string.Join("`, `", Enum.GetNames(e))}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Title = matchingNames[0].Name,
+				Description = $"`{string.Join("`, `", Enum.GetNames(matchingNames[0]))}`",
+			}).CAF();
 		}
 	}
 }

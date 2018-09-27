@@ -28,14 +28,14 @@ namespace Advobot.Classes
 		{
 			Property = property;
 			SubProperty = subProperty;
-			Value = value.ToString();
+			Value = value?.ToString();
 			RemainingLength = -1;
 		}
 		internal EmbedError(string property, string subProperty, object value, string reason, int remainingLength) : base(reason)
 		{
 			Property = property;
 			SubProperty = subProperty;
-			Value = value.ToString();
+			Value = value?.ToString();
 			RemainingLength = remainingLength;
 		}
 

@@ -15,7 +15,7 @@ namespace Advobot.Classes.Settings
 	{
 		/// <inheritdoc />
 		[JsonProperty]
-		public ulong UserId { get; }
+		public ulong UserId { get; private set; }
 		/// <summary>
 		/// The given permissions.
 		/// </summary>
@@ -23,7 +23,11 @@ namespace Advobot.Classes.Settings
 		public ulong Permissions { get; private set; }
 
 		/// <summary>
-		/// Creates an instance of bot implemented permissions.
+		/// Creates an instance of <see cref="BotUser"/>.
+		/// </summary>
+		public BotUser() { }
+		/// <summary>
+		/// Creates an instance of <see cref="BotUser"/>.
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="permissions"></param>

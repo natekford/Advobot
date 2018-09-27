@@ -61,7 +61,7 @@ namespace Advobot.Services.InviteList
 		public IEnumerable<IListedInvite> GetAll(int limit)
 			=> DatabaseWrapper.ExecuteQuery(DBQuery<ListedInvite>.GetAll()).OrderByDescending(x => x.Time);
 		/// <inheritdoc />
-		public IEnumerable<IListedInvite> GetAll(int limit, params string[] keywords)
+		public IEnumerable<IListedInvite> GetAll(int limit, IEnumerable<string> keywords)
 		{
 			var count = 0;
 			foreach (var invite in GetAll(int.MaxValue))

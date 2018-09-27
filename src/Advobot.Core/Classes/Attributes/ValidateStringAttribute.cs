@@ -8,6 +8,7 @@ using Discord.Commands;
 
 namespace Advobot.Classes.Attributes
 {
+#warning put these into separate attributes
 	/// <summary>
 	/// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides errors stating the min/max if under/over.
 	/// </summary>
@@ -50,8 +51,8 @@ namespace Advobot.Classes.Attributes
 			_Target = target;
 			if (MinsMaxesAndErrors.TryGetValue(target, out var temp))
 			{
-				_TooShort = $"A {temp.Name} must be at least `{(_Min = temp.Min)}` characters long.";
-				_TooLong = $"A {temp.Name} must be at most `{(_Max = temp.Max)}` characters long.";
+				_TooShort = $"A {temp.Name} must be at least `{_Min = temp.Min}` characters long.";
+				_TooLong = $"A {temp.Name} must be at most `{_Max = temp.Max}` characters long.";
 			}
 			else
 			{

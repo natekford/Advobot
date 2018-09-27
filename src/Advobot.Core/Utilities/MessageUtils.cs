@@ -7,6 +7,7 @@ using Advobot.Classes;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,8 +18,6 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class MessageUtils
 	{
-		private static readonly char[] _InvalidChars = Path.GetInvalidFileNameChars();
-
 		/// <summary>
 		/// Sends a message to the given channel with the given content.
 		/// </summary>
@@ -31,16 +30,21 @@ namespace Advobot.Utilities
 		/// This ends up taking up extra space if used with embeds or files.
 		/// </param>
 		/// <returns></returns>
+		[Obsolete]
 		public static async Task<IUserMessage> SendMessageAsync(
 			IMessageChannel channel,
-			string content,
+			string content = null,
 			EmbedWrapper embedWrapper = null,
 			TextFileInfo textFile = null,
 			bool allowZeroWidthLengthMessages = false)
 		{
-			if (channel == null || (content == null && embedWrapper == null && textFile == null))
+			if (channel == null)
 			{
-				return null;
+				throw new ArgumentNullException(nameof(channel));
+			}
+			if (content == null && embedWrapper == null && textFile == null)
+			{
+				throw new ArgumentNullException($"Input ({nameof(content)}, {nameof(embedWrapper)}, or {nameof(textFile)} must have a value)");
 			}
 
 			textFile = textFile ?? new TextFileInfo();
@@ -49,7 +53,7 @@ namespace Advobot.Utilities
 			if (embedWrapper != null && embedWrapper.Errors.Any())
 			{
 				textFile.Name = textFile.Name ?? "Embed_Errors";
-				textFile.Text = $"Embed Errors:\n{embedWrapper}\n\n{textFile.Text}";
+				textFile.Text += $"Embed Errors:\n{embedWrapper}\n\n{textFile.Text}";
 			}
 
 			//Make sure none of the content mentions everyone or doesn't have the zero width character
@@ -57,7 +61,7 @@ namespace Advobot.Utilities
 			if (content.Length > 2000)
 			{
 				textFile.Name = textFile.Name ?? "Long_Message";
-				textFile.Text = $"Message Content:\n{content}\n\n{textFile.Text}";
+				textFile.Text += $"Message Content:\n{content}\n\n{textFile.Text}";
 				content = $"{Constants.ZERO_LENGTH_CHAR}Response is too long; sent as text file instead.";
 			}
 
@@ -91,84 +95,6 @@ namespace Advobot.Utilities
 			}
 		}
 		/// <summary>
-		/// Waits a few seconds then deletes the newly created message and the context message.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="output"></param>
-		/// <param name="time"></param>
-		/// <returns></returns>
-		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(
-			AdvobotCommandContext context,
-			string output,
-			TimeSpan time = default)
-		{
-			var channel = (SocketTextChannel)context.Channel;
-			var timers = context.Provider.GetService<ITimerService>();
-			return await MakeAndDeleteSecondaryMessageAsync(channel, context.Message, output, timers, time).CAF();
-		}
-		/// <summary>
-		/// Waits a few seconds then deletes the newly created message and the given message.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="message"></param>
-		/// <param name="output"></param>
-		/// <param name="time"></param>
-		/// <param name="timers"></param>
-		/// <returns></returns>
-		public static async Task<RemovableMessage> MakeAndDeleteSecondaryMessageAsync(
-			SocketTextChannel channel,
-			IUserMessage message,
-			string output,
-			ITimerService timers,
-			TimeSpan time = default)
-		{
-			var secondMessage = await SendMessageAsync(channel, Constants.ZERO_LENGTH_CHAR + output).CAF();
-			var removableMessage = new RemovableMessage(time, channel.Guild, channel, message.Author, message, secondMessage);
-			if (timers != null)
-			{
-				await timers.AddAsync(removableMessage).CAF();
-			}
-			return removableMessage;
-		}
-		/// <summary>
-		/// If the guild has verbose errors enabled then this acts just like makeanddeletesecondarymessage.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="error"></param>
-		/// <param name="time"></param>
-		/// <returns></returns>
-		public static async Task<RemovableMessage> SendErrorMessageAsync(
-			AdvobotCommandContext context,
-			Error error,
-			TimeSpan time = default)
-		{
-			var channel = (SocketTextChannel)context.Channel;
-			var timers = context.Provider.GetService<ITimerService>();
-			return await SendErrorMessageAsync(channel, context.Message, error, context.GuildSettings, timers, time).CAF();
-		}
-		/// <summary>
-		/// If the guild has verbose errors enabled then this acts just like makeanddeletesecondarymessage.
-		/// </summary>
-		/// <param name="timers"></param>
-		/// <param name="settings"></param>
-		/// <param name="channel"></param>
-		/// <param name="message"></param>
-		/// <param name="error"></param>
-		/// <param name="time"></param>
-		/// <returns></returns>
-		public static async Task<RemovableMessage> SendErrorMessageAsync(
-			SocketTextChannel channel,
-			IUserMessage message,
-			Error error,
-			IGuildSettings settings,
-			ITimerService timers,
-			TimeSpan time = default)
-		{
-			return settings.NonVerboseErrors
-				? default
-				: await MakeAndDeleteSecondaryMessageAsync(channel, message, $"**ERROR:** {error.Reason}", timers, time).CAF();
-		}
-		/// <summary>
 		/// Gets the given count of messages from a channel.
 		/// </summary>
 		/// <param name="channel"></param>
@@ -184,31 +110,31 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="fromMessage"></param>
-		/// <param name="requestCount"></param>
+		/// <param name="count"></param>
 		/// <param name="options"></param>
 		/// <param name="fromUser"></param>
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(
 			SocketTextChannel channel,
 			IMessage fromMessage,
-			int requestCount,
+			int count,
 			RequestOptions options,
 			IUser fromUser = null)
 		{
 			var deletedCount = 0;
-			while (requestCount > 0)
+			while (count > 0)
 			{
 				var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF()).ToList();
 				fromMessage = messages.LastOrDefault();
 
 				//Get messages from a targeted user if one is supplied
 				var userMessages = fromUser == null ? messages : messages.Where(x => x.Author.Id == fromUser.Id);
-				var cutMessages = userMessages.Take(requestCount).ToList();
+				var cutMessages = userMessages.Take(count).ToList();
 
 				//If less messages are deleted than gathered, that means there are some that are too old meaning we can stop
 				var deletedThisIteration = await DeleteMessagesAsync(channel, cutMessages, options).CAF();
 				deletedCount += deletedThisIteration;
-				requestCount -= deletedThisIteration;
+				count -= deletedThisIteration;
 				if (deletedThisIteration < cutMessages.Count)
 				{
 					break;
@@ -225,8 +151,8 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(SocketTextChannel channel, IEnumerable<IMessage> messages, RequestOptions options)
 		{
-			var validMessages = messages?.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14)?.ToList();
-			if (validMessages == null || !validMessages.Any())
+			var validMessages = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14).ToList();
+			if (validMessages.Count == 0)
 			{
 				return 0;
 			}

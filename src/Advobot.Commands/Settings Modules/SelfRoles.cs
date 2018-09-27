@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -43,15 +44,14 @@ namespace Advobot.Commands.SelfRoles
 			switch (caller)
 			{
 				case nameof(Create):
-					if (selfAssignableGroups.Count >= Context.BotSettings.MaxSelfAssignableRoleGroups)
+					if (selfAssignableGroups.Count >= BotSettings.MaxSelfAssignableRoleGroups)
 					{
-						var error = new Error($"You have too many groups. {Context.BotSettings.MaxSelfAssignableRoleGroups} is the maximum.");
-						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+						await ReplyErrorAsync(new Error($"You have too many groups. `{BotSettings.MaxSelfAssignableRoleGroups}` is the maximum.")).CAF();
 						return;
 					}
 					else if (selfAssignableGroups.Any(x => x.Group == groupNum))
 					{
-						await MessageUtils.SendErrorMessageAsync(Context, new Error("A group already exists with that position.")).CAF();
+						await ReplyErrorAsync(new Error("A group already exists with that position.")).CAF();
 						return;
 					}
 					selfAssignableGroups.Add(new SelfAssignableRoles((int)groupNum));
@@ -59,38 +59,34 @@ namespace Advobot.Commands.SelfRoles
 				case nameof(Delete):
 					if (selfAssignableGroups.Count <= 0)
 					{
-						await MessageUtils.SendErrorMessageAsync(Context, new Error("There are no groups to delete.")).CAF();
+						await ReplyErrorAsync(new Error("There are no groups to delete.")).CAF();
 						return;
 					}
 					else if (!selfAssignableGroups.Any(x => x.Group == groupNum))
 					{
-						var error = new Error("A group needs to exist with that position before it can be deleted.");
-						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+						await ReplyErrorAsync(new Error("A group needs to exist with that position before it can be deleted.")).CAF();
 						return;
 					}
 					selfAssignableGroups.RemoveAll(x => x.Group == groupNum);
 					break;
 				default:
-					return;
+					throw new InvalidOperationException("Invalid action for modifying a self assignable role group.");
 			}
 
 			var actionName = caller.ToLower() + "d";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully {actionName} group `{groupNum}`.").CAF();
+			await ReplyTimedAsync($"Successfully {actionName} group `{groupNum}`.").CAF();
 		}
 		private async Task CommandRunner(uint groupNum, IRole[] roles, [CallerMemberName] string caller = "")
 		{
-			var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
-			if (!selfAssignableGroups.Any())
+			var groups = Context.GuildSettings.SelfAssignableGroups;
+			if (!groups.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("There are no groups to edit.")).CAF();
+				await ReplyErrorAsync(new Error("There are no groups to edit.")).CAF();
 				return;
 			}
-
-			var group = selfAssignableGroups.FirstOrDefault(x => x.Group == groupNum);
-			if (group == null)
+			if (groups.TryGetSingle(x => x.Group == groupNum, out var group))
 			{
-				var error = new Error("A group needs to exist with that position before you can modify it.");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				await ReplyErrorAsync(new Error($"A group needs to exist with the position `{groupNum}` before you can modify it.")).CAF();
 				return;
 			}
 
@@ -101,7 +97,7 @@ namespace Advobot.Commands.SelfRoles
 				case nameof(Add):
 					foreach (var role in roles)
 					{
-						if (!selfAssignableGroups.Any(x => x.TryGetRole(role.Id, out _)))
+						if (!groups.Any(x => x.Roles.Contains(role.Id)))
 						{
 							rolesModified.Add(role);
 						}
@@ -115,7 +111,7 @@ namespace Advobot.Commands.SelfRoles
 				case nameof(Remove):
 					foreach (var role in roles)
 					{
-						if (selfAssignableGroups.Any(x => x.TryGetRole(role.Id, out _)))
+						if (groups.Any(x => x.Roles.Contains(role.Id)))
 						{
 							rolesModified.Add(role);
 						}
@@ -127,18 +123,17 @@ namespace Advobot.Commands.SelfRoles
 					group.RemoveRoles(rolesModified);
 					break;
 				default:
-					return;
+					throw new InvalidOperationException("Invalid action for modifying roles in a self assignable role group.");
 			}
 
 			var actionName = caller.ToLower() + "d";
 			var modified = rolesModified.Any()
-				? $"Successfully {actionName} the following role(s): `{string.Join("`, `", rolesModified.Select(x => x.Format()))}`."
+				? $"Successfully {actionName} the following role(s): `{rolesModified.Join("`, `", x => x.Format())}`."
 				: null;
 			var notModified = rolesNotModified.Any()
-				? $"Failed to {actionName} the following role(s): `{string.Join("`, `", rolesNotModified.Select(x => x.Format()))}`."
+				? $"Failed to {actionName} the following role(s): `{rolesNotModified.Join("`, `", x => x.Format())}`."
 				: null;
-			var resp = new[] { modified, notModified }.JoinNonNullStrings(" ");
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync(new[] { modified, notModified }.JoinNonNullStrings(" ")).CAF();
 		}
 	}
 
@@ -151,34 +146,30 @@ namespace Advobot.Commands.SelfRoles
 		[Command]
 		public async Task Command(SocketRole role)
 		{
-			var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.TryGetRole(role.Id, out _));
-			if (group == null)
+			if (Context.GuildSettings.SelfAssignableGroups.TryGetSingle(x => x.Roles.Contains(role.Id), out var group))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("There is no self assignable role by that name.")).CAF();
+				await ReplyErrorAsync(new Error($"`{role.Format()}` is not a self assignable role.")).CAF();
 				return;
 			}
-			var user = Context.User as IGuildUser;
-			if (user.RoleIds.Contains(role.Id))
+			var user = (SocketGuildUser)Context.User;
+			if (user.Roles.Any(x => x.Id == role.Id))
 			{
 				await user.AddRoleAsync(role, GetRequestOptions("self role removal")).CAF();
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed `{role.Format()}`.").CAF();
+				await ReplyTimedAsync($"Successfully removed `{role.Format()}`.").CAF();
 				return;
 			}
 
 			//Remove roles the user already has from the group if they're targetting an exclusivity group
 			var removedRoles = "";
-			if (group.Group != 0)
+			var otherRoles = user.Roles.Where(x => group.Roles.Contains(x.Id));
+			if (group.Group != 0 && otherRoles.Any())
 			{
-				var otherRoles = user.RoleIds.Select(x => group.TryGetRole(x, out var temp) ? temp : null).Where(x => x != null).ToList();
-				if (otherRoles.Any())
-				{
-					await user.RemoveRolesAsync(otherRoles, GetRequestOptions("self role removal")).CAF();
-					removedRoles = $", and removed `{string.Join("`, `", otherRoles.Select(x => x.Format()))}`";
-				}
+				await user.RemoveRolesAsync(otherRoles, GetRequestOptions("self role removal")).CAF();
+				removedRoles = $", and removed `{otherRoles.Join("`, `", x => x.Format())}`";
 			}
 
 			await user.AddRoleAsync(role, GetRequestOptions("self role giving")).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully gave `{role.Name}`{removedRoles}.").CAF();
+			await ReplyTimedAsync($"Successfully gave `{role.Name}`{removedRoles}.").CAF();
 		}
 	}
 
@@ -190,38 +181,21 @@ namespace Advobot.Commands.SelfRoles
 	{
 		[Command]
 		public async Task Command()
-		{
-			var groupNumbers = Context.GuildSettings.SelfAssignableGroups.Select(x => x.Group).OrderBy(x => x).ToList();
-			if (!groupNumbers.Any())
-			{
-				var error = new Error("There are currently no self assignable role groups on this guild.");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-
-			var embed = new EmbedWrapper
-			{
-				Title = "Self Assignable Role Groups",
-				Description = $"`{string.Join("`, `", groupNumbers)}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+			=> await ReplyIfAny(Context.GuildSettings.SelfAssignableGroups.Select(x => x.Group).OrderBy(x => x),
+				"self assignable role groups", x => x.ToString()).CAF();
 		[Command]
 		public async Task Command(uint groupNum)
 		{
-			var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Group == groupNum);
-			if (group == null)
+			if (Context.GuildSettings.SelfAssignableGroups.TryGetSingle(x => x.Group == groupNum, out var group))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("There is no group with that number.")).CAF();
+				await ReplyErrorAsync(new Error($"There is no group with the number `{groupNum}`.")).CAF();
 				return;
 			}
-
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = $"Self Roles Group {groupNum}",
 				Description = group.Roles.Any() ? group.ToString() : "`Nothing`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+			}).CAF();
 		}
 	}
 }

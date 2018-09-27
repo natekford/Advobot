@@ -6,6 +6,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesUtils;
 using Discord;
 using Newtonsoft.Json;
@@ -178,27 +179,73 @@ namespace Advobot.Services.BotSettings
 		/// </summary>
 		public BotSettings()
 		{
-			IList<T> ClearList<T>(IList<T> x) { x.Clear(); return x; }
-
-			RegisterSetting(() => LogLevel, x => LogSeverity.Warning, AdvobotUtils.TryParseCaseIns);
-			RegisterSetting(() => Prefix, x => "&&");
-			RegisterSetting(() => Game, x => null);
-			RegisterSetting(() => Stream, x => null);
-			RegisterSetting(() => AlwaysDownloadUsers, x => true);
-			RegisterSetting(() => MessageCacheSize, x => 1000);
-			RegisterSetting(() => MaxUserGatherCount, x => 100);
-			RegisterSetting(() => MaxMessageGatherSize, x => 500000);
-			RegisterSetting(() => MaxRuleCategories, x => 20);
-			RegisterSetting(() => MaxRulesPerCategory, x => 20);
-			RegisterSetting(() => MaxSelfAssignableRoleGroups, x => 10);
-			RegisterSetting(() => MaxQuotes, x => 500);
-			RegisterSetting(() => MaxBannedStrings, x => 50);
-			RegisterSetting(() => MaxBannedRegex, x => 25);
-			RegisterSetting(() => MaxBannedNames, x => 25);
-			RegisterSetting(() => MaxBannedPunishments, x => 10);
-			RegisterSetting(() => TrustedUsers, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => UsersUnableToDmOwner, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => UsersIgnoredFromCommands, ClearList, AdvobotUtils.EmptyTryParse);
+			SettingParser.Add(new Setting<LogSeverity>(() => LogLevel)
+			{
+				ResetValueFactory = x => LogSeverity.Warning,
+			});
+			SettingParser.Add(new Setting<string>(() => Prefix)
+			{
+				ResetValueFactory = x => "&&",
+			});
+			SettingParser.Add(new Setting<string>(() => Game)
+			{
+				ResetValueFactory = x => null,
+			});
+			SettingParser.Add(new Setting<string>(() => Stream)
+			{
+				ResetValueFactory = x => null,
+			});
+			SettingParser.Add(new Setting<bool>(() => AlwaysDownloadUsers)
+			{
+				ResetValueFactory = x => true,
+			});
+			SettingParser.Add(new Setting<int>(() => MessageCacheSize)
+			{
+				ResetValueFactory = x => 1000,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxUserGatherCount)
+			{
+				ResetValueFactory = x => 100,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxMessageGatherSize)
+			{
+				ResetValueFactory = x => 500000,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxRuleCategories)
+			{
+				ResetValueFactory = x => 20,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxRulesPerCategory)
+			{
+				ResetValueFactory = x => 20,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxSelfAssignableRoleGroups)
+			{
+				ResetValueFactory = x => 10,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxQuotes)
+			{
+				ResetValueFactory = x => 500,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxBannedStrings)
+			{
+				ResetValueFactory = x => 50,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxBannedRegex)
+			{
+				ResetValueFactory = x => 25,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxBannedNames)
+			{
+				ResetValueFactory = x => 25,
+			});
+			SettingParser.Add(new Setting<int>(() => MaxBannedPunishments)
+			{
+				ResetValueFactory = x => 10,
+			});
+			SettingParser.Add(new CollectionSetting<ulong>(() => TrustedUsers));
+			SettingParser.Add(new CollectionSetting<ulong>(() => UsersUnableToDmOwner));
+			SettingParser.Add(new CollectionSetting<ulong>(() => UsersIgnoredFromCommands));
 		}
 
 		/// <inheritdoc />

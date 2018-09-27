@@ -108,6 +108,8 @@ namespace Advobot.Classes.UsageGeneration
 			var text = "";
 			text += attrs.GetAttribute<ValidateNumberAttribute>() is ValidateNumberAttribute v ? $" {v}" : "";
 			text += attrs.GetAttribute<ValidateStringAttribute>() is ValidateStringAttribute s ? $" {s}" : "";
+			//TODO: rewrite for setting parsing
+			/*
 			if (parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() == typeof(NamedArguments<>))
 			{
 				if (!isRemainder)
@@ -118,7 +120,7 @@ namespace Advobot.Classes.UsageGeneration
 				var result = parameterType.GetProperty(nameof(NamedArguments<object>.ArgNames)).GetValue(null);
 				var argNames = ((IEnumerable)result).Cast<string>().Select(x => CapitalizeFirstLetter(x));
 				text += $" ({string.Join("|", argNames)})";
-			}
+			}*/
 			return text;
 		}
 		public void SetOccurences(int occurences)

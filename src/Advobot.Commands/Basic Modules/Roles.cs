@@ -27,8 +27,7 @@ namespace Advobot.Commands.Roles
 			[ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
 		{
 			await user.AddRolesAsync(roles, GetRequestOptions()).CAF();
-			var resp = $"Successfully gave `{string.Join("`, `", roles.Select(x => x.Format()))}` to `{user.Format()}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully gave `{roles.Join("`, `", x => x.Format())}` to `{user.Format()}`.").CAF();
 		}
 	}
 
@@ -44,8 +43,7 @@ namespace Advobot.Commands.Roles
 			[ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
 		{
 			await user.RemoveRolesAsync(roles, GetRequestOptions()).CAF();
-			var resp = $"Successfully took `{string.Join("`, `", roles.Select(x => x.Format()))}` from `{user.Format()}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully took `{roles.Join("`, `", x => x.Format())}` from `{user.Format()}`.").CAF();
 		}
 	}
 
@@ -59,7 +57,7 @@ namespace Advobot.Commands.Roles
 		public async Task Command([ValidateString(Target.Role)] string name)
 		{
 			await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), null, false, GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created the role `{name}`.").CAF();
+			await ReplyTimedAsync($"Successfully created the role `{name}`.").CAF();
 		}
 	}
 
@@ -81,7 +79,7 @@ namespace Advobot.Commands.Roles
 			await role.DeleteAsync(GetRequestOptions()).CAF();
 			var newRole = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), color).CAF();
 			await DiscordUtils.ModifyRolePositionAsync(role, position, GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully softdeleted `{newRole.Name}`.").CAF();
+			await ReplyTimedAsync($"Successfully softdeleted `{newRole.Name}`.").CAF();
 		}
 	}
 
@@ -95,7 +93,7 @@ namespace Advobot.Commands.Roles
 		public async Task Command([ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] IRole role)
 		{
 			await role.DeleteAsync(GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted `{role.Format()}`.").CAF();
+			await ReplyTimedAsync($"Successfully deleted `{role.Format()}`.").CAF();
 		}
 	}
 
@@ -110,7 +108,7 @@ namespace Advobot.Commands.Roles
 		public async Task Command([ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone)] SocketRole role, [ValidateNumber(1, 250)] uint position)
 		{
 			var pos = await DiscordUtils.ModifyRolePositionAsync(role, (int)position, GetRequestOptions()).CAF();
-			await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully gave `{role.Format()}` the position `{pos}`.").CAF();
+			await ReplyTimedAsync($"Successfully gave `{role.Format()}` the position `{pos}`.").CAF();
 		}
 	}
 
@@ -123,17 +121,12 @@ namespace Advobot.Commands.Roles
 		[Command]
 		public async Task Command()
 		{
-			var embed = new EmbedWrapper
+			var roles = Context.Guild.Roles.OrderByDescending(x => x.Position);
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "Role Positions",
-				Description = string.Join("\n", Context.Guild.Roles.OrderByDescending(x => x.Position).Select(x =>
-				{
-					return x.Id == Context.Guild.EveryoneRole.Id
-						? $"`{x.Position.ToString("00")}.` Everyone"
-						: $"`{x.Position.ToString("00")}.` {x.Name}";
-				})),
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Description = roles.Join("\n", x => $"`{x.Position.ToString("00")}.` {x.Name}"),
+			}).CAF();
 		}
 	}
 
@@ -151,69 +144,44 @@ namespace Advobot.Commands.Roles
 			[Command]
 			public async Task Command()
 			{
-				var embed = new EmbedWrapper
+				await ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = "Guild Permission Types",
-					Description = $"`{string.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`"
-				};
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+					Description = $"`{string.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`",
+				}).CAF();
 			}
 			[Command]
 			public async Task Command([ValidateObject(Verif.CanBeEdited)] SocketRole role)
 			{
 				var currentRolePerms = EnumUtils.GetFlagNames((GuildPermission)role.Permissions.RawValue);
-				var embed = new EmbedWrapper
+				await ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = role.Name,
-					Description = $"`{(currentRolePerms.Any() ? string.Join("`, `", currentRolePerms) : "No permission")}`"
-				};
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+					Description = $"`{(currentRolePerms.Any() ? string.Join("`, `", currentRolePerms) : "No permissions")}`",
+				}).CAF();
 			}
 		}
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
 		public async Task Allow(
 			[ValidateObject(Verif.CanBeEdited)] SocketRole role,
 			[Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
-		{
-			var givenPerms = (await CommandRunner(role, PermValue.Allow, permissions).CAF()).ToList();
-			var resp = $"Successfully allowed `{(givenPerms.Any() ? string.Join("`, `", givenPerms) : "Nothing")}` for `{role.Format()}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-		}
+			=> await CommandRunner(role, permissions, true);
 		[Command(nameof(Deny)), ShortAlias(nameof(Deny))]
 		public async Task Deny(
 			[ValidateObject(Verif.CanBeEdited)] SocketRole role,
 			[Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
-		{
-			var givenPerms = (await CommandRunner(role, PermValue.Deny, permissions).CAF()).ToList();
-			var resp = $"Successfully denied `{(givenPerms.Any() ? string.Join("`, `", givenPerms) : "Nothing")}` for `{role.Format()}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-		}
+			=> await CommandRunner(role, permissions, false);
 
-		private async Task<IEnumerable<string>> CommandRunner(SocketRole role, PermValue permValue, ulong permissions)
+		private async Task CommandRunner(SocketRole role, ulong permissions, bool add)
 		{
-			if (role == null)
-			{
-				return Enumerable.Empty<string>();
-			}
-
 			//Only modify permissions the user has the ability to
-			permissions &= (Context.User as IGuildUser).GuildPermissions.RawValue;
+			var validPermissions = permissions & ((IGuildUser)Context.User).GuildPermissions.RawValue;
+			var rolePermissions = add ? role.Permissions.RawValue | validPermissions : role.Permissions.RawValue & ~validPermissions;
 
-			var roleBits = role.Permissions.RawValue;
-			switch (permValue)
-			{
-				case PermValue.Allow:
-					roleBits |= permissions;
-					break;
-				case PermValue.Deny:
-					roleBits &= ~permissions;
-					break;
-				default:
-					throw new ArgumentException("invalid value provided", nameof(permValue));
-			}
-
-			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(roleBits), GetRequestOptions()).CAF();
-			return EnumUtils.GetFlagNames((GuildPermission)permissions);
+			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(rolePermissions), GetRequestOptions()).CAF();
+			var perms = EnumUtils.GetFlagNames((GuildPermission)permissions);
+			var modified = perms.Any() ? string.Join("`, `", perms) : "Nothing";
+			await ReplyTimedAsync($"Successfully {(add ? "added" : "removed")} `{perms}` for `{role.Format()}`.").CAF();
 		}
 	}
 
@@ -226,26 +194,34 @@ namespace Advobot.Commands.Roles
 	public sealed class CopyRolePerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(
-			[ValidateObject(Verif.CanBeEdited)] SocketRole inputRole,
-			[ValidateObject(Verif.CanBeEdited)] SocketRole outputRole)
+		public async Task Command(SocketRole input, [ValidateObject(Verif.CanBeEdited)] SocketRole output)
 		{
 			var userBits = ((IGuildUser)Context.User).GuildPermissions.RawValue;
-			var immovableBits = outputRole.Permissions.RawValue & ~userBits;
-			var copyBits = inputRole.Permissions.RawValue & userBits;
-			var newRoleBits = immovableBits | copyBits;
-			var immovableEnums = EnumUtils.GetFlagNames((GuildPermission)immovableBits);
-			var failedEnums = EnumUtils.GetFlagNames((GuildPermission)(inputRole.Permissions.RawValue & ~copyBits));
-			var newEnums = EnumUtils.GetFlagNames((GuildPermission)newRoleBits);
-			var response = new[]
-			{
-				immovableEnums.Any() ? "Output role had some permissions unable to be removed by you." : null,
-				failedEnums.Any() ? "Input role had some permission unable to be copied by you." : null,
-				$"`{outputRole.Format()}` now has the following permissions: `{(newEnums.Any() ? string.Join("`, `", newEnums) : "Nothing")}`.",
-			}.JoinNonNullStrings(" ");
+			var copyableBits = input.Permissions.RawValue & userBits; //Perms which the user can copy from the input role
+			var uncopyableBits = input.Permissions.RawValue & ~copyableBits; //Input perms which can't be modified by the user
+			var unremovableBits = output.Permissions.RawValue & ~userBits; //Output perms which can't be modified by the user
+			var newOutputBits = unremovableBits | copyableBits;
 
-			await outputRole.ModifyAsync(x => x.Permissions = new GuildPermissions(newRoleBits), GetRequestOptions()).CAF();
-			await MessageUtils.SendMessageAsync(Context.Channel, response).CAF();
+			if (newOutputBits == output.Permissions.RawValue)
+			{
+				await ReplyErrorAsync(new Error("Either you are copying the same values or with the permissions you have you cannot change anything."));
+				return;
+			}
+
+			var copyable = EnumUtils.GetFlagNames((GuildPermission)copyableBits);
+			var uncopyable = EnumUtils.GetFlagNames((GuildPermission)uncopyableBits);
+			var unremovable = EnumUtils.GetFlagNames((GuildPermission)unremovableBits);
+			var newOutput = EnumUtils.GetFlagNames((GuildPermission)newOutputBits);
+
+			var parts = new[]
+			{
+				copyable.Any() ? $"Successfully copied to output role: `{string.Join("`, `", copyable)}`." : null,
+				unremovable.Any() ? $"Unable to be removed from output role: `{string.Join("`, `", unremovable)}`." : null,
+				uncopyable.Any() ? $"Unable to be copied to output role: `{string.Join("`, `", uncopyable)}`." : null,
+				$"Current output role: `{(newOutput.Any() ? string.Join("`, `", newOutput) : "Nothing")}`.",
+			};
+			await output.ModifyAsync(x => x.Permissions = new GuildPermissions(newOutputBits), GetRequestOptions()).CAF();
+			await ReplyAsync(parts.JoinNonNullStrings("\n")).CAF();
 		}
 	}
 
@@ -267,7 +243,7 @@ namespace Advobot.Commands.Roles
 			}.JoinNonNullStrings(" ");
 
 			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovableBits), GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, response).CAF();
+			await ReplyTimedAsync(response).CAF();
 		}
 	}
 
@@ -283,8 +259,7 @@ namespace Advobot.Commands.Roles
 			[Remainder, ValidateString(Target.Role)] string name)
 		{
 			await role.ModifyAsync(x => x.Name = name, GetRequestOptions()).CAF();
-			var resp = $"Successfully changed the name of `{role.Format()}` to `{name}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully changed the name of `{role.Format()}` to `{name}`.").CAF();
 		}
 		[Command(nameof(Position))]
 		public async Task Position([ValidateNumber(1, 250)] uint rolePosition, [Remainder, ValidateString(Target.Role)] string name)
@@ -292,12 +267,12 @@ namespace Advobot.Commands.Roles
 			var roles = Context.Guild.Roles.Where(x => x.Position == rolePosition).ToList();
 			if (!roles.Any())
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"No object has the position `{rolePosition}`.")).CAF();
+				await ReplyErrorAsync(new Error($"No object has the position `{rolePosition}`.")).CAF();
 				return;
 			}
 			if (roles.Count() > 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"Multiple objects have the position `{rolePosition}`.")).CAF();
+				await ReplyErrorAsync(new Error($"Multiple objects have the position `{rolePosition}`.")).CAF();
 				return;
 			}
 
@@ -305,12 +280,12 @@ namespace Advobot.Commands.Roles
 			var result = role.Verify(Context, new[] { Verif.IsNotManaged, Verif.IsNotEveryone });
 			if (!result.IsSuccess)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error(result.ErrorReason)).CAF();
+				await ReplyErrorAsync(new Error(result.ErrorReason)).CAF();
+				return;
 			}
 
 			await role.ModifyAsync(x => x.Name = name, GetRequestOptions()).CAF();
-			var resp = $"Successfully changed the name of `{role.Format()}` to `{name}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully changed the name of `{role.Format()}` to `{name}`.").CAF();
 		}
 	}
 
@@ -325,8 +300,8 @@ namespace Advobot.Commands.Roles
 		public async Task Command([Optional, ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone)] IRole role, [Optional] Color color)
 		{
 			await role.ModifyAsync(x => x.Color = color, GetRequestOptions()).CAF();
-			var resp = $"Successfully changed the color of `{role.Format()}` to `#{color.RawValue.ToString("X6")}`."; //X6 to get hex
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			//X6 to get hex
+			await ReplyTimedAsync($"Successfully changed the color of `{role.Format()}` to `#{color.RawValue.ToString("X6")}`.").CAF();
 		}
 	}
 
@@ -341,8 +316,7 @@ namespace Advobot.Commands.Roles
 		public async Task Command([ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone)] IRole role)
 		{
 			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, GetRequestOptions()).CAF();
-			var resp = $"Successfully made `{role.Format()}` {(role.IsHoisted ? "unhoisted" : "hoisted")}.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully {(role.IsHoisted ? "un" : "")}hoisted `{role.Format()}`.").CAF();
 		}
 	}
 
@@ -357,8 +331,7 @@ namespace Advobot.Commands.Roles
 		public async Task Command([ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone)] IRole role)
 		{
 			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, GetRequestOptions()).CAF();
-			var resp = $"Successfully made `{role.Format()}` {(role.IsMentionable ? "unmentionable" : "mentionable")}.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully made `{role.Format()}` {(role.IsMentionable ? "un" : "")}mentionable.").CAF();
 		}
 	}
 }

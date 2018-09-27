@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -32,20 +33,16 @@ namespace Advobot.Commands.Guilds
 			//Need bot owner check so only the bot owner can make the bot leave servers they don't own
 			if (Context.User.Id != await ClientUtils.GetOwnerIdAsync(Context.Client).CAF())
 			{
-				var error = new Error("Only the bot owner can use this command targetting other guilds.");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				await ReplyErrorAsync(new Error("Only the bot owner can use this command targetting other guilds.")).CAF();
 				return;
 			}
 			if (!(Context.Client.GetGuild(guildId) is SocketGuild guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Invalid guild supplied.")).CAF();
+				await ReplyErrorAsync(new Error("Invalid guild supplied.")).CAF();
 				return;
 			}
 			await guild.LeaveAsync().CAF();
-			if (Context.Guild.Id != guildId)
-			{
-				await MessageUtils.SendMessageAsync(Context.Channel, $"Successfully left the guild `{guild.Format()}`.").CAF();
-			}
+			await ReplyTimedAsync($"Successfully left the guild `{guild.Format()}`.").CAF();
 		}
 	}
 
@@ -59,7 +56,7 @@ namespace Advobot.Commands.Guilds
 		public async Task Command([Remainder, ValidateString(Target.Guild)] string name)
 		{
 			await Context.Guild.ModifyAsync(x => x.Name = name, GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the guild name to `{name}`.").CAF();
+			await ReplyTimedAsync($"Successfully changed the guild name to `{name}`.").CAF();
 		}
 	}
 
@@ -69,7 +66,7 @@ namespace Advobot.Commands.Guilds
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildRegion : AdvobotModuleBase
 	{
-		private static string[] _ValidRegionIDs =
+		private static readonly string[] _BaseRegionIDs =
 		{
 			"brazil",
 			"eu-central",
@@ -84,42 +81,40 @@ namespace Advobot.Commands.Guilds
 			"us-south",
 			"us-west"
 		};
-		private static string[] _VIPRegionIDs =
+		private static readonly string[] _VIPRegionIDs =
 		{
 			"vip-amsterdam",
 			"vip-us-east",
 			"vip-us-west"
 		};
+		private static readonly string[] _AllRegionIDs = _BaseRegionIDs.Concat(_VIPRegionIDs).ToArray();
 
-		private static readonly string _BaseRegions = string.Join("\n", _ValidRegionIDs);
+		private static readonly string _BaseRegions = string.Join("\n", _BaseRegionIDs);
 		private static readonly string _VIPRegions = string.Join("\n", _VIPRegionIDs);
-		private static readonly string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
+		private static readonly string _AllRegions = string.Join("\n", _AllRegionIDs);
 
 		//TODO: use bot voice regions field
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "Region Ids",
 				Description = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+			}).CAF();
 		}
 		[Command]
 		public async Task Command(string regionId)
 		{
-			if (!_ValidRegionIDs.CaseInsContains(regionId)
-				&& !(Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(regionId)))
+			var regionIds = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegionIDs : _BaseRegionIDs;
+			if (!regionIds.CaseInsContains(regionId))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("No valid region ID was input.")).CAF();
+				await ReplyErrorAsync(new Error("No valid region ID was input.")).CAF();
 				return;
 			}
 
-			var beforeRegion = Context.Guild.VoiceRegionId;
 			await Context.Guild.ModifyAsync(x => x.RegionId = regionId, GetRequestOptions()).CAF();
-			var resp = $"Successfully changed the server region of the guild from `{beforeRegion}` to `{regionId}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully changed the server region of the guild to `{regionId}`.").CAF();
 		}
 	}
 
@@ -133,8 +128,7 @@ namespace Advobot.Commands.Guilds
 		public async Task Command([ValidateNumber(new[] { 60, 300, 900, 1800, 3600 })] uint time)
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkTimeout = (int)time, GetRequestOptions()).CAF();
-			var resp = $"Successfully set the guild AFK timeout to `{time}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully set the guild AFK timeout to `{time}` minutes.").CAF();
 		}
 	}
 
@@ -149,14 +143,13 @@ namespace Advobot.Commands.Guilds
 			[ValidateObject(Verif.CanBeViewed, Verif.CanBeManaged, IfNullCheckFromContext = true)] SocketVoiceChannel channel)
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel>(channel), GetRequestOptions()).CAF();
-			var resp = $"Successfully set the guild AFK channel to `{channel.Format()}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully set the guild AFK channel to `{channel.Format()}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkChannelId = Optional.Create<ulong?>(null), GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild afk channel.").CAF();
+			await ReplyTimedAsync("Successfully removed the guild afk channel.").CAF();
 		}
 	}
 
@@ -171,14 +164,13 @@ namespace Advobot.Commands.Guilds
 			[ValidateObject(Verif.CanBeViewed, Verif.CanBeManaged, IfNullCheckFromContext = true)] SocketTextChannel channel)
 		{
 			await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel>(channel), GetRequestOptions()).CAF();
-			var resp = $"Successfully set the guild system channel to `{channel.Format()}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully set the guild system channel to `{channel.Format()}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
 			await Context.Guild.ModifyAsync(x => x.SystemChannelId = Optional.Create<ulong?>(null), GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild system channel.").CAF();
+			await ReplyTimedAsync("Successfully removed the guild system channel.").CAF();
 		}
 	}
 
@@ -192,8 +184,7 @@ namespace Advobot.Commands.Guilds
 		public async Task Command(DefaultMessageNotifications msgNotifs)
 		{
 			await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, GetRequestOptions()).CAF();
-			var resp = $"Successfully changed the default message notification setting to `{msgNotifs}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully changed the default message notification setting to `{msgNotifs}`.").CAF();
 		}
 	}
 
@@ -208,8 +199,7 @@ namespace Advobot.Commands.Guilds
 		public async Task Command(VerificationLevel verif)
 		{
 			await Context.Guild.ModifyAsync(x => x.VerificationLevel = verif, GetRequestOptions()).CAF();
-			var resp = $"Successfully set the guild verification level as `{verif}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully set the guild verification level as `{verif}`.").CAF();
 		}
 	}
 
@@ -226,12 +216,12 @@ namespace Advobot.Commands.Guilds
 		{
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild icon.")).CAF();
+				await ReplyErrorAsync(new Error("Currently already working on the guild icon.")).CAF();
 				return;
 			}
 
 			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GetRequestOptions());
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in guild icon creation queue: {_Resizer.QueueCount}.").CAF();
+			await ReplyTimedAsync($"Position in guild icon creation queue: {_Resizer.QueueCount}.").CAF();
 			if (_Resizer.CanStart)
 			{
 				_Resizer.StartProcessing();
@@ -242,12 +232,12 @@ namespace Advobot.Commands.Guilds
 		{
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild icon.")).CAF();
+				await ReplyErrorAsync(new Error("Currently already working on the guild icon.")).CAF();
 				return;
 			}
 
 			await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild icon.").CAF();
+			await ReplyTimedAsync("Successfully removed the guild icon.").CAF();
 		}
 	}
 
@@ -264,38 +254,38 @@ namespace Advobot.Commands.Guilds
 		{
 			if (!Context.Guild.Features.CaseInsContains(Constants.INVITE_SPLASH))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild needs to be partnered before a splash can be set."));
+				await ReplyErrorAsync(new Error("The guild needs to be partnered before a splash can be set."));
 				return;
 			}
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild splash.")).CAF();
+				await ReplyErrorAsync(new Error("Currently already working on the guild splash.")).CAF();
 				return;
 			}
 
 			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GetRequestOptions());
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in guild splash creation queue: {_Resizer.QueueCount}.").CAF();
 			if (_Resizer.CanStart)
 			{
 				_Resizer.StartProcessing();
 			}
+			await ReplyTimedAsync($"Position in guild splash creation queue: {_Resizer.QueueCount}.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
 			if (!Context.Guild.Features.CaseInsContains(Constants.INVITE_SPLASH))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("The guild needs to be partnered before a splah can be removed."));
+				await ReplyErrorAsync(new Error("The guild needs to be partnered before a splah can be removed."));
 				return;
 			}
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the guild splash.")).CAF();
+				await ReplyErrorAsync(new Error("Currently already working on the guild splash.")).CAF();
 				return;
 			}
 
 			await Context.Guild.ModifyAsync(x => x.Splash = new Image(), GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild splash.").CAF();
+			await ReplyTimedAsync("Successfully removed the guild splash.").CAF();
 		}
 	}
 
@@ -316,6 +306,7 @@ namespace Advobot.Commands.Guilds
 		}
 	}
 
+#warning RequireBotIsOwner attribute?
 	[Category(typeof(SwapGuildOwner)), Group(nameof(SwapGuildOwner)), TopLevelShortAlias(typeof(SwapGuildOwner))]
 	[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 	[RequireBotOwner]
@@ -328,11 +319,10 @@ namespace Advobot.Commands.Guilds
 			if (Context.Client.CurrentUser.Id == Context.Guild.OwnerId)
 			{
 				await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User)).CAF();
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"{Context.User.Mention} is now the owner.").CAF();
+				await ReplyTimedAsync($"{Context.User.Mention} is now the owner.").CAF();
 				return;
 			}
-
-			await MessageUtils.SendErrorMessageAsync(Context, new Error("The bot is not the owner of the guild.")).CAF();
+			await ReplyErrorAsync(new Error("The bot is not the owner of the guild.")).CAF();
 		}
 	}
 
@@ -350,8 +340,7 @@ namespace Advobot.Commands.Guilds
 				await Context.Guild.DeleteAsync().CAF();
 				return;
 			}
-
-			await MessageUtils.SendErrorMessageAsync(Context, new Error("The bot is not the owner of the guild.")).CAF();
+			await ReplyErrorAsync(new Error("The bot is not the owner of the guild.")).CAF();
 		}
 	}
 }

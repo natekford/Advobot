@@ -147,14 +147,13 @@ namespace Advobot.Services.Levels
 			}
 
 			//TODO: implement rest of embed
-			var embed = new EmbedWrapper
+			await MessageUtils.SendMessageAsync(channel, embedWrapper: new EmbedWrapper
 			{
 				Title = $"{(global ? "Global" : "Guild")} xp information for {name}",
 				ThumbnailUrl = pfp,
-			};
-			embed.TryAddAuthor(user, out _);
-			embed.TryAddFooter("Xp Information", null, out _);
-			await MessageUtils.SendMessageAsync(channel, null, embed).CAF();
+				Author = user.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = "Xp Information", },
+			}).CAF();
 		}
 		private void UpdateUserRank(IUserExperienceInformation info, SocketGuild guild)
 		{

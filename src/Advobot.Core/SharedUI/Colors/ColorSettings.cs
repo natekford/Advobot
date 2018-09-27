@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Advobot.Classes;
@@ -6,6 +7,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesUtils;
 using Newtonsoft.Json;
 
@@ -55,6 +57,10 @@ namespace Advobot.SharedUI.Colors
 			{ ColorTargets.JsonValue,                 "#0051FF" },
 			{ ColorTargets.JsonParamName,             "#057500" },
 		};
+		/// <summary>
+		/// Static instance of the brush factory.
+		/// </summary>
+		public static BrushFactory<TBrush> Factory { get; } = new TBrushFactory();
 
 		/// <inheritdoc />
 		[JsonProperty("ColorTargets", Order = 1)]
@@ -97,8 +103,25 @@ namespace Advobot.SharedUI.Colors
 		/// </summary>
 		public ColorSettings()
 		{
-			RegisterSetting(() => UserDefinedColors, x => (ITheme<TBrush>)ResetDictionary(x), AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => Theme, x => ColorTheme.LightMode, AdvobotUtils.TryParseCaseIns);
+			SettingParser.Add(new Setting<ColorTheme>(() => Theme)
+			{
+				ResetValueFactory = x => ColorTheme.LightMode,
+			});
+			SettingParser.Add(new CollectionSetting<KeyValuePair<string, TBrush>>(() => UserDefinedColors, parser: TryParseBrush)
+			{
+				ResetValueFactory = x =>
+				{
+					x.Clear();
+					foreach (var key in LightMode.Keys)
+					{
+						if (!x.Any(kvp => kvp.Key == key))
+						{
+							x.Add(new KeyValuePair<string, TBrush>(key, LightMode[key]));
+						}
+					}
+					return x;
+				},
+			});
 
 			Theme = ColorTheme.LightMode;
 			foreach (var key in LightMode.Keys)
@@ -111,6 +134,17 @@ namespace Advobot.SharedUI.Colors
 			UserDefinedColors.PropertyChanged += OnPropertyChanged;
 		}
 
+		private bool TryParseBrush(string s, out KeyValuePair<string, TBrush> kvp)
+		{
+			var parts = s.Split(new[] { ' ' }, 2);
+			if (parts.Length != 2 || !Factory.TryCreateBrush(parts[1], out var brush))
+			{
+				return false;
+			}
+
+			kvp = new KeyValuePair<string, TBrush>(parts[0], brush);
+			return true;
+		}
 		private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (Theme == ColorTheme.UserMade)

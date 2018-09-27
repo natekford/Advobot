@@ -1,11 +1,9 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Classes
 {
@@ -21,14 +19,6 @@ namespace Advobot.Classes
 		/// </summary>
 		public IGuildSettings GuildSettings { get; }
 		/// <summary>
-		/// The settings for the bot.
-		/// </summary>
-		public IBotSettings BotSettings { get; }
-		/// <summary>
-		/// The services that are available.
-		/// </summary>
-		public IServiceProvider Provider { get; }
-		/// <summary>
 		/// The time since starting the command.
 		/// </summary>
 		public long ElapsedMilliseconds => _Stopwatch.ElapsedMilliseconds;
@@ -38,24 +28,15 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotCommandContext"/>.
 		/// </summary>
-		/// <param name="provider"></param>
 		/// <param name="settings"></param>
 		/// <param name="client"></param>
 		/// <param name="msg"></param>
-		public AdvobotCommandContext(IServiceProvider provider, IGuildSettings settings, DiscordShardedClient client, SocketUserMessage msg) : base(client, msg)
+		public AdvobotCommandContext(IGuildSettings settings, DiscordShardedClient client, SocketUserMessage msg) : base(client, msg)
 		{
 			_Stopwatch.Start();
 			GuildSettings = settings;
-			BotSettings = provider.GetRequiredService<IBotSettings>();
-			Provider = provider;
 		}
 
-		/// <summary>
-		/// Gets the prefix to use.
-		/// </summary>
-		/// <returns>Returns the guild prefix if not null, otherwise returns the bot prefix.</returns>
-		public string GetPrefix()
-			=> BotSettings.InternalGetPrefix(GuildSettings);
 		/// <summary>
 		/// Returns information about the context and how long it's taken to execute.
 		/// </summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -20,6 +21,8 @@ namespace Advobot.Commands.Misc
 	[DefaultEnabled(true, AbleToToggle = false)]
 	public sealed class Help : AdvobotModuleBase
 	{
+		public IHelpEntryService HelpEntries { get; set; }
+
 		private static readonly string _GeneralHelp =
 			$"Type `{Constants.PREFIX}{nameof(Commands)}` for the list of commands.\n" +
 			$"Type `{Constants.PREFIX}{nameof(Help)} [Command]` for help with a command.";
@@ -38,43 +41,41 @@ namespace Advobot.Commands.Misc
 		[Command]
 		public async Task Command()
 		{
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "General Help",
-				Description = _GeneralHelp.Replace(Constants.PREFIX, Context.GetPrefix())
-			};
-			embed.TryAddField("Basic Syntax", _BasicSyntax, true, out _);
-			embed.TryAddField("Mention Syntax", _MentionSyntax, true, out _);
-			embed.TryAddField("Links", _Links, false, out _);
-			embed.TryAddFooter("Help", null, out _);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Description = _GeneralHelp.Replace(Constants.PREFIX, GetPrefix()),
+				Footer = new EmbedFooterBuilder { Text = "Help" },
+				Fields = new List<EmbedFieldBuilder>
+				{
+					new EmbedFieldBuilder { Name = "Basic Syntax", Value = _BasicSyntax, IsInline = true, },
+					new EmbedFieldBuilder { Name = "Mention Syntax", Value = _MentionSyntax, IsInline = true, },
+					new EmbedFieldBuilder { Name = "Links", Value = _Links, IsInline = false, },
+				},
+			}).CAF();
 		}
 		[Command, Priority(1)]
 		[RequireServices(typeof(IHelpEntryService))]
 		public async Task Command([Remainder] IHelpEntry command)
 		{
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = command.Name,
-				Description = command.ToString(Context.GuildSettings.CommandSettings).Replace(Constants.PREFIX, Context.GetPrefix())
-			};
-			embed.TryAddFooter("Help", null, out _);
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Description = command.ToString(Context.GuildSettings.CommandSettings).Replace(Constants.PREFIX, GetPrefix()),
+				Footer = new EmbedFooterBuilder { Text = "Help" },
+			}).CAF();
 		}
 		[Command, Priority(0)]
 		[RequireServices(typeof(IHelpEntryService), typeof(ITimerService))]
 		public async Task Command([Remainder] string command)
 		{
-			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
-			var timers = Context.Provider.GetRequiredService<ITimerService>();
-			var closeHelps = new CloseHelpEntries(default, Context, helpEntries, Context.GuildSettings.CommandSettings, command);
-			if (closeHelps.List.Any())
+			var matches = new CloseHelpEntries(Context.GuildSettings.CommandSettings, HelpEntries, command).Matches;
+			await ReplyIfAny(matches, $"No command has the name `{command}`.", async x =>
 			{
-				await closeHelps.SendBotMessageAsync(Context.Channel).CAF();
-				await timers.AddAsync(closeHelps).CAF();
-				return;
-			}
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Unable to find any commands similar to `{command}`.").CAF();
+				var message = await ReplyAsync($"Did you mean any of the following:\n{x.FormatNumberedList(cw => cw.Name)}").CAF();
+				await Timers.AddAsync(new RemovableCloseWords("Help Entries", x, Context, new[] { Context.Message, message })).CAF();
+				return message;
+			}).CAF();
 		}
 	}
 
@@ -85,65 +86,55 @@ namespace Advobot.Commands.Misc
 	[RequireServices(typeof(IHelpEntryService))]
 	public sealed class Commands : AdvobotModuleBase
 	{
+		public IHelpEntryService HelpEntries { get; set; }
+
 		[Command(nameof(All)), ShortAlias(nameof(All))]
 		public async Task All()
 		{
-			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "All Commands",
-				Description = $"`{string.Join("`, `", helpEntries.GetHelpEntries().Select(x => x.Name))}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Description = $"`{HelpEntries.GetHelpEntries().Join("`, `", x => x.Name)}`",
+			}).CAF();
 		}
 		[Command]
 		public async Task Command(string category)
 		{
-			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
-			if (!helpEntries.GetCategories().CaseInsContains(category))
+			if (!HelpEntries.GetCategories().CaseInsContains(category))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{category}` is not a valid category.")).CAF();
+				await ReplyErrorAsync(new Error($"`{category}` is not a valid category.")).CAF();
 				return;
 			}
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = category,
-				Description = $"`{string.Join("`, `", helpEntries.GetHelpEntries(category).Select(x => x.Name))}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Description = $"`{HelpEntries.GetHelpEntries(category).Join("`, `", x => x.Name)}`",
+			}).CAF();
 		}
 		[Command]
 		public async Task Command()
 		{
-			var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "Categories",
-				Description = $"Type `{Context.GetPrefix()}{nameof(Commands)} [Category]` for commands from that category.\n\n" +
-					$"`{string.Join("`, `", helpEntries.GetCategories())}`",
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				Description = $"Type `{GetPrefix()}{nameof(Commands)} [Category]` for commands from that category.\n\n" +
+					$"`{HelpEntries.GetCategories().Join("`, `")}`",
+			}).CAF();
 		}
 	}
 
 	[Category(typeof(MakeAnEmbed)), Group(nameof(MakeAnEmbed)), TopLevelShortAlias(typeof(MakeAnEmbed))]
 	[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. " +
 		"FieldInfo can have up to 25 arguments supplied. " +
-		"Each must be formatted like the following: `" + CustomEmbed.FIELD_FORMAT + "`.")]
+		//TODO: redocument field format
+		"Each must be formatted like the following: `temp`.")]
 	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
 	[DefaultEnabled(true)]
 	public sealed class MakeAnEmbed : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([Remainder] NamedArguments<CustomEmbed> args)
-		{
-			if (!args.TryCreateObject(new object[0], out var obj, out var error))
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-			await MessageUtils.SendMessageAsync(Context.Channel, null, obj.Embed).CAF();
-		}
+		public async Task Command([Remainder] CustomEmbed args)
+			=> await ReplyEmbedAsync(args.BuildWrapper()).CAF();
 	}
 
 	[Category(typeof(MessageRole)), Group(nameof(MessageRole)), TopLevelShortAlias(typeof(MessageRole))]
@@ -157,16 +148,14 @@ namespace Advobot.Commands.Misc
 		{
 			if (role.IsMentionable)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("You can already mention this role.")).CAF();
+				await ReplyErrorAsync(new Error("You can already mention this role.")).CAF();
+				return;
 			}
-			else
-			{
-				var cutText = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
-				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
-				await role.ModifyAsync(x => x.Mentionable = true, GetRequestOptions()).CAF();
-				await MessageUtils.SendMessageAsync(Context.Channel, cutText).CAF();
-				await role.ModifyAsync(x => x.Mentionable = false, GetRequestOptions()).CAF();
-			}
+			var text = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
+			//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
+			await role.ModifyAsync(x => x.Mentionable = true, GetRequestOptions()).CAF();
+			await ReplyAsync(text).CAF();
+			await role.ModifyAsync(x => x.Mentionable = false, GetRequestOptions()).CAF();
 		}
 	}
 
@@ -180,7 +169,7 @@ namespace Advobot.Commands.Misc
 		[Command]
 		public async Task Command([Remainder] string message)
 		{
-			if (Context.BotSettings.UsersUnableToDmOwner.Contains(Context.User.Id))
+			if (BotSettings.UsersUnableToDmOwner.Contains(Context.User.Id))
 			{
 				return;
 			}
@@ -188,11 +177,9 @@ namespace Advobot.Commands.Misc
 			{
 				var cut = message.Substring(0, Math.Min(message.Length, 250));
 				await owner.SendMessageAsync($"From `{Context.User.Format()}` in `{Context.Guild.Format()}`:\n```\n{cut}```").CAF();
+				return;
 			}
-			else
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("The owner is unable to be gotten.")).CAF();
-			}
+			await ReplyErrorAsync(new Error("The owner is unable to be gotten.")).CAF();
 		}
 	}
 
@@ -206,9 +193,8 @@ namespace Advobot.Commands.Misc
 		[Command]
 		public async Task Command([ValidateNumber(1, 10000)] uint minutes, [Remainder] string message)
 		{
-			var timers = Context.Provider.GetRequiredService<ITimerService>();
-			await timers.AddAsync(new TimedMessage(TimeSpan.FromMinutes(minutes), Context.User, message)).CAF();
-			await MessageUtils.SendMessageAsync(Context.Channel, $"Will remind in `{minutes}` minute(s).").CAF();
+			await Timers.AddAsync(new TimedMessage(TimeSpan.FromMinutes(minutes), Context.User, message)).CAF();
+			await ReplyTimedAsync($"Will remind in `{minutes}` minute(s).").CAF();
 		}
 	}
 
@@ -220,6 +206,6 @@ namespace Advobot.Commands.Misc
 	{
 		[Command]
 		public async Task Command()
-			=> await MessageUtils.SendMessageAsync(Context.Channel, "test").CAF();
+			=> await ReplyAsync("test").CAF();
 	}
 }

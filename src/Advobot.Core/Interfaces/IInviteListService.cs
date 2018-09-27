@@ -50,7 +50,7 @@ namespace Advobot.Interfaces
 		/// <param name="limit"></param>
 		/// <param name="keywords"></param>
 		/// <returns></returns>
-		IEnumerable<IListedInvite> GetAll(int limit, params string[] keywords);
+		IEnumerable<IListedInvite> GetAll(int limit, IEnumerable<string> keywords);
 		/// <summary>
 		/// Gets the invite listed for this guild.
 		/// </summary>

@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -28,6 +27,7 @@ namespace Advobot.Services.Commands
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly ILogService _Logging;
+		private readonly IHelpEntryService _HelpEntries;
 		private bool _Loaded;
 		private ulong _OwnerId;
 
@@ -43,33 +43,28 @@ namespace Advobot.Services.Commands
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
 			_Logging = _Provider.GetService<ILogService>();
+			_HelpEntries = _Provider.GetRequiredService<IHelpEntryService>();
 
 			_Commands = new CommandService(new CommandServiceConfig
 			{
 				CaseSensitiveCommands = false,
 				ThrowOnError = false,
 			});
-			_Commands.AddTypeReader<IInvite>(new InviteTypeReader());
-			_Commands.AddTypeReader<IBan>(new BanTypeReader());
-			_Commands.AddTypeReader<IWebhook>(new WebhookTypeReader());
-			_Commands.AddTypeReader<IHelpEntry>(new HelpEntryTypeReader());
-			_Commands.AddTypeReader<Emote>(new EmoteTypeReader());
-			_Commands.AddTypeReader<GuildEmote>(new GuildEmoteTypeReader());
-			_Commands.AddTypeReader<Color>(new ColorTypeReader());
-			_Commands.AddTypeReader<Uri>(new UriTypeReader());
-			_Commands.AddTypeReader<ModerationReason>(new ModerationReasonTypeReader());
-			_Commands.AddTypeReader<Quote>(new QuoteTypeReader());
-			_Commands.AddTypeReader<AddBoolean>(new AddBooleanTypeReader());
-			//Add in generic custom argument type readers
-			var customArgumentsClasses = Assembly.GetAssembly(typeof(NamedArguments<>)).GetTypes()
-				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-				.Any(c => c.GetCustomAttribute<NamedArgumentConstructorAttribute>() != null));
-			foreach (var c in customArgumentsClasses)
+			var typeReaders = Assembly.GetExecutingAssembly().GetTypes()
+				.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
+				.Where(x => x.Attribute != null);
+			foreach (var typeReader in typeReaders)
 			{
-				var t = typeof(NamedArguments<>).MakeGenericType(c);
-				var tr = (TypeReader)Activator.CreateInstance(typeof(NamedArgumentsTypeReader<>).MakeGenericType(c));
-				_Commands.AddTypeReader(t, tr);
+				var instance = (TypeReader)Activator.CreateInstance(typeReader.Type);
+				_Commands.AddTypeReader(typeReader.Attribute.TargetType, instance);
 			}
+			foreach (var type in AdvobotUtils.RegisterStaticSettingParsers())
+			{
+				var tr = (TypeReader)Activator.CreateInstance(typeof(ParsableTypeReader<>).MakeGenericType(type));
+				_Commands.AddTypeReader(type, tr);
+			}
+			//TODO: rework now
+			//_Commands.AddTypeReader<ModerationReason>(new ModerationReasonTypeReader());
 
 			_Client.ShardReady += (client) => OnReady(client, commands);
 			_Client.MessageReceived += HandleCommand;
@@ -96,8 +91,7 @@ namespace Advobot.Services.Commands
 			{
 				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
 			}
-			//await CreateSettingModificationModuleAsync<IBotSettings, BotSettings>(_Provider, _Commands).CAF();
-			_Provider.GetRequiredService<IHelpEntryService>().Add(_Commands.Modules);
+			_HelpEntries.Add(_Commands.Modules);
 
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
 				$"Modules: {_Commands.Modules.Count()}; " +
@@ -123,7 +117,7 @@ namespace Advobot.Services.Commands
 				return;
 			}
 
-			var context = new AdvobotCommandContext(_Provider, settings, _Client, msg);
+			var context = new AdvobotCommandContext(settings, _Client, msg);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 
 			if (CanBeIgnored(result) || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(x))))
@@ -136,19 +130,19 @@ namespace Advobot.Services.Commands
 				await MessageUtils.DeleteMessageAsync(context.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
 				if (context.GuildSettings.ModLogId != 0 && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
-					var embed = new EmbedWrapper
+					await MessageUtils.SendMessageAsync(context.Guild.GetTextChannel(context.GuildSettings.ModLogId), embedWrapper: new EmbedWrapper
 					{
-						Description = context.Message.Content
-					};
-					embed.TryAddAuthor(context.User, out _);
-					embed.TryAddFooter("Mod Log", null, out _);
-					await MessageUtils.SendMessageAsync(context.Guild.GetTextChannel(context.GuildSettings.ModLogId), null, embed).CAF();
+						Description = context.Message.Content,
+						Author = context.User.CreateAuthor(),
+						Footer = new EmbedFooterBuilder { Text = "Mod Log", },
+					}).CAF();
 				}
 			}
 			else
 			{
 				_Logging?.FailedCommands?.Add(1);
-				await MessageUtils.SendErrorMessageAsync(context, new Error(result.ErrorReason)).CAF();
+#warning convert back to error
+				await MessageUtils.SendMessageAsync(context.Channel, new Error(result.ErrorReason).ToString()).CAF();
 			}
 
 			_Logging?.AttemptedCommands?.Add(1);

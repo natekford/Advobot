@@ -16,28 +16,31 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds information about raid prevention such as how long the interval is, and how many users to target.
 	/// </summary>
-	public class RaidPreventionInfo : IGuildSetting
+	public class RaidPrev : IGuildSetting
 	{
-		private const int MAX_USERS = 25;
-		private const int MAX_TIME = 60;
 		private static readonly Punisher _Giver = new Punisher(TimeSpan.FromMinutes(0), default(ITimerService));
 		private static readonly RequestOptions _Reason = ClientUtils.CreateRequestOptions("raid prevention");
 
 		/// <summary>
+		/// The type of raid this is preventing.
+		/// </summary>
+		[JsonProperty]
+		public RaidType Type { get; private set; }
+		/// <summary>
 		/// The punishment to give raiders.
 		/// </summary>
 		[JsonProperty]
-		public Punishment Punishment { get; }
-		/// <summary>
-		/// How long a raid should be considered to be.
-		/// </summary>
-		[JsonProperty]
-		public int TimeInterval { get; }
+		public Punishment Punishment { get; private set; }
 		/// <summary>
 		/// How many users should be considered a raid.
 		/// </summary>
 		[JsonProperty]
-		public int UserCount { get; }
+		public int UserCount { get; private set; }
+		/// <summary>
+		/// How long a raid should be considered to be.
+		/// </summary>
+		[JsonProperty]
+		public int TimeInterval { get; private set; }
 		/// <summary>
 		/// Whether or not this raid prevention is enabled.
 		/// </summary>
@@ -51,13 +54,6 @@ namespace Advobot.Classes.Settings
 
 		[JsonIgnore]
 		private List<ulong> _TimeList = new List<ulong>();
-
-		private RaidPreventionInfo(Punishment punishmentType, int userCount, int interval)
-		{
-			Punishment = punishmentType;
-			UserCount = userCount;
-			TimeInterval = interval;
-		}
 
 		/// <summary>
 		/// Counts how many instances have happened in the supplied interval inside the time list.
@@ -89,38 +85,6 @@ namespace Advobot.Classes.Settings
 		/// <returns></returns>
 		public async Task PunishAsync(IGuildSettings settings, SocketGuildUser user)
 			=> await _Giver.GiveAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
-		/// <summary>
-		/// Attempts to create raid prevention.
-		/// </summary>
-		/// <param name="raid"></param>
-		/// <param name="punishment"></param>
-		/// <param name="userCount"></param>
-		/// <param name="timeInterval"></param>
-		/// <param name="info"></param>
-		/// <param name="error"></param>
-		/// <returns></returns>
-		public static bool TryCreate(RaidType raid, Punishment punishment, int userCount, int timeInterval,
-			out RaidPreventionInfo info, out Error error)
-		{
-			info = default;
-			error = default;
-
-			if (userCount > MAX_USERS)
-			{
-				error = new Error($"The user count must be less than or equal to `{MAX_USERS}`.");
-				return false;
-			}
-
-			if (timeInterval > MAX_TIME)
-			{
-				error = new Error($"The interval must be less than or equal to `{MAX_TIME}`.");
-				return false;
-			}
-
-			info = new RaidPreventionInfo(punishment, userCount, timeInterval);
-			return true;
-		}
-
 		/// <inheritdoc />
 		public override string ToString()
 		{

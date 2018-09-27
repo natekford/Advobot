@@ -143,14 +143,13 @@ namespace Advobot.Services.Logging.Loggers
 				var c = guildChannel.Guild.GetTextChannel(settings.ServerLogId);
 				if (inEmbed)
 				{
-					var embed = new EmbedWrapper
+					await MessageUtils.SendMessageAsync(c, embedWrapper: new EmbedWrapper
 					{
 						Title = "Deleted Messages",
 						Description = sb.ToString().RemoveDuplicateNewLines(),
-						Color = EmbedWrapper.MessageDelete
-					};
-					embed.TryAddFooter("Deleted Messages", null, out _);
-					await MessageUtils.SendMessageAsync(c, null, embed).CAF();
+						Color = EmbedWrapper.MessageDelete,
+						Footer = new EmbedFooterBuilder { Text = "Deleted Messages", },
+					}).CAF();
 				}
 				else
 				{
@@ -160,12 +159,11 @@ namespace Advobot.Services.Logging.Loggers
 						sb.AppendLineFeed(m.Format(false));
 					}
 
-					var tf = new TextFileInfo
+					await MessageUtils.SendMessageAsync(c, $"**{messages.Count()} Deleted Messages:**", textFile: new TextFileInfo
 					{
 						Name = "Deleted_Messages",
 						Text = sb.ToString().RemoveDuplicateNewLines().RemoveAllMarkdown(),
-					};
-					await MessageUtils.SendMessageAsync(c, $"**{messages.Count()} Deleted Messages:**", textFile: tf).CAF();
+					}).CAF();
 				}
 			});
 			return Task.CompletedTask;
@@ -197,68 +195,72 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private async Task HandleImageLoggingAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
+			Task SendImageLogMessage(SocketTextChannel log, SocketGuildUser author, string d, string f, string u, string iu)
+				=> MessageUtils.SendMessageAsync(log, embedWrapper: new EmbedWrapper
+				{
+					Description = d,
+					Color = EmbedWrapper.Attachment,
+					Url = u,
+					ImageUrl = iu,
+					Author = user.CreateAuthor(),
+					Footer = new EmbedFooterBuilder { Text = f, },
+				});
+
 			if (settings.ImageLogId == 0)
 			{
 				return;
 			}
 
-			var desc = $"**Channel:** `{message.Channel.Format()}`\n**Message Id:** `{message.Id}`";
-			foreach (var attachmentUrl in message.Attachments.Select(x => x.Url).Distinct()) //Attachments
+			var imageLog = user.Guild.GetTextChannel(settings.ImageLogId);
+			var description = $"**Channel:** `{message.Channel.Format()}`\n**Message Id:** `{message.Id}`";
+			foreach (var attachmentUrl in message.Attachments.GroupBy(x => x.Url).Select(x => x.First().Url)) //Attachments
 			{
 				string footerText;
+				string imageUrl;
 				var mimeType = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(attachmentUrl));
 				if (mimeType.CaseInsContains("video/") || mimeType.CaseInsContains("/gif"))
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Animated), 1);
 					footerText = "Attached Animated Content";
+					imageUrl = attachmentUrl;
 				}
 				else if (mimeType.CaseInsContains("image/"))
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Images), 1);
 					footerText = "Attached Image";
+					imageUrl = attachmentUrl;
 				}
 				else //Random file
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Files), 1);
 					footerText = "Attached File";
+					imageUrl = null;
 				}
 
-				var embed = new EmbedWrapper
-				{
-					Description = desc,
-					Color = EmbedWrapper.Attachment,
-					Url = attachmentUrl,
-					ImageUrl = footerText.Contains("File") ? null : attachmentUrl
-				};
-				embed.TryAddAuthor(user.Username, attachmentUrl, user.GetAvatarUrl(), out _);
-				embed.TryAddFooter(footerText, null, out _);
-				await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ImageLogId), null, embed).CAF();
+				await SendImageLogMessage(imageLog, user, description, footerText, attachmentUrl, imageUrl).CAF();
 			}
 			foreach (var imageEmbed in message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
 			{
-				var embed = new EmbedWrapper
-				{
-					Description = desc,
-					Color = EmbedWrapper.Attachment,
-					Url = imageEmbed.Url,
-					ImageUrl = imageEmbed.Image?.Url ?? imageEmbed.Thumbnail?.Url
-				};
-				embed.TryAddAuthor(user.Username, imageEmbed.Url, user.GetAvatarUrl(), out _);
-
 				string footerText;
-				if (imageEmbed.Video != null)
+				string imageUrl;
+				if (imageEmbed.Video is EmbedVideo video)
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Animated), 1);
 					footerText = "Embedded Gif/Video";
+					imageUrl = imageEmbed.Thumbnail?.Url;
 				}
-				else
+				else if (imageEmbed.Image is EmbedImage image)
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Images), 1);
 					footerText = "Embedded Image";
+					imageUrl = image.Url;
+				}
+				else
+				{
+					continue;
 				}
 
-				embed.TryAddFooter(footerText, null, out _);
-				await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ImageLogId), null, embed).CAF();
+				await SendImageLogMessage(imageLog, user, description, footerText, imageEmbed.Url, imageUrl).CAF();
 			}
 		}
 		/// <summary>
@@ -275,7 +277,7 @@ namespace Advobot.Services.Logging.Loggers
 
 			if (!(settings.SlowmodeUsers.SingleOrDefault(x => x.UserId == user.Id) is SlowmodeUserInfo info))
 			{
-				settings.SlowmodeUsers.Add(info = new SlowmodeUserInfo(slowmode.Interval, user));
+				settings.SlowmodeUsers.Add(info = new SlowmodeUserInfo(slowmode.IntervalTimeSpan, user));
 			}
 			else if (info.Time < DateTime.UtcNow)
 			{
@@ -289,7 +291,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			if (info.MessagesSent == 0)
 			{
-				info.UpdateTime(slowmode.Interval);
+				info.UpdateTime(slowmode.IntervalTimeSpan);
 			}
 			info.Increment();
 		}
@@ -311,7 +313,7 @@ namespace Advobot.Services.Logging.Loggers
 			var spam = false;
 			foreach (SpamType type in Enum.GetValues(typeof(SpamType)))
 			{
-				if (!(settings.SpamPreventionDictionary[type] is SpamPreventionInfo prev) || !prev.Enabled)
+				if (!(settings[type] is SpamPrev prev) || !prev.Enabled)
 				{
 					continue;
 				}
@@ -333,7 +335,8 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				var votesReq = info.VotesRequired - info.UsersWhoHaveAlreadyVoted.Count;
 				var content = $"`{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync((SocketTextChannel)message.Channel, null, content, Timers, TimeSpan.FromSeconds(10)).CAF();
+#warning convert back to timed 10 seconds
+				await MessageUtils.SendMessageAsync(message.Channel, content).CAF();
 				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("spam prevention")).CAF();
 			}
 		}
@@ -351,7 +354,7 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			var giver = new Punisher(TimeSpan.FromMinutes(0), default(ITimerService));
+			var giver = new Punisher(TimeSpan.FromMinutes(0), default);
 			var options = ClientUtils.CreateRequestOptions("spam prevention");
 			//Iterate through the users who are able to be punished by the spam prevention
 			foreach (var spammer in settings.SpamPreventionUsers.Where(x =>
@@ -419,32 +422,15 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			--i;
 
-			var deleteMessage = false;
-			if (await Timers.RemoveActiveCloseQuoteAsync(user.Guild.Id, message.Author.Id).CAF() is CloseQuotes q && q.List.Count > i)
+			if (await Timers.RemoveActiveCloseWords(user.Guild.Id, message.Author.Id).CAF() is RemovableCloseWords cw && cw.List.Count > i)
 			{
-				var embed = new EmbedWrapper
+				await MessageUtils.SendMessageAsync(message.Channel, embedWrapper: new EmbedWrapper
 				{
-					Title = q.List[i].Name,
-					Description = q.List[i].Text,
-				};
-				embed.TryAddFooter("Quote", null, out _);
-				await MessageUtils.SendMessageAsync(message.Channel, null, embed).CAF();
-				deleteMessage = true;
-			}
-			if (await Timers.RemoveActiveCloseHelpAsync(user.Guild.Id, message.Author.Id).CAF() is CloseHelpEntries h && h.List.Count > i)
-			{
-				var embed = new EmbedWrapper
-				{
-					Title = h.List[i].Name,
-					Description = h.List[i].Text.Replace(Constants.PREFIX, BotSettings.InternalGetPrefix(settings)),
-				};
-				embed.TryAddFooter("Help", null, out _);
-				await MessageUtils.SendMessageAsync(message.Channel, null, embed).CAF();
-				deleteMessage = true;
-			}
-			if (deleteMessage)
-			{
-				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("help entry or quote")).CAF();
+					Title = cw.List[i].Name,
+					Description = cw.List[i].Text,
+					Footer = new EmbedFooterBuilder { Text = cw.Type, },
+				}).CAF();
+				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions(cw.Type)).CAF();
 			}
 		}
 		/// <summary>
@@ -479,23 +465,40 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			var bMsgContent = (before?.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-			var aMsgContent = (after.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-			if (bMsgContent == aMsgContent)
+			var uneditedBMsgContent = before?.Content;
+			var uneditedAMsgContent = after.Content;
+			if (uneditedBMsgContent == uneditedAMsgContent)
 			{
 				return;
 			}
 
 			NotifyLogCounterIncrement(nameof(ILogService.MessageEdits), 1);
-			var embed = new EmbedWrapper
+			var bMsgContent = (uneditedBMsgContent ?? "Unknown or empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
+			var aMsgContent = (uneditedAMsgContent ?? "Empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
+
+			//Send file instead if long
+			var serverLog = user.Guild.GetTextChannel(settings.ServerLogId);
+			if (bMsgContent.Length > 750 || aMsgContent.Length > 750)
 			{
-				Color = EmbedWrapper.MessageEdit
-			};
-			embed.TryAddAuthor(after.Author, out _);
-			embed.TryAddField("Before:", $"`{(bMsgContent.Length > 750 ? "Long message" : bMsgContent)}`", true, out _);
-			embed.TryAddField("After:", $"`{(aMsgContent.Length > 750 ? "Long message" : aMsgContent)}`", false, out _);
-			embed.TryAddFooter("Message Updated", null, out _);
-			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
+				await MessageUtils.SendMessageAsync(serverLog, textFile: new TextFileInfo
+				{
+					Name = $"Message_Edit_{FormattingUtils.ToSaving()}",
+					Text = $"Before:\n{bMsgContent}\n\nAfter:\n{aMsgContent}",
+				}).CAF();
+				return;
+			}
+
+			await MessageUtils.SendMessageAsync(serverLog, embedWrapper: new EmbedWrapper
+			{
+				Color = EmbedWrapper.MessageEdit,
+				Author = user.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = "Message Updated", },
+				Fields = new List<EmbedFieldBuilder>
+				{
+					new EmbedFieldBuilder { Name = "Before", Value = bMsgContent, },
+					new EmbedFieldBuilder { Name = "After", Value = aMsgContent, },
+				},
+			}).CAF();
 		}
 	}
 }

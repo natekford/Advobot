@@ -15,6 +15,8 @@ using Discord.WebSocket;
 
 namespace Advobot.Commands.Logs
 {
+#warning reintroduce
+	/*
 	[Category(typeof(ModifyLogChannels)), Group(nameof(ModifyLogChannels)), TopLevelShortAlias(typeof(ModifyLogChannels))]
 	[Summary("Puts the serverlog on the specified channel. The serverlog logs things specified in " + nameof(ModifyLogActions))]
 	[PermissionRequirement(null, null)]
@@ -29,20 +31,17 @@ namespace Advobot.Commands.Logs
 		{
 			if (!SetLogChannel(Context.GuildSettings, logChannelType, channel.Id))
 			{
-				var error = new Error($"That channel is already the current {logChannelType.ToString().ToLower()} log.");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				await ReplyErrorAsync(new Error($"That channel is already the current {logChannelType.ToLower()} log.")).CAF();
 				return;
 			}
-
-			var resp = $"Successfully set the {logChannelType.ToString().ToLower()} log as `{channel.Format()}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully set the {logChannelType.ToLower()} log as `{channel.Format()}`.").CAF();
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public async Task Disable(LogChannelType logChannelType)
 		{
 			if (!SetLogChannel(Context.GuildSettings, logChannelType, 0))
 			{
-				var error = new Error($"The {logChannelType.ToString().ToLower()} log is already off.");
+				var error = new Error($"The {logChannelType.ToLower()} log is already off.");
 				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
@@ -80,7 +79,7 @@ namespace Advobot.Commands.Logs
 					throw new ArgumentException("invalid type", nameof(type));
 			}
 		}
-	}
+	}*/
 
 	[Category(typeof(ModifyIgnoredLogChannels)), Group(nameof(ModifyIgnoredLogChannels)), TopLevelShortAlias(typeof(ModifyIgnoredLogChannels))]
 	[Summary("Ignores all logging info that would have been gotten from a channel.")]
@@ -93,15 +92,13 @@ namespace Advobot.Commands.Logs
 		public async Task Add([ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
-			var resp = $"Successfully ignored the following channels: `{string.Join("`, `", channels.Select(x => x.Format()))}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully ignored the following channels: `{channels.Join("`, `", x => x.Format())}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove([ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
-			var resp = $"Successfully unignored the following channels: `{string.Join("`, `", channels.Select(x => x.Format()))}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully unignored the following channels: `{channels.Join("`, `", x => x.Format())}`.").CAF();
 		}
 	}
 
@@ -126,19 +123,18 @@ namespace Advobot.Commands.Logs
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
-			var embed = new EmbedWrapper
+			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "Log Actions",
 				Description = $"`{string.Join("`, `", Enum.GetNames(typeof(LogAction)))}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+			}).CAF();
 		}
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
 		public async Task Reset()
 		{
 			Context.GuildSettings.LogActions.Clear();
 			Context.GuildSettings.LogActions.AddRange(_DefaultLogActions);
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the log actions to the default ones.").CAF();
+			await ReplyTimedAsync("Successfully set the log actions to the default ones.").CAF();
 		}
 		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public sealed class Enable : AdvobotModuleBase
@@ -148,16 +144,14 @@ namespace Advobot.Commands.Logs
 			{
 				Context.GuildSettings.LogActions.Clear();
 				Context.GuildSettings.LogActions.AddRange(Enum.GetValues(typeof(LogAction)).Cast<LogAction>());
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully enabled every log action.").CAF();
+				await ReplyTimedAsync("Successfully enabled every log action.").CAF();
 			}
 			[Command]
 			public async Task Command(params LogAction[] logActions)
 			{
-				logActions = logActions ?? new LogAction[0];
 				//Add in logActions that aren't already in there
 				Context.GuildSettings.LogActions.AddRange(logActions.Except(Context.GuildSettings.LogActions));
-				var resp = $"Successfully enabled the following log actions: `{string.Join("`, `", logActions.Select(x => x.ToString()))}`.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await ReplyTimedAsync($"Successfully enabled the following log actions: `{logActions.Join("`, `", x => x.ToString())}`.").CAF();
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
@@ -167,16 +161,14 @@ namespace Advobot.Commands.Logs
 			public async Task All()
 			{
 				Context.GuildSettings.LogActions.Clear();
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled every log action.").CAF();
+				await ReplyTimedAsync("Successfully disabled every log action.").CAF();
 			}
 			[Command]
 			public async Task Command(params LogAction[] logActions)
 			{
-				logActions = logActions ?? new LogAction[0];
 				//Only remove logactions that are already in there
 				Context.GuildSettings.LogActions.RemoveAll(x => logActions.Contains(x));
-				var resp = $"Successfully disabled the following log actions: `{string.Join("`, `", logActions.Select(x => x.ToString()))}`.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await ReplyTimedAsync($"Successfully disabled the following log actions: `{logActions.Join("`, `", x => x.ToString())}`.").CAF();
 			}
 		}
 	}

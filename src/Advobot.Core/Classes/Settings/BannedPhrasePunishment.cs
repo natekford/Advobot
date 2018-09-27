@@ -14,25 +14,48 @@ namespace Advobot.Classes.Settings
 		/// The punishment to use on a user.
 		/// </summary>
 		[JsonProperty]
-		public Punishment Punishment { get; }
+		public Punishment Punishment
+		{
+			get => _Punishment;
+			set
+			{
+				_Punishment = value;
+				RoleId = 0;
+			}
+		}
 		/// <summary>
 		/// The role to give a user if the punishment is role.
 		/// </summary>
 		[JsonProperty]
-		public ulong RoleId { get; }
+		public ulong RoleId
+		{
+			get => _RoleId;
+			set
+			{
+				_RoleId = value;
+				Punishment = Punishment.RoleMute;
+			}
+		}
 		/// <summary>
 		/// How many removes before this is used on the user.
 		/// </summary>
 		[JsonProperty]
-		public int NumberOfRemoves { get; }
+		public int NumberOfRemoves { get; private set; }
 		/// <summary>
 		/// How long the punishment should last in minutes.
 		/// </summary>
 		[JsonProperty]
-		public int Time { get; }
+		public int Time { get; private set; }
+
+		private ulong _RoleId;
+		private Punishment _Punishment;
 
 		/// <summary>
-		/// Creates an instance of banned phrase punishment.
+		/// Creates an instance of <see cref="BannedPhrasePunishment"/>.
+		/// </summary>
+		public BannedPhrasePunishment() { }
+		/// <summary>
+		/// Creates an instance of <see cref="BannedPhrasePunishment"/>.
 		/// </summary>
 		/// <param name="punishment"></param>
 		/// <param name="removes"></param>
@@ -44,7 +67,7 @@ namespace Advobot.Classes.Settings
 			Time = time;
 		}
 		/// <summary>
-		/// Creates an instance of banned phrase punishment with role as the punishment.
+		/// Creates an instance of <see cref="BannedPhrasePunishment"/> with the role as the punishment.
 		/// </summary>
 		/// <param name="role"></param>
 		/// <param name="removes"></param>

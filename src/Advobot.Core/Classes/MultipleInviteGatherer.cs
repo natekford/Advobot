@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Utilities;
 using Discord;
@@ -8,58 +7,53 @@ using Discord;
 namespace Advobot.Classes
 {
 	/// <summary>
+	/// Specifies how to search with a number.
+	/// </summary>
+	public class NumberSearch
+	{
+		/// <summary>
+		/// The number to search for.
+		/// </summary>
+		public uint? Number { get; private set; }
+		/// <summary>
+		/// How to use that number to search.
+		/// </summary>
+		public CountTarget Method { get; private set; }
+	}
+
+	/// <summary>
 	/// Sets the search terms for invites and can gather invites matching those terms.
 	/// </summary>
-	public sealed class MultipleInviteGatherer
+	public sealed class LocalInviteGatherer
 	{
-		private readonly ulong? _UserId;
-		private readonly ulong? _ChannelId;
-		private readonly uint? _Uses;
-		private readonly CountTarget _UsesCountTarget;
-		private readonly uint? _Age;
-		private readonly CountTarget _AgeCountTarget;
-		private readonly bool _IsTemporary;
-		private readonly bool _NeverExpires;
-		private readonly bool _NoMaxUses;
-
 		/// <summary>
-		/// Creates an instance of <see cref="MultipleInviteGatherer"/>.
+		/// The id of a user to search for invites by.
 		/// </summary>
-		public MultipleInviteGatherer() : this(null, null, null, default, null, default, false, false, false) { }
+		public ulong? UserId { get; private set; }
 		/// <summary>
-		/// Creates an instance of <see cref="MultipleInviteGatherer"/> with user input.
+		/// The id of a channel to search for invites on.
 		/// </summary>
-		/// <param name="userId"></param>
-		/// <param name="channelId"></param>
-		/// <param name="uses"></param>
-		/// <param name="usesCountTarget"></param>
-		/// <param name="age"></param>
-		/// <param name="ageCountTarget"></param>
-		/// <param name="isTemporary"></param>
-		/// <param name="neverExpires"></param>
-		/// <param name="noMaxUses"></param>
-		[NamedArgumentConstructor]
-		public MultipleInviteGatherer(
-			[NamedArgument] ulong? userId,
-			[NamedArgument] ulong? channelId,
-			[NamedArgument] uint? uses,
-			[NamedArgument] CountTarget usesCountTarget,
-			[NamedArgument] uint? age,
-			[NamedArgument] CountTarget ageCountTarget,
-			[NamedArgument] bool isTemporary,
-			[NamedArgument] bool neverExpires,
-			[NamedArgument] bool noMaxUses)
-		{
-			_UserId = userId;
-			_ChannelId = channelId;
-			_Uses = uses;
-			_UsesCountTarget = usesCountTarget;
-			_Age = age;
-			_AgeCountTarget = ageCountTarget;
-			_IsTemporary = isTemporary;
-			_NeverExpires = neverExpires;
-			_NoMaxUses = noMaxUses;
-		}
+		public ulong? ChannelId { get; private set; }
+		/// <summary>
+		/// How to search by uses.
+		/// </summary>
+		public NumberSearch Uses { get; private set; } = new NumberSearch();
+		/// <summary>
+		/// How to search by age.
+		/// </summary>
+		public NumberSearch Age { get; private set; } = new NumberSearch();
+		/// <summary>
+		/// Whether to check if this invite is temporary.
+		/// </summary>
+		public bool? IsTemporary { get; private set; }
+		/// <summary>
+		/// Whether to check if this invite never expires.
+		/// </summary>
+		public bool? NeverExpires { get; private set; }
+		/// <summary>
+		/// Whether to check if there are any max uses.
+		/// </summary>
+		public bool? NoMaxUses { get; private set; }
 
 		/// <summary>
 		/// Gathers invites matching the supplied arguments.
@@ -69,39 +63,39 @@ namespace Advobot.Classes
 		public IEnumerable<IInviteMetadata> GatherInvites(IEnumerable<IInviteMetadata> invites)
 		{
 			var wentIntoAny = false;
-			if (_UserId != null)
+			if (UserId.HasValue)
 			{
-				invites = invites.Where(x => x.Inviter.Id == _UserId);
+				invites = invites.Where(x => x.Inviter.Id == UserId);
 				wentIntoAny = true;
 			}
-			if (_ChannelId != null)
+			if (ChannelId.HasValue)
 			{
-				invites = invites.Where(x => x.ChannelId == _ChannelId);
+				invites = invites.Where(x => x.ChannelId == ChannelId);
 				wentIntoAny = true;
 			}
-			if (_Uses != null)
+			if (Uses.Number.HasValue)
 			{
-				invites = invites.GetInvitesFromCount(_UsesCountTarget, _Uses ?? 0, x => (uint)x.Uses);
+				invites = invites.GetInvitesFromCount(Uses.Method, Uses.Number.Value, x => (uint)x.Uses);
 				wentIntoAny = true;
 			}
-			if (_Age != null)
+			if (Age.Number.HasValue)
 			{
-				invites = invites.GetInvitesFromCount(_AgeCountTarget, _Age ?? 0, x => (uint)x.MaxAge);
+				invites = invites.GetInvitesFromCount(Age.Method, Age.Number.Value, x => (uint)x.MaxAge);
 				wentIntoAny = true;
 			}
-			if (_IsTemporary)
+			if (IsTemporary.HasValue)
 			{
-				invites = invites.Where(x => x.IsTemporary);
+				invites = invites.Where(x => x.IsTemporary == IsTemporary.Value);
 				wentIntoAny = true;
 			}
-			if (_NeverExpires)
+			if (NeverExpires.HasValue)
 			{
-				invites = invites.Where(x => x.MaxAge == null);
+				invites = invites.Where(x => x.MaxAge == null == NeverExpires.Value);
 				wentIntoAny = true;
 			}
-			if (_NoMaxUses)
+			if (NoMaxUses.HasValue)
 			{
-				invites = invites.Where(x => x.MaxUses == null);
+				invites = invites.Where(x => x.MaxUses == null == NoMaxUses.Value);
 				wentIntoAny = true;
 			}
 			return wentIntoAny ? Enumerable.Empty<IInviteMetadata>() : invites;

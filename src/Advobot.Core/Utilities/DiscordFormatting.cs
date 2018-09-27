@@ -15,6 +15,13 @@ namespace Advobot.Utilities
 	public static class DiscordFormatting
 	{
 		/// <summary>
+		/// Either returns the formatted snowflake value or the object as a string.
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		public static string Format(this object obj)
+			=> obj is ISnowflakeEntity snowflake ? snowflake.Format() : obj?.ToString();
+		/// <summary>
 		/// Returns a string with the object's name and id.
 		/// </summary>
 		/// <param name="obj"></param>
@@ -169,7 +176,7 @@ namespace Advobot.Utilities
 			}
 			if (roles.Any())
 			{
-				embed.TryAddField("Roles", $"`{string.Join("`, `", roles.Select(x => x.Name))}`", false, out _);
+				embed.TryAddField("Roles", $"`{roles.Join("`, `", x => x.Name)}`", false, out _);
 			}
 			if (user.VoiceChannel != null)
 			{
@@ -410,7 +417,7 @@ namespace Advobot.Utilities
 				Description = emote.FormatInfo() +
 					$"**Is Managed:** `{emote.IsManaged}`\n" +
 					$"**Requires Colons:** `{emote.RequireColons}`\n\n" +
-					$"**Roles:** `{string.Join("`, `", emote.RoleIds.Select(x => guild.GetRole(x)).OrderBy(x => x.Position).Select(x => x.Name))}`",
+					$"**Roles:** `{emote.RoleIds.Select(x => guild.GetRole(x)).OrderBy(x => x.Position).Join("`, `", x => x.Name)}`",
 				ThumbnailUrl = emote.Url,
 			};
 			embed.TryAddAuthor(emote.Name, null, null, out _);
@@ -509,6 +516,13 @@ namespace Advobot.Utilities
 			embed.TryAddAuthor(client.CurrentUser, out _);
 			return embed;
 		}
+		/// <summary>
+		/// Returns a new <see cref="EmbedAuthorBuilder"/> containing the user's info.
+		/// </summary>
+		/// <param name="author"></param>
+		/// <returns></returns>
+		public static EmbedAuthorBuilder CreateAuthor(this IUser author)
+			=> new EmbedAuthorBuilder { IconUrl = author?.GetAvatarUrl(), Name = author?.Format(), Url = author?.GetAvatarUrl(), };
 
 		private static string FormatInfo(this ISnowflakeEntity obj)
 			=> $"**Id:** `{obj.Id}`\n{obj.CreatedAt.UtcDateTime.ToCreatedAt()}\n\n";

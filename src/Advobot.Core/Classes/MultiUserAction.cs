@@ -11,10 +11,11 @@ using Discord.WebSocket;
 
 namespace Advobot.Classes
 {
+#warning fully implement this into a module
 	/// <summary>
 	/// Does an action on all the input users until either no more users remain or the cancel token has been canceled.
 	/// </summary>
-	public sealed class MultiUserAction
+	public sealed class MultiUserActionModule : AdvobotModuleBase
 	{
 		private static ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new ConcurrentDictionary<ulong, CancellationTokenSource>();
 
@@ -28,7 +29,7 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="users"></param>
-		public MultiUserAction(ICommandContext context, IEnumerable<SocketGuildUser> users)
+		public MultiUserActionModule(ICommandContext context, IEnumerable<SocketGuildUser> users)
 		{
 			_CancelToken = new CancellationTokenSource();
 			_CancelTokens.AddOrUpdate(context.Guild.Id, _CancelToken, (oldKey, oldValue) =>
@@ -80,6 +81,7 @@ namespace Advobot.Classes
 		public async Task MoveUsersAsync(SocketVoiceChannel outputChannel, RequestOptions options)
 			=> await DoActionAsync(nameof(MoveUsersAsync), outputChannel, "move", "moved", options).CAF();
 
+#warning redo
 		private async Task DoActionAsync(string action, object obj, string presentTense, string pastTense, RequestOptions options)
 		{
 			var text = $"Attempting to {presentTense} `{_Users.Count}` users.";

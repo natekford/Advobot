@@ -41,15 +41,15 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Creates an instance of <see cref="RemovableMessage"/>. Parameterless constructor is used for the database.
 		/// </summary>
-		public RemovableMessage() : base(default) { }
+		public RemovableMessage() : base() { }
 		/// <summary>
 		/// Creates an instance of <see cref="RemovableMessage"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="context"></param>
 		/// <param name="messages"></param>
-		public RemovableMessage(TimeSpan time, ICommandContext context, params IUserMessage[] messages)
-			: this(time, context.Guild, context.Channel, context.User, messages) { }
+		public RemovableMessage(ICommandContext context, IEnumerable<IMessage> messages, TimeSpan time = default)
+			: this(context.Guild, context.Channel, context.User, messages, time) { }
 		/// <summary>
 		/// Creates an instance of removable messages with the supplied messages on the guild/channel passed in.
 		/// </summary>
@@ -58,7 +58,7 @@ namespace Advobot.Classes
 		/// <param name="channel"></param>
 		/// <param name="user"></param>
 		/// <param name="messages"></param>
-		public RemovableMessage(TimeSpan time, IGuild guild, IMessageChannel channel, IUser user, params IUserMessage[] messages)
+		public RemovableMessage(IGuild guild, IMessageChannel channel, IUser user, IEnumerable<IMessage> messages, TimeSpan time = default)
 			: base(time)
 		{
 			GuildId = guild.Id;

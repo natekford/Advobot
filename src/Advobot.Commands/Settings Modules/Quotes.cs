@@ -22,25 +22,24 @@ namespace Advobot.Commands.Quotes
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
 		public async Task Add(string name, [Remainder] string text)
 		{
-			if (Context.GuildSettings.Quotes.Count >= Context.BotSettings.MaxQuotes)
+			if (Context.GuildSettings.Quotes.Count >= BotSettings.MaxQuotes)
 			{
-				var error = new Error($"There cannot be more than `{Context.BotSettings.MaxQuotes}` quotes at a time.");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+				await ReplyErrorAsync(new Error($"There cannot be more than `{BotSettings.MaxQuotes}` quotes at a time.")).CAF();
 				return;
 			}
 			if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"A quote already has the name `{name}`.")).CAF();
+				await ReplyErrorAsync(new Error($"A quote already has the name `{name}`.")).CAF();
 				return;
 			}
 			if (string.IsNullOrWhiteSpace(text))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("A quote requires text to be added.")).CAF();
+				await ReplyErrorAsync(new Error("A quote requires text to be added.")).CAF();
 				return;
 			}
 
 			Context.GuildSettings.Quotes.Add(new Quote(name, text));
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added the following quote: `{name}`.").CAF();
+			await ReplyTimedAsync($"Successfully added the following quote: `{name}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(string name)
@@ -48,11 +47,11 @@ namespace Advobot.Commands.Quotes
 			var removed = Context.GuildSettings.Quotes.RemoveAll(x => x.Name.CaseInsEquals(name));
 			if (removed < 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"No quote has the name `{name}`.")).CAF();
+				await ReplyErrorAsync(new Error($"No quote has the name `{name}`.")).CAF();
 				return;
 			}
 
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the following quote: `{name}`.").CAF();
+			await ReplyTimedAsync($"Successfully removed the following quote: `{name}`.").CAF();
 		}
 	}
 
@@ -64,36 +63,20 @@ namespace Advobot.Commands.Quotes
 	{
 		[Command]
 		public async Task Command()
-		{
-			if (!Context.GuildSettings.Quotes.Any())
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("There are currently no quotes.")).CAF();
-				return;
-			}
-
-			var embed = new EmbedWrapper
-			{
-				Title = "Quotes",
-				Description = $"`{string.Join("`, `", Context.GuildSettings.Quotes.Select(x => x.Name))}`"
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
-		}
+			=> await ReplyIfAny(Context.GuildSettings.Quotes, "quotes", x => x.Name).CAF();
 		[Command, Priority(1)]
 		public async Task Command([Remainder] Quote quote)
-			=> await MessageUtils.SendMessageAsync(Context.Channel, quote.Description).CAF();
+			=> await ReplyAsync(quote.Description).CAF();
 		[Command, Priority(0)]
-		[RequireServices(typeof(ITimerService))]
 		public async Task Command([Remainder] string quote)
 		{
-			var timers = Context.Provider.GetRequiredService<ITimerService>();
-			var closeQuotes = new CloseQuotes(default, Context, Context.GuildSettings, quote);
-			if (closeQuotes.List.Any())
+			var matches = new CloseQuotes(Context.GuildSettings.Quotes, quote).Matches;
+			await ReplyIfAny(matches, $"No quote has the name `{quote}`.", async x =>
 			{
-				await closeQuotes.SendBotMessageAsync(Context.Channel).CAF();
-				await timers.AddAsync(closeQuotes).CAF();
-				return;
-			}
-			await MessageUtils.SendErrorMessageAsync(Context, new Error($"No quote has the name `{quote}`.")).CAF();
+				var message = await ReplyAsync($"Did you mean any of the following:\n{x.FormatNumberedList(cw => cw.Name)}").CAF();
+				await Timers.AddAsync(new RemovableCloseWords("Quotes", x, Context, new[] { Context.Message, message })).CAF();
+				return message;
+			}).CAF();
 		}
 	}
 }

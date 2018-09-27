@@ -13,15 +13,19 @@ namespace Advobot.Classes.Settings
 	{
 		/// <inheritdoc />
 		[JsonProperty]
-		public ulong UserId { get; }
+		public ulong UserId { get; private set; }
 		/// <summary>
 		/// The role to give the user.
 		/// </summary>
 		[JsonProperty]
-		public ulong RoleId { get; }
+		public ulong RoleId { get; private set; }
 
 		/// <summary>
-		/// Creates an instance of persistent role.
+		/// Creates an instance of <see cref="PersistentRole"/>.
+		/// </summary>
+		public PersistentRole() { }
+		/// <summary>
+		/// Creates an instance of <see cref="PersistentRole"/>.
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <param name="role"></param>

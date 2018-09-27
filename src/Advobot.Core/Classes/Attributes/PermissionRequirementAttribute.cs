@@ -38,11 +38,11 @@ namespace Advobot.Classes.Attributes
 		/// <summary>
 		/// Returns the names of the flags where all are needed.
 		/// </summary>
-		public string AllText => string.Join(" & ", _AllFlags.ToList().Select(x => x.ToString()));
+		public string AllText => _AllFlags.ToList().Join(" & ", x => x.ToString());
 		/// <summary>
 		/// Returns the names of the flags where any are needed.
 		/// </summary>
-		public string AnyText => string.Join(" | ", _AnyFlags.ToList().Select(x => x.ToString()));
+		public string AnyText => _AnyFlags.ToList().Join(" | ", x => x.ToString());
 
 		/// <summary>
 		/// Creates an instance of <see cref="PermissionRequirementAttribute"/>.

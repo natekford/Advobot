@@ -7,6 +7,7 @@ namespace Advobot.Classes.Attributes
 	/// <summary>
 	/// Specifies a command is broken. Will provide an error each time a user tries to invoke the command.
 	/// </summary>
+	[Obsolete("This command is still disabled.")]
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public sealed class DisabledCommandAttribute : PreconditionAttribute
 	{

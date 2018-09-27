@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Advobot.Interfaces;
@@ -18,54 +19,58 @@ namespace Advobot.Classes.Settings
 		/// The base messages every user gets to start with.
 		/// </summary>
 		[JsonProperty]
-		public int BaseMessages { get; }
+		public int BaseMessages { get; private set; }
 		/// <summary>
-		/// How long until messages refresh for the user.
+		/// How long until messages refresh for the user in seconds.
 		/// </summary>
-		[JsonIgnore]
-		public TimeSpan Interval => TimeSpan.FromSeconds(_Interval);
+		[JsonProperty]
+		public int TimeInterval { get; private set; }
 		/// <summary>
 		/// Roles that are immune from slowmode.
 		/// </summary>
-		[JsonIgnore]
-		public ImmutableList<ulong> ImmuneRoleIds => _ImmuneRoleIds.ToImmutableList();
+		[JsonProperty]
+		public IList<ulong> ImmuneRoleIds { get; } = new List<ulong>();
 		/// <summary>
 		/// Whether or not slowmode is enabled.
 		/// </summary>
 		[JsonIgnore]
 		public bool Enabled { get; set; }
-
-		[JsonProperty("Interval")]
-		private readonly int _Interval;
-		[JsonProperty("ImmuneRoleIds")]
-		private ulong[] _ImmuneRoleIds;
+		/// <summary>
+		/// <see cref="TimeInterval"/> as a <see cref="TimeSpan"/>.
+		/// </summary>
+		[JsonIgnore]
+		public TimeSpan IntervalTimeSpan => TimeSpan.FromSeconds(TimeInterval);
 
 		/// <summary>
-		/// Creates an instance of slowmode.
+		/// Creates an instance of <see cref="Slowmode"/>.
+		/// </summary>
+		public Slowmode() { }
+		/// <summary>
+		/// Creates an instance of <see cref="Slowmode"/>.
 		/// </summary>
 		/// <param name="baseMessages"></param>
 		/// <param name="interval"></param>
 		/// <param name="immuneRoles"></param>
-		public Slowmode(int baseMessages, int interval, IRole[] immuneRoles)
+		public Slowmode(int baseMessages, int interval, IEnumerable<IRole> immuneRoles)
 		{
 			BaseMessages = baseMessages;
-			_Interval = interval;
-			_ImmuneRoleIds = immuneRoles.Select(x => x.Id).Distinct().ToArray();
+			TimeInterval = interval;
+			ImmuneRoleIds = immuneRoles.Select(x => x.Id).Distinct().ToList();
 		}
 
 		/// <inheritdoc />
 		public override string ToString()
 		{
 			return $"**Base messages:** `{BaseMessages}`\n" +
-				$"**Time interval:** `{_Interval}`\n" +
-				$"**Immune Role Ids:** `{string.Join("`, `", _ImmuneRoleIds)}`";
+				$"**Time interval:** `{TimeInterval}`\n" +
+				$"**Immune Role Ids:** `{string.Join("`, `", ImmuneRoleIds)}`";
 		}
 		/// <inheritdoc />
 		public string ToString(SocketGuild guild)
 		{
 			return $"**Base messages:** `{BaseMessages}`\n" +
-				$"**Time interval:** `{_Interval}`\n" +
-				$"**Immune Role Ids:** `{string.Join("`, `", ImmuneRoleIds.Select(x => guild.GetRole(x).Format()))}`";
+				$"**Time interval:** `{TimeInterval}`\n" +
+				$"**Immune Role Ids:** `{ImmuneRoleIds.Join("`, `", x => guild.GetRole(x).Format())}`";
 		}
 	}
 }

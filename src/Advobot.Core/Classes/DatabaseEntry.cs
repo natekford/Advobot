@@ -23,7 +23,7 @@ namespace Advobot.Classes
 		/// Creates a database entry with the specified timespan added to <see cref="DateTime.UtcNow"/>.
 		/// </summary>
 		/// <param name="time"></param>
-		public DatabaseEntry(TimeSpan time)
+		public DatabaseEntry(TimeSpan time = default)
 		{
 			Id = Guid.NewGuid();
 			Time = DateTime.UtcNow.Add(time.Equals(default) ? _Default : time);

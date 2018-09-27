@@ -60,12 +60,6 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Creates an instance of <see cref="Punisher"/>.
 		/// </summary>
-		/// <param name="time"></param>
-		/// <param name="provider"></param>
-		public Punisher(TimeSpan time, IServiceProvider provider) : this(time, provider.GetService<ITimerService>()) { }
-		/// <summary>
-		/// Creates an instance of <see cref="Punisher"/>.
-		/// </summary>
 		/// <param name="time">How long to give a punishment for. Removing punishments is not affected by this.</param>
 		/// <param name="timers">The timer service to add timed punishments to.</param>
 		public Punisher(TimeSpan time, ITimerService timers)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using Discord.Commands;
 
 namespace Advobot.Classes.TypeReaders
@@ -7,6 +8,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to find an image url from the given context.
 	/// </summary>
+	[TypeReaderTargetType(typeof(Uri))]
 	public sealed class UriTypeReader : TypeReader
 	{
 		/// <summary>

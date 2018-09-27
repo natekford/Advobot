@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 using Discord.Commands;
 
 namespace Advobot.Classes.TypeReaders
@@ -7,6 +8,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to return a value used for modifying a list.
 	/// </summary>
+	[TypeReaderTargetType(typeof(AddBoolean))]
 	public sealed class AddBooleanTypeReader : TypeReader
 	{
 		/// <summary>

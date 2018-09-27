@@ -52,11 +52,11 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// To limit spam.
 		/// </summary>
-		IDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; }
+		IList<SpamPrev> SpamPrevention { get; }
 		/// <summary>
 		/// To limit raids.
 		/// </summary>
-		IDictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; }
+		IList<RaidPrev> RaidPrevention { get; }
 		/// <summary>
 		/// Roles that persist across a user leaving and rejoining.
 		/// </summary>
@@ -145,6 +145,19 @@ namespace Advobot.Interfaces
 		/// Whether or not this guild is loaded yet. This is not saved.
 		/// </summary>
 		bool Loaded { get; }
+
+		/// <summary>
+		/// Gets and sets spam prevention.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		SpamPrev this[SpamType type] { get; set; }
+		/// <summary>
+		/// Gets and sets raid prevention.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		RaidPrev this[RaidType type] { get; set; }
 
 		/// <summary>
 		/// What to do after deserialization.

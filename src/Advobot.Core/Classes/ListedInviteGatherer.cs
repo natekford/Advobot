@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -13,42 +12,26 @@ namespace Advobot.Classes
 	/// </summary>
 	public sealed class ListedInviteGatherer
 	{
-		private readonly string _Code;
-		private readonly string _Name;
-		private readonly bool _HasGlobalEmotes;
-		private readonly uint? _UserCount;
-		private readonly CountTarget _UserCountTarget;
-		private readonly string[] _Keywords;
-
 		/// <summary>
-		/// Creates an instance of <see cref="ListedInviteGatherer"/>.
+		/// The invite code.
 		/// </summary>
-		public ListedInviteGatherer() : this(null, null, false, null, default) { }
+		public string Code { get; private set; }
 		/// <summary>
-		/// Creates an instance of <see cref="ListedInviteGatherer"/> with user input.
+		/// The name of the guild.
 		/// </summary>
-		/// <param name="code"></param>
-		/// <param name="name"></param>
-		/// <param name="hasGlobalEmotes"></param>
-		/// <param name="userCount"></param>
-		/// <param name="userCountTarget"></param>
-		/// <param name="keywords"></param>
-		[NamedArgumentConstructor]
-		public ListedInviteGatherer(
-			[NamedArgument] string code,
-			[NamedArgument] string name,
-			[NamedArgument] bool hasGlobalEmotes,
-			[NamedArgument] uint? userCount,
-			[NamedArgument] CountTarget userCountTarget,
-			[NamedArgument] params string[] keywords)
-		{
-			_Code = code;
-			_Name = name;
-			_HasGlobalEmotes = hasGlobalEmotes;
-			_UserCount = userCount;
-			_UserCountTarget = userCountTarget;
-			_Keywords = keywords;
-		}
+		public string Name { get; private set; }
+		/// <summary>
+		/// Whether the guild has global emotes.
+		/// </summary>
+		public bool HasGlobalEmotes { get; private set; }
+		/// <summary>
+		/// The number to search with and how to search with it.
+		/// </summary>
+		public NumberSearch Users { get; private set; } = new NumberSearch();
+		/// <summary>
+		/// The keywords to search for a guild with.
+		/// </summary>
+		public IList<string> Keywords { get; } = new List<string>();
 
 		/// <summary>
 		/// Gathers invites which meet the specified criteria.
@@ -57,26 +40,26 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public IEnumerable<IListedInvite> GatherInvites(IInviteListService inviteListService)
 		{
-			var invites = (_Keywords.Any() ? inviteListService.GetAll(int.MaxValue, _Keywords) : inviteListService.GetAll(int.MaxValue)).Where(x => !x.Expired);
+			var invites = (Keywords.Any() ? inviteListService.GetAll(int.MaxValue, Keywords) : inviteListService.GetAll(int.MaxValue)).Where(x => !x.Expired);
 			var wentIntoAny = false;
-			if (_Code != null)
+			if (Code != null)
 			{
-				invites = invites.Where(x => x.Code == _Code);
+				invites = invites.Where(x => x.Code == Code);
 				wentIntoAny = true;
 			}
-			if (_Name != null)
+			if (Name != null)
 			{
-				invites = invites.Where(x => x.GuildName.CaseInsEquals(_Name));
+				invites = invites.Where(x => x.GuildName.CaseInsEquals(Name));
 				wentIntoAny = true;
 			}
-			if (_HasGlobalEmotes)
+			if (HasGlobalEmotes)
 			{
 				invites = invites.Where(x => x.HasGlobalEmotes);
 				wentIntoAny = true;
 			}
-			if (_UserCount != null)
+			if (Users.Number.HasValue)
 			{
-				invites = invites.GetInvitesFromCount(_UserCountTarget, _UserCount ?? 0, x => (uint)x.GuildMemberCount);
+				invites = invites.GetInvitesFromCount(Users.Method, Users.Number.Value, x => (uint)x.GuildMemberCount);
 				wentIntoAny = true;
 			}
 			return wentIntoAny ? Enumerable.Empty<IListedInvite>() : invites;

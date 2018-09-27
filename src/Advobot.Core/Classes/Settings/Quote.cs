@@ -14,15 +14,19 @@ namespace Advobot.Classes.Settings
 		/// The name of the quote.
 		/// </summary>
 		[JsonProperty]
-		public string Name { get; }
+		public string Name { get; private set; }
 		/// <summary>
 		/// The description of the quote.
 		/// </summary>
 		[JsonProperty]
-		public string Description { get; }
+		public string Description { get; private set; }
 
 		/// <summary>
-		/// Creates an instance of quote.
+		/// Creates an instance of <see cref="Quote"/>.
+		/// </summary>
+		public Quote() { }
+		/// <summary>
+		/// Creates an instance of <see cref="Quote"/>.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="description"></param>

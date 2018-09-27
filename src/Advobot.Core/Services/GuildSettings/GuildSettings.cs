@@ -4,11 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Classes.EqualityComparers;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesSettingParser.Implementation.Instance;
+using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -39,9 +42,6 @@ namespace Advobot.Services.GuildSettings
 		[JsonProperty("Slowmode")]
 		public Slowmode Slowmode { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("Rules")]
-		public RuleHolder Rules { get; private set; } = new RuleHolder();
-		/// <inheritdoc />
 		[JsonProperty("Prefix")]
 		public string Prefix { get; set; }
 		/// <inheritdoc />
@@ -61,81 +61,73 @@ namespace Advobot.Services.GuildSettings
 		public bool NonVerboseErrors { get; set; }
 		/// <inheritdoc />
 		[JsonProperty("SpamPrevention")]
-		public IDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; private set; } = new Dictionary<SpamType, SpamPreventionInfo>
-		{
-			{ SpamType.Message, null },
-			{ SpamType.LongMessage, null },
-			{ SpamType.Link, null },
-			{ SpamType.Image, null },
-			{ SpamType.Mention, null }
-		};
+		public IList<SpamPrev> SpamPrevention { get; } = new List<SpamPrev>();
 		/// <inheritdoc />
 		[JsonProperty("RaidPrevention")]
-		public IDictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; private set; } = new Dictionary<RaidType, RaidPreventionInfo>
-		{
-			{ RaidType.Regular, null },
-			{ RaidType.RapidJoins, null }
-		};
+		public IList<RaidPrev> RaidPrevention { get; } = new List<RaidPrev>();
 		/// <inheritdoc />
 		[JsonProperty("PersistentRoles")]
-		public IList<PersistentRole> PersistentRoles { get; private set; } = new List<PersistentRole>();
+		public IList<PersistentRole> PersistentRoles { get; } = new List<PersistentRole>();
 		/// <inheritdoc />
 		[JsonProperty("BotUsers")]
-		public IList<BotUser> BotUsers { get; private set; } = new List<BotUser>();
+		public IList<BotUser> BotUsers { get; } = new List<BotUser>();
 		/// <inheritdoc />
 		[JsonProperty("SelfAssignableGroups")]
-		public IList<SelfAssignableRoles> SelfAssignableGroups { get; private set; } = new List<SelfAssignableRoles>();
+		public IList<SelfAssignableRoles> SelfAssignableGroups { get; } = new List<SelfAssignableRoles>();
 		/// <inheritdoc />
 		[JsonProperty("Quotes")]
-		public IList<Quote> Quotes { get; private set; } = new List<Quote>();
+		public IList<Quote> Quotes { get; } = new List<Quote>();
 		/// <inheritdoc />
 		[JsonProperty("LogActions")]
-		public IList<LogAction> LogActions { get; private set; } = new List<LogAction>(_DefaultLogActions);
+		public IList<LogAction> LogActions { get; } = new List<LogAction>(_DefaultLogActions);
 		/// <inheritdoc />
 		[JsonProperty("IgnoredCommandChannels")]
-		public IList<ulong> IgnoredCommandChannels { get; private set; } = new List<ulong>();
+		public IList<ulong> IgnoredCommandChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("IgnoredLogChannels")]
-		public IList<ulong> IgnoredLogChannels { get; private set; } = new List<ulong>();
+		public IList<ulong> IgnoredLogChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("IgnoredXpChannels")]
-		public IList<ulong> IgnoredXpChannels { get; private set; } = new List<ulong>();
+		public IList<ulong> IgnoredXpChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("ImageOnlyChannels")]
-		public IList<ulong> ImageOnlyChannels { get; private set; } = new List<ulong>();
+		public IList<ulong> ImageOnlyChannels { get; } = new List<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("BannedPhraseStrings")]
-		public IList<BannedPhrase> BannedPhraseStrings { get; private set; } = new List<BannedPhrase>();
+		public IList<BannedPhrase> BannedPhraseStrings { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
 		[JsonProperty("BannedPhraseRegex")]
-		public IList<BannedPhrase> BannedPhraseRegex { get; private set; } = new List<BannedPhrase>();
+		public IList<BannedPhrase> BannedPhraseRegex { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
 		[JsonProperty("BannedPhraseNames")]
-		public IList<BannedPhrase> BannedPhraseNames { get; private set; } = new List<BannedPhrase>();
+		public IList<BannedPhrase> BannedPhraseNames { get; } = new List<BannedPhrase>();
 		/// <inheritdoc />
 		[JsonProperty("BannedPhrasePunishments")]
-		public IList<BannedPhrasePunishment> BannedPhrasePunishments { get; private set; } = new List<BannedPhrasePunishment>();
+		public IList<BannedPhrasePunishment> BannedPhrasePunishments { get; } = new List<BannedPhrasePunishment>();
+		/// <inheritdoc />
+		[JsonProperty("Rules")]
+		public RuleHolder Rules { get; private set; } = new RuleHolder();
 		/// <inheritdoc />
 		[JsonProperty("CommandSettings")]
 		public CommandSettings CommandSettings { get; private set; } = new CommandSettings();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public IList<SpamPreventionUserInfo> SpamPreventionUsers { get; private set; } = new List<SpamPreventionUserInfo>();
+		public IList<SpamPreventionUserInfo> SpamPreventionUsers { get; } = new List<SpamPreventionUserInfo>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public IList<SlowmodeUserInfo> SlowmodeUsers { get; private set; } = new List<SlowmodeUserInfo>();
+		public IList<SlowmodeUserInfo> SlowmodeUsers { get; } = new List<SlowmodeUserInfo>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public IList<BannedPhraseUserInfo> BannedPhraseUsers { get; private set; } = new List<BannedPhraseUserInfo>();
+		public IList<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public IList<CachedInvite> Invites { get; private set; } = new List<CachedInvite>();
+		public IList<CachedInvite> Invites { get; } = new List<CachedInvite>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public IList<string> EvaluatedRegex { get; private set; } = new List<string>();
+		public IList<string> EvaluatedRegex { get; } = new List<string>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public MessageDeletion MessageDeletion { get; private set; } = new MessageDeletion();
+		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public ulong GuildId { get; private set; }
@@ -148,32 +140,100 @@ namespace Advobot.Services.GuildSettings
 		/// </summary>
 		public GuildSettings()
 		{
-			RegisterSetting(() => WelcomeMessage, x => null, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => GoodbyeMessage, x => null, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => Slowmode, x => null, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => Rules, x => new RuleHolder(), AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => Prefix, x => null);
-			RegisterSetting(() => ServerLogId, x => 0);
-			RegisterSetting(() => ModLogId, x => 0);
-			RegisterSetting(() => ImageLogId, x => 0);
-			RegisterSetting(() => MuteRoleId, x => 0);
-			RegisterSetting(() => NonVerboseErrors, x => false);
-			RegisterSetting(() => SpamPreventionDictionary, ResetDictionary, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => RaidPreventionDictionary, ResetDictionary, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => PersistentRoles, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => BotUsers, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => SelfAssignableGroups, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => Quotes, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => LogActions, v => { v.Clear(); v.AddRange(_DefaultLogActions); return v; }, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => IgnoredCommandChannels, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => IgnoredLogChannels, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => IgnoredXpChannels, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => ImageOnlyChannels, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => BannedPhraseStrings, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => BannedPhraseRegex, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => BannedPhraseNames, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => BannedPhrasePunishments, ClearList, AdvobotUtils.EmptyTryParse);
-			RegisterSetting(() => CommandSettings, x => new CommandSettings(), AdvobotUtils.EmptyTryParse);
+			SettingParser.Add(new Setting<GuildNotification>(() => WelcomeMessage)
+			{
+				ResetValueFactory = x => null,
+			});
+			SettingParser.Add(new Setting<GuildNotification>(() => GoodbyeMessage)
+			{
+				ResetValueFactory = x => null,
+			});
+			SettingParser.Add(new Setting<Slowmode>(() => Slowmode)
+			{
+				ResetValueFactory = x => null,
+			});
+			SettingParser.Add(new Setting<RuleHolder>(() => Rules, parser: TryParseUtils.TryParseTemporary)
+			{
+				ResetValueFactory = x => new RuleHolder(),
+			});
+			SettingParser.Add(new Setting<CommandSettings>(() => CommandSettings, parser: TryParseUtils.TryParseTemporary)
+			{
+				ResetValueFactory = x => new CommandSettings(),
+			});
+			SettingParser.Add(new Setting<string>(() => Prefix)
+			{
+				ResetValueFactory = x => null,
+			});
+			SettingParser.Add(new Setting<ulong>(() => ServerLogId)
+			{
+				ResetValueFactory = x => 0,
+			});
+			SettingParser.Add(new Setting<ulong>(() => ModLogId)
+			{
+				ResetValueFactory = x => 0,
+			});
+			SettingParser.Add(new Setting<ulong>(() => ImageLogId)
+			{
+				ResetValueFactory = x => 0,
+			});
+			SettingParser.Add(new Setting<ulong>(() => MuteRoleId)
+			{
+				ResetValueFactory = x => 0,
+			});
+			SettingParser.Add(new Setting<bool>(() => NonVerboseErrors)
+			{
+				ResetValueFactory = x => false,
+			});
+			SettingParser.Add(new CollectionSetting<SpamPrev>(() => SpamPrevention));
+			SettingParser.Add(new CollectionSetting<RaidPrev>(() => RaidPrevention));
+			SettingParser.Add(new CollectionSetting<PersistentRole>(() => PersistentRoles));
+			SettingParser.Add(new CollectionSetting<BotUser>(() => BotUsers));
+			SettingParser.Add(new CollectionSetting<SelfAssignableRoles>(() => SelfAssignableGroups));
+			SettingParser.Add(new CollectionSetting<Quote>(() => Quotes)
+			{
+				EqualityComparer = NameableEqualityComparer.Default,
+			});
+			SettingParser.Add(new CollectionSetting<LogAction>(() => LogActions)
+			{
+				ResetValueFactory = x =>
+				{
+					x.Clear();
+					foreach (var value in _DefaultLogActions)
+					{
+						x.Add(value);
+					}
+					return x;
+				},
+			});
+			SettingParser.Add(new CollectionSetting<ulong>(() => IgnoredCommandChannels));
+			SettingParser.Add(new CollectionSetting<ulong>(() => IgnoredLogChannels));
+			SettingParser.Add(new CollectionSetting<ulong>(() => IgnoredXpChannels));
+			SettingParser.Add(new CollectionSetting<ulong>(() => ImageOnlyChannels));
+			SettingParser.Add(new CollectionSetting<BannedPhrase>(() => BannedPhraseStrings));
+			SettingParser.Add(new CollectionSetting<BannedPhrase>(() => BannedPhraseRegex));
+			SettingParser.Add(new CollectionSetting<BannedPhrase>(() => BannedPhraseNames));
+			SettingParser.Add(new CollectionSetting<BannedPhrasePunishment>(() => BannedPhrasePunishments));
+		}
+
+		/// <inheritdoc />
+		public SpamPrev this[SpamType type]
+		{
+			get => SpamPrevention.SingleOrDefault(x => x.Type == type);
+			set
+			{
+				SpamPrevention.RemoveAll(x => x.Type == type);
+				SpamPrevention.Add(value);
+			}
+		}
+		/// <inheritdoc />
+		public RaidPrev this[RaidType type]
+		{
+			get => RaidPrevention.SingleOrDefault(x => x.Type == type);
+			set
+			{
+				RaidPrevention.RemoveAll(x => x.Type == type);
+				RaidPrevention.Add(value);
+			}
 		}
 
 		/// <inheritdoc />

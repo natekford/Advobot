@@ -22,7 +22,7 @@ namespace Advobot.Commands.Client
 		public async Task Command([Remainder, ValidateString(Target.Name)] string newName)
 		{
 			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = newName).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed my username to `{newName}`.").CAF();
+			await ReplyTimedAsync($"Successfully changed my username to `{newName}`.").CAF();
 		}
 	}
 
@@ -41,12 +41,12 @@ namespace Advobot.Commands.Client
 		{
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the bot icon.")).CAF();
+				await ReplyErrorAsync(new Error("Currently already working on the bot icon.")).CAF();
 				return;
 			}
 
 			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GetRequestOptions());
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in bot icon creation queue: {_Resizer.QueueCount}.").CAF();
+			await ReplyTimedAsync($"Position in bot icon creation queue: {_Resizer.QueueCount}.").CAF();
 			if (_Resizer.CanStart)
 			{
 				_Resizer.StartProcessing();
@@ -57,12 +57,12 @@ namespace Advobot.Commands.Client
 		{
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on the bot icon.")).CAF();
+				await ReplyErrorAsync(new Error("Currently already working on the bot icon.")).CAF();
 				return;
 			}
 
 			await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot icon.").CAF();
+			await ReplyTimedAsync("Successfully removed the bot icon.").CAF();
 		}
 	}
 
@@ -86,6 +86,6 @@ namespace Advobot.Commands.Client
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
-			=> await ClientUtils.RestartBotAsync(Context.Client, Context.BotSettings).CAF();
+			=> await ClientUtils.RestartBotAsync(Context.Client, BotSettings).CAF();
 	}
 }

@@ -22,33 +22,11 @@ namespace Advobot.Commands.Webhooks
 	public sealed class GetWebhooks : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(ITextChannel channel)
-		{
-			var webhooks = await channel.GetWebhooksAsync().CAF();
-			if (!webhooks.Any())
-			{
-				var error = new Error($"The channel `{channel.Format()}` does not have any webhooks.");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-			await MessageUtils.SendMessageAsync(Context.Channel, FormatWebhooks(channel, webhooks)).CAF();
-		}
-		[Command]
 		public async Task Command()
-		{
-			var webhooks = (await Context.Guild.GetWebhooksAsync().CAF()).GroupBy(x => x.ChannelId);
-			if (!webhooks.Any())
-			{
-				var error = new Error($"The guild does not have any webhooks.");
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-			var parts = webhooks.Select(x => FormatWebhooks(Context.Guild.GetTextChannel(x.Key), x));
-			await MessageUtils.SendMessageAsync(Context.Channel, string.Join("\n\n", parts)).CAF();
-		}
-
-		private string FormatWebhooks(ITextChannel channel, IEnumerable<IWebhook> webhooks)
-			=> $"**{channel.Format()}**:\n{string.Join("\n", webhooks.Select(x => $"`{x.Format()}`"))}";
+			=> await ReplyIfAny(await Context.Guild.GetWebhooksAsync().CAF(), Context.Guild, "Webhooks", x => x.Format()).CAF();
+		[Command]
+		public async Task Command(ITextChannel channel)
+			=> await ReplyIfAny(await channel.GetWebhooksAsync().CAF(), channel, "Webhooks", x => x.Format()).CAF();
 	}
 
 	[Category(typeof(DeleteWebhook)), Group(nameof(DeleteWebhook)), TopLevelShortAlias(typeof(DeleteWebhook))]
@@ -61,7 +39,7 @@ namespace Advobot.Commands.Webhooks
 		public async Task Command(IWebhook webhook)
 		{
 			await webhook.DeleteAsync(GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the webhook `{webhook.Format()}`.").CAF();
+			await ReplyTimedAsync($"Successfully deleted the webhook `{webhook.Format()}`.").CAF();
 		}
 	}
 
@@ -75,8 +53,7 @@ namespace Advobot.Commands.Webhooks
 		public async Task Command(IWebhook webhook, [Remainder, ValidateString(Target.Name)] string name)
 		{
 			await webhook.ModifyAsync(x => x.Name = name, GetRequestOptions()).CAF();
-			var resp = $"Successfully changed the name of `{webhook.Format()}` to `{name}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully changed the name of `{webhook.Format()}` to `{name}`.").CAF();
 		}
 	}
 
@@ -92,8 +69,7 @@ namespace Advobot.Commands.Webhooks
 			[ValidateObject(Verif.CanManageWebhooks, IfNullCheckFromContext = true)] ITextChannel channel)
 		{
 			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GetRequestOptions()).CAF();
-			var resp = $"Successfully set the channel of `{webhook.Format()}` to `{channel.Format()}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully set the channel of `{webhook.Format()}` to `{channel.Format()}`.").CAF();
 		}
 	}
 
@@ -110,28 +86,28 @@ namespace Advobot.Commands.Webhooks
 		{
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on a webhook icon.")).CAF();
+				await ReplyErrorAsync(new Error("Currently already working on a webhook icon.")).CAF();
 				return;
 			}
 
 			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GetRequestOptions(), webhook.Id.ToString());
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Position in webhook icon creation queue: {_Resizer.QueueCount}.").CAF();
 			if (_Resizer.CanStart)
 			{
 				_Resizer.StartProcessing();
 			}
+			await ReplyTimedAsync($"Position in webhook icon creation queue: {_Resizer.QueueCount}.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(IWebhook webhook)
 		{
 			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("Currently already working on a webhook icon.")).CAF();
+				await ReplyErrorAsync(new Error("Currently already working on a webhook icon.")).CAF();
 				return;
 			}
 
 			await webhook.ModifyAsync(x => x.Image = new Image(), GetRequestOptions()).CAF();
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the webhook icon from {webhook.Format()}.").CAF();
+			await ReplyTimedAsync($"Successfully removed the webhook icon from {webhook.Format()}.").CAF();
 		}
 	}
 

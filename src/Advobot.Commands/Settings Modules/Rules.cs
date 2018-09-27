@@ -24,14 +24,13 @@ namespace Advobot.Commands.Rules
 		{
 			if (Context.GuildSettings.Rules.Categories.Keys.CaseInsContains(name))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"The category `{name}` already exists.")).CAF();
+				await ReplyErrorAsync(new Error($"The category `{name}` already exists.")).CAF();
 				return;
 			}
 
 			var pos = Context.GuildSettings.Rules.Categories.Count + 1;
 			Context.GuildSettings.Rules.Categories.Add(name, new List<string>());
-			var resp = $"Successfully created the category `{name}` at `{pos}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully created the category `{name}` at `{pos}`.").CAF();
 		}
 		[Command(nameof(ChangeName)), ShortAlias(nameof(ChangeName))]
 		public async Task ChangeName([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [ValidateString(Target.RuleCategory)] string newName)
@@ -39,15 +38,13 @@ namespace Advobot.Commands.Rules
 			var oldVal = Context.GuildSettings.Rules.Categories[category];
 			Context.GuildSettings.Rules.Categories.Remove(category);
 			Context.GuildSettings.Rules.Categories.Add(category, oldVal);
-			var resp = $"Successfully changed the category `{category}` to `{newName}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully changed the category `{category}` to `{newName}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category)
 		{
 			Context.GuildSettings.Rules.Categories.Remove(category);
-			var resp = $"Successfully removed the category `{category}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully removed the category `{category}`.").CAF();
 		}
 	}
 
@@ -63,32 +60,30 @@ namespace Advobot.Commands.Rules
 		{
 			if (Context.GuildSettings.Rules.Categories[category].CaseInsContains(rule))
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"The supplied rule already exists.")).CAF();
+				await ReplyErrorAsync(new Error($"The supplied rule already exists.")).CAF();
 				return;
 			}
 
 			Context.GuildSettings.Rules.Categories[category].Add(rule);
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added a rule in `{category}`.").CAF();
+			await ReplyTimedAsync($"Successfully added a rule in `{category}`.").CAF();
 		}
 		[Command(nameof(Insert)), ShortAlias(nameof(Insert))]
 		public async Task Insert([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, uint index, [ValidateString(Target.Rule)] string rule)
 		{
 			var count = Context.GuildSettings.Rules.Categories[category].Count;
 			Context.GuildSettings.Rules.Categories[category].Insert(Math.Min((int)Math.Min(index, int.MaxValue), count - 1), rule);
-			var resp = $"Successfully removed the rule at index `{index}` in `{category}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully removed the rule at index `{index}` in `{category}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, uint index)
 		{
 			if (Context.GuildSettings.Rules.Categories[category].Count >= index)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"{index} is an invalid position to remove at.")).CAF();
+				await ReplyErrorAsync(new Error($"{index} is an invalid position to remove at.")).CAF();
 				return;
 			}
 			Context.GuildSettings.Rules.Categories[category].RemoveAt((int)Math.Min(index, int.MaxValue));
-			var resp = $"Successfully removed the rule at index `{index}` in `{category}`.";
-			await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+			await ReplyTimedAsync($"Successfully removed the rule at index `{index}` in `{category}`.").CAF();
 		}
 	}
 
@@ -102,40 +97,17 @@ namespace Advobot.Commands.Rules
 	public sealed class PrintOutRules : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [Optional, Remainder] NamedArguments<RuleFormatter> args)
-		{
-			RuleFormatter obj;
-			if (args == null)
-			{
-				obj = new RuleFormatter();
-			}
-			else if (!args.TryCreateObject(new object[0], out obj, out var error))
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-			await Context.GuildSettings.Rules.SendCategoryAsync(obj, category, Context.Channel).CAF();
-		}
+		public async Task Command([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [Optional, Remainder] RuleFormatter args)
+			=> await Context.GuildSettings.Rules.SendCategoryAsync(args ?? new RuleFormatter(), category, Context.Channel).CAF();
 		[Command]
-		public async Task Command([Optional, Remainder] NamedArguments<RuleFormatter> args)
+		public async Task Command([Optional, Remainder] RuleFormatter args)
 		{
 			if (Context.GuildSettings.Rules.Categories.Count == 0)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error("This guild has no rules set up.")).CAF();
+				await ReplyErrorAsync(new Error("This guild has no rules set up.")).CAF();
 				return;
 			}
-
-			RuleFormatter obj;
-			if (args == null)
-			{
-				obj = new RuleFormatter();
-			}
-			else if (!args.TryCreateObject(new object[0], out obj, out var error))
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-				return;
-			}
-			await Context.GuildSettings.Rules.SendAsync(obj, Context.Channel).CAF();
+			await Context.GuildSettings.Rules.SendAsync(args ?? new RuleFormatter(), Context.Channel).CAF();
 		}
 	}
 }

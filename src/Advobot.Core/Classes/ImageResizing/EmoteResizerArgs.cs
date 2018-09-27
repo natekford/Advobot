@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
-using Advobot.Classes.Attributes;
+﻿using System.Collections.Immutable;
 using Advobot.Interfaces;
 using ImageMagick;
 
@@ -23,46 +21,16 @@ namespace Advobot.Classes.ImageResizing
 			MagickFormat.Gif,
 		});
 		/// <inheritdoc />
-		public int ResizeTries { get; set; }
+		public int ResizeTries { get; set; } = 5;
 		/// <inheritdoc />
-		public Percentage ColorFuzzing { get; set; }
+		public Percentage ColorFuzzing { get; set; } = new Percentage(30);
 		/// <summary>
 		/// When to start the emote.
 		/// </summary>
-		public int StartInSeconds { get; set; }
+		public int StartInSeconds { get; set; } = 0;
 		/// <summary>
 		/// How long to make the emote.
 		/// </summary>
-		public int LengthInSeconds { get; set; }
-
-		/// <summary>
-		/// Creates an instance of emote resizer arguments.
-		/// </summary>
-		public EmoteResizerArguments()
-		{
-			ResizeTries = 5;
-			ColorFuzzing = new Percentage(30);
-			StartInSeconds = 0;
-			LengthInSeconds = 10;
-		}
-		/// <summary>
-		/// Creates the object via user input.
-		/// </summary>
-		/// <param name="resizeTries"></param>
-		/// <param name="colorFuzzing"></param>
-		/// <param name="startInSeconds"></param>
-		/// <param name="lengthInSeconds"></param>
-		[NamedArgumentConstructor]
-		public EmoteResizerArguments(
-			int resizeTries,
-			Percentage colorFuzzing,
-			[NamedArgument] uint? startInSeconds,
-			[NamedArgument] uint? lengthInSeconds)
-		{
-			ResizeTries = resizeTries;
-			ColorFuzzing = colorFuzzing;
-			StartInSeconds = (int)Math.Min(int.MaxValue, startInSeconds ?? 0);
-			LengthInSeconds = (int)Math.Min(int.MaxValue, lengthInSeconds ?? 10);
-		}
+		public int LengthInSeconds { get; set; } = 10;
 	}
 }

@@ -15,9 +15,11 @@ namespace Advobot.Commands.BotSettings
 	[DefaultEnabled(true)]
 	public sealed class ShowBotSettings : AdvobotSettingsModuleBase<IBotSettings>
 	{
+		protected override IBotSettings Settings => BotSettings;
+
 		[Command(nameof(GetFileAsync)), ShortAlias(nameof(GetFileAsync)), Priority(1)]
 		public async Task GetFile()
-			=> await GetFileAsync(Context.BotSettings).CAF();
+			=> await GetFileAsync(BotSettings).CAF();
 		[Command(nameof(Names)), ShortAlias(nameof(Names)), Priority(1)]
 		public async Task Names()
 			=> await ShowNamesAsync().CAF();
@@ -27,8 +29,6 @@ namespace Advobot.Commands.BotSettings
 		[Command]
 		public async Task Command(string settingName)
 			=> await ShowAsync(settingName).CAF();
-
-		protected override IBotSettings GetSettings() => Context.BotSettings;
 	}
 
 	[Category(typeof(ModifyBotSettings)), Group(nameof(ModifyBotSettings)), TopLevelShortAlias(typeof(ModifyBotSettings))]
@@ -39,6 +39,8 @@ namespace Advobot.Commands.BotSettings
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotSettings : AdvobotSettingsSavingModuleBase<IBotSettings>
 	{
+		protected override IBotSettings Settings => BotSettings;
+
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset)), Priority(1)]
 		public async Task Reset(string settingName)
 			=> await ResetAsync(settingName).CAF();
@@ -99,7 +101,5 @@ namespace Advobot.Commands.BotSettings
 		[Command(nameof(IBotSettings.UsersIgnoredFromCommands)), ShortAlias(nameof(IBotSettings.UsersIgnoredFromCommands))]
 		public async Task UsersIgnoredFromCommands(AddBoolean add, params ulong[] values)
 			=> await ModifyCollectionAsync(x => x.UsersIgnoredFromCommands, add, values).CAF();
-
-		protected override IBotSettings GetSettings() => Context.BotSettings;
 	}
 }

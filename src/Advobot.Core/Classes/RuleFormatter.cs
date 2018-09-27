@@ -14,59 +14,44 @@ namespace Advobot.Classes
 	/// </summary>
 	public sealed class RuleFormatter
 	{
-		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat> _DefaultTitleFormats = new Dictionary<RuleFormat, MarkDownFormat>
+		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultTitleFormats = new Dictionary<RuleFormat, MarkDownFormat[]>
 		{
-			{ default, MarkDownFormat.Bold },
-			{ RuleFormat.Numbers, MarkDownFormat.Bold },
-			{ RuleFormat.Dashes, MarkDownFormat.Code },
-			{ RuleFormat.Bullets, MarkDownFormat.Bold },
-			{ RuleFormat.Bold, MarkDownFormat.Bold | MarkDownFormat.Italics }
+			{ default, new[] { MarkDownFormat.Bold } },
+			{ RuleFormat.Numbers, new[] { MarkDownFormat.Bold } },
+			{ RuleFormat.Dashes, new[] { MarkDownFormat.Code } },
+			{ RuleFormat.Bullets, new[] { MarkDownFormat.Bold } },
+			{ RuleFormat.Bold, new[] { MarkDownFormat.Bold | MarkDownFormat.Italics } }
 		}.ToImmutableDictionary();
-		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat> _DefaultRuleFormats = new Dictionary<RuleFormat, MarkDownFormat>
+		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultRuleFormats = new Dictionary<RuleFormat, MarkDownFormat[]>
 		{
-			{ default, default },
-			{ RuleFormat.Numbers, default },
-			{ RuleFormat.Dashes, default },
-			{ RuleFormat.Bullets, default },
-			{ RuleFormat.Bold, MarkDownFormat.Bold }
+			{ default, new MarkDownFormat[0] },
+			{ RuleFormat.Numbers, new MarkDownFormat[0] },
+			{ RuleFormat.Dashes, new MarkDownFormat[0] },
+			{ RuleFormat.Bullets, new MarkDownFormat[0] },
+			{ RuleFormat.Bold, new[] { MarkDownFormat.Bold } }
 		}.ToImmutableDictionary();
 		private static readonly ImmutableArray<MarkDownFormat> _MarkDownFormats = Enum.GetValues(typeof(MarkDownFormat)).Cast<MarkDownFormat>().ToImmutableArray();
 
-		private readonly RuleFormat _RuleFormat;
-		private readonly MarkDownFormat _TitleMarkDownFormat;
-		private readonly MarkDownFormat _RuleMarkDownFormat;
-		private readonly RuleFormatOption _Options;
-		private readonly char _CharAfterNumbers;
-
 		/// <summary>
-		/// Creates an instance of rule formatter.
+		/// The character to put after numbers in the lists.
 		/// </summary>
-		public RuleFormatter() : this(default, default, default, '.') { }
+		public char CharAfterNumbers { get; set; } = '.';
 		/// <summary>
-		/// Uses user input to create a rule formatter.
+		/// The main format to use for rules.
 		/// </summary>
-		/// <param name="format"></param>
-		/// <param name="titleFormat"></param>
-		/// <param name="ruleFormat"></param>
-		/// <param name="charAfterNumbers"></param>
-		/// <param name="formatOptions"></param>
-		[NamedArgumentConstructor]
-		private RuleFormatter(
-			[NamedArgument] RuleFormat format,
-			[NamedArgument] MarkDownFormat titleFormat,
-			[NamedArgument] MarkDownFormat ruleFormat,
-			[NamedArgument] char charAfterNumbers,
-			[NamedArgument(10)] params RuleFormatOption[] formatOptions)
-		{
-			_RuleFormat = format == default ? RuleFormat.Numbers : format;
-			_TitleMarkDownFormat = titleFormat;
-			_RuleMarkDownFormat = ruleFormat;
-			_CharAfterNumbers = charAfterNumbers;
-			foreach (var option in formatOptions)
-			{
-				_Options |= option;
-			}
-		}
+		public RuleFormat RuleFormat { get; set; } = RuleFormat.Numbers;
+		/// <summary>
+		/// Markdown supplied for titles.
+		/// </summary>
+		public IList<MarkDownFormat> TitleMarkDownFormat { get; } = new List<MarkDownFormat>();
+		/// <summary>
+		/// Markdown supplied for rules.
+		/// </summary>
+		public IList<MarkDownFormat> RuleMarkDownFormat { get; } = new List<MarkDownFormat>();
+		/// <summary>
+		/// Additional formatting options.
+		/// </summary>
+		public IList<RuleFormatOption> Options { get; } = new List<RuleFormatOption>();
 
 		/// <summary>
 		/// Format the name of a rule category.
@@ -76,11 +61,11 @@ namespace Advobot.Classes
 		public string FormatName(string name)
 		{
 			var n = name.FormatTitle().Trim(' ');
-			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
+			if (Options.Contains(RuleFormatOption.ExtraLines))
 			{
 				n = n + "\n";
 			}
-			return AddMarkDown(_TitleMarkDownFormat == default ? _DefaultTitleFormats[_RuleFormat] : _TitleMarkDownFormat, n);
+			return AddMarkDown(TitleMarkDownFormat.Any() ? TitleMarkDownFormat : _DefaultTitleFormats[RuleFormat], n);
 		}
 		/// <summary>
 		/// Format the rule itself.
@@ -92,11 +77,11 @@ namespace Advobot.Classes
 		public string FormatRule(string rule, int index, int rulesInCategory)
 		{
 			string r;
-			switch (_RuleFormat)
+			switch (RuleFormat)
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bold:
-					r = _Options.HasFlag(RuleFormatOption.NumbersSameLength)
+					r = Options.Contains(RuleFormatOption.NumbersSameLength)
 						? $"`{(index + 1).ToString().PadLeft(rulesInCategory.ToString().Length, '0')}"
 						: $"`{index + 1}`";
 					break;
@@ -112,12 +97,12 @@ namespace Advobot.Classes
 			}
 
 			r = $"{r}{rule}";
-			r = (_CharAfterNumbers != default ? AddCharAfterNumbers(r, _CharAfterNumbers) : r).Trim();
-			if (_Options.HasFlag(RuleFormatOption.ExtraLines))
+			r = (CharAfterNumbers != default ? AddCharAfterNumbers(r, CharAfterNumbers) : r).Trim();
+			if (Options.Contains(RuleFormatOption.ExtraLines))
 			{
 				r = r + "\n";
 			}
-			return AddMarkDown(_RuleMarkDownFormat == default ? _DefaultRuleFormats[_RuleFormat] : _RuleMarkDownFormat, r);
+			return AddMarkDown(RuleMarkDownFormat.Any() ? RuleMarkDownFormat : _DefaultRuleFormats[RuleFormat], r);
 		}
 		private string AddCharAfterNumbers(string text, char charToAdd)
 		{
@@ -136,14 +121,10 @@ namespace Advobot.Classes
 			}
 			return sb.ToString();
 		}
-		private string AddMarkDown(MarkDownFormat formattingOptions, string text)
+		private string AddMarkDown(IEnumerable<MarkDownFormat> markdown, string text)
 		{
-			foreach (MarkDownFormat md in _MarkDownFormats)
+			foreach (var md in markdown)
 			{
-				if (!formattingOptions.HasFlag(md))
-				{
-					continue;
-				}
 				switch (md)
 				{
 					case MarkDownFormat.Bold:

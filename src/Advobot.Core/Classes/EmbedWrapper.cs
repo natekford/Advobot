@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 
@@ -331,7 +332,7 @@ namespace Advobot.Classes
 		public bool TryAddUrl(string url, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
-			if (!IsValidUrl(url))
+			if (!url.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(Url), null, url));
 			}
@@ -357,7 +358,7 @@ namespace Advobot.Classes
 		public bool TryAddThumbnailUrl(string thumbnailUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
-			if (!IsValidUrl(thumbnailUrl))
+			if (!thumbnailUrl.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(ThumbnailUrl), null, thumbnailUrl));
 			}
@@ -383,7 +384,7 @@ namespace Advobot.Classes
 		public bool TryAddImageUrl(string imageUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
-			if (!IsValidUrl(imageUrl))
+			if (!imageUrl.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(ImageUrl), null, imageUrl));
 			}
@@ -420,11 +421,11 @@ namespace Advobot.Classes
 			{
 				errors.Add(EmbedError.LengthRemaining(nameof(Author), nameof(EmbedAuthorBuilder.Name), name, remainingLen));
 			}
-			if (!IsValidUrl(url))
+			if (!url.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(Author), nameof(EmbedAuthorBuilder.Url), url));
 			}
-			if (!IsValidUrl(iconUrl))
+			if (!iconUrl.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(Author), nameof(EmbedAuthorBuilder.IconUrl), iconUrl));
 			}
@@ -473,7 +474,7 @@ namespace Advobot.Classes
 			{
 				errors.Add(EmbedError.LengthRemaining(nameof(Footer), nameof(EmbedFooterBuilder.Text), text, remainingLen));
 			}
-			if (!IsValidUrl(iconUrl))
+			if (!iconUrl.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(Footer), nameof(iconUrl), iconUrl));
 			}
@@ -628,13 +629,6 @@ namespace Advobot.Classes
 		public Embed Build()
 			=> _Builder.Build();
 		/// <summary>
-		/// Returns true if the passed in string is a valid Url.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		private bool IsValidUrl(string input)
-			=> string.IsNullOrEmpty(input) || (Uri.TryCreate(input, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp));
-		/// <summary>
 		/// Returns the calculated length of an embed.
 		/// Can ignore the length of title, author, description, or footer
 		/// </summary>
@@ -707,21 +701,18 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		private ArgumentException CreateException(IEnumerable<EmbedError> errors, [CallerMemberName] string caller = "")
 			=> new ArgumentException(string.Join("\n", errors), caller);
-
 		/// <summary>
 		/// Returns all the failed values.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> string.Join("\n\n", _FailedValues.Select(x => $"{x.Key}:\n{x.Value}"));
+			=> _FailedValues.Join("\n\n", x => $"{x.Key}:\n{x.Value}");
 
 		/// <summary>
 		/// Converts an <see cref="EmbedWrapper"/> to a <see cref="Embed"/>.
 		/// </summary>
 		/// <param name="wrapper"></param>
 		public static implicit operator Embed(EmbedWrapper wrapper)
-		{
-			return wrapper?.Build();
-		}
+			=> wrapper?.Build();
 	}
 }

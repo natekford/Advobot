@@ -17,7 +17,10 @@ using Advobot.Services.Levels;
 using Advobot.Services.Logging;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
-using AdvorangesSettingParser;
+using AdvorangesSettingParser.Implementation;
+using AdvorangesSettingParser.Implementation.Instance;
+using AdvorangesSettingParser.Implementation.Static;
+using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 using Discord;
 using Discord.Net;
@@ -79,6 +82,17 @@ namespace Advobot.Classes
 
 		[JsonIgnore]
 		private readonly DiscordRestClient _TestClient = new DiscordRestClient();
+
+		static LowLevelConfig()
+		{
+			StaticSettingParserRegistry.Instance.Register(new StaticSettingParser<LowLevelConfig>
+			{
+				new StaticSetting<LowLevelConfig, int>(x => x.PreviousProcessId),
+				new StaticSetting<LowLevelConfig, int>(x => x.CurrentInstance),
+				new StaticSetting<LowLevelConfig, DatabaseType>(x => x.DatabaseType),
+				new StaticSetting<LowLevelConfig, string>(x => x.DatabaseConnectionString),
+			});
+		}
 
 		/// <inheritdoc />
 		public bool ValidatePath(string input, bool startup)
@@ -227,27 +241,13 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public static LowLevelConfig Load(string[] args)
 		{
-			var processId = -1;
 			var instance = -1;
-			var databaseType = DatabaseType.LiteDB;
-			var connectionString = "";
-			//No help command because this is not intended to be used more than internally
-			new SettingParser(false)
-			{
-				//Don't bother adding descriptions because of the aforementioned removal
-				new Setting<int>(() => processId),
-				new Setting<int>(() => instance),
-				new Setting<DatabaseType>(() => databaseType, parser: AdvobotUtils.TryParseCaseIns),
-				new Setting<string>(() => connectionString),
-			}.Parse(args);
+			new SettingParser { new Setting<int>(() => instance), }.Parse(args);
 
 			//Instance is for the config so they can be named Advobot1, Advobot2, etc.
 			instance = instance < 1 ? 1 : instance;
 			var config = IOUtils.DeserializeFromFile<LowLevelConfig>(GetConfigPath(instance)) ?? new LowLevelConfig();
-			config.PreviousProcessId = processId;
-			config.CurrentInstance = instance;
-			config.DatabaseType = databaseType;
-			config.DatabaseConnectionString = connectionString;
+			StaticSettingParserRegistry.Instance.Parse(config, args);
 			return config;
 		}
 		/// <summary>

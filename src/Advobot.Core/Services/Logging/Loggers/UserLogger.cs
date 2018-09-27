@@ -7,6 +7,7 @@ using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 using Discord.WebSocket;
 
 namespace Advobot.Services.Logging.Loggers
@@ -122,11 +123,11 @@ namespace Advobot.Services.Logging.Loggers
 				await giver.GiveAsync(Punishment.Ban, user.Guild, user.Id, 0, ClientUtils.CreateRequestOptions("banned name")).CAF();
 			}
 			//Antiraid
-			if (settings.RaidPreventionDictionary[RaidType.Regular] is RaidPreventionInfo antiRaid && antiRaid.Enabled)
+			if (settings[RaidType.Regular] is RaidPrev antiRaid && antiRaid.Enabled)
 			{
 				await antiRaid.PunishAsync(settings, user).CAF();
 			}
-			if (settings.RaidPreventionDictionary[RaidType.RapidJoins] is RaidPreventionInfo antiJoin && antiJoin.Enabled)
+			if (settings[RaidType.RapidJoins] is RaidPrev antiJoin && antiJoin.Enabled)
 			{
 				antiJoin.Add(user.JoinedAt?.UtcDateTime ?? default);
 				if (antiJoin.GetSpamCount() >= antiJoin.UserCount)
@@ -164,14 +165,13 @@ namespace Advobot.Services.Logging.Loggers
 				? $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}"
 				: "";
 
-			var embed = new EmbedWrapper
+			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), embedWrapper: new EmbedWrapper
 			{
 				Description = $"**ID:** {user.Id}\n{stay}",
-				Color = EmbedWrapper.Leave
-			};
-			embed.TryAddAuthor(user, out _);
-			embed.TryAddFooter(user.IsBot ? "Bot Left" : "User Left", null, out _);
-			await MessageUtils.SendMessageAsync(user.Guild.GetTextChannel(settings.ServerLogId), null, embed).CAF();
+				Color = EmbedWrapper.Leave,
+				Author = user.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = user.IsBot ? "Bot Left" : "User Left", },
+			}).CAF();
 		}
 		/// <summary>
 		/// Handles the goodbye message.

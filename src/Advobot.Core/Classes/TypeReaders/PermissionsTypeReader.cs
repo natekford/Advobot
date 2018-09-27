@@ -11,7 +11,7 @@ namespace Advobot.Classes.TypeReaders
 	/// Attempts to parse permissions.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class PermissionsTypeReader<T> : TypeReader where T : struct, IComparable, IConvertible, IFormattable
+	public abstract class PermissionsTypeReader<T> : TypeReader where T : struct, Enum
 	{
 		private static readonly char[] _SplitChars = new[] { '/', ' ', ',' };
 		private static readonly char[] _TrimChars = new[] { '"' };

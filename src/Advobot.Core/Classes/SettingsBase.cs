@@ -11,41 +11,40 @@ using System.Text;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesSettingParser;
+using AdvorangesSettingParser.Implementation.Instance;
+using AdvorangesSettingParser.Interfaces;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
+using Newtonsoft.Json;
 
 namespace Advobot.Classes
 {
 	/// <summary>
 	/// Abstract class for settings.
 	/// </summary>
-	public abstract class SettingsBase : ISettingsBase, INotifyPropertyChanged
+	public abstract class SettingsBase : ISettingsBase
 	{
-		/// <summary>
-		/// Parses settings, but in this use case mainly doesn't handle direct strings.
-		/// </summary>
-		protected SettingParser Parser = new SettingParser();
+		/// <inheritdoc />
+		[JsonIgnore]
+		public SettingParser SettingParser { get; } = new SettingParser();
 
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <inheritdoc />
-		public virtual IReadOnlyDictionary<string, ICompleteSetting> GetSettings()
-			=> Parser.GetSettings().ToDictionary(x => x.MainName, x => (ICompleteSetting)x, StringComparer.OrdinalIgnoreCase);
-		/// <inheritdoc />
 		public virtual string ToString(BaseSocketClient client, SocketGuild guild)
 		{
 			var sb = new StringBuilder();
-			foreach (var kvp in GetSettings())
+			foreach (var setting in SettingParser)
 			{
-				var formatted = Format(client, guild, kvp.Value.GetValue());
+				var formatted = Format(client, guild, setting.GetValue());
 				if (string.IsNullOrWhiteSpace(formatted))
 				{
 					continue;
 				}
 
-				sb.AppendLineFeed($"**{kvp.Key.FormatTitle()}**:");
+				sb.AppendLineFeed($"**{setting.MainName.FormatTitle()}**:");
 				sb.AppendLineFeed($"{formatted}");
 				sb.AppendLineFeed();
 			}
@@ -53,24 +52,24 @@ namespace Advobot.Classes
 		}
 		/// <inheritdoc />
 		public virtual string FormatSetting(BaseSocketClient client, SocketGuild guild, string name)
-			=> Format(client, guild, GetSettings()[name].GetValue());
+			=> Format(client, guild, SettingParser.GetSetting(name, PrefixState.NotPrefixed).GetValue());
 		/// <inheritdoc />
 		public virtual string FormatValue(BaseSocketClient client, SocketGuild guild, object value)
 			=> Format(client, guild, value);
 		/// <inheritdoc />
 		public virtual void ResetSettings()
 		{
-			foreach (var kvp in GetSettings())
+			foreach (var setting in SettingParser)
 			{
-				ResetSetting(kvp.Value);
+				setting.ResetValue();
 			}
 		}
 		/// <inheritdoc />
 		public virtual void ResetSetting(string name)
-			=> ResetSetting(GetSettings()[name]);
+			=> ResetSetting(SettingParser.GetSetting(name, PrefixState.NotPrefixed));
 		/// <inheritdoc />
 		public virtual void SetSetting<T>(string name, T value)
-			=> SetSetting(GetSettings()[name], value);
+			=> SetSetting(SettingParser.GetSetting(name, PrefixState.NotPrefixed), value);
 		/// <inheritdoc />
 		public virtual void SaveSettings(IBotDirectoryAccessor accessor)
 			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
@@ -97,46 +96,14 @@ namespace Advobot.Classes
 			RaisePropertyChanged(caller);
 		}
 		/// <summary>
-		/// Adds the setting.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="selector"></param>
-		/// <param name="reset"></param>
-		/// <param name="parser"></param>
-		protected void RegisterSetting<T>(Expression<Func<T>> selector, Func<T, T> reset, TryParseDelegate<T> parser = default)
-			=> Parser.Add(new Setting<T>(selector, parser: parser) { ResetValueFactory = reset, });
-		/// <summary>
-		/// Clears the list.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="x"></param>
-		/// <returns></returns>
-		protected IList<T> ClearList<T>(IList<T> x)
-		{
-			x.Clear();
-			return x;
-		}
-		/// <summary>
-		/// Resets the values in a dictionary.
-		/// </summary>
-		/// <typeparam name="TK"></typeparam>
-		/// <typeparam name="TV"></typeparam>
-		/// <param name="x"></param>
-		/// <returns></returns>
-		protected IDictionary<TK, TV> ResetDictionary<TK, TV>(IDictionary<TK, TV> x)
-		{
-			x.Keys.ToList().ForEach(k => x[k] = default);
-			return x;
-		}
-		/// <summary>
 		/// Sets the property to the specified value.
 		/// </summary>
 		/// <param name="setting"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		private object SetSetting(ICompleteSetting setting, object value)
+		private object SetSetting(ISetting setting, object value)
 		{
-			setting.Set(value);
+			setting.SetValue(value);
 			RaisePropertyChanged(setting.MainName);
 			return setting.GetValue();
 		}
@@ -145,9 +112,9 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="setting"></param>
 		/// <returns></returns>
-		private object ResetSetting(ICompleteSetting setting)
+		private object ResetSetting(ISetting setting)
 		{
-			setting.Reset();
+			setting.ResetValue();
 			RaisePropertyChanged(setting.MainName);
 			return setting.GetValue();
 		}
@@ -202,9 +169,9 @@ namespace Advobot.Classes
 					return setting.ToString(guild);
 				case IDictionary dict: //Has to be above IEnumerable too
 					var keys = dict.Keys.Cast<object>().Where(x => dict[x] != null);
-					return string.Join("\n", keys.Select(x => $"{Format(client, guild, x)}: {Format(client, guild, dict[x])}"));
+					return keys.Join("\n", x => $"{Format(client, guild, x)}: {Format(client, guild, dict[x])}");
 				case IEnumerable enumerable:
-					return string.Join("\n", enumerable.Cast<object>().Select(x => Format(client, guild, x)));
+					return enumerable.Cast<object>().Join("\n", x => Format(client, guild, x));
 				default:
 					return $"`{value}`";
 			}

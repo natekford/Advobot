@@ -1,112 +1,145 @@
 ﻿using System;
 using System.Collections.Generic;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.TypeReaders;
+using System.Text;
+using AdvorangesUtils;
+using Discord;
 
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// Allows a user to make an embed through the use of <see cref="NamedArguments{T}"/>.
+	/// Specifies a field on an embed.
+	/// </summary>
+	public sealed class CustomField
+	{
+		/// <summary>
+		/// The name of the field.
+		/// </summary>
+		public string Name { get; private set; }
+		/// <summary>
+		/// The text of the field.
+		/// </summary>
+		public string Text { get; private set; }
+		/// <summary>
+		/// Whether the field is inline.
+		/// </summary>
+		public bool Inline { get; private set; }
+
+		/// <summary>
+		/// Returns the name and text.
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+			=> $"**Name:** `{Name}`\n**Text:** `{Text}`";
+	}
+
+	/// <summary>
+	/// Allows a user to make an embed.
 	/// </summary>
 	public sealed class CustomEmbed
 	{
-		private const string FIELD_NAME = "FieldName";
-		private const string FIELD_TEXT = "FieldText";
-		private const string FIELD_INLINE = "FieldInline";
-		private const string SPLIT_CHAR = "|";
-		private static char _SplitChar = SPLIT_CHAR[0];
 		/// <summary>
-		/// The format to use when inputting fields.
+		/// The title of the embed.
 		/// </summary>
-		public const string FIELD_FORMAT = FIELD_NAME + ":Name" + SPLIT_CHAR + FIELD_TEXT + ":Text" + SPLIT_CHAR + FIELD_INLINE + ":True|False";
+		public string Title { get; set; }
+		/// <summary>
+		/// The description of the embed.
+		/// </summary>
+		public string Description { get; set; }
+		/// <summary>
+		/// The image url of the embed.
+		/// </summary>
+		public Uri ImageUrl { get; set; }
+		/// <summary>
+		/// The url of the embed.
+		/// </summary>
+		public Uri Url { get; set; }
+		/// <summary>
+		/// The thumbnail url of the embed.
+		/// </summary>
+		public Uri ThumbUrl { get; set; }
+		/// <summary>
+		/// The color of the embed.
+		/// </summary>
+		public Color? Color { get; set; }
+		/// <summary>
+		/// The author of the embed.
+		/// </summary>
+		public string AuthorName { get; set; }
+		/// <summary>
+		/// The author's picture.
+		/// </summary>
+		public Uri AuthorIconUrl { get; set; }
+		/// <summary>
+		/// The url to use when clicking on the author's name.
+		/// </summary>
+		public Uri AuthorUrl { get; set; }
+		/// <summary>
+		/// The footer text.
+		/// </summary>
+		public string Footer { get; set; }
+		/// <summary>
+		/// The footer's picture.
+		/// </summary>
+		public Uri FooterIconUrl { get; set; }
+		/// <summary>
+		/// All of the fields on the embed.
+		/// </summary>
+		public IList<CustomField> FieldInfo { get; } = new List<CustomField>();
 
 		/// <summary>
-		/// The embed to create.
+		/// Builds the embed from the fields.
 		/// </summary>
-		public EmbedWrapper Embed { get; }
-
-		/// <summary>
-		/// Creates an instance of <see cref="CustomEmbed"/> and with null as every parameter.
-		/// </summary>
-		public CustomEmbed() : this(null, null, null, null, null, null, null, null, null, null, null) { }
-		/// <summary>
-		/// Sets the arguments of <see cref="Embed"/>.
-		/// </summary>
-		/// <param name="title"></param>
-		/// <param name="description"></param>
-		/// <param name="imageUrl"></param>
-		/// <param name="url"></param>
-		/// <param name="thumbUrl"></param>
-		/// <param name="color"></param>
-		/// <param name="authorName"></param>
-		/// <param name="authorIconUrl"></param>
-		/// <param name="authorUrl"></param>
-		/// <param name="footer"></param>
-		/// <param name="footerIconUrl"></param>
-		/// <param name="fieldInfo"></param>
-		[NamedArgumentConstructor]
-		public CustomEmbed(
-			[NamedArgument] string title,
-			[NamedArgument] string description,
-			[NamedArgument] string imageUrl,
-			[NamedArgument] string url,
-			[NamedArgument] string thumbUrl,
-			[NamedArgument] string color,
-			[NamedArgument] string authorName,
-			[NamedArgument] string authorIconUrl,
-			[NamedArgument] string authorUrl,
-			[NamedArgument] string footer,
-			[NamedArgument] string footerIconUrl,
-			[NamedArgument(25)] params string[] fieldInfo)
+		/// <returns></returns>
+		public EmbedWrapper BuildWrapper()
 		{
-			Embed = new EmbedWrapper
+			var embed = new EmbedWrapper
 			{
-				Title = title,
-				Description = description,
-				Color = ColorTypeReader.ParseColor(color),
-				ImageUrl = imageUrl,
-				Url = url,
-				ThumbnailUrl = thumbUrl
+				Title = Title,
+				Description = Description,
+				Color = Color,
+				ImageUrl = ImageUrl?.ToString(),
+				Url = Url?.ToString(),
+				ThumbnailUrl = ThumbUrl?.ToString(),
 			};
-			Embed.TryAddAuthor(authorName, authorUrl, authorIconUrl, out _);
-			Embed.TryAddFooter(footer, footerIconUrl, out _);
+			embed.TryAddAuthor(AuthorName, AuthorUrl?.ToString(), AuthorIconUrl?.ToString(), out _);
+			embed.TryAddFooter(Footer, FooterIconUrl?.ToString(), out _);
 
-			//Fields are done is a very gross way
-			foreach (var f in fieldInfo)
+			foreach (var field in FieldInfo)
 			{
-				//Split at max three since there are three parts to each field. Name, text, and inline.
-				var split = f.Split(new[] { _SplitChar }, 3);
-				if (split.Length < 2)
-				{
-					continue;
-				}
-
-				//Create a dict to store the values
-				var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-				{
-					{ FIELD_NAME, null },
-					{ FIELD_TEXT, null },
-					{ FIELD_INLINE, null }
-				};
-				//Get the values by the standard split by colon
-				foreach (var arg in split)
-				{
-					var splitArg = arg.Split(new[] { ':' }, 2);
-					if (splitArg.Length == 2 && dict.ContainsKey(splitArg[0]))
-					{
-						dict[splitArg[0]] = splitArg[1];
-					}
-				}
-
-				//Fields cannot be set if the name or text is null
-				if (string.IsNullOrWhiteSpace(dict[FIELD_NAME]) || string.IsNullOrWhiteSpace(dict[FIELD_TEXT]))
-				{
-					continue;
-				}
-
-				//Finally try to parse if the inline is a bool or not
-				bool.TryParse(dict[FIELD_INLINE], out var inline);
-				Embed.TryAddField(dict[FIELD_NAME], dict[FIELD_TEXT], inline, out _);
+				embed.TryAddField(field.Name, field.Text, field.Inline, out _);
+			}
+			return embed;
+		}
+		/// <summary>
+		/// Returns the formatted properties.
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+			AddIfNotNull(sb, () => Title, nameof(Title));
+			AddIfNotNull(sb, () => Description, nameof(Description));
+			AddIfNotNull(sb, () => ImageUrl, nameof(ImageUrl));
+			AddIfNotNull(sb, () => Url, nameof(Url));
+			AddIfNotNull(sb, () => ThumbUrl, nameof(ThumbUrl));
+			AddIfNotNull(sb, () => Color, nameof(Color));
+			AddIfNotNull(sb, () => AuthorName, nameof(AuthorName));
+			AddIfNotNull(sb, () => AuthorIconUrl, nameof(AuthorIconUrl));
+			AddIfNotNull(sb, () => AuthorUrl, nameof(AuthorUrl));
+			AddIfNotNull(sb, () => Footer, nameof(Footer));
+			AddIfNotNull(sb, () => FooterIconUrl, nameof(FooterIconUrl));
+			for (int i = 0; i < FieldInfo.Count; ++i)
+			{
+				AddIfNotNull(sb, () => FieldInfo[i], $"Field {i}");
+			}
+			return sb.ToString();
+		}
+		private void AddIfNotNull(StringBuilder sb, Func<object> getter, string name)
+		{
+			var value = getter();
+			if (value != null)
+			{
+				sb.AppendLineFeed($"**{name}:** `{value}`");
 			}
 		}
 	}

@@ -60,11 +60,7 @@ namespace Advobot.Services.Timers
 		/// <summary>
 		/// Queue responsible for processing close help entries.
 		/// </summary>
-		private ProcessingQueue CloseHelpEntries { get; }
-		/// <summary>
-		/// Queue responsible for processing close quotes..
-		/// </summary>
-		private ProcessingQueue CloseQuotes { get; }
+		private ProcessingQueue RemovableCloseWords { get; }
 		/// <summary>
 		/// Cached message ids which have already been deleted so there are less exceptions given when deleting messages.
 		/// </summary>
@@ -99,14 +95,9 @@ namespace Advobot.Services.Timers
 				var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableMessage>.Delete(x => x.Time < DateTime.UtcNow));
 				await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
 			});
-			CloseHelpEntries = new ProcessingQueue(1, async () =>
+			RemovableCloseWords = new ProcessingQueue(1, async () =>
 			{
-				var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseHelpEntries>.Delete(x => x.Time < DateTime.UtcNow));
-				await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
-			});
-			CloseQuotes = new ProcessingQueue(1, async () =>
-			{
-				var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseQuotes>.Delete(x => x.Time < DateTime.UtcNow));
+				var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Delete(x => x.Time < DateTime.UtcNow));
 				await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
 			});
 
@@ -124,8 +115,7 @@ namespace Advobot.Services.Timers
 			SecondTimer.Elapsed += (sender, e) =>
 			{
 				RemovableMessages.Process();
-				CloseHelpEntries.Process();
-				CloseQuotes.Process();
+				RemovableCloseWords.Process();
 			};
 
 			Client.MessageDeleted += (cached, channel) =>
@@ -144,18 +134,11 @@ namespace Advobot.Services.Timers
 			DatabaseWrapper.ExecuteQuery(DBQuery<RemovablePunishment>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
-		public async Task AddAsync(CloseHelpEntries value)
+		public async Task AddAsync(RemovableCloseWords value)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseHelpEntries>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
+			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
 			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
-			DatabaseWrapper.ExecuteQuery(DBQuery<CloseHelpEntries>.Insert(new[] { value }));
-		}
-		/// <inheritdoc />
-		public async Task AddAsync(CloseQuotes value)
-		{
-			var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseQuotes>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
-			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
-			DatabaseWrapper.ExecuteQuery(DBQuery<CloseQuotes>.Insert(new[] { value }));
+			DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
 		public Task AddAsync(RemovableMessage value)
@@ -178,16 +161,9 @@ namespace Advobot.Services.Timers
 			return values.SingleOrDefault();
 		}
 		/// <inheritdoc />
-		public async Task<CloseHelpEntries> RemoveActiveCloseHelpAsync(ulong guildId, ulong userId)
+		public async Task<RemovableCloseWords> RemoveActiveCloseWords(ulong guildId, ulong userId)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseHelpEntries>.Delete(x => x.GuildId == guildId && x.UserId == userId));
-			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
-			return values.SingleOrDefault();
-		}
-		/// <inheritdoc />
-		public async Task<CloseQuotes> RemoveActiveCloseQuoteAsync(ulong guildId, ulong userId)
-		{
-			var values = DatabaseWrapper.ExecuteQuery(DBQuery<CloseQuotes>.Delete(x => x.GuildId == guildId && x.UserId == userId));
+			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Delete(x => x.GuildId == guildId && x.UserId == userId));
 			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
 			return values.SingleOrDefault();
 		}

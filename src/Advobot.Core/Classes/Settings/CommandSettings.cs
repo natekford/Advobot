@@ -175,7 +175,7 @@ namespace Advobot.Classes.Settings
 					sb.AppendLine($"{title}\n{overrides}");
 				}
 			}
-			return $"{string.Join("\n", _CommandValues.Select(x => $"`{x.Key}:` `{x.Value}`"))}\n\n{sb}".TrimEnd();
+			return $"{_CommandValues.Join("\n", x => $"`{x.Key}:` `{x.Value}`")}\n\n{sb}".TrimEnd();
 		}
 		private static bool ModifyOverride(IDictionary<string, bool> dict, ValueToModify newValue)
 		{

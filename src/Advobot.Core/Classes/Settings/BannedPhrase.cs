@@ -23,7 +23,7 @@ namespace Advobot.Classes.Settings
 		/// The phrase which is banned. Can be string or regex pattern.
 		/// </summary>
 		[JsonProperty]
-		public string Phrase { get; }
+		public string Phrase { get; private set; }
 		/// <summary>
 		/// The type of punishment associated with this phrase.
 		/// </summary>
@@ -31,7 +31,11 @@ namespace Advobot.Classes.Settings
 		public Punishment Punishment { get; set; }
 
 		/// <summary>
-		/// Creates an instance of banned phrase.
+		/// Creates an instance of <see cref="BannedPhrase"/>.
+		/// </summary>
+		public BannedPhrase() { }
+		/// <summary>
+		/// Creates an instance of <see cref="BannedPhrase"/>.
 		/// </summary>
 		/// <param name="phrase"></param>
 		/// <param name="punishment"></param>
