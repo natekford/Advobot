@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Utilities;
@@ -22,7 +23,7 @@ namespace Advobot.Commands.SelfRoles
 		"Add and Remove modify a single role in a group.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
+	//[SaveGuildSettings]
 	public sealed class ModifySelfRoles : AdvobotModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
@@ -32,12 +33,13 @@ namespace Advobot.Commands.SelfRoles
 		public async Task Delete(uint groupNumber)
 			=> await CommandRunner(groupNumber).CAF();
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add(uint groupNumber, [ValidateObject(Verif.CanBeEdited)] params IRole[] roles)
+		public async Task Add(uint groupNumber, [ValidateRole(Verif.CanBeEdited)] params SocketRole[] roles)
 			=> await CommandRunner(groupNumber, roles).CAF();
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove(uint groupNumber, [ValidateObject(Verif.CanBeEdited)] params IRole[] roles)
+		public async Task Remove(uint groupNumber, [ValidateRole(Verif.CanBeEdited)] params SocketRole[] roles)
 			=> await CommandRunner(groupNumber, roles).CAF();
 
+#warning rewrite this trash
 		private async Task CommandRunner(uint groupNum, [CallerMemberName] string caller = "")
 		{
 			var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
@@ -154,7 +156,7 @@ namespace Advobot.Commands.SelfRoles
 			var user = (SocketGuildUser)Context.User;
 			if (user.Roles.Any(x => x.Id == role.Id))
 			{
-				await user.AddRoleAsync(role, GetRequestOptions("self role removal")).CAF();
+				await user.AddRoleAsync(role, GenerateRequestOptions("self role removal")).CAF();
 				await ReplyTimedAsync($"Successfully removed `{role.Format()}`.").CAF();
 				return;
 			}
@@ -164,11 +166,11 @@ namespace Advobot.Commands.SelfRoles
 			var otherRoles = user.Roles.Where(x => group.Roles.Contains(x.Id));
 			if (group.Group != 0 && otherRoles.Any())
 			{
-				await user.RemoveRolesAsync(otherRoles, GetRequestOptions("self role removal")).CAF();
+				await user.RemoveRolesAsync(otherRoles, GenerateRequestOptions("self role removal")).CAF();
 				removedRoles = $", and removed `{otherRoles.Join("`, `", x => x.Format())}`";
 			}
 
-			await user.AddRoleAsync(role, GetRequestOptions("self role giving")).CAF();
+			await user.AddRoleAsync(role, GenerateRequestOptions("self role giving")).CAF();
 			await ReplyTimedAsync($"Successfully gave `{role.Name}`{removedRoles}.").CAF();
 		}
 	}

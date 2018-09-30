@@ -1,7 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Enums;
+using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
@@ -45,13 +47,13 @@ namespace Advobot.Commands.BotSettings
 		public async Task Reset(string settingName)
 			=> await ResetAsync(settingName).CAF();
 		[Command(nameof(IBotSettings.Prefix)), ShortAlias(nameof(IBotSettings.Prefix))]
-		public async Task Prefix([ValidateString(Target.Prefix)] string value)
+		public async Task Prefix([ValidatePrefix] string value)
 			=> await ModifyAsync(x => x.Prefix, value).CAF();
 		[Command(nameof(IBotSettings.Game)), ShortAlias(nameof(IBotSettings.Game))]
-		public async Task Game([ValidateString(Target.Game)] string value)
+		public async Task Game([ValidateGame] string value)
 			=> await ModifyAsync(x => x.Game, value).CAF();
 		[Command(nameof(IBotSettings.Stream)), ShortAlias(nameof(IBotSettings.Stream))]
-		public async Task Stream([ValidateString(Target.Stream)] string value)
+		public async Task Stream([ValidateTwitchStream] string value)
 			=> await ModifyAsync(x => x.Stream, value).CAF();
 		[Command(nameof(IBotSettings.LogLevel)), ShortAlias(nameof(IBotSettings.LogLevel))]
 		public async Task LogLevel(LogSeverity value)
@@ -60,37 +62,37 @@ namespace Advobot.Commands.BotSettings
 		public async Task AlwaysDownloadUsers(bool value)
 			=> await ModifyAsync(x => x.AlwaysDownloadUsers, value).CAF();
 		[Command(nameof(IBotSettings.MessageCacheSize)), ShortAlias(nameof(IBotSettings.MessageCacheSize))]
-		public async Task MessageCacheSize([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MessageCacheSize([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MessageCacheSize, value).CAF();
 		[Command(nameof(IBotSettings.MaxUserGatherCount)), ShortAlias(nameof(IBotSettings.MaxUserGatherCount))]
-		public async Task MaxUserGatherCount([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxUserGatherCount([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxUserGatherCount, value).CAF();
 		[Command(nameof(IBotSettings.MaxMessageGatherSize)), ShortAlias(nameof(IBotSettings.MaxMessageGatherSize))]
-		public async Task MaxMessageGatherSize([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxMessageGatherSize([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxMessageGatherSize, value).CAF();
 		[Command(nameof(IBotSettings.MaxRuleCategories)), ShortAlias(nameof(IBotSettings.MaxRuleCategories))]
-		public async Task MaxRuleCategories([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxRuleCategories([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxRuleCategories, value).CAF();
 		[Command(nameof(IBotSettings.MaxRulesPerCategory)), ShortAlias(nameof(IBotSettings.MaxRulesPerCategory))]
-		public async Task MaxRulesPerCategory([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxRulesPerCategory([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxRulesPerCategory, value).CAF();
 		[Command(nameof(IBotSettings.MaxSelfAssignableRoleGroups)), ShortAlias(nameof(IBotSettings.MaxSelfAssignableRoleGroups))]
-		public async Task MaxSelfAssignableRoleGroups([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxSelfAssignableRoleGroups([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxSelfAssignableRoleGroups, value).CAF();
 		[Command(nameof(IBotSettings.MaxQuotes)), ShortAlias(nameof(IBotSettings.MaxQuotes))]
-		public async Task MaxQuotes([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxQuotes([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxQuotes, value).CAF();
 		[Command(nameof(IBotSettings.MaxBannedStrings)), ShortAlias(nameof(IBotSettings.MaxBannedStrings))]
-		public async Task MaxBannedStrings([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxBannedStrings([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxBannedStrings, value).CAF();
 		[Command(nameof(IBotSettings.MaxBannedRegex)), ShortAlias(nameof(IBotSettings.MaxBannedRegex))]
-		public async Task MaxBannedRegex([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxBannedRegex([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxBannedRegex, value).CAF();
 		[Command(nameof(IBotSettings.MaxBannedNames)), ShortAlias(nameof(IBotSettings.MaxBannedNames))]
-		public async Task MaxBannedNames([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxBannedNames([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxBannedNames, value).CAF();
 		[Command(nameof(IBotSettings.MaxBannedPunishments)), ShortAlias(nameof(IBotSettings.MaxBannedPunishments))]
-		public async Task MaxBannedPunishments([ValidateNumber(1, int.MaxValue)] int value)
+		public async Task MaxBannedPunishments([ValidatePositiveNumber] int value)
 			=> await ModifyAsync(x => x.MaxBannedPunishments, value).CAF();
 		[Command(nameof(IBotSettings.TrustedUsers)), ShortAlias(nameof(IBotSettings.TrustedUsers))]
 		public async Task TrustedUsers(AddBoolean add, params ulong[] values)

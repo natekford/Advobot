@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 
@@ -16,11 +16,11 @@ namespace Advobot.Commands.Rules
 	[Summary("Modifies the rule categories which hold rules.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
+	//[SaveGuildSettings]
 	public sealed class ModifyRuleCategories : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add([ValidateString(Target.RuleCategory)] string name)
+		public async Task Add([ValidateRuleCategory] string name)
 		{
 			if (Context.GuildSettings.Rules.Categories.Keys.CaseInsContains(name))
 			{
@@ -33,7 +33,7 @@ namespace Advobot.Commands.Rules
 			await ReplyTimedAsync($"Successfully created the category `{name}` at `{pos}`.").CAF();
 		}
 		[Command(nameof(ChangeName)), ShortAlias(nameof(ChangeName))]
-		public async Task ChangeName([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [ValidateString(Target.RuleCategory)] string newName)
+		public async Task ChangeName([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [ValidateRuleCategory] string newName)
 		{
 			var oldVal = Context.GuildSettings.Rules.Categories[category];
 			Context.GuildSettings.Rules.Categories.Remove(category);
@@ -48,15 +48,16 @@ namespace Advobot.Commands.Rules
 		}
 	}
 
+#warning redo how index is parsed
 	[Category(typeof(ModifyRules)), Group(nameof(ModifyRules)), TopLevelShortAlias(typeof(ModifyRules))]
 	[Summary("Modifies the rules which are saved in the bot settings.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
+	//[SaveGuildSettings]
 	public sealed class ModifyRules : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [ValidateString(Target.Rule)] string rule)
+		public async Task Add([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [ValidateRule] string rule)
 		{
 			if (Context.GuildSettings.Rules.Categories[category].CaseInsContains(rule))
 			{
@@ -68,7 +69,7 @@ namespace Advobot.Commands.Rules
 			await ReplyTimedAsync($"Successfully added a rule in `{category}`.").CAF();
 		}
 		[Command(nameof(Insert)), ShortAlias(nameof(Insert))]
-		public async Task Insert([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, uint index, [ValidateString(Target.Rule)] string rule)
+		public async Task Insert([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, uint index, [ValidateRule] string rule)
 		{
 			var count = Context.GuildSettings.Rules.Categories[category].Count;
 			Context.GuildSettings.Rules.Categories[category].Insert(Math.Min((int)Math.Min(index, int.MaxValue), count - 1), rule);

@@ -202,7 +202,7 @@ namespace Advobot.Classes
 			commands = commands ?? throw new ArgumentException($"{nameof(commands)} cannot be null.");
 			//I have no idea if I am providing services correctly, but it works.
 			var s = new ServiceCollection();
-			s.AddSingleton<DiscordShardedClient>(p =>
+			s.AddSingleton(p =>
 			{
 				var settings = p.GetRequiredService<IBotSettings>();
 				return new DiscordShardedClient(new DiscordSocketConfig

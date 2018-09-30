@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -21,26 +24,20 @@ namespace Advobot.Commands.Invites
 		[Command]
 		public async Task Command()
 		{
-			var invites = (await Context.Guild.GetInvitesAsync().CAF()).OrderByDescending(x => x.Uses).ToList();
-			if (!invites.Any())
+			var invites = (await Context.Guild.GetInvitesAsync().CAF()).OrderByDescending(x => x.Uses).ToArray();
+			var lenForCode = 0;
+			var lenForUses = 0;
+			foreach (var invite in invites)
 			{
-				await ReplyErrorAsync(new Error("This guild has no invites.")).CAF();
-				return;
+				lenForCode = Math.Max(lenForCode, invite.Code.Length);
+				lenForUses = Math.Max(lenForUses, invite.Uses.ToString().Length);
 			}
-
-			var lenForCode = invites.Max(x => x.Code.Length);
-			var lenForUses = invites.Max(x => x.Uses).ToString().Length;
-			var desc = string.Join("\n", invites.FormatNumberedList(x =>
+			await ReplyIfAny(invites, "Invites", x =>
 			{
 				var code = x.Code.PadRight(lenForCode);
 				var uses = x.Uses.ToString().PadRight(lenForUses);
 				var inviter = x.Inviter.Format();
 				return $"`{code}` `{uses}` `{inviter}`";
-			}));
-			await ReplyEmbedAsync(new EmbedWrapper
-			{
-				Title = "Instant Invite List",
-				Description = desc,
 			}).CAF();
 		}
 	}
@@ -54,16 +51,27 @@ namespace Advobot.Commands.Invites
 	[DefaultEnabled(true)]
 	public sealed class CreateInvite : AdvobotModuleBase
 	{
+#warning redo how arguments are parsed here
 		[Command]
 		public async Task Command(
-			[ValidateObject(Verif.CanCreateInstantInvite, IfNullCheckFromContext = true)] SocketGuildChannel channel,
-			[Optional, ValidateNumber(new[] { 0, 1800, 3600, 21600, 43200, 86400 })] int time,
-			[Optional, ValidateNumber(new[] { 0, 1, 5, 10, 25, 50, 100 })] int uses,
+			[Optional, ValidateTextChannel(Verif.CanCreateInstantInvite, IfNullCheckFromContext = true)] SocketTextChannel channel,
+			[Optional, ValidateInviteTime] int time,
+			[Optional, ValidateInviteUses] int uses,
 			[Optional] bool tempMem)
+			=> await CommandRunner(channel, time, uses, tempMem).CAF();
+		[Command]
+		public async Task Command(
+			[ValidateVoiceChannel(Verif.CanCreateInstantInvite, IfNullCheckFromContext = true)] SocketVoiceChannel channel,
+			[Optional, ValidateInviteTime] int time,
+			[Optional, ValidateInviteUses] int uses,
+			[Optional] bool tempMem)
+			=> await CommandRunner(channel, time, uses, tempMem).CAF();
+
+		private async Task CommandRunner(SocketGuildChannel channel, int time, int uses, bool tempMem)
 		{
 			var nullableTime = time != 0 ? time as int? : 86400;
 			var nullableUses = uses != 0 ? uses as int? : null;
-			var inv = await channel.CreateInviteAsync(nullableTime, nullableUses, tempMem, false, GetRequestOptions()).CAF();
+			var inv = await channel.CreateInviteAsync(nullableTime, nullableUses, tempMem, false, GenerateRequestOptions()).CAF();
 
 			var timeOutputStr = uses != 0
 				? $"It will last for this amount of time: `{nullableTime}`."
@@ -88,7 +96,7 @@ namespace Advobot.Commands.Invites
 		[Command]
 		public async Task Command(IInvite invite)
 		{
-			await invite.DeleteAsync(GetRequestOptions()).CAF();
+			await invite.DeleteAsync(GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully deleted the invite `{invite.Code}`.").CAF();
 		}
 	}
@@ -113,7 +121,7 @@ namespace Advobot.Commands.Invites
 
 			foreach (var invite in invites)
 			{
-				await invite.DeleteAsync(GetRequestOptions()).CAF();
+				await invite.DeleteAsync(GenerateRequestOptions()).CAF();
 			}
 			await ReplyTimedAsync($"Successfully deleted `{invites.Count()}` instant invites.").CAF();
 		}

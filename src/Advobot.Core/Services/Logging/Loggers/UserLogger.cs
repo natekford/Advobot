@@ -92,7 +92,7 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			var invite = await DiscordUtils.GetInviteUserJoinedOnAsync(settings, user).CAF() is CachedInvite inv
+			var invite = await settings.Invites.GetInviteUserJoinedOnAsync(user).CAF() is CachedInvite inv
 				? $"**Invite:** {inv.Code}"
 				: "";
 			var age = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime()) is TimeSpan time && time.TotalHours < 24

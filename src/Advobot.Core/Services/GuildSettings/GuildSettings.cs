@@ -13,6 +13,7 @@ using Advobot.Utilities;
 using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
+using Discord.Rest;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -239,13 +240,16 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		public async Task PostDeserializeAsync(SocketGuild guild)
 		{
+			Loaded = true;
 			GuildId = guild.Id;
-			Invites.AddRange((await DiscordUtils.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x)));
+			foreach (var invite in await guild.SafeGetInvitesAsync().CAF() ?? Enumerable.Empty<RestInviteMetadata>())
+			{
+				Invites.Add(new CachedInvite(invite));
+			}
 			foreach (var group in SelfAssignableGroups ?? Enumerable.Empty<SelfAssignableRoles>())
 			{
 				group.PostDeserialize(guild);
 			}
-			Loaded = true;
 		}
 		/// <inheritdoc />
 		public override FileInfo GetFile(IBotDirectoryAccessor accessor)

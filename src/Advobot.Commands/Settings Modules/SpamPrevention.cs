@@ -17,7 +17,7 @@ namespace Advobot.Commands.SpamPrevention
 		"The spam users are reset every hour.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
+	//[SaveGuildSettings]
 	public sealed class PreventSpam : AdvobotModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
@@ -52,7 +52,7 @@ namespace Advobot.Commands.SpamPrevention
 		"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
+	//[SaveGuildSettings]
 	public sealed class PreventRaid : AdvobotModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]

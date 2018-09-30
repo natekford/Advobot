@@ -4,18 +4,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 {
 	/// <summary>
 	/// Makes sure the passed in number is in the supplied list.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class ValidateNumberAttribute : ParameterPreconditionAttribute
+	public abstract class ValidateNumberAttribute : OptionalParameterPreconditionAttribute
 	{
 		/// <summary>
 		/// Allowed numbers. If the range method is used this will be empty.
 		/// </summary>
-		public ImmutableList<int> ValidNumbers { get; }
+		public ImmutableArray<int> ValidNumbers { get; }
 		/// <summary>
 		/// The starting value.
 		/// </summary>
@@ -31,14 +31,9 @@ namespace Advobot.Classes.Attributes
 		/// <param name="numbers"></param>
 		public ValidateNumberAttribute(int[] numbers)
 		{
-			if (numbers.Length > 50)
-			{
-				throw new ArgumentException("Don't input more than 50 numbers.", nameof(numbers));
-			}
-
-			ValidNumbers = numbers.OrderBy(x => x).ToImmutableList();
-			Start = int.MaxValue;
-			End = int.MinValue;
+			ValidNumbers = numbers.OrderBy(x => x).ToImmutableArray();
+			Start = int.MinValue;
+			End = int.MaxValue;
 		}
 		/// <summary>
 		/// Valid numbers can start at <paramref name="start"/> inclusive or end at <paramref name="end"/> inclusive.
@@ -47,7 +42,7 @@ namespace Advobot.Classes.Attributes
 		/// <param name="end"></param>
 		public ValidateNumberAttribute(int start, int end)
 		{
-			ValidNumbers = new int[0].ToImmutableList();
+			ValidNumbers = new int[0].ToImmutableArray();
 			Start = start;
 			End = end;
 		}
@@ -60,13 +55,8 @@ namespace Advobot.Classes.Attributes
 		/// <param name="value"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		protected override Task<PreconditionResult> ProtectedCheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
-			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-			if (value == null)
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
 			if (!int.TryParse(value.ToString(), out var num))
 			{
 				throw new NotSupportedException($"{nameof(ValidateNumberAttribute)} only supports {nameof(Int32)}.");
@@ -77,15 +67,31 @@ namespace Advobot.Classes.Attributes
 					? Task.FromResult(PreconditionResult.FromSuccess())
 					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{string.Join("`, `", ValidNumbers)}`"));
 			}
-			return num >= Start && num <= End
+			var start = GetStart(context);
+			var end = GetEnd(context);
+			return num >= start && num <= end
 				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{Start}` and `{End}`."));
+				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{start}` and `{end}`."));
 		}
+		/// <summary>
+		/// Returns the number to use for the start. This will only be used if <see cref="ValidNumbers"/> is empty.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <returns></returns>
+		public virtual int GetStart(ICommandContext context)
+			=> Start;
+		/// <summary>
+		/// Returns the number to use for the end. This will only be used if <see cref="ValidNumbers"/> is empty.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <returns></returns>
+		public virtual int GetEnd(ICommandContext context)
+			=> End;
 		/// <summary>
 		/// Returns a string indicating what the valid numbers are.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> ValidNumbers.Any() ? $"({string.Join(", ", ValidNumbers)}" : $"({Start} to {End})";
+			=> ValidNumbers.Any() ? $"({string.Join(", ", ValidNumbers)})" : $"({Start} to {End})";
 	}
 }

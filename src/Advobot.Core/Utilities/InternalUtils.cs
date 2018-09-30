@@ -25,8 +25,8 @@ namespace Advobot.Utilities
 		/// <param name="extraChecks"></param>
 		/// <returns></returns>
 		internal static VerifiedObjectResult InternalVerify(
-			ISnowflakeEntity target,
-			ICommandContext context,
+			SocketEntity<ulong> target,
+			SocketCommandContext context,
 			IEnumerable<Verif> checks,
 			string type,
 			Func<Verif, VerifiedObjectResult?> extraChecks = null)
@@ -65,11 +65,11 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		internal static bool InternalCanModify(IGuildUser invoker, ISnowflakeEntity target, Verif type)
+		internal static bool InternalCanModify(SocketGuildUser invoker, SocketEntity<ulong> target, Verif type)
 		{
 			switch (target)
 			{
-				case IGuildUser user:
+				case SocketGuildUser user:
 					switch (type)
 					{
 						case Verif.CanBeMovedFromChannel:
@@ -78,12 +78,13 @@ namespace Advobot.Utilities
 							return invoker.HasHigherPosition(user);
 					}
 					return true;
-				case IGuildChannel channel:
+				case SocketGuildChannel channel:
 					var guildPerms = invoker?.GuildPermissions ?? default;
 					if (guildPerms.Administrator)
 					{
 						return true;
 					}
+#warning rework this into simply supplying the permissions to check
 					var channelPerms = invoker?.GetPermissions(channel) ?? default;
 					switch (type)
 					{
@@ -105,11 +106,11 @@ namespace Advobot.Utilities
 							return channelPerms.ManageWebhooks;
 					}
 					return true;
-				case IRole role:
+				case SocketRole role:
 					switch (type)
 					{
 						case Verif.CanBeEdited:
-							return invoker is SocketGuildUser socketInvoker && socketInvoker.Hierarchy > role?.Position;
+							return invoker is SocketGuildUser socketInvoker && socketInvoker.Hierarchy > role.Position;
 					}
 					return true;
 				default:

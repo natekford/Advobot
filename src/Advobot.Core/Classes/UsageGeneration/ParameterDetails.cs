@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.TypeReaders;
 using AdvorangesUtils;
 using Discord;
@@ -105,6 +107,7 @@ namespace Advobot.Classes.UsageGeneration
 		}
 		private static string GetText(Type parameterType, IEnumerable<Attribute> attrs, bool isRemainder)
 		{
+#warning rewrite nearly entirely
 			var text = "";
 			text += attrs.GetAttribute<ValidateNumberAttribute>() is ValidateNumberAttribute v ? $" {v}" : "";
 			text += attrs.GetAttribute<ValidateStringAttribute>() is ValidateStringAttribute s ? $" {s}" : "";

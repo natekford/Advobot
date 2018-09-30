@@ -33,11 +33,7 @@ namespace Advobot.Services.BotSettings
 		public string Game
 		{
 			get => _Game;
-			set
-			{
-				var max = ValidateStringAttribute.MinsMaxesAndErrors[Target.Game].Max;
-				ThrowIfElseSet(ref _Game, value, v => v?.Length > max, $"Must not be longer than {max} characters.");
-			}
+			set => ThrowIfElseSet(ref _Game, value, v => v?.Length > 128, $"Must not be longer than 128 characters.");
 		}
 		/// <inheritdoc />
 		[JsonProperty("Stream")]

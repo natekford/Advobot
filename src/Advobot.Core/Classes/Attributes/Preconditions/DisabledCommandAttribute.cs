@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Classes.Attributes.Preconditions
 {
 	/// <summary>
 	/// Specifies a command is broken. Will provide an error each time a user tries to invoke the command.

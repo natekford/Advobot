@@ -2,8 +2,9 @@
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.ImageResizing;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -19,10 +20,10 @@ namespace Advobot.Commands.Client
 	public sealed class ModifyBotName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([Remainder, ValidateString(Target.Name)] string newName)
+		public async Task Command([Remainder, ValidateUsername] string name)
 		{
-			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = newName).CAF();
-			await ReplyTimedAsync($"Successfully changed my username to `{newName}`.").CAF();
+			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).CAF();
+			await ReplyTimedAsync($"Successfully changed my username to `{name}`.").CAF();
 		}
 	}
 
@@ -33,7 +34,7 @@ namespace Advobot.Commands.Client
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotIcon : AdvobotModuleBase
 	{
-		//TODO: put this into the service provider?
+#warning put this into service provider
 		private static BotIconResizer _Resizer = new BotIconResizer(4);
 
 		[Command]
@@ -45,7 +46,7 @@ namespace Advobot.Commands.Client
 				return;
 			}
 
-			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GetRequestOptions());
+			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GenerateRequestOptions());
 			await ReplyTimedAsync($"Position in bot icon creation queue: {_Resizer.QueueCount}.").CAF();
 			if (_Resizer.CanStart)
 			{
@@ -81,7 +82,6 @@ namespace Advobot.Commands.Client
 	[Summary("Restarts the bot.")]
 	[RequireBotOwner]
 	[DefaultEnabled(true)]
-	[RequireServices(typeof(IBotSettings))]
 	public sealed class RestartBot : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]

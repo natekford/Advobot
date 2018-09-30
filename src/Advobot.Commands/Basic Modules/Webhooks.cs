@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.ImageResizing;
 using Advobot.Enums;
 using Advobot.Utilities;
@@ -12,6 +12,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.Webhook;
+using Discord.WebSocket;
 
 namespace Advobot.Commands.Webhooks
 {
@@ -38,7 +39,7 @@ namespace Advobot.Commands.Webhooks
 		[Command]
 		public async Task Command(IWebhook webhook)
 		{
-			await webhook.DeleteAsync(GetRequestOptions()).CAF();
+			await webhook.DeleteAsync(GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully deleted the webhook `{webhook.Format()}`.").CAF();
 		}
 	}
@@ -50,9 +51,9 @@ namespace Advobot.Commands.Webhooks
 	public sealed class ModifyWebhookName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(IWebhook webhook, [Remainder, ValidateString(Target.Name)] string name)
+		public async Task Command(IWebhook webhook, [Remainder, ValidateUsername] string name)
 		{
-			await webhook.ModifyAsync(x => x.Name = name, GetRequestOptions()).CAF();
+			await webhook.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully changed the name of `{webhook.Format()}` to `{name}`.").CAF();
 		}
 	}
@@ -66,9 +67,9 @@ namespace Advobot.Commands.Webhooks
 		[Command]
 		public async Task Command(
 			IWebhook webhook,
-			[ValidateObject(Verif.CanManageWebhooks, IfNullCheckFromContext = true)] ITextChannel channel)
+			[ValidateTextChannel(Verif.CanManageWebhooks, IfNullCheckFromContext = true)] SocketTextChannel channel)
 		{
-			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GetRequestOptions()).CAF();
+			await webhook.ModifyAsync(x => x.Channel = Optional.Create<ITextChannel>(channel), GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully set the channel of `{webhook.Format()}` to `{channel.Format()}`.").CAF();
 		}
 	}
@@ -90,7 +91,7 @@ namespace Advobot.Commands.Webhooks
 				return;
 			}
 
-			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GetRequestOptions(), webhook.Id.ToString());
+			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GenerateRequestOptions(), webhook.Id.ToString());
 			if (_Resizer.CanStart)
 			{
 				_Resizer.StartProcessing();
@@ -106,7 +107,7 @@ namespace Advobot.Commands.Webhooks
 				return;
 			}
 
-			await webhook.ModifyAsync(x => x.Image = new Image(), GetRequestOptions()).CAF();
+			await webhook.ModifyAsync(x => x.Image = new Image(), GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully removed the webhook icon from {webhook.Format()}.").CAF();
 		}
 	}

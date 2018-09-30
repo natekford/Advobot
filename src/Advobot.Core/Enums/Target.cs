@@ -2,6 +2,7 @@
 
 namespace Advobot.Enums
 {
+	/*
 	/// <summary>
 	/// Specifies what to target with a command. Discord entities, names, prefix, etc.
 	/// </summary>
@@ -72,5 +73,5 @@ namespace Advobot.Enums
 		/// Target a rule.
 		/// </summary>
 		Rule = (1U << 15),
-	}
+	}*/
 }

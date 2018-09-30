@@ -63,8 +63,6 @@ namespace Advobot.Services.Commands
 				var tr = (TypeReader)Activator.CreateInstance(typeof(ParsableTypeReader<>).MakeGenericType(type));
 				_Commands.AddTypeReader(type, tr);
 			}
-			//TODO: rework now
-			//_Commands.AddTypeReader<ModerationReason>(new ModerationReasonTypeReader());
 
 			_Client.ShardReady += (client) => OnReady(client, commands);
 			_Client.MessageReceived += HandleCommand;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -85,17 +86,17 @@ namespace Advobot.Commands.Logs
 	[Summary("Ignores all logging info that would have been gotten from a channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
+	//[SaveGuildSettings]
 	public sealed class ModifyIgnoredLogChannels : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add([ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
+		public async Task Add([ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
 			await ReplyTimedAsync($"Successfully ignored the following channels: `{channels.Join("`, `", x => x.Format())}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove([ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] params ITextChannel[] channels)
+		public async Task Remove([ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
 			await ReplyTimedAsync($"Successfully unignored the following channels: `{channels.Join("`, `", x => x.Format())}`.").CAF();
@@ -108,7 +109,7 @@ namespace Advobot.Commands.Logs
 		"`" + nameof(ModifyLogActions.Show) + "` displays the possible actions.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
+	//[SaveGuildSettings]
 	public sealed class ModifyLogActions : AdvobotModuleBase
 	{
 		private static readonly ImmutableArray<LogAction> _DefaultLogActions = new List<LogAction>

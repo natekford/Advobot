@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Classes.Attributes.Preconditions
 {
 	/// <summary>
 	/// Limits the rate a command can be used.

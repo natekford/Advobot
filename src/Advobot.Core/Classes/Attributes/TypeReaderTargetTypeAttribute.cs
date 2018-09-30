@@ -6,7 +6,7 @@ namespace Advobot.Classes.Attributes
 	/// Specifies what type this type reader targets.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
-	public class TypeReaderTargetTypeAttribute : Attribute
+	public sealed class TypeReaderTargetTypeAttribute : Attribute
 	{
 		/// <summary>
 		/// The type this type reader targets.

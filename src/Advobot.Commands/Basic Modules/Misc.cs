@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.CloseWords;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -11,7 +16,7 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
+using Discord.WebSocket;
 
 namespace Advobot.Commands.Misc
 {
@@ -55,7 +60,6 @@ namespace Advobot.Commands.Misc
 			}).CAF();
 		}
 		[Command, Priority(1)]
-		[RequireServices(typeof(IHelpEntryService))]
 		public async Task Command([Remainder] IHelpEntry command)
 		{
 			await ReplyEmbedAsync(new EmbedWrapper
@@ -66,7 +70,6 @@ namespace Advobot.Commands.Misc
 			}).CAF();
 		}
 		[Command, Priority(0)]
-		[RequireServices(typeof(IHelpEntryService), typeof(ITimerService))]
 		public async Task Command([Remainder] string command)
 		{
 			var matches = new CloseHelpEntries(Context.GuildSettings.CommandSettings, HelpEntries, command).Matches;
@@ -79,11 +82,11 @@ namespace Advobot.Commands.Misc
 		}
 	}
 
+#warning redo category command with typereader
 	[Category(typeof(Commands)), Group(nameof(Commands)), TopLevelShortAlias(typeof(Commands))]
 	[Summary("Prints out the commands in that category of the command list. " +
 		"Inputting nothing will list the command categories.")]
 	[DefaultEnabled(true)]
-	[RequireServices(typeof(IHelpEntryService))]
 	public sealed class Commands : AdvobotModuleBase
 	{
 		public IHelpEntryService HelpEntries { get; set; }
@@ -144,7 +147,7 @@ namespace Advobot.Commands.Misc
 	public sealed class MessageRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateObject(Verif.CanBeEdited, Verif.IsNotEveryone)] IRole role, [Remainder] string message)
+		public async Task Command([ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone)] SocketRole role, [Remainder] string message)
 		{
 			if (role.IsMentionable)
 			{
@@ -153,9 +156,9 @@ namespace Advobot.Commands.Misc
 			}
 			var text = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
 			//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
-			await role.ModifyAsync(x => x.Mentionable = true, GetRequestOptions()).CAF();
+			await role.ModifyAsync(x => x.Mentionable = true, GenerateRequestOptions()).CAF();
 			await ReplyAsync(text).CAF();
-			await role.ModifyAsync(x => x.Mentionable = false, GetRequestOptions()).CAF();
+			await role.ModifyAsync(x => x.Mentionable = false, GenerateRequestOptions()).CAF();
 		}
 	}
 
@@ -187,11 +190,10 @@ namespace Advobot.Commands.Misc
 	[Summary("Sends a message to the person who said the command after the passed in time is up. " +
 		"Potentially may take one minute longer than asked for if the command is input at certain times.")]
 	[DefaultEnabled(true)]
-	[RequireServices(typeof(ITimerService))]
 	public sealed class Remind : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateNumber(1, 10000)] uint minutes, [Remainder] string message)
+		public async Task Command([ValidateRemindTime] int minutes, [Remainder] string message)
 		{
 			await Timers.AddAsync(new TimedMessage(TimeSpan.FromMinutes(minutes), Context.User, message)).CAF();
 			await ReplyTimedAsync($"Will remind in `{minutes}` minute(s).").CAF();
@@ -205,7 +207,7 @@ namespace Advobot.Commands.Misc
 	public sealed class Test : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command()
+		public async Task Command([Optional, ValidatePrefix] string prefix)
 			=> await ReplyAsync("test").CAF();
 	}
 }

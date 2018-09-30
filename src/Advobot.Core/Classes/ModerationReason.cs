@@ -32,6 +32,7 @@ namespace Advobot.Classes
 				return;
 			}
 
+#warning rework how time is set?
 			Time = default;
 			var sb = new StringBuilder();
 			foreach (var part in input.Split(' '))

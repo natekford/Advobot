@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
 using Advobot.Utilities;
@@ -22,14 +24,15 @@ namespace Advobot.Commands.Nicknames
 	{
 		[Command]
 		public async Task Command(
-			[ValidateObject(Verif.CanBeEdited)] SocketGuildUser user,
-			[Optional, ValidateString(Target.Nickname)] string nickname)
+			[ValidateUser(Verif.CanBeEdited)] SocketGuildUser user,
+			[Optional, ValidateNickname] string nickname)
 		{
-			await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, GetRequestOptions()).CAF();
+			await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully gave `{user.Format()}` the nickname `{nickname ?? "Nothing"}`.").CAF();
 		}
 	}
 
+#warning a lot of the guts of the following three commands is very similar, can try to put together
 	[Category(typeof(ReplaceWordsInNames)), Group(nameof(ReplaceWordsInNames)), TopLevelShortAlias(typeof(ReplaceWordsInNames))]
 	[Summary("Gives users a new nickname if their nickname or username contains the search phrase. " +
 		"Max is 100 users per use unless the bypass string is said.")]
@@ -39,8 +42,8 @@ namespace Advobot.Commands.Nicknames
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
-			[ValidateString(Target.Nickname)] string search,
-			[ValidateString(Target.Nickname)] string replace,
+			[ValidateNickname] string search,
+			[ValidateNickname] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser).Where(x =>
@@ -48,7 +51,7 @@ namespace Advobot.Commands.Nicknames
 				return (x.Nickname != null && x.Nickname.CaseInsContains(search))
 					|| (x.Nickname == null && x.Username.CaseInsContains(search));
 			}).Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
-			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(replace, GetRequestOptions()).CAF();
+			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(replace, GenerateRequestOptions()).CAF();
 		}
 	}
 
@@ -62,15 +65,15 @@ namespace Advobot.Commands.Nicknames
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
 			uint upperLimit,
-			[ValidateString(Target.Nickname)] string replace,
+			[ValidateNickname] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser).Where(x =>
 			{
 				return (x.Nickname != null && !x.Nickname.AllCharsWithinLimit((int)upperLimit))
-				|| (x.Nickname == null && !x.Username.AllCharsWithinLimit((int)upperLimit));
+					|| (x.Nickname == null && !x.Username.AllCharsWithinLimit((int)upperLimit));
 			}).Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
-			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(replace, GetRequestOptions()).CAF();
+			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(replace, GenerateRequestOptions()).CAF();
 		}
 	}
 
@@ -86,7 +89,7 @@ namespace Advobot.Commands.Nicknames
 		{
 			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser)
 				.Where(x => x.Nickname != null).Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
-			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(null, GetRequestOptions()).CAF();
+			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(null, GenerateRequestOptions()).CAF();
 		}
 	}
 }

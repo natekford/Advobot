@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -16,7 +15,6 @@ namespace Advobot.Commands.GuildList
 	[Summary("Adds or removes a guild from the public guild list.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[RequireServices(typeof(IInviteListService))]
 	public sealed class ModifyGuildListing : AdvobotModuleBase
 	{
 		public IInviteListService Invites { get; set; }
@@ -44,7 +42,6 @@ namespace Advobot.Commands.GuildList
 	[Summary("Bumps the invite on the guild.")]
 	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
 	[DefaultEnabled(false)]
-	[RequireServices(typeof(IInviteListService))]
 	public sealed class BumpGuildListing : AdvobotModuleBase
 	{
 		public IInviteListService Invites { get; set; }
@@ -70,7 +67,6 @@ namespace Advobot.Commands.GuildList
 	[Category(typeof(GetGuildListing)), Group(nameof(GetGuildListing)), TopLevelShortAlias(typeof(GetGuildListing))]
 	[Summary("Gets an invite meeting the given criteria.")]
 	[DefaultEnabled(true)]
-	[RequireServices(typeof(IInviteListService))]
 	public sealed class GetGuildListing : AdvobotModuleBase
 	{
 		public IInviteListService Invites { get; set; }

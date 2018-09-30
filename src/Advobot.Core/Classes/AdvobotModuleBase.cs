@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -14,8 +14,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Shorter way to write the used modulebase and also has every command go through the <see cref="CommandRequirementAttribute"/> first.
 	/// </summary>
-	[CommandRequirement]
-	[RequireContext(ContextType.Guild)]
+	[CommandRequirement, RequireContext(ContextType.Guild)]
 	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	{
 		/// <summary>
@@ -64,6 +63,16 @@ namespace Advobot.Classes
 				Description = source.FormatNumberedList(func),
 			}).CAF();
 		}
+		/// <summary>
+		/// Responds with <paramref name="none"/> if there are zero elements, otherwise responds with <paramref name="some"/>.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="source"></param>
+		/// <param name="none"></param>
+		/// <param name="some"></param>
+		/// <returns></returns>
+		public async Task<IUserMessage> ReplyIfAny<T>(IEnumerable<T> source, string none, string some)
+			=> await (source.Any() ? ReplyAsync(some) : ReplyTimedAsync(none)).CAF();
 		/// <summary>
 		/// Sends a custom message if there are none of the objects or sends an even more custom message if there are.
 		/// </summary>
@@ -146,9 +155,9 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public RequestOptions GetRequestOptions(string reason = "")
+		public RequestOptions GenerateRequestOptions(string reason = null)
 		{
-			var r = string.IsNullOrWhiteSpace(reason) ? "" : $" Reason: {reason}.";
+			var r = reason == null ? "" : $" Reason: {reason}.";
 			return ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}.{r}");
 		}
 	}

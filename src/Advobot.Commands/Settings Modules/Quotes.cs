@@ -16,7 +16,7 @@ namespace Advobot.Commands.Quotes
 	[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	[SaveGuildSettings]
+	//[SaveGuildSettings]
 	public sealed class ModifyQuotes : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
