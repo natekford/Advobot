@@ -1,4 +1,7 @@
-﻿using Discord.Commands;
+﻿using Advobot.Utilities;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 
 namespace Advobot.Classes.Results
 {
@@ -30,12 +33,40 @@ namespace Advobot.Classes.Results
 		/// <param name="value"></param>
 		/// <param name="error"></param>
 		/// <param name="errorReason"></param>
-		public VerifiedObjectResult(object value, CommandError? error, string errorReason)
+		private VerifiedObjectResult(object value, CommandError? error, string errorReason)
 		{
 			Value = value;
 			Error = error;
 			ErrorReason = errorReason;
 			IsSuccess = Error == null;
+		}
+
+		/// <summary>
+		/// Returns a result indicating success.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static VerifiedObjectResult FromSuccess(object value)
+			=> new VerifiedObjectResult(value, null, null);
+		/// <summary>
+		/// Returns a result indicating an error.
+		/// </summary>
+		/// <param name="error"></param>
+		/// <param name="errorReason"></param>
+		/// <returns></returns>
+		public static VerifiedObjectResult FromError(CommandError error, string errorReason)
+			=> new VerifiedObjectResult(null, error, errorReason);
+		/// <summary>
+		/// Returns a result indicating an error where the user has a lower position than the supplied object.
+		/// </summary>
+		/// <param name="invoker"></param>
+		/// <param name="target"></param>
+		/// <returns></returns>
+		public static VerifiedObjectResult FromUnableToModify(SocketGuildUser invoker, ISnowflakeEntity target)
+		{
+			var start = invoker.Id == invoker.Guild.CurrentUser.Id ? "I a" : "You are";
+			var reason = $"{start} unable to make the given changes to `{target.Format()}`.";
+			return FromError(CommandError.UnmetPrecondition, reason);
 		}
 	}
 }

@@ -3,16 +3,16 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.ImageResizing;
-using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.Webhook;
 using Discord.WebSocket;
+using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands.Webhooks
 {
@@ -67,7 +67,7 @@ namespace Advobot.Commands.Webhooks
 		[Command]
 		public async Task Command(
 			IWebhook webhook,
-			[ValidateTextChannel(Verif.CanManageWebhooks, IfNullCheckFromContext = true)] SocketTextChannel channel)
+			[ValidateTextChannel(CPerm.ManageWebhooks, FromContext = true)] SocketTextChannel channel)
 		{
 			await webhook.ModifyAsync(x => x.Channel = Optional.Create<ITextChannel>(channel), GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully set the channel of `{webhook.Format()}` to `{channel.Format()}`.").CAF();

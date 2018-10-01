@@ -5,9 +5,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Settings;
-using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -33,13 +33,13 @@ namespace Advobot.Commands.SelfRoles
 		public async Task Delete(uint groupNumber)
 			=> await CommandRunner(groupNumber).CAF();
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add(uint groupNumber, [ValidateRole(Verif.CanBeEdited)] params SocketRole[] roles)
+		public async Task Add(uint groupNumber, [ValidateRole] params SocketRole[] roles)
 			=> await CommandRunner(groupNumber, roles).CAF();
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove(uint groupNumber, [ValidateRole(Verif.CanBeEdited)] params SocketRole[] roles)
+		public async Task Remove(uint groupNumber, [ValidateRole] params SocketRole[] roles)
 			=> await CommandRunner(groupNumber, roles).CAF();
 
-#warning rewrite this trash
+#warning rewrite this trash (put into typereaders and other things)
 		private async Task CommandRunner(uint groupNum, [CallerMemberName] string caller = "")
 		{
 			var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;

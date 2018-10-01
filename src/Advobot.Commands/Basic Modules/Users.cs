@@ -4,16 +4,18 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.TypeReaders;
-using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands.Users
 {
@@ -24,23 +26,23 @@ namespace Advobot.Commands.Users
 	[DefaultEnabled(true)]
 	public sealed class Mute : AdvobotModuleBase
 	{
-		private const ChannelPermission MUTE_ROLE_TEXT_PERMS = 0
-			| ChannelPermission.CreateInstantInvite
-			| ChannelPermission.ManageChannels
-			| ChannelPermission.ManageRoles
-			| ChannelPermission.ManageWebhooks
-			| ChannelPermission.SendMessages
-			| ChannelPermission.ManageMessages
-			| ChannelPermission.AddReactions;
-		private const ChannelPermission MUTE_ROLE_VOICE_PERMS = 0
-			| ChannelPermission.CreateInstantInvite
-			| ChannelPermission.ManageChannels
-			| ChannelPermission.ManageRoles
-			| ChannelPermission.ManageWebhooks
-			| ChannelPermission.Speak
-			| ChannelPermission.MuteMembers
-			| ChannelPermission.DeafenMembers
-			| ChannelPermission.MoveMembers;
+		private const CPerm MUTE_ROLE_TEXT_PERMS = 0
+			| CPerm.CreateInstantInvite
+			| CPerm.ManageChannels
+			| CPerm.ManageRoles
+			| CPerm.ManageWebhooks
+			| CPerm.SendMessages
+			| CPerm.ManageMessages
+			| CPerm.AddReactions;
+		private const CPerm MUTE_ROLE_VOICE_PERMS = 0
+			| CPerm.CreateInstantInvite
+			| CPerm.ManageChannels
+			| CPerm.ManageRoles
+			| CPerm.ManageWebhooks
+			| CPerm.Speak
+			| CPerm.MuteMembers
+			| CPerm.DeafenMembers
+			| CPerm.MoveMembers;
 
 		[Command]
 		public async Task Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
@@ -63,7 +65,7 @@ namespace Advobot.Commands.Users
 		{
 			var existingMuteRole = Context.Guild.GetRole(Context.GuildSettings.MuteRoleId);
 			IRole muteRole = existingMuteRole;
-			if (!existingMuteRole.Verify(Context, new[] { Verif.CanBeEdited, Verif.IsNotManaged }).IsSuccess)
+			if (!Context.GetGuildUser().ValidateRole(existingMuteRole, ValidationUtils.RoleIsNotEveryone, ValidationUtils.RoleIsNotManaged).IsSuccess)
 			{
 				muteRole = await Context.Guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0)).CAF();
 				Context.GuildSettings.MuteRoleId = muteRole.Id;
@@ -143,13 +145,8 @@ namespace Advobot.Commands.Users
 	public sealed class MoveUser : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(SocketGuildUser user, [ValidateVoiceChannel(Verif.CanMoveUsers)] SocketVoiceChannel channel)
+		public async Task Command([CanBeMoved] SocketGuildUser user, [ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel channel)
 		{
-			if (user.VoiceChannel == null)
-			{
-				await ReplyErrorAsync(new Error("User is not in a voice channel.")).CAF();
-				return;
-			}
 			if (user.VoiceChannel?.Id == channel.Id)
 			{
 				await ReplyErrorAsync(new Error("User is already in that channel.")).CAF();
@@ -170,8 +167,8 @@ namespace Advobot.Commands.Users
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
-			[ValidateVoiceChannel(Verif.CanMoveUsers)] SocketVoiceChannel inputChannel,
-			[ValidateVoiceChannel(Verif.CanMoveUsers)] SocketVoiceChannel outputChannel,
+			[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel inputChannel,
+			[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel outputChannel,
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = inputChannel.Users.Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
@@ -202,7 +199,7 @@ namespace Advobot.Commands.Users
 	public sealed class SoftBan : AdvobotModuleBase
 	{
 		[Command, Priority(1)]
-		public async Task Command([ValidateUser(Verif.CanBeEdited)] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+		public async Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 			=> await Command(user.Id, reason).CAF();
 		[Command]
 		public async Task Command(ulong userId, [Optional, Remainder] ModerationReason reason)
@@ -221,7 +218,7 @@ namespace Advobot.Commands.Users
 	public sealed class Ban : AdvobotModuleBase
 	{
 		[Command, Priority(1)]
-		public async Task Command([ValidateUser(Verif.CanBeEdited)] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+		public async Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 			=> await Command(user.Id, reason).CAF();
 		[Command]
 		public async Task Command(ulong userId, [Optional, Remainder] ModerationReason reason)
@@ -277,7 +274,7 @@ namespace Advobot.Commands.Users
 	public sealed class Kick : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateUser(Verif.CanBeEdited)] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+		public async Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 		{
 			var giver = new Punisher(TimeSpan.FromMinutes(0), default);
 			await giver.KickAsync(user, GenerateRequestOptions(reason.Reason)).CAF();
@@ -311,16 +308,16 @@ namespace Advobot.Commands.Users
 	{
 		[Command]
 		public async Task Command(
-			uint requestCount,
+			[ValidatePositiveNumber] int requestCount,
 			[Optional] IGuildUser user,
-			[Optional, ValidateTextChannel(Verif.CanDeleteMessages, IfNullCheckFromContext = true)] SocketTextChannel channel)
-			=> await CommandRunner((int)requestCount, user, channel ?? (SocketTextChannel)Context.Channel).CAF();
+			[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] SocketTextChannel channel)
+			=> await CommandRunner(requestCount, user, channel ?? (SocketTextChannel)Context.Channel).CAF();
 		[Command]
 		public async Task Command(
-			uint requestCount,
-			[Optional, ValidateTextChannel(Verif.CanDeleteMessages, IfNullCheckFromContext = true)] SocketTextChannel channel,
+			[ValidatePositiveNumber] int requestCount,
+			[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] SocketTextChannel channel,
 			[Optional] IGuildUser user)
-			=> await CommandRunner((int)requestCount, user, channel ?? (SocketTextChannel)Context.Channel).CAF();
+			=> await CommandRunner(requestCount, user, channel ?? (SocketTextChannel)Context.Channel).CAF();
 
 		private async Task CommandRunner(int requestCount, IUser user, SocketTextChannel channel)
 		{
@@ -355,7 +352,7 @@ namespace Advobot.Commands.Users
 		[Command(nameof(GiveRole)), ShortAlias(nameof(GiveRole))]
 		public async Task GiveRole(
 			SocketRole targetRole,
-			[ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] SocketRole givenRole,
+			[NotEveryoneOrManaged] SocketRole givenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			if (targetRole.Id == givenRole.Id)
@@ -369,18 +366,18 @@ namespace Advobot.Commands.Users
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
 		public async Task TakeRole(
 			SocketRole targetRole,
-			[ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] SocketRole takenRole,
+			[NotEveryoneOrManaged] SocketRole takenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			=> await CommandRunner(targetRole, bypass, async (m) => await m.TakeRolesAsync(takenRole, GenerateRequestOptions()).CAF());
 		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
 		public async Task GiveNickname(
-			[ValidateRole(Verif.CanBeEdited)] SocketRole targetRole,
+			[ValidateRole] SocketRole targetRole,
 			[ValidateNickname] string nickname,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			=> await CommandRunner(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(nickname, GenerateRequestOptions()).CAF());
-		[Command(nameof(TakeNickname)), ShortAlias(nameof(TakeNickname))]
-		public async Task TakeNickname(
-			[ValidateRole(Verif.CanBeEdited)] SocketRole targetRole,
+		[Command(nameof(ClearNickname)), ShortAlias(nameof(ClearNickname))]
+		public async Task ClearNickname(
+			[ValidateRole] SocketRole targetRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			=> await CommandRunner(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(null, GenerateRequestOptions()).CAF());
 

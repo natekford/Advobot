@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes.Results;
-using Advobot.Enums;
 using Discord.Commands;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation
@@ -18,21 +16,9 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <summary>
 		/// Whether or not to check from the passed in context for arguments.
 		/// This will essentially override <see cref="OptionalAttribute"/>.
+		/// Default value is false.
 		/// </summary>
-		public bool IfNullCheckFromContext { get; set; }
-		/// <summary>
-		/// The validation to use on this object.
-		/// </summary>
-		public ImmutableArray<Verif> Checks { get; }
-
-		/// <summary>
-		/// Creates an instance of <see cref="ValidateDiscordObjectAttribute"/>.
-		/// </summary>
-		/// <param name="checks"></param>
-		public ValidateDiscordObjectAttribute(params Verif[] checks)
-		{
-			Checks = checks.ToImmutableArray();
-		}
+		public bool FromContext { get; set; } = false;
 
 		/// <summary>
 		/// Returns success if the user can do the actions on the supplied object.
@@ -49,7 +35,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 			{
 				return Task.FromResult(GetPreconditionResult(ctx, value));
 			}
-			if (IfNullCheckFromContext)
+			if (FromContext)
 			{
 				return Task.FromResult(GetPreconditionResult(ctx, GetFromContext(ctx)));
 			}
@@ -61,7 +47,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		}
 		private PreconditionResult GetPreconditionResult(SocketCommandContext context, object value)
 		{
-			VerifiedObjectResult? result;
+			VerifiedObjectResult result;
 			switch (value)
 			{
 				case IEnumerable enumerable:
@@ -75,24 +61,16 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 						}
 					}
 					//If nothing failed then it gets to this point, so return success
-					result = new VerifiedObjectResult(value, null, null);
+					result = VerifiedObjectResult.FromSuccess(value);
 					break;
 				default:
-					result = VerifyObject(context, value);
+					result = ValidateObject(context, value);
 					break;
 			}
-			if (!result.HasValue)
-			{
-				return PreconditionResult.FromError($"{nameof(GetPreconditionResult)} has had an unexpected value passed to it.");
-			}
-			if (!result.Value.IsSuccess)
-			{
-				return PreconditionResult.FromError(result.Value);
-			}
-			return PreconditionResult.FromSuccess();
+			return result.IsSuccess ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(result);
 		}
 		/// <summary>
-		/// Gets an object to use if the passed in value is null and <see cref="IfNullCheckFromContext"/> is true.
+		/// Gets an object to use if the passed in value is null and <see cref="FromContext"/> is true.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
@@ -103,6 +81,6 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <param name="context"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected abstract VerifiedObjectResult? VerifyObject(SocketCommandContext context, object value);
+		protected abstract VerifiedObjectResult ValidateObject(SocketCommandContext context, object value);
 	}
 }

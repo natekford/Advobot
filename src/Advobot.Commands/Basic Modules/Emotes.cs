@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.ImageResizing;
@@ -90,9 +91,7 @@ namespace Advobot.Commands.Emotes
 	public sealed class ModifyEmoteRoles : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add(
-			GuildEmote emote,
-			[ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
+		public async Task Add(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
 		{
 			await Context.Guild.ModifyEmoteAsync(emote, x =>
 			{
@@ -103,9 +102,7 @@ namespace Advobot.Commands.Emotes
 			await ReplyTimedAsync($"Successfully added `{roles.Join("`, `", x => x.Format())}` as roles necessary to use `{emote}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove(
-			GuildEmote emote,
-			[ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
+		public async Task Remove(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
 		{
 			if (!emote.RoleIds.Any())
 			{

@@ -140,7 +140,7 @@ namespace Advobot.Services.Commands
 			{
 				_Logging?.FailedCommands?.Add(1);
 #warning convert back to error
-				await MessageUtils.SendMessageAsync(context.Channel, new Error(result.ErrorReason).ToString()).CAF();
+				await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
 			}
 
 			_Logging?.AttemptedCommands?.Add(1);

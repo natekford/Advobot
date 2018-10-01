@@ -4,14 +4,14 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands.Invites
 {
@@ -54,14 +54,14 @@ namespace Advobot.Commands.Invites
 #warning redo how arguments are parsed here
 		[Command]
 		public async Task Command(
-			[Optional, ValidateTextChannel(Verif.CanCreateInstantInvite, IfNullCheckFromContext = true)] SocketTextChannel channel,
+			[Optional, ValidateTextChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketTextChannel channel,
 			[Optional, ValidateInviteTime] int time,
 			[Optional, ValidateInviteUses] int uses,
 			[Optional] bool tempMem)
 			=> await CommandRunner(channel, time, uses, tempMem).CAF();
 		[Command]
 		public async Task Command(
-			[ValidateVoiceChannel(Verif.CanCreateInstantInvite, IfNullCheckFromContext = true)] SocketVoiceChannel channel,
+			[ValidateVoiceChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketVoiceChannel channel,
 			[Optional, ValidateInviteTime] int time,
 			[Optional, ValidateInviteUses] int uses,
 			[Optional] bool tempMem)

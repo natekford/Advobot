@@ -5,9 +5,10 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
-using Advobot.Classes.EqualityComparers;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
@@ -17,7 +18,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
+using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands.GuildSettings
 {
@@ -66,16 +67,16 @@ namespace Advobot.Commands.GuildSettings
 		//TODO: rewrite the log channel stuff? or not cause the user has to be admin to execute this meaning they can see every channel
 		//TODO: validate invoker has higher role than bot
 		[Command(nameof(IGuildSettings.ServerLogId)), ShortAlias(nameof(IGuildSettings.ServerLogId))]
-		public async Task ServerLogId([Optional, ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+		public async Task ServerLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
 			=> await ModifyAsync(x => x.ServerLogId, value?.Id ?? 0).CAF();
 		[Command(nameof(IGuildSettings.ModLogId)), ShortAlias(nameof(IGuildSettings.ModLogId))]
-		public async Task ModLogId([Optional, ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+		public async Task ModLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
 			=> await ModifyAsync(x => x.ModLogId, value?.Id ?? 0).CAF();
 		[Command(nameof(IGuildSettings.ImageLogId)), ShortAlias(nameof(IGuildSettings.ImageLogId))]
-		public async Task ImageLogId([Optional, ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel value)
+		public async Task ImageLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
 			=> await ModifyAsync(x => x.ImageLogId, value?.Id ?? 0).CAF();
 		[Command(nameof(IGuildSettings.MuteRoleId)), ShortAlias(nameof(IGuildSettings.MuteRoleId))]
-		public async Task MuteRoleId([ValidateRole(Verif.IsNotEveryone, Verif.IsNotManaged, Verif.CanBeEdited)] SocketRole value)
+		public async Task MuteRoleId([NotEveryoneOrManaged] SocketRole value)
 			=> await ModifyAsync(x => x.MuteRoleId, value.Id).CAF();
 		[Command(nameof(IGuildSettings.LogActions)), ShortAlias(nameof(IGuildSettings.LogActions))]
 		public async Task LogActions(AddBoolean add, params LogAction[] values)
@@ -83,22 +84,22 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(IGuildSettings.ImageOnlyChannels)), ShortAlias(nameof(IGuildSettings.ImageOnlyChannels))]
 		public async Task ImageOnlyChannels(
 			AddBoolean add,
-			[ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] values)
+			[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 			=> await ModifyCollectionAsync(x => x.ImageOnlyChannels, add, values.Select(x => x.Id)).CAF();
 		[Command(nameof(IGuildSettings.IgnoredLogChannels)), ShortAlias(nameof(IGuildSettings.IgnoredLogChannels))]
 		public async Task IgnoredLogChannels(
 			AddBoolean add,
-			[ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] values)
+			[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 			=> await ModifyCollectionAsync(x => x.IgnoredLogChannels, add, values.Select(x => x.Id)).CAF();
 		[Command(nameof(IGuildSettings.IgnoredXpChannels)), ShortAlias(nameof(IGuildSettings.IgnoredXpChannels))]
 		public async Task IgnoredXpChannels(
 			AddBoolean add,
-			[ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] values)
+			[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 			=> await ModifyCollectionAsync(x => x.IgnoredXpChannels, add, values.Select(x => x.Id)).CAF();
 		[Command(nameof(IGuildSettings.IgnoredCommandChannels)), ShortAlias(nameof(IGuildSettings.IgnoredCommandChannels))]
 		public async Task IgnoredCommandChannels(
 			AddBoolean add,
-			[ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] values)
+			[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 			=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, add, values.Select(x => x.Id)).CAF();
 
 		[Command(nameof(IGuildSettings.Quotes)), ShortAlias(nameof(IGuildSettings.Quotes))]
@@ -121,7 +122,7 @@ namespace Advobot.Commands.GuildSettings
 
 		[Command(nameof(IGuildSettings.WelcomeMessage)), ShortAlias(nameof(IGuildSettings.WelcomeMessage))]
 		public async Task WelcomeMessage(
-			[ValidateTextChannel(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] SocketTextChannel channel,
+			[ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel channel,
 			[Remainder] GuildNotification args)
 		{
 			(Context.GuildSettings.WelcomeMessage = args).ChannelId = channel.Id;
@@ -129,7 +130,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 		[Command(nameof(IGuildSettings.GoodbyeMessage)), ShortAlias(nameof(IGuildSettings.GoodbyeMessage))]
 		public async Task GoodbyeMessage(
-			[ValidateTextChannel(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] SocketTextChannel channel,
+			[ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel channel,
 			[Remainder] GuildNotification args)
 		{
 			(Context.GuildSettings.GoodbyeMessage = args).ChannelId = channel.Id;
@@ -211,7 +212,7 @@ namespace Advobot.Commands.GuildSettings
 		public async Task Category(
 			AddBoolean enable,
 			string category,
-			[ValidateTextChannel(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] SocketTextChannel channel)
+			[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 		{
 			if (!HelpEntries.GetCategories().CaseInsContains(category))
 			{
@@ -227,7 +228,7 @@ namespace Advobot.Commands.GuildSettings
 		public async Task Command(
 			AddBoolean enable,
 			IHelpEntry helpEntry,
-			[ValidateTextChannel(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] SocketTextChannel channel)
+			[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 		{
 			if (!Context.GuildSettings.CommandSettings.ModifyOverride(new ValueToModify(helpEntry, true), channel))
 			{
@@ -368,16 +369,10 @@ namespace Advobot.Commands.GuildSettings
 				=> await ReplyIfAny(_Roles.Where(x => x.UserId == user.Id), user, _Title, _Func).CAF();
 		}
 		[Command, Priority(1)]
-		public async Task Command(
-			AddBoolean add,
-			[ValidateUser(Verif.CanBeEdited)] SocketUser user,
-			[ValidateRole(Verif.CanBeEdited)] SocketRole role)
+		public async Task Command(AddBoolean add, [ValidateUser] SocketUser user, [ValidateRole] SocketRole role)
 			=> await CommandRunner(add, user.Id, role).CAF();
 		[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
-		public async Task Command(
-			AddBoolean add,
-			ulong userId,
-			[ValidateRole(Verif.CanBeEdited)] SocketRole role)
+		public async Task Command(AddBoolean add, ulong userId, [ValidateRole] SocketRole role)
 			=> await CommandRunner(add, userId, role).CAF();
 
 		//TODO: rewrite

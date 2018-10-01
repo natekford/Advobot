@@ -4,17 +4,17 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.ImageResizing;
-using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands.Guilds
 {
@@ -144,8 +144,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(
-			[ValidateVoiceChannel(Verif.CanBeViewed, Verif.CanBeManaged, IfNullCheckFromContext = true)] SocketVoiceChannel channel)
+		public async Task Command([ValidateVoiceChannel(CPerm.ManageChannels, FromContext = true)] SocketVoiceChannel channel)
 		{
 			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel>(channel), GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully set the guild AFK channel to `{channel.Format()}`.").CAF();
@@ -165,8 +164,7 @@ namespace Advobot.Commands.Guilds
 	public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(
-			[ValidateTextChannel(Verif.CanBeViewed, Verif.CanBeManaged, IfNullCheckFromContext = true)] SocketTextChannel channel)
+		public async Task Command([ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel channel)
 		{
 			await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel>(channel), GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully set the guild system channel to `{channel.Format()}`.").CAF();

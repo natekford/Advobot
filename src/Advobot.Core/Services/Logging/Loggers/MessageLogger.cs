@@ -51,7 +51,7 @@ namespace Advobot.Services.Logging.Loggers
 			if (user.Guild.Id == 294173126697418752)
 			{
 				const string name = "jeff";
-				if (user.Username != name && user.Nickname != name && user.Guild.CurrentUser.HasHigherPosition(user))
+				if (user.Username != name && user.Nickname != name && user.Guild.CurrentUser.CanModify(user))
 				{
 					await user.ModifyAsync(x => x.Nickname = name, ClientUtils.CreateRequestOptions($"my nama {name}")).CAF();
 				}
@@ -301,7 +301,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private async Task HandleSpamPreventionAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
 		{
-			if (!user.Guild.CurrentUser.HasHigherPosition(user))
+			if (!user.Guild.CurrentUser.CanModify(user))
 			{
 				return;
 			}

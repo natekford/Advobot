@@ -7,7 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
@@ -105,12 +106,8 @@ namespace Advobot.Commands.Gets
 	public sealed class GetUserJoinedAt : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(uint position)
+		public async Task Command([ValidatePositiveNumber] int position)
 		{
-			if (!Context.Guild.HasAllMembers)
-			{
-				await Context.Guild.DownloadUsersAsync().CAF();
-			}
 			var users = Context.Guild.GetUsersByJoinDate().ToArray();
 			var newPos = Math.Min((int)position, users.Length);
 			var user = users[newPos - 1];
@@ -155,10 +152,6 @@ namespace Advobot.Commands.Gets
 		[Command]
 		public async Task Command()
 		{
-			if (!Context.Guild.HasAllMembers)
-			{
-				await Context.Guild.DownloadUsersAsync().CAF();
-			}
 			var users = Context.Guild.GetUsersByJoinDate().ToArray();
 			await ReplyFileAsync($"**User Join List:**", new TextFileInfo
 			{
@@ -176,9 +169,7 @@ namespace Advobot.Commands.Gets
 	public sealed class GetMessages : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(
-			int number,
-			[Optional, ValidateTextChannel(Verif.CanBeViewed, IfNullCheckFromContext = true)] SocketTextChannel channel)
+		public async Task Command(int number, [Optional, ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 		{
 			var messages = await MessageUtils.GetMessagesAsync(channel, Math.Min(number, 1000)).CAF();
 			var m = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();

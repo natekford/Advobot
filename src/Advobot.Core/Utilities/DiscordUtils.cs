@@ -7,11 +7,9 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Results;
 using Advobot.Enums;
 using AdvorangesUtils;
 using Discord;
-using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 
@@ -22,100 +20,6 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class DiscordUtils
 	{
-		/// <summary>
-		/// Verifies that the role can be edited in specific ways.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="target"></param>
-		/// <param name="checks"></param>
-		/// <returns></returns>
-		public static VerifiedObjectResult Verify(this SocketRole target, SocketCommandContext context, IEnumerable<Verif> checks)
-		{
-			return InternalUtils.InternalVerify(target, context, checks, "role", check =>
-			{
-				switch (check)
-				{
-					case Verif.IsNotEveryone:
-						if (context.Guild.EveryoneRole.Id == target.Id)
-						{
-							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
-								"The everyone role cannot be modified in that way.");
-						}
-						return null;
-					case Verif.IsNotManaged:
-						if (target.IsManaged)
-						{
-							return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
-								"Managed roles cannot be modified in that way.");
-						}
-						return null;
-				}
-				return null;
-			});
-		}
-		/// <summary>
-		/// Verifies that the channel can be edited in specific ways.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="target"></param>
-		/// <param name="checks"></param>
-		/// <returns></returns>
-		public static VerifiedObjectResult Verify(this SocketGuildChannel target, SocketCommandContext context, IEnumerable<Verif> checks)
-			=> InternalUtils.InternalVerify(target, context, checks, "channel");
-		/// <summary>
-		/// Verifies that the user can be edited in specific ways.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="target"></param>
-		/// <param name="checks"></param>
-		/// <returns></returns>
-		public static VerifiedObjectResult Verify(this SocketGuildUser target, SocketCommandContext context, IEnumerable<Verif> checks)
-			=> InternalUtils.InternalVerify(target, context, checks, "user");
-		/// <summary>
-		/// Returns true if the invoking user's position is greater than the target user's position.
-		/// </summary>
-		/// <param name="invoker"></param>
-		/// <param name="target"></param>
-		/// <returns></returns>
-		public static bool HasHigherPosition(this SocketGuildUser invoker, SocketGuildUser target)
-		{
-			//User is the bot
-			if (target.Id == invoker.Id && target.Id == target.Guild.CurrentUser.Id)
-			{
-				return true;
-			}
-			var invokerPosition = invoker is SocketGuildUser socketInvoker ? socketInvoker.Hierarchy : -1;
-			var targetPosition = target is SocketGuildUser socketTarget ? socketTarget.Hierarchy : -1;
-			return invokerPosition > targetPosition;
-		}
-		/// <summary>
-		/// Returns true if the user can edit the channel in the specified way.
-		/// </summary>
-		/// <param name="invoker"></param>
-		/// <param name="target"></param>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		public static bool CanModify(this SocketGuildUser invoker, SocketGuildChannel target, Verif type)
-			=> InternalUtils.InternalCanModify(invoker, target, type);
-		/// <summary>
-		/// Returns true if the user can edit the role in the specified way.
-		/// </summary>
-		/// <param name="invoker"></param>
-		/// <param name="target"></param>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		public static bool CanModify(this SocketGuildUser invoker, SocketRole target, Verif type)
-			=> InternalUtils.InternalCanModify(invoker, target, type);
-		/// <summary>
-		/// Returns true if the user can edit the user in the specified way.
-		/// </summary>
-		/// <param name="invoker"></param>
-		/// <param name="target"></param>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		public static bool CanModify(this SocketGuildUser invoker, SocketGuildUser target, Verif type)
-			=> InternalUtils.InternalCanModify(invoker, target, type);
-
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.
 		/// Not sure why, but IRole.ModifyAsync cannot set the position of a role to 1.
@@ -229,7 +133,6 @@ namespace Advobot.Utilities
 			}
 			return maxCount;
 		}
-
 		/// <summary>
 		/// Returns all the assemblies in the base directory which have the <see cref="CommandAssemblyAttribute"/>.
 		/// This loads assemblies with a matching name so this can be a risk to use if bad files are in the folder.
@@ -265,7 +168,7 @@ namespace Advobot.Utilities
 		/// <param name="invokingUser"></param>
 		/// <returns></returns>
 		public static IEnumerable<SocketGuildUser> GetEditableUsers(this SocketGuild guild, SocketGuildUser invokingUser)
-			=> guild.Users.Where(x => invokingUser.HasHigherPosition(x) && guild.CurrentUser.HasHigherPosition(x));
+			=> guild.Users.Where(x => invokingUser.CanModify(x) && guild.CurrentUser.CanModify(x));
 		/// <summary>
 		/// If the bot can get invites then returns the invites otherwise returns null.
 		/// </summary>

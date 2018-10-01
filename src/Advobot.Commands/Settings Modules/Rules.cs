@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
@@ -69,14 +70,19 @@ namespace Advobot.Commands.Rules
 			await ReplyTimedAsync($"Successfully added a rule in `{category}`.").CAF();
 		}
 		[Command(nameof(Insert)), ShortAlias(nameof(Insert))]
-		public async Task Insert([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, uint index, [ValidateRule] string rule)
+		public async Task Insert(
+			[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category,
+			[ValidatePositiveNumber] int index,
+			[ValidateRule] string rule)
 		{
 			var count = Context.GuildSettings.Rules.Categories[category].Count;
-			Context.GuildSettings.Rules.Categories[category].Insert(Math.Min((int)Math.Min(index, int.MaxValue), count - 1), rule);
+			Context.GuildSettings.Rules.Categories[category].Insert(Math.Min(index, count - 1), rule);
 			await ReplyTimedAsync($"Successfully removed the rule at index `{index}` in `{category}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, uint index)
+		public async Task Remove(
+			[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category,
+			[ValidatePositiveNumber] int index)
 		{
 			if (Context.GuildSettings.Rules.Categories[category].Count >= index)
 			{

@@ -5,14 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Enums;
-using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands.Logs
 {
@@ -90,13 +89,13 @@ namespace Advobot.Commands.Logs
 	public sealed class ModifyIgnoredLogChannels : AdvobotModuleBase
 	{
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add([ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] channels)
+		public async Task Add([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
 			await ReplyTimedAsync($"Successfully ignored the following channels: `{channels.Join("`, `", x => x.Format())}`.").CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove([ValidateTextChannel(Verif.CanBeViewed, Verif.CanModifyPermissions)] params SocketTextChannel[] channels)
+		public async Task Remove([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
 			await ReplyTimedAsync($"Successfully unignored the following channels: `{channels.Join("`, `", x => x.Format())}`.").CAF();

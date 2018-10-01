@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
@@ -147,7 +148,7 @@ namespace Advobot.Commands.Misc
 	public sealed class MessageRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone)] SocketRole role, [Remainder] string message)
+		public async Task Command([NotEveryone] SocketRole role, [Remainder] string message)
 		{
 			if (role.IsMentionable)
 			{

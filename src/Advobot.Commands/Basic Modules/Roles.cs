@@ -4,11 +4,10 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.TypeReaders;
-using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -24,9 +23,7 @@ namespace Advobot.Commands.Roles
 	public sealed class GiveRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(
-			SocketGuildUser user,
-			[ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
+		public async Task Command(SocketGuildUser user, [ValidateRole] params SocketRole[] roles)
 		{
 			await user.AddRolesAsync(roles, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully gave `{roles.Join("`, `", x => x.Format())}` to `{user.Format()}`.").CAF();
@@ -40,9 +37,7 @@ namespace Advobot.Commands.Roles
 	public sealed class TakeRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(
-			SocketGuildUser user,
-			[ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] params SocketRole[] roles)
+		public async Task Command(SocketGuildUser user, [ValidateRole] params SocketRole[] roles)
 		{
 			await user.RemoveRolesAsync(roles, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully took `{roles.Join("`, `", x => x.Format())}` from `{user.Format()}`.").CAF();
@@ -71,7 +66,7 @@ namespace Advobot.Commands.Roles
 	public sealed class SoftDeleteRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] SocketRole role)
+		public async Task Command([NotEveryoneOrManaged] SocketRole role)
 		{
 			//Get the properties of the role before it's deleted
 			var name = role.Name;
@@ -92,7 +87,7 @@ namespace Advobot.Commands.Roles
 	public sealed class DeleteRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone, Verif.IsNotManaged)] SocketRole role)
+		public async Task Command([NotEveryoneOrManaged] SocketRole role)
 		{
 			await role.DeleteAsync(GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully deleted `{role.Format()}`.").CAF();
@@ -107,7 +102,7 @@ namespace Advobot.Commands.Roles
 	public sealed class ModifyRolePosition : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone)] SocketRole role, [ValidatePositiveNumber] int position)
+		public async Task Command([NotEveryone] SocketRole role, [ValidatePositiveNumber] int position)
 		{
 			var pos = await DiscordUtils.ModifyRolePositionAsync(role, position, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully gave `{role.Format()}` the position `{pos}`.").CAF();
@@ -153,18 +148,14 @@ namespace Advobot.Commands.Roles
 				}).CAF();
 			}
 			[Command]
-			public async Task Command([ValidateRole(Verif.CanBeEdited)] SocketRole role)
+			public async Task Command([ValidateRole] SocketRole role)
 				=> await ReplyIfAny(EnumUtils.GetFlagNames((GuildPermission)role.Permissions.RawValue), role, "Permissions", x => x).CAF();
 		}
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
-		public async Task Allow(
-			[ValidateRole(Verif.CanBeEdited)] SocketRole role,
-			[Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
+		public async Task Allow([ValidateRole] SocketRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 			=> await CommandRunner(role, permissions, true);
 		[Command(nameof(Deny)), ShortAlias(nameof(Deny))]
-		public async Task Deny(
-			[ValidateRole(Verif.CanBeEdited)] SocketRole role,
-			[Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
+		public async Task Deny([ValidateRole] SocketRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 			=> await CommandRunner(role, permissions, false);
 
 		private async Task CommandRunner(SocketRole role, ulong permissions, bool add)
@@ -189,7 +180,7 @@ namespace Advobot.Commands.Roles
 	public sealed class CopyRolePerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(SocketRole input, [ValidateRole(Verif.CanBeEdited)] SocketRole output)
+		public async Task Command(SocketRole input, [ValidateRole] SocketRole output)
 		{
 			var userBits = ((IGuildUser)Context.User).GuildPermissions.RawValue;
 			var copyableBits = input.Permissions.RawValue & userBits; //Perms which the user can copy from the input role
@@ -227,7 +218,7 @@ namespace Advobot.Commands.Roles
 	public sealed class ClearRolePerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateRole(Verif.CanBeEdited)] SocketRole role)
+		public async Task Command([ValidateRole] SocketRole role)
 		{
 			var immovableBits = role.Permissions.RawValue & ~((IGuildUser)Context.User).GuildPermissions.RawValue;
 			var immovablePerms = EnumUtils.GetFlagNames((GuildPermission)immovableBits);
@@ -249,13 +240,11 @@ namespace Advobot.Commands.Roles
 	public sealed class ModifyRoleName : AdvobotModuleBase
 	{
 		[Command, Priority(1)]
-		public async Task Command(
-			[ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone)] SocketRole role,
-			[Remainder, ValidateRoleName] string name)
+		public async Task Command([NotEveryone] SocketRole role, [Remainder, ValidateRoleName] string name)
 			=> await CommandRunner(role, name).CAF();
 		[Command(nameof(Position))]
 		public async Task Position(
-			[OverrideTypeReader(typeof(RolePositionTypeReader)), ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone)] SocketRole role,
+			[OverrideTypeReader(typeof(RolePositionTypeReader)), NotEveryone] SocketRole role,
 			[Remainder, ValidateRoleName] string name)
 			=> await CommandRunner(role, name).CAF();
 
@@ -275,7 +264,7 @@ namespace Advobot.Commands.Roles
 	public sealed class ModifyRoleColor : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone)] SocketRole role, [Optional] Color color)
+		public async Task Command([NotEveryone] SocketRole role, [Optional] Color color)
 		{
 			await role.ModifyAsync(x => x.Color = color, GenerateRequestOptions()).CAF();
 			//X6 to get hex
@@ -291,7 +280,7 @@ namespace Advobot.Commands.Roles
 	public sealed class ModifyRoleHoist : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone)] SocketRole role)
+		public async Task Command([NotEveryone] SocketRole role)
 		{
 			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully {(role.IsHoisted ? "un" : "")}hoisted `{role.Format()}`.").CAF();
@@ -306,7 +295,7 @@ namespace Advobot.Commands.Roles
 	public sealed class ModifyRoleMentionability : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateRole(Verif.CanBeEdited, Verif.IsNotEveryone)] SocketRole role)
+		public async Task Command([NotEveryone] SocketRole role)
 		{
 			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully made `{role.Format()}` {(role.IsMentionable ? "un" : "")}mentionable.").CAF();

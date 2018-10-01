@@ -1,16 +1,14 @@
 ﻿using System;
-using Advobot.Classes.Results;
-using Advobot.Enums;
-using Advobot.Utilities;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation
+namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 {
 	/// <summary>
 	/// Validates the passed in <see cref="SocketGuildChannel"/>.
 	/// </summary>
-	public class ValidateGenericChannelAttribute : ValidateDiscordObjectAttribute
+	public class ValidateGenericChannelAttribute : BaseValidateChannelAttribute
 	{
 		/// <summary>
 		/// Cannot check from context for an unspecified channel type.
@@ -20,14 +18,11 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateGenericChannelAttribute"/>.
 		/// </summary>
-		/// <param name="checks"></param>
-		public ValidateGenericChannelAttribute(params Verif[] checks) : base(checks) { }
+		/// <param name="permissions"></param>
+		public ValidateGenericChannelAttribute(params ChannelPermission[] permissions) : base(permissions) { }
 
 		/// <inheritdoc />
 		protected override object GetFromContext(SocketCommandContext context)
 			=> throw new NotImplementedException();
-		/// <inheritdoc />
-		protected override VerifiedObjectResult? VerifyObject(SocketCommandContext context, object value)
-			=> ((SocketGuildChannel)value).Verify(context, Checks);
 	}
 }

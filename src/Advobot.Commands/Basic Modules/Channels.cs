@@ -5,16 +5,16 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.TypeReaders;
-using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands.Channels
 {
@@ -49,7 +49,7 @@ namespace Advobot.Commands.Channels
 	public sealed class SoftDeleteChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateGenericChannel(Verif.CanBeManaged)] SocketGuildChannel channel)
+		public async Task Command([ValidateGenericChannel(CPerm.ManageChannels)] SocketGuildChannel channel)
 		{
 			var view = (ulong)ChannelPermission.ViewChannel;
 			foreach (var overwrite in channel.PermissionOverwrites)
@@ -73,7 +73,7 @@ namespace Advobot.Commands.Channels
 	public sealed class DeleteChannel : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateGenericChannel(Verif.CanBeManaged)] SocketGuildChannel channel)
+		public async Task Command([ValidateGenericChannel(CPerm.ManageChannels)] SocketGuildChannel channel)
 		{
 			await channel.DeleteAsync(GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully deleted `{channel.Format()}`.").CAF();
@@ -113,9 +113,9 @@ namespace Advobot.Commands.Channels
 	public sealed class ModifyChannelPosition : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateGenericChannel(Verif.CanBeReordered)] SocketGuildChannel channel, uint position)
+		public async Task Command([ValidateGenericChannel(CanBeReordered = true)] SocketGuildChannel channel, [ValidatePositiveNumber] int position)
 		{
-			await channel.ModifyAsync(x => x.Position = (int)position, GenerateRequestOptions()).CAF();
+			await channel.ModifyAsync(x => x.Position = position, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully moved `{channel.Format()}` to position `{position}`.").CAF();
 		}
 	}
@@ -127,7 +127,7 @@ namespace Advobot.Commands.Channels
 	public sealed class DisplayChannelPerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel channel)
+		public async Task Command([ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel channel)
 		{
 			var roleOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.Role);
 			var userOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.User);
@@ -143,10 +143,10 @@ namespace Advobot.Commands.Channels
 			await ReplyEmbedAsync(embed).CAF();
 		}
 		[Command]
-		public async Task Command([ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel channel, SocketRole role)
+		public async Task Command([ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel channel, SocketRole role)
 			=> await FormatOverwrite(channel, role).CAF();
 		[Command]
-		public async Task Command([ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel channel, SocketGuildUser user)
+		public async Task Command([ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel channel, SocketGuildUser user)
 			=> await FormatOverwrite(channel, user).CAF();
 
 		private async Task FormatOverwrite<T>(SocketGuildChannel channel, T obj) where T : ISnowflakeEntity
@@ -208,14 +208,14 @@ namespace Advobot.Commands.Channels
 		[Command]
 		public async Task Command(
 			PermValue action,
-			[ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel channel,
+			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel channel,
 			SocketRole role,
 			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
 			=> await CommandRunner(action, channel, role, permissions).CAF();
 		[Command]
 		public async Task Command(
 			PermValue action,
-			[ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel channel,
+			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel channel,
 			SocketGuildUser user,
 			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
 			=> await CommandRunner(action, channel, user, permissions).CAF();
@@ -273,19 +273,19 @@ namespace Advobot.Commands.Channels
 	{
 		[Command]
 		public async Task Command(
-			[ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel inputChannel,
-			[ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel outputChannel)
+			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel inputChannel,
+			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel outputChannel)
 			=> await CommandRunner(inputChannel, outputChannel, default(IGuildUser)).CAF();
 		[Command]
 		public async Task Command(
-			[ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel inputChannel,
-			[ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel outputChannel,
+			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel inputChannel,
+			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel outputChannel,
 			SocketRole role)
 			=> await CommandRunner(inputChannel, outputChannel, role).CAF();
 		[Command]
 		public async Task Command(
-			[ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel inputChannel,
-			[ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel outputChannel,
+			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel inputChannel,
+			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel outputChannel,
 			SocketGuildUser user)
 			=> await CommandRunner(inputChannel, outputChannel, user).CAF();
 
@@ -312,7 +312,7 @@ namespace Advobot.Commands.Channels
 	public sealed class ClearChannelPerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateGenericChannel(Verif.CanModifyPermissions)] SocketGuildChannel channel)
+		public async Task Command([ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel channel)
 		{
 			var count = await channel.ClearOverwritesAsync(null, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully removed `{count}` overwrites from `{channel.Format()}`.").CAF();
@@ -326,7 +326,7 @@ namespace Advobot.Commands.Channels
 	public sealed class ModifyChannelNsfw : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateTextChannel(Verif.CanBeManaged)] SocketTextChannel channel)
+		public async Task Command([ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel channel)
 		{
 			var isNsfw = channel.IsNsfw;
 			await channel.ModifyAsync(x => x.IsNsfw = !isNsfw).CAF();
@@ -342,32 +342,32 @@ namespace Advobot.Commands.Channels
 	{
 		[Command, Priority(1)]
 		public async Task Command(
-			[ValidateTextChannel(Verif.CanBeManaged)] SocketTextChannel channel,
+			[ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel channel,
 			[Remainder, ValidateTextChannelName] string name)
 			=> await CommandRunner(channel, name).CAF();
 		[Command, Priority(1)]
 		public async Task Command(
-			[ValidateVoiceChannel(Verif.CanBeManaged)] SocketVoiceChannel channel,
+			[ValidateVoiceChannel(CPerm.ManageChannels)] SocketVoiceChannel channel,
 			[Remainder, ValidateChannelName] string name)
 			=> await CommandRunner(channel, name).CAF();
 		[Command, Priority(1)]
 		public async Task Command(
-			[ValidateCategoryChannel(Verif.CanBeManaged)] SocketCategoryChannel channel,
+			[ValidateCategoryChannel(CPerm.ManageChannels)] SocketCategoryChannel channel,
 			[Remainder, ValidateChannelName] string name)
 			=> await CommandRunner(channel, name).CAF();
 		[Command(nameof(Text)), ShortAlias(nameof(Text))]
 		public async Task Text(
-			[OverrideTypeReader(typeof(ChannelPositionTypeReader<SocketTextChannel>)), ValidateTextChannel(Verif.CanBeManaged)] SocketTextChannel channel,
+			[OverrideTypeReader(typeof(ChannelPositionTypeReader<SocketTextChannel>)), ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel channel,
 			[Remainder, ValidateTextChannelName] string name)
 			=> await CommandRunner(channel, name).CAF();
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice(
-			[OverrideTypeReader(typeof(ChannelPositionTypeReader<SocketVoiceChannel>)), ValidateVoiceChannel(Verif.CanBeManaged)] SocketVoiceChannel channel,
+			[OverrideTypeReader(typeof(ChannelPositionTypeReader<SocketVoiceChannel>)), ValidateVoiceChannel(CPerm.ManageChannels)] SocketVoiceChannel channel,
 			[Remainder, ValidateChannelName] string name)
 			=> await CommandRunner(channel, name).CAF();
 		[Command(nameof(Category)), ShortAlias(nameof(Category))]
 		public async Task Category(
-			[OverrideTypeReader(typeof(ChannelPositionTypeReader<SocketCategoryChannel>)), ValidateCategoryChannel(Verif.CanBeManaged)] SocketCategoryChannel channel,
+			[OverrideTypeReader(typeof(ChannelPositionTypeReader<SocketCategoryChannel>)), ValidateCategoryChannel(CPerm.ManageChannels)] SocketCategoryChannel channel,
 			[Remainder, ValidateChannelName] string name)
 			=> await CommandRunner(channel, name).CAF();
 
@@ -388,7 +388,7 @@ namespace Advobot.Commands.Channels
 	{
 		[Command]
 		public async Task Command(
-			[ValidateTextChannel(Verif.CanBeManaged)] SocketTextChannel channel,
+			[ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel channel,
 			[Optional, Remainder, ValidateChannelTopic] string topic)
 		{
 			await channel.ModifyAsync(x => x.Topic = topic, GenerateRequestOptions()).CAF();
@@ -404,7 +404,7 @@ namespace Advobot.Commands.Channels
 	public sealed class ModifyChannelLimit : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateVoiceChannel(Verif.CanBeManaged)] SocketVoiceChannel channel, [ValidateChannelLimit] int limit)
+		public async Task Command([ValidateVoiceChannel(CPerm.ManageChannels)] SocketVoiceChannel channel, [ValidateChannelLimit] int limit)
 		{
 			await channel.ModifyAsync(x => x.UserLimit = limit, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully set the user limit for `{channel.Format()}` to `{limit}`.").CAF();
@@ -419,7 +419,7 @@ namespace Advobot.Commands.Channels
 	public sealed class ModifyChannelBitRate : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([ValidateVoiceChannel(Verif.CanBeManaged)] SocketVoiceChannel channel, [ValidateChannelBitrate] int bitrate)
+		public async Task Command([ValidateVoiceChannel(CPerm.ManageChannels)] SocketVoiceChannel channel, [ValidateChannelBitrate] int bitrate)
 		{
 			//Have to multiply by 1000 because in bps and for some reason treats, say, 50 as 50bps and not 50kbps
 			await channel.ModifyAsync(x => x.Bitrate = bitrate * 1000, GenerateRequestOptions()).CAF();

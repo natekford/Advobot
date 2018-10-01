@@ -3,10 +3,10 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
+using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.TypeReaders;
-using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -23,9 +23,7 @@ namespace Advobot.Commands.Nicknames
 	public sealed class ModifyNickName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(
-			[ValidateUser(Verif.CanBeEdited)] SocketGuildUser user,
-			[Optional, ValidateNickname] string nickname)
+		public async Task Command([ValidateUser] SocketGuildUser user, [Optional, ValidateNickname] string nickname)
 		{
 			await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully gave `{user.Format()}` the nickname `{nickname ?? "Nothing"}`.").CAF();
@@ -64,14 +62,14 @@ namespace Advobot.Commands.Nicknames
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
-			uint upperLimit,
+			[ValidatePositiveNumber] int upperLimit,
 			[ValidateNickname] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser).Where(x =>
 			{
-				return (x.Nickname != null && !x.Nickname.AllCharsWithinLimit((int)upperLimit))
-					|| (x.Nickname == null && !x.Username.AllCharsWithinLimit((int)upperLimit));
+				return (x.Nickname != null && !x.Nickname.AllCharsWithinLimit(upperLimit))
+					|| (x.Nickname == null && !x.Username.AllCharsWithinLimit(upperLimit));
 			}).Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
 			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(replace, GenerateRequestOptions()).CAF();
 		}
