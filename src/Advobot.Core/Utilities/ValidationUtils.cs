@@ -25,7 +25,7 @@ namespace Advobot.Utilities
 	/// <param name="user">The user or bot which is currently being checked if they can do this action.</param>
 	/// <param name="target">The object to verify this action can be done on.</param>
 	/// <returns></returns>
-	public delegate VerifiedObjectResult? ValidateExtra<T>(SocketGuildUser user, T target);
+	public delegate VerifiedObjectResult? ValidationRule<T>(SocketGuildUser user, T target);
 
 	/// <summary>
 	/// Utilities for validating Discord objects (users, roles, channels).
@@ -42,7 +42,7 @@ namespace Advobot.Utilities
 		public static VerifiedObjectResult ValidateUser(
 			this SocketGuildUser invoker,
 			SocketGuildUser target,
-			params ValidateExtra<SocketGuildUser>[] extra)
+			params ValidationRule<SocketGuildUser>[] extra)
 			=> invoker.Validate(target, CanModify, extra);
 		/// <summary>
 		/// Verifies that the role can be edited in specific ways.
@@ -54,7 +54,7 @@ namespace Advobot.Utilities
 		public static VerifiedObjectResult ValidateRole(
 			this SocketGuildUser invoker,
 			SocketRole target,
-			params ValidateExtra<SocketRole>[] extra)
+			params ValidationRule<SocketRole>[] extra)
 			=> invoker.Validate(target, CanModify, extra);
 		/// <summary>
 		/// Verifies that the channel can be edited in specific ways.
@@ -68,7 +68,7 @@ namespace Advobot.Utilities
 			this SocketGuildUser invoker,
 			SocketGuildChannel target,
 			IEnumerable<ChannelPermission> permissions,
-			params ValidateExtra<SocketGuildChannel>[] extra)
+			params ValidationRule<SocketGuildChannel>[] extra)
 		{
 			return invoker.Validate(target, (x, y) =>
 			{
@@ -101,7 +101,7 @@ namespace Advobot.Utilities
 			this SocketGuildUser invoker,
 			T target,
 			ValidatePermissions<T> permissionsCallback,
-			params ValidateExtra<T>[] extraChecks)
+			params ValidationRule<T>[] extraChecks)
 			where T : SocketEntity<ulong>, ISnowflakeEntity
 		{
 			if (!(invoker.Guild.CurrentUser is SocketGuildUser bot))
@@ -119,7 +119,7 @@ namespace Advobot.Utilities
 				{
 					return VerifiedObjectResult.FromUnableToModify(user, target);
 				}
-				foreach (var extra in extraChecks ?? Enumerable.Empty<ValidateExtra<T>>())
+				foreach (var extra in extraChecks ?? Enumerable.Empty<ValidationRule<T>>())
 				{
 					if (extra.Invoke(user, target) is VerifiedObjectResult extraResult && !extraResult.IsSuccess)
 					{

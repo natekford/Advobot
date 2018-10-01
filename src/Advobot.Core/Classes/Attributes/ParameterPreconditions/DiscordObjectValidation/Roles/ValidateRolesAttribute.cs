@@ -28,7 +28,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// Extra checks to use in validation.
 		/// </summary>
 		/// <returns></returns>
-		protected virtual IEnumerable<ValidateExtra<SocketRole>> GetExtras()
-			=> Enumerable.Empty<ValidateExtra<SocketRole>>();
+		protected virtual IEnumerable<ValidationRule<SocketRole>> GetExtras()
+			=> Enumerable.Empty<ValidationRule<SocketRole>>();
 	}
 }

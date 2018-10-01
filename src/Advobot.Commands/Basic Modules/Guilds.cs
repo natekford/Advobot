@@ -70,56 +70,22 @@ namespace Advobot.Commands.Guilds
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildRegion : AdvobotModuleBase
 	{
-#warning put into typereader
-		private static readonly string[] _BaseRegionIDs =
-		{
-			"brazil",
-			"eu-central",
-			"eu-west",
-			"hongkong",
-			"japan",
-			"russia",
-			"singapore",
-			"sydney",
-			"us-east",
-			"us-central",
-			"us-south",
-			"us-west"
-		};
-		private static readonly string[] _VIPRegionIDs =
-		{
-			"vip-amsterdam",
-			"vip-us-east",
-			"vip-us-west"
-		};
-		private static readonly string[] _AllRegionIDs = _BaseRegionIDs.Concat(_VIPRegionIDs).ToArray();
-
-		private static readonly string _BaseRegions = string.Join("\n", _BaseRegionIDs);
-		private static readonly string _VIPRegions = string.Join("\n", _VIPRegionIDs);
-		private static readonly string _AllRegions = string.Join("\n", _AllRegionIDs);
-
-		//TODO: use bot voice regions field
+#warning Replace in show and update typereader when GetVoiceRegionsAsync is implemented
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
+			var regions = new string[0];
 			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "Region Ids",
-				Description = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions
+				Description = $"`{regions.Join("`, `")}`",
 			}).CAF();
 		}
 		[Command]
-		public async Task Command(string regionId)
+		public async Task Command(IVoiceRegion region)
 		{
-			var regionIds = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegionIDs : _BaseRegionIDs;
-			if (!regionIds.CaseInsContains(regionId))
-			{
-				await ReplyErrorAsync(new Error("No valid region ID was input.")).CAF();
-				return;
-			}
-
-			await Context.Guild.ModifyAsync(x => x.RegionId = regionId, GenerateRequestOptions()).CAF();
-			await ReplyTimedAsync($"Successfully changed the server region of the guild to `{regionId}`.").CAF();
+			await Context.Guild.ModifyAsync(x => x.Region = Optional.Create(region), GenerateRequestOptions()).CAF();
+			await ReplyTimedAsync($"Successfully changed the server region of the guild to `{region.Id}`.").CAF();
 		}
 	}
 

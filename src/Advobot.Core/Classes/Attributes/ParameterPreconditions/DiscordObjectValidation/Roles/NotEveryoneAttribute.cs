@@ -10,7 +10,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	public sealed class NotEveryoneAttribute : ValidateRoleAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidateExtra<SocketRole>> GetExtras()
+		protected override IEnumerable<ValidationRule<SocketRole>> GetExtras()
 		{
 			yield return ValidationUtils.RoleIsNotEveryone;
 		}

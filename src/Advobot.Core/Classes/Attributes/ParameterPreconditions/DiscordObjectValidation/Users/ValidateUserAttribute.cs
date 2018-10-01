@@ -22,7 +22,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// Extra checks to use in validation.
 		/// </summary>
 		/// <returns></returns>
-		protected virtual IEnumerable<ValidateExtra<SocketGuildUser>> GetExtras()
-			=> Enumerable.Empty<ValidateExtra<SocketGuildUser>>();
+		protected virtual IEnumerable<ValidationRule<SocketGuildUser>> GetExtras()
+			=> Enumerable.Empty<ValidationRule<SocketGuildUser>>();
 	}
 }

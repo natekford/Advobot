@@ -46,7 +46,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// Extra checks to use in validation.
 		/// </summary>
 		/// <returns></returns>
-		protected virtual IEnumerable<ValidateExtra<SocketGuildChannel>> GetExtras()
+		protected virtual IEnumerable<ValidationRule<SocketGuildChannel>> GetExtras()
 		{
 			if (CanBeReordered)
 			{

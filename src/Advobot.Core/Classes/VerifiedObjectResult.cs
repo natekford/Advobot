@@ -64,7 +64,7 @@ namespace Advobot.Classes.Results
 		/// <returns></returns>
 		public static VerifiedObjectResult FromUnableToModify(SocketGuildUser invoker, ISnowflakeEntity target)
 		{
-			var start = invoker.Id == invoker.Guild.CurrentUser.Id ? "I a" : "You are";
+			var start = invoker.Id == invoker.Guild.CurrentUser.Id ? "I am" : "You are";
 			var reason = $"{start} unable to make the given changes to `{target.Format()}`.";
 			return FromError(CommandError.UnmetPrecondition, reason);
 		}

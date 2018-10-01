@@ -10,7 +10,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	public class CanBeMovedAttribute : ValidateUserAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidateExtra<SocketGuildUser>> GetExtras()
+		protected override IEnumerable<ValidationRule<SocketGuildUser>> GetExtras()
 		{
 			yield return ValidationUtils.MovingUserFromVoiceChannel;
 		}
