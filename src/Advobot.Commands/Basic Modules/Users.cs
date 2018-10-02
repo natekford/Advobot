@@ -163,17 +163,14 @@ namespace Advobot.Commands.Users
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class MoveUsers : AdvobotModuleBase
+	public sealed class MoveUsers : MultiUserActionModule
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
-			[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel inputChannel,
-			[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel outputChannel,
+			[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel input,
+			[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel output,
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-		{
-			var users = inputChannel.Users.Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
-			await new MultiUserActionModule(Context, users).MoveUsersAsync(outputChannel, GenerateRequestOptions()).CAF();
-		}
+			=> await Process(input.Users, bypass, x => true, (u, o) => u.ModifyAsync(x => x.Channel = output, o)).CAF();
 	}
 
 	[Category(typeof(PruneUsers)), Group(nameof(PruneUsers)), TopLevelShortAlias(typeof(PruneUsers))]
@@ -347,46 +344,37 @@ namespace Advobot.Commands.Users
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
-	public sealed class ForAllWithRole : AdvobotModuleBase
+	public sealed class ForAllWithRole : MultiUserActionModule
 	{
 		[Command(nameof(GiveRole)), ShortAlias(nameof(GiveRole))]
 		public async Task GiveRole(
-			SocketRole targetRole,
-			[NotEveryoneOrManaged] SocketRole givenRole,
+			SocketRole target,
+			[NotEveryoneOrManaged] SocketRole give,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			if (targetRole.Id == givenRole.Id)
+			if (target.Id == give.Id)
 			{
 				await ReplyErrorAsync(new Error("Cannot give the role being gathered.")).CAF();
 				return;
 			}
-
-			await CommandRunner(targetRole, bypass, async (m) => await m.GiveRolesAsync(givenRole, GenerateRequestOptions()).CAF());
+			await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.AddRoleAsync(give, o)).CAF();
 		}
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
 		public async Task TakeRole(
-			SocketRole targetRole,
-			[NotEveryoneOrManaged] SocketRole takenRole,
+			SocketRole target,
+			[NotEveryoneOrManaged] SocketRole take,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-			=> await CommandRunner(targetRole, bypass, async (m) => await m.TakeRolesAsync(takenRole, GenerateRequestOptions()).CAF());
+			=> await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.RemoveRoleAsync(take, o)).CAF();
 		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
 		public async Task GiveNickname(
-			[ValidateRole] SocketRole targetRole,
+			[ValidateRole] SocketRole target,
 			[ValidateNickname] string nickname,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-			=> await CommandRunner(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(nickname, GenerateRequestOptions()).CAF());
+			=> await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = nickname)).CAF();
 		[Command(nameof(ClearNickname)), ShortAlias(nameof(ClearNickname))]
 		public async Task ClearNickname(
-			[ValidateRole] SocketRole targetRole,
+			[ValidateRole] SocketRole target,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-			=> await CommandRunner(targetRole, bypass, async (m) => await m.ModifyNicknamesAsync(null, GenerateRequestOptions()).CAF());
-
-		private async Task CommandRunner(SocketRole target, bool bypass, Func<MultiUserActionModule, Task> callback)
-		{
-			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser)
-				.Where(x => x.Roles.Select(r => r.Id).Contains(target.Id))
-				.Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
-			await callback(new MultiUserActionModule(Context, users)).CAF();
-		}
+			=> await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = u.Username)).CAF();
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -30,26 +31,24 @@ namespace Advobot.Commands.Nicknames
 		}
 	}
 
-#warning a lot of the guts of the following three commands is very similar, can try to put together
 	[Category(typeof(ReplaceWordsInNames)), Group(nameof(ReplaceWordsInNames)), TopLevelShortAlias(typeof(ReplaceWordsInNames))]
 	[Summary("Gives users a new nickname if their nickname or username contains the search phrase. " +
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ReplaceWordsInNames : AdvobotModuleBase
+	public sealed class ReplaceWordsInNames : MultiUserActionModule
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
 			[ValidateNickname] string search,
 			[ValidateNickname] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+			=> await Process(bypass, x => IsMatch(x, search), (u, o) => u.ModifyAsync(x => x.Nickname = replace, o)).CAF();
+
+		private bool IsMatch(SocketGuildUser user, string search)
 		{
-			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser).Where(x =>
-			{
-				return (x.Nickname != null && x.Nickname.CaseInsContains(search))
-					|| (x.Nickname == null && x.Username.CaseInsContains(search));
-			}).Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
-			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(replace, GenerateRequestOptions()).CAF();
+			return (user.Nickname != null && user.Nickname.CaseInsContains(search))
+				|| (user.Nickname == null && user.Username.CaseInsContains(search));
 		}
 	}
 
@@ -58,20 +57,19 @@ namespace Advobot.Commands.Nicknames
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ReplaceByUtf16 : AdvobotModuleBase
+	public sealed class ReplaceByUtf16 : MultiUserActionModule
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(
 			[ValidatePositiveNumber] int upperLimit,
 			[ValidateNickname] string replace,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+			=> await Process(bypass, x => IsMatch(x, upperLimit), (u, o) => u.ModifyAsync(x => x.Nickname = replace, o)).CAF();
+
+		private bool IsMatch(SocketGuildUser user, int upperLimit)
 		{
-			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser).Where(x =>
-			{
-				return (x.Nickname != null && !x.Nickname.AllCharsWithinLimit(upperLimit))
-					|| (x.Nickname == null && !x.Username.AllCharsWithinLimit(upperLimit));
-			}).Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
-			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(replace, GenerateRequestOptions()).CAF();
+			return (user.Nickname != null && !user.Nickname.AllCharsWithinLimit(upperLimit))
+				|| (user.Nickname == null && !user.Username.AllCharsWithinLimit(upperLimit));
 		}
 	}
 
@@ -80,14 +78,10 @@ namespace Advobot.Commands.Nicknames
 		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
-	public sealed class RemoveAllNickNames : AdvobotModuleBase
+	public sealed class RemoveAllNickNames : MultiUserActionModule
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-		{
-			var users = Context.Guild.GetEditableUsers(Context.User as SocketGuildUser)
-				.Where(x => x.Nickname != null).Take(bypass ? int.MaxValue : BotSettings.MaxUserGatherCount);
-			await new MultiUserActionModule(Context, users).ModifyNicknamesAsync(null, GenerateRequestOptions()).CAF();
-		}
+			=> await Process(bypass, x => x.Nickname != null, (u, o) => u.ModifyAsync(x => x.Nickname = u.Username, o)).CAF();
 	}
 }
