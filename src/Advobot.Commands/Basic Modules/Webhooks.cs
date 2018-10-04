@@ -78,35 +78,19 @@ namespace Advobot.Commands.Webhooks
 	[Summary("Changes the icon of a webhook.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyWebhookIcon : AdvobotModuleBase
+	public sealed class ModifyWebhookIcon : ImageResizerModule
 	{
-		private static WebhookIconResizer _Resizer = new WebhookIconResizer(4);
-
 		[Command]
 		public async Task Command(IWebhook webhook, Uri url)
 		{
-			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
+			await ProcessAsync(new IconCreationArgs("Webhook Icon", Context, url, default, async (ctx, ms) =>
 			{
-				await ReplyErrorAsync(new Error("Currently already working on a webhook icon.")).CAF();
-				return;
-			}
-
-			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GenerateRequestOptions(), webhook.Id.ToString());
-			if (_Resizer.CanStart)
-			{
-				_Resizer.StartProcessing();
-			}
-			await ReplyTimedAsync($"Position in webhook icon creation queue: {_Resizer.QueueCount}.").CAF();
+				await webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions()).CAF();
+			})).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(IWebhook webhook)
 		{
-			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
-			{
-				await ReplyErrorAsync(new Error("Currently already working on a webhook icon.")).CAF();
-				return;
-			}
-
 			await webhook.ModifyAsync(x => x.Image = new Image(), GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync($"Successfully removed the webhook icon from {webhook.Format()}.").CAF();
 		}

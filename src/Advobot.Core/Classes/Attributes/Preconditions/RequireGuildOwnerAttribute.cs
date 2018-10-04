@@ -7,16 +7,13 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// <summary>
 	/// Requires guild owner before this command will execute.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireGuildOwner : PreconditionAttribute
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public sealed class RequireGuildOwner : SelfGroupPreconditionAttribute
 	{
-		/// <summary>
-		/// Verifies this command was invoked by the guild owner.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="command"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
+		public override bool Visible => true;
+
+		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			return Task.FromResult(context.Guild.OwnerId == context.User.Id
@@ -28,6 +25,6 @@ namespace Advobot.Classes.Attributes.Preconditions
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> "Guild Owner";
+			=> "Guild owner";
 	}
 }

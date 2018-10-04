@@ -9,16 +9,13 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// <summary>
 	/// Requires bot owner before this command will execute.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireBotOwnerAttribute : PreconditionAttribute
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public sealed class RequireBotOwnerAttribute : SelfGroupPreconditionAttribute
 	{
-		/// <summary>
-		/// Verifies this command was invoked by the bot owner.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="command"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
+		public override bool Visible => true;
+
+		/// <inheritdoc />
 		public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			return await ClientUtils.GetOwnerIdAsync(context.Client).CAF() == context.User.Id
@@ -30,6 +27,6 @@ namespace Advobot.Classes.Attributes.Preconditions
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> "Bot Owner";
+			=> "Bot owner";
 	}
 }

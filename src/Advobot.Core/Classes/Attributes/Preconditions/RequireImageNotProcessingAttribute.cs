@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes.ImageResizing;
+using Advobot.Interfaces;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Classes.Attributes.Preconditions
 {
 	/// <summary>
-	/// Will return success if the bot is the owner of the guild in the context.
+	/// Disallows the command from running if an image is currently being resized.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class RequireBotIsOwnerAttribute : SelfGroupPreconditionAttribute
+	public sealed class RequireImageNotProcessingAttribute : SelfGroupPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override bool Visible => true;
@@ -16,15 +19,16 @@ namespace Advobot.Classes.Attributes.Preconditions
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			return context.Client.CurrentUser.Id == context.Guild.OwnerId
-				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError("The bot is not the owner of the guild."));
+			var resizer = services.GetRequiredService<IImageResizer>();
+			return resizer.IsGuildAlreadyProcessing(context.Guild.Id)
+				? Task.FromResult(PreconditionResult.FromError("Guild already has an image processing."))
+				: Task.FromResult(PreconditionResult.FromSuccess());
 		}
 		/// <summary>
 		/// Returns a string describing what this attribute requires.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> "Bot is guild owner";
+			=> "Not currently processing another image";
 	}
 }

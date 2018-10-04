@@ -13,7 +13,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <summary>
 		/// Cannot check from context for an unspecified channel type.
 		/// </summary>
-		public new bool IfNullCheckFromContext => false;
+		public new bool FromContext => false;
 
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateGenericChannelAttribute"/>.

@@ -17,7 +17,7 @@ namespace Advobot.Classes.TypeReaders
 		/// <inheritdoc />
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			var regions = new IVoiceRegion[0];//await context.Guild.GetVoiceRegionsAsync().CAF();
+			var regions = await context.Guild.GetVoiceRegionsAsync().CAF();
 			if (regions.TryGetSingle(x => x.Name.CaseInsEquals(input), out var region))
 			{
 				return TypeReaderResult.FromSuccess(region);

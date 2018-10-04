@@ -6,12 +6,10 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.ImageResizing;
-using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -25,12 +23,9 @@ namespace Advobot.Commands.Emotes
 		"Requires either an emote to copy, or the name and file to make an emote out of.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
 	[DefaultEnabled(true)]
-	[RateLimit(1)]
-	public sealed class CreateEmote : AdvobotModuleBase
+	[RateLimit(RateLimitAttribute.TimeUnit.Minutes, 1)]
+	public sealed class CreateEmote : ImageResizerModule
 	{
-#warning put into service provider
-		private static EmoteResizer _Resizer = new EmoteResizer(4);
-
 		[Command]
 		public async Task Command(Emote emote)
 			=> await Command(emote.Name, new Uri(emote.Url)).CAF();
@@ -38,21 +33,8 @@ namespace Advobot.Commands.Emotes
 		public async Task Command(
 			[ValidateEmoteName] string name,
 			Uri url,
-			[Optional, Remainder] EmoteResizerArguments args)
-		{
-			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
-			{
-				await ReplyErrorAsync(new Error("Currently already working on creating an emote.")).CAF();
-				return;
-			}
-
-			_Resizer.EnqueueArguments(Context, args, url, GenerateRequestOptions(), name);
-			if (_Resizer.CanStart)
-			{
-				_Resizer.StartProcessing();
-			}
-			await ReplyTimedAsync($"Position in emote creation queue: {_Resizer.QueueCount}.").CAF();
-		}
+			[Optional, Remainder] UserProvidedImageArgs args)
+			=> await ProcessAsync(new EmoteCreationArgs(Context, url, args, name)).CAF();
 	}
 
 	[Category(typeof(DeleteEmote)), Group(nameof(DeleteEmote)), TopLevelShortAlias(typeof(DeleteEmote))]

@@ -16,7 +16,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <summary>
 		/// Cannot check from context for roles.
 		/// </summary>
-		public new bool IfNullCheckFromContext => false;
+		public new bool FromContext => false;
 
 		/// <inheritdoc />
 		protected override object GetFromContext(SocketCommandContext context)

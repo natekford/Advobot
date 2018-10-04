@@ -8,7 +8,6 @@ using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using AdvorangesSettingParser;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Static;
 using AdvorangesSettingParser.Interfaces;
@@ -201,12 +200,12 @@ namespace Advobot.Utilities
 				new StaticSetting<LocalInviteGatherer, bool?>(x => x.NeverExpires) { IsOptional = true },
 				new StaticSetting<LocalInviteGatherer, bool?>(x => x.NoMaxUses) { IsOptional = true },
 			}.Register();
-			new StaticSettingParser<EmoteResizerArguments>
+			new StaticSettingParser<UserProvidedImageArgs>
 			{
-				new StaticSetting<EmoteResizerArguments, int>(x => x.ResizeTries) { IsOptional = true },
-				new StaticSetting<EmoteResizerArguments, Percentage>(x => x.ColorFuzzing) { IsOptional = true },
-				new StaticSetting<EmoteResizerArguments, int>(x => x.StartInSeconds) { IsOptional = true },
-				new StaticSetting<EmoteResizerArguments, int>(x => x.LengthInSeconds) { IsOptional = true },
+				new StaticSetting<UserProvidedImageArgs, int>(x => x.ResizeTries) { IsOptional = true },
+				new StaticSetting<UserProvidedImageArgs, Percentage>(x => x.ColorFuzzing) { IsOptional = true },
+				new StaticSetting<UserProvidedImageArgs, double>(x => x.StartInSeconds) { IsOptional = true },
+				new StaticSetting<UserProvidedImageArgs, double>(x => x.LengthInSeconds) { IsOptional = true },
 			}.Register();
 			new StaticSettingParser<SpamPrev>
 			{

@@ -32,36 +32,19 @@ namespace Advobot.Commands.Client
 		"The image must be smaller than 2.5MB.")]
 	[RequireBotOwner]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotIcon : AdvobotModuleBase
+	public sealed class ModifyBotIcon : ImageResizerModule
 	{
-#warning put this into service provider
-		private static BotIconResizer _Resizer = new BotIconResizer(4);
-
 		[Command]
 		public async Task Command(Uri url)
 		{
-			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
+			await ProcessAsync(new IconCreationArgs("Bot Icon", Context, url, default, async (ctx, ms) =>
 			{
-				await ReplyErrorAsync(new Error("Currently already working on the bot icon.")).CAF();
-				return;
-			}
-
-			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GenerateRequestOptions());
-			await ReplyTimedAsync($"Position in bot icon creation queue: {_Resizer.QueueCount}.").CAF();
-			if (_Resizer.CanStart)
-			{
-				_Resizer.StartProcessing();
-			}
+				await ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions()).CAF();
+			})).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
-			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
-			{
-				await ReplyErrorAsync(new Error("Currently already working on the bot icon.")).CAF();
-				return;
-			}
-
 			await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
 			await ReplyTimedAsync("Successfully removed the bot icon.").CAF();
 		}

@@ -70,15 +70,14 @@ namespace Advobot.Commands.Guilds
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildRegion : AdvobotModuleBase
 	{
-#warning Replace in show and update typereader when GetVoiceRegionsAsync is implemented
 		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
 		public async Task Show()
 		{
-			var regions = new string[0];
+			var regions = await Context.Guild.GetVoiceRegionsAsync().CAF();
 			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = "Region Ids",
-				Description = $"`{regions.Join("`, `")}`",
+				Description = $"`{regions.Join("`, `", x => x.Name)}`",
 			}).CAF();
 		}
 		[Command]
@@ -176,36 +175,19 @@ namespace Advobot.Commands.Guilds
 	[Summary("Changes the guild's icon to the given image.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildIcon : AdvobotModuleBase
+	public sealed class ModifyGuildIcon : ImageResizerModule
 	{
-#warning put into service provider
-		private static GuildIconResizer _Resizer = new GuildIconResizer(4);
-
 		[Command]
 		public async Task Command(Uri url)
 		{
-			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
+			await ProcessAsync(new IconCreationArgs("Guild Icon", Context, url, default, async (ctx, ms) =>
 			{
-				await ReplyErrorAsync(new Error("Currently already working on the guild icon.")).CAF();
-				return;
-			}
-
-			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GenerateRequestOptions());
-			await ReplyTimedAsync($"Position in guild icon creation queue: {_Resizer.QueueCount}.").CAF();
-			if (_Resizer.CanStart)
-			{
-				_Resizer.StartProcessing();
-			}
+				await ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions()).CAF();
+			})).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
-			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
-			{
-				await ReplyErrorAsync(new Error("Currently already working on the guild icon.")).CAF();
-				return;
-			}
-
 			await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync("Successfully removed the guild icon.").CAF();
 		}
@@ -215,46 +197,20 @@ namespace Advobot.Commands.Guilds
 	[Summary("Changes the guild splash to the given image. Won't be modified unless the server is a partnered server.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildSplash : AdvobotModuleBase
+	[RequirePartneredGuild]
+	public sealed class ModifyGuildSplash : ImageResizerModule
 	{
-#warning put into service provider
-		private static GuildSplashResizer _Resizer = new GuildSplashResizer(4);
-
 		[Command]
 		public async Task Command(Uri url)
 		{
-			if (!Context.Guild.Features.CaseInsContains(Constants.INVITE_SPLASH))
+			await ProcessAsync(new IconCreationArgs("Guild Splash", Context, url, default, async (ctx, ms) =>
 			{
-				await ReplyErrorAsync(new Error("The guild needs to be partnered before a splash can be set."));
-				return;
-			}
-			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
-			{
-				await ReplyErrorAsync(new Error("Currently already working on the guild splash.")).CAF();
-				return;
-			}
-
-			_Resizer.EnqueueArguments(Context, new IconResizerArguments(), url, GenerateRequestOptions());
-			if (_Resizer.CanStart)
-			{
-				_Resizer.StartProcessing();
-			}
-			await ReplyTimedAsync($"Position in guild splash creation queue: {_Resizer.QueueCount}.").CAF();
+				await ctx.Guild.ModifyAsync(x => x.Splash = new Image(ms), ctx.GenerateRequestOptions()).CAF();
+			})).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
-			if (!Context.Guild.Features.CaseInsContains(Constants.INVITE_SPLASH))
-			{
-				await ReplyErrorAsync(new Error("The guild needs to be partnered before a splah can be removed."));
-				return;
-			}
-			if (_Resizer.IsGuildAlreadyProcessing(Context.Guild))
-			{
-				await ReplyErrorAsync(new Error("Currently already working on the guild splash.")).CAF();
-				return;
-			}
-
 			await Context.Guild.ModifyAsync(x => x.Splash = new Image(), GenerateRequestOptions()).CAF();
 			await ReplyTimedAsync("Successfully removed the guild splash.").CAF();
 		}

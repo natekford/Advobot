@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Advobot.Classes.DatabaseWrappers;
 using Advobot.Classes.DatabaseWrappers.LiteDB;
 using Advobot.Classes.DatabaseWrappers.MongoDB;
+using Advobot.Classes.ImageResizing;
 using Advobot.Interfaces;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
@@ -220,6 +221,7 @@ namespace Advobot.Classes
 			s.AddSingleton<ILevelService>(p => StartDatabase(new LevelService(p)));
 			s.AddSingleton<ITimerService>(p => StartDatabase(new TimerService(p)));
 			s.AddSingleton<IInviteListService>(p => StartDatabase(new InviteListService(p)));
+			s.AddSingleton<IImageResizer>(p => new ImageResizer(10));
 
 			switch (DatabaseType)
 			{
@@ -241,13 +243,14 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public static LowLevelConfig Load(string[] args)
 		{
+			var parseArgs = new ParseArgs(args, new[] { '"' }, new[] { '"' });
 			var instance = -1;
-			new SettingParser { new Setting<int>(() => instance), }.Parse(args);
+			new SettingParser { new Setting<int>(() => instance), }.Parse(parseArgs);
 
 			//Instance is for the config so they can be named Advobot1, Advobot2, etc.
 			instance = instance < 1 ? 1 : instance;
 			var config = IOUtils.DeserializeFromFile<LowLevelConfig>(GetConfigPath(instance)) ?? new LowLevelConfig();
-			StaticSettingParserRegistry.Instance.Parse(config, args);
+			StaticSettingParserRegistry.Instance.Parse(config, parseArgs);
 			return config;
 		}
 		/// <summary>

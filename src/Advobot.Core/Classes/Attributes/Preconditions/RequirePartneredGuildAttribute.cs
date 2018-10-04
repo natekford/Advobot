@@ -5,10 +5,10 @@ using Discord.Commands;
 namespace Advobot.Classes.Attributes.Preconditions
 {
 	/// <summary>
-	/// Will return success if the bot is the owner of the guild in the context.
+	/// Requires the guild in the command context to be 
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class RequireBotIsOwnerAttribute : SelfGroupPreconditionAttribute
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+	public sealed class RequirePartneredGuildAttribute : SelfGroupPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override bool Visible => true;
@@ -16,15 +16,15 @@ namespace Advobot.Classes.Attributes.Preconditions
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			return context.Client.CurrentUser.Id == context.Guild.OwnerId
+			return context.Guild.Features.Count > 0
 				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError("The bot is not the owner of the guild."));
+				: Task.FromResult(PreconditionResult.FromError("This guild is not partnered."));
 		}
 		/// <summary>
 		/// Returns a string describing what this attribute requires.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> "Bot is guild owner";
+			=> "Partnered guild";
 	}
 }

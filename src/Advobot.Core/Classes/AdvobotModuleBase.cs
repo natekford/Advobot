@@ -156,9 +156,6 @@ namespace Advobot.Classes
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		public RequestOptions GenerateRequestOptions(string reason = null)
-		{
-			var r = reason == null ? "" : $" Reason: {reason}.";
-			return ClientUtils.CreateRequestOptions($"Action by {Context.User.Format()}.{r}");
-		}
+			=> Context.GenerateRequestOptions(reason);
 	}
 }

@@ -10,6 +10,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 
@@ -20,6 +21,25 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class DiscordUtils
 	{
+		/// <summary>
+		/// Generates a default request options explaining who invoked the command for the audit log.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static RequestOptions GenerateRequestOptions(this ICommandContext context, string reason = null)
+			=> context.User.GenerateRequestOptions(reason);
+		/// <summary>
+		/// Generates a default request options explaining who invoked the command for the audit log.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static RequestOptions GenerateRequestOptions(this IUser user, string reason = null)
+		{
+			var r = reason == null ? "" : $" Reason: {reason}.";
+			return ClientUtils.CreateRequestOptions($"Action by {user.Format()}.{r}");
+		}
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.
 		/// Not sure why, but IRole.ModifyAsync cannot set the position of a role to 1.

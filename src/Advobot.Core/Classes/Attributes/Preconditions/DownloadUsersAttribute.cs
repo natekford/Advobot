@@ -10,23 +10,12 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// Downloads all users before executing the command.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class DownloadUsersAttribute : PreconditionAttribute
+	public sealed class DownloadUsersAttribute : SelfGroupPreconditionAttribute
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="DownloadUsersAttribute"/>.
-		/// </summary>
-		public DownloadUsersAttribute()
-		{
-			Group = nameof(DownloadUsersAttribute);
-		}
+		/// <inheritdoc />
+		public override bool Visible => false;
 
-		/// <summary>
-		/// Makes sure every user is downloaded before running the command.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="command"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			if (!(context.Guild is SocketGuild socket) || !socket.HasAllMembers)
@@ -35,5 +24,11 @@ namespace Advobot.Classes.Attributes.Preconditions
 			}
 			return PreconditionResult.FromSuccess();
 		}
+		/// <summary>
+		/// Returns a string describing what this attribute requires.
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+			=> "All users downloaded by bot";
 	}
 }
