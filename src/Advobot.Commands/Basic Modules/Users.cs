@@ -330,7 +330,7 @@ namespace Advobot.Commands.Users
 			//Increase by one to account for it not being targetted.
 			if (Context.Message.Channel.Id != channel.Id)
 			{
-				await MessageUtils.DeleteMessageAsync(messageToStartAt, GenerateRequestOptions()).CAF();
+				await messageToStartAt.DeleteAsync(GenerateRequestOptions()).CAF();
 				deletedAmt++;
 			}
 

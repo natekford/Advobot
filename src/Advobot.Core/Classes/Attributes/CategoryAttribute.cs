@@ -20,7 +20,7 @@ namespace Advobot.Classes.Attributes
 		/// <param name="type"></param>
 		public CategoryAttribute(Type type)
 		{
-			Category = type.Name.Split('.').Last();
+			Category = type.Namespace.Split('.').Last();
 		}
 		/// <summary>
 		/// Creates an instance of <see cref="CategoryAttribute"/>.

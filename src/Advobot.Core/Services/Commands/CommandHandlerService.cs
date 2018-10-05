@@ -125,7 +125,7 @@ namespace Advobot.Services.Commands
 			if (result.IsSuccess)
 			{
 				_Logging?.SuccessfulCommands?.Add(1);
-				await MessageUtils.DeleteMessageAsync(context.Message, ClientUtils.CreateRequestOptions("logged command")).CAF();
+				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("logged command")).CAF();
 				if (context.GuildSettings.ModLogId != 0 && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
 					await MessageUtils.SendMessageAsync(context.Guild.GetTextChannel(context.GuildSettings.ModLogId), embedWrapper: new EmbedWrapper

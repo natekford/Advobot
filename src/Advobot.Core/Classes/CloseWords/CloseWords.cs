@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Advobot.Classes.CloseWords
@@ -13,7 +14,7 @@ namespace Advobot.Classes.CloseWords
 		/// <summary>
 		/// Matching close words.
 		/// </summary>
-		public IEnumerable<CloseWord> Matches { get; protected set; }
+		public ImmutableArray<CloseWord> Matches { get; protected set; }
 
 		/// <summary>
 		/// What to search through.
@@ -51,7 +52,7 @@ namespace Advobot.Classes.CloseWords
 		/// Returns matches.
 		/// </summary>
 		/// <returns></returns>
-		protected IEnumerable<CloseWord> FindMatches()
+		protected ImmutableArray<CloseWord> FindMatches()
 		{
 			var closeWords = new List<CloseWord>();
 			//First loop around to find words that are similar
@@ -77,7 +78,7 @@ namespace Advobot.Classes.CloseWords
 				}
 				closeWords.Add(closeWord);
 			}
-			return closeWords.Where(x => x != null && x.Closeness > -1).Take(MaxOutput);
+			return closeWords.Where(x => x != null && x.Closeness > -1).Take(MaxOutput).ToImmutableArray();
 		}
 		/// <summary>
 		/// Determines whether this is a close word.

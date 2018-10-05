@@ -54,7 +54,7 @@ namespace Advobot.Classes
 			var amount = bypass ? int.MaxValue : BotSettings.MaxUserGatherCount;
 			var array = users.Where(predicate).Take(amount).ToArray();
 			var text = $"Attempting to modify `{array.Length}` users.";
-			var msg = await ReplyAsync(text).CAF();
+			var message = await ReplyAsync(text).CAF();
 			var options = GenerateRequestOptions();
 
 			var successCount = 0;
@@ -69,7 +69,7 @@ namespace Advobot.Classes
 					var amtLeft = array.Length - i;
 					var time = (int)(amtLeft * 1.2);
 					var newText = $"Attempting to modify `{amtLeft}` users. ETA on completion: `{time}` seconds.";
-					await msg.ModifyAsync(x => x.Content = newText).CAF();
+					await message.ModifyAsync(x => x.Content = newText).CAF();
 				}
 
 				++successCount;
@@ -82,7 +82,7 @@ namespace Advobot.Classes
 				catch { }
 			}
 
-			await MessageUtils.DeleteMessageAsync(msg, options).CAF();
+			await message.DeleteAsync(options).CAF();
 			await ReplyAsync($"Successfully modified `{successCount}` users.").CAF();
 		}
 	}

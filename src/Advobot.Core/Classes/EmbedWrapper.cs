@@ -474,7 +474,7 @@ namespace Advobot.Classes
 			{
 				errors.Add(EmbedError.LengthRemaining(nameof(Footer), nameof(EmbedFooterBuilder.Text), text, remainingLen));
 			}
-			if (!iconUrl.IsValidUrl())
+			if (!iconUrl.IsValidUrl() && iconUrl != null)
 			{
 				errors.Add(EmbedError.Url(nameof(Footer), nameof(iconUrl), iconUrl));
 			}

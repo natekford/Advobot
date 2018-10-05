@@ -67,7 +67,6 @@ namespace Advobot.Services.Logging.Loggers
 				await HandleBannedPhrasesAsync(settings, user, message).CAF();
 			}
 			//Actions which should happen no matter what
-			await HandleCloseWords(settings, user, message).CAF();
 			await HandleChannelSettingsAsync(settings, user, message).CAF();
 		}
 		/// <inheritdoc />
@@ -286,7 +285,7 @@ namespace Advobot.Services.Logging.Loggers
 
 			if (info.MessagesSent >= slowmode.BaseMessages)
 			{
-				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("slowmode")).CAF();
+				await message.DeleteAsync(ClientUtils.CreateRequestOptions("slowmode")).CAF();
 				return;
 			}
 			if (info.MessagesSent == 0)
@@ -337,7 +336,7 @@ namespace Advobot.Services.Logging.Loggers
 				var content = $"`{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 #warning convert back to timed 10 seconds
 				await MessageUtils.SendMessageAsync(message.Channel, content).CAF();
-				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("spam prevention")).CAF();
+				await message.DeleteAsync(ClientUtils.CreateRequestOptions("spam prevention")).CAF();
 			}
 		}
 		/// <summary>
@@ -404,33 +403,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			if (str != null || regex != null)
 			{
-				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("banned phrase")).CAF();
-			}
-		}
-		/// <summary>
-		/// If there are any active close quotes/help entries, handles them and removes them from the database.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="user"></param>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		private async Task HandleCloseWords(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
-		{
-			if (Timers == null || !int.TryParse(message.Content, out var i) || i < 0 || i > 7)
-			{
-				return;
-			}
-			--i;
-
-			if (await Timers.RemoveActiveCloseWords(user.Guild.Id, message.Author.Id).CAF() is RemovableCloseWords cw && cw.List.Count > i)
-			{
-				await MessageUtils.SendMessageAsync(message.Channel, embedWrapper: new EmbedWrapper
-				{
-					Title = cw.List[i].Name,
-					Description = cw.List[i].Text,
-					Footer = new EmbedFooterBuilder { Text = cw.Type, },
-				}).CAF();
-				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions(cw.Type)).CAF();
+				await message.DeleteAsync(ClientUtils.CreateRequestOptions("banned phrase")).CAF();
 			}
 		}
 		/// <summary>

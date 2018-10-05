@@ -5,13 +5,11 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.CloseWords;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -62,23 +60,32 @@ namespace Advobot.Commands.Misc
 		}
 		[Command, Priority(1)]
 		public async Task Command([Remainder] IHelpEntry command)
+			=> await SendHelp(command.Name, command.ToString(Context.GuildSettings.CommandSettings));
+		[Command(RunMode = RunMode.Async), Priority(0)]
+		public async Task Command([Remainder] string command)
+		{
+#warning typereader?
+			var matches = new CloseHelpEntries(Context.GuildSettings.CommandSettings, HelpEntries, command).Matches.ToArray();
+			if (matches.Length == 0)
+			{
+				await ReplyTimedAsync($"No command has the name `{command}`.").CAF();
+				return;
+			}
+
+			var entry = await NextItemAtIndexAsync(matches, x => x.Name).CAF();
+			if (entry != null)
+			{
+				await SendHelp(entry.Name, entry.Text).CAF();
+			}
+		}
+
+		private async Task SendHelp(string name, string text)
 		{
 			await ReplyEmbedAsync(new EmbedWrapper
 			{
-				Title = command.Name,
-				Description = command.ToString(Context.GuildSettings.CommandSettings).Replace(Constants.PREFIX, GetPrefix()),
-				Footer = new EmbedFooterBuilder { Text = "Help" },
-			}).CAF();
-		}
-		[Command, Priority(0)]
-		public async Task Command([Remainder] string command)
-		{
-			var matches = new CloseHelpEntries(Context.GuildSettings.CommandSettings, HelpEntries, command).Matches;
-			await ReplyIfAny(matches, $"No command has the name `{command}`.", async x =>
-			{
-				var message = await ReplyAsync($"Did you mean any of the following:\n{x.FormatNumberedList(cw => cw.Name)}").CAF();
-				await Timers.AddAsync(new RemovableCloseWords("Help Entries", x, Context, new[] { Context.Message, message })).CAF();
-				return message;
+				Title = name,
+				Description = text.Replace(Constants.PREFIX, GetPrefix()),
+				Footer = new EmbedFooterBuilder { Text = "Help", },
 			}).CAF();
 		}
 	}

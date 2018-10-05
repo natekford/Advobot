@@ -88,7 +88,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 		public virtual int GetEnd(ICommandContext context)
 			=> End;
 		/// <summary>
-		/// Returns a string indicating what the valid numbers are.
+		/// Returns a string indicating what this attribute requires.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()

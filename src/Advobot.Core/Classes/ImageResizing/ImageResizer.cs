@@ -173,7 +173,7 @@ namespace Advobot.Classes.ImageResizing
 			}
 			finally
 			{
-				await MessageUtils.DeleteMessageAsync(message, ClientUtils.CreateRequestOptions("image stream used")).CAF();
+				await message.DeleteAsync(ClientUtils.CreateRequestOptions("image stream used")).CAF();
 				if (!dontDispose)
 				{
 					stream?.Dispose();

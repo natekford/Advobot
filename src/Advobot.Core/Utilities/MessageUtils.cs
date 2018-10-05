@@ -174,14 +174,6 @@ namespace Advobot.Utilities
 				return 0;
 			}
 		}
-		/// <summary>
-		/// Deletes the passed in message directly. Will only delete messages under 14 days old.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="options"></param>
-		/// <returns></returns>
-		public static async Task<int> DeleteMessageAsync(IMessage message, RequestOptions options)
-			=> await DeleteMessagesAsync((SocketTextChannel)message.Channel, new[] { message }, options).CAF();
 
 		private static string SanitizeContent(this IMessageChannel channel, string content)
 		{

@@ -70,13 +70,19 @@ namespace Advobot.Commands.Quotes
 		[Command, Priority(0)]
 		public async Task Command([Remainder] string quote)
 		{
-			var matches = new CloseQuotes(Context.GuildSettings.Quotes, quote).Matches;
-			await ReplyIfAny(matches, $"No quote has the name `{quote}`.", async x =>
+#warning typereader?
+			var matches = new CloseQuotes(Context.GuildSettings.Quotes, quote).Matches.ToArray();
+			if (matches.Length == 0)
 			{
-				var message = await ReplyAsync($"Did you mean any of the following:\n{x.FormatNumberedList(cw => cw.Name)}").CAF();
-				await Timers.AddAsync(new RemovableCloseWords("Quotes", x, Context, new[] { Context.Message, message })).CAF();
-				return message;
-			}).CAF();
+				await ReplyTimedAsync($"No command has the name `{quote}`.").CAF();
+				return;
+			}
+
+			var entry = await NextItemAtIndexAsync(matches, x => x.Name).CAF();
+			if (entry != null)
+			{
+				await ReplyAsync(entry.Text).CAF();
+			}
 		}
 	}
 }
