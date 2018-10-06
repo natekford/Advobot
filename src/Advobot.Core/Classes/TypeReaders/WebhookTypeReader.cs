@@ -23,27 +23,26 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			IWebhook wh = null;
 			var webhooks = await context.Guild.GetWebhooksAsync().CAF();
 			if (ulong.TryParse(input, out var id))
 			{
-				wh = webhooks.FirstOrDefault(x => x.Id == id);
+				var webhook = webhooks.FirstOrDefault(x => x.Id == id);
+				if (webhook != null)
+				{
+					return TypeReaderResult.FromSuccess(webhook);
+				}
 			}
-			if (wh == null)
+
+			var matchingWebhooks = webhooks.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+			if (matchingWebhooks.Length == 1)
 			{
-				var matchingWebhooks = webhooks.Where(x => x.Name.CaseInsEquals(input)).ToList();
-				if (matchingWebhooks.Count == 1)
-				{
-					wh = matchingWebhooks.FirstOrDefault();
-				}
-				else if (matchingWebhooks.Count > 1)
-				{
-					return TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many webhooks found with the same name.");
-				}
+				return TypeReaderResult.FromSuccess(matchingWebhooks[0]);
 			}
-			return wh != null
-				? TypeReaderResult.FromSuccess(wh)
-				: TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching webhook.");
+			if (matchingWebhooks.Length > 1)
+			{
+				return TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many webhooks found with the same name.");
+			}
+			return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Webhook not found.");
 		}
 	}
 }

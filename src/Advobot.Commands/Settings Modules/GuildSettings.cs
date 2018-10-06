@@ -109,7 +109,8 @@ namespace Advobot.Commands.GuildSettings
 
 		//TODO: go back to old way in separate command because this is kind of unwieldy?
 		[Command(nameof(IGuildSettings.BotUsers)), ShortAlias(nameof(IGuildSettings.BotUsers))]
-		public async Task BotUsers(AddBoolean add, IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
+		public async Task BotUsers(AddBoolean add, IUser user,
+			[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
 			=> await ModifyCollectionValuesAsync(
 				x => x.BotUsers,
 				x => x.UserId == user.Id,

@@ -149,10 +149,7 @@ namespace Advobot.Classes
 		{
 			var secondMessage = await ReplyAsync(output).CAF();
 			var removableMessage = new RemovableMessage(Context, new[] { secondMessage }, MessageTime);
-			if (Timers != null)
-			{
-				await Timers.AddAsync(removableMessage).CAF();
-			}
+			await Timers.AddAsync(removableMessage).CAF();
 			return secondMessage;
 		}
 		/// <summary>
@@ -162,10 +159,10 @@ namespace Advobot.Classes
 		/// <param name="source"></param>
 		/// <param name="format"></param>
 		/// <returns></returns>
-		public async Task<T> NextItemAtIndexAsync<T>(T[] source, Func<T, string> format)
+		public async Task<T> NextItemAtIndexAsync<T>(IList<T> source, Func<T, string> format)
 		{
 			var message = await ReplyAsync($"Did you mean any of the following:\n{source.FormatNumberedList(format)}").CAF();
-			var index = await NextIndexAsync(0, source.Length - 1).CAF();
+			var index = await NextIndexAsync(0, source.Count - 1).CAF();
 			await message.DeleteAsync(GenerateRequestOptions()).CAF();
 			return index != null ? source[index.Value] : default;
 		}

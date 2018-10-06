@@ -18,7 +18,7 @@ namespace Advobot.Classes.TypeReaders
 	{
 		private static readonly ImmutableDictionary<string, Color> _Colors = typeof(Color)
 			.GetFields(BindingFlags.Public | BindingFlags.Static)
-			.ToDictionary(x => x.Name, x => (Color)x.GetValue(new Color()), StringComparer.OrdinalIgnoreCase)
+			.ToDictionary(x => x.Name, x => (Color)x.GetValue(null), StringComparer.OrdinalIgnoreCase)
 			.ToImmutableDictionary();
 
 		/// <summary>
@@ -34,7 +34,6 @@ namespace Advobot.Classes.TypeReaders
 				? Task.FromResult(TypeReaderResult.FromSuccess(color))
 				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching color."));
 		}
-
 		/// <summary>
 		/// Attempts to parse a color from the input. If unable to parse, returns null.
 		/// </summary>
@@ -54,7 +53,7 @@ namespace Advobot.Classes.TypeReaders
 				return true;
 			}
 			//By hex (trimming characters that are sometimes at the beginning of hex numbers)
-			else if (uint.TryParse(input.Replace("0x", "").TrimStart('&', 'h', '#', 'x'), NumberStyles.HexNumber, null, out var hex))
+			if (uint.TryParse(input.Replace("0x", "").TrimStart('&', 'h', '#', 'x'), NumberStyles.HexNumber, null, out var hex))
 			{
 				result = new Color(hex);
 				return true;

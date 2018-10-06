@@ -20,13 +20,9 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			if (!Uri.TryCreate(input, UriKind.Absolute, out var url))
-			{
-				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Invalid url provided in message content."));
-			}
-			return url != null
+			return Uri.TryCreate(input, UriKind.Absolute, out var url)
 				? Task.FromResult(TypeReaderResult.FromSuccess(url))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "No valid url found."));
+				: Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Invalid url provided."));
 		}
 	}
 }

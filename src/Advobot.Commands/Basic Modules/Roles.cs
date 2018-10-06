@@ -53,14 +53,14 @@ namespace Advobot.Commands.Roles
 		[Command]
 		public async Task Command([ValidateRoleName] string name)
 		{
-			await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), null, false, GenerateRequestOptions()).CAF();
-			await ReplyTimedAsync($"Successfully created the role `{name}`.").CAF();
+			var role = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), null, false, GenerateRequestOptions()).CAF();
+			await ReplyTimedAsync($"Successfully created the role `{role.Format()}`.").CAF();
 		}
 	}
 
 	[Category(typeof(SoftDeleteRole)), Group(nameof(SoftDeleteRole)), TopLevelShortAlias(typeof(SoftDeleteRole))]
-	[Summary("Deleted the role, thus removing all permissions from a role (and all channels the role had permissions on) and removing the role from everyone. " +
-		"Leaves the name, color, and position behind in a newly created role.")]
+	[Summary("Deletes the role, thus removing all channel overwrites the role had and removing the role from everyone. " +
+		"Leaves the name, color, permissions, and position behind in a newly created role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class SoftDeleteRole : AdvobotModuleBase
@@ -68,15 +68,10 @@ namespace Advobot.Commands.Roles
 		[Command]
 		public async Task Command([NotEveryoneOrManaged] SocketRole role)
 		{
-			//Get the properties of the role before it's deleted
-			var name = role.Name;
-			var color = role.Color;
-			var position = role.Position;
-
 			await role.DeleteAsync(GenerateRequestOptions()).CAF();
-			var newRole = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), color).CAF();
-			await DiscordUtils.ModifyRolePositionAsync(role, position, GenerateRequestOptions()).CAF();
-			await ReplyTimedAsync($"Successfully softdeleted `{newRole.Name}`.").CAF();
+			var newRole = await Context.Guild.CreateRoleAsync(role.Name, role.Permissions, role.Color, false, GenerateRequestOptions()).CAF();
+			await DiscordUtils.ModifyRolePositionAsync(role, role.Position, GenerateRequestOptions()).CAF();
+			await ReplyTimedAsync($"Successfully softdeleted `{role.Format()}`.").CAF();
 		}
 	}
 
@@ -152,10 +147,14 @@ namespace Advobot.Commands.Roles
 				=> await ReplyIfAny(EnumUtils.GetFlagNames((GuildPermission)role.Permissions.RawValue), role, "Permissions", x => x).CAF();
 		}
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
-		public async Task Allow([ValidateRole] SocketRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
+		public async Task Allow(
+			[ValidateRole] SocketRole role,
+			[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
 			=> await CommandRunner(role, permissions, true);
 		[Command(nameof(Deny)), ShortAlias(nameof(Deny))]
-		public async Task Deny([ValidateRole] SocketRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
+		public async Task Deny(
+			[ValidateRole] SocketRole role,
+			[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
 			=> await CommandRunner(role, permissions, false);
 
 		private async Task CommandRunner(SocketRole role, ulong permissions, bool add)
@@ -250,9 +249,8 @@ namespace Advobot.Commands.Roles
 
 		private async Task CommandRunner(SocketRole role, string name)
 		{
-			var old = role.Format();
 			await role.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
-			await ReplyTimedAsync($"Successfully changed the name of `{old}` to `{name}`.").CAF();
+			await ReplyTimedAsync($"Successfully changed the name of `{role.Format()}` to `{name}`.").CAF();
 		}
 	}
 

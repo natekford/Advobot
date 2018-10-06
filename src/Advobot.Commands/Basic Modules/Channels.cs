@@ -210,14 +210,14 @@ namespace Advobot.Commands.Channels
 			PermValue action,
 			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel channel,
 			SocketRole role,
-			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
+			[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<CPerm>))] ulong permissions)
 			=> await CommandRunner(action, channel, role, permissions).CAF();
 		[Command]
 		public async Task Command(
 			PermValue action,
 			[ValidateGenericChannel(CPerm.ManageChannels, CPerm.ManageRoles)] SocketGuildChannel channel,
 			SocketGuildUser user,
-			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
+			[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<CPerm>))] ulong permissions)
 			=> await CommandRunner(action, channel, user, permissions).CAF();
 
 		private async Task CommandRunner<T>(PermValue action, SocketGuildChannel channel, T obj, ulong permissions) where T : ISnowflakeEntity

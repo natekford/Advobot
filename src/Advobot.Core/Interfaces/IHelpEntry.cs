@@ -6,7 +6,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for information about a module.
 	/// </summary>
-	public interface IHelpEntry
+	public interface IHelpEntry : INameable
 	{
 		/// <summary>
 		/// Whether or not the command can be toggled.
@@ -32,10 +32,6 @@ namespace Advobot.Interfaces
 		/// Describes what the command does.
 		/// </summary>
 		string Description { get; }
-		/// <summary>
-		/// The name of the command.
-		/// </summary>
-		string Name { get; }
 		/// <summary>
 		/// How to use the command. This is automatically generated.
 		/// </summary>

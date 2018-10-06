@@ -14,7 +14,7 @@ namespace Advobot.Classes.CloseWords
 		/// <summary>
 		/// The gathered words.
 		/// </summary>
-		public List<CloseWord> List { get; set; }
+		public List<CloseWord<string>> List { get; set; }
 		/// <summary>
 		/// The type of close words these are, e.g quote or help entries.
 		/// </summary>
@@ -32,7 +32,7 @@ namespace Advobot.Classes.CloseWords
 		/// <param name="time"></param>
 		/// <param name="messages"></param>
 		/// <param name="context"></param>
-		public RemovableCloseWords(string type, IEnumerable<CloseWord> closeWords, ICommandContext context, IEnumerable<IMessage> messages, TimeSpan time = default)
+		public RemovableCloseWords(string type, IEnumerable<CloseWord<string>> closeWords, ICommandContext context, IEnumerable<IMessage> messages, TimeSpan time = default)
 			: base(context, messages, time)
 		{
 			List = closeWords.ToList();

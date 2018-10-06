@@ -26,15 +26,15 @@ namespace Advobot.Classes.TypeReaders
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			var matchingNames = Enums.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			if (matchingNames.Length == 0)
+			if (matchingNames.Length == 1)
 			{
-				return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"No enum has the name `{input}`."));
+				return Task.FromResult(TypeReaderResult.FromSuccess(matchingNames[0]));
 			}
 			if (matchingNames.Length > 1)
 			{
 				return Task.FromResult(TypeReaderResult.FromError(CommandError.MultipleMatches, $"Too many enums have the name `{input}`."));
 			}
-			return Task.FromResult(TypeReaderResult.FromSuccess(matchingNames[0]));
+			return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"No enum has the name `{input}`."));
 		}
 	}
 }

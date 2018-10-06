@@ -1,9 +1,12 @@
-﻿namespace Advobot.Classes.CloseWords
+﻿using System.Diagnostics;
+
+namespace Advobot.Classes.CloseWords
 {
 	/// <summary>
 	/// Holds an object which has a name and text and its closeness.
 	/// </summary>
-	public sealed class CloseWord
+	[DebuggerDisplay("Name = {Name}, Closeness = {Closeness}")]
+	public sealed class CloseWord<T>
 	{
 		/// <summary>
 		/// How close the name is to the search term.
@@ -14,9 +17,9 @@
 		/// </summary>
 		public string Name { get; set; }
 		/// <summary>
-		/// The text of the object.
+		/// The object this is coming from.
 		/// </summary>
-		public string Text { get; set; }
+		public T Value { get; set; }
 
 		/// <summary>
 		/// Initializes the object. Parameterless constructor is used for the database.
@@ -27,12 +30,12 @@
 		/// </summary>
 		/// <param name="closeness"></param>
 		/// <param name="name"></param>
-		/// <param name="text"></param>
-		public CloseWord(int closeness, string name, string text)
+		/// <param name="value"></param>
+		public CloseWord(int closeness, string name, T value)
 		{
 			Closeness = closeness;
 			Name = name;
-			Text = text;
+			Value = value;
 		}
 	}
 }

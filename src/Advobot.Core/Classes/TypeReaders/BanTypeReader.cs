@@ -23,39 +23,36 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			IBan ban = null;
 			var bans = await context.Guild.GetBansAsync().CAF();
-			if (MentionUtils.TryParseUser(input, out var userId))
+			if (MentionUtils.TryParseUser(input, out var id) || ulong.TryParse(input, out id))
 			{
-				ban = bans.FirstOrDefault(x => x.User.Id == userId);
-			}
-			else if (ulong.TryParse(input, out userId))
-			{
-				ban = bans.FirstOrDefault(x => x.User.Id == userId);
-			}
-			else if (input.Contains('#'))
-			{
-				var usernameAndDiscriminator = input.Split('#');
-				if (usernameAndDiscriminator.Length == 2 && ushort.TryParse(usernameAndDiscriminator[1], out var discriminator))
+				var ban = bans.FirstOrDefault(x => x.User.Id == id);
+				if (ban != null)
 				{
-					ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == discriminator && x.User.Username.CaseInsEquals(usernameAndDiscriminator[0]));
+					return TypeReaderResult.FromSuccess(ban);
 				}
 			}
-			if (ban == null)
+
+			var parts = input.Split(new[] { '#' }, 2);
+			if (parts.Length == 2 && ushort.TryParse(parts[1], out var d))
 			{
-				var matchingUsernames = bans.Where(x => x.User.Username.CaseInsEquals(input)).ToList();
-				if (matchingUsernames.Count == 1)
+				var ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == d && x.User.Username.CaseInsEquals(parts[0]));
+				if (ban != null)
 				{
-					ban = matchingUsernames.FirstOrDefault();
-				}
-				else if (matchingUsernames.Count > 1)
-				{
-					return TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many bans found with the same username.");
+					return TypeReaderResult.FromSuccess(ban);
 				}
 			}
-			return ban != null
-				? TypeReaderResult.FromSuccess(ban)
-				: TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching ban.");
+
+			var matchingBans = bans.Where(x => x.User.Username.CaseInsEquals(input)).ToArray();
+			if (matchingBans.Length == 1)
+			{
+				return TypeReaderResult.FromSuccess(matchingBans[0]);
+			}
+			if (matchingBans.Length > 1)
+			{
+				return TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many bans found with the same username.");
+			}
+			return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Ban not found.");
 		}
 	}
 }

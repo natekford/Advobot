@@ -18,11 +18,9 @@ namespace Advobot.Classes.TypeReaders
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			var regions = await context.Guild.GetVoiceRegionsAsync().CAF();
-			if (regions.TryGetSingle(x => x.Name.CaseInsEquals(input), out var region))
-			{
-				return TypeReaderResult.FromSuccess(region);
-			}
-			return TypeReaderResult.FromError(CommandError.ParseFailed, "Unable to find a matching voice region.");
+			return regions.TryGetSingle(x => x.Name.CaseInsEquals(input), out var region)
+				? TypeReaderResult.FromSuccess(region)
+				: TypeReaderResult.FromError(CommandError.ParseFailed, "Unable to find a matching voice region.");
 		}
 	}
 }

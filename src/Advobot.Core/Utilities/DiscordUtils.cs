@@ -51,14 +51,14 @@ namespace Advobot.Utilities
 		public static async Task<int> ModifyRolePositionAsync(SocketRole role, int position, RequestOptions options)
 		{
 			//Make sure it's put at the highest a bot can edit, so no permission exception
-			var bot = role.Guild.CurrentUser;
 			var roles = role.Guild.Roles
-				.Where(x => x.Id != role.Id && x.Position < bot.Hierarchy)
+				.Where(x => x.Id != role.Id && x.Position < role.Guild.CurrentUser.Hierarchy)
 				.OrderBy(x => x.Position)
 				.ToArray();
 			position = Math.Max(1, Math.Min(position, roles.Length));
 
 			var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
+			var newPosition = -1;
 			for (var i = 0; i < reorderProperties.Length; ++i)
 			{
 				if (i > position)
@@ -72,11 +72,12 @@ namespace Advobot.Utilities
 				else
 				{
 					reorderProperties[i] = new ReorderRoleProperties(role.Id, i);
+					newPosition = i;
 				}
 			}
 
-			await role.Guild.ReorderRolesAsync(reorderProperties, options).CAF();
-			return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
+			await role.Guild.ReorderRolesAsync(reorderProperties.Where(x => x != null), options).CAF();
+			return newPosition;
 		}
 		/// <summary>
 		/// Counts how many times something has occurred within a given timeframe.

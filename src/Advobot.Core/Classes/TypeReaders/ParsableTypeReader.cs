@@ -49,11 +49,10 @@ namespace Advobot.Classes.TypeReaders
 				var str = response.UnusedParts.Cast<SetValueResult>().Join(", ", x => $"`{x.Value}`");
 				return Task.FromResult(TypeReaderResult.FromError(CommandError.BadArgCount, $"The following are unused parts: {str}."));
 			}
-			var neededSettings = parser.GetNeededSettings(obj).ToList();
-			if (neededSettings.Count != 0)
+			var neededSettings = parser.GetNeededSettings(obj).ToArray();
+			if (neededSettings.Length != 0)
 			{
-				var str = string.Join("`, `", neededSettings);
-				var resp = $"The following parts are required to be set: `{str}`.";
+				var resp = $"The following parts are required to be set: `{string.Join("`, `", (object[])neededSettings)}`.";
 				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, resp));
 			}
 			return Task.FromResult(TypeReaderResult.FromSuccess(obj));

@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 
 namespace Advobot.Classes.TypeReaders
@@ -11,12 +10,10 @@ namespace Advobot.Classes.TypeReaders
 	/// Attempts to parse permissions.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class PermissionsTypeReader<T> : TypeReader where T : struct, Enum
+	public sealed class PermissionsTypeReader<T> : TypeReader where T : struct, Enum
 	{
 		private static readonly char[] _SplitChars = new[] { '/', ' ', ',' };
 		private static readonly char[] _TrimChars = new[] { '"' };
-
-		internal PermissionsTypeReader() { }
 
 		/// <summary>
 		/// Checks for valid ulong first, then checks permission names.
@@ -35,21 +32,11 @@ namespace Advobot.Classes.TypeReaders
 			//Then check permission names
 			if (EnumUtils.TryParseFlags(input.Split(_SplitChars).Select(x => x.Trim(_TrimChars)), out T value, out var invalidPerms))
 			{
-				return Task.FromResult(TypeReaderResult.FromSuccess((ulong)(object)value));
+				return Task.FromResult(TypeReaderResult.FromSuccess(value));
 			}
 
-			var str = $"Invalid permission(s) provided: `{string.Join("`, `", invalidPerms)}`.";
-			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, str));
+			var resp = $"Invalid permission(s) provided: `{string.Join("`, `", invalidPerms)}`.";
+			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, resp));
 		}
 	}
-
-	/// <summary>
-	/// Attempts to get a ulong representing channel permissions.
-	/// </summary>
-	public sealed class ChannelPermissionsTypeReader : PermissionsTypeReader<ChannelPermission> { }
-
-	/// <summary>
-	/// Attempts to get a ulong representing guild permissions.
-	/// </summary>
-	public sealed class GuildPermissionsTypeReader : PermissionsTypeReader<GuildPermission> { }
 }

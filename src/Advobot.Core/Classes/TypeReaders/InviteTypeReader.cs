@@ -23,14 +23,23 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			IInvite invite = (await context.Guild.GetInvitesAsync().CAF()).FirstOrDefault(x => x.Code.CaseInsEquals(input));
-			if (invite == null && await context.Client.GetInviteAsync(input).CAF() is IInvite inv && inv.GuildId == context.Guild.Id)
+			var invites = await context.Guild.GetInvitesAsync().CAF();
 			{
-				invite = inv;
+				var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(input));
+				if (invite != null)
+				{
+					return TypeReaderResult.FromSuccess(invite);
+				}
 			}
-			return invite != null
-				? TypeReaderResult.FromSuccess(invite)
-				: TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching invite.");
+
+			{
+				var invite = await context.Client.GetInviteAsync(input).CAF();
+				if (invite != null && invite.GuildId == context.Guild.Id)
+				{
+					return TypeReaderResult.FromSuccess(invite);
+				}
+			}
+			return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Invite not found.");
 		}
 	}
 }

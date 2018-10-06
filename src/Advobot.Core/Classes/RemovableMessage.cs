@@ -74,7 +74,7 @@ namespace Advobot.Classes
 		/// <param name="alreadyDeleted"></param>
 		/// <param name="removableMessages"></param>
 		/// <returns></returns>
-		public static async Task ProcessRemovableMessages(
+		public static async Task ProcessRemovableMessagesAsync(
 			BaseSocketClient client,
 			ConcurrentBag<ulong> alreadyDeleted,
 			IEnumerable<RemovableMessage> removableMessages)
@@ -92,7 +92,7 @@ namespace Advobot.Classes
 						continue;
 					}
 					var messageIds = channelGroup.SelectMany(g => g.MessageIds);
-					var messages = await GetValidMessages(channel, alreadyDeleted, messageIds).CAF();
+					var messages = await GetValidMessagesAsync(channel, alreadyDeleted, messageIds).CAF();
 					await MessageUtils.DeleteMessagesAsync(channel, messages, MessageReason).CAF();
 				}
 			}
@@ -104,7 +104,7 @@ namespace Advobot.Classes
 		/// <param name="alreadyDeleted"></param>
 		/// <param name="ids"></param>
 		/// <returns></returns>
-		private static async Task<IMessage[]> GetValidMessages(
+		private static async Task<IMessage[]> GetValidMessagesAsync(
 			SocketTextChannel channel,
 			ConcurrentBag<ulong> alreadyDeleted,
 			IEnumerable<ulong> ids)

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Advobot.Interfaces;
+using AdvorangesUtils;
 
 namespace Advobot.Classes.CloseWords
 {
@@ -9,41 +11,30 @@ namespace Advobot.Classes.CloseWords
 	/// Gathers objects with similar names to the passed in input.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class CloseWords<T>
+	public class CloseWords<T> where T : INameable
 	{
-		/// <summary>
-		/// Matching close words.
-		/// </summary>
-		public ImmutableArray<CloseWord> Matches { get; protected set; }
-
 		/// <summary>
 		/// What to search through.
 		/// </summary>
-		protected IEnumerable<T> Source { get; }
-		/// <summary>
-		/// What to search for.
-		/// </summary>
-		protected string Search { get; }
+		protected ImmutableArray<T> Source { get; }
 		/// <summary>
 		/// How similar a string has to be to match.
 		/// </summary>
-		protected int MaxAllowedCloseness { get; }
+		public int MaxAllowedCloseness { get; set; }
 		/// <summary>
 		/// How many closewords can be found.
 		/// </summary>
-		protected int MaxOutput { get; }
+		public int MaxOutput { get; set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="CloseWords{T}"/>.
 		/// </summary>
 		/// <param name="source"></param>
-		/// <param name="search"></param>
 		/// <param name="maxAllowedCloseness"></param>
 		/// <param name="maxOutput"></param>
-		public CloseWords(IEnumerable<T> source, string search, int maxAllowedCloseness = 4, int maxOutput = 5)
+		public CloseWords(IEnumerable<T> source, int maxAllowedCloseness = 4, int maxOutput = 5)
 		{
-			Source = source;
-			Search = search;
+			Source = source.ToImmutableArray();
 			MaxAllowedCloseness = maxAllowedCloseness;
 			MaxOutput = maxOutput;
 		}
@@ -51,50 +42,34 @@ namespace Advobot.Classes.CloseWords
 		/// <summary>
 		/// Returns matches.
 		/// </summary>
+		/// <param name="search"></param>
 		/// <returns></returns>
-		protected ImmutableArray<CloseWord> FindMatches()
+		public ImmutableArray<CloseWord<T>> FindMatches(string search)
 		{
-			var closeWords = new List<CloseWord>();
-			//First loop around to find words that are similar
-			foreach (var word in Source)
+			var list = new List<CloseWord<T>>();
+			foreach (var item in Source)
 			{
-				if (!IsCloseWord(word, out var closeWord))
+				if (IsCloseWord(search, item, out var closeWord))
 				{
-					continue;
-				}
-				closeWords.Add(closeWord);
-				if (closeWords.Count > MaxOutput)
-				{
-					closeWords = closeWords.OrderBy(x => x.Closeness).ToList();
-					closeWords.RemoveRange(MaxOutput, closeWords.Count - MaxOutput);
+					list.Add(closeWord);
 				}
 			}
-			//Then loop around for words that have the search term simply inside them
-			for (int i = closeWords.Count - 1; i < MaxOutput; ++i)
-			{
-				if (!TryGetCloseWord(Source, closeWords.Select(x => x.Name), out var closeWord))
-				{
-					break;
-				}
-				closeWords.Add(closeWord);
-			}
-			return closeWords.Where(x => x != null && x.Closeness > -1).Take(MaxOutput).ToImmutableArray();
+			return list.OrderBy(x => x.Closeness).ThenBy(x => x.Name.Length).Take(MaxOutput).ToImmutableArray();
 		}
 		/// <summary>
 		/// Determines whether this is a close word.
 		/// </summary>
+		/// <param name="search"></param>
 		/// <param name="obj"></param>
 		/// <param name="closeWord"></param>
 		/// <returns></returns>
-		protected abstract bool IsCloseWord(T obj, out CloseWord closeWord);
-		/// <summary>
-		/// Attempts to get a closeword from the source which contains the name.
-		/// </summary>
-		/// <param name="objs"></param>
-		/// <param name="used"></param>
-		/// <param name="closeWord"></param>
-		/// <returns></returns>
-		protected abstract bool TryGetCloseWord(IEnumerable<T> objs, IEnumerable<string> used, out CloseWord closeWord);
+		protected virtual bool IsCloseWord(string search, T obj, out CloseWord<T> closeWord)
+		{
+			var closeness = FindCloseness(obj.Name, search);
+			var success = closeness < MaxAllowedCloseness || obj.Name.CaseInsContains(search);
+			closeWord = success ? new CloseWord<T>(closeness, obj.Name, obj) : null;
+			return success;
+		}
 		/// <summary>
 		/// Returns a value gotten from using Damerau Levenshtein distance to compare the source and target.
 		/// </summary>

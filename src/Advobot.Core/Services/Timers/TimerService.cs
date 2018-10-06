@@ -93,12 +93,12 @@ namespace Advobot.Services.Timers
 			RemovableMessages = new ProcessingQueue(1, async () =>
 			{
 				var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableMessage>.Delete(x => x.Time < DateTime.UtcNow));
-				await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+				await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
 			});
 			RemovableCloseWords = new ProcessingQueue(1, async () =>
 			{
 				var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Delete(x => x.Time < DateTime.UtcNow));
-				await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+				await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
 			});
 
 			HourTimer.Elapsed += (sender, e) =>
@@ -137,7 +137,7 @@ namespace Advobot.Services.Timers
 		public async Task AddAsync(RemovableCloseWords value)
 		{
 			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
-			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+			await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
 			DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
@@ -164,7 +164,7 @@ namespace Advobot.Services.Timers
 		public async Task<RemovableCloseWords> RemoveActiveCloseWords(ulong guildId, ulong userId)
 		{
 			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Delete(x => x.GuildId == guildId && x.UserId == userId));
-			await RemovableMessage.ProcessRemovableMessages(Client, AlreadyDeletedMessages, values).CAF();
+			await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
 			return values.SingleOrDefault();
 		}
 		/// <inheritdoc />

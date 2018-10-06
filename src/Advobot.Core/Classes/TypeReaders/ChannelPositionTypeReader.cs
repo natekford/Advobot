@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Advobot.Classes.TypeReaders
 {
@@ -11,7 +11,7 @@ namespace Advobot.Classes.TypeReaders
 	/// Finds a channel based on position and type.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class ChannelPositionTypeReader<T> : PositionTypeReader<T> where T : SocketGuildChannel
+	public class ChannelPositionTypeReader<T> : PositionTypeReader<T> where T : IGuildChannel
 	{
 		/// <inheritdoc />
 		public override string ObjectType => "channel";
@@ -27,17 +27,14 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Finds a role based on position.
 	/// </summary>
-	public class RolePositionTypeReader : PositionTypeReader<SocketRole>
+	public class RolePositionTypeReader : PositionTypeReader<IRole>
 	{
 		/// <inheritdoc />
 		public override string ObjectType => "role";
 
 		/// <inheritdoc />
-		public override Task<SocketRole[]> GetObjectsWithPosition(ICommandContext context, int position)
-		{
-			var channels = context.Guild.Roles;
-			return Task.FromResult(channels.OfType<SocketRole>().Where(x => x.Position == position).ToArray());
-		}
+		public override Task<IRole[]> GetObjectsWithPosition(ICommandContext context, int position)
+			=> Task.FromResult(context.Guild.Roles.Where(x => x.Position == position).ToArray());
 	}
 
 	/// <summary>
@@ -60,15 +57,15 @@ namespace Advobot.Classes.TypeReaders
 			}
 
 			var samePos = await GetObjectsWithPosition(context, position).CAF();
-			if (!samePos.Any())
+			if (samePos.Length == 1)
 			{
-				return TypeReaderResult.FromError(CommandError.ObjectNotFound, $"There is no {ObjectType} with the supplied position.");
+				return TypeReaderResult.FromSuccess(samePos[0]);
 			}
 			if (samePos.Length > 1)
 			{
 				return TypeReaderResult.FromError(CommandError.MultipleMatches, $"Multiple {ObjectType}s have the supplied position.");
 			}
-			return TypeReaderResult.FromSuccess(samePos[0]);
+			return TypeReaderResult.FromError(CommandError.ObjectNotFound, $"There is no {ObjectType} with the supplied position.");
 		}
 		/// <summary>
 		/// Gets objects with the supplied position.

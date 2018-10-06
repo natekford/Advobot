@@ -23,31 +23,30 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			IEmote emote = null;
+			var emotes = context.Guild.Emotes;
 			if (Emote.TryParse(input, out var tempEmote))
 			{
-				emote = tempEmote;
+				return Task.FromResult(TypeReaderResult.FromSuccess(tempEmote));
 			}
-			else if (ulong.TryParse(input, out var emoteId))
+			if (ulong.TryParse(input, out var id))
 			{
-				emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == emoteId);
-			}
-			if (emote == null)
-			{
-				var emotes = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToList();
-				if (emotes.Count() == 1)
+				var emote = emotes.FirstOrDefault(x => x.Id == id);
+				if (emote != null)
 				{
-					emote = emotes.First();
-				}
-				else if (emotes.Count() > 1)
-				{
-					return Task.FromResult(TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many emotes have the provided name."));
+					return Task.FromResult(TypeReaderResult.FromSuccess(emote));
 				}
 			}
 
-			return emote != null
-				? Task.FromResult(TypeReaderResult.FromSuccess(emote))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching emote."));
+			var matchingEmotes = emotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+			if (matchingEmotes.Length == 1)
+			{
+				return Task.FromResult(TypeReaderResult.FromSuccess(matchingEmotes[0]));
+			}
+			if (matchingEmotes.Length > 1)
+			{
+				return Task.FromResult(TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many emotes have the provided name."));
+			}
+			return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Emote not found."));
 		}
 	}
 }

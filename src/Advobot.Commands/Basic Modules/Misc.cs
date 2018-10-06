@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
-using Advobot.Classes.CloseWords;
+using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -60,31 +58,23 @@ namespace Advobot.Commands.Misc
 		}
 		[Command, Priority(1)]
 		public async Task Command([Remainder] IHelpEntry command)
-			=> await SendHelp(command.Name, command.ToString(Context.GuildSettings.CommandSettings));
+			=> await SendHelp(command);
 		[Command(RunMode = RunMode.Async), Priority(0)]
-		public async Task Command([Remainder] string command)
+		public async Task Command([Remainder, OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
 		{
-#warning typereader?
-			var matches = new CloseHelpEntries(Context.GuildSettings.CommandSettings, HelpEntries, command).Matches.ToArray();
-			if (matches.Length == 0)
-			{
-				await ReplyTimedAsync($"No command has the name `{command}`.").CAF();
-				return;
-			}
-
-			var entry = await NextItemAtIndexAsync(matches, x => x.Name).CAF();
+			var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
 			if (entry != null)
 			{
-				await SendHelp(entry.Name, entry.Text).CAF();
+				await SendHelp(entry).CAF();
 			}
 		}
 
-		private async Task SendHelp(string name, string text)
+		private async Task SendHelp(IHelpEntry entry)
 		{
 			await ReplyEmbedAsync(new EmbedWrapper
 			{
-				Title = name,
-				Description = text.Replace(Constants.PREFIX, GetPrefix()),
+				Title = entry.Name,
+				Description = entry.ToString(Context.GuildSettings.CommandSettings).Replace(Constants.PREFIX, GetPrefix()),
 				Footer = new EmbedFooterBuilder { Text = "Help", },
 			}).CAF();
 		}
@@ -215,7 +205,7 @@ namespace Advobot.Commands.Misc
 	public sealed class Test : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([Optional, ValidatePrefix] string prefix)
+		public async Task Command(SocketGuildUser user)
 			=> await ReplyAsync("test").CAF();
 	}
 }

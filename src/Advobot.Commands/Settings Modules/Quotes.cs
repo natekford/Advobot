@@ -1,14 +1,12 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.CloseWords;
 using Advobot.Classes.Settings;
-using Advobot.Interfaces;
-using Advobot.Utilities;
+using Advobot.Classes.TypeReaders;
 using AdvorangesUtils;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Commands.Quotes
 {
@@ -67,21 +65,13 @@ namespace Advobot.Commands.Quotes
 		[Command, Priority(1)]
 		public async Task Command([Remainder] Quote quote)
 			=> await ReplyAsync(quote.Description).CAF();
-		[Command, Priority(0)]
-		public async Task Command([Remainder] string quote)
+		[Command(RunMode = RunMode.Async), Priority(0)]
+		public async Task Command([Remainder, OverrideTypeReader(typeof(CloseQuoteTypeReader))] IEnumerable<Quote> quote)
 		{
-#warning typereader?
-			var matches = new CloseQuotes(Context.GuildSettings.Quotes, quote).Matches.ToArray();
-			if (matches.Length == 0)
-			{
-				await ReplyTimedAsync($"No command has the name `{quote}`.").CAF();
-				return;
-			}
-
-			var entry = await NextItemAtIndexAsync(matches, x => x.Name).CAF();
+			var entry = await NextItemAtIndexAsync(quote.ToArray(), x => x.Name).CAF();
 			if (entry != null)
 			{
-				await ReplyAsync(entry.Text).CAF();
+				await ReplyAsync(entry.Description).CAF();
 			}
 		}
 	}
