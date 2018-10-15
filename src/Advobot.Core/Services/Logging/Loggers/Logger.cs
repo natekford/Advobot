@@ -1,7 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Services.Logging.Interfaces;
+using Advobot.Services.Logging.LogCounters;
+using Advobot.Services.Logging.LoggingContexts;
+using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,24 +20,24 @@ namespace Advobot.Services.Logging.Loggers
 	/// <summary>
 	/// Logs specific things.
 	/// </summary>
-	public abstract class Logger : ILogger
+	internal abstract class Logger : ILogger
 	{
 		/// <summary>
 		/// The bot client.
 		/// </summary>
-		protected DiscordShardedClient Client;
+		protected DiscordShardedClient Client { get; }
 		/// <summary>
 		/// The settings used in the bot.
 		/// </summary>
-		protected IBotSettings BotSettings;
+		protected IBotSettings BotSettings { get; }
 		/// <summary>
 		/// The settings used in guilds.
 		/// </summary>
-		protected IGuildSettingsFactory GuildSettings;
+		protected IGuildSettingsFactory GuildSettings { get; }
 		/// <summary>
 		/// Timers for punishments.
 		/// </summary>
-		protected ITimerService Timers;
+		protected ITimerService Timers { get; }
 
 		/// <inheritdoc />
 		public event LogCounterIncrementEventHandler LogCounterIncrement;
@@ -53,62 +62,30 @@ namespace Advobot.Services.Logging.Loggers
 		protected void NotifyLogCounterIncrement(string name, int count)
 			=> LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
 		/// <summary>
-		/// Attempts to get guild settings from a random Discord object.
-		/// Returns false if unable to be logged due to settings on the guild.
-		/// Returns true if able to be logged.
+		/// Awaits task in <paramref name="tasks"/> and if the context can log will await every task in <paramref name="whenCanLog"/>.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="action"></param>
-		/// <param name="obj"></param>
-		/// <param name="settings">This can be set if the method returns false.</param>
+		/// <param name="context"></param>
+		/// <param name="name"></param>
+		/// <param name="tasks"></param>
+		/// <param name="whenCanLog"></param>
 		/// <returns></returns>
-		protected bool CanLog<T>(LogAction action, T obj, out IGuildSettings settings) where T : ISnowflakeEntity
+		protected async Task HandleAsync(LoggingContext context, string name, IEnumerable<Task> tasks, IEnumerable<Func<Task>> whenCanLog)
 		{
-			settings = default;
-			var channel = default(SocketGuildChannel);
-			var user = default(SocketGuildUser);
-			var guild = default(SocketGuild);
-			switch (obj)
+			if (BotSettings.Pause)
 			{
-				case SocketMessage tempM:
-					user = (SocketGuildUser)tempM.Author;
-					channel = (SocketGuildChannel)tempM.Channel;
-					guild = channel.Guild;
-					break;
-				case SocketGuildUser tempU:
-					user = tempU;
-					guild = user.Guild;
-					break;
-				case SocketGuild tempG:
-					guild = tempG;
-					break;
-				default:
-					return false;
+				return;
 			}
-			if (BotSettings.Pause || !GuildSettings.TryGet(guild.Id, out settings) || !settings.LogActions.Contains(action))
+			if (context.CanLog)
 			{
-				return false;
+				NotifyLogCounterIncrement(name, 1);
+				await Task.WhenAll(whenCanLog.Select(x => x.Invoke())).CAF();
 			}
-
-			switch (action)
+			if (tasks.Any())
 			{
-				//Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
-				case LogAction.MessageReceived:
-				case LogAction.MessageUpdated:
-					return !(user.IsBot || user.IsWebhook) && !settings.IgnoredLogChannels.Contains(channel.Id);
-				//Log all deleted messages, no matter the source user, unless they're on an unlogged channel
-				case LogAction.MessageDeleted:
-					return !settings.IgnoredLogChannels.Contains(channel.Id);
-				//Only log if it wasn't this bot that left
-				case LogAction.UserJoined:
-				case LogAction.UserLeft:
-					return user.Id != guild.CurrentUser.Id;
-				//Only log if it wasn't any bot that was updated.
-				case LogAction.UserUpdated:
-					return !(user.IsBot || user.IsWebhook);
-				default:
-					throw new InvalidOperationException($"Invalid log action supplied: {action}.");
+				await Task.WhenAll(tasks).CAF();
 			}
 		}
+		protected Task ReplyAsync(SocketTextChannel channel, string content = null, EmbedWrapper embedWrapper = null, TextFileInfo textFile = null)
+			=> MessageUtils.SendMessageAsync(channel, content, embedWrapper, textFile);
 	}
 }

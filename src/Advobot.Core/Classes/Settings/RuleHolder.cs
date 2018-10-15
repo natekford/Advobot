@@ -26,50 +26,43 @@ namespace Advobot.Classes.Settings
 		/// Sends the rules to the specified channel.
 		/// </summary>
 		/// <param name="formatter"></param>
-		/// <param name="channel"></param>
+		/// <param name="category"></param>
 		/// <returns></returns>
-		public async Task<IEnumerable<IUserMessage>> SendAsync(RuleFormatter formatter, IMessageChannel channel)
+		public IEnumerable<string> GetParts(RuleFormatter formatter, string category = null)
 		{
-			var messages = new List<IUserMessage>();
+			if (category != null)
+			{
+				return SplitFormattedCategoryIntoValidParts(ToString(formatter, category));
+			}
 
 			var formattedCategories = Categories.Select(x => ToString(formatter, x.Key)).ToList();
 			var formattedRules = string.Join("\n", formattedCategories);
 			//If all of the rules can be sent in one message, do that.
 			if (!string.IsNullOrWhiteSpace(formattedRules) && formattedRules.Length <= 2000)
 			{
-				messages.Add(await MessageUtils.SendMessageAsync(channel, formattedRules).CAF());
-				return messages;
+				return new[] { formattedRules };
 			}
 
 			//If not, go by category
-			foreach (var category in formattedCategories)
+			var parts = new List<string>();
+			foreach (var formattedCategory in formattedCategories)
 			{
-				messages.AddRange(await PrivateSendCategoryAsync(category, channel).CAF());
+				parts.AddRange(SplitFormattedCategoryIntoValidParts(formattedCategory));
 			}
-			return messages;
+			return parts;
 		}
-		/// <summary>
-		/// Sends a category to the specified channel.
-		/// </summary>
-		/// <param name="formatter"></param>
-		/// <param name="category"></param>
-		/// <param name="channel"></param>
-		/// <returns></returns>
-		public async Task<IEnumerable<IUserMessage>> SendCategoryAsync(RuleFormatter formatter, string category, IMessageChannel channel)
-			=> await PrivateSendCategoryAsync(ToString(formatter, category), channel).CAF();
-		private async Task<IEnumerable<IUserMessage>> PrivateSendCategoryAsync(string formattedCategory, IMessageChannel channel)
+		private IEnumerable<string> SplitFormattedCategoryIntoValidParts(string formattedCategory)
 		{
-			var messages = new List<IUserMessage>();
 			//Null category gets ignored
 			if (string.IsNullOrWhiteSpace(formattedCategory))
 			{
-				return messages;
+				yield break;
 			}
 			//Short enough categories just get sent on their own
 			if (formattedCategory.Length <= 2000)
 			{
-				messages.Add(await MessageUtils.SendMessageAsync(channel, formattedCategory).CAF());
-				return messages;
+				yield return formattedCategory;
+				yield break;
 			}
 
 			var sb = new StringBuilder();
@@ -79,7 +72,7 @@ namespace Advobot.Classes.Settings
 				//Then start building new stored text to send
 				if (sb.Length + part.Length >= 2000)
 				{
-					messages.Add(await MessageUtils.SendMessageAsync(channel, sb.ToString()).CAF());
+					yield return sb.ToString();
 					sb.Clear();
 				}
 				sb.Append(part);
@@ -87,9 +80,8 @@ namespace Advobot.Classes.Settings
 			//Send the last remaining text
 			if (sb.Length > 0)
 			{
-				messages.Add(await MessageUtils.SendMessageAsync(channel, sb.ToString()).CAF());
+				yield return sb.ToString();
 			}
-			return messages;
 		}
 		/// <inheritdoc />
 		public override string ToString()

@@ -26,10 +26,10 @@ namespace Advobot.Services.Commands
 		private readonly DiscordShardedClient _Client;
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
-		private readonly ILogService _Logging;
-		private readonly IHelpEntryService _HelpEntries;
 		private bool _Loaded;
 		private ulong _OwnerId;
+
+		public event Action<IResult> CommandInvoked;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CommandHandlerService"/> and gets the required services.
@@ -39,17 +39,11 @@ namespace Advobot.Services.Commands
 		public CommandHandlerService(IServiceProvider provider, IEnumerable<Assembly> commands)
 		{
 			_Provider = provider;
+			_Commands = provider.GetRequiredService<CommandService>();
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
-			_Logging = _Provider.GetService<ILogService>();
-			_HelpEntries = _Provider.GetRequiredService<IHelpEntryService>();
 
-			_Commands = new CommandService(new CommandServiceConfig
-			{
-				CaseSensitiveCommands = false,
-				ThrowOnError = false,
-			});
 			var typeReaders = Assembly.GetExecutingAssembly().GetTypes()
 				.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
 				.Where(x => x.Attribute != null);
@@ -89,7 +83,7 @@ namespace Advobot.Services.Commands
 			{
 				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
 			}
-			_HelpEntries.Add(_Commands.Modules);
+			_Provider.GetRequiredService<IHelpEntryService>().Add(_Commands.Modules);
 
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
 				$"Modules: {_Commands.Modules.Count()}; " +
@@ -124,7 +118,7 @@ namespace Advobot.Services.Commands
 			}
 			if (result.IsSuccess)
 			{
-				_Logging?.SuccessfulCommands?.Add(1);
+				//_Logging?.SuccessfulCommands?.Add(1);
 				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("logged command")).CAF();
 				if (context.GuildSettings.ModLogId != 0 && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
@@ -138,12 +132,11 @@ namespace Advobot.Services.Commands
 			}
 			else
 			{
-				_Logging?.FailedCommands?.Add(1);
 #warning convert back to error
 				await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
 			}
 
-			_Logging?.AttemptedCommands?.Add(1);
+			CommandInvoked?.Invoke(result);
 			ConsoleUtils.WriteLine(context.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 		}
 		private bool CanBeIgnored(IResult result)

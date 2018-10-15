@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Advobot.Classes
+namespace Advobot.Services.Logging.LogCounters
 {
 	/// <summary>
 	/// Provides information about what log counter to increment.
 	/// </summary>
-	public sealed class LogCounterIncrementEventArgs : EventArgs
+	internal sealed class LogCounterIncrementEventArgs : EventArgs
 	{
 		/// <summary>
 		/// The name of the log counter to increment.

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
+using Advobot.Services.Logging.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.WebSocket;
@@ -19,11 +20,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="provider"></param>
 		public GuildLogger(IServiceProvider provider) : base(provider) { }
 
-		/// <summary>
-		/// Writes to the console telling that the guild is online. If the guild's settings are not loaded, creates them.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public async Task OnGuildAvailable(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
@@ -31,11 +28,7 @@ namespace Advobot.Services.Logging.Loggers
 			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {guild.MemberCount}, {ProcessInfoUtils.GetMemory().ToString("0.00")}MB)");
 			await GuildSettings.GetOrCreateAsync(guild).CAF();
 		}
-		/// <summary>
-		/// Writes to the console telling that the guild is offline.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public Task OnGuildUnavailable(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);
@@ -43,11 +36,7 @@ namespace Advobot.Services.Logging.Loggers
 			ConsoleUtils.WriteLine($"Guild is now offline {guild.Format()}.");
 			return Task.CompletedTask;
 		}
-		/// <summary>
-		/// Writes to the console telling that the guild has added the bot. Leaves if too many bots are in the server. Warns about shard issues.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public async Task OnJoinedGuild(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
@@ -81,14 +70,9 @@ namespace Advobot.Services.Logging.Loggers
 			if ((double)guild.Users.Count(x => x.IsBot) / users > percentage)
 			{
 				await guild.LeaveAsync().CAF();
-				return;
 			}
 		}
-		/// <summary>
-		/// Writes to the console telling that the guild has kicked the bot. Removes the guild's settings.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public async Task OnLeftGuild(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);

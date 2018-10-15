@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Discord.WebSocket;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.Logging.Interfaces
 {
 	/// <summary>
 	/// Logs actions related to guilds.
 	/// </summary>
-	public interface IGuildLogger : ILogger
+	internal interface IGuildLogger : ILogger
 	{
 		/// <summary>
 		/// When a guild shows up for the bot.

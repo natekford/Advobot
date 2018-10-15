@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Discord.WebSocket;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.Logging.Interfaces
 {
 	/// <summary>
 	/// Logs actions related to users.
 	/// </summary>
-	public interface IUserLogger : ILogger
+	internal interface IUserLogger : ILogger
 	{
 		/// <summary>
 		/// When a user joins a guild.

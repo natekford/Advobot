@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Advobot.Classes;
 using Discord;
 using Discord.WebSocket;
 
@@ -51,10 +52,10 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Sends the user's xp information to the channel.
 		/// </summary>
-		/// <param name="channel"></param>
+		/// <param name="guild"></param>
 		/// <param name="userId">The user to get the information for.</param>
 		/// <param name="global">Whether to include global information. If false, includes only guild information.</param>
 		/// <returns></returns>
-		Task SendUserXpInformationAsync(SocketTextChannel channel, ulong userId, bool global);
+		EmbedWrapper GetUserXpInformationEmbedWrapper(SocketGuild guild, ulong userId, bool global);
 	}
 }

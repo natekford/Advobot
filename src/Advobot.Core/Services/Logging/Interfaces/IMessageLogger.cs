@@ -2,12 +2,12 @@
 using Discord;
 using Discord.WebSocket;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.Logging.Interfaces
 {
 	/// <summary>
 	/// Logs actions related to messages.
 	/// </summary>
-	public interface IMessageLogger : ILogger
+	internal interface IMessageLogger : ILogger
 	{
 		/// <summary>
 		/// When a message is received.

@@ -104,8 +104,8 @@ namespace Advobot.Commands.Rules
 	public sealed class PrintOutRules : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [Optional, Remainder] RuleFormatter args)
-			=> await Context.GuildSettings.Rules.SendCategoryAsync(args ?? new RuleFormatter(), category, Context.Channel).CAF();
+		public Task Command([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [Optional, Remainder] RuleFormatter args)
+			=> CommandRunner(args, category);
 		[Command]
 		public async Task Command([Optional, Remainder] RuleFormatter args)
 		{
@@ -114,7 +114,16 @@ namespace Advobot.Commands.Rules
 				await ReplyErrorAsync(new Error("This guild has no rules set up.")).CAF();
 				return;
 			}
-			await Context.GuildSettings.Rules.SendAsync(args ?? new RuleFormatter(), Context.Channel).CAF();
+
+			await CommandRunner(args, null).CAF();
+		}
+
+		private async Task CommandRunner(RuleFormatter formatter, string category)
+		{
+			foreach (var part in Context.GuildSettings.Rules.GetParts(formatter ?? new RuleFormatter(), category))
+			{
+				await ReplyAsync(part).CAF();
+			}
 		}
 	}
 }

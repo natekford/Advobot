@@ -130,16 +130,16 @@ namespace Advobot.Services.Levels
 			return values.Single();
 		}
 		/// <inheritdoc />
-		public async Task SendUserXpInformationAsync(SocketTextChannel channel, ulong userId, bool global)
+		public EmbedWrapper GetUserXpInformationEmbedWrapper(SocketGuild guild, ulong userId, bool global)
 		{
 			var info = GetUserXpInformation(userId);
-			var (rank, totalUsers) = global ? GetGlobalRank(userId) : GetGuildRank(channel.Guild, userId);
-			var experience = global ? info.GetExperience() : info.GetExperience(channel.Guild);
+			var (rank, totalUsers) = global ? GetGlobalRank(userId) : GetGuildRank(guild, userId);
+			var experience = global ? info.GetExperience() : info.GetExperience(guild);
 			var level = CalculateLevel(experience);
 
 			var name = userId.ToString();
 			var pfp = default(string);
-			var user = channel.Guild.GetUser(userId);
+			var user = guild.GetUser(userId);
 			if (user != null)
 			{
 				name = user.Format();
@@ -147,13 +147,13 @@ namespace Advobot.Services.Levels
 			}
 
 			//TODO: implement rest of embed
-			await MessageUtils.SendMessageAsync(channel, embedWrapper: new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Title = $"{(global ? "Global" : "Guild")} xp information for {name}",
 				ThumbnailUrl = pfp,
 				Author = user.CreateAuthor(),
 				Footer = new EmbedFooterBuilder { Text = "Xp Information", },
-			}).CAF();
+			};
 		}
 		private void UpdateUserRank(IUserExperienceInformation info, SocketGuild guild)
 		{

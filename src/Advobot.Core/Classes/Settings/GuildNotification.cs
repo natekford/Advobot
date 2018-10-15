@@ -45,15 +45,14 @@ namespace Advobot.Classes.Settings
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task SendAsync(SocketGuild guild, IUser user)
+		public Task SendAsync(SocketGuild guild, IUser user)
 		{
 			var content = Content
 				.CaseInsReplace(USER_MENTION, user?.Mention ?? "Invalid User")
 				.CaseInsReplace(USER_STRING, user?.Format() ?? "Invalid User");
 
-			await MessageUtils.SendMessageAsync(guild.GetTextChannel(ChannelId), content, CustomEmbed?.BuildWrapper()).CAF();
+			return MessageUtils.SendMessageAsync(guild.GetTextChannel(ChannelId), content, CustomEmbed?.BuildWrapper());
 		}
-
 		/// <inheritdoc />
 		public override string ToString()
 			=> $"**Channel:** `{ChannelId}`\n**Content:** `{Content}`\n{CustomEmbed}";

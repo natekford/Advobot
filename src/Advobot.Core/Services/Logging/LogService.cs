@@ -5,8 +5,11 @@ using System.Linq;
 using System.Text;
 using Advobot.Classes;
 using Advobot.Interfaces;
+using Advobot.Services.Logging.Interfaces;
+using Advobot.Services.Logging.LogCounters;
 using Advobot.Services.Logging.Loggers;
 using AdvorangesUtils;
+using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -57,10 +60,10 @@ namespace Advobot.Services.Logging
 		/// <inheritdoc />
 		public IMessageLogger MessageLogger { get; }
 
-		private readonly LogCounter[] _LoggedCommands;
-		private readonly LogCounter[] _LoggedUserActions;
-		private readonly LogCounter[] _LoggedMessageActions;
-		private readonly LogCounter[] _LoggedAttachments;
+		private readonly ILogCounter[] _LoggedCommands;
+		private readonly ILogCounter[] _LoggedUserActions;
+		private readonly ILogCounter[] _LoggedMessageActions;
+		private readonly ILogCounter[] _LoggedAttachments;
 		private readonly Dictionary<string, LogCounter> _Counters;
 
 		/// <inheritdoc />
@@ -76,8 +79,7 @@ namespace Advobot.Services.Logging
 			_LoggedUserActions = new[] { UserJoins, UserLeaves, UserChanges };
 			_LoggedMessageActions = new[] { MessageEdits, MessageDeletes };
 			_LoggedAttachments = new[] { Images, Animated, Files };
-			_Counters = GetType().GetProperties().Where(x => x.PropertyType == typeof(LogCounter))
-				.ToDictionary(k => k.Name, v => (LogCounter)v.GetValue(this));
+			_Counters = new Dictionary<string, LogCounter>(StringComparer.OrdinalIgnoreCase);
 
 			BotLogger = new BotLogger(provider);
 			GuildLogger = new GuildLogger(provider);
@@ -92,9 +94,11 @@ namespace Advobot.Services.Logging
 			}
 			foreach (var counter in values.OfType<LogCounter>())
 			{
+				var name = counter.Name.Replace(" ", "");
+				_Counters.Add(name, counter);
 				counter.PropertyChanged += (sender, e) =>
 				{
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(counter.Name.Replace(" ", "")));
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 				};
 			}
 
@@ -110,6 +114,13 @@ namespace Advobot.Services.Logging
 			client.MessageReceived += MessageLogger.OnMessageReceived;
 			client.MessageUpdated += MessageLogger.OnMessageUpdated;
 			client.MessageDeleted += MessageLogger.OnMessageDeleted;
+
+			var commands = provider.GetRequiredService<ICommandHandlerService>();
+			commands.CommandInvoked += result =>
+			{
+				(result.IsSuccess ? SuccessfulCommands : FailedCommands).Add(1);
+				AttemptedCommands.Add(1);
+			};
 		}
 
 		/// <inheritdoc />
@@ -137,7 +148,7 @@ namespace Advobot.Services.Logging
 		/// <param name="haveEqualSpacing"></param>
 		/// <param name="counters"></param>
 		/// <returns></returns>
-		private string FormatMultiple(IEnumerable<LogCounter> counters, bool withMarkDown, bool haveEqualSpacing)
+		private string FormatMultiple(IEnumerable<ILogCounter> counters, bool withMarkDown, bool haveEqualSpacing)
 		{
 			var titlesAndCount = (withMarkDown
 				? counters.Select(x => (Title: $"**{x.Name}**:", Count: $"`{x.Count}`"))
@@ -160,5 +171,21 @@ namespace Advobot.Services.Logging
 			}
 			return sb.ToString();
 		}
+
+		//ILogServices
+		ILogCounter ILogService.TotalUsers => TotalUsers;
+		ILogCounter ILogService.TotalGuilds => TotalGuilds;
+		ILogCounter ILogService.AttemptedCommands => AttemptedCommands;
+		ILogCounter ILogService.SuccessfulCommands => SuccessfulCommands;
+		ILogCounter ILogService.FailedCommands => FailedCommands;
+		ILogCounter ILogService.UserJoins => UserJoins;
+		ILogCounter ILogService.UserLeaves => UserLeaves;
+		ILogCounter ILogService.UserChanges => UserChanges;
+		ILogCounter ILogService.MessageEdits => MessageEdits;
+		ILogCounter ILogService.MessageDeletes => MessageDeletes;
+		ILogCounter ILogService.Messages => Messages;
+		ILogCounter ILogService.Images => Images;
+		ILogCounter ILogService.Animated => Animated;
+		ILogCounter ILogService.Files => Files;
 	}
 }

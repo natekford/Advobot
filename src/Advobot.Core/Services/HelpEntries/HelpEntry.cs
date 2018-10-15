@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UsageGeneration;
 using Advobot.Interfaces;
@@ -35,12 +36,6 @@ namespace Advobot.Services.HelpEntries
 		/// <inheritdoc />
 		public string Usage { get; }
 
-		private string _A;
-		private string _U;
-		private string _E;
-		private string _B;
-		private string _D;
-
 		/// <summary>
 		/// Creates an instance of <see cref="HelpEntry"/> from a type.
 		/// </summary>
@@ -53,11 +48,9 @@ namespace Advobot.Services.HelpEntries
 			BasePerms = FormatPreconditions(attrs.OfType<PreconditionAttribute>());
 			Category = attrs.GetAttribute<CategoryAttribute>().Category ?? throw new ArgumentException(nameof(CategoryAttribute));
 			DefaultEnabled = attrs.GetAttribute<DefaultEnabledAttribute>().Enabled;
-			Description = attrs.GetAttribute<SummaryAttribute>().Text ?? throw new ArgumentException(nameof(SummaryAttribute));
-			Name = attrs.GetAttribute<GroupAttribute>().Prefix ?? throw new ArgumentException(nameof(GroupAttribute));
+			Description = attrs.GetAttribute<SummaryAttribute>().Text ?? throw new ArgumentException(nameof(Description));
+			Name = attrs.GetAttribute<GroupAttribute>().Prefix ?? throw new ArgumentException(nameof(Name));
 			Usage = UsageGenerator.GenerateUsage(type) ?? throw new ArgumentException(nameof(Usage));
-
-			SetStrings();
 		}
 		/// <summary>
 		/// Creates an instance of <see cref="HelpEntry"/> from a module.
@@ -68,18 +61,18 @@ namespace Advobot.Services.HelpEntries
 			var attrs = module.Attributes;
 			AbleToBeToggled = attrs.GetAttribute<DefaultEnabledAttribute>().AbleToToggle;
 			Aliases = (module.Aliases.Any() ? module.Aliases : new[] { "N/A" }).ToImmutableArray();
-			BasePerms = FormatPreconditions(attrs.OfType<PreconditionAttribute>());
+			BasePerms = FormatPreconditions(module.Preconditions);
 			Category = attrs.GetAttribute<CategoryAttribute>().Category ?? throw new ArgumentException(nameof(CategoryAttribute));
 			DefaultEnabled = attrs.GetAttribute<DefaultEnabledAttribute>().Enabled;
-			Description = module.Summary ?? throw new ArgumentException(nameof(SummaryAttribute));
-			Name = module.Name ?? throw new ArgumentException(nameof(GroupAttribute));
+			Description = module.Summary ?? throw new ArgumentException(nameof(Description));
+			Name = module.Name ?? throw new ArgumentException(nameof(Name));
 			Usage = UsageGenerator.GenerateUsage(module) ?? throw new ArgumentException(nameof(Usage));
-
-			SetStrings();
 		}
 
 		private string FormatPreconditions(IEnumerable<PreconditionAttribute> preconditions)
 		{
+			//Don't let users see preconditions which are designated as not visible (e.g the basic command requirement one)
+			preconditions = preconditions.Where(x => !(x is SelfGroupPreconditionAttribute self) || !self.Visible);
 			if (!preconditions.Any())
 			{
 				return "N/A";
@@ -89,35 +82,35 @@ namespace Advobot.Services.HelpEntries
 				return preconditions.Select(x => x.ToString()).JoinNonNullStrings(" & ");
 			}
 
-			var groups = preconditions.GroupBy(x => x.Group);
-			if (groups.Count() == 1)
+			var groups = preconditions.GroupBy(x => x.Group).ToArray();
+			if (groups.Length == 1)
 			{
-				return groups.Single().Select(x => x.ToString()).JoinNonNullStrings(" | ");
+				return groups[0].Select(x => x.ToString()).JoinNonNullStrings(" | ");
 			}
 
-			var conditions = groups.Select(g => g.Select(c => c.ToString()).JoinNonNullStrings(" | "));
-			var withParens = conditions.Select(x => $"({x})");
-			return withParens.JoinNonNullStrings(" & ");
-		}
-		private void SetStrings()
-		{
-			_A = $"**Aliases:** {string.Join(", ", Aliases)}\n";
-			_U = $"**Usage:** {Constants.PREFIX}{Name} {Usage}\n";
-			_E = $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}{(AbleToBeToggled ? "" : " (Not toggleable)")}\n";
-			_B = $"**Base Permission(s):**\n{BasePerms}\n";
-			_D = $"**Description:**\n{Description}";
+			return groups.Select(g => $"({g.Select(c => c.ToString()).JoinNonNullStrings(" | ")})").JoinNonNullStrings(" & ");
 		}
 		/// <inheritdoc />
 		public override string ToString()
-			=> $"{_A}{_U}{_E}\n{_B}\n{_D}";
+			=> ToString(null);
 		/// <inheritdoc />
 		public string ToString(CommandSettings settings)
 		{
-			if (!(settings.IsCommandEnabled(Name) is bool val))
+			var str = "";
+			str += $"**Aliases:** {string.Join(", ", Aliases)}\n";
+			str += $"**Usage:** {Constants.PREFIX}{Name} {Usage}\n";
+			str += $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}{(AbleToBeToggled ? "" : " (Not toggleable)")}\n";
+			if (settings != null)
 			{
-				val = DefaultEnabled;
+				if (!(settings.IsCommandEnabled(Name) is bool val))
+				{
+					val = DefaultEnabled;
+				}
+				str += $"**Currently Enabled:** {(val ? "Yes" : "No")}\n";
 			}
-			return $"{_A}{_U}{_E}**Currently Enabled:** {(val ? "Yes" : "No")}\n\n{_B}\n{_D}";
+			str += $"**Base Permission(s):**\n{BasePerms}\n";
+			str += $"**Description:**\n{Description}";
+			return str;
 		}
 	}
 }

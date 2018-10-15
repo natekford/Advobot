@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.Logging.Interfaces
 {
 	/// <summary>
 	/// Logs actions related to the bot.
 	/// </summary>
-	public interface IBotLogger : ILogger
+	internal interface IBotLogger : ILogger
 	{
 		/// <summary>
 		/// When the api wrapper sends a log message.

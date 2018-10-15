@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Interfaces;
+using Advobot.Services.Logging.Interfaces;
 using AdvorangesUtils;
 using Discord;
 
@@ -17,11 +17,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="provider"></param>
 		public BotLogger(IServiceProvider provider) : base(provider) { }
 
-		/// <summary>
-		/// Creates an instance of <see cref="BotLogger"/>.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public Task OnLogMessageSent(LogMessage message)
 		{
 			if (!string.IsNullOrWhiteSpace(message.Message))

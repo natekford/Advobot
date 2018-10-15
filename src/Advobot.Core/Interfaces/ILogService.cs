@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using Advobot.Classes;
 
 namespace Advobot.Interfaces
 {
@@ -11,76 +10,59 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// How many users does the bot encompass.
 		/// </summary>
-		LogCounter TotalUsers { get; }
+		ILogCounter TotalUsers { get; }
 		/// <summary>
 		/// How many guilds does the bot encompass.
 		/// </summary>
-		LogCounter TotalGuilds { get; }
+		ILogCounter TotalGuilds { get; }
 		/// <summary>
 		/// How many commands have been used in total.
 		/// </summary>
-		LogCounter AttemptedCommands { get; }
+		ILogCounter AttemptedCommands { get; }
 		/// <summary>
 		/// How many commands were successful.
 		/// </summary>
-		LogCounter SuccessfulCommands { get; }
+		ILogCounter SuccessfulCommands { get; }
 		/// <summary>
 		/// How many commands failed.
 		/// </summary>
-		LogCounter FailedCommands { get; }
+		ILogCounter FailedCommands { get; }
 		/// <summary>
 		/// How many users have joined.
 		/// </summary>
-		LogCounter UserJoins { get; }
+		ILogCounter UserJoins { get; }
 		/// <summary>
 		/// How many users have left.
 		/// </summary>
-		LogCounter UserLeaves { get; }
+		ILogCounter UserLeaves { get; }
 		/// <summary>
 		/// How many users have modified themselves.
 		/// </summary>
-		LogCounter UserChanges { get; }
+		ILogCounter UserChanges { get; }
 		/// <summary>
 		/// How many messages have been edited.
 		/// </summary>
-		LogCounter MessageEdits { get; }
+		ILogCounter MessageEdits { get; }
 		/// <summary>
 		/// How many messages have been deleted.
 		/// </summary>
-		LogCounter MessageDeletes { get; }
+		ILogCounter MessageDeletes { get; }
 		/// <summary>
 		/// How many messages have been sent.
 		/// </summary>
-		LogCounter Messages { get; }
+		ILogCounter Messages { get; }
 		/// <summary>
 		/// How many images have been sent.
 		/// </summary>
-		LogCounter Images { get; }
+		ILogCounter Images { get; }
 		/// <summary>
 		/// How many videos/gifs have been sent.
 		/// </summary>
-		LogCounter Animated { get; }
+		ILogCounter Animated { get; }
 		/// <summary>
 		/// How many files have been sent.
 		/// </summary>
-		LogCounter Files { get; }
-
-		/// <summary>
-		/// Logs things related to the bot.
-		/// </summary>
-		IBotLogger BotLogger { get; }
-		/// <summary>
-		/// Logs things related to guilds.
-		/// </summary>
-		IGuildLogger GuildLogger { get; }
-		/// <summary>
-		/// Logs things related to users.
-		/// </summary>
-		IUserLogger UserLogger { get; }
-		/// <summary>
-		/// Logs things related to messages.
-		/// </summary>
-		IMessageLogger MessageLogger { get; }
+		ILogCounter Files { get; }
 
 		/// <summary>
 		/// Returns a string saying how many commands, successes, and failures.

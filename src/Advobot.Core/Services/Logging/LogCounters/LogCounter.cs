@@ -1,14 +1,15 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Advobot.Interfaces;
 using AdvorangesUtils;
 
-namespace Advobot.Classes
+namespace Advobot.Services.Logging.LogCounters
 {
 	/// <summary>
 	/// Used in logging. Holds the name of what is being logged and the count.
 	/// </summary>
-	public sealed class LogCounter : INotifyPropertyChanged
+	internal sealed class LogCounter : ILogCounter, INotifyPropertyChanged
 	{
 		/// <summary>
 		/// The title of the log counter.

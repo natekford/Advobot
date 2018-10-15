@@ -6,11 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.CloseWords;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Services.Logging.Interfaces;
+using Advobot.Services.Logging.LoggingContexts;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -41,11 +42,20 @@ namespace Advobot.Services.Logging.Loggers
 		/// <inheritdoc />
 		public async Task OnMessageReceived(SocketMessage message)
 		{
-			NotifyLogCounterIncrement(nameof(ILogService.Messages), 1);
 			if (!(message.Author is SocketGuildUser user))
 			{
 				return;
 			}
+
+			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageReceived, message);
+			await HandleAsync(context, nameof(ILogService.Messages), new[] { HandleChannelSettingsAsync(context) }, new Func<Task>[]
+			{
+				() => HandleImageLoggingAsync(context),
+				() => HandleSlowmodeAsync(context),
+				() => HandleSpamPreventionAsync(context),
+				() => HandleSpamPreventionVotingAsync(context),
+				() => HandleBannedPhrasesAsync(context),
+			}).CAF();
 
 			//For some meme server
 			if (user.Guild.Id == 294173126697418752)
@@ -56,18 +66,6 @@ namespace Advobot.Services.Logging.Loggers
 					await user.ModifyAsync(x => x.Nickname = name, ClientUtils.CreateRequestOptions($"my nama {name}")).CAF();
 				}
 			}
-
-			//Actions which require the ability to log on this channel
-			if (CanLog(LogAction.MessageReceived, message, out var settings))
-			{
-				await HandleImageLoggingAsync(settings, user, message).CAF();
-				await HandleSlowmodeAsync(settings, user, message).CAF();
-				await HandleSpamPreventionAsync(settings, user, message).CAF();
-				await HandleSpamPreventionVotingAsync(settings, user, message).CAF();
-				await HandleBannedPhrasesAsync(settings, user, message).CAF();
-			}
-			//Actions which should happen no matter what
-			await HandleChannelSettingsAsync(settings, user, message).CAF();
 		}
 		/// <inheritdoc />
 		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
@@ -77,215 +75,131 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			if (CanLog(LogAction.MessageUpdated, message, out var settings))
+			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageUpdated, message);
+			await HandleAsync(context, nameof(ILogService.MessageEdits), Enumerable.Empty<Task>(), new Func<Task>[]
 			{
-				await HandleBannedPhrasesAsync(settings, user, message).CAF();
-				await HandleMessageEditedImageLoggingAsync(settings, user, cached.Value as SocketMessage, message).CAF();
-				await HandleMessageEditedLoggingAsync(settings, user, cached.Value as SocketMessage, message).CAF();
-			}
+				() => HandleBannedPhrasesAsync(context),
+				() => HandleMessageEditedLoggingAsync(context, cached.Value as SocketMessage),
+				() => HandleMessageEditedImageLoggingAsync(context, cached.Value as SocketMessage),
+			}).CAF();
 		}
 		/// <inheritdoc />
-		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
+		public async Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
 			//Ignore uncached messages since not much can be done with them
-			NotifyLogCounterIncrement(nameof(ILogService.MessageDeletes), 1);
-			if (!cached.HasValue
-				|| !(cached.Value is SocketMessage message)
-				|| !(channel is SocketGuildChannel guildChannel)
-				|| !CanLog(LogAction.MessageDeleted, message, out var settings)
-				|| settings.ServerLogId == 0)
+			if (!(cached.Value is SocketMessage message) || !(message.Author is SocketGuildUser author))
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
-			settings.MessageDeletion.Messages.Add(message);
-			//The old cancel token gets canceled in its getter
-			var cancelToken = settings.MessageDeletion.CancelToken;
-
-			//Has to run on completely separate thread, else prints early
-			_ = Task.Run(async () =>
+			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageDeleted, message);
+			await HandleAsync(context, nameof(ILogService.MessageDeletes), Enumerable.Empty<Task>(), new Func<Task>[]
 			{
-				//Wait three seconds. If a new message comes in then the token will be canceled and this won't continue.
-				//If more than 25 messages just start printing them out so people can't stall the messages forever.
-				var inEmbed = settings.MessageDeletion.Messages.Count < 10; //Needs very few messages to fit in an embed
-				if (settings.MessageDeletion.Messages.Count < 25)
-				{
-					try
-					{
-						await Task.Delay(TimeSpan.FromSeconds(3), cancelToken).CAF();
-					}
-					catch (TaskCanceledException)
-					{
-						return;
-					}
-				}
-
-				//Give the messages to a new list so they can be removed from the old one
-				var messages = new List<IMessage>(settings.MessageDeletion.Messages).OrderBy(x => x?.CreatedAt.Ticks).ToList();
-				settings.MessageDeletion.ClearBag();
-
-				var sb = new StringBuilder();
-				while (inEmbed)
-				{
-					foreach (var m in messages)
-					{
-						sb.AppendLineFeed(m.Format(withMentions: true));
-						//Can only stay in an embed if the description length is less than the max length
-						//and if the line numbers are less than 20
-						var validDesc = sb.Length < EmbedBuilder.MaxDescriptionLength;
-						var validLines = sb.ToString().RemoveDuplicateNewLines().CountLineBreaks() < EmbedWrapper.MAX_DESCRIPTION_LINES;
-						inEmbed = validDesc && validLines;
-					}
-					break;
-				}
-
-				var c = guildChannel.Guild.GetTextChannel(settings.ServerLogId);
-				if (inEmbed)
-				{
-					await MessageUtils.SendMessageAsync(c, embedWrapper: new EmbedWrapper
-					{
-						Title = "Deleted Messages",
-						Description = sb.ToString().RemoveDuplicateNewLines(),
-						Color = EmbedWrapper.MessageDelete,
-						Footer = new EmbedFooterBuilder { Text = "Deleted Messages", },
-					}).CAF();
-				}
-				else
-				{
-					sb.Clear();
-					foreach (var m in messages)
-					{
-						sb.AppendLineFeed(m.Format(false));
-					}
-
-					await MessageUtils.SendMessageAsync(c, $"**{messages.Count()} Deleted Messages:**", textFile: new TextFileInfo
-					{
-						Name = "Deleted_Messages",
-						Text = sb.ToString().RemoveDuplicateNewLines().RemoveAllMarkdown(),
-					}).CAF();
-				}
-			});
-			return Task.CompletedTask;
+				() => HandleMessageDeletedLogging(context),
+			}).CAF();
 		}
 
 		/// <summary>
 		/// Handles settings on channels, such as: image only mode.
 		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="user"></param>
-		/// <param name="message"></param>
+		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleChannelSettingsAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
+		private async Task HandleChannelSettingsAsync(MessageLoggingContext context)
 		{
-			if (!user.GuildPermissions.Administrator
-				&& settings.ImageOnlyChannels.Contains(message.Channel.Id)
-				&& !message.Attachments.Any(x => x.Height != null || x.Width != null)
-				&& !message.Embeds.Any(x => x.Image != null))
+			if (!context.User.GuildPermissions.Administrator
+				&& context.Settings.ImageOnlyChannels.Contains(context.Channel.Id)
+				&& !context.Message.Attachments.Any(x => x.Height != null || x.Width != null)
+				&& !context.Message.Embeds.Any(x => x.Image != null))
 			{
-				await message.DeleteAsync().CAF();
+				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("due to channel settings")).CAF();
 			}
 		}
 		/// <summary>
 		/// Logs the image to the image log if set.
 		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="user"></param>
-		/// <param name="message"></param>
+		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleImageLoggingAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
+		private async Task HandleImageLoggingAsync(MessageLoggingContext context)
 		{
-			Task SendImageLogMessage(SocketTextChannel log, SocketGuildUser author, string d, string f, string u, string iu)
-				=> MessageUtils.SendMessageAsync(log, embedWrapper: new EmbedWrapper
-				{
-					Description = d,
-					Color = EmbedWrapper.Attachment,
-					Url = u,
-					ImageUrl = iu,
-					Author = user.CreateAuthor(),
-					Footer = new EmbedFooterBuilder { Text = f, },
-				});
-
-			if (settings.ImageLogId == 0)
+			if (context.ImageLog == null)
 			{
 				return;
 			}
 
-			var imageLog = user.Guild.GetTextChannel(settings.ImageLogId);
-			var description = $"**Channel:** `{message.Channel.Format()}`\n**Message Id:** `{message.Id}`";
-			foreach (var attachmentUrl in message.Attachments.GroupBy(x => x.Url).Select(x => x.First().Url)) //Attachments
+			var description = $"**Channel:** `{context.Message.Channel.Format()}`\n**Message Id:** `{context.Message.Id}`";
+			Task SendImageLogMessage(string footer, string url, string imageurl)
 			{
-				string footerText;
-				string imageUrl;
+				return ReplyAsync(context.ImageLog, embedWrapper: new EmbedWrapper
+				{
+					Description = description,
+					Color = EmbedWrapper.Attachment,
+					Url = url,
+					ImageUrl = imageurl,
+					Author = context.User.CreateAuthor(),
+					Footer = new EmbedFooterBuilder { Text = footer, },
+				});
+			}
+
+			foreach (var attachmentUrl in context.Message.Attachments.GroupBy(x => x.Url).Select(x => x.First().Url)) //Attachments
+			{
 				var mimeType = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(attachmentUrl));
 				if (mimeType.CaseInsContains("video/") || mimeType.CaseInsContains("/gif"))
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Animated), 1);
-					footerText = "Attached Animated Content";
-					imageUrl = attachmentUrl;
+					await SendImageLogMessage("Attached Animated Content", attachmentUrl, attachmentUrl).CAF();
 				}
 				else if (mimeType.CaseInsContains("image/"))
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Images), 1);
-					footerText = "Attached Image";
-					imageUrl = attachmentUrl;
+					await SendImageLogMessage("Attached Image", attachmentUrl, attachmentUrl).CAF();
 				}
 				else //Random file
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Files), 1);
-					footerText = "Attached File";
-					imageUrl = null;
+					await SendImageLogMessage("Attached File", attachmentUrl, null).CAF();
 				}
-
-				await SendImageLogMessage(imageLog, user, description, footerText, attachmentUrl, imageUrl).CAF();
 			}
-			foreach (var imageEmbed in message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
+			foreach (var imageEmbed in context.Message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
 			{
-				string footerText;
-				string imageUrl;
 				if (imageEmbed.Video is EmbedVideo video)
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Animated), 1);
-					footerText = "Embedded Gif/Video";
-					imageUrl = imageEmbed.Thumbnail?.Url;
+					await SendImageLogMessage("Embedded Gif/Video", imageEmbed.Url, imageEmbed.Thumbnail?.Url).CAF();
 				}
 				else if (imageEmbed.Image is EmbedImage image)
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Images), 1);
-					footerText = "Embedded Image";
-					imageUrl = image.Url;
+					await SendImageLogMessage("Embedded Image", imageEmbed.Url, image.Url).CAF();
 				}
-				else
-				{
-					continue;
-				}
-
-				await SendImageLogMessage(imageLog, user, description, footerText, imageEmbed.Url, imageUrl).CAF();
 			}
 		}
 		/// <summary>
 		/// Checks the message against the slowmode.
 		/// </summary>
+		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleSlowmodeAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
+		private async Task HandleSlowmodeAsync(MessageLoggingContext context)
 		{
 			//Don't bother doing stuff on the user if they're immune
-			if (!(settings.Slowmode is Slowmode slowmode) || !slowmode.Enabled || user.Roles.Select(x => x.Id).Intersect(slowmode.ImmuneRoleIds).Any())
+			if (!(context.Settings.Slowmode is Slowmode slowmode)
+				|| !slowmode.Enabled
+				|| context.User.Roles.Select(x => x.Id).Intersect(slowmode.ImmuneRoleIds).Any())
 			{
 				return;
 			}
 
-			if (!(settings.SlowmodeUsers.SingleOrDefault(x => x.UserId == user.Id) is SlowmodeUserInfo info))
+			if (!context.Settings.SlowmodeUsers.TryGetSingle(x => x.UserId == context.User.Id, out var info))
 			{
-				settings.SlowmodeUsers.Add(info = new SlowmodeUserInfo(slowmode.IntervalTimeSpan, user));
+				context.Settings.SlowmodeUsers.Add(info = new SlowmodeUserInfo(slowmode.IntervalTimeSpan, context.User));
 			}
-			else if (info.Time < DateTime.UtcNow)
+			if (info.Time < DateTime.UtcNow)
 			{
 				info.Reset();
 			}
 
 			if (info.MessagesSent >= slowmode.BaseMessages)
 			{
-				await message.DeleteAsync(ClientUtils.CreateRequestOptions("slowmode")).CAF();
+				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("slowmode")).CAF();
 				return;
 			}
 			if (info.MessagesSent == 0)
@@ -297,28 +211,29 @@ namespace Advobot.Services.Logging.Loggers
 		/// <summary>
 		/// If the message author can be modified by the bot then their message is checked for any spam matches.
 		/// </summary>
+		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleSpamPreventionAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
+		private async Task HandleSpamPreventionAsync(MessageLoggingContext context)
 		{
-			if (!user.Guild.CurrentUser.CanModify(user))
+			if (!context.Guild.CurrentUser.CanModify(context.User))
 			{
 				return;
 			}
-			if (!(settings.SpamPreventionUsers.SingleOrDefault(x => x.UserId == user.Id) is SpamPreventionUserInfo info))
+			if (!context.Settings.SpamPreventionUsers.TryGetSingle(x => x.UserId == context.User.Id, out var info))
 			{
-				settings.SpamPreventionUsers.Add(info = new SpamPreventionUserInfo(user));
+				context.Settings.SpamPreventionUsers.Add(info = new SpamPreventionUserInfo(context.User));
 			}
 
 			var spam = false;
 			foreach (SpamType type in Enum.GetValues(typeof(SpamType)))
 			{
-				if (!(settings[type] is SpamPrev prev) || !prev.Enabled)
+				if (!(context.Settings[type] is SpamPrev prev) || !prev.Enabled)
 				{
 					continue;
 				}
-				if (_GetSpamNumberFuncs[type](message) >= prev.SpamPerMessage)
+				if (_GetSpamNumberFuncs[type](context.Message) >= prev.SpamPerMessage)
 				{
-					info.AddSpamInstance(type, message);
+					info.AddSpamInstance(type, context.Message);
 				}
 				if (info.GetSpamAmount(type, prev.TimeInterval) < prev.SpamInstances)
 				{
@@ -333,22 +248,20 @@ namespace Advobot.Services.Logging.Loggers
 			if (spam)
 			{
 				var votesReq = info.VotesRequired - info.UsersWhoHaveAlreadyVoted.Count;
-				var content = $"`{user.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
+				var content = $"`{context.User.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 #warning convert back to timed 10 seconds
-				await MessageUtils.SendMessageAsync(message.Channel, content).CAF();
-				await message.DeleteAsync(ClientUtils.CreateRequestOptions("spam prevention")).CAF();
+				await ReplyAsync(context.Channel, content).CAF();
+				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("spam prevention")).CAF();
 			}
 		}
 		/// <summary>
 		/// Checks if there are any mentions to kick a spammer.
 		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="user"></param>
-		/// <param name="message"></param>
+		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleSpamPreventionVotingAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
+		private async Task HandleSpamPreventionVotingAsync(MessageLoggingContext context)
 		{
-			if (!message.MentionedUsers.Any())
+			if (!context.Message.MentionedUsers.Any())
 			{
 				return;
 			}
@@ -356,122 +269,189 @@ namespace Advobot.Services.Logging.Loggers
 			var giver = new Punisher(TimeSpan.FromMinutes(0), default);
 			var options = ClientUtils.CreateRequestOptions("spam prevention");
 			//Iterate through the users who are able to be punished by the spam prevention
-			foreach (var spammer in settings.SpamPreventionUsers.Where(x =>
+			foreach (var spammer in context.Settings.SpamPreventionUsers.Where(x =>
 			{
 				return x.IsPunishable()
-					&& x.UserId != user.Id
-					&& message.MentionedUsers.Select(u => u.Id).Contains(x.UserId)
-					&& !x.UsersWhoHaveAlreadyVoted.Contains(user.Id);
+					&& x.UserId != context.User.Id
+					&& context.Message.MentionedUsers.Select(u => u.Id).Contains(x.UserId)
+					&& !x.UsersWhoHaveAlreadyVoted.Contains(context.User.Id);
 			}))
 			{
-				spammer.UsersWhoHaveAlreadyVoted.Add(user.Id);
+				spammer.UsersWhoHaveAlreadyVoted.Add(context.User.Id);
 				if (spammer.UsersWhoHaveAlreadyVoted.Count < spammer.VotesRequired)
 				{
 					continue;
 				}
 
-				await giver.GiveAsync(spammer.Punishment, user.Guild, spammer.UserId, settings.MuteRoleId, options).CAF();
+				await giver.GiveAsync(spammer.Punishment, context.Guild, spammer.UserId, context.Settings.MuteRoleId, options).CAF();
 				spammer.Reset();
 			}
 		}
 		/// <summary>
 		/// Makes sure a message doesn't have any banned phrases.
 		/// </summary>
+		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleBannedPhrasesAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage message)
+		private async Task HandleBannedPhrasesAsync(MessageLoggingContext context)
 		{
 			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
-			if (user.GuildPermissions.Administrator || (DateTime.UtcNow - message.CreatedAt.UtcDateTime).Hours > 0)
+			if (context.User.GuildPermissions.Administrator || (DateTime.UtcNow - context.Message.CreatedAt.UtcDateTime).Hours > 0)
 			{
 				return;
 			}
 
-			var info = settings.BannedPhraseUsers.SingleOrDefault(x => x.UserId == user.Id);
-			if (info == null)
+			if (!context.Settings.BannedPhraseUsers.TryGetSingle(x => x.UserId == context.User.Id, out var info))
 			{
-				settings.BannedPhraseUsers.Add(info = new BannedPhraseUserInfo(user));
+				context.Settings.BannedPhraseUsers.Add(info = new BannedPhraseUserInfo(context.User));
 			}
-			var str = settings.BannedPhraseStrings.FirstOrDefault(x => message.Content.CaseInsContains(x.Phrase));
-			if (str != null)
+			if (context.Settings.BannedPhraseStrings.TryGetFirst(x => context.Message.Content.CaseInsContains(x.Phrase), out var str))
 			{
-				await str.PunishAsync(settings, user.Guild, info, Timers).CAF();
+				await str.PunishAsync(context.Settings, context.Guild, info, Timers).CAF();
 			}
-			var regex = settings.BannedPhraseRegex.FirstOrDefault(x => RegexUtils.IsMatch(message.Content, x.Phrase));
-			if (regex != null)
+			if (context.Settings.BannedPhraseRegex.TryGetFirst(x => RegexUtils.IsMatch(context.Message.Content, x.Phrase), out var regex))
 			{
-				await regex.PunishAsync(settings, user.Guild, info, Timers).CAF();
+				await regex.PunishAsync(context.Settings, context.Guild, info, Timers).CAF();
 			}
 			if (str != null || regex != null)
 			{
-				await message.DeleteAsync(ClientUtils.CreateRequestOptions("banned phrase")).CAF();
+				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("banned phrase")).CAF();
 			}
 		}
 		/// <summary>
 		/// Logs images if the embed counts don't match.
 		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="user"></param>
+		/// <param name="context"></param>
 		/// <param name="before"></param>
-		/// <param name="after"></param>
 		/// <returns></returns>
-		private async Task HandleMessageEditedImageLoggingAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage before, SocketMessage after)
+		private async Task HandleMessageEditedImageLoggingAsync(MessageLoggingContext context, SocketMessage before)
 		{
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
-			if (before?.Embeds.Count() < after.Embeds.Count())
+			if (before?.Embeds.Count() < context.Message.Embeds.Count())
 			{
-				await HandleImageLoggingAsync(settings, user, after).CAF();
+				await HandleImageLoggingAsync(context).CAF();
 			}
 		}
 		/// <summary>
 		/// Logs the text difference to the server log if set.
 		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="user"></param>
+		/// <param name="context"></param>
 		/// <param name="before"></param>
-		/// <param name="after"></param>
 		/// <returns></returns>
-		private async Task HandleMessageEditedLoggingAsync(IGuildSettings settings, SocketGuildUser user, SocketMessage before, SocketMessage after)
+		private async Task HandleMessageEditedLoggingAsync(MessageLoggingContext context, SocketMessage before)
 		{
-			if (settings.ServerLogId == 0)
+			if (context.ServerLog == null)
 			{
 				return;
 			}
 
 			var uneditedBMsgContent = before?.Content;
-			var uneditedAMsgContent = after.Content;
+			var uneditedAMsgContent = context.Message.Content;
 			if (uneditedBMsgContent == uneditedAMsgContent)
 			{
 				return;
 			}
 
-			NotifyLogCounterIncrement(nameof(ILogService.MessageEdits), 1);
 			var bMsgContent = (uneditedBMsgContent ?? "Unknown or empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
 			var aMsgContent = (uneditedAMsgContent ?? "Empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
 
 			//Send file instead if long
-			var serverLog = user.Guild.GetTextChannel(settings.ServerLogId);
 			if (bMsgContent.Length > 750 || aMsgContent.Length > 750)
 			{
-				await MessageUtils.SendMessageAsync(serverLog, textFile: new TextFileInfo
+				await ReplyAsync(context.ServerLog, textFile: new TextFileInfo
 				{
 					Name = $"Message_Edit_{FormattingUtils.ToSaving()}",
 					Text = $"Before:\n{bMsgContent}\n\nAfter:\n{aMsgContent}",
 				}).CAF();
-				return;
 			}
-
-			await MessageUtils.SendMessageAsync(serverLog, embedWrapper: new EmbedWrapper
+			else
 			{
-				Color = EmbedWrapper.MessageEdit,
-				Author = user.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = "Message Updated", },
-				Fields = new List<EmbedFieldBuilder>
+				await ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
 				{
-					new EmbedFieldBuilder { Name = "Before", Value = bMsgContent, },
-					new EmbedFieldBuilder { Name = "After", Value = aMsgContent, },
-				},
-			}).CAF();
+					Color = EmbedWrapper.MessageEdit,
+					Author = context.User.CreateAuthor(),
+					Footer = new EmbedFooterBuilder { Text = "Message Updated", },
+					Fields = new List<EmbedFieldBuilder>
+					{
+						new EmbedFieldBuilder { Name = "Before", Value = bMsgContent, },
+						new EmbedFieldBuilder { Name = "After", Value = aMsgContent, },
+					},
+				}).CAF();
+			}
+		}
+		/// <summary>
+		/// Stores the supplied message until printing is optimal.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <returns></returns>
+		private Task HandleMessageDeletedLogging(MessageLoggingContext context)
+		{
+			context.Settings.MessageDeletion.Messages.Add(context.Message);
+			//The old cancel token gets canceled in its getter
+			var cancelToken = context.Settings.MessageDeletion.CancelToken;
+
+			//Has to run on completely separate thread, else prints early
+			_ = Task.Run(async () =>
+			{
+				//Wait three seconds. If a new message comes in then the token will be canceled and this won't continue.
+				//If more than 25 messages just start printing them out so people can't stall the messages forever.
+				var inEmbed = context.Settings.MessageDeletion.Messages.Count < 10; //Needs very few messages to fit in an embed
+				if (context.Settings.MessageDeletion.Messages.Count < 25)
+				{
+					try
+					{
+						await Task.Delay(TimeSpan.FromSeconds(3), cancelToken).CAF();
+					}
+					catch (TaskCanceledException)
+					{
+						return;
+					}
+				}
+
+				//Give the messages to a new list so they can be removed from the old one
+				var messages = context.Settings.MessageDeletion.Messages.ToArray();
+				context.Settings.MessageDeletion.ClearBag();
+
+				var sb = new StringBuilder();
+				while (inEmbed)
+				{
+					foreach (var m in messages)
+					{
+						sb.AppendLineFeed(m.Format(withMentions: true));
+						//Can only stay in an embed if the description length is less than the max length and if the line numbers are less than 20
+						var validDesc = sb.Length < EmbedBuilder.MaxDescriptionLength;
+						var validLines = sb.ToString().RemoveDuplicateNewLines().CountLineBreaks() < EmbedWrapper.MAX_DESCRIPTION_LINES;
+						inEmbed = validDesc && validLines;
+					}
+					break;
+				}
+
+				if (inEmbed)
+				{
+					await ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
+					{
+						Title = "Deleted Messages",
+						Description = sb.ToString().RemoveDuplicateNewLines(),
+						Color = EmbedWrapper.MessageDelete,
+						Footer = new EmbedFooterBuilder { Text = "Deleted Messages", },
+					}).CAF();
+				}
+				else
+				{
+					sb.Clear();
+					foreach (var m in messages)
+					{
+						sb.AppendLineFeed(m.Format(withMentions: false));
+					}
+
+					await ReplyAsync(context.ServerLog, $"**{messages.Length} Deleted Messages:**", textFile: new TextFileInfo
+					{
+						Name = "Deleted_Messages",
+						Text = sb.ToString().RemoveDuplicateNewLines().RemoveAllMarkdown(),
+					}).CAF();
+				}
+			});
+			return Task.CompletedTask;
 		}
 	}
 }

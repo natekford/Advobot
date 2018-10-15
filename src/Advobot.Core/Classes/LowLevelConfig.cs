@@ -24,6 +24,7 @@ using AdvorangesSettingParser.Implementation.Static;
 using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
@@ -203,6 +204,14 @@ namespace Advobot.Classes
 			commands = commands ?? throw new ArgumentException($"{nameof(commands)} cannot be null.");
 			//I have no idea if I am providing services correctly, but it works.
 			var s = new ServiceCollection();
+			s.AddSingleton(p =>
+			{
+				return new CommandService(new CommandServiceConfig
+				{
+					CaseSensitiveCommands = false,
+					ThrowOnError = false,
+				});
+			});
 			s.AddSingleton(p =>
 			{
 				var settings = p.GetRequiredService<IBotSettings>();
