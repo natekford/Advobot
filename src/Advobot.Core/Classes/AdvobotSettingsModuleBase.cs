@@ -143,7 +143,7 @@ namespace Advobot.Classes
 				await ReplyErrorAsync(new Error("The settings file does not exist.")).CAF();
 				return;
 			}
-			await Context.Channel.SendFileAsync(file.FullName).CAF();
+			await Context.Channel.SendFileAsync(file.FullName, null).CAF();
 		}
 		/// <summary>
 		/// Resets the targeted setting.

@@ -10,8 +10,8 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.Preconditions;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.TypeReaders;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -67,7 +67,7 @@ namespace Advobot.Commands.Gets
 
 	[Category(typeof(GetUsersWithReason)), Group(nameof(GetUsersWithReason)), TopLevelShortAlias(typeof(GetUsersWithReason))]
 	[Summary("Finds users with either a role, a name, a game, or who are streaming.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class GetUsersWithReason : AdvobotModuleBase
 	{
@@ -100,7 +100,7 @@ namespace Advobot.Commands.Gets
 
 	[Category(typeof(GetUserJoinedAt)), Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(typeof(GetUserJoinedAt))]
 	[Summary("Shows the user which joined the guild in that position.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(true)]
 	[DownloadUsers]
 	public sealed class GetUserJoinedAt : AdvobotModuleBase
@@ -109,7 +109,7 @@ namespace Advobot.Commands.Gets
 		public async Task Command([ValidatePositiveNumber] int position)
 		{
 			var users = Context.Guild.GetUsersByJoinDate().ToArray();
-			var newPos = Math.Min((int)position, users.Length);
+			var newPos = Math.Min(position, users.Length);
 			var user = users[newPos - 1];
 			await ReplyAsync($"`{user.Format()}` is `#{newPos}` to join the guild on `{user.JoinedAt?.UtcDateTime.ToReadable()}`.").CAF();
 		}
@@ -144,7 +144,7 @@ namespace Advobot.Commands.Gets
 
 	[Category(typeof(GetUserJoinList)), Group(nameof(GetUserJoinList)), TopLevelShortAlias(typeof(GetUserJoinList))]
 	[Summary("Lists most of the users who have joined the guild.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(true)]
 	[DownloadUsers]
 	public sealed class GetUserJoinList : AdvobotModuleBase
@@ -164,7 +164,7 @@ namespace Advobot.Commands.Gets
 	[Category(typeof(GetMessages)), Group(nameof(GetMessages)), TopLevelShortAlias(typeof(GetMessages))]
 	[Summary("Downloads the past x amount of messages. " +
 		"Up to 1000 messages or 500KB worth of formatted text.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(true)]
 	public sealed class GetMessages : AdvobotModuleBase
 	{
@@ -197,7 +197,7 @@ namespace Advobot.Commands.Gets
 
 	[Category(typeof(GetPermNamesFromValue)), Group(nameof(GetPermNamesFromValue)), TopLevelShortAlias(typeof(GetPermNamesFromValue))]
 	[Summary("Lists all the perms that come from the given value.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class GetPermNamesFromValue : AdvobotModuleBase
 	{
@@ -214,7 +214,7 @@ namespace Advobot.Commands.Gets
 
 	[Category(typeof(GetEnumNames)), Group(nameof(GetEnumNames)), TopLevelShortAlias(typeof(GetEnumNames))]
 	[Summary("Prints out all the options of an enum.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class GetEnumNames : AdvobotModuleBase
 	{

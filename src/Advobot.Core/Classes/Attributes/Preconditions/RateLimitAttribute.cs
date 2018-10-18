@@ -10,7 +10,7 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// Limits the rate a command can be used.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RateLimitAttribute : SelfGroupPreconditionAttribute
+	public sealed class RateLimitAttribute : AdvobotPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override bool Visible => true;
@@ -55,9 +55,9 @@ namespace Advobot.Classes.Attributes.Preconditions
 		}
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			var commandDict = _Times.GetOrAdd(command.Aliases[0].Split(' ')[0], new ConcurrentDictionary<ulong, DateTime>());
+			var commandDict = _Times.GetOrAdd(command.Name, new ConcurrentDictionary<ulong, DateTime>());
 			if (commandDict.TryGetValue(context.User.Id, out var time) && DateTime.UtcNow < time)
 			{
 				return Task.FromResult(PreconditionResult.FromError($"Command can be next used at `{time.ToLongTimeString()}`."));

@@ -7,6 +7,7 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Settings;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -21,7 +22,7 @@ namespace Advobot.Commands.SelfRoles
 		"Roles can be grouped together which means only one role in the group can be self assigned at a time. " +
 		"Create and Delete modify the entire group. " +
 		"Add and Remove modify a single role in a group.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	//[SaveGuildSettings]
 	public sealed class ModifySelfRoles : AdvobotModuleBase

@@ -10,7 +10,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 	/// Makes sure the passed in number is in the supplied list.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public abstract class ValidateNumberAttribute : OptionalParameterPreconditionAttribute
+	public abstract class ValidateNumberAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <summary>
 		/// Allowed numbers. If the range method is used this will be empty.
@@ -47,17 +47,10 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 			End = end;
 		}
 
-		/// <summary>
-		/// Makes sure the supplied value is a valid number.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parameter"></param>
-		/// <param name="value"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		protected override Task<PreconditionResult> ProtectedCheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		/// <inheritdoc />
+		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
-			if (!int.TryParse(value.ToString(), out var num))
+			if (!(value is int num) || !int.TryParse(value.ToString(), out num))
 			{
 				throw new NotSupportedException($"{nameof(ValidateNumberAttribute)} only supports {nameof(Int32)}.");
 			}

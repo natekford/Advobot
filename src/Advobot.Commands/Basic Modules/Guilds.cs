@@ -8,6 +8,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.ImageResizing;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -52,7 +53,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(ModifyGuildName)), Group(nameof(ModifyGuildName)), TopLevelShortAlias(typeof(ModifyGuildName))]
 	[Summary("Change the name of the guild to the given name.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildName : AdvobotModuleBase
 	{
@@ -66,7 +67,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(ModifyGuildRegion)), Group(nameof(ModifyGuildRegion)), TopLevelShortAlias(typeof(ModifyGuildRegion))]
 	[Summary("Changes the guild server region.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildRegion : AdvobotModuleBase
 	{
@@ -90,7 +91,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(ModifyGuildAfkTimer)), Group(nameof(ModifyGuildAfkTimer)), TopLevelShortAlias(typeof(ModifyGuildAfkTimer))]
 	[Summary("Changes the guild AFK timeout.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
 	{
@@ -104,7 +105,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(ModifyGuildAfkChannel)), Group(nameof(ModifyGuildAfkChannel)), TopLevelShortAlias(typeof(ModifyGuildAfkChannel))]
 	[Summary("Changes the guild afk channel.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 	{
@@ -124,7 +125,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(ModifyGuildSystemChannel)), Group(nameof(ModifyGuildSystemChannel)), TopLevelShortAlias(typeof(ModifyGuildSystemChannel))]
 	[Summary("Changes the guild system channel.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 	{
@@ -144,7 +145,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(ModifyGuildMsgNotif)), Group(nameof(ModifyGuildMsgNotif)), TopLevelShortAlias(typeof(ModifyGuildMsgNotif))]
 	[Summary("Changes the message notifications to either all messages or mentions only.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildMsgNotif : AdvobotModuleBase
 	{
@@ -159,7 +160,7 @@ namespace Advobot.Commands.Guilds
 	[Category(typeof(ModifyGuildVerif)), Group(nameof(ModifyGuildVerif)), TopLevelShortAlias(typeof(ModifyGuildVerif))]
 	[Summary("Changes the verification level. " +
 		"None is the most lenient (no requirements to type), extreme is the harshest (phone verification).")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildVerif : AdvobotModuleBase
 	{
@@ -173,7 +174,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(ModifyGuildIcon)), Group(nameof(ModifyGuildIcon)), TopLevelShortAlias(typeof(ModifyGuildIcon))]
 	[Summary("Changes the guild's icon to the given image.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildIcon : ImageResizerModule
 	{
@@ -195,7 +196,7 @@ namespace Advobot.Commands.Guilds
 
 	[Category(typeof(ModifyGuildSplash)), Group(nameof(ModifyGuildSplash)), TopLevelShortAlias(typeof(ModifyGuildSplash))]
 	[Summary("Changes the guild splash to the given image. Won't be modified unless the server is a partnered server.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	[RequirePartneredGuild]
 	public sealed class ModifyGuildSplash : ImageResizerModule

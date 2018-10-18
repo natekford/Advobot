@@ -5,6 +5,7 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.ImageResizing;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -18,7 +19,7 @@ namespace Advobot.Commands.Webhooks
 {
 	[Category(typeof(GetWebhooks)), Group(nameof(GetWebhooks)), TopLevelShortAlias(typeof(GetWebhooks))]
 	[Summary("Lists all the webhooks on the guild or the specified channel.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 	[DefaultEnabled(true)]
 	public sealed class GetWebhooks : AdvobotModuleBase
 	{
@@ -32,7 +33,7 @@ namespace Advobot.Commands.Webhooks
 
 	[Category(typeof(DeleteWebhook)), Group(nameof(DeleteWebhook)), TopLevelShortAlias(typeof(DeleteWebhook))]
 	[Summary("Deletes a webhook from the guild.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 	[DefaultEnabled(true)]
 	public sealed class DeleteWebhook : AdvobotModuleBase
 	{
@@ -46,7 +47,7 @@ namespace Advobot.Commands.Webhooks
 
 	[Category(typeof(ModifyWebhookName)), Group(nameof(ModifyWebhookName)), TopLevelShortAlias(typeof(ModifyWebhookName))]
 	[Summary("Changes the name of a webhook.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyWebhookName : AdvobotModuleBase
 	{
@@ -60,7 +61,7 @@ namespace Advobot.Commands.Webhooks
 
 	[Category(typeof(ModifyWebhookChannel)), Group(nameof(ModifyWebhookChannel)), TopLevelShortAlias(typeof(ModifyWebhookChannel))]
 	[Summary("Changes the channel of a webhook.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyWebhookChannel : AdvobotModuleBase
 	{
@@ -76,7 +77,7 @@ namespace Advobot.Commands.Webhooks
 
 	[Category(typeof(ModifyWebhookIcon)), Group(nameof(ModifyWebhookIcon)), TopLevelShortAlias(typeof(ModifyWebhookIcon))]
 	[Summary("Changes the icon of a webhook.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyWebhookIcon : ImageResizerModule
 	{
@@ -98,10 +99,11 @@ namespace Advobot.Commands.Webhooks
 
 	[Category(typeof(SendMessageThroughWebhook)), Group(nameof(SendMessageThroughWebhook)), TopLevelShortAlias(typeof(SendMessageThroughWebhook))]
 	[Summary("Sends a message through a webhook. Use this command if you're annoying.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageWebhooks }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 	[DefaultEnabled(false)]
 	public sealed class SendMessageThroughWebhook : AdvobotModuleBase
 	{
+#warning make into service
 		private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks = new ConcurrentDictionary<ulong, ulong>();
 		private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients = new ConcurrentDictionary<ulong, DiscordWebhookClient>();
 

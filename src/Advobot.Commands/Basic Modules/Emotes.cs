@@ -9,6 +9,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.ImageResizing;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -21,7 +22,7 @@ namespace Advobot.Commands.Emotes
 	[Category(typeof(CreateEmote)), Group(nameof(CreateEmote)), TopLevelShortAlias(typeof(CreateEmote))]
 	[Summary("Adds an emote to the server. " +
 		"Requires either an emote to copy, or the name and file to make an emote out of.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 	[DefaultEnabled(true)]
 	[RateLimit(RateLimitAttribute.TimeUnit.Minutes, 1)]
 	public sealed class CreateEmote : ImageResizerModule
@@ -39,7 +40,7 @@ namespace Advobot.Commands.Emotes
 
 	[Category(typeof(DeleteEmote)), Group(nameof(DeleteEmote)), TopLevelShortAlias(typeof(DeleteEmote))]
 	[Summary("Deletes the supplied emote from the guild.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 	[DefaultEnabled(true)]
 	public sealed class DeleteEmote : AdvobotModuleBase
 	{
@@ -53,7 +54,7 @@ namespace Advobot.Commands.Emotes
 
 	[Category(typeof(ModifyEmoteName)), Group(nameof(ModifyEmoteName)), TopLevelShortAlias(typeof(ModifyEmoteName))]
 	[Summary("Changes the name of the supplied emote.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyEmoteName : AdvobotModuleBase
 	{
@@ -68,7 +69,7 @@ namespace Advobot.Commands.Emotes
 	[Category(typeof(ModifyEmoteRoles)), Group(nameof(ModifyEmoteRoles)), TopLevelShortAlias(typeof(ModifyEmoteRoles))]
 	[Summary("Changes the roles which are ALL necessary to use an emote. " +
 		"Your Discord client will need to be restarted after editing this in order to see the emote again, even if you give yourself the roles.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageEmojis }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyEmoteRoles : AdvobotModuleBase
 	{
@@ -120,7 +121,7 @@ namespace Advobot.Commands.Emotes
 
 	[Category(typeof(DisplayEmotes)), Group(nameof(DisplayEmotes)), TopLevelShortAlias(typeof(DisplayEmotes))]
 	[Summary("Lists the emotes in the guild. If there are more than 20 emotes of a specified type, they will be uploaded in a file.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayEmotes : AdvobotModuleBase
 	{

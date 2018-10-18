@@ -7,6 +7,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.Preconditions;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -129,7 +130,7 @@ namespace Advobot.Commands.Misc
 		"FieldInfo can have up to 25 arguments supplied. " +
 		//TODO: redocument field format
 		"Each must be formatted like the following: `temp`.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class MakeAnEmbed : AdvobotModuleBase
 	{
@@ -140,7 +141,7 @@ namespace Advobot.Commands.Misc
 
 	[Category(typeof(MessageRole)), Group(nameof(MessageRole)), TopLevelShortAlias(typeof(MessageRole))]
 	[Summary("Mention an unmentionable role with the given message.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(false)]
 	public sealed class MessageRole : AdvobotModuleBase
 	{
@@ -163,7 +164,7 @@ namespace Advobot.Commands.Misc
 	[Category(typeof(MessageBotOwner)), Group(nameof(MessageBotOwner)), TopLevelShortAlias(typeof(MessageBotOwner))]
 	[Summary("Sends a message to the bot owner with the given text. " +
 		"Messages will be cut down to 250 characters.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(false)]
 	public sealed class MessageBotOwner : AdvobotModuleBase
 	{

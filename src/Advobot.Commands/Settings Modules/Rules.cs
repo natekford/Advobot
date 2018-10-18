@@ -6,16 +6,18 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Commands.Rules
 {
 	[Category(typeof(ModifyRuleCategories)), Group(nameof(ModifyRuleCategories)), TopLevelShortAlias(typeof(ModifyRuleCategories))]
 	[Summary("Modifies the rule categories which hold rules.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	//[SaveGuildSettings]
 	public sealed class ModifyRuleCategories : AdvobotModuleBase
@@ -52,7 +54,7 @@ namespace Advobot.Commands.Rules
 #warning redo how index is parsed
 	[Category(typeof(ModifyRules)), Group(nameof(ModifyRules)), TopLevelShortAlias(typeof(ModifyRules))]
 	[Summary("Modifies the rules which are saved in the bot settings.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	//[SaveGuildSettings]
 	public sealed class ModifyRules : AdvobotModuleBase
@@ -89,7 +91,7 @@ namespace Advobot.Commands.Rules
 				await ReplyErrorAsync(new Error($"{index} is an invalid position to remove at.")).CAF();
 				return;
 			}
-			Context.GuildSettings.Rules.Categories[category].RemoveAt((int)Math.Min(index, int.MaxValue));
+			Context.GuildSettings.Rules.Categories[category].RemoveAt(Math.Min(index, int.MaxValue));
 			await ReplyTimedAsync($"Successfully removed the rule at index `{index}` in `{category}`.").CAF();
 		}
 	}
@@ -99,7 +101,7 @@ namespace Advobot.Commands.Rules
 		"`Format` uses the `" + nameof(RuleFormat) + "` enum. " +
 		"`TitleFormat` and `RuleFormat` use the `" + nameof(MarkDownFormat) + "` enum. " +
 		"`FormatOptions` use the `" + nameof(RuleFormatOption) + "` enum.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(false)]
 	public sealed class PrintOutRules : AdvobotModuleBase
 	{

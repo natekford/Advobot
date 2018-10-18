@@ -6,6 +6,7 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -17,7 +18,7 @@ namespace Advobot.Commands.Invites
 {
 	[Category(typeof(DisplayInvites)), Group(nameof(DisplayInvites)), TopLevelShortAlias(typeof(DisplayInvites))]
 	[Summary("Gives a list of all the instant invites on the guild.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageGuild)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayInvites : AdvobotModuleBase
 	{
@@ -47,7 +48,7 @@ namespace Advobot.Commands.Invites
 		"No time specifies to not expire. " +
 		"No uses has no usage limit. " +
 		"Temp membership means when the user goes offline they get kicked.")]
-	[PermissionRequirement(new[] { GuildPermission.CreateInstantInvite }, null)]
+	[UserPermissionRequirement(GuildPermission.CreateInstantInvite)]
 	[DefaultEnabled(true)]
 	public sealed class CreateInvite : AdvobotModuleBase
 	{
@@ -89,7 +90,7 @@ namespace Advobot.Commands.Invites
 
 	[Category(typeof(DeleteInvite)), Group(nameof(DeleteInvite)), TopLevelShortAlias(typeof(DeleteInvite))]
 	[Summary("Deletes the invite with the given code.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageChannels)]
 	[DefaultEnabled(true)]
 	public sealed class DeleteInvite : AdvobotModuleBase
 	{
@@ -105,7 +106,7 @@ namespace Advobot.Commands.Invites
 	[Summary("Deletes all invites satisfying the given conditions. " +
 		"CountTarget parameters are either `Equal`, `Below`, or `Above`. " +
 		"IsTemporary, NeverExpires, and NoMaxUses are either `True`, or `False`.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageChannels)]
 	[DefaultEnabled(true)]
 	public sealed class DeleteMultipleInvites : AdvobotModuleBase
 	{

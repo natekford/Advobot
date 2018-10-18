@@ -1,12 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.TypeReaders;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -19,7 +18,7 @@ namespace Advobot.Commands.Nicknames
 	[Category(typeof(ModifyNickName)), Group(nameof(ModifyNickName)), TopLevelShortAlias(typeof(ModifyNickName))]
 	[Summary("Gives the user a nickname. " +
 		"Inputting no nickname resets their nickname.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageNicknames)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyNickName : AdvobotModuleBase
 	{
@@ -34,7 +33,7 @@ namespace Advobot.Commands.Nicknames
 	[Category(typeof(ReplaceWordsInNames)), Group(nameof(ReplaceWordsInNames)), TopLevelShortAlias(typeof(ReplaceWordsInNames))]
 	[Summary("Gives users a new nickname if their nickname or username contains the search phrase. " +
 		"Max is 100 users per use unless the bypass string is said.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageNicknames)]
 	[DefaultEnabled(true)]
 	public sealed class ReplaceWordsInNames : MultiUserActionModule
 	{
@@ -55,7 +54,7 @@ namespace Advobot.Commands.Nicknames
 	[Category(typeof(ReplaceByUtf16)), Group(nameof(ReplaceByUtf16)), TopLevelShortAlias(typeof(ReplaceByUtf16))]
 	[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. " +
 		"Max is 100 users per use unless the bypass string is said.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageNicknames)]
 	[DefaultEnabled(true)]
 	public sealed class ReplaceByUtf16 : MultiUserActionModule
 	{
@@ -76,7 +75,7 @@ namespace Advobot.Commands.Nicknames
 	[Category(typeof(RemoveAllNickNames)), Group(nameof(RemoveAllNickNames)), TopLevelShortAlias(typeof(RemoveAllNickNames))]
 	[Summary("Remove all nicknames of users on the guild. " +
 		"Max is 100 users per use unless the bypass string is said.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageNicknames)]
 	[DefaultEnabled(true)]
 	public sealed class RemoveAllNickNames : MultiUserActionModule
 	{

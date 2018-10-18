@@ -15,6 +15,14 @@ namespace Advobot.Classes
 		private static readonly string _Joiner = "\n" + new string(' ', 28);
 
 		/// <summary>
+		/// The user this command is executing from.
+		/// </summary>
+		public new SocketGuildUser User { get; }
+		/// <summary>
+		/// The channel this command is executing from.
+		/// </summary>
+		public new SocketTextChannel Channel { get; }
+		/// <summary>
 		/// The settings for the guild.
 		/// </summary>
 		public IGuildSettings GuildSettings { get; }

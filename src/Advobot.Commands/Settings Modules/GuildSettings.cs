@@ -9,6 +9,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
@@ -24,7 +25,7 @@ namespace Advobot.Commands.GuildSettings
 {
 	[Category(typeof(ShowGuildSettings)), Group(nameof(ShowGuildSettings)), TopLevelShortAlias(typeof(ShowGuildSettings))]
 	[Summary("Shows information about guild settings.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(true)]
 	public sealed class ShowGuildSettings : AdvobotSettingsModuleBase<IGuildSettings>
 	{
@@ -49,7 +50,7 @@ namespace Advobot.Commands.GuildSettings
 
 	[Category(typeof(ModifyGuildSettings)), Group(nameof(ModifyGuildSettings)), TopLevelShortAlias(typeof(ModifyGuildSettings))]
 	[Summary("Modify the given setting on the guild.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyGuildSettings : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
@@ -117,7 +118,7 @@ namespace Advobot.Commands.GuildSettings
 				() => new BotUser(user.Id),
 				x =>
 				{
-					var modified = x.ModifyPermissions(add, (IGuildUser)Context.User, permissions);
+					var modified = x.ModifyPermissions(add, Context.User, permissions);
 					return $"Successfully {(add ? "removed" : "added")} the following bot permissions on `{user.Format()}`: `{modified}`.";
 				});
 
@@ -143,8 +144,8 @@ namespace Advobot.Commands.GuildSettings
 	[Summary("Turns a command on or off. " +
 		"Can turn all commands in a category on or off too. " +
 		"Cannot turn off commands which are untoggleable.")]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(true, AbleToToggle = false)]
-	[PermissionRequirement(null, null)]
 	public sealed class ModifyCommands : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
 		public IHelpEntryService HelpEntries { get; set; }
@@ -195,7 +196,7 @@ namespace Advobot.Commands.GuildSettings
 	[Category(typeof(ModifyIgnoredCommandChannels)), Group(nameof(ModifyIgnoredCommandChannels)), TopLevelShortAlias(typeof(ModifyIgnoredCommandChannels))]
 	[Summary("The bot will ignore commands said on these channels. " +
 		"If a command is input then the bot will instead ignore only that command on the given channel.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(true, AbleToToggle = false)]
 	public sealed class ModifyIgnoredCommandChannels : AdvobotSettingsSavingModuleBase<IGuildSettings>
 	{
@@ -350,7 +351,7 @@ namespace Advobot.Commands.GuildSettings
 	[Summary("Gives a user a role that stays even when they leave and rejoin the server. " +
 		"Type `" + nameof(ModifyPersistentRoles) + " [" + nameof(Show) + "]`` to see the which users have persistent roles set up. " +
 		"Type `" + nameof(ModifyPersistentRoles) + " [" + nameof(Show) + "]` [User]` to see the persistent roles of that user.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	//[SaveGuildSettings]
 	public sealed class ModifyPersistentRoles : AdvobotModuleBase
@@ -404,7 +405,7 @@ namespace Advobot.Commands.GuildSettings
 	[Category(typeof(ModifyChannelSettings)), Group(nameof(ModifyChannelSettings)), TopLevelShortAlias(typeof(ModifyChannelSettings))]
 	[Summary("Image only works solely on attachments. " +
 		"Using the command on an already targetted channel turns it off.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(false)]
 	[SaveGuildSettings]
 	public sealed class ModifyChannelSettings : AdvobotModuleBase
@@ -463,7 +464,7 @@ namespace Advobot.Commands.GuildSettings
 
 	[Category(typeof(TestGuildNotifs)), Group(nameof(TestGuildNotifs)), TopLevelShortAlias(typeof(TestGuildNotifs))]
 	[Summary("Sends the given guild notification in order to test it.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	public sealed class TestGuildNotifs : AdvobotModuleBase
 	{

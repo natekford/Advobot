@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AdvorangesSettingParser.Implementation;
 
 namespace Advobot.Classes.Attributes
 {
@@ -26,6 +23,7 @@ namespace Advobot.Classes.Attributes
 		}
 	}
 
+	/*
 	public class ArgumentFormatRegistry
 	{
 		/// <summary>
@@ -48,5 +46,5 @@ namespace Advobot.Classes.Attributes
 			=> TryRetrieve<T>(out var value) ? value : throw new KeyNotFoundException($"There is no format registered for {typeof(T).Name}.");
 		public bool TryRetrieve<T>(out string format)
 			=> _Formats.TryGetValue(typeof(T), out format);
-	}
+	}*/
 }

@@ -6,6 +6,7 @@ using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Commands.SpamPrevention
@@ -15,7 +16,7 @@ namespace Advobot.Commands.SpamPrevention
 		"Messages is the amount of messages a user has to send with the given amount of mentions before being considered as potential spam. " +
 		"Votes is the amount of users that have to agree with the potential punishment. " +
 		"The spam users are reset every hour.")]
-	[PermissionRequirement(null, null)]
+	[RequireUserPermission(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	//[SaveGuildSettings]
 	public sealed class PreventSpam : AdvobotModuleBase
@@ -50,7 +51,7 @@ namespace Advobot.Commands.SpamPrevention
 	[Summary("Any users who joins from now on will get text muted. " +
 		"Once `preventraid` is turned off all the users who were muted will be unmuted. " +
 		"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
-	[PermissionRequirement(null, null)]
+	[RequireUserPermission(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	//[SaveGuildSettings]
 	public sealed class PreventRaid : AdvobotModuleBase

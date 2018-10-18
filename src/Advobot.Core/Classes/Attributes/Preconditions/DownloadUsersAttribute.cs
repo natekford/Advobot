@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using AdvorangesUtils;
 using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Advobot.Classes.Attributes.Preconditions
 {
@@ -10,15 +9,15 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// Downloads all users before executing the command.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class DownloadUsersAttribute : SelfGroupPreconditionAttribute
+	public sealed class DownloadUsersAttribute : AdvobotPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override bool Visible => false;
 
 		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			if (!(context.Guild is SocketGuild socket) || !socket.HasAllMembers)
+			if (!context.Guild.HasAllMembers)
 			{
 				await context.Guild.DownloadUsersAsync().CAF();
 			}

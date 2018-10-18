@@ -3,16 +3,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Commands.Quotes
 {
 	[Category(typeof(ModifyQuotes)), Group(nameof(ModifyQuotes)), TopLevelShortAlias(typeof(ModifyQuotes))]
 	[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	//[SaveGuildSettings]
 	public sealed class ModifyQuotes : AdvobotModuleBase

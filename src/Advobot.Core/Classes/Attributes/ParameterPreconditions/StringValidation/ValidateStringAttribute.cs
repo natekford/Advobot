@@ -8,7 +8,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
 	/// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides errors stating the min/max if under/over.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public abstract class ValidateStringAttribute : OptionalParameterPreconditionAttribute
+	public abstract class ValidateStringAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <summary>
 		/// Minimum valid length for this object.
@@ -30,16 +30,8 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
 			Max = max;
 		}
 
-		/// <summary>
-		/// Checks against the min and max.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parameter"></param>
-		/// <param name="value"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		/// <exception cref="NotSupportedException">This class only works on strings.</exception>
-		protected override Task<PreconditionResult> ProtectedCheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		/// <inheritdoc />
+		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (!(value is string s))
 			{

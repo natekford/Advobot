@@ -9,6 +9,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.TypeReaders;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -22,7 +23,7 @@ namespace Advobot.Commands.Users
 	[Category(typeof(Mute)), Group(nameof(Mute)), TopLevelShortAlias(typeof(Mute))]
 	[Summary("Prevents a user from typing and speaking in the guild. " +
 		"Time is in minutes, and if no time is given then the mute will not expire.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles, GuildPermission.ManageMessages }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
 	[DefaultEnabled(true)]
 	public sealed class Mute : AdvobotModuleBase
 	{
@@ -93,7 +94,7 @@ namespace Advobot.Commands.Users
 	[Category(typeof(VoiceMute)), Group(nameof(VoiceMute)), TopLevelShortAlias(typeof(VoiceMute))]
 	[Summary("Prevents a user from speaking. " +
 		"Time is in minutes, and if no time is given then the mute will not expire.")]
-	[PermissionRequirement(new[] { GuildPermission.MuteMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.MuteMembers)]
 	[DefaultEnabled(true)]
 	public sealed class VoiceMute : AdvobotModuleBase
 	{
@@ -117,7 +118,7 @@ namespace Advobot.Commands.Users
 	[Category(typeof(Deafen)), Group(nameof(Deafen)), TopLevelShortAlias(typeof(Deafen))]
 	[Summary("Prevents a user from hearing. " +
 		"Time is in minutes, and if no time is given then the mute will not expire.")]
-	[PermissionRequirement(new[] { GuildPermission.DeafenMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.DeafenMembers)]
 	[DefaultEnabled(true)]
 	public sealed class Deafen : AdvobotModuleBase
 	{
@@ -140,7 +141,7 @@ namespace Advobot.Commands.Users
 
 	[Category(typeof(MoveUser)), Group(nameof(MoveUser)), TopLevelShortAlias(typeof(MoveUser))]
 	[Summary("Moves the user to the given voice channel.")]
-	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.MoveMembers)]
 	[DefaultEnabled(true)]
 	public sealed class MoveUser : AdvobotModuleBase
 	{
@@ -161,7 +162,7 @@ namespace Advobot.Commands.Users
 	[Category(typeof(MoveUsers)), Group(nameof(MoveUsers)), TopLevelShortAlias(typeof(MoveUsers))]
 	[Summary("Moves all users from one channel to another. " +
 		"Max is 100 users per use unless the bypass string is said.")]
-	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.MoveMembers)]
 	[DefaultEnabled(true)]
 	public sealed class MoveUsers : MultiUserActionModule
 	{
@@ -176,7 +177,7 @@ namespace Advobot.Commands.Users
 	[Category(typeof(PruneUsers)), Group(nameof(PruneUsers)), TopLevelShortAlias(typeof(PruneUsers))]
 	[Summary("Removes users who have no roles and have not been seen in the given amount of days. " +
 		"If the optional argument is not typed exactly, then the bot will only give a number of how many people will be kicked.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(true)]
 	public sealed class PruneUsers : AdvobotModuleBase
 	{
@@ -191,7 +192,7 @@ namespace Advobot.Commands.Users
 
 	[Category(typeof(SoftBan)), Group(nameof(SoftBan)), TopLevelShortAlias(typeof(SoftBan))]
 	[Summary("Bans then unbans a user, which removes all recent messages from them.")]
-	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.BanMembers, GuildPermission.KickMembers)]
 	[DefaultEnabled(true)]
 	public sealed class SoftBan : AdvobotModuleBase
 	{
@@ -210,7 +211,7 @@ namespace Advobot.Commands.Users
 	[Category(typeof(Ban)), Group(nameof(Ban)), TopLevelShortAlias(typeof(Ban))]
 	[Summary("Bans the user from the guild. " +
 		"Time specifies how long and is in minutes.")]
-	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.BanMembers)]
 	[DefaultEnabled(true)]
 	public sealed class Ban : AdvobotModuleBase
 	{
@@ -234,7 +235,7 @@ namespace Advobot.Commands.Users
 
 	[Category(typeof(Unban)), Group(nameof(Unban)), TopLevelShortAlias(typeof(Unban))]
 	[Summary("Unbans the user from the guild.")]
-	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.BanMembers)]
 	[DefaultEnabled(true)]
 	public sealed class Unban : AdvobotModuleBase
 	{
@@ -249,7 +250,7 @@ namespace Advobot.Commands.Users
 
 	[Category(typeof(GetBanReason)), Group(nameof(GetBanReason)), TopLevelShortAlias(typeof(GetBanReason))]
 	[Summary("Lists the given reason for the ban.")]
-	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.BanMembers)]
 	[DefaultEnabled(true)]
 	public sealed class GetBanReason : AdvobotModuleBase
 	{
@@ -266,7 +267,7 @@ namespace Advobot.Commands.Users
 
 	[Category(typeof(Kick)), Group(nameof(Kick)), TopLevelShortAlias(typeof(Kick))]
 	[Summary("Kicks the user from the guild.")]
-	[PermissionRequirement(new[] { GuildPermission.KickMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.KickMembers)]
 	[DefaultEnabled(true)]
 	public sealed class Kick : AdvobotModuleBase
 	{
@@ -281,7 +282,7 @@ namespace Advobot.Commands.Users
 
 	[Category(typeof(DisplayCurrentBanList)), Group(nameof(DisplayCurrentBanList)), TopLevelShortAlias(typeof(DisplayCurrentBanList))]
 	[Summary("Displays all the bans on the guild.")]
-	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
+	[UserPermissionRequirement(GuildPermission.BanMembers)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayCurrentBanList : AdvobotModuleBase
 	{
@@ -299,7 +300,7 @@ namespace Advobot.Commands.Users
 
 	[Category(typeof(RemoveMessages)), Group(nameof(RemoveMessages)), TopLevelShortAlias(typeof(RemoveMessages))]
 	[Summary("Removes the provided number of messages from either the user, the channel, both, or, if neither is input, the current channel.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageMessages }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageMessages)]
 	[DefaultEnabled(true)]
 	public sealed class RemoveMessages : AdvobotModuleBase
 	{
@@ -342,7 +343,7 @@ namespace Advobot.Commands.Users
 	[Category(typeof(ForAllWithRole)), Group(nameof(ForAllWithRole)), TopLevelShortAlias(typeof(ForAllWithRole))]
 	[Summary("All actions but `TakeNickame` require the output role/nickname. " +
 		"Max is 100 users per use unless the bypass string is said.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(true)]
 	public sealed class ForAllWithRole : MultiUserActionModule
 	{

@@ -8,13 +8,13 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// Will return success if the bot is the owner of the guild in the context.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class RequireBotIsOwnerAttribute : SelfGroupPreconditionAttribute
+	public class RequireBotIsOwnerAttribute : AdvobotPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override bool Visible => true;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			return context.Client.CurrentUser.Id == context.Guild.OwnerId
 				? Task.FromResult(PreconditionResult.FromSuccess())

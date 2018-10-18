@@ -11,33 +11,25 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	/// Abstract class for validating an object from Discord.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public abstract class ValidateDiscordObjectAttribute : ParameterPreconditionAttribute
+	public abstract class ValidateDiscordObjectAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <summary>
-		/// Whether or not to check from the passed in context for arguments.
+		/// Whether or not to check from the passed in context for arguments if unable to parse a value.
 		/// This will essentially override <see cref="OptionalAttribute"/>.
 		/// Default value is false.
 		/// </summary>
 		public bool FromContext { get; set; } = false;
 
-		/// <summary>
-		/// Returns success if the user can do the actions on the supplied object.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parameter"></param>
-		/// <param name="value"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		/// <inheritdoc />
+		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
-			var ctx = (SocketCommandContext)context;
 			if (value != null)
 			{
-				return Task.FromResult(GetPreconditionResult(ctx, value));
+				return Task.FromResult(GetPreconditionResult(context, value));
 			}
 			if (FromContext)
 			{
-				return Task.FromResult(GetPreconditionResult(ctx, GetFromContext(ctx)));
+				return Task.FromResult(GetPreconditionResult(context, GetFromContext(context)));
 			}
 			if (parameter.IsOptional)
 			{

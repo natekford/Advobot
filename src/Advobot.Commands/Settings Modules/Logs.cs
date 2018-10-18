@@ -9,6 +9,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using CPerm = Discord.ChannelPermission;
@@ -83,7 +84,7 @@ namespace Advobot.Commands.Logs
 
 	[Category(typeof(ModifyIgnoredLogChannels)), Group(nameof(ModifyIgnoredLogChannels)), TopLevelShortAlias(typeof(ModifyIgnoredLogChannels))]
 	[Summary("Ignores all logging info that would have been gotten from a channel.")]
-	[PermissionRequirement(null, null)]
+	[RequireUserPermission(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	//[SaveGuildSettings]
 	public sealed class ModifyIgnoredLogChannels : AdvobotModuleBase
@@ -106,7 +107,7 @@ namespace Advobot.Commands.Logs
 	[Summary("The server log will send messages when these events happen. " +
 		"`" + nameof(ModifyLogActions.Reset) + "` overrides the current settings. " +
 		"`" + nameof(ModifyLogActions.Show) + "` displays the possible actions.")]
-	[PermissionRequirement(null, null)]
+	[RequireUserPermission(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	//[SaveGuildSettings]
 	public sealed class ModifyLogActions : AdvobotModuleBase

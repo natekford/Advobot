@@ -9,13 +9,19 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// </summary>
 	[Obsolete("This command is disabled.")]
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class DisabledCommandAttribute : SelfGroupPreconditionAttribute
+	public sealed class DisabledCommandAttribute : AdvobotPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override bool Visible => false;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
-			=> Task.FromResult(PreconditionResult.FromError("This command is currently disabled."));
+		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+			=> Task.FromResult(PreconditionResult.FromError("This command is disabled globally."));
+		/// <summary>
+		/// Returns a string describing what this attributes requires.
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+			=> "This command will never be invokable.";
 	}
 }

@@ -72,7 +72,7 @@ namespace Advobot.Services.HelpEntries
 		private string FormatPreconditions(IEnumerable<PreconditionAttribute> preconditions)
 		{
 			//Don't let users see preconditions which are designated as not visible (e.g the basic command requirement one)
-			preconditions = preconditions.Where(x => !(x is SelfGroupPreconditionAttribute self) || !self.Visible);
+			preconditions = preconditions.Where(x => !(x is AdvobotPreconditionAttribute self) || !self.Visible);
 			if (!preconditions.Any())
 			{
 				return "N/A";

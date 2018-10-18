@@ -11,13 +11,13 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// </summary>
 	[Obsolete("Remove this for safety reasons? Or let trusted users exist?")]
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireTrustedUserAttribute : SelfGroupPreconditionAttribute
+	public sealed class RequireTrustedUserAttribute : AdvobotPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override bool Visible => true;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			return services.GetRequiredService<IBotSettings>().TrustedUsers.Contains(context.User.Id)
 				? Task.FromResult(PreconditionResult.FromSuccess())

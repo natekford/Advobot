@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -94,8 +95,7 @@ namespace Advobot.Services.Commands
 		public async Task HandleCommand(SocketMessage message)
 		{
 			var argPos = -1;
-			if (!_Loaded
-				|| _BotSettings.Pause
+			if (!_Loaded || _BotSettings.Pause
 				//Disallow running commands if the user is blocked, unless the owner of the bot blocks themselves either accidentally or idiotically
 				|| (_BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id) && message.Author.Id != _OwnerId)
 				|| message.Author.IsBot
@@ -103,6 +103,8 @@ namespace Advobot.Services.Commands
 				|| !(message is SocketUserMessage msg)
 				|| !(msg.Author is SocketGuildUser user)
 				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
+				|| !settings.Loaded
+				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
 				|| !(msg.HasStringPrefix(_BotSettings.InternalGetPrefix(settings), ref argPos)
 						|| msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
 			{
@@ -111,7 +113,10 @@ namespace Advobot.Services.Commands
 
 			var context = new AdvobotCommandContext(settings, _Client, msg);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
-
+			await LogResultAsync(context, result).CAF();
+		}
+		private async Task LogResultAsync(AdvobotCommandContext context, IResult result)
+		{
 			if (CanBeIgnored(result) || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(x))))
 			{
 				return;

@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
@@ -13,7 +14,7 @@ namespace Advobot.Commands.GuildList
 {
 	[Category(typeof(ModifyGuildListing)), Group(nameof(ModifyGuildListing)), TopLevelShortAlias(typeof(ModifyGuildListing))]
 	[Summary("Adds or removes a guild from the public guild list.")]
-	[PermissionRequirement(null, null)]
+	[UserPermissionRequirement(GuildPermission.Administrator)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyGuildListing : AdvobotModuleBase
 	{
@@ -40,7 +41,7 @@ namespace Advobot.Commands.GuildList
 
 	[Category(typeof(BumpGuildListing)), Group(nameof(BumpGuildListing)), TopLevelShortAlias(typeof(BumpGuildListing))]
 	[Summary("Bumps the invite on the guild.")]
-	[PermissionRequirement(new[] { PermissionRequirementAttribute.GenericPerms }, null)]
+	[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 	[DefaultEnabled(false)]
 	public sealed class BumpGuildListing : AdvobotModuleBase
 	{

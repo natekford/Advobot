@@ -7,6 +7,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.TypeReaders;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -18,7 +19,7 @@ namespace Advobot.Commands.Roles
 {
 	[Category(typeof(GiveRole)), Group(nameof(GiveRole)), TopLevelShortAlias(typeof(GiveRole))]
 	[Summary("Gives the role(s) to the user (assuming the person using the command and bot both have the ability to give that role).")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class GiveRole : AdvobotModuleBase
 	{
@@ -32,7 +33,7 @@ namespace Advobot.Commands.Roles
 
 	[Category(typeof(TakeRole)), Group(nameof(TakeRole)), TopLevelShortAlias(typeof(TakeRole))]
 	[Summary("Takes the role(s) from the user (assuming the person using the command and bot both have the ability to take that role).")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class TakeRole : AdvobotModuleBase
 	{
@@ -46,7 +47,7 @@ namespace Advobot.Commands.Roles
 
 	[Category(typeof(CreateRole)), Group(nameof(CreateRole)), TopLevelShortAlias(typeof(CreateRole))]
 	[Summary("Adds a role to the guild with the chosen name.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class CreateRole : AdvobotModuleBase
 	{
@@ -61,7 +62,7 @@ namespace Advobot.Commands.Roles
 	[Category(typeof(SoftDeleteRole)), Group(nameof(SoftDeleteRole)), TopLevelShortAlias(typeof(SoftDeleteRole))]
 	[Summary("Deletes the role, thus removing all channel overwrites the role had and removing the role from everyone. " +
 		"Leaves the name, color, permissions, and position behind in a newly created role.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class SoftDeleteRole : AdvobotModuleBase
 	{
@@ -77,7 +78,7 @@ namespace Advobot.Commands.Roles
 
 	[Category(typeof(DeleteRole)), Group(nameof(DeleteRole)), TopLevelShortAlias(typeof(DeleteRole))]
 	[Summary("Deletes the role.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class DeleteRole : AdvobotModuleBase
 	{
@@ -92,7 +93,7 @@ namespace Advobot.Commands.Roles
 	[Category(typeof(ModifyRolePosition)), Group(nameof(ModifyRolePosition)), TopLevelShortAlias(typeof(ModifyRolePosition))]
 	[Summary("If only a role is input its position will be listed, else moves the role to the given position. " +
 		"Everyone is the first position and starts at zero.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRolePosition : AdvobotModuleBase
 	{
@@ -106,7 +107,7 @@ namespace Advobot.Commands.Roles
 
 	[Category(typeof(DisplayRolePositions)), Group(nameof(DisplayRolePositions)), TopLevelShortAlias(typeof(DisplayRolePositions))]
 	[Summary("Lists the positions of each role on the guild.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayRolePositions : AdvobotModuleBase
 	{
@@ -126,7 +127,7 @@ namespace Advobot.Commands.Roles
 	[Summary("Permissions must be separated by a `/` or their rawvalue can be said instead. " +
 		"Type `" + nameof(ModifyRolePerms) + " [Show]` to see the available permissions. " +
 		"Type `" + nameof(ModifyRolePerms) + " [Show] [Role]` to see the permissions of that role.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRolePerms : AdvobotModuleBase
 	{
@@ -174,7 +175,7 @@ namespace Advobot.Commands.Roles
 	[Summary("Copies the permissions from the first role to the second role. " +
 		"Will not copy roles that the user does not have access to. " +
 		"Will not overwrite roles that are above the user's top role.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class CopyRolePerms : AdvobotModuleBase
 	{
@@ -212,7 +213,7 @@ namespace Advobot.Commands.Roles
 
 	[Category(typeof(ClearRolePerms)), Group(nameof(ClearRolePerms)), TopLevelShortAlias(typeof(ClearRolePerms))]
 	[Summary("Removes all permissions from a role.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class ClearRolePerms : AdvobotModuleBase
 	{
@@ -234,7 +235,7 @@ namespace Advobot.Commands.Roles
 
 	[Category(typeof(ModifyRoleName)), Group(nameof(ModifyRoleName)), TopLevelShortAlias(typeof(ModifyRoleName))]
 	[Summary("Changes the name of the role.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRoleName : AdvobotModuleBase
 	{
@@ -257,7 +258,7 @@ namespace Advobot.Commands.Roles
 	[Category(typeof(ModifyRoleColor)), Group(nameof(ModifyRoleColor)), TopLevelShortAlias(typeof(ModifyRoleColor))]
 	[Summary("Changes the role's color. " +
 		"Color must be valid hexadecimal or the name of a default role color. ")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRoleColor : AdvobotModuleBase
 	{
@@ -273,7 +274,7 @@ namespace Advobot.Commands.Roles
 	[Category(typeof(ModifyRoleHoist)), Group(nameof(ModifyRoleHoist)), TopLevelShortAlias(typeof(ModifyRoleHoist))]
 	[Summary("Displays a role separately from others on the user list. " +
 		"Saying the command again remove it from being hoisted.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRoleHoist : AdvobotModuleBase
 	{
@@ -288,7 +289,7 @@ namespace Advobot.Commands.Roles
 	[Category(typeof(ModifyRoleMentionability)), Group(nameof(ModifyRoleMentionability)), TopLevelShortAlias(typeof(ModifyRoleMentionability))]
 	[Summary("Allows the role to be mentioned. " +
 		"Saying the command again removes its ability to be mentioned.")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+	[UserPermissionRequirement(GuildPermission.ManageRoles)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRoleMentionability : AdvobotModuleBase
 	{

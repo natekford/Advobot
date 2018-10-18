@@ -19,23 +19,5 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		internal static string InternalGetPrefix(this IBotSettings b, IGuildSettings g)
 			=> string.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g?.Prefix;
-		/// <summary>
-		/// Makes sure the context can be cast to <see cref="AdvobotCommandContext"/> and the user is a <see cref="SocketGuildUser"/>,
-		/// otherwise throws an exception which is clearer than an <see cref="InvalidCastException"/>.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		internal static (AdvobotCommandContext Context, SocketGuildUser Invoker) InternalCastContext(this ICommandContext context)
-		{
-			if (!(context is AdvobotCommandContext aContext))
-			{
-				throw new ArgumentException($"Invalid context provided, must be {nameof(AdvobotCommandContext)}.");
-			}
-			if (!(context.User is SocketGuildUser user))
-			{
-				throw new ArgumentException("Unable to get the invoking user as a guild user.");
-			}
-			return (aContext, user);
-		}
 	}
 }

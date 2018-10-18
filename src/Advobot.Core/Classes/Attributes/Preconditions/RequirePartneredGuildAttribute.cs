@@ -8,17 +8,17 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// Requires the guild in the command context to be 
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class RequirePartneredGuildAttribute : SelfGroupPreconditionAttribute
+	public sealed class RequirePartneredGuildAttribute : AdvobotPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override bool Visible => true;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			return context.Guild.Features.Count > 0
 				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError("This guild is not partnered."));
+				: Task.FromResult(PreconditionResult.FromError("This guild is not partnered and cannot execute this command."));
 		}
 		/// <summary>
 		/// Returns a string describing what this attribute requires.

@@ -76,22 +76,21 @@ namespace Advobot.Classes.ImageResizing
 				{
 					using (var resp = await ResizeImageAsync(_Client, args).CAF())
 					{
-#warning error then error then timed
 						var t = args.Type.ToLower();
 						if (!resp.IsSuccess)
 						{
-							await MessageUtils.SendMessageAsync(args.Context.Channel, $"Failed to create the {t}. Reason: {resp.ErrorReason}.").CAF();
+							await args.Context.Channel.SendMessageAsync($"Failed to create the {t}. Reason: {resp.ErrorReason}.").CAF();
 							continue;
 						}
 
 						var used = await args.UseStream(resp.Stream, resp.Format).CAF();
 						if (!used.IsSuccess)
 						{
-							await MessageUtils.SendMessageAsync(args.Context.Channel, $"Failed to create the {t}. Reason: {used.ErrorReason}.").CAF();
+							await args.Context.Channel.SendMessageAsync($"Failed to create the {t}. Reason: {used.ErrorReason}.").CAF();
 						}
 						else
 						{
-							await MessageUtils.SendMessageAsync(args.Context.Channel, $"Successfully created the {t}.").CAF();
+							await args.Context.Channel.SendMessageAsync($"Successfully created the {t}.").CAF();
 						}
 					}
 					_CurrentlyProcessing.TryRemove(args.Context.Guild.Id, out var removed);

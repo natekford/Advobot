@@ -7,16 +7,9 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions
 	/// <summary>
 	/// Allows the parameter to not validate when optional.
 	/// </summary>
-	public abstract class OptionalParameterPreconditionAttribute : ParameterPreconditionAttribute
+	public abstract class AdvobotParameterPreconditionAttribute : ParameterPreconditionAttribute
 	{
-		/// <summary>
-		/// Checks if the parameter is optional first and the value is default otherwise validates it.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parameter"></param>
-		/// <param name="value"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null or default
@@ -24,16 +17,16 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			return ProtectedCheckPermissionsAsync(context, parameter, value, services);
+			return CheckPermissionsAsync((AdvobotCommandContext)context, parameter, value, services);
 		}
 		/// <summary>
-		/// Actual validation, makes sure the supplied value is correct.
+		/// Checks whether the command can execute.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="parameter"></param>
 		/// <param name="value"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		protected abstract Task<PreconditionResult> ProtectedCheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services);
+		public abstract Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services);
 	}
 }
