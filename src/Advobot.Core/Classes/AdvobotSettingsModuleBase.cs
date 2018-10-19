@@ -122,8 +122,8 @@ namespace Advobot.Classes
 				return;
 			}
 
-			var userValues = values.Where(x => x.UserId == user.Id).ToList();
-			var description = userValues.Count == 0 ? "None" : userValues.FormatNumberedList(x => FormatValue(x));
+			var userValues = values.Where(x => x.UserId == user.Id).ToArray();
+			var description = userValues.Length == 0 ? "None" : userValues.FormatNumberedList(x => FormatValue(x));
 			await ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = $"{title} | {user.Format()}",

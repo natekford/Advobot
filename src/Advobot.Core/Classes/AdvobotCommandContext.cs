@@ -42,6 +42,8 @@ namespace Advobot.Classes
 		public AdvobotCommandContext(IGuildSettings settings, DiscordShardedClient client, SocketUserMessage msg) : base(client, msg)
 		{
 			_Stopwatch.Start();
+			User = (SocketGuildUser)msg.Author;
+			Channel = (SocketTextChannel)msg.Channel;
 			GuildSettings = settings;
 		}
 

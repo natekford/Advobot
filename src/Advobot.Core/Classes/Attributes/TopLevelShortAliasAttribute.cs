@@ -36,7 +36,7 @@ namespace Advobot.Classes.Attributes
 			}
 			if (classType.IsNested)
 			{
-				throw new ArgumentException($"Needs to not have the {nameof(TopLevelShortAliasAttribute)} attribute.", classType.FullName);
+				//throw new ArgumentException($"Needs to not have the {nameof(TopLevelShortAliasAttribute)} attribute.", classType.FullName);
 			}
 
 			var initialism = new Initialism(classType.Name, otherAliases, true);

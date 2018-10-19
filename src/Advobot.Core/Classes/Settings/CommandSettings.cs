@@ -81,10 +81,11 @@ namespace Advobot.Classes.Settings
 		/// Returns a value indicating whether or not the command is enabled in the current context.
 		/// Checks user, then roles ordered by descending hierarchy, then channel, then finally the default guild setting.
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="user"></param>
+		/// <param name="channel"></param>
 		/// <param name="command"></param>
 		/// <returns></returns>
-		public bool IsCommandEnabled(ICommandContext context, CommandInfo command)
+		public bool IsCommandEnabled(SocketGuildUser user, SocketTextChannel channel, CommandInfo command)
 		{
 			//Hierarchy:
 			//User
@@ -92,24 +93,25 @@ namespace Advobot.Classes.Settings
 			//Channel
 			//Guild
 
-			var topModule = command.Module;
-			while (topModule.Parent != null)
+			var module = command.Module;
+			while (module.Parent != null && module.Parent.IsSubmodule)
 			{
-				topModule = topModule.Parent;
+				module = module.Parent;
 			}
-			var name = topModule.Name;
-			if (_Overrides.TryGetValue(context.User.Id, out var uDict) && uDict.TryGetValue(name, out var uValue))
+			var name = module.Name;
+
+			if (_Overrides.TryGetValue(user.Id, out var uDict) && uDict.TryGetValue(name, out var uValue))
 			{
 				return uValue;
 			}
-			foreach (var role in ((SocketGuildUser)context.User).Roles.OrderByDescending(x => x.Position))
+			foreach (var role in user.Roles.OrderByDescending(x => x.Position))
 			{
 				if (_Overrides.TryGetValue(role.Id, out var rDict) && rDict.TryGetValue(name, out var rValue))
 				{
 					return rValue;
 				}
 			}
-			if (_Overrides.TryGetValue(context.Channel.Id, out var cDict) && cDict.TryGetValue(name, out var cValue))
+			if (_Overrides.TryGetValue(channel.Id, out var cDict) && cDict.TryGetValue(name, out var cValue))
 			{
 				return cValue;
 			}
@@ -119,7 +121,7 @@ namespace Advobot.Classes.Settings
 			}
 
 			//If they get here it means they're not in the command values currently so they should just use the default value.
-			var defaultEnabled = topModule.Attributes.GetAttribute<DefaultEnabledAttribute>().Enabled;
+			var defaultEnabled = module.Attributes.GetAttribute<EnabledByDefaultAttribute>().Enabled;
 			_CommandValues.Add(name, defaultEnabled);
 			return defaultEnabled;
 		}

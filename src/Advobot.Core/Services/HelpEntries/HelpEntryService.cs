@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -43,8 +44,7 @@ namespace Advobot.Services.HelpEntries
 			foreach (var type in types)
 			{
 				VerifyCommandType(type);
-				//Nested commands don't need to be added since they're added under the class they're nested in
-				if (type.IsNested)
+				if (!IsCommand(type.GetCustomAttributes()) || !type.IsNested)
 				{
 					continue;
 				}
@@ -64,8 +64,7 @@ namespace Advobot.Services.HelpEntries
 			foreach (var module in modules)
 			{
 				VerifyCommandModule(module);
-				//Nested modules don't need to be added since they're added under the module they're nested in
-				if (module.IsSubmodule)
+				if (!IsCommand(module.Attributes) || !module.IsSubmodule)
 				{
 					continue;
 				}
@@ -109,6 +108,8 @@ namespace Advobot.Services.HelpEntries
 		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator()
 			=> GetEnumerator();
+		private bool IsCommand(IEnumerable<Attribute> attrs)
+			=> attrs.Any(x => x is EnabledByDefaultAttribute);
 		[Conditional("DEBUG")]
 		private void VerifyCommandType(Type type)
 		{

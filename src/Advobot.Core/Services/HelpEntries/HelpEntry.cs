@@ -42,12 +42,18 @@ namespace Advobot.Services.HelpEntries
 		/// <param name="type"></param>
 		public HelpEntry(Type type)
 		{
+			Type GetParentType(Type t)
+			{
+				return t.DeclaringType == null ? t : GetParentType(t.DeclaringType);
+			}
+
 			var attrs = type.GetCustomAttributes();
-			AbleToBeToggled = attrs.GetAttribute<DefaultEnabledAttribute>().AbleToToggle;
+			var parent = GetParentType(type);
+			AbleToBeToggled = attrs.GetAttribute<EnabledByDefaultAttribute>().AbleToToggle;
 			Aliases = (attrs.GetAttribute<AliasAttribute>()?.Aliases ?? new[] { "N/A" }).ToImmutableArray();
 			BasePerms = FormatPreconditions(attrs.OfType<PreconditionAttribute>());
-			Category = attrs.GetAttribute<CategoryAttribute>().Category ?? throw new ArgumentException(nameof(CategoryAttribute));
-			DefaultEnabled = attrs.GetAttribute<DefaultEnabledAttribute>().Enabled;
+			Category = parent == type ? null : parent.Name;
+			DefaultEnabled = attrs.GetAttribute<EnabledByDefaultAttribute>().Enabled;
 			Description = attrs.GetAttribute<SummaryAttribute>().Text ?? throw new ArgumentException(nameof(Description));
 			Name = attrs.GetAttribute<GroupAttribute>().Prefix ?? throw new ArgumentException(nameof(Name));
 			Usage = UsageGenerator.GenerateUsage(type) ?? throw new ArgumentException(nameof(Usage));
@@ -58,12 +64,18 @@ namespace Advobot.Services.HelpEntries
 		/// <param name="module"></param>
 		public HelpEntry(ModuleInfo module)
 		{
+			ModuleInfo GetParentModule(ModuleInfo m)
+			{
+				return m.Parent == null ? m : GetParentModule(m.Parent);
+			}
+
 			var attrs = module.Attributes;
-			AbleToBeToggled = attrs.GetAttribute<DefaultEnabledAttribute>().AbleToToggle;
+			var parent = GetParentModule(module);
+			AbleToBeToggled = attrs.GetAttribute<EnabledByDefaultAttribute>().AbleToToggle;
 			Aliases = (module.Aliases.Any() ? module.Aliases : new[] { "N/A" }).ToImmutableArray();
 			BasePerms = FormatPreconditions(module.Preconditions);
-			Category = attrs.GetAttribute<CategoryAttribute>().Category ?? throw new ArgumentException(nameof(CategoryAttribute));
-			DefaultEnabled = attrs.GetAttribute<DefaultEnabledAttribute>().Enabled;
+			Category = parent == module ? null : parent.Name;
+			DefaultEnabled = attrs.GetAttribute<EnabledByDefaultAttribute>().Enabled;
 			Description = module.Summary ?? throw new ArgumentException(nameof(Description));
 			Name = module.Name ?? throw new ArgumentException(nameof(Name));
 			Usage = UsageGenerator.GenerateUsage(module) ?? throw new ArgumentException(nameof(Usage));
@@ -72,7 +84,7 @@ namespace Advobot.Services.HelpEntries
 		private string FormatPreconditions(IEnumerable<PreconditionAttribute> preconditions)
 		{
 			//Don't let users see preconditions which are designated as not visible (e.g the basic command requirement one)
-			preconditions = preconditions.Where(x => !(x is AdvobotPreconditionAttribute self) || !self.Visible);
+			preconditions = preconditions.Where(x => x is AdvobotPreconditionAttribute mine && mine.Visible);
 			if (!preconditions.Any())
 			{
 				return "N/A";
@@ -98,8 +110,6 @@ namespace Advobot.Services.HelpEntries
 		{
 			var str = "";
 			str += $"**Aliases:** {string.Join(", ", Aliases)}\n";
-			str += $"**Usage:** {Constants.PREFIX}{Name} {Usage}\n";
-			str += $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}{(AbleToBeToggled ? "" : " (Not toggleable)")}\n";
 			if (settings != null)
 			{
 				if (!(settings.IsCommandEnabled(Name) is bool val))
@@ -108,8 +118,10 @@ namespace Advobot.Services.HelpEntries
 				}
 				str += $"**Currently Enabled:** {(val ? "Yes" : "No")}\n";
 			}
-			str += $"**Base Permission(s):**\n{BasePerms}\n";
-			str += $"**Description:**\n{Description}";
+			str += $"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}{(AbleToBeToggled ? "" : " (Not toggleable)")}\n\n";
+			str += $"**Base Permission(s):**\n{BasePerms}\n\n";
+			str += $"**Description:**\n{Description}\n";
+			str += $"**Usage:** {Constants.PREFIX}{Name} {Usage}\n";
 			return str;
 		}
 	}

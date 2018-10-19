@@ -35,7 +35,13 @@ namespace Advobot.Classes
 
 		private string[] _OtherAliases;
 
-		internal Initialism(string name, string[] otherAliases, bool topLevel)
+		/// <summary>
+		/// Creates an instance of <see cref="Initialism"/>.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="otherAliases"></param>
+		/// <param name="topLevel"></param>
+		public Initialism(string name, string[] otherAliases, bool topLevel)
 		{
 			var editedName = name;
 			var parts = new List<StringBuilder>();

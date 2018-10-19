@@ -6,7 +6,7 @@ namespace Advobot.Classes.Attributes
 	/// Specifies the default value for whether a command is enabled or not.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class DefaultEnabledAttribute : Attribute
+	public sealed class EnabledByDefaultAttribute : Attribute
 	{
 		/// <summary>
 		/// Whether or not the command is enabled by default.
@@ -18,10 +18,10 @@ namespace Advobot.Classes.Attributes
 		public bool AbleToToggle { get; set; } = true;
 
 		/// <summary>
-		/// Creates an instance of <see cref="DefaultEnabledAttribute"/>.
+		/// Creates an instance of <see cref="EnabledByDefaultAttribute"/>.
 		/// </summary>
 		/// <param name="enabled"></param>
-		public DefaultEnabledAttribute(bool enabled)
+		public EnabledByDefaultAttribute(bool enabled)
 		{
 			Enabled = enabled;
 		}

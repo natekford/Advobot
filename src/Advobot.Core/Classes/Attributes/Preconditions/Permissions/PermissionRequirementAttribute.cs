@@ -61,7 +61,7 @@ namespace Advobot.Classes.Attributes.Preconditions.Permissions
 				//Special case, greatly shortens the output string while retaining what it means
 				if (x.RawValue == (ulong)GenericPerms)
 				{
-					return "Administrator | Any ending with 'Members' | Any starting with 'Manage'";
+					return "Any ending with 'Members' | Any starting with 'Manage'";
 				}
 
 				var perms = new List<string>();

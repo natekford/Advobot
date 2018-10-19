@@ -45,21 +45,16 @@ namespace Advobot.Classes.UsageGeneration
 		/// <param name="command"></param>
 		/// <returns></returns>
 		public static string GenerateUsage(Type command)
-			=> GenerateUsage(command, c => c.IsNested, (c, l, i) => GetAllNestedClassesAndMethods(c, l, i));
+			=> GenerateUsage(command, (c, l, i) => GetAllNestedClassesAndMethods(c, l, i));
 		/// <summary>
 		/// Generates a string indicating how the command is used.
 		/// </summary>
 		/// <param name="module"></param>
 		/// <returns></returns>
 		public static string GenerateUsage(ModuleInfo module)
-			=> GenerateUsage(module, m => m.IsSubmodule, (m, l, i) => GetAllNestedClassesAndMethods(m, l, i));
-		private static string GenerateUsage<T>(T obj, Func<T, bool> nested, Action<T, MemberLists, int> fillLists)
+			=> GenerateUsage(module, (m, l, i) => GetAllNestedClassesAndMethods(m, l, i));
+		private static string GenerateUsage<T>(T obj, Action<T, MemberLists, int> fillLists)
 		{
-			if (nested(obj))
-			{
-				throw new ArgumentException("Only use this method on a non nested module.");
-			}
-
 			var lists = new MemberLists();
 			fillLists(obj, lists, 0);
 			lists.RemoveDuplicates();
