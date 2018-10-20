@@ -37,7 +37,7 @@ namespace Advobot.Commands.BannedPhrases
 			}
 			catch (ArgumentException e)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error(e)).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, e)).CAF();
 				return;
 			}
 
@@ -116,12 +116,12 @@ namespace Advobot.Commands.BannedPhrases
 			{
 				if (position > Context.GuildSettings.EvaluatedRegex.Count)
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new Error("Invalid position to add at.")).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, "Invalid position to add at.")).CAF();
 					return;
 				}
 				if (Context.GuildSettings.BannedPhraseRegex.Count >= Context.BotSettings.MaxBannedRegex)
 				{
-					var error = new Error($"You cannot have more than `{Context.BotSettings.MaxBannedRegex}` banned regex at a time.");
+					var error = $"You cannot have more than `{Context.BotSettings.MaxBannedRegex}` banned regex at a time.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
@@ -196,7 +196,7 @@ namespace Advobot.Commands.BannedPhrases
 		{
 			if (list.Count >= max)
 			{
-				var error = new Error($"You cannot have more than `{max}` banned {type} at a time.");
+				var error = $"You cannot have more than `{max}` banned {type} at a time.");
 				await MessageUtils.SendErrorMessageAsync(context, error).CAF();
 				return;
 			}
@@ -209,7 +209,7 @@ namespace Advobot.Commands.BannedPhrases
 			var phrase = list.SingleOrDefault(x => x.Phrase.CaseInsEquals(text));
 			if (phrase == null)
 			{
-				await MessageUtils.SendErrorMessageAsync(context, new Error($"No banned {type} matches the text `{text}`.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(context, $"No banned {type} matches the text `{text}`.")).CAF();
 				return;
 			}
 
@@ -220,7 +220,7 @@ namespace Advobot.Commands.BannedPhrases
 		{
 			if (position == default || position > list.Count)
 			{
-				await MessageUtils.SendErrorMessageAsync(context, new Error("Invalid position to remove at.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(context, "Invalid position to remove at.")).CAF();
 				return;
 			}
 
@@ -291,7 +291,7 @@ namespace Advobot.Commands.BannedPhrases
 		{
 			if (position == default || position > list.Count)
 			{
-				await MessageUtils.SendErrorMessageAsync(context, new Error("Invalid position to modify.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(context, "Invalid position to modify.")).CAF();
 				return;
 			}
 
@@ -330,18 +330,18 @@ namespace Advobot.Commands.BannedPhrases
 			{
 				if (position == default)
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new Error("Do not use zero.")).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, "Do not use zero.")).CAF();
 					return;
 				}
 				if (Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
 				{
-					var error = new Error("A punishment already exists for that number of banned phrases said.");
+					var error = "A punishment already exists for that number of banned phrases said.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 				if (Context.GuildSettings.BannedPhrasePunishments.Count >= Context.BotSettings.MaxBannedPunishments)
 				{
-					var error = new Error($"You cannot have more than `{Context.BotSettings.MaxBannedPunishments}` banned phrase punishments at a time.");
+					var error = $"You cannot have more than `{Context.BotSettings.MaxBannedPunishments}` banned phrase punishments at a time.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
@@ -356,18 +356,18 @@ namespace Advobot.Commands.BannedPhrases
 			{
 				if (position == default)
 				{
-					await MessageUtils.SendErrorMessageAsync(Context, new Error("Do not use zero.")).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, "Do not use zero.")).CAF();
 					return;
 				}
 				if (Context.GuildSettings.BannedPhrasePunishments.Any(x => x.NumberOfRemoves == position))
 				{
-					var error = new Error("A punishment already exists for that number of banned phrases said.");
+					var error = "A punishment already exists for that number of banned phrases said.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
 				if (Context.GuildSettings.BannedPhrasePunishments.Count >= Context.BotSettings.MaxBannedPunishments)
 				{
-					var error = new Error($"You cannot have more than `{Context.BotSettings.MaxBannedPunishments}` banned phrase punishments at a time.");
+					var error = $"You cannot have more than `{Context.BotSettings.MaxBannedPunishments}` banned phrase punishments at a time.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
@@ -384,7 +384,7 @@ namespace Advobot.Commands.BannedPhrases
 			var removed = Context.GuildSettings.BannedPhrasePunishments.RemoveAll(x => x.NumberOfRemoves == position);
 			if (removed < 1)
 			{
-				await MessageUtils.SendErrorMessageAsync(Context, new Error($"No punishment has the position `{position}`.")).CAF();
+				await MessageUtils.SendErrorMessageAsync(Context, $"No punishment has the position `{position}`.")).CAF();
 				return;
 			}
 

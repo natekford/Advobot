@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Interfaces;
-using Advobot.Utilities;
+using Advobot.Classes.Modules;
 using Discord.Commands;
 
 namespace Advobot.Classes.Attributes.Preconditions
@@ -10,7 +9,7 @@ namespace Advobot.Classes.Attributes.Preconditions
 	/// Checks to make sure the bot is loaded, the guild is loaded, the channel isn't ignored from commands, and the command is enabled for the user.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class CommandRequirementAttribute : AdvobotPreconditionAttribute
+	public sealed class CommandEnabledAttribute : AdvobotPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override bool Visible => false;

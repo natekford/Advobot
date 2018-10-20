@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Classes.Modules;
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -35,7 +36,7 @@ namespace Advobot.Commands
 			{
 				if (!SetLogChannel(Context.GuildSettings, logChannelType, channel.Id))
 				{
-					await ReplyErrorAsync(new Error($"That channel is already the current {logChannelType.ToLower()} log.")).CAF();
+					await ReplyErrorAsync($"That channel is already the current {logChannelType.ToLower()} log.")).CAF();
 					return;
 				}
 				await ReplyTimedAsync($"Successfully set the {logChannelType.ToLower()} log as `{channel.Format()}`.").CAF();
@@ -45,7 +46,7 @@ namespace Advobot.Commands
 			{
 				if (!SetLogChannel(Context.GuildSettings, logChannelType, 0))
 				{
-					var error = new Error($"The {logChannelType.ToLower()} log is already off.");
+					var error = $"The {logChannelType.ToLower()} log is already off.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}

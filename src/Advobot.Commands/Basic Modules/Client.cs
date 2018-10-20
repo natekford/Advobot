@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.ImageResizing;
+using Advobot.Classes.Modules;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

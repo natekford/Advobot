@@ -1,36 +1,32 @@
 ﻿using System;
-using System.Linq;
+using System.Runtime.CompilerServices;
+using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.Classes.Attributes
 {
 	/// <summary>
-	/// Shortens an alias down to an initialism. 
+	/// Shortens a name down to an initialism. 
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class ShortAliasAttribute : AliasAttribute
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public class ShortAliasAttribute : AliasAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ShortAliasAttribute"/>.
 		/// </summary>
+		/// <param name="aliases"></param>
 		/// <param name="name"></param>
-		/// <param name="otherAliases"></param>
-		public ShortAliasAttribute(string name, params string[] otherAliases) : base(Shorten(name, otherAliases)) { }
-
+		public ShortAliasAttribute(string[] aliases, [CallerMemberName] string name = null) : base(AliasUtils.Concat(null, name, aliases)) { }
 		/// <summary>
-		/// Shortens the passed in name and returns an array with the shortened version and the other aliases.
+		/// Creates an instance of <see cref="ShortAliasAttribute"/>.
 		/// </summary>
 		/// <param name="name"></param>
-		/// <param name="otherAliases"></param>
-		/// <returns></returns>
-		public static string[] Shorten(string name, string[] otherAliases)
-		{
-			var initialism = new Initialism(name, otherAliases, false);
-			if (string.IsNullOrWhiteSpace(initialism.ToString()))
-			{
-				throw new ArgumentException("Must have at least one capital letter.", nameof(name));
-			}
-			return initialism.Aliases.ToArray();
-		}
+		/// <param name="aliases"></param>
+		public ShortAliasAttribute(string name, params string[] aliases) : this(aliases, name) { }
+		/// <summary>
+		/// Creates an instance of <see cref="ShortAliasAttribute"/>.
+		/// </summary>
+		/// <param name="name"></param>
+		public ShortAliasAttribute([CallerMemberName] string name = null) : this(new string[0], name) { }
 	}
 }

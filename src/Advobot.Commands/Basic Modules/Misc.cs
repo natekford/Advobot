@@ -8,6 +8,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Modules;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -107,7 +108,7 @@ namespace Advobot.Commands.Misc
 			{
 				if (!HelpEntries.GetCategories().CaseInsContains(category))
 				{
-					await ReplyErrorAsync(new Error($"`{category}` is not a valid category.")).CAF();
+					await ReplyErrorAsync($"`{category}` is not a valid category.").CAF();
 					return;
 				}
 				await ReplyEmbedAsync(new EmbedWrapper
@@ -153,7 +154,7 @@ namespace Advobot.Commands.Misc
 			{
 				if (role.IsMentionable)
 				{
-					await ReplyErrorAsync(new Error("You can already mention this role.")).CAF();
+					await ReplyErrorAsync("You can already mention this role.").CAF();
 					return;
 				}
 				var text = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
@@ -184,7 +185,7 @@ namespace Advobot.Commands.Misc
 					await owner.SendMessageAsync($"From `{Context.User.Format()}` in `{Context.Guild.Format()}`:\n```\n{cut}```").CAF();
 					return;
 				}
-				await ReplyErrorAsync(new Error("The owner is unable to be gotten.")).CAF();
+				await ReplyErrorAsync("The owner is unable to be gotten.").CAF();
 			}
 		}
 
@@ -208,8 +209,8 @@ namespace Advobot.Commands.Misc
 		[EnabledByDefault(true)]
 		public sealed class Test : AdvobotModuleBase
 		{
-			[Command]
-			public async Task Command(SocketGuildUser user)
+			[Command, ShortAlias]
+			public async Task DogDog(SocketGuildUser user)
 				=> await ReplyAsync("test").CAF();
 		}
 	}

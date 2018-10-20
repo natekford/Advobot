@@ -10,12 +10,12 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.Modules
 {
 	/// <summary>
-	/// Shorter way to write the used modulebase and also has every command go through the <see cref="CommandRequirementAttribute"/> first.
+	/// Shorter way to write the used modulebase and also has every command go through the <see cref="CommandEnabledAttribute"/> first.
 	/// </summary>
-	[CommandRequirement]
+	[CommandEnabled]
 	[RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
 	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	{
@@ -136,10 +136,10 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Send an error message which will be deleted after some time unless the guild settings have errors disabled.
 		/// </summary>
-		/// <param name="error"></param>
+		/// <param name="reason"></param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyErrorAsync(Error error)
-			=> Context.GuildSettings.NonVerboseErrors ? Task.FromResult<IUserMessage>(default) : ReplyTimedAsync($"**ERROR:** {error.Reason}");
+		public Task<IUserMessage> ReplyErrorAsync(string reason)
+			=> Context.GuildSettings.NonVerboseErrors ? Task.FromResult<IUserMessage>(default) : ReplyTimedAsync($"**ERROR:** {reason}");
 		/// <summary>
 		/// Sends a message which gets deleted after some time.
 		/// </summary>

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Modules;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -59,6 +59,9 @@ namespace Advobot.Services.Commands
 				_Commands.AddTypeReader(type, tr);
 			}
 
+			_Commands.Log += LogInfo;
+			_Commands.CommandExecuted += (command, context, result) => LogExecution(command, (AdvobotCommandContext)context, result);
+
 			_Client.ShardReady += (client) => OnReady(client, commands);
 			_Client.MessageReceived += HandleCommand;
 		}
@@ -79,7 +82,6 @@ namespace Advobot.Services.Commands
 			_OwnerId = await ClientUtils.GetOwnerIdAsync(_Client).CAF();
 
 			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();
-			//Add in all the commands
 			foreach (var assembly in commands)
 			{
 				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
@@ -112,10 +114,9 @@ namespace Advobot.Services.Commands
 			}
 
 			var context = new AdvobotCommandContext(settings, _Client, msg);
-			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
-			await LogResultAsync(context, result).CAF();
+			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
-		private async Task LogResultAsync(AdvobotCommandContext context, IResult result)
+		private async Task LogExecution(Optional<CommandInfo> command, AdvobotCommandContext context, IResult result)
 		{
 			if (CanBeIgnored(result) || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(x))))
 			{
@@ -123,7 +124,6 @@ namespace Advobot.Services.Commands
 			}
 			if (result.IsSuccess)
 			{
-				//_Logging?.SuccessfulCommands?.Add(1);
 				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("logged command")).CAF();
 				if (context.GuildSettings.ModLogId != 0 && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
@@ -143,6 +143,11 @@ namespace Advobot.Services.Commands
 
 			CommandInvoked?.Invoke(result);
 			ConsoleUtils.WriteLine(context.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+		}
+		private Task LogInfo(LogMessage arg)
+		{
+			ConsoleUtils.WriteLine(arg.ToString());
+			return Task.CompletedTask;
 		}
 		private bool CanBeIgnored(IResult result)
 			=> result.Error == CommandError.UnknownCommand || (!result.IsSuccess && result.ErrorReason == null);

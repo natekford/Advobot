@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using AdvorangesUtils;
@@ -27,17 +28,17 @@ namespace Advobot.Commands
 			{
 				if (Context.GuildSettings.Quotes.Count >= BotSettings.MaxQuotes)
 				{
-					await ReplyErrorAsync(new Error($"There cannot be more than `{BotSettings.MaxQuotes}` quotes at a time.")).CAF();
+					await ReplyErrorAsync($"There cannot be more than `{BotSettings.MaxQuotes}` quotes at a time.").CAF();
 					return;
 				}
 				if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
 				{
-					await ReplyErrorAsync(new Error($"A quote already has the name `{name}`.")).CAF();
+					await ReplyErrorAsync($"A quote already has the name `{name}`.").CAF();
 					return;
 				}
 				if (string.IsNullOrWhiteSpace(text))
 				{
-					await ReplyErrorAsync(new Error("A quote requires text to be added.")).CAF();
+					await ReplyErrorAsync("A quote requires text to be added.").CAF();
 					return;
 				}
 
@@ -50,7 +51,7 @@ namespace Advobot.Commands
 				var removed = Context.GuildSettings.Quotes.RemoveAll(x => x.Name.CaseInsEquals(name));
 				if (removed < 1)
 				{
-					await ReplyErrorAsync(new Error($"No quote has the name `{name}`.")).CAF();
+					await ReplyErrorAsync($"No quote has the name `{name}`.").CAF();
 					return;
 				}
 

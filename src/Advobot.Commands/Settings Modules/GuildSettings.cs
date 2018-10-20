@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -10,6 +8,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
@@ -168,7 +167,7 @@ namespace Advobot.Commands
 			{
 				if (!HelpEntries.GetCategories().CaseInsContains(category))
 				{
-					await ReplyErrorAsync(new Error($"`{category}` is not a valid category.")).CAF();
+					await ReplyErrorAsync($"`{category}` is not a valid category.").CAF();
 					return;
 				}
 				//Only grab commands that are already disabled and in the same category and are able to be changed.
@@ -182,12 +181,12 @@ namespace Advobot.Commands
 			{
 				if (!command.AbleToBeToggled)
 				{
-					await ReplyErrorAsync(new Error($"{command.Name} cannot be edited.")).CAF();
+					await ReplyErrorAsync($"{command.Name} cannot be edited.").CAF();
 					return;
 				}
 				if (!Context.GuildSettings.CommandSettings.ModifyCommandValue(new ValueToModify(command, enable)))
 				{
-					await ReplyErrorAsync(new Error($"{command.Name} is already enabled.")).CAF();
+					await ReplyErrorAsync($"{command.Name} is already enabled.").CAF();
 					return;
 				}
 				await ReplyTimedAsync($"Successfully {GetAction(enable)} `{command.Name}`.").CAF();
@@ -221,7 +220,7 @@ namespace Advobot.Commands
 			{
 				if (!HelpEntries.GetCategories().CaseInsContains(category))
 				{
-					await ReplyErrorAsync(new Error($"`{category}` is not a valid category.")).CAF();
+					await ReplyErrorAsync($"`{category}` is not a valid category.").CAF();
 					return;
 				}
 				var values = HelpEntries.GetHelpEntries(category).Select(x => new ValueToModify(x, enable));
@@ -237,7 +236,7 @@ namespace Advobot.Commands
 			{
 				if (!Context.GuildSettings.CommandSettings.ModifyOverride(new ValueToModify(helpEntry, true), channel))
 				{
-					await ReplyErrorAsync(new Error($"`{helpEntry.Name}` is already {GetAction(enable)} on `{channel.Format()}`.")).CAF();
+					await ReplyErrorAsync($"`{helpEntry.Name}` is already {GetAction(enable)} on `{channel.Format()}`.").CAF();
 					return;
 				}
 				await ReplyTimedAsync($"Successfully {GetAction(enable)} the command `{helpEntry.Name}` on `{channel.Format()}`.").CAF();
@@ -253,7 +252,7 @@ namespace Advobot.Commands
 				{
 					if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 					{
-						var error = new Error($"`{channel.Format()}` is already ignoring commands.");
+						var error = $"`{channel.Format()}` is already ignoring commands.");
 						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 						return;
 					}
@@ -271,7 +270,7 @@ namespace Advobot.Commands
 					var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
 					if (!helpEntries.GetCategories().CaseInsContains(category))
 					{
-						await MessageUtils.SendErrorMessageAsync(Context, new Error($"`{category}` is not a valid category.")).CAF();
+						await MessageUtils.SendErrorMessageAsync(Context, $"`{category}` is not a valid category.")).CAF();
 						return;
 					}
 					var values = helpEntries.GetHelpEntries(category).Select(x => new ValueToModify(x, false));
@@ -287,7 +286,7 @@ namespace Advobot.Commands
 				{
 					if (!Context.GuildSettings.CommandSettings.ModifyOverride(new ValueToModify(helpEntry, false), channel))
 					{
-						var error = new Error($"`{helpEntry.Name}` is already ignored on `{channel.Format()}`.");
+						var error = $"`{helpEntry.Name}` is already ignored on `{channel.Format()}`.");
 						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 						return;
 					}
@@ -315,7 +314,7 @@ namespace Advobot.Commands
 				var botUser = Context.GuildSettings.BotUsers.SingleOrDefault(x => x.UserId == user.Id);
 				if (botUser == null || botUser.Permissions == 0)
 				{
-					var error = new Error($"`{user.Format()}` has no extra permissions from the bot.");
+					var error = $"`{user.Format()}` has no extra permissions from the bot.");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
@@ -337,7 +336,7 @@ namespace Advobot.Commands
 				}
 				if (!add && botUser == null)
 				{
-					var error = new Error($"`{user.Format()}` does not have any bot permissions to remove");
+					var error = $"`{user.Format()}` does not have any bot permissions to remove");
 					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
 					return;
 				}
@@ -385,7 +384,7 @@ namespace Advobot.Commands
 				if (Context.GuildSettings.PersistentRoles.TryGetSingle(x => x.UserId == userId && x.RoleId == role.Id, out var match) == add)
 				{
 					var start = add ? "A" : "No";
-					await ReplyErrorAsync(new Error($"{start} persistent role exists for the user id `{userId}` with the role `{role.Format()}`.")).CAF();
+					await ReplyErrorAsync($"{start} persistent role exists for the user id `{userId}` with the role `{role.Format()}`.").CAF();
 					return;
 				}
 
@@ -481,7 +480,7 @@ namespace Advobot.Commands
 			{
 				if (notification == null)
 				{
-					await ReplyErrorAsync(new Error($"The `{type}` notification does not exist.")).CAF();
+					await ReplyErrorAsync($"The `{type}` notification does not exist.").CAF();
 					return;
 				}
 

@@ -3,7 +3,7 @@ using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.Modules
 {
 	/// <summary>
 	/// Module which is used to resize and upload images.

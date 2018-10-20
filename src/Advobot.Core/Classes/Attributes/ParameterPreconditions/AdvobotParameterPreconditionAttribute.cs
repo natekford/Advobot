@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes.Modules;
 using Discord.Commands;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions

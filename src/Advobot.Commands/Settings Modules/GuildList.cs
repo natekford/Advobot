@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Modules;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
@@ -28,7 +29,7 @@ namespace Advobot.Commands
 			{
 				if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
 				{
-					await ReplyErrorAsync(new Error("Don't provide invites that expire.")).CAF();
+					await ReplyErrorAsync("Don't provide invites that expire.").CAF();
 					return;
 				}
 				var listedInvite = Invites.Add(Context.Guild, invite, keywords);
@@ -55,12 +56,12 @@ namespace Advobot.Commands
 			{
 				if (!(Invites.GetListedInvite(Context.Guild.Id) is IListedInvite invite))
 				{
-					await ReplyErrorAsync(new Error("There is no invite to bump.")).CAF();
+					await ReplyErrorAsync("There is no invite to bump.").CAF();
 					return;
 				}
 				if ((DateTime.UtcNow - invite.Time).TotalHours < 1)
 				{
-					await ReplyErrorAsync(new Error("Last bump is too recent.")).CAF();
+					await ReplyErrorAsync("Last bump is too recent.").CAF();
 					return;
 				}
 				await invite.BumpAsync(Context.Guild).CAF();
@@ -86,7 +87,7 @@ namespace Advobot.Commands
 				var invites = args.GatherInvites(Invites).ToList();
 				if (!invites.Any())
 				{
-					await ReplyErrorAsync(new Error("No guild could be found that matches the given specifications.")).CAF();
+					await ReplyErrorAsync("No guild could be found that matches the given specifications.").CAF();
 					return;
 				}
 				if (invites.Count <= 5)

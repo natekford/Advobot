@@ -11,6 +11,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.ImageResizing;
+using Advobot.Classes.Modules;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -92,7 +93,7 @@ namespace Advobot.Commands
 			{
 				if (!emote.RoleIds.Any())
 				{
-					await ReplyErrorAsync(new Error($"The emote `{emote}` does not have any restricting roles.")).CAF();
+					await ReplyErrorAsync($"The emote `{emote}` does not have any restricting roles.").CAF();
 					return;
 				}
 
@@ -113,7 +114,7 @@ namespace Advobot.Commands
 			{
 				if (!emote.RoleIds.Any())
 				{
-					await ReplyErrorAsync(new Error($"The emote `{emote}` does not have any restricting roles.")).CAF();
+					await ReplyErrorAsync($"The emote `{emote}` does not have any restricting roles.").CAF();
 					return;
 				}
 

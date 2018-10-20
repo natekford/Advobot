@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Advobot.Classes.Modules;
 using Discord;
 
 namespace Advobot.Classes.Attributes.Preconditions.Permissions

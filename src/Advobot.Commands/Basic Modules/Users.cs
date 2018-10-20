@@ -10,6 +10,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Modules;
 using Advobot.Classes.TypeReaders;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -153,7 +154,7 @@ namespace Advobot.Commands
 			{
 				if (user.VoiceChannel?.Id == channel.Id)
 				{
-					await ReplyErrorAsync(new Error("User is already in that channel.")).CAF();
+					await ReplyErrorAsync("User is already in that channel.").CAF();
 					return;
 				}
 
@@ -226,7 +227,7 @@ namespace Advobot.Commands
 			{
 				if ((await Context.Guild.GetBansAsync().CAF()).Select(x => x.User.Id).Contains(userId))
 				{
-					await ReplyErrorAsync(new Error("That user is already banned.")).CAF();
+					await ReplyErrorAsync("That user is already banned.").CAF();
 					return;
 				}
 
@@ -358,7 +359,7 @@ namespace Advobot.Commands
 			{
 				if (target.Id == give.Id)
 				{
-					await ReplyErrorAsync(new Error("Cannot give the role being gathered.")).CAF();
+					await ReplyErrorAsync("Cannot give the role being gathered.").CAF();
 					return;
 				}
 				await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.AddRoleAsync(give, o)).CAF();

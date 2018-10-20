@@ -5,8 +5,12 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Provides information about why something failed to add to an embed.
 	/// </summary>
-	public sealed class EmbedError : Error
+	public sealed class EmbedError
 	{
+		/// <summary>
+		/// The reason for this error.
+		/// </summary>
+		public string Reason { get; }
 		/// <summary>
 		/// The main property which had an error. E.G. field.
 		/// </summary>
@@ -24,15 +28,9 @@ namespace Advobot.Classes
 		/// </summary>
 		public int RemainingLength { get; }
 
-		internal EmbedError(string property, string subProperty, object value, string reason) : base(reason)
+		internal EmbedError(string property, string subProperty, object value, string reason, int remainingLength = -1)
 		{
-			Property = property;
-			SubProperty = subProperty;
-			Value = value?.ToString();
-			RemainingLength = -1;
-		}
-		internal EmbedError(string property, string subProperty, object value, string reason, int remainingLength) : base(reason)
-		{
+			Reason = reason;
 			Property = property;
 			SubProperty = subProperty;
 			Value = value?.ToString();

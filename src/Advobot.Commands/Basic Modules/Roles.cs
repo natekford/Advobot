@@ -8,6 +8,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Modules;
 using Advobot.Classes.TypeReaders;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -191,7 +192,7 @@ namespace Advobot.Commands
 
 				if (newOutputBits == output.Permissions.RawValue)
 				{
-					await ReplyErrorAsync(new Error("Either you are copying the same values or with the permissions you have you cannot change anything."));
+					await ReplyErrorAsync("Either you are copying the same values or with the permissions you have you cannot change anything.");
 					return;
 				}
 

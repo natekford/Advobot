@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Utilities;
@@ -41,7 +42,7 @@ namespace Advobot.Commands
 			{
 				if (!(Context.GuildSettings[spamType] is SpamPrev antiSpam))
 				{
-					await ReplyErrorAsync(new Error($"There must be a `{spamType}` spam prevention before one can be enabled or disabled.")).CAF();
+					await ReplyErrorAsync($"There must be a `{spamType}` spam prevention before one can be enabled or disabled.").CAF();
 					return;
 				}
 
@@ -76,7 +77,7 @@ namespace Advobot.Commands
 			{
 				if (!(Context.GuildSettings[raidType] is RaidPrev antiRaid))
 				{
-					await ReplyErrorAsync(new Error($"There must be a `{raidType}` raid prevention before one can be enabled or disabled.")).CAF();
+					await ReplyErrorAsync($"There must be a `{raidType}` raid prevention before one can be enabled or disabled.").CAF();
 					return;
 				}
 

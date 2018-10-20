@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
@@ -17,7 +16,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.Modules
 {
 	/// <summary>
 	/// Handles methods for printing out, modifying, and resetting settings.
@@ -118,7 +117,7 @@ namespace Advobot.Classes
 			//If doesn't target users, then reply that
 			else
 			{
-				await ReplyErrorAsync(new Error($"`{title}` does not target users directly.")).CAF();
+				await ReplyErrorAsync($"`{title}` does not target users directly.").CAF();
 				return;
 			}
 
@@ -140,7 +139,7 @@ namespace Advobot.Classes
 			var file = Settings.GetFile(accessor);
 			if (!file.Exists)
 			{
-				await ReplyErrorAsync(new Error("The settings file does not exist.")).CAF();
+				await ReplyErrorAsync("The settings file does not exist.").CAF();
 				return;
 			}
 			await Context.Channel.SendFileAsync(file.FullName, null).CAF();
@@ -207,7 +206,7 @@ namespace Advobot.Classes
 				if (creationFactory == null)
 				{
 #warning return error here
-					await ReplyErrorAsync(new Error("todo: put in error")).CAF();
+					await ReplyErrorAsync("todo: put in error").CAF();
 					return;
 				}
 				var newValue = creationFactory();
@@ -284,7 +283,7 @@ namespace Advobot.Classes
 		{
 			if (!Settings.SettingParser.TryGetSetting(name, PrefixState.NotPrefixed, out var property))
 			{
-				await ReplyErrorAsync(new Error($"`{name}` is not a valid setting.")).CAF();
+				await ReplyErrorAsync($"`{name}` is not a valid setting.").CAF();
 				return null;
 			}
 			return property;

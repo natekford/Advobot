@@ -9,7 +9,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.Modules
 {
 	/// <summary>
 	/// Does an action on all the input users until either no more users remain or the cancel token has been canceled.

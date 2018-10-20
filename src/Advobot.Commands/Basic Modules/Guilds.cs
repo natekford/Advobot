@@ -10,6 +10,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.ImageResizing;
+using Advobot.Classes.Modules;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -41,12 +42,12 @@ namespace Advobot.Commands
 				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
 				if (Context.User.Id != await ClientUtils.GetOwnerIdAsync(Context.Client).CAF())
 				{
-					await ReplyErrorAsync(new Error("Only the bot owner can use this command targetting other guilds.")).CAF();
+					await ReplyErrorAsync("Only the bot owner can use this command targetting other guilds.").CAF();
 					return;
 				}
 				if (!(Context.Client.GetGuild(guildId) is SocketGuild guild))
 				{
-					await ReplyErrorAsync(new Error("Invalid guild supplied.")).CAF();
+					await ReplyErrorAsync("Invalid guild supplied.").CAF();
 					return;
 				}
 				await guild.LeaveAsync().CAF();

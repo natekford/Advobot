@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Discord.Commands;
 

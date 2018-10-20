@@ -7,6 +7,7 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -51,12 +52,12 @@ namespace Advobot.Commands
 					case nameof(Create):
 						if (selfAssignableGroups.Count >= BotSettings.MaxSelfAssignableRoleGroups)
 						{
-							await ReplyErrorAsync(new Error($"You have too many groups. `{BotSettings.MaxSelfAssignableRoleGroups}` is the maximum.")).CAF();
+							await ReplyErrorAsync($"You have too many groups. `{BotSettings.MaxSelfAssignableRoleGroups}` is the maximum.").CAF();
 							return;
 						}
 						else if (selfAssignableGroups.Any(x => x.Group == groupNum))
 						{
-							await ReplyErrorAsync(new Error("A group already exists with that position.")).CAF();
+							await ReplyErrorAsync("A group already exists with that position.").CAF();
 							return;
 						}
 						selfAssignableGroups.Add(new SelfAssignableRoles((int)groupNum));
@@ -64,12 +65,12 @@ namespace Advobot.Commands
 					case nameof(Delete):
 						if (selfAssignableGroups.Count <= 0)
 						{
-							await ReplyErrorAsync(new Error("There are no groups to delete.")).CAF();
+							await ReplyErrorAsync("There are no groups to delete.").CAF();
 							return;
 						}
 						else if (!selfAssignableGroups.Any(x => x.Group == groupNum))
 						{
-							await ReplyErrorAsync(new Error("A group needs to exist with that position before it can be deleted.")).CAF();
+							await ReplyErrorAsync("A group needs to exist with that position before it can be deleted.").CAF();
 							return;
 						}
 						selfAssignableGroups.RemoveAll(x => x.Group == groupNum);
@@ -86,12 +87,12 @@ namespace Advobot.Commands
 				var groups = Context.GuildSettings.SelfAssignableGroups;
 				if (!groups.Any())
 				{
-					await ReplyErrorAsync(new Error("There are no groups to edit.")).CAF();
+					await ReplyErrorAsync("There are no groups to edit.").CAF();
 					return;
 				}
 				if (groups.TryGetSingle(x => x.Group == groupNum, out var group))
 				{
-					await ReplyErrorAsync(new Error($"A group needs to exist with the position `{groupNum}` before you can modify it.")).CAF();
+					await ReplyErrorAsync($"A group needs to exist with the position `{groupNum}` before you can modify it.").CAF();
 					return;
 				}
 
@@ -153,7 +154,7 @@ namespace Advobot.Commands
 			{
 				if (Context.GuildSettings.SelfAssignableGroups.TryGetSingle(x => x.Roles.Contains(role.Id), out var group))
 				{
-					await ReplyErrorAsync(new Error($"`{role.Format()}` is not a self assignable role.")).CAF();
+					await ReplyErrorAsync($"`{role.Format()}` is not a self assignable role.").CAF();
 					return;
 				}
 				var user = Context.User;
@@ -193,7 +194,7 @@ namespace Advobot.Commands
 			{
 				if (Context.GuildSettings.SelfAssignableGroups.TryGetSingle(x => x.Group == groupNum, out var group))
 				{
-					await ReplyErrorAsync(new Error($"There is no group with the number `{groupNum}`.")).CAF();
+					await ReplyErrorAsync($"There is no group with the number `{groupNum}`.").CAF();
 					return;
 				}
 				await ReplyEmbedAsync(new EmbedWrapper

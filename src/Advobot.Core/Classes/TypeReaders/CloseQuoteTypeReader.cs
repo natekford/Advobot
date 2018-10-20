@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.CloseWords;
+using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Discord.Commands;
 

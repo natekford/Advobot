@@ -4,6 +4,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions;
+using Advobot.Classes.Modules;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;

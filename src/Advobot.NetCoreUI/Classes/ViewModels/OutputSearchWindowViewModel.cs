@@ -38,7 +38,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			_Accessor = accessor;
 
 			SearchCommand = ReactiveCommand.Create(Search, this.WhenAnyValue(x => x.SearchTerm, x => !string.IsNullOrWhiteSpace(x)));
-			SaveCommand = ReactiveCommand.Create(Save, this.WhenAnyValue(x => x.Output, x => x.Length > 0));
+			SaveCommand = ReactiveCommand.Create(Save, this.WhenAnyValue(x => x.Output, x => x?.Length > 0));
 			CloseCommand = ReactiveCommand.Create<Window>(window => window?.Close());
 		}
 

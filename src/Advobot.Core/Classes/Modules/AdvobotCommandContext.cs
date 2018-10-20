@@ -5,15 +5,13 @@ using AdvorangesUtils;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.Modules
 {
 	/// <summary>
 	/// A <see cref="ShardedCommandContext"/> which contains settings and the service provider.
 	/// </summary>
 	public class AdvobotCommandContext : ShardedCommandContext
 	{
-		private static readonly string _Joiner = "\n" + new string(' ', 28);
-
 		/// <summary>
 		/// The user this command is executing from.
 		/// </summary>
@@ -60,12 +58,12 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public string ToString(IResult result)
 		{
-			var resp = $"Guild: {Guild.Format()}" +
-				$"{_Joiner}Channel: {Channel.Format()}" +
-				$"{_Joiner}User: {User.Format()}" +
-				$"{_Joiner}Time: {Message.CreatedAt.UtcDateTime.ToReadable()} ({ElapsedMilliseconds}ms)" +
-				$"{_Joiner}Text: {Message.Content}";
-			resp += result.ErrorReason == null ? "" : $"{_Joiner}Error: {result.ErrorReason}";
+			var resp = $"\n\tGuild: {Guild.Format()}" +
+				$"\n\tChannel: {Channel.Format()}" +
+				$"\n\tUser: {User.Format()}" +
+				$"\n\tTime: {Message.CreatedAt.UtcDateTime.ToReadable()} ({ElapsedMilliseconds}ms)" +
+				$"\n\tText: {Message.Content}";
+			resp += result.ErrorReason == null ? "" : $"\n\tError: {result.ErrorReason}";
 			return resp;
 		}
 	}

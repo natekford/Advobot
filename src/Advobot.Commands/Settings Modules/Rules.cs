@@ -7,6 +7,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Modules;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
 using AdvorangesUtils;
@@ -30,7 +31,7 @@ namespace Advobot.Commands
 			{
 				if (Context.GuildSettings.Rules.Categories.Keys.CaseInsContains(name))
 				{
-					await ReplyErrorAsync(new Error($"The category `{name}` already exists.")).CAF();
+					await ReplyErrorAsync($"The category `{name}` already exists.").CAF();
 					return;
 				}
 
@@ -67,7 +68,7 @@ namespace Advobot.Commands
 			{
 				if (Context.GuildSettings.Rules.Categories[category].CaseInsContains(rule))
 				{
-					await ReplyErrorAsync(new Error($"The supplied rule already exists.")).CAF();
+					await ReplyErrorAsync($"The supplied rule already exists.").CAF();
 					return;
 				}
 
@@ -91,7 +92,7 @@ namespace Advobot.Commands
 			{
 				if (Context.GuildSettings.Rules.Categories[category].Count >= index)
 				{
-					await ReplyErrorAsync(new Error($"{index} is an invalid position to remove at.")).CAF();
+					await ReplyErrorAsync($"{index} is an invalid position to remove at.").CAF();
 					return;
 				}
 				Context.GuildSettings.Rules.Categories[category].RemoveAt(Math.Min(index, int.MaxValue));
@@ -116,7 +117,7 @@ namespace Advobot.Commands
 			{
 				if (Context.GuildSettings.Rules.Categories.Count == 0)
 				{
-					await ReplyErrorAsync(new Error("This guild has no rules set up.")).CAF();
+					await ReplyErrorAsync("This guild has no rules set up.").CAF();
 					return;
 				}
 

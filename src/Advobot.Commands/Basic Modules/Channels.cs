@@ -9,6 +9,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Modules;
 using Advobot.Classes.TypeReaders;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -157,7 +158,7 @@ namespace Advobot.Commands.Channels
 			{
 				if (!channel.PermissionOverwrites.TryGetSingle(x => x.TargetId == obj.Id, out var overwrite))
 				{
-					await ReplyErrorAsync(new Error($"No overwrite exists for `{obj.Format()}` on `{channel.Format()}`.")).CAF();
+					await ReplyErrorAsync($"No overwrite exists for `{obj.Format()}` on `{channel.Format()}`.").CAF();
 					return;
 				}
 
@@ -298,7 +299,7 @@ namespace Advobot.Commands.Channels
 				//Make sure channels are the same type
 				if (input.GetType() != output.GetType())
 				{
-					await ReplyErrorAsync(new Error("Channels must be the same type.")).CAF();
+					await ReplyErrorAsync("Channels must be the same type.").CAF();
 					return;
 				}
 
