@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Modules;
+using Advobot.Classes.Results;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -29,7 +30,9 @@ namespace Advobot.Services.Commands
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private bool _Loaded;
 		private ulong _OwnerId;
+		private readonly HashSet<Guid> _UsedResults = new HashSet<Guid>();
 
+		/// <inheritdoc />
 		public event Action<IResult> CommandInvoked;
 
 		/// <summary>
@@ -66,33 +69,6 @@ namespace Advobot.Services.Commands
 			_Client.MessageReceived += HandleCommand;
 		}
 
-		/// <summary>
-		/// Handles the bot using the correct settings, the game displayed, and the timers starting.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="commands"></param>
-		/// <returns></returns>
-		private async Task OnReady(DiscordSocketClient client, IEnumerable<Assembly> commands)
-		{
-			if (_Loaded)
-			{
-				return;
-			}
-			_Loaded = true;
-			_OwnerId = await ClientUtils.GetOwnerIdAsync(_Client).CAF();
-
-			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();
-			foreach (var assembly in commands)
-			{
-				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
-			}
-			_Provider.GetRequiredService<IHelpEntryService>().Add(_Commands.Modules);
-
-			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
-				$"Modules: {_Commands.Modules.Count()}; " +
-				$"Prefix: {_BotSettings.Prefix}; " +
-				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
-		}
 		/// <inheritdoc />
 		public async Task HandleCommand(SocketMessage message)
 		{
@@ -116,6 +92,27 @@ namespace Advobot.Services.Commands
 			var context = new AdvobotCommandContext(settings, _Client, msg);
 			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
+		private async Task OnReady(DiscordSocketClient client, IEnumerable<Assembly> commands)
+		{
+			if (_Loaded)
+			{
+				return;
+			}
+			_Loaded = true;
+
+			_OwnerId = await ClientUtils.GetOwnerIdAsync(_Client).CAF();
+			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();
+			foreach (var assembly in commands)
+			{
+				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
+			}
+			_Provider.GetRequiredService<IHelpEntryService>().Add(_Commands.Modules);
+
+			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
+				$"Modules: {_Commands.Modules.Count()}; " +
+				$"Prefix: {_BotSettings.Prefix}; " +
+				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
+		}
 		private async Task LogExecution(Optional<CommandInfo> command, AdvobotCommandContext context, IResult result)
 		{
 			if (CanBeIgnored(result) || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(x))))
@@ -124,7 +121,7 @@ namespace Advobot.Services.Commands
 			}
 			if (result.IsSuccess)
 			{
-				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("logged command")).CAF();
+				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("command successfully executed")).CAF();
 				if (context.GuildSettings.ModLogId != 0 && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
 					await MessageUtils.SendMessageAsync(context.Guild.GetTextChannel(context.GuildSettings.ModLogId), embedWrapper: new EmbedWrapper
@@ -135,10 +132,17 @@ namespace Advobot.Services.Commands
 					}).CAF();
 				}
 			}
-			else
+			if (result.ErrorReason != null)
 			{
-#warning convert back to error
-				await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
+				if (result.IsSuccess)
+				{
+					await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
+				}
+				else if (!context.GuildSettings.NonVerboseErrors)
+				{
+#warning delete after time
+					await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
+				}
 			}
 
 			CommandInvoked?.Invoke(result);
@@ -150,6 +154,14 @@ namespace Advobot.Services.Commands
 			return Task.CompletedTask;
 		}
 		private bool CanBeIgnored(IResult result)
-			=> result.Error == CommandError.UnknownCommand || (!result.IsSuccess && result.ErrorReason == null);
+		{
+			return false
+				//Ignore annoying unknown command errors
+				|| result.Error == CommandError.UnknownCommand
+				//Ignore errors with no reason
+				|| (!result.IsSuccess && result.ErrorReason == null)
+				//Ignore already displayed results
+				|| (result is IUniqueResult unique && !_UsedResults.Add(unique.Guid));
+		}
 	}
 }

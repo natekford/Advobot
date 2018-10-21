@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
@@ -9,6 +10,7 @@ using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
+using Advobot.Classes.Results;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -209,9 +211,15 @@ namespace Advobot.Commands.Misc
 		[EnabledByDefault(true)]
 		public sealed class Test : AdvobotModuleBase
 		{
-			[Command, ShortAlias]
-			public async Task DogDog(SocketGuildUser user)
-				=> await ReplyAsync("test").CAF();
+			[Command]
+			public Task<RuntimeResult> Command([Optional] string input)
+			{
+				if (input == null)
+				{
+					return new ErrorResult("Invalid input.");
+				}
+				return new SuccessResult("Success.");
+			}
 		}
 	}
 }

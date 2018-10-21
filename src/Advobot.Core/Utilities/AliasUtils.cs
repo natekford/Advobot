@@ -15,6 +15,26 @@ namespace Advobot.Utilities
 		public static string[] Concat(Type moduleType, string name, string[] aliases)
 		{
 			var topLevel = moduleType != null;
+
+			Array.Resize(ref aliases, aliases.Length + 1);
+			aliases[aliases.Length - 1] = Shorten(name, topLevel);
+
+			if (topLevel)
+			{
+				foreach (var alias in aliases)
+				{
+					if (_AlreadyUsed.TryGetValue(alias, out var owner))
+					{
+						throw new InvalidOperationException($"{owner.Name} already has registered the alias {alias}.");
+					}
+					_AlreadyUsed[alias] = moduleType;
+				}
+			}
+
+			return aliases;
+		}
+		public static string Shorten(string name, bool topLevel)
+		{
 			var initialism = new Initialism(name, topLevel);
 			if (topLevel)
 			{
@@ -61,23 +81,7 @@ namespace Advobot.Utilities
 				}
 				_Initialisms.Add(initialism);
 			}
-
-			Array.Resize(ref aliases, aliases.Length + 1);
-			aliases[aliases.Length - 1] = initialism.Edited;
-
-			if (topLevel)
-			{
-				foreach (var alias in aliases)
-				{
-					if (_AlreadyUsed.TryGetValue(alias, out var owner))
-					{
-						throw new InvalidOperationException($"{owner.Name} already has registered the alias {alias}.");
-					}
-					_AlreadyUsed[alias] = moduleType;
-				}
-			}
-
-			return aliases;
+			return initialism.Edited;
 		}
 
 		/// <summary>

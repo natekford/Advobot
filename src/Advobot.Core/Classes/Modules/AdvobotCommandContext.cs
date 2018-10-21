@@ -63,7 +63,7 @@ namespace Advobot.Classes.Modules
 				$"\n\tUser: {User.Format()}" +
 				$"\n\tTime: {Message.CreatedAt.UtcDateTime.ToReadable()} ({ElapsedMilliseconds}ms)" +
 				$"\n\tText: {Message.Content}";
-			resp += result.ErrorReason == null ? "" : $"\n\tError: {result.ErrorReason}";
+			resp += result.IsSuccess || result.ErrorReason == null ? "" : $"\n\tError: {result.ErrorReason}";
 			return resp;
 		}
 	}
