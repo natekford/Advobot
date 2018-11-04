@@ -22,10 +22,9 @@ using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class GuildSettings : ModuleBase
 	{
-		[Group(nameof(ShowGuildSettings)), TopLevelShortAlias(typeof(ShowGuildSettings))]
+		[Group(nameof(ShowGuildSettings)), ModuleInitialismAlias(typeof(ShowGuildSettings))]
 		[Summary("Shows information about guild settings.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
@@ -33,13 +32,13 @@ namespace Advobot.Commands
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
-			[Command(nameof(GetFileAsync)), ShortAlias(nameof(GetFileAsync)), Priority(1)]
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public async Task GetFile()
 				=> await GetFileAsync(BotSettings).CAF();
-			[Command(nameof(Names)), ShortAlias(nameof(Names)), Priority(1)]
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public async Task Names()
 				=> await ShowNamesAsync().CAF();
-			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public async Task All()
 				=> await ShowAllAsync().CAF();
 			[Command]
@@ -50,7 +49,7 @@ namespace Advobot.Commands
 				=> await ShowUserAsync(settingName, user).CAF();
 		}
 
-		[Group(nameof(ModifyGuildSettings)), TopLevelShortAlias(typeof(ModifyGuildSettings))]
+		[Group(nameof(ModifyGuildSettings)), ModuleInitialismAlias(typeof(ModifyGuildSettings))]
 		[Summary("Modify the given setting on the guild.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
@@ -58,60 +57,60 @@ namespace Advobot.Commands
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
-			[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Reset(string settingName)
 				=> await ResetAsync(settingName).CAF();
-			[Command(nameof(IGuildSettings.Prefix)), ShortAlias(nameof(IGuildSettings.Prefix))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Prefix([ValidatePrefix] string value)
 				=> await ModifyAsync(x => x.Prefix, value).CAF();
-			[Command(nameof(IGuildSettings.NonVerboseErrors)), ShortAlias(nameof(IGuildSettings.NonVerboseErrors))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task NonVerboseErrors(AddBoolean value)
 				=> await ModifyAsync(x => x.NonVerboseErrors, value).CAF();
 			//TODO: rewrite the log channel stuff? or not cause the user has to be admin to execute this meaning they can see every channel
 			//TODO: validate invoker has higher role than bot
-			[Command(nameof(IGuildSettings.ServerLogId)), ShortAlias(nameof(IGuildSettings.ServerLogId))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task ServerLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
 				=> await ModifyAsync(x => x.ServerLogId, value?.Id ?? 0).CAF();
-			[Command(nameof(IGuildSettings.ModLogId)), ShortAlias(nameof(IGuildSettings.ModLogId))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task ModLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
 				=> await ModifyAsync(x => x.ModLogId, value?.Id ?? 0).CAF();
-			[Command(nameof(IGuildSettings.ImageLogId)), ShortAlias(nameof(IGuildSettings.ImageLogId))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task ImageLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
 				=> await ModifyAsync(x => x.ImageLogId, value?.Id ?? 0).CAF();
-			[Command(nameof(IGuildSettings.MuteRoleId)), ShortAlias(nameof(IGuildSettings.MuteRoleId))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task MuteRoleId([NotEveryoneOrManaged] SocketRole value)
 				=> await ModifyAsync(x => x.MuteRoleId, value.Id).CAF();
-			[Command(nameof(IGuildSettings.LogActions)), ShortAlias(nameof(IGuildSettings.LogActions))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task LogActions(AddBoolean add, params LogAction[] values)
 				=> await ModifyCollectionAsync(x => x.LogActions, add, values).CAF();
-			[Command(nameof(IGuildSettings.ImageOnlyChannels)), ShortAlias(nameof(IGuildSettings.ImageOnlyChannels))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task ImageOnlyChannels(
 				AddBoolean add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 				=> await ModifyCollectionAsync(x => x.ImageOnlyChannels, add, values.Select(x => x.Id)).CAF();
-			[Command(nameof(IGuildSettings.IgnoredLogChannels)), ShortAlias(nameof(IGuildSettings.IgnoredLogChannels))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task IgnoredLogChannels(
 				AddBoolean add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 				=> await ModifyCollectionAsync(x => x.IgnoredLogChannels, add, values.Select(x => x.Id)).CAF();
-			[Command(nameof(IGuildSettings.IgnoredXpChannels)), ShortAlias(nameof(IGuildSettings.IgnoredXpChannels))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task IgnoredXpChannels(
 				AddBoolean add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 				=> await ModifyCollectionAsync(x => x.IgnoredXpChannels, add, values.Select(x => x.Id)).CAF();
-			[Command(nameof(IGuildSettings.IgnoredCommandChannels)), ShortAlias(nameof(IGuildSettings.IgnoredCommandChannels))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task IgnoredCommandChannels(
 				AddBoolean add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 				=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, add, values.Select(x => x.Id)).CAF();
 
-			[Command(nameof(IGuildSettings.Quotes)), ShortAlias(nameof(IGuildSettings.Quotes))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Quotes(AddBoolean add, string name, [Optional, Remainder] string text)
 				=> await ModifyCollectionAsync(x => x.Quotes, add, new[] { new Quote(name, text ?? "") }).CAF();
 
 
 			//TODO: go back to old way in separate command because this is kind of unwieldy?
-			[Command(nameof(IGuildSettings.BotUsers)), ShortAlias(nameof(IGuildSettings.BotUsers))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task BotUsers(AddBoolean add, IUser user,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
 				=> await ModifyCollectionValuesAsync(
@@ -124,7 +123,7 @@ namespace Advobot.Commands
 						return $"Successfully {(add ? "removed" : "added")} the following bot permissions on `{user.Format()}`: `{modified}`.";
 					});
 
-			[Command(nameof(IGuildSettings.WelcomeMessage)), ShortAlias(nameof(IGuildSettings.WelcomeMessage))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task WelcomeMessage(
 				[ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel channel,
 				[Remainder] GuildNotification args)
@@ -132,7 +131,7 @@ namespace Advobot.Commands
 				(Context.GuildSettings.WelcomeMessage = args).ChannelId = channel.Id;
 				await ReplyTimedAsync("Successfully set the welcome message.").CAF();
 			}
-			[Command(nameof(IGuildSettings.GoodbyeMessage)), ShortAlias(nameof(IGuildSettings.GoodbyeMessage))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task GoodbyeMessage(
 				[ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel channel,
 				[Remainder] GuildNotification args)
@@ -142,7 +141,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyCommands)), TopLevelShortAlias(typeof(ModifyCommands))]
+		[Group(nameof(ModifyCommands)), ModuleInitialismAlias(typeof(ModifyCommands))]
 		[Summary("Turns a command on or off. " +
 			"Can turn all commands in a category on or off too. " +
 			"Cannot turn off commands which are untoggleable.")]
@@ -154,7 +153,7 @@ namespace Advobot.Commands
 
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
-			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public async Task All(AddBoolean enable)
 			{
 				var values = HelpEntries.Select(x => new ValueToModify(x, enable));
@@ -162,7 +161,7 @@ namespace Advobot.Commands
 				var text = commands.Any() ? string.Join("`, `", commands) : "None";
 				await ReplyAsync($"Successfully {GetAction(enable)} the following commands: `{text}`.").CAF();
 			}
-			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public async Task Category(AddBoolean enable, string category)
 			{
 				if (!HelpEntries.GetCategories().CaseInsContains(category))
@@ -195,7 +194,7 @@ namespace Advobot.Commands
 			private string GetAction(bool value) => value ? "enabled" : "disabled";
 		}
 
-		[Group(nameof(ModifyIgnoredCommandChannels)), TopLevelShortAlias(typeof(ModifyIgnoredCommandChannels))]
+		[Group(nameof(ModifyIgnoredCommandChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredCommandChannels))]
 		[Summary("The bot will ignore commands said on these channels. " +
 			"If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
@@ -212,7 +211,7 @@ namespace Advobot.Commands
 				AddBoolean enable,
 				[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel)
 				=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, enable, channel.Id).CAF();*/
-			[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public async Task Category(
 				AddBoolean enable,
 				string category,
@@ -261,7 +260,7 @@ namespace Advobot.Commands
 					var resp = $"Successfully added `{channel.Format()}` to the ignored command channels list.";
 					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 				}
-				[Command(nameof(Category)), ShortAlias(nameof(Category)), Priority(1)]
+				[ImplicitCommand, Priority(1)]
 				[RequireServices(typeof(IHelpEntryService))]
 				public async Task Category(
 					[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel,
@@ -308,7 +307,7 @@ namespace Advobot.Commands
 		[DefaultEnabled(false)]
 		public sealed class ModifyBotUsers : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
-			[Command(nameof(Show)), ShortAlias(nameof(Show))]
+			[ImplicitCommand]
 			public async Task Show(IUser user)
 			{
 				var botUser = Context.GuildSettings.BotUsers.SingleOrDefault(x => x.UserId == user.Id);
@@ -349,7 +348,7 @@ namespace Advobot.Commands
 			protected override IGuildSettings GetSettings() => Context.GuildSettings;
 		}*/
 
-		[Group(nameof(ModifyPersistentRoles)), TopLevelShortAlias(typeof(ModifyPersistentRoles))]
+		[Group(nameof(ModifyPersistentRoles)), ModuleInitialismAlias(typeof(ModifyPersistentRoles))]
 		[Summary("Gives a user a role that stays even when they leave and rejoin the server. " +
 			"Type `" + nameof(ModifyPersistentRoles) + " [" + nameof(Show) + "]`` to see the which users have persistent roles set up. " +
 			"Type `" + nameof(ModifyPersistentRoles) + " [" + nameof(Show) + "]` [User]` to see the persistent roles of that user.")]
@@ -358,7 +357,7 @@ namespace Advobot.Commands
 		//[SaveGuildSettings]
 		public sealed class ModifyPersistentRoles : AdvobotModuleBase
 		{
-			[Command(nameof(Show)), ShortAlias(nameof(Show))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Show([Optional] SocketGuildUser user)
 			{
 				const string TITLE = "Persistent Roles";
@@ -411,7 +410,7 @@ namespace Advobot.Commands
 		[SaveGuildSettings]
 		public sealed class ModifyChannelSettings : AdvobotModuleBase
 		{
-			[Command(nameof(ImageOnly)), ShortAlias(nameof(ImageOnly))]
+			[ImplicitCommand]
 			public async Task ImageOnly([ValidateObject(Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel)
 			{
 				if (Context.GuildSettings.ImageOnlyChannels.Contains(channel.Id))
@@ -439,7 +438,7 @@ namespace Advobot.Commands
 		[SaveGuildSettings]
 		public sealed class ModifyGuildNotifs : AdvobotModuleBase
 		{
-			[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
+			[ImplicitCommand]
 			public async Task Welcome([ValidateObject(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 			{
 				if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
@@ -450,7 +449,7 @@ namespace Advobot.Commands
 				Context.GuildSettings.WelcomeMessage = obj;
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the welcome message.").CAF();
 			}
-			[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
+			[ImplicitCommand]
 			public async Task Goodbye([ValidateObject(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
 			{
 				if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
@@ -463,16 +462,16 @@ namespace Advobot.Commands
 			}
 		}*/
 
-		[Group(nameof(TestGuildNotifs)), TopLevelShortAlias(typeof(TestGuildNotifs))]
+		[Group(nameof(TestGuildNotifs)), ModuleInitialismAlias(typeof(TestGuildNotifs))]
 		[Summary("Sends the given guild notification in order to test it.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class TestGuildNotifs : AdvobotModuleBase
 		{
-			[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Welcome()
 				=> await CommandRunner(Context.GuildSettings.WelcomeMessage, nameof(Welcome)).CAF();
-			[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Goodbye()
 				=> await CommandRunner(Context.GuildSettings.GoodbyeMessage, nameof(Goodbye)).CAF();
 

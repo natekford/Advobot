@@ -13,10 +13,9 @@ using Discord.Commands;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class GuildList : ModuleBase
 	{
-		[Group(nameof(ModifyGuildListing)), TopLevelShortAlias(typeof(ModifyGuildListing))]
+		[Group(nameof(ModifyGuildListing)), ModuleInitialismAlias(typeof(ModifyGuildListing))]
 		[Summary("Adds or removes a guild from the public guild list.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
@@ -24,7 +23,7 @@ namespace Advobot.Commands
 		{
 			public IInviteListService Invites { get; set; }
 
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Add(IInvite invite, [Optional] params string[] keywords)
 			{
 				if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
@@ -35,7 +34,7 @@ namespace Advobot.Commands
 				var listedInvite = Invites.Add(Context.Guild, invite, keywords);
 				await ReplyTimedAsync($"Successfully set the listed invite to the following:\n{listedInvite}.").CAF();
 			}
-			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove()
 			{
 				Invites.Remove(Context.Guild.Id);
@@ -43,7 +42,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(BumpGuildListing)), TopLevelShortAlias(typeof(BumpGuildListing))]
+		[Group(nameof(BumpGuildListing)), ModuleInitialismAlias(typeof(BumpGuildListing))]
 		[Summary("Bumps the invite on the guild.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
@@ -69,7 +68,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(GetGuildListing)), TopLevelShortAlias(typeof(GetGuildListing))]
+		[Group(nameof(GetGuildListing)), ModuleInitialismAlias(typeof(GetGuildListing))]
 		[Summary("Gets an invite meeting the given criteria.")]
 		[EnabledByDefault(true)]
 		public sealed class GetGuildListing : AdvobotModuleBase

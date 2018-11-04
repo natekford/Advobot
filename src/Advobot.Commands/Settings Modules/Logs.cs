@@ -17,7 +17,6 @@ using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Logs : ModuleBase
 	{
 #warning reintroduce
@@ -29,7 +28,7 @@ namespace Advobot.Commands
 		[SaveGuildSettings]
 		public sealed class ModifyLogChannels : AdvobotModuleBase
 		{
-			[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
+			[ImplicitCommand]
 			public async Task Enable(
 				LogChannelType logChannelType,
 				[ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel channel)
@@ -41,7 +40,7 @@ namespace Advobot.Commands
 				}
 				await ReplyTimedAsync($"Successfully set the {logChannelType.ToLower()} log as `{channel.Format()}`.").CAF();
 			}
-			[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
+			[ImplicitCommand]
 			public async Task Disable(LogChannelType logChannelType)
 			{
 				if (!SetLogChannel(Context.GuildSettings, logChannelType, 0))
@@ -86,20 +85,20 @@ namespace Advobot.Commands
 			}
 		}*/
 
-		[Group(nameof(ModifyIgnoredLogChannels)), TopLevelShortAlias(typeof(ModifyIgnoredLogChannels))]
+		[Group(nameof(ModifyIgnoredLogChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredLogChannels))]
 		[Summary("Ignores all logging info that would have been gotten from a channel.")]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		//[SaveGuildSettings]
 		public sealed class ModifyIgnoredLogChannels : AdvobotModuleBase
 		{
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Add([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
 			{
 				Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
 				await ReplyTimedAsync($"Successfully ignored the following channels: `{channels.Join("`, `", x => x.Format())}`.").CAF();
 			}
-			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
 			{
 				Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
@@ -107,7 +106,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyLogActions)), TopLevelShortAlias(typeof(ModifyLogActions))]
+		[Group(nameof(ModifyLogActions)), ModuleInitialismAlias(typeof(ModifyLogActions))]
 		[Summary("The server log will send messages when these events happen. " +
 			"`" + nameof(ModifyLogActions.Reset) + "` overrides the current settings. " +
 			"`" + nameof(ModifyLogActions.Show) + "` displays the possible actions.")]
@@ -125,7 +124,7 @@ namespace Advobot.Commands
 				LogAction.MessageDeleted
 			}.ToImmutableArray();
 
-			[Command(nameof(Show)), ShortAlias(nameof(Show))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Show()
 			{
 				await ReplyEmbedAsync(new EmbedWrapper
@@ -134,14 +133,14 @@ namespace Advobot.Commands
 					Description = $"`{string.Join("`, `", Enum.GetNames(typeof(LogAction)))}`"
 				}).CAF();
 			}
-			[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Reset()
 			{
 				Context.GuildSettings.LogActions.Clear();
 				Context.GuildSettings.LogActions.AddRange(_DefaultLogActions);
 				await ReplyTimedAsync("Successfully set the log actions to the default ones.").CAF();
 			}
-			[Command(nameof(ToggleAll)), ShortAlias(nameof(ToggleAll))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task ToggleAll(AddBoolean enable)
 			{
 				Context.GuildSettings.LogActions.Clear();

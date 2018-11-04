@@ -94,7 +94,7 @@ namespace Advobot.Classes
 				if (TryAddUrl(value, out var errors)) { return; }
 				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
-				_Builder.Url = null;
+				_Builder.Url = value;
 			}
 		}
 		/// <summary>
@@ -108,7 +108,7 @@ namespace Advobot.Classes
 				if (TryAddThumbnailUrl(value, out var errors)) { return; }
 				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
-				_Builder.ThumbnailUrl = null;
+				_Builder.ThumbnailUrl = value;
 			}
 		}
 		/// <summary>
@@ -122,7 +122,7 @@ namespace Advobot.Classes
 				if (TryAddImageUrl(value, out var errors)) { return; }
 				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
-				_Builder.ImageUrl = null;
+				_Builder.ImageUrl = value;
 			}
 		}
 		/// <summary>
@@ -235,12 +235,12 @@ namespace Advobot.Classes
 		/// </summary>
 		public ImmutableDictionary<string, string> FailedValues => _FailedValues.ToImmutableDictionary();
 
+		private readonly bool _ThrowOnInvalid;
 		private EmbedBuilder _Builder = new EmbedBuilder
 		{
 			Color = Base,
 			Timestamp = DateTimeOffset.UtcNow
 		};
-		private readonly bool _ThrowOnInvalid;
 		private List<EmbedError> _Errors = new List<EmbedError>();
 		private Dictionary<string, string> _FailedValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -276,17 +276,16 @@ namespace Advobot.Classes
 				errors.Add(EmbedError.LengthRemaining(nameof(Title), null, title, remainingLen));
 			}
 
-			if (!errors.Any())
-			{
-				_Builder.Title = title;
-				_FailedValues.Remove(nameof(Title));
-			}
-			else
+			if (errors.Any())
 			{
 				_Errors.AddRange(errors);
 				_FailedValues[nameof(Title)] = title;
+				return false;
 			}
-			return !errors.Any();
+
+			_Builder.Title = title;
+			_FailedValues.Remove(nameof(Title));
+			return true;
 		}
 		/// <summary>
 		/// Attempts to modify the description. Does nothing if fails.
@@ -311,17 +310,16 @@ namespace Advobot.Classes
 				errors.Add(EmbedError.LengthRemaining(nameof(Description), null, description, remainingLen));
 			}
 
-			if (!errors.Any())
-			{
-				_Builder.Description = description;
-				_FailedValues.Remove(nameof(Description));
-			}
-			else
+			if (errors.Any())
 			{
 				_Errors.AddRange(errors);
 				_FailedValues[nameof(Description)] = description;
+				return false;
 			}
-			return !errors.Any();
+
+			_Builder.Description = description;
+			_FailedValues.Remove(nameof(Description));
+			return true;
 		}
 		/// <summary>
 		/// Attempts to modify the url. Does nothing if fails.
@@ -332,22 +330,18 @@ namespace Advobot.Classes
 		public bool TryAddUrl(string url, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
-			if (!url.IsValidUrl())
+			if (url != null && !url.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(Url), null, url));
-			}
 
-			if (!errors.Any())
-			{
-				_Builder.Url = url;
-				_FailedValues.Remove(nameof(Url));
-			}
-			else
-			{
 				_Errors.AddRange(errors);
 				_FailedValues[nameof(Url)] = url;
+				return false;
 			}
-			return !errors.Any();
+
+			_Builder.Url = url;
+			_FailedValues.Remove(nameof(Url));
+			return true;
 		}
 		/// <summary>
 		/// Attempts to modify the thumbnail url. Does nothing if fails.
@@ -358,22 +352,18 @@ namespace Advobot.Classes
 		public bool TryAddThumbnailUrl(string thumbnailUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
-			if (!thumbnailUrl.IsValidUrl())
+			if (thumbnailUrl != null && !thumbnailUrl.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(ThumbnailUrl), null, thumbnailUrl));
-			}
 
-			if (!errors.Any())
-			{
-				_Builder.ThumbnailUrl = thumbnailUrl;
-				_FailedValues.Remove(nameof(ThumbnailUrl));
-			}
-			else
-			{
 				_Errors.AddRange(errors);
 				_FailedValues[nameof(ThumbnailUrl)] = thumbnailUrl;
+				return false;
 			}
-			return !errors.Any();
+
+			_Builder.ThumbnailUrl = thumbnailUrl;
+			_FailedValues.Remove(nameof(ThumbnailUrl));
+			return true;
 		}
 		/// <summary>
 		/// Attempts to modify the image url. Does nothing if fails.
@@ -384,22 +374,18 @@ namespace Advobot.Classes
 		public bool TryAddImageUrl(string imageUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
-			if (!imageUrl.IsValidUrl())
+			if (imageUrl != null && !imageUrl.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(ImageUrl), null, imageUrl));
-			}
 
-			if (!errors.Any())
-			{
-				_Builder.ImageUrl = imageUrl;
-				_FailedValues.Remove(nameof(ImageUrl));
-			}
-			else
-			{
 				_Errors.AddRange(errors);
 				_FailedValues[nameof(ImageUrl)] = imageUrl;
+				return false;
 			}
-			return !errors.Any();
+
+			_Builder.ImageUrl = imageUrl;
+			_FailedValues.Remove(nameof(ImageUrl));
+			return true;
 		}
 		/// <summary>
 		/// Attempts to modify the author. Does nothing if fails.
@@ -421,31 +407,30 @@ namespace Advobot.Classes
 			{
 				errors.Add(EmbedError.LengthRemaining(nameof(Author), nameof(EmbedAuthorBuilder.Name), name, remainingLen));
 			}
-			if (!url.IsValidUrl())
+			if (url != null && !url.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(Author), nameof(EmbedAuthorBuilder.Url), url));
 			}
-			if (!iconUrl.IsValidUrl())
+			if (iconUrl != null && !iconUrl.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(Author), nameof(EmbedAuthorBuilder.IconUrl), iconUrl));
 			}
 
-			if (!errors.Any())
-			{
-				_Builder.Author = new EmbedAuthorBuilder
-				{
-					Name = name,
-					Url = url,
-					IconUrl = iconUrl
-				};
-				_FailedValues.Remove(nameof(Author));
-			}
-			else
+			if (errors.Any())
 			{
 				_Errors.AddRange(errors);
 				_FailedValues[nameof(Author)] = $"{name}\n{url}\n{iconUrl}";
+				return false;
 			}
-			return !errors.Any();
+
+			_Builder.Author = new EmbedAuthorBuilder
+			{
+				Name = name,
+				Url = url,
+				IconUrl = iconUrl
+			};
+			_FailedValues.Remove(nameof(Author));
+			return true;
 		}
 		/// <summary>
 		/// Attempts to modify the author using a user. Does nothing if fails.
@@ -474,26 +459,25 @@ namespace Advobot.Classes
 			{
 				errors.Add(EmbedError.LengthRemaining(nameof(Footer), nameof(EmbedFooterBuilder.Text), text, remainingLen));
 			}
-			if (!iconUrl.IsValidUrl() && iconUrl != null)
+			if (iconUrl != null && !iconUrl.IsValidUrl())
 			{
 				errors.Add(EmbedError.Url(nameof(Footer), nameof(iconUrl), iconUrl));
 			}
 
-			if (!errors.Any())
-			{
-				_Builder.Footer = new EmbedFooterBuilder
-				{
-					Text = text,
-					IconUrl = iconUrl
-				};
-				_FailedValues.Remove(nameof(Footer));
-			}
-			else
+			if (errors.Any())
 			{
 				_Errors.AddRange(errors);
 				_FailedValues[nameof(Footer)] = $"{text}\n{iconUrl}";
+				return false;
 			}
-			return !errors.Any();
+
+			_Builder.Footer = new EmbedFooterBuilder
+			{
+				Text = text,
+				IconUrl = iconUrl
+			};
+			_FailedValues.Remove(nameof(Footer));
+			return true;
 		}
 		/// <summary>
 		/// Attempts to add a field. Does nothing if fails.
@@ -544,22 +528,21 @@ namespace Advobot.Classes
 				errors.Add(EmbedError.LengthRemaining(nameof(Fields), nameof(EmbedBuilder.MaxEmbedLength), name + "\n" + value, remainingLen));
 			}
 
-			if (!errors.Any())
-			{
-				_FailedValues.Remove($"Field {_Builder.Fields.Count}");
-				_Builder.Fields.Add(new EmbedFieldBuilder
-				{
-					Name = name,
-					Value = value,
-					IsInline = inline
-				});
-			}
-			else
+			if (errors.Any())
 			{
 				_Errors.AddRange(errors);
 				_FailedValues[$"Field {_Builder.Fields.Count}"] = $"{name}\n{value}";
+				return false;
 			}
-			return !errors.Any();
+
+			_FailedValues.Remove($"Field {_Builder.Fields.Count}");
+			_Builder.Fields.Add(new EmbedFieldBuilder
+			{
+				Name = name,
+				Value = value,
+				IsInline = inline
+			});
+			return true;
 		}
 		/// <summary>
 		/// Attempts to remove a field. Does nothing if fails.
@@ -585,13 +568,15 @@ namespace Advobot.Classes
 				errors.Add(new EmbedError(nameof(Fields), nameof(index), index, $"Out of bounds."));
 			}
 
-			if (!errors.Any())
+			if (errors.Any())
 			{
-				field = _Builder.Fields[index];
-				_Builder.Fields.RemoveAt(index);
+				_Errors.AddRange(errors);
+				return false;
 			}
-			_Errors.AddRange(errors);
-			return !errors.Any();
+
+			field = _Builder.Fields[index];
+			_Builder.Fields.RemoveAt(index);
+			return true;
 		}
 		/// <summary>
 		/// Attempts to modify a field. Does nothing if fails.
@@ -609,7 +594,6 @@ namespace Advobot.Classes
 				return false;
 			}
 			//If the field fails to be removed then it has to be reinserted
-
 			if (!TryAddField(name, value, inLine, out errors))
 			{
 				_Builder.Fields.Insert(index, field);
@@ -707,7 +691,6 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public override string ToString()
 			=> _FailedValues.Join("\n\n", x => $"{x.Key}:\n{x.Value}");
-
 		/// <summary>
 		/// Converts an <see cref="EmbedWrapper"/> to a <see cref="Embed"/>.
 		/// </summary>

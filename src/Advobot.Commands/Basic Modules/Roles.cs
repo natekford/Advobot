@@ -18,10 +18,9 @@ using Discord.WebSocket;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Roles : ModuleBase
 	{
-		[Group(nameof(GiveRole)), TopLevelShortAlias(typeof(GiveRole))]
+		[Group(nameof(GiveRole)), ModuleInitialismAlias(typeof(GiveRole))]
 		[Summary("Gives the role(s) to the user (assuming the person using the command and bot both have the ability to give that role).")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
@@ -35,7 +34,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(TakeRole)), TopLevelShortAlias(typeof(TakeRole))]
+		[Group(nameof(TakeRole)), ModuleInitialismAlias(typeof(TakeRole))]
 		[Summary("Takes the role(s) from the user (assuming the person using the command and bot both have the ability to take that role).")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
@@ -49,7 +48,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(CreateRole)), TopLevelShortAlias(typeof(CreateRole))]
+		[Group(nameof(CreateRole)), ModuleInitialismAlias(typeof(CreateRole))]
 		[Summary("Adds a role to the guild with the chosen name.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
@@ -63,7 +62,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(SoftDeleteRole)), TopLevelShortAlias(typeof(SoftDeleteRole))]
+		[Group(nameof(SoftDeleteRole)), ModuleInitialismAlias(typeof(SoftDeleteRole))]
 		[Summary("Deletes the role, thus removing all channel overwrites the role had and removing the role from everyone. " +
 			"Leaves the name, color, permissions, and position behind in a newly created role.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
@@ -80,7 +79,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(DeleteRole)), TopLevelShortAlias(typeof(DeleteRole))]
+		[Group(nameof(DeleteRole)), ModuleInitialismAlias(typeof(DeleteRole))]
 		[Summary("Deletes the role.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
@@ -94,7 +93,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyRolePosition)), TopLevelShortAlias(typeof(ModifyRolePosition))]
+		[Group(nameof(ModifyRolePosition)), ModuleInitialismAlias(typeof(ModifyRolePosition))]
 		[Summary("If only a role is input its position will be listed, else moves the role to the given position. " +
 			"Everyone is the first position and starts at zero.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
@@ -109,7 +108,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(DisplayRolePositions)), TopLevelShortAlias(typeof(DisplayRolePositions))]
+		[Group(nameof(DisplayRolePositions)), ModuleInitialismAlias(typeof(DisplayRolePositions))]
 		[Summary("Lists the positions of each role on the guild.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
@@ -127,7 +126,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyRolePerms)), TopLevelShortAlias(typeof(ModifyRolePerms))]
+		[Group(nameof(ModifyRolePerms)), ModuleInitialismAlias(typeof(ModifyRolePerms))]
 		[Summary("Permissions must be separated by a `/` or their rawvalue can be said instead. " +
 			"Type `" + nameof(ModifyRolePerms) + " [Show]` to see the available permissions. " +
 			"Type `" + nameof(ModifyRolePerms) + " [Show] [Role]` to see the permissions of that role.")]
@@ -135,7 +134,7 @@ namespace Advobot.Commands
 		[EnabledByDefault(true)]
 		public sealed class ModifyRolePerms : AdvobotModuleBase
 		{
-			[Command(nameof(Show)), ShortAlias(nameof(Show))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Show([Optional, ValidateRole] SocketRole role)
 			{
 				if (role == null)
@@ -149,12 +148,12 @@ namespace Advobot.Commands
 				}
 				await ReplyIfAny(EnumUtils.GetFlagNames((GuildPermission)role.Permissions.RawValue), role, "Permissions", x => x).CAF();
 			}
-			[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Allow(
 				[ValidateRole] SocketRole role,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
 				=> await CommandRunner(role, permissions, true);
-			[Command(nameof(Deny)), ShortAlias(nameof(Deny))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Deny(
 				[ValidateRole] SocketRole role,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
@@ -173,7 +172,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(CopyRolePerms)), TopLevelShortAlias(typeof(CopyRolePerms))]
+		[Group(nameof(CopyRolePerms)), ModuleInitialismAlias(typeof(CopyRolePerms))]
 		[Summary("Copies the permissions from the first role to the second role. " +
 			"Will not copy roles that the user does not have access to. " +
 			"Will not overwrite roles that are above the user's top role.")]
@@ -213,7 +212,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ClearRolePerms)), TopLevelShortAlias(typeof(ClearRolePerms))]
+		[Group(nameof(ClearRolePerms)), ModuleInitialismAlias(typeof(ClearRolePerms))]
 		[Summary("Removes all permissions from a role.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
@@ -235,7 +234,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyRoleName)), TopLevelShortAlias(typeof(ModifyRoleName))]
+		[Group(nameof(ModifyRoleName)), ModuleInitialismAlias(typeof(ModifyRoleName))]
 		[Summary("Changes the name of the role.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
@@ -244,7 +243,7 @@ namespace Advobot.Commands
 			[Command, Priority(1)]
 			public async Task Command([NotEveryone] SocketRole role, [Remainder, ValidateRoleName] string name)
 				=> await CommandRunner(role, name).CAF();
-			[Command(nameof(Position))]
+			[ImplicitCommand]
 			public async Task Position(
 				[OverrideTypeReader(typeof(RolePositionTypeReader)), NotEveryone] SocketRole role,
 				[Remainder, ValidateRoleName] string name)
@@ -257,7 +256,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyRoleColor)), TopLevelShortAlias(typeof(ModifyRoleColor))]
+		[Group(nameof(ModifyRoleColor)), ModuleInitialismAlias(typeof(ModifyRoleColor))]
 		[Summary("Changes the role's color. " +
 			"Color must be valid hexadecimal or the name of a default role color. ")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
@@ -273,7 +272,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyRoleHoist)), TopLevelShortAlias(typeof(ModifyRoleHoist))]
+		[Group(nameof(ModifyRoleHoist)), ModuleInitialismAlias(typeof(ModifyRoleHoist))]
 		[Summary("Displays a role separately from others on the user list. " +
 			"Saying the command again remove it from being hoisted.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
@@ -288,7 +287,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyRoleMentionability)), TopLevelShortAlias(typeof(ModifyRoleMentionability))]
+		[Group(nameof(ModifyRoleMentionability)), ModuleInitialismAlias(typeof(ModifyRoleMentionability))]
 		[Summary("Allows the role to be mentioned. " +
 			"Saying the command again removes its ability to be mentioned.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]

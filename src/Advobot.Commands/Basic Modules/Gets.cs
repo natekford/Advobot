@@ -22,10 +22,9 @@ using Discord.WebSocket;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Gets : ModuleBase
 	{
-		[Group(nameof(GetInfo)), TopLevelShortAlias(typeof(GetInfo))]
+		[Group(nameof(GetInfo)), ModuleInitialismAlias(typeof(GetInfo))]
 		[Summary("Shows information about the given object. " +
 			"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[EnabledByDefault(true)]
@@ -33,58 +32,58 @@ namespace Advobot.Commands
 		{
 			public ILogService Logging { get; set; }
 
-			[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Bot()
 				=> await ReplyEmbedAsync(DiscordFormatting.FormatBotInfo(Context.Client, Logging)).CAF();
-			[Command(nameof(Shards)), ShortAlias(nameof(Shards))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Shards()
 				=> await ReplyEmbedAsync(DiscordFormatting.FormatShardsInfo(Context.Client)).CAF();
-			[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Guild()
 				=> await ReplyEmbedAsync(DiscordFormatting.FormatGuildInfo(Context.Guild)).CAF();
-			[Command(nameof(GuildUsers)), ShortAlias(nameof(GuildUsers))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task GuildUsers()
 				=> await ReplyEmbedAsync(DiscordFormatting.FormatAllGuildUsersInfo(Context.Guild)).CAF();
-			[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Channel(SocketGuildChannel channel)
 				=> await ReplyEmbedAsync(DiscordFormatting.FormatChannelInfo(channel, Context.GuildSettings)).CAF();
-			[Command(nameof(Role)), ShortAlias(nameof(Role))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Role(SocketRole role)
 				=> await ReplyEmbedAsync(DiscordFormatting.FormatRoleInfo(role)).CAF();
-			[Command(nameof(User)), ShortAlias(nameof(User))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task User(SocketUser user)
 				=> await ReplyEmbedAsync(user is SocketGuildUser guildUser
 					? DiscordFormatting.FormatGuildUserInfo(guildUser)
 					: DiscordFormatting.FormatUserInfo(user)).CAF();
-			[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Emote(Emote emote)
 				=> await ReplyEmbedAsync(emote is GuildEmote guildEmote
 					? DiscordFormatting.FormatGuildEmoteInfo(Context.Guild, guildEmote)
 					: DiscordFormatting.FormatEmoteInfo(emote)).CAF();
-			[Command(nameof(Invite)), ShortAlias(nameof(Invite))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Invite(IInvite invite)
 				=> await ReplyEmbedAsync(DiscordFormatting.FormatInviteInfo(invite as IInviteMetadata)).CAF();
-			[Command(nameof(Webhook)), ShortAlias(nameof(Webhook))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Webhook(IWebhook webhook)
 				=> await ReplyEmbedAsync(DiscordFormatting.FormatWebhookInfo(Context.Guild, webhook)).CAF();
 		}
 
-		[Group(nameof(GetUsersWithReason)), TopLevelShortAlias(typeof(GetUsersWithReason))]
+		[Group(nameof(GetUsersWithReason)), ModuleInitialismAlias(typeof(GetUsersWithReason))]
 		[Summary("Finds users with either a role, a name, a game, or who are streaming.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetUsersWithReason : AdvobotModuleBase
 		{
-			[Command(nameof(Role)), ShortAlias(nameof(Role))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Role(SocketRole role)
 				=> await CommandRunner($"Users With The Role '{role.Name}'", x => x.Roles.Select(r => r.Id).Contains(role.Id)).CAF();
-			[Command(nameof(Name)), ShortAlias(nameof(Name))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Name(string name)
 				=> await CommandRunner($"Users With Names/Nicknames Containing '{name}'", x => x.Username.CaseInsContains(name) || x.Nickname.CaseInsContains(name)).CAF();
-			[Command(nameof(Game)), ShortAlias(nameof(Game))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Game(string game)
 				=> await CommandRunner($"Users With Games Containing '{game}'", x => x.Activity is Game g && g.Name.CaseInsContains(game)).CAF();
-			[Command(nameof(Stream)), ShortAlias(nameof(Stream))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Stream()
 				=> await CommandRunner("Users Who Are Streaming", x => x.Activity is StreamingGame).CAF();
 
@@ -92,7 +91,7 @@ namespace Advobot.Commands
 				=> await ReplyIfAny(Context.Guild.Users.Where(predicate).OrderBy(x => x.JoinedAt), title, x => x.Format()).CAF();
 		}
 
-		[Group(nameof(GetUserAvatar)), TopLevelShortAlias(typeof(GetUserAvatar))]
+		[Group(nameof(GetUserAvatar)), ModuleInitialismAlias(typeof(GetUserAvatar))]
 		[Summary("Shows the URL of the given user's avatar.")]
 		[EnabledByDefault(true)]
 		public sealed class GetUserAvatar : AdvobotModuleBase
@@ -102,7 +101,7 @@ namespace Advobot.Commands
 				=> await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl()).CAF();
 		}
 
-		[Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(typeof(GetUserJoinedAt))]
+		[Group(nameof(GetUserJoinedAt)), ModuleInitialismAlias(typeof(GetUserJoinedAt))]
 		[Summary("Shows the user which joined the guild in that position.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
@@ -119,7 +118,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(GetGuilds)), TopLevelShortAlias(typeof(GetGuilds))]
+		[Group(nameof(GetGuilds)), ModuleInitialismAlias(typeof(GetGuilds))]
 		[Summary("Lists the name, id, and owner of every guild the bot is on.")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -146,7 +145,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(GetUserJoinList)), TopLevelShortAlias(typeof(GetUserJoinList))]
+		[Group(nameof(GetUserJoinList)), ModuleInitialismAlias(typeof(GetUserJoinList))]
 		[Summary("Lists most of the users who have joined the guild.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
@@ -165,7 +164,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(GetMessages)), TopLevelShortAlias(typeof(GetMessages))]
+		[Group(nameof(GetMessages)), ModuleInitialismAlias(typeof(GetMessages))]
 		[Summary("Downloads the past x amount of messages. " +
 			"Up to 1000 messages or 500KB worth of formatted text.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
@@ -199,16 +198,16 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(GetPermNamesFromValue)), TopLevelShortAlias(typeof(GetPermNamesFromValue))]
+		[Group(nameof(GetPermNamesFromValue)), ModuleInitialismAlias(typeof(GetPermNamesFromValue))]
 		[Summary("Lists all the perms that come from the given value.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetPermNamesFromValue : AdvobotModuleBase
 		{
-			[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Guild(ulong number)
 				=> await CommandRunner(number, EnumUtils.GetFlagNames((GuildPermission)number)).CAF();
-			[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Channel(ulong number)
 				=> await CommandRunner(number, EnumUtils.GetFlagNames((ChannelPermission)number)).CAF();
 
@@ -216,13 +215,13 @@ namespace Advobot.Commands
 				=> await ReplyIfAny(perms, value, "Permissions", x => x).CAF();
 		}
 
-		[Group(nameof(GetEnumNames)), TopLevelShortAlias(typeof(GetEnumNames))]
+		[Group(nameof(GetEnumNames)), ModuleInitialismAlias(typeof(GetEnumNames))]
 		[Summary("Prints out all the options of an enum.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetEnumNames : AdvobotModuleBase
 		{
-			[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public async Task Show()
 			{
 				await ReplyEmbedAsync(new EmbedWrapper

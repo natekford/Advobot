@@ -98,10 +98,10 @@ namespace Advobot.Commands.BannedPhrases
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
 		public sealed class Regex : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
-			[Command(nameof(Show)), ShortAlias(nameof(Show))]
+			[ImplicitCommand]
 			public async Task Show()
 				=> await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseRegex, nameof(Regex)).CAF();
-			[Command(nameof(ShowEvaluated)), ShortAlias(nameof(ShowEvaluated))]
+			[ImplicitCommand]
 			public async Task ShowEvaluated()
 			{
 				var embed = new EmbedWrapper
@@ -111,7 +111,7 @@ namespace Advobot.Commands.BannedPhrases
 				};
 				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand]
 			public async Task Add(uint position)
 			{
 				if (position > Context.GuildSettings.EvaluatedRegex.Count)
@@ -145,10 +145,10 @@ namespace Advobot.Commands.BannedPhrases
 		[Group(nameof(String)), ShortAlias(nameof(String))]
 		public sealed class String : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
-			[Command(nameof(Show)), ShortAlias(nameof(Show))]
+			[ImplicitCommand]
 			public async Task Show()
 				=> await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseStrings, nameof(String)).CAF();
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand]
 			public async Task Add(string text)
 				=> await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseStrings, text, nameof(String), Context.BotSettings.MaxBannedStrings).CAF();
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
@@ -165,10 +165,10 @@ namespace Advobot.Commands.BannedPhrases
 		[Group(nameof(Name)), ShortAlias(nameof(Name))]
 		public sealed class Name : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
-			[Command(nameof(Show)), ShortAlias(nameof(Show))]
+			[ImplicitCommand]
 			public async Task Show()
 				=> await ModifyBannedPhrases.Show(Context, Context.GuildSettings.BannedPhraseNames, nameof(Name)).CAF();
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand]
 			public async Task Add(string text)
 				=> await ModifyBannedPhrases.Add(Context, Context.GuildSettings.BannedPhraseNames, text, nameof(Name), Context.BotSettings.MaxBannedNames).CAF();
 			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
@@ -241,7 +241,7 @@ namespace Advobot.Commands.BannedPhrases
 		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
 		public sealed class Regex : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
-			[Command(nameof(Show)), ShortAlias(nameof(Show))]
+			[ImplicitCommand]
 			public async Task Show()
 				=> await ModifyPunishmentType.Show(Context, Context.GuildSettings.BannedPhraseRegex, nameof(Regex)).CAF();
 			[Command, Priority(1)]
@@ -254,7 +254,7 @@ namespace Advobot.Commands.BannedPhrases
 		[Group(nameof(String)), ShortAlias(nameof(String))]
 		public sealed class String : AdvobotSettingsSavingModuleBase<IGuildSettings>
 		{
-			[Command(nameof(Show)), ShortAlias(nameof(Show))]
+			[ImplicitCommand]
 			public async Task Show()
 				=> await ModifyPunishmentType.Show(Context, Context.GuildSettings.BannedPhraseStrings, nameof(String)).CAF();
 			[Command, Priority(1)]
@@ -312,7 +312,7 @@ namespace Advobot.Commands.BannedPhrases
 	[SaveGuildSettings]
 	public sealed class ModifyBannedPhrasePunishments : AdvobotModuleBase
 	{
-		[Command(nameof(Show)), ShortAlias(nameof(Show))]
+		[ImplicitCommand]
 		public async Task Show()
 		{
 			var embed = new EmbedWrapper
@@ -378,7 +378,7 @@ namespace Advobot.Commands.BannedPhrases
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
-		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		[ImplicitCommand]
 		public async Task Remove(uint position)
 		{
 			var removed = Context.GuildSettings.BannedPhrasePunishments.RemoveAll(x => x.NumberOfRemoves == position);

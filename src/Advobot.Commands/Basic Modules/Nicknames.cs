@@ -16,10 +16,9 @@ using Discord.WebSocket;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Nicknames : ModuleBase
 	{
-		[Group(nameof(ModifyNickName)), TopLevelShortAlias(typeof(ModifyNickName))]
+		[Group(nameof(ModifyNickName)), ModuleInitialismAlias(typeof(ModifyNickName))]
 		[Summary("Gives the user a nickname. " +
 			"Inputting no nickname resets their nickname.")]
 		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
@@ -34,7 +33,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ReplaceWordsInNames)), TopLevelShortAlias(typeof(ReplaceWordsInNames))]
+		[Group(nameof(ReplaceWordsInNames)), ModuleInitialismAlias(typeof(ReplaceWordsInNames))]
 		[Summary("Gives users a new nickname if their nickname or username contains the search phrase. " +
 			"Max is 100 users per use unless the bypass string is said.")]
 		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
@@ -55,7 +54,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ReplaceByUtf16)), TopLevelShortAlias(typeof(ReplaceByUtf16))]
+		[Group(nameof(ReplaceByUtf16)), ModuleInitialismAlias(typeof(ReplaceByUtf16))]
 		[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. " +
 			"Max is 100 users per use unless the bypass string is said.")]
 		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
@@ -76,7 +75,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(RemoveAllNickNames)), TopLevelShortAlias(typeof(RemoveAllNickNames))]
+		[Group(nameof(RemoveAllNickNames)), ModuleInitialismAlias(typeof(RemoveAllNickNames))]
 		[Summary("Remove all nicknames of users on the guild. " +
 			"Max is 100 users per use unless the bypass string is said.")]
 		[UserPermissionRequirement(GuildPermission.ManageNicknames)]

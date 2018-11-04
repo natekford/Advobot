@@ -17,10 +17,9 @@ using Discord.WebSocket;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class SelfRoles : ModuleBase
 	{
-		[Group(nameof(ModifySelfRoles)), TopLevelShortAlias(typeof(ModifySelfRoles))]
+		[Group(nameof(ModifySelfRoles)), ModuleInitialismAlias(typeof(ModifySelfRoles))]
 		[Summary("Adds a role to the self assignable list. " +
 			"Roles can be grouped together which means only one role in the group can be self assigned at a time. " +
 			"Create and Delete modify the entire group. " +
@@ -30,16 +29,16 @@ namespace Advobot.Commands
 		//[SaveGuildSettings]
 		public sealed class ModifySelfRoles : AdvobotModuleBase
 		{
-			[Command(nameof(Create)), ShortAlias(nameof(Create))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Create(uint groupNumber)
 				=> await CommandRunner(groupNumber).CAF();
-			[Command(nameof(Delete)), ShortAlias(nameof(Delete))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Delete(uint groupNumber)
 				=> await CommandRunner(groupNumber).CAF();
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Add(uint groupNumber, [ValidateRole] params SocketRole[] roles)
 				=> await CommandRunner(groupNumber, roles).CAF();
-			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove(uint groupNumber, [ValidateRole] params SocketRole[] roles)
 				=> await CommandRunner(groupNumber, roles).CAF();
 
@@ -143,7 +142,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(AssignSelfRole)), TopLevelShortAlias(typeof(AssignSelfRole))]
+		[Group(nameof(AssignSelfRole)), ModuleInitialismAlias(typeof(AssignSelfRole))]
 		[Summary("Gives or takes a role depending on if the user has it already. " +
 			"Removes all other roles in the same group unless the group is `0`.")]
 		[EnabledByDefault(false)]
@@ -179,7 +178,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(DisplaySelfRoles)), TopLevelShortAlias(typeof(DisplaySelfRoles))]
+		[Group(nameof(DisplaySelfRoles)), ModuleInitialismAlias(typeof(DisplaySelfRoles))]
 		[Summary("Shows the current group numbers that exists on the guild. " +
 			"If a number is input then it shows the roles in that group.")]
 		[EnabledByDefault(false)]

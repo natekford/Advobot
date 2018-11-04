@@ -12,10 +12,9 @@ using Discord.Commands;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class SpamPrevention : ModuleBase
 	{
-		[Group(nameof(PreventSpam)), TopLevelShortAlias(typeof(PreventSpam))]
+		[Group(nameof(PreventSpam)), ModuleInitialismAlias(typeof(PreventSpam))]
 		[Summary("Spam prevention allows for some protection against mention spammers. " +
 			"Messages is the amount of messages a user has to send with the given amount of mentions before being considered as potential spam. " +
 			"Votes is the amount of users that have to agree with the potential punishment. " +
@@ -25,16 +24,16 @@ namespace Advobot.Commands
 		//[SaveGuildSettings]
 		public sealed class PreventSpam : AdvobotModuleBase
 		{
-			[Command(nameof(Create)), ShortAlias(nameof(Create))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Create(SpamPrev args)
 			{
 				Context.GuildSettings[args.Type] = args;
 				await ReplyTimedAsync($"Successfully set up the spam prevention for `{args.Type}`.\n{args}").CAF();
 			}
-			[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Enable(SpamType spamType)
 				=> await CommandRunner(spamType, true).CAF();
-			[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Disable(SpamType spamType)
 				=> await CommandRunner(spamType, false).CAF();
 
@@ -51,7 +50,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(PreventRaid)), TopLevelShortAlias(typeof(PreventRaid))]
+		[Group(nameof(PreventRaid)), ModuleInitialismAlias(typeof(PreventRaid))]
 		[Summary("Any users who joins from now on will get text muted. " +
 			"Once `preventraid` is turned off all the users who were muted will be unmuted. " +
 			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
@@ -60,16 +59,16 @@ namespace Advobot.Commands
 		//[SaveGuildSettings]
 		public sealed class PreventRaid : AdvobotModuleBase
 		{
-			[Command(nameof(Create)), ShortAlias(nameof(Create))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Create([Remainder] RaidPrev args)
 			{
 				Context.GuildSettings[args.Type] = args;
 				await ReplyTimedAsync($"Successfully set up the raid prevention for `{args.Type}`.\n{args}").CAF();
 			}
-			[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Enable(RaidType raidType)
 				=> await CommandRunner(raidType, true).CAF();
-			[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Disable(RaidType raidType)
 				=> await CommandRunner(raidType, false).CAF();
 

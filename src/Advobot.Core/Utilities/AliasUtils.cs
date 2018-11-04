@@ -9,46 +9,54 @@ namespace Advobot.Utilities
 {
 	internal static class AliasUtils
 	{
-		private static Dictionary<string, Type> _AlreadyUsed { get; } = new Dictionary<string, Type>();
-		private static List<Initialism> _Initialisms { get; } = new List<Initialism>();
-
-		public static string[] Concat(Type moduleType, string name, string[] aliases)
+		private static readonly ImmutableDictionary<string, string> _ShortenedPhrases = new Dictionary<string, string>
 		{
-			var topLevel = moduleType != null;
+			{ "clear", "clr" }
+		}.ToImmutableDictionary();
+		private static Dictionary<string, Type> _AlreadyUsedModuleAliases { get; } = new Dictionary<string, Type>();
+		private static List<(string Edited, ImmutableArray<string> Parts)> _ModuleInitialisms { get; } = new List<(string Edited, ImmutableArray<string> Parts)>();
+
+		public static string[] ConcatCommandAliases(string name, string[] aliases)
+			=> ConcatAliases(null, name, aliases);
+		public static string[] ConcatModuleAliases(Type module, string[] aliases)
+			=> ConcatAliases(module, module.Name, aliases);
+		private static string[] ConcatAliases(Type module, string name, string[] aliases)
+		{
+			var isModule = module != null;
 
 			Array.Resize(ref aliases, aliases.Length + 1);
-			aliases[aliases.Length - 1] = Shorten(name, topLevel);
+			aliases[aliases.Length - 1] = Shorten(name, isModule);
 
-			if (topLevel)
+			if (isModule)
 			{
 				foreach (var alias in aliases)
 				{
-					if (_AlreadyUsed.TryGetValue(alias, out var owner))
+					if (_AlreadyUsedModuleAliases.TryGetValue(alias, out var owner))
 					{
 						throw new InvalidOperationException($"{owner.Name} already has registered the alias {alias}.");
 					}
-					_AlreadyUsed[alias] = moduleType;
+					_AlreadyUsedModuleAliases[alias] = module;
 				}
 			}
 
 			return aliases;
 		}
-		public static string Shorten(string name, bool topLevel)
+		private static string Shorten(string name, bool isModule)
 		{
-			var initialism = new Initialism(name, topLevel);
-			if (topLevel)
+			var initialism = CreateInitialism(name, isModule);
+			if (isModule)
 			{
 				//Example with:
 				//ChangeChannelPosition
 				//ChangeChannelPerms
-				var matchingInitialisms = _Initialisms.Where(x => x.Edited.CaseInsEquals(initialism.Edited)).ToArray();
+				var matchingInitialisms = _ModuleInitialisms.Where(x => x.Edited.CaseInsEquals(initialism.Edited)).ToArray();
 				if (matchingInitialisms.Any())
 				{
 					//ChangeChannel is in both at the start, so would match with ChangeChannelPosition.
 					var matchingStarts = matchingInitialisms.Select(x =>
 					{
 						var index = -1;
-						for (var i = 0; i < Math.Min(x.Parts.Count, initialism.Parts.Count); ++i)
+						for (var i = 0; i < Math.Min(x.Parts.Length, initialism.Parts.Length); ++i)
 						{
 							if (!x.Parts[i].CaseInsEquals(initialism.Parts[i]))
 							{
@@ -64,10 +72,10 @@ namespace Advobot.Utilities
 
 					//Would do one loop and change ChangeChannelPerms' initialism from ccp to ccpe
 					var length = 1;
-					while (_Initialisms.TryGetFirst(x => x.Edited.CaseInsEquals(initialism.Edited), out _))
+					while (_ModuleInitialisms.TryGetFirst(x => x.Edited.CaseInsEquals(initialism.Edited), out _))
 					{
 						var newInitialism = new StringBuilder();
-						for (var i = 0; i < initialism.Parts.Count; ++i)
+						for (var i = 0; i < initialism.Parts.Length; ++i)
 						{
 							var p = initialism.Parts[i];
 							var l = i == indexToAddAt ? length : 1;
@@ -77,80 +85,47 @@ namespace Advobot.Utilities
 						++length;
 					}
 
-					ConsoleUtils.DebugWrite($"Changed the alias of {initialism.Original} to {initialism.Edited}.");
+					ConsoleUtils.DebugWrite($"Changed the alias of {name} to {initialism.Edited}.");
 				}
-				_Initialisms.Add(initialism);
+				_ModuleInitialisms.Add(initialism);
 			}
 			return initialism.Edited;
 		}
-
-		/// <summary>
-		/// Creates an initialism out of the passed in name. Keeps track of the parts and original.
-		/// </summary>
-		public sealed class Initialism
+		private static (string Edited, ImmutableArray<string> Parts) CreateInitialism(string name, bool isModule)
 		{
-			private static readonly ImmutableDictionary<string, string> _ShortenedPhrases = new Dictionary<string, string>
+			var parts = new List<StringBuilder>();
+			var initialism = new StringBuilder();
+
+			if (isModule)
 			{
-				{ "clear", "clr" }
-			}.ToImmutableDictionary();
-
-			/// <summary>
-			/// The original supplied name.
-			/// </summary>
-			public string Original { get; }
-			/// <summary>
-			/// The edited name which has been checked to remove any duplicate conflicts with other initialisms.
-			/// </summary>
-			public string Edited { get; set; }
-			/// <summary>
-			/// The parts of the original.
-			/// </summary>
-			public ImmutableList<string> Parts { get; }
-
-			/// <summary>
-			/// Creates an instance of <see cref="Initialism"/>.
-			/// </summary>
-			/// <param name="name"></param>
-			/// <param name="topLevel"></param>
-			public Initialism(string name, bool topLevel)
-			{
-				var editedName = name;
-				var parts = new List<StringBuilder>();
-				var initialism = new StringBuilder();
-
-				if (topLevel)
+				foreach (var kvp in _ShortenedPhrases)
 				{
-					foreach (var kvp in _ShortenedPhrases)
-					{
-						editedName = editedName.CaseInsReplace(kvp.Key, kvp.Value.ToUpper());
-					}
-					if (name.EndsWith("s"))
-					{
-						editedName = editedName.Substring(0, editedName.Length - 1) + "S";
-					}
+					name = name.CaseInsReplace(kvp.Key, kvp.Value.ToUpper());
 				}
-
-				for (int i = 0; i < editedName.Length; ++i)
+				if (name.EndsWith("s"))
 				{
-					var c = editedName[i];
-					if (char.IsUpper(c))
-					{
-						initialism.Append(c);
-						//ToString HAS to be called here or else it uses the capacity int constructor
-						parts.Add(new StringBuilder(c.ToString()));
-						continue;
-					}
-					if (i == 0)
-					{
-						throw new ArgumentException("Name must start with a capital letter.", nameof(name));
-					}
-					parts[parts.Count - 1].Append(c);
+					name = name.Substring(0, name.Length - 1) + "S";
 				}
-
-				Original = name;
-				Parts = parts.Select(x => x.ToString()).ToImmutableList();
-				Edited = initialism.ToString().ToLower();
 			}
+
+			for (int i = 0; i < name.Length; ++i)
+			{
+				var c = name[i];
+				if (char.IsUpper(c))
+				{
+					initialism.Append(c);
+					//ToString HAS to be called here or else it uses the capacity int constructor
+					parts.Add(new StringBuilder(c.ToString()));
+					continue;
+				}
+				if (i == 0)
+				{
+					throw new ArgumentException("Name must start with a capital letter.", nameof(name));
+				}
+				parts[parts.Count - 1].Append(c);
+			}
+
+			return (initialism.ToString().ToLower(), parts.Select(x => x.ToString()).ToImmutableArray());
 		}
 	}
 }

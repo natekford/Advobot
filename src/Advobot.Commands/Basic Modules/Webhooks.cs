@@ -17,10 +17,9 @@ using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Webhooks : ModuleBase
 	{
-		[Group(nameof(GetWebhooks)), TopLevelShortAlias(typeof(GetWebhooks))]
+		[Group(nameof(GetWebhooks)), ModuleInitialismAlias(typeof(GetWebhooks))]
 		[Summary("Lists all the webhooks on the guild or the specified channel.")]
 		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
@@ -34,7 +33,7 @@ namespace Advobot.Commands
 				=> await ReplyIfAny(await channel.GetWebhooksAsync().CAF(), channel, "Webhooks", x => x.Format()).CAF();
 		}
 
-		[Group(nameof(DeleteWebhook)), TopLevelShortAlias(typeof(DeleteWebhook))]
+		[Group(nameof(DeleteWebhook)), ModuleInitialismAlias(typeof(DeleteWebhook))]
 		[Summary("Deletes a webhook from the guild.")]
 		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
@@ -48,7 +47,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyWebhookName)), TopLevelShortAlias(typeof(ModifyWebhookName))]
+		[Group(nameof(ModifyWebhookName)), ModuleInitialismAlias(typeof(ModifyWebhookName))]
 		[Summary("Changes the name of a webhook.")]
 		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
@@ -62,7 +61,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyWebhookChannel)), TopLevelShortAlias(typeof(ModifyWebhookChannel))]
+		[Group(nameof(ModifyWebhookChannel)), ModuleInitialismAlias(typeof(ModifyWebhookChannel))]
 		[Summary("Changes the channel of a webhook.")]
 		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
@@ -78,7 +77,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyWebhookIcon)), TopLevelShortAlias(typeof(ModifyWebhookIcon))]
+		[Group(nameof(ModifyWebhookIcon)), ModuleInitialismAlias(typeof(ModifyWebhookIcon))]
 		[Summary("Changes the icon of a webhook.")]
 		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
@@ -92,7 +91,7 @@ namespace Advobot.Commands
 					await webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions()).CAF();
 				})).CAF();
 			}
-			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove(IWebhook webhook)
 			{
 				await webhook.ModifyAsync(x => x.Image = new Image(), GenerateRequestOptions()).CAF();
@@ -100,13 +99,12 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(SendMessageThroughWebhook)), TopLevelShortAlias(typeof(SendMessageThroughWebhook))]
+		[Group(nameof(SendMessageThroughWebhook)), ModuleInitialismAlias(typeof(SendMessageThroughWebhook))]
 		[Summary("Sends a message through a webhook. Use this command if you're annoying.")]
 		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(false)]
 		public sealed class SendMessageThroughWebhook : AdvobotModuleBase
 		{
-#warning make into service
 			private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks = new ConcurrentDictionary<ulong, ulong>();
 			private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients = new ConcurrentDictionary<ulong, DiscordWebhookClient>();
 

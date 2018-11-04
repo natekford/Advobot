@@ -1,4 +1,8 @@
-﻿using System;
+﻿#define TWO_LISTS
+//Because without having the actual source list from the settings and a seperate list for the UI
+//when the settings list gets modified it attempts to modify the UI from not the UI thread
+
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Input;
@@ -18,6 +22,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				nameof(UserList),
 				o => o.UserList,
 				(o, v) => o.UserList = v);
+#if TWO_LISTS
 		public ObservableCollection<ulong> UserList
 		{
 			get => _DisplayList;
@@ -64,6 +69,14 @@ namespace Advobot.NetCoreUI.Classes.Controls
 		}
 		private ObservableCollection<ulong> _DisplayList;
 		private ObservableCollection<ulong> _ActualList;
+#else
+		public ObservableCollection<ulong> UserList
+		{
+			get => _UserList;
+			set => SetAndRaise(UserListProperty, ref _UserList, value);
+		}
+		private ObservableCollection<ulong> _UserList;
+#endif
 
 		public static readonly DirectProperty<UserListEditor, ulong> CurrentIdProperty =
 			AvaloniaProperty.RegisterDirect<UserListEditor, ulong>(
@@ -99,6 +112,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				//Actual has to go before display because display being modified modifies the displayed text
 				//Or we can capture the value in a variable
 				var id = CurrentId;
+#if TWO_LISTS
 				if (!bool.Parse(x))
 				{
 					_ActualList.Remove(id);
@@ -109,6 +123,16 @@ namespace Advobot.NetCoreUI.Classes.Controls
 					_ActualList.Add(id);
 					_DisplayList.Add(id);
 				}
+#else
+				if (!bool.Parse(x))
+				{
+					_UserList.Remove(id);
+				}
+				else if (!_UserList.Contains(id))
+				{
+					_UserList.Add(id);
+				}
+#endif
 			}, this.WhenAnyValue(x => x.HasError, x => !x));
 			InitializeComponent();
 		}

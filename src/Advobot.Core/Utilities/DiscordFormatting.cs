@@ -166,9 +166,9 @@ namespace Advobot.Utilities
 					$"**Online status:** `{user.Status}`\n",
 				Color = roles.LastOrDefault(x => x.Color.RawValue != 0)?.Color,
 				ThumbnailUrl = user.GetAvatarUrl(),
+				Author = user.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = "Guild User Info", },
 			};
-			embed.TryAddAuthor(user, out _);
-			embed.TryAddFooter("Guild User Info", null, out _);
 
 			if (channels.Any())
 			{
@@ -195,16 +195,15 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static EmbedWrapper FormatUserInfo(SocketUser user)
 		{
-			var embed = new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Description = user.FormatInfo() +
 					$"{user.Activity.Format()}\n" +
 					$"**Online status:** `{user.Status}`",
-				ThumbnailUrl = user.GetAvatarUrl()
+				ThumbnailUrl = user.GetAvatarUrl(),
+				Author = user.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = "Global User Info", },
 			};
-			embed.TryAddAuthor(user, out _);
-			embed.TryAddFooter("Global User Info", null, out _);
-			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a role.
@@ -213,7 +212,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static EmbedWrapper FormatRoleInfo(SocketRole role)
 		{
-			var embed = new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Description = role.FormatInfo() +
 					$"**Position:** `{role.Position}`\n" +
@@ -223,11 +222,10 @@ namespace Advobot.Utilities
 					$"**Is Mentionable:** `{role.IsMentionable}`\n\n" +
 					$"**User Count:** `{role.Guild.Users.Count(u => u.Roles.Any(r => r.Id == role.Id))}`\n" +
 					$"**Permissions:** `{string.Join("`, `", Enum.GetValues(typeof(GuildPermission)).Cast<GuildPermission>().Where(x => role.Permissions.Has(x)))}`",
-				Color = role.Color
+				Color = role.Color,
+				Author = new EmbedAuthorBuilder { Name = role.Format(), },
+				Footer = new EmbedFooterBuilder { Text = "Role Info", },
 			};
-			embed.TryAddAuthor(role.Format(), null, null, out _);
-			embed.TryAddFooter("Role Info", null, out _);
-			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a channel.
@@ -249,7 +247,7 @@ namespace Advobot.Utilities
 						throw new InvalidOperationException("Invalid overwrite target type.");
 				}
 			});
-			var embed = new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Description = channel.FormatInfo() +
 					$"**Position:** `{channel.Position}`\n" +
@@ -261,10 +259,9 @@ namespace Advobot.Utilities
 					$"**Is Imagelog:** `{guildSettings.ImageLogId == channel.Id}`\n\n" +
 					$"**User Count:** `{channel.Users.Count}`\n" +
 					$"**Overwrites:** `{string.Join("`, `", overwriteNames)}`",
+				Author = new EmbedAuthorBuilder { Name = channel.Format(), },
+				Footer = new EmbedFooterBuilder { Text = "Channel Info", },
 			};
-			embed.TryAddAuthor(channel.Format(), null, null, out _);
-			embed.TryAddFooter("Channel Info", null, out _);
-			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a guild.
@@ -276,15 +273,12 @@ namespace Advobot.Utilities
 			int local = 0, animated = 0, managed = 0;
 			foreach (var emote in guild.Emotes)
 			{
-				if (emote.IsManaged)
-				{ ++managed; }
-				if (emote.Animated)
-				{ ++animated; }
-				else
-				{ ++local; }
+				if (emote.IsManaged) { ++managed; }
+				if (emote.Animated) { ++animated; }
+				else { ++local; }
 			}
 
-			var embed = new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Description = guild.FormatInfo() +
 					$"**Owner:** `{guild.Owner.Format()}`\n" +
@@ -304,11 +298,10 @@ namespace Advobot.Utilities
 					$"**Embed Channel:** `{guild.EmbedChannel?.Format() ?? "None"}`\n" +
 					(guild.Features.Any() ? $"**Features:** `{string.Join("`, `", guild.Features)}`" : ""),
 				Color = guild.Owner.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).LastOrDefault(x => x.Color.RawValue != 0)?.Color,
-				ThumbnailUrl = guild.IconUrl
+				ThumbnailUrl = guild.IconUrl,
+				Author = new EmbedAuthorBuilder { Name = guild.Format(), },
+				Footer = new EmbedFooterBuilder { Text = "Guild Info", },
 			};
-			embed.TryAddAuthor(guild.Format(), null, null, out _);
-			embed.TryAddFooter("Guild Info", null, out _);
-			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about every member in the guild.
@@ -355,14 +348,10 @@ namespace Advobot.Utilities
 						++watching;
 						break;
 				}
-				if (user.IsWebhook)
-				{ ++webhooks; }
-				if (user.IsBot)
-				{ ++bots; }
-				if (user.Nickname != null)
-				{ ++nickname; }
-				if (user.VoiceChannel != null)
-				{ ++voice; }
+				if (user.IsWebhook) { ++webhooks; }
+				if (user.IsBot) { ++bots; }
+				if (user.Nickname != null) { ++nickname; }
+				if (user.VoiceChannel != null) { ++voice; }
 			}
 
 			var embed = new EmbedWrapper
@@ -372,6 +361,8 @@ namespace Advobot.Utilities
 					$"**Webhooks:** `{webhooks}`\n" +
 					$"**In Voice:** `{voice}`\n" +
 					$"**Has Nickname:** `{nickname}`\n",
+				Author = new EmbedAuthorBuilder { Name = "Guild Users", },
+				Footer = new EmbedFooterBuilder { Text = "Guild Users Info", },
 			};
 			var statuses = $"**Offline:** `{offline}`\n" +
 				$"**Online:** `{online}`\n" +
@@ -384,8 +375,6 @@ namespace Advobot.Utilities
 				$"**Listening:** `{listening}`\n" +
 				$"**Watching:** `{watching}`";
 			embed.TryAddField("Activities", activities, false, out _);
-			embed.TryAddAuthor("Guild Users", null, null, out _);
-			embed.TryAddFooter("Guild Users Info", null, out _);
 			return embed;
 		}
 		/// <summary>
@@ -395,14 +384,13 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static EmbedWrapper FormatEmoteInfo(Emote emote)
 		{
-			var embed = new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Description = emote.FormatInfo(),
 				ThumbnailUrl = emote.Url,
+				Author = new EmbedAuthorBuilder { Name = emote.FormatInfo(), },
+				Footer = new EmbedFooterBuilder { Text = "Emote Info", },
 			};
-			embed.TryAddAuthor(emote.Name, null, null, out _);
-			embed.TryAddFooter("Emote Info", null, out _);
-			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a guild emote.
@@ -412,17 +400,16 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static EmbedWrapper FormatGuildEmoteInfo(SocketGuild guild, GuildEmote emote)
 		{
-			var embed = new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Description = emote.FormatInfo() +
 					$"**Is Managed:** `{emote.IsManaged}`\n" +
 					$"**Requires Colons:** `{emote.RequireColons}`\n\n" +
 					$"**Roles:** `{emote.RoleIds.Select(x => guild.GetRole(x)).OrderBy(x => x.Position).Join("`, `", x => x.Name)}`",
 				ThumbnailUrl = emote.Url,
+				Author = new EmbedAuthorBuilder { Name = emote.FormatInfo(), },
+				Footer = new EmbedFooterBuilder { Text = "Guild Emote Info", },
 			};
-			embed.TryAddAuthor(emote.Name, null, null, out _);
-			embed.TryAddFooter("Guild Emote Info", null, out _);
-			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about an invite.
@@ -431,16 +418,15 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static EmbedWrapper FormatInviteInfo(IInviteMetadata invite)
 		{
-			var embed = new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Description = $"{invite.CreatedAt.Value.UtcDateTime.ToCreatedAt()}\n" +
 					$"**Inviter:** `{invite.Inviter.Format()}`\n" +
 					$"**Channel:** `{invite.Channel.Format()}`\n" +
 					$"**Uses:** `{invite.Uses}`",
+				Author = new EmbedAuthorBuilder { Name = invite.Code, },
+				Footer = new EmbedFooterBuilder { Text = "Invite Info", },
 			};
-			embed.TryAddAuthor(invite.Code, null, null, out _);
-			embed.TryAddFooter("Invite Info", null, out _);
-			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about a webhook.
@@ -450,16 +436,15 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static EmbedWrapper FormatWebhookInfo(SocketGuild guild, IWebhook webhook)
 		{
-			var embed = new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Description = webhook.FormatInfo() +
 					$"**Creator:** `{webhook.Creator.Format()}`\n" +
 					$"**Channel:** `{guild.GetChannel(webhook.ChannelId).Format()}`\n",
 				ThumbnailUrl = webhook.GetAvatarUrl(),
+				Author = new EmbedAuthorBuilder { Name = webhook.Name, IconUrl = webhook.GetAvatarUrl(), Url = webhook.GetAvatarUrl(), },
+				Footer = new EmbedFooterBuilder { Text = "Webhook Info", },
 			};
-			embed.TryAddAuthor(webhook.Name, webhook.GetAvatarUrl(), webhook.GetAvatarUrl(), out _);
-			embed.TryAddFooter("Webhook Info", null, out _);
-			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedWrapper"/> containing information about the bot.
@@ -477,12 +462,12 @@ namespace Advobot.Utilities
 					$"**Memory Usage:** `{ProcessInfoUtils.GetMemory():0.00}MB`\n" +
 					$"**Thread Count:** `{ProcessInfoUtils.GetThreadCount()}`\n" +
 					$"**Shard Count:** `{client.Shards.Count}`",
+				Author = client.CurrentUser.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = $"Versions [Bot: {Version.VERSION_NUMBER}] [API: {Constants.API_VERSION}]", },
 			};
-			embed.TryAddAuthor(client.CurrentUser, out _);
 			embed.TryAddField("Users", logging.FormatLoggedUserActions(true, false).Trim('\n', '\r'), true, out _);
 			embed.TryAddField("Messages", logging.FormatLoggedMessageActions(true, false).Trim('\n', '\r'), true, out _);
 			embed.TryAddField("Commands", logging.FormatLoggedCommands(true, false).Trim('\n', '\r'), true, out _);
-			embed.TryAddFooter($"Versions [Bot: {Version.VERSION_NUMBER}] [API: {Constants.API_VERSION}]", null, out _);
 			return embed;
 		}
 		/// <summary>
@@ -509,12 +494,11 @@ namespace Advobot.Utilities
 				}
 				shardInfo += $"Shard `{shard.ShardId}`: `{statusEmoji} ({shard.Latency}ms)`";
 			}
-			var embed = new EmbedWrapper
+			return new EmbedWrapper
 			{
 				Description = shardInfo,
+				Author = client.CurrentUser.CreateAuthor(),
 			};
-			embed.TryAddAuthor(client.CurrentUser, out _);
-			return embed;
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedAuthorBuilder"/> containing the user's info.

@@ -12,10 +12,9 @@ using Discord.Commands;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Client : ModuleBase
 	{
-		[Group(nameof(ModifyBotName)), TopLevelShortAlias(typeof(ModifyBotName))]
+		[Group(nameof(ModifyBotName)), ModuleInitialismAlias(typeof(ModifyBotName))]
 		[Summary("Changes the bot's name to the given name.")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -29,7 +28,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyBotIcon)), TopLevelShortAlias(typeof(ModifyBotIcon))]
+		[Group(nameof(ModifyBotIcon)), ModuleInitialismAlias(typeof(ModifyBotIcon))]
 		[Summary("Changes the bot's icon to the given image. " +
 			"The image must be smaller than 2.5MB.")]
 		[RequireBotOwner]
@@ -44,7 +43,7 @@ namespace Advobot.Commands
 					await ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions()).CAF();
 				})).CAF();
 			}
-			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove()
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
@@ -52,7 +51,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(DisconnectBot)), TopLevelShortAlias(typeof(DisconnectBot), "runescapeservers")]
+		[Group(nameof(DisconnectBot)), ModuleInitialismAlias(new[] { "runescapeservers" }, typeof(DisconnectBot))]
 		[Summary("Turns the bot off.")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -63,7 +62,7 @@ namespace Advobot.Commands
 				=> await ClientUtils.DisconnectBotAsync(Context.Client).CAF();
 		}
 
-		[Group(nameof(RestartBot)), TopLevelShortAlias(typeof(RestartBot))]
+		[Group(nameof(RestartBot)), ModuleInitialismAlias(typeof(RestartBot))]
 		[Summary("Restarts the bot.")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]

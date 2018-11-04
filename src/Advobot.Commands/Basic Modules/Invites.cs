@@ -17,10 +17,9 @@ using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Invites : ModuleBase
 	{
-		[Group(nameof(DisplayInvites)), TopLevelShortAlias(typeof(DisplayInvites))]
+		[Group(nameof(DisplayInvites)), ModuleInitialismAlias(typeof(DisplayInvites))]
 		[Summary("Gives a list of all the instant invites on the guild.")]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
@@ -47,7 +46,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(CreateInvite)), TopLevelShortAlias(typeof(CreateInvite))]
+		[Group(nameof(CreateInvite)), ModuleInitialismAlias(typeof(CreateInvite))]
 		[Summary("Creates an invite on the given channel. " +
 			"No time specifies to not expire. " +
 			"No uses has no usage limit. " +
@@ -92,7 +91,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(DeleteInvite)), TopLevelShortAlias(typeof(DeleteInvite))]
+		[Group(nameof(DeleteInvite)), ModuleInitialismAlias(typeof(DeleteInvite))]
 		[Summary("Deletes the invite with the given code.")]
 		[UserPermissionRequirement(GuildPermission.ManageChannels)]
 		[EnabledByDefault(true)]
@@ -106,7 +105,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(DeleteMultipleInvites)), TopLevelShortAlias(typeof(DeleteMultipleInvites))]
+		[Group(nameof(DeleteMultipleInvites)), ModuleInitialismAlias(typeof(DeleteMultipleInvites))]
 		[Summary("Deletes all invites satisfying the given conditions. " +
 			"CountTarget parameters are either `Equal`, `Below`, or `Above`. " +
 			"IsTemporary, NeverExpires, and NoMaxUses are either `True`, or `False`.")]

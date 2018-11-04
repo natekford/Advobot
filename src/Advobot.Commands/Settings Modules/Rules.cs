@@ -16,17 +16,16 @@ using Discord.Commands;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Rules : ModuleBase
 	{
-		[Group(nameof(ModifyRuleCategories)), TopLevelShortAlias(typeof(ModifyRuleCategories))]
+		[Group(nameof(ModifyRuleCategories)), ModuleInitialismAlias(typeof(ModifyRuleCategories))]
 		[Summary("Modifies the rule categories which hold rules.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		//[SaveGuildSettings]
 		public sealed class ModifyRuleCategories : AdvobotModuleBase
 		{
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Add([ValidateRuleCategory] string name)
 			{
 				if (Context.GuildSettings.Rules.Categories.Keys.CaseInsContains(name))
@@ -39,7 +38,7 @@ namespace Advobot.Commands
 				Context.GuildSettings.Rules.Categories.Add(name, new List<string>());
 				await ReplyTimedAsync($"Successfully created the category `{name}` at `{pos}`.").CAF();
 			}
-			[Command(nameof(ChangeName)), ShortAlias(nameof(ChangeName))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task ChangeName([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [ValidateRuleCategory] string newName)
 			{
 				var oldVal = Context.GuildSettings.Rules.Categories[category];
@@ -47,7 +46,7 @@ namespace Advobot.Commands
 				Context.GuildSettings.Rules.Categories.Add(category, oldVal);
 				await ReplyTimedAsync($"Successfully changed the category `{category}` to `{newName}`.").CAF();
 			}
-			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category)
 			{
 				Context.GuildSettings.Rules.Categories.Remove(category);
@@ -56,14 +55,14 @@ namespace Advobot.Commands
 		}
 
 #warning redo how index is parsed
-		[Group(nameof(ModifyRules)), TopLevelShortAlias(typeof(ModifyRules))]
+		[Group(nameof(ModifyRules)), ModuleInitialismAlias(typeof(ModifyRules))]
 		[Summary("Modifies the rules which are saved in the bot settings.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		//[SaveGuildSettings]
 		public sealed class ModifyRules : AdvobotModuleBase
 		{
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Add([OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category, [ValidateRule] string rule)
 			{
 				if (Context.GuildSettings.Rules.Categories[category].CaseInsContains(rule))
@@ -75,7 +74,7 @@ namespace Advobot.Commands
 				Context.GuildSettings.Rules.Categories[category].Add(rule);
 				await ReplyTimedAsync($"Successfully added a rule in `{category}`.").CAF();
 			}
-			[Command(nameof(Insert)), ShortAlias(nameof(Insert))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Insert(
 				[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category,
 				[ValidatePositiveNumber] int index,
@@ -85,7 +84,7 @@ namespace Advobot.Commands
 				Context.GuildSettings.Rules.Categories[category].Insert(Math.Min(index, count - 1), rule);
 				await ReplyTimedAsync($"Successfully removed the rule at index `{index}` in `{category}`.").CAF();
 			}
-			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove(
 				[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category,
 				[ValidatePositiveNumber] int index)
@@ -100,7 +99,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(PrintOutRules)), TopLevelShortAlias(typeof(PrintOutRules))]
+		[Group(nameof(PrintOutRules)), ModuleInitialismAlias(typeof(PrintOutRules))]
 		[Summary("Prints out the rules with given formatting options. " +
 			"`Format` uses the `" + nameof(RuleFormat) + "` enum. " +
 			"`TitleFormat` and `RuleFormat` use the `" + nameof(MarkDownFormat) + "` enum. " +

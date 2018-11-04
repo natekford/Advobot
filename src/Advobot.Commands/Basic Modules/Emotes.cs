@@ -4,7 +4,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
@@ -20,10 +19,9 @@ using Discord.WebSocket;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Emotes : ModuleBase
 	{
-		[Group(nameof(CreateEmote)), TopLevelShortAlias(typeof(CreateEmote))]
+		[Group(nameof(CreateEmote)), ModuleInitialismAlias(typeof(CreateEmote))]
 		[Summary("Adds an emote to the server. " +
 			"Requires either an emote to copy, or the name and file to make an emote out of.")]
 		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
@@ -42,7 +40,7 @@ namespace Advobot.Commands
 				=> await ProcessAsync(new EmoteCreationArgs(Context, url, args, name)).CAF();
 		}
 
-		[Group(nameof(DeleteEmote)), TopLevelShortAlias(typeof(DeleteEmote))]
+		[Group(nameof(DeleteEmote)), ModuleInitialismAlias(typeof(DeleteEmote))]
 		[Summary("Deletes the supplied emote from the guild.")]
 		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
@@ -56,7 +54,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyEmoteName)), TopLevelShortAlias(typeof(ModifyEmoteName))]
+		[Group(nameof(ModifyEmoteName)), ModuleInitialismAlias(typeof(ModifyEmoteName))]
 		[Summary("Changes the name of the supplied emote.")]
 		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
@@ -70,14 +68,14 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ModifyEmoteRoles)), TopLevelShortAlias(typeof(ModifyEmoteRoles))]
+		[Group(nameof(ModifyEmoteRoles)), ModuleInitialismAlias(typeof(ModifyEmoteRoles))]
 		[Summary("Changes the roles which are ALL necessary to use an emote. " +
 			"Your Discord client will need to be restarted after editing this in order to see the emote again, even if you give yourself the roles.")]
 		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyEmoteRoles : AdvobotModuleBase
 		{
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Add(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x =>
@@ -88,7 +86,7 @@ namespace Advobot.Commands
 				}, GenerateRequestOptions()).CAF();
 				await ReplyTimedAsync($"Successfully added `{roles.Join("`, `", x => x.Format())}` as roles necessary to use `{emote}`.").CAF();
 			}
-			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
 			{
 				if (!emote.RoleIds.Any())
@@ -109,7 +107,7 @@ namespace Advobot.Commands
 				}, GenerateRequestOptions()).CAF();
 				await ReplyTimedAsync($"Successfully removed `{roles.Join("`, `", x => x.Format())}` as roles necessary to use `{emote}`.").CAF();
 			}
-			[Command(nameof(RemoveAll)), ShortAlias(nameof(RemoveAll))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task RemoveAll(GuildEmote emote)
 			{
 				if (!emote.RoleIds.Any())
@@ -123,19 +121,19 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(DisplayEmotes)), TopLevelShortAlias(typeof(DisplayEmotes))]
+		[Group(nameof(DisplayEmotes)), ModuleInitialismAlias(typeof(DisplayEmotes))]
 		[Summary("Lists the emotes in the guild. If there are more than 20 emotes of a specified type, they will be uploaded in a file.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class DisplayEmotes : AdvobotModuleBase
 		{
-			[Command(nameof(Managed)), ShortAlias(nameof(Managed))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Managed()
 				=> await CommandRunner(x => x.IsManaged).CAF();
-			[Command(nameof(Local)), ShortAlias(nameof(Local))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Local()
 				=> await CommandRunner(x => !x.IsManaged && !x.Animated).CAF();
-			[Command(nameof(Animated)), ShortAlias(nameof(Animated))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Animated()
 				=> await CommandRunner(x => x.Animated).CAF();
 

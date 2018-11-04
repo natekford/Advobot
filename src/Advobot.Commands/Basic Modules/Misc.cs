@@ -21,10 +21,9 @@ using Discord.WebSocket;
 
 namespace Advobot.Commands.Misc
 {
-	[Group]
 	public sealed class Misc : ModuleBase
 	{
-		[Group(nameof(Help)), TopLevelShortAlias(typeof(Help))]
+		[Group(nameof(Help)), ModuleInitialismAlias(typeof(Help))]
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 			"If left blank will provide general help.")]
 		[EnabledByDefault(true, AbleToToggle = false)]
@@ -88,7 +87,7 @@ namespace Advobot.Commands.Misc
 		}
 
 #warning redo category command with typereader
-		[Group(nameof(Commands)), TopLevelShortAlias(typeof(Commands))]
+		[Group(nameof(Commands)), ModuleInitialismAlias(typeof(Commands))]
 		[Summary("Prints out the commands in that category of the command list. " +
 			"Inputting nothing will list the command categories.")]
 		[EnabledByDefault(true)]
@@ -96,7 +95,7 @@ namespace Advobot.Commands.Misc
 		{
 			public IHelpEntryService HelpEntries { get; set; }
 
-			[Command(nameof(All)), ShortAlias(nameof(All))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task All()
 			{
 				await ReplyEmbedAsync(new EmbedWrapper
@@ -115,7 +114,7 @@ namespace Advobot.Commands.Misc
 				}
 				await ReplyEmbedAsync(new EmbedWrapper
 				{
-					Title = category,
+					Title = category.FormatTitle(),
 					Description = $"`{HelpEntries.GetHelpEntries(category).Join("`, `", x => x.Name)}`",
 				}).CAF();
 			}
@@ -131,7 +130,7 @@ namespace Advobot.Commands.Misc
 			}
 		}
 
-		[Group(nameof(MakeAnEmbed)), TopLevelShortAlias(typeof(MakeAnEmbed))]
+		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]
 		[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. " +
 			"FieldInfo can have up to 25 arguments supplied. " +
 			//TODO: redocument field format
@@ -145,7 +144,7 @@ namespace Advobot.Commands.Misc
 				=> await ReplyEmbedAsync(args.BuildWrapper()).CAF();
 		}
 
-		[Group(nameof(MessageRole)), TopLevelShortAlias(typeof(MessageRole))]
+		[Group(nameof(MessageRole)), ModuleInitialismAlias(typeof(MessageRole))]
 		[Summary("Mention an unmentionable role with the given message.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
@@ -167,7 +166,7 @@ namespace Advobot.Commands.Misc
 			}
 		}
 
-		[Group(nameof(MessageBotOwner)), TopLevelShortAlias(typeof(MessageBotOwner))]
+		[Group(nameof(MessageBotOwner)), ModuleInitialismAlias(typeof(MessageBotOwner))]
 		[Summary("Sends a message to the bot owner with the given text. " +
 			"Messages will be cut down to 250 characters.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
@@ -191,7 +190,7 @@ namespace Advobot.Commands.Misc
 			}
 		}
 
-		[Group(nameof(Remind)), TopLevelShortAlias(typeof(Remind))]
+		[Group(nameof(Remind)), ModuleInitialismAlias(typeof(Remind))]
 		[Summary("Sends a message to the person who said the command after the passed in time is up. " +
 			"Potentially may take one minute longer than asked for if the command is input at certain times.")]
 		[EnabledByDefault(true)]
@@ -205,7 +204,7 @@ namespace Advobot.Commands.Misc
 			}
 		}
 
-		[Group(nameof(Test)), TopLevelShortAlias(typeof(Test))]
+		[Group(nameof(Test)), ModuleInitialismAlias(typeof(Test))]
 		[Summary("Mostly just makes the bot say test.")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]

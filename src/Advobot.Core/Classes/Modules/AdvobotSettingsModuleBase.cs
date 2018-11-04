@@ -169,7 +169,7 @@ namespace Advobot.Classes.Modules
 		protected async Task ModifyCollectionAsync<TValue>(Expression<Func<TSettings, ICollection<TValue>>> selector, bool add, IEnumerable<TValue> values)
 		{
 			var (settings, setting, source, name) = GetCollection(selector);
-			var context = new CollectionModificationContext { Action = add ? CMAction.AddIfMissing : CMAction.Remove };
+			var context = new CollectionModificationContext { Action = add ? CollectionModificationAction.AddIfMissing : CollectionModificationAction.Remove };
 			var results = values.Select(x => setting.ModifyCollection(source, x, context));
 			settings.RaisePropertyChanged(name);
 

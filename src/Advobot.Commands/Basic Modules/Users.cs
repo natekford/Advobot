@@ -21,10 +21,9 @@ using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Users : ModuleBase
 	{
-		[Group(nameof(Mute)), TopLevelShortAlias(typeof(Mute))]
+		[Group(nameof(Mute)), ModuleInitialismAlias(typeof(Mute))]
 		[Summary("Prevents a user from typing and speaking in the guild. " +
 			"Time is in minutes, and if no time is given then the mute will not expire.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
@@ -95,7 +94,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(VoiceMute)), TopLevelShortAlias(typeof(VoiceMute))]
+		[Group(nameof(VoiceMute)), ModuleInitialismAlias(typeof(VoiceMute))]
 		[Summary("Prevents a user from speaking. " +
 			"Time is in minutes, and if no time is given then the mute will not expire.")]
 		[UserPermissionRequirement(GuildPermission.MuteMembers)]
@@ -119,7 +118,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(Deafen)), TopLevelShortAlias(typeof(Deafen))]
+		[Group(nameof(Deafen)), ModuleInitialismAlias(typeof(Deafen))]
 		[Summary("Prevents a user from hearing. " +
 			"Time is in minutes, and if no time is given then the mute will not expire.")]
 		[UserPermissionRequirement(GuildPermission.DeafenMembers)]
@@ -143,7 +142,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(MoveUser)), TopLevelShortAlias(typeof(MoveUser))]
+		[Group(nameof(MoveUser)), ModuleInitialismAlias(typeof(MoveUser))]
 		[Summary("Moves the user to the given voice channel.")]
 		[UserPermissionRequirement(GuildPermission.MoveMembers)]
 		[EnabledByDefault(true)]
@@ -163,7 +162,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(MoveUsers)), TopLevelShortAlias(typeof(MoveUsers))]
+		[Group(nameof(MoveUsers)), ModuleInitialismAlias(typeof(MoveUsers))]
 		[Summary("Moves all users from one channel to another. " +
 			"Max is 100 users per use unless the bypass string is said.")]
 		[UserPermissionRequirement(GuildPermission.MoveMembers)]
@@ -178,7 +177,7 @@ namespace Advobot.Commands
 				=> await Process(input.Users, bypass, x => true, (u, o) => u.ModifyAsync(x => x.Channel = output, o)).CAF();
 		}
 
-		[Group(nameof(PruneUsers)), TopLevelShortAlias(typeof(PruneUsers))]
+		[Group(nameof(PruneUsers)), ModuleInitialismAlias(typeof(PruneUsers))]
 		[Summary("Removes users who have no roles and have not been seen in the given amount of days. " +
 			"If the optional argument is not typed exactly, then the bot will only give a number of how many people will be kicked.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
@@ -194,7 +193,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(SoftBan)), TopLevelShortAlias(typeof(SoftBan))]
+		[Group(nameof(SoftBan)), ModuleInitialismAlias(typeof(SoftBan))]
 		[Summary("Bans then unbans a user, which removes all recent messages from them.")]
 		[UserPermissionRequirement(GuildPermission.BanMembers, GuildPermission.KickMembers)]
 		[EnabledByDefault(true)]
@@ -212,7 +211,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(Ban)), TopLevelShortAlias(typeof(Ban))]
+		[Group(nameof(Ban)), ModuleInitialismAlias(typeof(Ban))]
 		[Summary("Bans the user from the guild. " +
 			"Time specifies how long and is in minutes.")]
 		[UserPermissionRequirement(GuildPermission.BanMembers)]
@@ -237,7 +236,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(Unban)), TopLevelShortAlias(typeof(Unban))]
+		[Group(nameof(Unban)), ModuleInitialismAlias(typeof(Unban))]
 		[Summary("Unbans the user from the guild.")]
 		[UserPermissionRequirement(GuildPermission.BanMembers)]
 		[EnabledByDefault(true)]
@@ -252,7 +251,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(GetBanReason)), TopLevelShortAlias(typeof(GetBanReason))]
+		[Group(nameof(GetBanReason)), ModuleInitialismAlias(typeof(GetBanReason))]
 		[Summary("Lists the given reason for the ban.")]
 		[UserPermissionRequirement(GuildPermission.BanMembers)]
 		[EnabledByDefault(true)]
@@ -269,7 +268,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(Kick)), TopLevelShortAlias(typeof(Kick))]
+		[Group(nameof(Kick)), ModuleInitialismAlias(typeof(Kick))]
 		[Summary("Kicks the user from the guild.")]
 		[UserPermissionRequirement(GuildPermission.KickMembers)]
 		[EnabledByDefault(true)]
@@ -284,7 +283,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(DisplayCurrentBanList)), TopLevelShortAlias(typeof(DisplayCurrentBanList))]
+		[Group(nameof(DisplayCurrentBanList)), ModuleInitialismAlias(typeof(DisplayCurrentBanList))]
 		[Summary("Displays all the bans on the guild.")]
 		[UserPermissionRequirement(GuildPermission.BanMembers)]
 		[EnabledByDefault(true)]
@@ -302,7 +301,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(RemoveMessages)), TopLevelShortAlias(typeof(RemoveMessages))]
+		[Group(nameof(RemoveMessages)), ModuleInitialismAlias(typeof(RemoveMessages))]
 		[Summary("Removes the provided number of messages from either the user, the channel, both, or, if neither is input, the current channel.")]
 		[UserPermissionRequirement(GuildPermission.ManageMessages)]
 		[EnabledByDefault(true)]
@@ -344,14 +343,14 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(ForAllWithRole)), TopLevelShortAlias(typeof(ForAllWithRole))]
+		[Group(nameof(ForAllWithRole)), ModuleInitialismAlias(typeof(ForAllWithRole))]
 		[Summary("All actions but `TakeNickame` require the output role/nickname. " +
 			"Max is 100 users per use unless the bypass string is said.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true)]
 		public sealed class ForAllWithRole : MultiUserActionModule
 		{
-			[Command(nameof(GiveRole)), ShortAlias(nameof(GiveRole))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task GiveRole(
 				SocketRole target,
 				[NotEveryoneOrManaged] SocketRole give,
@@ -364,19 +363,19 @@ namespace Advobot.Commands
 				}
 				await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.AddRoleAsync(give, o)).CAF();
 			}
-			[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task TakeRole(
 				SocketRole target,
 				[NotEveryoneOrManaged] SocketRole take,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.RemoveRoleAsync(take, o)).CAF();
-			[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task GiveNickname(
 				[ValidateRole] SocketRole target,
 				[ValidateNickname] string nickname,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = nickname)).CAF();
-			[Command(nameof(ClearNickname)), ShortAlias(nameof(ClearNickname))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task ClearNickname(
 				[ValidateRole] SocketRole target,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)

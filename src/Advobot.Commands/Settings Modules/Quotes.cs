@@ -13,17 +13,16 @@ using Discord.Commands;
 
 namespace Advobot.Commands
 {
-	[Group]
 	public sealed class Quotes : ModuleBase
 	{
-		[Group(nameof(ModifyQuotes)), TopLevelShortAlias(typeof(ModifyQuotes))]
+		[Group(nameof(ModifyQuotes)), ModuleInitialismAlias(typeof(ModifyQuotes))]
 		[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		//[SaveGuildSettings]
 		public sealed class ModifyQuotes : AdvobotModuleBase
 		{
-			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Add(string name, [Remainder] string text)
 			{
 				if (Context.GuildSettings.Quotes.Count >= BotSettings.MaxQuotes)
@@ -45,7 +44,7 @@ namespace Advobot.Commands
 				Context.GuildSettings.Quotes.Add(new Quote(name, text));
 				await ReplyTimedAsync($"Successfully added the following quote: `{name}`.").CAF();
 			}
-			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove(string name)
 			{
 				var removed = Context.GuildSettings.Quotes.RemoveAll(x => x.Name.CaseInsEquals(name));
@@ -59,7 +58,7 @@ namespace Advobot.Commands
 			}
 		}
 
-		[Group(nameof(SayQuote)), TopLevelShortAlias(typeof(SayQuote))]
+		[Group(nameof(SayQuote)), ModuleInitialismAlias(typeof(SayQuote))]
 		[Summary("Shows the content for the given quote. " +
 			"If nothing is input, then shows the list of the current quotes.")]
 		[EnabledByDefault(false)]
