@@ -4,12 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Utilities
 {
@@ -95,47 +92,47 @@ namespace Advobot.Utilities
 			}
 		}
 		/// <summary>
-		/// Gets the given count of messages from a channel.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="requestCount"></param>
-		/// <returns></returns>
-		public static async Task<IEnumerable<IMessage>> GetMessagesAsync(SocketTextChannel channel, int requestCount)
-		{
-			//TODO: do something similar to delete messages async to get more than 100 messages?
-			return await channel.GetMessagesAsync(requestCount).FlattenAsync().CAF();
-		}
-		/// <summary>
 		/// Removes the given count of messages from a channel.
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="fromMessage"></param>
 		/// <param name="count"></param>
+		/// <param name="predicate"></param>
 		/// <param name="options"></param>
-		/// <param name="fromUser"></param>
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(
 			SocketTextChannel channel,
 			IMessage fromMessage,
 			int count,
 			RequestOptions options,
-			IUser fromUser = null)
+			Func<IMessage, bool> predicate = null)
 		{
 			var deletedCount = 0;
 			while (count > 0)
 			{
-				var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF()).ToList();
-				fromMessage = messages.LastOrDefault();
+				var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF()).ToArray();
+				if (messages.Length == 0)
+				{
+					break;
+				}
+				fromMessage = messages[messages.Length - 1];
 
-				//Get messages from a targeted user if one is supplied
-				var userMessages = fromUser == null ? messages : messages.Where(x => x.Author.Id == fromUser.Id);
-				var cutMessages = userMessages.Take(count).ToList();
+				IMessage[] cutMessages;
+				if (predicate != null)
+				{
+					cutMessages = messages.Where(predicate).Take(count).ToArray();
+				}
+				else
+				{
+					cutMessages = new IMessage[Math.Min(count, messages.Length)];
+					Array.Copy(messages, cutMessages, cutMessages.Length);
+				}
 
 				//If less messages are deleted than gathered, that means there are some that are too old meaning we can stop
 				var deletedThisIteration = await DeleteMessagesAsync(channel, cutMessages, options).CAF();
 				deletedCount += deletedThisIteration;
 				count -= deletedThisIteration;
-				if (deletedThisIteration < cutMessages.Count)
+				if (deletedThisIteration < cutMessages.Length)
 				{
 					break;
 				}
@@ -151,15 +148,15 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(SocketTextChannel channel, IEnumerable<IMessage> messages, RequestOptions options)
 		{
-			var validMessages = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14).ToList();
-			if (validMessages.Count == 0)
+			var validMessages = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14).ToArray();
+			if (validMessages.Length == 0)
 			{
 				return 0;
 			}
 
 			try
 			{
-				if (validMessages.Count == 1)
+				if (validMessages.Length == 1)
 				{
 					await validMessages[0].DeleteAsync(options).CAF();
 				}
@@ -167,14 +164,13 @@ namespace Advobot.Utilities
 				{
 					await channel.DeleteMessagesAsync(validMessages, options).CAF();
 				}
-				return validMessages.Count;
+				return validMessages.Length;
 			}
 			catch
 			{
 				return 0;
 			}
 		}
-
 		private static string SanitizeContent(this IMessageChannel channel, string content)
 		{
 			if (content == null)

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 using ImageMagick;
 
@@ -23,8 +24,9 @@ namespace Advobot.Classes.ImageResizing
 	/// </summary>
 	public sealed class ImageResizer : IImageResizer
 	{
-		private static readonly string FfmpegLocation = FindFfmpeg();
-		private const long MaxDownloadLengthInBytes = 10000000;
+		private static RequestOptions _Options { get; } = DiscordUtils.GenerateRequestOptions("Image stream used.");
+		private static string _FfmpegLocation { get; } = FindFfmpeg();
+		private const long _MaxDownloadLengthInBytes = 10000000;
 
 		private readonly ConcurrentQueue<IImageArgs> _Args = new ConcurrentQueue<IImageArgs>();
 		private readonly ConcurrentDictionary<ulong, object> _CurrentlyProcessing = new ConcurrentDictionary<ulong, object>();
@@ -114,9 +116,9 @@ namespace Advobot.Classes.ImageResizing
 				{
 					return ImageResult.FromError(CommandError.UnmetPrecondition, MaxLength(args.MaxAllowedLengthInBytes));
 				}
-				if (contentLength > MaxDownloadLengthInBytes) //Utter max size, even with resize tries
+				if (contentLength > _MaxDownloadLengthInBytes) //Utter max size, even with resize tries
 				{
-					return ImageResult.FromError(CommandError.UnmetPrecondition, MaxLength(MaxDownloadLengthInBytes));
+					return ImageResult.FromError(CommandError.UnmetPrecondition, MaxLength(_MaxDownloadLengthInBytes));
 				}
 				if (!Enum.TryParse(mediaType.Split('/').Last(), true, out format) || !args.ValidFormats.Contains(format))
 				{
@@ -172,7 +174,7 @@ namespace Advobot.Classes.ImageResizing
 			}
 			finally
 			{
-				await message.DeleteAsync(ClientUtils.CreateRequestOptions("image stream used")).CAF();
+				await message.DeleteAsync(_Options).CAF();
 				if (!dontDispose)
 				{
 					stream?.Dispose();
@@ -196,7 +198,7 @@ namespace Advobot.Classes.ImageResizing
 					//if (args.Context.Guild.Emotes.Count(x => !x.Animated) >= 50)
 					break;
 				case MagickFormat.Mp4:
-					if (string.IsNullOrWhiteSpace(FfmpegLocation))
+					if (string.IsNullOrWhiteSpace(_FfmpegLocation))
 					{
 						return ImageResult.FromError(CommandError.ParseFailed, "MP4 is an invalid file format if ffmpeg is not installed.");
 					}
@@ -228,7 +230,7 @@ namespace Advobot.Classes.ImageResizing
 				LoadUserProfile = false,
 				RedirectStandardInput = true,
 				RedirectStandardOutput = true,
-				FileName = FfmpegLocation,
+				FileName = _FfmpegLocation,
 				Arguments = $@"-f mp4 -i \\.\pipe\{Name} -ss {args.UserArgs.StartInSeconds} -t {args.UserArgs.LengthInSeconds} -vf fps=12,scale=256:256 -f gif pipe:1",
 			};
 			using (var process = new Process { StartInfo = info, })

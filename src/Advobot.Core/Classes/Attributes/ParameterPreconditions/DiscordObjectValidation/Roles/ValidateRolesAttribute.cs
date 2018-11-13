@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Utilities;
-using Discord.Commands;
 using Discord.WebSocket;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
@@ -19,11 +19,11 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		public new bool FromContext => false;
 
 		/// <inheritdoc />
-		protected override object GetFromContext(SocketCommandContext context)
+		protected override object GetFromContext(AdvobotCommandContext context)
 			=> throw new NotImplementedException();
 		/// <inheritdoc />
-		protected override VerifiedObjectResult ValidateObject(SocketCommandContext context, object value)
-			=> context.GetGuildUser().ValidateRole((SocketRole)value, GetExtras().ToArray());
+		protected override VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value)
+			=> context.User.ValidateRole((SocketRole)value, GetExtras().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.
 		/// </summary>

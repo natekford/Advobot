@@ -59,7 +59,7 @@ namespace Advobot.Commands
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command()
-				=> await ClientUtils.DisconnectBotAsync(Context.Client).CAF();
+				=> await Context.Client.DisconnectBotAsync().CAF();
 		}
 
 		[Group(nameof(RestartBot)), ModuleInitialismAlias(typeof(RestartBot))]
@@ -70,7 +70,7 @@ namespace Advobot.Commands
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command()
-				=> await ClientUtils.RestartBotAsync(Context.Client, BotSettings).CAF();
+				=> await Context.Client.RestartBotAsync(BotSettings).CAF();
 		}
 	}
 }

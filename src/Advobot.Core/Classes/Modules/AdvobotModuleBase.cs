@@ -224,7 +224,7 @@ namespace Advobot.Classes.Modules
 		/// </summary>
 		/// <returns></returns>
 		public string GetPrefix()
-			=> BotSettings.InternalGetPrefix(Context.GuildSettings);
+			=> BotSettings.GetPrefix(Context.GuildSettings);
 		/// <summary>
 		/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.
 		/// </summary>

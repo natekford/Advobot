@@ -23,6 +23,8 @@ namespace Advobot.Services.Commands
 	/// </summary>
 	internal sealed class CommandHandlerService : ICommandHandlerService
 	{
+		private static RequestOptions _Options { get; } = DiscordUtils.GenerateRequestOptions("Command successfully executed.");
+
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
 		private readonly DiscordShardedClient _Client;
@@ -30,7 +32,6 @@ namespace Advobot.Services.Commands
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private bool _Loaded;
 		private ulong _OwnerId;
-		private readonly HashSet<Guid> _UsedResults = new HashSet<Guid>();
 
 		/// <inheritdoc />
 		public event Action<IResult> CommandInvoked;
@@ -69,29 +70,6 @@ namespace Advobot.Services.Commands
 			_Client.MessageReceived += HandleCommand;
 		}
 
-		/// <inheritdoc />
-		public async Task HandleCommand(SocketMessage message)
-		{
-			var argPos = -1;
-			if (!_Loaded || _BotSettings.Pause
-				//Disallow running commands if the user is blocked, unless the owner of the bot blocks themselves either accidentally or idiotically
-				|| (_BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id) && message.Author.Id != _OwnerId)
-				|| message.Author.IsBot
-				|| string.IsNullOrWhiteSpace(message.Content)
-				|| !(message is SocketUserMessage msg)
-				|| !(msg.Author is SocketGuildUser user)
-				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
-				|| !settings.Loaded
-				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
-				|| !(msg.HasStringPrefix(_BotSettings.InternalGetPrefix(settings), ref argPos)
-						|| msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
-			{
-				return;
-			}
-
-			var context = new AdvobotCommandContext(settings, _Client, msg);
-			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
-		}
 		private async Task OnReady(DiscordSocketClient client, IEnumerable<Assembly> commands)
 		{
 			if (_Loaded)
@@ -100,8 +78,8 @@ namespace Advobot.Services.Commands
 			}
 			_Loaded = true;
 
-			_OwnerId = await ClientUtils.GetOwnerIdAsync(_Client).CAF();
-			await ClientUtils.UpdateGameAsync(client, _BotSettings).CAF();
+			_OwnerId = await _Client.GetOwnerIdAsync().CAF();
+			await client.UpdateGameAsync(_BotSettings).CAF();
 			foreach (var assembly in commands)
 			{
 				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
@@ -113,6 +91,26 @@ namespace Advobot.Services.Commands
 				$"Prefix: {_BotSettings.Prefix}; " +
 				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
 		}
+		private async Task HandleCommand(SocketMessage message)
+		{
+			var argPos = -1;
+			if (!_Loaded || _BotSettings.Pause || message.Author.IsBot || string.IsNullOrWhiteSpace(message.Content)
+				//Disallow running commands if the user is blocked, unless the owner of the bot blocks themselves either accidentally or idiotically
+				|| (_BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id) && message.Author.Id != _OwnerId)
+				|| !(message is SocketUserMessage msg)
+				|| !(msg.Author is SocketGuildUser user)
+				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
+				|| !settings.Loaded
+				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
+				|| !(msg.HasStringPrefix(_BotSettings.GetPrefix(settings), ref argPos)
+						|| msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
+			{
+				return;
+			}
+
+			var context = new AdvobotCommandContext(settings, _Client, msg);
+			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
+		}
 		private async Task LogExecution(Optional<CommandInfo> command, AdvobotCommandContext context, IResult result)
 		{
 			if (CanBeIgnored(result) || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(x))))
@@ -121,7 +119,7 @@ namespace Advobot.Services.Commands
 			}
 			if (result.IsSuccess)
 			{
-				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("command successfully executed")).CAF();
+				await context.Message.DeleteAsync(_Options).CAF();
 				if (context.GuildSettings.ModLogId != 0 && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
 					await MessageUtils.SendMessageAsync(context.Guild.GetTextChannel(context.GuildSettings.ModLogId), embedWrapper: new EmbedWrapper
@@ -145,8 +143,9 @@ namespace Advobot.Services.Commands
 				}
 			}
 
+			//So the LogService can increment the counters holding successful/failed commands
 			CommandInvoked?.Invoke(result);
-			ConsoleUtils.WriteLine(context.ToString(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+			ConsoleUtils.WriteLine(context.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 		}
 		private Task LogInfo(LogMessage arg)
 		{
@@ -155,13 +154,20 @@ namespace Advobot.Services.Commands
 		}
 		private bool CanBeIgnored(IResult result)
 		{
-			return false
-				//Ignore annoying unknown command errors
-				|| result.Error == CommandError.UnknownCommand
-				//Ignore errors with no reason
-				|| (!result.IsSuccess && result.ErrorReason == null)
-				//Ignore already displayed results
-				|| (result is IUniqueResult unique && !_UsedResults.Add(unique.Guid));
+			//Ignore annoying unknown command errors and errors with no reason
+			if (result.Error == CommandError.UnknownCommand || (!result.IsSuccess && result.ErrorReason == null))
+			{
+				return true;
+			}
+			if (result is IUniqueResult unique)
+			{
+				if (unique.AlreadyLogged)
+				{
+					return true;
+				}
+				unique.MarkAsLogged();
+			}
+			return false;
 		}
 	}
 }

@@ -69,7 +69,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="tasks"></param>
 		/// <param name="whenCanLog"></param>
 		/// <returns></returns>
-		protected async Task HandleAsync(LoggingContext context, string name, IEnumerable<Task> tasks, IEnumerable<Func<Task>> whenCanLog)
+		protected async Task HandleAsync(LoggingContext context, string name, Task[] tasks, Func<Task>[] whenCanLog)
 		{
 			if (BotSettings.Pause)
 			{
@@ -80,7 +80,7 @@ namespace Advobot.Services.Logging.Loggers
 				NotifyLogCounterIncrement(name, 1);
 				await Task.WhenAll(whenCanLog.Select(x => x.Invoke())).CAF();
 			}
-			if (tasks.Any())
+			if (tasks.Length > 0)
 			{
 				await Task.WhenAll(tasks).CAF();
 			}

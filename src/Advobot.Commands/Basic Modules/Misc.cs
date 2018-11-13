@@ -86,7 +86,6 @@ namespace Advobot.Commands.Misc
 			}
 		}
 
-#warning redo category command with typereader
 		[Group(nameof(Commands)), ModuleInitialismAlias(typeof(Commands))]
 		[Summary("Prints out the commands in that category of the command list. " +
 			"Inputting nothing will list the command categories.")]
@@ -124,7 +123,7 @@ namespace Advobot.Commands.Misc
 				await ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = "Categories",
-					Description = $"Type `{GetPrefix()}{nameof(Commands)} [Category]` for commands from that category.\n\n" +
+					Description = $"Type `{GetPrefix()}{nameof(Commands)} [Category]` for commands from a category.\n\n" +
 						$"`{HelpEntries.GetCategories().Join("`, `")}`",
 				}).CAF();
 			}
@@ -210,14 +209,23 @@ namespace Advobot.Commands.Misc
 		[EnabledByDefault(true)]
 		public sealed class Test : AdvobotModuleBase
 		{
-			[Command]
-			public Task<RuntimeResult> Command([Optional] string input)
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Runtime([Optional] string input)
 			{
 				if (input == null)
 				{
-					return new ErrorResult("Invalid input.");
+					return UniqueResult.FromFailure("Invalid input.");
 				}
-				return new SuccessResult("Success.");
+				return UniqueResult.FromSuccess("Success.");
+			}
+			[ImplicitCommand, ImplicitAlias]
+			public Task NotRuntime([Optional] string input)
+			{
+				if (input == null)
+				{
+					return ReplyAsync("Invalid input.");
+				}
+				return ReplyAsync("Success.");
 			}
 		}
 	}

@@ -15,10 +15,7 @@ namespace Advobot.Classes
 	/// </summary>
 	public class RemovablePunishment : DatabaseEntry
 	{
-		/// <summary>
-		/// Cached request options for punishments.
-		/// </summary>
-		protected static RequestOptions PunishmentReason { get; } = ClientUtils.CreateRequestOptions("automatic punishment removal.");
+		private static RequestOptions PunishmentReason { get; } = DiscordUtils.GenerateRequestOptions("Automatic punishment removal.");
 
 		/// <summary>
 		/// The type of punishment that was given.

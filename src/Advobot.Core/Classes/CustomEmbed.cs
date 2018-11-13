@@ -7,32 +7,6 @@ using Discord;
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// Specifies a field on an embed.
-	/// </summary>
-	public sealed class CustomField
-	{
-		/// <summary>
-		/// The name of the field.
-		/// </summary>
-		public string Name { get; private set; }
-		/// <summary>
-		/// The text of the field.
-		/// </summary>
-		public string Text { get; private set; }
-		/// <summary>
-		/// Whether the field is inline.
-		/// </summary>
-		public bool Inline { get; private set; }
-
-		/// <summary>
-		/// Returns the name and text.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-			=> $"**Name:** `{Name}`\n**Text:** `{Text}`";
-	}
-
-	/// <summary>
 	/// Allows a user to make an embed.
 	/// </summary>
 	public sealed class CustomEmbed
@@ -117,26 +91,25 @@ namespace Advobot.Classes
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
-			AddIfNotNull(sb, () => Title, nameof(Title));
-			AddIfNotNull(sb, () => Description, nameof(Description));
-			AddIfNotNull(sb, () => ImageUrl, nameof(ImageUrl));
-			AddIfNotNull(sb, () => Url, nameof(Url));
-			AddIfNotNull(sb, () => ThumbUrl, nameof(ThumbUrl));
-			AddIfNotNull(sb, () => Color, nameof(Color));
-			AddIfNotNull(sb, () => AuthorName, nameof(AuthorName));
-			AddIfNotNull(sb, () => AuthorIconUrl, nameof(AuthorIconUrl));
-			AddIfNotNull(sb, () => AuthorUrl, nameof(AuthorUrl));
-			AddIfNotNull(sb, () => Footer, nameof(Footer));
-			AddIfNotNull(sb, () => FooterIconUrl, nameof(FooterIconUrl));
+			AddIfNotNull(sb, Title, nameof(Title));
+			AddIfNotNull(sb, Description, nameof(Description));
+			AddIfNotNull(sb, ImageUrl, nameof(ImageUrl));
+			AddIfNotNull(sb, Url, nameof(Url));
+			AddIfNotNull(sb, ThumbUrl, nameof(ThumbUrl));
+			AddIfNotNull(sb, Color, nameof(Color));
+			AddIfNotNull(sb, AuthorName, nameof(AuthorName));
+			AddIfNotNull(sb, AuthorIconUrl, nameof(AuthorIconUrl));
+			AddIfNotNull(sb, AuthorUrl, nameof(AuthorUrl));
+			AddIfNotNull(sb, Footer, nameof(Footer));
+			AddIfNotNull(sb, FooterIconUrl, nameof(FooterIconUrl));
 			for (int i = 0; i < FieldInfo.Count; ++i)
 			{
-				AddIfNotNull(sb, () => FieldInfo[i], $"Field {i}");
+				AddIfNotNull(sb, FieldInfo[i], $"Field {i}");
 			}
 			return sb.ToString();
 		}
-		private void AddIfNotNull(StringBuilder sb, Func<object> getter, string name)
+		private void AddIfNotNull(StringBuilder sb, object value, string name)
 		{
-			var value = getter();
 			if (value != null)
 			{
 				sb.AppendLineFeed($"**{name}:** `{value}`");

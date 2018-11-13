@@ -204,12 +204,5 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static bool CanModify(this SocketGuildUser invoker, SocketRole target)
 			=> invoker.Hierarchy > target.Position;
-		/// <summary>
-		/// Gets <see cref="SocketCommandContext.User"/> as a <see cref="SocketGuildUser"/>.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		public static SocketGuildUser GetGuildUser(this SocketCommandContext context)
-			=> (SocketGuildUser)context.User;
 	}
 }

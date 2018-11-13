@@ -11,13 +11,6 @@ namespace Advobot.Interfaces
 	public interface ICommandHandlerService
 	{
 		/// <summary>
-		/// Uses the input from the message to execute a command.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		Task HandleCommand(SocketMessage message);
-
-		/// <summary>
 		/// Tells whether a command was executed correctly, failed, or ignored.
 		/// </summary>
 		event Action<IResult> CommandInvoked;

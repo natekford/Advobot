@@ -459,7 +459,7 @@ namespace Advobot.Utilities
 				Description = $"**Online Since:** `{ProcessInfoUtils.GetStartTime().ToReadable()}` (`{FormattingUtils.GetUptime()}`)\n" +
 					$"**Guild/User Count:** `{logging.TotalGuilds.Count}`/`{logging.TotalUsers.Count}`\n" +
 					$"**Latency:** `{client.Latency}`\n" +
-					$"**Memory Usage:** `{ProcessInfoUtils.GetMemory():0.00}MB`\n" +
+					$"**Memory Usage:** `{ProcessInfoUtils.GetMemoryMB():0.00}MB`\n" +
 					$"**Thread Count:** `{ProcessInfoUtils.GetThreadCount()}`\n" +
 					$"**Shard Count:** `{client.Shards.Count}`",
 				Author = client.CurrentUser.CreateAuthor(),

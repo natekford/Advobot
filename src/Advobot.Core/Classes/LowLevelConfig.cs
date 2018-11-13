@@ -74,16 +74,14 @@ namespace Advobot.Classes
 		public DirectoryInfo BaseBotDirectory => Directory.CreateDirectory(Path.Combine(SavePath, $"Discord_Servers_{BotId}"));
 		/// <inheritdoc />
 		[JsonIgnore]
-		public string RestartArguments => new[]
-		{
-			$"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id}",
-			$"-{nameof(CurrentInstance)} {CurrentInstance}",
-			$"-{nameof(DatabaseType)} {DatabaseType}",
-			$"-{nameof(DatabaseConnectionString)} {DatabaseConnectionString}",
-		}.JoinNonNullStrings(" ");
+		public string RestartArguments =>
+			$"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} " +
+			$"-{nameof(CurrentInstance)} {CurrentInstance} " +
+			$"-{nameof(DatabaseType)} {DatabaseType} " +
+			$"-{nameof(DatabaseConnectionString)} {DatabaseConnectionString} ";
 
 		[JsonIgnore]
-		private readonly DiscordRestClient _TestClient = new DiscordRestClient();
+		private DiscordRestClient _TestClient { get; } = new DiscordRestClient();
 
 		static LowLevelConfig()
 		{
@@ -182,13 +180,18 @@ namespace Advobot.Classes
 			{
 				throw new InvalidOperationException($"Either path of key has not been validated yet.");
 			}
+
 			//Remove the bot key from being easily accessible via reflection
 			client.LoggedIn += () =>
 			{
 				_BotKey = null;
 				return Task.CompletedTask;
 			};
-			await ClientUtils.StartAsync(client, _BotKey);
+
+			await client.LoginAsync(TokenType.Bot, _BotKey).CAF();
+			ConsoleUtils.WriteLine("Connecting the client...");
+			await client.StartAsync().CAF();
+			ConsoleUtils.WriteLine("Successfully connected the client.");
 		}
 		/// <inheritdoc />
 		private void Save() => IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));

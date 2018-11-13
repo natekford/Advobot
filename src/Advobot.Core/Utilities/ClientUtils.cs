@@ -17,24 +17,11 @@ namespace Advobot.Utilities
 		private static ulong _BotOwnerId;
 
 		/// <summary>
-		/// Tries to start the bot and start command handling.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="botKey"></param>
-		/// <returns></returns>
-		public static async Task StartAsync(BaseSocketClient client, string botKey)
-		{
-			await client.LoginAsync(TokenType.Bot, botKey).CAF();
-			ConsoleUtils.WriteLine("Connecting the client...");
-			await client.StartAsync().CAF();
-			ConsoleUtils.WriteLine("Successfully connected the client.");
-		}
-		/// <summary>
 		/// Gets the id of the bot owner.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		public static async Task<ulong> GetOwnerIdAsync(IDiscordClient client)
+		public static async Task<ulong> GetOwnerIdAsync(this IDiscordClient client)
 			=> _BotOwnerId != 0 ? _BotOwnerId : (_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id);
 		/// <summary>
 		/// Updates a given client's stream and game using settings from the <paramref name="botSettings"/> parameter.
@@ -43,7 +30,7 @@ namespace Advobot.Utilities
 		/// <param name="botSettings">The information to update with.</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static async Task UpdateGameAsync(BaseSocketClient client, IBotSettings botSettings)
+		public static async Task UpdateGameAsync(this BaseSocketClient client, IBotSettings botSettings)
 		{
 			var game = botSettings.Game;
 			var stream = botSettings.Stream;
@@ -60,12 +47,9 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="client"></param>
 		/// <param name="restartArgs"></param>
-		public static async Task RestartBotAsync(BaseSocketClient client, IRestartArgumentProvider restartArgs)
+		public static async Task RestartBotAsync(this BaseSocketClient client, IRestartArgumentProvider restartArgs)
 		{
-			if (client != null)
-			{
-				await client.StopAsync().CAF();
-			}
+			await client.StopAsync().CAF();
 			//For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
 			Process.Start(new ProcessStartInfo
 			{
@@ -78,26 +62,10 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Exits the current application.
 		/// </summary>
-		public static async Task DisconnectBotAsync(BaseSocketClient client)
+		public static async Task DisconnectBotAsync(this BaseSocketClient client)
 		{
-			if (client != null)
-			{
-				await client.StopAsync().CAF();
-			}
+			await client.StopAsync().CAF();
 			Environment.Exit(0);
-		}
-		/// <summary>
-		/// Returns request options, with <paramref name="reason"/> as the audit log reason.
-		/// </summary>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static RequestOptions CreateRequestOptions(string reason)
-		{
-			return new RequestOptions
-			{
-				AuditLogReason = reason,
-				RetryMode = RetryMode.RetryRatelimit,
-			};
 		}
 	}
 }

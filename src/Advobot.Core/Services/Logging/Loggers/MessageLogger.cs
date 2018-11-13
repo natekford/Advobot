@@ -24,14 +24,19 @@ namespace Advobot.Services.Logging.Loggers
 	/// </summary>
 	internal sealed class MessageLogger : Logger, IMessageLogger
 	{
-		private static readonly ImmutableDictionary<SpamType, Func<IMessage, int?>> _GetSpamNumberFuncs = new Dictionary<SpamType, Func<IMessage, int?>>
+		private static RequestOptions _JeffOptions { get; } = DiscordUtils.GenerateRequestOptions("my nama jeff");
+		private static RequestOptions _SpamPreventionOptions { get; } = DiscordUtils.GenerateRequestOptions("Spam prevention.");
+		private static RequestOptions _ChannelSettingsOptions { get; } = DiscordUtils.GenerateRequestOptions("Due to channel settings.");
+		private static RequestOptions _SlowmodeOptions { get; } = DiscordUtils.GenerateRequestOptions("Slowmode.");
+		private static RequestOptions _BannedPhraseOptions { get; } = DiscordUtils.GenerateRequestOptions("Banned phrase.");
+		private static Dictionary<SpamType, Func<IMessage, int?>> _CalculateSpamAmount { get; } = new Dictionary<SpamType, Func<IMessage, int?>>
 		{
 			{ SpamType.Message,     m => int.MaxValue },
 			{ SpamType.LongMessage, m => m.Content?.Length },
 			{ SpamType.Link,        m => m.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) },
 			{ SpamType.Image,       m => m.Attachments.Count(x => x.Height != null || x.Width != null) + m.Embeds.Count(x => x.Image != null || x.Video != null) },
 			{ SpamType.Mention,     m => m.MentionedUserIds.Distinct().Count() }
-		}.ToImmutableDictionary();
+		};
 
 		/// <summary>
 		/// Creates an instance of <see cref="MessageLogger"/>.
@@ -63,7 +68,7 @@ namespace Advobot.Services.Logging.Loggers
 				const string name = "jeff";
 				if (user.Username != name && user.Nickname != name && user.Guild.CurrentUser.CanModify(user))
 				{
-					await user.ModifyAsync(x => x.Nickname = name, ClientUtils.CreateRequestOptions($"my nama {name}")).CAF();
+					await user.ModifyAsync(x => x.Nickname = name, _JeffOptions).CAF();
 				}
 			}
 		}
@@ -76,7 +81,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 
 			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageUpdated, message);
-			await HandleAsync(context, nameof(ILogService.MessageEdits), Enumerable.Empty<Task>(), new Func<Task>[]
+			await HandleAsync(context, nameof(ILogService.MessageEdits), Array.Empty<Task>(), new Func<Task>[]
 			{
 				() => HandleBannedPhrasesAsync(context),
 				() => HandleMessageEditedLoggingAsync(context, cached.Value as SocketMessage),
@@ -93,7 +98,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 
 			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageDeleted, message);
-			await HandleAsync(context, nameof(ILogService.MessageDeletes), Enumerable.Empty<Task>(), new Func<Task>[]
+			await HandleAsync(context, nameof(ILogService.MessageDeletes), Array.Empty<Task>(), new Func<Task>[]
 			{
 				() => HandleMessageDeletedLogging(context),
 			}).CAF();
@@ -111,7 +116,7 @@ namespace Advobot.Services.Logging.Loggers
 				&& !context.Message.Attachments.Any(x => x.Height != null || x.Width != null)
 				&& !context.Message.Embeds.Any(x => x.Image != null))
 			{
-				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("due to channel settings")).CAF();
+				await context.Message.DeleteAsync(_ChannelSettingsOptions).CAF();
 			}
 		}
 		/// <summary>
@@ -199,7 +204,7 @@ namespace Advobot.Services.Logging.Loggers
 
 			if (info.MessagesSent >= slowmode.BaseMessages)
 			{
-				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("slowmode")).CAF();
+				await context.Message.DeleteAsync(_SlowmodeOptions).CAF();
 				return;
 			}
 			if (info.MessagesSent == 0)
@@ -231,7 +236,7 @@ namespace Advobot.Services.Logging.Loggers
 				{
 					continue;
 				}
-				if (_GetSpamNumberFuncs[type](context.Message) >= prev.SpamPerMessage)
+				if (_CalculateSpamAmount[type](context.Message) >= prev.SpamPerMessage)
 				{
 					info.AddSpamInstance(type, context.Message);
 				}
@@ -251,7 +256,7 @@ namespace Advobot.Services.Logging.Loggers
 				var content = $"`{context.User.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 #warning convert back to timed 10 seconds
 				await ReplyAsync(context.Channel, content).CAF();
-				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("spam prevention")).CAF();
+				await context.Message.DeleteAsync(_SpamPreventionOptions).CAF();
 			}
 		}
 		/// <summary>
@@ -267,7 +272,6 @@ namespace Advobot.Services.Logging.Loggers
 			}
 
 			var giver = new Punisher(TimeSpan.FromMinutes(0), default);
-			var options = ClientUtils.CreateRequestOptions("spam prevention");
 			//Iterate through the users who are able to be punished by the spam prevention
 			foreach (var spammer in context.Settings.SpamPreventionUsers.Where(x =>
 			{
@@ -283,7 +287,7 @@ namespace Advobot.Services.Logging.Loggers
 					continue;
 				}
 
-				await giver.GiveAsync(spammer.Punishment, context.Guild, spammer.UserId, context.Settings.MuteRoleId, options).CAF();
+				await giver.GiveAsync(spammer.Punishment, context.Guild, spammer.UserId, context.Settings.MuteRoleId, _SpamPreventionOptions).CAF();
 				spammer.Reset();
 			}
 		}
@@ -314,7 +318,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			if (str != null || regex != null)
 			{
-				await context.Message.DeleteAsync(ClientUtils.CreateRequestOptions("banned phrase")).CAF();
+				await context.Message.DeleteAsync(_BannedPhraseOptions).CAF();
 			}
 		}
 		/// <summary>

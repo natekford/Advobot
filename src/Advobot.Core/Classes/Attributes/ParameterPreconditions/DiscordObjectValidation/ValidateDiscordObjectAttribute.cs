@@ -38,7 +38,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 			}
 			return Task.FromResult(PreconditionResult.FromError($"No value was passed in for {parameter.Name}."));
 		}
-		private PreconditionResult GetPreconditionResult(SocketCommandContext context, object value)
+		private PreconditionResult GetPreconditionResult(AdvobotCommandContext context, object value)
 		{
 			VerifiedObjectResult result;
 			switch (value)
@@ -67,13 +67,13 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		protected abstract object GetFromContext(SocketCommandContext context);
+		protected abstract object GetFromContext(AdvobotCommandContext context);
 		/// <summary>
 		/// Verifies the object with the specified verification options.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected abstract VerifiedObjectResult ValidateObject(SocketCommandContext context, object value);
+		protected abstract VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value);
 	}
 }

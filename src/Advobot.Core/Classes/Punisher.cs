@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +9,6 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Classes
 {
@@ -22,7 +20,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Strings for saying the type of punishment given.
 		/// </summary>
-		private static readonly ImmutableDictionary<Punishment, string> Given = new Dictionary<Punishment, string>
+		private static Dictionary<Punishment, string> Given { get; } = new Dictionary<Punishment, string>
 		{
 			{ Punishment.Kick, "kicked" },
 			{ Punishment.Ban, "banned" },
@@ -30,11 +28,11 @@ namespace Advobot.Classes
 			{ Punishment.VoiceMute, "voice-muted" },
 			{ Punishment.RoleMute, "role-muted" },
 			{ Punishment.Softban, "softbanned" }
-		}.ToImmutableDictionary();
+		};
 		/// <summary>
 		/// Strings for saying the type of punishment removed.
 		/// </summary>
-		private static readonly ImmutableDictionary<Punishment, string> Removed = new Dictionary<Punishment, string>
+		private static Dictionary<Punishment, string> Removed { get; } = new Dictionary<Punishment, string>
 		{
 			{ Punishment.Kick, "unkicked" }, //Doesn't make sense
 			{ Punishment.Ban, "unbanned" },
@@ -42,20 +40,20 @@ namespace Advobot.Classes
 			{ Punishment.VoiceMute, "unvoice-muted" },
 			{ Punishment.RoleMute, "unrole-muted" },
 			{ Punishment.Softban, "unsoftbanned" } //Doesn't make sense either
-		}.ToImmutableDictionary();
+		};
 
 		/// <summary>
 		/// The actions which were done on users.
 		/// </summary>
-		private readonly List<string> _Actions = new List<string>();
+		private List<string> _Actions { get; } = new List<string>();
 		/// <summary>
 		/// How long to give punishments for.
 		/// </summary>
-		private readonly TimeSpan _Time;
+		private TimeSpan _Time { get; }
 		/// <summary>
 		/// The timer service to add punishments to or remove punishments from.
 		/// </summary>
-		private readonly ITimerService _Timers;
+		private ITimerService _Timers { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="Punisher"/>.

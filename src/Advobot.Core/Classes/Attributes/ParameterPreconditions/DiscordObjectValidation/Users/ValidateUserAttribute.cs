@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Utilities;
-using Discord.Commands;
 using Discord.WebSocket;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
@@ -13,11 +13,11 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	public class ValidateUserAttribute : ValidateDiscordObjectAttribute
 	{
 		/// <inheritdoc />
-		protected override object GetFromContext(SocketCommandContext context)
-			=> (SocketGuildUser)context.User;
+		protected override object GetFromContext(AdvobotCommandContext context)
+			=> context.User;
 		/// <inheritdoc />
-		protected override VerifiedObjectResult ValidateObject(SocketCommandContext context, object value)
-			=> context.GetGuildUser().ValidateUser((SocketGuildUser)value, GetExtras().ToArray());
+		protected override VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value)
+			=> context.User.ValidateUser((SocketGuildUser)value, GetExtras().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.
 		/// </summary>

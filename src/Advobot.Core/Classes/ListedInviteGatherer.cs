@@ -59,7 +59,7 @@ namespace Advobot.Classes
 			}
 			if (Users.Number.HasValue)
 			{
-				invites = invites.GetInvitesFromCount(Users.Method, Users.Number.Value, x => (uint)x.GuildMemberCount);
+				invites = Users.GetFromCount(invites, x => (uint?)x.GuildMemberCount);
 				wentIntoAny = true;
 			}
 			return wentIntoAny ? Enumerable.Empty<IListedInvite>() : invites;

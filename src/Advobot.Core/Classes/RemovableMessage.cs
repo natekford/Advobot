@@ -19,7 +19,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Caches request options for messages.
 		/// </summary>
-		protected static RequestOptions MessageReason { get; } = ClientUtils.CreateRequestOptions("automatic message deletion.");
+		protected static RequestOptions Options { get; } = DiscordUtils.GenerateRequestOptions("Automatic message deletion.");
 
 		/// <summary>
 		/// The id of the guild from the passed in context.
@@ -93,7 +93,7 @@ namespace Advobot.Classes
 					}
 					var messageIds = channelGroup.SelectMany(g => g.MessageIds);
 					var messages = await GetValidMessagesAsync(channel, alreadyDeleted, messageIds).CAF();
-					await MessageUtils.DeleteMessagesAsync(channel, messages, MessageReason).CAF();
+					await MessageUtils.DeleteMessagesAsync(channel, messages, Options).CAF();
 				}
 			}
 		}

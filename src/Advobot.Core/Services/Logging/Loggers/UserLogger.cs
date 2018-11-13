@@ -20,6 +20,9 @@ namespace Advobot.Services.Logging.Loggers
 	/// </summary>
 	internal sealed class UserLogger : Logger, IUserLogger
 	{
+		private static RequestOptions _PersistentRolesOptions { get; } = DiscordUtils.GenerateRequestOptions("Persistent roles.");
+		private static RequestOptions _BannedNameOptions { get; } = DiscordUtils.GenerateRequestOptions("Banned name.");
+
 		/// <summary>
 		/// Creates an instance of <see cref="UserLogger"/>.
 		/// </summary>
@@ -62,7 +65,7 @@ namespace Advobot.Services.Logging.Loggers
 				}
 
 				var context = new UserLoggingContext(GuildSettings, LogAction.UserUpdated, user);
-				await HandleAsync(context, nameof(ILogService.UserChanges), Enumerable.Empty<Task>(), new Func<Task>[]
+				await HandleAsync(context, nameof(ILogService.UserChanges), Array.Empty<Task>(), new Func<Task>[]
 				{
 					() => HandleUsernameUpdated(context, beforeUser),
 				}).CAF();
@@ -109,7 +112,7 @@ namespace Advobot.Services.Logging.Loggers
 			if (context.Settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(context.User.Username)))
 			{
 				var giver = new Punisher(TimeSpan.FromMinutes(0), Timers);
-				await giver.GiveAsync(Punishment.Ban, context.Guild, context.User.Id, 0, ClientUtils.CreateRequestOptions("banned name")).CAF();
+				await giver.GiveAsync(Punishment.Ban, context.Guild, context.User.Id, 0, _BannedNameOptions).CAF();
 			}
 			//Antiraid
 			var antiRaid = context.Settings[RaidType.Regular];
@@ -131,7 +134,7 @@ namespace Advobot.Services.Logging.Loggers
 				.Select(x => context.Guild.GetRole(x.RoleId)).Where(x => x != null).ToArray();
 			if (roles.Length > 0)
 			{
-				await context.User.AddRolesAsync(roles, ClientUtils.CreateRequestOptions("persistent roles")).CAF();
+				await context.User.AddRolesAsync(roles, _PersistentRolesOptions).CAF();
 			}
 			//Welcome message
 			if (context.Settings.WelcomeMessage != null)

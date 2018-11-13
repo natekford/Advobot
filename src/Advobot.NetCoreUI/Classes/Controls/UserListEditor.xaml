@@ -1,6 +1,6 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:colors="clr-namespace:Advobot.SharedUI.Colors;assembly=Advobot.Core">
+             xmlns:colors="clr-namespace:Advobot.NetCoreUI.Classes.AbstractUI.Colors;assembly=Advobot.NetCoreUI">
 
   <Grid RowDefinitions="1*,1*" ColumnDefinitions="9*,1*"
         DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl}}}">

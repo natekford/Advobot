@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace Advobot.SharedUI.Colors
+namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 {
 	/// <summary>
 	/// Holds a collection of colors for usage in UI.

@@ -1,26 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Advobot.Enums;
 using Advobot.Utilities;
 using Discord;
 
 namespace Advobot.Classes
 {
-	/// <summary>
-	/// Specifies how to search with a number.
-	/// </summary>
-	public class NumberSearch
-	{
-		/// <summary>
-		/// The number to search for.
-		/// </summary>
-		public uint? Number { get; private set; }
-		/// <summary>
-		/// How to use that number to search.
-		/// </summary>
-		public CountTarget Method { get; private set; }
-	}
-
 	/// <summary>
 	/// Sets the search terms for invites and can gather invites matching those terms.
 	/// </summary>
@@ -75,12 +59,12 @@ namespace Advobot.Classes
 			}
 			if (Uses.Number.HasValue)
 			{
-				invites = invites.GetInvitesFromCount(Uses.Method, Uses.Number.Value, x => (uint)x.Uses);
+				invites = Uses.GetFromCount(invites, x => (uint?)x.Uses);
 				wentIntoAny = true;
 			}
 			if (Age.Number.HasValue)
 			{
-				invites = invites.GetInvitesFromCount(Age.Method, Age.Number.Value, x => (uint)x.MaxAge);
+				invites = Age.GetFromCount(invites, x => (uint?)x.MaxAge);
 				wentIntoAny = true;
 			}
 			if (IsTemporary.HasValue)

@@ -174,7 +174,7 @@ namespace Advobot.Commands
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command(int number, [Optional, ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 			{
-				var messages = await MessageUtils.GetMessagesAsync(channel, Math.Min(number, 1000)).CAF();
+				var messages = await channel.GetMessagesAsync(Math.Min(number, 1000)).FlattenAsync().CAF();
 				var m = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();
 
 				var formattedMessagesBuilder = new StringBuilder();

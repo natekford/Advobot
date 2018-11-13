@@ -26,7 +26,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The value of the boolean.
 		/// </summary>
-		public readonly bool Value;
+		public bool Value { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="AddBoolean"/>.
@@ -79,8 +79,6 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="instance"></param>
 		public static implicit operator bool(AddBoolean instance)
-		{
-			return instance.Value;
-		}
+			=> instance.Value;
 	}
 }

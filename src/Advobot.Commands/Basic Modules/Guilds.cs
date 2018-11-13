@@ -31,15 +31,13 @@ namespace Advobot.Commands
 		public sealed class LeaveGuild : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([Optional] ulong guildId)
+			public Task Command()
+				=> Context.Guild.LeaveAsync();
+			[Command]
+			public async Task Command(ulong guildId)
 			{
-				if (Context.Guild.Id == guildId || guildId == 0)
-				{
-					await Context.Guild.LeaveAsync().CAF();
-					return;
-				}
 				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-				if (Context.User.Id != await ClientUtils.GetOwnerIdAsync(Context.Client).CAF())
+				if (Context.User.Id != await Context.Client.GetOwnerIdAsync().CAF())
 				{
 					await ReplyErrorAsync("Only the bot owner can use this command targetting other guilds.").CAF();
 					return;

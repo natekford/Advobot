@@ -12,7 +12,7 @@ using Advobot.Interfaces;
 using Advobot.NetCoreUI.Classes.Colors;
 using Advobot.NetCoreUI.Classes.Views;
 using Advobot.NetCoreUI.Utils;
-using Advobot.SharedUI.Colors;
+using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Avalonia.Controls;
@@ -161,14 +161,14 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		{
 			if (await MessageBox.ShowAsync("Are you sure you want to disconnect the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
-				await ClientUtils.DisconnectBotAsync(_Client);
+				await _Client.DisconnectBotAsync();
 			}
 		}
 		private async Task RestartAsync()
 		{
 			if (await MessageBox.ShowAsync("Are you sure you want to restart the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
-				await ClientUtils.RestartBotAsync(_Client, _BotSettings);
+				await _Client.RestartBotAsync(_BotSettings);
 			}
 		}
 		private void Pause()

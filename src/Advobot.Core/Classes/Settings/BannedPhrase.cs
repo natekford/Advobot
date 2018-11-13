@@ -17,7 +17,7 @@ namespace Advobot.Classes.Settings
 	/// </summary>
 	public class BannedPhrase : IGuildSetting
 	{
-		private static readonly RequestOptions _Options = ClientUtils.CreateRequestOptions("banned phrase");
+		private static RequestOptions _Options { get; } = DiscordUtils.GenerateRequestOptions("Banned phrase.");
 
 		/// <summary>
 		/// The phrase which is banned. Can be string or regex pattern.

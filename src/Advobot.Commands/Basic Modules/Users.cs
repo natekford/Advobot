@@ -69,7 +69,7 @@ namespace Advobot.Commands
 			{
 				var existingMuteRole = Context.Guild.GetRole(Context.GuildSettings.MuteRoleId);
 				IRole muteRole = existingMuteRole;
-				if (!Context.GetGuildUser().ValidateRole(existingMuteRole, ValidationUtils.RoleIsNotEveryone, ValidationUtils.RoleIsNotManaged).IsSuccess)
+				if (!Context.User.ValidateRole(existingMuteRole, ValidationUtils.RoleIsNotEveryone, ValidationUtils.RoleIsNotManaged).IsSuccess)
 				{
 					muteRole = await Context.Guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0)).CAF();
 					Context.GuildSettings.MuteRoleId = muteRole.Id;
@@ -328,7 +328,8 @@ namespace Advobot.Commands
 					: (await channel.GetMessagesAsync(1).FlattenAsync().CAF()).FirstOrDefault();
 
 				//If there is a non null user then delete messages specifically from that user
-				var deletedAmt = await MessageUtils.DeleteMessagesAsync(channel, messageToStartAt, requestCount, GenerateRequestOptions(), user).CAF();
+				var predicate = user == null ? default(Func<IMessage, bool>) : x => x.Author.Id == user.Id;
+				var deletedAmt = await MessageUtils.DeleteMessagesAsync(channel, messageToStartAt, requestCount, GenerateRequestOptions(), predicate).CAF();
 
 				//If the context channel isn't the targetted channel then delete the start message
 				//Increase by one to account for it not being targetted.

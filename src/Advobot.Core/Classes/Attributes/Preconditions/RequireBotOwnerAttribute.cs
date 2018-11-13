@@ -19,7 +19,7 @@ namespace Advobot.Classes.Attributes.Preconditions
 		/// <inheritdoc />
 		public override async Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			return await ClientUtils.GetOwnerIdAsync(context.Client).CAF() == context.User.Id
+			return await context.Client.GetOwnerIdAsync().CAF() == context.User.Id
 				? PreconditionResult.FromSuccess()
 				: PreconditionResult.FromError(default(string));
 		}

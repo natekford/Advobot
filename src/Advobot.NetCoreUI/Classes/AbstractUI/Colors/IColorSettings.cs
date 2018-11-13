@@ -1,6 +1,6 @@
 ﻿using Advobot.Interfaces;
 
-namespace Advobot.SharedUI.Colors
+namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 {
 	/// <summary>
 	/// Settings for the UI.

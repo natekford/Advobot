@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Advobot.SharedUI.Converters
+namespace Advobot.NetCoreUI.Classes.AbstractUI.Converters
 {
 	/// <summary>
 	/// Resizes text.

@@ -54,7 +54,6 @@ namespace Advobot.Commands
 			}
 		}
 
-#warning redo how index is parsed
 		[Group(nameof(ModifyRules)), ModuleInitialismAlias(typeof(ModifyRules))]
 		[Summary("Modifies the rules which are saved in the bot settings.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
@@ -77,25 +76,27 @@ namespace Advobot.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public async Task Insert(
 				[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category,
-				[ValidatePositiveNumber] int index,
+				[ValidatePositiveNumber] int position,
 				[ValidateRule] string rule)
 			{
+				--position;
 				var count = Context.GuildSettings.Rules.Categories[category].Count;
-				Context.GuildSettings.Rules.Categories[category].Insert(Math.Min(index, count - 1), rule);
-				await ReplyTimedAsync($"Successfully removed the rule at index `{index}` in `{category}`.").CAF();
+				Context.GuildSettings.Rules.Categories[category].Insert(Math.Min(position, count - 1), rule);
+				await ReplyTimedAsync($"Successfully removed the rule at `{position}` in `{category}`.").CAF();
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove(
 				[OverrideTypeReader(typeof(RuleCategoryTypeReader))] string category,
-				[ValidatePositiveNumber] int index)
+				[ValidatePositiveNumber] int position)
 			{
-				if (Context.GuildSettings.Rules.Categories[category].Count >= index)
+				--position;
+				if (Context.GuildSettings.Rules.Categories[category].Count >= position)
 				{
-					await ReplyErrorAsync($"{index} is an invalid position to remove at.").CAF();
+					await ReplyErrorAsync($"{position} is an invalid position to remove at.").CAF();
 					return;
 				}
-				Context.GuildSettings.Rules.Categories[category].RemoveAt(Math.Min(index, int.MaxValue));
-				await ReplyTimedAsync($"Successfully removed the rule at index `{index}` in `{category}`.").CAF();
+				Context.GuildSettings.Rules.Categories[category].RemoveAt(Math.Min(position, int.MaxValue));
+				await ReplyTimedAsync($"Successfully removed the rule at `{position}` in `{category}`.").CAF();
 			}
 		}
 

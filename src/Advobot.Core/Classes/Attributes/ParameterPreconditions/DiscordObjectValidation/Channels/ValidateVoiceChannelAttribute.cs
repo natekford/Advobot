@@ -1,5 +1,5 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Advobot.Classes.Modules;
+using Discord;
 using Discord.WebSocket;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
@@ -16,7 +16,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		public ValidateVoiceChannelAttribute(params ChannelPermission[] permissions) : base(permissions) { }
 
 		/// <inheritdoc />
-		protected override object GetFromContext(SocketCommandContext context)
-			=> ((SocketGuildUser)context.User).VoiceChannel;
+		protected override object GetFromContext(AdvobotCommandContext context)
+			=> context.User.VoiceChannel;
 	}
 }

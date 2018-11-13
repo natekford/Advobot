@@ -1,4 +1,4 @@
-﻿using Advobot.SharedUI.Converters;
+﻿using Advobot.NetCoreUI.Classes.AbstractUI.Converters;
 using Avalonia.Data.Converters;
 
 namespace Advobot.NetCoreUI.Classes.Converters

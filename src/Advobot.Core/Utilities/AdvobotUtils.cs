@@ -48,6 +48,14 @@ namespace Advobot.Utilities
 		public static void SaveSettings<T>(this T obj) where T : IBotDirectoryAccessor, ISettingsBase
 			=> obj.SaveSettings(obj);
 		/// <summary>
+		/// Checks whether to use the bot prefix, or the guild settings prefix.
+		/// </summary>
+		/// <param name="b"></param>
+		/// <param name="g"></param>
+		/// <returns></returns>
+		public static string GetPrefix(this IBotSettings b, IGuildSettings g)
+			=> string.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g?.Prefix;
+		/// <summary>
 		/// Creates a provider and initializes all of its singletons.
 		/// </summary>
 		/// <param name="services"></param>
@@ -211,17 +219,17 @@ namespace Advobot.Utilities
 			{
 				new StaticSetting<SpamPrev, SpamType>(x => x.Type),
 				new StaticSetting<SpamPrev, Punishment>(x => x.Punishment),
-				new StaticSetting<SpamPrev, int>(x => x.SpamInstances) { Validation = x => IsError(nameof(SpamPrev.SpamInstances), x, 1, 25) },
-				new StaticSetting<SpamPrev, int>(x => x.VotesForKick) { Validation = x => IsError(nameof(SpamPrev.VotesForKick), x, 1, 50) },
-				new StaticSetting<SpamPrev, int>(x => x.SpamPerMessage) { Validation = x => IsError(nameof(SpamPrev.SpamPerMessage), x, 1, 2000) },
-				new StaticSetting<SpamPrev, int>(x => x.TimeInterval) { Validation = x => IsError(nameof(SpamPrev.TimeInterval), x, 1, 180) },
+				new StaticSetting<SpamPrev, int>(x => x.SpamInstances) { Validation = x => MinMax(nameof(SpamPrev.SpamInstances), x, 1, 25) },
+				new StaticSetting<SpamPrev, int>(x => x.VotesForKick) { Validation = x => MinMax(nameof(SpamPrev.VotesForKick), x, 1, 50) },
+				new StaticSetting<SpamPrev, int>(x => x.SpamPerMessage) { Validation = x => MinMax(nameof(SpamPrev.SpamPerMessage), x, 1, 2000) },
+				new StaticSetting<SpamPrev, int>(x => x.TimeInterval) { Validation = x => MinMax(nameof(SpamPrev.TimeInterval), x, 1, 180) },
 			}.Register();
 			new StaticSettingParser<RaidPrev>
 			{
 				new StaticSetting<RaidPrev, RaidType>(x => x.Type),
 				new StaticSetting<RaidPrev, Punishment>(x => x.Punishment),
-				new StaticSetting<RaidPrev, int>(x => x.UserCount) { Validation = x => IsError(nameof(RaidPrev.UserCount), x, 1, 25) },
-				new StaticSetting<RaidPrev, int>(x => x.TimeInterval) { Validation = x => IsError(nameof(RaidPrev.TimeInterval), x, 1, 60) },
+				new StaticSetting<RaidPrev, int>(x => x.UserCount) { Validation = x => MinMax(nameof(RaidPrev.UserCount), x, 1, 25) },
+				new StaticSetting<RaidPrev, int>(x => x.TimeInterval) { Validation = x => MinMax(nameof(RaidPrev.TimeInterval), x, 1, 60) },
 			}.Register();
 			new StaticSettingParser<PersistentRole>
 			{
@@ -263,13 +271,13 @@ namespace Advobot.Utilities
 			}.Register();
 			return StaticSettingParserRegistry.Instance.RegisteredTypes;
 		}
-		private static IResult IsError(string name, int inputValue, int minValue, int maxValue)
+		private static IResult MinMax(string name, int inputValue, int minValue, int maxValue)
 		{
 			if (inputValue > maxValue)
 			{
 				return Result.FromError($"The {name} must be less than or equal to `{maxValue}`.");
 			}
-			else if (inputValue < minValue)
+			if (inputValue < minValue)
 			{
 				return Result.FromError($"The {name} must be greater than or equal to `{minValue}`.");
 			}

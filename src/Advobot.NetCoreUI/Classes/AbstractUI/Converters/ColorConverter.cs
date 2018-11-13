@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Globalization;
-using Advobot.SharedUI.Colors;
+using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 
-namespace Advobot.SharedUI.Converters
+namespace Advobot.NetCoreUI.Classes.AbstractUI.Converters
 {
 	/// <summary>
 	/// Converts a <typeparamref name="TBrush"/> to a string and vice versa.

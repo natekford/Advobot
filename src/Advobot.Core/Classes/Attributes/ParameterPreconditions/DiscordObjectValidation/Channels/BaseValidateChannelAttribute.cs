@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Utilities;
 using Discord;
@@ -40,8 +41,8 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		}
 
 		/// <inheritdoc />
-		protected override VerifiedObjectResult ValidateObject(SocketCommandContext context, object value)
-			=> context.GetGuildUser().ValidateChannel((SocketGuildChannel)value, Permissions, GetExtras().ToArray());
+		protected override VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value)
+			=> context.User.ValidateChannel((SocketGuildChannel)value, Permissions, GetExtras().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.
 		/// </summary>

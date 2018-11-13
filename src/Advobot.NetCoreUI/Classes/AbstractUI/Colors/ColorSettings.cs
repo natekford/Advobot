@@ -3,15 +3,13 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesUtils;
 using Newtonsoft.Json;
 
-namespace Advobot.SharedUI.Colors
+namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 {
 	/// <summary>
 	/// Indicates what colors to use in the UI.
@@ -139,6 +137,7 @@ namespace Advobot.SharedUI.Colors
 			var parts = s.Split(new[] { ' ' }, 2);
 			if (parts.Length != 2 || !Factory.TryCreateBrush(parts[1], out var brush))
 			{
+				kvp = default;
 				return false;
 			}
 

@@ -46,17 +46,11 @@ namespace Advobot.Classes.Modules
 		}
 
 		/// <summary>
-		/// Returns information about the context and how long it's taken to execute.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-			=> ToString(null);
-		/// <summary>
 		/// Returns information about the context and how long it's taken to execute, but also includes any errors.
 		/// </summary>
 		/// <param name="result"></param>
 		/// <returns></returns>
-		public string ToString(IResult result)
+		public string FormatResult(IResult result)
 		{
 			var resp = $"\n\tGuild: {Guild.Format()}" +
 				$"\n\tChannel: {Channel.Format()}" +

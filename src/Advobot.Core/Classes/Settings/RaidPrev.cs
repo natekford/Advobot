@@ -18,8 +18,8 @@ namespace Advobot.Classes.Settings
 	/// </summary>
 	public class RaidPrev : IGuildSetting
 	{
-		private static readonly Punisher _Giver = new Punisher(TimeSpan.FromMinutes(0), default(ITimerService));
-		private static readonly RequestOptions _Reason = ClientUtils.CreateRequestOptions("raid prevention");
+		private static Punisher _Giver { get; } = new Punisher(TimeSpan.FromMinutes(0), default);
+		private static RequestOptions _Reason { get; } = DiscordUtils.GenerateRequestOptions("Raid prevention.");
 
 		/// <summary>
 		/// The type of raid this is preventing.

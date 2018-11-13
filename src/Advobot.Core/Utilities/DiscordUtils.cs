@@ -38,7 +38,20 @@ namespace Advobot.Utilities
 		public static RequestOptions GenerateRequestOptions(this IUser user, string reason = null)
 		{
 			var r = reason == null ? "" : $" Reason: {reason}.";
-			return ClientUtils.CreateRequestOptions($"Action by {user.Format()}.{r}");
+			return GenerateRequestOptions($"Action by {user.Format()}.{r}");
+		}
+		/// <summary>
+		/// Returns request options, with <paramref name="reason"/> as the audit log reason.
+		/// </summary>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static RequestOptions GenerateRequestOptions(string reason = null)
+		{
+			return new RequestOptions
+			{
+				AuditLogReason = reason,
+				RetryMode = RetryMode.RetryRatelimit,
+			};
 		}
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.
@@ -159,14 +172,14 @@ namespace Advobot.Utilities
 		/// This loads assemblies with a matching name so this can be a risk to use if bad files are in the folder.
 		/// </summary>
 		/// <returns></returns>
-		public static IEnumerable<Assembly> GetCommandAssemblies()
+		public static IReadOnlyCollection<Assembly> GetCommandAssemblies()
 		{
 			var unloadedAssemblies = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly)
 				.Where(x => Path.GetFileName(x).CaseInsContains("Commands"))
 				.Select(x => Assembly.LoadFrom(x));
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Concat(unloadedAssemblies)
-				.Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null).ToList();
-			if (assemblies.Any())
+				.Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null).ToArray();
+			if (assemblies.Length > 0)
 			{
 				return assemblies;
 			}
@@ -247,31 +260,6 @@ namespace Advobot.Utilities
 				return invites.Single(x => x.Code == inv.Code);
 			}
 			return null;
-		}
-		/// <summary>
-		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="objects"></param>
-		/// <param name="target"></param>
-		/// <param name="count"></param>
-		/// <param name="f"></param>
-		/// <returns></returns>
-		public static IEnumerable<T> GetInvitesFromCount<T>(this IEnumerable<T> objects, CountTarget target, uint count, Func<T, uint> f)
-		{
-			switch (target)
-			{
-				case CountTarget.Equal:
-					objects = objects.Where(x => f(x) == count);
-					break;
-				case CountTarget.Below:
-					objects = objects.Where(x => f(x) < count);
-					break;
-				case CountTarget.Above:
-					objects = objects.Where(x => f(x) > count);
-					break;
-			}
-			return objects;
 		}
 	}
 }

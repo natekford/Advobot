@@ -1,6 +1,6 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:colors="clr-namespace:Advobot.SharedUI.Colors;assembly=Advobot.Core"
+        xmlns:colors="clr-namespace:Advobot.NetCoreUI.Classes.AbstractUI.Colors;assembly=Advobot.NetCoreUI"
         Name="MessageBoxWindow"
         Title="{Binding WindowTitle}"
         FontFamily="Courier New"

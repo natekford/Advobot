@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using Advobot.NetCoreUI.Classes.Colors;
 using Advobot.NetCoreUI.Classes.ValidationAttributes;
-using Advobot.SharedUI.Colors;
+using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 using Avalonia.Media;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels

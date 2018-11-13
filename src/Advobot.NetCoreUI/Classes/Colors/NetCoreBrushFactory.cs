@@ -1,4 +1,4 @@
-﻿using Advobot.SharedUI.Colors;
+﻿using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 using Avalonia.Media;
 
 namespace Advobot.NetCoreUI.Classes.Colors

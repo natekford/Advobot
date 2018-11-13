@@ -29,7 +29,7 @@ namespace Advobot.Classes.Modules
 			bool bypass,
 			Func<SocketGuildUser, bool> predicate,
 			Func<SocketGuildUser, RequestOptions, Task> update)
-			=> await Process(Context.Guild.GetEditableUsers(Context.GetGuildUser()), bypass, predicate, update).CAF();
+			=> await Process(Context.Guild.GetEditableUsers(Context.User), bypass, predicate, update).CAF();
 		/// <summary>
 		/// Does an action on many users at once.
 		/// </summary>

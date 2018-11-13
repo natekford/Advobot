@@ -29,7 +29,7 @@ namespace Advobot.Utilities
 				case IUser user:
 					return channel.GetPermissionOverwrite(user);
 				default:
-					throw new ArgumentException("Invalid type supplied for permission overwrites.", nameof(obj));
+					throw NewOverwriteTargetException();
 			}
 		}
 		/// <summary>
