@@ -1,24 +1,24 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Advobot.NetCoreUI.Classes.Controls;assembly=Advobot.NetCoreUI"
-        xmlns:avaloniaedit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         Name="FileViewingWindow"
         Title="{Binding WindowTitle}"
         FontFamily="Courier New"
         Activated="OnActivated">
 
-  <controls:DynamicFontSizeGrid RowDefinitions="5*,15*,4*" ColumnDefinitions="7*,1*" DynamicFontSize=".02">
-    <!-- TODO: Uncomment when this nuget package is updated past 0.6.0 -->
-    <!-- <avaloniaedit:TextEditor Grid.RowSpan="1000" Text="{Binding Output}" VerticalScrollBarVisibility="Visible" SyntaxHighlighting="Json" ShowLineNumbers="True" WordWrap="True"/> -->
-    <TextBox Grid.RowSpan="1000" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True"/>
-    <TextBox Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"
+    <controls:DynamicFontSizeGrid RowDefinitions="5*,15*,4*" ColumnDefinitions="7*,1*" DynamicFontSize=".02">
+        <!-- TODO: Uncomment when this nuget package is updated past 0.7.0 and te work -->
+        <!-- <ae:TextEditor Grid.RowSpan="1000" Document="{Binding Output}" VerticalScrollBarVisibility="Visible" SyntaxHighlighting="Json" ShowLineNumbers="True" WordWrap="True"/> -->
+        <TextBox Grid.RowSpan="1000" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True"/>
+        <TextBox Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"
              Text="{Binding SavingText}" Background="{Binding SavingBackground}" IsVisible="{Binding SavingOpen}"/>
 
-    <UniformGrid Grid.Row="2" Grid.Column="1" Columns="1">
-      <Button Content="Save" HotKey="Ctrl+s" Command="{Binding SaveCommand}"/>
-      <Button Content="Copy" Command="{Binding CopyCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
-      <Button Content="Close" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
-      <Button Content="Delete" Command="{Binding DeleteCommand}"/>
-    </UniformGrid>
-  </controls:DynamicFontSizeGrid>
+        <UniformGrid Grid.Row="2" Grid.Column="1" Columns="1">
+            <Button Content="Save" HotKey="Ctrl+s" Command="{Binding SaveCommand}"/>
+            <Button Content="Copy" Command="{Binding CopyCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+            <Button Content="Close" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+            <Button Content="Delete" Command="{Binding DeleteCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+        </UniformGrid>
+    </controls:DynamicFontSizeGrid>
 </Window>

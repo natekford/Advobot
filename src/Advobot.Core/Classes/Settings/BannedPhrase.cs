@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
@@ -15,7 +14,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds a phrase and punishment.
 	/// </summary>
-	public class BannedPhrase : IGuildSetting
+	public sealed class BannedPhrase : IGuildFormattable
 	{
 		private static RequestOptions _Options { get; } = DiscordUtils.GenerateRequestOptions("Banned phrase.");
 
@@ -56,8 +55,7 @@ namespace Advobot.Classes.Settings
 		public async Task PunishAsync(IGuildSettings settings, SocketGuild guild, BannedPhraseUserInfo info, ITimerService timers)
 		{
 			var count = info.Increment(Punishment);
-			var punishment = settings.BannedPhrasePunishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
-			if (punishment == null)
+			if (!settings.BannedPhrasePunishments.TryGetSingle(x => x.Punishment == Punishment && x.NumberOfRemoves == count, out var punishment))
 			{
 				return;
 			}
@@ -67,10 +65,10 @@ namespace Advobot.Classes.Settings
 			info.Reset(Punishment);
 		}
 		/// <inheritdoc />
-		public override string ToString()
+		public string Format(SocketGuild guild = null)
 			=> $"`{(Punishment == default ? 'N' : Punishment.ToString()[0])}` `{Phrase}`";
 		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
-			=> ToString();
+		public override string ToString()
+			=> Format();
 	}
 }

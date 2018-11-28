@@ -11,7 +11,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds rules on a guild.
 	/// </summary>
-	public sealed class RuleHolder : IGuildSetting
+	public sealed class RuleHolder : IGuildFormattable
 	{
 		/// <summary>
 		/// Holds the categories for rules which in turn hold the rules.
@@ -84,7 +84,7 @@ namespace Advobot.Classes.Settings
 		public override string ToString()
 			=> ToString(new RuleFormatter());
 		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
+		public string Format(SocketGuild guild = null)
 			=> ToString();
 		/// <summary>
 		/// Uses the specified rule formatter to format every rule category.

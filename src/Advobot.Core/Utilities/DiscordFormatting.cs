@@ -15,13 +15,6 @@ namespace Advobot.Utilities
 	public static class DiscordFormatting
 	{
 		/// <summary>
-		/// Either returns the formatted snowflake value or the object as a string.
-		/// </summary>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static string Format(this object obj)
-			=> obj is ISnowflakeEntity snowflake ? snowflake.Format() : obj?.ToString();
-		/// <summary>
 		/// Returns a string with the object's name and id.
 		/// </summary>
 		/// <param name="obj"></param>

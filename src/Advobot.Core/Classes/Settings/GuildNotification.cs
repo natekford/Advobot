@@ -12,7 +12,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Notification that gets sent whenever certain events happen depending on what is linked to this notification.
 	/// </summary>
-	public class GuildNotification : IGuildSetting
+	public class GuildNotification : IGuildFormattable
 	{
 		/// <summary>
 		/// What to replace with a user mention.
@@ -27,12 +27,12 @@ namespace Advobot.Classes.Settings
 		/// The content to send in the message.
 		/// </summary>
 		[JsonProperty]
-		public string Content { get; private set; }
+		public string Content { get; set; }
 		/// <summary>
 		/// The embed to send with the message.
 		/// </summary>
 		[JsonProperty]
-		public CustomEmbed CustomEmbed { get; private set; }
+		public CustomEmbed CustomEmbed { get; set; }
 		/// <summary>
 		/// The channel to send the message to.
 		/// </summary>
@@ -54,10 +54,13 @@ namespace Advobot.Classes.Settings
 			return MessageUtils.SendMessageAsync(guild.GetTextChannel(ChannelId), content, CustomEmbed?.BuildWrapper());
 		}
 		/// <inheritdoc />
-		public override string ToString()
-			=> $"**Channel:** `{ChannelId}`\n**Content:** `{Content}`\n{CustomEmbed}";
+		public string Format(SocketGuild guild = null)
+		{
+			var channel = guild?.GetTextChannel(ChannelId)?.Format() ?? ChannelId.ToString();
+			return $"**Channel:** `{channel}`\n**Content:** `{Content}`\n{CustomEmbed}";
+		}
 		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
-			=> $"**Channel:** `{guild.GetTextChannel(ChannelId).Format()}`\n**Content:** `{Content}`\n{CustomEmbed}";
+		public override string ToString()
+			=> Format();
 	}
 }

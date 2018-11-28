@@ -8,7 +8,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds information about spam prevention, such as how much is considered spam, required spam instances, and votes to kick.
 	/// </summary>
-	public class SpamPrev : IGuildSetting
+	public sealed class SpamPrev : IGuildFormattable
 	{
 		/// <summary>
 		/// The spam this is preventing.
@@ -47,7 +47,7 @@ namespace Advobot.Classes.Settings
 		public bool Enabled { get; set; }
 
 		/// <inheritdoc />
-		public override string ToString()
+		public string Format(SocketGuild guild = null)
 		{
 			return $"**Punishment:** `{Punishment.ToString()}`\n" +
 				$"**Spam Instances:** `{SpamInstances}`\n" +
@@ -56,7 +56,7 @@ namespace Advobot.Classes.Settings
 				$"**Time Interval:** `{TimeInterval}`";
 		}
 		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
-			=> ToString();
+		public override string ToString()
+			=> Format();
 	}
 }

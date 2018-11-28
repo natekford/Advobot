@@ -16,7 +16,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds information about raid prevention such as how long the interval is, and how many users to target.
 	/// </summary>
-	public class RaidPrev : IGuildSetting
+	public sealed class RaidPrev : IGuildFormattable
 	{
 		private static Punisher _Giver { get; } = new Punisher(TimeSpan.FromMinutes(0), default);
 		private static RequestOptions _Reason { get; } = DiscordUtils.GenerateRequestOptions("Raid prevention.");
@@ -86,7 +86,7 @@ namespace Advobot.Classes.Settings
 		public async Task PunishAsync(IGuildSettings settings, SocketGuildUser user)
 			=> await _Giver.GiveAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
 		/// <inheritdoc />
-		public override string ToString()
+		public string Format(SocketGuild guild = null)
 		{
 			return $"**Enabled:** `{Enabled}`\n" +
 				$"**Users:** `{UserCount}`\n" +
@@ -94,7 +94,7 @@ namespace Advobot.Classes.Settings
 				$"**Punishment:** `{Punishment.ToString()}`";
 		}
 		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
-			=> ToString();
+		public override string ToString()
+			=> Format();
 	}
 }

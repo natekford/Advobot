@@ -15,7 +15,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds the settings for commands on a guild in the bot.
 	/// </summary>
-	public class CommandSettings : IGuildSetting
+	public sealed class CommandSettings : IGuildFormattable
 	{
 		[JsonProperty("CommandValues")]
 		private Dictionary<string, bool> _CommandValues = new Dictionary<string, bool>();
@@ -134,11 +134,9 @@ namespace Advobot.Classes.Settings
 		public bool? IsCommandEnabled(string name)
 			=> _CommandValues.TryGetValue(name, out var val) ? val : (bool?)null;
 		/// <inheritdoc />
-		public override string ToString()
-			=> ToString(null);
-		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
+		public string Format(SocketGuild guild = null)
 		{
+			var guildWideCommandOverrides = _CommandValues.Join("\n", x => $"`{x.Key}:` `{x.Value}`");
 			var sb = new StringBuilder();
 			foreach (var kvp in _Overrides)
 			{
@@ -160,25 +158,35 @@ namespace Advobot.Classes.Settings
 					title = $"**Unspecified:** `{kvp.Key}`";
 				}
 
-				var overrides = "";
-				var enabledKvps = kvp.Value.Where(x => x.Value);
-				if (enabledKvps.Any())
+				var enabled = "";
+				var disabled = "";
+				foreach (var command in kvp.Value)
 				{
-					overrides += $"\t**Enabled:** `{string.Join("`, `", kvp.Value)}`\n";
-				}
-				var disabledKvps = kvp.Value.Where(x => !x.Value);
-				if (disabledKvps.Any())
-				{
-					overrides += $"\t**Disabled:** `{string.Join("`, `", kvp.Value)}`\n";
+					if (command.Value)
+					{
+						enabled += (string.IsNullOrWhiteSpace(enabled) ? "" : "`, `") + command.Key;
+					}
+					else
+					{
+						disabled += (string.IsNullOrWhiteSpace(disabled) ? "" : "`, `") + command.Key;
+					}
 				}
 
-				if (!string.IsNullOrWhiteSpace(overrides))
+				sb.AppendLine(title);
+				if (!string.IsNullOrWhiteSpace(enabled))
 				{
-					sb.AppendLine($"{title}\n{overrides}");
+					sb.AppendLineFeed($"\t**Enabled:** `{enabled}`");
+				}
+				if (!string.IsNullOrWhiteSpace(disabled))
+				{
+					sb.AppendLineFeed($"\t**Disabled:** `{disabled}`");
 				}
 			}
-			return $"{_CommandValues.Join("\n", x => $"`{x.Key}:` `{x.Value}`")}\n\n{sb}".TrimEnd();
+			return $"{guildWideCommandOverrides}\n\n{sb}".TrimEnd();
 		}
+		/// <inheritdoc />
+		public override string ToString()
+			=> Format();
 		private static bool ModifyOverride(IDictionary<string, bool> dict, ValueToModify newValue)
 		{
 			if (!newValue.CanModify)

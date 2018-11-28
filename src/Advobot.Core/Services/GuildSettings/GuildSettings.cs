@@ -122,7 +122,7 @@ namespace Advobot.Services.GuildSettings
 		public IList<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public IList<CachedInvite> Invites { get; } = new List<CachedInvite>();
+		public IList<CachedInvite> CachedInvites { get; } = new List<CachedInvite>();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public IList<string> EvaluatedRegex { get; } = new List<string>();
@@ -244,16 +244,16 @@ namespace Advobot.Services.GuildSettings
 			GuildId = guild.Id;
 			foreach (var invite in await guild.SafeGetInvitesAsync().CAF() ?? Enumerable.Empty<RestInviteMetadata>())
 			{
-				Invites.Add(new CachedInvite(invite));
+				CachedInvites.Add(new CachedInvite(invite));
 			}
 			foreach (var group in SelfAssignableGroups ?? Enumerable.Empty<SelfAssignableRoles>())
 			{
-				group.PostDeserialize(guild);
+				group.RemoveRoles(group.Roles.Where(x => guild.GetRole(x) == null));
 			}
 		}
 		/// <inheritdoc />
 		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
-			=> StaticGetPath(accessor, GuildId);
+			=> GetFile(accessor, GuildId);
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettings"/> from file.
 		/// </summary>
@@ -261,8 +261,8 @@ namespace Advobot.Services.GuildSettings
 		/// <param name="guildId"></param>
 		/// <returns></returns>
 		public static GuildSettings Load(IBotDirectoryAccessor accessor, ulong guildId)
-			=> IOUtils.DeserializeFromFile<GuildSettings>(StaticGetPath(accessor, guildId)) ?? new GuildSettings();
-		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor, ulong guildId)
+			=> IOUtils.DeserializeFromFile<GuildSettings>(GetFile(accessor, guildId)) ?? new GuildSettings();
+		private static FileInfo GetFile(IBotDirectoryAccessor accessor, ulong guildId)
 			=> accessor.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
 	}
 }

@@ -14,7 +14,6 @@ using AdvorangesSettingParser.Results;
 using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 using Discord;
-using Discord.Commands;
 
 namespace Advobot.Classes.Modules
 {
@@ -205,8 +204,7 @@ namespace Advobot.Classes.Modules
 			{
 				if (creationFactory == null)
 				{
-#warning return error here
-					await ReplyErrorAsync("todo: put in error").CAF();
+					await ReplyErrorAsync("Unable to create a new value to insert.").CAF();
 					return;
 				}
 				var newValue = creationFactory();
@@ -316,23 +314,6 @@ namespace Advobot.Classes.Modules
 				value = Value;
 				name = Setting.MainName;
 			}
-		}
-	}
-
-	/// <summary>
-	/// Handles saving settings in addition to other things.
-	/// </summary>
-	/// <typeparam name="TSettings"></typeparam>
-	public abstract class AdvobotSettingsSavingModuleBase<TSettings> : AdvobotSettingsModuleBase<TSettings> where TSettings : ISettingsBase
-	{
-		/// <summary>
-		/// Saves the settings then calls the base <see cref="ModuleBase{T}.AfterExecute(CommandInfo)"/>.
-		/// </summary>
-		/// <param name="command"></param>
-		protected override void AfterExecute(CommandInfo command)
-		{
-			Settings.SaveSettings(BotSettings);
-			base.AfterExecute(command);
 		}
 	}
 }

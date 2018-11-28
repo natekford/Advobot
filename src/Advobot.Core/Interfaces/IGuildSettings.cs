@@ -132,7 +132,7 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Cached invites holding uses. This is not saved.
 		/// </summary>
-		IList<CachedInvite> Invites { get; }
+		IList<CachedInvite> CachedInvites { get; }
 		/// <summary>
 		/// Regex which has been evaluted to be mostly safe. This is not saved.
 		/// </summary>
@@ -158,12 +158,5 @@ namespace Advobot.Interfaces
 		/// <param name="type"></param>
 		/// <returns></returns>
 		RaidPrev this[RaidType type] { get; set; }
-
-		/// <summary>
-		/// What to do after deserialization.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		Task PostDeserializeAsync(SocketGuild guild);
 	}
 }

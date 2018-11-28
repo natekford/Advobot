@@ -6,17 +6,17 @@
         FontFamily="Courier New"
         Width="278"
         Height="133">
-  
-  <Grid RowDefinitions="89*,42">
-    <Grid Grid.Row="0">
-      <TextBox Classes="i1" Text="{Binding Text}"/>
-      <Border Classes="b1"/>
+
+    <Grid RowDefinitions="89*,42">
+        <Grid Grid.Row="0">
+            <TextBox Classes="i1" Text="{Binding Text}"/>
+            <Border Classes="b1"/>
+        </Grid>
+
+        <Grid Grid.Row="1" RowDefinitions="9*,23*,10*" ColumnDefinitions="104*,75,7,75,15">
+            <DropDown Grid.Row="1" Grid.Column="1" Items="{Binding Options}" SelectedItem="{Binding CurrentOption}" IsVisible="{Binding DropDownVisible}"/>
+            <Button Grid.Row="1" Grid.Column="3" Content="{Binding ButtonText}" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=MessageBoxWindow}"/>
+            <Border Classes="b1"/>
+        </Grid>
     </Grid>
-    
-    <Grid Grid.Row="1" RowDefinitions="9*,23*,10*" ColumnDefinitions="104*,75,7,75,15">
-      <DropDown Grid.Row="1" Grid.Column="1" Items="{Binding Options}" SelectedItem="{Binding CurrentOption}" IsVisible="{Binding DropDownVisible}"/>
-      <Button Grid.Row="1" Grid.Column="3" Content="{Binding ButtonText}" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=MessageBoxWindow}"/>
-      <Border Classes="b1"/>
-    </Grid>
-  </Grid>
 </Window>

@@ -82,7 +82,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			SaveCommand = ReactiveCommand.Create(Save);
 			CopyCommand = ReactiveCommand.CreateFromTask<Window>(Copy);
 			CloseCommand = ReactiveCommand.CreateFromTask<Window>(Close);
-			DeleteCommand = ReactiveCommand.CreateFromTask(Delete);
+			DeleteCommand = ReactiveCommand.CreateFromTask<Window>(Delete);
 		}
 
 		private void Save(FileInfo file, string value, [CallerMemberName] string caller = "")
@@ -135,15 +135,15 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		private async Task Close(Window window)
 		{
 			var msg = $"There are unsaved changes. Are you sure you want to close the file {_File.Name}?";
-			if (!_IsDirty || await MessageBox.ShowAsync(msg, _Caption, new[] { "Yes", "No" }) == "Yes")
+			if (!_IsDirty || await MessageBox.ShowAsync(window, msg, _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
 				window?.Close();
 			}
 		}
-		private async Task Delete()
+		private async Task Delete(Window window)
 		{
 			var msg = $"Are you sure you want to delete the file {_File.Name}?";
-			if (await MessageBox.ShowAsync(msg, _Caption, new[] { "Yes", "No" }) == "Yes")
+			if (await MessageBox.ShowAsync(window, msg, _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
 				try
 				{

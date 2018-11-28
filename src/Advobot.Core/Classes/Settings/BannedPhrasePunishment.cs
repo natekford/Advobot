@@ -8,34 +8,18 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds a variety of information which allows a punishment to be given for <see cref="BannedPhrase"/>.
 	/// </summary>
-	public class BannedPhrasePunishment : IGuildSetting
+	public sealed class BannedPhrasePunishment : IGuildFormattable
 	{
 		/// <summary>
 		/// The punishment to use on a user.
 		/// </summary>
 		[JsonProperty]
-		public Punishment Punishment
-		{
-			get => _Punishment;
-			set
-			{
-				_Punishment = value;
-				RoleId = 0;
-			}
-		}
+		public Punishment Punishment { get; private set; }
 		/// <summary>
 		/// The role to give a user if the punishment is role.
 		/// </summary>
 		[JsonProperty]
-		public ulong RoleId
-		{
-			get => _RoleId;
-			set
-			{
-				_RoleId = value;
-				Punishment = Punishment.RoleMute;
-			}
-		}
+		public ulong RoleId { get; private set; }
 		/// <summary>
 		/// How many removes before this is used on the user.
 		/// </summary>
@@ -47,11 +31,8 @@ namespace Advobot.Classes.Settings
 		[JsonProperty]
 		public int Time { get; private set; }
 
-		private ulong _RoleId;
-		private Punishment _Punishment;
-
 		/// <summary>
-		/// Creates an instance of <see cref="BannedPhrasePunishment"/>.
+		/// Creates an empty instance of <see cref="BannedPhrasePunishment"/>.
 		/// </summary>
 		public BannedPhrasePunishment() { }
 		/// <summary>
@@ -78,18 +59,14 @@ namespace Advobot.Classes.Settings
 		}
 
 		/// <inheritdoc />
-		public override string ToString()
+		public string Format(SocketGuild guild = null)
 		{
-			var punishment = RoleId == 0 ? Punishment.ToString() : RoleId.ToString();
+			var punishment = RoleId == 0 ? Punishment.ToString() : guild?.GetRole(RoleId)?.Name ?? RoleId.ToString();
 			var time = Time <= 0 ? "" : $" `{Time} minutes`";
 			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}
 		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
-		{
-			var punishment = RoleId == 0 ? Punishment.ToString() : guild.GetRole(RoleId).Name;
-			var time = Time <= 0 ? "" : $" `{Time} minutes`";
-			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
-		}
+		public override string ToString()
+			=> Format();
 	}
 }

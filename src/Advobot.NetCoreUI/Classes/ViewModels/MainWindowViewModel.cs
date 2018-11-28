@@ -114,17 +114,17 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			Console.SetOut(new TextBoxStreamWriter(PrintOutputCommand));
 			TakeInputCommand = ReactiveCommand.Create(TakeInput, this.WhenAnyValue(x => x.Input, x => x.Length > 0));
 			OpenMenuCommand = ReactiveCommand.Create<string>(OpenMenu);
-			DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectAsync);
-			RestartCommand = ReactiveCommand.CreateFromTask(RestartAsync);
+			DisconnectCommand = ReactiveCommand.CreateFromTask<Window>(DisconnectAsync);
+			RestartCommand = ReactiveCommand.CreateFromTask<Window>(RestartAsync);
 			PauseCommand = ReactiveCommand.Create(Pause);
 			OpenFileSearchWindowCommand = ReactiveCommand.CreateFromTask<Window>(OpenFileSearchWindowAsync);
 			SaveColorsCommand = ReactiveCommand.Create(SaveColorSettings,
 				this.WhenAnyValue(x => x.OpenColorsMenu, x => x.ColorsViewModel.CanSave, (o, c) => o && c));
 			SaveBotSettingsCommand = ReactiveCommand.Create(SaveBotSettings,
 				this.WhenAnyValue(x => x.OpenSettingsMenu, x => x.BotSettingsViewModel.CanSave, (o, c) => o && c));
-			ClearOutputCommand = ReactiveCommand.CreateFromTask(ClearOutput);
+			ClearOutputCommand = ReactiveCommand.CreateFromTask<Window>(ClearOutput);
 			SaveOutputCommand = ReactiveCommand.Create(SaveOutput);
-			OpenOutputSearchWindowCommand = ReactiveCommand.CreateFromTask(OpenOutputSearchWindowAsync);
+			OpenOutputSearchWindowCommand = ReactiveCommand.CreateFromTask<Window>(OpenOutputSearchWindowAsync);
 
 			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));
 			Uptime = timer.Select(x => $"Uptime: {ProcessInfoUtils.GetUptime():dd\\.hh\\:mm\\:ss}");
@@ -157,16 +157,16 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			}
 			OutputColumnSpan = _MenuStatuses.Any(kvp => kvp.Value) ? 1 : 2;
 		}
-		private async Task DisconnectAsync()
+		private async Task DisconnectAsync(Window window)
 		{
-			if (await MessageBox.ShowAsync("Are you sure you want to disconnect the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
+			if (await MessageBox.ShowAsync(window, "Are you sure you want to disconnect the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
 				await _Client.DisconnectBotAsync();
 			}
 		}
-		private async Task RestartAsync()
+		private async Task RestartAsync(Window window)
 		{
-			if (await MessageBox.ShowAsync("Are you sure you want to restart the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
+			if (await MessageBox.ShowAsync(window, "Are you sure you want to restart the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
 				await _Client.RestartBotAsync(_BotSettings);
 			}
@@ -203,7 +203,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			if (file != null)
 			{
 				var type = GetDeserializationType(file);
-				await new FileViewingWindow { DataContext = new FileViewingWindowViewModel(new FileInfo(file), type), }.ShowDialog();
+				await new FileViewingWindow { DataContext = new FileViewingWindowViewModel(new FileInfo(file), type), }.ShowDialog(window);
 			}
 		}
 		private void SaveColorSettings()
@@ -216,9 +216,9 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			ConsoleUtils.WriteLine("Successfully saved the bot settings.", name: "Saving");
 			_BotSettings.SaveSettings();
 		}
-		private async Task ClearOutput()
+		private async Task ClearOutput(Window window)
 		{
-			if (await MessageBox.ShowAsync("Are you sure you want to clear the output window?", _Caption, new[] { "Yes", "No" }) == "Yes")
+			if (await MessageBox.ShowAsync(window, "Are you sure you want to clear the output window?", _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
 				Output = "";
 			}
@@ -228,7 +228,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			var response = _BotSettings.GenerateFileName("Output").SaveAndGetResponse(Output).Text;
 			ConsoleUtils.WriteLine(response, name: "Saving Output");
 		}
-		private async Task OpenOutputSearchWindowAsync()
-			=> await new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog();
+		private async Task OpenOutputSearchWindowAsync(Window window)
+			=> await new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog(window);
 	}
 }

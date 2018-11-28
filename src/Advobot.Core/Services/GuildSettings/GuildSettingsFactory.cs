@@ -2,9 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord.WebSocket;
@@ -47,8 +45,10 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			settings = GuildSettings.Load(_Settings, guild.Id);
-			await settings.PostDeserializeAsync(guild).CAF();
+			var concrete = GuildSettings.Load(_Settings, guild.Id);
+			await concrete.PostDeserializeAsync(guild).CAF();
+
+			settings = concrete;
 			settings.SaveSettings(_Settings);
 
 			if (!_GuildSettings.TryAdd(guild.Id, settings))

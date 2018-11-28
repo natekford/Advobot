@@ -63,7 +63,23 @@ namespace Advobot.Classes.Modules
 		/// <returns></returns>
 		public async Task<IUserMessage> ReplyIfAny<T>(IEnumerable<T> source, object target, string title, Func<T, string> some)
 		{
-			var targetStr = target == null ? "" : $" for `{target.Format()}`";
+			var targetStr = "";
+			if (target is ISnowflakeEntity snowflake)
+			{
+				target = snowflake.Format();
+			}
+			else if (target is IGuildFormattable setting)
+			{
+				target = setting.Format(Context.Guild);
+			}
+			else if (target is object obj)
+			{
+				target = obj.ToString();
+			}
+			if (targetStr != "")
+			{
+				targetStr = $" for `{targetStr}`";
+			}
 			if (!source.Any())
 			{
 				return await ReplyTimedAsync($"There are zero {title.ToLower()}{targetStr}.").CAF();

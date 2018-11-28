@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -13,7 +12,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Limits the amount of messages users are allowed to send in a given time interval. Initially created with <see cref="Enabled"/> set to false.
 	/// </summary>
-	public class Slowmode : IGuildSetting
+	public sealed class Slowmode : IGuildFormattable
 	{
 		/// <summary>
 		/// The base messages every user gets to start with.
@@ -59,18 +58,13 @@ namespace Advobot.Classes.Settings
 		}
 
 		/// <inheritdoc />
-		public override string ToString()
+		public string Format(SocketGuild guild = null)
 		{
-			return $"**Base messages:** `{BaseMessages}`\n" +
-				$"**Time interval:** `{TimeInterval}`\n" +
-				$"**Immune Role Ids:** `{string.Join("`, `", ImmuneRoleIds)}`";
+			var roles = guild == null ? string.Join("`, `", ImmuneRoleIds) : ImmuneRoleIds.Join("`, `", x => guild.GetRole(x)?.Format());
+			return $"**Base messages:** `{BaseMessages}`\n**Time interval:** `{TimeInterval}`\n**Immune Role Ids:** `{roles}`";
 		}
 		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
-		{
-			return $"**Base messages:** `{BaseMessages}`\n" +
-				$"**Time interval:** `{TimeInterval}`\n" +
-				$"**Immune Role Ids:** `{ImmuneRoleIds.Join("`, `", x => guild.GetRole(x).Format())}`";
-		}
+		public override string ToString()
+			=> Format();
 	}
 }

@@ -20,7 +20,7 @@ namespace Advobot.NetCoreUI.Classes.Views
 		private void InitializeComponent()
 			=> AvaloniaXamlLoader.Load(this);
 
-		public static Task<string> ShowAsync(string messageBoxText, string caption, IEnumerable<string> options)
+		public static Task<string> ShowAsync(Window window, string messageBoxText, string caption, IEnumerable<string> options)
 		{
 			return new MessageBox
 			{
@@ -30,7 +30,7 @@ namespace Advobot.NetCoreUI.Classes.Views
 					WindowTitle = caption,
 					Options = options,
 				},
-			}.ShowDialog<string>();
+			}.ShowDialog<string>(window);
 		}
 	}
 }

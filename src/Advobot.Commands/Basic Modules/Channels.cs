@@ -37,7 +37,7 @@ namespace Advobot.Commands.Channels
 				=> await CommandRunner(Context.Guild.CreateVoiceChannelAsync(name, null, GenerateRequestOptions())).CAF();
 			[ImplicitCommand, ImplicitAlias]
 			public async Task Category([Remainder, ValidateChannelName] string name)
-				=> await CommandRunner(Context.Guild.CreateCategoryChannelAsync(name, GenerateRequestOptions())).CAF();
+				=> await CommandRunner(Context.Guild.CreateCategoryChannelAsync(name, null, GenerateRequestOptions())).CAF();
 
 			private async Task CommandRunner<T>(Task<T> creator) where T : IGuildChannel
 			{

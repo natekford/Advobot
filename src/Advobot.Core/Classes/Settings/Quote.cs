@@ -8,7 +8,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds a name and description.
 	/// </summary>
-	public class Quote : IGuildSetting, INameable
+	public sealed class Quote : IGuildFormattable, INameable
 	{
 		/// <summary>
 		/// The name of the quote.
@@ -37,10 +37,10 @@ namespace Advobot.Classes.Settings
 		}
 
 		/// <inheritdoc />
-		public override string ToString()
+		public string Format(SocketGuild guild = null)
 			=> $"`{Name}`";
 		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
-			=> ToString();
+		public override string ToString()
+			=> Format();
 	}
 }

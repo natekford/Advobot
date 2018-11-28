@@ -84,7 +84,7 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			var inv = await context.Settings.Invites.GetInviteUserJoinedOnAsync(context.User).CAF();
+			var inv = await context.Settings.CachedInvites.GetInviteUserJoinedOnAsync(context.User).CAF();
 			var invite = inv != null
 				? $"**Invite:** {inv.Code}"
 				: "";

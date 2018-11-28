@@ -11,7 +11,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Extra permissions within the bot given to a user on a guild.
 	/// </summary>
-	public class BotUser : IGuildSetting, ITargetsUser
+	public sealed class BotUser : IGuildFormattable, ITargetsUser
 	{
 		/// <inheritdoc />
 		[JsonProperty]
@@ -23,7 +23,7 @@ namespace Advobot.Classes.Settings
 		public ulong Permissions { get; private set; }
 
 		/// <summary>
-		/// Creates an instance of <see cref="BotUser"/>.
+		/// Creates an empty instance of <see cref="BotUser"/>.
 		/// </summary>
 		public BotUser() { }
 		/// <summary>
@@ -83,10 +83,13 @@ namespace Advobot.Classes.Settings
 		public IEnumerable<string> ModifyPermissions(bool add, IGuildUser invoker, ulong flags)
 			=> add ? AddPermissions(invoker, flags) : RemovePermissions(invoker, flags);
 		/// <inheritdoc />
-		public override string ToString()
-			=> $"**User:** `{UserId}`\n**Permissions:** `{Permissions}`";
+		public string Format(SocketGuild guild = null)
+		{
+			var user = guild?.GetUser(UserId)?.Format() ?? UserId.ToString();
+			return $"**User:** `{guild.GetUser(UserId).Format()}`\n**Permissions:** `{Permissions}`";
+		}
 		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
-			=> $"**User:** `{guild.GetUser(UserId).Format()}`\n**Permissions:** `{Permissions}`";
+		public override string ToString()
+			=> Format();
 	}
 }

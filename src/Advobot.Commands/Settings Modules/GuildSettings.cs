@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -58,62 +59,64 @@ namespace Advobot.Commands
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Reset(string settingName)
-				=> await ResetAsync(settingName).CAF();
+			public Task Reset(string settingName)
+				=> ResetAsync(settingName);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Prefix([ValidatePrefix] string value)
-				=> await ModifyAsync(x => x.Prefix, value).CAF();
+			public Task Prefix([ValidatePrefix] string value)
+				=> ModifyAsync(x => x.Prefix, value);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task NonVerboseErrors(AddBoolean value)
-				=> await ModifyAsync(x => x.NonVerboseErrors, value).CAF();
+			public Task NonVerboseErrors(AddBoolean value)
+				=> ModifyAsync(x => x.NonVerboseErrors, value);
 			//TODO: rewrite the log channel stuff? or not cause the user has to be admin to execute this meaning they can see every channel
 			//TODO: validate invoker has higher role than bot
 			[ImplicitCommand, ImplicitAlias]
-			public async Task ServerLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
-				=> await ModifyAsync(x => x.ServerLogId, value?.Id ?? 0).CAF();
+			public Task ServerLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
+				=> ModifyAsync(x => x.ServerLogId, value?.Id ?? 0);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task ModLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
-				=> await ModifyAsync(x => x.ModLogId, value?.Id ?? 0).CAF();
+			public Task ModLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
+				=> ModifyAsync(x => x.ModLogId, value?.Id ?? 0);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task ImageLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
-				=> await ModifyAsync(x => x.ImageLogId, value?.Id ?? 0).CAF();
+			public Task ImageLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
+				=> ModifyAsync(x => x.ImageLogId, value?.Id ?? 0);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task MuteRoleId([NotEveryoneOrManaged] SocketRole value)
-				=> await ModifyAsync(x => x.MuteRoleId, value.Id).CAF();
+			public Task MuteRoleId([NotEveryoneOrManaged] SocketRole value)
+				=> ModifyAsync(x => x.MuteRoleId, value.Id);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task LogActions(AddBoolean add, params LogAction[] values)
-				=> await ModifyCollectionAsync(x => x.LogActions, add, values).CAF();
+			public Task LogActions(AddBoolean add, params LogAction[] values)
+				=> ModifyCollectionAsync(x => x.LogActions, add, values);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task ImageOnlyChannels(
+			public Task ImageOnlyChannels(
 				AddBoolean add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
-				=> await ModifyCollectionAsync(x => x.ImageOnlyChannels, add, values.Select(x => x.Id)).CAF();
+				=> ModifyCollectionAsync(x => x.ImageOnlyChannels, add, values.Select(x => x.Id));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task IgnoredLogChannels(
+			public Task IgnoredLogChannels(
 				AddBoolean add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
-				=> await ModifyCollectionAsync(x => x.IgnoredLogChannels, add, values.Select(x => x.Id)).CAF();
+				=> ModifyCollectionAsync(x => x.IgnoredLogChannels, add, values.Select(x => x.Id));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task IgnoredXpChannels(
+			public Task IgnoredXpChannels(
 				AddBoolean add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
-				=> await ModifyCollectionAsync(x => x.IgnoredXpChannels, add, values.Select(x => x.Id)).CAF();
+				=> ModifyCollectionAsync(x => x.IgnoredXpChannels, add, values.Select(x => x.Id));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task IgnoredCommandChannels(
+			public Task IgnoredCommandChannels(
 				AddBoolean add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
-				=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, add, values.Select(x => x.Id)).CAF();
+				=> ModifyCollectionAsync(x => x.IgnoredCommandChannels, add, values.Select(x => x.Id));
 
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Quotes(AddBoolean add, string name, [Optional, Remainder] string text)
-				=> await ModifyCollectionAsync(x => x.Quotes, add, new[] { new Quote(name, text ?? "") }).CAF();
+			public Task Quotes(AddBoolean add, string name, [Optional, Remainder] string text)
+				=> ModifyCollectionAsync(x => x.Quotes, add, new[] { new Quote(name, text ?? "") });
 
 
 			//TODO: go back to old way in separate command because this is kind of unwieldy?
 			[ImplicitCommand, ImplicitAlias]
-			public async Task BotUsers(AddBoolean add, IUser user,
+			public Task BotUsers(
+				AddBoolean add,
+				IUser user,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
-				=> await ModifyCollectionValuesAsync(
+				=> ModifyCollectionValuesAsync(
 					x => x.BotUsers,
 					x => x.UserId == user.Id,
 					() => new BotUser(user.Id),
@@ -124,20 +127,20 @@ namespace Advobot.Commands
 					});
 
 			[ImplicitCommand, ImplicitAlias]
-			public async Task WelcomeMessage(
+			public Task WelcomeMessage(
 				[ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel channel,
 				[Remainder] GuildNotification args)
 			{
-				(Context.GuildSettings.WelcomeMessage = args).ChannelId = channel.Id;
-				await ReplyTimedAsync("Successfully set the welcome message.").CAF();
+				args.ChannelId = channel.Id;
+				return ModifyAsync(x => x.WelcomeMessage, args);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task GoodbyeMessage(
+			public Task GoodbyeMessage(
 				[ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel channel,
 				[Remainder] GuildNotification args)
 			{
-				(Context.GuildSettings.GoodbyeMessage = args).ChannelId = channel.Id;
-				await ReplyTimedAsync("Successfully set the goodbye message.").CAF();
+				args.ChannelId = channel.Id;
+				return ModifyAsync(x => x.GoodbyeMessage, args);
 			}
 		}
 
@@ -349,27 +352,12 @@ namespace Advobot.Commands
 		}*/
 
 		[Group(nameof(ModifyPersistentRoles)), ModuleInitialismAlias(typeof(ModifyPersistentRoles))]
-		[Summary("Gives a user a role that stays even when they leave and rejoin the server. " +
-			"Type `" + nameof(ModifyPersistentRoles) + " [" + nameof(Show) + "]`` to see the which users have persistent roles set up. " +
-			"Type `" + nameof(ModifyPersistentRoles) + " [" + nameof(Show) + "]` [User]` to see the persistent roles of that user.")]
+		[Summary("Gives a user a role that stays even when they leave and rejoin the server.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		//[SaveGuildSettings]
 		public sealed class ModifyPersistentRoles : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
-			public async Task Show([Optional] SocketGuildUser user)
-			{
-				const string TITLE = "Persistent Roles";
-				string f(PersistentRole x) => x.ToString(Context.Guild);
-
-				if (user == null)
-				{
-					await ReplyIfAny(Context.GuildSettings.PersistentRoles, TITLE, f).CAF();
-					return;
-				}
-				await ReplyIfAny(Context.GuildSettings.PersistentRoles.Where(x => x.UserId == user.Id), user, TITLE, f).CAF();
-			}
 			[Command, Priority(1)]
 			public async Task Command(AddBoolean add, [ValidateUser] SocketUser user, [ValidateRole] SocketRole role)
 				=> await CommandRunner(add, user.Id, role).CAF();
@@ -469,21 +457,17 @@ namespace Advobot.Commands
 		public sealed class TestGuildNotifs : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Welcome()
-				=> await CommandRunner(Context.GuildSettings.WelcomeMessage, nameof(Welcome)).CAF();
+			public Task Welcome()
+				=> CommandRunner(Context.GuildSettings.WelcomeMessage);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Goodbye()
-				=> await CommandRunner(Context.GuildSettings.GoodbyeMessage, nameof(Goodbye)).CAF();
+			public Task Goodbye()
+				=> CommandRunner(Context.GuildSettings.GoodbyeMessage);
 
-			private async Task CommandRunner(GuildNotification notification, string type)
+			private Task CommandRunner(GuildNotification notification, [CallerMemberName] string caller = null)
 			{
-				if (notification == null)
-				{
-					await ReplyErrorAsync($"The `{type}` notification does not exist.").CAF();
-					return;
-				}
-
-				await notification.SendAsync(Context.Guild, null).CAF();
+				return notification != null
+					? notification.SendAsync(Context.Guild, null)
+					: ReplyErrorAsync($"The `{caller}` notification does not exist.");
 			}
 		}
 	}

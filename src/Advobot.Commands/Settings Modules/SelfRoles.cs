@@ -125,7 +125,7 @@ namespace Advobot.Commands
 								rolesNotModified.Add(role);
 							}
 						}
-						group.RemoveRoles(rolesModified);
+						group.RemoveRoles(rolesModified.Select(x => x.Id));
 						break;
 					default:
 						throw new InvalidOperationException("Invalid action for modifying roles in a self assignable role group.");

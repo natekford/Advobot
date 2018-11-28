@@ -9,7 +9,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Roles which are given back to users when they rejoin a guild.
 	/// </summary>
-	public class PersistentRole : IGuildSetting, ITargetsUser
+	public sealed class PersistentRole : IGuildFormattable, ITargetsUser
 	{
 		/// <inheritdoc />
 		[JsonProperty]
@@ -36,13 +36,14 @@ namespace Advobot.Classes.Settings
 		}
 
 		/// <inheritdoc />
-		public override string ToString()
-			=> $"**User Id:** `{UserId}`\n**Role Id:&& `{RoleId}`";
-		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
+		public string Format(SocketGuild guild = null)
 		{
-			return $"**User:** `{guild.GetUser(UserId)?.Format() ?? UserId.ToString()}`\n" +
-				$"**Role:** `{guild.GetRole(RoleId)?.Format() ?? RoleId.ToString()}`";
+			var user = guild?.GetUser(UserId)?.Format() ?? UserId.ToString();
+			var role = guild?.GetRole(RoleId)?.Format() ?? RoleId.ToString();
+			return $"**User:** `{user}`\n**Role:** `{role}`";
 		}
+		/// <inheritdoc />
+		public override string ToString()
+			=> Format();
 	}
 }

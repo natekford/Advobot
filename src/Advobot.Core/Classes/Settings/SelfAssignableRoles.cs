@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -12,7 +11,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Groups self assignable roles together.
 	/// </summary>
-	public class SelfAssignableRoles : IGuildSetting
+	public sealed class SelfAssignableRoles : IGuildFormattable
 	{
 		/// <summary>
 		/// The group number all the roles belong to.
@@ -23,7 +22,7 @@ namespace Advobot.Classes.Settings
 		/// The ids of the roles.
 		/// </summary>
 		[JsonProperty("Roles")]
-		public IList<ulong> Roles { get; } = new List<ulong>();
+		public ICollection<ulong> Roles { get; } = new List<ulong>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="SelfAssignableRoles"/>.
@@ -56,32 +55,21 @@ namespace Advobot.Classes.Settings
 		/// Removes the roles from the group.
 		/// </summary>
 		/// <param name="roles"></param>
-		public void RemoveRoles(IEnumerable<IRole> roles)
+		public void RemoveRoles(IEnumerable<ulong> roles)
 		{
 			foreach (var role in roles)
 			{
-				Roles.Remove(role.Id);
+				Roles.Remove(role);
 			}
 		}
-		/// <summary>
-		/// Uses the guild to get all the roles.
-		/// </summary>
-		/// <param name="guild"></param>
-		public void PostDeserialize(SocketGuild guild)
+		/// <inheritdoc />
+		public string Format(SocketGuild guild = null)
 		{
-			foreach (var roleId in Roles.ToList())
-			{
-				if (!(guild.GetRole(roleId) is IRole role))
-				{
-					Roles.Remove(roleId);
-				}
-			}
+			var roles = guild == null ? string.Join("`, `", Roles) : Roles.Join("`, `", x => guild.GetRole(x)?.Format());
+			return $"**Roles:**\n{Roles.Join("\n", x => guild.GetRole(x)?.Format())}";
 		}
 		/// <inheritdoc />
 		public override string ToString()
-			=> $"**Role Ids:**\n{string.Join("\n", Roles)}";
-		/// <inheritdoc />
-		public string ToString(SocketGuild guild)
-			=> $"**Role Ids:**\n{Roles.Join("\n", x => guild.GetRole(x)?.Format())}";
+			=> Format();
 	}
 }

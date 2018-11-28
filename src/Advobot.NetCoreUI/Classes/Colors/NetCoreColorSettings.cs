@@ -64,10 +64,8 @@ namespace Advobot.NetCoreUI.Classes.Colors
 		/// <inheritdoc />
 		protected override void AfterThemeUpdated()
 			=> SetSyntaxHighlightingColors("Json");
-		//TODO: remove returns after avaloniaedit is uploaded onto nuget past 0.6.0
 		private void SetSyntaxHighlightingColors(params string[] names)
 		{
-			return;
 			foreach (var name in names)
 			{
 				var highlighting = HighlightingManager.Instance.GetDefinition(name)
@@ -90,7 +88,6 @@ namespace Advobot.NetCoreUI.Classes.Colors
 		}
 		private void UpdateSyntaxHighlightingColor(string target, ISolidColorBrush value)
 		{
-			return;
 			foreach (var highlighting in HighlightingManager.Instance.HighlightingDefinitions)
 			{
 				if (!target.CaseInsStartsWith(highlighting.Name))
@@ -109,7 +106,6 @@ namespace Advobot.NetCoreUI.Classes.Colors
 		}
 		private static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
 		{
-			return;
 			using (var r = new XmlTextReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(loc))
 				?? throw new InvalidOperationException($"{loc} is missing."))
 			{
