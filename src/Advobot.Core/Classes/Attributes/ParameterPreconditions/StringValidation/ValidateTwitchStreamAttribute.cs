@@ -13,7 +13,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
 		public ValidateTwitchStreamAttribute() : base(4, 25) { }
 
 		/// <inheritdoc />
-		public override bool AdditionalValidation(string s, out string error)
+		public override bool AdditionalValidation(string s, out string? error)
 		{
 			var success = RegexUtils.IsValidTwitchName(s);
 			error = success ? null : "Invalid Twitch username supplied.";

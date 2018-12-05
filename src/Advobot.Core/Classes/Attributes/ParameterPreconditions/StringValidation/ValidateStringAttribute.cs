@@ -58,7 +58,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
 		/// <param name="s"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public virtual bool AdditionalValidation(string s, out string error)
+		public virtual bool AdditionalValidation(string s, out string? error)
 		{
 			error = null;
 			return true;

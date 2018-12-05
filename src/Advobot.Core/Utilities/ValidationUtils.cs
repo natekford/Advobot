@@ -37,38 +37,38 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
-		/// <param name="extra"></param>
+		/// <param name="rules"></param>
 		/// <returns></returns>
 		public static VerifiedObjectResult ValidateUser(
 			this SocketGuildUser invoker,
 			SocketGuildUser target,
-			params ValidationRule<SocketGuildUser>[] extra)
-			=> invoker.Validate(target, CanModify, extra);
+			params ValidationRule<SocketGuildUser>[] rules)
+			=> invoker.Validate(target, CanModify, rules);
 		/// <summary>
 		/// Verifies that the role can be edited in specific ways.
 		/// </summary>
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
-		/// <param name="extra"></param>
+		/// <param name="rules"></param>
 		/// <returns></returns>
 		public static VerifiedObjectResult ValidateRole(
 			this SocketGuildUser invoker,
 			SocketRole target,
-			params ValidationRule<SocketRole>[] extra)
-			=> invoker.Validate(target, CanModify, extra);
+			params ValidationRule<SocketRole>[] rules)
+			=> invoker.Validate(target, CanModify, rules);
 		/// <summary>
 		/// Verifies that the channel can be edited in specific ways.
 		/// </summary>
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <param name="permissions"></param>
-		/// <param name="extra"></param>
+		/// <param name="rules"></param>
 		/// <returns></returns>
 		public static VerifiedObjectResult ValidateChannel(
 			this SocketGuildUser invoker,
 			SocketGuildChannel target,
 			IEnumerable<ChannelPermission> permissions,
-			params ValidationRule<SocketGuildChannel>[] extra)
+			params ValidationRule<SocketGuildChannel>[] rules)
 		{
 			return invoker.Validate(target, (x, y) =>
 			{
@@ -86,7 +86,7 @@ namespace Advobot.Utilities
 					}
 				}
 				return true;
-			}, extra);
+			}, rules);
 		}
 		/// <summary>
 		/// Validates a random Discord object.
@@ -95,22 +95,22 @@ namespace Advobot.Utilities
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <param name="permissionsCallback"></param>
-		/// <param name="extraChecks"></param>
+		/// <param name="rules"></param>
 		/// <returns></returns>
 		private static VerifiedObjectResult Validate<T>(
 			this SocketGuildUser invoker,
 			T target,
 			ValidatePermissions<T> permissionsCallback,
-			params ValidationRule<T>[] extraChecks)
+			params ValidationRule<T>[] rules)
 			where T : SocketEntity<ulong>, ISnowflakeEntity
 		{
+			if (target == null)
+			{
+				return VerifiedObjectResult.FromError(CommandError.ObjectNotFound, $"Unable to find a matching `{typeof(T).Name}`.");
+			}
 			if (!(invoker.Guild.CurrentUser is SocketGuildUser bot))
 			{
 				throw new InvalidOperationException($"Invalid bot during {typeof(T).Name} validation.");
-			}
-			if (target == null)
-			{
-				return VerifiedObjectResult.FromError(CommandError.ObjectNotFound, $"Unable to find a matching `{typeof(T).Name.ToLower()}`.");
 			}
 
 			foreach (var user in new[] { invoker, bot })
@@ -119,11 +119,14 @@ namespace Advobot.Utilities
 				{
 					return VerifiedObjectResult.FromUnableToModify(user, target);
 				}
-				foreach (var extra in extraChecks ?? Enumerable.Empty<ValidationRule<T>>())
+				if (rules != null)
 				{
-					if (extra.Invoke(user, target) is VerifiedObjectResult extraResult && !extraResult.IsSuccess)
+					foreach (var rule in rules)
 					{
-						return extraResult;
+						if (rule.Invoke(user, target) is VerifiedObjectResult extraResult && !extraResult.IsSuccess)
+						{
+							return extraResult;
+						}
 					}
 				}
 			}
@@ -143,7 +146,7 @@ namespace Advobot.Utilities
 			{
 				return VerifiedObjectResult.FromError(CommandError.UnmetPrecondition, "The user is not in a voice channel.");
 			}
-			return user.ValidateChannel(voiceChannel, new[] { ChannelPermission.MoveMembers }, null);
+			return user.ValidateChannel(voiceChannel, new[] { ChannelPermission.MoveMembers });
 		}
 		/// <summary>
 		/// Validates if <paramref name="target"/> is not the everyone role.

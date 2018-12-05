@@ -47,7 +47,7 @@ namespace Advobot.Classes.Settings
 		public bool Enabled { get; set; }
 
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 		{
 			return $"**Punishment:** `{Punishment.ToString()}`\n" +
 				$"**Spam Instances:** `{SpamInstances}`\n" +

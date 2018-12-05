@@ -17,11 +17,11 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Values that will set the stored bool to true.
 		/// </summary>
-		public static readonly ImmutableArray<string> TrueVals = new[] { "true", "add", "enable", "set" }.ToImmutableArray();
+		public static ImmutableArray<string> TrueVals { get; } = new[] { "true", "add", "enable", "set" }.ToImmutableArray();
 		/// <summary>
 		/// Values that will set the stored bool to false.
 		/// </summary>
-		public static readonly ImmutableArray<string> FalseVals = new[] { "false", "remove", "disable", "unset" }.ToImmutableArray();
+		public static ImmutableArray<string> FalseVals { get; } = new[] { "false", "remove", "disable", "unset" }.ToImmutableArray();
 
 		/// <summary>
 		/// The value of the boolean.
@@ -60,7 +60,7 @@ namespace Advobot.Classes
 		/// <param name="trueVals">Default values are 'true' and 'add'</param>
 		/// <param name="falseVals">Default values are 'false' and 'remove'</param>
 		/// <returns></returns>
-		public static bool TryCreate(string input, out AddBoolean value, IEnumerable<string> trueVals = null, IEnumerable<string> falseVals = null)
+		public static bool TryCreate(string input, out AddBoolean value, IEnumerable<string>? trueVals = null, IEnumerable<string>? falseVals = null)
 		{
 			switch (input)
 			{

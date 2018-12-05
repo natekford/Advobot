@@ -7,7 +7,7 @@ namespace Advobot.Classes
 	/// </summary>
 	public abstract class DatabaseEntry
 	{
-		private static TimeSpan _Default = TimeSpan.FromSeconds(3);
+		private static TimeSpan _Default { get; } = TimeSpan.FromSeconds(3);
 
 		/// <summary>
 		/// The id of the object.

@@ -12,27 +12,27 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// The invite's code.
 		/// </summary>
-		string Code { get; set; }
+		string Code { get; }
 		/// <summary>
 		/// Whether the invite has expired.
 		/// </summary>
-		bool Expired { get; set; }
+		bool Expired { get; }
 		/// <summary>
 		/// The id of the guild this invite is from.
 		/// </summary>
-		ulong GuildId { get; set; }
+		ulong GuildId { get; }
 		/// <summary>
 		/// How many users are in the guild.
 		/// </summary>
-		int GuildMemberCount { get; set; }
+		int GuildMemberCount { get; }
 		/// <summary>
 		/// The name of the guild.
 		/// </summary>
-		string GuildName { get; set; }
+		string GuildName { get; }
 		/// <summary>
 		/// Whether or not this server has global emotes.
 		/// </summary>
-		bool HasGlobalEmotes { get; set; }
+		bool HasGlobalEmotes { get; }
 		/// <summary>
 		/// The keywords associated with this guild.
 		/// </summary>

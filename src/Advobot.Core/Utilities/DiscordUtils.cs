@@ -27,7 +27,7 @@ namespace Advobot.Utilities
 		/// <param name="context"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static RequestOptions GenerateRequestOptions(this ICommandContext context, string reason = null)
+		public static RequestOptions GenerateRequestOptions(this ICommandContext context, string? reason = null)
 			=> context.User.GenerateRequestOptions(reason);
 		/// <summary>
 		/// Generates a default request options explaining who invoked the command for the audit log.
@@ -35,7 +35,7 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static RequestOptions GenerateRequestOptions(this IUser user, string reason = null)
+		public static RequestOptions GenerateRequestOptions(this IUser user, string? reason = null)
 		{
 			var r = reason == null ? "" : $" Reason: {reason}.";
 			return GenerateRequestOptions($"Action by {user.Format()}.{r}");
@@ -45,7 +45,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static RequestOptions GenerateRequestOptions(string reason = null)
+		public static RequestOptions GenerateRequestOptions(string? reason = null)
 		{
 			return new RequestOptions
 			{
@@ -208,15 +208,21 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static async Task<IReadOnlyCollection<RestInviteMetadata>> SafeGetInvitesAsync(this SocketGuild guild)
-			=> guild.CurrentUser.GuildPermissions.ManageGuild ? await guild.GetInvitesAsync().CAF() : null;
+		public static Task<IReadOnlyCollection<RestInviteMetadata>> SafeGetInvitesAsync(this SocketGuild guild)
+		{
+			if (guild.CurrentUser.GuildPermissions.ManageGuild)
+			{
+				return guild.GetInvitesAsync();
+			}
+			return Task.FromResult<IReadOnlyCollection<RestInviteMetadata>>(Array.Empty<RestInviteMetadata>());
+		}
 		/// <summary>
 		/// Tries to find the invite a user joined on.
 		/// </summary>
 		/// <param name="invites"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static async Task<CachedInvite> GetInviteUserJoinedOnAsync(this IList<CachedInvite> invites, SocketGuildUser user)
+		public static async Task<CachedInvite?> GetInviteUserJoinedOnAsync(this IList<CachedInvite> invites, SocketGuildUser user)
 		{
 			//Bots join by being invited by admin, not through invites.
 			if (user.IsBot)

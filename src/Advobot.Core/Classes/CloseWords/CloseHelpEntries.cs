@@ -21,7 +21,7 @@ namespace Advobot.Classes.CloseWords
 			: base(source, maxAllowedCloseness, maxOutput) { }
 
 		/// <inheritdoc />
-		protected override bool IsCloseWord(string search, IHelpEntry obj, out CloseWord<IHelpEntry> closeWord)
+		protected override bool IsCloseWord(string search, IHelpEntry obj, out CloseWord<IHelpEntry>? closeWord)
 		{
 			var nameCloseness = FindCloseness(obj.Name, search);
 			var aliasCloseness = obj.Aliases.Select(x => FindCloseness(x, search)).DefaultIfEmpty(int.MaxValue).Min();

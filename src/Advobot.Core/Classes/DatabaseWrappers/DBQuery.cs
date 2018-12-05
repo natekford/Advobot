@@ -18,11 +18,11 @@ namespace Advobot.Classes.DatabaseWrappers
 		/// <summary>
 		/// The new value to either insert or update.
 		/// </summary>
-		public IEnumerable<T> Values { get; private set; }
+		public IEnumerable<T>? Values { get; private set; }
 		/// <summary>
 		/// How to select values.
 		/// </summary>
-		public Expression<Func<T, bool>> Selector { get; private set; }
+		public Expression<Func<T, bool>>? Selector { get; private set; }
 		/// <summary>
 		/// How many values to search.
 		/// </summary>

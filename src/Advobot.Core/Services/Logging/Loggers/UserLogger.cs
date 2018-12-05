@@ -137,10 +137,7 @@ namespace Advobot.Services.Logging.Loggers
 				await context.User.AddRolesAsync(roles, _PersistentRolesOptions).CAF();
 			}
 			//Welcome message
-			if (context.Settings.WelcomeMessage != null)
-			{
-				await context.Settings.WelcomeMessage.SendAsync(context.Guild, context.User).CAF();
-			}
+			await context.Settings.WelcomeMessage.SendAsync(context.Guild, context.User).CAF();
 		}
 		/// <summary>
 		/// Handles logging leaves to the server log.
@@ -177,10 +174,7 @@ namespace Advobot.Services.Logging.Loggers
 		private async Task HandleOtherLeftActions(UserLoggingContext context)
 		{
 			//Goodbye message
-			if (context.Settings.GoodbyeMessage != null)
-			{
-				await context.Settings.GoodbyeMessage.SendAsync(context.Guild, context.User).CAF();
-			}
+			await context.Settings.GoodbyeMessage.SendAsync(context.Guild, context.User).CAF();
 		}
 		/// <summary>
 		/// Handles logging username changes.

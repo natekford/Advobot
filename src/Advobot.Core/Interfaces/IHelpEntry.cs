@@ -47,6 +47,6 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="settings"></param>
 		/// <returns></returns>
-		string ToString(CommandSettings settings);
+		string ToString(CommandSettings? settings);
 	}
 }

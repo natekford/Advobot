@@ -13,7 +13,7 @@ namespace Advobot.Classes.Results
 		/// <summary>
 		/// The parsed value.
 		/// </summary>
-		public object Value { get; }
+		public object? Value { get; }
 		/// <summary>
 		/// Any errors which occurred.
 		/// </summary>
@@ -21,7 +21,7 @@ namespace Advobot.Classes.Results
 		/// <summary>
 		/// The reason for the error.
 		/// </summary>
-		public string ErrorReason { get; }
+		public string? ErrorReason { get; }
 		/// <summary>
 		/// Whether or not was successful.
 		/// </summary>
@@ -33,7 +33,7 @@ namespace Advobot.Classes.Results
 		/// <param name="value"></param>
 		/// <param name="error"></param>
 		/// <param name="errorReason"></param>
-		private VerifiedObjectResult(object value, CommandError? error, string errorReason)
+		private VerifiedObjectResult(object? value, CommandError? error, string? errorReason)
 		{
 			Value = value;
 			Error = error;

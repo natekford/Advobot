@@ -23,26 +23,23 @@ namespace Advobot.Commands
 		public sealed class ModifyQuotes : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Add(string name, [Remainder] string text)
+			public Task Add(string name, [Remainder] string text)
 			{
 				if (Context.GuildSettings.Quotes.Count >= BotSettings.MaxQuotes)
 				{
-					await ReplyErrorAsync($"There cannot be more than `{BotSettings.MaxQuotes}` quotes at a time.").CAF();
-					return;
+					return ReplyErrorAsync($"There cannot be more than `{BotSettings.MaxQuotes}` quotes at a time.");
 				}
 				if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
 				{
-					await ReplyErrorAsync($"A quote already has the name `{name}`.").CAF();
-					return;
+					return ReplyErrorAsync($"A quote already has the name `{name}`.");
 				}
 				if (string.IsNullOrWhiteSpace(text))
 				{
-					await ReplyErrorAsync("A quote requires text to be added.").CAF();
-					return;
+					return ReplyErrorAsync("A quote requires text to be added.");
 				}
 
 				Context.GuildSettings.Quotes.Add(new Quote(name, text));
-				await ReplyTimedAsync($"Successfully added the following quote: `{name}`.").CAF();
+				return ReplyTimedAsync($"Successfully added the following quote: `{name}`.");
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove(string name)

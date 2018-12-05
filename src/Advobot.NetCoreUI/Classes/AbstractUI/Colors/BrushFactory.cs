@@ -30,7 +30,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		public bool TryCreateBrush(string input, out T brush)
 		{
 			var success = TryParseColorBytes(input, out var bytes);
-			brush = success ? CreateBrush(bytes) : default;
+			brush = success ? CreateBrush(bytes) : Default;
 			return success;
 		}
 		/// <summary>
@@ -82,7 +82,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		{
 			if (input == null)
 			{
-				bytes = default;
+				bytes = new byte[] { 0, 0, 0, 0 };
 				return false;
 			}
 			if (TryGetColorBytesARGB(input, out var rgb))
@@ -95,7 +95,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 				bytes = hex;
 				return true;
 			}
-			bytes = default;
+			bytes = new byte[] { 0, 0, 0, 0 };
 			return false;
 		}
 		private static bool TryGetColorBytesARGB(string input, out byte[] bytes)
@@ -104,7 +104,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 			//1 or 2 or 5+ means invalid amount of bytes
 			if (split.Length < 3 || split.Length > 4)
 			{
-				bytes = default;
+				bytes = new byte[] { 0, 0, 0, 0 };
 				return false;
 			}
 
@@ -120,7 +120,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 			{
 				if (!byte.TryParse(split[i], out var val))
 				{
-					bytes = default;
+					bytes = new byte[] { 0, 0, 0, 0 };
 					return false;
 				}
 				bytes[i + (noA ? 1 : 0)] = val;
@@ -152,7 +152,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 				}
 				return true;
 			}
-			bytes = default;
+			bytes = new byte[] { 0, 0, 0, 0 };
 			return false;
 		}
 	}

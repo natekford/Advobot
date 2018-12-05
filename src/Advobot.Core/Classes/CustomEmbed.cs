@@ -14,23 +14,23 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The title of the embed.
 		/// </summary>
-		public string Title { get; set; }
+		public string? Title { get; set; }
 		/// <summary>
 		/// The description of the embed.
 		/// </summary>
-		public string Description { get; set; }
+		public string? Description { get; set; }
 		/// <summary>
 		/// The image url of the embed.
 		/// </summary>
-		public Uri ImageUrl { get; set; }
+		public Uri? ImageUrl { get; set; }
 		/// <summary>
 		/// The url of the embed.
 		/// </summary>
-		public Uri Url { get; set; }
+		public Uri? Url { get; set; }
 		/// <summary>
 		/// The thumbnail url of the embed.
 		/// </summary>
-		public Uri ThumbUrl { get; set; }
+		public Uri? ThumbUrl { get; set; }
 		/// <summary>
 		/// The color of the embed.
 		/// </summary>
@@ -38,23 +38,23 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The author of the embed.
 		/// </summary>
-		public string AuthorName { get; set; }
+		public string? AuthorName { get; set; }
 		/// <summary>
 		/// The author's picture.
 		/// </summary>
-		public Uri AuthorIconUrl { get; set; }
+		public Uri? AuthorIconUrl { get; set; }
 		/// <summary>
 		/// The url to use when clicking on the author's name.
 		/// </summary>
-		public Uri AuthorUrl { get; set; }
+		public Uri? AuthorUrl { get; set; }
 		/// <summary>
 		/// The footer text.
 		/// </summary>
-		public string Footer { get; set; }
+		public string? Footer { get; set; }
 		/// <summary>
 		/// The footer's picture.
 		/// </summary>
-		public Uri FooterIconUrl { get; set; }
+		public Uri? FooterIconUrl { get; set; }
 		/// <summary>
 		/// All of the fields on the embed.
 		/// </summary>
@@ -108,7 +108,7 @@ namespace Advobot.Classes
 			}
 			return sb.ToString();
 		}
-		private void AddIfNotNull(StringBuilder sb, object value, string name)
+		private void AddIfNotNull(StringBuilder sb, object? value, string name)
 		{
 			if (value != null)
 			{

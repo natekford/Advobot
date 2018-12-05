@@ -2,12 +2,14 @@
 using System.Linq;
 using Advobot.Utilities;
 using Discord;
+using Discord.Commands;
 
 namespace Advobot.Classes
 {
 	/// <summary>
 	/// Sets the search terms for invites and can gather invites matching those terms.
 	/// </summary>
+	[NamedArgumentType]
 	public sealed class LocalInviteGatherer
 	{
 		/// <summary>
@@ -46,43 +48,36 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public IEnumerable<IInviteMetadata> GatherInvites(IEnumerable<IInviteMetadata> invites)
 		{
-			var wentIntoAny = false;
+			var filtered = default(IEnumerable<IInviteMetadata>);
 			if (UserId.HasValue)
 			{
-				invites = invites.Where(x => x.Inviter.Id == UserId);
-				wentIntoAny = true;
+				filtered = (filtered ?? invites).Where(x => x.Inviter.Id == UserId);
 			}
 			if (ChannelId.HasValue)
 			{
-				invites = invites.Where(x => x.ChannelId == ChannelId);
-				wentIntoAny = true;
+				invites = (filtered ?? invites).Where(x => x.ChannelId == ChannelId);
 			}
 			if (Uses.Number.HasValue)
 			{
-				invites = Uses.GetFromCount(invites, x => (uint?)x.Uses);
-				wentIntoAny = true;
+				invites = Uses.GetFromCount(filtered ?? invites, x => (uint?)x.Uses);
 			}
 			if (Age.Number.HasValue)
 			{
-				invites = Age.GetFromCount(invites, x => (uint?)x.MaxAge);
-				wentIntoAny = true;
+				invites = Age.GetFromCount(filtered ?? invites, x => (uint?)x.MaxAge);
 			}
 			if (IsTemporary.HasValue)
 			{
-				invites = invites.Where(x => x.IsTemporary == IsTemporary.Value);
-				wentIntoAny = true;
+				invites = (filtered ?? invites).Where(x => x.IsTemporary == IsTemporary.Value);
 			}
 			if (NeverExpires.HasValue)
 			{
-				invites = invites.Where(x => x.MaxAge == null == NeverExpires.Value);
-				wentIntoAny = true;
+				invites = (filtered ?? invites).Where(x => x.MaxAge == null == NeverExpires.Value);
 			}
 			if (NoMaxUses.HasValue)
 			{
-				invites = invites.Where(x => x.MaxUses == null == NoMaxUses.Value);
-				wentIntoAny = true;
+				invites = (filtered ?? invites).Where(x => x.MaxUses == null == NoMaxUses.Value);
 			}
-			return wentIntoAny ? Enumerable.Empty<IInviteMetadata>() : invites;
+			return filtered ?? Enumerable.Empty<IInviteMetadata>();
 		}
 	}
 }

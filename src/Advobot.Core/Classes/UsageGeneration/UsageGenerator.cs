@@ -64,7 +64,7 @@ namespace Advobot.Classes.UsageGeneration
 		{
 			foreach (var method in module.Commands)
 			{
-				var m = new MethodDetails(deepness, method.Name != "Command" ? method.Name : null, method.Parameters.Count);
+				var m = new MethodDetails(deepness, method.Name != "Command" ? method.Name : "", method.Parameters.Count);
 				lists.Methods.Add(m);
 
 				var parameters = method.Parameters;
@@ -180,7 +180,7 @@ namespace Advobot.Classes.UsageGeneration
 		}
 		private static void AddOptions<T>(StringBuilder sb, IEnumerable<T> options)
 		{
-			var converted = options.Select(x => x.ToString()).Where(x => !string.IsNullOrWhiteSpace(x));
+			var converted = options.Select(x => x?.ToString() ?? "").Where(x => !string.IsNullOrWhiteSpace(x));
 			var addOrToEnd = converted.Any(x => !string.IsNullOrWhiteSpace(x)) ? "|" : "";
 			sb.Append(converted.JoinNonNullStrings("|") + addOrToEnd);
 		}

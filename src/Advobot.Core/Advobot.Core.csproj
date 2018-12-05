@@ -3,7 +3,7 @@
   <PropertyGroup>
     <GenerateAssemblyVersion>false</GenerateAssemblyVersion>
     <GenerateAssemblyFileVersion>false</GenerateAssemblyFileVersion>
-	  <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -31,7 +31,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile>bin\Debug\netstandard2.0\Advobot.Core.xml</DocumentationFile>
@@ -47,7 +47,7 @@
     <PackageReference Include="AdvorangesUtils" Version="1.0.11.2">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-01026" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-01034" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.9.0.2" />
     <PackageReference Include="MongoDB.Driver" Version="2.7.2" />
@@ -68,7 +68,7 @@
   <ItemGroup>
     <None Update="AssemblyVersion.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <OutputFileName>AssemblyVersion.cs</OutputFileName>  
+      <OutputFileName>AssemblyVersion.cs</OutputFileName>
       <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
     </None>
   </ItemGroup>
@@ -76,6 +76,6 @@
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>Advobot</RootNamespace>
+    <NullableReferenceTypes>true</NullableReferenceTypes>
   </PropertyGroup>
-
 </Project>

@@ -115,14 +115,14 @@ namespace Advobot.Commands
 		public sealed class DisplayRolePositions : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command()
+			public Task Command()
 			{
 				var roles = Context.Guild.Roles.OrderByDescending(x => x.Position);
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = "Role Positions",
 					Description = roles.Join("\n", x => $"`{x.Position.ToString("00")}.` {x.Name}"),
-				}).CAF();
+				});
 			}
 		}
 
@@ -135,29 +135,28 @@ namespace Advobot.Commands
 		public sealed class ModifyRolePerms : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Show([Optional, ValidateRole] SocketRole role)
+			public Task Show([Optional, ValidateRole] SocketRole role)
 			{
 				if (role == null)
 				{
-					await ReplyEmbedAsync(new EmbedWrapper
+					return ReplyEmbedAsync(new EmbedWrapper
 					{
 						Title = "Guild Permission Types",
 						Description = $"`{string.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`",
-					}).CAF();
-					return;
+					});
 				}
-				await ReplyIfAny(EnumUtils.GetFlagNames((GuildPermission)role.Permissions.RawValue), role, "Permissions", x => x).CAF();
+				return ReplyIfAny(EnumUtils.GetFlagNames((GuildPermission)role.Permissions.RawValue), role.Format(), "Permissions", x => x);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Allow(
+			public Task Allow(
 				[ValidateRole] SocketRole role,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
-				=> await CommandRunner(role, permissions, true);
+				=> CommandRunner(role, permissions, true);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Deny(
+			public Task Deny(
 				[ValidateRole] SocketRole role,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
-				=> await CommandRunner(role, permissions, false);
+				=> CommandRunner(role, permissions, false);
 
 			private async Task CommandRunner(SocketRole role, ulong permissions, bool add)
 			{
@@ -202,11 +201,11 @@ namespace Advobot.Commands
 
 				var parts = new[]
 				{
-				copyable.Any() ? $"Successfully copied to output role: `{string.Join("`, `", copyable)}`." : null,
-				unremovable.Any() ? $"Unable to be removed from output role: `{string.Join("`, `", unremovable)}`." : null,
-				uncopyable.Any() ? $"Unable to be copied to output role: `{string.Join("`, `", uncopyable)}`." : null,
-				$"Current output role: `{(newOutput.Any() ? string.Join("`, `", newOutput) : "Nothing")}`.",
-			};
+					copyable.Any() ? $"Successfully copied to output role: `{string.Join("`, `", copyable)}`." : null,
+					unremovable.Any() ? $"Unable to be removed from output role: `{string.Join("`, `", unremovable)}`." : null,
+					uncopyable.Any() ? $"Unable to be copied to output role: `{string.Join("`, `", uncopyable)}`." : null,
+					$"Current output role: `{(newOutput.Any() ? string.Join("`, `", newOutput) : "Nothing")}`.",
+				};
 				await output.ModifyAsync(x => x.Permissions = new GuildPermissions(newOutputBits), GenerateRequestOptions()).CAF();
 				await ReplyAsync(parts.JoinNonNullStrings("\n")).CAF();
 			}
@@ -225,9 +224,9 @@ namespace Advobot.Commands
 				var immovablePerms = EnumUtils.GetFlagNames((GuildPermission)immovableBits);
 				var response = new[]
 				{
-				immovablePerms.Any() ? "Role had some permissions unable to be cleared by you." : null,
-				$"`{role.Format()}` now has the following permissions: `{(immovablePerms.Any() ? string.Join("`, `", immovablePerms) : "Nothing")}`.",
-			}.JoinNonNullStrings(" ");
+					immovablePerms.Any() ? "Role had some permissions unable to be cleared by you." : null,
+					$"`{role.Format()}` now has the following permissions: `{(immovablePerms.Any() ? string.Join("`, `", immovablePerms) : "Nothing")}`.",
+				}.JoinNonNullStrings(" ");
 
 				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovableBits), GenerateRequestOptions()).CAF();
 				await ReplyTimedAsync(response).CAF();
@@ -241,13 +240,13 @@ namespace Advobot.Commands
 		public sealed class ModifyRoleName : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public async Task Command([NotEveryone] SocketRole role, [Remainder, ValidateRoleName] string name)
-				=> await CommandRunner(role, name).CAF();
+			public Task Command([NotEveryone] SocketRole role, [Remainder, ValidateRoleName] string name)
+				=> CommandRunner(role, name);
 			[ImplicitCommand]
-			public async Task Position(
+			public Task Position(
 				[OverrideTypeReader(typeof(RolePositionTypeReader)), NotEveryone] SocketRole role,
 				[Remainder, ValidateRoleName] string name)
-				=> await CommandRunner(role, name).CAF();
+				=> CommandRunner(role, name);
 
 			private async Task CommandRunner(SocketRole role, string name)
 			{

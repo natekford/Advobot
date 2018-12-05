@@ -24,10 +24,6 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// Creates an instance of <see cref="Quote"/>.
 		/// </summary>
-		public Quote() { }
-		/// <summary>
-		/// Creates an instance of <see cref="Quote"/>.
-		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="description"></param>
 		public Quote(string name, string description)
@@ -37,7 +33,7 @@ namespace Advobot.Classes.Settings
 		}
 
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 			=> $"`{Name}`";
 		/// <inheritdoc />
 		public override string ToString()

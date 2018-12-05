@@ -84,6 +84,11 @@ namespace Advobot.Classes.ImageResizing
 							await args.Context.Channel.SendMessageAsync($"Failed to create the {t}. Reason: {resp.ErrorReason}.").CAF();
 							continue;
 						}
+						if (resp.Stream == null)
+						{
+							await args.Context.Channel.SendMessageAsync($"Unable to create an image stream.").CAF();
+							continue;
+						}
 
 						var used = await args.UseStream(resp.Stream, resp.Format).CAF();
 						if (!used.IsSuccess)
@@ -204,7 +209,7 @@ namespace Advobot.Classes.ImageResizing
 					}
 					goto case MagickFormat.Gif;
 				case MagickFormat.Gif:
-					var gifResult = args.CanUseImage();
+					var gifResult = args.CanUseGif();
 					if (!gifResult.IsSuccess)
 					{
 						return ImageResult.FromError(gifResult);
@@ -212,7 +217,7 @@ namespace Advobot.Classes.ImageResizing
 					//if (args.Context.Guild.Emotes.Count(x => x.Animated) >= 50)
 					break;
 				default:
-					throw new InvalidOperationException("Invalid image format supplied.");
+					throw new ArgumentException("Invalid image format supplied.");
 			}
 			return ImageResult.FromSuccess(null, format);
 		}
@@ -302,7 +307,7 @@ namespace Advobot.Classes.ImageResizing
 					throw new InvalidOperationException("Invalid image format supplied.");
 			}
 		}
-		private static string FindFfmpeg()
+		private static string? FindFfmpeg()
 		{
 			var windows = Environment.OSVersion.Platform.ToString().CaseInsContains("win");
 			var ffmpeg = windows ? "ffmpeg.exe" : "ffmpeg";
@@ -327,7 +332,7 @@ namespace Advobot.Classes.ImageResizing
 				}
 			}
 			//Look through every directory and any subfolders they have called bin
-			foreach (var dir in directories.Select(x => new[] { x, new DirectoryInfo(Path.Combine(x.FullName, "bin")) }).SelectMany(x => x))
+			foreach (var dir in directories.SelectMany(x => new[] { x, new DirectoryInfo(Path.Combine(x?.FullName, "bin")) }))
 			{
 				if (!dir.Exists)
 				{

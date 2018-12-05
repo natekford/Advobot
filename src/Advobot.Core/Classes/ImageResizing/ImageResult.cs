@@ -13,19 +13,19 @@ namespace Advobot.Classes.ImageResizing
 		/// <summary>
 		/// The resized image's data.
 		/// </summary>
-		public MemoryStream Stream { get; }
+		public MemoryStream? Stream { get; }
 		/// <summary>
 		/// The format of the image.
 		/// </summary>
-		public MagickFormat Format { get; }
+		public MagickFormat? Format { get; }
 		/// <inheritdoc />
 		public CommandError? Error { get; }
 		/// <inheritdoc />
-		public string ErrorReason { get; }
+		public string? ErrorReason { get; }
 		/// <inheritdoc />
 		public bool IsSuccess => ErrorReason == null;
 
-		private ImageResult(MemoryStream stream, MagickFormat format, CommandError? error, string errorReason)
+		private ImageResult(MemoryStream? stream, MagickFormat? format, CommandError? error, string? errorReason)
 		{
 			stream?.Seek(0, SeekOrigin.Begin);
 			Stream = stream;
@@ -40,7 +40,7 @@ namespace Advobot.Classes.ImageResizing
 		/// <param name="stream"></param>
 		/// <param name="format"></param>
 		/// <returns></returns>
-		public static ImageResult FromSuccess(MemoryStream stream, MagickFormat format)
+		public static ImageResult FromSuccess(MemoryStream? stream, MagickFormat format)
 			=> new ImageResult(stream, format, null, null);
 		/// <summary>
 		/// Returns a result indicating failure.
@@ -49,14 +49,14 @@ namespace Advobot.Classes.ImageResizing
 		/// <param name="errorReason"></param>
 		/// <returns></returns>
 		public static ImageResult FromError(CommandError error, string errorReason)
-			=> new ImageResult(null, default, error, errorReason);
+			=> new ImageResult(null, null, error, errorReason);
 		/// <summary>
 		/// Returns a result indicating failure.
 		/// </summary>
 		/// <param name="result"></param>
 		/// <returns></returns>
 		public static ImageResult FromError(IResult result)
-			=> new ImageResult(null, default, result.Error, result.ErrorReason);
+			=> new ImageResult(null, null, result.Error, result.ErrorReason);
 
 		/// <summary>
 		/// Disposes <see cref="Stream"/>.

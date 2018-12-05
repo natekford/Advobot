@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using LiteDB;
@@ -41,7 +42,7 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 		/// <param name="fileName"></param>
 		/// <param name="mapper"></param>
 		/// <returns></returns>
-		public static LiteDatabase GetDatabase(IBotDirectoryAccessor accessor, string fileName, BsonMapper mapper = null)
+		public static LiteDatabase GetDatabase(IBotDirectoryAccessor accessor, string fileName, BsonMapper? mapper = null)
 		{
 			var file = accessor.GetBaseBotDirectoryFile(fileName);
 			//Make sure the file is not currently being used if it exists
@@ -75,13 +76,13 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 				{
 					case DBQuery<T>.DBAction.Update:
 						collection.Update(options.Values);
-						return options.Values;
+						return options.Values ?? Enumerable.Empty<T>();
 					case DBQuery<T>.DBAction.Upsert:
 						collection.Upsert(options.Values);
-						return options.Values;
+						return options.Values ?? Enumerable.Empty<T>();
 					case DBQuery<T>.DBAction.Insert:
 						collection.Insert(options.Values);
-						return options.Values;
+						return options.Values ?? Enumerable.Empty<T>();
 					case DBQuery<T>.DBAction.Get:
 						return collection.Find(options.Selector, limit: options.Limit);
 					case DBQuery<T>.DBAction.GetAll:
@@ -91,11 +92,11 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 						collection.Delete(options.Selector);
 						return values;
 					case DBQuery<T>.DBAction.DeleteFromValues:
-						foreach (var value in options.Values)
+						foreach (var value in options.Values ?? Enumerable.Empty<T>())
 						{
 							collection.Delete(value.Id);
 						}
-						return options.Values;
+						return options.Values ?? Enumerable.Empty<T>();
 					default:
 						throw new InvalidOperationException("Invalid database action supplied.");
 				}

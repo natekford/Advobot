@@ -14,7 +14,7 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		IHelpEntry this[string name] { get; }
+		IHelpEntry? this[string name] { get; }
 
 		/// <summary>
 		/// Creates help entries from assemblies.
@@ -41,7 +41,7 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="category"></param>
 		/// <returns></returns>
-		IHelpEntry[] GetHelpEntries(string category = null);
+		IHelpEntry[] GetHelpEntries(string? category = null);
 		/// <summary>
 		/// Retrurns an array of <see cref="IHelpEntry"/> which have not had their values set in guild settings.
 		/// </summary>

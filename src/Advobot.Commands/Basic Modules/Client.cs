@@ -36,12 +36,12 @@ namespace Advobot.Commands
 		public sealed class ModifyBotIcon : ImageResizerModule
 		{
 			[Command]
-			public async Task Command(Uri url)
+			public Task Command(Uri url)
 			{
-				await ProcessAsync(new IconCreationArgs("Bot Icon", Context, url, default, async (ctx, ms) =>
+				return ProcessAsync(new IconCreationArgs("Bot Icon", Context, url, default, (ctx, ms) =>
 				{
-					await ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions()).CAF();
-				})).CAF();
+					return ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions());
+				}));
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove()
@@ -58,8 +58,8 @@ namespace Advobot.Commands
 		public sealed class DisconnectBot : AdvobotModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command()
-				=> await Context.Client.DisconnectBotAsync().CAF();
+			public Task Command()
+				=> Context.Client.DisconnectBotAsync();
 		}
 
 		[Group(nameof(RestartBot)), ModuleInitialismAlias(typeof(RestartBot))]
@@ -69,8 +69,8 @@ namespace Advobot.Commands
 		public sealed class RestartBot : AdvobotModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command()
-				=> await Context.Client.RestartBotAsync(BotSettings).CAF();
+			public Task Command()
+				=> Context.Client.RestartBotAsync(BotSettings);
 		}
 	}
 }

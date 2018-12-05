@@ -50,7 +50,7 @@ namespace Advobot.Classes.Modules
 		/// <param name="title">The type of objects.</param>
 		/// <param name="some">What to use when there are any elements in <paramref name="source"/>.</param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyIfAny<T>(IEnumerable<T> source, string title, Func<T, string> some)
+		public Task<IUserMessage?> ReplyIfAny<T>(IEnumerable<T> source, string title, Func<T, string> some)
 			=> ReplyIfAny(source, null, title, some);
 		/// <summary>
 		/// Sends a short message saying there are none of the objects or sends an embed describing each object.
@@ -59,35 +59,19 @@ namespace Advobot.Classes.Modules
 		/// <param name="source">The enumerable to check for items.</param>
 		/// <param name="target">The object that these items are children to.</param>
 		/// <param name="title">The type of objects.</param>
-		/// <param name="some">What to use when there are any elements in <paramref name="source"/>.</param>
+		/// <param name="sourceFormat">What to use when there are any elements in <paramref name="source"/>.</param>
 		/// <returns></returns>
-		public async Task<IUserMessage> ReplyIfAny<T>(IEnumerable<T> source, object target, string title, Func<T, string> some)
+		public async Task<IUserMessage?> ReplyIfAny<T>(IEnumerable<T> source, string? target, string title, Func<T, string> sourceFormat)
 		{
-			var targetStr = "";
-			if (target is ISnowflakeEntity snowflake)
-			{
-				target = snowflake.Format();
-			}
-			else if (target is IGuildFormattable setting)
-			{
-				target = setting.Format(Context.Guild);
-			}
-			else if (target is object obj)
-			{
-				target = obj.ToString();
-			}
-			if (targetStr != "")
-			{
-				targetStr = $" for `{targetStr}`";
-			}
+			var fullTarget = target == null ? "" : $" for `{target}`";
 			if (!source.Any())
 			{
-				return await ReplyTimedAsync($"There are zero {title.ToLower()}{targetStr}.").CAF();
+				return await ReplyTimedAsync($"There are zero {title.ToLower()}{fullTarget}.").CAF();
 			}
 			return await ReplyEmbedAsync(new EmbedWrapper
 			{
-				Title = $"{title.FormatTitle()}{targetStr}",
-				Description = source.FormatNumberedList(some),
+				Title = $"{title.FormatTitle()}{fullTarget}",
+				Description = source.FormatNumberedList(sourceFormat),
 			}).CAF();
 		}
 		/// <summary>
@@ -98,7 +82,7 @@ namespace Advobot.Classes.Modules
 		/// <param name="none">What to use when there are zero elements in <paramref name="source"/>.</param>
 		/// <param name="some">What to use when there are any elements in <paramref name="source"/>.</param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyIfAny<T>(IEnumerable<T> source, string none, string some)
+		public Task<IUserMessage?> ReplyIfAny<T>(IEnumerable<T> source, string none, string some)
 			=> source.Any() ? ReplyAsync(some) : ReplyTimedAsync(none);
 		/// <summary>
 		/// Sends a custom message if there are none of the objects or sends an even more custom message if there are.
@@ -108,7 +92,7 @@ namespace Advobot.Classes.Modules
 		/// <param name="none">What to use when there are zero elements in <paramref name="source"/>.</param>
 		/// <param name="some">What to use when there are any elements in <paramref name="source"/>.</param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyIfAny<T>(IEnumerable<T> source, string none, Func<IEnumerable<T>, Task<IUserMessage>> some)
+		public Task<IUserMessage?> ReplyIfAny<T>(IEnumerable<T> source, string none, Func<IEnumerable<T>, Task<IUserMessage?>> some)
 			=> source.Any() ? some.Invoke(source) : ReplyTimedAsync(none);
 		/// <summary>
 		/// Sends a message containing text and optionally an embed or textfile.
@@ -117,7 +101,7 @@ namespace Advobot.Classes.Modules
 		/// <param name="wrapper"></param>
 		/// <param name="textFile"></param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyAsync(string content, EmbedWrapper wrapper = null, TextFileInfo textFile = null)
+		public Task<IUserMessage?> ReplyAsync(string? content, EmbedWrapper? wrapper = null, TextFileInfo? textFile = null)
 			=> MessageUtils.SendMessageAsync(Context.Channel, content, wrapper, textFile);
 		/// <summary>
 		/// Sends a message containing an embed and some text.
@@ -125,14 +109,14 @@ namespace Advobot.Classes.Modules
 		/// <param name="content"></param>
 		/// <param name="wrapper"></param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyEmbedAsync(string content, EmbedWrapper wrapper)
+		public Task<IUserMessage?> ReplyEmbedAsync(string content, EmbedWrapper wrapper)
 			=> ReplyAsync(content, wrapper, null);
 		/// <summary>
 		/// Sends a message containing only an embed.
 		/// </summary>
 		/// <param name="wrapper"></param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyEmbedAsync(EmbedWrapper wrapper)
+		public Task<IUserMessage?> ReplyEmbedAsync(EmbedWrapper wrapper)
 			=> ReplyAsync(null, wrapper, null);
 		/// <summary>
 		/// Sends a message containing a file and some text.
@@ -140,28 +124,28 @@ namespace Advobot.Classes.Modules
 		/// <param name="content"></param>
 		/// <param name="textFile"></param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyFileAsync(string content, TextFileInfo textFile)
+		public Task<IUserMessage?> ReplyFileAsync(string content, TextFileInfo textFile)
 			=> ReplyAsync(content, null, textFile);
 		/// <summary>
 		/// Sends a message containing only a file.
 		/// </summary>
 		/// <param name="textFile"></param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyFileAsync(TextFileInfo textFile)
+		public Task<IUserMessage?> ReplyFileAsync(TextFileInfo textFile)
 			=> ReplyAsync(null, null, textFile);
 		/// <summary>
 		/// Send an error message which will be deleted after some time unless the guild settings have errors disabled.
 		/// </summary>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public Task<IUserMessage> ReplyErrorAsync(string reason)
-			=> Context.GuildSettings.NonVerboseErrors ? Task.FromResult<IUserMessage>(default) : ReplyTimedAsync($"**ERROR:** {reason}");
+		public Task<IUserMessage?> ReplyErrorAsync(string reason)
+			=> Context.GuildSettings.NonVerboseErrors ? Task.FromResult<IUserMessage?>(null) : ReplyTimedAsync($"**ERROR:** {reason}");
 		/// <summary>
 		/// Sends a message which gets deleted after some time.
 		/// </summary>
 		/// <param name="output"></param>
 		/// <returns></returns>
-		public async Task<IUserMessage> ReplyTimedAsync(string output)
+		public async Task<IUserMessage?> ReplyTimedAsync(string output)
 		{
 			var secondMessage = await ReplyAsync(output).CAF();
 			var removableMessage = new RemovableMessage(Context, new[] { secondMessage }, MessageTime);
@@ -246,7 +230,7 @@ namespace Advobot.Classes.Modules
 		/// </summary>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public RequestOptions GenerateRequestOptions(string reason = null)
+		public RequestOptions GenerateRequestOptions(string? reason = null)
 			=> Context.GenerateRequestOptions(reason);
 	}
 }

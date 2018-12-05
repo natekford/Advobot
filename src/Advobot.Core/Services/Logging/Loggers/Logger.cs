@@ -85,7 +85,7 @@ namespace Advobot.Services.Logging.Loggers
 				await Task.WhenAll(tasks).CAF();
 			}
 		}
-		protected Task ReplyAsync(SocketTextChannel channel, string content = null, EmbedWrapper embedWrapper = null, TextFileInfo textFile = null)
+		protected Task ReplyAsync(SocketTextChannel channel, string content = "", EmbedWrapper? embedWrapper = null, TextFileInfo? textFile = null)
 			=> MessageUtils.SendMessageAsync(channel, content, embedWrapper, textFile);
 	}
 }

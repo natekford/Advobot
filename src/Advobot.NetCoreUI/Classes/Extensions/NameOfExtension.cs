@@ -14,12 +14,12 @@ namespace Advobot.NetCoreUI.Classes.Extensions
 		/// <summary>
 		/// The type to check the name from.
 		/// </summary>
-		public Type Type { get; set; }
+		public Type? Type { get; set; }
 		/// <summary>
 		/// The name to make sure exists.
 		/// </summary>
 		[ConstructorArgument("member")]
-		public string Member { get; set; }
+		public string? Member { get; set; }
 
 		public NameOfExtension() { }
 		public NameOfExtension(string member)

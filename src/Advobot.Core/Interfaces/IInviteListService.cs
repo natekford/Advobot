@@ -56,6 +56,6 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="guildId"></param>
 		/// <returns></returns>
-		IListedInvite GetListedInvite(ulong guildId);
+		IListedInvite Get(ulong guildId);
 	}
 }

@@ -31,16 +31,14 @@ namespace Advobot.Classes
 			switch (Method)
 			{
 				case CountTarget.Equal:
-					objects = objects.Where(x => f(x) == Number);
-					break;
+					return objects.Where(x => f(x) == Number);
 				case CountTarget.Below:
-					objects = objects.Where(x => f(x) < Number);
-					break;
+					return objects.Where(x => f(x) < Number);
 				case CountTarget.Above:
-					objects = objects.Where(x => f(x) > Number);
-					break;
+					return objects.Where(x => f(x) > Number);
+				default:
+					throw new InvalidOperationException($"Invalid {nameof(CountTarget)}.");
 			}
-			return objects;
 		}
 	}
 }

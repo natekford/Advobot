@@ -28,9 +28,9 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			};
 		}
 
-		protected bool IsValid([CallerMemberName] string propertyName = null)
+		protected bool IsValid([CallerMemberName] string propertyName = "")
 			=> !Errors[propertyName];
-		protected void RaiseAndSetIfChangedAndValid<T>(Action<T> setter, ref T backingField, T newValue, ValidationAttribute validation, [CallerMemberName] string propertyName = null)
+		protected void RaiseAndSetIfChangedAndValid<T>(Action<T> setter, ref T backingField, T newValue, ValidationAttribute validation, [CallerMemberName] string propertyName = "")
 		{
 			var isValid = validation.IsValid(newValue);
 			Errors[propertyName] = !isValid;

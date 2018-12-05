@@ -11,19 +11,19 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 {
 	public sealed class OutputSearchWindowViewModel : ReactiveObject
 	{
-		public string SearchTerm
+		public string? SearchTerm
 		{
 			get => _SearchTerm;
 			set => this.RaiseAndSetIfChanged(ref _SearchTerm, value);
 		}
-		private string _SearchTerm;
+		private string? _SearchTerm;
 
-		public string Output
+		public string? Output
 		{
 			get => _Output;
 			set => this.RaiseAndSetIfChanged(ref _Output, value);
 		}
-		private string _Output;
+		private string? _Output;
 
 		public IEnumerable<string> Keys => ConsoleUtils.WrittenLines.Keys;
 
@@ -52,7 +52,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private void Save()
 		{
-			var (text, _) = _Accessor.GenerateFileName("Output_Search").SaveAndGetResponse(Output);
+			var (text, _) = _Accessor.GenerateFileName("Output_Search").SaveAndGetResponse(Output ?? "");
 			ConsoleUtils.WriteLine(text);
 		}
 	}

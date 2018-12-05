@@ -17,12 +17,12 @@ namespace Advobot.Services.HelpEntries
 	internal sealed class HelpEntryService : IHelpEntryService
 	{
 		//Maps the name and aliases of a command to the name
-		private Dictionary<string, string> _NameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		private Dictionary<string, string> _NameMap { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		//Maps the name to the helpentry
-		private Dictionary<string, HelpEntry> _Source = new Dictionary<string, HelpEntry>(StringComparer.OrdinalIgnoreCase);
+		private Dictionary<string, HelpEntry> _Source { get; } = new Dictionary<string, HelpEntry>(StringComparer.OrdinalIgnoreCase);
 
 		/// <inheritdoc />
-		public IHelpEntry this[string name]
+		public IHelpEntry? this[string name]
 		{
 			get => _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
 		}
@@ -93,7 +93,7 @@ namespace Advobot.Services.HelpEntries
 		public IHelpEntry[] GetUnsetCommands(IEnumerable<string> setCommands)
 			=> _Source.Values.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
 		/// <inheritdoc />
-		public IHelpEntry[] GetHelpEntries(string category = null)
+		public IHelpEntry[] GetHelpEntries(string? category = null)
 		{
 			return category == null
 				? _Source.Values.ToArray()

@@ -30,7 +30,7 @@ namespace Advobot.Utilities
 		/// <param name="botSettings">The information to update with.</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static async Task UpdateGameAsync(this BaseSocketClient client, IBotSettings botSettings)
+		public static Task UpdateGameAsync(this BaseSocketClient client, IBotSettings botSettings)
 		{
 			var game = botSettings.Game;
 			var stream = botSettings.Stream;
@@ -40,7 +40,7 @@ namespace Advobot.Utilities
 				stream = $"https://www.twitch.tv/{stream.Substring(stream.LastIndexOf('/') + 1)}";
 				activityType = ActivityType.Streaming;
 			}
-			await client.SetGameAsync(game, stream, activityType).CAF();
+			return client.SetGameAsync(game, stream, activityType);
 		}
 		/// <summary>
 		/// Restarts the application correctly if it's a .Net Core application.

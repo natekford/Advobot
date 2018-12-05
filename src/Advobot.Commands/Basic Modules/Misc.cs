@@ -47,24 +47,24 @@ namespace Advobot.Commands.Misc
 				$"[Discord Server]({Constants.DISCORD_INV})";
 
 			[Command]
-			public async Task Command()
+			public Task Command()
 			{
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = "General Help",
 					Description = _GeneralHelp.Replace(Constants.PREFIX, GetPrefix()),
 					Footer = new EmbedFooterBuilder { Text = "Help" },
 					Fields = new List<EmbedFieldBuilder>
-				{
-					new EmbedFieldBuilder { Name = "Basic Syntax", Value = _BasicSyntax, IsInline = true, },
-					new EmbedFieldBuilder { Name = "Mention Syntax", Value = _MentionSyntax, IsInline = true, },
-					new EmbedFieldBuilder { Name = "Links", Value = _Links, IsInline = false, },
-				},
-				}).CAF();
+					{
+						new EmbedFieldBuilder { Name = "Basic Syntax", Value = _BasicSyntax, IsInline = true, },
+						new EmbedFieldBuilder { Name = "Mention Syntax", Value = _MentionSyntax, IsInline = true, },
+						new EmbedFieldBuilder { Name = "Links", Value = _Links, IsInline = false, },
+					},
+				});
 			}
 			[Command, Priority(1)]
-			public async Task Command([Remainder] IHelpEntry command)
-				=> await SendHelp(command);
+			public Task Command([Remainder] IHelpEntry command)
+				=> SendHelp(command);
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			public async Task Command([Remainder, OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
 			{
@@ -75,14 +75,14 @@ namespace Advobot.Commands.Misc
 				}
 			}
 
-			private async Task SendHelp(IHelpEntry entry)
+			private Task SendHelp(IHelpEntry entry)
 			{
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = entry.Name,
 					Description = entry.ToString(Context.GuildSettings.CommandSettings).Replace(Constants.PREFIX, GetPrefix()),
 					Footer = new EmbedFooterBuilder { Text = "Help", },
-				}).CAF();
+				});
 			}
 		}
 
@@ -95,37 +95,36 @@ namespace Advobot.Commands.Misc
 			public IHelpEntryService HelpEntries { get; set; }
 
 			[ImplicitCommand, ImplicitAlias]
-			public async Task All()
+			public Task All()
 			{
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = "All Commands",
 					Description = $"`{HelpEntries.GetHelpEntries().Join("`, `", x => x.Name)}`",
-				}).CAF();
+				});
 			}
 			[Command]
-			public async Task Command(string category)
+			public Task Command(string category)
 			{
 				if (!HelpEntries.GetCategories().CaseInsContains(category))
 				{
-					await ReplyErrorAsync($"`{category}` is not a valid category.").CAF();
-					return;
+					return ReplyErrorAsync($"`{category}` is not a valid category.");
 				}
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = category.FormatTitle(),
 					Description = $"`{HelpEntries.GetHelpEntries(category).Join("`, `", x => x.Name)}`",
-				}).CAF();
+				});
 			}
 			[Command]
-			public async Task Command()
+			public Task Command()
 			{
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = "Categories",
 					Description = $"Type `{GetPrefix()}{nameof(Commands)} [Category]` for commands from a category.\n\n" +
 						$"`{HelpEntries.GetCategories().Join("`, `")}`",
-				}).CAF();
+				});
 			}
 		}
 
@@ -139,8 +138,8 @@ namespace Advobot.Commands.Misc
 		public sealed class MakeAnEmbed : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([Remainder] CustomEmbed args)
-				=> await ReplyEmbedAsync(args.BuildWrapper()).CAF();
+			public Task Command([Remainder] CustomEmbed args)
+				=> ReplyEmbedAsync(args.BuildWrapper());
 		}
 
 		[Group(nameof(MessageRole)), ModuleInitialismAlias(typeof(MessageRole))]
@@ -214,9 +213,15 @@ namespace Advobot.Commands.Misc
 			{
 				if (input == null)
 				{
-					return UniqueResult.FromFailure("Invalid input.");
+					return AdvobotResult.FromFailure("Invalid input.");
 				}
-				return UniqueResult.FromSuccess("Success.");
+				return AdvobotResult.FromSuccess("Success.");
+			}
+			[ImplicitCommand, ImplicitAlias]
+			public async Task<RuntimeResult> BigWait()
+			{
+				await Task.Delay(2500);
+				return AdvobotResult.FromSuccess("Big wait.");
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public Task NotRuntime([Optional] string input)

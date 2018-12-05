@@ -113,7 +113,11 @@ namespace Advobot.Services.Commands
 		}
 		private async Task LogExecution(Optional<CommandInfo> command, AdvobotCommandContext context, IResult result)
 		{
-			if (CanBeIgnored(result) || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(x))))
+			//Ignore annoying unknown command errors and errors with no reason
+			bool CanBeIgnored(IResult r)
+				=> r.Error == CommandError.UnknownCommand || (!r.IsSuccess && r.ErrorReason == null);
+
+			if (result == null || CanBeIgnored(result) || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(x))))
 			{
 				return;
 			}
@@ -151,23 +155,6 @@ namespace Advobot.Services.Commands
 		{
 			ConsoleUtils.WriteLine(arg.ToString());
 			return Task.CompletedTask;
-		}
-		private bool CanBeIgnored(IResult result)
-		{
-			//Ignore annoying unknown command errors and errors with no reason
-			if (result.Error == CommandError.UnknownCommand || (!result.IsSuccess && result.ErrorReason == null))
-			{
-				return true;
-			}
-			if (result is IUniqueResult unique)
-			{
-				if (unique.AlreadyLogged)
-				{
-					return true;
-				}
-				unique.MarkAsLogged();
-			}
-			return false;
 		}
 	}
 }

@@ -13,11 +13,11 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The time in minutes to give for a punishment.
 		/// </summary>
-		public TimeSpan Time { get; }
+		public TimeSpan? Time { get; }
 		/// <summary>
 		/// The reason for a punishment.
 		/// </summary>
-		public string Reason { get; }
+		public string? Reason { get; }
 
 		/// <summary>
 		/// Parses the time and reason for the punishment.
@@ -27,7 +27,7 @@ namespace Advobot.Classes
 		{
 			if (input == null)
 			{
-				Time = default;
+				Time = null;
 				Reason = null;
 				return;
 			}

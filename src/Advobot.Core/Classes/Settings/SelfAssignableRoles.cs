@@ -63,10 +63,10 @@ namespace Advobot.Classes.Settings
 			}
 		}
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 		{
-			var roles = guild == null ? string.Join("`, `", Roles) : Roles.Join("`, `", x => guild.GetRole(x)?.Format());
-			return $"**Roles:**\n{Roles.Join("\n", x => guild.GetRole(x)?.Format())}";
+			var roles = Roles.Join("`, `", x => guild != null && guild.GetRole(x) is SocketRole role ? role.Format() : x.ToString());
+			return $"**Roles:**\n{roles}";
 		}
 		/// <inheritdoc />
 		public override string ToString()

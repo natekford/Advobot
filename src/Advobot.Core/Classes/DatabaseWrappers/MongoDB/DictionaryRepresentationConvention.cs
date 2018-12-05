@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
+using System;
 
 namespace Advobot.Classes.DatabaseWrappers.MongoDB
 {
@@ -30,9 +31,11 @@ namespace Advobot.Classes.DatabaseWrappers.MongoDB
 			{
 				serializer = dictionaryRepresentationConfigurable.WithDictionaryRepresentation(_DictionaryRepresentation);
 			}
-			return !(serializer is IChildSerializerConfigurable childSerializerConfigurable)
-				? serializer
-				: childSerializerConfigurable.WithChildSerializer(ConfigureSerializer(childSerializerConfigurable.ChildSerializer));
+			if (serializer is IChildSerializerConfigurable childSerializerConfigurable)
+			{
+				return childSerializerConfigurable.WithChildSerializer(ConfigureSerializer(childSerializerConfigurable.ChildSerializer));
+			}
+			return serializer ?? throw new InvalidOperationException($"Unable to find a {nameof(IBsonSerializer)} for dictionaries.");
 		}
 	}
 }

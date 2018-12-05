@@ -63,7 +63,7 @@ namespace Advobot.Classes.CloseWords
 		/// <param name="obj"></param>
 		/// <param name="closeWord"></param>
 		/// <returns></returns>
-		protected virtual bool IsCloseWord(string search, T obj, out CloseWord<T> closeWord)
+		protected virtual bool IsCloseWord(string search, T obj, out CloseWord<T>? closeWord)
 		{
 			var closeness = FindCloseness(obj.Name, search);
 			var success = closeness < MaxAllowedCloseness || obj.Name.CaseInsContains(search);

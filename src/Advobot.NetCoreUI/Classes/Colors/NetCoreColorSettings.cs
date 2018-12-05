@@ -38,16 +38,19 @@ namespace Advobot.NetCoreUI.Classes.Colors
 			LoadSyntaxHighlighting($"{AssemblyName}.Resources.JsonSyntaxHighlighting.xshd", "Json", new[] { ".json" });
 		}
 
+		/// <summary>
+		/// Creates an instance of <see cref="NetCoreColorSettings"/>.
+		/// </summary>
+		public NetCoreColorSettings()
+		{
+			var styles = Application.Current.Styles.OfType<StyleInclude>();
+			var colors = styles.Single(x => x.Source.ToString().CaseInsContains("BaseLight.xaml"));
+			Resources = ((Style)colors.Loaded).Resources;
+		}
+
 		/// <inheritdoc />
 		protected override void UpdateResource(string target, ISolidColorBrush value)
 		{
-			if (Resources == null)
-			{
-				var styles = Application.Current.Styles.OfType<StyleInclude>();
-				var colors = styles.Single(x => x.Source.ToString().CaseInsContains("BaseLight.xaml"));
-				Resources = ((Style)colors.Loaded).Resources;
-			}
-
 			//If this is remapped to take advantage of how it's easy to recolor already defined background, etc then do that
 			if (ColorNameMappings.TryGetValue(target, out var names))
 			{

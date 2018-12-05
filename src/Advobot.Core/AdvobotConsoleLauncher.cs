@@ -5,9 +5,22 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Classes.DatabaseWrappers;
+using Advobot.Classes.DatabaseWrappers.LiteDB;
+using Advobot.Classes.DatabaseWrappers.MongoDB;
+using Advobot.Classes.ImageResizing;
 using Advobot.Interfaces;
+using Advobot.Services.BotSettings;
+using Advobot.Services.Commands;
+using Advobot.Services.GuildSettings;
+using Advobot.Services.HelpEntries;
+using Advobot.Services.InviteList;
+using Advobot.Services.Levels;
+using Advobot.Services.Logging;
+using Advobot.Services.Timers;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,8 +31,8 @@ namespace Advobot
 	/// </summary>
 	public sealed class AdvobotConsoleLauncher
 	{
-		private readonly ILowLevelConfig _Config;
-		private IServiceCollection _Services;
+		private ILowLevelConfig _Config { get; }
+		private IServiceCollection? _Services;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotConsoleLauncher"/>.
@@ -101,7 +114,60 @@ namespace Advobot
 			{
 				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
 			}
-			return _Services ?? (_Services = _Config.CreateDefaultServices(commands));
+			return _Services ?? (_Services = CreateDefaultServices(_Config, commands));
+		}
+		private static IServiceCollection CreateDefaultServices(ILowLevelConfig config, IEnumerable<Assembly> commands)
+		{
+			T StartDatabase<T>(T db) where T : IUsesDatabase
+			{
+				db.Start();
+				return db;
+			}
+
+			commands = commands ?? throw new ArgumentException($"{nameof(commands)} cannot be null.");
+			//I have no idea if I am providing services correctly, but it works.
+			var s = new ServiceCollection();
+			s.AddSingleton(p =>
+			{
+				return new CommandService(new CommandServiceConfig
+				{
+					CaseSensitiveCommands = false,
+					ThrowOnError = false,
+				});
+			});
+			s.AddSingleton(p =>
+			{
+				var settings = p.GetRequiredService<IBotSettings>();
+				return new DiscordShardedClient(new DiscordSocketConfig
+				{
+					AlwaysDownloadUsers = settings.AlwaysDownloadUsers,
+					MessageCacheSize = settings.MessageCacheSize,
+					LogLevel = settings.LogLevel,
+				});
+			});
+			s.AddSingleton<IHelpEntryService>(p => new HelpEntryService());
+			s.AddSingleton<IBotSettings>(p => BotSettings.Load(config));
+			s.AddSingleton<ICommandHandlerService>(p => new CommandHandlerService(p, commands));
+			s.AddSingleton<IGuildSettingsFactory>(p => new GuildSettingsFactory<GuildSettings>(p));
+			s.AddSingleton<ILogService>(p => new LogService(p));
+			s.AddSingleton<ILevelService>(p => StartDatabase(new LevelService(p)));
+			s.AddSingleton<ITimerService>(p => StartDatabase(new TimerService(p)));
+			s.AddSingleton<IInviteListService>(p => StartDatabase(new InviteListService(p)));
+			s.AddSingleton<IImageResizer>(p => new ImageResizer(10));
+
+			switch (config.DatabaseType)
+			{
+				//-DatabaseType LiteDB (or no arguments supplied at all)
+				case DatabaseType.LiteDB:
+					s.AddSingleton<IDatabaseWrapperFactory>(p => new LiteDBWrapperFactory(p));
+					break;
+				//-DatabaseType MongoDB -DatabaseConnectionString "mongodb://localhost:27017"
+				case DatabaseType.MongoDB:
+					s.AddSingleton<IDatabaseWrapperFactory>(p => new MongoDBWrapperFactory(p));
+					s.AddSingleton<MongoDB.Driver.IMongoClient>(p => new MongoDB.Driver.MongoClient(config.DatabaseConnectionString));
+					break;
+			}
+			return s;
 		}
 		/// <summary>
 		/// Creates the service provider and starts the Discord bot.

@@ -44,7 +44,7 @@ namespace Advobot.Interfaces
 		/// <param name="stream"></param>
 		/// <param name="format"></param>
 		/// <returns></returns>
-		Task<IResult> UseStream(MemoryStream stream, MagickFormat format);
+		Task<IResult> UseStream(MemoryStream stream, MagickFormat? format);
 		/// <summary>
 		/// Determines whether an image can be used for the specified action.
 		/// </summary>

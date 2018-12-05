@@ -170,11 +170,11 @@ namespace Advobot.Commands
 		public sealed class MoveUsers : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command(
+			public Task Command(
 				[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel input,
 				[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel output,
 				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> await Process(input.Users, bypass, x => true, (u, o) => u.ModifyAsync(x => x.Channel = output, o)).CAF();
+				=> ProcessAsync(input.Users, bypass, x => true, (u, o) => u.ModifyAsync(x => x.Channel = output, o));
 		}
 
 		[Group(nameof(PruneUsers)), ModuleInitialismAlias(typeof(PruneUsers))]
@@ -200,8 +200,8 @@ namespace Advobot.Commands
 		public sealed class SoftBan : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public async Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
-				=> await Command(user.Id, reason).CAF();
+			public Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+				=> Command(user.Id, reason);
 			[Command]
 			public async Task Command(ulong userId, [Optional, Remainder] ModerationReason reason)
 			{
@@ -219,8 +219,8 @@ namespace Advobot.Commands
 		public sealed class Ban : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public async Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
-				=> await Command(user.Id, reason).CAF();
+			public Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+				=> Command(user.Id, reason);
 			[Command]
 			public async Task Command(ulong userId, [Optional, Remainder] ModerationReason reason)
 			{
@@ -258,13 +258,13 @@ namespace Advobot.Commands
 		public sealed class GetBanReason : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(IBan ban)
+			public Task Command(IBan ban)
 			{
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = $"Ban reason for {ban.User.Format()}",
 					Description = ban.Reason ?? "No reason listed.",
-				}).CAF();
+				});
 			}
 		}
 
@@ -308,17 +308,17 @@ namespace Advobot.Commands
 		public sealed class RemoveMessages : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(
+			public Task Command(
 				[ValidatePositiveNumber] int requestCount,
 				[Optional] IGuildUser user,
 				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] SocketTextChannel channel)
-				=> await CommandRunner(requestCount, user, channel ?? Context.Channel).CAF();
+				=> CommandRunner(requestCount, user, channel ?? Context.Channel);
 			[Command]
-			public async Task Command(
+			public Task Command(
 				[ValidatePositiveNumber] int requestCount,
 				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] SocketTextChannel channel,
 				[Optional] IGuildUser user)
-				=> await CommandRunner(requestCount, user, channel ?? Context.Channel).CAF();
+				=> CommandRunner(requestCount, user, channel ?? Context.Channel);
 
 			private async Task CommandRunner(int requestCount, IUser user, SocketTextChannel channel)
 			{
@@ -352,35 +352,34 @@ namespace Advobot.Commands
 		public sealed class ForAllWithRole : MultiUserActionModule
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task GiveRole(
+			public Task GiveRole(
 				SocketRole target,
 				[NotEveryoneOrManaged] SocketRole give,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				if (target.Id == give.Id)
 				{
-					await ReplyErrorAsync("Cannot give the role being gathered.").CAF();
-					return;
+					return ReplyErrorAsync("Cannot give the role being gathered.");
 				}
-				await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.AddRoleAsync(give, o)).CAF();
+				return Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.AddRoleAsync(give, o));
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task TakeRole(
+			public Task TakeRole(
 				SocketRole target,
 				[NotEveryoneOrManaged] SocketRole take,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.RemoveRoleAsync(take, o)).CAF();
+				=> Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.RemoveRoleAsync(take, o));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task GiveNickname(
+			public Task GiveNickname(
 				[ValidateRole] SocketRole target,
 				[ValidateNickname] string nickname,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = nickname)).CAF();
+				=> Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = nickname));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task ClearNickname(
+			public Task ClearNickname(
 				[ValidateRole] SocketRole target,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> await Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = u.Username)).CAF();
+				=> Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = u.Username));
 		}
 	}
 }

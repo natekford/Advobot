@@ -57,21 +57,21 @@ namespace Advobot.Commands
 		{
 #warning redo how arguments are parsed here
 			[Command]
-			public async Task Command(
+			public Task Command(
 				[Optional, ValidateTextChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketTextChannel channel,
 				[Optional, ValidateInviteTime] int time,
 				[Optional, ValidateInviteUses] int uses,
 				[Optional] bool tempMem)
-				=> await CommandRunner(channel, time, uses, tempMem).CAF();
+				=> CommandRunner(channel, time, uses, tempMem);
 			[Command]
-			public async Task Command(
+			public Task Command(
 				[ValidateVoiceChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketVoiceChannel channel,
 				[Optional, ValidateInviteTime] int time,
 				[Optional, ValidateInviteUses] int uses,
 				[Optional] bool tempMem)
-				=> await CommandRunner(channel, time, uses, tempMem).CAF();
+				=> CommandRunner(channel, time, uses, tempMem);
 
-			private async Task CommandRunner(SocketGuildChannel channel, int time, int uses, bool tempMem)
+			private async Task CommandRunner(INestedChannel channel, int time, int uses, bool tempMem)
 			{
 				var nullableTime = time != 0 ? time as int? : 86400;
 				var nullableUses = uses != 0 ? uses as int? : null;
@@ -116,7 +116,7 @@ namespace Advobot.Commands
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command([Remainder] LocalInviteGatherer gatherer)
 			{
-				var invites = gatherer.GatherInvites(await Context.Guild.GetInvitesAsync().CAF()).ToList();
+				var invites = gatherer.GatherInvites(await Context.Guild.GetInvitesAsync().CAF()).ToArray();
 				if (!invites.Any())
 				{
 					await ReplyErrorAsync("No invites satisfied the given conditions.").CAF();

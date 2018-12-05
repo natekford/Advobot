@@ -20,14 +20,12 @@ namespace Advobot.Utilities
 			=> ConcatAliases(null, name, aliases);
 		public static string[] ConcatModuleAliases(Type module, string[] aliases)
 			=> ConcatAliases(module, module.Name, aliases);
-		private static string[] ConcatAliases(Type module, string name, string[] aliases)
+		private static string[] ConcatAliases(Type? module, string name, string[] aliases)
 		{
-			var isModule = module != null;
-
 			Array.Resize(ref aliases, aliases.Length + 1);
-			aliases[aliases.Length - 1] = Shorten(name, isModule);
+			aliases[aliases.Length - 1] = Shorten(name, module != null);
 
-			if (isModule)
+			if (module != null)
 			{
 				foreach (var alias in aliases)
 				{
@@ -38,7 +36,6 @@ namespace Advobot.Utilities
 					_AlreadyUsedModuleAliases[alias] = module;
 				}
 			}
-
 			return aliases;
 		}
 		private static string Shorten(string name, bool isModule)

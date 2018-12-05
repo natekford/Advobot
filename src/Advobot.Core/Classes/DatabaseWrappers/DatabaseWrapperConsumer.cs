@@ -17,11 +17,14 @@ namespace Advobot.Classes.DatabaseWrappers
 		/// <summary>
 		/// The database being used. This can be any database type, or even just a simple dictionary.
 		/// </summary>
-		protected IDatabaseWrapper DatabaseWrapper { get; set; }
+		protected IDatabaseWrapper DatabaseWrapper => _DatabaseWrapper
+			?? throw new InvalidOperationException("Database connection has not been started yet.");
 		/// <summary>
 		/// The factory for creating <see cref="DatabaseWrapper"/>.
 		/// </summary>
 		protected IDatabaseWrapperFactory DatabaseFactory { get; }
+
+		private IDatabaseWrapper? _DatabaseWrapper { get; set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="DatabaseWrapperConsumer"/>.
@@ -35,7 +38,7 @@ namespace Advobot.Classes.DatabaseWrappers
 		/// <inheritdoc />
 		public void Start()
 		{
-			DatabaseWrapper = DatabaseFactory.CreateWrapper(DatabaseName);
+			_DatabaseWrapper = DatabaseFactory.CreateWrapper(DatabaseName);
 			ConsoleUtils.DebugWrite($"Started the database connection for {DatabaseName}.");
 			AfterStart();
 		}

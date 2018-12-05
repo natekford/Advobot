@@ -36,7 +36,7 @@ namespace Advobot.Classes.Settings
 		}
 
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 		{
 			var user = guild?.GetUser(UserId)?.Format() ?? UserId.ToString();
 			var role = guild?.GetRole(RoleId)?.Format() ?? RoleId.ToString();

@@ -67,8 +67,8 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				SetAndRaise(UserListProperty, ref _DisplayList, displayList);
 			}
 		}
-		private ObservableCollection<ulong> _DisplayList;
-		private ObservableCollection<ulong> _ActualList;
+		private ObservableCollection<ulong> _DisplayList = new ObservableCollection<ulong>();
+		private ObservableCollection<ulong> _ActualList = new ObservableCollection<ulong>();
 #else
 		public ObservableCollection<ulong> UserList
 		{
@@ -103,7 +103,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 		}
 		private bool _HasError;
 
-		private ICommand ModifyListCommand { get; }
+		public ICommand ModifyListCommand { get; }
 
 		public UserListEditor()
 		{

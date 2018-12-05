@@ -6,7 +6,7 @@
 	public class ValidateTextChannelNameAttribute : ValidateChannelNameAttribute
 	{
 		/// <inheritdoc />
-		public override bool AdditionalValidation(string s, out string error)
+		public override bool AdditionalValidation(string s, out string? error)
 		{
 			var success = !s.Contains(" ");
 			error = success ? null : "Spaces are not allowed in a text channel name.";

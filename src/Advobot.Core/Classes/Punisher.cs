@@ -42,25 +42,16 @@ namespace Advobot.Classes
 			{ Punishment.Softban, "unsoftbanned" } //Doesn't make sense either
 		};
 
-		/// <summary>
-		/// The actions which were done on users.
-		/// </summary>
 		private List<string> _Actions { get; } = new List<string>();
-		/// <summary>
-		/// How long to give punishments for.
-		/// </summary>
-		private TimeSpan _Time { get; }
-		/// <summary>
-		/// The timer service to add punishments to or remove punishments from.
-		/// </summary>
-		private ITimerService _Timers { get; }
+		private TimeSpan? _Time { get; }
+		private ITimerService? _Timers { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="Punisher"/>.
 		/// </summary>
 		/// <param name="time">How long to give a punishment for. Removing punishments is not affected by this.</param>
 		/// <param name="timers">The timer service to add timed punishments to.</param>
-		public Punisher(TimeSpan time, ITimerService timers)
+		public Punisher(TimeSpan? time, ITimerService? timers)
 		{
 			_Time = time;
 			_Timers = timers;
@@ -75,7 +66,7 @@ namespace Advobot.Classes
 		/// <param name="options"></param>
 		/// <param name="days"></param>
 		/// <returns></returns>
-		public async Task BanAsync(SocketGuild guild, ulong userId, RequestOptions options = null, int days = 1)
+		public async Task BanAsync(SocketGuild guild, ulong userId, RequestOptions? options = null, int days = 1)
 		{
 			await guild.AddBanAsync(userId, days, null, options).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
@@ -88,7 +79,7 @@ namespace Advobot.Classes
 		/// <param name="userId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task SoftbanAsync(SocketGuild guild, ulong userId, RequestOptions options = null)
+		public async Task SoftbanAsync(SocketGuild guild, ulong userId, RequestOptions? options = null)
 		{
 			await guild.AddBanAsync(userId, 1, null, options).CAF();
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
@@ -101,7 +92,7 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task KickAsync(SocketGuildUser user, RequestOptions options = null)
+		public async Task KickAsync(SocketGuildUser user, RequestOptions? options = null)
 		{
 			await user.KickAsync(null, options).CAF();
 			await AfterGiveAsync(Punishment.Kick, user?.Guild, user, options).CAF();
@@ -113,7 +104,7 @@ namespace Advobot.Classes
 		/// <param name="role"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task RoleMuteAsync(SocketGuildUser user, IRole role, RequestOptions options = null)
+		public async Task RoleMuteAsync(SocketGuildUser user, IRole role, RequestOptions? options = null)
 		{
 			await user.AddRoleAsync(role, options).CAF();
 			await AfterGiveAsync(Punishment.RoleMute, user?.Guild, user, options).CAF();
@@ -124,7 +115,7 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task VoiceMuteAsync(SocketGuildUser user, RequestOptions options = null)
+		public async Task VoiceMuteAsync(SocketGuildUser user, RequestOptions? options = null)
 		{
 			await user.ModifyAsync(x => x.Mute = true, options).CAF();
 			await AfterGiveAsync(Punishment.VoiceMute, user?.Guild, user, options).CAF();
@@ -135,7 +126,7 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task DeafenAsync(SocketGuildUser user, RequestOptions options = null)
+		public async Task DeafenAsync(SocketGuildUser user, RequestOptions? options = null)
 		{
 			await user.ModifyAsync(x => x.Deaf = true, options).CAF();
 			await AfterGiveAsync(Punishment.Deafen, user?.Guild, user, options).CAF();
@@ -149,51 +140,43 @@ namespace Advobot.Classes
 		/// <param name="roleId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task GiveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions options = null)
+		public Task GiveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions? options = null)
 		{
 			//Ban and softban both work without having to get the user
 			switch (type)
 			{
 				case Punishment.Ban:
-					await BanAsync(guild, userId, options).CAF();
-					return;
+					return BanAsync(guild, userId, options);
 				case Punishment.Softban:
-					await SoftbanAsync(guild, userId, options).CAF();
-					return;
+					return SoftbanAsync(guild, userId, options);
 			}
 
 			if (!(guild.GetUser(userId) is SocketGuildUser user))
 			{
-				return;
+				return Task.CompletedTask;
 			}
 			switch (type)
 			{
 				case Punishment.Kick:
-					await KickAsync(user, options).CAF();
-					return;
+					return KickAsync(user, options);
 				case Punishment.Deafen:
-					await DeafenAsync(user, options).CAF();
-					return;
+					return DeafenAsync(user, options);
 				case Punishment.VoiceMute:
-					await VoiceMuteAsync(user, options).CAF();
-					return;
+					return VoiceMuteAsync(user, options);
 				case Punishment.RoleMute:
-					if (!(guild.GetRole(roleId) is SocketRole role))
-					{
-						return;
-					}
-					await RoleMuteAsync(user, role, options).CAF();
-					return;
+					return guild.GetRole(roleId) is SocketRole role ? RoleMuteAsync(user, role, options) : Task.CompletedTask;
+				default:
+					throw new InvalidOperationException("Invalid punishment type supplied.");
 			}
 		}
-		private async Task AfterGiveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions options = null)
+		private async Task AfterGiveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions? options = null)
 		{
 			var sb = new StringBuilder($"Successfully {Given[type]} `{user.Format()}`. ");
-			if (!_Time.Equals(default) && _Timers != null)
+			if (_Time != null && _Timers != null)
 			{
 				//Removing the punishments via the timers in whatever time is set
-				await _Timers.AddAsync(new RemovablePunishment(_Time, type, guild, user)).CAF();
 				sb.Append($"They will be {Removed[type]} in `{_Time}` minutes. ");
+				await _Timers.AddAsync(new RemovablePunishment(_Time.Value, type, guild, user)).CAF();
 			}
 			if (options?.AuditLogReason != null)
 			{
@@ -211,7 +194,7 @@ namespace Advobot.Classes
 		/// <param name="userId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task UnbanAsync(SocketGuild guild, ulong userId, RequestOptions options = null)
+		public async Task UnbanAsync(SocketGuild guild, ulong userId, RequestOptions? options = null)
 		{
 			var ban = (await guild.GetBansAsync().CAF()).SingleOrDefault(x => x.User.Id == userId);
 			await guild.RemoveBanAsync(userId, options).CAF();
@@ -224,13 +207,10 @@ namespace Advobot.Classes
 		/// <param name="role"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task UnrolemuteAsync(SocketGuildUser user, IRole role, RequestOptions options = null)
+		public async Task UnrolemuteAsync(SocketGuildUser user, IRole role, RequestOptions? options = null)
 		{
-			if (user != null)
-			{
-				await user.RemoveRoleAsync(role, options).CAF();
-				await AfterRemoveAsync(Punishment.RoleMute, user.Guild, user, options).CAF();
-			}
+			await user.RemoveRoleAsync(role, options).CAF();
+			await AfterRemoveAsync(Punishment.RoleMute, user.Guild, user, options).CAF();
 		}
 		/// <summary>
 		/// Unmutes a user from voice chat.
@@ -238,13 +218,10 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task UnvoicemuteAsync(SocketGuildUser user, RequestOptions options = null)
+		public async Task UnvoicemuteAsync(SocketGuildUser user, RequestOptions? options = null)
 		{
-			if (user != null)
-			{
-				await user.ModifyAsync(x => x.Mute = false, options).CAF();
-				await AfterRemoveAsync(Punishment.VoiceMute, user.Guild, user, options).CAF();
-			}
+			await user.ModifyAsync(x => x.Mute = false, options).CAF();
+			await AfterRemoveAsync(Punishment.VoiceMute, user.Guild, user, options).CAF();
 		}
 		/// <summary>
 		/// Undeafens a user from voice chat.
@@ -252,13 +229,10 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task UndeafenAsync(SocketGuildUser user, RequestOptions options = null)
+		public async Task UndeafenAsync(SocketGuildUser user, RequestOptions? options = null)
 		{
-			if (user != null)
-			{
-				await user.ModifyAsync(x => x.Deaf = false, options).CAF();
-				await AfterRemoveAsync(Punishment.Deafen, user.Guild, user, options).CAF();
-			}
+			await user.ModifyAsync(x => x.Deaf = false, options).CAF();
+			await AfterRemoveAsync(Punishment.Deafen, user.Guild, user, options).CAF();
 		}
 		/// <summary>
 		/// Removes the specified punishment type from the user.
@@ -269,41 +243,35 @@ namespace Advobot.Classes
 		/// <param name="roleId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task RemoveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions options = null)
+		public Task RemoveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions? options = null)
 		{
 			switch (type)
 			{
 				case Punishment.Ban:
-					await UnbanAsync(guild, userId, options).CAF();
-					return;
+					return UnbanAsync(guild, userId, options);
 				//Can't reverse a softban or kick
 				case Punishment.Softban:
 				case Punishment.Kick:
-					return;
+					return Task.CompletedTask;
 			}
 
 			if (!(guild.GetUser(userId) is SocketGuildUser user))
 			{
-				return;
+				return Task.CompletedTask;
 			}
 			switch (type)
 			{
 				case Punishment.Deafen:
-					await UndeafenAsync(user, options).CAF();
-					return;
+					return UndeafenAsync(user, options);
 				case Punishment.VoiceMute:
-					await UnvoicemuteAsync(user, options).CAF();
-					return;
+					return UnvoicemuteAsync(user, options);
 				case Punishment.RoleMute:
-					if (!(guild.GetRole(roleId) is SocketRole role))
-					{
-						return;
-					}
-					await UnrolemuteAsync(user, role, options).CAF();
-					return;
+					return guild.GetRole(roleId) is SocketRole role ? UnrolemuteAsync(user, role, options) : Task.CompletedTask;
+				default:
+					throw new InvalidOperationException("Invalid punishment type supplied.");
 			}
 		}
-		private async Task AfterRemoveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions options = null)
+		private async Task AfterRemoveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions? options = null)
 		{
 			var sb = new StringBuilder($"Successfully {Removed[type]} `{user?.Format() ?? "`Unknown User`"}`. ");
 			if (_Timers != null && (await _Timers.RemovePunishmentAsync(guild.Id, user?.Id ?? 0, type).CAF()).UserId != 0)

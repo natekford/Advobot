@@ -59,7 +59,7 @@ namespace Advobot.Classes.Settings
 		}
 
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 		{
 			var punishment = RoleId == 0 ? Punishment.ToString() : guild?.GetRole(RoleId)?.Name ?? RoleId.ToString();
 			var time = Time <= 0 ? "" : $" `{Time} minutes`";

@@ -18,17 +18,17 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The sub property which had an error. Can be null, or, if Property is field, text/name/length, etc.
 		/// </summary>
-		public string SubProperty { get; }
+		public string? SubProperty { get; }
 		/// <summary>
 		/// The value that gave an error.
 		/// </summary>
-		public string Value { get; }
+		public string? Value { get; }
 		/// <summary>
 		/// The max length remaining. This field is only relevant when the error was length related.
 		/// </summary>
 		public int RemainingLength { get; }
 
-		internal EmbedError(string property, string subProperty, object value, string reason, int remainingLength = -1)
+		internal EmbedError(string property, string? subProperty, object? value, string reason, int remainingLength = -1)
 		{
 			Reason = reason;
 			Property = property;
@@ -37,11 +37,11 @@ namespace Advobot.Classes
 			RemainingLength = remainingLength;
 		}
 
-		internal static EmbedError LengthRemaining(string property, string subProperty, object value, int remainingLength)
+		internal static EmbedError LengthRemaining(string property, string? subProperty, object? value, int remainingLength)
 			=> new EmbedError(property, subProperty, value, $"Remaining length is {remainingLength}.", remainingLength);
-		internal static EmbedError MaxLength(string property, string subProperty, object value, int maxLength)
+		internal static EmbedError MaxLength(string property, string? subProperty, object? value, int maxLength)
 			=> new EmbedError(property, subProperty, value, $"Max length is {maxLength}.", maxLength);
-		internal static EmbedError Url(string property, string subProperty, object value)
+		internal static EmbedError Url(string property, string? subProperty, object? value)
 			=> new EmbedError(property, subProperty, value, "Invalid url.");
 		/// <summary>
 		/// Returns the errors saying the property, sub property, value, and reason.

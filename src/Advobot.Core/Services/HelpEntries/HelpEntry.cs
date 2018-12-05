@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Settings;
@@ -52,7 +51,7 @@ namespace Advobot.Services.HelpEntries
 			AbleToBeToggled = attrs.GetAttribute<EnabledByDefaultAttribute>().AbleToToggle;
 			Aliases = (attrs.GetAttribute<AliasAttribute>()?.Aliases ?? new[] { "N/A" }).ToImmutableArray();
 			BasePerms = FormatPreconditions(attrs.OfType<PreconditionAttribute>());
-			Category = parent == type ? null : parent.Name;
+			Category = parent == type ? "" : parent.Name;
 			DefaultEnabled = attrs.GetAttribute<EnabledByDefaultAttribute>().Enabled;
 			Description = attrs.GetAttribute<SummaryAttribute>().Text ?? throw new ArgumentException(nameof(Description));
 			Name = attrs.GetAttribute<GroupAttribute>().Prefix ?? throw new ArgumentException(nameof(Name));
@@ -74,7 +73,7 @@ namespace Advobot.Services.HelpEntries
 			AbleToBeToggled = attrs.GetAttribute<EnabledByDefaultAttribute>().AbleToToggle;
 			Aliases = (module.Aliases.Any() ? module.Aliases : new[] { "N/A" }).ToImmutableArray();
 			BasePerms = FormatPreconditions(module.Preconditions);
-			Category = parent == module ? null : parent.Name;
+			Category = parent == module ? "" : parent.Name;
 			DefaultEnabled = attrs.GetAttribute<EnabledByDefaultAttribute>().Enabled;
 			Description = module.Summary ?? throw new ArgumentException(nameof(Description));
 			Name = module.Name ?? throw new ArgumentException(nameof(Name));
@@ -106,7 +105,7 @@ namespace Advobot.Services.HelpEntries
 		public override string ToString()
 			=> ToString(null);
 		/// <inheritdoc />
-		public string ToString(CommandSettings settings)
+		public string ToString(CommandSettings? settings)
 		{
 			var str = "";
 			str += $"**Aliases:** {string.Join(", ", Aliases)}\n";

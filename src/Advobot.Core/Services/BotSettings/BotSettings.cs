@@ -2,8 +2,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesSettingParser.Implementation.Instance;
@@ -30,14 +28,14 @@ namespace Advobot.Services.BotSettings
 		}
 		/// <inheritdoc />
 		[JsonProperty("Game")]
-		public string Game
+		public string? Game
 		{
 			get => _Game;
 			set => ThrowIfElseSet(ref _Game, value, v => v?.Length > 128, $"Must not be longer than 128 characters.");
 		}
 		/// <inheritdoc />
 		[JsonProperty("Stream")]
-		public string Stream
+		public string? Stream
 		{
 			get => _Stream;
 			set => ThrowIfElseSet(ref _Stream, value, v => !RegexUtils.IsValidTwitchName(v), "Invalid Twitch stream name supplied.");
@@ -136,17 +134,17 @@ namespace Advobot.Services.BotSettings
 		public bool Pause { get; set; }
 		/// <inheritdoc />
 		[JsonIgnore]
-		public DirectoryInfo BaseBotDirectory { get; private set; }
+		public DirectoryInfo BaseBotDirectory { get; private set; } = new DirectoryInfo(Directory.GetCurrentDirectory());
 		/// <inheritdoc />
 		[JsonIgnore]
-		public string RestartArguments { get; private set; }
+		public string RestartArguments { get; private set; } = "";
 
 		[JsonIgnore]
 		private string _Prefix = "&&";
 		[JsonIgnore]
-		private string _Stream;
+		private string? _Stream;
 		[JsonIgnore]
-		private string _Game;
+		private string? _Game;
 		[JsonIgnore]
 		private int _MessageCacheCount = 1000;
 		[JsonIgnore]
@@ -173,7 +171,7 @@ namespace Advobot.Services.BotSettings
 		/// <summary>
 		/// Creates an instance of <see cref="BotSettings"/>.
 		/// </summary>
-		public BotSettings()
+		private BotSettings()
 		{
 			SettingParser.Add(new Setting<LogSeverity>(() => LogLevel)
 			{
@@ -183,11 +181,11 @@ namespace Advobot.Services.BotSettings
 			{
 				ResetValueFactory = x => "&&",
 			});
-			SettingParser.Add(new Setting<string>(() => Game)
+			SettingParser.Add(new Setting<string?>(() => Game)
 			{
 				ResetValueFactory = x => null,
 			});
-			SettingParser.Add(new Setting<string>(() => Stream)
+			SettingParser.Add(new Setting<string?>(() => Stream)
 			{
 				ResetValueFactory = x => null,
 			});

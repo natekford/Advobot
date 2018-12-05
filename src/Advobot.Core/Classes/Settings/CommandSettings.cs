@@ -18,21 +18,22 @@ namespace Advobot.Classes.Settings
 	public sealed class CommandSettings : IGuildFormattable
 	{
 		[JsonProperty("CommandValues")]
-		private Dictionary<string, bool> _CommandValues = new Dictionary<string, bool>();
+		private Dictionary<string, bool> _CommandValues { get; } = new Dictionary<string, bool>();
 		[JsonProperty("Overrides")]
-		private Dictionary<ulong, Dictionary<string, bool>> _Overrides = new Dictionary<ulong, Dictionary<string, bool>>();
+		private Dictionary<ulong, Dictionary<string, bool>> _Overrides { get; } = new Dictionary<ulong, Dictionary<string, bool>>();
 
 		/// <summary>
 		/// Changes the value for whether or not the commands are enabled on a guild.
 		/// </summary>
 		/// <param name="values">The commands to change.</param>
+		/// <param name="enable"></param>
 		/// <returns>The names of the commands which were successfully changed.</returns>
-		public string[] ModifyCommandValues(IEnumerable<ValueToModify> values)
+		public string[] ModifyCommandValues(IEnumerable<IHelpEntry> values, bool? enable)
 		{
 			var changed = new List<string>();
 			foreach (var value in values)
 			{
-				if (ModifyCommandValue(value))
+				if (ModifyCommandValue(value, enable))
 				{
 					changed.Add(value.Name);
 				}
@@ -43,22 +44,23 @@ namespace Advobot.Classes.Settings
 		/// Changes the values for whether or not a command is enabled on a guild.
 		/// </summary>
 		/// <param name="value">The command to change.</param>
+		/// <param name="enable"></param>
 		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
-		public bool ModifyCommandValue(ValueToModify value)
-			=> ModifyOverride(_CommandValues, value);
+		public bool ModifyCommandValue(IHelpEntry value, bool? enable)
+			=> ModifyOverride(_CommandValues, value, enable);
 		/// <summary>
 		/// Enabled/disables/removes overrides on specified commands for a specified object. Object can be channel, role, or user.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
 		/// <param name="values">The commands to override.</param>
 		/// <param name="obj">The object to target.</param>
+		/// <param name="enable"></param>
 		/// <returns>The names of the commands which were successfully changed.</returns>
-		public string[] ModifyOverrides<T>(IEnumerable<ValueToModify> values, T obj) where T : ISnowflakeEntity
+		public string[] ModifyOverrides(IEnumerable<IHelpEntry> values, ISnowflakeEntity obj, bool? enable)
 		{
 			var changed = new List<string>();
 			foreach (var value in values)
 			{
-				if (ModifyOverride(value, obj))
+				if (ModifyOverride(value, obj, enable))
 				{
 					changed.Add(value.Name);
 				}
@@ -66,16 +68,16 @@ namespace Advobot.Classes.Settings
 			return changed.ToArray();
 		}
 		/// <summary>
-		/// Enables/disables/removes an override on a specified command for a specified object. Object can be channel, role, or user.
+		/// Enables/disables/removes an override on a specified command for a specified object.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
 		/// <param name="value">The command to override.</param>
 		/// <param name="obj">The object to target.</param>
+		/// <param name="enable"></param>
 		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
-		public bool ModifyOverride<T>(ValueToModify value, T obj) where T : ISnowflakeEntity
+		public bool ModifyOverride(IHelpEntry value, ISnowflakeEntity obj, bool? enable)
 		{
 			var innerDict = _Overrides.TryGetValue(obj.Id, out var inner) ? inner : _Overrides[obj.Id] = new Dictionary<string, bool>();
-			return ModifyOverride(innerDict, value);
+			return ModifyOverride(innerDict, value, enable);
 		}
 		/// <summary>
 		/// Returns a value indicating whether or not the command is enabled in the current context.
@@ -134,7 +136,7 @@ namespace Advobot.Classes.Settings
 		public bool? IsCommandEnabled(string name)
 			=> _CommandValues.TryGetValue(name, out var val) ? val : (bool?)null;
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 		{
 			var guildWideCommandOverrides = _CommandValues.Join("\n", x => $"`{x.Key}:` `{x.Value}`");
 			var sb = new StringBuilder();
@@ -187,26 +189,21 @@ namespace Advobot.Classes.Settings
 		/// <inheritdoc />
 		public override string ToString()
 			=> Format();
-		private static bool ModifyOverride(IDictionary<string, bool> dict, ValueToModify newValue)
+		private static bool ModifyOverride(IDictionary<string, bool> dict, IHelpEntry help, bool? enable)
 		{
-			if (!newValue.CanModify)
+			if (!help.AbleToBeToggled)
 			{
 				return false;
 			}
-			if (newValue.Value == null)
+			if (enable == null)
 			{
-				if (!dict.ContainsKey(newValue.Name))
-				{
-					return false;
-				}
-				dict.Remove(newValue.Name);
-				return true;
+				return dict.Remove(help.Name);
 			}
-			if (dict.TryGetValue(newValue.Name, out var currentValue) && currentValue == newValue.Value)
+			if (dict.TryGetValue(help.Name, out var currentValue) && currentValue == enable)
 			{
 				return false;
 			}
-			dict[newValue.Name] = (bool)newValue.Value;
+			dict[help.Name] = enable.Value;
 			return true;
 		}
 	}

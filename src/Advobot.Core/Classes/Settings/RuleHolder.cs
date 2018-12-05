@@ -25,7 +25,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="formatter"></param>
 		/// <param name="category"></param>
 		/// <returns></returns>
-		public IEnumerable<string> GetParts(RuleFormatter formatter, string category = null)
+		public IEnumerable<string> GetParts(RuleFormatter formatter, string? category = null)
 		{
 			if (category != null)
 			{
@@ -84,7 +84,7 @@ namespace Advobot.Classes.Settings
 		public override string ToString()
 			=> ToString(new RuleFormatter());
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 			=> ToString();
 		/// <summary>
 		/// Uses the specified rule formatter to format every rule category.

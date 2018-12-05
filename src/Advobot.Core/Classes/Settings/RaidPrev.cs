@@ -86,7 +86,7 @@ namespace Advobot.Classes.Settings
 		public async Task PunishAsync(IGuildSettings settings, SocketGuildUser user)
 			=> await _Giver.GiveAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 		{
 			return $"**Enabled:** `{Enabled}`\n" +
 				$"**Users:** `{UserCount}`\n" +

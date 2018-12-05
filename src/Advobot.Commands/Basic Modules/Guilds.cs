@@ -180,12 +180,12 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildIcon : ImageResizerModule
 		{
 			[Command]
-			public async Task Command(Uri url)
+			public Task Command(Uri url)
 			{
-				await ProcessAsync(new IconCreationArgs("Guild Icon", Context, url, default, async (ctx, ms) =>
+				return ProcessAsync(new IconCreationArgs("Guild Icon", Context, url, default, (ctx, ms) =>
 				{
-					await ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions()).CAF();
-				})).CAF();
+					return ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions());
+				}));
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove()
@@ -203,12 +203,12 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildSplash : ImageResizerModule
 		{
 			[Command]
-			public async Task Command(Uri url)
+			public Task Command(Uri url)
 			{
-				await ProcessAsync(new IconCreationArgs("Guild Splash", Context, url, default, async (ctx, ms) =>
+				return ProcessAsync(new IconCreationArgs("Guild Splash", Context, url, default, (ctx, ms) =>
 				{
-					await ctx.Guild.ModifyAsync(x => x.Splash = new Image(ms), ctx.GenerateRequestOptions()).CAF();
-				})).CAF();
+					return ctx.Guild.ModifyAsync(x => x.Splash = new Image(ms), ctx.GenerateRequestOptions());
+				}));
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove()
@@ -258,8 +258,8 @@ namespace Advobot.Commands
 		public sealed class DeleteGuild : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command()
-				=> await Context.Guild.DeleteAsync().CAF();
+			public Task Command()
+				=> Context.Guild.DeleteAsync();
 		}
 	}
 }

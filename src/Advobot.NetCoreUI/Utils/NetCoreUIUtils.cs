@@ -25,14 +25,14 @@ namespace Advobot.NetCoreUI.Utils
 		public static void Execute(this ICommand command, object parameter)
 			=> command.Execute(parameter);
 		public static FileInfo GenerateFileName(this IBotDirectoryAccessor accessor, string fileName, string ext = "txt")
-			=> accessor.GetBaseBotDirectoryFile($"{fileName}_{FormattingUtils.ToSaving()}.{ext}");
-		public static SaveStatus Save(this FileInfo file, string text, Type deserializeType = null)
+			=> accessor.GetBaseBotDirectoryFile($"{fileName}_{AdvorangesUtils.FormattingUtils.ToSaving()}.{ext}");
+		public static SaveStatus Save(this FileInfo file, string text, Type? deserializationType = null)
 		{
-			if (deserializeType != null)
+			if (deserializationType != null)
 			{
 				try
 				{
-					var throwaway = JsonConvert.DeserializeObject(text, deserializeType);
+					var throwaway = JsonConvert.DeserializeObject(text, deserializationType);
 				}
 				catch (JsonReaderException jre)
 				{
@@ -51,7 +51,7 @@ namespace Advobot.NetCoreUI.Utils
 				return SaveStatus.Failure;
 			}
 		}
-		public static (string Text, ISolidColorBrush Background) SaveAndGetResponse(this FileInfo file, string text, Type deserializationType = null)
+		public static (string Text, ISolidColorBrush Background) SaveAndGetResponse(this FileInfo file, string text, Type? deserializationType = null)
 			=> file.Save(text, deserializationType).GetSaveResponse(file);
 		public static (string Text, ISolidColorBrush Background) GetSaveResponse(this SaveStatus response, FileInfo file)
 		{

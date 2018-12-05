@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Advobot.Enums;
-using Advobot.Interfaces;
-using Advobot.Utilities;
+﻿using Advobot.Interfaces;
 using AdvorangesUtils;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Advobot.Classes
 {
@@ -15,11 +13,11 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The invite code.
 		/// </summary>
-		public string Code { get; private set; }
+		public string? Code { get; private set; }
 		/// <summary>
 		/// The name of the guild.
 		/// </summary>
-		public string Name { get; private set; }
+		public string? Name { get; private set; }
 		/// <summary>
 		/// Whether the guild has global emotes.
 		/// </summary>
@@ -41,28 +39,24 @@ namespace Advobot.Classes
 		public IEnumerable<IListedInvite> GatherInvites(IInviteListService inviteListService)
 		{
 			var invites = (Keywords.Any() ? inviteListService.GetAll(int.MaxValue, Keywords) : inviteListService.GetAll(int.MaxValue)).Where(x => !x.Expired);
-			var wentIntoAny = false;
+			var filtered = default(IEnumerable<IListedInvite>);
 			if (Code != null)
 			{
-				invites = invites.Where(x => x.Code == Code);
-				wentIntoAny = true;
+				invites = (filtered ?? invites).Where(x => x.Code == Code);
 			}
 			if (Name != null)
 			{
-				invites = invites.Where(x => x.GuildName.CaseInsEquals(Name));
-				wentIntoAny = true;
+				invites = (filtered ?? invites).Where(x => x.GuildName.CaseInsEquals(Name));
 			}
 			if (HasGlobalEmotes)
 			{
-				invites = invites.Where(x => x.HasGlobalEmotes);
-				wentIntoAny = true;
+				invites = (filtered ?? invites).Where(x => x.HasGlobalEmotes);
 			}
 			if (Users.Number.HasValue)
 			{
-				invites = Users.GetFromCount(invites, x => (uint?)x.GuildMemberCount);
-				wentIntoAny = true;
+				invites = Users.GetFromCount(filtered ?? invites, x => (uint?)x.GuildMemberCount);
 			}
-			return wentIntoAny ? Enumerable.Empty<IListedInvite>() : invites;
+			return filtered ?? Enumerable.Empty<IListedInvite>();
 		}
 	}
 }

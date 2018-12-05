@@ -41,11 +41,11 @@ namespace Advobot.Commands
 		public sealed class ReplaceWordsInNames : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command(
+			public Task Command(
 				[ValidateNickname] string search,
 				[ValidateNickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> await Process(bypass, x => IsMatch(x, search), (u, o) => u.ModifyAsync(x => x.Nickname = replace, o)).CAF();
+				=> Process(bypass, x => IsMatch(x, search), (u, o) => u.ModifyAsync(x => x.Nickname = replace, o));
 
 			private bool IsMatch(SocketGuildUser user, string search)
 			{
@@ -62,11 +62,11 @@ namespace Advobot.Commands
 		public sealed class ReplaceByUtf16 : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command(
+			public Task Command(
 				[ValidatePositiveNumber] int upperLimit,
 				[ValidateNickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> await Process(bypass, x => IsMatch(x, upperLimit), (u, o) => u.ModifyAsync(x => x.Nickname = replace, o)).CAF();
+				=> Process(bypass, x => IsMatch(x, upperLimit), (u, o) => u.ModifyAsync(x => x.Nickname = replace, o));
 
 			private bool IsMatch(SocketGuildUser user, int upperLimit)
 			{
@@ -83,8 +83,8 @@ namespace Advobot.Commands
 		public sealed class RemoveAllNickNames : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> await Process(bypass, x => x.Nickname != null, (u, o) => u.ModifyAsync(x => x.Nickname = u.Username, o)).CAF();
+			public Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+				=> Process(bypass, x => x.Nickname != null, (u, o) => u.ModifyAsync(x => x.Nickname = u.Username, o));
 		}
 	}
 }

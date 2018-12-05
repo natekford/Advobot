@@ -11,29 +11,30 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 	/// </summary>
 	/// <typeparam name="TBrush"></typeparam>
 	/// <typeparam name="TBrushFactory"></typeparam>
-	public class Theme<TBrush, TBrushFactory> : ITheme<TBrush> where TBrushFactory : BrushFactory<TBrush>, new()
+	public class Theme<TBrush, TBrushFactory> : ITheme<TBrush>
+		where TBrushFactory : BrushFactory<TBrush>, new()
 	{
 		[JsonProperty("Brushes")]
-		private readonly Dictionary<string, string> _Brushes = new Dictionary<string, string>();
+		private Dictionary<string, string> _Brushes { get; } = new Dictionary<string, string>();
 		[JsonIgnore]
-		private readonly Dictionary<string, TBrush> _RuntimeBrushes = new Dictionary<string, TBrush>();
+		private Dictionary<string, TBrush> _RuntimeBrushes { get; } = new Dictionary<string, TBrush>();
 		[JsonIgnore]
-		private readonly TBrushFactory _BrushFactory = new TBrushFactory();
+		private TBrushFactory _BrushFactory { get; } = new TBrushFactory();
 		[JsonIgnore]
 		private bool _Frozen;
 
 		/// <inheritdoc />
 		[JsonIgnore]
-		public ICollection<string> Keys => ((IDictionary<string, TBrush>)_RuntimeBrushes).Keys;
+		public ICollection<string> Keys => _RuntimeBrushes.Keys;
 		/// <inheritdoc />
 		[JsonIgnore]
-		public ICollection<TBrush> Values => ((IDictionary<string, TBrush>)_RuntimeBrushes).Values;
+		public ICollection<TBrush> Values => _RuntimeBrushes.Values;
 		/// <inheritdoc />
 		[JsonIgnore]
 		public int Count => _RuntimeBrushes.Count;
 		/// <inheritdoc />
 		[JsonIgnore]
-		public bool IsReadOnly => ((IDictionary<string, TBrush>)_RuntimeBrushes).IsReadOnly;
+		public bool IsReadOnly => _Frozen;
 
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -45,7 +46,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		/// <returns></returns>
 		public TBrush this[string target]
 		{
-			get => _RuntimeBrushes.TryGetValue(target, out var brush) ? brush : default;
+			get => _RuntimeBrushes.TryGetValue(target, out var brush) ? brush : _BrushFactory.Default;
 			set => SetBrush(target, value);
 		}
 
@@ -57,10 +58,10 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 			}
 			if (!_Brushes.ContainsKey(target))
 			{
-				_Brushes.Add(target, null);
-				_RuntimeBrushes.Add(target, default);
+				_Brushes.Add(target, _BrushFactory.FormatBrush(_BrushFactory.Default));
+				_RuntimeBrushes.Add(target, _BrushFactory.Default);
 			}
-			_Brushes[target] = value == null ? null : _BrushFactory.FormatBrush(value);
+			_Brushes[target] = _BrushFactory.FormatBrush(value);
 			_RuntimeBrushes[target] = value;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(target));
 		}

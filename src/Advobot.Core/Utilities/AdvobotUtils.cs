@@ -159,17 +159,17 @@ namespace Advobot.Utilities
 			}.Register();
 			new StaticSettingParser<CustomEmbed>
 			{
-				new StaticSetting<CustomEmbed, string>(x => x.Title) { IsOptional = true },
-				new StaticSetting<CustomEmbed, string>(x => x.Description) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri>(x => x.ImageUrl) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri>(x => x.Url) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri>(x => x.ThumbUrl) { IsOptional = true },
+				new StaticSetting<CustomEmbed, string?>(x => x.Title) { IsOptional = true },
+				new StaticSetting<CustomEmbed, string?>(x => x.Description) { IsOptional = true },
+				new StaticSetting<CustomEmbed, Uri?>(x => x.ImageUrl) { IsOptional = true },
+				new StaticSetting<CustomEmbed, Uri?>(x => x.Url) { IsOptional = true },
+				new StaticSetting<CustomEmbed, Uri?>(x => x.ThumbUrl) { IsOptional = true },
 				new StaticSetting<CustomEmbed, Color?>(x => x.Color) { IsOptional = true },
-				new StaticSetting<CustomEmbed, string>(x => x.AuthorName) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri>(x => x.AuthorIconUrl) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri>(x => x.AuthorUrl) { IsOptional = true },
-				new StaticSetting<CustomEmbed, string>(x => x.Footer) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri>(x => x.FooterIconUrl) { IsOptional = true },
+				new StaticSetting<CustomEmbed, string?>(x => x.AuthorName) { IsOptional = true },
+				new StaticSetting<CustomEmbed, Uri?>(x => x.AuthorIconUrl) { IsOptional = true },
+				new StaticSetting<CustomEmbed, Uri?>(x => x.AuthorUrl) { IsOptional = true },
+				new StaticSetting<CustomEmbed, string?>(x => x.Footer) { IsOptional = true },
+				new StaticSetting<CustomEmbed, Uri?>(x => x.FooterIconUrl) { IsOptional = true },
 				new StaticCollectionSetting<CustomEmbed, CustomField>(x => x.FieldInfo) { IsOptional = true },
 			}.Register();
 			new StaticSettingParser<GuildNotification>
@@ -192,8 +192,8 @@ namespace Advobot.Utilities
 			}.Register();
 			new StaticSettingParser<ListedInviteGatherer>
 			{
-				new StaticSetting<ListedInviteGatherer, string>(x => x.Code) { IsOptional = true },
-				new StaticSetting<ListedInviteGatherer, string>(x => x.Name) { IsOptional = true },
+				new StaticSetting<ListedInviteGatherer, string?>(x => x.Code) { IsOptional = true },
+				new StaticSetting<ListedInviteGatherer, string?>(x => x.Name) { IsOptional = true },
 				new StaticSetting<ListedInviteGatherer, bool>(x => x.HasGlobalEmotes) { IsOptional = true, IsFlag = true },
 				new StaticSetting<ListedInviteGatherer, NumberSearch>(x => x.Users) {IsOptional = true},
 				new StaticCollectionSetting<ListedInviteGatherer, string>(x => x.Keywords),
@@ -235,12 +235,6 @@ namespace Advobot.Utilities
 			{
 				new StaticSetting<PersistentRole, ulong>(x => x.UserId),
 				new StaticSetting<PersistentRole, ulong>(x => x.RoleId),
-			}.Register();
-			new StaticSettingParser<Slowmode>
-			{
-				new StaticSetting<Slowmode, int>(x => x.BaseMessages),
-				new StaticSetting<Slowmode, int>(x => x.TimeInterval),
-				new StaticCollectionSetting<Slowmode, ulong>(x => x.ImmuneRoleIds),
 			}.Register();
 			new StaticSettingParser<BotUser>
 			{

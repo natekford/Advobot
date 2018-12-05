@@ -56,13 +56,12 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The title of the embed. Will either eat errors or throw if the constructor was told to throw.
 		/// </summary>
-		public string Title
+		public string? Title
 		{
 			get => _Builder.Title;
 			set
 			{
 				if (TryAddTitle(value, out var errors)) { return; }
-
 				if (_ThrowOnInvalid) { throw CreateException(errors); }
 
 				_Builder.Title = ShortenString(errors, value);
@@ -71,7 +70,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The description of the embed. Will either eat errors or throw if the constructor was told to throw.
 		/// </summary>
-		public string Description
+		public string? Description
 		{
 			get => _Builder.Description;
 			set
@@ -86,7 +85,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The url of the embed. Will either eat errors or throw if the constructor was told to throw.
 		/// </summary>
-		public string Url
+		public string? Url
 		{
 			get => _Builder.Url;
 			set
@@ -100,7 +99,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The thumnail url of the embed. Will either eat errors or throw if the constructor was told to throw.
 		/// </summary>
-		public string ThumbnailUrl
+		public string? ThumbnailUrl
 		{
 			get => _Builder.ThumbnailUrl;
 			set
@@ -114,7 +113,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The image url of the embed. Will either eat errors or throw if the constructor was told to throw.
 		/// </summary>
-		public string ImageUrl
+		public string? ImageUrl
 		{
 			get => _Builder.ImageUrl;
 			set
@@ -233,16 +232,16 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The values which have failed to set.
 		/// </summary>
-		public ImmutableDictionary<string, string> FailedValues => _FailedValues.ToImmutableDictionary();
+		public ImmutableDictionary<string, string?> FailedValues => _FailedValues.ToImmutableDictionary();
 
 		private readonly bool _ThrowOnInvalid;
-		private EmbedBuilder _Builder = new EmbedBuilder
+		private EmbedBuilder _Builder { get; } = new EmbedBuilder
 		{
 			Color = Base,
 			Timestamp = DateTimeOffset.UtcNow
 		};
-		private List<EmbedError> _Errors = new List<EmbedError>();
-		private Dictionary<string, string> _FailedValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		private List<EmbedError> _Errors { get; } = new List<EmbedError>();
+		private Dictionary<string, string?> _FailedValues { get; } = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
 		/// <summary>
 		/// Creates an <see cref="EmbedWrapper"/> that can throw on exceptions if <paramref name="throwOnInvalid"/> is true.
@@ -263,7 +262,7 @@ namespace Advobot.Classes
 		/// <param name="title"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddTitle(string title, out List<EmbedError> errors)
+		public bool TryAddTitle(string? title, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
 			if (title?.Length > EmbedBuilder.MaxTitleLength)
@@ -293,7 +292,7 @@ namespace Advobot.Classes
 		/// <param name="description"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddDescription(string description, out List<EmbedError> errors)
+		public bool TryAddDescription(string? description, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
 			if (description?.Length > EmbedBuilder.MaxDescriptionLength)
@@ -327,7 +326,7 @@ namespace Advobot.Classes
 		/// <param name="url"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddUrl(string url, out List<EmbedError> errors)
+		public bool TryAddUrl(string? url, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
 			if (url != null && !url.IsValidUrl())
@@ -349,7 +348,7 @@ namespace Advobot.Classes
 		/// <param name="thumbnailUrl"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddThumbnailUrl(string thumbnailUrl, out List<EmbedError> errors)
+		public bool TryAddThumbnailUrl(string? thumbnailUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
 			if (thumbnailUrl != null && !thumbnailUrl.IsValidUrl())
@@ -371,7 +370,7 @@ namespace Advobot.Classes
 		/// <param name="imageUrl"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddImageUrl(string imageUrl, out List<EmbedError> errors)
+		public bool TryAddImageUrl(string? imageUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
 			if (imageUrl != null && !imageUrl.IsValidUrl())
@@ -395,7 +394,7 @@ namespace Advobot.Classes
 		/// <param name="iconUrl"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddAuthor(string name, string url, string iconUrl, out List<EmbedError> errors)
+		public bool TryAddAuthor(string? name, string? url, string? iconUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
 			if (name?.Length > EmbedAuthorBuilder.MaxAuthorNameLength)
@@ -447,7 +446,7 @@ namespace Advobot.Classes
 		/// <param name="iconUrl"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddFooter(string text, string iconUrl, out List<EmbedError> errors)
+		public bool TryAddFooter(string? text, string? iconUrl, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
 			if (text?.Length > EmbedFooterBuilder.MaxFooterTextLength)
@@ -551,7 +550,7 @@ namespace Advobot.Classes
 		/// <param name="field"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryRemoveField(int index, out EmbedFieldBuilder field, out List<EmbedError> errors)
+		public bool TryRemoveField(int index, out EmbedFieldBuilder? field, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
 			field = default;
@@ -617,7 +616,7 @@ namespace Advobot.Classes
 		/// Can ignore the length of title, author, description, or footer
 		/// </summary>
 		/// <returns></returns>
-		private int GetRemainingLength(string propertyToDisregard)
+		private int GetRemainingLength(string? propertyToDisregard)
 		{
 			//Gotten from https://github.com/RogueException/Discord.Net/blob/7837c4862cab32ecc432b3c6794277d92d89647d/src/Discord.Net.Core/Entities/Messages/Embed.cs#L60
 			var currentLength = _Builder.Title?.Length
@@ -649,7 +648,7 @@ namespace Advobot.Classes
 		/// <param name="value"></param>
 		/// <param name="newLines"></param>
 		/// <returns></returns>
-		private string ShortenString(IEnumerable<EmbedError> errors, string value, bool newLines = false)
+		private string? ShortenString(IEnumerable<EmbedError> errors, string? value, bool newLines = false)
 		{
 			if (value == null)
 			{

@@ -14,11 +14,11 @@ namespace Advobot.Classes.CloseWords
 		/// <summary>
 		/// The gathered words.
 		/// </summary>
-		public List<CloseWord<string>> List { get; set; }
+		public List<CloseWord<string>> List { get; set; } = new List<CloseWord<string>>();
 		/// <summary>
 		/// The type of close words these are, e.g quote or help entries.
 		/// </summary>
-		public string Type { get; set; }
+		public string Type { get; set; } = "";
 
 		/// <summary>
 		/// Creates an instance of <see cref="RemovableCloseWords"/>. Parameterless constructor is used for the database.

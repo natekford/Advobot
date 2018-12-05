@@ -55,7 +55,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			get => _PauseButtonContent;
 			set => this.RaiseAndSetIfChanged(ref _PauseButtonContent, value);
 		}
-		private string _PauseButtonContent;
+		private string _PauseButtonContent = "";
 
 		public int OutputColumnSpan
 		{
@@ -72,7 +72,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public bool OpenInfoMenu => GetMenuStatus();
 		public bool OpenColorsMenu => GetMenuStatus();
 		public bool OpenSettingsMenu => GetMenuStatus();
-		private ConcurrentDictionary<string, bool> _MenuStatuses = new ConcurrentDictionary<string, bool>();
+		private ConcurrentDictionary<string, bool> _MenuStatuses { get; } = new ConcurrentDictionary<string, bool>();
 
 		public IObservable<string> Uptime { get; }
 		public IObservable<string> Latency { get; }
@@ -179,7 +179,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private async Task OpenFileSearchWindowAsync(Window window)
 		{
-			Type GetDeserializationType(string fileName)
+			Type? GetDeserializationType(string fileName)
 			{
 				switch (fileName)
 				{

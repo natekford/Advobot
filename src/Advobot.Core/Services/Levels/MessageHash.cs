@@ -25,7 +25,7 @@ namespace Advobot.Services.Levels
 		/// <summary>
 		/// The message's content hashed to prevent any sensitive information being in the database.
 		/// </summary>
-		public string Hash { get; set; }
+		public string Hash { get; set; } = "";
 		/// <summary>
 		/// The amount of experience given for the message.
 		/// </summary>

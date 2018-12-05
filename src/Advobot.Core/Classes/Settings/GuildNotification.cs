@@ -12,7 +12,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Notification that gets sent whenever certain events happen depending on what is linked to this notification.
 	/// </summary>
-	public class GuildNotification : IGuildFormattable
+	public struct GuildNotification : IGuildFormattable
 	{
 		/// <summary>
 		/// What to replace with a user mention.
@@ -47,6 +47,11 @@ namespace Advobot.Classes.Settings
 		/// <returns></returns>
 		public Task SendAsync(SocketGuild guild, IUser user)
 		{
+			if (ChannelId == 0)
+			{
+				return Task.CompletedTask;
+			}
+
 			var content = Content
 				.CaseInsReplace(USER_MENTION, user?.Mention ?? "Invalid User")
 				.CaseInsReplace(USER_STRING, user?.Format() ?? "Invalid User");
@@ -54,7 +59,7 @@ namespace Advobot.Classes.Settings
 			return MessageUtils.SendMessageAsync(guild.GetTextChannel(ChannelId), content, CustomEmbed?.BuildWrapper());
 		}
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 		{
 			var channel = guild?.GetTextChannel(ChannelId)?.Format() ?? ChannelId.ToString();
 			return $"**Channel:** `{channel}`\n**Content:** `{Content}`\n{CustomEmbed}";

@@ -25,7 +25,7 @@ namespace Advobot.Interfaces
 		/// <param name="client"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		string ToString(BaseSocketClient client, SocketGuild guild);
+		string Format(BaseSocketClient client, SocketGuild guild);
 		/// <summary>
 		/// Formats a specific setting.
 		/// </summary>
@@ -41,7 +41,7 @@ namespace Advobot.Interfaces
 		/// <param name="guild"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		string FormatValue(BaseSocketClient client, SocketGuild guild, object value);
+		string FormatValue(BaseSocketClient client, SocketGuild guild, object? value);
 		/// <summary>
 		/// Sets every setting back to its default value.
 		/// </summary>

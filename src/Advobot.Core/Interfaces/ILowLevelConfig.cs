@@ -48,7 +48,7 @@ namespace Advobot.Interfaces
 		/// <param name="input"></param>
 		/// <param name="startup"></param>
 		/// <returns></returns>
-		bool ValidatePath(string input, bool startup);
+		bool ValidatePath(string? input, bool startup);
 		/// <summary>
 		/// Attempts to login with the given input. Returns a boolean signifying whether the login was successful or not.
 		/// </summary>
@@ -56,19 +56,12 @@ namespace Advobot.Interfaces
 		/// <param name="startup">Whether or not this should be treated as the first attempt at logging in.</param>
 		/// <param name="restartCallback"></param>
 		/// <returns>A boolean signifying whether the login was successful or not.</returns>
-		Task<bool> ValidateBotKey(string input, bool startup, Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback);
+		Task<bool> ValidateBotKey(string? input, bool startup, Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback);
 		/// <summary>
 		/// Logs in and starts the client.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
 		Task StartAsync(BaseSocketClient client);
-		/// <summary>
-		/// Creates the default services this program uses.
-		/// <paramref name="commands"/> are the commands this bot will have.
-		/// </summary>
-		/// <param name="commands"></param>
-		/// <returns></returns>
-		IServiceCollection CreateDefaultServices(IEnumerable<Assembly> commands);
 	}
 }

@@ -12,19 +12,18 @@ namespace Advobot.Classes
 		/// </summary>
 		public string Name
 		{
-			get => _Name == null ? null : $"{_Name}_{FormattingUtils.ToSaving()}.txt";
-			set => _Name = value?.FormatTitle()?.Replace(' ', '_')?.TrimEnd('_');
+			get => $"{_Name}_{FormattingUtils.ToSaving()}.txt";
+			set => _Name = value.FormatTitle().Replace(' ', '_').TrimEnd('_');
 		}
+		private string _Name = "temp.txt";
 		/// <summary>
 		/// The text of the text file.
 		/// </summary>
 		public string Text
 		{
 			get => _Text;
-			set => _Text = value?.Trim();
+			set => _Text = value.Trim();
 		}
-
-		private string _Name;
-		private string _Text;
+		private string _Text = "";
 	}
 }

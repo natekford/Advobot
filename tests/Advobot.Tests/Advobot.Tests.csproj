@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <IsPackable>false</IsPackable>
     <Authors>Advorange</Authors>
     <Company>Advorange</Company>
@@ -18,7 +18,7 @@
     <PackageReference Include="AdvorangesUtils" Version="1.0.11.2">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-01026" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-01034" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.9.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
@@ -45,6 +45,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.0\Advobot.Tests.xml</DocumentationFile>
     <NoWarn>1701;1702;1705;1591;NU1701</NoWarn>
+    <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
 </Project>

@@ -27,10 +27,10 @@ namespace Advobot.Commands
 		{
 			[Command]
 			public async Task Command()
-				=> await ReplyIfAny(await Context.Guild.GetWebhooksAsync().CAF(), Context.Guild, "Webhooks", x => x.Format()).CAF();
+				=> await ReplyIfAny(await Context.Guild.GetWebhooksAsync().CAF(), Context.Guild.Format(), "Webhooks", x => x.Format()).CAF();
 			[Command]
-			public async Task Command(ITextChannel channel)
-				=> await ReplyIfAny(await channel.GetWebhooksAsync().CAF(), channel, "Webhooks", x => x.Format()).CAF();
+			public async Task Command(SocketTextChannel channel)
+				=> await ReplyIfAny(await channel.GetWebhooksAsync().CAF(), channel.Format(), "Webhooks", x => x.Format()).CAF();
 		}
 
 		[Group(nameof(DeleteWebhook)), ModuleInitialismAlias(typeof(DeleteWebhook))]
@@ -68,9 +68,7 @@ namespace Advobot.Commands
 		public sealed class ModifyWebhookChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(
-				IWebhook webhook,
-				[ValidateTextChannel(CPerm.ManageWebhooks, FromContext = true)] SocketTextChannel channel)
+			public async Task Command(IWebhook webhook, [ValidateTextChannel(CPerm.ManageWebhooks, FromContext = true)] SocketTextChannel channel)
 			{
 				await webhook.ModifyAsync(x => x.Channel = Optional.Create<ITextChannel>(channel), GenerateRequestOptions()).CAF();
 				await ReplyTimedAsync($"Successfully set the channel of `{webhook.Format()}` to `{channel.Format()}`.").CAF();
@@ -84,12 +82,12 @@ namespace Advobot.Commands
 		public sealed class ModifyWebhookIcon : ImageResizerModule
 		{
 			[Command]
-			public async Task Command(IWebhook webhook, Uri url)
+			public Task Command(IWebhook webhook, Uri url)
 			{
-				await ProcessAsync(new IconCreationArgs("Webhook Icon", Context, url, default, async (ctx, ms) =>
+				return ProcessAsync(new IconCreationArgs("Webhook Icon", Context, url, default, (ctx, ms) =>
 				{
-					await webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions()).CAF();
-				})).CAF();
+					return webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions());
+				}));
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public async Task Remove(IWebhook webhook)
@@ -109,7 +107,7 @@ namespace Advobot.Commands
 			private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients = new ConcurrentDictionary<ulong, DiscordWebhookClient>();
 
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command(IWebhook webhook, [Remainder] string text)
+			public Task Command(IWebhook webhook, [Remainder] string text)
 			{
 				var webhookId = _GuildsToWebhooks.AddOrUpdate(Context.Guild.Id, webhook.Id, (k, v) =>
 				{
@@ -121,7 +119,7 @@ namespace Advobot.Commands
 					return webhook.Id;
 				});
 				//If the client already exists, use that, otherwise create a new client
-				await _Clients.GetOrAdd(webhookId, _ => new DiscordWebhookClient(webhook)).SendMessageAsync(text).CAF();
+				return _Clients.GetOrAdd(webhookId, _ => new DiscordWebhookClient(webhook)).SendMessageAsync(text);
 			}
 		}
 	}

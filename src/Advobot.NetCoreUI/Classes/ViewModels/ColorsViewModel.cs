@@ -92,7 +92,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			get => Get();
 			set => Set(value);
 		}
-		private string _Throwaway;
+		private string _Throwaway = "";
 
 		private readonly IColorSettings<ISolidColorBrush> _Colors;
 		private readonly NetCoreBrushFactory _Factory = new NetCoreBrushFactory();

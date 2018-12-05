@@ -19,19 +19,19 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			get => IsValid() ? _BotSettings.Prefix : _Prefix;
 			set => RaiseAndSetIfChangedAndValid(v => _BotSettings.Prefix = v, ref _Prefix, value, new PrefixValidationAttribute());
 		}
-		private string _Prefix;
-		public string Game
+		private string _Prefix = "";
+		public string? Game
 		{
 			get => _BotSettings.Game;
 			set => _BotSettings.Game = value;
 		}
 		[TwitchStreamValidation]
-		public string Stream
+		public string? Stream
 		{
 			get => IsValid() ? _BotSettings.Stream : _Stream;
 			set => RaiseAndSetIfChangedAndValid(v => _BotSettings.Stream = v, ref _Stream, value, new TwitchStreamValidationAttribute());
 		}
-		private string _Stream;
+		private string? _Stream;
 		public int MessageCacheSize
 		{
 			get => _BotSettings.MessageCacheSize;
@@ -92,9 +92,12 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			get => _BotSettings.LogLevel;
 			set => _BotSettings.LogLevel = value;
 		}
-		public ObservableCollection<ulong> TrustedUsers => (ObservableCollection<ulong>)_BotSettings.TrustedUsers;
-		public ObservableCollection<ulong> UsersUnableToDmOwner => (ObservableCollection<ulong>)_BotSettings.UsersUnableToDmOwner;
-		public ObservableCollection<ulong> UsersIgnoredFromCommands => (ObservableCollection<ulong>)_BotSettings.UsersIgnoredFromCommands;
+		public ObservableCollection<ulong> TrustedUsers
+			=> (ObservableCollection<ulong>)_BotSettings.TrustedUsers;
+		public ObservableCollection<ulong> UsersUnableToDmOwner
+			=> (ObservableCollection<ulong>)_BotSettings.UsersUnableToDmOwner;
+		public ObservableCollection<ulong> UsersIgnoredFromCommands
+			=> (ObservableCollection<ulong>)_BotSettings.UsersIgnoredFromCommands;
 
 		private readonly IBotSettings _BotSettings;
 

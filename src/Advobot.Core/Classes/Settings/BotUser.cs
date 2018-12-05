@@ -83,10 +83,10 @@ namespace Advobot.Classes.Settings
 		public IEnumerable<string> ModifyPermissions(bool add, IGuildUser invoker, ulong flags)
 			=> add ? AddPermissions(invoker, flags) : RemovePermissions(invoker, flags);
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 		{
 			var user = guild?.GetUser(UserId)?.Format() ?? UserId.ToString();
-			return $"**User:** `{guild.GetUser(UserId).Format()}`\n**Permissions:** `{Permissions}`";
+			return $"**User:** `{user}`\n**Permissions:** `{Permissions}`";
 		}
 		/// <inheritdoc />
 		public override string ToString()

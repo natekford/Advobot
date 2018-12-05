@@ -36,7 +36,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The ids of the passed in messages.
 		/// </summary>
-		public List<ulong> MessageIds { get; set; }
+		public List<ulong> MessageIds { get; set; } = new List<ulong>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="RemovableMessage"/>. Parameterless constructor is used for the database.

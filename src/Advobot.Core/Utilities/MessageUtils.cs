@@ -28,11 +28,11 @@ namespace Advobot.Utilities
 		/// </param>
 		/// <returns></returns>
 		[Obsolete]
-		public static async Task<IUserMessage> SendMessageAsync(
+		public static Task<IUserMessage> SendMessageAsync(
 			IMessageChannel channel,
-			string content = null,
-			EmbedWrapper embedWrapper = null,
-			TextFileInfo textFile = null,
+			string? content = null,
+			EmbedWrapper? embedWrapper = null,
+			TextFileInfo? textFile = null,
 			bool allowZeroWidthLengthMessages = false)
 		{
 			if (channel == null)
@@ -80,15 +80,15 @@ namespace Advobot.Utilities
 						writer.Write(textFile.Text.Trim());
 						writer.Flush();
 						stream.Seek(0, SeekOrigin.Begin);
-						return await channel.SendFileAsync(stream, textFile.Name, content, embed: embedWrapper).CAF();
+						return channel.SendFileAsync(stream, textFile.Name, content, embed: embedWrapper?.Build());
 					}
 				}
-				return await channel.SendMessageAsync(content, embed: embedWrapper).CAF();
+				return channel.SendMessageAsync(content, embed: embedWrapper?.Build());
 			}
 			//If the message fails to send, then return the error
 			catch (Exception e)
 			{
-				return await channel.SendMessageAsync(channel.SanitizeContent(e.Message));
+				return channel.SendMessageAsync(channel.SanitizeContent(e.Message));
 			}
 		}
 		/// <summary>
@@ -105,7 +105,7 @@ namespace Advobot.Utilities
 			IMessage fromMessage,
 			int count,
 			RequestOptions options,
-			Func<IMessage, bool> predicate = null)
+			Func<IMessage, bool>? predicate = null)
 		{
 			var deletedCount = 0;
 			while (count > 0)
@@ -171,7 +171,7 @@ namespace Advobot.Utilities
 				return 0;
 			}
 		}
-		private static string SanitizeContent(this IMessageChannel channel, string content)
+		private static string SanitizeContent(this IMessageChannel channel, string? content)
 		{
 			if (content == null)
 			{
@@ -183,13 +183,14 @@ namespace Advobot.Utilities
 			}
 			if (channel is IGuildChannel guildChannel)
 			{
-				content = content.CaseInsReplace(guildChannel.Guild.EveryoneRole.Mention, $"@{Constants.ZERO_LENGTH_CHAR}everyone"); //Everyone and Here have the same role
+				//Everyone and Here have the same role
+				content = content.CaseInsReplace(guildChannel.Guild.EveryoneRole.Mention, $"@{Constants.ZERO_LENGTH_CHAR}everyone");
 			}
 			return content
 				.CaseInsReplace("@everyone", $"@{Constants.ZERO_LENGTH_CHAR}everyone")
 				.CaseInsReplace("@here", $"@{Constants.ZERO_LENGTH_CHAR}here")
 				.CaseInsReplace("discord.gg", $"discord{Constants.ZERO_LENGTH_CHAR}.gg")
-				.CaseInsReplace("\tts", $"\\{Constants.ZERO_LENGTH_CHAR}tts");
+				.CaseInsReplace("\\tts", $"\\{Constants.ZERO_LENGTH_CHAR}tts");
 		}
 	}
 }

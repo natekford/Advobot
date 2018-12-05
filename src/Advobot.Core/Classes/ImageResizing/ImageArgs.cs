@@ -16,7 +16,7 @@ namespace Advobot.Classes.ImageResizing
 		/// <summary>
 		/// The default success result to return.
 		/// </summary>
-		protected static SuccessResult DefaultResult { get; } = new SuccessResult();
+		protected static IResult DefaultResult { get; } = new SuccessResult();
 
 		/// <inheritdoc />
 		public abstract ImmutableArray<MagickFormat> ValidFormats { get; }
@@ -55,20 +55,12 @@ namespace Advobot.Classes.ImageResizing
 		/// <summary>
 		/// A result which will only ever be success.
 		/// </summary>
-		protected class SuccessResult : IResult
+		private class SuccessResult : RuntimeResult
 		{
 			/// <summary>
-			/// The error. This will always be null.
+			/// Creates an instance of <see cref="SuccessResult"/>.
 			/// </summary>
-			public CommandError? Error { get; } = null;
-			/// <summary>
-			/// The error reason. This will always be null.
-			/// </summary>
-			public string ErrorReason { get; } = null;
-			/// <summary>
-			/// Will always be true.
-			/// </summary>
-			public bool IsSuccess { get; } = true;
+			public SuccessResult() : base(null, null) { }
 		}
 	}
 }

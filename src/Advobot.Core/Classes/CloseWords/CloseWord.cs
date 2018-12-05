@@ -22,10 +22,6 @@ namespace Advobot.Classes.CloseWords
 		public T Value { get; set; }
 
 		/// <summary>
-		/// Initializes the object. Parameterless constructor is used for the database.
-		/// </summary>
-		public CloseWord() { }
-		/// <summary>
 		/// Initializes the object with the supplied values.
 		/// </summary>
 		/// <param name="closeness"></param>

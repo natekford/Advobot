@@ -1,34 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Advobot.Classes.DatabaseWrappers;
-using Advobot.Classes.DatabaseWrappers.LiteDB;
-using Advobot.Classes.DatabaseWrappers.MongoDB;
-using Advobot.Classes.ImageResizing;
 using Advobot.Interfaces;
-using Advobot.Services.BotSettings;
-using Advobot.Services.Commands;
-using Advobot.Services.GuildSettings;
-using Advobot.Services.HelpEntries;
-using Advobot.Services.InviteList;
-using Advobot.Services.Levels;
-using Advobot.Services.Logging;
-using Advobot.Services.Timers;
-using Advobot.Utilities;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesSettingParser.Implementation.Static;
 using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 using Discord;
-using Discord.Commands;
 using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes
@@ -42,12 +27,12 @@ namespace Advobot.Classes
 		/// The path leading to the bot's directory.
 		/// </summary>
 		[JsonProperty("SavePath")]
-		public string SavePath { get; private set; }
+		public string? SavePath { get; private set; } = null;
 		/// <summary>
 		/// The API key for the bot.
 		/// </summary>
 		[JsonProperty("BotKey")]
-		private string _BotKey;
+		private string? _BotKey { get; set; } = null;
 		/// <inheritdoc />
 		[JsonIgnore]
 		public ulong BotId { get; private set; }
@@ -95,7 +80,7 @@ namespace Advobot.Classes
 		}
 
 		/// <inheritdoc />
-		public bool ValidatePath(string input, bool startup)
+		public bool ValidatePath(string? input, bool startup)
 		{
 			if (ValidatedPath)
 			{
@@ -129,7 +114,7 @@ namespace Advobot.Classes
 			return false;
 		}
 		/// <inheritdoc />
-		public async Task<bool> ValidateBotKey(string input, bool startup, Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
+		public async Task<bool> ValidateBotKey(string? input, bool startup, Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
 		{
 			if (ValidatedKey)
 			{
@@ -194,61 +179,8 @@ namespace Advobot.Classes
 			ConsoleUtils.WriteLine("Successfully connected the client.");
 		}
 		/// <inheritdoc />
-		private void Save() => IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
-		/// <inheritdoc />
-		public IServiceCollection CreateDefaultServices(IEnumerable<Assembly> commands)
-		{
-			T StartDatabase<T>(T db) where T : IUsesDatabase
-			{
-				db.Start();
-				return db;
-			}
-
-			commands = commands ?? throw new ArgumentException($"{nameof(commands)} cannot be null.");
-			//I have no idea if I am providing services correctly, but it works.
-			var s = new ServiceCollection();
-			s.AddSingleton(p =>
-			{
-				return new CommandService(new CommandServiceConfig
-				{
-					CaseSensitiveCommands = false,
-					ThrowOnError = false,
-				});
-			});
-			s.AddSingleton(p =>
-			{
-				var settings = p.GetRequiredService<IBotSettings>();
-				return new DiscordShardedClient(new DiscordSocketConfig
-				{
-					AlwaysDownloadUsers = settings.AlwaysDownloadUsers,
-					MessageCacheSize = settings.MessageCacheSize,
-					LogLevel = settings.LogLevel,
-				});
-			});
-			s.AddSingleton<IHelpEntryService>(p => new HelpEntryService());
-			s.AddSingleton<IBotSettings>(p => BotSettings.Load(this));
-			s.AddSingleton<ICommandHandlerService>(p => new CommandHandlerService(p, commands));
-			s.AddSingleton<IGuildSettingsFactory>(p => new GuildSettingsFactory<GuildSettings>(p));
-			s.AddSingleton<ILogService>(p => new LogService(p));
-			s.AddSingleton<ILevelService>(p => StartDatabase(new LevelService(p)));
-			s.AddSingleton<ITimerService>(p => StartDatabase(new TimerService(p)));
-			s.AddSingleton<IInviteListService>(p => StartDatabase(new InviteListService(p)));
-			s.AddSingleton<IImageResizer>(p => new ImageResizer(10));
-
-			switch (DatabaseType)
-			{
-				//-DatabaseType LiteDB (or no arguments supplied at all)
-				case DatabaseType.LiteDB:
-					s.AddSingleton<IDatabaseWrapperFactory>(p => new LiteDBWrapperFactory(p));
-					break;
-				//-DatabaseType MongoDB -DatabaseConnectionString "mongodb://localhost:27017"
-				case DatabaseType.MongoDB:
-					s.AddSingleton<IDatabaseWrapperFactory>(p => new MongoDBWrapperFactory(p));
-					s.AddSingleton<MongoDB.Driver.IMongoClient>(p => new MongoDB.Driver.MongoClient(DatabaseConnectionString));
-					break;
-			}
-			return s;
-		}
+		private void Save()
+			=> IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
 		/// <summary>
 		/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
 		/// </summary>

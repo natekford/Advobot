@@ -40,11 +40,8 @@ namespace Advobot.Services.GuildSettings
 		[JsonProperty("GoodbyeMessage")]
 		public GuildNotification GoodbyeMessage { get; set; }
 		/// <inheritdoc />
-		[JsonProperty("Slowmode")]
-		public Slowmode Slowmode { get; set; }
-		/// <inheritdoc />
 		[JsonProperty("Prefix")]
-		public string Prefix { get; set; }
+		public string? Prefix { get; set; }
 		/// <inheritdoc />
 		[JsonProperty("ServerLog")]
 		public ulong ServerLogId { get; set; }
@@ -143,15 +140,11 @@ namespace Advobot.Services.GuildSettings
 		{
 			SettingParser.Add(new Setting<GuildNotification>(() => WelcomeMessage)
 			{
-				ResetValueFactory = x => null,
+				ResetValueFactory = x => default,
 			});
 			SettingParser.Add(new Setting<GuildNotification>(() => GoodbyeMessage)
 			{
-				ResetValueFactory = x => null,
-			});
-			SettingParser.Add(new Setting<Slowmode>(() => Slowmode)
-			{
-				ResetValueFactory = x => null,
+				ResetValueFactory = x => default,
 			});
 			SettingParser.Add(new Setting<RuleHolder>(() => Rules, parser: TryParseUtils.TryParseTemporary)
 			{
@@ -161,7 +154,7 @@ namespace Advobot.Services.GuildSettings
 			{
 				ResetValueFactory = x => new CommandSettings(),
 			});
-			SettingParser.Add(new Setting<string>(() => Prefix)
+			SettingParser.Add(new Setting<string?>(() => Prefix)
 			{
 				ResetValueFactory = x => null,
 			});

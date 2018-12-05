@@ -27,7 +27,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				StoredValue = int.Parse(value);
 			}
 		}
-		private string _FixesBug;
+		private string _FixesBug = "";
 
 		public static readonly DirectProperty<NumberBox, int> StoredValueProperty =
 			AvaloniaProperty.RegisterDirect<NumberBox, int>(
@@ -87,7 +87,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 		}
 		private bool _HasError;
 
-		private ICommand ModifyValueCommand { get; }
+		public ICommand ModifyValueCommand { get; }
 
 		public NumberBox()
 		{

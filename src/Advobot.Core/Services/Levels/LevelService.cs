@@ -20,10 +20,6 @@ namespace Advobot.Services.Levels
 		/// <inheritdoc />
 		public override string DatabaseName => "LevelDatabase";
 		/// <summary>
-		/// The settings this bot uses.
-		/// </summary>
-		private IBotSettings Settings { get; }
-		/// <summary>
 		/// The settings for each individual guild.
 		/// </summary>
 		private IGuildSettingsFactory GuildSettings { get; }
@@ -62,7 +58,6 @@ namespace Advobot.Services.Levels
 		{
 			Client = provider.GetRequiredService<DiscordShardedClient>();
 			GuildSettings = provider.GetRequiredService<IGuildSettingsFactory>();
-			Settings = provider.GetRequiredService<IBotSettings>();
 			Log = args.Log;
 			Pow = args.Pow;
 			Time = args.Time;
@@ -78,7 +73,9 @@ namespace Advobot.Services.Levels
 			if (message.Author.IsBot
 				|| message.Author.IsWebhook
 				|| !(message is SocketUserMessage msg)
-				|| !(await GuildSettings.GetOrCreateAsync((msg.Channel as SocketTextChannel)?.Guild).CAF() is IGuildSettings settings)
+				|| !(msg.Channel is SocketTextChannel channel)
+				|| !(channel.Guild is SocketGuild guild)
+				|| !(await GuildSettings.GetOrCreateAsync(guild).CAF() is IGuildSettings settings)
 				|| settings.IgnoredXpChannels.Contains(message.Channel.Id)
 				|| !(GetUserXpInformation(message.Author.Id) is UserExperienceInformation info)
 				|| info.Time > (DateTime.UtcNow - Time))

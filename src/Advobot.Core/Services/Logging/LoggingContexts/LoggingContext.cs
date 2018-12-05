@@ -1,6 +1,7 @@
 ﻿using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord.WebSocket;
+using System;
 
 namespace Advobot.Services.Logging.LoggingContexts
 {
@@ -24,11 +25,11 @@ namespace Advobot.Services.Logging.LoggingContexts
 		/// <summary>
 		/// Where message/user actions get logged.
 		/// </summary>
-		public SocketTextChannel ServerLog { get; }
+		public SocketTextChannel? ServerLog { get; }
 		/// <summary>
 		/// Where images get logged.
 		/// </summary>
-		public SocketTextChannel ImageLog { get; }
+		public SocketTextChannel? ImageLog { get; }
 		/// <summary>
 		/// Whether the current context can be logged.
 		/// </summary>
@@ -45,17 +46,15 @@ namespace Advobot.Services.Logging.LoggingContexts
 			Guild = guild;
 			LogAction = action;
 
-			if (factory.TryGet(guild.Id, out var settings))
+			if (!factory.TryGet(guild.Id, out var settings))
 			{
-				Settings = settings;
-				ServerLog = guild.GetTextChannel(settings.ServerLogId);
-				ImageLog = guild.GetTextChannel(settings.ImageLogId);
-				CanLog = Settings.LogActions.Contains(LogAction);
+				throw new InvalidOperationException($"Unable to get settings for {guild.Id}");
 			}
-			else
-			{
-				CanLog = false;
-			}
+
+			Settings = settings;
+			ServerLog = guild.GetTextChannel(settings.ServerLogId);
+			ImageLog = guild.GetTextChannel(settings.ImageLogId);
+			CanLog = Settings.LogActions.Contains(LogAction);
 		}
 	}
 }

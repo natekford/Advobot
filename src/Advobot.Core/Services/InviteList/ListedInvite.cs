@@ -16,17 +16,17 @@ namespace Advobot.Services.InviteList
 	internal sealed class ListedInvite : DatabaseEntry, IListedInvite
 	{
 		/// <inheritdoc />
-		public string Code { get; set; }
+		public string Code { get; private set; }
 		/// <inheritdoc />
-		public bool Expired { get; set; }
+		public bool Expired { get; private set; }
 		/// <inheritdoc />
-		public ulong GuildId { get; set; }
+		public ulong GuildId { get; private set; }
 		/// <inheritdoc />
-		public int GuildMemberCount { get; set; }
+		public int GuildMemberCount { get; private set; }
 		/// <inheritdoc />
-		public string GuildName { get; set; }
+		public string GuildName { get; private set; }
 		/// <inheritdoc />
-		public bool HasGlobalEmotes { get; set; }
+		public bool HasGlobalEmotes { get; private set; }
 		/// <inheritdoc />
 		public string[] Keywords { get; set; }
 		/// <inheritdoc />
@@ -42,23 +42,22 @@ namespace Advobot.Services.InviteList
 		{
 			Code = invite.Code;
 			Keywords = (keywords ?? Enumerable.Empty<string>()).ToArray();
-			Update(guild);
+			GuildId = guild.Id;
+			GuildMemberCount = guild.MemberCount;
+			GuildName = guild.Name;
+			HasGlobalEmotes = guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
 		}
 
 		/// <inheritdoc />
-		public async Task BumpAsync(SocketGuild guild)
+		public Task BumpAsync(SocketGuild guild)
 		{
 			Time = DateTime.UtcNow;
-			await UpdateAsync(guild).CAF();
+			return UpdateAsync(guild);
 		}
 		/// <inheritdoc />
 		public async Task UpdateAsync(SocketGuild guild)
 		{
 			Expired = !(await guild.GetInvitesAsync().CAF()).Any(x => x.Code == Code);
-			Update(guild);
-		}
-		private void Update(SocketGuild guild)
-		{
 			GuildId = guild.Id;
 			GuildMemberCount = guild.MemberCount;
 			GuildName = guild.Name;

@@ -23,21 +23,21 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			get => _WindowTitle;
 			set => this.RaiseAndSetIfChanged(ref _WindowTitle, value);
 		}
-		private string _WindowTitle;
+		private string _WindowTitle = "";
 
 		public string SavingText
 		{
 			get => _SavingText;
 			set => this.RaiseAndSetIfChanged(ref _SavingText, value);
 		}
-		private string _SavingText;
+		private string _SavingText = "";
 
 		public ISolidColorBrush SavingBackground
 		{
 			get => _SavingBackground;
 			set => this.RaiseAndSetIfChanged(ref _SavingBackground, value);
 		}
-		private ISolidColorBrush _SavingBackground;
+		private ISolidColorBrush _SavingBackground = Brushes.Yellow;
 
 		public bool SavingOpen
 		{
@@ -55,7 +55,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 				_IsDirty = value.GetHashCode() != _LastSaved;
 			}
 		}
-		private string _Output;
+		private string _Output = "";
 
 		private int _LastSaved;
 		private bool _IsDirty;
@@ -65,11 +65,11 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public ICommand CloseCommand { get; }
 		public ICommand DeleteCommand { get; }
 
-		private readonly FileInfo _File;
-		private readonly Type _FileType;
-		private CancellationTokenSource _SavingNotificationCancelToken;
+		private FileInfo _File { get; }
+		private Type? _FileType { get; }
+		private CancellationTokenSource? _SavingNotificationCancelToken;
 
-		public FileViewingWindowViewModel(FileInfo file, Type fileType = null)
+		public FileViewingWindowViewModel(FileInfo file, Type? fileType = null)
 		{
 			_File = file;
 			_FileType = fileType;

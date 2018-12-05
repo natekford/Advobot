@@ -28,7 +28,7 @@ namespace Advobot.Classes.Attributes.Preconditions
 		/// </summary>
 		public double Value { get; }
 
-		private static ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>> _Times = new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>>();
+		private static ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>> _Times { get; } = new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="RateLimitAttribute"/>.

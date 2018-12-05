@@ -30,14 +30,14 @@ namespace Advobot.Commands
 		public sealed class CreateEmote : ImageResizerModule
 		{
 			[Command]
-			public async Task Command(Emote emote)
-				=> await Command(emote.Name, new Uri(emote.Url)).CAF();
+			public Task Command(Emote emote)
+				=> Command(emote.Name, new Uri(emote.Url));
 			[Command, Priority(1)]
-			public async Task Command(
+			public Task Command(
 				[ValidateEmoteName] string name,
 				Uri url,
 				[Optional, Remainder] UserProvidedImageArgs args)
-				=> await ProcessAsync(new EmoteCreationArgs(Context, url, args, name)).CAF();
+				=> ProcessAsync(new EmoteCreationArgs(Context, url, args, name));
 		}
 
 		[Group(nameof(DeleteEmote)), ModuleInitialismAlias(typeof(DeleteEmote))]
@@ -128,17 +128,17 @@ namespace Advobot.Commands
 		public sealed class DisplayEmotes : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Managed()
-				=> await CommandRunner(x => x.IsManaged).CAF();
+			public Task Managed()
+				=> CommandRunner(x => x.IsManaged);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Local()
-				=> await CommandRunner(x => !x.IsManaged && !x.Animated).CAF();
+			public Task Local()
+				=> CommandRunner(x => !x.IsManaged && !x.Animated);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Animated()
-				=> await CommandRunner(x => x.Animated).CAF();
+			public Task Animated()
+				=> CommandRunner(x => x.Animated);
 
-			private async Task CommandRunner(Func<GuildEmote, bool> predicate, [CallerMemberName] string caller = null)
-				=> await ReplyIfAny(Context.Guild.Emotes.Where(predicate), caller + "Emotes", x => $"{x} `{x.Name}`").CAF();
+			private Task CommandRunner(Func<GuildEmote, bool> predicate, [CallerMemberName] string caller = null)
+				=> ReplyIfAny(Context.Guild.Emotes.Where(predicate), caller + " Emotes", x => $"{x} `{x.Name}`");
 		}
 	}
 }

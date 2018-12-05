@@ -8,11 +8,11 @@
 		/// <summary>
 		/// The name of the field.
 		/// </summary>
-		public string Name { get; private set; }
+		public string Name { get; private set; } = Constants.ZERO_LENGTH_CHAR;
 		/// <summary>
 		/// The text of the field.
 		/// </summary>
-		public string Text { get; private set; }
+		public string Text { get; private set; } = Constants.ZERO_LENGTH_CHAR;
 		/// <summary>
 		/// Whether the field is inline.
 		/// </summary>

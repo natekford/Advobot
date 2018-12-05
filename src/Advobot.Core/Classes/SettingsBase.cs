@@ -33,7 +33,7 @@ namespace Advobot.Classes
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <inheritdoc />
-		public virtual string ToString(BaseSocketClient client, SocketGuild guild)
+		public virtual string Format(BaseSocketClient client, SocketGuild guild)
 		{
 			var sb = new StringBuilder();
 			foreach (var setting in SettingParser)
@@ -54,7 +54,7 @@ namespace Advobot.Classes
 		public virtual string FormatSetting(BaseSocketClient client, SocketGuild guild, string name)
 			=> Format(client, guild, SettingParser.GetSetting(name, PrefixState.NotPrefixed).GetValue());
 		/// <inheritdoc />
-		public virtual string FormatValue(BaseSocketClient client, SocketGuild guild, object value)
+		public virtual string FormatValue(BaseSocketClient client, SocketGuild guild, object? value)
 			=> Format(client, guild, value);
 		/// <inheritdoc />
 		public virtual void ResetSettings()
@@ -101,7 +101,7 @@ namespace Advobot.Classes
 		/// <param name="setting"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		private object SetSetting(ISetting setting, object value)
+		private object SetSetting(ISetting setting, object? value)
 		{
 			setting.SetValue(value);
 			RaisePropertyChanged(setting.MainName);
@@ -125,7 +125,7 @@ namespace Advobot.Classes
 		/// <param name="guild"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		private string Format(BaseSocketClient client, SocketGuild guild, object value)
+		private string Format(BaseSocketClient client, SocketGuild guild, object? value)
 		{
 			switch (value)
 			{

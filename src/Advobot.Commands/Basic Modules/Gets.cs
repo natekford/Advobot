@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -19,6 +18,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using FormattingUtils = Advobot.Utilities.FormattingUtils;
 
 namespace Advobot.Commands
 {
@@ -33,39 +33,39 @@ namespace Advobot.Commands
 			public ILogService Logging { get; set; }
 
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Bot()
-				=> await ReplyEmbedAsync(DiscordFormatting.FormatBotInfo(Context.Client, Logging)).CAF();
+			public Task Bot()
+				=> ReplyEmbedAsync(FormattingUtils.FormatBotInfo(Context.Client, Logging));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Shards()
-				=> await ReplyEmbedAsync(DiscordFormatting.FormatShardsInfo(Context.Client)).CAF();
+			public Task Shards()
+				=> ReplyEmbedAsync(FormattingUtils.FormatShardsInfo(Context.Client));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Guild()
-				=> await ReplyEmbedAsync(DiscordFormatting.FormatGuildInfo(Context.Guild)).CAF();
+			public Task Guild()
+				=> ReplyEmbedAsync(FormattingUtils.FormatGuildInfo(Context.Guild));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task GuildUsers()
-				=> await ReplyEmbedAsync(DiscordFormatting.FormatAllGuildUsersInfo(Context.Guild)).CAF();
+			public Task GuildUsers()
+				=> ReplyEmbedAsync(FormattingUtils.FormatAllGuildUsersInfo(Context.Guild));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Channel(SocketGuildChannel channel)
-				=> await ReplyEmbedAsync(DiscordFormatting.FormatChannelInfo(channel, Context.GuildSettings)).CAF();
+			public Task Channel(SocketGuildChannel channel)
+				=> ReplyEmbedAsync(FormattingUtils.FormatChannelInfo(channel, Context.GuildSettings));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Role(SocketRole role)
-				=> await ReplyEmbedAsync(DiscordFormatting.FormatRoleInfo(role)).CAF();
+			public Task Role(SocketRole role)
+				=> ReplyEmbedAsync(FormattingUtils.FormatRoleInfo(role));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task User(SocketUser user)
-				=> await ReplyEmbedAsync(user is SocketGuildUser guildUser
-					? DiscordFormatting.FormatGuildUserInfo(guildUser)
-					: DiscordFormatting.FormatUserInfo(user)).CAF();
+			public Task User(SocketUser user)
+				=> ReplyEmbedAsync(user is SocketGuildUser guildUser
+					? FormattingUtils.FormatGuildUserInfo(guildUser)
+					: FormattingUtils.FormatUserInfo(user));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Emote(Emote emote)
-				=> await ReplyEmbedAsync(emote is GuildEmote guildEmote
-					? DiscordFormatting.FormatGuildEmoteInfo(Context.Guild, guildEmote)
-					: DiscordFormatting.FormatEmoteInfo(emote)).CAF();
+			public Task Emote(Emote emote)
+				=> ReplyEmbedAsync(emote is GuildEmote guildEmote
+					? FormattingUtils.FormatGuildEmoteInfo(Context.Guild, guildEmote)
+					: FormattingUtils.FormatEmoteInfo(emote));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Invite(IInvite invite)
-				=> await ReplyEmbedAsync(DiscordFormatting.FormatInviteInfo(invite as IInviteMetadata)).CAF();
+			public Task Invite(IInvite invite)
+				=> ReplyEmbedAsync(FormattingUtils.FormatInviteInfo(invite as IInviteMetadata));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Webhook(IWebhook webhook)
-				=> await ReplyEmbedAsync(DiscordFormatting.FormatWebhookInfo(Context.Guild, webhook)).CAF();
+			public Task Webhook(IWebhook webhook)
+				=> ReplyEmbedAsync(FormattingUtils.FormatWebhookInfo(Context.Guild, webhook));
 		}
 
 		[Group(nameof(GetUsersWithReason)), ModuleInitialismAlias(typeof(GetUsersWithReason))]
@@ -75,20 +75,20 @@ namespace Advobot.Commands
 		public sealed class GetUsersWithReason : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Role(SocketRole role)
-				=> await CommandRunner($"Users With The Role '{role.Name}'", x => x.Roles.Select(r => r.Id).Contains(role.Id)).CAF();
+			public Task Role(SocketRole role)
+				=> CommandRunner($"Users With The Role '{role.Name}'", x => x.Roles.Select(r => r.Id).Contains(role.Id));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Name(string name)
-				=> await CommandRunner($"Users With Names/Nicknames Containing '{name}'", x => x.Username.CaseInsContains(name) || x.Nickname.CaseInsContains(name)).CAF();
+			public Task Name(string name)
+				=> CommandRunner($"Users With Names/Nicknames Containing '{name}'", x => x.Username.CaseInsContains(name) || x.Nickname.CaseInsContains(name));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Game(string game)
-				=> await CommandRunner($"Users With Games Containing '{game}'", x => x.Activity is Game g && g.Name.CaseInsContains(game)).CAF();
+			public Task Game(string game)
+				=> CommandRunner($"Users With Games Containing '{game}'", x => x.Activity is Game g && g.Name.CaseInsContains(game));
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Stream()
-				=> await CommandRunner("Users Who Are Streaming", x => x.Activity is StreamingGame).CAF();
+			public Task Stream()
+				=> CommandRunner("Users Who Are Streaming", x => x.Activity is StreamingGame);
 
-			private async Task CommandRunner(string title, Func<SocketGuildUser, bool> predicate)
-				=> await ReplyIfAny(Context.Guild.Users.Where(predicate).OrderBy(x => x.JoinedAt), title, x => x.Format()).CAF();
+			private Task CommandRunner(string title, Func<SocketGuildUser, bool> predicate)
+				=> ReplyIfAny(Context.Guild.Users.Where(predicate).OrderBy(x => x.JoinedAt), title, x => x.Format());
 		}
 
 		[Group(nameof(GetUserAvatar)), ModuleInitialismAlias(typeof(GetUserAvatar))]
@@ -97,8 +97,8 @@ namespace Advobot.Commands
 		public sealed class GetUserAvatar : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([Optional] IUser user)
-				=> await Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl()).CAF();
+			public Task Command([Optional] IUser user)
+				=> Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl());
 		}
 
 		[Group(nameof(GetUserJoinedAt)), ModuleInitialismAlias(typeof(GetUserJoinedAt))]
@@ -109,12 +109,12 @@ namespace Advobot.Commands
 		public sealed class GetUserJoinedAt : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([ValidatePositiveNumber] int position)
+			public Task Command([ValidatePositiveNumber] int position)
 			{
 				var users = Context.Guild.GetUsersByJoinDate().ToArray();
 				var newPos = Math.Min(position, users.Length);
 				var user = users[newPos - 1];
-				await ReplyAsync($"`{user.Format()}` is `#{newPos}` to join the guild on `{user.JoinedAt?.UtcDateTime.ToReadable()}`.").CAF();
+				return ReplyAsync($"`{user.Format()}` is `#{newPos}` to join the guild on `{user.JoinedAt?.UtcDateTime.ToReadable()}`.");
 			}
 		}
 
@@ -125,7 +125,7 @@ namespace Advobot.Commands
 		public sealed class GetGuilds : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command()
+			public Task Command()
 			{
 				if (Context.Client.Guilds.Count <= EmbedBuilder.MaxFieldCount)
 				{
@@ -134,14 +134,13 @@ namespace Advobot.Commands
 					{
 						embed.TryAddField(guild.Format(), $"**Owner:** `{guild.Owner.Format()}`", false, out _);
 					}
-					await ReplyEmbedAsync(embed).CAF();
-					return;
+					return ReplyEmbedAsync(embed);
 				}
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = "Guilds",
 					Description = Context.Client.Guilds.FormatNumberedList(x => $"`{x.Format()}` Owner: `{x.Owner.Format()}`"),
-				}).CAF();
+				});
 			}
 		}
 
@@ -153,14 +152,14 @@ namespace Advobot.Commands
 		public sealed class GetUserJoinList : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command()
+			public Task Command()
 			{
 				var users = Context.Guild.GetUsersByJoinDate().ToArray();
-				await ReplyFileAsync($"**User Join List:**", new TextFileInfo
+				return ReplyFileAsync($"**User Join List:**", new TextFileInfo
 				{
 					Name = "User_Joins",
 					Text = users.FormatNumberedList(x => $"`{x.Format()}` joined on `{x.JoinedAt?.UtcDateTime.ToReadable()}`"),
-				}).CAF();
+				});
 			}
 		}
 
@@ -205,14 +204,11 @@ namespace Advobot.Commands
 		public sealed class GetPermNamesFromValue : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Guild(ulong number)
-				=> await CommandRunner(number, EnumUtils.GetFlagNames((GuildPermission)number)).CAF();
+			public Task Guild(ulong number)
+				=> ReplyIfAny(EnumUtils.GetFlagNames((GuildPermission)number), number.ToString(), "Guild Permissions", x => x);
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Channel(ulong number)
-				=> await CommandRunner(number, EnumUtils.GetFlagNames((ChannelPermission)number)).CAF();
-
-			private async Task CommandRunner(ulong value, IEnumerable<string> perms)
-				=> await ReplyIfAny(perms, value, "Permissions", x => x).CAF();
+			public Task Channel(ulong number)
+				=> ReplyIfAny(EnumUtils.GetFlagNames((ChannelPermission)number), number.ToString(), "Channel Permissions", x => x);
 		}
 
 		[Group(nameof(GetEnumNames)), ModuleInitialismAlias(typeof(GetEnumNames))]
@@ -222,22 +218,22 @@ namespace Advobot.Commands
 		public sealed class GetEnumNames : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public async Task Show()
+			public Task Show()
 			{
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = "Enums",
 					Description = $"`{EnumTypeTypeReader.Enums.Join("`, `", x => x.Name)}`",
-				}).CAF();
+				});
 			}
 			[Command]
-			public async Task Command([OverrideTypeReader(typeof(EnumTypeTypeReader))] Type enumType)
+			public Task Command([OverrideTypeReader(typeof(EnumTypeTypeReader))] Type enumType)
 			{
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = enumType.Name,
 					Description = $"`{string.Join("`, `", Enum.GetNames(enumType))}`",
-				}).CAF();
+				});
 			}
 		}
 	}

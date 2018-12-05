@@ -159,8 +159,7 @@ namespace Advobot.Commands
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public async Task All(AddBoolean enable)
 			{
-				var values = HelpEntries.Select(x => new ValueToModify(x, enable));
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(values);
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(HelpEntries, enable);
 				var text = commands.Any() ? string.Join("`, `", commands) : "None";
 				await ReplyAsync($"Successfully {GetAction(enable)} the following commands: `{text}`.").CAF();
 			}
@@ -173,8 +172,7 @@ namespace Advobot.Commands
 					return;
 				}
 				//Only grab commands that are already disabled and in the same category and are able to be changed.
-				var values = HelpEntries.GetHelpEntries(category).Select(x => new ValueToModify(x, enable));
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(values);
+				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(HelpEntries.GetHelpEntries(category), enable);
 				var text = commands.Any() ? string.Join("`, `", commands) : "None";
 				await ReplyAsync($"Successfully {GetAction(enable)} the following commands: `{text}`.").CAF();
 			}
@@ -186,7 +184,7 @@ namespace Advobot.Commands
 					await ReplyErrorAsync($"{command.Name} cannot be edited.").CAF();
 					return;
 				}
-				if (!Context.GuildSettings.CommandSettings.ModifyCommandValue(new ValueToModify(command, enable)))
+				if (!Context.GuildSettings.CommandSettings.ModifyCommandValue(command, enable))
 				{
 					await ReplyErrorAsync($"{command.Name} is already enabled.").CAF();
 					return;
@@ -225,8 +223,7 @@ namespace Advobot.Commands
 					await ReplyErrorAsync($"`{category}` is not a valid category.").CAF();
 					return;
 				}
-				var values = HelpEntries.GetHelpEntries(category).Select(x => new ValueToModify(x, enable));
-				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(values, channel);
+				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(HelpEntries.GetHelpEntries(category), channel, enable);
 				var resp = $"Successfully {GetAction(enable)} ignoring the following commands on `{channel.Format()}`: `{commands.Join("`, `")}`.";
 				await ReplyTimedAsync(resp).CAF();
 			}
@@ -236,7 +233,7 @@ namespace Advobot.Commands
 				IHelpEntry helpEntry,
 				[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 			{
-				if (!Context.GuildSettings.CommandSettings.ModifyOverride(new ValueToModify(helpEntry, true), channel))
+				if (!Context.GuildSettings.CommandSettings.ModifyOverride(helpEntry, channel, enable))
 				{
 					await ReplyErrorAsync($"`{helpEntry.Name}` is already {GetAction(enable)} on `{channel.Format()}`.").CAF();
 					return;
@@ -465,7 +462,7 @@ namespace Advobot.Commands
 
 			private Task CommandRunner(GuildNotification notification, [CallerMemberName] string caller = null)
 			{
-				return notification != null
+				return notification.ChannelId != 0
 					? notification.SendAsync(Context.Guild, null)
 					: ReplyErrorAsync($"The `{caller}` notification does not exist.");
 			}

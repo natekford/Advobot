@@ -8,21 +8,21 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 {
 	public sealed class MessageBoxViewModel : ReactiveObject
 	{
-		public string Text
+		public string? Text
 		{
 			get => _Text;
 			set => this.RaiseAndSetIfChanged(ref _Text, value);
 		}
-		private string _Text;
+		private string? _Text;
 
-		public string WindowTitle
+		public string? WindowTitle
 		{
 			get => _WindowTitle;
 			set => this.RaiseAndSetIfChanged(ref _WindowTitle, value);
 		}
-		private string _WindowTitle;
+		private string? _WindowTitle;
 
-		public string CurrentOption
+		public string? CurrentOption
 		{
 			get => _CurrentOption;
 			set
@@ -31,7 +31,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 				CanClose = !string.IsNullOrWhiteSpace(value);
 			}
 		}
-		private string _CurrentOption;
+		private string? _CurrentOption;
 
 		private bool CanClose
 		{
@@ -52,14 +52,14 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 				CanClose = !requiresOption; //If no options are required, can simply click OK to close the dialog
 			}
 		}
-		private IEnumerable<string> _Options;
+		private IEnumerable<string> _Options = Enumerable.Empty<string>();
 
-		public string ButtonText
+		public string? ButtonText
 		{
 			get => _ButtonText;
 			set => this.RaiseAndSetIfChanged(ref _ButtonText, value);
 		}
-		private string _ButtonText;
+		private string? _ButtonText;
 
 		public bool DropDownVisible
 		{
@@ -68,7 +68,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private bool _DropDownVisible;
 
-		private ICommand CloseCommand { get; }
+		public ICommand CloseCommand { get; }
 
 		public MessageBoxViewModel()
 		{

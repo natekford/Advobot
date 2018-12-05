@@ -19,11 +19,11 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// The game the bot should be listed as playing.
 		/// </summary>
-		string Game { get; set; }
+		string? Game { get; set; }
 		/// <summary>
 		/// The Twitch stream the bot should link to.
 		/// </summary>
-		string Stream { get; set; }
+		string? Stream { get; set; }
 		/// <summary>
 		/// How many messages to cache.
 		/// </summary>

@@ -12,6 +12,6 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="guild">The guild to format in specific for.</param>
 		/// <returns></returns>
-		string Format(SocketGuild guild = null);
+		string Format(SocketGuild? guild = null);
 	}
 }

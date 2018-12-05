@@ -27,7 +27,6 @@ namespace Advobot.Services.Logging.Loggers
 		private static RequestOptions _JeffOptions { get; } = DiscordUtils.GenerateRequestOptions("my nama jeff");
 		private static RequestOptions _SpamPreventionOptions { get; } = DiscordUtils.GenerateRequestOptions("Spam prevention.");
 		private static RequestOptions _ChannelSettingsOptions { get; } = DiscordUtils.GenerateRequestOptions("Due to channel settings.");
-		private static RequestOptions _SlowmodeOptions { get; } = DiscordUtils.GenerateRequestOptions("Slowmode.");
 		private static RequestOptions _BannedPhraseOptions { get; } = DiscordUtils.GenerateRequestOptions("Banned phrase.");
 		private static Dictionary<SpamType, Func<IMessage, int?>> _CalculateSpamAmount { get; } = new Dictionary<SpamType, Func<IMessage, int?>>
 		{
@@ -56,7 +55,6 @@ namespace Advobot.Services.Logging.Loggers
 			await HandleAsync(context, nameof(ILogService.Messages), new[] { HandleChannelSettingsAsync(context) }, new Func<Task>[]
 			{
 				() => HandleImageLoggingAsync(context),
-				() => HandleSlowmodeAsync(context),
 				() => HandleSpamPreventionAsync(context),
 				() => HandleSpamPreventionVotingAsync(context),
 				() => HandleBannedPhrasesAsync(context),
@@ -132,7 +130,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 
 			var description = $"**Channel:** `{context.Message.Channel.Format()}`\n**Message Id:** `{context.Message.Id}`";
-			Task SendImageLogMessage(string footer, string url, string imageurl)
+			Task SendImageLogMessage(string footer, string url, string? imageurl)
 			{
 				return ReplyAsync(context.ImageLog, embedWrapper: new EmbedWrapper
 				{
@@ -177,41 +175,6 @@ namespace Advobot.Services.Logging.Loggers
 					await SendImageLogMessage("Embedded Image", imageEmbed.Url, image.Url).CAF();
 				}
 			}
-		}
-		/// <summary>
-		/// Checks the message against the slowmode.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		private async Task HandleSlowmodeAsync(MessageLoggingContext context)
-		{
-			//Don't bother doing stuff on the user if they're immune
-			if (!(context.Settings.Slowmode is Slowmode slowmode)
-				|| !slowmode.Enabled
-				|| context.User.Roles.Select(x => x.Id).Intersect(slowmode.ImmuneRoleIds).Any())
-			{
-				return;
-			}
-
-			if (!context.Settings.SlowmodeUsers.TryGetSingle(x => x.UserId == context.User.Id, out var info))
-			{
-				context.Settings.SlowmodeUsers.Add(info = new SlowmodeUserInfo(slowmode.IntervalTimeSpan, context.User));
-			}
-			if (info.Time < DateTime.UtcNow)
-			{
-				info.Reset();
-			}
-
-			if (info.MessagesSent >= slowmode.BaseMessages)
-			{
-				await context.Message.DeleteAsync(_SlowmodeOptions).CAF();
-				return;
-			}
-			if (info.MessagesSent == 0)
-			{
-				info.UpdateTime(slowmode.IntervalTimeSpan);
-			}
-			info.Increment();
 		}
 		/// <summary>
 		/// If the message author can be modified by the bot then their message is checked for any spam matches.
@@ -327,11 +290,11 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="context"></param>
 		/// <param name="before"></param>
 		/// <returns></returns>
-		private async Task HandleMessageEditedImageLoggingAsync(MessageLoggingContext context, SocketMessage before)
+		private async Task HandleMessageEditedImageLoggingAsync(MessageLoggingContext context, SocketMessage? before)
 		{
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
-			if (before?.Embeds.Count() < context.Message.Embeds.Count())
+			if (before?.Embeds.Count < context.Message.Embeds.Count)
 			{
 				await HandleImageLoggingAsync(context).CAF();
 			}
@@ -342,7 +305,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="context"></param>
 		/// <param name="before"></param>
 		/// <returns></returns>
-		private async Task HandleMessageEditedLoggingAsync(MessageLoggingContext context, SocketMessage before)
+		private async Task HandleMessageEditedLoggingAsync(MessageLoggingContext context, SocketMessage? before)
 		{
 			if (context.ServerLog == null)
 			{
@@ -364,7 +327,7 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				await ReplyAsync(context.ServerLog, textFile: new TextFileInfo
 				{
-					Name = $"Message_Edit_{FormattingUtils.ToSaving()}",
+					Name = $"Message_Edit_{AdvorangesUtils.FormattingUtils.ToSaving()}",
 					Text = $"Before:\n{bMsgContent}\n\nAfter:\n{aMsgContent}",
 				}).CAF();
 			}

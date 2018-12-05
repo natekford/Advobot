@@ -20,7 +20,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The text to send the user.
 		/// </summary>
-		public string Text { get; set; }
+		public string Text { get; set; } = "";
 
 		/// <summary>
 		/// Creates an instance of <see cref="TimedMessage"/>. Parameterless constructor is used for the database.

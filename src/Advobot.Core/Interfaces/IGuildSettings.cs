@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
-using Discord.WebSocket;
 
 namespace Advobot.Interfaces
 {
@@ -22,13 +20,9 @@ namespace Advobot.Interfaces
 		/// </summary>
 		GuildNotification GoodbyeMessage { get; set; }
 		/// <summary>
-		/// The slowmode on the guild.
-		/// </summary>
-		Slowmode Slowmode { get; set; }
-		/// <summary>
 		/// The prefix to use for the guild. If this is null, the bot prefix will be used.
 		/// </summary>
-		string Prefix { get; set; }
+		string? Prefix { get; set; }
 		/// <summary>
 		/// The id for the server log.
 		/// </summary>

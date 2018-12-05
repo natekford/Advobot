@@ -41,7 +41,10 @@ namespace Advobot.NetCoreUI.Classes.Controls
 			{
 				SetChild(templatedControl, value);
 			}
-			obj.SetValue(OverrideDynamicFontSizeProperty, value);
+			if (obj != null)
+			{
+				obj.SetValue(OverrideDynamicFontSizeProperty, value);
+			}
 		}
 		public static double GetOverrideDynamicFontSize(Control obj)
 			=> obj.GetValue(OverrideDynamicFontSizeProperty);
@@ -78,7 +81,10 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				{
 					continue;
 				}
-				SetAllChildren(child, overrideValue > 0 ? overrideValue : value);
+				if (child != null)
+				{
+					SetAllChildren(child, overrideValue > 0 ? overrideValue : value);
+				}
 			}
 		}
 		private static void SetChild(TemplatedControl obj, double value)

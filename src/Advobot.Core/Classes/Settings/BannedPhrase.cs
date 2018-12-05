@@ -32,10 +32,6 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// Creates an instance of <see cref="BannedPhrase"/>.
 		/// </summary>
-		public BannedPhrase() { }
-		/// <summary>
-		/// Creates an instance of <see cref="BannedPhrase"/>.
-		/// </summary>
 		/// <param name="phrase"></param>
 		/// <param name="punishment"></param>
 		public BannedPhrase(string phrase, Punishment punishment)
@@ -65,7 +61,7 @@ namespace Advobot.Classes.Settings
 			info.Reset(Punishment);
 		}
 		/// <inheritdoc />
-		public string Format(SocketGuild guild = null)
+		public string Format(SocketGuild? guild = null)
 			=> $"`{(Punishment == default ? 'N' : Punishment.ToString()[0])}` `{Phrase}`";
 		/// <inheritdoc />
 		public override string ToString()

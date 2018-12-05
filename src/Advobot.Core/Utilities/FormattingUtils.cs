@@ -12,7 +12,7 @@ namespace Advobot.Utilities
 	/// <summary>
 	/// Formatting for information about Discord objects.
 	/// </summary>
-	public static class DiscordFormatting
+	public static class FormattingUtils
 	{
 		/// <summary>
 		/// Returns a string with the object's name and id.
@@ -447,20 +447,45 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static EmbedWrapper FormatBotInfo(DiscordShardedClient client, ILogService logging)
 		{
+			string FormatLogCounters(ILogCounter[] counters)
+			{
+				var titlesAndCount = new (string Title, string Count)[counters.Length];
+				var rightSpacing = 0;
+				var leftSpacing = 0;
+				for (int i = 0; i < counters.Length; ++i)
+				{
+					var counter = counters[i];
+					var temp = (Title: $"**{counter.Name}**:", Count: $"`{counter.Count}`");
+					titlesAndCount[i] = temp;
+					rightSpacing = Math.Max(rightSpacing, temp.Title.Length);
+					leftSpacing = Math.Max(leftSpacing, temp.Count.Length);
+				}
+
+				var sb = new StringBuilder();
+				foreach (var (Title, Count) in titlesAndCount)
+				{
+					sb.AppendLineFeed($"{Title.PadRight(Math.Max(rightSpacing + 1, 0))}{Count.PadLeft(Math.Max(leftSpacing, 0))}");
+				}
+				return sb.ToString().Trim('\n', '\r');
+			}
+
 			var embed = new EmbedWrapper
 			{
-				Description = $"**Online Since:** `{ProcessInfoUtils.GetStartTime().ToReadable()}` (`{FormattingUtils.GetUptime()}`)\n" +
+				Description = $"**Online Since:** `{ProcessInfoUtils.GetStartTime().ToReadable()}` (`{AdvorangesUtils.FormattingUtils.GetUptime()}`)\n" +
 					$"**Guild/User Count:** `{logging.TotalGuilds.Count}`/`{logging.TotalUsers.Count}`\n" +
 					$"**Latency:** `{client.Latency}`\n" +
 					$"**Memory Usage:** `{ProcessInfoUtils.GetMemoryMB():0.00}MB`\n" +
 					$"**Thread Count:** `{ProcessInfoUtils.GetThreadCount()}`\n" +
 					$"**Shard Count:** `{client.Shards.Count}`",
-				Author = client.CurrentUser.CreateAuthor(),
+				Author = CreateAuthor(client.CurrentUser),
 				Footer = new EmbedFooterBuilder { Text = $"Versions [Bot: {Version.VERSION_NUMBER}] [API: {Constants.API_VERSION}]", },
 			};
-			embed.TryAddField("Users", logging.FormatLoggedUserActions(true, false).Trim('\n', '\r'), true, out _);
-			embed.TryAddField("Messages", logging.FormatLoggedMessageActions(true, false).Trim('\n', '\r'), true, out _);
-			embed.TryAddField("Commands", logging.FormatLoggedCommands(true, false).Trim('\n', '\r'), true, out _);
+			var userCounters = new[] { logging.UserJoins, logging.UserLeaves, logging.UserChanges };
+			embed.TryAddField("Users", FormatLogCounters(userCounters), true, out _);
+			var msgCounters = new[] { logging.MessageEdits, logging.MessageDeletes, logging.Images, logging.Animated, logging.Files };
+			embed.TryAddField("Messages", FormatLogCounters(msgCounters), true, out _);
+			var cmdCounters = new[] { logging.AttemptedCommands, logging.SuccessfulCommands, logging.FailedCommands };
+			embed.TryAddField("Commands", FormatLogCounters(cmdCounters), true, out _);
 			return embed;
 		}
 		/// <summary>

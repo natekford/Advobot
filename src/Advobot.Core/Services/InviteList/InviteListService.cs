@@ -46,14 +46,14 @@ namespace Advobot.Services.InviteList
 		/// <inheritdoc />
 		public async Task UpdateAsync(SocketGuild guild)
 		{
-			var invite = (ListedInvite)GetListedInvite(guild.Id);
+			var invite = (ListedInvite)Get(guild.Id);
 			await invite.UpdateAsync(guild).CAF();
 			DatabaseWrapper.ExecuteQuery(DBQuery<ListedInvite>.Update(new[] { invite }));
 		}
 		/// <inheritdoc />
 		public async Task BumpAsync(SocketGuild guild)
 		{
-			var invite = (ListedInvite)GetListedInvite(guild.Id);
+			var invite = (ListedInvite)Get(guild.Id);
 			await invite.BumpAsync(guild).CAF();
 			DatabaseWrapper.ExecuteQuery(DBQuery<ListedInvite>.Update(new[] { invite }));
 		}
@@ -78,7 +78,7 @@ namespace Advobot.Services.InviteList
 			}
 		}
 		/// <inheritdoc />
-		public IListedInvite GetListedInvite(ulong guildId)
+		public IListedInvite Get(ulong guildId)
 			=> DatabaseWrapper.ExecuteQuery(DBQuery<ListedInvite>.Get(x => x.GuildId == guildId)).Single();
 	}
 }

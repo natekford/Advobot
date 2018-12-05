@@ -35,10 +35,10 @@ namespace Advobot.Commands
 				await ReplyTimedAsync($"Successfully set the listed invite to the following:\n{listedInvite}.").CAF();
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Remove()
+			public Task Remove()
 			{
 				Invites.Remove(Context.Guild.Id);
-				await ReplyTimedAsync("Successfully removed the listed invite.").CAF();
+				return ReplyTimedAsync("Successfully removed the listed invite.");
 			}
 		}
 
@@ -53,7 +53,7 @@ namespace Advobot.Commands
 			[Command]
 			public async Task Command()
 			{
-				if (!(Invites.GetListedInvite(Context.Guild.Id) is IListedInvite invite))
+				if (!(Invites.Get(Context.Guild.Id) is IListedInvite invite))
 				{
 					await ReplyErrorAsync("There is no invite to bump.").CAF();
 					return;
@@ -81,17 +81,16 @@ namespace Advobot.Commands
 			private static readonly string _EHeader = "Global Emotes";
 
 			[Command]
-			public async Task Command([Remainder] ListedInviteGatherer args)
+			public Task Command([Remainder] ListedInviteGatherer args)
 			{
 				var invites = args.GatherInvites(Invites).ToList();
 				if (!invites.Any())
 				{
-					await ReplyErrorAsync("No guild could be found that matches the given specifications.").CAF();
-					return;
+					return ReplyErrorAsync("No guild could be found that matches the given specifications.");
 				}
 				if (invites.Count <= 5)
 				{
-					await ReplyEmbedAsync(new EmbedWrapper
+					return ReplyEmbedAsync(new EmbedWrapper
 					{
 						Title = "Guilds",
 						Fields = invites.Select(x =>
@@ -100,8 +99,7 @@ namespace Advobot.Commands
 							var text = $"**URL:** {x.Url}\n**Members:** {x.GuildMemberCount}\n{e}";
 							return new EmbedFieldBuilder { Name = x.GuildName, Value = text, IsInline = true, };
 						}).ToList(),
-					}).CAF();
-					return;
+					});
 				}
 				if (invites.Count <= 50)
 				{
@@ -113,14 +111,13 @@ namespace Advobot.Commands
 						var e = x.HasGlobalEmotes ? "Yes" : "";
 						return $"{n}{u}{m}{e}";
 					});
-					await ReplyFileAsync("**Guilds:**", new TextFileInfo
+					return ReplyFileAsync("**Guilds:**", new TextFileInfo
 					{
 						Name = "Guilds",
 						Text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{string.Join("\n", formatted)}",
-					}).CAF();
-					return;
+					});
 				}
-				await ReplyTimedAsync($"`{invites.Count}` results returned. Please narrow your search.").CAF();
+				return ReplyTimedAsync($"`{invites.Count}` results returned. Please narrow your search.");
 			}
 		}
 	}
