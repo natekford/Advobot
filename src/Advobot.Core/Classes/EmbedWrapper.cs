@@ -665,7 +665,7 @@ namespace Advobot.Classes
 			if (newLines)
 			{
 				var lines = value.Split('\n', '\r');
-				for (int i = 0; i < Math.Min(lines.Length, remaining); ++i)
+				for (var i = 0; i < Math.Min(lines.Length, remaining); ++i)
 				{
 					shortened += lines[i] + "\n";
 				}

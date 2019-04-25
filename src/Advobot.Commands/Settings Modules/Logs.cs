@@ -8,6 +8,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Modules;
 using Advobot.Enums;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -89,20 +90,22 @@ namespace Advobot.Commands
 		[Summary("Ignores all logging info that would have been gotten from a channel.")]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		//[SaveGuildSettings]
-		public sealed class ModifyIgnoredLogChannels : AdvobotModuleBase
+		public sealed class ModifyIgnoredLogChannels : AdvobotSettingsModuleBase<IGuildSettings>
 		{
+			protected override IGuildSettings Settings => Context.GuildSettings;
+
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Add([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
+			public Task Add([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
 			{
-				Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
-				await ReplyTimedAsync($"Successfully ignored the following channels: `{channels.Join("`, `", x => x.Format())}`.").CAF();
+				Settings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
+				return ReplyTimedAsync($"Successfully ignored the following channels: `{channels.Join("`, `", x => x.Format())}`.");
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Remove([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
+			public Task Remove([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
 			{
-				Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
-				await ReplyTimedAsync($"Successfully unignored the following channels: `{channels.Join("`, `", x => x.Format())}`.").CAF();
+				var ids = channels.Select(x => x.Id);
+				Settings.IgnoredLogChannels.RemoveAll(x => ids.Contains(x));
+				return ReplyTimedAsync($"Successfully unignored the following channels: `{channels.Join("`, `", x => x.Format())}`.");
 			}
 		}
 
@@ -112,9 +115,10 @@ namespace Advobot.Commands
 			"`" + nameof(ModifyLogActions.Show) + "` displays the possible actions.")]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		//[SaveGuildSettings]
-		public sealed class ModifyLogActions : AdvobotModuleBase
+		public sealed class ModifyLogActions : AdvobotSettingsModuleBase<IGuildSettings>
 		{
+			protected override IGuildSettings Settings => Context.GuildSettings;
+
 			private static readonly ImmutableArray<LogAction> _DefaultLogActions = new List<LogAction>
 			{
 				LogAction.UserJoined,
@@ -124,54 +128,46 @@ namespace Advobot.Commands
 				LogAction.MessageDeleted
 			}.ToImmutableArray();
 
+			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Show()
+			public Task Show()
 			{
-				await ReplyEmbedAsync(new EmbedWrapper
+				return ReplyEmbedAsync(new EmbedWrapper
 				{
 					Title = "Log Actions",
-					Description = $"`{string.Join("`, `", Enum.GetNames(typeof(LogAction)))}`"
-				}).CAF();
+					Description = $"`{Enum.GetNames(typeof(LogAction)).Join("`, `")}`"
+				});
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Reset()
+			public Task Reset()
 			{
-				Context.GuildSettings.LogActions.Clear();
-				Context.GuildSettings.LogActions.AddRange(_DefaultLogActions);
-				await ReplyTimedAsync("Successfully set the log actions to the default ones.").CAF();
+				Settings.LogActions.Clear();
+				Settings.LogActions.AddRange(_DefaultLogActions);
+				return ReplyTimedAsync("Successfully set the log actions to the default ones.");
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task ToggleAll(AddBoolean enable)
+			public Task ToggleAll(bool enable)
 			{
-				Context.GuildSettings.LogActions.Clear();
-				string action;
+				Settings.LogActions.Clear();
 				if (enable)
 				{
-					Context.GuildSettings.LogActions.AddRange(Enum.GetValues(typeof(LogAction)).Cast<LogAction>());
-					action = "enabled";
+					Settings.LogActions.AddRange(Enum.GetValues(typeof(LogAction)).Cast<LogAction>());
 				}
-				else
-				{
-					action = "disabled";
-				}
-				await ReplyTimedAsync($"Successfully {action} every log action.").CAF();
+				return ReplyTimedAsync($"Successfully {(enable ? "enabled" : "disabled")} every log action.");
 			}
 			[Command]
-			public async Task Command(AddBoolean enable, params LogAction[] logActions)
+			public async Task Command(bool enable, params LogAction[] logActions)
 			{
-				string action;
 				if (enable)
 				{
-					Context.GuildSettings.LogActions.AddRange(logActions.Except(Context.GuildSettings.LogActions));
-					action = "enabled";
+					Settings.LogActions.AddRange(logActions.Except(Settings.LogActions));
 				}
 				else
 				{
-					Context.GuildSettings.LogActions.RemoveAll(x => logActions.Contains(x));
-					action = "disabled";
+					Settings.LogActions.RemoveAll(x => logActions.Contains(x));
 				}
 				var joined = logActions.Join("`, `", x => x.ToString());
-				await ReplyTimedAsync($"Successfully {action} the following log actions: `{joined}`.").CAF();
+				await ReplyTimedAsync($"Successfully {(enable ? "enabled" : "disabled")} the following log actions: `{joined}`.").CAF();
 			}
 		}
 	}

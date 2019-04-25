@@ -8,6 +8,7 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -16,6 +17,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds information about raid prevention such as how long the interval is, and how many users to target.
 	/// </summary>
+	[NamedArgumentType]
 	public sealed class RaidPrev : IGuildFormattable
 	{
 		private static Punisher _Giver { get; } = new Punisher(TimeSpan.FromMinutes(0), default);
@@ -25,22 +27,22 @@ namespace Advobot.Classes.Settings
 		/// The type of raid this is preventing.
 		/// </summary>
 		[JsonProperty]
-		public RaidType Type { get; private set; }
+		public RaidType Type { get; set; }
 		/// <summary>
 		/// The punishment to give raiders.
 		/// </summary>
 		[JsonProperty]
-		public Punishment Punishment { get; private set; }
+		public Punishment Punishment { get; set; }
 		/// <summary>
 		/// How many users should be considered a raid.
 		/// </summary>
 		[JsonProperty]
-		public int UserCount { get; private set; }
+		public int UserCount { get; set; }
 		/// <summary>
 		/// How long a raid should be considered to be.
 		/// </summary>
 		[JsonProperty]
-		public int TimeInterval { get; private set; }
+		public int TimeInterval { get; set; }
 		/// <summary>
 		/// Whether or not this raid prevention is enabled.
 		/// </summary>

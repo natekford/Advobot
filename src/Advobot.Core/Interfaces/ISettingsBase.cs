@@ -1,24 +1,16 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using AdvorangesSettingParser;
 using AdvorangesSettingParser.Interfaces;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces
 {
+#warning notifpropchanged required here?
 	/// <summary>
 	/// Abstraction for something which has settings.
 	/// </summary>
-	public interface ISettingsBase : INotifyPropertyChanged, IParsable
+	public interface ISettingsBase : ISavable, INotifyPropertyChanged
 	{
-		/// <summary>
-		/// Gets the file associated with the settings.
-		/// </summary>
-		/// <param name="accessor"></param>
-		/// <returns></returns>
-		FileInfo GetFile(IBotDirectoryAccessor accessor);
 		/// <summary>
 		/// Formats the settings so they are readable by a human.
 		/// </summary>
@@ -43,30 +35,15 @@ namespace Advobot.Interfaces
 		/// <returns></returns>
 		string FormatValue(BaseSocketClient client, SocketGuild guild, object? value);
 		/// <summary>
-		/// Sets every setting back to its default value.
-		/// </summary>
-		void ResetSettings();
-		/// <summary>
-		/// Sets a setting back to its default value.
+		/// Returns true if the supplied name is the name of a setting.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		void ResetSetting(string name);
+		bool IsSetting(string name);
 		/// <summary>
-		/// Sets a setting to the specified value.
+		/// Returns the names of settings.
 		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="value"></param>
-		void SetSetting<T>(string name, T value);
-		/// <summary>
-		/// Raises the <see cref="INotifyPropertyChanged.PropertyChanged"/> event.
-		/// </summary>
-		/// <param name="name"></param>
-		void RaisePropertyChanged([CallerMemberName] string name = "");
-		/// <summary>
-		/// Serializes this object and then overwrites the file.
-		/// </summary>
-		/// <param name="accessor">Where to save the bot files.</param>
-		void SaveSettings(IBotDirectoryAccessor accessor);
+		/// <returns></returns>
+		string[] GetSettingNames();
 	}
 }

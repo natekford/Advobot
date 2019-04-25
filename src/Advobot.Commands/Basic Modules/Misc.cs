@@ -12,6 +12,8 @@ using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Classes.TypeReaders;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Responses;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -31,58 +33,21 @@ namespace Advobot.Commands.Misc
 		{
 			public IHelpEntryService HelpEntries { get; set; }
 
-			private static readonly string _GeneralHelp =
-				$"Type `{Constants.PREFIX}{nameof(Commands)}` for the list of commands.\n" +
-				$"Type `{Constants.PREFIX}{nameof(Help)} [Command]` for help with a command.";
-			private static readonly string _BasicSyntax =
-				"`[]` means required.\n" +
-				"`<>` means optional.\n" +
-				"`|` means or.";
-			private static readonly string _MentionSyntax =
-				"`User` means `@User|\"Username\"`.\n" +
-				"`Role` means `@Role|\"Role Name\"`.\n" +
-				"`Channel` means `#Channel|\"Channel Name\"`.";
-			private static readonly string _Links =
-				$"[GitHub Repository]({Constants.REPO})\n" +
-				$"[Discord Server]({Constants.DISCORD_INV})";
-
 			[Command]
-			public Task Command()
-			{
-				return ReplyEmbedAsync(new EmbedWrapper
-				{
-					Title = "General Help",
-					Description = _GeneralHelp.Replace(Constants.PREFIX, GetPrefix()),
-					Footer = new EmbedFooterBuilder { Text = "Help" },
-					Fields = new List<EmbedFieldBuilder>
-					{
-						new EmbedFieldBuilder { Name = "Basic Syntax", Value = _BasicSyntax, IsInline = true, },
-						new EmbedFieldBuilder { Name = "Mention Syntax", Value = _MentionSyntax, IsInline = true, },
-						new EmbedFieldBuilder { Name = "Links", Value = _Links, IsInline = false, },
-					},
-				});
-			}
+			public Task<RuntimeResult> Command()
+				=> ResponsesFor.Misc.GeneralHelp(GetPrefix());
 			[Command, Priority(1)]
-			public Task Command([Remainder] IHelpEntry command)
-				=> SendHelp(command);
+			public Task<RuntimeResult> Command([Remainder] IHelpEntry command)
+				=> ResponsesFor.Misc.Help(Context.GuildSettings.CommandSettings, command, GetPrefix());
 			[Command(RunMode = RunMode.Async), Priority(0)]
-			public async Task Command([Remainder, OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
+			public async Task<RuntimeResult> Command([Remainder, OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
 			{
 				var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
 				if (entry != null)
 				{
-					await SendHelp(entry).CAF();
+					return ResponsesFor.Misc.Help(Context.GuildSettings.CommandSettings, entry, GetPrefix());
 				}
-			}
-
-			private Task SendHelp(IHelpEntry entry)
-			{
-				return ReplyEmbedAsync(new EmbedWrapper
-				{
-					Title = entry.Name,
-					Description = entry.ToString(Context.GuildSettings.CommandSettings).Replace(Constants.PREFIX, GetPrefix()),
-					Footer = new EmbedFooterBuilder { Text = "Help", },
-				});
+				return AdvobotResult.Failure(null, null);
 			}
 		}
 
@@ -203,34 +168,16 @@ namespace Advobot.Commands.Misc
 		}
 
 		[Group(nameof(Test)), ModuleInitialismAlias(typeof(Test))]
-		[Summary("Mostly just makes the bot say test.")]
+		[LocalizedSummary(nameof(strings.Summary_Test))]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
 		public sealed class Test : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Runtime([Optional] string input)
+			[Command]
+			public Task<RuntimeResult> Command()
 			{
-				if (input == null)
-				{
-					return AdvobotResult.FromFailure("Invalid input.");
-				}
-				return AdvobotResult.FromSuccess("Success.");
-			}
-			[ImplicitCommand, ImplicitAlias]
-			public async Task<RuntimeResult> BigWait()
-			{
-				await Task.Delay(2500);
-				return AdvobotResult.FromSuccess("Big wait.");
-			}
-			[ImplicitCommand, ImplicitAlias]
-			public Task NotRuntime([Optional] string input)
-			{
-				if (input == null)
-				{
-					return ReplyAsync("Invalid input.");
-				}
-				return ReplyAsync("Success.");
+				var channel = Context.Guild.Channels.First();
+				return ResponsesFor.Channels.Created(channel);
 			}
 		}
 	}

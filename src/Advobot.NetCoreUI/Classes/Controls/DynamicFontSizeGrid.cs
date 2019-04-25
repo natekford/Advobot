@@ -98,7 +98,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				//Set the font size to a percentage of the window size
 				var binding = new Binding
 				{
-					Path = nameof(Window.Height),
+					Path = nameof(Height),
 					RelativeSource = new RelativeSource
 					{
 						Mode = RelativeSourceMode.FindAncestor,

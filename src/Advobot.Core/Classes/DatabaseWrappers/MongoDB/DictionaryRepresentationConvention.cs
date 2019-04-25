@@ -1,7 +1,7 @@
-﻿using MongoDB.Bson.Serialization;
+﻿using System;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
-using System;
 
 namespace Advobot.Classes.DatabaseWrappers.MongoDB
 {

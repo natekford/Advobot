@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes.DatabaseWrappers;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Interfaces
 {

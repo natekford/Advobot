@@ -13,7 +13,7 @@ namespace Advobot.Classes.Attributes
 		/// <summary>
 		/// Creates an instance of <see cref="ImplicitCommandAttribute"/>.
 		/// </summary>
-		/// <param name="name"></param>
-		public ImplicitCommandAttribute([CallerMemberName] string name = "") : base(name) { }
+		/// <param name="caller"></param>
+		public ImplicitCommandAttribute([CallerMemberName] string caller = "") : base(caller) { }
 	}
 }

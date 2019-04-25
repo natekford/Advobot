@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Services.Logging.Interfaces;
@@ -20,8 +19,8 @@ namespace Advobot.Services.Logging.Loggers
 	/// </summary>
 	internal sealed class UserLogger : Logger, IUserLogger
 	{
-		private static RequestOptions _PersistentRolesOptions { get; } = DiscordUtils.GenerateRequestOptions("Persistent roles.");
-		private static RequestOptions _BannedNameOptions { get; } = DiscordUtils.GenerateRequestOptions("Banned name.");
+		private static readonly RequestOptions _PersistentRolesOptions = DiscordUtils.GenerateRequestOptions("Persistent roles.");
+		private static readonly RequestOptions _BannedNameOptions = DiscordUtils.GenerateRequestOptions("Banned name.");
 
 		/// <summary>
 		/// Creates an instance of <see cref="UserLogger"/>.
@@ -30,24 +29,24 @@ namespace Advobot.Services.Logging.Loggers
 		public UserLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <inheritdoc />
-		public async Task OnUserJoined(SocketGuildUser user)
+		public Task OnUserJoined(SocketGuildUser user)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), 1);
 			var context = new UserLoggingContext(GuildSettings, LogAction.UserJoined, user);
-			await HandleAsync(context, nameof(ILogService.UserJoins), new[] { HandleOtherJoinActions(context) }, new Func<Task>[]
+			return HandleAsync(context, nameof(ILogService.UserJoins), new[] { HandleOtherJoinActions(context) }, new Func<Task>[]
 			{
 				() => HandleJoinLogging(context),
-			}).CAF();
+			});
 		}
 		/// <inheritdoc />
-		public async Task OnUserLeft(SocketGuildUser user)
+		public Task OnUserLeft(SocketGuildUser user)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -1);
 			var context = new UserLoggingContext(GuildSettings, LogAction.UserJoined, user);
-			await HandleAsync(context, nameof(ILogService.UserLeaves), new[] { HandleOtherLeftActions(context) }, new Func<Task>[]
+			return HandleAsync(context, nameof(ILogService.UserLeaves), new[] { HandleOtherLeftActions(context) }, new Func<Task>[]
 			{
 				() => HandleLeftLogging(context),
-			}).CAF();
+			});
 		}
 		/// <inheritdoc />
 		public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
@@ -137,18 +136,21 @@ namespace Advobot.Services.Logging.Loggers
 				await context.User.AddRolesAsync(roles, _PersistentRolesOptions).CAF();
 			}
 			//Welcome message
-			await context.Settings.WelcomeMessage.SendAsync(context.Guild, context.User).CAF();
-		}
+            if (context.Settings.WelcomeMessage != null)
+            {
+                await context.Settings.WelcomeMessage.SendAsync(context.Guild, context.User).CAF();
+            }
+        }
 		/// <summary>
 		/// Handles logging leaves to the server log.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleLeftLogging(UserLoggingContext context)
+		private Task HandleLeftLogging(UserLoggingContext context)
 		{
 			if (context.ServerLog == null)
 			{
-				return;
+				return Task.CompletedTask;
 			}
 
 			var stay = "";
@@ -158,33 +160,37 @@ namespace Advobot.Services.Logging.Loggers
 				stay = $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}";
 			}
 
-			await ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
+			return ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
 			{
 				Description = $"**ID:** {context.User.Id}\n{stay}",
 				Color = EmbedWrapper.Leave,
 				Author = context.User.CreateAuthor(),
 				Footer = new EmbedFooterBuilder { Text = context.User.IsBot ? "Bot Left" : "User Left", },
-			}).CAF();
+			});
 		}
 		/// <summary>
 		/// Handles the goodbye message.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleOtherLeftActions(UserLoggingContext context)
+		private Task HandleOtherLeftActions(UserLoggingContext context)
 		{
 			//Goodbye message
-			await context.Settings.GoodbyeMessage.SendAsync(context.Guild, context.User).CAF();
-		}
+            if (context.Settings.GoodbyeMessage != null)
+            {
+                return context.Settings.GoodbyeMessage.SendAsync(context.Guild, context.User);
+            }
+            return Task.CompletedTask;
+        }
 		/// <summary>
 		/// Handles logging username changes.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="before"></param>
 		/// <returns></returns>
-		private async Task HandleUsernameUpdated(UserLoggingContext context, SocketUser before)
+		private Task HandleUsernameUpdated(UserLoggingContext context, SocketUser before)
 		{
-			await ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
+			return ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
 			{
 				Color = EmbedWrapper.UserEdit,
 				Author = before.CreateAuthor(),
@@ -194,7 +200,7 @@ namespace Advobot.Services.Logging.Loggers
 					new EmbedFieldBuilder { Name = "Before", Value = $"`{before.Username}`", IsInline = true },
 					new EmbedFieldBuilder { Name = "After", Value = $"`{context.User.Username}`", IsInline = true },
 				},
-			}).CAF();
+			});
 		}
 	}
 }

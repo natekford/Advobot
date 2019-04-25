@@ -83,7 +83,7 @@ namespace Advobot.Services.Levels
 				return;
 			}
 			info.AddExperience(settings, msg, BaseExperience);
-			DatabaseWrapper.ExecuteQuery(DBQuery<UserExperienceInformation>.Update(new[] { info }));
+			DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Update(new[] { info }));
 			UpdateUserRank(info, ((SocketTextChannel)msg.Channel).Guild);
 		}
 		/// <inheritdoc />
@@ -100,7 +100,7 @@ namespace Advobot.Services.Levels
 				return Task.CompletedTask;
 			}
 			info.RemoveExperience(msg, hash.ExperienceGiven);
-			DatabaseWrapper.ExecuteQuery(DBQuery<UserExperienceInformation>.Update(new[] { info }));
+			DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Update(new[] { info }));
 			UpdateUserRank(info, ((SocketTextChannel)msg.Channel).Guild);
 			return Task.CompletedTask;
 		}
@@ -117,11 +117,11 @@ namespace Advobot.Services.Levels
 		/// <inheritdoc />
 		public IUserExperienceInformation GetUserXpInformation(ulong userId)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DBQuery<UserExperienceInformation>.Get(x => x.UserId == userId, 1));
+			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Get(x => x.UserId == userId, 1));
 			if (!values.Any())
 			{
 				var value = new UserExperienceInformation(userId);
-				DatabaseWrapper.ExecuteQuery(DBQuery<UserExperienceInformation>.Insert(new[] { value }));
+				DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Insert(new[] { value }));
 				return value;
 			}
 			return values.Single();
@@ -159,7 +159,7 @@ namespace Advobot.Services.Levels
 		}
 		private (int Rank, int TotalUsers) GetRank(string collectionName, ulong userId)
 		{
-			var options = DBQuery<LeaderboardPosition>.GetAll();
+			var options = DatabaseQuery<LeaderboardPosition>.GetAll();
 			options.CollectionName = collectionName;
 			var all = DatabaseWrapper.ExecuteQuery(options).OrderByDescending(x => x.Experience);
 			var rank = -1;
@@ -176,10 +176,10 @@ namespace Advobot.Services.Levels
 		}
 		private void UpsertRank(string collectionName, ulong userId, int experience)
 		{
-			var deleteQuery = DBQuery<LeaderboardPosition>.Delete(x => x.UserId == userId);
+			var deleteQuery = DatabaseQuery<LeaderboardPosition>.Delete(x => x.UserId == userId);
 			deleteQuery.CollectionName = collectionName;
 			DatabaseWrapper.ExecuteQuery(deleteQuery);
-			var insertQuery = DBQuery<LeaderboardPosition>.Insert(new[] { new LeaderboardPosition(userId, experience) });
+			var insertQuery = DatabaseQuery<LeaderboardPosition>.Insert(new[] { new LeaderboardPosition(userId, experience) });
 			insertQuery.CollectionName = collectionName;
 			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}

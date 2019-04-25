@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile>bin\Debug\netstandard2.0\Advobot.Commands.xml</DocumentationFile>
@@ -33,17 +33,33 @@
     <PackageReference Include="AdvorangesUtils" Version="1.0.11.2">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-01034" />
+    <PackageReference Include="Discord.Net" Version="2.0.2-dev-20190326.4" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.9.0.2" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.12.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>strings.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	<NullableContextOptions>enable</NullableContextOptions>
     <PackageReleaseNotes />
   </PropertyGroup>
 

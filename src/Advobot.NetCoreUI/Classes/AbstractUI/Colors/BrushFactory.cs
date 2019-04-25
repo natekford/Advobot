@@ -38,13 +38,13 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		/// </summary>
 		/// <param name="bytes"></param>
 		/// <returns></returns>
-		protected abstract T CreateBrush(byte[] bytes);
+		public abstract T CreateBrush(byte[] bytes);
 		/// <summary>
 		/// Gets the brush's ARGB bytes.
 		/// </summary>
 		/// <param name="brush"></param>
 		/// <returns></returns>
-		protected abstract byte[] GetBrushBytes(T brush);
+		public abstract byte[] GetBrushBytes(T brush);
 		/// <summary>
 		/// Returns the hex string representation of the brush.
 		/// </summary>

@@ -49,7 +49,7 @@ namespace Advobot.Classes.CloseWords
 			var list = new List<CloseWord<T>>();
 			foreach (var item in Source)
 			{
-				if (IsCloseWord(search, item, out var closeWord))
+				if (IsCloseWord(search, item, out var closeWord) && closeWord != null)
 				{
 					list.Add(closeWord);
 				}

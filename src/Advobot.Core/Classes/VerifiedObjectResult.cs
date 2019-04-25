@@ -8,7 +8,7 @@ namespace Advobot.Classes.Results
 	/// <summary>
 	/// Result telling whether or not the object passed the verification it was tried for.
 	/// </summary>
-	public struct VerifiedObjectResult : IResult
+	public readonly struct VerifiedObjectResult : IResult
 	{
 		/// <summary>
 		/// The parsed value.

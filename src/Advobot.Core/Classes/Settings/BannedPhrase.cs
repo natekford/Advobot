@@ -32,6 +32,10 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// Creates an instance of <see cref="BannedPhrase"/>.
 		/// </summary>
+		public BannedPhrase() { }
+		/// <summary>
+		/// Creates an instance of <see cref="BannedPhrase"/>.
+		/// </summary>
 		/// <param name="phrase"></param>
 		/// <param name="punishment"></param>
 		public BannedPhrase(string phrase, Punishment punishment)

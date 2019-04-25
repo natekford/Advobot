@@ -29,7 +29,7 @@ namespace Advobot.Classes.Modules
 		/// </summary>
 		public long ElapsedMilliseconds => _Stopwatch.ElapsedMilliseconds;
 
-		private Stopwatch _Stopwatch = new Stopwatch();
+		private readonly Stopwatch _Stopwatch = new Stopwatch();
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotCommandContext"/>.

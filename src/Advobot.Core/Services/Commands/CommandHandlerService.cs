@@ -7,7 +7,6 @@ using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
-using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -23,7 +22,7 @@ namespace Advobot.Services.Commands
 	/// </summary>
 	internal sealed class CommandHandlerService : ICommandHandlerService
 	{
-		private static RequestOptions _Options { get; } = DiscordUtils.GenerateRequestOptions("Command successfully executed.");
+		private static readonly RequestOptions _Options = DiscordUtils.GenerateRequestOptions("Command successfully executed.");
 
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
@@ -56,11 +55,6 @@ namespace Advobot.Services.Commands
 			{
 				var instance = (TypeReader)Activator.CreateInstance(typeReader.Type);
 				_Commands.AddTypeReader(typeReader.Attribute.TargetType, instance);
-			}
-			foreach (var type in AdvobotUtils.RegisterStaticSettingParsers())
-			{
-				var tr = (TypeReader)Activator.CreateInstance(typeof(ParsableTypeReader<>).MakeGenericType(type));
-				_Commands.AddTypeReader(type, tr);
 			}
 
 			_Commands.Log += LogInfo;
@@ -100,10 +94,8 @@ namespace Advobot.Services.Commands
 				|| !(message is SocketUserMessage msg)
 				|| !(msg.Author is SocketGuildUser user)
 				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
-				|| !settings.Loaded
 				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
-				|| !(msg.HasStringPrefix(_BotSettings.GetPrefix(settings), ref argPos)
-						|| msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
+				|| !(msg.HasStringPrefix(_BotSettings.GetPrefix(settings), ref argPos) || msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
 			{
 				return;
 			}
@@ -111,50 +103,47 @@ namespace Advobot.Services.Commands
 			var context = new AdvobotCommandContext(settings, _Client, msg);
 			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
-		private async Task LogExecution(Optional<CommandInfo> command, AdvobotCommandContext context, IResult result)
+		private Task LogExecution(Optional<CommandInfo> command, AdvobotCommandContext context, IResult result) => result switch
 		{
-			//Ignore annoying unknown command errors and errors with no reason
-			bool CanBeIgnored(IResult r)
-				=> r.Error == CommandError.UnknownCommand || (!r.IsSuccess && r.ErrorReason == null);
-
-			if (result == null || CanBeIgnored(result) || (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(x))))
-			{
-				return;
-			}
+			IResult r when CanBeIgnored(context, result) => Task.CompletedTask,
+			PreconditionGroupResult g when g.PreconditionResults.All(x => CanBeIgnored(context, x)) => Task.CompletedTask,
+			IResult r => HandleResult(command, context, r),
+			_ => Task.CompletedTask,
+		};
+		private async Task HandleResult(Optional<CommandInfo> _, AdvobotCommandContext c, IResult result)
+		{
 			if (result.IsSuccess)
 			{
-				await context.Message.DeleteAsync(_Options).CAF();
-				if (context.GuildSettings.ModLogId != 0 && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
+				await c.Message.DeleteAsync(_Options).CAF();
+				if (c.GuildSettings.ModLogId != 0 && !c.GuildSettings.IgnoredLogChannels.Contains(c.Channel.Id))
 				{
-					await MessageUtils.SendMessageAsync(context.Guild.GetTextChannel(context.GuildSettings.ModLogId), embedWrapper: new EmbedWrapper
+					await MessageUtils.SendMessageAsync(c.Guild.GetTextChannel(c.GuildSettings.ModLogId), embedWrapper: new EmbedWrapper
 					{
-						Description = context.Message.Content,
-						Author = context.User.CreateAuthor(),
+						Description = c.Message.Content,
+						Author = c.User.CreateAuthor(),
 						Footer = new EmbedFooterBuilder { Text = "Mod Log", },
 					}).CAF();
 				}
 			}
-			if (result.ErrorReason != null)
+
+			await (result switch
 			{
-				if (result.IsSuccess)
-				{
-					await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
-				}
-				else if (!context.GuildSettings.NonVerboseErrors)
-				{
+				AdvobotResult a => MessageUtils.SendMessageAsync(c.Channel, a.Reason, a.Embed, a.File), //AdvobotResult means to send the raeson, embed, and file
 #warning delete after time
-					await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
-				}
-			}
+				IResult i => MessageUtils.SendMessageAsync(c.Channel, i.ErrorReason), //Unknown result type means just send the error reason
+				_ => Task.CompletedTask, //Null result means do nothing
+			}).CAF();
 
 			//So the LogService can increment the counters holding successful/failed commands
 			CommandInvoked?.Invoke(result);
-			ConsoleUtils.WriteLine(context.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+			ConsoleUtils.WriteLine(c.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 		}
 		private Task LogInfo(LogMessage arg)
 		{
 			ConsoleUtils.WriteLine(arg.ToString());
 			return Task.CompletedTask;
 		}
+		private bool CanBeIgnored(AdvobotCommandContext context, IResult r) //Ignore annoying unknown command errors and errors with no reason
+			=> r == null || r.Error == CommandError.UnknownCommand || (!r.IsSuccess && (r.ErrorReason == null || context.GuildSettings.NonVerboseErrors));
 	}
 }

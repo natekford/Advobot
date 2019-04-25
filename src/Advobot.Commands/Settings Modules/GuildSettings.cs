@@ -1,25 +1,20 @@
 ﻿using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
-using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
-using Advobot.Classes.TypeReaders;
-using Advobot.Enums;
+using Advobot.Commands.Responses;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
@@ -29,32 +24,34 @@ namespace Advobot.Commands
 		[Summary("Shows information about guild settings.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
-		public sealed class ShowGuildSettings : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ShowGuildSettings : ReadOnlyAdvobotSettingsModuleBase<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
+			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public async Task GetFile()
-				=> await GetFileAsync(BotSettings).CAF();
+			public Task GetFile()
+				=> GetFileAsync(BotSettings);
+			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public async Task Names()
-				=> await ShowNamesAsync().CAF();
+			public Task Names()
+				=> ShowNamesAsync();
+			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public async Task All()
-				=> await ShowAllAsync().CAF();
+			public Task All()
+				=> ShowAllAsync();
+			[DontSaveAfterExecution]
 			[Command]
-			public async Task Command(string settingName)
-				=> await ShowAsync(settingName).CAF();
-			[Command]
-			public async Task Command(string settingName, IUser user)
-				=> await ShowUserAsync(settingName, user).CAF();
+			public Task Command(string name)
+				=> ShowAsync(name);
 		}
 
+		/*
 		[Group(nameof(ModifyGuildSettings)), ModuleInitialismAlias(typeof(ModifyGuildSettings))]
 		[Summary("Modify the given setting on the guild.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		public sealed class ModifyGuildSettings : AdvobotSettingsSavingModuleBase<IGuildSettings>
+		public sealed class ModifyGuildSettings : AdvobotSettingsModuleBase<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
@@ -65,7 +62,7 @@ namespace Advobot.Commands
 			public Task Prefix([ValidatePrefix] string value)
 				=> ModifyAsync(x => x.Prefix, value);
 			[ImplicitCommand, ImplicitAlias]
-			public Task NonVerboseErrors(AddBoolean value)
+			public Task NonVerboseErrors(bool value)
 				=> ModifyAsync(x => x.NonVerboseErrors, value);
 			//TODO: rewrite the log channel stuff? or not cause the user has to be admin to execute this meaning they can see every channel
 			//TODO: validate invoker has higher role than bot
@@ -82,38 +79,38 @@ namespace Advobot.Commands
 			public Task MuteRoleId([NotEveryoneOrManaged] SocketRole value)
 				=> ModifyAsync(x => x.MuteRoleId, value.Id);
 			[ImplicitCommand, ImplicitAlias]
-			public Task LogActions(AddBoolean add, params LogAction[] values)
+			public Task LogActions(bool add, params LogAction[] values)
 				=> ModifyCollectionAsync(x => x.LogActions, add, values);
 			[ImplicitCommand, ImplicitAlias]
 			public Task ImageOnlyChannels(
-				AddBoolean add,
+				bool add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 				=> ModifyCollectionAsync(x => x.ImageOnlyChannels, add, values.Select(x => x.Id));
 			[ImplicitCommand, ImplicitAlias]
 			public Task IgnoredLogChannels(
-				AddBoolean add,
+				bool add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 				=> ModifyCollectionAsync(x => x.IgnoredLogChannels, add, values.Select(x => x.Id));
 			[ImplicitCommand, ImplicitAlias]
 			public Task IgnoredXpChannels(
-				AddBoolean add,
+				bool add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 				=> ModifyCollectionAsync(x => x.IgnoredXpChannels, add, values.Select(x => x.Id));
 			[ImplicitCommand, ImplicitAlias]
 			public Task IgnoredCommandChannels(
-				AddBoolean add,
+				bool add,
 				[ValidateTextChannel(CPerm.ManageChannels)] params SocketTextChannel[] values)
 				=> ModifyCollectionAsync(x => x.IgnoredCommandChannels, add, values.Select(x => x.Id));
 
 			[ImplicitCommand, ImplicitAlias]
-			public Task Quotes(AddBoolean add, string name, [Optional, Remainder] string text)
+			public Task Quotes(bool add, string name, [Optional, Remainder] string text)
 				=> ModifyCollectionAsync(x => x.Quotes, add, new[] { new Quote(name, text ?? "") });
 
 
 			//TODO: go back to old way in separate command because this is kind of unwieldy?
 			[ImplicitCommand, ImplicitAlias]
 			public Task BotUsers(
-				AddBoolean add,
+				bool add,
 				IUser user,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
 				=> ModifyCollectionValuesAsync(
@@ -142,160 +139,97 @@ namespace Advobot.Commands
 				args.ChannelId = channel.Id;
 				return ModifyAsync(x => x.GoodbyeMessage, args);
 			}
-		}
+		}*/
 
+#warning reenable
+		/*
 		[Group(nameof(ModifyCommands)), ModuleInitialismAlias(typeof(ModifyCommands))]
 		[Summary("Turns a command on or off. " +
 			"Can turn all commands in a category on or off too. " +
 			"Cannot turn off commands which are untoggleable.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true, AbleToToggle = false)]
-		public sealed class ModifyCommands : AdvobotSettingsSavingModuleBase<IGuildSettings>
+		public sealed class ModifyCommands
+			: AdvobotSettingsModuleBase<IGuildSettings>, ICollectionSettingModule<string>, ICollectionSettingModule<IHelpEntry>
 		{
 			public IHelpEntryService HelpEntries { get; set; }
 
 			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override string SettingName => nameof(IGuildSettings.CommandSettings);
 
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public async Task All(AddBoolean enable)
+			public Task<RuntimeResult> All(bool enable)
 			{
 				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(HelpEntries, enable);
-				var text = commands.Any() ? string.Join("`, `", commands) : "None";
-				await ReplyAsync($"Successfully {GetAction(enable)} the following commands: `{text}`.").CAF();
+				return ResponsesOf.ModifyCommands.For(Context).ModifiedMultiple(Subject.Is(commands), enable);
 			}
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public async Task Category(AddBoolean enable, string category)
+			public Task<RuntimeResult> Modify(bool enable, string category)
 			{
 				if (!HelpEntries.GetCategories().CaseInsContains(category))
 				{
-					await ReplyErrorAsync($"`{category}` is not a valid category.").CAF();
-					return;
+					return ResponsesOf.ModifyCommands.For(Context).InvalidCategory(Subject.Is(category));
 				}
 				//Only grab commands that are already disabled and in the same category and are able to be changed.
 				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(HelpEntries.GetHelpEntries(category), enable);
-				var text = commands.Any() ? string.Join("`, `", commands) : "None";
-				await ReplyAsync($"Successfully {GetAction(enable)} the following commands: `{text}`.").CAF();
+				return ResponsesOf.ModifyCommands.For(Context).ModifiedMultiple(Subject.Is(commands), enable);
 			}
-			[Command]
-			public async Task Command(AddBoolean enable, IHelpEntry command)
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Modify(bool enable, IHelpEntry command)
 			{
 				if (!command.AbleToBeToggled)
 				{
-					await ReplyErrorAsync($"{command.Name} cannot be edited.").CAF();
-					return;
+					return ResponsesOf.ModifyCommands.For(Context).CannotBeEdited(Subject.Is(command.Name));
 				}
 				if (!Context.GuildSettings.CommandSettings.ModifyCommandValue(command, enable))
 				{
-					await ReplyErrorAsync($"{command.Name} is already enabled.").CAF();
-					return;
+					return ResponsesOf.ModifyCommands.For(Context).Unmodified(Subject.Is(command.Name), enable);
 				}
-				await ReplyTimedAsync($"Successfully {GetAction(enable)} `{command.Name}`.").CAF();
+				return ResponsesOf.ModifyCommands.For(Context).Modified(Subject.Is(command.Name), enable);
 			}
-
-			private string GetAction(bool value) => value ? "enabled" : "disabled";
-		}
+		}*/
 
 		[Group(nameof(ModifyIgnoredCommandChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredCommandChannels))]
 		[Summary("The bot will ignore commands said on these channels. " +
 			"If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true, AbleToToggle = false)]
-		public sealed class ModifyIgnoredCommandChannels : AdvobotSettingsSavingModuleBase<IGuildSettings>
+		public sealed class ModifyIgnoredCommandChannels : AdvobotSettingsModuleBase<IGuildSettings>
 		{
 			public IHelpEntryService HelpEntries { get; set; }
 
 			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override string SettingName => nameof(IGuildSettings.IgnoredCommandChannels);
 
 			/*
 			[Command]
 			public async Task Command(
-				AddBoolean enable,
-				[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel)
+				bool enable,
+				[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 				=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, enable, channel.Id).CAF();*/
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public async Task Category(
-				AddBoolean enable,
-				string category,
-				[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
+			public Task Category(bool enable, string category, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 			{
 				if (!HelpEntries.GetCategories().CaseInsContains(category))
 				{
-					await ReplyErrorAsync($"`{category}` is not a valid category.").CAF();
-					return;
+					return ReplyErrorAsync($"`{category}` is not a valid category.");
 				}
-				var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(HelpEntries.GetHelpEntries(category), channel, enable);
-				var resp = $"Successfully {GetAction(enable)} ignoring the following commands on `{channel.Format()}`: `{commands.Join("`, `")}`.";
-				await ReplyTimedAsync(resp).CAF();
+				var commands = Settings.CommandSettings.ModifyOverrides(HelpEntries.GetHelpEntries(category), channel, enable);
+				if (!commands.Any())
+				{
+					return ReplyErrorAsync($"`{category}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
+				}
+				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{commands.Join("`, `")}` on `{channel.Format()}`.");
 			}
 			[Command]
-			public async Task Command(
-				AddBoolean enable,
-				IHelpEntry helpEntry,
-				[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
+			public Task Command(bool enable, IHelpEntry helpEntry, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 			{
-				if (!Context.GuildSettings.CommandSettings.ModifyOverride(helpEntry, channel, enable))
+				if (!Settings.CommandSettings.ModifyOverride(helpEntry, channel, enable))
 				{
-					await ReplyErrorAsync($"`{helpEntry.Name}` is already {GetAction(enable)} on `{channel.Format()}`.").CAF();
-					return;
+					return ReplyErrorAsync($"`{helpEntry.Name}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
 				}
-				await ReplyTimedAsync($"Successfully {GetAction(enable)} the command `{helpEntry.Name}` on `{channel.Format()}`.").CAF();
+				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{helpEntry.Name}` on `{channel.Format()}`.");
 			}
-
-			/*
-			[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
-			public sealed class Disable : AdvobotModuleBase
-			{
-				[Command]
-				public async Task Command(
-					[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel)
-				{
-					if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
-					{
-						var error = $"`{channel.Format()}` is already ignoring commands.");
-						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-						return;
-					}
-
-					Context.GuildSettings.IgnoredCommandChannels.Add(channel.Id);
-					var resp = $"Successfully added `{channel.Format()}` to the ignored command channels list.";
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-				}
-				[ImplicitCommand, Priority(1)]
-				[RequireServices(typeof(IHelpEntryService))]
-				public async Task Category(
-					[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel,
-					string category)
-				{
-					var helpEntries = Context.Provider.GetRequiredService<IHelpEntryService>();
-					if (!helpEntries.GetCategories().CaseInsContains(category))
-					{
-						await MessageUtils.SendErrorMessageAsync(Context, $"`{category}` is not a valid category.")).CAF();
-						return;
-					}
-					var values = helpEntries.GetHelpEntries(category).Select(x => new ValueToModify(x, false));
-					var commands = Context.GuildSettings.CommandSettings.ModifyOverrides(values, channel);
-					var resp = $"Successfully started disabled the following commands on `{channel.Format()}`: `{string.Join("`, `", commands)}`.";
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-				}
-				[Command]
-				[RequireServices(typeof(IHelpEntryService))]
-				public async Task Command(
-					[ValidateObject(Verif.CanBeViewed, Verif.CanBeEdited, IfNullCheckFromContext = true)] ITextChannel channel,
-					IHelpEntry helpEntry)
-				{
-					if (!Context.GuildSettings.CommandSettings.ModifyOverride(new ValueToModify(helpEntry, false), channel))
-					{
-						var error = $"`{helpEntry.Name}` is already ignored on `{channel.Format()}`.");
-						await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-						return;
-					}
-					var resp = $"Successfully started ignoring the command `{helpEntry.Name}` on `{channel.Format()}`.";
-					await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-				}
-			}
-			 */
-
-			private string GetAction(bool value) => value ? "unignored" : "ignored";
 		}
 
 		/*
@@ -326,7 +260,7 @@ namespace Advobot.Commands
 				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 			}
 			[Command]
-			public async Task Command(AddBoolean add, IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
+			public async Task Command(bool add, IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 			{
 				var botUser = Context.GuildSettings.BotUsers.SingleOrDefault(x => x.UserId == user.Id);
 				if (add && botUser == null)
@@ -348,43 +282,43 @@ namespace Advobot.Commands
 			protected override IGuildSettings GetSettings() => Context.GuildSettings;
 		}*/
 
+#warning reenable
+		/*
 		[Group(nameof(ModifyPersistentRoles)), ModuleInitialismAlias(typeof(ModifyPersistentRoles))]
 		[Summary("Gives a user a role that stays even when they leave and rejoin the server.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
-		//[SaveGuildSettings]
-		public sealed class ModifyPersistentRoles : AdvobotModuleBase
+		public sealed class ModifyPersistentRoles : AdvobotSettingsModuleBase<IGuildSettings>
 		{
-			[Command, Priority(1)]
-			public async Task Command(AddBoolean add, [ValidateUser] SocketUser user, [ValidateRole] SocketRole role)
-				=> await CommandRunner(add, user.Id, role).CAF();
-			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
-			public async Task Command(AddBoolean add, ulong userId, [ValidateRole] SocketRole role)
-				=> await CommandRunner(add, userId, role).CAF();
+			protected override IGuildSettings Settings => Context.GuildSettings;
 
-			//TODO: rewrite
-			private async Task CommandRunner(bool add, ulong userId, SocketRole role)
+			[Command, Priority(1)]
+			public Task Command(bool add, [ValidateUser] SocketUser user, [ValidateRole] SocketRole role)
+				=> CommandRunner(add, user.Id, role);
+			[Command] //Should go into the above one if a valid user, so should be fine to not check this one for permission
+			public Task Command(bool add, ulong userId, [ValidateRole] SocketRole role)
+				=> CommandRunner(add, userId, role);
+
+			private Task CommandRunner(bool add, ulong userId, SocketRole role)
 			{
-				if (Context.GuildSettings.PersistentRoles.TryGetSingle(x => x.UserId == userId && x.RoleId == role.Id, out var match) == add)
+				if (Settings.PersistentRoles.TryGetSingle(x => x.UserId == userId && x.RoleId == role.Id, out var match) == add)
 				{
-					var start = add ? "A" : "No";
-					await ReplyErrorAsync($"{start} persistent role exists for the user id `{userId}` with the role `{role.Format()}`.").CAF();
-					return;
+					return ReplyErrorAsync($"{(add ? "A" : "No")} persistent role exists for `{userId}` with `{role.Format()}`.");
 				}
 
 				if (add)
 				{
-					Context.GuildSettings.PersistentRoles.Add(new PersistentRole(userId, role));
+					Settings.PersistentRoles.Add(new PersistentRole(userId, role));
 				}
 				else
 				{
-					Context.GuildSettings.PersistentRoles.Remove(match);
+					Settings.PersistentRoles.Remove(match);
 				}
 
-				var resp = add ? "added a" : "removed the";
-				await ReplyTimedAsync($"Successfully {resp} persistent role for the user id `{userId}` with the role `{role.Format()}`.").CAF();
+				var action = add ? "added a" : "removed the";
+				return ReplyTimedAsync($"Successfully {action} persistent role for `{userId}` with `{role.Format()}`.");
 			}
-		}
+		}*/
 
 		/* Implemented by editing the image only list
 		[Category(typeof(ModifyChannelSettings)), Group(nameof(ModifyChannelSettings)), TopLevelShortAlias(typeof(ModifyChannelSettings))]
@@ -460,9 +394,9 @@ namespace Advobot.Commands
 			public Task Goodbye()
 				=> CommandRunner(Context.GuildSettings.GoodbyeMessage);
 
-			private Task CommandRunner(GuildNotification notification, [CallerMemberName] string caller = null)
+			private Task CommandRunner(GuildNotification? notification, [CallerMemberName] string caller = "")
 			{
-				return notification.ChannelId != 0
+				return notification != null
 					? notification.SendAsync(Context.Guild, null)
 					: ReplyErrorAsync($"The `{caller}` notification does not exist.");
 			}

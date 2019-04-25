@@ -137,7 +137,7 @@ namespace Advobot.Commands
 			public Task Animated()
 				=> CommandRunner(x => x.Animated);
 
-			private Task CommandRunner(Func<GuildEmote, bool> predicate, [CallerMemberName] string caller = null)
+			private Task CommandRunner(Func<GuildEmote, bool> predicate, [CallerMemberName] string caller = "")
 				=> ReplyIfAny(Context.Guild.Emotes.Where(predicate), caller + " Emotes", x => $"{x} `{x.Name}`");
 		}
 	}

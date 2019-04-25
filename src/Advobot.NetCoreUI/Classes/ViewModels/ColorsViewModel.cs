@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 using Advobot.NetCoreUI.Classes.Colors;
 using Advobot.NetCoreUI.Classes.ValidationAttributes;
-using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 using Avalonia.Media;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
@@ -103,16 +103,16 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			_Colors = colors;
 		}
 
-		private string Get([CallerMemberName] string propertyName = "")
+		private string Get([CallerMemberName] string caller = "")
 		{
-			return IsValid(propertyName)
-				? _Factory.FormatBrush(_Colors.UserDefinedColors[propertyName])
+			return IsValid(caller)
+				? _Factory.FormatBrush(_Colors.UserDefinedColors[caller])
 				: _Throwaway;
 		}
-		private void Set(string newValue, [CallerMemberName] string propertyName = "")
+		private void Set(string newValue, [CallerMemberName] string caller = "")
 		{
-			var setter = new Action<string>(v => _Colors.UserDefinedColors[propertyName] = _Factory.CreateBrush(v));
-			RaiseAndSetIfChangedAndValid(setter, ref _Throwaway, newValue, _Validator, propertyName);
+			var setter = new Action<string>(v => _Colors.UserDefinedColors[caller] = _Factory.CreateBrush(v));
+			RaiseAndSetIfChangedAndValid(setter, ref _Throwaway, newValue, _Validator, caller);
 		}
 	}
 }

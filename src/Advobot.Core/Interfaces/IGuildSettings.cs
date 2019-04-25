@@ -14,11 +14,11 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Message to display when a user joins the guild.
 		/// </summary>
-		GuildNotification WelcomeMessage { get; set; }
+		GuildNotification? WelcomeMessage { get; set; }
 		/// <summary>
 		/// Message to display when a user leaves the guild.
 		/// </summary>
-		GuildNotification GoodbyeMessage { get; set; }
+		GuildNotification? GoodbyeMessage { get; set; }
 		/// <summary>
 		/// The prefix to use for the guild. If this is null, the bot prefix will be used.
 		/// </summary>
@@ -112,10 +112,6 @@ namespace Advobot.Interfaces
 		/// </summary>
 		CommandSettings CommandSettings { get; }
 		/// <summary>
-		/// Users which have been affected by slowmode. This is not saved.
-		/// </summary>
-		IList<SlowmodeUserInfo> SlowmodeUsers { get; }
-		/// <summary>
 		/// Users which have been affected by spam prevention. This is not saved.
 		/// </summary>
 		IList<SpamPreventionUserInfo> SpamPreventionUsers { get; }
@@ -135,10 +131,6 @@ namespace Advobot.Interfaces
 		/// Holds messages which have been deleted and waits to print them out. This is not saved.
 		/// </summary>
 		MessageDeletion MessageDeletion { get; }
-		/// <summary>
-		/// Whether or not this guild is loaded yet. This is not saved.
-		/// </summary>
-		bool Loaded { get; }
 
 		/// <summary>
 		/// Gets and sets spam prevention.

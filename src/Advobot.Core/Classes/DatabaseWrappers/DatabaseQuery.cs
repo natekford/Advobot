@@ -9,7 +9,7 @@ namespace Advobot.Classes.DatabaseWrappers
 	/// Class holding information about how to use <see cref="IDatabaseWrapper"/> methods.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public sealed class DBQuery<T> where T : DatabaseEntry
+	public sealed class DatabaseQuery<T> where T : DatabaseEntry
 	{
 		/// <summary>
 		/// The name of the collection to search.
@@ -33,10 +33,10 @@ namespace Advobot.Classes.DatabaseWrappers
 		public DBAction Action { get; private set; }
 
 		/// <summary>
-		/// Creates an instance of <see cref="DBQuery{T}"/>.
+		/// Creates an instance of <see cref="DatabaseQuery{T}"/>.
 		/// </summary>
 		/// <param name="action"></param>
-		private DBQuery(DBAction action)
+		private DatabaseQuery(DBAction action)
 		{
 			Action = action;
 		}
@@ -44,38 +44,38 @@ namespace Advobot.Classes.DatabaseWrappers
 		/// <summary>
 		/// Update the specified values.
 		/// </summary>
-		public static DBQuery<T> Update(IEnumerable<T> values)
-			=> new DBQuery<T>(DBAction.Update) { Values = values, };
+		public static DatabaseQuery<T> Update(IEnumerable<T> values)
+			=> new DatabaseQuery<T>(DBAction.Update) { Values = values, };
 		/// <summary>
 		/// Updates or inserts the specified values.
 		/// </summary>
-		public static DBQuery<T> Upsert(IEnumerable<T> values)
-			=> new DBQuery<T>(DBAction.Upsert) { Values = values, };
+		public static DatabaseQuery<T> Upsert(IEnumerable<T> values)
+			=> new DatabaseQuery<T>(DBAction.Upsert) { Values = values, };
 		/// <summary>
 		/// Insert the specified values.
 		/// </summary>
-		public static DBQuery<T> Insert(IEnumerable<T> values)
-			=> new DBQuery<T>(DBAction.Insert) { Values = values, };
+		public static DatabaseQuery<T> Insert(IEnumerable<T> values)
+			=> new DatabaseQuery<T>(DBAction.Insert) { Values = values, };
 		/// <summary>
 		/// Get the values which match the passed in predicate.
 		/// </summary>
-		public static DBQuery<T> Get(Expression<Func<T, bool>> selector, int limit = int.MaxValue)
-			=> new DBQuery<T>(DBAction.Get) { Selector = selector, Limit = limit, };
+		public static DatabaseQuery<T> Get(Expression<Func<T, bool>> selector, int limit = int.MaxValue)
+			=> new DatabaseQuery<T>(DBAction.Get) { Selector = selector, Limit = limit, };
 		/// <summary>
 		/// Gets every value.
 		/// </summary>
-		public static DBQuery<T> GetAll()
-			=> new DBQuery<T>(DBAction.GetAll);
+		public static DatabaseQuery<T> GetAll()
+			=> new DatabaseQuery<T>(DBAction.GetAll);
 		/// <summary>
 		/// Delete the values which match the passed in predicate.
 		/// </summary>
-		public static DBQuery<T> Delete(Expression<Func<T, bool>> selector)
-			=> new DBQuery<T>(DBAction.DeleteFromExpression) { Selector = selector, };
+		public static DatabaseQuery<T> Delete(Expression<Func<T, bool>> selector)
+			=> new DatabaseQuery<T>(DBAction.DeleteFromExpression) { Selector = selector, };
 		/// <summary>
 		/// Deletes the specified values from the supplied list.
 		/// </summary>
-		public static DBQuery<T> Delete(IEnumerable<T> values)
-			=> new DBQuery<T>(DBAction.DeleteFromValues) { Values = values, };
+		public static DatabaseQuery<T> Delete(IEnumerable<T> values)
+			=> new DatabaseQuery<T>(DBAction.DeleteFromValues) { Values = values, };
 
 		/// <summary>
 		/// Actions to do with a database.

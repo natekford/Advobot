@@ -82,22 +82,22 @@ namespace Advobot.Services.Timers
 
 			RemovablePunishments = new ProcessingQueue(1, async () =>
 			{
-				var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovablePunishment>.Delete(x => x.Time < DateTime.UtcNow));
+				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(x => x.Time < DateTime.UtcNow));
 				await RemovablePunishment.ProcessRemovablePunishments(Client, Punisher, values);
 			});
 			TimedMessages = new ProcessingQueue(1, async () =>
 			{
-				var values = DatabaseWrapper.ExecuteQuery(DBQuery<TimedMessage>.Delete(x => x.Time < DateTime.UtcNow));
+				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<TimedMessage>.Delete(x => x.Time < DateTime.UtcNow));
 				await TimedMessage.ProcessTimedMessages(Client, values).CAF();
 			});
 			RemovableMessages = new ProcessingQueue(1, async () =>
 			{
-				var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableMessage>.Delete(x => x.Time < DateTime.UtcNow));
+				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableMessage>.Delete(x => x.Time < DateTime.UtcNow));
 				await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
 			});
 			RemovableCloseWords = new ProcessingQueue(1, async () =>
 			{
-				var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Delete(x => x.Time < DateTime.UtcNow));
+				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Delete(x => x.Time < DateTime.UtcNow));
 				await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
 			});
 
@@ -128,34 +128,34 @@ namespace Advobot.Services.Timers
 		/// <inheritdoc />
 		public async Task AddAsync(RemovablePunishment value)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovablePunishment>.Delete(
+			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(
 				x => x.UserId == value.UserId && x.GuildId == value.GuildId && x.PunishmentType == value.PunishmentType));
 			await RemovablePunishment.ProcessRemovablePunishments(Client, Punisher, values);
-			DatabaseWrapper.ExecuteQuery(DBQuery<RemovablePunishment>.Insert(new[] { value }));
+			DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
 		public async Task AddAsync(RemovableCloseWords value)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
+			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
 			await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
-			DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Insert(new[] { value }));
+			DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
 		public Task AddAsync(RemovableMessage value)
 		{
-			DatabaseWrapper.ExecuteQuery(DBQuery<RemovableMessage>.Insert(new[] { value }));
+			DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableMessage>.Insert(new[] { value }));
 			return Task.FromResult(0);
 		}
 		/// <inheritdoc />
 		public Task AddAsync(TimedMessage value)
 		{
-			DatabaseWrapper.ExecuteQuery(DBQuery<TimedMessage>.Insert(new[] { value }));
+			DatabaseWrapper.ExecuteQuery(DatabaseQuery<TimedMessage>.Insert(new[] { value }));
 			return Task.FromResult(0);
 		}
 		/// <inheritdoc />
 		public async Task<RemovablePunishment> RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovablePunishment>.Delete(
+			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(
 				x => x.UserId == userId && x.GuildId == guildId && x.PunishmentType == punishment));
 			await RemovablePunishment.ProcessRemovablePunishments(Client, Punisher, values).CAF();
 			return values.SingleOrDefault();
@@ -163,7 +163,7 @@ namespace Advobot.Services.Timers
 		/// <inheritdoc />
 		public async Task<RemovableCloseWords> RemoveActiveCloseWords(ulong guildId, ulong userId)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DBQuery<RemovableCloseWords>.Delete(x => x.GuildId == guildId && x.UserId == userId));
+			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Delete(x => x.GuildId == guildId && x.UserId == userId));
 			await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
 			return values.SingleOrDefault();
 		}

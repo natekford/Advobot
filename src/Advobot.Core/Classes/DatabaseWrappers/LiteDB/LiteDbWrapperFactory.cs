@@ -60,38 +60,43 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 		/// <summary>
 		/// Acts as a wrapper for <see cref="LiteDatabase"/>.
 		/// </summary>
-		private sealed class LiteDBWrapper : DatabaseWrapper<LiteDatabase>
+		private sealed class LiteDBWrapper : IDatabaseWrapper
 		{
+			private readonly LiteDatabase _Database;
+
 			/// <summary>
 			/// Creates an instance of <see cref="LiteDBWrapper"/>.
 			/// </summary>
 			/// <param name="db"></param>
-			public LiteDBWrapper(LiteDatabase db) : base(db) { }
+			public LiteDBWrapper(LiteDatabase db)
+			{
+				_Database = db;
+			}
 
 			/// <inheritdoc />
-			public override IEnumerable<T> ExecuteQuery<T>(DBQuery<T> options)
+			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : DatabaseEntry
 			{
-				var collection = Database.GetCollection<T>(options.CollectionName);
+				var collection = _Database.GetCollection<T>(options.CollectionName);
 				switch (options.Action)
 				{
-					case DBQuery<T>.DBAction.Update:
+					case DatabaseQuery<T>.DBAction.Update:
 						collection.Update(options.Values);
 						return options.Values ?? Enumerable.Empty<T>();
-					case DBQuery<T>.DBAction.Upsert:
+					case DatabaseQuery<T>.DBAction.Upsert:
 						collection.Upsert(options.Values);
 						return options.Values ?? Enumerable.Empty<T>();
-					case DBQuery<T>.DBAction.Insert:
+					case DatabaseQuery<T>.DBAction.Insert:
 						collection.Insert(options.Values);
 						return options.Values ?? Enumerable.Empty<T>();
-					case DBQuery<T>.DBAction.Get:
+					case DatabaseQuery<T>.DBAction.Get:
 						return collection.Find(options.Selector, limit: options.Limit);
-					case DBQuery<T>.DBAction.GetAll:
+					case DatabaseQuery<T>.DBAction.GetAll:
 						return collection.Find(Query.All());
-					case DBQuery<T>.DBAction.DeleteFromExpression:
+					case DatabaseQuery<T>.DBAction.DeleteFromExpression:
 						var values = new List<T>(collection.Find(options.Selector));
 						collection.Delete(options.Selector);
 						return values;
-					case DBQuery<T>.DBAction.DeleteFromValues:
+					case DatabaseQuery<T>.DBAction.DeleteFromValues:
 						foreach (var value in options.Values ?? Enumerable.Empty<T>())
 						{
 							collection.Delete(value.Id);
@@ -101,6 +106,9 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 						throw new InvalidOperationException("Invalid database action supplied.");
 				}
 			}
+			/// <inheritdoc />
+			public void Dispose()
+				=> _Database?.Dispose();
 		}
 	}
 }

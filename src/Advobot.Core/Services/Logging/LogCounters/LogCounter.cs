@@ -28,10 +28,10 @@ namespace Advobot.Services.Logging.LogCounters
 		/// <summary>
 		/// Creates an instance of <see cref="LogCounter"/>.
 		/// </summary>
-		/// <param name="name"></param>
-		public LogCounter([CallerMemberName] string name = "")
+		/// <param name="caller"></param>
+		public LogCounter([CallerMemberName] string caller = "")
 		{
-			Name = name.FormatTitle().Trim();
+			Name = caller.FormatTitle().Trim();
 		}
 
 		/// <summary>
@@ -55,9 +55,9 @@ namespace Advobot.Services.Logging.LogCounters
 		/// <summary>
 		/// Fires the property changed event.
 		/// </summary>
-		/// <param name="propertyName"></param>
-		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		/// <param name="caller"></param>
+		private void NotifyPropertyChanged([CallerMemberName] string caller = "")
+			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
 		/// <summary>
 		/// Returns the title and count.
 		/// </summary>

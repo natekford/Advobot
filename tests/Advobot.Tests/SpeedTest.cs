@@ -6,7 +6,7 @@ using System.Linq;
 namespace Advobot.Tests
 {
 	[DebuggerDisplay("Average = {Average}")]
-	class SpeedTest
+	internal sealed class SpeedTest
 	{
 		public int Iterations = 10;
 		public int Times = 100000;
@@ -15,7 +15,7 @@ namespace Advobot.Tests
 		public long Min => _Watches.Min(s => s.ElapsedMilliseconds);
 		public long Max => _Watches.Max(s => s.ElapsedMilliseconds);
 		public double Average => _Watches.Average(s => s.ElapsedMilliseconds);
-		private List<Stopwatch> _Watches = new List<Stopwatch>();
+		private readonly List<Stopwatch> _Watches = new List<Stopwatch>();
 
 		public SpeedTest(Action func)
 		{

@@ -8,7 +8,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Holds a reason and a time for a punishment.
 	/// </summary>
-	public struct ModerationReason
+	public readonly struct ModerationReason
 	{
 		/// <summary>
 		/// The time in minutes to give for a punishment.

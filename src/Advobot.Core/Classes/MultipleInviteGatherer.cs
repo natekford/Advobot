@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Advobot.Enums;
 using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
@@ -15,31 +16,39 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The id of a user to search for invites by.
 		/// </summary>
-		public ulong? UserId { get; private set; }
+		public ulong? UserId { get; set; }
 		/// <summary>
 		/// The id of a channel to search for invites on.
 		/// </summary>
-		public ulong? ChannelId { get; private set; }
+		public ulong? ChannelId { get; set; }
 		/// <summary>
-		/// How to search by uses.
+		/// The number of uses to search for.
 		/// </summary>
-		public NumberSearch Uses { get; private set; } = new NumberSearch();
+		public int? Uses { get; set; }
 		/// <summary>
-		/// How to search by age.
+		/// How to use that number to search.
 		/// </summary>
-		public NumberSearch Age { get; private set; } = new NumberSearch();
+		public CountTarget UsesMethod { get; set; }
+		/// <summary>
+		/// The number of age to search for.
+		/// </summary>
+		public int? Age { get; set; }
+		/// <summary>
+		/// How to use that number to search.
+		/// </summary>
+		public CountTarget AgeMethod { get; set; }
 		/// <summary>
 		/// Whether to check if this invite is temporary.
 		/// </summary>
-		public bool? IsTemporary { get; private set; }
+		public bool? IsTemporary { get; set; }
 		/// <summary>
 		/// Whether to check if this invite never expires.
 		/// </summary>
-		public bool? NeverExpires { get; private set; }
+		public bool? NeverExpires { get; set; }
 		/// <summary>
 		/// Whether to check if there are any max uses.
 		/// </summary>
-		public bool? NoMaxUses { get; private set; }
+		public bool? NoMaxUses { get; set; }
 
 		/// <summary>
 		/// Gathers invites matching the supplied arguments.
@@ -49,33 +58,33 @@ namespace Advobot.Classes
 		public IEnumerable<IInviteMetadata> GatherInvites(IEnumerable<IInviteMetadata> invites)
 		{
 			var filtered = default(IEnumerable<IInviteMetadata>);
-			if (UserId.HasValue)
+			if (UserId != null)
 			{
 				filtered = (filtered ?? invites).Where(x => x.Inviter.Id == UserId);
 			}
-			if (ChannelId.HasValue)
+			if (ChannelId != null)
 			{
-				invites = (filtered ?? invites).Where(x => x.ChannelId == ChannelId);
+				filtered = (filtered ?? invites).Where(x => x.ChannelId == ChannelId);
 			}
-			if (Uses.Number.HasValue)
+			if (Uses != null)
 			{
-				invites = Uses.GetFromCount(filtered ?? invites, x => (uint?)x.Uses);
+				filtered = (filtered ?? invites).GetFromCount(UsesMethod, Uses, x => x.Uses);
 			}
-			if (Age.Number.HasValue)
+			if (Age != null)
 			{
-				invites = Age.GetFromCount(filtered ?? invites, x => (uint?)x.MaxAge);
+				filtered = (filtered ?? invites).GetFromCount(AgeMethod, Age, x => x.MaxAge);
 			}
-			if (IsTemporary.HasValue)
+			if (IsTemporary != null)
 			{
-				invites = (filtered ?? invites).Where(x => x.IsTemporary == IsTemporary.Value);
+				filtered = (filtered ?? invites).Where(x => x.IsTemporary == IsTemporary);
 			}
-			if (NeverExpires.HasValue)
+			if (NeverExpires != null)
 			{
-				invites = (filtered ?? invites).Where(x => x.MaxAge == null == NeverExpires.Value);
+				filtered = (filtered ?? invites).Where(x => x.MaxAge == null == NeverExpires);
 			}
-			if (NoMaxUses.HasValue)
+			if (NoMaxUses != null)
 			{
-				invites = (filtered ?? invites).Where(x => x.MaxUses == null == NoMaxUses.Value);
+				filtered = (filtered ?? invites).Where(x => x.MaxUses == null == NoMaxUses);
 			}
 			return filtered ?? Enumerable.Empty<IInviteMetadata>();
 		}

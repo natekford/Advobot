@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Services.Logging.LogCounters;
 using Advobot.Services.Logging.LoggingContexts;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -85,7 +81,7 @@ namespace Advobot.Services.Logging.Loggers
 				await Task.WhenAll(tasks).CAF();
 			}
 		}
-		protected Task ReplyAsync(SocketTextChannel channel, string content = "", EmbedWrapper? embedWrapper = null, TextFileInfo? textFile = null)
-			=> MessageUtils.SendMessageAsync(channel, content, embedWrapper, textFile);
+		protected Task ReplyAsync(SocketTextChannel? channel, string content = "", EmbedWrapper? embedWrapper = null, TextFileInfo? textFile = null)
+			=> channel == null ? Task.CompletedTask : MessageUtils.SendMessageAsync(channel, content, embedWrapper, textFile);
 	}
 }

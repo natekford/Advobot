@@ -46,7 +46,7 @@ namespace Advobot.Utilities
 		/// <typeparam name="T"></typeparam>
 		/// <param name="obj"></param>
 		public static void SaveSettings<T>(this T obj) where T : IBotDirectoryAccessor, ISettingsBase
-			=> obj.SaveSettings(obj);
+			=> obj.Save(obj);
 		/// <summary>
 		/// Checks whether to use the bot prefix, or the guild settings prefix.
 		/// </summary>
@@ -54,21 +54,7 @@ namespace Advobot.Utilities
 		/// <param name="g"></param>
 		/// <returns></returns>
 		public static string GetPrefix(this IBotSettings b, IGuildSettings g)
-			=> string.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g?.Prefix;
-		/// <summary>
-		/// Creates a provider and initializes all of its singletons.
-		/// </summary>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		public static IServiceProvider CreateProvider(this IServiceCollection services)
-		{
-			var provider = services.BuildServiceProvider();
-			foreach (var service in services.Where(x => x.Lifetime == ServiceLifetime.Singleton))
-			{
-				provider.GetRequiredService(service.ServiceType);
-			}
-			return provider;
-		}
+			=> g == null || string.IsNullOrWhiteSpace(g.Prefix) ? b.Prefix : g.Prefix;
 		/// <summary>
 		/// Joins the strings together after selecting them.
 		/// </summary>
@@ -127,20 +113,43 @@ namespace Advobot.Utilities
 		public static bool TryGetSingle<T>(this IEnumerable<T> source, Func<T, bool> predicate, out T found)
 		{
 			found = default;
-			var matches = 0;
+			var matched = false;
 			foreach (var item in source)
 			{
 				if (predicate(item))
 				{
-					if (matches > 0)
+					if (matched)
 					{
 						throw new InvalidOperationException("More than one match found.");
 					}
 					found = item;
-					++matches;
+					matched = true;
 				}
 			}
-			return matches == 1;
+			return matched;
+		}
+		/// <summary>
+		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="objects"></param>
+		/// <param name="method"></param>
+		/// <param name="number"></param>
+		/// <param name="f"></param>
+		/// <returns></returns>
+		public static IEnumerable<T> GetFromCount<T>(this IEnumerable<T> objects, CountTarget method, int? number, Func<T, int?> f)
+		{
+			switch (method)
+			{
+				case CountTarget.Equal:
+					return objects.Where(x => f(x) == number);
+				case CountTarget.Below:
+					return objects.Where(x => f(x) < number);
+				case CountTarget.Above:
+					return objects.Where(x => f(x) > number);
+				default:
+					throw new InvalidOperationException($"Invalid {nameof(CountTarget)}.");
+			}
 		}
 		/// <summary>
 		/// Registers the settings which need to be registered for the bot to work correctly.
@@ -150,71 +159,6 @@ namespace Advobot.Utilities
 		{
 			TryParserRegistry.Instance.Register<Uri>(TryParseUtils.TryParseUri);
 			TryParserRegistry.Instance.RegisterNullable<Color>(ColorTypeReader.TryParseColor);
-			TryParserRegistry.Instance.RegisterNullable<Percentage>(TryParseImageMagickPercentage);
-			new StaticSettingParser<CustomField>
-			{
-				new StaticSetting<CustomField, string>(x => x.Name),
-				new StaticSetting<CustomField, string>(x => x.Text),
-				new StaticSetting<CustomField, bool>(x => x.Inline) { IsOptional = true, IsFlag = true },
-			}.Register();
-			new StaticSettingParser<CustomEmbed>
-			{
-				new StaticSetting<CustomEmbed, string?>(x => x.Title) { IsOptional = true },
-				new StaticSetting<CustomEmbed, string?>(x => x.Description) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri?>(x => x.ImageUrl) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri?>(x => x.Url) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri?>(x => x.ThumbUrl) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Color?>(x => x.Color) { IsOptional = true },
-				new StaticSetting<CustomEmbed, string?>(x => x.AuthorName) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri?>(x => x.AuthorIconUrl) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri?>(x => x.AuthorUrl) { IsOptional = true },
-				new StaticSetting<CustomEmbed, string?>(x => x.Footer) { IsOptional = true },
-				new StaticSetting<CustomEmbed, Uri?>(x => x.FooterIconUrl) { IsOptional = true },
-				new StaticCollectionSetting<CustomEmbed, CustomField>(x => x.FieldInfo) { IsOptional = true },
-			}.Register();
-			new StaticSettingParser<GuildNotification>
-			{
-				new StaticSetting<GuildNotification, string>(x => x.Content),
-				new StaticSetting<GuildNotification, CustomEmbed>(x => x.CustomEmbed) { IsOptional = true },
-			}.Register();
-			new StaticSettingParser<RuleFormatter>
-			{
-				new StaticSetting<RuleFormatter, char>(x => x.CharAfterNumbers) { IsOptional = true },
-				new StaticSetting<RuleFormatter, RuleFormat>(x => x.RuleFormat) { IsOptional = true },
-				new StaticCollectionSetting<RuleFormatter, MarkDownFormat>(x => x.TitleMarkDownFormat),
-				new StaticCollectionSetting<RuleFormatter, MarkDownFormat>(x => x.RuleMarkDownFormat),
-				new StaticCollectionSetting<RuleFormatter, RuleFormatOption>(x => x.Options),
-			}.Register();
-			new StaticSettingParser<NumberSearch>
-			{
-				new StaticSetting<NumberSearch, uint?>(x => x.Number),
-				new StaticSetting<NumberSearch, CountTarget>(x => x.Method),
-			}.Register();
-			new StaticSettingParser<ListedInviteGatherer>
-			{
-				new StaticSetting<ListedInviteGatherer, string?>(x => x.Code) { IsOptional = true },
-				new StaticSetting<ListedInviteGatherer, string?>(x => x.Name) { IsOptional = true },
-				new StaticSetting<ListedInviteGatherer, bool>(x => x.HasGlobalEmotes) { IsOptional = true, IsFlag = true },
-				new StaticSetting<ListedInviteGatherer, NumberSearch>(x => x.Users) {IsOptional = true},
-				new StaticCollectionSetting<ListedInviteGatherer, string>(x => x.Keywords),
-			}.Register();
-			new StaticSettingParser<LocalInviteGatherer>
-			{
-				new StaticSetting<LocalInviteGatherer, ulong?>(x => x.UserId) { IsOptional = true },
-				new StaticSetting<LocalInviteGatherer, ulong?>(x => x.ChannelId) { IsOptional = true },
-				new StaticSetting<LocalInviteGatherer, NumberSearch>(x => x.Uses) { IsOptional = true },
-				new StaticSetting<LocalInviteGatherer, NumberSearch>(x => x.Age) { IsOptional = true },
-				new StaticSetting<LocalInviteGatherer, bool?>(x => x.IsTemporary) { IsOptional = true },
-				new StaticSetting<LocalInviteGatherer, bool?>(x => x.NeverExpires) { IsOptional = true },
-				new StaticSetting<LocalInviteGatherer, bool?>(x => x.NoMaxUses) { IsOptional = true },
-			}.Register();
-			new StaticSettingParser<UserProvidedImageArgs>
-			{
-				new StaticSetting<UserProvidedImageArgs, int>(x => x.ResizeTries) { IsOptional = true },
-				new StaticSetting<UserProvidedImageArgs, Percentage>(x => x.ColorFuzzing) { IsOptional = true },
-				new StaticSetting<UserProvidedImageArgs, double>(x => x.StartInSeconds) { IsOptional = true },
-				new StaticSetting<UserProvidedImageArgs, double>(x => x.LengthInSeconds) { IsOptional = true },
-			}.Register();
 			new StaticSettingParser<SpamPrev>
 			{
 				new StaticSetting<SpamPrev, SpamType>(x => x.Type),
@@ -246,6 +190,13 @@ namespace Advobot.Utilities
 				new StaticSetting<SelfAssignableRoles, int>(x => x.Group),
 				new StaticCollectionSetting<SelfAssignableRoles, ulong>(x => x.Roles),
 			}.Register();
+#warning reenable
+#if true
+			new StaticSettingParser<GuildNotification>
+			{
+				new StaticSetting<GuildNotification, string>(x => x.Content),
+				//new StaticSetting<GuildNotification, CustomEmbed>(x => x.CustomEmbed) { IsOptional = true },
+			}.Register();
 			new StaticSettingParser<Quote>
 			{
 				new StaticSetting<Quote, string>(x => x.Name),
@@ -256,6 +207,7 @@ namespace Advobot.Utilities
 				new StaticSetting<BannedPhrase, string>(x => x.Phrase),
 				new StaticSetting<BannedPhrase, Punishment>(x => x.Punishment),
 			}.Register();
+#endif
 			new StaticSettingParser<BannedPhrasePunishment>
 			{
 				new StaticSetting<BannedPhrasePunishment, Punishment>(x => x.Punishment),
@@ -276,12 +228,6 @@ namespace Advobot.Utilities
 				return Result.FromError($"The {name} must be greater than or equal to `{minValue}`.");
 			}
 			return Result.FromSuccess("Successfully validated.");
-		}
-		private static bool TryParseImageMagickPercentage(string s, out Percentage result)
-		{
-			var success = double.TryParse(s, out var val);
-			result = success ? new Percentage(val) : default;
-			return success;
 		}
 	}
 }

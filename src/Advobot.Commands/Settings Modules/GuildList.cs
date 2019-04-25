@@ -24,15 +24,14 @@ namespace Advobot.Commands
 			public IInviteListService Invites { get; set; }
 
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Add(IInvite invite, [Optional] params string[] keywords)
+			public Task Add(IInvite invite, [Optional] params string[] keywords)
 			{
 				if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
 				{
-					await ReplyErrorAsync("Don't provide invites that expire.").CAF();
-					return;
+					return ReplyErrorAsync("Don't provide invites that expire.");
 				}
 				var listedInvite = Invites.Add(Context.Guild, invite, keywords);
-				await ReplyTimedAsync($"Successfully set the listed invite to the following:\n{listedInvite}.").CAF();
+				return ReplyTimedAsync($"Successfully set the listed invite to the following:\n{listedInvite}.");
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public Task Remove()
@@ -83,12 +82,12 @@ namespace Advobot.Commands
 			[Command]
 			public Task Command([Remainder] ListedInviteGatherer args)
 			{
-				var invites = args.GatherInvites(Invites).ToList();
+				var invites = args.GatherInvites(Invites).ToArray();
 				if (!invites.Any())
 				{
 					return ReplyErrorAsync("No guild could be found that matches the given specifications.");
 				}
-				if (invites.Count <= 5)
+				if (invites.Length <= 5)
 				{
 					return ReplyEmbedAsync(new EmbedWrapper
 					{
@@ -101,7 +100,7 @@ namespace Advobot.Commands
 						}).ToList(),
 					});
 				}
-				if (invites.Count <= 50)
+				if (invites.Length <= 50)
 				{
 					var formatted = invites.Select(x =>
 					{
@@ -117,7 +116,7 @@ namespace Advobot.Commands
 						Text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{string.Join("\n", formatted)}",
 					});
 				}
-				return ReplyTimedAsync($"`{invites.Count}` results returned. Please narrow your search.");
+				return ReplyTimedAsync($"`{invites.Length}` results returned. Please narrow your search.");
 			}
 		}
 	}

@@ -24,7 +24,6 @@ namespace Advobot.Classes.ImageResizing
 		public abstract long MaxAllowedLengthInBytes { get; }
 		/// <inheritdoc />
 		public abstract string Type { get; }
-
 		/// <inheritdoc />
 		public SocketCommandContext Context { get; }
 		/// <inheritdoc />
@@ -38,7 +37,7 @@ namespace Advobot.Classes.ImageResizing
 		/// <param name="context"></param>
 		/// <param name="url"></param>
 		/// <param name="userArgs"></param>
-		public ImageArgs(SocketCommandContext context, Uri url, UserProvidedImageArgs userArgs)
+		public ImageArgs(SocketCommandContext context, Uri url, UserProvidedImageArgs? userArgs)
 		{
 			Context = context ?? throw new ArgumentNullException(nameof(context));
 			Url = url ?? throw new ArgumentNullException(nameof(url));
@@ -46,7 +45,7 @@ namespace Advobot.Classes.ImageResizing
 		}
 
 		/// <inheritdoc />
-		public abstract Task<IResult> UseStream(MemoryStream stream, MagickFormat format);
+		public abstract Task<IResult> UseStream(MemoryStream stream, MagickFormat? format);
 		/// <inheritdoc />
 		public virtual IResult CanUseImage() => DefaultResult;
 		/// <inheritdoc />

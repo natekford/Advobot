@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
@@ -14,7 +15,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 	/// <summary>
 	/// Indicates what colors to use in the UI.
 	/// </summary>
-	public abstract class ColorSettings<TBrush, TBrushFactory> : SettingsBase, IColorSettings<TBrush>
+	public abstract class ColorSettings<TBrush, TBrushFactory> : IColorSettings<TBrush>, INotifyPropertyChanged
 		where TBrushFactory : BrushFactory<TBrush>, new()
 	{
 		/// <summary>
@@ -62,7 +63,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 
 		/// <inheritdoc />
 		[JsonProperty("ColorTargets", Order = 1)]
-		public ITheme<TBrush> UserDefinedColors { get; private set; } = new Theme<TBrush, TBrushFactory>();
+		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
 		/// <inheritdoc />
 		[JsonProperty("Theme", Order = 2)]
 		public ColorTheme Theme
@@ -70,6 +71,19 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 			get => _Theme;
 			set
 			{
+				if (_Theme == value)
+				{
+					return;
+				}
+
+				void UpdateResources(ITheme<TBrush> theme)
+				{
+					foreach (var key in theme.Keys)
+					{
+						UpdateResource(key, theme[key]);
+					}
+				}
+
 				_Theme = value;
 				switch (value)
 				{
@@ -90,6 +104,9 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		[JsonIgnore]
 		private ColorTheme _Theme = ColorTheme.LightMode;
 
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		static ColorSettings()
 		{
 			LightMode.Freeze();
@@ -101,26 +118,6 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		/// </summary>
 		public ColorSettings()
 		{
-			SettingParser.Add(new Setting<ColorTheme>(() => Theme)
-			{
-				ResetValueFactory = x => ColorTheme.LightMode,
-			});
-			SettingParser.Add(new CollectionSetting<KeyValuePair<string, TBrush>>(() => UserDefinedColors, parser: TryParseBrush)
-			{
-				ResetValueFactory = x =>
-				{
-					x.Clear();
-					foreach (var key in LightMode.Keys)
-					{
-						if (!x.Any(kvp => kvp.Key == key))
-						{
-							x.Add(new KeyValuePair<string, TBrush>(key, LightMode[key]));
-						}
-					}
-					return x;
-				},
-			});
-
 			Theme = ColorTheme.LightMode;
 			foreach (var key in LightMode.Keys)
 			{
@@ -129,35 +126,15 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 					UserDefinedColors.Add(key, LightMode[key]);
 				}
 			}
-			UserDefinedColors.PropertyChanged += OnPropertyChanged;
+			UserDefinedColors.PropertyChanged += (sender, e) =>
+			{
+				if (Theme == ColorTheme.UserMade)
+				{
+					UpdateResource(e.PropertyName, ((ITheme<TBrush>)sender)[e.PropertyName]);
+				}
+			};
 		}
 
-		private bool TryParseBrush(string s, out KeyValuePair<string, TBrush> kvp)
-		{
-			var parts = s.Split(new[] { ' ' }, 2);
-			if (parts.Length != 2 || !Factory.TryCreateBrush(parts[1], out var brush))
-			{
-				kvp = default;
-				return false;
-			}
-
-			kvp = new KeyValuePair<string, TBrush>(parts[0], brush);
-			return true;
-		}
-		private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
-		{
-			if (Theme == ColorTheme.UserMade)
-			{
-				UpdateResource(e.PropertyName, ((ITheme<TBrush>)sender)[e.PropertyName]);
-			}
-		}
-		private void UpdateResources(ITheme<TBrush> theme)
-		{
-			foreach (var key in theme.Keys)
-			{
-				UpdateResource(key, theme[key]);
-			}
-		}
 		/// <summary>
 		/// Updates a resource dictionary with the specified value.
 		/// </summary>
@@ -168,9 +145,18 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		/// Does an action after the theme has been updated.
 		/// </summary>
 		protected virtual void AfterThemeUpdated() { }
+		/// <summary>
+		/// Raises the property changed event.
+		/// </summary>
+		/// <param name="caller"></param>
+		protected void RaisePropertyChanged([CallerMemberName] string caller = "")
+			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
 		/// <inheritdoc />
-		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
+		public FileInfo GetFile(IBotDirectoryAccessor accessor)
 			=> StaticGetPath(accessor);
+		/// <inheritdoc />
+		public void Save(IBotDirectoryAccessor accessor)
+			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
 		/// <summary>
 		/// Loads the UI settings from file.
 		/// </summary>

@@ -31,7 +31,22 @@ namespace Advobot.NetCoreUI.Classes.Colors
 			{ ColorTargets.ButtonBorder, new[] { "ThemeBorderLightBrush" } },
 			{ ColorTargets.ButtonMouseOverBackground, new[] { "ThemeBorderMidBrush" } },
 		};
-		private IResourceDictionary Resources { get; set; }
+		private IResourceDictionary Resources
+		{
+			get
+			{
+				if (_Resources != null)
+				{
+					return _Resources;
+				}
+
+				var styles = Application.Current.Styles.OfType<StyleInclude>();
+				var colors = styles.Single(x => x.Source.ToString().CaseInsContains("BaseLight.xaml"));
+				return _Resources = ((Style)colors.Loaded).Resources;
+			}
+		}
+
+		private IResourceDictionary? _Resources;
 
 		static NetCoreColorSettings()
 		{
@@ -41,12 +56,7 @@ namespace Advobot.NetCoreUI.Classes.Colors
 		/// <summary>
 		/// Creates an instance of <see cref="NetCoreColorSettings"/>.
 		/// </summary>
-		public NetCoreColorSettings()
-		{
-			var styles = Application.Current.Styles.OfType<StyleInclude>();
-			var colors = styles.Single(x => x.Source.ToString().CaseInsContains("BaseLight.xaml"));
-			Resources = ((Style)colors.Loaded).Resources;
-		}
+		public NetCoreColorSettings() { }
 
 		/// <inheritdoc />
 		protected override void UpdateResource(string target, ISolidColorBrush value)

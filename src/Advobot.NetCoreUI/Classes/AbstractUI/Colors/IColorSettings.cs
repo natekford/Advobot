@@ -1,4 +1,5 @@
-﻿using Advobot.Interfaces;
+﻿using System.ComponentModel;
+using Advobot.Interfaces;
 
 namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 {
@@ -6,7 +7,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 	/// Settings for the UI.
 	/// </summary>
 	/// <typeparam name="TBrush"></typeparam>
-	public interface IColorSettings<TBrush> : ISettingsBase
+	public interface IColorSettings<TBrush> : ISavable, INotifyPropertyChanged
 	{
 		/// <summary>
 		/// The active theme in the bot UI.

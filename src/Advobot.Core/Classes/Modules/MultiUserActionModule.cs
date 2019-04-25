@@ -16,7 +16,7 @@ namespace Advobot.Classes.Modules
 	/// </summary>
 	public abstract class MultiUserActionModule : AdvobotModuleBase
 	{
-		private static ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new ConcurrentDictionary<ulong, CancellationTokenSource>();
+		private static readonly ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new ConcurrentDictionary<ulong, CancellationTokenSource>();
 
 		/// <summary>
 		/// Does an action on many users at once.

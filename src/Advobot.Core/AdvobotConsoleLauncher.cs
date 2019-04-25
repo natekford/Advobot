@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ using AdvorangesUtils;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 
 namespace Advobot
 {
@@ -32,7 +34,7 @@ namespace Advobot
 	public sealed class AdvobotConsoleLauncher
 	{
 		private ILowLevelConfig _Config { get; }
-		private IServiceCollection? _Services;
+		private IServiceCollection? _Services { get; set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotConsoleLauncher"/>.
@@ -74,36 +76,22 @@ namespace Advobot
 		/// Gets the path and bot key from user input if they're not already stored in file.
 		/// </summary>
 		/// <returns></returns>
-		public async Task GetPathAndKey()
+		public async Task GetPathAndKeyAsync()
 		{
-			SetPath();
-			await SetBotKey().CAF();
-		}
-		/// <summary>
-		/// Sets the path to use for the bot.
-		/// </summary>
-		private void SetPath()
-		{
-			//Get the save path
-			var startup = true;
-			while (!_Config.ValidatedPath)
-			{
-				startup = _Config.ValidatePath(startup ? null : Console.ReadLine(), startup);
-			}
-		}
-		/// <summary>
-		/// Sets the bot key to use for the bot.
-		/// </summary>
-		/// <returns></returns>
-		private async Task SetBotKey()
-		{
-			//Get the bot key
-			var startup = true;
-			while (!_Config.ValidatedKey)
-			{
-				startup = await _Config.ValidateBotKey(startup ? null : Console.ReadLine(), startup, ClientUtils.RestartBotAsync).CAF();
-			}
-		}
+            //Get the save path
+            var startup = true;
+            while (!_Config.ValidatedPath)
+            {
+                startup = _Config.ValidatePath(startup ? null : Console.ReadLine(), startup);
+            }
+
+            //Get the bot key
+            startup = true;
+            while (!_Config.ValidatedKey)
+            {
+                startup = await _Config.ValidateBotKey(startup ? null : Console.ReadLine(), startup, ClientUtils.RestartBotAsync).CAF();
+            }
+        }
 		/// <summary>
 		/// Returns the default services for the bot if both the path and key have been set.
 		/// </summary>
@@ -115,6 +103,20 @@ namespace Advobot
 				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
 			}
 			return _Services ?? (_Services = CreateDefaultServices(_Config, commands));
+		}
+		/// <summary>
+		/// Creates a provider and initializes all of its singletons.
+		/// </summary>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		public IServiceProvider CreateProvider(IServiceCollection services)
+		{
+			var provider = services.BuildServiceProvider();
+			foreach (var service in services.Where(x => x.Lifetime == ServiceLifetime.Singleton))
+			{
+				provider.GetRequiredService(service.ServiceType);
+			}
+			return provider;
 		}
 		private static IServiceCollection CreateDefaultServices(ILowLevelConfig config, IEnumerable<Assembly> commands)
 		{
@@ -164,7 +166,7 @@ namespace Advobot
 				//-DatabaseType MongoDB -DatabaseConnectionString "mongodb://localhost:27017"
 				case DatabaseType.MongoDB:
 					s.AddSingleton<IDatabaseWrapperFactory>(p => new MongoDBWrapperFactory(p));
-					s.AddSingleton<MongoDB.Driver.IMongoClient>(p => new MongoDB.Driver.MongoClient(config.DatabaseConnectionString));
+					s.AddSingleton<IMongoClient>(p => new MongoClient(config.DatabaseConnectionString));
 					break;
 			}
 			return s;
@@ -173,13 +175,13 @@ namespace Advobot
 		/// Creates the service provider and starts the Discord bot.
 		/// </summary>
 		/// <returns></returns>
-		public async Task Start(IServiceProvider provider)
+		public Task StartAsync(IServiceProvider provider)
 		{
 			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
 			{
 				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
 			}
-			await _Config.StartAsync(provider.GetRequiredService<DiscordShardedClient>());
+			return _Config.StartAsync(provider.GetRequiredService<DiscordShardedClient>());
 		}
 	}
 }

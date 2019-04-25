@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Enums;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -95,46 +94,73 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Counts how many times something has occurred within a given timeframe.
 		/// Also modifies the queue by removing instances which are too old to matter (locks the source when doing so).
-		/// Returns the listlength if seconds is less than 2 or the listlength is less than 2.
+		/// Returns the listlength if seconds is less than 0 or the listlength is less than 2.
 		/// </summary>
 		/// <param name="source"></param>
 		/// <param name="seconds"></param>
 		/// <param name="removeOldInstances"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">When <paramref name="source"/> is not in order.</exception>
-		public static int CountItemsInTimeFrame(List<ulong> source, int seconds = 0, bool removeOldInstances = false)
+		public static int CountItemsInTimeFrame(ICollection<ulong> source, double seconds = 0, bool removeOldInstances = false)
 		{
-			var timeList = new List<ulong>(source);
-			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
-			var listLength = timeList.Count;
-			if (seconds < 2 || listLength < 2)
+			var copy = source.ToArray();
+
+			void RemoveOldInstances()
 			{
-				return listLength;
+				if (removeOldInstances)
+				{
+					lock (source)
+					{
+						//Work the way down
+						var now = DateTime.UtcNow;
+						for (var i = copy.Length - 1; i >= 0; --i)
+						{
+							//If the time is recent enough to still be within the timeframe leave it
+							if ((now - SnowflakeUtils.FromSnowflake(copy[i]).UtcDateTime).TotalSeconds < seconds + 1)
+							{
+								continue;
+							}
+							//The first object now found within the timeframe is where objects will be removed up to
+							for (var j = 0; j < i; ++j)
+							{
+								source.Remove(copy[j]);
+							}
+							break;
+						}
+					}
+				}
+			}
+
+			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
+			if (seconds < 0 || copy.Length < 2)
+			{
+				RemoveOldInstances();
+				return copy.Length;
 			}
 
 			//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
 			var maxCount = 0;
-			for (var i = 0; i < listLength; ++i)
+			for (var i = 0; i < copy.Length; ++i)
 			{
 				//If the queue is out of order that kinda ruins the method
-				if (i > 0 && timeList[i - 1] > timeList[i])
+				if (i > 0 && copy[i - 1] > copy[i])
 				{
 					throw new ArgumentException("The queue must be in order from oldest to newest.", nameof(source));
 				}
 
 				var currentIterCount = 1;
-				var iTime = SnowflakeUtils.FromSnowflake(timeList[i]).UtcDateTime;
-				for (var j = i + 1; j < listLength; ++j)
+				var iTime = SnowflakeUtils.FromSnowflake(copy[i]).UtcDateTime;
+				for (var j = i + 1; j < copy.Length; ++j)
 				{
-					var jTime = SnowflakeUtils.FromSnowflake(timeList[j]).UtcDateTime;
-					if ((int)(jTime - iTime).TotalSeconds < seconds)
+					var jTime = SnowflakeUtils.FromSnowflake(copy[j]).UtcDateTime;
+					if ((jTime - iTime).TotalSeconds < seconds)
 					{
 						++currentIterCount;
 						continue;
 					}
 					//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
-					var jMinOneTime = SnowflakeUtils.FromSnowflake(timeList[j - 1]).UtcDateTime;
-					if ((int)(jTime - jMinOneTime).TotalSeconds > seconds)
+					var jMinOneTime = SnowflakeUtils.FromSnowflake(copy[j - 1]).UtcDateTime;
+					if ((jTime - jMinOneTime).TotalSeconds > seconds)
 					{
 						i = j + 1;
 					}
@@ -143,28 +169,7 @@ namespace Advobot.Utilities
 				maxCount = Math.Max(maxCount, currentIterCount);
 			}
 
-			if (removeOldInstances)
-			{
-				lock (source)
-				{
-					//Work the way down
-					var now = DateTime.UtcNow;
-					for (int i = listLength - 1; i >= 0; --i)
-					{
-						//If the time is recent enough to still be within the timeframe leave it
-						if ((int)(now - SnowflakeUtils.FromSnowflake(timeList[i]).UtcDateTime).TotalSeconds < seconds + 1)
-						{
-							continue;
-						}
-						//The first object now found within the timeframe is where objects will be removed up to
-						for (int j = 0; j < i; ++j)
-						{
-							source.Remove(timeList[j]);
-						}
-						break;
-					}
-				}
-			}
+			RemoveOldInstances();
 			return maxCount;
 		}
 		/// <summary>
@@ -194,7 +199,7 @@ namespace Advobot.Utilities
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public static IEnumerable<SocketGuildUser> GetUsersByJoinDate(this SocketGuild guild)
-			=> guild.Users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.Value.Ticks);
+			=> guild.Users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks);
 		/// <summary>
 		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
 		/// </summary>
@@ -262,8 +267,10 @@ namespace Advobot.Utilities
 			var firstUses = uncached.Where(x => x.Uses != 0).ToArray();
 			if (firstUses.Length == 1)
 			{
-				var inv = firstUses[0];
-				return invites.Single(x => x.Code == inv.Code);
+				var code = firstUses[0].Code;
+				var inv = invites.Single(x => x.Code == code);
+				inv.IncrementUses();
+				return inv;
 			}
 			return null;
 		}

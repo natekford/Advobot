@@ -50,7 +50,7 @@ namespace Advobot.Classes.ImageResizing
 		}
 
 		/// <inheritdoc />
-		public override async Task<IResult> UseStream(MemoryStream stream, MagickFormat format)
+		public override async Task<IResult> UseStream(MemoryStream stream, MagickFormat? format)
 		{
 			try
 			{

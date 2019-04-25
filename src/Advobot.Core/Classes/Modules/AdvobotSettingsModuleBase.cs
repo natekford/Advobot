@@ -1,19 +1,13 @@
-﻿using Advobot.Interfaces;
+﻿using System;
+using System.Collections;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
+using Advobot.Interfaces;
 using Advobot.Utilities;
-using AdvorangesSettingParser;
-using AdvorangesSettingParser.Implementation;
-using AdvorangesSettingParser.Implementation.Instance;
-using AdvorangesSettingParser.Interfaces;
-using AdvorangesSettingParser.Results;
-using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
 using Discord;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using Discord.Commands;
 
 namespace Advobot.Classes.Modules
 {
@@ -25,7 +19,7 @@ namespace Advobot.Classes.Modules
 	/// This uses expression a lot so the property name can be gotten from the same argument.
 	/// This essentially acts as reflection but with more type safety and resistance to refactoring issues.
 	/// </remarks>
-	public abstract class AdvobotSettingsModuleBase<TSettings> : AdvobotModuleBase where TSettings : ISettingsBase
+	public abstract class ReadOnlyAdvobotSettingsModuleBase<TSettings> : AdvobotModuleBase where TSettings : ISettingsBase
 	{
 		/// <summary>
 		/// Returns the settings this module is targetting.
@@ -42,7 +36,7 @@ namespace Advobot.Classes.Modules
 			return ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = Settings.GetType().Name.FormatTitle(),
-				Description = $"`{Settings.SettingParser.Join("`, `", x => x.MainName)}`"
+				Description = $"`{Settings.GetSettingNames().Join("`, `")}`"
 			});
 		}
 		/// <summary>
@@ -60,68 +54,28 @@ namespace Advobot.Classes.Modules
 		/// <summary>
 		/// Prints out the specified setting.
 		/// </summary>
-		/// <param name="settingName"></param>
+		/// <param name="name"></param>
 		/// <returns></returns>
-		protected Task ShowAsync(string settingName)
+		protected Task ShowAsync(string name)
 		{
-			if (!Settings.SettingParser.TryGetSetting(settingName, PrefixState.NotPrefixed, out var setting))
+			if (!Settings.IsSetting(name))
 			{
-				return ReplyErrorAsync($"`{settingName}` is not a valid setting.");
+				return ReplyErrorAsync($"`{name}` is not a valid setting.");
 			}
 
-			var description = FormatValue(setting.GetValue());
+			var description = Settings.FormatSetting(Context.Client, Context.Guild, name);
 			if (description.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				return ReplyEmbedAsync(new EmbedWrapper
 				{
-					Title = setting.MainName.FormatTitle(),
+					Title = name,
 					Description = description,
 				});
 			}
-			return ReplyFileAsync($"**{setting.MainName.FormatTitle()}:**", new TextFileInfo
+			return ReplyFileAsync($"**{name}:**", new TextFileInfo
 			{
-				Name = setting.MainName.FormatTitle(),
+				Name = name,
 				Text = description,
-			});
-		}
-		/// <summary>
-		/// Prints out the values which target the specified user. If the setting does not support that, instead prints out an error.
-		/// </summary>
-		/// <param name="settingName"></param>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		protected Task ShowUserAsync(string settingName, IUser user)
-		{
-			if (!Settings.SettingParser.TryGetSetting(settingName, PrefixState.NotPrefixed, out var setting))
-			{
-				return ReplyErrorAsync($"`{settingName}` is not a valid setting.");
-			}
-
-			var value = setting.GetValue();
-			var title = setting.MainName.FormatTitle();
-
-			IEnumerable<ITargetsUser> values;
-			if (value is IEnumerable<ITargetsUser> temp1)
-			{
-				values = temp1;
-			}
-			//I don't know if this one should ever occur, but if it does, it's relatively easy to handle anyways
-			else if (value is ITargetsUser temp2)
-			{
-				values = new[] { temp2 };
-			}
-			//If doesn't target users, then reply that
-			else
-			{
-				return ReplyErrorAsync($"`{title}` does not target users directly.");
-			}
-
-			var userValues = values.Where(x => x.UserId == user.Id).ToArray();
-			var description = userValues.Length == 0 ? "None" : userValues.FormatNumberedList(x => FormatValue(x));
-			return ReplyEmbedAsync(new EmbedWrapper
-			{
-				Title = $"{title} | {user.Format()}",
-				Description = description,
 			});
 		}
 		/// <summary>
@@ -138,141 +92,62 @@ namespace Advobot.Classes.Modules
 			}
 			return Context.Channel.SendFileAsync(file.FullName, null);
 		}
+	}
+
+	public abstract class AdvobotSettingsModuleBase<TSettings> : ReadOnlyAdvobotSettingsModuleBase<TSettings>
+		where TSettings : ISettingsBase
+	{
 		/// <summary>
-		/// Resets the targeted setting.
+		/// The name of the setting which has been changed.
 		/// </summary>
-		/// <param name="settingName"></param>
-		/// <returns></returns>
-		protected Task ResetAsync(string settingName)
-		{
-			if (!Settings.SettingParser.TryGetSetting(settingName, PrefixState.NotPrefixed, out var setting))
-			{
-				return ReplyErrorAsync($"`{settingName}` is not a valid setting.");
-			}
-			Settings.ResetSetting(setting.MainName);
-			return ReplyTimedAsync($"Successfully reset `{setting.MainName}`.");
-		}
+		protected virtual string SettingName { get; }
+
 		/// <summary>
-		/// Adds or removes the specified objects from the list while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
+		/// Returns a task which prints out the setting.
 		/// </summary>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="selector"></param>
-		/// <param name="add"></param>
-		/// <param name="values"></param>
 		/// <returns></returns>
-		protected Task ModifyCollectionAsync<TValue>(Expression<Func<TSettings, ICollection<TValue>>> selector, bool add, IEnumerable<TValue> values)
-		{
-			var (settings, setting, source, name) = GetCollection(selector);
-			var context = new CollectionModificationContext { Action = add ? CollectionModificationAction.AddIfMissing : CollectionModificationAction.Remove };
-			var results = values.Select(x => setting.ModifyCollection(source, x, context));
-			settings.RaisePropertyChanged(name);
-
-			var successes = results.Where(x => x.IsSuccess).OfType<SetValueResult>().Select(x => FormatValue(x.Value)).ToArray();
-			var failures = results.Where(x => !x.IsSuccess).OfType<SetValueResult>().Select(x => FormatValue(x.Value)).ToArray();
-			var success = successes.Any()
-				? $"Successfully {(add ? "added" : "removed")} `{string.Join("`, `", successes)}` {(add ? "to" : "from")} `{name}`."
-				: null;
-			var failure = failures.Any()
-				? $"`{string.Join("`, `", failures)}` {(failures.Length == 1 ? "is" : "are")} already {(add ? "added to" : "removed from")} `{name}`"
-				: null;
-			return ReplyTimedAsync(new[] { success, failure }.JoinNonNullStrings("\n"));
-		}
+		protected Task ShowResponseAsync()
+			=> ShowAsync(SettingName);
 		/// <summary>
-		/// Modifies the matching values. This will only add if a value is not found and <paramref name="creationFactory"/> is not null.
+		/// Resets the specified field and 
 		/// </summary>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="selector"></param>
-		/// <param name="predicate"></param>
-		/// <param name="creationFactory"></param>
-		/// <param name="updateCallback"></param>
+		/// <param name="reset"></param>
 		/// <returns></returns>
-		protected Task ModifyCollectionValuesAsync<TValue>(
-			Expression<Func<TSettings, ICollection<TValue>>> selector,
-			Func<TValue, bool> predicate,
-			Func<TValue> creationFactory,
-			Func<TValue, string> updateCallback)
+		protected Task ResetResponseAsync(Action<TSettings> reset)
 		{
-			var (settings, setting, list, name) = GetCollection(selector);
-
-			var matchingValues = list.Where(predicate).ToList();
-			if (matchingValues.Count == 0)
-			{
-				if (creationFactory == null)
-				{
-					return ReplyErrorAsync("Unable to create a new value to insert.");
-				}
-				var newValue = creationFactory();
-				matchingValues.Add(newValue);
-				list.Add(newValue);
-			}
-
-			var response = new StringBuilder();
-			for (int i = 0; i < matchingValues.Count; ++i)
-			{
-				response.AppendLineFeed(updateCallback(matchingValues[i]));
-			}
-			return ReplyAsync(response.ToString());
+			reset.Invoke(Settings);
+			return ReplyAsync($"Successfully set {SettingName} back to its default value.");
 		}
-		/// <summary>
-		/// Sets the property to the supplied value while also firing <see cref="ISettingsBase.RaisePropertyChanged(string)"/> and sending a response in Discord.
-		/// </summary>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="selector"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		protected Task ModifyAsync<TValue>(Expression<Func<TSettings, TValue>> selector, TValue value)
+		protected Task ModifyResponseAsync(Action<TSettings> setter)
 		{
-			var (settings, setting, currentValue, name) = GetValue(selector);
-			//If the same value is passed in, return a message to the user that they're the same
-			if (setting.EqualityComparer.Equals(currentValue, value))
-			{
-				return ReplyTimedAsync($"The passed in value for `{name}` matches the current value: {FormatValue(currentValue)}.");
-			}
-			var valid = setting.Validation(value);
-			if (!valid.IsSuccess)
-			{
-				return ReplyTimedAsync($"The supplied value `{FormatValue(value)}` is invalid for `{name}`");
-			}
-
-			setting.SetValue(value);
-			settings.RaisePropertyChanged(name);
-			return ReplyTimedAsync($"Successfully set `{name}` to {FormatValue(value)}. Previous value was: {FormatValue(currentValue)}.");
+			setter.Invoke(Settings);
+			return ReplyAsync($"Successfully set {SettingName} to {null}");
 		}
-		/// <summary>
-		/// Returns the value as a string.
-		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		private string FormatValue(object? value)
-			=> Settings.FormatValue(Context.Client, Context.Guild, value);
-		private SettingContext<TSettings, Setting<T>, T> GetValue<T>(Expression<Func<TSettings, T>> selector)
-			=> new SettingContext<TSettings, Setting<T>, T>(Settings, selector);
-		private SettingContext<TSettings, CollectionSetting<T>, ICollection<T>> GetCollection<T>(Expression<Func<TSettings, ICollection<T>>> selector)
-			=> new SettingContext<TSettings, CollectionSetting<T>, ICollection<T>>(Settings, selector);
 
-		private class SettingContext<TParentSettings, TSetting, TValue>
-			where TParentSettings : IParsable
-			where TSetting : ISetting
+		/// <inheritdoc />
+		protected override void AfterExecute(CommandInfo command)
 		{
-			public TParentSettings Settings { get; }
-			public TSetting Setting { get; }
-			public TValue Value { get; }
-
-			public SettingContext(TParentSettings parent, Expression<Func<TSettings, TValue>> selector)
+			if (!command.Attributes.Any(x => x is DontSaveAfterExecutionAttribute))
 			{
-				Settings = parent;
-				var name = selector.GetMemberExpression().Member.Name;
-				Setting = (TSetting)Settings.SettingParser.GetSetting(name, PrefixState.NotPrefixed);
-				Value = (TValue)Setting.GetValue();
+				Settings.Save(BotSettings);
 			}
-
-			public void Deconstruct(out TParentSettings settings, out TSetting setting, out TValue value, out string name)
-			{
-				settings = Settings;
-				setting = Setting;
-				value = Value;
-				name = Setting.MainName;
-			}
+			base.AfterExecute(command);
 		}
+	}
+
+	public interface ISettingModule
+	{
+		Task Show();
+		Task Reset();
+	}
+
+	public interface ISettingModule<TProperty> : ISettingModule
+	{
+		Task Modify(TProperty value);
+	}
+
+	public interface ICollectionSettingModule<TProperty> : ISettingModule
+	{
+		Task Modify(bool add, TProperty value);
 	}
 }

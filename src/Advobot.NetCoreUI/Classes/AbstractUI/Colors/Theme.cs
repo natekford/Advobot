@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Newtonsoft.Json;
 
 namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 {

@@ -28,7 +28,7 @@ namespace Advobot.Utilities
 		/// </param>
 		/// <returns></returns>
 		[Obsolete]
-		public static Task<IUserMessage> SendMessageAsync(
+		public static Task<IUserMessage?> SendMessageAsync(
 			IMessageChannel channel,
 			string? content = null,
 			EmbedWrapper? embedWrapper = null,
@@ -44,12 +44,12 @@ namespace Advobot.Utilities
 				throw new ArgumentNullException($"Input ({nameof(content)}, {nameof(embedWrapper)}, or {nameof(textFile)} must have a value)");
 			}
 
-			textFile = textFile ?? new TextFileInfo();
+			textFile ??= new TextFileInfo();
 
 			//Make sure all the information from the embed that didn't fit goes in.
 			if (embedWrapper != null && embedWrapper.Errors.Any())
 			{
-				textFile.Name = textFile.Name ?? "Embed_Errors";
+				textFile.Name ??= "Embed_Errors";
 				textFile.Text += $"Embed Errors:\n{embedWrapper}\n\n{textFile.Text}";
 			}
 
@@ -57,7 +57,7 @@ namespace Advobot.Utilities
 			content = channel.SanitizeContent(content);
 			if (content.Length > 2000)
 			{
-				textFile.Name = textFile.Name ?? "Long_Message";
+				textFile.Name ??= "Long_Message";
 				textFile.Text += $"Message Content:\n{content}\n\n{textFile.Text}";
 				content = $"{Constants.ZERO_LENGTH_CHAR}Response is too long; sent as text file instead.";
 			}
@@ -72,7 +72,7 @@ namespace Advobot.Utilities
 			try
 			{
 				//If the file name and text exists, then attempt to send as a file instead of message
-				if (textFile.Name != null && textFile.Text != null)
+				if (!string.IsNullOrWhiteSpace(textFile.Name) && !string.IsNullOrWhiteSpace(textFile.Text))
 				{
 					using (var stream = new MemoryStream())
 					using (var writer = new StreamWriter(stream))

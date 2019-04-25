@@ -1,11 +1,13 @@
-﻿using ImageMagick;
+﻿using Discord.Commands;
+using ImageMagick;
 
 namespace Advobot.Classes.ImageResizing
 {
 	/// <summary>
 	/// Arguments the user can provide for image resizing/creation.
 	/// </summary>
-	public class UserProvidedImageArgs
+	[NamedArgumentType]
+	public sealed class UserProvidedImageArgs
 	{
 		/// <summary>
 		/// How many times to try resizing before giving up.

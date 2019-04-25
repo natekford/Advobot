@@ -1,35 +1,43 @@
-﻿using Advobot.Interfaces;
-using AdvorangesUtils;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Advobot.Enums;
+using Advobot.Interfaces;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord.Commands;
 
 namespace Advobot.Classes
 {
 	/// <summary>
 	/// Gathers invites which meet specified criteria.
 	/// </summary>
+	[NamedArgumentType]
 	public sealed class ListedInviteGatherer
 	{
 		/// <summary>
 		/// The invite code.
 		/// </summary>
-		public string? Code { get; private set; }
+		public string? Code { get; set; }
 		/// <summary>
 		/// The name of the guild.
 		/// </summary>
-		public string? Name { get; private set; }
+		public string? Name { get; set; }
 		/// <summary>
 		/// Whether the guild has global emotes.
 		/// </summary>
-		public bool HasGlobalEmotes { get; private set; }
+		public bool? HasGlobalEmotes { get; set; }
 		/// <summary>
-		/// The number to search with and how to search with it.
+		/// The number of users to search for.
 		/// </summary>
-		public NumberSearch Users { get; private set; } = new NumberSearch();
+		public int? Users { get; set; }
+		/// <summary>
+		/// How to use that number to search.
+		/// </summary>
+		public CountTarget UsersMethod { get; set; }
 		/// <summary>
 		/// The keywords to search for a guild with.
 		/// </summary>
-		public IList<string> Keywords { get; } = new List<string>();
+		public IList<string> Keywords { get; set; } = new List<string>();
 
 		/// <summary>
 		/// Gathers invites which meet the specified criteria.
@@ -38,7 +46,9 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public IEnumerable<IListedInvite> GatherInvites(IInviteListService inviteListService)
 		{
-			var invites = (Keywords.Any() ? inviteListService.GetAll(int.MaxValue, Keywords) : inviteListService.GetAll(int.MaxValue)).Where(x => !x.Expired);
+			var invites = (Keywords != null && Keywords.Any()
+				? inviteListService.GetAll(int.MaxValue, Keywords)
+				: inviteListService.GetAll(int.MaxValue)).Where(x => !x.Expired);
 			var filtered = default(IEnumerable<IListedInvite>);
 			if (Code != null)
 			{
@@ -48,13 +58,13 @@ namespace Advobot.Classes
 			{
 				invites = (filtered ?? invites).Where(x => x.GuildName.CaseInsEquals(Name));
 			}
-			if (HasGlobalEmotes)
+			if (HasGlobalEmotes != null)
 			{
 				invites = (filtered ?? invites).Where(x => x.HasGlobalEmotes);
 			}
-			if (Users.Number.HasValue)
+			if (Users != null)
 			{
-				invites = Users.GetFromCount(filtered ?? invites, x => (uint?)x.GuildMemberCount);
+				invites = (filtered ?? invites).GetFromCount(UsersMethod, Users, x => x.GuildMemberCount);
 			}
 			return filtered ?? Enumerable.Empty<IListedInvite>();
 		}

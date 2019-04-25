@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;

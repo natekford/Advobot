@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 
 namespace Advobot.Classes
 {
 	/// <summary>
 	/// Allows a user to make an embed.
 	/// </summary>
+	[NamedArgumentType]
 	public sealed class CustomEmbed
 	{
 		/// <summary>
@@ -58,7 +60,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// All of the fields on the embed.
 		/// </summary>
-		public IList<CustomField> FieldInfo { get; } = new List<CustomField>();
+		public IList<CustomField> FieldInfo { get; set; } = new List<CustomField>();
 
 		/// <summary>
 		/// Builds the embed from the fields.
@@ -102,7 +104,7 @@ namespace Advobot.Classes
 			AddIfNotNull(sb, AuthorUrl, nameof(AuthorUrl));
 			AddIfNotNull(sb, Footer, nameof(Footer));
 			AddIfNotNull(sb, FooterIconUrl, nameof(FooterIconUrl));
-			for (int i = 0; i < FieldInfo.Count; ++i)
+			for (var i = 0; i < FieldInfo.Count; ++i)
 			{
 				AddIfNotNull(sb, FieldInfo[i], $"Field {i}");
 			}

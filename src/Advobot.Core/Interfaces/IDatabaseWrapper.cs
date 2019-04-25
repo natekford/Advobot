@@ -16,6 +16,6 @@ namespace Advobot.Interfaces
 		/// <typeparam name="T"></typeparam>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		IEnumerable<T> ExecuteQuery<T>(DBQuery<T> options) where T : DatabaseEntry;
+		IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : DatabaseEntry;
 	}
 }

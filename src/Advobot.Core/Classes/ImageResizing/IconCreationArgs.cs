@@ -13,12 +13,11 @@ namespace Advobot.Classes.ImageResizing
 	/// </summary>
 	public sealed class IconCreationArgs : ImageArgs
 	{
-		private static ImmutableArray<MagickFormat> _ValidFormats { get; } = ImmutableArray.Create(new[]
-		{
+		private static ImmutableArray<MagickFormat> _ValidFormats { get; } = ImmutableArray.Create(
 			MagickFormat.Png,
 			MagickFormat.Jpg,
 			MagickFormat.Jpeg
-		});
+		);
 
 		/// <inheritdoc />
 		public override ImmutableArray<MagickFormat> ValidFormats => _ValidFormats;
@@ -27,7 +26,7 @@ namespace Advobot.Classes.ImageResizing
 		/// <inheritdoc />
 		public override string Type { get; }
 
-		private Func<SocketCommandContext, MemoryStream, Task> _Callback { get; }
+        private readonly Func<SocketCommandContext, MemoryStream, Task> _Callback;
 
 		/// <summary>
 		/// Creates an instance of <see cref="IconCreationArgs"/>.
@@ -41,7 +40,7 @@ namespace Advobot.Classes.ImageResizing
 			string type,
 			SocketCommandContext context,
 			Uri url,
-			UserProvidedImageArgs userArgs,
+			UserProvidedImageArgs? userArgs,
 			Func<SocketCommandContext, MemoryStream, Task> callback)
 			: base(context, url, userArgs)
 		{
@@ -50,7 +49,7 @@ namespace Advobot.Classes.ImageResizing
 		}
 
 		/// <inheritdoc />
-		public override async Task<IResult> UseStream(MemoryStream stream, MagickFormat format)
+		public override async Task<IResult> UseStream(MemoryStream stream, MagickFormat? format)
 		{
 			try
 			{

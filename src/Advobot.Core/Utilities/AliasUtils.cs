@@ -105,7 +105,7 @@ namespace Advobot.Utilities
 				}
 			}
 
-			for (int i = 0; i < name.Length; ++i)
+			for (var i = 0; i < name.Length; ++i)
 			{
 				var c = name[i];
 				if (char.IsUpper(c))

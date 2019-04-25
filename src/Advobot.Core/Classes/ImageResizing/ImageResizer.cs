@@ -24,12 +24,12 @@ namespace Advobot.Classes.ImageResizing
 	/// </summary>
 	public sealed class ImageResizer : IImageResizer
 	{
-		private static RequestOptions _Options { get; } = DiscordUtils.GenerateRequestOptions("Image stream used.");
-		private static string _FfmpegLocation { get; } = FindFfmpeg();
+		private static readonly RequestOptions _Options = DiscordUtils.GenerateRequestOptions("Image stream used.");
+		private static readonly string? _FfmpegLocation = FindFfmpeg();
 		private const long _MaxDownloadLengthInBytes = 10000000;
 
 		private readonly ConcurrentQueue<IImageArgs> _Args = new ConcurrentQueue<IImageArgs>();
-		private readonly ConcurrentDictionary<ulong, object> _CurrentlyProcessing = new ConcurrentDictionary<ulong, object>();
+		private readonly ConcurrentDictionary<ulong, byte> _CurrentlyProcessing = new ConcurrentDictionary<ulong, byte>();
 		private readonly SemaphoreSlim _SemaphoreSlim;
 		private readonly HttpClient _Client;
 
@@ -63,7 +63,7 @@ namespace Advobot.Classes.ImageResizing
 		public void Process(IImageArgs arguments)
 		{
 			_Args.Enqueue(arguments);
-			_CurrentlyProcessing.AddOrUpdate(arguments.Context.Guild.Id, new object(), (k, v) => new object());
+			_CurrentlyProcessing.AddOrUpdate(arguments.Context.Guild.Id, 0, (k, v) => 0);
 			if (_SemaphoreSlim.CurrentCount <= 0)
 			{
 				return;
@@ -110,38 +110,38 @@ namespace Advobot.Classes.ImageResizing
 		{
 			var message = await args.Context.Channel.SendMessageAsync("Starting to download the file.").CAF();
 			var stream = new MemoryStream();
-			var format = default(MagickFormat);
-
-			using (var req = await client.GetAsync(args.Url).CAF())
-			{
-				var contentLength = req.Content.Headers.ContentLength;
-				var mediaType = req.Content.Headers.ContentType.MediaType;
-
-				if (args.UserArgs.ResizeTries < 1 && contentLength > args.MaxAllowedLengthInBytes) //Max size without resize tries
-				{
-					return ImageResult.FromError(CommandError.UnmetPrecondition, MaxLength(args.MaxAllowedLengthInBytes));
-				}
-				if (contentLength > _MaxDownloadLengthInBytes) //Utter max size, even with resize tries
-				{
-					return ImageResult.FromError(CommandError.UnmetPrecondition, MaxLength(_MaxDownloadLengthInBytes));
-				}
-				if (!Enum.TryParse(mediaType.Split('/').Last(), true, out format) || !args.ValidFormats.Contains(format))
-				{
-					return ImageResult.FromError(CommandError.UnmetPrecondition, "Invalid file format supplied.");
-				}
-				var result = GetImageFormatResult(args, format);
-				if (!result.IsSuccess)
-				{
-					return result;
-				}
-
-				//Copy the response stream to a new variable so it can be seeked on
-				await req.Content.CopyToAsync(stream).CAF();
-			}
 
 			var dontDispose = false;
 			try
 			{
+				var format = default(MagickFormat);
+				using (var req = await client.GetAsync(args.Url).CAF())
+				{
+					var contentLength = req.Content.Headers.ContentLength;
+					var mediaType = req.Content.Headers.ContentType.MediaType;
+
+					if (args.UserArgs.ResizeTries < 1 && contentLength > args.MaxAllowedLengthInBytes) //Max size without resize tries
+					{
+						return ImageResult.FromError(CommandError.UnmetPrecondition, MaxLength(args.MaxAllowedLengthInBytes));
+					}
+					if (contentLength > _MaxDownloadLengthInBytes) //Utter max size, even with resize tries
+					{
+						return ImageResult.FromError(CommandError.UnmetPrecondition, MaxLength(_MaxDownloadLengthInBytes));
+					}
+					if (!Enum.TryParse(mediaType.Split('/').Last(), true, out format) || !args.ValidFormats.Contains(format))
+					{
+						return ImageResult.FromError(CommandError.UnmetPrecondition, "Invalid file format supplied.");
+					}
+					var result = GetImageFormatResult(args, format);
+					if (!result.IsSuccess)
+					{
+						return result;
+					}
+
+					//Copy the response stream to a new variable so it can be seeked on
+					await req.Content.CopyToAsync(stream).CAF();
+				}
+
 				if (format == MagickFormat.Mp4) //Convert mp4 to gif so it can be used in animated gifs
 				{
 					await message.ModifyAsync(x => x.Content = $"Converting mp4 to gif.").CAF();
@@ -152,7 +152,7 @@ namespace Advobot.Classes.ImageResizing
 				if (stream.Length > args.MaxAllowedLengthInBytes)
 				{
 					//Getting to this point has already checked resize tries, so this image needs to be resized if it's too big
-					for (int i = 0; i < args.UserArgs.ResizeTries && stream.Length > args.MaxAllowedLengthInBytes; ++i)
+					for (var i = 0; i < args.UserArgs.ResizeTries && stream.Length > args.MaxAllowedLengthInBytes; ++i)
 					{
 						await message.ModifyAsync(x => x.Content = $"Attempting to resize {i + 1}/{args.UserArgs.ResizeTries}.").CAF();
 						if (ResizeFile(stream, args, format, out var width, out var height)) //Acceptable size

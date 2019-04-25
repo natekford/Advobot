@@ -23,7 +23,8 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Converters
 		/// <param name="culture"></param>
 		/// <returns></returns>
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-			=> value is TBrush brush ? _Factory.FormatBrush(brush) : _Factory.FormatBrush(_Factory.Default);
+			=> value is TBrush brush ? _Factory.FormatBrush(brush)
+				: throw new InvalidOperationException("Invalid brush supplied for converting.");
 		/// <summary>
 		/// Converts a string to a <typeparamref name="TBrush"/>.
 		/// </summary>
@@ -33,6 +34,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Converters
 		/// <param name="culture"></param>
 		/// <returns></returns>
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-			=> _Factory.CreateBrush((value ?? "").ToString());
+			=> value is string str && _Factory.CreateBrush(str) is TBrush brush ? brush
+				: throw new InvalidOperationException("Brush cannot be null when converting back.");
 	}
 }

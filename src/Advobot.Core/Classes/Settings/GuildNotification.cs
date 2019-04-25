@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -12,7 +11,7 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Notification that gets sent whenever certain events happen depending on what is linked to this notification.
 	/// </summary>
-	public struct GuildNotification : IGuildFormattable
+	public sealed class GuildNotification : IGuildFormattable
 	{
 		/// <summary>
 		/// What to replace with a user mention.
@@ -27,12 +26,12 @@ namespace Advobot.Classes.Settings
 		/// The content to send in the message.
 		/// </summary>
 		[JsonProperty]
-		public string Content { get; set; }
+		public string? Content { get; set; }
 		/// <summary>
 		/// The embed to send with the message.
 		/// </summary>
 		[JsonProperty]
-		public CustomEmbed CustomEmbed { get; set; }
+		public CustomEmbed? CustomEmbed { get; set; }
 		/// <summary>
 		/// The channel to send the message to.
 		/// </summary>
@@ -45,7 +44,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public Task SendAsync(SocketGuild guild, IUser user)
+		public Task SendAsync(SocketGuild guild, IUser? user)
 		{
 			if (ChannelId == 0)
 			{
@@ -53,8 +52,8 @@ namespace Advobot.Classes.Settings
 			}
 
 			var content = Content
-				.CaseInsReplace(USER_MENTION, user?.Mention ?? "Invalid User")
-				.CaseInsReplace(USER_STRING, user?.Format() ?? "Invalid User");
+                ?.CaseInsReplace(USER_MENTION, user?.Mention ?? "Invalid User")
+				?.CaseInsReplace(USER_STRING, user?.Format() ?? "Invalid User");
 
 			return MessageUtils.SendMessageAsync(guild.GetTextChannel(ChannelId), content, CustomEmbed?.BuildWrapper());
 		}

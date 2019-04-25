@@ -5,6 +5,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
+using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -22,31 +23,34 @@ namespace Advobot.Commands
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		//[SaveGuildSettings]
-		public sealed class PreventSpam : AdvobotModuleBase
+		public sealed class PreventSpam : AdvobotSettingsModuleBase<IGuildSettings>
 		{
-			[ImplicitCommand, ImplicitAlias]
-			public async Task Create(SpamPrev args)
-			{
-				Context.GuildSettings[args.Type] = args;
-				await ReplyTimedAsync($"Successfully set up the spam prevention for `{args.Type}`.\n{args}").CAF();
-			}
-			[ImplicitCommand, ImplicitAlias]
-			public async Task Enable(SpamType spamType)
-				=> await CommandRunner(spamType, true).CAF();
-			[ImplicitCommand, ImplicitAlias]
-			public async Task Disable(SpamType spamType)
-				=> await CommandRunner(spamType, false).CAF();
+			protected override IGuildSettings Settings => Context.GuildSettings;
 
-			private async Task CommandRunner(SpamType spamType, bool enable)
+			[ImplicitCommand, ImplicitAlias]
+			public Task Create(SpamType spamType, [Remainder] SpamPrev args)
 			{
-				if (!(Context.GuildSettings[spamType] is SpamPrev antiSpam))
+				Settings[spamType] = args;
+				return ReplyTimedAsync($"Successfully set up the spam prevention for `{args.Type}`.\n{args}");
+			}
+			[DontSaveAfterExecution]
+			[ImplicitCommand, ImplicitAlias]
+			public Task Enable(SpamType spamType)
+				=> CommandRunner(spamType, true);
+			[DontSaveAfterExecution]
+			[ImplicitCommand, ImplicitAlias]
+			public Task Disable(SpamType spamType)
+				=> CommandRunner(spamType, false);
+
+			private Task CommandRunner(SpamType spamType, bool enable)
+			{
+				if (!(Settings[spamType] is SpamPrev antiSpam))
 				{
-					await ReplyErrorAsync($"There must be a `{spamType}` spam prevention before one can be enabled or disabled.").CAF();
-					return;
+					return ReplyErrorAsync($"There must be a `{spamType}` spam prevention before one can be enabled or disabled.");
 				}
 
 				antiSpam.Enabled = enable;
-				await ReplyTimedAsync($"Successfully {(enable ? "enabled" : "disabled")} the `{spamType}` spam prevention.").CAF();
+				return ReplyTimedAsync($"Successfully {(enable ? "enabled" : "disabled")} the `{spamType}` spam prevention.");
 			}
 		}
 
@@ -57,24 +61,28 @@ namespace Advobot.Commands
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		//[SaveGuildSettings]
-		public sealed class PreventRaid : AdvobotModuleBase
+		public sealed class PreventRaid : AdvobotSettingsModuleBase<IGuildSettings>
 		{
+			protected override IGuildSettings Settings => Context.GuildSettings;
+
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Create([Remainder] RaidPrev args)
+			public Task Create(RaidType raidType, [Remainder] RaidPrev args)
 			{
-				Context.GuildSettings[args.Type] = args;
-				await ReplyTimedAsync($"Successfully set up the raid prevention for `{args.Type}`.\n{args}").CAF();
+				Settings[raidType] = args;
+				return ReplyTimedAsync($"Successfully set up the raid prevention for `{args.Type}`.\n{args}");
 			}
+			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Enable(RaidType raidType)
-				=> await CommandRunner(raidType, true).CAF();
+			public Task Enable(RaidType raidType)
+				=> CommandRunner(raidType, true);
+			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Disable(RaidType raidType)
-				=> await CommandRunner(raidType, false).CAF();
+			public Task Disable(RaidType raidType)
+				=> CommandRunner(raidType, false);
 
 			private async Task CommandRunner(RaidType raidType, bool enable)
 			{
-				if (!(Context.GuildSettings[raidType] is RaidPrev antiRaid))
+				if (!(Settings[raidType] is RaidPrev antiRaid))
 				{
 					await ReplyErrorAsync($"There must be a `{raidType}` raid prevention before one can be enabled or disabled.").CAF();
 					return;
@@ -87,7 +95,7 @@ namespace Advobot.Commands
 					var users = Context.Guild.GetUsersByJoinDate().Reverse().ToArray();
 					for (var i = 0; i < new[] { antiRaid.UserCount, users.Length, 25 }.Min(); ++i)
 					{
-						await antiRaid.PunishAsync(Context.GuildSettings, users[i]).CAF();
+						await antiRaid.PunishAsync(Settings, users[i]).CAF();
 					}
 				}
 

@@ -12,10 +12,10 @@ namespace Advobot.Console
 		private static async Task Main(string[] args)
 		{
 			var launcher = new AdvobotConsoleLauncher(args);
-			await launcher.GetPathAndKey().CAF();
+			await launcher.GetPathAndKeyAsync().CAF();
 			var services = launcher.GetDefaultServices(DiscordUtils.GetCommandAssemblies());
-			var provider = services.CreateProvider();
-			await launcher.Start(provider).CAF();
+			var provider = launcher.CreateProvider(services);
+			await launcher.StartAsync(provider).CAF();
 			await Task.Delay(-1).CAF();
 		}
 	}

@@ -62,7 +62,7 @@ namespace Advobot.Commands
 					: FormattingUtils.FormatEmoteInfo(emote));
 			[ImplicitCommand, ImplicitAlias]
 			public Task Invite(IInvite invite)
-				=> ReplyEmbedAsync(FormattingUtils.FormatInviteInfo(invite as IInviteMetadata));
+				=> ReplyEmbedAsync(FormattingUtils.FormatInviteInfo((IInviteMetadata)invite));
 			[ImplicitCommand, ImplicitAlias]
 			public Task Webhook(IWebhook webhook)
 				=> ReplyEmbedAsync(FormattingUtils.FormatWebhookInfo(Context.Guild, webhook));

@@ -4,7 +4,6 @@ using System.IO;
 using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
-using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesUtils;
 using Discord;
 using Newtonsoft.Json;
@@ -26,6 +25,7 @@ namespace Advobot.Services.BotSettings
 			get => _Prefix;
 			set => ThrowIfElseSet(ref _Prefix, value, v => string.IsNullOrWhiteSpace(v), "Must not be null or whitespace.");
 		}
+		private string _Prefix = "&&";
 		/// <inheritdoc />
 		[JsonProperty("Game")]
 		public string? Game
@@ -33,6 +33,7 @@ namespace Advobot.Services.BotSettings
 			get => _Game;
 			set => ThrowIfElseSet(ref _Game, value, v => v?.Length > 128, $"Must not be longer than 128 characters.");
 		}
+		private string? _Game;
 		/// <inheritdoc />
 		[JsonProperty("Stream")]
 		public string? Stream
@@ -40,6 +41,7 @@ namespace Advobot.Services.BotSettings
 			get => _Stream;
 			set => ThrowIfElseSet(ref _Stream, value, v => !RegexUtils.IsValidTwitchName(v), "Invalid Twitch stream name supplied.");
 		}
+		private string? _Stream;
 		/// <inheritdoc />
 		[JsonProperty("AlwaysDownloadUsers")]
 		public bool AlwaysDownloadUsers { get; set; } = true;
@@ -47,9 +49,10 @@ namespace Advobot.Services.BotSettings
 		[JsonProperty("MessageCacheSize")]
 		public int MessageCacheSize
 		{
-			get => _MessageCacheCount;
-			set => ThrowIfElseSet(ref _MessageCacheCount, value, v => v < 1, "Must be greater than 0.");
+			get => _MessageCacheSize;
+			set => ThrowIfElseSet(ref _MessageCacheSize, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MessageCacheSize = 1000;
 		/// <inheritdoc />
 		[JsonProperty("MaxUserGatherCount")]
 		public int MaxUserGatherCount
@@ -57,6 +60,7 @@ namespace Advobot.Services.BotSettings
 			get => _MaxUserGatherCount;
 			set => ThrowIfElseSet(ref _MaxUserGatherCount, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxUserGatherCount = 100;
 		/// <inheritdoc />
 		[JsonProperty("MaxMessageGatherSize")]
 		public int MaxMessageGatherSize
@@ -64,6 +68,7 @@ namespace Advobot.Services.BotSettings
 			get => _MaxMessageGatherSize;
 			set => ThrowIfElseSet(ref _MaxMessageGatherSize, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxMessageGatherSize = 500000;
 		/// <inheritdoc />
 		[JsonProperty("MaxRuleCategories")]
 		public int MaxRuleCategories
@@ -71,6 +76,7 @@ namespace Advobot.Services.BotSettings
 			get => _MaxRuleCategories;
 			set => ThrowIfElseSet(ref _MaxRuleCategories, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxRuleCategories = 20;
 		/// <inheritdoc />
 		[JsonProperty("MaxRulesPerCategory")]
 		public int MaxRulesPerCategory
@@ -78,6 +84,7 @@ namespace Advobot.Services.BotSettings
 			get => _MaxRulesPerCategory;
 			set => ThrowIfElseSet(ref _MaxRulesPerCategory, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxRulesPerCategory = 20;
 		/// <inheritdoc />
 		[JsonProperty("MaxSelfAssignableRoleGroups")]
 		public int MaxSelfAssignableRoleGroups
@@ -85,6 +92,7 @@ namespace Advobot.Services.BotSettings
 			get => _MaxSelfAssignableRoleGroups;
 			set => ThrowIfElseSet(ref _MaxSelfAssignableRoleGroups, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxSelfAssignableRoleGroups = 10;
 		/// <inheritdoc />
 		[JsonProperty("MaxQuotes")]
 		public int MaxQuotes
@@ -92,6 +100,7 @@ namespace Advobot.Services.BotSettings
 			get => _MaxQuotes;
 			set => ThrowIfElseSet(ref _MaxQuotes, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxQuotes = 500;
 		/// <inheritdoc />
 		[JsonProperty("MaxBannedStrings")]
 		public int MaxBannedStrings
@@ -99,6 +108,7 @@ namespace Advobot.Services.BotSettings
 			get => _MaxBannedStrings;
 			set => ThrowIfElseSet(ref _MaxBannedStrings, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxBannedStrings = 50;
 		/// <inheritdoc />
 		[JsonProperty("MaxBannedRegex")]
 		public int MaxBannedRegex
@@ -106,6 +116,7 @@ namespace Advobot.Services.BotSettings
 			get => _MaxBannedRegex;
 			set => ThrowIfElseSet(ref _MaxBannedRegex, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxBannedRegex = 25;
 		/// <inheritdoc />
 		[JsonProperty("MaxBannedNames")]
 		public int MaxBannedNames
@@ -113,6 +124,7 @@ namespace Advobot.Services.BotSettings
 			get => _MaxBannedNames;
 			set => ThrowIfElseSet(ref _MaxBannedNames, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxBannedNames = 25;
 		/// <inheritdoc />
 		[JsonProperty("MaxBannedPunishments")]
 		public int MaxBannedPunishments
@@ -120,15 +132,16 @@ namespace Advobot.Services.BotSettings
 			get => _MaxBannedPunishments;
 			set => ThrowIfElseSet(ref _MaxBannedPunishments, value, v => v < 1, "Must be greater than 0.");
 		}
+		private int _MaxBannedPunishments = 10;
 		/// <inheritdoc />
 		[JsonProperty("TrustedUsers")]
-		public IList<ulong> TrustedUsers { get; private set; } = new ObservableCollection<ulong>();
+		public IList<ulong> TrustedUsers { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("UsersUnableToDmOwner")]
-		public IList<ulong> UsersUnableToDmOwner { get; private set; } = new ObservableCollection<ulong>();
+		public IList<ulong> UsersUnableToDmOwner { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[JsonProperty("UsersIgnoredFromCommands")]
-		public IList<ulong> UsersIgnoredFromCommands { get; private set; } = new ObservableCollection<ulong>();
+		public IList<ulong> UsersIgnoredFromCommands { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool Pause { get; set; }
@@ -139,40 +152,13 @@ namespace Advobot.Services.BotSettings
 		[JsonIgnore]
 		public string RestartArguments { get; private set; } = "";
 
-		[JsonIgnore]
-		private string _Prefix = "&&";
-		[JsonIgnore]
-		private string? _Stream;
-		[JsonIgnore]
-		private string? _Game;
-		[JsonIgnore]
-		private int _MessageCacheCount = 1000;
-		[JsonIgnore]
-		private int _MaxUserGatherCount = 100;
-		[JsonIgnore]
-		private int _MaxMessageGatherSize = 500000;
-		[JsonIgnore]
-		private int _MaxRuleCategories = 20;
-		[JsonIgnore]
-		private int _MaxRulesPerCategory = 20;
-		[JsonIgnore]
-		private int _MaxSelfAssignableRoleGroups = 10;
-		[JsonIgnore]
-		private int _MaxQuotes = 500;
-		[JsonIgnore]
-		private int _MaxBannedStrings = 50;
-		[JsonIgnore]
-		private int _MaxBannedRegex = 25;
-		[JsonIgnore]
-		private int _MaxBannedNames = 25;
-		[JsonIgnore]
-		private int _MaxBannedPunishments = 10;
 
 		/// <summary>
 		/// Creates an instance of <see cref="BotSettings"/>.
 		/// </summary>
 		private BotSettings()
 		{
+			/*
 			SettingParser.Add(new Setting<LogSeverity>(() => LogLevel)
 			{
 				ResetValueFactory = x => LogSeverity.Warning,
@@ -239,7 +225,7 @@ namespace Advobot.Services.BotSettings
 			});
 			SettingParser.Add(new CollectionSetting<ulong>(() => TrustedUsers));
 			SettingParser.Add(new CollectionSetting<ulong>(() => UsersUnableToDmOwner));
-			SettingParser.Add(new CollectionSetting<ulong>(() => UsersIgnoredFromCommands));
+			SettingParser.Add(new CollectionSetting<ulong>(() => UsersIgnoredFromCommands));*/
 		}
 
 		/// <inheritdoc />

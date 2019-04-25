@@ -55,39 +55,21 @@ namespace Advobot.Commands
 		[EnabledByDefault(true)]
 		public sealed class CreateInvite : AdvobotModuleBase
 		{
-#warning redo how arguments are parsed here
 			[Command]
 			public Task Command(
 				[Optional, ValidateTextChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketTextChannel channel,
-				[Optional, ValidateInviteTime] int time,
-				[Optional, ValidateInviteUses] int uses,
-				[Optional] bool tempMem)
-				=> CommandRunner(channel, time, uses, tempMem);
+				[Optional] CreateInviteArguments arguments)
+				=> CommandRunner(channel, arguments);
 			[Command]
 			public Task Command(
 				[ValidateVoiceChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketVoiceChannel channel,
-				[Optional, ValidateInviteTime] int time,
-				[Optional, ValidateInviteUses] int uses,
-				[Optional] bool tempMem)
-				=> CommandRunner(channel, time, uses, tempMem);
+				[Optional] CreateInviteArguments arguments)
+				=> CommandRunner(channel, arguments);
 
-			private async Task CommandRunner(INestedChannel channel, int time, int uses, bool tempMem)
+			private async Task CommandRunner(INestedChannel channel, CreateInviteArguments arguments)
 			{
-				var nullableTime = time != 0 ? time as int? : 86400;
-				var nullableUses = uses != 0 ? uses as int? : null;
-				var inv = await channel.CreateInviteAsync(nullableTime, nullableUses, tempMem, false, GenerateRequestOptions()).CAF();
-
-				var timeOutputStr = uses != 0
-					? $"It will last for this amount of time: `{nullableTime}`."
-					: "It will last until manually revoked.";
-				var usesOutputStr = time != 0
-					? $"It will last for this amount of uses: `{nullableUses}`."
-					: "It has no usage limit.";
-				var tempOutputStr = tempMem
-					? "Users will be kicked when they go offline unless they get a role."
-					: "Users will not be kicked when they go offline and do not have a role.";
-				var joined = new[] { inv.Url, timeOutputStr, usesOutputStr, tempOutputStr }.JoinNonNullStrings("\n");
-				await ReplyAsync($"Here is your invite for `{channel.Format()}`: {joined}").CAF();
+				var invite = await channel.CreateInviteAsync(arguments.Time * 60, arguments.Uses, arguments.TemporaryMembership, false, GenerateRequestOptions()).CAF();
+				await ReplyAsync($"Successfully created `{invite.Format()}`.").CAF();
 			}
 		}
 

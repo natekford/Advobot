@@ -49,7 +49,7 @@ namespace Advobot.Services.GuildSettings
 			await concrete.PostDeserializeAsync(guild).CAF();
 
 			settings = concrete;
-			settings.SaveSettings(_Settings);
+			settings.Save(_Settings);
 
 			if (!_GuildSettings.TryAdd(guild.Id, settings))
 			{

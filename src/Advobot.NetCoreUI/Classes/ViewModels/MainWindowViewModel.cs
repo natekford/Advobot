@@ -9,10 +9,10 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Advobot.Interfaces;
+using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 using Advobot.NetCoreUI.Classes.Colors;
 using Advobot.NetCoreUI.Classes.Views;
 using Advobot.NetCoreUI.Utils;
-using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Avalonia.Controls;
@@ -133,8 +133,8 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			ThreadCount = timer.Select(x => $"Threads: {ProcessInfoUtils.GetThreadCount()}");
 		}
 
-		private bool GetMenuStatus([CallerMemberName] string menu = "")
-			=> _MenuStatuses.GetOrAdd(menu, false);
+		private bool GetMenuStatus([CallerMemberName] string caller = "")
+			=> _MenuStatuses.GetOrAdd(caller, false);
 		private void PrintOutput(string value) => Output += value;
 		private void TakeInput()
 		{
@@ -209,7 +209,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		private void SaveColorSettings()
 		{
 			ConsoleUtils.WriteLine("Successfully saved the color settings.", name: "Saving");
-			_Colors.SaveSettings(_BotSettings);
+			_Colors.Save(_BotSettings);
 		}
 		private void SaveBotSettings()
 		{

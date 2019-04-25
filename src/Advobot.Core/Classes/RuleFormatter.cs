@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using AdvorangesUtils;
+using Discord.Commands;
 
 namespace Advobot.Classes
 {
 	/// <summary>
 	/// Formats rules to look nice.
 	/// </summary>
+	[NamedArgumentType]
 	public sealed class RuleFormatter
 	{
 		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultTitleFormats = new Dictionary<RuleFormat, MarkDownFormat[]>
@@ -30,7 +31,6 @@ namespace Advobot.Classes
 			{ RuleFormat.Bullets, new MarkDownFormat[0] },
 			{ RuleFormat.Bold, new[] { MarkDownFormat.Bold } }
 		}.ToImmutableDictionary();
-		private static readonly ImmutableArray<MarkDownFormat> _MarkDownFormats = Enum.GetValues(typeof(MarkDownFormat)).Cast<MarkDownFormat>().ToImmutableArray();
 
 		/// <summary>
 		/// The character to put after numbers in the lists.
@@ -43,15 +43,15 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Markdown supplied for titles.
 		/// </summary>
-		public IList<MarkDownFormat> TitleMarkDownFormat { get; } = new List<MarkDownFormat>();
+		public IList<MarkDownFormat> TitleMarkDownFormat { get; set; } = new List<MarkDownFormat>();
 		/// <summary>
 		/// Markdown supplied for rules.
 		/// </summary>
-		public IList<MarkDownFormat> RuleMarkDownFormat { get; } = new List<MarkDownFormat>();
+		public IList<MarkDownFormat> RuleMarkDownFormat { get; set; } = new List<MarkDownFormat>();
 		/// <summary>
 		/// Additional formatting options.
 		/// </summary>
-		public IList<RuleFormatOption> Options { get; } = new List<RuleFormatOption>();
+		public IList<RuleFormatOption> Options { get; set; } = new List<RuleFormatOption>();
 
 		/// <summary>
 		/// Format the name of a rule category.
