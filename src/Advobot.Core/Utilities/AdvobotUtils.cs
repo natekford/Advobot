@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Advobot.Classes;
-using Advobot.Classes.ImageResizing;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
@@ -14,8 +12,6 @@ using AdvorangesSettingParser.Interfaces;
 using AdvorangesSettingParser.Results;
 using AdvorangesSettingParser.Utils;
 using Discord;
-using ImageMagick;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Utilities
 {
@@ -137,20 +133,13 @@ namespace Advobot.Utilities
 		/// <param name="number"></param>
 		/// <param name="f"></param>
 		/// <returns></returns>
-		public static IEnumerable<T> GetFromCount<T>(this IEnumerable<T> objects, CountTarget method, int? number, Func<T, int?> f)
+		public static IEnumerable<T> GetFromCount<T>(this IEnumerable<T> objects, CountTarget method, int? number, Func<T, int?> f) => method switch
 		{
-			switch (method)
-			{
-				case CountTarget.Equal:
-					return objects.Where(x => f(x) == number);
-				case CountTarget.Below:
-					return objects.Where(x => f(x) < number);
-				case CountTarget.Above:
-					return objects.Where(x => f(x) > number);
-				default:
-					throw new InvalidOperationException($"Invalid {nameof(CountTarget)}.");
-			}
-		}
+			CountTarget.Equal => objects.Where(x => f(x) == number),
+			CountTarget.Below => objects.Where(x => f(x) < number),
+			CountTarget.Above => objects.Where(x => f(x) > number),
+			_ => throw new ArgumentException(nameof(method)),
+		};
 		/// <summary>
 		/// Registers the settings which need to be registered for the bot to work correctly.
 		/// </summary>
@@ -166,14 +155,14 @@ namespace Advobot.Utilities
 				new StaticSetting<SpamPrev, int>(x => x.SpamInstances) { Validation = x => MinMax(nameof(SpamPrev.SpamInstances), x, 1, 25) },
 				new StaticSetting<SpamPrev, int>(x => x.VotesForKick) { Validation = x => MinMax(nameof(SpamPrev.VotesForKick), x, 1, 50) },
 				new StaticSetting<SpamPrev, int>(x => x.SpamPerMessage) { Validation = x => MinMax(nameof(SpamPrev.SpamPerMessage), x, 1, 2000) },
-				new StaticSetting<SpamPrev, int>(x => x.TimeInterval) { Validation = x => MinMax(nameof(SpamPrev.TimeInterval), x, 1, 180) },
+				new StaticSetting<SpamPrev, TimeSpan>(x => x.TimeInterval) { Validation = x => MinMax(nameof(SpamPrev.TimeInterval), x, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(180)) },
 			}.Register();
 			new StaticSettingParser<RaidPrev>
 			{
 				new StaticSetting<RaidPrev, RaidType>(x => x.Type),
 				new StaticSetting<RaidPrev, Punishment>(x => x.Punishment),
 				new StaticSetting<RaidPrev, int>(x => x.UserCount) { Validation = x => MinMax(nameof(RaidPrev.UserCount), x, 1, 25) },
-				new StaticSetting<RaidPrev, int>(x => x.TimeInterval) { Validation = x => MinMax(nameof(RaidPrev.TimeInterval), x, 1, 60) },
+				new StaticSetting<RaidPrev, TimeSpan>(x => x.TimeInterval) { Validation = x => MinMax(nameof(RaidPrev.TimeInterval), x, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(180)) },
 			}.Register();
 			new StaticSettingParser<PersistentRole>
 			{
@@ -217,13 +206,13 @@ namespace Advobot.Utilities
 			}.Register();
 			return StaticSettingParserRegistry.Instance.RegisteredTypes;
 		}
-		private static IResult MinMax(string name, int inputValue, int minValue, int maxValue)
+		private static IResult MinMax<T>(string name, T inputValue, T minValue, T maxValue) where T : IComparable
 		{
-			if (inputValue > maxValue)
+			if (inputValue.CompareTo(maxValue) == 1)
 			{
 				return Result.FromError($"The {name} must be less than or equal to `{maxValue}`.");
 			}
-			if (inputValue < minValue)
+			if (inputValue.CompareTo(minValue) == -1)
 			{
 				return Result.FromError($"The {name} must be greater than or equal to `{minValue}`.");
 			}

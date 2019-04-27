@@ -31,7 +31,7 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 		{
 			if (!Path.HasExtension(databaseName))
 			{
-				databaseName = databaseName + ".db";
+				databaseName += ".db";
 			}
 			return new LiteDBWrapper(GetDatabase(_Settings, databaseName));
 		}
@@ -103,7 +103,7 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 						}
 						return options.Values ?? Enumerable.Empty<T>();
 					default:
-						throw new InvalidOperationException("Invalid database action supplied.");
+						throw new ArgumentException(nameof(options.Action));
 				}
 			}
 			/// <inheritdoc />

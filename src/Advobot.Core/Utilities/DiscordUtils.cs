@@ -97,11 +97,12 @@ namespace Advobot.Utilities
 		/// Returns the listlength if seconds is less than 0 or the listlength is less than 2.
 		/// </summary>
 		/// <param name="source"></param>
-		/// <param name="seconds"></param>
+		/// <param name="time"></param>
 		/// <param name="removeOldInstances"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">When <paramref name="source"/> is not in order.</exception>
-		public static int CountItemsInTimeFrame(ICollection<ulong> source, double seconds = 0, bool removeOldInstances = false)
+#warning rewrite to only read instead of modify?
+		public static int CountItemsInTimeFrame(ICollection<ulong> source, TimeSpan? time, bool removeOldInstances = false)
 		{
 			var copy = source.ToArray();
 
@@ -116,7 +117,7 @@ namespace Advobot.Utilities
 						for (var i = copy.Length - 1; i >= 0; --i)
 						{
 							//If the time is recent enough to still be within the timeframe leave it
-							if ((now - SnowflakeUtils.FromSnowflake(copy[i]).UtcDateTime).TotalSeconds < seconds + 1)
+							if ((now - SnowflakeUtils.FromSnowflake(copy[i]).UtcDateTime) < time)
 							{
 								continue;
 							}
@@ -132,7 +133,7 @@ namespace Advobot.Utilities
 			}
 
 			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
-			if (seconds < 0 || copy.Length < 2)
+			if (time == null || copy.Length < 2)
 			{
 				RemoveOldInstances();
 				return copy.Length;
@@ -153,14 +154,14 @@ namespace Advobot.Utilities
 				for (var j = i + 1; j < copy.Length; ++j)
 				{
 					var jTime = SnowflakeUtils.FromSnowflake(copy[j]).UtcDateTime;
-					if ((jTime - iTime).TotalSeconds < seconds)
+					if ((jTime - iTime) < time)
 					{
 						++currentIterCount;
 						continue;
 					}
 					//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
 					var jMinOneTime = SnowflakeUtils.FromSnowflake(copy[j - 1]).UtcDateTime;
-					if ((jTime - jMinOneTime).TotalSeconds > seconds)
+					if ((jTime - jMinOneTime) > time)
 					{
 						i = j + 1;
 					}
@@ -188,9 +189,6 @@ namespace Advobot.Utilities
 			{
 				return assemblies;
 			}
-
-			ConsoleUtils.WriteLine("Unable to find any command assemblies.", ConsoleColor.Red);
-			Console.Read();
 			throw new DllNotFoundException("Unable to find any command assemblies.");
 		}
 		/// <summary>

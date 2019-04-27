@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -33,62 +34,14 @@ namespace Advobot.Classes.UserInformation
 			set => _Punishment = Math.Max((int)value, _Punishment);
 		}
 		/// <summary>
-		/// Who has voted to punish the user.
+		/// The amount of people who have voted for this person to be kicked.
 		/// </summary>
-		public List<ulong> UsersWhoHaveAlreadyVoted
-		{
-			get => _UsersWhoHaveAlreadyVoted;
-			set => Interlocked.Exchange(ref _UsersWhoHaveAlreadyVoted, new List<ulong>());
-		}
-		/// <summary>
-		/// The amount of spam instances associated with the amount of messages sent.
-		/// </summary>
-		public List<ulong> Message
-		{
-			get => _Message;
-			set => Interlocked.Exchange(ref _Message, new List<ulong>());
-		}
-		/// <summary>
-		/// The amount of spam instances associated with the length of messages sent.
-		/// </summary>
-		public List<ulong> LongMessage
-		{
-			get => _LongMessage;
-			set => Interlocked.Exchange(ref _LongMessage, new List<ulong>());
-		}
-		/// <summary>
-		/// The amount of spam instances associated with how many links are in messages sent.
-		/// </summary>
-		public List<ulong> Link
-		{
-			get => _Link;
-			set => Interlocked.Exchange(ref _Link, new List<ulong>());
-		}
-		/// <summary>
-		/// The amount of spam instances associated with how many images are in messages sent.
-		/// </summary>
-		public List<ulong> Image
-		{
-			get => _Image;
-			set => Interlocked.Exchange(ref _Image, new List<ulong>());
-		}
-		/// <summary>
-		/// The amount of spam instances associated with how many mentions are in messages sent.
-		/// </summary>
-		public List<ulong> Mention
-		{
-			get => _Mention;
-			set => Interlocked.Exchange(ref _Mention, new List<ulong>());
-		}
+		public int VotesReceived => _UsersWhoHaveAlreadyVoted.Count;
 
 		private int _VotesRequired = int.MaxValue;
-		private int _Punishment = -1;
-		private List<ulong> _UsersWhoHaveAlreadyVoted = new List<ulong>();
-		private List<ulong> _Message = new List<ulong>();
-		private List<ulong> _LongMessage = new List<ulong>();
-		private List<ulong> _Link = new List<ulong>();
-		private List<ulong> _Image = new List<ulong>();
-		private List<ulong> _Mention = new List<ulong>();
+		private int _Punishment = int.MinValue;
+		private ConcurrentDictionary<ulong, byte> _UsersWhoHaveAlreadyVoted = new ConcurrentDictionary<ulong, byte>();
+		private ConcurrentDictionary<SpamType, ConcurrentDictionary<ulong, byte>> _Dictionary = new ConcurrentDictionary<SpamType, ConcurrentDictionary<ulong, byte>>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="SpamPreventionUserInfo"/>.
@@ -97,102 +50,42 @@ namespace Advobot.Classes.UserInformation
 		public SpamPreventionUserInfo(SocketGuildUser user) : base(user) { }
 
 		/// <summary>
-		/// Returns true if the user should be punished at this point in time.
+		/// Returns true if the user should be kicked after the passed in vote has been added.
 		/// </summary>
+		/// <param name="vote"></param>
 		/// <returns></returns>
-		public bool IsPunishable()
-			=> _Punishment != default && _VotesRequired != int.MaxValue;
+		public bool ShouldBePunished(IUserMessage vote)
+		{
+			return VotesReceived >= VotesRequired
+				|| (_Punishment != int.MinValue //If still default value, don't do anything
+				&& _VotesRequired != int.MaxValue //If still default value, don't do anything
+				&& vote.Author.Id != UserId //Don't allow voting on self
+				&& _UsersWhoHaveAlreadyVoted.TryAdd(vote.Author.Id, 0) //Don't allow duplicate votes
+				&& vote.MentionedUserIds.Contains(UserId) //Don't count the vote if the user isn't mentioned
+				&& VotesReceived >= VotesRequired); //Allow the user to be punished if there are enough votes for them
+		}
 		/// <summary>
 		/// Returns the spam amount for the supplied spam type. Time frame limits the max count by how close instances are.
 		/// </summary>
 		/// <param name="type"></param>
-		/// <param name="timeFrame"></param>
+		/// <param name="time"></param>
 		/// <returns></returns>
-		public int GetSpamAmount(SpamType type, int timeFrame)
-		{
-			switch (type)
-			{
-				case SpamType.Message:
-					return DiscordUtils.CountItemsInTimeFrame(Message, timeFrame);
-				case SpamType.LongMessage:
-					return DiscordUtils.CountItemsInTimeFrame(LongMessage, timeFrame);
-				case SpamType.Link:
-					return DiscordUtils.CountItemsInTimeFrame(Link, timeFrame);
-				case SpamType.Image:
-					return DiscordUtils.CountItemsInTimeFrame(Image, timeFrame);
-				case SpamType.Mention:
-					return DiscordUtils.CountItemsInTimeFrame(Mention, timeFrame);
-				default:
-					return -1;
-			}
-		}
+		public int GetSpamAmount(SpamType type, TimeSpan? time)
+			=> DiscordUtils.CountItemsInTimeFrame(_Dictionary.GetOrAdd(type, new ConcurrentDictionary<ulong, byte>()).Keys, time);
 		/// <summary>
 		/// Adds a spam instance to the supplied spam type's list.
 		/// </summary>
 		/// <param name="type"></param>
 		/// <param name="message"></param>
-		public void AddSpamInstance(SpamType type, IMessage message)
-		{
-			switch (type)
-			{
-				case SpamType.Message:
-					lock (Message)
-					{
-						if (!Message.Any(x => x == message.Id))
-						{
-							Message.Add(message.Id);
-						}
-					}
-					return;
-				case SpamType.LongMessage:
-					lock (LongMessage)
-					{
-						if (!LongMessage.Any(x => x == message.Id))
-						{
-							LongMessage.Add(message.Id);
-						}
-					}
-					return;
-				case SpamType.Link:
-					lock (Link)
-					{
-						if (!Link.Any(x => x == message.Id))
-						{
-							Link.Add(message.Id);
-						}
-					}
-					return;
-				case SpamType.Image:
-					lock (Image)
-					{
-						if (!Image.Any(x => x == message.Id))
-						{
-							Image.Add(message.Id);
-						}
-					}
-					return;
-				case SpamType.Mention:
-					lock (Mention)
-					{
-						if (!Mention.Any(x => x == message.Id))
-						{
-							Mention.Add(message.Id);
-						}
-					}
-					return;
-			}
-		}
+		public bool AddSpamInstance(SpamType type, IMessage message)
+			=> _Dictionary.GetOrAdd(type, new ConcurrentDictionary<ulong, byte>()).TryAdd(message.Id, 0);
 		/// <inheritdoc />
 		public override void Reset()
 		{
 			Interlocked.Exchange(ref _VotesRequired, int.MaxValue);
 			Interlocked.Exchange(ref _Punishment, (int)default(Punishment));
-			Interlocked.Exchange(ref _UsersWhoHaveAlreadyVoted, new List<ulong>());
-			Interlocked.Exchange(ref _Message, new List<ulong>());
-			Interlocked.Exchange(ref _LongMessage, new List<ulong>());
-			Interlocked.Exchange(ref _Link, new List<ulong>());
-			Interlocked.Exchange(ref _Image, new List<ulong>());
-			Interlocked.Exchange(ref _Mention, new List<ulong>());
+			Interlocked.Exchange(ref _UsersWhoHaveAlreadyVoted, new ConcurrentDictionary<ulong, byte>());
+			Interlocked.Exchange(ref _Dictionary, new ConcurrentDictionary<SpamType, ConcurrentDictionary<ulong, byte>>());
 		}
 	}
 }

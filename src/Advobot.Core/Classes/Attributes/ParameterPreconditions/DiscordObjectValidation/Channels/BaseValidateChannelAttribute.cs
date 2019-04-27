@@ -6,7 +6,6 @@ using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Utilities;
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels

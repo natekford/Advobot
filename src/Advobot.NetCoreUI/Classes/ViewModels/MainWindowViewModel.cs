@@ -179,20 +179,13 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private async Task OpenFileSearchWindowAsync(Window window)
 		{
-			Type? GetDeserializationType(string fileName)
+			Type? GetDeserializationType(string fileName) => fileName switch
 			{
-				switch (fileName)
-				{
-					case string str when str == _BotSettings.GetFile().FullName:
-						return _BotSettings.GetType();
-					case string str when str == _Colors.GetFile(_BotSettings).FullName:
-						return _Colors.GetType();
-					case string str when Path.GetDirectoryName(str) == _GuildSettings.GetDirectory(_BotSettings).FullName:
-						return _BotSettings.GetType();
-					default:
-						return null;
-				}
-			}
+				string str when str == _BotSettings.GetFile().FullName => _BotSettings.GetType(),
+				string str when str == _Colors.GetFile(_BotSettings).FullName => _Colors.GetType(),
+				string str when Path.GetDirectoryName(str) == _GuildSettings.GetDirectory(_BotSettings).FullName => _BotSettings.GetType(),
+				_ => null,
+			};
 
 			//Returns array of strings, but AllowMultiple is false so should only have 1 or 0
 			var file = (await new OpenFileDialog

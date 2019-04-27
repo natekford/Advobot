@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -58,7 +59,7 @@ namespace Advobot.Services.Commands
 			}
 
 			_Commands.Log += LogInfo;
-			_Commands.CommandExecuted += (command, context, result) => LogExecution(command, (AdvobotCommandContext)context, result);
+			_Commands.CommandExecuted += (_, context, result) => LogExecution((AdvobotCommandContext)context, result);
 
 			_Client.ShardReady += (client) => OnReady(client, commands);
 			_Client.MessageReceived += HandleCommand;
@@ -100,18 +101,21 @@ namespace Advobot.Services.Commands
 				return;
 			}
 
+			ConsoleUtils.DebugWrite($"Culture in command handler: {CultureInfo.CurrentCulture.Name}");
+#warning set culture
 			var context = new AdvobotCommandContext(settings, _Client, msg);
 			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
-		private Task LogExecution(Optional<CommandInfo> command, AdvobotCommandContext context, IResult result) => result switch
+		private Task LogExecution(AdvobotCommandContext context, IResult result) => result switch
 		{
 			IResult r when CanBeIgnored(context, result) => Task.CompletedTask,
 			PreconditionGroupResult g when g.PreconditionResults.All(x => CanBeIgnored(context, x)) => Task.CompletedTask,
-			IResult r => HandleResult(command, context, r),
-			_ => Task.CompletedTask,
+			IResult r => HandleResult(context, r),
+			_ => throw new ArgumentException(nameof(result)),
 		};
-		private async Task HandleResult(Optional<CommandInfo> _, AdvobotCommandContext c, IResult result)
+		private async Task HandleResult(AdvobotCommandContext c, IResult result)
 		{
+			ConsoleUtils.DebugWrite($"Culture in result handler: {CultureInfo.CurrentCulture.Name}");
 			if (result.IsSuccess)
 			{
 				await c.Message.DeleteAsync(_Options).CAF();
@@ -126,17 +130,15 @@ namespace Advobot.Services.Commands
 				}
 			}
 
+			CommandInvoked?.Invoke(result);
+			ConsoleUtils.WriteLine(c.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 			await (result switch
 			{
 				AdvobotResult a => MessageUtils.SendMessageAsync(c.Channel, a.Reason, a.Embed, a.File), //AdvobotResult means to send the raeson, embed, and file
 #warning delete after time
 				IResult i => MessageUtils.SendMessageAsync(c.Channel, i.ErrorReason), //Unknown result type means just send the error reason
-				_ => Task.CompletedTask, //Null result means do nothing
+				_ => throw new ArgumentException(nameof(result)), //Unknown result means throw an exception
 			}).CAF();
-
-			//So the LogService can increment the counters holding successful/failed commands
-			CommandInvoked?.Invoke(result);
-			ConsoleUtils.WriteLine(c.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 		}
 		private Task LogInfo(LogMessage arg)
 		{

@@ -11,29 +11,15 @@ namespace Advobot.Services.Logging.LoggingContexts
 	public sealed class UserLoggingContext : LoggingContext
 	{
 		/// <inheritdoc />
-		public override bool CanLog
+		public override bool CanLog => base.CanLog && LogAction switch
 		{
-			get
-			{
-				if (!base.CanLog)
-				{
-					return false;
-				}
-
-				switch (LogAction)
-				{
-					//Only log if it wasn't this bot that left
-					case LogAction.UserJoined:
-					case LogAction.UserLeft:
-						return User.Id != Guild.CurrentUser.Id;
-					//Only log if it wasn't any bot that was updated.
-					case LogAction.UserUpdated:
-						return !(User.IsBot || User.IsWebhook);
-					default:
-						throw new InvalidOperationException($"Invalid log action supplied: {LogAction}.");
-				}
-			}
-		}
+			//Only log if it wasn't this bot that left
+			LogAction.UserJoined => User.Id != Guild.CurrentUser.Id,
+			LogAction.UserLeft => User.Id != Guild.CurrentUser.Id,
+			//Only log if it wasn't any bot that was updated.
+			LogAction.UserUpdated => !(User.IsBot || User.IsWebhook),
+			_ => throw new ArgumentException(nameof(LogAction)),
+		};
 		/// <summary>
 		/// The user this logger is targetting.
 		/// </summary>

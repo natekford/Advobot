@@ -74,6 +74,13 @@ namespace Advobot.Classes.Results
 		public static AdvobotResult Success(string reason = Constants.ZERO_LENGTH_CHAR)
 			=> new AdvobotResult(null, reason);
 		/// <summary>
+		/// Creates a successful result.
+		/// </summary>
+		/// <param name="embed"></param>
+		/// <returns></returns>
+		public static AdvobotResult Success(EmbedWrapper embed)
+			=> Success().WithEmbed(embed);
+		/// <summary>
 		/// Creates an error result.
 		/// </summary>
 		/// <param name="reason"></param>

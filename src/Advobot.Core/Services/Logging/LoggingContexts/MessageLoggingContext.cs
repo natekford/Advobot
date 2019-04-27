@@ -11,29 +11,15 @@ namespace Advobot.Services.Logging.LoggingContexts
 	public sealed class MessageLoggingContext : LoggingContext
 	{
 		/// <inheritdoc />
-		public override bool CanLog
+		public override bool CanLog => base.CanLog && LogAction switch
 		{
-			get
-			{
-				if (!base.CanLog)
-				{
-					return false;
-				}
-
-				switch (LogAction)
-				{
-					//Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
-					case LogAction.MessageReceived:
-					case LogAction.MessageUpdated:
-						return !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel.Id);
-					//Log all deleted messages, no matter the source user, unless they're on an unlogged channel
-					case LogAction.MessageDeleted:
-						return !Settings.IgnoredLogChannels.Contains(Channel.Id);
-					default:
-						throw new InvalidOperationException($"Invalid log action supplied: {LogAction}.");
-				}
-			}
-		}
+			//Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
+			LogAction.MessageReceived => !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel.Id),
+			LogAction.MessageUpdated => !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel.Id),
+			//Log all deleted messages, no matter the source user, unless they're on an unlogged channel
+			LogAction.MessageDeleted => !Settings.IgnoredLogChannels.Contains(Channel.Id),
+			_ => throw new ArgumentException(nameof(LogAction)),
+		};
 		/// <summary>
 		/// The message this logger is targetting.
 		/// </summary>

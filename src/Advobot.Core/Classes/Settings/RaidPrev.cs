@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -18,36 +19,16 @@ namespace Advobot.Classes.Settings
 	/// Holds information about raid prevention such as how long the interval is, and how many users to target.
 	/// </summary>
 	[NamedArgumentType]
-	public sealed class RaidPrev : IGuildFormattable
+	public sealed class RaidPrev : TimedPrev<RaidType>
 	{
-		private static Punisher _Giver { get; } = new Punisher(TimeSpan.FromMinutes(0), default);
-		private static RequestOptions _Reason { get; } = DiscordUtils.GenerateRequestOptions("Raid prevention.");
+		private static readonly Punisher _Giver = new Punisher(TimeSpan.FromMinutes(0), default);
+		private static readonly RequestOptions _Reason = DiscordUtils.GenerateRequestOptions("Raid prevention.");
 
 		/// <summary>
-		/// The type of raid this is preventing.
-		/// </summary>
-		[JsonProperty]
-		public RaidType Type { get; set; }
-		/// <summary>
-		/// The punishment to give raiders.
-		/// </summary>
-		[JsonProperty]
-		public Punishment Punishment { get; set; }
-		/// <summary>
-		/// How many users should be considered a raid.
+		/// The amount of users to count for a raid.
 		/// </summary>
 		[JsonProperty]
 		public int UserCount { get; set; }
-		/// <summary>
-		/// How long a raid should be considered to be.
-		/// </summary>
-		[JsonProperty]
-		public int TimeInterval { get; set; }
-		/// <summary>
-		/// Whether or not this raid prevention is enabled.
-		/// </summary>
-		[JsonIgnore]
-		public bool Enabled { get; set; }
 		/// <summary>
 		/// The times at which something that could be part of raiding happened.
 		/// </summary>
@@ -88,15 +69,12 @@ namespace Advobot.Classes.Settings
 		public async Task PunishAsync(IGuildSettings settings, SocketGuildUser user)
 			=> await _Giver.GiveAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
 		/// <inheritdoc />
-		public string Format(SocketGuild? guild = null)
+		public override string Format(SocketGuild? guild = null)
 		{
 			return $"**Enabled:** `{Enabled}`\n" +
 				$"**Users:** `{UserCount}`\n" +
 				$"**Time Interval:** `{TimeInterval}`\n" +
 				$"**Punishment:** `{Punishment.ToString()}`";
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> Format();
 	}
 }

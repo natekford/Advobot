@@ -1,12 +1,8 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
-using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesUtils;
 using Newtonsoft.Json;
 

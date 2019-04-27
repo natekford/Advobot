@@ -235,13 +235,13 @@ namespace Advobot.Classes
 		public ImmutableDictionary<string, string?> FailedValues => _FailedValues.ToImmutableDictionary();
 
 		private readonly bool _ThrowOnInvalid;
-		private EmbedBuilder _Builder { get; } = new EmbedBuilder
+		private readonly EmbedBuilder _Builder = new EmbedBuilder
 		{
 			Color = Base,
 			Timestamp = DateTimeOffset.UtcNow
 		};
-		private List<EmbedError> _Errors { get; } = new List<EmbedError>();
-		private Dictionary<string, string?> _FailedValues { get; } = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+		private readonly List<EmbedError> _Errors = new List<EmbedError>();
+		private readonly Dictionary<string, string?> _FailedValues = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
 		/// <summary>
 		/// Creates an <see cref="EmbedWrapper"/> that can throw on exceptions if <paramref name="throwOnInvalid"/> is true.
@@ -624,21 +624,14 @@ namespace Advobot.Classes
 				+ _Builder.Description?.Length
 				+ _Builder.Footer?.Text?.Length
 				+ _Builder.Fields.Sum(f => f.Name.Length + f.Value.ToString().Length) ?? 0;
-			switch (propertyToDisregard)
+			currentLength -= propertyToDisregard switch
 			{
-				case nameof(Title):
-					currentLength -= _Builder.Title?.Length ?? 0;
-					break;
-				case nameof(Author):
-					currentLength -= _Builder.Author?.Name?.Length ?? 0;
-					break;
-				case nameof(Description):
-					currentLength -= _Builder.Description?.Length ?? 0;
-					break;
-				case nameof(Footer):
-					currentLength -= _Builder.Footer?.Text?.Length ?? 0;
-					break;
-			}
+				nameof(Title) => _Builder.Title?.Length ?? 0,
+				nameof(Author) => _Builder.Author?.Name?.Length ?? 0,
+				nameof(Description) => _Builder.Description?.Length ?? 0,
+				nameof(Footer) => _Builder.Footer?.Text?.Length ?? 0,
+				_ => 0,
+			};
 			return EmbedBuilder.MaxEmbedLength - currentLength;
 		}
 		/// <summary>

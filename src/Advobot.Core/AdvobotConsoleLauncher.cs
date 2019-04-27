@@ -33,8 +33,8 @@ namespace Advobot
 	/// </summary>
 	public sealed class AdvobotConsoleLauncher
 	{
-		private ILowLevelConfig _Config { get; }
-		private IServiceCollection? _Services { get; set; }
+		private readonly ILowLevelConfig _Config;
+		private IServiceCollection? _Services;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotConsoleLauncher"/>.
@@ -120,13 +120,17 @@ namespace Advobot
 		}
 		private static IServiceCollection CreateDefaultServices(ILowLevelConfig config, IEnumerable<Assembly> commands)
 		{
+			if (commands == null)
+			{
+				throw new ArgumentException(nameof(commands));
+			}
+
 			T StartDatabase<T>(T db) where T : IUsesDatabase
 			{
 				db.Start();
 				return db;
 			}
 
-			commands = commands ?? throw new ArgumentException($"{nameof(commands)} cannot be null.");
 			//I have no idea if I am providing services correctly, but it works.
 			var s = new ServiceCollection();
 			s.AddSingleton(p =>

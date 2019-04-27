@@ -54,79 +54,46 @@ namespace Advobot.Classes.UserInformation
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public int this[Punishment type]
+		public int this[Punishment type] => type switch
 		{
-			get
-			{
-				switch (type)
-				{
-					case Punishment.Kick:
-						return _Kick;
-					case Punishment.Ban:
-						return _Ban;
-					case Punishment.Deafen:
-						return _Deafen;
-					case Punishment.VoiceMute:
-						return _VoiceMute;
-					case Punishment.Softban:
-						return _Softban;
-					case Punishment.RoleMute:
-						return _RoleMute;
-					default:
-						return -1;
-				}
-			}
-		}
+			Punishment.Kick => _Kick,
+			Punishment.Ban => _Ban,
+			Punishment.Deafen => _Deafen,
+			Punishment.VoiceMute => _VoiceMute,
+			Punishment.Softban => _Softban,
+			Punishment.RoleMute => _RoleMute,
+			_ => -1,
+		};
 
 		/// <summary>
 		/// Increases the banned phrase count for that punishment by one.
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public int Increment(Punishment type)
+		public int Increment(Punishment type) => type switch
 		{
-			switch (type)
-			{
-				case Punishment.Kick:
-					return Interlocked.Increment(ref _Kick);
-				case Punishment.Ban:
-					return Interlocked.Increment(ref _Ban);
-				case Punishment.Deafen:
-					return Interlocked.Increment(ref _Deafen);
-				case Punishment.VoiceMute:
-					return Interlocked.Increment(ref _VoiceMute);
-				case Punishment.Softban:
-					return Interlocked.Increment(ref _Softban);
-				case Punishment.RoleMute:
-					return Interlocked.Increment(ref _RoleMute);
-				default:
-					return -1;
-			}
-		}
+			Punishment.Kick => Interlocked.Increment(ref _Kick),
+			Punishment.Ban => Interlocked.Increment(ref _Ban),
+			Punishment.Deafen => Interlocked.Increment(ref _Deafen),
+			Punishment.VoiceMute => Interlocked.Increment(ref _VoiceMute),
+			Punishment.Softban => Interlocked.Increment(ref _Softban),
+			Punishment.RoleMute => Interlocked.Increment(ref _RoleMute),
+			_ => -1,
+		};
 		/// <summary>
 		/// Sets the banned phrase count for that punishment back to zero.
 		/// </summary>
 		/// <param name="type"></param>
-		public int Reset(Punishment type)
+		public int Reset(Punishment type) => type switch
 		{
-			switch (type)
-			{
-				case Punishment.Kick:
-					return Interlocked.Exchange(ref _Kick, 0);
-				case Punishment.Ban:
-					return Interlocked.Exchange(ref _Ban, 0);
-				case Punishment.Deafen:
-					return Interlocked.Exchange(ref _Deafen, 0);
-				case Punishment.VoiceMute:
-					return Interlocked.Exchange(ref _VoiceMute, 0);
-				case Punishment.Softban:
-					return Interlocked.Exchange(ref _Softban, 0);
-				case Punishment.RoleMute:
-					return Interlocked.Exchange(ref _RoleMute, 0);
-				default:
-					return -1;
-			}
-		}
+			Punishment.Kick => Interlocked.Exchange(ref _Kick, 0),
+			Punishment.Ban => Interlocked.Exchange(ref _Ban, 0),
+			Punishment.Deafen => Interlocked.Exchange(ref _Deafen, 0),
+			Punishment.VoiceMute => Interlocked.Exchange(ref _VoiceMute, 0),
+			Punishment.Softban => Interlocked.Exchange(ref _Softban, 0),
+			Punishment.RoleMute => Interlocked.Exchange(ref _RoleMute, 0),
+			_ => -1,
+		};
 		/// <inheritdoc />
 		public override void Reset()
 		{

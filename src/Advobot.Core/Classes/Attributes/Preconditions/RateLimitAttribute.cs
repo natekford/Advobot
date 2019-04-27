@@ -39,20 +39,13 @@ namespace Advobot.Classes.Attributes.Preconditions
 		{
 			Unit = unit;
 			Value = value;
-			switch (unit)
+			Time = unit switch
 			{
-				case TimeUnit.Seconds:
-					Time = TimeSpan.FromSeconds(value);
-					return;
-				case TimeUnit.Minutes:
-					Time = TimeSpan.FromMinutes(value);
-					return;
-				case TimeUnit.Hours:
-					Time = TimeSpan.FromHours(value);
-					return;
-				default:
-					throw new InvalidOperationException(nameof(unit));
-			}
+				TimeUnit.Seconds => TimeSpan.FromSeconds(value),
+				TimeUnit.Minutes => TimeSpan.FromMinutes(value),
+				TimeUnit.Hours => TimeSpan.FromHours(value),
+				_ => throw new ArgumentException(nameof(unit)),
+			};
 		}
 
 		/// <inheritdoc />

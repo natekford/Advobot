@@ -53,20 +53,13 @@ namespace Advobot.NetCoreUI.Utils
 		}
 		public static (string Text, ISolidColorBrush Background) SaveAndGetResponse(this FileInfo file, string text, Type? deserializationType = null)
 			=> file.Save(text, deserializationType).GetSaveResponse(file);
-		public static (string Text, ISolidColorBrush Background) GetSaveResponse(this SaveStatus response, FileInfo file)
+		public static (string Text, ISolidColorBrush Background) GetSaveResponse(this SaveStatus response, FileInfo file) => response switch
 		{
-			switch (response)
-			{
-				case SaveStatus.Failure:
-					return ($"Unable to correctly save {file}.", Brushes.Red);
-				case SaveStatus.Success:
-					return ($"Successfully saved {file}.", Brushes.Green);
-				case SaveStatus.DeserializationError:
-					return ($"Deserialization error occurred during saving {file}. This is caused by putting invalid values in Json.", Brushes.Red);
-				default:
-					throw new ArgumentException(nameof(response));
-			}
-		}
+			SaveStatus.Failure => ($"Unable to correctly save {file}.", Brushes.Red),
+			SaveStatus.Success => ($"Successfully saved {file}.", Brushes.Green),
+			SaveStatus.DeserializationError => ($"Deserialization error occurred during saving {file}. This is caused by putting invalid values in Json.", Brushes.Red),
+			_ => throw new ArgumentException(nameof(response)),
+		};
 	}
 
 	public enum SaveStatus

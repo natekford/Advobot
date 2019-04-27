@@ -42,9 +42,9 @@ namespace Advobot.Classes
 			{ Punishment.Softban, "unsoftbanned" } //Doesn't make sense either
 		};
 
-		private List<string> _Actions { get; } = new List<string>();
-		private TimeSpan? _Time { get; }
-		private ITimerService? _Timers { get; }
+		private readonly List<string> _Actions = new List<string>();
+		private readonly TimeSpan? _Time;
+		private readonly ITimerService? _Timers;
 
 		/// <summary>
 		/// Creates an instance of <see cref="Punisher"/>.
@@ -140,35 +140,16 @@ namespace Advobot.Classes
 		/// <param name="roleId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public Task GiveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions? options = null)
+		public Task GiveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions? options = null) => type switch
 		{
-			//Ban and softban both work without having to get the user
-			switch (type)
-			{
-				case Punishment.Ban:
-					return BanAsync(guild, userId, options);
-				case Punishment.Softban:
-					return SoftbanAsync(guild, userId, options);
-			}
-
-			if (!(guild.GetUser(userId) is SocketGuildUser user))
-			{
-				return Task.CompletedTask;
-			}
-			switch (type)
-			{
-				case Punishment.Kick:
-					return KickAsync(user, options);
-				case Punishment.Deafen:
-					return DeafenAsync(user, options);
-				case Punishment.VoiceMute:
-					return VoiceMuteAsync(user, options);
-				case Punishment.RoleMute:
-					return guild.GetRole(roleId) is SocketRole role ? RoleMuteAsync(user, role, options) : Task.CompletedTask;
-				default:
-					throw new InvalidOperationException("Invalid punishment type supplied.");
-			}
-		}
+			Punishment.Ban => BanAsync(guild, userId, options),
+			Punishment.Softban => SoftbanAsync(guild, userId, options),
+			Punishment.Kick => guild.GetUser(userId) is SocketGuildUser user ? KickAsync(user, options) : Task.CompletedTask,
+			Punishment.Deafen => guild.GetUser(userId) is SocketGuildUser user ? DeafenAsync(user, options) : Task.CompletedTask,
+			Punishment.VoiceMute => guild.GetUser(userId) is SocketGuildUser user ? VoiceMuteAsync(user, options) : Task.CompletedTask,
+			Punishment.RoleMute => guild.GetUser(userId) is SocketGuildUser user && guild.GetRole(roleId) is SocketRole role ? RoleMuteAsync(user, role, options) : Task.CompletedTask,
+			_ => throw new InvalidOperationException(nameof(type)),
+		};
 		private async Task AfterGiveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions? options = null)
 		{
 			var sb = new StringBuilder($"Successfully {Given[type]} `{user.Format()}`. ");
@@ -207,7 +188,7 @@ namespace Advobot.Classes
 		/// <param name="role"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task UnrolemuteAsync(SocketGuildUser user, IRole role, RequestOptions? options = null)
+		public async Task UnRoleMuteAsync(SocketGuildUser user, IRole role, RequestOptions? options = null)
 		{
 			await user.RemoveRoleAsync(role, options).CAF();
 			await AfterRemoveAsync(Punishment.RoleMute, user.Guild, user, options).CAF();
@@ -243,34 +224,16 @@ namespace Advobot.Classes
 		/// <param name="roleId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public Task RemoveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions? options = null)
+		public Task RemoveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, RequestOptions? options = null) => type switch
 		{
-			switch (type)
-			{
-				case Punishment.Ban:
-					return UnbanAsync(guild, userId, options);
-				//Can't reverse a softban or kick
-				case Punishment.Softban:
-				case Punishment.Kick:
-					return Task.CompletedTask;
-			}
-
-			if (!(guild.GetUser(userId) is SocketGuildUser user))
-			{
-				return Task.CompletedTask;
-			}
-			switch (type)
-			{
-				case Punishment.Deafen:
-					return UndeafenAsync(user, options);
-				case Punishment.VoiceMute:
-					return UnvoicemuteAsync(user, options);
-				case Punishment.RoleMute:
-					return guild.GetRole(roleId) is SocketRole role ? UnrolemuteAsync(user, role, options) : Task.CompletedTask;
-				default:
-					throw new InvalidOperationException("Invalid punishment type supplied.");
-			}
-		}
+			Punishment.Ban => UnbanAsync(guild, userId, options),
+			Punishment.Softban => Task.CompletedTask,
+			Punishment.Kick => Task.CompletedTask,
+			Punishment.Deafen => guild.GetUser(userId) is SocketGuildUser user ? UndeafenAsync(user, options) : Task.CompletedTask,
+			Punishment.VoiceMute => guild.GetUser(userId) is SocketGuildUser user ? UnvoicemuteAsync(user, options) : Task.CompletedTask,
+			Punishment.RoleMute => guild.GetUser(userId) is SocketGuildUser user && guild.GetRole(roleId) is SocketRole role ? UnRoleMuteAsync(user, role, options) : Task.CompletedTask,
+			_ => throw new InvalidOperationException(nameof(type)),
+		};
 		private async Task AfterRemoveAsync(Punishment type, SocketGuild guild, IUser user, RequestOptions? options = null)
 		{
 			var sb = new StringBuilder($"Successfully {Removed[type]} `{user?.Format() ?? "`Unknown User`"}`. ");

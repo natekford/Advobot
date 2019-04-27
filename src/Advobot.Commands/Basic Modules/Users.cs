@@ -55,7 +55,7 @@ namespace Advobot.Commands
 				if (user.Roles.Select(x => x.Id).Contains(muteRole.Id))
 				{
 					var remover = new Punisher(TimeSpan.FromMinutes(0), default);
-					await remover.UnrolemuteAsync(user, muteRole, GenerateRequestOptions(reason.Reason)).CAF();
+					await remover.UnRoleMuteAsync(user, muteRole, GenerateRequestOptions(reason.Reason)).CAF();
 					await ReplyTimedAsync(remover.ToString()).CAF();
 					return;
 				}

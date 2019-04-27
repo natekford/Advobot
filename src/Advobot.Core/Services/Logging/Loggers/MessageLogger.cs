@@ -28,14 +28,6 @@ namespace Advobot.Services.Logging.Loggers
 		private static RequestOptions _SpamPreventionOptions { get; } = DiscordUtils.GenerateRequestOptions("Spam prevention.");
 		private static RequestOptions _ChannelSettingsOptions { get; } = DiscordUtils.GenerateRequestOptions("Due to channel settings.");
 		private static RequestOptions _BannedPhraseOptions { get; } = DiscordUtils.GenerateRequestOptions("Banned phrase.");
-		private static Dictionary<SpamType, Func<IMessage, int?>> _CalculateSpamAmount { get; } = new Dictionary<SpamType, Func<IMessage, int?>>
-		{
-			{ SpamType.Message,     m => int.MaxValue },
-			{ SpamType.LongMessage, m => m.Content?.Length },
-			{ SpamType.Link,        m => m.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) },
-			{ SpamType.Image,       m => m.Attachments.Count(x => x.Height != null || x.Width != null) + m.Embeds.Count(x => x.Image != null || x.Video != null) },
-			{ SpamType.Mention,     m => m.MentionedUserIds.Distinct().Count() }
-		};
 
 		/// <summary>
 		/// Creates an instance of <see cref="MessageLogger"/>.
@@ -71,35 +63,35 @@ namespace Advobot.Services.Logging.Loggers
 			}
 		}
 		/// <inheritdoc />
-		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
+		public Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
 			if (!(message.Author is SocketGuildUser user))
 			{
-				return;
+				return Task.CompletedTask;
 			}
 
 			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageUpdated, message);
-			await HandleAsync(context, nameof(ILogService.MessageEdits), Array.Empty<Task>(), new Func<Task>[]
+			return HandleAsync(context, nameof(ILogService.MessageEdits), Array.Empty<Task>(), new Func<Task>[]
 			{
 				() => HandleBannedPhrasesAsync(context),
 				() => HandleMessageEditedLoggingAsync(context, cached.Value as SocketMessage),
 				() => HandleMessageEditedImageLoggingAsync(context, cached.Value as SocketMessage),
-			}).CAF();
+			});
 		}
 		/// <inheritdoc />
-		public async Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
+		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
 			//Ignore uncached messages since not much can be done with them
 			if (!(cached.Value is SocketMessage message) || !(message.Author is SocketGuildUser author))
 			{
-				return;
+				return Task.CompletedTask;
 			}
 
 			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageDeleted, message);
-			await HandleAsync(context, nameof(ILogService.MessageDeletes), Array.Empty<Task>(), new Func<Task>[]
+			return HandleAsync(context, nameof(ILogService.MessageDeletes), Array.Empty<Task>(), new Func<Task>[]
 			{
 				() => HandleMessageDeletedLogging(context),
-			}).CAF();
+			});
 		}
 
 		/// <summary>
@@ -107,15 +99,17 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleChannelSettingsAsync(MessageLoggingContext context)
+		private Task HandleChannelSettingsAsync(MessageLoggingContext context)
 		{
 			if (!context.User.GuildPermissions.Administrator
 				&& context.Settings.ImageOnlyChannels.Contains(context.Channel.Id)
 				&& !context.Message.Attachments.Any(x => x.Height != null || x.Width != null)
 				&& !context.Message.Embeds.Any(x => x.Image != null))
 			{
-				await context.Message.DeleteAsync(_ChannelSettingsOptions).CAF();
+				return context.Message.DeleteAsync(_ChannelSettingsOptions);
 			}
+
+			return Task.CompletedTask;
 		}
 		/// <summary>
 		/// Logs the image to the image log if set.
@@ -145,22 +139,14 @@ namespace Advobot.Services.Logging.Loggers
 
 			foreach (var attachmentUrl in context.Message.Attachments.GroupBy(x => x.Url).Select(x => x.First().Url)) //Attachments
 			{
-				var mimeType = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(attachmentUrl));
-				if (mimeType.CaseInsContains("video/") || mimeType.CaseInsContains("/gif"))
+				var (logCounterName, footerText) = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(attachmentUrl)) switch
 				{
-					NotifyLogCounterIncrement(nameof(ILogService.Animated), 1);
-					await SendImageLogMessage("Attached Animated Content", attachmentUrl, attachmentUrl).CAF();
-				}
-				else if (mimeType.CaseInsContains("image/"))
-				{
-					NotifyLogCounterIncrement(nameof(ILogService.Images), 1);
-					await SendImageLogMessage("Attached Image", attachmentUrl, attachmentUrl).CAF();
-				}
-				else //Random file
-				{
-					NotifyLogCounterIncrement(nameof(ILogService.Files), 1);
-					await SendImageLogMessage("Attached File", attachmentUrl, null).CAF();
-				}
+					string s when s.CaseInsContains("video/") || s.CaseInsContains("/gif") => (nameof(ILogService.Animated), "Animated Content"),
+					string s when s.CaseInsContains("image/") => (nameof(ILogService.Images), "Image"),
+					_ => (nameof(ILogService.Files), "File"),
+				};
+				NotifyLogCounterIncrement(logCounterName, 1);
+				await SendImageLogMessage("Attached " + footerText, attachmentUrl, null).CAF();
 			}
 			foreach (var imageEmbed in context.Message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
 			{
@@ -193,17 +179,13 @@ namespace Advobot.Services.Logging.Loggers
 			}
 
 			var spam = false;
-			foreach (SpamType type in Enum.GetValues(typeof(SpamType)))
+			foreach (var prev in Enum.GetValues(typeof(SpamType)).Cast<SpamType>().Select(x => context.Settings[x]).Where(x => x?.Enabled ?? false))
 			{
-				if (!(context.Settings[type] is SpamPrev prev) || !prev.Enabled)
+				if (prev.IsSpam(context.Message))
 				{
-					continue;
+					info.AddSpamInstance(prev.Type, context.Message);
 				}
-				if (_CalculateSpamAmount[type](context.Message) >= prev.SpamPerMessage)
-				{
-					info.AddSpamInstance(type, context.Message);
-				}
-				if (info.GetSpamAmount(type, prev.TimeInterval) < prev.SpamInstances)
+				if (info.GetSpamAmount(prev.Type, prev.TimeInterval) < prev.SpamInstances)
 				{
 					continue;
 				}
@@ -215,7 +197,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			if (spam)
 			{
-				var votesReq = info.VotesRequired - info.UsersWhoHaveAlreadyVoted.Count;
+				var votesReq = info.VotesRequired - info.VotesReceived;
 				var content = $"`{context.User.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 #warning convert back to timed 10 seconds
 				await ReplyAsync(context.Channel, content).CAF();
@@ -236,20 +218,8 @@ namespace Advobot.Services.Logging.Loggers
 
 			var giver = new Punisher(TimeSpan.FromMinutes(0), default);
 			//Iterate through the users who are able to be punished by the spam prevention
-			foreach (var spammer in context.Settings.SpamPreventionUsers.Where(x =>
+			foreach (var spammer in context.Settings.SpamPreventionUsers.Where(x => x.ShouldBePunished(context.Message)))
 			{
-				return x.IsPunishable()
-					&& x.UserId != context.User.Id
-					&& context.Message.MentionedUsers.Select(u => u.Id).Contains(x.UserId)
-					&& !x.UsersWhoHaveAlreadyVoted.Contains(context.User.Id);
-			}))
-			{
-				spammer.UsersWhoHaveAlreadyVoted.Add(context.User.Id);
-				if (spammer.UsersWhoHaveAlreadyVoted.Count < spammer.VotesRequired)
-				{
-					continue;
-				}
-
 				await giver.GiveAsync(spammer.Punishment, context.Guild, spammer.UserId, context.Settings.MuteRoleId, _SpamPreventionOptions).CAF();
 				spammer.Reset();
 			}
@@ -290,14 +260,15 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="context"></param>
 		/// <param name="before"></param>
 		/// <returns></returns>
-		private async Task HandleMessageEditedImageLoggingAsync(MessageLoggingContext context, SocketMessage? before)
+		private Task HandleMessageEditedImageLoggingAsync(MessageLoggingContext context, SocketMessage? before)
 		{
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
 			if (before?.Embeds.Count < context.Message.Embeds.Count)
 			{
-				await HandleImageLoggingAsync(context).CAF();
+				return HandleImageLoggingAsync(context);
 			}
+			return Task.CompletedTask;
 		}
 		/// <summary>
 		/// Logs the text difference to the server log if set.
@@ -305,35 +276,28 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="context"></param>
 		/// <param name="before"></param>
 		/// <returns></returns>
-		private async Task HandleMessageEditedLoggingAsync(MessageLoggingContext context, SocketMessage? before)
+		private Task HandleMessageEditedLoggingAsync(MessageLoggingContext context, SocketMessage? before)
 		{
-			if (context.ServerLog == null)
-			{
-				return;
-			}
-
 			var uneditedBMsgContent = before?.Content;
 			var uneditedAMsgContent = context.Message.Content;
-			if (uneditedBMsgContent == uneditedAMsgContent)
+			if (context.ServerLog == null || uneditedBMsgContent == uneditedAMsgContent)
 			{
-				return;
+				return Task.CompletedTask;
 			}
 
 			var bMsgContent = (uneditedBMsgContent ?? "Unknown or empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
 			var aMsgContent = (uneditedAMsgContent ?? "Empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-
-			//Send file instead if long
-			if (bMsgContent.Length > 750 || aMsgContent.Length > 750)
+			if (bMsgContent.Length > 750 || aMsgContent.Length > 750) //Send file instead if long
 			{
-				await ReplyAsync(context.ServerLog, textFile: new TextFileInfo
+				return ReplyAsync(context.ServerLog, textFile: new TextFileInfo
 				{
 					Name = $"Message_Edit_{AdvorangesUtils.FormattingUtils.ToSaving()}",
 					Text = $"Before:\n{bMsgContent}\n\nAfter:\n{aMsgContent}",
-				}).CAF();
+				});
 			}
 			else
 			{
-				await ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
+				return ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
 				{
 					Color = EmbedWrapper.MessageEdit,
 					Author = context.User.CreateAuthor(),
@@ -343,7 +307,7 @@ namespace Advobot.Services.Logging.Loggers
 						new EmbedFieldBuilder { Name = "Before", Value = bMsgContent, },
 						new EmbedFieldBuilder { Name = "After", Value = aMsgContent, },
 					},
-				}).CAF();
+				});
 			}
 		}
 		/// <summary>

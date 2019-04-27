@@ -95,23 +95,13 @@ namespace Advobot.Classes
 		/// <param name="punisher"></param>
 		/// <param name="p"></param>
 		/// <returns></returns>
-		private static async Task Handle(SocketGuild guild, Punisher punisher, RemovablePunishment p)
+		private static Task Handle(SocketGuild guild, Punisher punisher, RemovablePunishment p) => p.PunishmentType switch
 		{
-			switch (p.PunishmentType)
-			{
-				case Punishment.Ban:
-					await punisher.UnbanAsync(guild, p.UserId, PunishmentReason).CAF();
-					return;
-				case Punishment.Deafen:
-					await punisher.UndeafenAsync(guild.GetUser(p.UserId), PunishmentReason).CAF();
-					return;
-				case Punishment.VoiceMute:
-					await punisher.UnvoicemuteAsync(guild.GetUser(p.UserId), PunishmentReason).CAF();
-					return;
-				case Punishment.RoleMute:
-					await punisher.UnrolemuteAsync(guild.GetUser(p.UserId), guild.GetRole(p.RoleId), PunishmentReason).CAF();
-					return;
-			}
-		}
+			Punishment.Ban => punisher.UnbanAsync(guild, p.UserId, PunishmentReason),
+			Punishment.Deafen => punisher.UndeafenAsync(guild.GetUser(p.UserId), PunishmentReason),
+			Punishment.VoiceMute => punisher.UnvoicemuteAsync(guild.GetUser(p.UserId), PunishmentReason),
+			Punishment.RoleMute => punisher.UnRoleMuteAsync(guild.GetUser(p.UserId), guild.GetRole(p.RoleId), PunishmentReason),
+			_ => Task.CompletedTask,
+		};
 	}
 }

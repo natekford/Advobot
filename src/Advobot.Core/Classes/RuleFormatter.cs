@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -63,7 +62,7 @@ namespace Advobot.Classes
 			var n = name.FormatTitle().Trim(' ');
 			if (Options.Contains(RuleFormatOption.ExtraLines))
 			{
-				n = n + "\n";
+				n += "\n";
 			}
 			return AddMarkDown(TitleMarkDownFormat.Any() ? TitleMarkDownFormat : _DefaultTitleFormats[RuleFormat], n);
 		}
@@ -76,31 +75,24 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public string FormatRule(string rule, int index, int rulesInCategory)
 		{
-			string r;
-			switch (RuleFormat)
-			{
-				case RuleFormat.Numbers:
-				case RuleFormat.Bold:
-					r = Options.Contains(RuleFormatOption.NumbersSameLength)
-						? $"`{(index + 1).ToString().PadLeft(rulesInCategory.ToString().Length, '0')}"
-						: $"`{index + 1}`";
-					break;
-				case RuleFormat.Dashes:
-					r = $"-";
-					break;
-				case RuleFormat.Bullets:
-					r = $"•";
-					break;
-				default:
-					r = "";
-					break;
-			}
+			string PotentiallyPad() => Options.Contains(RuleFormatOption.NumbersSameLength)
+				? $"`{(index + 1).ToString().PadLeft(rulesInCategory.ToString().Length, '0')}"
+				: $"`{index + 1}`";
 
-			r = $"{r}{rule}";
+			var r = RuleFormat switch
+			{
+				RuleFormat.Numbers => PotentiallyPad(),
+				RuleFormat.Bold => PotentiallyPad(),
+				RuleFormat.Dashes => "-",
+				RuleFormat.Bullets => "•",
+				_ => "",
+			};
+
+			r += rule;
 			r = (CharAfterNumbers != default ? AddCharAfterNumbers(r, CharAfterNumbers) : r).Trim();
 			if (Options.Contains(RuleFormatOption.ExtraLines))
 			{
-				r = r + "\n";
+				r += "\n";
 			}
 			return AddMarkDown(RuleMarkDownFormat.Any() ? RuleMarkDownFormat : _DefaultRuleFormats[RuleFormat], r);
 		}
@@ -125,21 +117,14 @@ namespace Advobot.Classes
 		{
 			foreach (var md in markdown)
 			{
-				switch (md)
+				text = md switch
 				{
-					case MarkDownFormat.Bold:
-						text = $"**{text}**";
-						break;
-					case MarkDownFormat.Italics:
-						text = $"*{text}*";
-						break;
-					case MarkDownFormat.Code:
-						text = $"`{text.EscapeBackTicks()}`";
-						break;
-					case MarkDownFormat.StrikeThrough:
-						text = $"~~{text.EscapeBackTicks()}~~";
-						break;
-				}
+					MarkDownFormat.Bold => $"**{text}**",
+					MarkDownFormat.Italics => $"*{text}*",
+					MarkDownFormat.Code => $"`{text.EscapeBackTicks()}`",
+					MarkDownFormat.StrikeThrough => $"~~{text.EscapeBackTicks()}~~",
+					_ => text,
+				};
 			}
 			return text;
 		}

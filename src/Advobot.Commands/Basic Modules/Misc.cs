@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
@@ -35,17 +34,17 @@ namespace Advobot.Commands.Misc
 
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> ResponsesFor.Misc.GeneralHelp(GetPrefix());
+				=> Responses.Misc.GeneralHelp(GetPrefix());
 			[Command, Priority(1)]
 			public Task<RuntimeResult> Command([Remainder] IHelpEntry command)
-				=> ResponsesFor.Misc.Help(Context.GuildSettings.CommandSettings, command, GetPrefix());
+				=> Responses.Misc.Help(Context.GuildSettings.CommandSettings, command, GetPrefix());
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			public async Task<RuntimeResult> Command([Remainder, OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
 			{
 				var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
 				if (entry != null)
 				{
-					return ResponsesFor.Misc.Help(Context.GuildSettings.CommandSettings, entry, GetPrefix());
+					return Responses.Misc.Help(Context.GuildSettings.CommandSettings, entry, GetPrefix());
 				}
 				return AdvobotResult.Failure(null, null);
 			}
@@ -177,7 +176,7 @@ namespace Advobot.Commands.Misc
 			public Task<RuntimeResult> Command()
 			{
 				var channel = Context.Guild.Channels.First();
-				return ResponsesFor.Channels.Created(channel);
+				return Responses.Channels.Created(channel);
 			}
 		}
 	}

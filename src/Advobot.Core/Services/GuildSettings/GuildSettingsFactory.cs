@@ -47,15 +47,9 @@ namespace Advobot.Services.GuildSettings
 
 			var concrete = GuildSettings.Load(_Settings, guild.Id);
 			await concrete.PostDeserializeAsync(guild).CAF();
-
-			settings = concrete;
-			settings.Save(_Settings);
-
-			if (!_GuildSettings.TryAdd(guild.Id, settings))
-			{
-				ConsoleUtils.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", ConsoleColor.Yellow);
-			}
-			return settings;
+			concrete.Save(_Settings);
+			_GuildSettings.TryAdd(guild.Id, concrete);
+			return concrete;
 		}
 		/// <inheritdoc />
 		public IEnumerable<IGuildSettings> GetAll()

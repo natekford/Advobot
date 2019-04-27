@@ -1,22 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Settings;
-using Advobot.Enums;
-using Advobot.Interfaces;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-
-namespace Advobot.Commands.BannedPhrases
+﻿namespace Advobot.Commands.BannedPhrases
 {
 	/*
 	[Category(typeof(EvaluateBannedRegex)), Group(nameof(EvaluateBannedRegex)), TopLevelShortAlias(typeof(EvaluateBannedRegex))]

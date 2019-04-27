@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using AdvorangesSettingParser.Interfaces;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces

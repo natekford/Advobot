@@ -31,7 +31,7 @@ namespace Advobot.Classes
 		/// The API key for the bot.
 		/// </summary>
 		[JsonProperty("BotKey")]
-		private string? _BotKey { get; set; } = null;
+		private string? _BotKey = null;
 		/// <inheritdoc />
 		[JsonIgnore]
 		public ulong BotId { get; private set; }
@@ -65,7 +65,7 @@ namespace Advobot.Classes
 			$"-{nameof(DatabaseConnectionString)} {DatabaseConnectionString} ";
 
 		[JsonIgnore]
-		private DiscordRestClient _TestClient { get; } = new DiscordRestClient();
+		private readonly DiscordRestClient _TestClient = new DiscordRestClient();
 
 		static LowLevelConfig()
 		{

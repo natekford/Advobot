@@ -20,18 +20,12 @@ namespace Advobot.Utilities
 		/// <param name="obj"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static OverwritePermissions? GetPermissionOverwrite<T>(this SocketGuildChannel channel, T obj) where T : ISnowflakeEntity
+		public static OverwritePermissions? GetPermissionOverwrite(this SocketGuildChannel channel, ISnowflakeEntity obj) => obj switch
 		{
-			switch (obj)
-			{
-				case IRole role:
-					return channel.GetPermissionOverwrite(role);
-				case IUser user:
-					return channel.GetPermissionOverwrite(user);
-				default:
-					throw NewOverwriteTargetException();
-			}
-		}
+			IRole role => channel.GetPermissionOverwrite(role),
+			IUser user => channel.GetPermissionOverwrite(user),
+			_ => throw new ArgumentException(nameof(obj)),
+		};
 		/// <summary>
 		/// Sets the overwrite on a channel for the given object.
 		/// </summary>
@@ -42,18 +36,12 @@ namespace Advobot.Utilities
 		/// <param name="options"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static Task AddPermissionOverwriteAsync<T>(this SocketGuildChannel channel, T obj, ulong allow, ulong deny, RequestOptions options) where T : ISnowflakeEntity
+		public static Task AddPermissionOverwriteAsync(this SocketGuildChannel channel, ISnowflakeEntity obj, ulong allow, ulong deny, RequestOptions options) => obj switch
 		{
-			switch (obj)
-			{
-				case IRole role:
-					return channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allow, deny), options);
-				case IUser user:
-					return channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allow, deny), options);
-				default:
-					throw NewOverwriteTargetException();
-			}
-		}
+			IRole role => channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allow, deny), options),
+			IUser user => channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allow, deny), options),
+			_ => throw new ArgumentException(nameof(obj)),
+		};
 		/// <summary>
 		/// If <paramref name="id"/> has a value will only copy overwrites targeting that id, otherwise copies every overwrite.
 		/// </summary>
@@ -67,20 +55,8 @@ namespace Advobot.Utilities
 			var overwrites = input.GetOverwrites(id);
 			foreach (var overwrite in overwrites)
 			{
-				var allow = overwrite.Permissions.AllowValue;
-				var deny = overwrite.Permissions.DenyValue;
-				var perms = new OverwritePermissions(allow, deny);
-				switch (overwrite.TargetType)
-				{
-					case PermissionTarget.Role:
-						await output.AddPermissionOverwriteAsync(input.Guild.GetRole(overwrite.TargetId), perms, options).CAF();
-						break;
-					case PermissionTarget.User:
-						await output.AddPermissionOverwriteAsync(input.Guild.GetUser(overwrite.TargetId), perms, options).CAF();
-						break;
-					default:
-						throw NewOverwriteTargetException();
-				}
+				var obj = overwrite.GetEntity(input.Guild);
+				await AddPermissionOverwriteAsync(output, obj, overwrite.Permissions.AllowValue, overwrite.Permissions.DenyValue, options).CAF();
 			}
 			return overwrites;
 		}
@@ -97,16 +73,7 @@ namespace Advobot.Utilities
 		{
 			var allow = updateAllow(overwrite.Permissions.AllowValue);
 			var deny = updateDeny(overwrite.Permissions.DenyValue);
-			var perms = new OverwritePermissions(allow, deny);
-			switch (overwrite.TargetType)
-			{
-				case PermissionTarget.Role:
-					return channel.AddPermissionOverwriteAsync(channel.Guild.GetRole(overwrite.TargetId), perms, options);
-				case PermissionTarget.User:
-					return channel.AddPermissionOverwriteAsync(channel.Guild.GetUser(overwrite.TargetId), perms, options);
-				default:
-					throw NewOverwriteTargetException();
-			}
+			return channel.AddPermissionOverwriteAsync(overwrite.GetEntity(channel.Guild), allow, deny, options);
 		}
 		/// <summary>
 		/// Removes every overwrite and returns the amount of removed overwrites.
@@ -117,21 +84,18 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<int> ClearOverwritesAsync(this SocketGuildChannel channel, ulong? id, RequestOptions options)
 		{
-			var count = 0;
-			foreach (var overwrite in channel.GetOverwrites(id))
+			var overwrites = channel.GetOverwrites(id);
+			foreach (var overwrite in overwrites)
 			{
-				++count;
-				switch (overwrite.TargetType)
+				var obj = overwrite.GetEntity(channel.Guild);
+				await (obj switch
 				{
-					case PermissionTarget.Role:
-						await channel.RemovePermissionOverwriteAsync(channel.Guild.GetRole(overwrite.TargetId), options).CAF();
-						break;
-					case PermissionTarget.User:
-						await channel.RemovePermissionOverwriteAsync(channel.Guild.GetUser(overwrite.TargetId), options).CAF();
-						break;
-				}
+					IRole role => channel.RemovePermissionOverwriteAsync(role, options),
+					IUser user => channel.RemovePermissionOverwriteAsync(user, options),
+					_ => throw new ArgumentException(nameof(obj)),
+				}).CAF();
 			}
-			return count;
+			return overwrites.Count;
 		}
 		/// <summary>
 		/// Returns either all of the overwrites if the id is null, otherwise returns the overwrites where the ids match.
@@ -139,9 +103,13 @@ namespace Advobot.Utilities
 		/// <param name="channel"></param>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public static IEnumerable<Overwrite> GetOverwrites(this SocketGuildChannel channel, ulong? id = null)
-			=> id.HasValue ? channel.PermissionOverwrites.Where(x => x.TargetId == id) : channel.PermissionOverwrites;
-		private static InvalidOperationException NewOverwriteTargetException()
-			=> new InvalidOperationException("Invalid overwrite target type.");
+		public static IReadOnlyCollection<Overwrite> GetOverwrites(this SocketGuildChannel channel, ulong? id = null)
+			=> id.HasValue ? channel.PermissionOverwrites.Where(x => x.TargetId == id).ToArray() : channel.PermissionOverwrites;
+		private static ISnowflakeEntity GetEntity(this Overwrite overwrite, SocketGuild guild) => overwrite.TargetType switch
+		{
+			PermissionTarget.Role => (ISnowflakeEntity)guild.GetRole(overwrite.TargetId),
+			PermissionTarget.User => (ISnowflakeEntity)guild.GetUser(overwrite.TargetId),
+			_ => throw new ArgumentException(nameof(overwrite.TargetType)),
+		};
 	}
 }
