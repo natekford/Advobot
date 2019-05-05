@@ -1,7 +1,5 @@
-﻿using System.Threading.Tasks;
-using Advobot.Classes.Attributes.Preconditions;
+﻿using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Interfaces;
-using AdvorangesUtils;
 
 namespace Advobot.Classes.Modules
 {
@@ -17,14 +15,14 @@ namespace Advobot.Classes.Modules
 		public IImageResizer Resizer { get; set; }
 
 		/// <summary>
-		/// Queues the arguments and sends a response message.
+		/// Queues the arguments and returns the position the arguments have been queued in.
 		/// </summary>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public async Task ProcessAsync(IImageArgs args)
+		protected int Enqueue(IImageArgs args)
 		{
-			Resizer.Process(args);
-			await ReplyAsync($"Position in image modification queue: {Resizer.QueueCount}.").CAF();
+			Resizer.Enqueue(args);
+			return Resizer.QueueCount;
 		}
 	}
 }

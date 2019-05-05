@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Advobot.Classes.Modules;
+using Advobot.Classes.Results;
+
+using Discord.Commands;
+
+using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Advobot.Classes.Modules;
-using Advobot.Classes.Results;
-using Discord.Commands;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation
 {
@@ -19,7 +21,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// This will essentially override <see cref="OptionalAttribute"/>.
 		/// Default value is false.
 		/// </summary>
-		public bool FromContext { get; set; } = false;
+		public virtual bool FromContext { get; set; } = false;
 
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)

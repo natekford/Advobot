@@ -21,7 +21,7 @@ namespace Advobot.Classes
 	/// </summary>
 	internal abstract class SettingsBase : ISettingsBase
 	{
-		private Dictionary<string, PropertyInfo> _Settings { get; }
+		private readonly Dictionary<string, PropertyInfo> _Settings;
 
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;

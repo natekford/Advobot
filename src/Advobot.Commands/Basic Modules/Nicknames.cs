@@ -25,10 +25,10 @@ namespace Advobot.Commands
 		public sealed class ModifyNickName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([ValidateUser] SocketGuildUser user, [Optional, ValidateNickname] string nickname)
+			public async Task<RuntimeResult> Command([ValidateUser] SocketGuildUser user, [Optional, ValidateNickname] string nickname)
 			{
 				await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully gave `{user.Format()}` the nickname `{nickname ?? "Nothing"}`.").CAF();
+				return Responses.Nicknames.ModifiedNickname(user.Format(), nickname ?? "Nothing");
 			}
 		}
 
@@ -40,16 +40,15 @@ namespace Advobot.Commands
 		public sealed class ReplaceWordsInNames : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public Task Command(
-				[ValidateNickname] string search,
+			public async Task<RuntimeResult> Command([ValidateNickname] string search,
 				[ValidateNickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> Process(bypass, x => IsMatch(x, search), (u, o) => u.ModifyAsync(x => x.Nickname = replace, o));
-
-			private bool IsMatch(SocketGuildUser user, string search)
 			{
-				return (user.Nickname != null && user.Nickname.CaseInsContains(search))
-					|| (user.Nickname == null && user.Username.CaseInsContains(search));
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
+				var amountChanged = await ProcessAsync(bypass,
+					u => (u.Nickname != null && u.Nickname.CaseInsContains(search)) || (u.Nickname == null && u.Username.CaseInsContains(search)),
+					u => u.ModifyAsync(x => x.Nickname = replace, GenerateRequestOptions())).CAF();
+				return Responses.Nicknames.MultiUserActionSuccess(amountChanged);
 			}
 		}
 
@@ -61,16 +60,15 @@ namespace Advobot.Commands
 		public sealed class ReplaceByUtf16 : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public Task Command(
-				[ValidatePositiveNumber] int upperLimit,
+			public async Task<RuntimeResult> Command([ValidatePositiveNumber] int upperLimit,
 				[ValidateNickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> Process(bypass, x => IsMatch(x, upperLimit), (u, o) => u.ModifyAsync(x => x.Nickname = replace, o));
-
-			private bool IsMatch(SocketGuildUser user, int upperLimit)
 			{
-				return (user.Nickname != null && !user.Nickname.AllCharsWithinLimit(upperLimit))
-					|| (user.Nickname == null && !user.Username.AllCharsWithinLimit(upperLimit));
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
+				var amountChanged = await ProcessAsync(bypass,
+					u => (u.Nickname != null && !u.Nickname.AllCharsWithinLimit(upperLimit)) || (u.Nickname == null && !u.Username.AllCharsWithinLimit(upperLimit)),
+					u => u.ModifyAsync(x => x.Nickname = replace, GenerateRequestOptions())).CAF();
+				return Responses.Nicknames.MultiUserActionSuccess(amountChanged);
 			}
 		}
 
@@ -82,8 +80,14 @@ namespace Advobot.Commands
 		public sealed class RemoveAllNickNames : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> Process(bypass, x => x.Nickname != null, (u, o) => u.ModifyAsync(x => x.Nickname = u.Username, o));
+			public async Task<RuntimeResult> Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+			{
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
+				var amountChanged = await ProcessAsync(bypass,
+					u => u.Nickname != null,
+					u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions())).CAF();
+				return Responses.Nicknames.MultiUserActionSuccess(amountChanged);
+			}
 		}
 	}
 }

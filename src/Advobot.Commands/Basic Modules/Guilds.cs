@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
@@ -33,21 +31,20 @@ namespace Advobot.Commands
 			public Task Command()
 				=> Context.Guild.LeaveAsync();
 			[Command]
-			public async Task Command(ulong guildId)
+			public async Task<RuntimeResult> Command(ulong guildId)
 			{
 				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
+#warning put this as a precondition on this command itself maybe?
 				if (Context.User.Id != await Context.Client.GetOwnerIdAsync().CAF())
 				{
-					await ReplyErrorAsync("Only the bot owner can use this command targetting other guilds.").CAF();
-					return;
+					return Responses.Guilds.NotBotOwner();
 				}
 				if (!(Context.Client.GetGuild(guildId) is SocketGuild guild))
 				{
-					await ReplyErrorAsync("Invalid guild supplied.").CAF();
-					return;
+					return Responses.Guilds.InvalidGuild(guildId);
 				}
 				await guild.LeaveAsync().CAF();
-				await ReplyTimedAsync($"Successfully left the guild `{guild.Format()}`.").CAF();
+				return Responses.Guilds.LeftGuild(guild);
 			}
 		}
 
@@ -58,10 +55,11 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([Remainder, ValidateGuildName] string name)
+			public async Task<RuntimeResult> Command([Remainder, ValidateGuildName] string name)
 			{
+				var old = Context.Guild.Name;
 				await Context.Guild.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully changed the guild name to `{name}`.").CAF();
+				return Responses.Guilds.ModifiedName(old, name);
 			}
 		}
 
@@ -72,20 +70,16 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildRegion : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public async Task Show()
+			public async Task<RuntimeResult> Show()
 			{
 				var regions = await Context.Guild.GetVoiceRegionsAsync().CAF();
-				await ReplyEmbedAsync(new EmbedWrapper
-				{
-					Title = "Region Ids",
-					Description = $"`{regions.Join("`, `", x => x.Name)}`",
-				}).CAF();
+				return Responses.Guilds.DisplayRegions(regions);
 			}
 			[Command]
-			public async Task Command(IVoiceRegion region)
+			public async Task<RuntimeResult> Command(IVoiceRegion region)
 			{
 				await Context.Guild.ModifyAsync(x => x.Region = Optional.Create(region), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully changed the server region of the guild to `{region.Id}`.").CAF();
+				return Responses.Guilds.ModifiedRegion(region);
 			}
 		}
 
@@ -96,10 +90,10 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([ValidateGuildAfkTime] int time)
+			public async Task<RuntimeResult> Command([ValidateGuildAfkTime] int time)
 			{
 				await Context.Guild.ModifyAsync(x => x.AfkTimeout = time, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully set the guild AFK timeout to `{time}` minutes.").CAF();
+				return Responses.Guilds.ModifiedAfkTime(time);
 			}
 		}
 
@@ -110,17 +104,14 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([ValidateVoiceChannel(CPerm.ManageChannels, FromContext = true)] SocketVoiceChannel channel)
+			public async Task<RuntimeResult> Command([ValidateVoiceChannel(CPerm.ManageChannels, FromContext = true)] SocketVoiceChannel? channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel>(channel), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully set the guild AFK channel to `{channel.Format()}`.").CAF();
+				return Responses.Guilds.ModifiedAfkChannel(channel);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Remove()
-			{
-				await Context.Guild.ModifyAsync(x => x.AfkChannelId = Optional.Create<ulong?>(null), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync("Successfully removed the guild afk channel.").CAF();
-			}
+			public Task<RuntimeResult> Remove()
+				=> Command(null);
 		}
 
 		[Group(nameof(ModifyGuildSystemChannel)), ModuleInitialismAlias(typeof(ModifyGuildSystemChannel))]
@@ -130,17 +121,14 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel channel)
+			public async Task<RuntimeResult> Command([ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel? channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel>(channel), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully set the guild system channel to `{channel.Format()}`.").CAF();
+				return Responses.Guilds.ModifiedSystemChannel(channel);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Remove()
-			{
-				await Context.Guild.ModifyAsync(x => x.SystemChannelId = Optional.Create<ulong?>(null), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync("Successfully removed the guild system channel.").CAF();
-			}
+			public Task<RuntimeResult> Remove()
+				=> Command(null);
 		}
 
 		[Group(nameof(ModifyGuildMsgNotif)), ModuleInitialismAlias(typeof(ModifyGuildMsgNotif))]
@@ -150,10 +138,10 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildMsgNotif : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(DefaultMessageNotifications msgNotifs)
+			public async Task<RuntimeResult> Command(DefaultMessageNotifications msgNotifs)
 			{
 				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully changed the default message notification setting to `{msgNotifs}`.").CAF();
+				return Responses.Guilds.ModifiedMsgNotif(msgNotifs);
 			}
 		}
 
@@ -165,10 +153,10 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildVerif : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(VerificationLevel verif)
+			public async Task<RuntimeResult> Command(VerificationLevel verif)
 			{
 				await Context.Guild.ModifyAsync(x => x.VerificationLevel = verif, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully set the guild verification level as `{verif}`.").CAF();
+				return Responses.Guilds.ModifiedVerif(verif);
 			}
 		}
 
@@ -179,18 +167,19 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildIcon : ImageResizerModule
 		{
 			[Command]
-			public Task Command(Uri url)
+			public Task<RuntimeResult> Command(Uri url)
 			{
-				return ProcessAsync(new IconCreationArgs("Guild Icon", Context, url, default, (ctx, ms) =>
+				var position = Enqueue(new IconCreationArgs("Guild Icon", Context, url, default, (ctx, ms) =>
 				{
 					return ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions());
 				}));
+				return Responses.Guilds.EnqueuedIcon(position);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Remove()
+			public async Task<RuntimeResult> Remove()
 			{
 				await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync("Successfully removed the guild icon.").CAF();
+				return Responses.Guilds.RemovedIcon();
 			}
 		}
 
@@ -202,18 +191,19 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildSplash : ImageResizerModule
 		{
 			[Command]
-			public Task Command(Uri url)
+			public Task<RuntimeResult> Command(Uri url)
 			{
-				return ProcessAsync(new IconCreationArgs("Guild Splash", Context, url, default, (ctx, ms) =>
+				var position = Enqueue(new IconCreationArgs("Guild Splash", Context, url, default, (ctx, ms) =>
 				{
 					return ctx.Guild.ModifyAsync(x => x.Splash = new Image(ms), ctx.GenerateRequestOptions());
 				}));
+				return Responses.Guilds.EnqueuedSplash(position);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Remove()
+			public async Task<RuntimeResult> Remove()
 			{
 				await Context.Guild.ModifyAsync(x => x.Splash = new Image(), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync("Successfully removed the guild splash.").CAF();
+				return Responses.Guilds.RemovedSplash();
 			}
 		}
 
@@ -242,10 +232,10 @@ namespace Advobot.Commands
 		public sealed class SwapGuildOwner : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command()
+			public async Task<RuntimeResult> Command()
 			{
 				await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User)).CAF();
-				await ReplyTimedAsync($"{Context.User.Mention} is now the owner.").CAF();
+				return Responses.Guilds.ModifiedOwner(Context.User);
 			}
 		}
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Advobot.Utilities;
@@ -58,33 +57,19 @@ namespace Advobot.Commands.Responses
 		}
 		private string Format(string format, string arg)
 		{
-			if (format.Contains('t') || UseTitleCase) { arg = arg.FormatTitle(); }
-			if (format.Contains('c') || UseColon) { arg += ":"; }
-			if (format.Contains('c') || UseCode) { arg = $"`{arg}`"; }
-			if (format.Contains('b') || UseBold) { arg = $"**{arg}**"; }
-			if (format.Contains('i') || UseItalics) { arg = $"_{arg}_"; }
-			if (format.Contains('u') || UseUnderline) { arg = $"__{arg}__"; }
-			if (format.Contains('s') || UseStrikethrough) { arg = $"~~{arg}~~"; }
-			if (format.Contains('B') || UseBigCode) { arg = $"```\n{arg}\n```"; }
+			var overrideFormat = format.StartsWith("F=");
+			var options = overrideFormat ? format.Substring(2).Split('|') : Enumerable.Empty<string>();
+
+			//TODO: make this ignore the default format when supplied with override
+			if (options.Contains("title") || UseTitleCase) { arg = arg.FormatTitle(); }
+			if (options.Contains(":")     || UseColon) { arg += ":"; }
+			if (options.Contains("`")     || UseCode) { arg = $"`{arg}`"; }
+			if (options.Contains("**")    || UseBold) { arg = $"**{arg}**"; }
+			if (options.Contains("_")     || UseItalics) { arg = $"_{arg}_"; }
+			if (options.Contains("__")    || UseUnderline) { arg = $"__{arg}__"; }
+			if (options.Contains("~~")    || UseStrikethrough) { arg = $"~~{arg}~~"; }
+			if (options.Contains("```")   || UseBigCode) { arg = $"```\n{arg}\n```"; }
 			return arg;
 		}
 	}
-
-	/*
-	public partial class ResponsesOf
-	{
-		public sealed class ReadOnlyAdvobotSettingsModuleBase : CommandResponses
-		{
-			public static ReadOnlyAdvobotSettingsModuleBase For(AdvobotCommandContext context)
-				=> new ReadOnlyAdvobotSettingsModuleBase { Context = context, };
-			public AdvobotResult Names(string settingName, IEnumerable<string> settings)
-			{
-				return Success().WithEmbed(new EmbedWrapper
-				{
-					Title = settingName,
-					Description = settings,
-				});
-			}
-		}
-	}*/
 }

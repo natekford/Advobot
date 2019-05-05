@@ -167,11 +167,25 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult? RoleIsNotManaged(SocketGuildUser user, SocketRole target)
+		public static VerifiedObjectResult? RoleIsNotManaged(SocketGuildUser _, SocketRole target)
 		{
 			if (target.IsManaged)
 			{
 				return VerifiedObjectResult.FromError(CommandError.UnmetPrecondition, "Managed roles cannot be used in that way.");
+			}
+			return VerifiedObjectResult.FromSuccess(target);
+		}
+		/// <summary>
+		/// Validates if the target is not mentionable.
+		/// </summary>
+		/// <param name="_"></param>
+		/// <param name="target"></param>
+		/// <returns></returns>
+		public static VerifiedObjectResult? RoleIsNotMentionable(SocketGuildUser _, SocketRole target)
+		{
+			if (target.IsMentionable)
+			{
+				return VerifiedObjectResult.FromError(CommandError.UnmetPrecondition, "The role is already mentionable.");
 			}
 			return VerifiedObjectResult.FromSuccess(target);
 		}

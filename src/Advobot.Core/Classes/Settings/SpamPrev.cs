@@ -1,5 +1,4 @@
 ﻿using Advobot.Enums;
-using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;

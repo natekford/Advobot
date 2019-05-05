@@ -16,11 +16,11 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <summary>
 		/// Cannot check from context for roles.
 		/// </summary>
-		public new bool FromContext => false;
+		public override bool FromContext => false;
 
 		/// <inheritdoc />
 		protected override object GetFromContext(AdvobotCommandContext context)
-			=> throw new NotImplementedException();
+			=> throw new NotSupportedException();
 		/// <inheritdoc />
 		protected override VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value)
 			=> context.User.ValidateRole((SocketRole)value, GetExtras().ToArray());

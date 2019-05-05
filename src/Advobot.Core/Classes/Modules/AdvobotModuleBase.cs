@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Interfaces;
@@ -13,9 +12,9 @@ using Discord.WebSocket;
 namespace Advobot.Classes.Modules
 {
 	/// <summary>
-	/// Shorter way to write the used modulebase and also has every command go through the <see cref="CommandEnabledAttribute"/> first.
+	/// Shorter way to write the used modulebase and also has every command go through the <see cref="RequireCommandEnabledAttribute"/> first.
 	/// </summary>
-	[CommandEnabled]
+	[RequireCommandEnabled]
 	[RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
 	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	{
@@ -42,6 +41,7 @@ namespace Advobot.Classes.Modules
 		/// </summary>
 		public IBotSettings BotSettings { get; set; }
 
+		/*
 		/// <summary>
 		/// Sends a short message saying there are none of the objects or sends an embed describing each object.
 		/// </summary>
@@ -151,7 +151,7 @@ namespace Advobot.Classes.Modules
 			var removableMessage = new RemovableMessage(Context, new[] { secondMessage }, MessageTime);
 			await Timers.AddAsync(removableMessage).CAF();
 			return secondMessage;
-		}
+		}*/
 		/// <summary>
 		/// Uses user input to get the item at a specified index. This is blocking.
 		/// </summary>

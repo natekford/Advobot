@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -24,10 +22,10 @@ namespace Advobot.Services.Logging.Loggers
 	/// </summary>
 	internal sealed class MessageLogger : Logger, IMessageLogger
 	{
-		private static RequestOptions _JeffOptions { get; } = DiscordUtils.GenerateRequestOptions("my nama jeff");
-		private static RequestOptions _SpamPreventionOptions { get; } = DiscordUtils.GenerateRequestOptions("Spam prevention.");
-		private static RequestOptions _ChannelSettingsOptions { get; } = DiscordUtils.GenerateRequestOptions("Due to channel settings.");
-		private static RequestOptions _BannedPhraseOptions { get; } = DiscordUtils.GenerateRequestOptions("Banned phrase.");
+		private static readonly RequestOptions _JeffOptions = DiscordUtils.GenerateRequestOptions("my nama jeff");
+		private static readonly RequestOptions _SpamPreventionOptions = DiscordUtils.GenerateRequestOptions("Spam prevention.");
+		private static readonly RequestOptions _ChannelSettingsOptions = DiscordUtils.GenerateRequestOptions("Due to channel settings.");
+		private static readonly RequestOptions _BannedPhraseOptions = DiscordUtils.GenerateRequestOptions("Banned phrase.");
 
 		/// <summary>
 		/// Creates an instance of <see cref="MessageLogger"/>.

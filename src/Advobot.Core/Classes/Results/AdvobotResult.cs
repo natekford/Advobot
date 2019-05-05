@@ -10,6 +10,11 @@ namespace Advobot.Classes.Results
 	public class AdvobotResult : RuntimeResult
 	{
 		/// <summary>
+		/// The result to use when this should be fully ignored.
+		/// </summary>
+		public static AdvobotResult Ignore { get; } = Failure(null, null);
+
+		/// <summary>
 		/// How long to let this message stay up for.
 		/// </summary>
 		public TimeSpan? Time { get; private set; }
@@ -71,7 +76,7 @@ namespace Advobot.Classes.Results
 		/// </summary>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static AdvobotResult Success(string reason = Constants.ZERO_LENGTH_CHAR)
+		public static AdvobotResult Success(string reason)
 			=> new AdvobotResult(null, reason);
 		/// <summary>
 		/// Creates a successful result.
@@ -79,7 +84,14 @@ namespace Advobot.Classes.Results
 		/// <param name="embed"></param>
 		/// <returns></returns>
 		public static AdvobotResult Success(EmbedWrapper embed)
-			=> Success().WithEmbed(embed);
+			=> Success(Constants.ZERO_LENGTH_CHAR).WithEmbed(embed);
+		/// <summary>
+		/// Creates a successful result.
+		/// </summary>
+		/// <param name="file"></param>
+		/// <returns></returns>
+		public static AdvobotResult Success(TextFileInfo file)
+			=> Success(Constants.ZERO_LENGTH_CHAR).WithFile(file);
 		/// <summary>
 		/// Creates an error result.
 		/// </summary>

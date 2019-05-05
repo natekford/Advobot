@@ -361,25 +361,25 @@ namespace Advobot.Commands
 				{
 					return ReplyErrorAsync("Cannot give the role being gathered.");
 				}
-				return Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.AddRoleAsync(give, o));
+				return ProcessAsync(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.AddRoleAsync(give, o));
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public Task TakeRole(
 				SocketRole target,
 				[NotEveryoneOrManaged] SocketRole take,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.RemoveRoleAsync(take, o));
+				=> ProcessAsync(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.RemoveRoleAsync(take, o));
 			[ImplicitCommand, ImplicitAlias]
 			public Task GiveNickname(
 				[ValidateRole] SocketRole target,
 				[ValidateNickname] string nickname,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = nickname));
+				=> ProcessAsync(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = nickname));
 			[ImplicitCommand, ImplicitAlias]
 			public Task ClearNickname(
 				[ValidateRole] SocketRole target,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> Process(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = u.Username));
+				=> ProcessAsync(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = u.Username));
 		}
 	}
 }

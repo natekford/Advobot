@@ -27,6 +27,6 @@ namespace Advobot.Interfaces
 		/// Adds the arguments to the queue and then eventually gets to processing it.
 		/// </summary>
 		/// <param name="arguments"></param>
-		void Process(IImageArgs arguments);
+		void Enqueue(IImageArgs arguments);
 	}
 }

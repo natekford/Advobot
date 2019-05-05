@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Modules;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -95,17 +92,16 @@ namespace Advobot.Commands
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
 			[ImplicitCommand, ImplicitAlias]
-			public Task Add([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
+			public Task<RuntimeResult> Add([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
 			{
 				Settings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
-				return ReplyTimedAsync($"Successfully ignored the following channels: `{channels.Join("`, `", x => x.Format())}`.");
+				return Responses.Logs.ModifiedIgnoredLogChannels(channels, true);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task Remove([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
+			public Task<RuntimeResult> Remove([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
 			{
-				var ids = channels.Select(x => x.Id);
-				Settings.IgnoredLogChannels.RemoveAll(x => ids.Contains(x));
-				return ReplyTimedAsync($"Successfully unignored the following channels: `{channels.Join("`, `", x => x.Format())}`.");
+				Settings.IgnoredLogChannels.RemoveAll(x => channels.Select(x => x.Id).Contains(x));
+				return Responses.Logs.ModifiedIgnoredLogChannels(channels, false);
 			}
 		}
 
@@ -119,44 +115,36 @@ namespace Advobot.Commands
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
-			private static readonly ImmutableArray<LogAction> _DefaultLogActions = new List<LogAction>
-			{
-				LogAction.UserJoined,
-				LogAction.UserLeft,
-				LogAction.MessageReceived,
-				LogAction.MessageUpdated,
-				LogAction.MessageDeleted
-			}.ToImmutableArray();
-
 			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
-			public Task Show()
-			{
-				return ReplyEmbedAsync(new EmbedWrapper
-				{
-					Title = "Log Actions",
-					Description = $"`{Enum.GetNames(typeof(LogAction)).Join("`, `")}`"
-				});
-			}
+			public Task<RuntimeResult> Show()
+				=> Responses.Logs.ShowLogActions();
 			[ImplicitCommand, ImplicitAlias]
-			public Task Reset()
+			public Task<RuntimeResult> Reset()
 			{
 				Settings.LogActions.Clear();
-				Settings.LogActions.AddRange(_DefaultLogActions);
-				return ReplyTimedAsync("Successfully set the log actions to the default ones.");
+				Settings.LogActions.AddRange(new[]
+				{
+					LogAction.UserJoined,
+					LogAction.UserLeft,
+					LogAction.MessageReceived,
+					LogAction.MessageUpdated,
+					LogAction.MessageDeleted
+				});
+				return Responses.Logs.DefaultLogActions();
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task ToggleAll(bool enable)
+			public Task<RuntimeResult> ToggleAll(bool enable)
 			{
 				Settings.LogActions.Clear();
 				if (enable)
 				{
 					Settings.LogActions.AddRange(Enum.GetValues(typeof(LogAction)).Cast<LogAction>());
 				}
-				return ReplyTimedAsync($"Successfully {(enable ? "enabled" : "disabled")} every log action.");
+				return Responses.Logs.ModifiedAllLogActions(enable);
 			}
 			[Command]
-			public async Task Command(bool enable, params LogAction[] logActions)
+			public Task<RuntimeResult> Command(bool enable, params LogAction[] logActions)
 			{
 				if (enable)
 				{
@@ -166,8 +154,7 @@ namespace Advobot.Commands
 				{
 					Settings.LogActions.RemoveAll(x => logActions.Contains(x));
 				}
-				var joined = logActions.Join("`, `", x => x.ToString());
-				await ReplyTimedAsync($"Successfully {(enable ? "enabled" : "disabled")} the following log actions: `{joined}`.").CAF();
+				return Responses.Logs.ModifiedLogActions(logActions, enable);
 			}
 		}
 	}

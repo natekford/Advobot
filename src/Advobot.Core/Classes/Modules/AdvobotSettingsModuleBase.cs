@@ -32,11 +32,13 @@ namespace Advobot.Classes.Modules
 		/// <returns></returns>
 		protected Task ShowNamesAsync()
 		{
+			throw new NotImplementedException();
+			/*
 			return ReplyEmbedAsync(new EmbedWrapper
 			{
 				Title = Settings.GetType().Name.FormatTitle(),
 				Description = $"`{Settings.GetSettingNames().Join("`, `")}`"
-			});
+			});*/
 		}
 		/// <summary>
 		/// Prints out all the settings.
@@ -44,11 +46,13 @@ namespace Advobot.Classes.Modules
 		/// <returns></returns>
 		protected Task ShowAllAsync()
 		{
+			throw new NotImplementedException();
+			/*
 			return ReplyFileAsync($"**{Settings.GetType().Name.FormatTitle()}:**", new TextFileInfo
 			{
 				Name = Settings.GetType().Name.FormatTitle().Replace(' ', '_'),
 				Text = Settings.Format(Context.Client, Context.Guild),
-			});
+			}); */
 		}
 		/// <summary>
 		/// Prints out the specified setting.
@@ -57,6 +61,8 @@ namespace Advobot.Classes.Modules
 		/// <returns></returns>
 		protected Task ShowAsync(string name)
 		{
+			throw new NotImplementedException();
+			/*
 			if (!Settings.IsSetting(name))
 			{
 				return ReplyErrorAsync($"`{name}` is not a valid setting.");
@@ -75,7 +81,7 @@ namespace Advobot.Classes.Modules
 			{
 				Name = name,
 				Text = description,
-			});
+			}); */
 		}
 		/// <summary>
 		/// Sends the settings file.
@@ -84,12 +90,14 @@ namespace Advobot.Classes.Modules
 		/// <returns></returns>
 		protected Task GetFileAsync(IBotDirectoryAccessor accessor)
 		{
+			throw new NotImplementedException();
+			/*
 			var file = Settings.GetFile(accessor);
 			if (!file.Exists)
 			{
 				return ReplyErrorAsync("The settings file does not exist.");
 			}
-			return Context.Channel.SendFileAsync(file.FullName, null);
+			return Context.Channel.SendFileAsync(file.FullName, null); */
 		}
 	}
 

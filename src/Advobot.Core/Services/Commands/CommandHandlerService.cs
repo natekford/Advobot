@@ -134,10 +134,10 @@ namespace Advobot.Services.Commands
 			ConsoleUtils.WriteLine(c.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 			await (result switch
 			{
-				AdvobotResult a => MessageUtils.SendMessageAsync(c.Channel, a.Reason, a.Embed, a.File), //AdvobotResult means to send the raeson, embed, and file
+				AdvobotResult a => MessageUtils.SendMessageAsync(c.Channel, a.Reason, a.Embed, a.File),
 #warning delete after time
-				IResult i => MessageUtils.SendMessageAsync(c.Channel, i.ErrorReason), //Unknown result type means just send the error reason
-				_ => throw new ArgumentException(nameof(result)), //Unknown result means throw an exception
+				IResult i => MessageUtils.SendMessageAsync(c.Channel, i.ErrorReason),
+				_ => throw new ArgumentException(nameof(result)),
 			}).CAF();
 		}
 		private Task LogInfo(LogMessage arg)

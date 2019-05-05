@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -7,7 +6,6 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -25,23 +23,10 @@ namespace Advobot.Commands
 		public sealed class DisplayInvites : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command()
+			public async Task<RuntimeResult> Command()
 			{
 				var invites = (await Context.Guild.GetInvitesAsync().CAF()).OrderByDescending(x => x.Uses).ToArray();
-				var lenForCode = 0;
-				var lenForUses = 0;
-				foreach (var invite in invites)
-				{
-					lenForCode = Math.Max(lenForCode, invite.Code.Length);
-					lenForUses = Math.Max(lenForUses, invite.Uses.ToString().Length);
-				}
-				await ReplyIfAny(invites, "Invites", x =>
-				{
-					var code = x.Code.PadRight(lenForCode);
-					var uses = x.Uses.ToString().PadRight(lenForUses);
-					var inviter = x.Inviter.Format();
-					return $"`{code}` `{uses}` `{inviter}`";
-				}).CAF();
+				return Responses.Invites.DisplayInvites(invites);
 			}
 		}
 
@@ -55,20 +40,18 @@ namespace Advobot.Commands
 		public sealed class CreateInvite : AdvobotModuleBase
 		{
 			[Command]
-			public Task Command(
-				[Optional, ValidateTextChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketTextChannel channel,
+			public Task<RuntimeResult> Command([Optional, ValidateTextChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketTextChannel channel,
 				[Optional] CreateInviteArguments arguments)
 				=> CommandRunner(channel, arguments);
 			[Command]
-			public Task Command(
-				[ValidateVoiceChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketVoiceChannel channel,
+			public Task<RuntimeResult> Command([ValidateVoiceChannel(CPerm.CreateInstantInvite, FromContext = true)] SocketVoiceChannel channel,
 				[Optional] CreateInviteArguments arguments)
 				=> CommandRunner(channel, arguments);
 
-			private async Task CommandRunner(INestedChannel channel, CreateInviteArguments arguments)
+			private async Task<RuntimeResult> CommandRunner(INestedChannel channel, CreateInviteArguments arguments)
 			{
 				var invite = await channel.CreateInviteAsync(arguments.Time * 60, arguments.Uses, arguments.TemporaryMembership, false, GenerateRequestOptions()).CAF();
-				await ReplyAsync($"Successfully created `{invite.Format()}`.").CAF();
+				return Responses.Invites.CreatedInvite(invite);
 			}
 		}
 
@@ -79,10 +62,10 @@ namespace Advobot.Commands
 		public sealed class DeleteInvite : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(IInvite invite)
+			public async Task<RuntimeResult> Command(IInvite invite)
 			{
 				await invite.DeleteAsync(GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully deleted the invite `{invite.Code}`.").CAF();
+				return Responses.Invites.DeletedInvite(invite);
 			}
 		}
 
@@ -95,20 +78,19 @@ namespace Advobot.Commands
 		public sealed class DeleteMultipleInvites : AdvobotModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command([Remainder] LocalInviteGatherer gatherer)
+			public async Task<RuntimeResult> Command([Remainder] LocalInviteGatherer gatherer)
 			{
 				var invites = gatherer.GatherInvites(await Context.Guild.GetInvitesAsync().CAF()).ToArray();
 				if (!invites.Any())
 				{
-					await ReplyErrorAsync("No invites satisfied the given conditions.").CAF();
-					return;
+					return Responses.Invites.NoInviteMatches();
 				}
 
 				foreach (var invite in invites)
 				{
 					await invite.DeleteAsync(GenerateRequestOptions()).CAF();
 				}
-				await ReplyTimedAsync($"Successfully deleted `{invites.Count()}` instant invites.").CAF();
+				return Responses.Invites.DeletedMultipleInvites(invites);
 			}
 		}
 	}

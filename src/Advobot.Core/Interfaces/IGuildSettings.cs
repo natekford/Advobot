@@ -6,6 +6,7 @@ using Advobot.Enums;
 
 namespace Advobot.Interfaces
 {
+#warning change a lot of the collections to ISet instead of IList
 	/// <summary>
 	/// Holds guild settings.
 	/// </summary>

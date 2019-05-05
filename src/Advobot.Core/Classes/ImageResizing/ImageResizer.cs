@@ -43,7 +43,7 @@ namespace Advobot.Classes.ImageResizing
 		public ImageResizer(int threads)
 		{
 			_SemaphoreSlim = new SemaphoreSlim(threads);
-#warning replace with ImageDL client?
+			//TODO: replace with a different downloader client?
 			_Client = new HttpClient(new HttpClientHandler
 			{
 				AllowAutoRedirect = true,
@@ -55,12 +55,12 @@ namespace Advobot.Classes.ImageResizing
 
 		/// <inheritdoc />
 		public IEnumerable<IImageArgs> GetQueuedArguments()
-			=> _Args;
+			=> _Args.ToArray();
 		/// <inheritdoc />
 		public bool IsGuildAlreadyProcessing(ulong guildId)
 			=> _CurrentlyProcessing.ContainsKey(guildId);
 		/// <inheritdoc />
-		public void Process(IImageArgs arguments)
+		public void Enqueue(IImageArgs arguments)
 		{
 			_Args.Enqueue(arguments);
 			_CurrentlyProcessing.AddOrUpdate(arguments.Context.Guild.Id, 0, (k, v) => 0);
@@ -145,7 +145,7 @@ namespace Advobot.Classes.ImageResizing
 				if (format == MagickFormat.Mp4) //Convert mp4 to gif so it can be used in animated gifs
 				{
 					await message.ModifyAsync(x => x.Content = $"Converting mp4 to gif.").CAF();
-					await ConvertMp4ToGif(stream, args).CAF();
+					await ConvertMp4ToGifAsync(stream, args).CAF();
 					format = MagickFormat.Gif;
 				}
 
@@ -221,7 +221,7 @@ namespace Advobot.Classes.ImageResizing
 			}
 			return ImageResult.FromSuccess(null, format);
 		}
-		private static async Task ConvertMp4ToGif(MemoryStream ms, IImageArgs args)
+		private static async Task ConvertMp4ToGifAsync(MemoryStream ms, IImageArgs args)
 		{
 			const string Name = "in";
 			var info = new ProcessStartInfo

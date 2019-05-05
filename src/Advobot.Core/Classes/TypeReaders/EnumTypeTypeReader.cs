@@ -15,7 +15,7 @@ namespace Advobot.Classes.TypeReaders
 		/// <summary>
 		/// All of the enums from the Discord API wrapper and the core of this bot.
 		/// </summary>
-		public static ImmutableArray<Type> Enums = AppDomain.CurrentDomain.GetAssemblies()
+		public static readonly ImmutableArray<Type> Enums = AppDomain.CurrentDomain.GetAssemblies()
 			.Where(x => x.FullName.CaseInsContains("Discord") || x.FullName.CaseInsContains("Advobot"))
 			.SelectMany(x => x.GetTypes())
 			.Where(x => x.IsEnum && x.IsPublic)

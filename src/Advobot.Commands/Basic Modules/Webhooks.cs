@@ -84,7 +84,7 @@ namespace Advobot.Commands
 			[Command]
 			public Task Command(IWebhook webhook, Uri url)
 			{
-				return ProcessAsync(new IconCreationArgs("Webhook Icon", Context, url, default, (ctx, ms) =>
+				return Enqueue(new IconCreationArgs("Webhook Icon", Context, url, default, (ctx, ms) =>
 				{
 					return webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions());
 				}));

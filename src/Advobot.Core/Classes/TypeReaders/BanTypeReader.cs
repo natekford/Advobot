@@ -9,7 +9,7 @@ using Discord.Commands;
 namespace Advobot.Classes.TypeReaders
 {
 	/// <summary>
-	/// Attemps to find an <see cref="IBan"/> on a guild.
+	/// Attempts to find an <see cref="IBan"/> on a guild.
 	/// </summary>
 	[TypeReaderTargetType(typeof(IBan))]
 	public sealed class BanTypeReader : TypeReader

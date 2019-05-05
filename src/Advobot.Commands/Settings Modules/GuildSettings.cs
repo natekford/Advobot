@@ -2,13 +2,13 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Advobot.Interfaces;
 using Advobot.Utilities;
-using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -191,7 +191,9 @@ namespace Advobot.Commands
 			"If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true, AbleToToggle = false)]
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public sealed class ModifyIgnoredCommandChannels : AdvobotSettingsModuleBase<IGuildSettings>
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 		{
 			public IHelpEntryService HelpEntries { get; set; }
 
@@ -205,12 +207,8 @@ namespace Advobot.Commands
 				[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 				=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, enable, channel.Id).CAF();*/
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task Category(bool enable, string category, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
+			public Task Category(bool enable, [ValidateCommandCategory] string category, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 			{
-				if (!HelpEntries.GetCategories().CaseInsContains(category))
-				{
-					return ReplyErrorAsync($"`{category}` is not a valid category.");
-				}
 				var commands = Settings.CommandSettings.ModifyOverrides(HelpEntries.GetHelpEntries(category), channel, enable);
 				if (!commands.Any())
 				{

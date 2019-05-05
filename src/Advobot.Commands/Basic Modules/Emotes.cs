@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
@@ -30,14 +29,11 @@ namespace Advobot.Commands
 		public sealed class CreateEmote : ImageResizerModule
 		{
 			[Command]
-			public Task Command(Emote emote)
+			public Task<RuntimeResult> Command(Emote emote)
 				=> Command(emote.Name, new Uri(emote.Url));
 			[Command, Priority(1)]
-			public Task Command(
-				[ValidateEmoteName] string name,
-				Uri url,
-				[Optional, Remainder] UserProvidedImageArgs args)
-				=> ProcessAsync(new EmoteCreationArgs(Context, url, args, name));
+			public Task<RuntimeResult> Command([ValidateEmoteName] string name, Uri url, [Optional, Remainder] UserProvidedImageArgs args)
+				=> Responses.Emotes.EnqueuedCreation(name, Enqueue(new EmoteCreationArgs(Context, url, args, name)));
 		}
 
 		[Group(nameof(DeleteEmote)), ModuleInitialismAlias(typeof(DeleteEmote))]
@@ -47,10 +43,10 @@ namespace Advobot.Commands
 		public sealed class DeleteEmote : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(GuildEmote emote)
+			public async Task<RuntimeResult> Command(GuildEmote emote)
 			{
 				await Context.Guild.DeleteEmoteAsync(emote, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully deleted the emote `{emote.Name}`.").CAF();
+				return Responses.Emotes.Deleted(emote);
 			}
 		}
 
@@ -61,10 +57,11 @@ namespace Advobot.Commands
 		public sealed class ModifyEmoteName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(GuildEmote emote, [Remainder, ValidateEmoteName] string name)
+			public async Task<RuntimeResult> Command(GuildEmote emote, [Remainder, ValidateEmoteName] string name)
 			{
+				var old = ((IEmote)emote).Format();
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = name, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully changed the emote name to `{name}`.").CAF();
+				return Responses.Emotes.ModifiedName(old, name);
 			}
 		}
 
@@ -76,48 +73,38 @@ namespace Advobot.Commands
 		public sealed class ModifyEmoteRoles : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Add(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
+			public async Task<RuntimeResult> Add(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x =>
 				{
-					var currentRoles = x.Roles.GetValueOrDefault() ?? Enumerable.Empty<IRole>();
+					var currentRoles = x.Roles.GetValueOrDefault(Enumerable.Empty<IRole>());
 					var concat = currentRoles.Concat(roles).Distinct();
 					x.Roles = Optional.Create(concat);
 				}, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully added `{roles.Join("`, `", x => x.Format())}` as roles necessary to use `{emote}`.").CAF();
+				return Responses.Emotes.AddedRequiredRoles(emote, roles);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Remove(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
+			public async Task<RuntimeResult> Remove(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
 			{
 				if (!emote.RoleIds.Any())
 				{
-					await ReplyErrorAsync($"The emote `{emote}` does not have any restricting roles.").CAF();
-					return;
+					return Responses.Emotes.NoRequiredRoles(emote);
 				}
 
-				await Context.Guild.ModifyEmoteAsync(emote, x =>
-				{
-					if (!x.Roles.IsSpecified)
-					{
-						return;
-					}
-
-					var ids = roles.Select(r => r.Id);
-					x.Roles = Optional.Create(x.Roles.Value.Where(r => !ids.Contains(r.Id)));
-				}, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully removed `{roles.Join("`, `", x => x.Format())}` as roles necessary to use `{emote}`.").CAF();
+				await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Contains(r))), GenerateRequestOptions()).CAF();
+				return Responses.Emotes.RemoveRequiredRoles(emote, roles);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task RemoveAll(GuildEmote emote)
+			public async Task<RuntimeResult> RemoveAll(GuildEmote emote)
 			{
 				if (!emote.RoleIds.Any())
 				{
-					await ReplyErrorAsync($"The emote `{emote}` does not have any restricting roles.").CAF();
-					return;
+					return Responses.Emotes.NoRequiredRoles(emote);
 				}
 
+				var roles = emote.RoleIds.Select(x => Context.Guild.GetRole(x));
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create<IEnumerable<IRole>>(null), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully removed all roles necessary to use `{emote}`.").CAF();
+				return Responses.Emotes.RemoveRequiredRoles(emote, roles);
 			}
 		}
 
@@ -128,17 +115,14 @@ namespace Advobot.Commands
 		public sealed class DisplayEmotes : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public Task Managed()
-				=> CommandRunner(x => x.IsManaged);
+			public Task<RuntimeResult> Managed()
+				=> Responses.Emotes.DisplayMany(Context.Guild.Emotes.Where(x => x.IsManaged));
 			[ImplicitCommand, ImplicitAlias]
-			public Task Local()
-				=> CommandRunner(x => !x.IsManaged && !x.Animated);
+			public Task<RuntimeResult> Local()
+				=> Responses.Emotes.DisplayMany(Context.Guild.Emotes.Where(x => !x.IsManaged && !x.Animated));
 			[ImplicitCommand, ImplicitAlias]
-			public Task Animated()
-				=> CommandRunner(x => x.Animated);
-
-			private Task CommandRunner(Func<GuildEmote, bool> predicate, [CallerMemberName] string caller = "")
-				=> ReplyIfAny(Context.Guild.Emotes.Where(predicate), caller + " Emotes", x => $"{x} `{x.Name}`");
+			public Task<RuntimeResult> Animated()
+				=> Responses.Emotes.DisplayMany(Context.Guild.Emotes.Where(x => x.Animated));
 		}
 	}
 }

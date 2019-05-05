@@ -13,7 +13,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <summary>
 		/// Cannot check from context for an unspecified channel type.
 		/// </summary>
-		public new bool FromContext => false;
+		public override bool FromContext => false;
 
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateGenericChannelAttribute"/>.
@@ -23,6 +23,6 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 
 		/// <inheritdoc />
 		protected override object GetFromContext(AdvobotCommandContext context)
-			=> throw new NotImplementedException();
+			=> throw new NotSupportedException();
 	}
 }

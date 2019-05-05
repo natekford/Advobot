@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Advobot.Enums;
-using Advobot.Utilities;
-using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Classes
 {
@@ -15,8 +9,6 @@ namespace Advobot.Classes
 	/// </summary>
 	public class RemovablePunishment : DatabaseEntry
 	{
-		private static RequestOptions PunishmentReason { get; } = DiscordUtils.GenerateRequestOptions("Automatic punishment removal.");
-
 		/// <summary>
 		/// The type of punishment that was given.
 		/// </summary>
@@ -63,45 +55,5 @@ namespace Advobot.Classes
 		{
 			RoleId = role.Id;
 		}
-
-		/// <summary>
-		/// Processes the removable punishments in a way which is more efficient.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="punisher"></param>
-		/// <param name="punishments"></param>
-		/// <returns></returns>
-		public static async Task ProcessRemovablePunishments(
-			BaseSocketClient client,
-			Punisher punisher,
-			IEnumerable<RemovablePunishment> punishments)
-		{
-			foreach (var guildGroup in punishments.Where(x => x != null).GroupBy(x => x.GuildId))
-			{
-				if (!(client.GetGuild(guildGroup.Key) is SocketGuild guild))
-				{
-					continue;
-				}
-				foreach (var punishmentGroup in guildGroup.GroupBy(x => x.PunishmentType))
-				{
-					await Task.WhenAll(punishmentGroup.Select(x => Handle(guild, punisher, x))).CAF();
-				}
-			}
-		}
-		/// <summary>
-		/// Simple case for the punishment type.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="punisher"></param>
-		/// <param name="p"></param>
-		/// <returns></returns>
-		private static Task Handle(SocketGuild guild, Punisher punisher, RemovablePunishment p) => p.PunishmentType switch
-		{
-			Punishment.Ban => punisher.UnbanAsync(guild, p.UserId, PunishmentReason),
-			Punishment.Deafen => punisher.UndeafenAsync(guild.GetUser(p.UserId), PunishmentReason),
-			Punishment.VoiceMute => punisher.UnvoicemuteAsync(guild.GetUser(p.UserId), PunishmentReason),
-			Punishment.RoleMute => punisher.UnRoleMuteAsync(guild.GetUser(p.UserId), guild.GetRole(p.RoleId), PunishmentReason),
-			_ => Task.CompletedTask,
-		};
 	}
 }

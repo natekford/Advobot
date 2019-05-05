@@ -60,7 +60,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 								displayList.Clear();
 								return;
 							default:
-								throw new NotImplementedException();
+								throw new NotSupportedException();
 						}
 					});
 				};

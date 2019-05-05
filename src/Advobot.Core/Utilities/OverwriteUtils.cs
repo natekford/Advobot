@@ -50,7 +50,7 @@ namespace Advobot.Utilities
 		/// <param name="id"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<IEnumerable<Overwrite>> CopyOverwritesAsync(this SocketGuildChannel input, SocketGuildChannel output, ulong? id, RequestOptions options)
+		public static async Task<IReadOnlyCollection<Overwrite>> CopyOverwritesAsync(this SocketGuildChannel input, SocketGuildChannel output, ulong? id, RequestOptions options)
 		{
 			var overwrites = input.GetOverwrites(id);
 			foreach (var overwrite in overwrites)

@@ -13,8 +13,8 @@ namespace Advobot.Utilities
 		{
 			{ "clear", "clr" }
 		}.ToImmutableDictionary();
-		private static Dictionary<string, Type> _AlreadyUsedModuleAliases { get; } = new Dictionary<string, Type>();
-		private static List<(string Edited, ImmutableArray<string> Parts)> _ModuleInitialisms { get; } = new List<(string Edited, ImmutableArray<string> Parts)>();
+		private static readonly Dictionary<string, Type> _AlreadyUsedModuleAliases = new Dictionary<string, Type>();
+		private static readonly List<(string Edited, ImmutableArray<string> Parts)> _ModuleInitialisms = new List<(string Edited, ImmutableArray<string> Parts)>();
 
 		public static string[] ConcatCommandAliases(string name, string[] aliases)
 			=> ConcatAliases(null, name, aliases);

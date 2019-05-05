@@ -8,17 +8,17 @@ namespace Advobot.Services.Timers
 	/// <summary>
 	/// Uses however many supplied threads to run a separate supplied task on all of them.
 	/// </summary>
-	internal sealed class ProcessingQueue
+	internal sealed class AsyncProcessingQueue
 	{
 		private readonly Func<Task> _T;
 		private readonly SemaphoreSlim _Semaphore;
 
 		/// <summary>
-		/// Creates an instance of <see cref="ProcessingQueue"/>.
+		/// Creates an instance of <see cref="AsyncProcessingQueue"/>.
 		/// </summary>
 		/// <param name="threads"></param>
 		/// <param name="t"></param>
-		public ProcessingQueue(int threads, Func<Task> t)
+		public AsyncProcessingQueue(int threads, Func<Task> t)
 		{
 			_Semaphore = new SemaphoreSlim(threads);
 			_T = t;

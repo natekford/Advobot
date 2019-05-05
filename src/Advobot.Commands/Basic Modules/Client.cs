@@ -21,10 +21,11 @@ namespace Advobot.Commands
 		public sealed class ModifyBotName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([Remainder, ValidateUsername] string name)
+			public async Task<RuntimeResult> Command([Remainder, ValidateUsername] string name)
 			{
+				var old = Context.Client.CurrentUser.Format();
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).CAF();
-				await ReplyTimedAsync($"Successfully changed my username to `{name}`.").CAF();
+				return Responses.Client.ModifiedName(old, name);
 			}
 		}
 
@@ -36,18 +37,19 @@ namespace Advobot.Commands
 		public sealed class ModifyBotIcon : ImageResizerModule
 		{
 			[Command]
-			public Task Command(Uri url)
+			public Task<RuntimeResult> Command(Uri url)
 			{
-				return ProcessAsync(new IconCreationArgs("Bot Icon", Context, url, default, (ctx, ms) =>
+				var position = Enqueue(new IconCreationArgs("Bot Icon", Context, url, default, (ctx, ms) =>
 				{
 					return ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions());
 				}));
+				return Responses.Client.EnqueuedIcon(position);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Remove()
+			public async Task<RuntimeResult> Remove()
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
-				await ReplyTimedAsync("Successfully removed the bot icon.").CAF();
+				return Responses.Client.RemovedIcon();
 			}
 		}
 

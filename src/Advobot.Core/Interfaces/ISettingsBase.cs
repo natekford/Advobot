@@ -3,7 +3,6 @@ using Discord.WebSocket;
 
 namespace Advobot.Interfaces
 {
-#warning notifpropchanged required here?
 	/// <summary>
 	/// Abstraction for something which has settings.
 	/// </summary>

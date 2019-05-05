@@ -16,7 +16,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Converters
 		/// <param name="parameter"></param>
 		/// <param name="culture"></param>
 		/// <returns></returns>
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		public object Convert(object value, Type _1, object _2, CultureInfo _3)
 			=> value is string s ? !string.IsNullOrWhiteSpace(s) : value != null;
 		/// <summary>
 		/// Not implemented.
@@ -27,7 +27,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Converters
 		/// <param name="culture"></param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		public object ConvertBack(object _1, Type _2, object _3, CultureInfo _4)
 			=> throw new NotImplementedException();
 	}
 }

@@ -9,6 +9,7 @@ namespace Advobot.Commands.Responses
 		protected static readonly IFormatProvider Default = new ArgumentFormatter { UseCode = true, };
 		protected static readonly IFormatProvider Title = new ArgumentFormatter { UseTitleCase = true, };
 		protected static readonly IFormatProvider BigBlock = new ArgumentFormatter { UseBigCode = true, };
+		protected static readonly TimeSpan DefaultTime = CreateTime(5);
 
 		protected CommandResponses() : base(null, "") { }
 
@@ -21,7 +22,11 @@ namespace Advobot.Commands.Responses
 			PermValue.Deny => "denied",
 			_ => throw new InvalidOperationException("Invalid action."),
 		};
-		protected static string GetEnabled(bool add)
-			=> add ? "enabled" : "disabled";
+		protected static string GetEnabled(bool enabled)
+			=> enabled ? "enabled" : "disabled";
+		protected static string GetIgnored(bool ignored)
+			=> ignored ? "ignored" : "unignored";
+		protected static string GetAdded(bool added)
+			=> added ? "added" : "removed";
 	}
 }

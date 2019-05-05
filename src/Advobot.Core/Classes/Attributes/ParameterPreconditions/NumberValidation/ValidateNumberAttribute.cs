@@ -16,7 +16,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 		/// <summary>
 		/// Allowed numbers. If the range method is used this will be empty.
 		/// </summary>
-		public ImmutableArray<int> ValidNumbers { get; }
+		public ImmutableHashSet<int> ValidNumbers { get; }
 		/// <summary>
 		/// The starting value.
 		/// </summary>
@@ -32,7 +32,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 		/// <param name="numbers"></param>
 		public ValidateNumberAttribute(int[] numbers)
 		{
-			ValidNumbers = numbers.OrderBy(x => x).ToImmutableArray();
+			ValidNumbers = numbers.OrderBy(x => x).ToImmutableHashSet();
 			Start = int.MinValue;
 			End = int.MaxValue;
 		}
@@ -43,7 +43,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 		/// <param name="end"></param>
 		public ValidateNumberAttribute(int start, int end)
 		{
-			ValidNumbers = new int[0].ToImmutableArray();
+			ValidNumbers = new int[0].ToImmutableHashSet();
 			Start = start;
 			End = end;
 		}
@@ -51,7 +51,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
-			if (!(value is int num) || !int.TryParse(value.ToString(), out num))
+			if (!(value is int num) && !int.TryParse(value.ToString(), out num))
 			{
 				throw new NotSupportedException($"{nameof(ValidateNumberAttribute)} only supports {nameof(Int32)}.");
 			}

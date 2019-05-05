@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Attributes.Preconditions.QuantityLimitations;
 using Advobot.Classes.Modules;
+using Advobot.Classes.Results;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
@@ -23,33 +25,25 @@ namespace Advobot.Commands
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
+			[QuoteLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
-			public Task Add(string name, [Remainder] string text)
+			public Task<RuntimeResult> Add(string name, [Remainder] /*TODO: make sure this cant be null?*/ string text)
 			{
-				if (Settings.Quotes.Count >= BotSettings.MaxQuotes)
-				{
-					return ReplyErrorAsync($"There cannot be more than `{BotSettings.MaxQuotes}` quotes at a time.");
-				}
 				if (Settings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
 				{
-					return ReplyErrorAsync($"A quote already has the name `{name}`.");
-				}
-				if (string.IsNullOrWhiteSpace(text))
-				{
-					return ReplyErrorAsync("A quote requires text to be added.");
+					return Responses.Quotes.AlreadyExists(name);
 				}
 
-				Settings.Quotes.Add(new Quote(name, text));
-				return ReplyTimedAsync($"Successfully added the following quote: `{name}`.");
+				var quote = new Quote(name, text);
+				Settings.Quotes.Add(quote);
+				return Responses.Quotes.ModifiedQuote(quote, true);
 			}
+			[QuoteLimit(QuantityLimitAction.Remove)]
 			[ImplicitCommand, ImplicitAlias]
-			public Task Remove(string name)
+			public Task<RuntimeResult> Remove([Remainder] Quote quote)
 			{
-				if (Settings.Quotes.RemoveAll(x => x.Name.CaseInsEquals(name)) < 1)
-				{
-					return ReplyErrorAsync($"No quote has the name `{name}`.");
-				}
-				return ReplyTimedAsync($"Successfully removed the following quote: `{name}`.");
+				Settings.Quotes.Remove(quote);
+				return Responses.Quotes.ModifiedQuote(quote, false);
 			}
 		}
 
@@ -60,19 +54,20 @@ namespace Advobot.Commands
 		public sealed class SayQuote : AdvobotModuleBase
 		{
 			[Command]
-			public Task Command()
-				=> ReplyIfAny(Context.GuildSettings.Quotes, "quotes", x => x.Name);
+			public Task<RuntimeResult> Command()
+				=> Responses.Quotes.ShowQuotes(Context.GuildSettings.Quotes);
 			[Command, Priority(1)]
-			public Task Command([Remainder] Quote quote)
-				=> ReplyAsync(quote.Description);
+			public Task<RuntimeResult> Command([Remainder] Quote quote)
+				=> Responses.Quotes.Quote(quote);
 			[Command(RunMode = RunMode.Async), Priority(0)]
-			public async Task Command([Remainder, OverrideTypeReader(typeof(CloseQuoteTypeReader))] IEnumerable<Quote> quote)
+			public async Task<RuntimeResult> Command([Remainder, OverrideTypeReader(typeof(CloseQuoteTypeReader))] IEnumerable<Quote> quote)
 			{
 				var entry = await NextItemAtIndexAsync(quote.ToArray(), x => x.Name).CAF();
 				if (entry != null)
 				{
-					await ReplyAsync(entry.Description).CAF();
+					return Responses.Quotes.Quote(entry);
 				}
+				return AdvobotResult.Ignore;
 			}
 		}
 	}

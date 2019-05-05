@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.CloseWords;
 using Advobot.Classes.DatabaseWrappers;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Timer = System.Timers.Timer;
@@ -23,53 +25,21 @@ namespace Advobot.Services.Timers
 	/// </remarks>
 	internal sealed class TimerService : DatabaseWrapperConsumer, ITimerService
 	{
+		private static readonly RequestOptions RemovablePunishmentReason = DiscordUtils.GenerateRequestOptions("Automatic punishment removal.");
+		private static readonly RequestOptions RemovableMessagesReason = DiscordUtils.GenerateRequestOptions("Automatic message deletion.");
+
 		/// <inheritdoc />
 		public override string DatabaseName => "TimedDatabase";
-		/// <summary>
-		/// The discord client for the bot.
-		/// </summary>
-		private DiscordShardedClient Client { get; }
-		/// <summary>
-		/// A timer which ticks once an hour. This will not tick every x:00, instead every 3600 seconds after the bot is start.
-		/// </summary>
-		private Timer HourTimer { get; } = new Timer(60 * 60 * 1000);
-		/// <summary>
-		/// A timer which ticks once a minute. This will not tick every x:xx, instead every 60 seconds after the bot is start.
-		/// </summary>
-		private Timer MinuteTimer { get; } = new Timer(60 * 1000);
-		/// <summary>
-		/// A timer which ticks once a second. This will not tick every x:xx:xx, instead every 1 second after the bot is start.
-		/// </summary>
-		private Timer SecondTimer { get; } = new Timer(1000);
-		/// <summary>
-		/// Used for giving and removing punishments.
-		/// </summary>
-		private Punisher Punisher { get; }
-		/// <summary>
-		/// Queue responsible for processing punishments.
-		/// </summary>
-		private ProcessingQueue RemovablePunishments { get; }
-		/// <summary>
-		/// Queue responsible for processing punishments.
-		/// </summary>
-		private ProcessingQueue TimedMessages { get; }
-		/// <summary>
-		/// Queue responsible for processing removable messages..
-		/// </summary>
-		private ProcessingQueue RemovableMessages { get; }
-		/// <summary>
-		/// Queue responsible for processing close help entries.
-		/// </summary>
-		private ProcessingQueue RemovableCloseWords { get; }
-		/// <summary>
-		/// Cached message ids which have already been deleted so there are less exceptions given when deleting messages.
-		/// </summary>
-		private ConcurrentBag<ulong> AlreadyDeletedMessages
-		{
-			get => _AlreadyDeletedMessages;
-			set => _AlreadyDeletedMessages = value;
-		}
-		private ConcurrentBag<ulong> _AlreadyDeletedMessages = new ConcurrentBag<ulong>();
+		private readonly DiscordShardedClient Client;
+		private readonly Timer HourTimer = new Timer(60 * 60 * 1000);
+		private readonly Timer MinuteTimer = new Timer(60 * 1000);
+		private readonly Timer SecondTimer = new Timer(1000);
+		private readonly Punisher Punisher;
+		private readonly AsyncProcessingQueue RemovablePunishments;
+		private readonly AsyncProcessingQueue TimedMessages;
+		private readonly AsyncProcessingQueue RemovableMessages;
+		private readonly AsyncProcessingQueue RemovableCloseWords;
+		private readonly ConcurrentDictionary<ulong, byte> _AlreadyDeletedMessages = new ConcurrentDictionary<ulong, byte>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="TimerService"/>.
@@ -80,32 +50,32 @@ namespace Advobot.Services.Timers
 			Client = provider.GetRequiredService<DiscordShardedClient>();
 			Punisher = new Punisher(TimeSpan.FromMinutes(0), this);
 
-			RemovablePunishments = new ProcessingQueue(1, async () =>
+			RemovablePunishments = new AsyncProcessingQueue(1, () =>
 			{
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(x => x.Time < DateTime.UtcNow));
-				await RemovablePunishment.ProcessRemovablePunishments(Client, Punisher, values);
+				return ProcessRemovablePunishments(Client, Punisher, values);
 			});
-			TimedMessages = new ProcessingQueue(1, async () =>
+			TimedMessages = new AsyncProcessingQueue(1, () =>
 			{
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<TimedMessage>.Delete(x => x.Time < DateTime.UtcNow));
-				await TimedMessage.ProcessTimedMessages(Client, values).CAF();
+				return ProcessTimedMessages(Client, values);
 			});
-			RemovableMessages = new ProcessingQueue(1, async () =>
+			RemovableMessages = new AsyncProcessingQueue(1, () =>
 			{
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableMessage>.Delete(x => x.Time < DateTime.UtcNow));
-				await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
+				return ProcessRemovableMessagesAsync(Client, _AlreadyDeletedMessages, values);
 			});
-			RemovableCloseWords = new ProcessingQueue(1, async () =>
+			RemovableCloseWords = new AsyncProcessingQueue(1, () =>
 			{
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Delete(x => x.Time < DateTime.UtcNow));
-				await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
+				return ProcessRemovableMessagesAsync(Client, _AlreadyDeletedMessages, values);
 			});
 
 			HourTimer.Elapsed += (sender, e) =>
 			{
 				//Clear this bag every hour because most of these errors only happen a few seconds after input
 				//Meaning there's not much of a need for longer term storage of message ids
-				Interlocked.Exchange(ref _AlreadyDeletedMessages, new ConcurrentBag<ulong>());
+				_AlreadyDeletedMessages.Clear();
 			};
 			MinuteTimer.Elapsed += (sender, e) =>
 			{
@@ -120,7 +90,7 @@ namespace Advobot.Services.Timers
 
 			Client.MessageDeleted += (cached, channel) =>
 			{
-				AlreadyDeletedMessages.Add(cached.Id);
+				_AlreadyDeletedMessages.TryAdd(cached.Id, 0);
 				return Task.CompletedTask;
 			};
 		}
@@ -130,14 +100,14 @@ namespace Advobot.Services.Timers
 		{
 			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(
 				x => x.UserId == value.UserId && x.GuildId == value.GuildId && x.PunishmentType == value.PunishmentType));
-			await RemovablePunishment.ProcessRemovablePunishments(Client, Punisher, values);
+			await ProcessRemovablePunishments(Client, Punisher, values);
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
 		public async Task AddAsync(RemovableCloseWords value)
 		{
 			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
-			await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
+			await ProcessRemovableMessagesAsync(Client, _AlreadyDeletedMessages, values).CAF();
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
@@ -157,14 +127,14 @@ namespace Advobot.Services.Timers
 		{
 			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(
 				x => x.UserId == userId && x.GuildId == guildId && x.PunishmentType == punishment));
-			await RemovablePunishment.ProcessRemovablePunishments(Client, Punisher, values).CAF();
+			await ProcessRemovablePunishments(Client, Punisher, values).CAF();
 			return values.SingleOrDefault();
 		}
 		/// <inheritdoc />
 		public async Task<RemovableCloseWords> RemoveActiveCloseWords(ulong guildId, ulong userId)
 		{
 			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Delete(x => x.GuildId == guildId && x.UserId == userId));
-			await RemovableMessage.ProcessRemovableMessagesAsync(Client, AlreadyDeletedMessages, values).CAF();
+			await ProcessRemovableMessagesAsync(Client, _AlreadyDeletedMessages, values).CAF();
 			return values.SingleOrDefault();
 		}
 		/// <inheritdoc />
@@ -182,6 +152,70 @@ namespace Advobot.Services.Timers
 			MinuteTimer.Dispose();
 			SecondTimer.Dispose();
 			base.BeforeDispose();
+		}
+
+		private static async Task ProcessTimedMessages(BaseSocketClient client, IEnumerable<TimedMessage> timedMessages)
+		{
+			foreach (var userGroup in timedMessages.GroupBy(x => x.UserId))
+			{
+				if (!(client.GetUser(userGroup.Key) is SocketUser user))
+				{
+					continue;
+				}
+				foreach (var task in userGroup.Select(x => user.SendMessageAsync(x.Text)))
+				{
+					await task.CAF();
+				}
+			}
+		}
+		private static async Task ProcessRemovablePunishments(BaseSocketClient client, Punisher punisher, IEnumerable<RemovablePunishment> punishments)
+		{
+			foreach (var guildGroup in punishments.Where(x => x != null).GroupBy(x => x.GuildId))
+			{
+				if (!(client.GetGuild(guildGroup.Key) is SocketGuild guild))
+				{
+					continue;
+				}
+				foreach (var punishmentGroup in guildGroup.GroupBy(x => x.PunishmentType))
+				{
+					foreach (var task in punishmentGroup.Select(x => x.PunishmentType switch
+					{
+						Punishment.Ban => punisher.UnbanAsync(guild, x.UserId, RemovablePunishmentReason),
+						Punishment.Deafen => punisher.UndeafenAsync(guild.GetUser(x.UserId), RemovablePunishmentReason),
+						Punishment.VoiceMute => punisher.UnvoicemuteAsync(guild.GetUser(x.UserId), RemovablePunishmentReason),
+						Punishment.RoleMute => punisher.UnRoleMuteAsync(guild.GetUser(x.UserId), guild.GetRole(x.RoleId), RemovablePunishmentReason),
+						_ => Task.CompletedTask,
+					}))
+					{
+						await task.CAF();
+					}
+				}
+			}
+		}
+		private static async Task ProcessRemovableMessagesAsync(BaseSocketClient client, ConcurrentDictionary<ulong, byte> alreadyDeleted, IEnumerable<RemovableMessage> removableMessages)
+		{
+			foreach (var guildGroup in removableMessages.Where(x => x != null).GroupBy(x => x.GuildId))
+			{
+				if (!(client.GetGuild(guildGroup.Key) is SocketGuild guild))
+				{
+					continue;
+				}
+				foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
+				{
+					if (!(guild.GetTextChannel(channelGroup.Key) is SocketTextChannel channel))
+					{
+						continue;
+					}
+
+					var ids = channelGroup.SelectMany(g => g.MessageIds);
+					var messages = new List<IMessage>();
+					foreach (var id in ids.Where(x => x != 0 && alreadyDeleted.TryAdd(x, 0)))
+					{
+						messages.Add(await channel.GetMessageAsync(id).CAF());
+					}
+					await MessageUtils.DeleteMessagesAsync(channel, messages, RemovableMessagesReason).CAF();
+				}
+			}
 		}
 	}
 }
