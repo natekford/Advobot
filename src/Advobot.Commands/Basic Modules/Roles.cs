@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
@@ -27,10 +25,10 @@ namespace Advobot.Commands
 		public sealed class GiveRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(SocketGuildUser user, [ValidateRole] params SocketRole[] roles)
+			public async Task<RuntimeResult> Command(SocketGuildUser user, [ValidateRole] params SocketRole[] roles)
 			{
 				await user.AddRolesAsync(roles, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully gave `{roles.Join("`, `", x => x.Format())}` to `{user.Format()}`.").CAF();
+				return Responses.Roles.Gave(roles, user);
 			}
 		}
 
@@ -41,10 +39,10 @@ namespace Advobot.Commands
 		public sealed class TakeRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(SocketGuildUser user, [ValidateRole] params SocketRole[] roles)
+			public async Task<RuntimeResult> Command(SocketGuildUser user, [ValidateRole] params SocketRole[] roles)
 			{
 				await user.RemoveRolesAsync(roles, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully took `{roles.Join("`, `", x => x.Format())}` from `{user.Format()}`.").CAF();
+				return Responses.Roles.Took(roles, user);
 			}
 		}
 
@@ -55,27 +53,27 @@ namespace Advobot.Commands
 		public sealed class CreateRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([ValidateRoleName] string name)
+			public async Task<RuntimeResult> Command([ValidateRoleName] string name)
 			{
 				var role = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), null, false, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully created the role `{role.Format()}`.").CAF();
+				return Responses.Roles.Created(role);
 			}
 		}
 
 		[Group(nameof(SoftDeleteRole)), ModuleInitialismAlias(typeof(SoftDeleteRole))]
 		[Summary("Deletes the role, thus removing all channel overwrites the role had and removing the role from everyone. " +
-			"Leaves the name, color, permissions, and position behind in a newly created role.")]
+			"Creates a new role with the same color, permissions, and position.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class SoftDeleteRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([NotEveryoneOrManaged] SocketRole role)
+			public async Task<RuntimeResult> Command([NotEveryoneOrManaged] SocketRole role)
 			{
 				await role.DeleteAsync(GenerateRequestOptions()).CAF();
-				var newRole = await Context.Guild.CreateRoleAsync(role.Name, role.Permissions, role.Color, false, GenerateRequestOptions()).CAF();
+				await Context.Guild.CreateRoleAsync(role.Name, role.Permissions, role.Color, false, GenerateRequestOptions()).CAF();
 				await DiscordUtils.ModifyRolePositionAsync(role, role.Position, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully softdeleted `{role.Format()}`.").CAF();
+				return Responses.Roles.SoftDeleted(role);
 			}
 		}
 
@@ -86,25 +84,10 @@ namespace Advobot.Commands
 		public sealed class DeleteRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([NotEveryoneOrManaged] SocketRole role)
+			public async Task<RuntimeResult> Command([NotEveryoneOrManaged] SocketRole role)
 			{
 				await role.DeleteAsync(GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully deleted `{role.Format()}`.").CAF();
-			}
-		}
-
-		[Group(nameof(ModifyRolePosition)), ModuleInitialismAlias(typeof(ModifyRolePosition))]
-		[Summary("If only a role is input its position will be listed, else moves the role to the given position. " +
-			"Everyone is the first position and starts at zero.")]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
-		[EnabledByDefault(true)]
-		public sealed class ModifyRolePosition : AdvobotModuleBase
-		{
-			[Command]
-			public async Task Command([NotEveryone] SocketRole role, [ValidatePositiveNumber] int position)
-			{
-				var pos = await DiscordUtils.ModifyRolePositionAsync(role, position, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully gave `{role.Format()}` the position `{pos}`.").CAF();
+				return Responses.Roles.Deleted(role);
 			}
 		}
 
@@ -115,59 +98,56 @@ namespace Advobot.Commands
 		public sealed class DisplayRolePositions : AdvobotModuleBase
 		{
 			[Command]
-			public Task Command()
+			public Task<RuntimeResult> Command()
+				=> Responses.Roles.Display(Context.Guild.Roles.OrderByDescending(x => x.Position));
+		}
+
+		[Group(nameof(ModifyRolePosition)), ModuleInitialismAlias(typeof(ModifyRolePosition))]
+		[Summary("If only a role is input its position will be listed, else moves the role to the given position. " +
+			"Everyone is the first position and starts at zero.")]
+		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[EnabledByDefault(true)]
+		public sealed class ModifyRolePosition : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command([NotEveryone] SocketRole role, [ValidatePositiveNumber] int position)
 			{
-				var roles = Context.Guild.Roles.OrderByDescending(x => x.Position);
-				return ReplyEmbedAsync(new EmbedWrapper
-				{
-					Title = "Role Positions",
-					Description = roles.Join("\n", x => $"`{x.Position.ToString("00")}.` {x.Name}"),
-				});
+				var pos = await DiscordUtils.ModifyRolePositionAsync(role, position, GenerateRequestOptions()).CAF();
+				return Responses.Roles.Moved(role, pos);
 			}
 		}
 
+		[Group(nameof(DisplayRolePerms)), ModuleInitialismAlias(typeof(DisplayRolePerms))]
+		[Summary("Shows permissions on a role. Can show permission types or the permission a role has.")]
+		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[EnabledByDefault(true)]
+		public sealed class DisplayRolePerms : AdvobotModuleBase
+		{
+			[Command]
+			public Task<RuntimeResult> Command()
+				=> Responses.CommandResponses.DisplayEnumValues<GuildPermission>();
+			[Command]
+			public Task<RuntimeResult> Command(SocketRole role)
+				=> Responses.Roles.DisplayPermissions(role);
+		}
+
 		[Group(nameof(ModifyRolePerms)), ModuleInitialismAlias(typeof(ModifyRolePerms))]
-		[Summary("Permissions must be separated by a `/` or their rawvalue can be said instead. " +
-			"Type `" + nameof(ModifyRolePerms) + " [Show]` to see the available permissions. " +
-			"Type `" + nameof(ModifyRolePerms) + " [Show] [Role]` to see the permissions of that role.")]
+		[Summary("Permissions must be separated by a `/` or their rawvalue can be said instead.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyRolePerms : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
-			public Task Show([Optional, ValidateRole] SocketRole role)
-			{
-				if (role == null)
-				{
-					return ReplyEmbedAsync(new EmbedWrapper
-					{
-						Title = "Guild Permission Types",
-						Description = $"`{string.Join("`, `", Enum.GetNames(typeof(GuildPermission)))}`",
-					});
-				}
-				return ReplyIfAny(EnumUtils.GetFlagNames((GuildPermission)role.Permissions.RawValue), role.Format(), "Permissions", x => x);
-			}
-			[ImplicitCommand, ImplicitAlias]
-			public Task Allow(
-				[ValidateRole] SocketRole role,
+			[Command]
+			public async Task<RuntimeResult> Command([ValidateRole] SocketRole role,
+				bool allow,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
-				=> CommandRunner(role, permissions, true);
-			[ImplicitCommand, ImplicitAlias]
-			public Task Deny(
-				[ValidateRole] SocketRole role,
-				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
-				=> CommandRunner(role, permissions, false);
-
-			private async Task CommandRunner(SocketRole role, ulong permissions, bool add)
 			{
 				//Only modify permissions the user has the ability to
-				var validPermissions = permissions & ((IGuildUser)Context.User).GuildPermissions.RawValue;
-				var rolePermissions = add ? role.Permissions.RawValue | validPermissions : role.Permissions.RawValue & ~validPermissions;
+				permissions &= Context.User.GuildPermissions.RawValue;
 
+				var rolePermissions = allow ? role.Permissions.RawValue | permissions : role.Permissions.RawValue & ~permissions;
 				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(rolePermissions), GenerateRequestOptions()).CAF();
-				var perms = EnumUtils.GetFlagNames((GuildPermission)permissions);
-				var modified = perms.Any() ? string.Join("`, `", perms) : "Nothing";
-				await ReplyTimedAsync($"Successfully {(add ? "added" : "removed")} `{perms}` for `{role.Format()}`.").CAF();
+				return Responses.Roles.ModifiedPermissions(role, (GuildPermission)permissions, allow);
 			}
 		}
 

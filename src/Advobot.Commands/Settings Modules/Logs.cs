@@ -118,7 +118,7 @@ namespace Advobot.Commands
 			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Show()
-				=> Responses.Logs.ShowLogActions();
+				=> Responses.CommandResponses.DisplayEnumValues<LogAction>();
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Reset()
 			{

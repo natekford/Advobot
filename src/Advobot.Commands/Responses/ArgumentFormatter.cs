@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Advobot.Utilities;
@@ -8,6 +9,31 @@ using Discord;
 
 namespace Advobot.Commands.Responses
 {
+	public static class RuntimeFormatUtils
+	{
+		public static RuntimeFormat None(this object value)
+			=> RuntimeFormat.None(value);
+		public static RuntimeFormat Create(this object value, string format)
+			=> RuntimeFormat.Create(value, format);
+	}
+
+	public sealed class RuntimeFormat
+	{
+		public object Value { get; }
+		public string Format { get; }
+
+		private RuntimeFormat(object value, string? format)
+		{
+			Value = value;
+			Format = format ?? "NONE";
+		}
+
+		public static RuntimeFormat None(object value)
+			=> new RuntimeFormat(value, null);
+		public static RuntimeFormat Create(object value, string format)
+			=> new RuntimeFormat(value, format);
+	}
+
 	public class ArgumentFormatter : IFormatProvider, ICustomFormatter
 	{
 		public string Joiner { get; set; } = ", ";
@@ -32,6 +58,18 @@ namespace Advobot.Commands.Responses
 		}
 		private string Format(string format, object arg)
 		{
+			if (arg is null)
+			{
+				return Format(format, "Nothing");
+			}
+			if (arg is RuntimeFormat rtf)
+			{
+				if (format != null)
+				{
+					throw new InvalidOperationException($"{nameof(format)} should not be supplied if {nameof(RuntimeFormat)} is being used.");
+				}
+				return Format(rtf.Format ?? "", rtf.Value);
+			}
 			if (arg is string str)
 			{
 				return Format(format, str);
@@ -57,18 +95,17 @@ namespace Advobot.Commands.Responses
 		}
 		private string Format(string format, string arg)
 		{
-			var overrideFormat = format.StartsWith("F=");
-			var options = overrideFormat ? format.Substring(2).Split('|') : Enumerable.Empty<string>();
+			var options = (format ?? "").Split('|').Select(x => x.Trim());
+			var ignoreDefaults = options.Any();
 
-			//TODO: make this ignore the default format when supplied with override
-			if (options.Contains("title") || UseTitleCase) { arg = arg.FormatTitle(); }
-			if (options.Contains(":")     || UseColon) { arg += ":"; }
-			if (options.Contains("`")     || UseCode) { arg = $"`{arg}`"; }
-			if (options.Contains("**")    || UseBold) { arg = $"**{arg}**"; }
-			if (options.Contains("_")     || UseItalics) { arg = $"_{arg}_"; }
-			if (options.Contains("__")    || UseUnderline) { arg = $"__{arg}__"; }
-			if (options.Contains("~~")    || UseStrikethrough) { arg = $"~~{arg}~~"; }
-			if (options.Contains("```")   || UseBigCode) { arg = $"```\n{arg}\n```"; }
+			if (options.Contains("title") || (!ignoreDefaults && UseTitleCase)) { arg = arg.FormatTitle(); }
+			if (options.Contains(":")     || (!ignoreDefaults && UseColon)) { arg += ":"; }
+			if (options.Contains("`")     || (!ignoreDefaults && UseCode)) { arg = $"`{arg}`"; }
+			if (options.Contains("**")    || (!ignoreDefaults && UseBold)) { arg = $"**{arg}**"; }
+			if (options.Contains("_")     || (!ignoreDefaults && UseItalics)) { arg = $"_{arg}_"; }
+			if (options.Contains("__")    || (!ignoreDefaults && UseUnderline)) { arg = $"__{arg}__"; }
+			if (options.Contains("~~")    || (!ignoreDefaults && UseStrikethrough)) { arg = $"~~{arg}~~"; }
+			if (options.Contains("```")   || (!ignoreDefaults && UseBigCode)) { arg = $"```\n{arg}\n```"; }
 			return arg;
 		}
 	}

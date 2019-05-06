@@ -168,8 +168,8 @@ namespace Advobot.Commands
 		[EnabledByDefault(true)]
 		public sealed class GetEnumNames : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task<RuntimeResult> Show()
+			[Command]
+			public Task<RuntimeResult> Command()
 				=> Responses.Gets.ShowAllEnums(EnumTypeTypeReader.Enums);
 			[Command]
 			public Task<RuntimeResult> Command([OverrideTypeReader(typeof(EnumTypeTypeReader))] Type enumType)

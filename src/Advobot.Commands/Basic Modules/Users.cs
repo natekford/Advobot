@@ -174,7 +174,7 @@ namespace Advobot.Commands
 				[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel input,
 				[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel output,
 				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> ProcessAsync(input.Users, bypass, x => true, (u, o) => u.ModifyAsync(x => x.Channel = output, o));
+				=> ProcessAsync(input.Users, bypass, u => true, u => u.ModifyAsync(x => x.Channel = output, GenerateRequestOptions()));
 		}
 
 		[Group(nameof(PruneUsers)), ModuleInitialismAlias(typeof(PruneUsers))]
@@ -361,25 +361,25 @@ namespace Advobot.Commands
 				{
 					return ReplyErrorAsync("Cannot give the role being gathered.");
 				}
-				return ProcessAsync(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.AddRoleAsync(give, o));
+				return ProcessAsync(bypass, u => u.RoleIds.Contains(target.Id), u => u.AddRoleAsync(give, GenerateRequestOptions()));
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public Task TakeRole(
 				SocketRole target,
 				[NotEveryoneOrManaged] SocketRole take,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> ProcessAsync(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.RemoveRoleAsync(take, o));
+				=> ProcessAsync(bypass, u => u.RoleIds.Contains(target.Id), u => u.RemoveRoleAsync(take, GenerateRequestOptions()));
 			[ImplicitCommand, ImplicitAlias]
 			public Task GiveNickname(
 				[ValidateRole] SocketRole target,
 				[ValidateNickname] string nickname,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> ProcessAsync(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = nickname));
+				=> ProcessAsync(bypass, u => u.RoleIds.Contains(target.Id), u => u.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions()));
 			[ImplicitCommand, ImplicitAlias]
 			public Task ClearNickname(
 				[ValidateRole] SocketRole target,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> ProcessAsync(bypass, x => x.Roles.Select(r => r.Id).Contains(target.Id), (u, o) => u.ModifyAsync(x => x.Nickname = u.Username));
+				=> ProcessAsync(bypass, u => u.RoleIds.Contains(target.Id), u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions()));
 		}
 	}
 }

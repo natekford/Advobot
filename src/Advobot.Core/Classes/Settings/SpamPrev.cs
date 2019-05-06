@@ -52,7 +52,7 @@ namespace Advobot.Classes.Settings
 		/// <inheritdoc />
 		public override string Format(SocketGuild? guild = null)
 		{
-			return $"**Punishment:** `{Punishment.ToString()}`\n" +
+			return $"**Punishment:** `{Punishment}`\n" +
 				$"**Spam Instances:** `{SpamInstances}`\n" +
 				$"**Votes For Punishment:** `{VotesForKick}`\n" +
 				$"**Spam Amount:** `{SpamPerMessage}`\n" +

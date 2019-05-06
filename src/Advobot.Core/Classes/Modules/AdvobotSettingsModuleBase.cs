@@ -3,9 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 
 namespace Advobot.Classes.Modules

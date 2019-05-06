@@ -19,7 +19,7 @@ namespace Advobot.Commands.Responses
 			=> Success(Default.Format(strings.Responses_Channels_SoftDeleted, channel));
 		public static AdvobotResult Deleted(IGuildChannel channel)
 			=> Success(Default.Format(strings.Responses_Channels_Deleted, channel));
-		public static AdvobotResult DisplayMany(IEnumerable<IGuildChannel> channels, [CallerMemberName] string caller = "")
+		public static AdvobotResult Display(IEnumerable<IGuildChannel> channels, [CallerMemberName] string caller = "")
 		{
 			return Success(new EmbedWrapper
 			{
@@ -44,7 +44,8 @@ namespace Advobot.Commands.Responses
 			return Success(new EmbedWrapper
 			{
 				Title = Title.FormatInterpolated($"Overwrite On {channel}"),
-				Description = Default.FormatInterpolated($"{obj}\n") + BigBlock.FormatInterpolated($"{values.Join("\n", x => $"{x.Name.PadRight(padLen)} {x.Value}")}"),
+				Description = Default.FormatInterpolated($"{obj}\n") +
+					BigBlock.FormatInterpolated($"{values.Join("\n", x => $"{x.Name.PadRight(padLen)} {x.Value}")}"),
 			});
 		}
 		public static AdvobotResult ModifiedOverwrite(IGuildChannel channel, ISnowflakeEntity obj, ChannelPermission permissions, PermValue action)

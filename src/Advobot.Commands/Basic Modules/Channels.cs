@@ -92,13 +92,13 @@ namespace Advobot.Commands.Channels
 		{
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Text()
-				=> Responses.Channels.DisplayMany(Context.Guild.TextChannels.OrderBy(x => x.Position));
+				=> Responses.Channels.Display(Context.Guild.TextChannels.OrderBy(x => x.Position));
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Voice()
-				=> Responses.Channels.DisplayMany(Context.Guild.VoiceChannels.OrderBy(x => x.Position));
+				=> Responses.Channels.Display(Context.Guild.VoiceChannels.OrderBy(x => x.Position));
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Category()
-				=> Responses.Channels.DisplayMany(Context.Guild.CategoryChannels.OrderBy(x => x.Position));
+				=> Responses.Channels.Display(Context.Guild.CategoryChannels.OrderBy(x => x.Position));
 		}
 
 		[Group(nameof(ModifyChannelPosition)), ModuleInitialismAlias(typeof(ModifyChannelPosition))]
@@ -122,6 +122,9 @@ namespace Advobot.Commands.Channels
 		[EnabledByDefault(false)]
 		public sealed class DisplayChannelPerms : AdvobotModuleBase
 		{
+			[Command]
+			public Task<RuntimeResult> Command()
+				=> Responses.CommandResponses.DisplayEnumValues<ChannelPermission>();
 			[Command]
 			public Task<RuntimeResult> Command([ValidateGenericChannel(ChannelPermission.ManageChannels, ChannelPermission.ManageRoles)] SocketGuildChannel channel)
 			{
@@ -180,14 +183,14 @@ namespace Advobot.Commands.Channels
 		{
 			[Command]
 			public Task<RuntimeResult> Command([ValidateGenericChannel(ChannelPermission.ManageChannels, ChannelPermission.ManageRoles)] SocketGuildChannel channel,
-				PermValue action,
 				SocketRole role,
+				PermValue action,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<ChannelPermission>))] ulong permissions)
 				=> CommandRunner(action, channel, role, permissions);
 			[Command]
 			public Task<RuntimeResult> Command([ValidateGenericChannel(ChannelPermission.ManageChannels, ChannelPermission.ManageRoles)] SocketGuildChannel channel,
-				PermValue action,
 				SocketGuildUser user,
+				PermValue action,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<ChannelPermission>))] ulong permissions)
 				=> CommandRunner(action, channel, user, permissions);
 
