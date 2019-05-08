@@ -8,6 +8,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Classes.Attributes.Preconditions.QuantityLimitations;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Advobot.Interfaces;
@@ -32,12 +33,14 @@ namespace Advobot.Commands
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
+			[SelfRoleGroupsLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
 			public Task Create([ValidatePositiveNumber] int group)
-				=> CommandRunner(group);
+				=> CommandRunner(group, true);
+			[SelfRoleGroupsLimit(QuantityLimitAction.Remove)]
 			[ImplicitCommand, ImplicitAlias]
 			public Task Delete([ValidatePositiveNumber] int group)
-				=> CommandRunner(group);
+				=> CommandRunner(group, false);
 			[ImplicitCommand, ImplicitAlias]
 			public Task Add([ValidatePositiveNumber] int group, [ValidateRole] params SocketRole[] roles)
 				=> CommandRunner(group, roles);
@@ -45,36 +48,24 @@ namespace Advobot.Commands
 			public Task Remove([ValidatePositiveNumber] int group, [ValidateRole] params SocketRole[] roles)
 				=> CommandRunner(group, roles);
 
-			private Task CommandRunner(int number, [CallerMemberName] string caller = "")
+			private Task CommandRunner(int number, bool created)
 			{
-				var groups = Settings.SelfAssignableGroups;
-				switch (caller)
+				if (created)
 				{
-					case nameof(Create):
-						if (groups.Count >= BotSettings.MaxSelfAssignableRoleGroups)
-						{
-							return ReplyErrorAsync($"You have too many groups. `{BotSettings.MaxSelfAssignableRoleGroups}` is the maximum.");
-						}
-						if (groups.Any(x => x.Group == number))
-						{
-							return ReplyErrorAsync("A group already exists with that position.");
-						}
-						groups.Add(new SelfAssignableRoles(number));
-						break;
-					case nameof(Delete):
-						if (groups.Count <= 0)
-						{
-							return ReplyErrorAsync("There are no groups to delete.");
-						}
-						if (groups.RemoveAll(x => x.Group == number) == 0)
-						{
-							return ReplyErrorAsync("A group needs to exist with that position before it can be deleted.");
-						}
-						break;
-					default:
-						throw new InvalidOperationException("Invalid action for modifying a self assignable role group.");
+					if (Settings.SelfAssignableGroups.Any(x => x.Group == number))
+					{
+						return ReplyErrorAsync("A group already exists with that position.");
+					}
+					Settings.SelfAssignableGroups.Add(new SelfAssignableRoles(number));
 				}
-				return ReplyTimedAsync($"Successfully {caller.ToLower() + "d"} group `{number}`.");
+				else
+				{
+					if (Settings.SelfAssignableGroups.RemoveAll(x => x.Group == number) == 0)
+					{
+						return ReplyErrorAsync("A group needs to exist with that position before it can be deleted.");
+					}
+				}
+				return Responses.SelfRoles.CreatedGroup(created, number);
 			}
 			private Task CommandRunner(int number, IRole[] roles, [CallerMemberName] string caller = "")
 			{
@@ -141,6 +132,8 @@ namespace Advobot.Commands
 		[EnabledByDefault(false)]
 		public sealed class AssignSelfRole : AdvobotModuleBase
 		{
+			//Inherit from this to make this accept a self role instead of regular role?
+			//https://github.com/discord-net/Discord.Net/blob/ff0fea98a65d907fbce07856f1a9ef4aebb9108b/src/Discord.Net.Commands/Readers/RoleTypeReader.cs
 			[Command]
 			public async Task Command(SocketRole role)
 			{

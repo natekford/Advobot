@@ -9,9 +9,9 @@ using Discord.Commands;
 namespace Advobot.Classes.TypeReaders
 {
 	/// <summary>
-	/// Attempts to find an <see cref="IInvite"/> on a guild.
+	/// Attempts to find an <see cref="IInviteMetadata"/> on a guild.
 	/// </summary>
-	[TypeReaderTargetType(typeof(IInvite))]
+	[TypeReaderTargetType(typeof(IInviteMetadata))]
 	public sealed class InviteTypeReader : TypeReader
 	{
 		/// <summary>
@@ -31,12 +31,15 @@ namespace Advobot.Classes.TypeReaders
 					return TypeReaderResult.FromSuccess(invite);
 				}
 			}
-
 			{
 				var invite = await context.Client.GetInviteAsync(input).CAF();
-				if (invite != null && invite.GuildId == context.Guild.Id)
+				if (invite is IInviteMetadata meta && invite.GuildId == context.Guild.Id)
 				{
-					return TypeReaderResult.FromSuccess(invite);
+					return TypeReaderResult.FromSuccess(meta);
+				}
+				else if (invite != null)
+				{
+					return TypeReaderResult.FromError(CommandError.Exception, "Found an invite, but it was invalid for what I needed.");
 				}
 			}
 			return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Invite not found.");

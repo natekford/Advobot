@@ -15,7 +15,7 @@ namespace Advobot.NetCoreUI.Classes.ValidationAttributes
 		/// <returns></returns>
 		protected override ValidationResult IsValid(object value, ValidationContext validationContext)
 		{
-			return !(value is string str) || string.IsNullOrWhiteSpace(str) || ulong.TryParse(str, out var ul)
+			return !(value is string str) || string.IsNullOrWhiteSpace(str) || ulong.TryParse(str, out var _)
 				? ValidationResult.Success
 				: new ValidationResult("Invalid user id.");
 		}

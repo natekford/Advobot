@@ -22,10 +22,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 				this.RaisePropertyChanged(e.PropertyName);
 				this.RaisePropertyChanged(nameof(CanSave));
 			};
-			Errors.PropertyChanged += (sender, e) =>
-			{
-				this.RaisePropertyChanged(nameof(CanSave));
-			};
+			Errors.PropertyChanged += (sender, e) => this.RaisePropertyChanged(nameof(CanSave));
 		}
 
 		protected bool IsValid([CallerMemberName] string caller = "")

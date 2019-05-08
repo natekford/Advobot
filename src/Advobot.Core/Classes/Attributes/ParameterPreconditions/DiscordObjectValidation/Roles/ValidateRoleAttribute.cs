@@ -23,12 +23,12 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 			=> throw new NotSupportedException();
 		/// <inheritdoc />
 		protected override VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value)
-			=> context.User.ValidateRole((SocketRole)value, GetExtras().ToArray());
+			=> context.User.ValidateRole((SocketRole)value, GetValidationRules().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.
 		/// </summary>
 		/// <returns></returns>
-		protected virtual IEnumerable<ValidationRule<SocketRole>> GetExtras()
+		protected virtual IEnumerable<ValidationRule<SocketRole>> GetValidationRules()
 			=> Enumerable.Empty<ValidationRule<SocketRole>>();
 	}
 }

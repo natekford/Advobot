@@ -82,10 +82,7 @@ namespace Advobot.Services.Logging
 			{
 				var name = counter.Name.Replace(" ", "");
 				_Counters.Add(name, counter);
-				counter.PropertyChanged += (sender, e) =>
-				{
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-				};
+				counter.PropertyChanged += (sender, e) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 			}
 
 			var client = provider.GetRequiredService<DiscordShardedClient>();

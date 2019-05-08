@@ -18,7 +18,7 @@ namespace Advobot.NetCoreUI.Classes.ValidationAttributes
 		/// <returns></returns>
 		protected override ValidationResult IsValid(object value, ValidationContext validationContext)
 		{
-			return !(value is string str) || _Factory.TryCreateBrush(str, out var brush)
+			return !(value is string str) || _Factory.TryCreateBrush(str, out var _)
 				? ValidationResult.Success
 				: new ValidationResult("Invalid color.");
 		}

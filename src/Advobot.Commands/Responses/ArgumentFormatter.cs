@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Advobot.Utilities;
@@ -11,27 +10,27 @@ namespace Advobot.Commands.Responses
 {
 	public static class RuntimeFormatUtils
 	{
-		public static RuntimeFormat None(this object value)
-			=> RuntimeFormat.None(value);
-		public static RuntimeFormat Create(this object value, string format)
-			=> RuntimeFormat.Create(value, format);
+		public static RuntimeFormattedObject NoFormatting(this object value)
+			=> RuntimeFormattedObject.None(value);
+		public static RuntimeFormattedObject WithFormat(this object value, string format)
+			=> RuntimeFormattedObject.Create(value, format);
 	}
 
-	public sealed class RuntimeFormat
+	public struct RuntimeFormattedObject
 	{
 		public object Value { get; }
 		public string Format { get; }
 
-		private RuntimeFormat(object value, string? format)
+		private RuntimeFormattedObject(object value, string? format)
 		{
 			Value = value;
 			Format = format ?? "NONE";
 		}
 
-		public static RuntimeFormat None(object value)
-			=> new RuntimeFormat(value, null);
-		public static RuntimeFormat Create(object value, string format)
-			=> new RuntimeFormat(value, format);
+		public static RuntimeFormattedObject None(object value)
+			=> new RuntimeFormattedObject(value, null);
+		public static RuntimeFormattedObject Create(object value, string format)
+			=> new RuntimeFormattedObject(value, format);
 	}
 
 	public class ArgumentFormatter : IFormatProvider, ICustomFormatter
@@ -62,11 +61,11 @@ namespace Advobot.Commands.Responses
 			{
 				return Format(format, "Nothing");
 			}
-			if (arg is RuntimeFormat rtf)
+			if (arg is RuntimeFormattedObject rtf)
 			{
 				if (format != null)
 				{
-					throw new InvalidOperationException($"{nameof(format)} should not be supplied if {nameof(RuntimeFormat)} is being used.");
+					throw new InvalidOperationException($"{nameof(format)} should not be supplied if {nameof(RuntimeFormattedObject)} is being used.");
 				}
 				return Format(rtf.Format ?? "", rtf.Value);
 			}

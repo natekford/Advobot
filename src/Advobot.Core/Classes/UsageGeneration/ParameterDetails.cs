@@ -30,7 +30,7 @@ namespace Advobot.Classes.UsageGeneration
 			IsRemainder = attrs.GetAttribute<RemainderAttribute>() != null;
 			Occurences = 1;
 
-			var (t, n) = GetType(reflection.ParameterType, attrs.GetAttribute<OverrideTypeReaderAttribute>()?.TypeReader);
+			var (t, n) = GetType(reflection.ParameterType);
 			Type = t;
 			TypeName = n;
 
@@ -43,14 +43,14 @@ namespace Advobot.Classes.UsageGeneration
 			IsRemainder = discord.IsRemainder;
 			Occurences = 1;
 
-			var (t, n) = GetType(discord.Type, discord.Attributes.GetAttribute<OverrideTypeReaderAttribute>()?.TypeReader);
+			var (t, n) = GetType(discord.Type);
 			Type = t;
 			TypeName = n;
 
 			Preconditions = discord.Preconditions.Select(x => x.ToString()).ToImmutableArray();
 		}
 
-		private static (Type type, string typeName) GetType(Type parameterType, Type typeReader)
+		private static (Type type, string typeName) GetType(Type parameterType)
 		{
 			var t = parameterType;
 			var n = t.Name;

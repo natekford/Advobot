@@ -56,8 +56,8 @@ namespace Advobot.Commands
 			public Task<RuntimeResult> Emote(Emote emote)
 				=> Responses.Gets.Emote(emote);
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Invite(IInvite invite)
-				=> Responses.Gets.Invite((IInviteMetadata)invite);
+			public Task<RuntimeResult> Invite(IInviteMetadata invite)
+				=> Responses.Gets.Invite(invite);
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Webhook(IWebhook webhook)
 				=> Responses.Gets.Webhook(webhook, Context.Guild);

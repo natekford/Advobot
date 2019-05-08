@@ -7,7 +7,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	/// <summary>
 	/// Validates the passed in <see cref="SocketCategoryChannel"/>.
 	/// </summary>
-	public class ValidateCategoryChannelAttribute : BaseValidateChannelAttribute
+	public class ValidateCategoryChannelAttribute : ValidateChannelAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateCategoryChannelAttribute"/>.

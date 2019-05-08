@@ -169,10 +169,8 @@ namespace Advobot.Commands
 			[Command]
 			public Task<RuntimeResult> Command(Uri url)
 			{
-				var position = Enqueue(new IconCreationArgs("Guild Icon", Context, url, default, (ctx, ms) =>
-				{
-					return ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions());
-				}));
+				var position = Enqueue(new IconCreationArgs("Guild Icon", Context, url, default,
+					(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Guilds.EnqueuedIcon(position);
 			}
 			[ImplicitCommand, ImplicitAlias]
@@ -193,10 +191,8 @@ namespace Advobot.Commands
 			[Command]
 			public Task<RuntimeResult> Command(Uri url)
 			{
-				var position = Enqueue(new IconCreationArgs("Guild Splash", Context, url, default, (ctx, ms) =>
-				{
-					return ctx.Guild.ModifyAsync(x => x.Splash = new Image(ms), ctx.GenerateRequestOptions());
-				}));
+				var position = Enqueue(new IconCreationArgs("Guild Splash", Context, url, default,
+					(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Splash = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Guilds.EnqueuedSplash(position);
 			}
 			[ImplicitCommand, ImplicitAlias]

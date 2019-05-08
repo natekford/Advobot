@@ -10,7 +10,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	public sealed class NotManagedAttribute : ValidateRoleAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidationRule<SocketRole>> GetExtras()
+		protected override IEnumerable<ValidationRule<SocketRole>> GetValidationRules()
 		{
 			yield return ValidationUtils.RoleIsNotManaged;
 		}

@@ -62,7 +62,7 @@ namespace Advobot.Commands
 		public sealed class DeleteInvite : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(IInvite invite)
+			public async Task<RuntimeResult> Command(IInviteMetadata invite)
 			{
 				await invite.DeleteAsync(GenerateRequestOptions()).CAF();
 				return Responses.Invites.DeletedInvite(invite);

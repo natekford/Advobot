@@ -23,9 +23,7 @@ namespace Advobot.Services.HelpEntries
 
 		/// <inheritdoc />
 		public IHelpEntry? this[string name]
-		{
-			get => _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
-		}
+			=> _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
 
 		/// <inheritdoc />
 		public void Add(IEnumerable<Assembly> assemblies)

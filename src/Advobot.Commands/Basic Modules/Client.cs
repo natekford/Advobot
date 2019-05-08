@@ -39,10 +39,8 @@ namespace Advobot.Commands
 			[Command]
 			public Task<RuntimeResult> Command(Uri url)
 			{
-				var position = Enqueue(new IconCreationArgs("Bot Icon", Context, url, default, (ctx, ms) =>
-				{
-					return ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions());
-				}));
+				var position = Enqueue(new IconCreationArgs("Bot Icon", Context, url, default,
+					(ctx, ms) => ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Client.EnqueuedIcon(position);
 			}
 			[ImplicitCommand, ImplicitAlias]

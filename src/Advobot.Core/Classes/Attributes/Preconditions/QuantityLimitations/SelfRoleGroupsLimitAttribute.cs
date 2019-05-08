@@ -1,8 +1,8 @@
-﻿using System;
-using Advobot.Classes.Modules;
+﻿using Advobot.Classes.Modules;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Advobot.Classes.Attributes.Preconditions.QuantityLimitations
 {
@@ -10,22 +10,22 @@ namespace Advobot.Classes.Attributes.Preconditions.QuantityLimitations
 	/// Requires there to be less than the maximum amount of quotes.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class QuoteLimitAttribute : QuantityLimitAttribute
+	public sealed class SelfRoleGroupsLimitAttribute : QuantityLimitAttribute
 	{
 		/// <inheritdoc />
-		public override string QuantityName => nameof(IGuildSettings.Quotes).FormatTitle().ToLower();
+		public override string QuantityName => nameof(IGuildSettings.SelfAssignableGroups).FormatTitle().ToLower();
 
 		/// <summary>
-		/// Creates an instance of <see cref="QuoteLimitAttribute"/>.
+		/// Creates an instance of <see cref="SelfRoleGroupsLimitAttribute"/>.
 		/// </summary>
 		/// <param name="action"></param>
-		public QuoteLimitAttribute(QuantityLimitAction action) : base(action) { }
+		public SelfRoleGroupsLimitAttribute(QuantityLimitAction action) : base(action) { }
 
 		/// <inheritdoc />
 		public override int GetCurrent(AdvobotCommandContext context, IServiceProvider services)
-			=> context.GuildSettings.Quotes.Count;
+			=> context.GuildSettings.SelfAssignableGroups.Count;
 		/// <inheritdoc />
 		public override int GetMaximumAllowed(AdvobotCommandContext context, IServiceProvider services)
-			=> services.GetRequiredService<IBotSettings>().MaxQuotes;
+			=> services.GetRequiredService<IBotSettings>().MaxSelfAssignableRoleGroups;
 	}
 }

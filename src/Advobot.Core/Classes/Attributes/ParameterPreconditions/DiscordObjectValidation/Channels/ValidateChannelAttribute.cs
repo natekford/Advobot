@@ -13,7 +13,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	/// <summary>
 	/// Base for validating any <see cref="SocketGuildChannel"/>.
 	/// </summary>
-	public abstract class BaseValidateChannelAttribute : ValidateDiscordObjectAttribute
+	public abstract class ValidateChannelAttribute : ValidateDiscordObjectAttribute
 	{
 		/// <summary>
 		/// The permissions to make sure the invoking user has on the channel.
@@ -26,10 +26,10 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		public bool CanBeReordered { get; set; } = false;
 
 		/// <summary>
-		/// Creates an instance of <see cref="BaseValidateChannelAttribute"/>.
+		/// Creates an instance of <see cref="ValidateChannelAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
-		public BaseValidateChannelAttribute(params ChannelPermission[] permissions)
+		public ValidateChannelAttribute(params ChannelPermission[] permissions)
 		{
 			if (!permissions.Contains(ChannelPermission.ViewChannel))
 			{
@@ -41,12 +41,12 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 
 		/// <inheritdoc />
 		protected override VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value)
-			=> context.User.ValidateChannel((SocketGuildChannel)value, Permissions, GetExtras().ToArray());
+			=> context.User.ValidateChannel((SocketGuildChannel)value, Permissions, GetValidationRules().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.
 		/// </summary>
 		/// <returns></returns>
-		protected virtual IEnumerable<ValidationRule<SocketGuildChannel>> GetExtras()
+		protected virtual IEnumerable<ValidationRule<SocketGuildChannel>> GetValidationRules()
 		{
 			if (CanBeReordered)
 			{

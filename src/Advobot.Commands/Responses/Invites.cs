@@ -27,7 +27,7 @@ namespace Advobot.Commands.Responses
 		}
 		public static AdvobotResult CreatedInvite(IInviteMetadata invite)
 			=> Success(Default.FormatInterpolated($"Successfully created {invite}."));
-		public static AdvobotResult DeletedInvite(IInvite invite)
+		public static AdvobotResult DeletedInvite(IInviteMetadata invite)
 			=> Success(Default.FormatInterpolated($"Successfully deleted {invite}."));
 		public static AdvobotResult NoInviteMatches()
 			=> Success($"Failed to find any invites matching the given conditions.").WithTime(DefaultTime);

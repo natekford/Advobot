@@ -44,5 +44,17 @@ namespace Advobot.Commands.Responses
 				Description = BigBlock.FormatInterpolated($"{values.Join("\n", x => $"{x.Name.PadRight(padLen)} {x.Value}")}"),
 			});
 		}
+		public static AdvobotResult CopyPermissions(IRole input, IRole output, GuildPermission permissions)
+			=> Success(Default.FormatInterpolated($"Successfully copied as many permissions as possible from {input}. {output} now has the following permissions {EnumUtils.GetFlagNames(permissions)}."));
+		public static AdvobotResult ClearedPermissions(IRole role, GuildPermission permissions)
+			=> Success(Default.FormatInterpolated($"Successfully cleared as many permissions as possible. {role} now has the following permissions {EnumUtils.GetFlagNames(permissions)}."));
+		public static AdvobotResult ModifiedName(string old, string name)
+			=> Success(Default.FormatInterpolated($"Successfully changed the name of {old} to {name}."));
+		public static AdvobotResult ModifiedColor(IRole role, Color color)
+			=> Success(Default.FormatInterpolated($"Successfully changed the color of {role} to {"#" + color.RawValue.ToString("X6")}.")); //X6 to get hex
+		public static AdvobotResult ModifiedHoistStatus(IRole role, bool hoisted)
+			=> Success(Default.FormatInterpolated($"Successfully {GetHoisted(hoisted)} {role}."));
+		public static AdvobotResult ModifiedMentionability(IRole role, bool mentionability)
+			=> Success(Default.FormatInterpolated($"Successfully made {role} {GetMentionability(mentionability)}."));
 	}
 }

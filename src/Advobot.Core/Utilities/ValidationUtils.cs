@@ -38,8 +38,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult ValidateUser(
-			this SocketGuildUser invoker,
+		public static VerifiedObjectResult ValidateUser(this SocketGuildUser invoker,
 			SocketGuildUser target,
 			params ValidationRule<SocketGuildUser>[] rules)
 			=> invoker.Validate(target, CanModify, rules);
@@ -50,8 +49,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult ValidateRole(
-			this SocketGuildUser invoker,
+		public static VerifiedObjectResult ValidateRole(this SocketGuildUser invoker,
 			SocketRole target,
 			params ValidationRule<SocketRole>[] rules)
 			=> invoker.Validate(target, CanModify, rules);
@@ -63,8 +61,7 @@ namespace Advobot.Utilities
 		/// <param name="permissions"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult ValidateChannel(
-			this SocketGuildUser invoker,
+		public static VerifiedObjectResult ValidateChannel(this SocketGuildUser invoker,
 			SocketGuildChannel target,
 			IEnumerable<ChannelPermission> permissions,
 			params ValidationRule<SocketGuildChannel>[] rules)
@@ -96,16 +93,19 @@ namespace Advobot.Utilities
 		/// <param name="permissionsCallback"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		private static VerifiedObjectResult Validate<T>(
-			this SocketGuildUser invoker,
+		private static VerifiedObjectResult Validate<T>(this SocketGuildUser invoker,
 			T target,
 			ValidatePermissions<T> permissionsCallback,
 			params ValidationRule<T>[] rules)
-			where T : SocketEntity<ulong>, ISnowflakeEntity
+			where T : ISnowflakeEntity
 		{
 			if (target == null)
 			{
 				return VerifiedObjectResult.FromError(CommandError.ObjectNotFound, $"Unable to find a matching `{typeof(T).Name}`.");
+			}
+			if (rules == null)
+			{
+				rules = Array.Empty<ValidationRule<T>>();
 			}
 			if (!(invoker.Guild.CurrentUser is SocketGuildUser bot))
 			{
@@ -118,14 +118,11 @@ namespace Advobot.Utilities
 				{
 					return VerifiedObjectResult.FromUnableToModify(user, target);
 				}
-				if (rules != null)
+				foreach (var rule in rules)
 				{
-					foreach (var rule in rules)
+					if (rule.Invoke(user, target) is VerifiedObjectResult r && !r.IsSuccess)
 					{
-						if (rule.Invoke(user, target) is VerifiedObjectResult extraResult && !extraResult.IsSuccess)
-						{
-							return extraResult;
-						}
+						return r;
 					}
 				}
 			}
@@ -164,7 +161,7 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Validates if <paramref name="target"/> is not managed.
 		/// </summary>
-		/// <param name="user"></param>
+		/// <param name="_"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
 		public static VerifiedObjectResult? RoleIsNotManaged(SocketGuildUser _, SocketRole target)

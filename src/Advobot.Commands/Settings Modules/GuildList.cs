@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Interfaces;
@@ -24,20 +25,16 @@ namespace Advobot.Commands
 			public IInviteListService Invites { get; set; }
 
 			[ImplicitCommand, ImplicitAlias]
-			public Task Add(IInvite invite, [Optional] params string[] keywords)
+			public Task<RuntimeResult> Add([NeverExpires] IInviteMetadata invite, [Optional] params string[] keywords)
 			{
-				if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
-				{
-					return ReplyErrorAsync("Don't provide invites that expire.");
-				}
-				var listedInvite = Invites.Add(Context.Guild, invite, keywords);
-				return ReplyTimedAsync($"Successfully set the listed invite to the following:\n{listedInvite}.");
+				Invites.Add(Context.Guild, invite, keywords);
+				return Responses.GuildList.CreatedListing(invite, keywords);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task Remove()
+			public Task<RuntimeResult> Remove()
 			{
 				Invites.Remove(Context.Guild.Id);
-				return ReplyTimedAsync("Successfully removed the listed invite.");
+				return Responses.GuildList.DeletedListing();
 			}
 		}
 
@@ -50,20 +47,18 @@ namespace Advobot.Commands
 			public IInviteListService Invites { get; set; }
 
 			[Command]
-			public async Task Command()
+			public async Task<RuntimeResult> Command()
 			{
 				if (!(Invites.Get(Context.Guild.Id) is IListedInvite invite))
 				{
-					await ReplyErrorAsync("There is no invite to bump.").CAF();
-					return;
+					return Responses.GuildList.NoInviteToBump();
 				}
 				if ((DateTime.UtcNow - invite.Time).TotalHours < 1)
 				{
-					await ReplyErrorAsync("Last bump is too recent.").CAF();
-					return;
+					return Responses.GuildList.LastBumpTooRecent();
 				}
 				await invite.BumpAsync(Context.Guild).CAF();
-				await ReplyTimedAsync("Successfully bumped the invite.").CAF();
+				return Responses.GuildList.Bumped();
 			}
 		}
 
@@ -74,49 +69,19 @@ namespace Advobot.Commands
 		{
 			public IInviteListService Invites { get; set; }
 
-			private static readonly string _GHeader = "Guild Name".PadRight(25);
-			private static readonly string _UHeader = "URL".PadRight(35);
-			private static readonly string _MHeader = "Member Count".PadRight(14);
-			private static readonly string _EHeader = "Global Emotes";
-
 			[Command]
 			public Task Command([Remainder] ListedInviteGatherer args)
 			{
 				var invites = args.GatherInvites(Invites).ToArray();
 				if (!invites.Any())
 				{
-					return ReplyErrorAsync("No guild could be found that matches the given specifications.");
-				}
-				if (invites.Length <= 5)
-				{
-					return ReplyEmbedAsync(new EmbedWrapper
-					{
-						Title = "Guilds",
-						Fields = invites.Select(x =>
-						{
-							var e = x.HasGlobalEmotes ? "**Has global emotes**" : "";
-							var text = $"**URL:** {x.Url}\n**Members:** {x.GuildMemberCount}\n{e}";
-							return new EmbedFieldBuilder { Name = x.GuildName, Value = text, IsInline = true, };
-						}).ToList(),
-					});
+					return Responses.GuildList.NoInviteMatch();
 				}
 				if (invites.Length <= 50)
 				{
-					var formatted = invites.Select(x =>
-					{
-						var n = x.GuildName.Substring(0, Math.Min(x.GuildName.Length, _GHeader.Length)).PadRight(25);
-						var u = x.Url.PadRight(35);
-						var m = x.GuildMemberCount.ToString().PadRight(14);
-						var e = x.HasGlobalEmotes ? "Yes" : "";
-						return $"{n}{u}{m}{e}";
-					});
-					return ReplyFileAsync("**Guilds:**", new TextFileInfo
-					{
-						Name = "Guilds",
-						Text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{string.Join("\n", formatted)}",
-					});
+					return Responses.GuildList.InviteMatches(invites);
 				}
-				return ReplyTimedAsync($"`{invites.Length}` results returned. Please narrow your search.");
+				return Responses.GuildList.TooManyMatches();
 			}
 		}
 	}

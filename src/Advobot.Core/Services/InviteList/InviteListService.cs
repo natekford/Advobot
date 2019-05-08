@@ -25,7 +25,7 @@ namespace Advobot.Services.InviteList
 		public InviteListService(IServiceProvider provider) : base(provider) { }
 
 		/// <inheritdoc />
-		public IListedInvite Add(SocketGuild guild, IInvite invite, IEnumerable<string> keywords)
+		public IListedInvite Add(SocketGuild guild, IInviteMetadata invite, IEnumerable<string> keywords)
 		{
 			var listedInvite = new ListedInvite(guild, invite, keywords);
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Delete(x => x.GuildId == guild.Id));

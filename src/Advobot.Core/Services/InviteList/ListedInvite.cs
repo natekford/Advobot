@@ -38,7 +38,7 @@ namespace Advobot.Services.InviteList
 		/// <param name="guild"></param>
 		/// <param name="invite"></param>
 		/// <param name="keywords"></param>
-		public ListedInvite(SocketGuild guild, IInvite invite, IEnumerable<string> keywords) : base(default)
+		public ListedInvite(SocketGuild guild, IInviteMetadata invite, IEnumerable<string> keywords) : base(default)
 		{
 			Code = invite.Code;
 			Keywords = (keywords ?? Enumerable.Empty<string>()).ToArray();

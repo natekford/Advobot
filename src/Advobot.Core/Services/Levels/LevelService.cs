@@ -134,21 +134,17 @@ namespace Advobot.Services.Levels
 			var experience = global ? info.GetExperience() : info.GetExperience(guild);
 			var level = CalculateLevel(experience);
 
-			var name = userId.ToString();
-			var pfp = default(string);
 			var user = guild.GetUser(userId);
-			if (user != null)
-			{
-				name = user.Format();
-				pfp = user.GetDefaultAvatarUrl();
-			}
+			var name = user?.Format() ?? userId.ToString();
+			var description = $"!!!TEMP PLACEHOLDER!!!\n\nRank: {rank} out of {totalUsers}\nXP: {experience}\nLevel: {level}";
 
 			//TODO: implement rest of embed
 			return new EmbedWrapper
 			{
 				Title = $"{(global ? "Global" : "Guild")} xp information for {name}",
-				ThumbnailUrl = pfp,
-				Author = user.CreateAuthor(),
+				Description = description,
+				ThumbnailUrl = user?.GetAvatarUrl(),
+				Author = user?.CreateAuthor(),
 				Footer = new EmbedFooterBuilder { Text = "Xp Information", },
 			};
 		}
@@ -163,7 +159,7 @@ namespace Advobot.Services.Levels
 			options.CollectionName = collectionName;
 			var all = DatabaseWrapper.ExecuteQuery(options).OrderByDescending(x => x.Experience);
 			var rank = -1;
-			var total = -1;
+			var total = 0;
 			foreach (var entry in all)
 			{
 				++total;

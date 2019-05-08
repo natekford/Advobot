@@ -17,7 +17,7 @@ namespace Advobot.Interfaces
 		/// <param name="invite"></param>
 		/// <param name="keywords"></param>
 		/// <returns></returns>
-		IListedInvite Add(SocketGuild guild, IInvite invite, IEnumerable<string> keywords);
+		IListedInvite Add(SocketGuild guild, IInviteMetadata invite, IEnumerable<string> keywords);
 		/// <summary>
 		/// Removes an invite from the list.
 		/// </summary>
