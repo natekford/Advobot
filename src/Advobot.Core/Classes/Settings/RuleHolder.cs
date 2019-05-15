@@ -25,14 +25,14 @@ namespace Advobot.Classes.Settings
 		/// <param name="formatter"></param>
 		/// <param name="category"></param>
 		/// <returns></returns>
-		public IEnumerable<string> GetParts(RuleFormatter formatter, string? category = null)
+		public IReadOnlyCollection<string> GetParts(RuleFormatter formatter, string? category = null)
 		{
 			if (category != null)
 			{
-				return SplitFormattedCategoryIntoValidParts(ToString(formatter, category));
+				return SplitFormattedCategoryIntoValidParts(ToString(formatter, category)).ToArray();
 			}
 
-			var formattedCategories = Categories.Select(x => ToString(formatter, x.Key)).ToList();
+			var formattedCategories = Categories.Select(x => ToString(formatter, x.Key)).ToArray();
 			var formattedRules = string.Join("\n", formattedCategories);
 			//If all of the rules can be sent in one message, do that.
 			if (!string.IsNullOrWhiteSpace(formattedRules) && formattedRules.Length <= 2000)
@@ -41,12 +41,7 @@ namespace Advobot.Classes.Settings
 			}
 
 			//If not, go by category
-			var parts = new List<string>();
-			foreach (var formattedCategory in formattedCategories)
-			{
-				parts.AddRange(SplitFormattedCategoryIntoValidParts(formattedCategory));
-			}
-			return parts;
+			return formattedCategories.SelectMany(x => SplitFormattedCategoryIntoValidParts(x)).ToArray();
 		}
 		private IEnumerable<string> SplitFormattedCategoryIntoValidParts(string formattedCategory)
 		{

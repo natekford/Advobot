@@ -146,7 +146,7 @@ namespace Advobot.Utilities
 		/// <param name="messages"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(SocketTextChannel channel, IEnumerable<IMessage> messages, RequestOptions options)
+		public static async Task<int> DeleteMessagesAsync(SocketTextChannel channel, IEnumerable<IMessage> messages, RequestOptions? options)
 		{
 			var validMessages = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14).ToArray();
 			if (validMessages.Length == 0)

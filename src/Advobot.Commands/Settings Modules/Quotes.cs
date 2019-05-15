@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Attributes.Preconditions.QuantityLimitations;
 using Advobot.Classes.Modules;
@@ -27,13 +28,8 @@ namespace Advobot.Commands
 
 			[QuoteLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Add(string name, [Remainder] /*TODO: make sure this cant be null?*/ string text)
+			public Task<RuntimeResult> Add([NotAlreadyQuoteName] string name, [Remainder] string text)
 			{
-				if (Settings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
-				{
-					return Responses.Quotes.AlreadyExists(name);
-				}
-
 				var quote = new Quote(name, text);
 				Settings.Quotes.Add(quote);
 				return Responses.Quotes.ModifiedQuote(quote, true);

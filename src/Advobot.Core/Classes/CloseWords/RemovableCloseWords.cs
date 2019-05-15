@@ -9,6 +9,7 @@ namespace Advobot.Classes.CloseWords
 	/// <summary>
 	/// Container of close words which is intended to be removed after the time has passed.
 	/// </summary>
+	[Obsolete]
 	public sealed class RemovableCloseWords : RemovableMessage
 	{
 		/// <summary>

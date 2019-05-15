@@ -17,8 +17,6 @@ namespace Advobot.Commands.Responses
 			=> Failure(Default.FormatInterpolated($"Failed to find a guild with the id {guildId}.")).WithTime(DefaultTime);
 		public static AdvobotResult LeftGuild(IGuild guild)
 			=> Success(Default.FormatInterpolated($"Successfully left {guild}."));
-		public static AdvobotResult ModifiedName(string old, string name)
-			=> Success(Default.FormatInterpolated($"Successfully changed the name of {old} to {name}."));
 		public static AdvobotResult DisplayRegions(IReadOnlyCollection<IVoiceRegion> regions)
 		{
 			return Success(new EmbedWrapper
@@ -39,10 +37,6 @@ namespace Advobot.Commands.Responses
 			=> Success(Default.FormatInterpolated($"Successfully changed the default message notification setting to {notifs}."));
 		public static AdvobotResult ModifiedVerif(VerificationLevel verif)
 			=> Success(Default.FormatInterpolated($"Successfully changed the verification level to {verif}."));
-		public static AdvobotResult EnqueuedIcon(int position)
-			=> Success(Default.FormatInterpolated($"Successfully queued changing the guild icon at position {position}."));
-		public static AdvobotResult RemovedIcon()
-			=> Success("Successfully removed the guild icon.");
 		public static AdvobotResult EnqueuedSplash(int position)
 			=> Success(Default.FormatInterpolated($"Successfully queued changing the splash image at position {position}."));
 		public static AdvobotResult RemovedSplash()

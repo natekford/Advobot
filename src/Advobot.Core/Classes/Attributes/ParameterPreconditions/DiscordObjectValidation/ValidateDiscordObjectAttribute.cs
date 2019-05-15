@@ -1,8 +1,6 @@
 ﻿using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
-
 using Discord.Commands;
-
 using System;
 using System.Collections;
 using System.Runtime.InteropServices;
@@ -42,7 +40,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		}
 		private PreconditionResult GetPreconditionResult(AdvobotCommandContext context, object value)
 		{
-			VerifiedObjectResult result;
+			ValidatedObjectResult result;
 			switch (value)
 			{
 				case IEnumerable enumerable:
@@ -56,7 +54,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 						}
 					}
 					//If nothing failed then it gets to this point, so return success
-					result = VerifiedObjectResult.FromSuccess(value);
+					result = ValidatedObjectResult.FromSuccess(value);
 					break;
 				default:
 					result = ValidateObject(context, value);
@@ -76,6 +74,6 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <param name="context"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected abstract VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value);
+		protected abstract ValidatedObjectResult ValidateObject(AdvobotCommandContext context, object value);
 	}
 }

@@ -6,7 +6,7 @@ using AdvorangesUtils;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions
+namespace Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation
 {
 	/// <summary>
 	/// Makes sure the passed in string is a valid command category.
@@ -17,7 +17,11 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
-			return services.GetRequiredService<IHelpEntryService>().GetCategories().CaseInsContains(value.ToString())
+			if (!(value is string str))
+			{
+				throw new ArgumentException(nameof(value));
+			}
+			return services.GetRequiredService<IHelpEntryService>().GetCategories().CaseInsContains(str)
 				? Task.FromResult(PreconditionResult.FromSuccess())
 				: Task.FromResult(PreconditionResult.FromError("Invalid category supplied."));
 		}

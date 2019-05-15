@@ -11,7 +11,7 @@ namespace Advobot.Commands.Responses
 	{
 		protected static readonly IFormatProvider Default = new ArgumentFormatter { UseCode = true, };
 		protected static readonly IFormatProvider Title = new ArgumentFormatter { UseTitleCase = true, };
-		protected static readonly IFormatProvider BigBlock = new ArgumentFormatter { UseBigCode = true, };
+		protected static readonly IFormatProvider BigBlock = new ArgumentFormatter { UseBigCode = true, Joiner = "\n", };
 		protected static readonly TimeSpan DefaultTime = CreateTime(5);
 
 		protected CommandResponses() : base(null, "") { }

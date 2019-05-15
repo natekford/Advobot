@@ -24,7 +24,7 @@ namespace Advobot.Utilities
 	/// <param name="user">The user or bot which is currently being checked if they can do this action.</param>
 	/// <param name="target">The object to verify this action can be done on.</param>
 	/// <returns></returns>
-	public delegate VerifiedObjectResult? ValidationRule<T>(SocketGuildUser user, T target);
+	public delegate ValidatedObjectResult? ValidationRule<T>(SocketGuildUser user, T target);
 
 	/// <summary>
 	/// Utilities for validating Discord objects (users, roles, channels).
@@ -38,7 +38,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult ValidateUser(this SocketGuildUser invoker,
+		public static ValidatedObjectResult ValidateUser(this SocketGuildUser invoker,
 			SocketGuildUser target,
 			params ValidationRule<SocketGuildUser>[] rules)
 			=> invoker.Validate(target, CanModify, rules);
@@ -49,7 +49,7 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult ValidateRole(this SocketGuildUser invoker,
+		public static ValidatedObjectResult ValidateRole(this SocketGuildUser invoker,
 			SocketRole target,
 			params ValidationRule<SocketRole>[] rules)
 			=> invoker.Validate(target, CanModify, rules);
@@ -61,7 +61,7 @@ namespace Advobot.Utilities
 		/// <param name="permissions"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult ValidateChannel(this SocketGuildUser invoker,
+		public static ValidatedObjectResult ValidateChannel(this SocketGuildUser invoker,
 			SocketGuildChannel target,
 			IEnumerable<ChannelPermission> permissions,
 			params ValidationRule<SocketGuildChannel>[] rules)
@@ -93,7 +93,7 @@ namespace Advobot.Utilities
 		/// <param name="permissionsCallback"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		private static VerifiedObjectResult Validate<T>(this SocketGuildUser invoker,
+		private static ValidatedObjectResult Validate<T>(this SocketGuildUser invoker,
 			T target,
 			ValidatePermissions<T> permissionsCallback,
 			params ValidationRule<T>[] rules)
@@ -101,7 +101,7 @@ namespace Advobot.Utilities
 		{
 			if (target == null)
 			{
-				return VerifiedObjectResult.FromError(CommandError.ObjectNotFound, $"Unable to find a matching `{typeof(T).Name}`.");
+				return ValidatedObjectResult.FromError(CommandError.ObjectNotFound, $"Unable to find a matching `{typeof(T).Name}`.");
 			}
 			if (rules == null)
 			{
@@ -116,17 +116,17 @@ namespace Advobot.Utilities
 			{
 				if (!permissionsCallback(user, target))
 				{
-					return VerifiedObjectResult.FromUnableToModify(user, target);
+					return ValidatedObjectResult.FromUnableToModify(user, target);
 				}
 				foreach (var rule in rules)
 				{
-					if (rule.Invoke(user, target) is VerifiedObjectResult r && !r.IsSuccess)
+					if (rule.Invoke(user, target) is ValidatedObjectResult r && !r.IsSuccess)
 					{
 						return r;
 					}
 				}
 			}
-			return VerifiedObjectResult.FromSuccess(target);
+			return ValidatedObjectResult.FromSuccess(target);
 		}
 
 		/// <summary>
@@ -136,11 +136,11 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult? MovingUserFromVoiceChannel(SocketGuildUser user, SocketGuildUser target)
+		public static ValidatedObjectResult? MovingUserFromVoiceChannel(SocketGuildUser user, SocketGuildUser target)
 		{
 			if (!(target?.VoiceChannel is SocketVoiceChannel voiceChannel))
 			{
-				return VerifiedObjectResult.FromError(CommandError.UnmetPrecondition, "The user is not in a voice channel.");
+				return ValidatedObjectResult.FromError(CommandError.UnmetPrecondition, "The user is not in a voice channel.");
 			}
 			return user.ValidateChannel(voiceChannel, new[] { ChannelPermission.MoveMembers });
 		}
@@ -150,13 +150,13 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult? RoleIsNotEveryone(SocketGuildUser user, SocketRole target)
+		public static ValidatedObjectResult? RoleIsNotEveryone(SocketGuildUser user, SocketRole target)
 		{
 			if (user.Guild.EveryoneRole.Id == target.Id)
 			{
-				return VerifiedObjectResult.FromError(CommandError.UnmetPrecondition, "The everyone role cannot be used in that way.");
+				return ValidatedObjectResult.FromError(CommandError.UnmetPrecondition, "The everyone role cannot be used in that way.");
 			}
-			return VerifiedObjectResult.FromSuccess(target);
+			return ValidatedObjectResult.FromSuccess(target);
 		}
 		/// <summary>
 		/// Validates if <paramref name="target"/> is not managed.
@@ -164,13 +164,13 @@ namespace Advobot.Utilities
 		/// <param name="_"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult? RoleIsNotManaged(SocketGuildUser _, SocketRole target)
+		public static ValidatedObjectResult? RoleIsNotManaged(SocketGuildUser _, SocketRole target)
 		{
 			if (target.IsManaged)
 			{
-				return VerifiedObjectResult.FromError(CommandError.UnmetPrecondition, "Managed roles cannot be used in that way.");
+				return ValidatedObjectResult.FromError(CommandError.UnmetPrecondition, "Managed roles cannot be used in that way.");
 			}
-			return VerifiedObjectResult.FromSuccess(target);
+			return ValidatedObjectResult.FromSuccess(target);
 		}
 		/// <summary>
 		/// Validates if the target is not mentionable.
@@ -178,13 +178,13 @@ namespace Advobot.Utilities
 		/// <param name="_"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult? RoleIsNotMentionable(SocketGuildUser _, SocketRole target)
+		public static ValidatedObjectResult? RoleIsNotMentionable(SocketGuildUser _, SocketRole target)
 		{
 			if (target.IsMentionable)
 			{
-				return VerifiedObjectResult.FromError(CommandError.UnmetPrecondition, "The role is already mentionable.");
+				return ValidatedObjectResult.FromError(CommandError.UnmetPrecondition, "The role is already mentionable.");
 			}
-			return VerifiedObjectResult.FromSuccess(target);
+			return ValidatedObjectResult.FromSuccess(target);
 		}
 		/// <summary>
 		/// Validates if <paramref name="user"/> has <see cref="GuildPermission.ManageChannels"/>.
@@ -192,13 +192,13 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult? ChannelCanBeReordered(SocketGuildUser user, SocketGuildChannel target)
+		public static ValidatedObjectResult? ChannelCanBeReordered(SocketGuildUser user, SocketGuildChannel target)
 		{
 			if (!user.GuildPermissions.ManageChannels)
 			{
-				return VerifiedObjectResult.FromUnableToModify(user, target);
+				return ValidatedObjectResult.FromUnableToModify(user, target);
 			}
-			return VerifiedObjectResult.FromSuccess(target);
+			return ValidatedObjectResult.FromSuccess(target);
 		}
 
 		/// <summary>

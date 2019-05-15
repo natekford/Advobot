@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Validates the bot prefix by making sure it is between 1 and 10 characters.
 	/// </summary>
-	public class ValidatePrefixAttribute : ValidateStringAttribute
+	public sealed class ValidatePrefixAttribute : ValidateStringAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidatePrefixAttribute"/>.

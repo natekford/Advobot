@@ -22,7 +22,7 @@ namespace Advobot.Classes.Settings
 		/// The ids of the roles.
 		/// </summary>
 		[JsonProperty("Roles")]
-		public ICollection<ulong> Roles { get; } = new List<ulong>();
+		public ISet<ulong> Roles { get; } = new HashSet<ulong>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="SelfAssignableRoles"/>.
@@ -45,10 +45,7 @@ namespace Advobot.Classes.Settings
 		{
 			foreach (var role in roles)
 			{
-				if (!Roles.Contains(role.Id))
-				{
-					Roles.Add(role.Id);
-				}
+				Roles.Add(role.Id);
 			}
 		}
 		/// <summary>
@@ -62,6 +59,12 @@ namespace Advobot.Classes.Settings
 				Roles.Remove(role);
 			}
 		}
+		/// <summary>
+		/// Removes the roles from the group
+		/// </summary>
+		/// <param name="roles"></param>
+		public void RemoveRoles(IEnumerable<IRole> roles)
+			=> RemoveRoles(roles.Select(x => x.Id));
 		/// <inheritdoc />
 		public string Format(SocketGuild? guild = null)
 		{

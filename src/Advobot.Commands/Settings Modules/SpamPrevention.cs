@@ -27,35 +27,35 @@ namespace Advobot.Commands
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
 			[ImplicitCommand, ImplicitAlias]
-			public Task Create(SpamType spamType, [Remainder] SpamPrev args)
+			public Task<RuntimeResult> Create(SpamType spamType, [Remainder] SpamPrev args)
 			{
 				Settings[spamType] = args;
-				return ReplyTimedAsync($"Successfully set up the spam prevention for `{args.Type}`.\n{args}");
+				return Responses.SpamPrevention.CreatedSpamPrevention(spamType);
 			}
 			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
-			public Task Enable(SpamType spamType)
+			public Task<RuntimeResult> Enable(SpamType spamType)
 				=> CommandRunner(spamType, true);
 			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
-			public Task Disable(SpamType spamType)
+			public Task<RuntimeResult> Disable(SpamType spamType)
 				=> CommandRunner(spamType, false);
 
-			private Task CommandRunner(SpamType spamType, bool enable)
+			private Task<RuntimeResult> CommandRunner(SpamType spamType, bool enable)
 			{
 				if (!(Settings[spamType] is SpamPrev antiSpam))
 				{
-					return ReplyErrorAsync($"There must be a `{spamType}` spam prevention before one can be enabled or disabled.");
+					return Responses.SpamPrevention.NoSpamPrevention(spamType);
 				}
 
 				antiSpam.Enabled = enable;
-				return ReplyTimedAsync($"Successfully {(enable ? "enabled" : "disabled")} the `{spamType}` spam prevention.");
+				return Responses.SpamPrevention.ToggledSpamPrevention(spamType, enable);
 			}
 		}
 
 		[Group(nameof(PreventRaid)), ModuleInitialismAlias(typeof(PreventRaid))]
 		[Summary("Any users who joins from now on will get text muted. " +
-			"Once `preventraid` is turned off all the users who were muted will be unmuted. " +
+			"Once `" + nameof(PreventRaid) + "` is turned off all the users who were muted will be unmuted. " +
 			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
@@ -65,28 +65,28 @@ namespace Advobot.Commands
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
 			[ImplicitCommand, ImplicitAlias]
-			public Task Create(RaidType raidType, [Remainder] RaidPrev args)
+			public Task<RuntimeResult> Create(RaidType raidType, [Remainder] RaidPrev args)
 			{
 				Settings[raidType] = args;
-				return ReplyTimedAsync($"Successfully set up the raid prevention for `{args.Type}`.\n{args}");
+				return Responses.SpamPrevention.CreatedRaidPrevention(raidType);
 			}
 			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
-			public Task Enable(RaidType raidType)
+			public Task<RuntimeResult> Enable(RaidType raidType)
 				=> CommandRunner(raidType, true);
 			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
-			public Task Disable(RaidType raidType)
+			public Task<RuntimeResult> Disable(RaidType raidType)
 				=> CommandRunner(raidType, false);
 
-			private async Task CommandRunner(RaidType raidType, bool enable)
+			private async Task<RuntimeResult> CommandRunner(RaidType raidType, bool enable)
 			{
 				if (!(Settings[raidType] is RaidPrev antiRaid))
 				{
-					await ReplyErrorAsync($"There must be a `{raidType}` raid prevention before one can be enabled or disabled.").CAF();
-					return;
+					return Responses.SpamPrevention.NoRaidPrevention(raidType);
 				}
 
+				//TODO: make enable and disable async methods and make anti raid/spam into seperate classes based on the type
 				antiRaid.Enabled = enable;
 				if (enable && raidType == RaidType.Regular)
 				{
@@ -98,7 +98,7 @@ namespace Advobot.Commands
 					}
 				}
 
-				await ReplyTimedAsync($"Successfully {(enable ? "enabled" : "disabled")} the `{raidType}` raid prevention.").CAF();
+				return Responses.SpamPrevention.ToggledRaidPrevention(raidType, enable);
 			}
 		}
 	}

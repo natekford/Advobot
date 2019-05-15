@@ -8,7 +8,7 @@ namespace Advobot.Classes.Results
 	/// <summary>
 	/// Result telling whether or not the object passed the verification it was tried for.
 	/// </summary>
-	public readonly struct VerifiedObjectResult : IResult
+	public readonly struct ValidatedObjectResult : IResult
 	{
 		/// <summary>
 		/// The parsed value.
@@ -33,7 +33,7 @@ namespace Advobot.Classes.Results
 		/// <param name="value"></param>
 		/// <param name="error"></param>
 		/// <param name="errorReason"></param>
-		private VerifiedObjectResult(object? value, CommandError? error, string? errorReason)
+		private ValidatedObjectResult(object? value, CommandError? error, string? errorReason)
 		{
 			Value = value;
 			Error = error;
@@ -46,23 +46,23 @@ namespace Advobot.Classes.Results
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult FromSuccess(object value)
-			=> new VerifiedObjectResult(value, null, null);
+		public static ValidatedObjectResult FromSuccess(object value)
+			=> new ValidatedObjectResult(value, null, null);
 		/// <summary>
 		/// Returns a result indicating an error.
 		/// </summary>
 		/// <param name="error"></param>
 		/// <param name="errorReason"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult FromError(CommandError error, string errorReason)
-			=> new VerifiedObjectResult(null, error, errorReason);
+		public static ValidatedObjectResult FromError(CommandError error, string errorReason)
+			=> new ValidatedObjectResult(null, error, errorReason);
 		/// <summary>
 		/// Returns a result indicating an error where the user has a lower position than the supplied object.
 		/// </summary>
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult FromUnableToModify(SocketGuildUser invoker, ISnowflakeEntity target)
+		public static ValidatedObjectResult FromUnableToModify(SocketGuildUser invoker, ISnowflakeEntity target)
 		{
 			var start = invoker.Id == invoker.Guild.CurrentUser.Id ? "I am" : "You are";
 			var reason = $"{start} unable to make the given changes to `{target.Format()}`.";

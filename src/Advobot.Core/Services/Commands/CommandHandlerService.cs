@@ -58,9 +58,12 @@ namespace Advobot.Services.Commands
 				_Commands.AddTypeReader(typeReader.Attribute.TargetType, instance);
 			}
 
-			_Commands.Log += LogInfo;
+			_Commands.Log += (e) =>
+			{
+				ConsoleUtils.WriteLine(e.ToString());
+				return Task.CompletedTask;
+			};
 			_Commands.CommandExecuted += (_, context, result) => LogExecution((AdvobotCommandContext)context, result);
-
 			_Client.ShardReady += (client) => OnReady(client, commands);
 			_Client.MessageReceived += HandleCommand;
 		}
@@ -106,13 +109,20 @@ namespace Advobot.Services.Commands
 			var context = new AdvobotCommandContext(settings, _Client, msg);
 			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
-		private Task LogExecution(AdvobotCommandContext context, IResult result) => result switch
+		private Task LogExecution(AdvobotCommandContext context, IResult result)
 		{
-			IResult r when CanBeIgnored(context, result) => Task.CompletedTask,
-			PreconditionGroupResult g when g.PreconditionResults.All(x => CanBeIgnored(context, x)) => Task.CompletedTask,
-			IResult r => HandleResult(context, r),
-			_ => throw new ArgumentException(nameof(result)),
-		};
+			bool CanBeIgnored(AdvobotCommandContext context, IResult r) //Ignore annoying unknown command errors and errors with no reason
+				=> r == null || r.Error == CommandError.UnknownCommand
+				|| (!r.IsSuccess && (r.ErrorReason == null || context.GuildSettings.NonVerboseErrors));
+
+			return result switch
+			{
+				IResult r when CanBeIgnored(context, result) => Task.CompletedTask,
+				PreconditionGroupResult g when g.PreconditionResults.All(x => CanBeIgnored(context, x)) => Task.CompletedTask,
+				IResult r => HandleResult(context, r),
+				_ => throw new ArgumentException(nameof(result)),
+			};
+		}
 		private async Task HandleResult(AdvobotCommandContext c, IResult result)
 		{
 			ConsoleUtils.DebugWrite($"Culture in result handler: {CultureInfo.CurrentCulture.Name}");
@@ -134,18 +144,11 @@ namespace Advobot.Services.Commands
 			ConsoleUtils.WriteLine(c.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 			await (result switch
 			{
-				AdvobotResult a => MessageUtils.SendMessageAsync(c.Channel, a.Reason, a.Embed, a.File),
+				AdvobotResult a => a.SendAsync(c),
 #warning delete after time
 				IResult i => MessageUtils.SendMessageAsync(c.Channel, i.ErrorReason),
 				_ => throw new ArgumentException(nameof(result)),
 			}).CAF();
 		}
-		private Task LogInfo(LogMessage arg)
-		{
-			ConsoleUtils.WriteLine(arg.ToString());
-			return Task.CompletedTask;
-		}
-		private bool CanBeIgnored(AdvobotCommandContext context, IResult r) //Ignore annoying unknown command errors and errors with no reason
-			=> r == null || r.Error == CommandError.UnknownCommand || (!r.IsSuccess && (r.ErrorReason == null || context.GuildSettings.NonVerboseErrors));
 	}
 }

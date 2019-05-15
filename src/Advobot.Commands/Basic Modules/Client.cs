@@ -23,9 +23,8 @@ namespace Advobot.Commands
 			[Command]
 			public async Task<RuntimeResult> Command([Remainder, ValidateUsername] string name)
 			{
-				var old = Context.Client.CurrentUser.Format();
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).CAF();
-				return Responses.Client.ModifiedName(old, name);
+				return Responses.Snowflakes.ModifiedName(Context.Client.CurrentUser, name);
 			}
 		}
 
@@ -41,13 +40,13 @@ namespace Advobot.Commands
 			{
 				var position = Enqueue(new IconCreationArgs("Bot Icon", Context, url, default,
 					(ctx, ms) => ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions())));
-				return Responses.Client.EnqueuedIcon(position);
+				return Responses.Snowflakes.EnqueuedIcon(Context.Client.CurrentUser, position);
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Remove()
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
-				return Responses.Client.RemovedIcon();
+				return Responses.Snowflakes.RemovedIcon(Context.Client.CurrentUser);
 			}
 		}
 

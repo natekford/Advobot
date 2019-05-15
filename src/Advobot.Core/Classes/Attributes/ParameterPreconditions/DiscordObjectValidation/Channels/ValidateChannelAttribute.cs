@@ -13,12 +13,13 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	/// <summary>
 	/// Base for validating any <see cref="SocketGuildChannel"/>.
 	/// </summary>
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public abstract class ValidateChannelAttribute : ValidateDiscordObjectAttribute
 	{
 		/// <summary>
 		/// The permissions to make sure the invoking user has on the channel.
 		/// </summary>
-		public ImmutableArray<ChannelPermission> Permissions { get; }
+		public ImmutableHashSet<ChannelPermission> Permissions { get; }
 		/// <summary>
 		/// Whether this channel can be reordered.
 		/// Default value is false.
@@ -31,16 +32,11 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <param name="permissions"></param>
 		public ValidateChannelAttribute(params ChannelPermission[] permissions)
 		{
-			if (!permissions.Contains(ChannelPermission.ViewChannel))
-			{
-				Array.Resize(ref permissions, permissions.Length + 1);
-				permissions[permissions.Length - 1] = ChannelPermission.ViewChannel;
-			}
-			Permissions = permissions.OrderBy(x => x).ToImmutableArray();
+			Permissions = permissions.Concat(new[] { ChannelPermission.ViewChannel }).ToImmutableHashSet();
 		}
 
 		/// <inheritdoc />
-		protected override VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value)
+		protected override ValidatedObjectResult ValidateObject(AdvobotCommandContext context, object value)
 			=> context.User.ValidateChannel((SocketGuildChannel)value, Permissions, GetValidationRules().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.

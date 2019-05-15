@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.Modules;
+using Advobot.Classes.Results;
+using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
@@ -38,30 +42,27 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
 			{
 				throw new NotSupportedException($"{nameof(ValidateStringAttribute)} only supports strings.");
 			}
-			if (s.Length < Min)
+			return CheckPermissionsAsync(context, parameter, s, services);
+		}
+		/// <summary>
+		/// Checks whether the command can execute.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="value"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		public virtual Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
+		{
+			if (value.Length < Min)
 			{
 				return Task.FromResult(PreconditionResult.FromError($"{parameter.Name} must be at least `{Min}` characters long."));
 			}
-			if (s.Length > Max)
+			if (value.Length > Max)
 			{
 				return Task.FromResult(PreconditionResult.FromError($"{parameter.Name} must be at most `{Max}` characters long."));
 			}
-			if (!AdditionalValidation(s, out var error))
-			{
-				return Task.FromResult(PreconditionResult.FromError(error));
-			}
 			return Task.FromResult(PreconditionResult.FromSuccess());
-		}
-		/// <summary>
-		/// Additional validation which is optional to implement.
-		/// </summary>
-		/// <param name="s"></param>
-		/// <param name="error"></param>
-		/// <returns></returns>
-		public virtual bool AdditionalValidation(string s, out string? error)
-		{
-			error = null;
-			return true;
 		}
 		/// <summary>
 		/// Returns a string saying the min and max characters.

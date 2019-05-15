@@ -214,11 +214,16 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			var giver = new Punisher(TimeSpan.FromMinutes(0), default);
+			var punishmentArgs = new PunishmentArgs
+			{
+				Time = TimeSpan.FromMinutes(0),
+				Timers = null,
+				Options = _SpamPreventionOptions,
+			};
 			//Iterate through the users who are able to be punished by the spam prevention
 			foreach (var spammer in context.Settings.SpamPreventionUsers.Where(x => x.ShouldBePunished(context.Message)))
 			{
-				await giver.GiveAsync(spammer.Punishment, context.Guild, spammer.UserId, context.Settings.MuteRoleId, _SpamPreventionOptions).CAF();
+				await PunishmentUtils.GiveAsync(spammer.Punishment, context.Guild, spammer.UserId, context.Settings.MuteRoleId, punishmentArgs).CAF();
 				spammer.Reset();
 			}
 		}

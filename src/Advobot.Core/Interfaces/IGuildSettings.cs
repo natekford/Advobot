@@ -63,6 +63,7 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Roles users can assign themselves.
 		/// </summary>
+		//TODO: change into ISet like the other ones planned?
 		IList<SelfAssignableRoles> SelfAssignableGroups { get; }
 		/// <summary>
 		/// Quotes which can be called up through their name.
@@ -138,12 +139,12 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		SpamPrev this[SpamType type] { get; set; }
+		SpamPrev? this[SpamType type] { get; set; }
 		/// <summary>
 		/// Gets and sets raid prevention.
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		RaidPrev this[RaidType type] { get; set; }
+		RaidPrev? this[RaidType type] { get; set; }
 	}
 }

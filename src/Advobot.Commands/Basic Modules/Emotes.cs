@@ -10,7 +10,6 @@ using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.ImageResizing;
 using Advobot.Classes.Modules;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -46,7 +45,7 @@ namespace Advobot.Commands
 			public async Task<RuntimeResult> Command(GuildEmote emote)
 			{
 				await Context.Guild.DeleteEmoteAsync(emote, GenerateRequestOptions()).CAF();
-				return Responses.Emotes.Deleted(emote);
+				return Responses.Snowflakes.Deleted(emote);
 			}
 		}
 
@@ -59,9 +58,8 @@ namespace Advobot.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(GuildEmote emote, [Remainder, ValidateEmoteName] string name)
 			{
-				var old = ((IEmote)emote).Format();
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = name, GenerateRequestOptions()).CAF();
-				return Responses.Emotes.ModifiedName(old, name);
+				return Responses.Snowflakes.ModifiedName(emote, name);
 			}
 		}
 

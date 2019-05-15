@@ -110,8 +110,13 @@ namespace Advobot.Services.Logging.Loggers
 			//Banned names
 			if (context.Settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(context.User.Username)))
 			{
-				var giver = new Punisher(TimeSpan.FromMinutes(0), Timers);
-				await giver.GiveAsync(Punishment.Ban, context.Guild, context.User.Id, 0, _BannedNameOptions).CAF();
+				var punishmentArgs = new PunishmentArgs
+				{
+					Time = TimeSpan.FromMinutes(0),
+					Timers = Timers,
+					Options = _BannedNameOptions,
+				};
+				await PunishmentUtils.GiveAsync(Punishment.Ban, context.Guild, context.User.Id, 0, punishmentArgs).CAF();
 			}
 			//Antiraid
 			var antiRaid = context.Settings[RaidType.Regular];

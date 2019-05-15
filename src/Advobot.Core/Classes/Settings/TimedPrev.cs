@@ -29,9 +29,13 @@ namespace Advobot.Classes.Settings
 		[JsonIgnore]
 		public bool Enabled { get; set; }
 
+		//TODO: implement these
+		//public abstract Task EnableAsync(SocketGuild guild);
+		//public abstract Task DisableAsync(SocketGuild guild);
 		/// <inheritdoc />
 		public abstract string Format(SocketGuild? guild = null);
 		/// <inheritdoc />
-		public override string ToString() => Format();
+		public override string ToString()
+			=> Format();
 	}
 }

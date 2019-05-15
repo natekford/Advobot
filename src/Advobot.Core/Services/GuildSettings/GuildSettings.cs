@@ -202,7 +202,7 @@ namespace Advobot.Services.GuildSettings
 		}
 
 		/// <inheritdoc />
-		public SpamPrev this[SpamType type]
+		public SpamPrev? this[SpamType type]
 		{
 			get => SpamPrevention.SingleOrDefault(x => x.Type == type);
 			set
@@ -214,7 +214,7 @@ namespace Advobot.Services.GuildSettings
 			}
 		}
 		/// <inheritdoc />
-		public RaidPrev this[RaidType type]
+		public RaidPrev? this[RaidType type]
 		{
 			get => RaidPrevention.SingleOrDefault(x => x.Type == type);
 			set

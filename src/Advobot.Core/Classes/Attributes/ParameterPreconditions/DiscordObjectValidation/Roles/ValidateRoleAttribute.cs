@@ -11,6 +11,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	/// <summary>
 	/// Validates the passed in <see cref="SocketRole"/> making sure it can be accessed by the user and optionally whether it can be modifed by anyone.
 	/// </summary>
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public class ValidateRoleAttribute : ValidateDiscordObjectAttribute
 	{
 		/// <summary>
@@ -22,7 +23,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		protected override object GetFromContext(AdvobotCommandContext context)
 			=> throw new NotSupportedException();
 		/// <inheritdoc />
-		protected override VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value)
+		protected override ValidatedObjectResult ValidateObject(AdvobotCommandContext context, object value)
 			=> context.User.ValidateRole((SocketRole)value, GetValidationRules().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.

@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Validates the username by making sure it is between 2 and 32 characters.
 	/// </summary>
-	public class ValidateUsernameAttribute : ValidateStringAttribute
+	public sealed class ValidateUsernameAttribute : ValidateStringAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateUsernameAttribute"/>.

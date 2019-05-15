@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Classes.Results
@@ -26,6 +30,14 @@ namespace Advobot.Classes.Results
 		/// The file to post with the message.
 		/// </summary>
 		public TextFileInfo? File { get; private set; }
+		/// <summary>
+		/// Where to send this result to. If this is null, the default context channel will be used instead.
+		/// </summary>
+		public ulong? OverrideDestinationChannelId { get; private set; }
+		/// <summary>
+		/// When the message being sent is over 2,000 characters long. This breaks it up into sendable chunks.
+		/// </summary>
+		public IReadOnlyCollection<string>? ReasonSegments { get; private set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotResult"/>.
@@ -65,6 +77,41 @@ namespace Advobot.Classes.Results
 			return this;
 		}
 		/// <summary>
+		/// Sets the override destination channel in this result.
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public AdvobotResult WithOverrideDestinationChannelId(ulong? id)
+		{
+			OverrideDestinationChannelId = id;
+			return this;
+		}
+		/// <summary>
+		/// Sends this result to the specified context.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <returns></returns>
+		public async Task SendAsync(ICommandContext context)
+		{
+			var destinationChannel = context.Channel;
+			if (OverrideDestinationChannelId != null)
+			{
+				destinationChannel = (IMessageChannel)await context.Client.GetChannelAsync(OverrideDestinationChannelId.Value).CAF();
+			}
+			//TODO: handle null channel above eventually
+			if (ReasonSegments != null)
+			{
+				foreach (var segment in ReasonSegments)
+				{
+					await MessageUtils.SendMessageAsync(destinationChannel, segment).CAF();
+				}
+			}
+			else
+			{
+				await MessageUtils.SendMessageAsync(destinationChannel, Reason, Embed, File).CAF();
+			}
+		}
+		/// <summary>
 		/// Returns the reason of this result.
 		/// </summary>
 		/// <returns></returns>
@@ -92,6 +139,20 @@ namespace Advobot.Classes.Results
 		/// <returns></returns>
 		public static AdvobotResult Success(TextFileInfo file)
 			=> Success(Constants.ZERO_LENGTH_CHAR).WithFile(file);
+		/// <summary>
+		/// Creates a successful result.
+		/// </summary>
+		/// <param name="reasonSegments"></param>
+		/// <param name="joiner"></param>
+		/// <param name="error"></param>
+		/// <returns></returns>
+		public static AdvobotResult FromReasonSegments(IReadOnlyCollection<string> reasonSegments, string joiner = "\n", CommandError? error = null)
+		{
+			return new AdvobotResult(error, reasonSegments.Join(joiner))
+			{
+				ReasonSegments = reasonSegments
+			};
+		}
 		/// <summary>
 		/// Creates an error result.
 		/// </summary>

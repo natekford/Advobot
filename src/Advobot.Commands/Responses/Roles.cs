@@ -16,19 +16,13 @@ namespace Advobot.Commands.Responses
 			=> Success(Default.FormatInterpolated($"Successfully gave {roles} to {user}."));
 		public static AdvobotResult Took(IReadOnlyCollection<IRole> roles, IUser user)
 			=> Success(Default.FormatInterpolated($"Successfully took {roles} from {user}."));
-		public static AdvobotResult Created(IRole role)
-			=> Success(Default.FormatInterpolated($"Successfully created {role}."));
-		public static AdvobotResult SoftDeleted(IRole role)
-			=> Success(Default.FormatInterpolated($"Successfully soft deleted {role}."));
-		public static AdvobotResult Deleted(IRole role)
-			=> Success(Default.FormatInterpolated($"Successfully deleted {role}."));
 		public static AdvobotResult Moved(IRole role, int position)
 			=> Success(Default.FormatInterpolated($"Successfully moved {role} to position {position}."));
 		public static AdvobotResult Display(IEnumerable<IRole> roles)
 		{
 			return Success(new EmbedWrapper
 			{
-				Title = "Role Positions",
+				Title = "Roles",
 				Description = BigBlock.FormatInterpolated($"{roles.Join("\n", x => $"{x.Position.ToString("00")}. {x.Name}")}"),
 			});
 		}
@@ -44,12 +38,10 @@ namespace Advobot.Commands.Responses
 				Description = BigBlock.FormatInterpolated($"{values.Join("\n", x => $"{x.Name.PadRight(padLen)} {x.Value}")}"),
 			});
 		}
-		public static AdvobotResult CopyPermissions(IRole input, IRole output, GuildPermission permissions)
+		public static AdvobotResult CopiedPermissions(IRole input, IRole output, GuildPermission permissions)
 			=> Success(Default.FormatInterpolated($"Successfully copied as many permissions as possible from {input}. {output} now has the following permissions {EnumUtils.GetFlagNames(permissions)}."));
 		public static AdvobotResult ClearedPermissions(IRole role, GuildPermission permissions)
 			=> Success(Default.FormatInterpolated($"Successfully cleared as many permissions as possible. {role} now has the following permissions {EnumUtils.GetFlagNames(permissions)}."));
-		public static AdvobotResult ModifiedName(string old, string name)
-			=> Success(Default.FormatInterpolated($"Successfully changed the name of {old} to {name}."));
 		public static AdvobotResult ModifiedColor(IRole role, Color color)
 			=> Success(Default.FormatInterpolated($"Successfully changed the color of {role} to {"#" + color.RawValue.ToString("X6")}.")); //X6 to get hex
 		public static AdvobotResult ModifiedHoistStatus(IRole role, bool hoisted)

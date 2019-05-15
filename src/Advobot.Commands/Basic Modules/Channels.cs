@@ -41,7 +41,7 @@ namespace Advobot.Commands.Channels
 				Func<string, Action<GuildChannelProperties>?, RequestOptions, Task<T>> creator) where T : IGuildChannel
 			{
 				var channel = await creator.Invoke(name, null, GenerateRequestOptions()).CAF();
-				return Responses.Channels.Created(channel);
+				return Responses.Snowflakes.Created(channel);
 			}
 		}
 
@@ -66,7 +66,7 @@ namespace Advobot.Commands.Channels
 					var everyonePermissions = new OverwritePermissions(viewChannel: PermValue.Deny);
 					await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, everyonePermissions).CAF();
 				}
-				return Responses.Channels.SoftDeleted(channel);
+				return Responses.Snowflakes.SoftDeleted(channel);
 			}
 		}
 
@@ -80,7 +80,7 @@ namespace Advobot.Commands.Channels
 			public async Task<RuntimeResult> Command([ValidateGenericChannel(ChannelPermission.ManageChannels)] SocketGuildChannel channel)
 			{
 				await channel.DeleteAsync(GenerateRequestOptions()).CAF();
-				return Responses.Channels.Deleted(channel);
+				return Responses.Snowflakes.Deleted(channel);
 			}
 		}
 
@@ -320,9 +320,8 @@ namespace Advobot.Commands.Channels
 
 			private async Task<RuntimeResult> CommandRunner(SocketGuildChannel channel, string name)
 			{
-				var old = channel.Format();
 				await channel.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
-				return Responses.Channels.ModifiedName(old, name);
+				return Responses.Snowflakes.ModifiedName(channel, name);
 			}
 		}
 

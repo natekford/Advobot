@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Validates the regex by making sure it is between 1 and 100 characters.
 	/// </summary>
-	public class ValidateRegexAttribute : ValidateStringAttribute
+	public sealed class ValidateRegexAttribute : ValidateStringAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateRegexAttribute"/>.

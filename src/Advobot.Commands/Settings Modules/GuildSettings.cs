@@ -1,9 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
@@ -209,21 +210,25 @@ namespace Advobot.Commands
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public Task Category(bool enable, [ValidateCommandCategory] string category, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 			{
+				throw new NotImplementedException();
+				/*
 				var commands = Settings.CommandSettings.ModifyOverrides(HelpEntries.GetHelpEntries(category), channel, enable);
 				if (!commands.Any())
 				{
 					return ReplyErrorAsync($"`{category}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
 				}
-				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{commands.Join("`, `")}` on `{channel.Format()}`.");
+				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{commands.Join("`, `")}` on `{channel.Format()}`.");*/
 			}
 			[Command]
 			public Task Command(bool enable, IHelpEntry helpEntry, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 			{
+				throw new NotImplementedException();
+				/*
 				if (!Settings.CommandSettings.ModifyOverride(helpEntry, channel, enable))
 				{
 					return ReplyErrorAsync($"`{helpEntry.Name}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
 				}
-				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{helpEntry.Name}` on `{channel.Format()}`.");
+				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{helpEntry.Name}` on `{channel.Format()}`.");*/
 			}
 		}
 
@@ -382,19 +387,13 @@ namespace Advobot.Commands
 		[EnabledByDefault(false)]
 		public sealed class TestGuildNotifs : AdvobotModuleBase
 		{
+			//TODO: make one of these for every event
 			[ImplicitCommand, ImplicitAlias]
-			public Task Welcome()
-				=> CommandRunner(Context.GuildSettings.WelcomeMessage);
+			public Task<RuntimeResult> Welcome()
+				=> Responses.GuildSettings.SendWelcomeNotification(Context.GuildSettings.WelcomeMessage);
 			[ImplicitCommand, ImplicitAlias]
-			public Task Goodbye()
-				=> CommandRunner(Context.GuildSettings.GoodbyeMessage);
-
-			private Task CommandRunner(GuildNotification? notification, [CallerMemberName] string caller = "")
-			{
-				return notification != null
-					? notification.SendAsync(Context.Guild, null)
-					: ReplyErrorAsync($"The `{caller}` notification does not exist.");
-			}
+			public Task<RuntimeResult> Goodbye()
+				=> Responses.GuildSettings.SendGoodbyeNotification(Context.GuildSettings.GoodbyeMessage);
 		}
 	}
 }

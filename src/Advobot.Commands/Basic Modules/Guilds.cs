@@ -57,9 +57,8 @@ namespace Advobot.Commands
 			[Command]
 			public async Task<RuntimeResult> Command([Remainder, ValidateGuildName] string name)
 			{
-				var old = Context.Guild.Name;
 				await Context.Guild.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
-				return Responses.Guilds.ModifiedName(old, name);
+				return Responses.Snowflakes.ModifiedName(Context.Guild, name);
 			}
 		}
 
@@ -106,7 +105,7 @@ namespace Advobot.Commands
 			[Command]
 			public async Task<RuntimeResult> Command([ValidateVoiceChannel(CPerm.ManageChannels, FromContext = true)] SocketVoiceChannel? channel)
 			{
-				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel>(channel), GenerateRequestOptions()).CAF();
+				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel?>(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedAfkChannel(channel);
 			}
 			[ImplicitCommand, ImplicitAlias]
@@ -123,7 +122,7 @@ namespace Advobot.Commands
 			[Command]
 			public async Task<RuntimeResult> Command([ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel? channel)
 			{
-				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel>(channel), GenerateRequestOptions()).CAF();
+				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel?>(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedSystemChannel(channel);
 			}
 			[ImplicitCommand, ImplicitAlias]
@@ -171,13 +170,13 @@ namespace Advobot.Commands
 			{
 				var position = Enqueue(new IconCreationArgs("Guild Icon", Context, url, default,
 					(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions())));
-				return Responses.Guilds.EnqueuedIcon(position);
+				return Responses.Snowflakes.EnqueuedIcon(Context.Guild, position);
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Remove()
 			{
 				await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GenerateRequestOptions()).CAF();
-				return Responses.Guilds.RemovedIcon();
+				return Responses.Snowflakes.RemovedIcon(Context.Guild);
 			}
 		}
 

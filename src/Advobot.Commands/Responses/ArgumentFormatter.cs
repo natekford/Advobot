@@ -27,12 +27,16 @@ namespace Advobot.Commands.Responses
 			Format = format ?? "NONE";
 		}
 
+		public override string ToString()
+			=> Value.ToString();
+
 		public static RuntimeFormattedObject None(object value)
 			=> new RuntimeFormattedObject(value, null);
 		public static RuntimeFormattedObject Create(object value, string format)
 			=> new RuntimeFormattedObject(value, format);
 	}
 
+	//TODO: make into service that accepts client meaning whenever it encounters a ulong it can parse it?
 	public class ArgumentFormatter : IFormatProvider, ICustomFormatter
 	{
 		public string Joiner { get; set; } = ", ";

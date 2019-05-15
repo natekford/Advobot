@@ -13,12 +13,6 @@ namespace Advobot.Commands.Responses
 	{
 		private Channels() { }
 
-		public static AdvobotResult Created(IGuildChannel channel)
-			=> Success(Default.Format(strings.Responses_Channels_Created, channel));
-		public static AdvobotResult SoftDeleted(IGuildChannel channel)
-			=> Success(Default.Format(strings.Responses_Channels_SoftDeleted, channel));
-		public static AdvobotResult Deleted(IGuildChannel channel)
-			=> Success(Default.Format(strings.Responses_Channels_Deleted, channel));
 		public static AdvobotResult Display(IEnumerable<IGuildChannel> channels, [CallerMemberName] string caller = "")
 		{
 			return Success(new EmbedWrapper
@@ -43,9 +37,8 @@ namespace Advobot.Commands.Responses
 			var padLen = values.Max(x => x.Name.Length);
 			return Success(new EmbedWrapper
 			{
-				Title = Title.FormatInterpolated($"Overwrite On {channel}"),
-				Description = Default.FormatInterpolated($"{obj}\n") +
-					BigBlock.FormatInterpolated($"{values.Join("\n", x => $"{x.Name.PadRight(padLen)} {x.Value}")}"),
+				Title = Title.FormatInterpolated($"{obj} On {channel}"),
+				Description = BigBlock.FormatInterpolated($"{values.Join("\n", x => $"{x.Name.PadRight(padLen)} {x.Value}")}"),
 			});
 		}
 		public static AdvobotResult ModifiedOverwrite(IGuildChannel channel, ISnowflakeEntity obj, ChannelPermission permissions, PermValue action)
@@ -58,11 +51,9 @@ namespace Advobot.Commands.Responses
 				: Success($"There are no matching overwrite{(obj == null ? "" : "s")} to copy.").WithTime(DefaultTime);
 		public static AdvobotResult ClearedOverwrites(IGuildChannel channel, int count)
 			=> Success(Default.FormatInterpolated($"Successfully removed {count} overwrites from {channel}.")).WithTime(DefaultTime);
-		public static AdvobotResult ModifiedNsfw(IGuildChannel channel, bool nsfw)
+		public static AdvobotResult ModifiedNsfw(ITextChannel channel, bool nsfw)
 			=> Success(Default.FormatInterpolated($"Successfully {(nsfw ? "un" : "")}marked {channel} as NSFW."));
-		public static AdvobotResult ModifiedName(string old, string name)
-			=> Success(Default.FormatInterpolated($"Successfully changed the name of {old} to {name}."));
-		public static AdvobotResult ModifiedTopic(IGuildChannel channel, string topic)
+		public static AdvobotResult ModifiedTopic(ITextChannel channel, string topic)
 			=> Success(Default.FormatInterpolated($"Successfully changed the topic for {channel} to {topic ?? "Nothing"}."));
 		public static AdvobotResult ModifiedLimit(IVoiceChannel channel, int limit)
 			=> Success(Default.FormatInterpolated($"Successfully changed the user limit for {channel} to {limit}."));

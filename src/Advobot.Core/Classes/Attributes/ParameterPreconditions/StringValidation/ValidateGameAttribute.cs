@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Validates the game by making sure it is between 0 and 128 characters.
 	/// </summary>
-	public class ValidateGameAttribute : ValidateStringAttribute
+	public sealed class ValidateGameAttribute : ValidateStringAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateGameAttribute"/>.

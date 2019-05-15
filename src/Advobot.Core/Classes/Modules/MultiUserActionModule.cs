@@ -8,6 +8,7 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Classes.Modules
 {
@@ -30,7 +31,7 @@ namespace Advobot.Classes.Modules
 		/// <param name="predicate"></param>
 		/// <param name="update"></param>
 		/// <returns></returns>
-		protected Task<int> ProcessAsync(bool bypass, Func<IGuildUser, bool> predicate, Func<IGuildUser, Task> update)
+		protected Task<int> ProcessAsync(bool bypass, Func<SocketGuildUser, bool> predicate, Func<SocketGuildUser, Task> update)
 			=> ProcessAsync(Context.Guild.GetEditableUsers(Context.User), bypass, predicate, update);
 		/// <summary>
 		/// Does an action on many users at once.
@@ -40,7 +41,7 @@ namespace Advobot.Classes.Modules
 		/// <param name="predicate"></param>
 		/// <param name="update"></param>
 		/// <returns></returns>
-		protected Task<int> ProcessAsync(IEnumerable<IGuildUser> users, bool bypass, Func<IGuildUser, bool> predicate, Func<IGuildUser, Task> update)
+		protected Task<int> ProcessAsync(IEnumerable<SocketGuildUser> users, bool bypass, Func<SocketGuildUser, bool> predicate, Func<SocketGuildUser, Task> update)
 		{
 			var amount = bypass ? int.MaxValue : BotSettings.MaxUserGatherCount;
 			var array = users.Where(predicate).Take(amount).ToArray();
@@ -52,7 +53,7 @@ namespace Advobot.Classes.Modules
 		/// <param name="users"></param>
 		/// <param name="update"></param>
 		/// <returns></returns>
-		protected async Task<int> ProcessAsync(IReadOnlyCollection<IGuildUser> users, Func<IGuildUser, Task> update)
+		protected async Task<int> ProcessAsync(IReadOnlyCollection<SocketGuildUser> users, Func<SocketGuildUser, Task> update)
 		{
 			var cancelToken = new CancellationTokenSource();
 			_CancelTokens.AddOrUpdate(Context.Guild.Id, cancelToken, (oldKey, oldValue) =>
@@ -125,6 +126,7 @@ namespace Advobot.Classes.Modules
 			private readonly IMessageChannel _Channel;
 			private readonly Func<MultiUserActionProgressArgs, string> _CreateResult;
 			private readonly RequestOptions? _Options;
+			private bool HasException;
 			private IUserMessage? message = null;
 
 			/// <summary>
@@ -147,18 +149,29 @@ namespace Advobot.Classes.Modules
 			/// <returns></returns>
 			public async Task ReportAsync(MultiUserActionProgressArgs value)
 			{
-				//var newText = ;
-				if (value.IsStart)
+				try
 				{
-					message = await _Channel.SendMessageAsync(_CreateResult(value), options: _Options).CAF();
+					if (HasException)
+					{
+						return;
+					}
+					else if (value.IsStart)
+					{
+						message = await _Channel.SendMessageAsync(_CreateResult(value), options: _Options).CAF();
+					}
+					else if (value.IsEnd && message != null)
+					{
+						await message.DeleteAsync(_Options).CAF();
+					}
+					else if (value.CurrentProgress % 10 == 0 && message != null)
+					{
+						await message.ModifyAsync(x => x.Content = _CreateResult(value), _Options).CAF();
+					}
 				}
-				else if (value.IsEnd && message != null)
+				catch (Exception e)
 				{
-					await message.DeleteAsync(_Options).CAF();
-				}
-				else if (value.CurrentProgress % 10 == 0 && message != null)
-				{
-					await message.ModifyAsync(x => x.Content = _CreateResult(value), _Options).CAF();
+					e.Write();
+					HasException = true;
 				}
 			}
 		}

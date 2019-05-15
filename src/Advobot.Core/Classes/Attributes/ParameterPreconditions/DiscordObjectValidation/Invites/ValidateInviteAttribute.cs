@@ -11,6 +11,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	/// <summary>
 	/// Validates the passed in <see cref="IInviteMetadata"/>.
 	/// </summary>
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public abstract class ValidateInviteAttribute : ValidateDiscordObjectAttribute
 	{
 		/// <summary>
@@ -22,17 +23,17 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		protected override object GetFromContext(AdvobotCommandContext context)
 			=> throw new NotSupportedException();
 		/// <inheritdoc />
-		protected override VerifiedObjectResult ValidateObject(AdvobotCommandContext context, object value)
+		protected override ValidatedObjectResult ValidateObject(AdvobotCommandContext context, object value)
 		{
 			var invite = (IInviteMetadata)value;
 			foreach (var rule in GetValidationRules())
 			{
-				if (rule.Invoke(context.User, invite) is VerifiedObjectResult r && !r.IsSuccess)
+				if (rule.Invoke(context.User, invite) is ValidatedObjectResult r && !r.IsSuccess)
 				{
 					return r;
 				}
 			}
-			return VerifiedObjectResult.FromSuccess(invite);
+			return ValidatedObjectResult.FromSuccess(invite);
 		}
 		/// <summary>
 		/// Extra checks to use in validation.

@@ -1,13 +1,15 @@
 ﻿using Advobot.Classes.Modules;
 using Discord;
 using Discord.WebSocket;
+using System;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 {
 	/// <summary>
 	/// Validates the passed in <see cref="SocketCategoryChannel"/>.
 	/// </summary>
-	public class ValidateCategoryChannelAttribute : ValidateChannelAttribute
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+	public sealed class ValidateCategoryChannelAttribute : ValidateChannelAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateCategoryChannelAttribute"/>.

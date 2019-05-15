@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
-using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -20,9 +19,6 @@ namespace Advobot.Classes.Settings
 	[NamedArgumentType]
 	public sealed class RaidPrev : TimedPrev<RaidType>
 	{
-		private static readonly Punisher _Giver = new Punisher(TimeSpan.FromMinutes(0), default);
-		private static readonly RequestOptions _Reason = DiscordUtils.GenerateRequestOptions("Raid prevention.");
-
 		/// <summary>
 		/// The amount of users to count for a raid.
 		/// </summary>
@@ -65,8 +61,16 @@ namespace Advobot.Classes.Settings
 		/// <param name="settings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings settings, SocketGuildUser user)
-			=> await _Giver.GiveAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, _Reason).CAF();
+		public Task PunishAsync(IGuildSettings settings, SocketGuildUser user)
+		{
+			var punishmentArgs = new PunishmentArgs
+			{
+				Time = TimeSpan.FromMinutes(0),
+				Timers = null,
+				Options = DiscordUtils.GenerateRequestOptions("Raid prevention."),
+			};
+			return PunishmentUtils.GiveAsync(Punishment, user.Guild, user.Id, settings.MuteRoleId, punishmentArgs);
+		}
 		/// <inheritdoc />
 		public override string Format(SocketGuild? guild = null)
 		{

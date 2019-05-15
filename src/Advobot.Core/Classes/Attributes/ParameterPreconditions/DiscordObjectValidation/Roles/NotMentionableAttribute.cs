@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Advobot.Utilities;
 using Discord.WebSocket;
 
@@ -7,6 +8,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	/// <summary>
 	/// Does not allow roles which are already mentionable to be used.
 	/// </summary>
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class NotMentionableAttribute : ValidateRoleAttribute
 	{
 		/// <inheritdoc />

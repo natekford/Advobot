@@ -14,10 +14,6 @@ namespace Advobot.Commands.Responses
 
 		public static AdvobotResult EnqueuedCreation(string name, int position)
 			=> Success(Default.FormatInterpolated($"Successfully queued creating the emote {name} at position {position}."));
-		public static AdvobotResult Deleted(IEmote emote)
-			=> Success(Default.FormatInterpolated($"Successfully deleted the emote {emote.Name}."));
-		public static AdvobotResult ModifiedName(string old, string name)
-			=> Success(Default.FormatInterpolated($"Successfully changed the name of {old} to {name}."));
 		public static AdvobotResult AddedRequiredRoles(IEmote emote, IEnumerable<IRole> roles)
 			=> Success(Default.FormatInterpolated($"Successfully added {roles} as roles necessary to use {emote}."));
 		public static AdvobotResult NoRequiredRoles(IEmote emote)

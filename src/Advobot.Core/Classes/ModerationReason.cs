@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using Advobot.Classes.Modules;
 using AdvorangesUtils;
 
 namespace Advobot.Classes
@@ -47,5 +48,12 @@ namespace Advobot.Classes
 			}
 			Reason = sb.ToString();
 		}
+
+		public PunishmentArgs ToPunishmentArgs(AdvobotModuleBase module) => new PunishmentArgs
+		{
+			Time = Time,
+			Timers = module.Timers,
+			Options = module.GenerateRequestOptions(Reason),
+		};
 	}
 }

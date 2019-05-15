@@ -5,7 +5,6 @@ using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -16,8 +15,6 @@ namespace Advobot.Classes.Settings
 	/// </summary>
 	public sealed class BannedPhrase : IGuildFormattable
 	{
-		private static RequestOptions _Options { get; } = DiscordUtils.GenerateRequestOptions("Banned phrase.");
-
 		/// <summary>
 		/// The phrase which is banned. Can be string or regex pattern.
 		/// </summary>
@@ -52,17 +49,22 @@ namespace Advobot.Classes.Settings
 		/// <param name="info"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public async Task PunishAsync(IGuildSettings settings, SocketGuild guild, BannedPhraseUserInfo info, ITimerService timers)
+		public Task PunishAsync(IGuildSettings settings, SocketGuild guild, BannedPhraseUserInfo info, ITimerService timers)
 		{
 			var count = info.Increment(Punishment);
 			if (!settings.BannedPhrasePunishments.TryGetSingle(x => x.Punishment == Punishment && x.NumberOfRemoves == count, out var punishment))
 			{
-				return;
+				return Task.CompletedTask;
 			}
 
-			var giver = new Punisher(TimeSpan.FromMinutes(punishment.Time), timers);
-			await giver.GiveAsync(Punishment, guild, info.UserId, punishment.RoleId, _Options).CAF();
 			info.Reset(Punishment);
+			var punishmentArgs = new PunishmentArgs
+			{
+				Time = TimeSpan.FromMinutes(punishment.Time),
+				Timers = timers,
+				Options = DiscordUtils.GenerateRequestOptions("Banned phrase."),
+			};
+			return PunishmentUtils.GiveAsync(Punishment, guild, info.UserId, punishment.RoleId, punishmentArgs);
 		}
 		/// <inheritdoc />
 		public string Format(SocketGuild? guild = null)

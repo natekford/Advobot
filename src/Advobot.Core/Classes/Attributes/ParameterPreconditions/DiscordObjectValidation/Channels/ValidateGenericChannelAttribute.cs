@@ -8,7 +8,8 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	/// <summary>
 	/// Validates the passed in <see cref="SocketGuildChannel"/>.
 	/// </summary>
-	public class ValidateGenericChannelAttribute : ValidateChannelAttribute
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+	public sealed class ValidateGenericChannelAttribute : ValidateChannelAttribute
 	{
 		/// <summary>
 		/// Cannot check from context for an unspecified channel type.

@@ -56,7 +56,7 @@ namespace Advobot.Commands
 			public async Task<RuntimeResult> Command([ValidateRoleName] string name)
 			{
 				var role = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), null, false, GenerateRequestOptions()).CAF();
-				return Responses.Roles.Created(role);
+				return Responses.Snowflakes.Created(role);
 			}
 		}
 
@@ -73,7 +73,7 @@ namespace Advobot.Commands
 				await role.DeleteAsync(GenerateRequestOptions()).CAF();
 				await Context.Guild.CreateRoleAsync(role.Name, role.Permissions, role.Color, false, GenerateRequestOptions()).CAF();
 				await DiscordUtils.ModifyRolePositionAsync(role, role.Position, GenerateRequestOptions()).CAF();
-				return Responses.Roles.SoftDeleted(role);
+				return Responses.Snowflakes.SoftDeleted(role);
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace Advobot.Commands
 			public async Task<RuntimeResult> Command([NotEveryoneOrManaged] SocketRole role)
 			{
 				await role.DeleteAsync(GenerateRequestOptions()).CAF();
-				return Responses.Roles.Deleted(role);
+				return Responses.Snowflakes.Deleted(role);
 			}
 		}
 
@@ -167,7 +167,7 @@ namespace Advobot.Commands
 				var permissions = immovable | copyable;
 
 				await output.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), GenerateRequestOptions()).CAF();
-				return Responses.Roles.CopyPermissions(input, output, (GuildPermission)permissions);
+				return Responses.Roles.CopiedPermissions(input, output, (GuildPermission)permissions);
 			}
 		}
 
@@ -195,9 +195,8 @@ namespace Advobot.Commands
 			[Command, Priority(1)]
 			public async Task<RuntimeResult> Command([NotEveryone] SocketRole role, [Remainder, ValidateRoleName] string name)
 			{
-				var old = role.Format();
 				await role.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
-				return Responses.Roles.ModifiedName(old, name);
+				return Responses.Snowflakes.ModifiedName(role, name);
 			}
 			[ImplicitCommand]
 			public Task<RuntimeResult> Position([OverrideTypeReader(typeof(RolePositionTypeReader)), NotEveryone] SocketRole role,

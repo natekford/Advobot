@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
@@ -49,20 +50,21 @@ namespace Advobot.Commands
 				| CPerm.MoveMembers;
 
 			[Command]
-			public async Task Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 			{
 				var muteRole = await GetOrCreateMuteRoleAsync().CAF();
-				if (user.Roles.Select(x => x.Id).Contains(muteRole.Id))
-				{
-					var remover = new Punisher(TimeSpan.FromMinutes(0), default);
-					await remover.UnRoleMuteAsync(user, muteRole, GenerateRequestOptions(reason.Reason)).CAF();
-					await ReplyTimedAsync(remover.ToString()).CAF();
-					return;
-				}
 
-				var giver = new Punisher(reason.Time, Timers);
-				await giver.RoleMuteAsync(user, muteRole, GenerateRequestOptions(reason.Reason)).CAF();
-				await ReplyTimedAsync(giver.ToString()).CAF();
+				var punishmentArgs = reason.ToPunishmentArgs(this);
+				var shouldPunish = !user.Roles.Select(x => x.Id).Contains(muteRole.Id);
+				if (shouldPunish)
+				{
+					await PunishmentUtils.RoleMuteAsync(user, muteRole, punishmentArgs).CAF();
+				}
+				else
+				{
+					await PunishmentUtils.RemoveRoleMuteAsync(user, muteRole, punishmentArgs).CAF();
+				}
+				return Responses.Users.Muted(shouldPunish, user, punishmentArgs);
 			}
 
 			private async Task<IRole> GetOrCreateMuteRoleAsync()
@@ -71,7 +73,7 @@ namespace Advobot.Commands
 				IRole muteRole = existingMuteRole;
 				if (!Context.User.ValidateRole(existingMuteRole, ValidationUtils.RoleIsNotEveryone, ValidationUtils.RoleIsNotManaged).IsSuccess)
 				{
-					muteRole = await Context.Guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0)).CAF();
+					muteRole = await Context.Guild.CreateRoleAsync("Advobot Mute", new GuildPermissions(0)).CAF();
 					Context.GuildSettings.MuteRoleId = muteRole.Id;
 					Context.GuildSettings.Save(BotSettings);
 				}
@@ -102,19 +104,19 @@ namespace Advobot.Commands
 		public sealed class VoiceMute : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 			{
-				if (user.IsMuted)
+				var punishmentArgs = reason.ToPunishmentArgs(this);
+				var shouldPunish = !user.IsMuted;
+				if (shouldPunish)
 				{
-					var remover = new Punisher(TimeSpan.FromMinutes(0), default);
-					await remover.UnvoicemuteAsync(user, GenerateRequestOptions(reason.Reason)).CAF();
-					await ReplyTimedAsync(remover.ToString()).CAF();
-					return;
+					await PunishmentUtils.VoiceMuteAsync(user, punishmentArgs).CAF();
 				}
-
-				var giver = new Punisher(reason.Time, Timers);
-				await giver.VoiceMuteAsync(user, GenerateRequestOptions(reason.Reason)).CAF();
-				await ReplyTimedAsync(giver.ToString()).CAF();
+				else
+				{
+					await PunishmentUtils.RemoveVoiceMuteAsync(user, punishmentArgs).CAF();
+				}
+				return Responses.Users.VoiceMuted(shouldPunish, user, punishmentArgs);
 			}
 		}
 
@@ -126,70 +128,34 @@ namespace Advobot.Commands
 		public sealed class Deafen : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 			{
-				if (user.IsDeafened)
+				var punishmentArgs = reason.ToPunishmentArgs(this);
+				var shouldPunish = !user.IsDeafened;
+				if (shouldPunish)
 				{
-					var remover = new Punisher(TimeSpan.FromMinutes(0), default);
-					await remover.UndeafenAsync(user, GenerateRequestOptions(reason.Reason)).CAF();
-					await ReplyTimedAsync(remover.ToString()).CAF();
-					return;
+					await PunishmentUtils.DeafenAsync(user, punishmentArgs).CAF();
 				}
-
-				var giver = new Punisher(reason.Time, Timers);
-				await giver.DeafenAsync(user, GenerateRequestOptions(reason.Reason)).CAF();
-				await ReplyTimedAsync(giver.ToString()).CAF();
+				else
+				{
+					await PunishmentUtils.RemoveDeafenAsync(user, punishmentArgs).CAF();
+				}
+				return Responses.Users.Deafened(shouldPunish, user, punishmentArgs);
 			}
 		}
 
-		[Group(nameof(MoveUser)), ModuleInitialismAlias(typeof(MoveUser))]
-		[Summary("Moves the user to the given voice channel.")]
-		[UserPermissionRequirement(GuildPermission.MoveMembers)]
+		[Group(nameof(Kick)), ModuleInitialismAlias(typeof(Kick))]
+		[Summary("Kicks the user from the guild.")]
+		[UserPermissionRequirement(GuildPermission.KickMembers)]
 		[EnabledByDefault(true)]
-		public sealed class MoveUser : AdvobotModuleBase
+		public sealed class Kick : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([CanBeMoved] SocketGuildUser user, [ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel channel)
+			public async Task<RuntimeResult> Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 			{
-				if (user.VoiceChannel?.Id == channel.Id)
-				{
-					await ReplyErrorAsync("User is already in that channel.").CAF();
-					return;
-				}
-
-				await user.ModifyAsync(x => x.Channel = Optional.Create((IVoiceChannel)channel), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully moved `{user.Format()}` to `{channel.Format()}`.").CAF();
-			}
-		}
-
-		[Group(nameof(MoveUsers)), ModuleInitialismAlias(typeof(MoveUsers))]
-		[Summary("Moves all users from one channel to another. " +
-			"Max is 100 users per use unless the bypass string is said.")]
-		[UserPermissionRequirement(GuildPermission.MoveMembers)]
-		[EnabledByDefault(true)]
-		public sealed class MoveUsers : MultiUserActionModule
-		{
-			[Command(RunMode = RunMode.Async)]
-			public Task Command(
-				[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel input,
-				[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel output,
-				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> ProcessAsync(input.Users, bypass, u => true, u => u.ModifyAsync(x => x.Channel = output, GenerateRequestOptions()));
-		}
-
-		[Group(nameof(PruneUsers)), ModuleInitialismAlias(typeof(PruneUsers))]
-		[Summary("Removes users who have no roles and have not been seen in the given amount of days. " +
-			"If the optional argument is not typed exactly, then the bot will only give a number of how many people will be kicked.")]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(true)]
-		public sealed class PruneUsers : AdvobotModuleBase
-		{
-			[Command]
-			public async Task Command([ValidatePruneDays] int days, [Optional, OverrideTypeReader(typeof(PruneTypeReader))] bool actual)
-			{
-				//Actual TRUE = PRUNE, FALSE = SIMULATION
-				var amt = await Context.Guild.PruneUsersAsync(days, !actual, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"`{amt}` members{(actual ? "" : " would")} have been pruned with a prune period of `{days}` days.").CAF();
+				var punishmentArgs = reason.ToPunishmentArgs(this);
+				await PunishmentUtils.KickAsync(user, punishmentArgs).CAF();
+				return Responses.Users.Kicked(user);
 			}
 		}
 
@@ -200,14 +166,14 @@ namespace Advobot.Commands
 		public sealed class SoftBan : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public Task<RuntimeResult> Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 				=> Command(user.Id, reason);
 			[Command]
-			public async Task Command(ulong userId, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command([NotBanned] ulong userId, [Optional, Remainder] ModerationReason reason)
 			{
-				var giver = new Punisher(TimeSpan.FromMinutes(0), default);
-				await giver.SoftbanAsync(Context.Guild, userId, GenerateRequestOptions(reason.Reason)).CAF();
-				await ReplyTimedAsync(giver.ToString()).CAF();
+				var punishmentArgs = reason.ToPunishmentArgs(this);
+				await PunishmentUtils.SoftbanAsync(Context.Guild, userId, punishmentArgs).CAF();
+				return Responses.Users.SoftBanned(Context.Client.GetUser(userId));
 			}
 		}
 
@@ -222,17 +188,11 @@ namespace Advobot.Commands
 			public Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
 				=> Command(user.Id, reason);
 			[Command]
-			public async Task Command(ulong userId, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command([NotBanned] ulong userId, [Optional, Remainder] ModerationReason reason)
 			{
-				if ((await Context.Guild.GetBansAsync().CAF()).Select(x => x.User.Id).Contains(userId))
-				{
-					await ReplyErrorAsync("That user is already banned.").CAF();
-					return;
-				}
-
-				var giver = new Punisher(reason.Time, Timers);
-				await giver.BanAsync(Context.Guild, userId, GenerateRequestOptions(reason.Reason)).CAF();
-				await ReplyTimedAsync(giver.ToString()).CAF();
+				var punishmentArgs = reason.ToPunishmentArgs(this);
+				await PunishmentUtils.BanAsync(Context.Guild, userId, options: punishmentArgs).CAF();
+				return Responses.Users.Banned(Context.Client.GetUser(userId));
 			}
 		}
 
@@ -243,11 +203,71 @@ namespace Advobot.Commands
 		public sealed class Unban : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(IBan ban, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(IBan ban, [Optional, Remainder] ModerationReason reason)
 			{
-				var remover = new Punisher(TimeSpan.FromMinutes(0), default);
-				await remover.UnbanAsync(Context.Guild, ban.User.Id, GenerateRequestOptions(reason.Reason)).CAF();
-				await ReplyTimedAsync(remover.ToString()).CAF();
+				var punishmentArgs = reason.ToPunishmentArgs(this);
+				await PunishmentUtils.UnbanAsync(Context.Guild, ban.User.Id, punishmentArgs).CAF();
+				return Responses.Users.Unbanned(ban);
+			}
+		}
+
+		[Group(nameof(MoveUser)), ModuleInitialismAlias(typeof(MoveUser))]
+		[Summary("Moves the user to the given voice channel.")]
+		[UserPermissionRequirement(GuildPermission.MoveMembers)]
+		[EnabledByDefault(true)]
+		public sealed class MoveUser : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command([CanBeMoved] SocketGuildUser user, [ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel channel)
+			{
+				if (user.VoiceChannel?.Id == channel.Id)
+				{
+					return Responses.Users.AlreadyInChannel(user, channel);
+				}
+
+				await user.ModifyAsync(x => x.Channel = Optional.Create<IVoiceChannel>(channel), GenerateRequestOptions()).CAF();
+				return Responses.Users.Moved(user, channel);
+			}
+		}
+
+		[Group(nameof(MoveUsers)), ModuleInitialismAlias(typeof(MoveUsers))]
+		[Summary("Moves all users from one channel to another. " +
+			"Max is 100 users per use unless the bypass string is said.")]
+		[UserPermissionRequirement(GuildPermission.MoveMembers)]
+		[EnabledByDefault(true)]
+		public sealed class MoveUsers : MultiUserActionModule
+		{
+			[Command(RunMode = RunMode.Async)]
+			public async Task<RuntimeResult> Command([ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel input,
+				[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel output,
+				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+			{
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
+				var amountChanged = await ProcessAsync(input.Users, bypass,
+					u => true,
+					u => u.ModifyAsync(x => x.Channel = output, GenerateRequestOptions()));
+				return Responses.Users.MultiUserActionSuccess(amountChanged);
+			}
+		}
+
+		[Group(nameof(PruneUsers)), ModuleInitialismAlias(typeof(PruneUsers))]
+		[Summary("Removes users who have no roles and have not been seen in the given amount of days. " +
+			"If the optional argument is not typed exactly, then the bot will only give a number of how many people will be kicked.")]
+		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[EnabledByDefault(true)]
+		public sealed class PruneUsers : AdvobotModuleBase
+		{
+			[ImplicitCommand, ImplicitAlias]
+			public async Task<RuntimeResult> RealPrune([ValidatePruneDays] int days)
+			{
+				var amt = await Context.Guild.PruneUsersAsync(days, simulate: false, GenerateRequestOptions()).CAF();
+				return Responses.Users.Pruned(days, amt);
+			}
+			[ImplicitCommand, ImplicitAlias]
+			public async Task<RuntimeResult> FakePrune([ValidatePruneDays] int days)
+			{
+				var amt = await Context.Guild.PruneUsersAsync(days, simulate: true, GenerateRequestOptions()).CAF();
+				return Responses.Users.FakePruned(days, amt);
 			}
 		}
 
@@ -258,29 +278,8 @@ namespace Advobot.Commands
 		public sealed class GetBanReason : AdvobotModuleBase
 		{
 			[Command]
-			public Task Command(IBan ban)
-			{
-				return ReplyEmbedAsync(new EmbedWrapper
-				{
-					Title = $"Ban reason for {ban.User.Format()}",
-					Description = ban.Reason ?? "No reason listed.",
-				});
-			}
-		}
-
-		[Group(nameof(Kick)), ModuleInitialismAlias(typeof(Kick))]
-		[Summary("Kicks the user from the guild.")]
-		[UserPermissionRequirement(GuildPermission.KickMembers)]
-		[EnabledByDefault(true)]
-		public sealed class Kick : AdvobotModuleBase
-		{
-			[Command]
-			public async Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
-			{
-				var giver = new Punisher(TimeSpan.FromMinutes(0), default);
-				await giver.KickAsync(user, GenerateRequestOptions(reason.Reason)).CAF();
-				await ReplyTimedAsync(giver.ToString()).CAF();
-			}
+			public Task<RuntimeResult> Command(IBan ban)
+				=> Responses.Users.DisplayBanReason(ban);
 		}
 
 		[Group(nameof(DisplayCurrentBanList)), ModuleInitialismAlias(typeof(DisplayCurrentBanList))]
@@ -290,14 +289,10 @@ namespace Advobot.Commands
 		public sealed class DisplayCurrentBanList : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command()
+			public async Task<RuntimeResult> Command()
 			{
 				var bans = await Context.Guild.GetBansAsync().CAF();
-				await ReplyEmbedAsync(new EmbedWrapper
-				{
-					Title = "Current Bans",
-					Description = bans.Any() ? bans.FormatNumberedList(x => x.User.Format()) : "This guild has no bans.",
-				}).CAF();
+				return Responses.Users.DisplayBans(bans);
 			}
 		}
 
@@ -308,39 +303,34 @@ namespace Advobot.Commands
 		public sealed class RemoveMessages : AdvobotModuleBase
 		{
 			[Command]
-			public Task Command(
-				[ValidatePositiveNumber] int requestCount,
+			public Task<RuntimeResult> Command([ValidatePositiveNumber] int requestCount,
 				[Optional] IGuildUser user,
 				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] SocketTextChannel channel)
-				=> CommandRunner(requestCount, user, channel ?? Context.Channel);
+				=> Command(requestCount, channel, user);
 			[Command]
-			public Task Command(
-				[ValidatePositiveNumber] int requestCount,
+			public async Task<RuntimeResult> Command([ValidatePositiveNumber] int requestCount,
 				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] SocketTextChannel channel,
 				[Optional] IGuildUser user)
-				=> CommandRunner(requestCount, user, channel ?? Context.Channel);
-
-			private async Task CommandRunner(int requestCount, IUser user, SocketTextChannel channel)
 			{
+				channel ??= Context.Channel;
+
 				//If not the context channel then get the first message in that channel
-				var messageToStartAt = Context.Message.Channel.Id == channel.Id
-					? Context.Message
-					: (await channel.GetMessagesAsync(1).FlattenAsync().CAF()).FirstOrDefault();
+				var thisChannel = Context.Message.Channel.Id == channel.Id;
+				var startMsg = thisChannel ? Context.Message : (await channel.GetMessagesAsync(1).FlattenAsync().CAF()).FirstOrDefault();
 
 				//If there is a non null user then delete messages specifically from that user
 				var predicate = user == null ? default(Func<IMessage, bool>) : x => x.Author.Id == user.Id;
-				var deletedAmt = await MessageUtils.DeleteMessagesAsync(channel, messageToStartAt, requestCount, GenerateRequestOptions(), predicate).CAF();
+				var deletedAmt = await MessageUtils.DeleteMessagesAsync(channel, startMsg, requestCount, GenerateRequestOptions(), predicate).CAF();
 
 				//If the context channel isn't the targetted channel then delete the start message
 				//Increase by one to account for it not being targetted.
-				if (Context.Message.Channel.Id != channel.Id)
+				if (!thisChannel)
 				{
-					await messageToStartAt.DeleteAsync(GenerateRequestOptions()).CAF();
+					await startMsg.DeleteAsync(GenerateRequestOptions()).CAF();
 					deletedAmt++;
 				}
 
-				var userStr = user != null ? $" from `{user.Format()}`" : "";
-				await ReplyTimedAsync($"Successfully deleted `{deletedAmt}` message(s){userStr} on `{channel.Format()}`.").CAF();
+				return Responses.Users.RemovedMessages(channel, user, deletedAmt);
 			}
 		}
 
@@ -351,35 +341,42 @@ namespace Advobot.Commands
 		[EnabledByDefault(true)]
 		public sealed class ForAllWithRole : MultiUserActionModule
 		{
-			[ImplicitCommand, ImplicitAlias]
-			public Task GiveRole(
-				SocketRole target,
+			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
+			public Task<RuntimeResult> GiveRole(SocketRole target,
 				[NotEveryoneOrManaged] SocketRole give,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				if (target.Id == give.Id)
 				{
-					return ReplyErrorAsync("Cannot give the role being gathered.");
+					return Responses.Users.CannotGiveGatheredRole();
 				}
-				return ProcessAsync(bypass, u => u.RoleIds.Contains(target.Id), u => u.AddRoleAsync(give, GenerateRequestOptions()));
+				return CommandRunner(target, bypass, u => u.AddRoleAsync(give, GenerateRequestOptions()));
 			}
-			[ImplicitCommand, ImplicitAlias]
-			public Task TakeRole(
-				SocketRole target,
+			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
+			public Task<RuntimeResult> TakeRole(SocketRole target,
 				[NotEveryoneOrManaged] SocketRole take,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> ProcessAsync(bypass, u => u.RoleIds.Contains(target.Id), u => u.RemoveRoleAsync(take, GenerateRequestOptions()));
-			[ImplicitCommand, ImplicitAlias]
-			public Task GiveNickname(
-				[ValidateRole] SocketRole target,
+				=> CommandRunner(target, bypass, u => u.RemoveRoleAsync(take, GenerateRequestOptions()));
+			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
+			public Task<RuntimeResult> GiveNickname([ValidateRole] SocketRole target,
 				[ValidateNickname] string nickname,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> ProcessAsync(bypass, u => u.RoleIds.Contains(target.Id), u => u.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions()));
-			[ImplicitCommand, ImplicitAlias]
-			public Task ClearNickname(
-				[ValidateRole] SocketRole target,
+				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions())));
+			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
+			public Task<RuntimeResult> ClearNickname([ValidateRole] SocketRole target,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> ProcessAsync(bypass, u => u.RoleIds.Contains(target.Id), u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions()));
+				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions())));
+
+			private async Task<RuntimeResult> CommandRunner(SocketRole role, bool bypass, Func<SocketGuildUser, Task> update)
+			{
+				string CreateResult(MultiUserActionProgressArgs i) => Responses.Users.MultiUserAction(i.AmountLeft).Reason;
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, CreateResult, GenerateRequestOptions());
+
+				var amountChanged = await ProcessAsync(bypass, u => u.Roles.Select(x => x.Id).Contains(role.Id), update).CAF();
+				return Responses.Users.MultiUserActionSuccess(amountChanged);
+			}
+			private Func<SocketGuildUser, Task> CanModify(Func<SocketGuildUser, Task> func)
+				=> u => u.Guild.CurrentUser.CanModify(u) ? func(u) : Task.CompletedTask;
 		}
 	}
 }

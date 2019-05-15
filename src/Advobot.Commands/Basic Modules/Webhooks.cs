@@ -19,18 +19,33 @@ namespace Advobot.Commands
 {
 	public sealed class Webhooks : ModuleBase
 	{
-		[Group(nameof(GetWebhooks)), ModuleInitialismAlias(typeof(GetWebhooks))]
+		[Group(nameof(DisplayWebhooks)), ModuleInitialismAlias(typeof(DisplayWebhooks))]
 		[Summary("Lists all the webhooks on the guild or the specified channel.")]
 		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
-		public sealed class GetWebhooks : AdvobotModuleBase
+		public sealed class DisplayWebhooks : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command()
-				=> await ReplyIfAny(await Context.Guild.GetWebhooksAsync().CAF(), Context.Guild.Format(), "Webhooks", x => x.Format()).CAF();
+			public async Task<RuntimeResult> Command()
+				=> Responses.Webhooks.DisplayWebhooks(Context.Guild, await Context.Guild.GetWebhooksAsync().CAF());
 			[Command]
-			public async Task Command(SocketTextChannel channel)
-				=> await ReplyIfAny(await channel.GetWebhooksAsync().CAF(), channel.Format(), "Webhooks", x => x.Format()).CAF();
+			public async Task<RuntimeResult> Command(SocketTextChannel channel)
+				=> Responses.Webhooks.DisplayWebhooks(channel, await channel.GetWebhooksAsync().CAF());
+		}
+
+		[Group(nameof(CreateWebhook)), ModuleInitialismAlias(typeof(CreateWebhook))]
+		[Summary("Creates a webhook for the guild.")]
+		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
+		[EnabledByDefault(true)]
+		public sealed class CreateWebhook : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command([ValidateTextChannel(CPerm.ManageWebhooks, FromContext = true)] SocketTextChannel channel,
+				[Remainder, ValidateUsername] string name)
+			{
+				var webhook = await channel.CreateWebhookAsync(name, options: GenerateRequestOptions()).CAF();
+				return Responses.Snowflakes.Created(webhook);
+			}
 		}
 
 		[Group(nameof(DeleteWebhook)), ModuleInitialismAlias(typeof(DeleteWebhook))]
@@ -40,10 +55,10 @@ namespace Advobot.Commands
 		public sealed class DeleteWebhook : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(IWebhook webhook)
+			public async Task<RuntimeResult> Command(IWebhook webhook)
 			{
 				await webhook.DeleteAsync(GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully deleted the webhook `{webhook.Format()}`.").CAF();
+				return Responses.Snowflakes.Deleted(webhook);
 			}
 		}
 
@@ -54,10 +69,10 @@ namespace Advobot.Commands
 		public sealed class ModifyWebhookName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(IWebhook webhook, [Remainder, ValidateUsername] string name)
+			public async Task<RuntimeResult> Command(IWebhook webhook, [Remainder, ValidateUsername] string name)
 			{
 				await webhook.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully changed the name of `{webhook.Format()}` to `{name}`.").CAF();
+				return Responses.Snowflakes.ModifiedName(webhook, name);
 			}
 		}
 
@@ -68,10 +83,10 @@ namespace Advobot.Commands
 		public sealed class ModifyWebhookChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(IWebhook webhook, [ValidateTextChannel(CPerm.ManageWebhooks, FromContext = true)] SocketTextChannel channel)
+			public async Task<RuntimeResult> Command(IWebhook webhook, [ValidateTextChannel(CPerm.ManageWebhooks, FromContext = true)] SocketTextChannel channel)
 			{
 				await webhook.ModifyAsync(x => x.Channel = Optional.Create<ITextChannel>(channel), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully set the channel of `{webhook.Format()}` to `{channel.Format()}`.").CAF();
+				return Responses.Webhooks.ModifiedChannel(webhook, channel);
 			}
 		}
 
@@ -82,16 +97,17 @@ namespace Advobot.Commands
 		public sealed class ModifyWebhookIcon : ImageResizerModule
 		{
 			[Command]
-			public Task Command(IWebhook webhook, Uri url)
+			public Task<RuntimeResult> Command(IWebhook webhook, Uri url)
 			{
-				return Enqueue(new IconCreationArgs("Webhook Icon", Context, url, default,
+				var position = Enqueue(new IconCreationArgs("Webhook Icon", Context, url, default,
 					(ctx, ms) => webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions())));
+				return Responses.Snowflakes.EnqueuedIcon(webhook, position);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task Remove(IWebhook webhook)
+			public async Task<RuntimeResult> Remove(IWebhook webhook)
 			{
 				await webhook.ModifyAsync(x => x.Image = new Image(), GenerateRequestOptions()).CAF();
-				await ReplyTimedAsync($"Successfully removed the webhook icon from {webhook.Format()}.").CAF();
+				return Responses.Snowflakes.RemovedIcon(webhook);
 			}
 		}
 
@@ -113,6 +129,7 @@ namespace Advobot.Commands
 					if (v != webhook.Id)
 					{
 						_Clients.TryRemove(v, out var removed);
+						removed.Dispose();
 					}
 					return webhook.Id;
 				});
