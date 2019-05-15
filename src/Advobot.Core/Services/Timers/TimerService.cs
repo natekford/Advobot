@@ -35,7 +35,6 @@ namespace Advobot.Services.Timers
 		private readonly AsyncProcessingQueue RemovablePunishments;
 		private readonly AsyncProcessingQueue TimedMessages;
 		private readonly AsyncProcessingQueue RemovableMessages;
-		private readonly AsyncProcessingQueue RemovableCloseWords;
 		private readonly ConcurrentDictionary<ulong, byte> _AlreadyDeletedMessages = new ConcurrentDictionary<ulong, byte>();
 
 		/// <summary>
@@ -67,11 +66,6 @@ namespace Advobot.Services.Timers
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableMessage>.Delete(x => x.Time < DateTime.UtcNow));
 				return ProcessRemovableMessagesAsync(Client, PunishmentArgs, _AlreadyDeletedMessages, values);
 			});
-			RemovableCloseWords = new AsyncProcessingQueue(1, () =>
-			{
-				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Delete(x => x.Time < DateTime.UtcNow));
-				return ProcessRemovableMessagesAsync(Client, PunishmentArgs, _AlreadyDeletedMessages, values);
-			});
 
 			HourTimer.Elapsed += (sender, e) =>
 			{
@@ -87,7 +81,6 @@ namespace Advobot.Services.Timers
 			SecondTimer.Elapsed += (sender, e) =>
 			{
 				RemovableMessages.Process();
-				RemovableCloseWords.Process();
 			};
 
 			Client.MessageDeleted += (cached, channel) =>
@@ -104,13 +97,6 @@ namespace Advobot.Services.Timers
 				x => x.UserId == value.UserId && x.GuildId == value.GuildId && x.PunishmentType == value.PunishmentType));
 			await ProcessRemovablePunishments(Client, PunishmentArgs, values);
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Insert(new[] { value }));
-		}
-		/// <inheritdoc />
-		public async Task AddAsync(RemovableCloseWords value)
-		{
-			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Delete(x => x.GuildId == value.GuildId && x.UserId == value.UserId));
-			await ProcessRemovableMessagesAsync(Client, PunishmentArgs, _AlreadyDeletedMessages, values).CAF();
-			DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Insert(new[] { value }));
 		}
 		/// <inheritdoc />
 		public Task AddAsync(RemovableMessage value)
@@ -130,13 +116,6 @@ namespace Advobot.Services.Timers
 			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(
 				x => x.UserId == userId && x.GuildId == guildId && x.PunishmentType == punishment));
 			await ProcessRemovablePunishments(Client, PunishmentArgs, values).CAF();
-			return values.SingleOrDefault();
-		}
-		/// <inheritdoc />
-		public async Task<RemovableCloseWords> RemoveActiveCloseWords(ulong guildId, ulong userId)
-		{
-			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableCloseWords>.Delete(x => x.GuildId == guildId && x.UserId == userId));
-			await ProcessRemovableMessagesAsync(Client, PunishmentArgs, _AlreadyDeletedMessages, values).CAF();
 			return values.SingleOrDefault();
 		}
 		/// <inheritdoc />

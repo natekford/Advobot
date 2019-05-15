@@ -17,12 +17,6 @@ namespace Advobot.Interfaces
 		/// <returns></returns>
 		Task AddAsync(RemovablePunishment value);
 		/// <summary>
-		/// Removes all older instances, deletes the bot's message, and stores <paramref name="value"/>.
-		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		Task AddAsync(RemovableCloseWords value);
-		/// <summary>
 		/// Stores <paramref name="value"/>.
 		/// </summary>
 		/// <param name="value"></param>
@@ -42,12 +36,5 @@ namespace Advobot.Interfaces
 		/// <param name="punishment"></param>
 		/// <returns></returns>
 		Task<RemovablePunishment> RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment);
-		/// <summary>
-		/// Removes the close help or quotes from the database and returns it.
-		/// </summary>
-		/// <param name="guildId"></param>
-		/// <param name="userId"></param>
-		/// <returns></returns>
-		Task<RemovableCloseWords> RemoveActiveCloseWords(ulong guildId, ulong userId);
 	}
 }
