@@ -140,7 +140,7 @@ namespace Advobot.Commands.Responses
 			}).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)");
 			var channels = textChannels.Concat(voiceChannels).ToArray();
 			var roles = guildUser.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).ToArray();
-			var join = guild.GetUsersByJoinDate().Select((Val, Index) => new { Val.Id, Index }).First(x => x.Id == user.Id).Index + 1;
+			var join = guild.Users.OrderByJoinDate().Select((Val, Index) => new { Val.Id, Index }).First(x => x.Id == user.Id).Index + 1;
 
 			embed.Description += "\n\n" +
 				$"**Nickname:** `{guildUser.Nickname?.EscapeBackTicks() ?? "No nickname"}`\n" +

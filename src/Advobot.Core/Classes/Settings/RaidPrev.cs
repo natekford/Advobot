@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Enums;
-using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -37,7 +33,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="settings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public Task PunishAsync(SocketGuildUser user)
+		public Task PunishAsync(IGuildUser user)
 		{
 			if (!Enabled)
 			{
@@ -70,13 +66,13 @@ namespace Advobot.Classes.Settings
 				$"**Punishment:** `{Punishment.ToString()}`";
 		}
 		/// <inheritdoc />
-		public override async Task EnableAsync(SocketGuild guild)
+		public override async Task EnableAsync(IGuild guild)
 		{
 			Enabled = true;
 			if (Type == RaidType.Regular)
 			{
 				//Mute the newest joining users
-				var users = guild.GetUsersByJoinDate().Reverse().ToArray();
+				var users = (await guild.GetUsersAsync().CAF()).OrderByJoinDate().Reverse().ToArray();
 				for (var i = 0; i < new[] { RaidCount, users.Length, 25 }.Min(); ++i)
 				{
 					await PunishAsync(users[i]).CAF();
@@ -84,7 +80,7 @@ namespace Advobot.Classes.Settings
 			}
 		}
 		/// <inheritdoc />
-		public override Task DisableAsync(SocketGuild guild)
+		public override Task DisableAsync(IGuild guild)
 		{
 			Enabled = false;
 			return Task.CompletedTask;

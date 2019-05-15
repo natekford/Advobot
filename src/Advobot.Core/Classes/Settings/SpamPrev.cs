@@ -1,11 +1,13 @@
 ﻿using Advobot.Enums;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -29,7 +31,7 @@ namespace Advobot.Classes.Settings
 		public int SpamPerMessage { get; set; }
 
 		[JsonIgnore]
-		private ConcurrentDictionary<ulong, ConcurrentBag<ulong>> _Instances = new ConcurrentDictionary<ulong, ConcurrentBag<ulong>>();
+		private ConcurrentDictionary<ulong, SortedSet<ulong>> _Instances = new ConcurrentDictionary<ulong, SortedSet<ulong>>();
 
 		/// <summary>
 		/// Punishes a user.
@@ -37,17 +39,20 @@ namespace Advobot.Classes.Settings
 		/// <param name="user"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public Task PunishAsync(SocketGuildUser user, IUserMessage message)
+		public async Task<bool> PunishAsync(IGuildUser user, IUserMessage message)
 		{
 			if (!Enabled)
 			{
-				return Task.CompletedTask;
+				return false;
 			}
 
-			var instances = _Instances.GetOrAdd(message.Author.Id, new ConcurrentBag<ulong>());
+			var instances = _Instances.GetOrAdd(message.Author.Id, id => new SortedSet<ulong>());
 			if (GetSpamCount(message) >= SpamPerMessage)
 			{
-				instances.Add(message.Id);
+				lock (instances)
+				{
+					instances.Add(message.Id);
+				}
 			}
 			if (CountItemsInTimeFrame(instances, TimeInterval) >= SpamInstances)
 			{
@@ -56,9 +61,10 @@ namespace Advobot.Classes.Settings
 				{
 					Options = DiscordUtils.GenerateRequestOptions("Spam prevention."),
 				};
-				return PunishmentUtils.GiveAsync(Punishment, user.Guild, user.Id, RoleId, punishmentArgs);
+				await PunishmentUtils.GiveAsync(Punishment, user.Guild, user.Id, RoleId, punishmentArgs).CAF();
+				return true;
 			}
-			return Task.CompletedTask;
+			return false;
 		}
 		private int GetSpamCount(IUserMessage message) => Type switch
 		{
@@ -78,13 +84,13 @@ namespace Advobot.Classes.Settings
 				$"**Time Interval:** `{TimeInterval}`";
 		}
 		/// <inheritdoc />
-		public override Task EnableAsync(SocketGuild guild)
+		public override Task EnableAsync(IGuild guild)
 		{
 			Enabled = true;
 			return Task.CompletedTask;
 		}
 		/// <inheritdoc />
-		public override Task DisableAsync(SocketGuild guild)
+		public override Task DisableAsync(IGuild guild)
 		{
 			Enabled = false;
 			return Task.CompletedTask;

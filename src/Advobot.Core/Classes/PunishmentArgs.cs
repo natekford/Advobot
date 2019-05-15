@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Enums;
 using Advobot.Interfaces;
-using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Classes
 {

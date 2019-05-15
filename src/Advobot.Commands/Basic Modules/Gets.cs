@@ -103,9 +103,9 @@ namespace Advobot.Commands
 			[Command]
 			public Task<RuntimeResult> Command([ValidatePositiveNumber] int position)
 			{
-				var users = Context.Guild.GetUsersByJoinDate().ToArray();
-				var newPos = Math.Min(position, users.Length);
-				return Responses.Gets.UserJoinPosition(users[newPos - 1], newPos);
+				var users = Context.Guild.Users.OrderByJoinDate();
+				var newPos = Math.Min(position, users.Count);
+				return Responses.Gets.UserJoinPosition(users.ElementAt(newPos - 1), newPos);
 			}
 		}
 
@@ -129,7 +129,7 @@ namespace Advobot.Commands
 		{
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.Gets.UserJoin(Context.Guild.GetUsersByJoinDate().ToArray());
+				=> Responses.Gets.UserJoin(Context.Guild.Users.OrderByJoinDate());
 		}
 
 		[Group(nameof(GetMessages)), ModuleInitialismAlias(typeof(GetMessages))]

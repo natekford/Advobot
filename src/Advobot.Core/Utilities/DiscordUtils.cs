@@ -112,10 +112,10 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Returns every user that has a non null join time in order from least to greatest.
 		/// </summary>
-		/// <param name="guild"></param>
+		/// <param name="users"></param>
 		/// <returns></returns>
-		public static IEnumerable<SocketGuildUser> GetUsersByJoinDate(this SocketGuild guild)
-			=> guild.Users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks);
+		public static IReadOnlyCollection<T> OrderByJoinDate<T>(this IEnumerable<T> users) where T : IGuildUser
+			=> users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks).ToArray();
 		/// <summary>
 		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
 		/// </summary>

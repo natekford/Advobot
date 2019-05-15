@@ -53,8 +53,13 @@ namespace Advobot.Classes.Settings
 		/// <exception cref="ArgumentException">When <paramref name="source"/> is not in order.</exception>
 		protected static int CountItemsInTimeFrame(IEnumerable<ulong> source, TimeSpan? time)
 		{
+			ulong[] copy;
+			lock (source)
+			{
+				copy = source.ToArray();
+			}
+
 			//No timeFrame given means that it's a timed prevention that doesn't check against time
-			var copy = source.ToArray();
 			if (time == null || copy.Length < 2)
 			{
 				return copy.Length;
@@ -98,13 +103,13 @@ namespace Advobot.Classes.Settings
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public abstract Task EnableAsync(SocketGuild guild);
+		public abstract Task EnableAsync(IGuild guild);
 		/// <summary>
 		/// Disables this timed prevention.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public abstract Task DisableAsync(SocketGuild guild);
+		public abstract Task DisableAsync(IGuild guild);
 		/// <inheritdoc />
 		public abstract string Format(SocketGuild? guild = null);
 		/// <inheritdoc />

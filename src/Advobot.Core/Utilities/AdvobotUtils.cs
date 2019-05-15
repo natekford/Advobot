@@ -2,16 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Advobot.Classes.Settings;
-using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using AdvorangesSettingParser.Implementation;
-using AdvorangesSettingParser.Implementation.Static;
-using AdvorangesSettingParser.Interfaces;
-using AdvorangesSettingParser.Results;
-using AdvorangesSettingParser.Utils;
-using Discord;
 
 namespace Advobot.Utilities
 {
