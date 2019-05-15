@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-using Advobot.Classes;
-using Advobot.Classes.CloseWords;
+﻿using Advobot.Classes;
 using Advobot.Enums;
 
 namespace Advobot.Interfaces
@@ -11,23 +9,23 @@ namespace Advobot.Interfaces
 	public interface ITimerService : IUsesDatabase
 	{
 		/// <summary>
-		/// Removes all older instances, undoes their current punishment, and stores <paramref name="value"/>.
+		/// Removes all older instances, and stores <paramref name="value"/>.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		Task AddAsync(RemovablePunishment value);
+		void Add(RemovablePunishment value);
 		/// <summary>
 		/// Stores <paramref name="value"/>.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		Task AddAsync(RemovableMessage value);
+		void Add(RemovableMessage value);
 		/// <summary>
 		/// Stores <paramref name="value"/>.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		Task AddAsync(TimedMessage value);
+		void Add(TimedMessage value);
 		/// <summary>
 		/// Removes the punishment from the database and returns it.
 		/// </summary>
@@ -35,6 +33,6 @@ namespace Advobot.Interfaces
 		/// <param name="userId"></param>
 		/// <param name="punishment"></param>
 		/// <returns></returns>
-		Task<RemovablePunishment> RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment);
+		bool RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment);
 	}
 }

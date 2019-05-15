@@ -128,10 +128,10 @@ namespace Advobot.Commands.Misc
 		public sealed class Remind : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateRemindTime] int minutes, [Remainder] string message)
+			public Task<RuntimeResult> Command([ValidateRemindTime] int minutes, [Remainder] string message)
 			{
 				var time = TimeSpan.FromMinutes(minutes);
-				await Timers.AddAsync(new TimedMessage(time, Context.User, message)).CAF();
+				Timers.Add(new TimedMessage(time, Context.User, message));
 				return Responses.Misc.Remind(time);
 			}
 		}

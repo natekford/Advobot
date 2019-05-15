@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.Modules;
-using Advobot.Classes.Results;
-using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation

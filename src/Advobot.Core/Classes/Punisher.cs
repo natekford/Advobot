@@ -119,7 +119,7 @@ namespace Advobot.Classes
 		{
 			if (options.Timers != null && options.Time != null)
 			{
-				return options.Timers.AddAsync(new RemovablePunishment(options.Time.Value, type, guild, user));
+				options.Timers.Add(new RemovablePunishment(options.Time.Value, type, guild, user));
 			}
 			return Task.CompletedTask;
 		}
@@ -201,8 +201,7 @@ namespace Advobot.Classes
 		{
 			if (options.Timers != null)
 			{
-				var punishment = await options.Timers.RemovePunishmentAsync(guild.Id, user.Id, type).CAF();
-				if (punishment != null)
+				if (options.Timers.RemovePunishmentAsync(guild.Id, user.Id, type))
 				{
 					((IPunishmentRemoved)options).SetPunishmentRemoved();
 				}

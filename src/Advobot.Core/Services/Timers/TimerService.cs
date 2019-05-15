@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.CloseWords;
 using Advobot.Classes.DatabaseWrappers;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -91,32 +90,35 @@ namespace Advobot.Services.Timers
 		}
 
 		/// <inheritdoc />
-		public async Task AddAsync(RemovablePunishment value)
+		public void Add(RemovablePunishment value)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(
-				x => x.UserId == value.UserId && x.GuildId == value.GuildId && x.PunishmentType == value.PunishmentType));
-			await ProcessRemovablePunishments(Client, PunishmentArgs, values);
-			DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Insert(new[] { value }));
+			var deleteQuery = DatabaseQuery<RemovablePunishment>.Delete(
+				x => x.UserId == value.UserId && x.GuildId == value.GuildId
+					&& x.PunishmentType == value.PunishmentType);
+			DatabaseWrapper.ExecuteQuery(deleteQuery);
+			var insertQuery = DatabaseQuery<RemovablePunishment>.Insert(new[] { value });
+			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}
 		/// <inheritdoc />
-		public Task AddAsync(RemovableMessage value)
+		public void Add(RemovableMessage value)
 		{
-			DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableMessage>.Insert(new[] { value }));
-			return Task.FromResult(0);
+			var insertQuery = DatabaseQuery<RemovableMessage>.Insert(new[] { value });
+			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}
 		/// <inheritdoc />
-		public Task AddAsync(TimedMessage value)
+		public void Add(TimedMessage value)
 		{
-			DatabaseWrapper.ExecuteQuery(DatabaseQuery<TimedMessage>.Insert(new[] { value }));
-			return Task.FromResult(0);
+			var insertQuery = DatabaseQuery<TimedMessage>.Insert(new[] { value });
+			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}
 		/// <inheritdoc />
-		public async Task<RemovablePunishment> RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment)
+		public bool RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(
-				x => x.UserId == userId && x.GuildId == guildId && x.PunishmentType == punishment));
-			await ProcessRemovablePunishments(Client, PunishmentArgs, values).CAF();
-			return values.SingleOrDefault();
+			var deleteQuery = DatabaseQuery<RemovablePunishment>.Delete(
+				x => x.UserId == userId && x.GuildId == guildId
+					&& x.PunishmentType == punishment);
+			var values = DatabaseWrapper.ExecuteQuery(deleteQuery);
+			return values.SingleOrDefault() != default;
 		}
 		/// <inheritdoc />
 		protected override void AfterStart()
