@@ -22,6 +22,12 @@ namespace Advobot.Commands.Responses
 			});
 		}
 		public static AdvobotResult Quote(Quote quote)
-			=> Success(quote.Description);
+		{
+			if (quote.Description != null)
+			{
+				return Success(quote.Description);
+			}
+			return Failure(Default.FormatInterpolated($"The quote {quote.Name} has no description.")).WithTime(DefaultTime);
+		}
 	}
 }

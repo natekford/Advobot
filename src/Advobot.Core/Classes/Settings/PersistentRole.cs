@@ -1,6 +1,7 @@
 ﻿using Advobot.Interfaces;
 using Advobot.Utilities;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -9,16 +10,17 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Roles which are given back to users when they rejoin a guild.
 	/// </summary>
+	[NamedArgumentType]
 	public sealed class PersistentRole : IGuildFormattable, ITargetsUser
 	{
 		/// <inheritdoc />
 		[JsonProperty]
-		public ulong UserId { get; private set; }
+		public ulong UserId { get; set; }
 		/// <summary>
 		/// The role to give the user.
 		/// </summary>
 		[JsonProperty]
-		public ulong RoleId { get; private set; }
+		public ulong RoleId { get; set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="PersistentRole"/>.

@@ -24,7 +24,7 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// Creates an instance of <see cref="Quote"/>.
 		/// </summary>
-		public Quote() { }
+		public Quote() : this("", "") { }
 		/// <summary>
 		/// Creates an instance of <see cref="Quote"/>.
 		/// </summary>

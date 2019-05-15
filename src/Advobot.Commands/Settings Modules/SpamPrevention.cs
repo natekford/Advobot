@@ -41,14 +41,14 @@ namespace Advobot.Commands
 			public Task<RuntimeResult> Disable(SpamType spamType)
 				=> CommandRunner(spamType, false);
 
-			private Task<RuntimeResult> CommandRunner(SpamType spamType, bool enable)
+			private async Task<RuntimeResult> CommandRunner(SpamType spamType, bool enable)
 			{
 				if (!(Settings[spamType] is SpamPrev antiSpam))
 				{
 					return Responses.SpamPrevention.NoSpamPrevention(spamType);
 				}
 
-				antiSpam.Enabled = enable;
+				await (enable ? antiSpam.EnableAsync(Context.Guild) : antiSpam.DisableAsync(Context.Guild)).CAF();
 				return Responses.SpamPrevention.ToggledSpamPrevention(spamType, enable);
 			}
 		}
@@ -86,18 +86,7 @@ namespace Advobot.Commands
 					return Responses.SpamPrevention.NoRaidPrevention(raidType);
 				}
 
-				//TODO: make enable and disable async methods and make anti raid/spam into seperate classes based on the type
-				antiRaid.Enabled = enable;
-				if (enable && raidType == RaidType.Regular)
-				{
-					//Mute the newest joining users
-					var users = Context.Guild.GetUsersByJoinDate().Reverse().ToArray();
-					for (var i = 0; i < new[] { antiRaid.UserCount, users.Length, 25 }.Min(); ++i)
-					{
-						await antiRaid.PunishAsync(Settings, users[i]).CAF();
-					}
-				}
-
+				await (enable ? antiRaid.EnableAsync(Context.Guild) : antiRaid.DisableAsync(Context.Guild)).CAF();
 				return Responses.SpamPrevention.ToggledRaidPrevention(raidType, enable);
 			}
 		}

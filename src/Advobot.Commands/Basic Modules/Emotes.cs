@@ -101,7 +101,7 @@ namespace Advobot.Commands
 				}
 
 				var roles = emote.RoleIds.Select(x => Context.Guild.GetRole(x));
-				await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create<IEnumerable<IRole>>(null), GenerateRequestOptions()).CAF();
+				await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create<IEnumerable<IRole>?>(null), GenerateRequestOptions()).CAF();
 				return Responses.Emotes.RemoveRequiredRoles(emote, roles);
 			}
 		}

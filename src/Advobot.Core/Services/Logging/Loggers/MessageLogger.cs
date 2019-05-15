@@ -46,7 +46,6 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				() => HandleImageLoggingAsync(context),
 				() => HandleSpamPreventionAsync(context),
-				() => HandleSpamPreventionVotingAsync(context),
 				() => HandleBannedPhrasesAsync(context),
 			}).CAF();
 
@@ -171,60 +170,10 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				return;
 			}
-			if (!context.Settings.SpamPreventionUsers.TryGetSingle(x => x.UserId == context.User.Id, out var info))
-			{
-				context.Settings.SpamPreventionUsers.Add(info = new SpamPreventionUserInfo(context.User));
-			}
 
-			var spam = false;
-			foreach (var prev in Enum.GetValues(typeof(SpamType)).Cast<SpamType>().Select(x => context.Settings[x]).Where(x => x?.Enabled ?? false))
+			foreach (var antiSpam in context.Settings.SpamPrevention)
 			{
-				if (prev.IsSpam(context.Message))
-				{
-					info.AddSpamInstance(prev.Type, context.Message);
-				}
-				if (info.GetSpamAmount(prev.Type, prev.TimeInterval) < prev.SpamInstances)
-				{
-					continue;
-				}
-
-				//Make sure they have the lowest vote count required to kick and the most severe punishment type
-				info.VotesRequired = prev.VotesForKick;
-				info.Punishment = prev.Punishment;
-				spam = true;
-			}
-			if (spam)
-			{
-				var votesReq = info.VotesRequired - info.VotesReceived;
-				var content = $"`{context.User.Format()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
-#warning convert back to timed 10 seconds
-				await ReplyAsync(context.Channel, content).CAF();
-				await context.Message.DeleteAsync(_SpamPreventionOptions).CAF();
-			}
-		}
-		/// <summary>
-		/// Checks if there are any mentions to kick a spammer.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		private async Task HandleSpamPreventionVotingAsync(MessageLoggingContext context)
-		{
-			if (!context.Message.MentionedUsers.Any())
-			{
-				return;
-			}
-
-			var punishmentArgs = new PunishmentArgs
-			{
-				Time = TimeSpan.FromMinutes(0),
-				Timers = null,
-				Options = _SpamPreventionOptions,
-			};
-			//Iterate through the users who are able to be punished by the spam prevention
-			foreach (var spammer in context.Settings.SpamPreventionUsers.Where(x => x.ShouldBePunished(context.Message)))
-			{
-				await PunishmentUtils.GiveAsync(spammer.Punishment, context.Guild, spammer.UserId, context.Settings.MuteRoleId, punishmentArgs).CAF();
-				spammer.Reset();
+				await antiSpam.PunishAsync(context.User, context.Message).CAF();
 			}
 		}
 		/// <summary>

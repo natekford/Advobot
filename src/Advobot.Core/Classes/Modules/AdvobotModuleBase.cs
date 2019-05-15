@@ -53,7 +53,9 @@ namespace Advobot.Classes.Modules
 			var message = await ReplyAsync($"Did you mean any of the following:\n{source.FormatNumberedList(format)}").CAF();
 			var index = await NextIndexAsync(0, source.Count - 1).CAF();
 			await message.DeleteAsync(GenerateRequestOptions()).CAF();
+#pragma warning disable CS8603 // Possible null reference return.
 			return index != null ? source[index.Value] : default;
+#pragma warning restore CS8603 // Possible null reference return.
 		}
 		/// <summary>
 		/// Gets the next valid index supplied by the user. This is blocking.
@@ -106,7 +108,9 @@ namespace Advobot.Classes.Modules
 			var task = await Task.WhenAny(trigger, delay).CAF();
 			Context.Client.MessageReceived -= Handler;
 
+#pragma warning disable CS8603 // Possible null reference return.
 			return task == trigger ? await trigger.CAF() : default;
+#pragma warning restore CS8603 // Possible null reference return.
 		}
 		/// <summary>
 		/// Gets the main prefix to use in this module.

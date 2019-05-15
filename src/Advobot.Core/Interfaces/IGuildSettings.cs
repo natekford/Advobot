@@ -6,7 +6,6 @@ using Advobot.Enums;
 
 namespace Advobot.Interfaces
 {
-#warning change a lot of the collections to ISet instead of IList
 	/// <summary>
 	/// Holds guild settings.
 	/// </summary>
@@ -63,7 +62,6 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Roles users can assign themselves.
 		/// </summary>
-		//TODO: change into ISet like the other ones planned?
 		IList<SelfAssignableRoles> SelfAssignableGroups { get; }
 		/// <summary>
 		/// Quotes which can be called up through their name.
@@ -113,10 +111,6 @@ namespace Advobot.Interfaces
 		/// Settings for commands. Which ones are enabled, disabled, for specific roles/users/channel/guild.
 		/// </summary>
 		CommandSettings CommandSettings { get; }
-		/// <summary>
-		/// Users which have been affected by spam prevention. This is not saved.
-		/// </summary>
-		IList<SpamPreventionUserInfo> SpamPreventionUsers { get; }
 		/// <summary>
 		/// Users which have been affected by banned phrases. This is not saved.
 		/// </summary>

@@ -1,10 +1,13 @@
 ﻿using Advobot.Enums;
+using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Classes.Settings
 {
@@ -20,43 +23,71 @@ namespace Advobot.Classes.Settings
 		[JsonProperty]
 		public int SpamInstances { get; set; }
 		/// <summary>
-		/// The amount of votes needed to kick a user.
-		/// </summary>
-		[JsonProperty]
-		public int VotesForKick { get; set; }
-		/// <summary>
 		/// The required amount of content before a message is considered spam.
 		/// </summary>
 		[JsonProperty]
 		public int SpamPerMessage { get; set; }
 
+		[JsonIgnore]
+		private ConcurrentDictionary<ulong, ConcurrentBag<ulong>> _Instances = new ConcurrentDictionary<ulong, ConcurrentBag<ulong>>();
+
 		/// <summary>
-		/// Wehther the message should count as spam.
+		/// Punishes a user.
 		/// </summary>
+		/// <param name="user"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public bool IsSpam(IUserMessage message)
+		public Task PunishAsync(SocketGuildUser user, IUserMessage message)
 		{
-			var spamAmount = Type switch
+			if (!Enabled)
 			{
-				SpamType.Message => int.MaxValue,
-				SpamType.LongMessage => message.Content?.Length,
-				SpamType.Link => message.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)),
-				SpamType.Image => message.Attachments.Count(x => x.Height != null || x.Width != null) + message.Embeds.Count(x => x.Image != null || x.Video != null),
-				SpamType.Mention => message.MentionedUserIds.Distinct().Count(),
-				_ => throw new ArgumentException(nameof(Type)),
-			};
+				return Task.CompletedTask;
+			}
 
-			return spamAmount >= SpamPerMessage;
+			var instances = _Instances.GetOrAdd(message.Author.Id, new ConcurrentBag<ulong>());
+			if (GetSpamCount(message) >= SpamPerMessage)
+			{
+				instances.Add(message.Id);
+			}
+			if (CountItemsInTimeFrame(instances, TimeInterval) >= SpamInstances)
+			{
+				_Instances.TryRemove(message.Author.Id, out _);
+				var punishmentArgs = new PunishmentArgs()
+				{
+					Options = DiscordUtils.GenerateRequestOptions("Spam prevention."),
+				};
+				return PunishmentUtils.GiveAsync(Punishment, user.Guild, user.Id, RoleId, punishmentArgs);
+			}
+			return Task.CompletedTask;
 		}
+		private int GetSpamCount(IUserMessage message) => Type switch
+		{
+			SpamType.Message => int.MaxValue,
+			SpamType.LongMessage => message.Content?.Length ?? 0,
+			SpamType.Link => message.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) ?? 0,
+			SpamType.Image => message.Attachments.Count(x => x.Height != null || x.Width != null) + message.Embeds.Count(x => x.Image != null || x.Video != null),
+			SpamType.Mention => message.MentionedUserIds.Distinct().Count(),
+			_ => throw new ArgumentException(nameof(Type)),
+		};
 		/// <inheritdoc />
 		public override string Format(SocketGuild? guild = null)
 		{
 			return $"**Punishment:** `{Punishment}`\n" +
 				$"**Spam Instances:** `{SpamInstances}`\n" +
-				$"**Votes For Punishment:** `{VotesForKick}`\n" +
 				$"**Spam Amount:** `{SpamPerMessage}`\n" +
 				$"**Time Interval:** `{TimeInterval}`";
+		}
+		/// <inheritdoc />
+		public override Task EnableAsync(SocketGuild guild)
+		{
+			Enabled = true;
+			return Task.CompletedTask;
+		}
+		/// <inheritdoc />
+		public override Task DisableAsync(SocketGuild guild)
+		{
+			Enabled = false;
+			return Task.CompletedTask;
 		}
 	}
 }

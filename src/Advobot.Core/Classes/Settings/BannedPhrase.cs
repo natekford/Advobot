@@ -18,7 +18,7 @@ namespace Advobot.Classes.Settings
 		/// The phrase which is banned. Can be string or regex pattern.
 		/// </summary>
 		[JsonProperty]
-		public string Phrase { get; private set; }
+		public string? Phrase { get; private set; }
 		/// <summary>
 		/// The type of punishment associated with this phrase.
 		/// </summary>
@@ -57,10 +57,8 @@ namespace Advobot.Classes.Settings
 			}
 
 			info.Reset(Punishment);
-			var punishmentArgs = new PunishmentArgs
+			var punishmentArgs = new PunishmentArgs(timers, TimeSpan.FromMinutes(punishment.Time))
 			{
-				Time = TimeSpan.FromMinutes(punishment.Time),
-				Timers = timers,
 				Options = DiscordUtils.GenerateRequestOptions("Banned phrase."),
 			};
 			return PunishmentUtils.GiveAsync(Punishment, guild, info.UserId, punishment.RoleId, punishmentArgs);

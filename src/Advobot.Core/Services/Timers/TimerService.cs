@@ -45,8 +45,6 @@ namespace Advobot.Services.Timers
 			Client = provider.GetRequiredService<DiscordShardedClient>();
 			PunishmentArgs = new PunishmentArgs
 			{
-				Timers = this,
-				Time = TimeSpan.FromMinutes(0),
 				Options = DiscordUtils.GenerateRequestOptions("Automatically done from the timer service."),
 			};
 

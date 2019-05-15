@@ -1,14 +1,19 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Advobot.Classes;
 using Advobot.Enums;
-using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Advobot.Classes
+namespace Advobot.Utilities
 {
+	/// <summary>
+	/// Utilities for punishing users and removing punishments.
+	/// </summary>
 	public static class PunishmentUtils
 	{
 		/// <summary>
@@ -105,14 +110,14 @@ namespace Advobot.Classes
 		/// <param name="roleId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static Task GiveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, PunishmentArgs? options = null) => type switch
+		public static Task GiveAsync(Punishment type, IGuild guild, ulong userId, ulong? roleId, PunishmentArgs? options = null) => type switch
 		{
 			Punishment.Ban => BanAsync(guild, userId, options: options),
 			Punishment.Softban => SoftbanAsync(guild, userId, options),
-			Punishment.Kick => guild.GetUser(userId) is IGuildUser user ? KickAsync(user, options) : Task.CompletedTask,
-			Punishment.Deafen => guild.GetUser(userId) is IGuildUser user ? DeafenAsync(user, options) : Task.CompletedTask,
-			Punishment.VoiceMute => guild.GetUser(userId) is IGuildUser user ? VoiceMuteAsync(user, options) : Task.CompletedTask,
-			Punishment.RoleMute => guild.GetUser(userId) is IGuildUser user && guild.GetRole(roleId) is IRole role ? RoleMuteAsync(user, role, options) : Task.CompletedTask,
+			Punishment.Kick => RequireUser(KickAsync, guild, userId, options),
+			Punishment.Deafen => RequireUser(DeafenAsync, guild, userId, options),
+			Punishment.VoiceMute => RequireUser(VoiceMuteAsync, guild, userId, options),
+			Punishment.RoleMute => RequireUserAndRole(RoleMuteAsync, guild, userId, roleId, options),
 			_ => throw new ArgumentException(nameof(type)),
 		};
 		private static Task AfterGiveAsync(Punishment type, IGuild guild, IUser user, PunishmentArgs options)
@@ -187,43 +192,49 @@ namespace Advobot.Classes
 		/// <param name="roleId"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static Task RemoveAsync(Punishment type, SocketGuild guild, ulong userId, ulong roleId, PunishmentArgs? options = null) => type switch
+		public static Task RemoveAsync(Punishment type, IGuild guild, ulong userId, ulong? roleId, PunishmentArgs? options = null) => type switch
 		{
 			Punishment.Ban => UnbanAsync(guild, userId, options),
 			Punishment.Softban => Task.CompletedTask,
 			Punishment.Kick => Task.CompletedTask,
-			Punishment.Deafen => guild.GetUser(userId) is IGuildUser user ? RemoveDeafenAsync(user, options) : Task.CompletedTask,
-			Punishment.VoiceMute => guild.GetUser(userId) is IGuildUser user ? RemoveVoiceMuteAsync(user, options) : Task.CompletedTask,
-			Punishment.RoleMute => guild.GetUser(userId) is IGuildUser user && guild.GetRole(roleId) is IRole role ? RemoveRoleMuteAsync(user, role, options) : Task.CompletedTask,
+			Punishment.Deafen => RequireUser(RemoveDeafenAsync, guild, userId, options),
+			Punishment.VoiceMute => RequireUser(RemoveVoiceMuteAsync, guild, userId, options),
+			Punishment.RoleMute => RequireUserAndRole(RemoveRoleMuteAsync, guild, userId, roleId, options),
 			_ => throw new ArgumentException(nameof(type)),
 		};
-		private static async Task AfterRemoveAsync(Punishment type, IGuild guild, IUser user, PunishmentArgs options)
+		private static Task AfterRemoveAsync(Punishment type, IGuild guild, IUser user, PunishmentArgs options)
 		{
 			if (options.Timers != null)
 			{
 				if (options.Timers.RemovePunishmentAsync(guild.Id, user.Id, type))
 				{
-					((IPunishmentRemoved)options).SetPunishmentRemoved();
+					((PunishmentArgs.IPunishmentRemoved)options).SetPunishmentRemoved();
 				}
 			}
+			return Task.CompletedTask;
 		}
-	}
 
-	internal interface IPunishmentRemoved
-	{
-		void SetPunishmentRemoved();
-	}
+		private static async Task RequireUser(Func<IGuildUser, PunishmentArgs?, Task> f, IGuild guild, ulong userId, PunishmentArgs? options)
+		{
+			var user = await guild.GetUserAsync(userId, options: options?.Options).CAF();
+			if (user != null)
+			{
+				await f(user, options).CAF();
+			}
+		}
+		private static async Task RequireUserAndRole(Func<IGuildUser, IRole, PunishmentArgs?, Task> f, IGuild guild, ulong userId, ulong? roleId, PunishmentArgs? options)
+		{
+			if (roleId == null)
+			{
+				return;
+			}
 
-	public sealed class PunishmentArgs : IPunishmentRemoved
-	{
-		public static readonly PunishmentArgs Default = new PunishmentArgs();
-
-		public TimeSpan? Time { get; set; }
-		public ITimerService? Timers { get; set; }
-		public RequestOptions? Options { get; set; }
-		public bool PunishmentRemoved { get; private set; }
-
-		void IPunishmentRemoved.SetPunishmentRemoved()
-			=> PunishmentRemoved = true;
+			var user = await guild.GetUserAsync(userId, options: options?.Options).CAF();
+			var role = guild.GetRole(roleId.Value);
+			if (user != null && role != null)
+			{
+				await f(user, role, options).CAF();
+			}
+		}
 	}
 }

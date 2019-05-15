@@ -10,9 +10,9 @@ namespace Advobot.NetCoreUI.Classes
 	public static class SourceEnum
 	{
 		public static readonly StyledProperty<Type> SourceEnumProperty =
-			AvaloniaProperty.Register<DropDown, Type>("SourceEnum");
+			AvaloniaProperty.Register<ComboBox, Type>("SourceEnum");
 
-		public static void SetSourceEnum(DropDown obj, Type value)
+		public static void SetSourceEnum(ComboBox obj, Type value)
 		{
 			if (!value.IsEnum)
 			{
@@ -22,7 +22,7 @@ namespace Advobot.NetCoreUI.Classes
 			obj.Items = value.GetEnumValues();
 			obj.SetValue(SourceEnumProperty, value);
 		}
-		public static Type GetSourceEnum(DropDown obj)
+		public static Type GetSourceEnum(ComboBox obj)
 			=> obj.GetValue(SourceEnumProperty);
 	}
 }

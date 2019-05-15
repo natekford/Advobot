@@ -107,31 +107,20 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private async Task HandleOtherJoinActions(UserLoggingContext context)
 		{
+			//TODO: remove a lot of these from the logger
 			//Banned names
 			if (context.Settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(context.User.Username)))
 			{
-				var punishmentArgs = new PunishmentArgs
+				var punishmentArgs = new PunishmentArgs()
 				{
-					Time = TimeSpan.FromMinutes(0),
-					Timers = Timers,
 					Options = _BannedNameOptions,
 				};
 				await PunishmentUtils.GiveAsync(Punishment.Ban, context.Guild, context.User.Id, 0, punishmentArgs).CAF();
 			}
 			//Antiraid
-			var antiRaid = context.Settings[RaidType.Regular];
-			if (antiRaid != null && antiRaid.Enabled)
+			foreach (var antiRaid in context.Settings.RaidPrevention)
 			{
-				await antiRaid.PunishAsync(context.Settings, context.User).CAF();
-			}
-			var antiJoin = context.Settings[RaidType.RapidJoins];
-			if (antiJoin != null && antiJoin.Enabled)
-			{
-				antiJoin.Add(context.User.JoinedAt?.UtcDateTime ?? default);
-				if (antiJoin.GetSpamCount() >= antiJoin.UserCount)
-				{
-					await antiJoin.PunishAsync(context.Settings, context.User).CAF();
-				}
+				await antiRaid.PunishAsync(context.User).CAF();
 			}
 			//Persistent roles
 			var roles = context.Settings.PersistentRoles.Where(x => x.UserId == context.User.Id)

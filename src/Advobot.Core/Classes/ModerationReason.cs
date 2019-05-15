@@ -49,11 +49,20 @@ namespace Advobot.Classes
 			Reason = sb.ToString();
 		}
 
-		public PunishmentArgs ToPunishmentArgs(AdvobotModuleBase module) => new PunishmentArgs
+		/// <summary>
+		/// Converts this to a <see cref="PunishmentArgs"/>.
+		/// </summary>
+		/// <param name="module"></param>
+		/// <returns></returns>
+		public PunishmentArgs ToPunishmentArgs(AdvobotModuleBase module)
 		{
-			Time = Time,
-			Timers = module.Timers,
-			Options = module.GenerateRequestOptions(Reason),
-		};
+			var args = new PunishmentArgs();
+			if (Time != null && module.Timers != null)
+			{
+				args = new PunishmentArgs(module.Timers, Time.Value);
+			}
+			args.Options = module.GenerateRequestOptions(Reason);
+			return args;
+		}
 	}
 }

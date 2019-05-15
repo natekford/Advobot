@@ -87,7 +87,9 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static bool TryGetFirst<T>(this IEnumerable<T> source, Func<T, bool> predicate, out T found)
 		{
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
 			found = default;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
 			foreach (var item in source)
 			{
 				if (predicate(item))
@@ -108,7 +110,9 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static bool TryGetSingle<T>(this IEnumerable<T> source, Func<T, bool> predicate, out T found)
 		{
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
 			found = default;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
 			var matched = false;
 			foreach (var item in source)
 			{
@@ -140,83 +144,5 @@ namespace Advobot.Utilities
 			CountTarget.Above => objects.Where(x => f(x) > number),
 			_ => throw new ArgumentException(nameof(method)),
 		};
-		/// <summary>
-		/// Registers the settings which need to be registered for the bot to work correctly.
-		/// </summary>
-		/// <returns></returns>
-		public static IEnumerable<Type> RegisterStaticSettingParsers()
-		{
-			TryParserRegistry.Instance.Register<Uri>(TryParseUtils.TryParseUri);
-			TryParserRegistry.Instance.RegisterNullable<Color>(ColorTypeReader.TryParseColor);
-			new StaticSettingParser<SpamPrev>
-			{
-				new StaticSetting<SpamPrev, SpamType>(x => x.Type),
-				new StaticSetting<SpamPrev, Punishment>(x => x.Punishment),
-				new StaticSetting<SpamPrev, int>(x => x.SpamInstances) { Validation = x => MinMax(nameof(SpamPrev.SpamInstances), x, 1, 25) },
-				new StaticSetting<SpamPrev, int>(x => x.VotesForKick) { Validation = x => MinMax(nameof(SpamPrev.VotesForKick), x, 1, 50) },
-				new StaticSetting<SpamPrev, int>(x => x.SpamPerMessage) { Validation = x => MinMax(nameof(SpamPrev.SpamPerMessage), x, 1, 2000) },
-				new StaticSetting<SpamPrev, TimeSpan>(x => x.TimeInterval) { Validation = x => MinMax(nameof(SpamPrev.TimeInterval), x, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(180)) },
-			}.Register();
-			new StaticSettingParser<RaidPrev>
-			{
-				new StaticSetting<RaidPrev, RaidType>(x => x.Type),
-				new StaticSetting<RaidPrev, Punishment>(x => x.Punishment),
-				new StaticSetting<RaidPrev, int>(x => x.UserCount) { Validation = x => MinMax(nameof(RaidPrev.UserCount), x, 1, 25) },
-				new StaticSetting<RaidPrev, TimeSpan>(x => x.TimeInterval) { Validation = x => MinMax(nameof(RaidPrev.TimeInterval), x, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(180)) },
-			}.Register();
-			new StaticSettingParser<PersistentRole>
-			{
-				new StaticSetting<PersistentRole, ulong>(x => x.UserId),
-				new StaticSetting<PersistentRole, ulong>(x => x.RoleId),
-			}.Register();
-			new StaticSettingParser<BotUser>
-			{
-				new StaticSetting<BotUser, ulong>(x => x.UserId),
-				new StaticSetting<BotUser, ulong>(x => x.Permissions),
-			}.Register();
-			new StaticSettingParser<SelfAssignableRoles>
-			{
-				new StaticSetting<SelfAssignableRoles, int>(x => x.Group),
-				new StaticCollectionSetting<SelfAssignableRoles, ulong>(x => x.Roles),
-			}.Register();
-#warning reenable
-#if true
-			new StaticSettingParser<GuildNotification>
-			{
-				new StaticSetting<GuildNotification, string>(x => x.Content),
-				//new StaticSetting<GuildNotification, CustomEmbed>(x => x.CustomEmbed) { IsOptional = true },
-			}.Register();
-			new StaticSettingParser<Quote>
-			{
-				new StaticSetting<Quote, string>(x => x.Name),
-				new StaticSetting<Quote, string>(x => x.Description),
-			}.Register();
-			new StaticSettingParser<BannedPhrase>
-			{
-				new StaticSetting<BannedPhrase, string>(x => x.Phrase),
-				new StaticSetting<BannedPhrase, Punishment>(x => x.Punishment),
-			}.Register();
-#endif
-			new StaticSettingParser<BannedPhrasePunishment>
-			{
-				new StaticSetting<BannedPhrasePunishment, Punishment>(x => x.Punishment),
-				new StaticSetting<BannedPhrasePunishment, ulong>(x => x.RoleId),
-				new StaticSetting<BannedPhrasePunishment, int>(x => x.NumberOfRemoves),
-				new StaticSetting<BannedPhrasePunishment, int>(x => x.Time),
-			}.Register();
-			return StaticSettingParserRegistry.Instance.RegisteredTypes;
-		}
-		private static IResult MinMax<T>(string name, T inputValue, T minValue, T maxValue) where T : IComparable
-		{
-			if (inputValue.CompareTo(maxValue) == 1)
-			{
-				return Result.FromError($"The {name} must be less than or equal to `{maxValue}`.");
-			}
-			if (inputValue.CompareTo(minValue) == -1)
-			{
-				return Result.FromError($"The {name} must be greater than or equal to `{minValue}`.");
-			}
-			return Result.FromSuccess("Successfully validated.");
-		}
 	}
 }

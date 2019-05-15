@@ -3,6 +3,7 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -11,16 +12,17 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Extra permissions within the bot given to a user on a guild.
 	/// </summary>
+	[NamedArgumentType]
 	public sealed class BotUser : IGuildFormattable, ITargetsUser
 	{
 		/// <inheritdoc />
 		[JsonProperty]
-		public ulong UserId { get; private set; }
+		public ulong UserId { get; set; }
 		/// <summary>
 		/// The given permissions.
 		/// </summary>
 		[JsonProperty]
-		public ulong Permissions { get; private set; }
+		public ulong Permissions { get; set; }
 
 		/// <summary>
 		/// Creates an empty instance of <see cref="BotUser"/>.

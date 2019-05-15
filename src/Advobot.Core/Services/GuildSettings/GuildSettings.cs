@@ -107,9 +107,6 @@ namespace Advobot.Services.GuildSettings
 		public CommandSettings CommandSettings { get; private set; } = new CommandSettings();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public IList<SpamPreventionUserInfo> SpamPreventionUsers { get; } = new List<SpamPreventionUserInfo>();
-		/// <inheritdoc />
-		[JsonIgnore]
 		public IList<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -123,83 +120,6 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		[JsonIgnore]
 		public ulong GuildId { get; private set; }
-
-		/// <summary>
-		/// Creates an instance of <see cref="GuildSettings"/>.
-		/// </summary>
-		public GuildSettings()
-		{
-			/*
-			SettingParser.Add(new Setting<GuildNotification>(() => WelcomeMessage)
-			{
-				ResetValueFactory = x => default,
-			});
-			SettingParser.Add(new Setting<GuildNotification>(() => GoodbyeMessage)
-			{
-				ResetValueFactory = x => default,
-			});
-			SettingParser.Add(new Setting<RuleHolder>(() => Rules, parser: TryParseUtils.TryParseTemporary)
-			{
-				ResetValueFactory = x => new RuleHolder(),
-			});
-			SettingParser.Add(new Setting<CommandSettings>(() => CommandSettings, parser: TryParseUtils.TryParseTemporary)
-			{
-				ResetValueFactory = x => new CommandSettings(),
-			});
-			SettingParser.Add(new Setting<string?>(() => Prefix)
-			{
-				ResetValueFactory = x => null,
-			});
-			SettingParser.Add(new Setting<ulong>(() => ServerLogId)
-			{
-				ResetValueFactory = x => 0,
-			});
-			SettingParser.Add(new Setting<ulong>(() => ModLogId)
-			{
-				ResetValueFactory = x => 0,
-			});
-			SettingParser.Add(new Setting<ulong>(() => ImageLogId)
-			{
-				ResetValueFactory = x => 0,
-			});
-			SettingParser.Add(new Setting<ulong>(() => MuteRoleId)
-			{
-				ResetValueFactory = x => 0,
-			});
-			SettingParser.Add(new Setting<bool>(() => NonVerboseErrors)
-			{
-				ResetValueFactory = x => false,
-			});
-			SettingParser.Add(new CollectionSetting<SpamPrev>(() => SpamPrevention));
-			SettingParser.Add(new CollectionSetting<RaidPrev>(() => RaidPrevention));
-			SettingParser.Add(new CollectionSetting<PersistentRole>(() => PersistentRoles));
-			SettingParser.Add(new CollectionSetting<BotUser>(() => BotUsers));
-			SettingParser.Add(new CollectionSetting<SelfAssignableRoles>(() => SelfAssignableGroups));
-			SettingParser.Add(new CollectionSetting<Quote>(() => Quotes)
-			{
-				EqualityComparer = NameableEqualityComparer.Default,
-			});
-			SettingParser.Add(new CollectionSetting<LogAction>(() => LogActions)
-			{
-				ResetValueFactory = x =>
-				{
-					x.Clear();
-					foreach (var value in _DefaultLogActions)
-					{
-						x.Add(value);
-					}
-					return x;
-				},
-			});
-			SettingParser.Add(new CollectionSetting<ulong>(() => IgnoredCommandChannels));
-			SettingParser.Add(new CollectionSetting<ulong>(() => IgnoredLogChannels));
-			SettingParser.Add(new CollectionSetting<ulong>(() => IgnoredXpChannels));
-			SettingParser.Add(new CollectionSetting<ulong>(() => ImageOnlyChannels));
-			SettingParser.Add(new CollectionSetting<BannedPhrase>(() => BannedPhraseStrings));
-			SettingParser.Add(new CollectionSetting<BannedPhrase>(() => BannedPhraseRegex));
-			SettingParser.Add(new CollectionSetting<BannedPhrase>(() => BannedPhraseNames));
-			SettingParser.Add(new CollectionSetting<BannedPhrasePunishment>(() => BannedPhrasePunishments));*/
-		}
 
 		/// <inheritdoc />
 		public SpamPrev? this[SpamType type]
