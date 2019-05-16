@@ -64,7 +64,7 @@ namespace Advobot.Classes.Attributes.Preconditions
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> $"{Value} {Unit.ToLower()}";
+			=> $"{Value} {Unit.ToString().ToLower()}";
 
 		/// <summary>
 		/// The unit of time to use.

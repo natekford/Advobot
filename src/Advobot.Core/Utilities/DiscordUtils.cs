@@ -122,20 +122,21 @@ namespace Advobot.Utilities
 		/// <param name="guild"></param>
 		/// <param name="invokingUser"></param>
 		/// <returns></returns>
-		public static IEnumerable<SocketGuildUser> GetEditableUsers(this SocketGuild guild, SocketGuildUser invokingUser)
-			=> guild.Users.Where(x => invokingUser.CanModify(x) && guild.CurrentUser.CanModify(x));
+		public static IReadOnlyCollection<SocketGuildUser> GetEditableUsers(this SocketGuild guild, SocketGuildUser invokingUser)
+			=> guild.Users.Where(x => invokingUser.CanModify(x) && guild.CurrentUser.CanModify(x)).ToArray();
 		/// <summary>
 		/// If the bot can get invites then returns the invites otherwise returns null.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static Task<IReadOnlyCollection<RestInviteMetadata>> SafeGetInvitesAsync(this SocketGuild guild)
+		public static async Task<IReadOnlyCollection<IInviteMetadata>> SafeGetInvitesAsync(this IGuild guild)
 		{
-			if (guild.CurrentUser.GuildPermissions.ManageGuild)
+			var currentUser = await guild.GetCurrentUserAsync().CAF();
+			if (currentUser.GuildPermissions.ManageGuild)
 			{
-				return guild.GetInvitesAsync();
+				return await guild.GetInvitesAsync().CAF();
 			}
-			return Task.FromResult<IReadOnlyCollection<RestInviteMetadata>>(Array.Empty<RestInviteMetadata>());
+			return Array.Empty<IInviteMetadata>();
 		}
 		/// <summary>
 		/// Tries to find the invite a user joined on.
@@ -143,7 +144,7 @@ namespace Advobot.Utilities
 		/// <param name="invites"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static async Task<CachedInvite?> GetInviteUserJoinedOnAsync(this IList<CachedInvite> invites, SocketGuildUser user)
+		public static async Task<CachedInvite?> GetInviteUserJoinedOnAsync(this IList<CachedInvite> invites, IGuildUser user)
 		{
 			//Bots join by being invited by admin, not through invites.
 			if (user.IsBot)

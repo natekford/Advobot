@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Utilities
 {
@@ -20,7 +19,7 @@ namespace Advobot.Utilities
 		/// <param name="obj"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static OverwritePermissions? GetPermissionOverwrite(this SocketGuildChannel channel, ISnowflakeEntity obj) => obj switch
+		public static OverwritePermissions? GetPermissionOverwrite(this IGuildChannel channel, ISnowflakeEntity obj) => obj switch
 		{
 			IRole role => channel.GetPermissionOverwrite(role),
 			IUser user => channel.GetPermissionOverwrite(user),
@@ -36,7 +35,7 @@ namespace Advobot.Utilities
 		/// <param name="options"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static Task AddPermissionOverwriteAsync(this SocketGuildChannel channel, ISnowflakeEntity obj, ulong allow, ulong deny, RequestOptions options) => obj switch
+		public static Task AddPermissionOverwriteAsync(this IGuildChannel channel, ISnowflakeEntity obj, ulong allow, ulong deny, RequestOptions options) => obj switch
 		{
 			IRole role => channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allow, deny), options),
 			IUser user => channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allow, deny), options),
@@ -50,13 +49,18 @@ namespace Advobot.Utilities
 		/// <param name="id"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<IReadOnlyCollection<Overwrite>> CopyOverwritesAsync(this SocketGuildChannel input, SocketGuildChannel output, ulong? id, RequestOptions options)
+		public static async Task<IReadOnlyCollection<Overwrite>> CopyOverwritesAsync(this IGuildChannel input, IGuildChannel output, ulong? id, RequestOptions options)
 		{
+			if (input.GuildId != output.GuildId)
+			{
+				throw new ArgumentException($"Both channels must come from the same guild.");
+			}
+
 			var overwrites = input.GetOverwrites(id);
 			foreach (var overwrite in overwrites)
 			{
-				var obj = overwrite.GetEntity(input.Guild);
-				await AddPermissionOverwriteAsync(output, obj, overwrite.Permissions.AllowValue, overwrite.Permissions.DenyValue, options).CAF();
+				var entity = await overwrite.GetEntityAsync(input.Guild).CAF();
+				await AddPermissionOverwriteAsync(output, entity, overwrite.Permissions.AllowValue, overwrite.Permissions.DenyValue, options).CAF();
 			}
 			return overwrites;
 		}
@@ -69,11 +73,12 @@ namespace Advobot.Utilities
 		/// <param name="updateDeny"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static Task UpdateOverwriteAsync(this SocketGuildChannel channel, Overwrite overwrite, Func<ulong, ulong> updateAllow, Func<ulong, ulong> updateDeny, RequestOptions options)
+		public static async Task UpdateOverwriteAsync(this IGuildChannel channel, Overwrite overwrite, Func<ulong, ulong> updateAllow, Func<ulong, ulong> updateDeny, RequestOptions options)
 		{
 			var allow = updateAllow(overwrite.Permissions.AllowValue);
 			var deny = updateDeny(overwrite.Permissions.DenyValue);
-			return channel.AddPermissionOverwriteAsync(overwrite.GetEntity(channel.Guild), allow, deny, options);
+			var entity = await overwrite.GetEntityAsync(channel.Guild).CAF();
+			await channel.AddPermissionOverwriteAsync(entity, allow, deny, options).CAF();
 		}
 		/// <summary>
 		/// Removes every overwrite and returns the amount of removed overwrites.
@@ -82,12 +87,12 @@ namespace Advobot.Utilities
 		/// <param name="id"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> ClearOverwritesAsync(this SocketGuildChannel channel, ulong? id, RequestOptions options)
+		public static async Task<int> ClearOverwritesAsync(this IGuildChannel channel, ulong? id, RequestOptions options)
 		{
 			var overwrites = channel.GetOverwrites(id);
 			foreach (var overwrite in overwrites)
 			{
-				var obj = overwrite.GetEntity(channel.Guild);
+				var obj = await overwrite.GetEntityAsync(channel.Guild).CAF();
 				await (obj switch
 				{
 					IRole role => channel.RemovePermissionOverwriteAsync(role, options),
@@ -103,12 +108,12 @@ namespace Advobot.Utilities
 		/// <param name="channel"></param>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		public static IReadOnlyCollection<Overwrite> GetOverwrites(this SocketGuildChannel channel, ulong? id = null)
+		public static IReadOnlyCollection<Overwrite> GetOverwrites(this IGuildChannel channel, ulong? id = null)
 			=> id.HasValue ? channel.PermissionOverwrites.Where(x => x.TargetId == id).ToArray() : channel.PermissionOverwrites;
-		private static ISnowflakeEntity GetEntity(this Overwrite overwrite, SocketGuild guild) => overwrite.TargetType switch
+		private static async Task<ISnowflakeEntity> GetEntityAsync(this Overwrite overwrite, IGuild guild) => overwrite.TargetType switch
 		{
 			PermissionTarget.Role => (ISnowflakeEntity)guild.GetRole(overwrite.TargetId),
-			PermissionTarget.User => (ISnowflakeEntity)guild.GetUser(overwrite.TargetId),
+			PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId),
 			_ => throw new ArgumentException(nameof(overwrite.TargetType)),
 		};
 	}

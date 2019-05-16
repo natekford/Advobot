@@ -47,7 +47,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="client"></param>
 		/// <param name="restartArgs"></param>
-		public static async Task RestartBotAsync(this BaseSocketClient client, IRestartArgumentProvider restartArgs)
+		public static async Task RestartBotAsync(this IDiscordClient client, IRestartArgumentProvider restartArgs)
 		{
 			await client.StopAsync().CAF();
 			//For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
@@ -62,7 +62,7 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Exits the current application.
 		/// </summary>
-		public static async Task DisconnectBotAsync(this BaseSocketClient client)
+		public static async Task DisconnectBotAsync(this IDiscordClient client)
 		{
 			await client.StopAsync().CAF();
 			Environment.Exit(0);

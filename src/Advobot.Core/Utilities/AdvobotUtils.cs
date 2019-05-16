@@ -62,14 +62,6 @@ namespace Advobot.Utilities
 		public static string Join(this IEnumerable<string> source, string seperator)
 			=> string.Join(seperator, source);
 		/// <summary>
-		/// Converts the enum a lowercase string.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="e"></param>
-		/// <returns></returns>
-		public static string ToLower<T>(this T e) where T : Enum
-			=> e.ToString().ToLower();
-		/// <summary>
 		/// Attempts to get the first matching value. Will return default if no matches are found.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>

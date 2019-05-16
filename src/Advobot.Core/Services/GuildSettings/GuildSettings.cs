@@ -150,7 +150,7 @@ namespace Advobot.Services.GuildSettings
 		public async Task PostDeserializeAsync(SocketGuild guild)
 		{
 			GuildId = guild.Id;
-			foreach (var invite in await guild.SafeGetInvitesAsync().CAF() ?? Enumerable.Empty<RestInviteMetadata>())
+			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
 			{
 				CachedInvites.Add(new CachedInvite(invite));
 			}
