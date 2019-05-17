@@ -84,7 +84,7 @@
 
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>preview</LangVersion>
 	<NullableContextOptions>enable</NullableContextOptions>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <ApplicationIcon />

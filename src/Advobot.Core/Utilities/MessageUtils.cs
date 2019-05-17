@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Utilities
 {
@@ -115,7 +114,7 @@ namespace Advobot.Utilities
 				{
 					break;
 				}
-				fromMessage = messages[messages.Length - 1];
+				fromMessage = messages.Last();
 
 				IMessage[] cutMessages;
 				if (predicate != null)

@@ -11,7 +11,6 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
-using Discord.Rest;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 

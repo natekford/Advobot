@@ -22,22 +22,18 @@ namespace Advobot.Commands
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
-			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task GetFile()
-				=> GetFileAsync(BotSettings);
-			[DontSaveAfterExecution]
+			public Task<RuntimeResult> GetFile()
+				=> Responses.GuildSettings.GetFile(Settings, BotSettings);
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task Names()
-				=> ShowNamesAsync();
-			[DontSaveAfterExecution]
+			public Task<RuntimeResult> Names()
+				=> Responses.GuildSettings.DisplayNames(Settings);
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task All()
-				=> ShowAllAsync();
-			[DontSaveAfterExecution]
+			public Task<RuntimeResult> All()
+				=> Responses.GuildSettings.DisplaySettings(Settings);
 			[Command]
-			public Task Command(string name)
-				=> ShowAsync(name);
+			public Task<RuntimeResult> Command(string name)
+				=> Responses.GuildSettings.DisplaySetting(Settings, name);
 		}
 
 		/*
@@ -195,7 +191,7 @@ namespace Advobot.Commands
 			public IHelpEntryService HelpEntries { get; set; }
 
 			protected override IGuildSettings Settings => Context.GuildSettings;
-			protected override string SettingName => nameof(IGuildSettings.IgnoredCommandChannels);
+			//protected override string SettingName => nameof(IGuildSettings.IgnoredCommandChannels);
 
 			/*
 			[Command]

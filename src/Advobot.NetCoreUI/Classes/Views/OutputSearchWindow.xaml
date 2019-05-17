@@ -12,7 +12,7 @@
         <!-- <ae:TextEditor Grid.RowSpan="5" Document="{Binding Output}" VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True" IsReadOnly="True"/> -->
         <TextBox Grid.RowSpan="5" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"/>
 
-        <DropDown Name="Keys" Grid.Column="1" Items="{Binding Keys}" SelectedItem="{Binding SearchTerm}"/>
+        <ComboBox Name="Keys" Grid.Column="1" Items="{Binding Keys}" SelectedItem="{Binding SearchTerm}"/>
         <Button Grid.Column="1" Grid.Row="2" Content="Search" Command="{Binding SearchCommand}"/>
         <Button Grid.Column="1" Grid.Row="3" Content="Save" HotKey="Ctrl+s"  Command="{Binding SaveCommand}"/>
         <Button Grid.Column="1" Grid.Row="4" Content="Close" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=OutputSearchWindow}"/>

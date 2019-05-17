@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Advobot.Classes.Modules;
-using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.Classes.Attributes.Preconditions

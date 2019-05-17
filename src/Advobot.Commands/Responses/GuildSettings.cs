@@ -1,11 +1,71 @@
-﻿using Advobot.Classes.Results;
+﻿using Advobot.Classes;
+using Advobot.Classes.Results;
 using Advobot.Classes.Settings;
+using Advobot.Interfaces;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord;
 
 namespace Advobot.Commands.Responses
 {
 	public sealed class GuildSettings : CommandResponses
 	{
 		private GuildSettings() { }
+
+		public static AdvobotResult DisplayNames(ISettingsBase settings)
+		{
+			return Success(new EmbedWrapper
+			{
+				Title = Title.FormatInterpolated($"{settings.GetType().Name}"),
+				Description = Default.FormatInterpolated($"{settings.GetSettingNames()}"),
+			});
+		}
+		public static AdvobotResult DisplaySettings(ISettingsBase settings)
+		{
+			//TODO: fix this. pass in client and guild?
+			return Success(new TextFileInfo
+			{
+				Name = settings.GetType().Name.FormatTitle().Replace(' ', '_'),
+				Text = settings.Format(null, null),
+			});
+		}
+		public static AdvobotResult DisplaySetting(ISettingsBase settings, string name)
+		{
+			//TODO: make into precondition?
+			if (!settings.IsSetting(name))
+			{
+				return Failure(Default.FormatInterpolated($"{name} is not a valid setting.")).WithTime(DefaultTime);
+			}
+
+			//TODO: fix this. pass in client and guild?
+			var description = settings.FormatSetting(null, null, name);
+			if (description.Length <= EmbedBuilder.MaxDescriptionLength)
+			{
+				return Success(new EmbedWrapper
+				{
+					Title = name,
+					Description = description,
+				});
+			}
+			return Success(new TextFileInfo
+			{
+				Name = name,
+				Text = description,
+			});
+		}
+		public static AdvobotResult GetFile(ISettingsBase settings, IBotDirectoryAccessor accessor)
+		{
+			var file = settings.GetFile(accessor);
+			if (!file.Exists)
+			{
+				return Failure("The settings file does not exist.").WithTime(DefaultTime);
+			}
+			return Success(new TextFileInfo
+			{
+				Name = file.Name,
+				Text = System.IO.File.ReadAllText(file.FullName),
+			});
+		}
 
 		public static AdvobotResult SendWelcomeNotification(GuildNotification? notif)
 			=> SendNotification(notif, "welcome");

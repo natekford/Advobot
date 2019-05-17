@@ -10,7 +10,6 @@ using Advobot.Classes.Attributes;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.Rest;
 using Discord.WebSocket;
 
 namespace Advobot.Utilities

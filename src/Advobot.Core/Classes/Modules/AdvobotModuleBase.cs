@@ -16,7 +16,9 @@ namespace Advobot.Classes.Modules
 	/// </summary>
 	[RequireCommandEnabled]
 	[RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	{
 		/// <summary>
 		/// Attempts to parse a value from a message.

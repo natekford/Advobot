@@ -13,7 +13,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
@@ -22,27 +21,18 @@ namespace Advobot.Commands
 		[Group(nameof(LeaveGuild)), ModuleInitialismAlias(typeof(LeaveGuild))]
 		[Summary("Makes the bot leave the guild. " +
 			"Settings and preferences will be preserved.")]
-#warning better group name
-		[RequireBotOwner(Group = nameof(LeaveGuild)), RequireGuildOwner(Group = nameof(LeaveGuild))]
 		[EnabledByDefault(true)]
 		public sealed class LeaveGuild : AdvobotModuleBase
 		{
+#warning change help entry to show the overloads of each command
 			[Command]
+			[RequireGuildOwner]
 			public Task Command()
 				=> Context.Guild.LeaveAsync();
 			[Command]
-			public async Task<RuntimeResult> Command(ulong guildId)
+			[RequireBotOwner]
+			public async Task<RuntimeResult> Command([Remainder] IGuild guild)
 			{
-				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-#warning put this as a precondition on this command itself maybe?
-				if (Context.User.Id != await Context.Client.GetOwnerIdAsync().CAF())
-				{
-					return Responses.Guilds.NotBotOwner();
-				}
-				if (!(Context.Client.GetGuild(guildId) is SocketGuild guild))
-				{
-					return Responses.Guilds.InvalidGuild(guildId);
-				}
 				await guild.LeaveAsync().CAF();
 				return Responses.Guilds.LeftGuild(guild);
 			}
@@ -103,7 +93,7 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateVoiceChannel(CPerm.ManageChannels, FromContext = true)] SocketVoiceChannel? channel)
+			public async Task<RuntimeResult> Command([ValidateVoiceChannel(ChannelPermission.ManageChannels, FromContext = true)] SocketVoiceChannel? channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel?>(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedAfkChannel(channel);
@@ -120,7 +110,7 @@ namespace Advobot.Commands
 		public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateTextChannel(CPerm.ManageChannels, FromContext = true)] SocketTextChannel? channel)
+			public async Task<RuntimeResult> Command([ValidateTextChannel(ChannelPermission.ManageChannels, FromContext = true)] SocketTextChannel? channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel?>(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedSystemChannel(channel);

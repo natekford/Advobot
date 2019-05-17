@@ -30,7 +30,6 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// Punishes a user.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public Task PunishAsync(IGuildUser user)

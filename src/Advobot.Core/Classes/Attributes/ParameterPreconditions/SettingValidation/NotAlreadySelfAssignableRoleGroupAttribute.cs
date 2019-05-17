@@ -12,6 +12,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class NotAlreadySelfAssignableRoleGroupAttribute : AdvobotParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (!(value is int num))

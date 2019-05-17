@@ -18,17 +18,17 @@ namespace Advobot.Commands
 			protected override IBotSettings Settings => BotSettings;
 
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task GetFile()
-				=> GetFileAsync(BotSettings);
+			public Task<RuntimeResult> GetFile()
+				=> Responses.GuildSettings.GetFile(Settings, BotSettings);
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task Names()
-				=> ShowNamesAsync();
+			public Task<RuntimeResult> Names()
+				=> Responses.GuildSettings.DisplayNames(Settings);
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task All()
-				=> ShowAllAsync();
+			public Task<RuntimeResult> All()
+				=> Responses.GuildSettings.DisplaySettings(Settings);
 			[Command]
-			public Task Command(string name)
-				=> ShowAsync(name);
+			public Task<RuntimeResult> Command(string name)
+				=> Responses.GuildSettings.DisplaySetting(Settings, name);
 		}
 
 #warning reenable

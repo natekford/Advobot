@@ -5,7 +5,7 @@
   <Grid RowDefinitions="1*,1*" ColumnDefinitions="9*,1*"
         DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl}}}">
     <Grid Grid.RowSpan="2" ColumnDefinitions="5*,1*">
-      <DropDown Grid.ColumnSpan="2" Items="{Binding UserList}" SelectedItem="{Binding CurrentId, Mode=OneWayToSource}" BorderThickness="0"/>
+      <ComboBox Grid.ColumnSpan="2" Items="{Binding UserList}" SelectedItem="{Binding CurrentId, Mode=OneWayToSource}" BorderThickness="0"/>
       <TextBox Name="InputBox" Text="{Binding CurrentId}" BorderThickness="0" DataValidationErrors.HasErrors="{Binding HasError, Mode=OneWayToSource}"/>
 
       <!-- Cannot simply bind to Path=BorderBrush because the default TextBox style modifies the border inside the control template -->

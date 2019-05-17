@@ -131,7 +131,7 @@
 
             <!-- Colors -->
             <UniformGrid Grid.Column="2" Columns="1" DataContext="{Binding ColorsViewModel}">
-                <DropDown classes:SourceEnum.SourceEnum="{x:Type colors:ColorTheme}" SelectedItem="{Binding Theme}"/>
+                <ComboBox classes:SourceEnum.SourceEnum="{x:Type colors:ColorTheme}" SelectedItem="{Binding Theme}"/>
                 <TextBox Text="{Binding BaseBackground}"/>
                 <TextBox Text="{Binding BaseForeground}"/>
                 <TextBox Text="{Binding BaseBorder}"/>
@@ -215,7 +215,7 @@
                 <controls:NumberBox StoredValue="{Binding MaxBannedRegex}" HasError="{Binding Errors[MaxBannedRegex]}" MaxValue="10000"/>
                 <controls:NumberBox StoredValue="{Binding MaxBannedNames}" HasError="{Binding Errors[MaxBannedNames]}" MaxValue="10000"/>
                 <controls:NumberBox StoredValue="{Binding MaxBannedPunishments}" HasError="{Binding Errors[MaxBannedPunishments]}" MaxValue="10000"/>
-                <DropDown classes:SourceEnum.SourceEnum="{x:Type discord:LogSeverity}" SelectedItem="{Binding LogLevel}"/>
+                <ComboBox classes:SourceEnum.SourceEnum="{x:Type discord:LogSeverity}" SelectedItem="{Binding LogLevel}"/>
                 <controls:UserListEditor UserList="{Binding TrustedUsers}" HasError="{Binding Errors[TrustedUsers]}" />
                 <controls:UserListEditor UserList="{Binding UsersUnableToDmOwner}" HasError="{Binding Errors[UsersUnableToDmOwner]}" />
                 <controls:UserListEditor UserList="{Binding UsersIgnoredFromCommands}" HasError="{Binding Errors[UsersIgnoredFromCommands]}" />
