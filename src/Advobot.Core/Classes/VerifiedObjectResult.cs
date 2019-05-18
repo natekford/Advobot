@@ -1,7 +1,7 @@
 ﻿using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
+using System.Threading.Tasks;
 
 namespace Advobot.Classes.Results
 {
@@ -59,14 +59,22 @@ namespace Advobot.Classes.Results
 		/// <summary>
 		/// Returns a result indicating an error where the user has a lower position than the supplied object.
 		/// </summary>
+		/// <param name="bot"></param>
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static ValidatedObjectResult FromUnableToModify(SocketGuildUser invoker, ISnowflakeEntity target)
+		public static ValidatedObjectResult FromUnableToModify(IGuildUser bot, IGuildUser invoker, ISnowflakeEntity target)
 		{
-			var start = invoker.Id == invoker.Guild.CurrentUser.Id ? "I am" : "You are";
+			var start = invoker.Id == bot.Id ? "I am" : "You are";
 			var reason = $"{start} unable to make the given changes to `{target.Format()}`.";
 			return FromError(CommandError.UnmetPrecondition, reason);
 		}
+
+		/// <summary>
+		/// Implicitly converts this to a task.
+		/// </summary>
+		/// <param name="result"></param>
+		public static implicit operator Task<ValidatedObjectResult>(ValidatedObjectResult result)
+			=> Task.FromResult(result);
 	}
 }

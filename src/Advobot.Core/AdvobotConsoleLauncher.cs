@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.DatabaseWrappers;
 using Advobot.Classes.DatabaseWrappers.LiteDB;
 using Advobot.Classes.DatabaseWrappers.MongoDB;
@@ -31,16 +30,17 @@ namespace Advobot
 	/// <summary>
 	/// Puts the similarities from launching the console application and the .Net Core UI application into one.
 	/// </summary>
-	public sealed class AdvobotConsoleLauncher
+	public sealed class AdvobotLauncher
 	{
 		private readonly ILowLevelConfig _Config;
 		private IServiceCollection? _Services;
 
 		/// <summary>
-		/// Creates an instance of <see cref="AdvobotConsoleLauncher"/>.
+		/// Creates an instance of <see cref="AdvobotLauncher"/>.
 		/// </summary>
+		/// <param name="config"></param>
 		/// <param name="args"></param>
-		public AdvobotConsoleLauncher(string[] args)
+		public AdvobotLauncher(ILowLevelConfig config, string[] args)
 		{
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
 			Console.Title = "Advobot";
@@ -50,7 +50,7 @@ namespace Advobot
 				| ConsolePrintingFlags.LogCaller
 				| ConsolePrintingFlags.RemoveDuplicateNewLines;
 
-			_Config = LowLevelConfig.Load(args);
+			_Config = config;
 			ConsoleUtils.DebugWrite($"Args: {_Config.CurrentInstance}|{_Config.PreviousProcessId}", "Launcher Arguments");
 		}
 

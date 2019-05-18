@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.NetCoreUI.Classes.ViewModels;
 using Advobot.NetCoreUI.Classes.Views;
 using Advobot.Utilities;
@@ -16,7 +17,7 @@ namespace Advobot.NetCoreUI
 		[STAThread]
 		private static async Task Main(string[] args)
 		{
-			var launcher = new AdvobotConsoleLauncher(args);
+			var launcher = new AdvobotLauncher(LowLevelConfig.Load(args), args);
 			await launcher.GetPathAndKeyAsync().CAF();
 			var services = launcher.GetDefaultServices(DiscordUtils.GetCommandAssemblies());
 			var provider = launcher.CreateProvider(services);

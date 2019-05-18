@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Advobot.Classes.Results;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Advobot.Utilities
 {
@@ -16,7 +18,7 @@ namespace Advobot.Utilities
 	/// <param name="user">The user or bot which is currently being checked if they can do this action.</param>
 	/// <param name="target">The object to verify this action can be done on.</param>
 	/// <returns></returns>
-	public delegate bool ValidatePermissions<T>(SocketGuildUser user, T target);
+	public delegate bool ValidatePermissions<T>(IGuildUser user, T target);
 	/// <summary>
 	/// Validates something specified on an object.
 	/// </summary>
@@ -24,7 +26,7 @@ namespace Advobot.Utilities
 	/// <param name="user">The user or bot which is currently being checked if they can do this action.</param>
 	/// <param name="target">The object to verify this action can be done on.</param>
 	/// <returns></returns>
-	public delegate ValidatedObjectResult? ValidationRule<T>(SocketGuildUser user, T target);
+	public delegate Task<ValidatedObjectResult> ValidationRule<T>(IGuildUser user, T target);
 
 	/// <summary>
 	/// Utilities for validating Discord objects (users, roles, channels).
@@ -38,10 +40,13 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static ValidatedObjectResult ValidateUser(this SocketGuildUser invoker,
-			SocketGuildUser target,
-			params ValidationRule<SocketGuildUser>[] rules)
-			=> invoker.Validate(target, CanModify, rules);
+		public static async Task<ValidatedObjectResult> ValidateUser(this IGuildUser invoker,
+			IGuildUser target,
+			params ValidationRule<IGuildUser>[] rules)
+		{
+			var bot = await invoker.Guild.GetCurrentUserAsync().CAF();
+			return await invoker.ValidateAsync(target, (u, t) => CanModify(u, bot.Id, t), rules).CAF();
+		}
 		/// <summary>
 		/// Verifies that the role can be edited in specific ways.
 		/// </summary>
@@ -49,10 +54,10 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static ValidatedObjectResult ValidateRole(this SocketGuildUser invoker,
-			SocketRole target,
-			params ValidationRule<SocketRole>[] rules)
-			=> invoker.Validate(target, CanModify, rules);
+		public static Task<ValidatedObjectResult> ValidateRole(this IGuildUser invoker,
+			IRole target,
+			params ValidationRule<IRole>[] rules)
+			=> invoker.ValidateAsync(target, (u, t) => CanModify(u, t), rules);
 		/// <summary>
 		/// Verifies that the channel can be edited in specific ways.
 		/// </summary>
@@ -61,12 +66,12 @@ namespace Advobot.Utilities
 		/// <param name="permissions"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static ValidatedObjectResult ValidateChannel(this SocketGuildUser invoker,
-			SocketGuildChannel target,
+		public static Task<ValidatedObjectResult> ValidateChannel(this IGuildUser invoker,
+			IGuildChannel target,
 			IEnumerable<ChannelPermission> permissions,
-			params ValidationRule<SocketGuildChannel>[] rules)
+			params ValidationRule<IGuildChannel>[] rules)
 		{
-			return invoker.Validate(target, (x, y) =>
+			return invoker.ValidateAsync(target, (x, y) =>
 			{
 				if (x.GuildPermissions.Administrator)
 				{
@@ -93,7 +98,7 @@ namespace Advobot.Utilities
 		/// <param name="permissionsCallback"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		private static ValidatedObjectResult Validate<T>(this SocketGuildUser invoker,
+		private static async Task<ValidatedObjectResult> ValidateAsync<T>(this IGuildUser invoker,
 			T target,
 			ValidatePermissions<T> permissionsCallback,
 			params ValidationRule<T>[] rules)
@@ -107,7 +112,7 @@ namespace Advobot.Utilities
 			{
 				rules = Array.Empty<ValidationRule<T>>();
 			}
-			if (!(invoker.Guild.CurrentUser is SocketGuildUser bot))
+			if (!(await invoker.Guild.GetCurrentUserAsync().CAF() is IGuildUser bot))
 			{
 				throw new InvalidOperationException($"Invalid bot during {typeof(T).Name} validation.");
 			}
@@ -116,13 +121,14 @@ namespace Advobot.Utilities
 			{
 				if (!permissionsCallback(user, target))
 				{
-					return ValidatedObjectResult.FromUnableToModify(user, target);
+					return ValidatedObjectResult.FromUnableToModify(bot, user, target);
 				}
 				foreach (var rule in rules)
 				{
-					if (rule.Invoke(user, target) is ValidatedObjectResult r && !r.IsSuccess)
+					var validationResult = await rule.Invoke(user, target).CAF();
+					if (!validationResult.IsSuccess)
 					{
-						return r;
+						return validationResult;
 					}
 				}
 			}
@@ -136,9 +142,9 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static ValidatedObjectResult? MovingUserFromVoiceChannel(SocketGuildUser user, SocketGuildUser target)
+		public static Task<ValidatedObjectResult> MovingUserFromVoiceChannel(IGuildUser user, IGuildUser target)
 		{
-			if (!(target?.VoiceChannel is SocketVoiceChannel voiceChannel))
+			if (!(target?.VoiceChannel is IVoiceChannel voiceChannel))
 			{
 				return ValidatedObjectResult.FromError(CommandError.UnmetPrecondition, "The user is not in a voice channel.");
 			}
@@ -150,7 +156,7 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static ValidatedObjectResult? RoleIsNotEveryone(SocketGuildUser user, SocketRole target)
+		public static Task<ValidatedObjectResult> RoleIsNotEveryone(IGuildUser user, IRole target)
 		{
 			if (user.Guild.EveryoneRole.Id == target.Id)
 			{
@@ -164,7 +170,7 @@ namespace Advobot.Utilities
 		/// <param name="_"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static ValidatedObjectResult? RoleIsNotManaged(SocketGuildUser _, SocketRole target)
+		public static Task<ValidatedObjectResult> RoleIsNotManaged(IGuildUser _, IRole target)
 		{
 			if (target.IsManaged)
 			{
@@ -178,7 +184,7 @@ namespace Advobot.Utilities
 		/// <param name="_"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static ValidatedObjectResult? RoleIsNotMentionable(SocketGuildUser _, SocketRole target)
+		public static Task<ValidatedObjectResult> RoleIsNotMentionable(IGuildUser _, IRole target)
 		{
 			if (target.IsMentionable)
 			{
@@ -192,11 +198,12 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static ValidatedObjectResult? ChannelCanBeReordered(SocketGuildUser user, SocketGuildChannel target)
+		public static async Task<ValidatedObjectResult> ChannelCanBeReordered(IGuildUser user, IGuildChannel target)
 		{
 			if (!user.GuildPermissions.ManageChannels)
 			{
-				return ValidatedObjectResult.FromUnableToModify(user, target);
+				var bot = await user.Guild.GetCurrentUserAsync().CAF();
+				return ValidatedObjectResult.FromUnableToModify(bot, user, target);
 			}
 			return ValidatedObjectResult.FromSuccess(target);
 		}
@@ -205,17 +212,27 @@ namespace Advobot.Utilities
 		/// Returns true if the invoking user's position is greater than the target user's position or if both users are the bot.
 		/// </summary>
 		/// <param name="invoker"></param>
+		/// <param name="botId"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static bool CanModify(this SocketGuildUser invoker, SocketGuildUser target)
-			=> (target.Id == invoker.Id && target.Id == target.Guild.CurrentUser.Id) || invoker.Hierarchy > target.Hierarchy;
+		public static bool CanModify(this IGuildUser invoker, ulong botId, IGuildUser target)
+			=> (invoker.Id == target.Id && target.Id == botId)
+				|| invoker.GetHierarchy() > target.GetHierarchy();
 		/// <summary>
 		/// Returns true if the invoking user's position is greater than the target user's position.
 		/// </summary>
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <returns></returns>
-		public static bool CanModify(this SocketGuildUser invoker, SocketRole target)
-			=> invoker.Hierarchy > target.Position;
+		public static bool CanModify(this IGuildUser invoker, IRole target)
+			=> invoker.GetHierarchy() > target.Position;
+		private static int GetHierarchy(this IGuildUser user)
+		{
+			if (user.Guild.OwnerId == user.Id)
+			{
+				return int.MaxValue;
+			}
+			return user.RoleIds.Max(x => user.Guild.GetRole(x).Position);
+		}
 	}
 }

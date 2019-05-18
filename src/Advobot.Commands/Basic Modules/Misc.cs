@@ -145,8 +145,8 @@ namespace Advobot.Commands.Misc
 			[Command]
 			public Task<RuntimeResult> Command()
 			{
-				var m = "test";
-				return AdvobotResult.Success(m);
+				//var invite = await Context.Channel.CreateInviteAsync(123, 3, false, false).CAF();
+				return AdvobotResult.Success("test test");
 			}
 		}
 	}

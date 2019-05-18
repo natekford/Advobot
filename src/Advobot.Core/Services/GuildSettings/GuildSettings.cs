@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -126,8 +127,12 @@ namespace Advobot.Services.GuildSettings
 			get => SpamPrevention.SingleOrDefault(x => x.Type == type);
 			set
 			{
+				if (value == null)
+				{
+					throw new ArgumentException(nameof(value));
+				}
+
 				SpamPrevention.RemoveAll(x => x.Type == type);
-				value.Type = type;
 				SpamPrevention.Add(value);
 				RaisePropertyChanged(nameof(SpamPrevention));
 			}
@@ -138,6 +143,11 @@ namespace Advobot.Services.GuildSettings
 			get => RaidPrevention.SingleOrDefault(x => x.Type == type);
 			set
 			{
+				if (value == null)
+				{
+					throw new ArgumentException(nameof(value));
+				}
+
 				RaidPrevention.RemoveAll(x => x.Type == type);
 				value.Type = type;
 				RaidPrevention.Add(value);

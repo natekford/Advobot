@@ -1,5 +1,6 @@
 ﻿using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
+using AdvorangesUtils;
 using Discord.Commands;
 using System;
 using System.Collections;
@@ -26,11 +27,11 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		{
 			if (value != null)
 			{
-				return Task.FromResult(GetPreconditionResult(context, value));
+				return GetPreconditionResult(context, value);
 			}
 			if (FromContext)
 			{
-				return Task.FromResult(GetPreconditionResult(context, GetFromContext(context)));
+				return GetPreconditionResult(context, GetFromContext(context));
 			}
 			if (parameter.IsOptional)
 			{
@@ -38,7 +39,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 			}
 			return Task.FromResult(PreconditionResult.FromError($"No value was passed in for {parameter.Name}."));
 		}
-		private PreconditionResult GetPreconditionResult(AdvobotCommandContext context, object value)
+		private async Task<PreconditionResult> GetPreconditionResult(AdvobotCommandContext context, object value)
 		{
 			ValidatedObjectResult result;
 			switch (value)
@@ -46,7 +47,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 				case IEnumerable enumerable:
 					foreach (var item in enumerable)
 					{
-						var preconditionResult = GetPreconditionResult(context, item);
+						var preconditionResult = await GetPreconditionResult(context, item).CAF();
 						//Don't bother testing more if anything is a failure.
 						if (!preconditionResult.IsSuccess)
 						{
@@ -57,7 +58,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 					result = ValidatedObjectResult.FromSuccess(value);
 					break;
 				default:
-					result = ValidateObject(context, value);
+					result = await ValidateObject(context, value).CAF();
 					break;
 			}
 			return result.IsSuccess ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(result);
@@ -74,6 +75,6 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <param name="context"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected abstract ValidatedObjectResult ValidateObject(AdvobotCommandContext context, object value);
+		protected abstract Task<ValidatedObjectResult> ValidateObject(AdvobotCommandContext context, object value);
 	}
 }

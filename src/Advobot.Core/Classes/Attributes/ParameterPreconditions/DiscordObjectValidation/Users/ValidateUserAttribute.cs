@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Utilities;
+using Discord;
 using Discord.WebSocket;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
@@ -18,13 +20,13 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		protected override object GetFromContext(AdvobotCommandContext context)
 			=> context.User;
 		/// <inheritdoc />
-		protected override ValidatedObjectResult ValidateObject(AdvobotCommandContext context, object value)
-			=> context.User.ValidateUser((SocketGuildUser)value, GetValidationRules().ToArray());
+		protected override Task<ValidatedObjectResult> ValidateObject(AdvobotCommandContext context, object value)
+			=> context.User.ValidateUser((IGuildUser)value, GetValidationRules().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.
 		/// </summary>
 		/// <returns></returns>
-		protected virtual IEnumerable<ValidationRule<SocketGuildUser>> GetValidationRules()
-			=> Enumerable.Empty<ValidationRule<SocketGuildUser>>();
+		protected virtual IEnumerable<ValidationRule<IGuildUser>> GetValidationRules()
+			=> Enumerable.Empty<ValidationRule<IGuildUser>>();
 	}
 }

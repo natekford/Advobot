@@ -25,7 +25,7 @@ namespace Advobot.Classes.ImageResizing
 		/// <inheritdoc />
 		public abstract string Type { get; }
 		/// <inheritdoc />
-		public SocketCommandContext Context { get; }
+		public ICommandContext Context { get; }
 		/// <inheritdoc />
 		public Uri Url { get; }
 		/// <inheritdoc />
@@ -37,7 +37,7 @@ namespace Advobot.Classes.ImageResizing
 		/// <param name="context"></param>
 		/// <param name="url"></param>
 		/// <param name="userArgs"></param>
-		public ImageArgs(SocketCommandContext context, Uri url, UserProvidedImageArgs? userArgs)
+		public ImageArgs(ICommandContext context, Uri url, UserProvidedImageArgs? userArgs)
 		{
 			Context = context ?? throw new ArgumentNullException(nameof(context));
 			Url = url ?? throw new ArgumentNullException(nameof(url));

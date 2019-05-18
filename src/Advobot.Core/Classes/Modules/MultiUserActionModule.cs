@@ -8,7 +8,6 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Classes.Modules
 {
@@ -31,8 +30,11 @@ namespace Advobot.Classes.Modules
 		/// <param name="predicate"></param>
 		/// <param name="update"></param>
 		/// <returns></returns>
-		protected Task<int> ProcessAsync(bool bypass, Func<SocketGuildUser, bool> predicate, Func<SocketGuildUser, Task> update)
-			=> ProcessAsync(Context.Guild.GetEditableUsers(Context.User), bypass, predicate, update);
+		protected Task<int> ProcessAsync(bool bypass, Func<IGuildUser, bool> predicate, Func<IGuildUser, Task> update)
+		{
+			var users = Context.Guild.Users.Where(x => Context.User.CanModify(Context.Guild.CurrentUser.Id, x)).ToArray();
+			return ProcessAsync(users, bypass, predicate, update);
+		}
 		/// <summary>
 		/// Does an action on many users at once.
 		/// </summary>
@@ -41,7 +43,7 @@ namespace Advobot.Classes.Modules
 		/// <param name="predicate"></param>
 		/// <param name="update"></param>
 		/// <returns></returns>
-		protected Task<int> ProcessAsync(IEnumerable<SocketGuildUser> users, bool bypass, Func<SocketGuildUser, bool> predicate, Func<SocketGuildUser, Task> update)
+		protected Task<int> ProcessAsync(IEnumerable<IGuildUser> users, bool bypass, Func<IGuildUser, bool> predicate, Func<IGuildUser, Task> update)
 		{
 			var amount = bypass ? int.MaxValue : BotSettings.MaxUserGatherCount;
 			var array = users.Where(predicate).Take(amount).ToArray();
@@ -53,7 +55,7 @@ namespace Advobot.Classes.Modules
 		/// <param name="users"></param>
 		/// <param name="update"></param>
 		/// <returns></returns>
-		protected async Task<int> ProcessAsync(IReadOnlyCollection<SocketGuildUser> users, Func<SocketGuildUser, Task> update)
+		protected async Task<int> ProcessAsync(IReadOnlyCollection<IGuildUser> users, Func<IGuildUser, Task> update)
 		{
 			var cancelToken = new CancellationTokenSource();
 			_CancelTokens.AddOrUpdate(Context.Guild.Id, cancelToken, (oldKey, oldValue) =>

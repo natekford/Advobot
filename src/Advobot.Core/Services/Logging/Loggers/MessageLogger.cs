@@ -48,16 +48,6 @@ namespace Advobot.Services.Logging.Loggers
 				() => HandleSpamPreventionAsync(context),
 				() => HandleBannedPhrasesAsync(context),
 			}).CAF();
-
-			//For some meme server
-			if (user.Guild.Id == 294173126697418752)
-			{
-				const string name = "jeff";
-				if (user.Username != name && user.Nickname != name && user.Guild.CurrentUser.CanModify(user))
-				{
-					await user.ModifyAsync(x => x.Nickname = name, _JeffOptions).CAF();
-				}
-			}
 		}
 		/// <inheritdoc />
 		public Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
@@ -166,7 +156,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private async Task HandleSpamPreventionAsync(MessageLoggingContext context)
 		{
-			if (!context.Guild.CurrentUser.CanModify(context.User))
+			if (!context.Guild.CurrentUser.CanModify(context.Guild.CurrentUser.Id, context.User))
 			{
 				return;
 			}

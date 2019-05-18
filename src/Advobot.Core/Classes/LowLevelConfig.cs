@@ -162,7 +162,7 @@ namespace Advobot.Classes
 		{
 			if (!(ValidatedPath && ValidatedKey))
 			{
-				throw new InvalidOperationException($"Either path of key has not been validated yet.");
+				throw new InvalidOperationException($"Either path or key has not been validated yet.");
 			}
 
 			//Remove the bot key from being easily accessible via reflection

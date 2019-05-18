@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Advobot.Utilities;
-using Discord.WebSocket;
+using Discord;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
 {
@@ -12,7 +12,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	public class CanBeMovedAttribute : ValidateUserAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidationRule<SocketGuildUser>> GetValidationRules()
+		protected override IEnumerable<ValidationRule<IGuildUser>> GetValidationRules()
 		{
 			yield return ValidationUtils.MovingUserFromVoiceChannel;
 		}

@@ -28,7 +28,7 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// The context this was invoked in.
 		/// </summary>
-		SocketCommandContext Context { get; }
+		ICommandContext Context { get; }
 		/// <summary>
 		/// The url to download from.
 		/// </summary>

@@ -116,14 +116,6 @@ namespace Advobot.Utilities
 		public static IReadOnlyCollection<T> OrderByJoinDate<T>(this IEnumerable<T> users) where T : IGuildUser
 			=> users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks).ToArray();
 		/// <summary>
-		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="invokingUser"></param>
-		/// <returns></returns>
-		public static IReadOnlyCollection<SocketGuildUser> GetEditableUsers(this SocketGuild guild, SocketGuildUser invokingUser)
-			=> guild.Users.Where(x => invokingUser.CanModify(x) && guild.CurrentUser.CanModify(x)).ToArray();
-		/// <summary>
 		/// If the bot can get invites then returns the invites otherwise returns null.
 		/// </summary>
 		/// <param name="guild"></param>

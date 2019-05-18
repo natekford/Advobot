@@ -71,7 +71,8 @@ namespace Advobot.Commands
 			{
 				var existingMuteRole = Context.Guild.GetRole(Context.GuildSettings.MuteRoleId);
 				IRole muteRole = existingMuteRole;
-				if (!Context.User.ValidateRole(existingMuteRole, ValidationUtils.RoleIsNotEveryone, ValidationUtils.RoleIsNotManaged).IsSuccess)
+				var validationResult = await Context.User.ValidateRole(existingMuteRole, ValidationUtils.RoleIsNotEveryone, ValidationUtils.RoleIsNotManaged).CAF();
+				if (!validationResult.IsSuccess)
 				{
 					muteRole = await Context.Guild.CreateRoleAsync("Advobot Mute", new GuildPermissions(0)).CAF();
 					Context.GuildSettings.MuteRoleId = muteRole.Id;
@@ -305,11 +306,11 @@ namespace Advobot.Commands
 			[Command]
 			public Task<RuntimeResult> Command([ValidatePositiveNumber] int requestCount,
 				[Optional] IGuildUser user,
-				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] SocketTextChannel channel)
+				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] ITextChannel channel)
 				=> Command(requestCount, channel, user);
 			[Command]
 			public async Task<RuntimeResult> Command([ValidatePositiveNumber] int requestCount,
-				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] SocketTextChannel channel,
+				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] ITextChannel channel,
 				[Optional] IGuildUser user)
 			{
 				channel ??= Context.Channel;
@@ -342,8 +343,8 @@ namespace Advobot.Commands
 		public sealed class ForAllWithRole : MultiUserActionModule
 		{
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
-			public Task<RuntimeResult> GiveRole(SocketRole target,
-				[NotEveryoneOrManaged] SocketRole give,
+			public Task<RuntimeResult> GiveRole(IRole target,
+				[NotEveryoneOrManaged] IRole give,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				if (target.Id == give.Id)
@@ -353,30 +354,39 @@ namespace Advobot.Commands
 				return CommandRunner(target, bypass, u => u.AddRoleAsync(give, GenerateRequestOptions()));
 			}
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
-			public Task<RuntimeResult> TakeRole(SocketRole target,
-				[NotEveryoneOrManaged] SocketRole take,
+			public Task<RuntimeResult> TakeRole(IRole target,
+				[NotEveryoneOrManaged] IRole take,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> CommandRunner(target, bypass, u => u.RemoveRoleAsync(take, GenerateRequestOptions()));
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
-			public Task<RuntimeResult> GiveNickname([ValidateRole] SocketRole target,
+			public Task<RuntimeResult> GiveNickname([ValidateRole] IRole target,
 				[ValidateNickname] string nickname,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions())));
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
-			public Task<RuntimeResult> ClearNickname([ValidateRole] SocketRole target,
+			public Task<RuntimeResult> ClearNickname([ValidateRole] IRole target,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions())));
 
-			private async Task<RuntimeResult> CommandRunner(SocketRole role, bool bypass, Func<SocketGuildUser, Task> update)
+			private async Task<RuntimeResult> CommandRunner(IRole role, bool bypass, Func<IGuildUser, Task> update)
 			{
 				string CreateResult(MultiUserActionProgressArgs i) => Responses.Users.MultiUserAction(i.AmountLeft).Reason;
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, CreateResult, GenerateRequestOptions());
 
-				var amountChanged = await ProcessAsync(bypass, u => u.Roles.Select(x => x.Id).Contains(role.Id), update).CAF();
+				var amountChanged = await ProcessAsync(bypass, u => u.RoleIds.Contains(role.Id), update).CAF();
 				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
-			private Func<SocketGuildUser, Task> CanModify(Func<SocketGuildUser, Task> func)
-				=> u => u.Guild.CurrentUser.CanModify(u) ? func(u) : Task.CompletedTask;
+			private Func<IGuildUser, Task> CanModify(Func<IGuildUser, Task> func)
+			{
+				return async u =>
+				{
+					var bot = await u.Guild.GetCurrentUserAsync().CAF();
+					if (bot.CanModify(bot.Id, u))
+					{
+						await func(u).CAF();
+					}
+				};
+			}
 		}
 	}
 }

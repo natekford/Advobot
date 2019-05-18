@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Advobot.Utilities;
-using Discord.WebSocket;
+using Discord;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
@@ -12,7 +12,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 	public sealed class NotManagedAttribute : ValidateRoleAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidationRule<SocketRole>> GetValidationRules()
+		protected override IEnumerable<ValidationRule<IRole>> GetValidationRules()
 		{
 			yield return ValidationUtils.RoleIsNotManaged;
 		}
