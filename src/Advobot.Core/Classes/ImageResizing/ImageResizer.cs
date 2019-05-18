@@ -40,7 +40,6 @@ namespace Advobot.Classes.ImageResizing
 		/// Creates an instance of <see cref="ImageResizer"/>.
 		/// </summary>
 		/// <param name="services"></param>
-		/// <param name="threads"></param>
 		public ImageResizer(IServiceProvider services) : this(services, 10) { }
 		/// <summary>
 		/// Creates an instance of <see cref="ImageResizer"/>.

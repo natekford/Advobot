@@ -9,7 +9,6 @@ using Advobot.Classes.Modules;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
@@ -39,18 +38,17 @@ namespace Advobot.Commands
 		public sealed class CreateInvite : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command([Optional, ValidateTextChannel(CPerm.CreateInstantInvite, FromContext = true)] ITextChannel channel,
-				[Optional] CreateInviteArguments arguments)
+			public Task<RuntimeResult> Command([Optional, ValidateTextChannel(ChannelPermission.CreateInstantInvite, FromContext = true)] ITextChannel channel,
+				[Optional] CreateInviteArguments arguments) 
 				=> CommandRunner(channel, arguments);
 			[Command]
-			public Task<RuntimeResult> Command([ValidateVoiceChannel(CPerm.CreateInstantInvite, FromContext = true)] IVoiceChannel channel,
+			public Task<RuntimeResult> Command([ValidateVoiceChannel(ChannelPermission.CreateInstantInvite, FromContext = true)] IVoiceChannel channel,
 				[Optional] CreateInviteArguments arguments)
 				=> CommandRunner(channel, arguments);
 
-			private async Task<RuntimeResult> CommandRunner(INestedChannel channel, CreateInviteArguments arguments)
+			private async Task<RuntimeResult> CommandRunner(INestedChannel channel, CreateInviteArguments? arguments)
 			{
-				arguments ??= new CreateInviteArguments();
-				var invite = await channel.CreateInviteAsync(arguments.Time, arguments.Uses, arguments.IsTemporary, arguments.IsUnique, GenerateRequestOptions()).CAF();
+				var invite = await (arguments ?? new CreateInviteArguments()).CreateInviteAsync(channel, GenerateRequestOptions()).CAF();
 				return Responses.Invites.CreatedInvite(invite);
 			}
 		}

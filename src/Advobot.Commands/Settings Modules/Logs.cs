@@ -11,7 +11,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
@@ -92,13 +91,13 @@ namespace Advobot.Commands
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Add([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
+			public Task<RuntimeResult> Add([ValidateTextChannel(ChannelPermission.ManageChannels, ChannelPermission.ManageRoles)] params SocketTextChannel[] channels)
 			{
 				Settings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
 				return Responses.Logs.ModifiedIgnoredLogChannels(channels, true);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Remove([ValidateTextChannel(CPerm.ManageChannels, CPerm.ManageRoles)] params SocketTextChannel[] channels)
+			public Task<RuntimeResult> Remove([ValidateTextChannel(ChannelPermission.ManageChannels, ChannelPermission.ManageRoles)] params SocketTextChannel[] channels)
 			{
 				Settings.IgnoredLogChannels.RemoveAll(x => channels.Select(x => x.Id).Contains(x));
 				return Responses.Logs.ModifiedIgnoredLogChannels(channels, false);

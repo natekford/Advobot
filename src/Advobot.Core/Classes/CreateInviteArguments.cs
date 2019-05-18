@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Classes
@@ -14,7 +15,7 @@ namespace Advobot.Classes
 		/// How long to make the invite last for.
 		/// </summary>
 		[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
-		public int? Time { get; set; }
+		public int? Time { get; set; } = 86400;
 		/// <summary>
 		/// How many uses to let the invite last for.
 		/// </summary>
@@ -28,6 +29,15 @@ namespace Advobot.Classes
 		/// Whether the invite should be unique.
 		/// </summary>
 		public bool IsUnique { get; set; }
+
+		/// <summary>
+		/// Creates an invite with the supplied parameters.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		public Task<IInviteMetadata> CreateInviteAsync(INestedChannel channel, RequestOptions? options = null)
+			=> channel.CreateInviteAsync(Time, Uses, IsTemporary, IsUnique, options);
 
 		private sealed class PositiveNullableIntTypeReader : TypeReader
 		{

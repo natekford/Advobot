@@ -13,7 +13,6 @@ using Discord;
 using Discord.Commands;
 using Discord.Webhook;
 using Discord.WebSocket;
-using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
@@ -40,7 +39,7 @@ namespace Advobot.Commands
 		public sealed class CreateWebhook : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateTextChannel(CPerm.ManageWebhooks, FromContext = true)] SocketTextChannel channel,
+			public async Task<RuntimeResult> Command([ValidateTextChannel(ChannelPermission.ManageWebhooks, FromContext = true)] SocketTextChannel channel,
 				[Remainder, ValidateUsername] string name)
 			{
 				var webhook = await channel.CreateWebhookAsync(name, options: GenerateRequestOptions()).CAF();
@@ -83,7 +82,8 @@ namespace Advobot.Commands
 		public sealed class ModifyWebhookChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(IWebhook webhook, [ValidateTextChannel(CPerm.ManageWebhooks, FromContext = true)] SocketTextChannel channel)
+			public async Task<RuntimeResult> Command(IWebhook webhook,
+				[ValidateTextChannel(ChannelPermission.ManageWebhooks, FromContext = true)] SocketTextChannel channel)
 			{
 				await webhook.ModifyAsync(x => x.Channel = Optional.Create<ITextChannel>(channel), GenerateRequestOptions()).CAF();
 				return Responses.Webhooks.ModifiedChannel(webhook, channel);

@@ -34,8 +34,9 @@ namespace Advobot.Tests
 	{
 		public async Task TestCommand()
 		{
-			var launcher = new AdvobotLauncher(new MockLowLevelConfig(), Array.Empty<string>());
+			var launcher = new AdvobotLauncher(new MockLowLevelConfig());
 			await launcher.GetPathAndKeyAsync().CAF();
+
 		}
 	}
 
@@ -47,7 +48,7 @@ namespace Advobot.Tests
 		{
 			//CreateInviteArguments
 			var createInviteCommand = new Invites.CreateInvite();
-			createInviteCommand.Command();
+			await createInviteCommand.Command();
 		}
 	}
 }

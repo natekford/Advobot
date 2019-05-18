@@ -18,7 +18,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using CPerm = Discord.ChannelPermission;
 
 namespace Advobot.Commands
 {
@@ -31,23 +30,23 @@ namespace Advobot.Commands
 		[EnabledByDefault(true)]
 		public sealed class Mute : AdvobotModuleBase
 		{
-			private const CPerm MUTE_ROLE_TEXT_PERMS = 0
-				| CPerm.CreateInstantInvite
-				| CPerm.ManageChannels
-				| CPerm.ManageRoles
-				| CPerm.ManageWebhooks
-				| CPerm.SendMessages
-				| CPerm.ManageMessages
-				| CPerm.AddReactions;
-			private const CPerm MUTE_ROLE_VOICE_PERMS = 0
-				| CPerm.CreateInstantInvite
-				| CPerm.ManageChannels
-				| CPerm.ManageRoles
-				| CPerm.ManageWebhooks
-				| CPerm.Speak
-				| CPerm.MuteMembers
-				| CPerm.DeafenMembers
-				| CPerm.MoveMembers;
+			private const ChannelPermission MUTE_ROLE_TEXT_PERMS = 0
+				| ChannelPermission.CreateInstantInvite
+				| ChannelPermission.ManageChannels
+				| ChannelPermission.ManageRoles
+				| ChannelPermission.ManageWebhooks
+				| ChannelPermission.SendMessages
+				| ChannelPermission.ManageMessages
+				| ChannelPermission.AddReactions;
+			private const ChannelPermission MUTE_ROLE_VOICE_PERMS = 0
+				| ChannelPermission.CreateInstantInvite
+				| ChannelPermission.ManageChannels
+				| ChannelPermission.ManageRoles
+				| ChannelPermission.ManageWebhooks
+				| ChannelPermission.Speak
+				| ChannelPermission.MuteMembers
+				| ChannelPermission.DeafenMembers
+				| ChannelPermission.MoveMembers;
 
 			[Command]
 			public async Task<RuntimeResult> Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
@@ -219,7 +218,7 @@ namespace Advobot.Commands
 		public sealed class MoveUser : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([CanBeMoved] SocketGuildUser user, [ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel channel)
+			public async Task<RuntimeResult> Command([CanBeMoved] SocketGuildUser user, [ValidateVoiceChannel(ChannelPermission.MoveMembers)] SocketVoiceChannel channel)
 			{
 				if (user.VoiceChannel?.Id == channel.Id)
 				{
@@ -239,8 +238,8 @@ namespace Advobot.Commands
 		public sealed class MoveUsers : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command([ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel input,
-				[ValidateVoiceChannel(CPerm.MoveMembers)] SocketVoiceChannel output,
+			public async Task<RuntimeResult> Command([ValidateVoiceChannel(ChannelPermission.MoveMembers)] SocketVoiceChannel input,
+				[ValidateVoiceChannel(ChannelPermission.MoveMembers)] SocketVoiceChannel output,
 				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
@@ -306,11 +305,11 @@ namespace Advobot.Commands
 			[Command]
 			public Task<RuntimeResult> Command([ValidatePositiveNumber] int requestCount,
 				[Optional] IGuildUser user,
-				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] ITextChannel channel)
+				[Optional, ValidateTextChannel(ChannelPermission.ManageMessages, FromContext = true)] ITextChannel channel)
 				=> Command(requestCount, channel, user);
 			[Command]
 			public async Task<RuntimeResult> Command([ValidatePositiveNumber] int requestCount,
-				[Optional, ValidateTextChannel(CPerm.ManageMessages, FromContext = true)] ITextChannel channel,
+				[Optional, ValidateTextChannel(ChannelPermission.ManageMessages, FromContext = true)] ITextChannel channel,
 				[Optional] IGuildUser user)
 			{
 				channel ??= Context.Channel;
