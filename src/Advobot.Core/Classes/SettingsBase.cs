@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -43,20 +44,8 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public string Format(BaseSocketClient client, SocketGuild guild)
 		{
-			var sb = new StringBuilder();
-			foreach (var kvp in _Settings)
-			{
-				var formatted = Format(client, guild, kvp.Value.GetValue(this));
-				if (string.IsNullOrWhiteSpace(formatted))
-				{
-					continue;
-				}
-
-				sb.AppendLineFeed($"**{kvp.Key.FormatTitle()}**:");
-				sb.AppendLineFeed($"{formatted}");
-				sb.AppendLineFeed();
-			}
-			return sb.ToString();
+			var settings = _Settings.Select(x => (x.Key, Format(client, guild, x.Value.GetValue(this))));
+			return JoinFormattedSettings(settings);
 		}
 		/// <inheritdoc />
 		public string FormatSetting(BaseSocketClient client, SocketGuild guild, string name)
@@ -64,6 +53,31 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public string FormatValue(BaseSocketClient client, SocketGuild guild, object? value)
 			=> Format(client, guild, value);
+		/// <inheritdoc />
+		public async Task<string> FormatAsync(IDiscordClient client, IGuild guild)
+		{
+			var tasks = _Settings.Select(async x => (x.Key, await FormatAsync(client, guild, x.Value.GetValue(this)).CAF()));
+			var settings = await Task.WhenAll(tasks).CAF();
+			return JoinFormattedSettings(settings);
+		}
+		/// <inheritdoc />
+		public Task<string> FormatSettingAsync(IDiscordClient client, IGuild guild, string name)
+		{
+			if (client is BaseSocketClient socketClient && guild is SocketGuild socketGuild)
+			{
+				return Task.FromResult(FormatSetting(socketClient, socketGuild, name));
+			}
+			return FormatAsync(client, guild, _Settings[name].GetValue(this));
+		}
+		/// <inheritdoc />
+		public Task<string> FormatValueAsync(IDiscordClient client, IGuild guild, object? value)
+		{
+			if (client is BaseSocketClient socketClient && guild is SocketGuild socketGuild)
+			{
+				return Task.FromResult(FormatValue(socketClient, socketGuild, value));
+			}
+			return FormatAsync(client, guild, value);
+		}
 		/// <inheritdoc />
 		public void Save(IBotDirectoryAccessor accessor)
 			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
@@ -87,27 +101,36 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Throws an argument exception if the condition is true.
 		/// </summary>
-		/// <param name="backingField"></param>
+		/// <param name="field"></param>
 		/// <param name="value"></param>
 		/// <param name="condition"></param>
 		/// <param name="msg"></param>
 		/// <param name="caller"></param>
-		protected void ThrowIfElseSet<T>(ref T backingField, T value, Func<T, bool> condition, string msg, [CallerMemberName] string caller = "")
+		protected void ThrowIfElseSet<T>(ref T field, T value, Func<T, bool> condition, string msg, [CallerMemberName] string caller = "")
 		{
 			if (condition(value))
 			{
 				throw new ArgumentException(msg, caller);
 			}
-			backingField = value;
+			field = value;
 			RaisePropertyChanged(caller);
 		}
-		/// <summary>
-		/// Recursive function for formatting objects.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="guild"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
+		private string JoinFormattedSettings(IEnumerable<(string Name, string FormattedValue)> settings)
+		{
+			var sb = new StringBuilder();
+			foreach (var (Name, FormattedValue) in settings)
+			{
+				if (string.IsNullOrWhiteSpace(FormattedValue))
+				{
+					continue;
+				}
+
+				sb.AppendLineFeed($"**{Name.FormatTitle()}**:");
+				sb.AppendLineFeed(FormattedValue);
+				sb.AppendLineFeed();
+			}
+			return sb.ToString();
+		}
 		private string Format(BaseSocketClient client, SocketGuild guild, object? value) => value switch
 		{
 			MemberInfo m => throw new ArgumentException($"{nameof(value)} must not be a {nameof(MemberInfo)}."),
@@ -123,5 +146,9 @@ namespace Advobot.Classes
 			IEnumerable enumerable => enumerable.Cast<object>().Join("\n", x => Format(client, guild, x)),
 			_ => $"`{value}`",
 		};
+		private Task<string> FormatAsync(IDiscordClient client, IGuild guild, object? value)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

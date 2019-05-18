@@ -22,8 +22,6 @@ namespace Advobot.Services.Logging.Loggers
 	/// </summary>
 	internal sealed class MessageLogger : Logger, IMessageLogger
 	{
-		private static readonly RequestOptions _JeffOptions = DiscordUtils.GenerateRequestOptions("my nama jeff");
-		private static readonly RequestOptions _SpamPreventionOptions = DiscordUtils.GenerateRequestOptions("Spam prevention.");
 		private static readonly RequestOptions _ChannelSettingsOptions = DiscordUtils.GenerateRequestOptions("Due to channel settings.");
 		private static readonly RequestOptions _BannedPhraseOptions = DiscordUtils.GenerateRequestOptions("Banned phrase.");
 

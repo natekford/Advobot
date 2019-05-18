@@ -25,7 +25,7 @@ namespace Advobot.Classes.Settings
 		public int RaidCount { get; set; }
 
 		[JsonIgnore]
-		private ConcurrentDictionary<ulong, byte> _Instances = new ConcurrentDictionary<ulong, byte>();
+		private readonly ConcurrentDictionary<ulong, byte> _Instances = new ConcurrentDictionary<ulong, byte>();
 
 		/// <summary>
 		/// Punishes a user.

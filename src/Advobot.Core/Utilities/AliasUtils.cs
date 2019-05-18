@@ -23,7 +23,7 @@ namespace Advobot.Utilities
 		private static string[] ConcatAliases(Type? module, string name, string[] aliases)
 		{
 			Array.Resize(ref aliases, aliases.Length + 1);
-			aliases[aliases.Length - 1] = Shorten(name, module != null);
+			aliases[^1] = Shorten(name, module != null);
 
 			if (module != null)
 			{
@@ -101,7 +101,7 @@ namespace Advobot.Utilities
 				}
 				if (name.EndsWith("s"))
 				{
-					name = name.Substring(0, name.Length - 1) + "S";
+					name = name[0..^1] + "S";
 				}
 			}
 
@@ -119,7 +119,7 @@ namespace Advobot.Utilities
 				{
 					throw new ArgumentException("Name must start with a capital letter.", nameof(name));
 				}
-				parts[parts.Count - 1].Append(c);
+				parts.Last().Append(c);
 			}
 
 			return (initialism.ToString().ToLower(), parts.Select(x => x.ToString()).ToImmutableArray());

@@ -31,7 +31,7 @@ namespace Advobot.Classes.Settings
 		public int SpamPerMessage { get; set; }
 
 		[JsonIgnore]
-		private ConcurrentDictionary<ulong, SortedSet<ulong>> _Instances = new ConcurrentDictionary<ulong, SortedSet<ulong>>();
+		private readonly ConcurrentDictionary<ulong, SortedSet<ulong>> _Instances = new ConcurrentDictionary<ulong, SortedSet<ulong>>();
 
 		/// <summary>
 		/// Punishes a user.

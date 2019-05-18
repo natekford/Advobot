@@ -75,10 +75,7 @@ namespace Advobot.Services.Timers
 				RemovablePunishments.Process();
 				TimedMessages.Process();
 			};
-			SecondTimer.Elapsed += (sender, e) =>
-			{
-				RemovableMessages.Process();
-			};
+			SecondTimer.Elapsed += (sender, e) => RemovableMessages.Process();
 
 			Client.MessageDeleted += (cached, channel) =>
 			{

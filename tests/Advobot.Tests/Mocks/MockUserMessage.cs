@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Tests.Mocks
 {
+	//Because Discord.Net uses a Nuget package for IAsyncEnumerable from pre .Net Core 3.0/Standard 2.0
+	extern alias oldasyncenumerable;
+
 	public class MockUserMessage : MockMessage, IUserMessage
 	{
 		public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions { get; } = new Dictionary<IEmote, ReactionMetadata>();
@@ -14,7 +17,7 @@ namespace Advobot.Tests.Mocks
 		}
 
 		public Task AddReactionAsync(IEmote emote, RequestOptions options = null) => throw new NotImplementedException();
-		public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null) => throw new NotImplementedException();
+		public oldasyncenumerable::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null) => throw new NotImplementedException();
 		public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null) => throw new NotImplementedException();
 		public Task PinAsync(RequestOptions options = null) => throw new NotImplementedException();
 		public Task RemoveAllReactionsAsync(RequestOptions options = null) => throw new NotImplementedException();

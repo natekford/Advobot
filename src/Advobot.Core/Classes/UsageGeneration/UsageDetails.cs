@@ -15,7 +15,7 @@
 		}
 
 		protected static string CapitalizeFirstLetter(string n)
-			=> n[0].ToString().ToUpper() + n.Substring(1, n.Length - 1);
+			=> n[0].ToString().ToUpper() + n[1..];
 		public override string ToString()
 			=> Name;
 	}

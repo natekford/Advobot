@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <Authors>Advorange</Authors>
     <Company>Advorange</Company>
@@ -48,5 +48,13 @@
     <NoWarn>1701;1702;1705;1591;NU1701</NoWarn>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
+
+  <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'System.Interactive.Async'">
+        <Aliases>oldasyncenumerable</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
 
 </Project>
