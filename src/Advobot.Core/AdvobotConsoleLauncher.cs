@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.DatabaseWrappers;
 using Advobot.Classes.DatabaseWrappers.LiteDB;
 using Advobot.Classes.DatabaseWrappers.MongoDB;
@@ -20,6 +21,7 @@ using Advobot.Services.Logging;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,8 +41,7 @@ namespace Advobot
 		/// Creates an instance of <see cref="AdvobotLauncher"/>.
 		/// </summary>
 		/// <param name="config"></param>
-		/// <param name="args"></param>
-		public AdvobotLauncher(ILowLevelConfig config, string[] args)
+		public AdvobotLauncher(ILowLevelConfig config)
 		{
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
 			Console.Title = "Advobot";
@@ -96,13 +97,13 @@ namespace Advobot
 		/// Returns the default services for the bot if both the path and key have been set.
 		/// </summary>
 		/// <returns></returns>
-		public IServiceCollection GetDefaultServices(IEnumerable<Assembly> commands)
+		public IServiceCollection GetDefaultServices()
 		{
 			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
 			{
 				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
 			}
-			return _Services ?? (_Services = CreateDefaultServices(_Config, commands));
+			return _Services ?? (_Services = CreateDefaultServices(_Config));
 		}
 		/// <summary>
 		/// Creates a provider and initializes all of its singletons.
@@ -114,62 +115,64 @@ namespace Advobot
 			var provider = services.BuildServiceProvider();
 			foreach (var service in services.Where(x => x.Lifetime == ServiceLifetime.Singleton))
 			{
-				provider.GetRequiredService(service.ServiceType);
+				var instance = provider.GetRequiredService(service.ServiceType);
+				if (instance is IUsesDatabase usesDb)
+				{
+					usesDb.Start();
+				}
 			}
 			return provider;
 		}
-		private static IServiceCollection CreateDefaultServices(ILowLevelConfig config, IEnumerable<Assembly> commands)
+		private static IServiceCollection CreateDefaultServices(ILowLevelConfig config)
 		{
-			if (commands == null)
-			{
-				throw new ArgumentException(nameof(commands));
-			}
-
-			T StartDatabase<T>(T db) where T : IUsesDatabase
-			{
-				db.Start();
-				return db;
-			}
-
 			//I have no idea if I am providing services correctly, but it works.
-			var s = new ServiceCollection();
-			s.AddSingleton(p =>
+			var botSettings = BotSettings.Load(config);
+			var commands = new CommandService(new CommandServiceConfig
 			{
-				return new CommandService(new CommandServiceConfig
-				{
-					CaseSensitiveCommands = false,
-					ThrowOnError = false,
-				});
+				CaseSensitiveCommands = false,
+				ThrowOnError = false,
+				LogLevel = botSettings.LogLevel,
 			});
-			s.AddSingleton(p =>
+			var discordClient = new DiscordShardedClient(new DiscordSocketConfig
 			{
-				var settings = p.GetRequiredService<IBotSettings>();
-				return new DiscordShardedClient(new DiscordSocketConfig
-				{
-					AlwaysDownloadUsers = settings.AlwaysDownloadUsers,
-					MessageCacheSize = settings.MessageCacheSize,
-					LogLevel = settings.LogLevel,
-				});
+				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
+				MessageCacheSize = botSettings.MessageCacheSize,
+				LogLevel = botSettings.LogLevel,
 			});
-			s.AddSingleton<IHelpEntryService>(p => new HelpEntryService());
-			s.AddSingleton<IBotSettings>(p => BotSettings.Load(config));
-			s.AddSingleton<ICommandHandlerService>(p => new CommandHandlerService(p, commands));
-			s.AddSingleton<IGuildSettingsFactory>(p => new GuildSettingsFactory<GuildSettings>(p));
-			s.AddSingleton<ILogService>(p => new LogService(p));
-			s.AddSingleton<ILevelService>(p => StartDatabase(new LevelService(p)));
-			s.AddSingleton<ITimerService>(p => StartDatabase(new TimerService(p)));
-			s.AddSingleton<IInviteListService>(p => StartDatabase(new InviteListService(p)));
-			s.AddSingleton<IImageResizer>(p => new ImageResizer(10));
+			//TODO: replace with a different downloader client?
+			var httpClient = new HttpClient(new HttpClientHandler
+			{
+				AllowAutoRedirect = true,
+				Credentials = CredentialCache.DefaultCredentials,
+				Proxy = new WebProxy(),
+				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+			});
+
+			var s = new ServiceCollection()
+				.AddSingleton(commands)
+				.AddSingleton(discordClient)
+				.AddSingleton(httpClient)
+				.AddSingleton<BaseSocketClient>(discordClient)
+				.AddSingleton<IDiscordClient>(discordClient)
+				.AddSingleton<IBotSettings>(botSettings)
+				.AddSingleton<IHelpEntryService, HelpEntryService>()
+				.AddSingleton<ICommandHandlerService, CommandHandlerService>()
+				.AddSingleton<IGuildSettingsFactory, GuildSettingsFactory<GuildSettings>>()
+				.AddSingleton<ILogService, LogService>()
+				.AddSingleton<ILevelService, LevelService>()
+				.AddSingleton<ITimerService, TimerService>()
+				.AddSingleton<IInviteListService, InviteListService>()
+				.AddSingleton<IImageResizer, ImageResizer>();
 
 			switch (config.DatabaseType)
 			{
 				//-DatabaseType LiteDB (or no arguments supplied at all)
 				case DatabaseType.LiteDB:
-					s.AddSingleton<IDatabaseWrapperFactory>(p => new LiteDBWrapperFactory(p));
+					s.AddSingleton<IDatabaseWrapperFactory, LiteDBWrapperFactory>();
 					break;
 				//-DatabaseType MongoDB -DatabaseConnectionString "mongodb://localhost:27017"
 				case DatabaseType.MongoDB:
-					s.AddSingleton<IDatabaseWrapperFactory>(p => new MongoDBWrapperFactory(p));
+					s.AddSingleton<IDatabaseWrapperFactory, MongoDBWrapperFactory>();
 					s.AddSingleton<IMongoClient>(p => new MongoClient(config.DatabaseConnectionString));
 					break;
 			}
@@ -185,7 +188,22 @@ namespace Advobot
 			{
 				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
 			}
-			return _Config.StartAsync(provider.GetRequiredService<DiscordShardedClient>());
+			return _Config.StartAsync(provider.GetRequiredService<BaseSocketClient>());
+		}
+		/// <summary>
+		/// Starts an instance of Advobot with one method call.
+		/// </summary>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
+		{
+			var launcher = new AdvobotLauncher(LowLevelConfig.Load(args));
+			await launcher.GetPathAndKeyAsync().CAF();
+			var services = launcher.CreateProvider(launcher.GetDefaultServices());
+			var commandHandler = services.GetRequiredService<ICommandHandlerService>();
+			await commandHandler.AddCommandsAsync(DiscordUtils.GetCommandAssemblies());
+			await launcher.StartAsync(services).CAF();
+			return services;
 		}
 	}
 }

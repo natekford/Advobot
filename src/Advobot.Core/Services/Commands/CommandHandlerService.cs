@@ -30,6 +30,7 @@ namespace Advobot.Services.Commands
 		private readonly DiscordShardedClient _Client;
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
+		private readonly IHelpEntryService _HelpEntries;
 		private bool _Loaded;
 		private ulong _OwnerId;
 
@@ -40,14 +41,14 @@ namespace Advobot.Services.Commands
 		/// Creates an instance of <see cref="CommandHandlerService"/> and gets the required services.
 		/// </summary>
 		/// <param name="provider"></param>
-		/// <param name="commands"></param>
-		public CommandHandlerService(IServiceProvider provider, IEnumerable<Assembly> commands)
+		public CommandHandlerService(IServiceProvider provider)
 		{
 			_Provider = provider;
 			_Commands = provider.GetRequiredService<CommandService>();
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
+			_HelpEntries = _Provider.GetRequiredService<IHelpEntryService>();
 
 			var typeReaders = Assembly.GetExecutingAssembly().GetTypes()
 				.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
@@ -64,11 +65,20 @@ namespace Advobot.Services.Commands
 				return Task.CompletedTask;
 			};
 			_Commands.CommandExecuted += (_, context, result) => LogExecution((AdvobotCommandContext)context, result);
-			_Client.ShardReady += (client) => OnReady(client, commands);
+			_Client.ShardReady += _ => OnReady();
 			_Client.MessageReceived += HandleCommand;
 		}
 
-		private async Task OnReady(DiscordSocketClient client, IEnumerable<Assembly> commands)
+		public async Task AddCommandsAsync(IEnumerable<Assembly> commands)
+		{
+			foreach (var assembly in commands)
+			{
+				var modules = await _Commands.AddModulesAsync(assembly, _Provider).CAF();
+				_HelpEntries.Add(modules);
+				ConsoleUtils.WriteLine($"Successfully loaded {modules.Count()} command modules from {assembly.GetName().Name}.");
+			}
+		}
+		private async Task OnReady()
 		{
 			if (_Loaded)
 			{
@@ -77,15 +87,8 @@ namespace Advobot.Services.Commands
 			_Loaded = true;
 
 			_OwnerId = await _Client.GetOwnerIdAsync().CAF();
-			await client.UpdateGameAsync(_BotSettings).CAF();
-			foreach (var assembly in commands)
-			{
-				await _Commands.AddModulesAsync(assembly, _Provider).CAF();
-			}
-			_Provider.GetRequiredService<IHelpEntryService>().Add(_Commands.Modules);
-
+			await _Client.UpdateGameAsync(_BotSettings).CAF();
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
-				$"Modules: {_Commands.Modules.Count()}; " +
 				$"Prefix: {_BotSettings.Prefix}; " +
 				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
 		}

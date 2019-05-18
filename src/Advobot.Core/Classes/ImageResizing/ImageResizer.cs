@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -16,6 +15,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using ImageMagick;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Classes.ImageResizing
 {
@@ -39,18 +39,18 @@ namespace Advobot.Classes.ImageResizing
 		/// <summary>
 		/// Creates an instance of <see cref="ImageResizer"/>.
 		/// </summary>
+		/// <param name="services"></param>
 		/// <param name="threads"></param>
-		public ImageResizer(int threads)
+		public ImageResizer(IServiceProvider services) : this(services, 10) { }
+		/// <summary>
+		/// Creates an instance of <see cref="ImageResizer"/>.
+		/// </summary>
+		/// <param name="services"></param>
+		/// <param name="threads"></param>
+		public ImageResizer(IServiceProvider services, int threads)
 		{
+			_Client = services.GetRequiredService<HttpClient>();
 			_SemaphoreSlim = new SemaphoreSlim(threads);
-			//TODO: replace with a different downloader client?
-			_Client = new HttpClient(new HttpClientHandler
-			{
-				AllowAutoRedirect = true,
-				Credentials = CredentialCache.DefaultCredentials,
-				Proxy = new WebProxy(),
-				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-			});
 		}
 
 		/// <inheritdoc />

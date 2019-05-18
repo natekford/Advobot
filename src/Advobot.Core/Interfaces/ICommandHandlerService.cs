@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
 using Discord.Commands;
 
 namespace Advobot.Interfaces
@@ -12,5 +15,12 @@ namespace Advobot.Interfaces
 		/// Tells whether a command was executed correctly, failed, or ignored.
 		/// </summary>
 		event Action<IResult> CommandInvoked;
+
+		/// <summary>
+		/// Adds the commands contained within each assembly.
+		/// </summary>
+		/// <param name="commands"></param>
+		/// <returns></returns>
+		Task AddCommandsAsync(IEnumerable<Assembly> commands);
 	}
 }
