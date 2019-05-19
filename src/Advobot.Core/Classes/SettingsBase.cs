@@ -40,12 +40,12 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public string Format(BaseSocketClient client, SocketGuild guild)
 		{
-			var settings = _Settings.Select(x => (x.Key, Format(client, guild, x.Value.GetValue(this))));
+			var settings = _Settings.Select(x => (x.Key, FormatValue(client, guild, x.Value.GetValue(this))));
 			return JoinFormattedSettings(settings);
 		}
 		/// <inheritdoc />
 		public string FormatSetting(BaseSocketClient client, SocketGuild guild, string name)
-			=> Format(client, guild, _Settings[name].GetValue(this));
+			=> FormatValue(client, guild, _Settings[name].GetValue(this));
 		/// <inheritdoc />
 		public string FormatValue(BaseSocketClient client, SocketGuild guild, object? value)
 			=> Format(client, guild, value);
@@ -56,7 +56,7 @@ namespace Advobot.Classes
 			{
 				return Format(socketClient, socketGuild);
 			}
-			var tasks = _Settings.Select(async x => (x.Key, await FormatAsync(client, guild, x.Value.GetValue(this)).CAF()));
+			var tasks = _Settings.Select(async x => (x.Key, await FormatValueAsync(client, guild, x.Value.GetValue(this)).CAF()));
 			var settings = await Task.WhenAll(tasks).CAF();
 			return JoinFormattedSettings(settings);
 		}
@@ -67,7 +67,7 @@ namespace Advobot.Classes
 			{
 				return Task.FromResult(FormatSetting(socketClient, socketGuild, name));
 			}
-			return FormatAsync(client, guild, _Settings[name].GetValue(this));
+			return FormatValueAsync(client, guild, _Settings[name].GetValue(this));
 		}
 		/// <inheritdoc />
 		public Task<string> FormatValueAsync(IDiscordClient client, IGuild guild, object? value)

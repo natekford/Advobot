@@ -103,17 +103,17 @@ namespace Advobot.Classes.Formatting
 		}
 		private string Format(string format, string arg)
 		{
-			var options = (format ?? "").Split('|').Select(x => x.Trim());
+			var options = (format ?? "").Split(RuntimeFormatUtils.FORMAT_JOINER).Select(x => x.Trim());
 			var ignoreDefaults = options.Any();
 
-			if (options.Contains("title") || (!ignoreDefaults && UseTitleCase)) { arg = arg.FormatTitle(); }
-			if (options.Contains(":") || (!ignoreDefaults && UseColon)) { arg += ":"; }
-			if (options.Contains("`") || (!ignoreDefaults && UseCode)) { arg = $"`{arg}`"; }
-			if (options.Contains("**") || (!ignoreDefaults && UseBold)) { arg = $"**{arg}**"; }
-			if (options.Contains("_") || (!ignoreDefaults && UseItalics)) { arg = $"_{arg}_"; }
-			if (options.Contains("__") || (!ignoreDefaults && UseUnderline)) { arg = $"__{arg}__"; }
-			if (options.Contains("~~") || (!ignoreDefaults && UseStrikethrough)) { arg = $"~~{arg}~~"; }
-			if (options.Contains("```") || (!ignoreDefaults && UseBigCode)) { arg = $"```\n{arg}\n```"; }
+			if (options.Contains(RuntimeFormatUtils.TITLE) || (!ignoreDefaults && UseTitleCase)) { arg = arg.FormatTitle(); }
+			if (options.Contains(RuntimeFormatUtils.COLON) || (!ignoreDefaults && UseColon)) { arg += ":"; }
+			if (options.Contains(RuntimeFormatUtils.CODE) || (!ignoreDefaults && UseCode)) { arg = $"`{arg}`"; }
+			if (options.Contains(RuntimeFormatUtils.BOLD) || (!ignoreDefaults && UseBold)) { arg = $"**{arg}**"; }
+			if (options.Contains(RuntimeFormatUtils.ITALICS) || (!ignoreDefaults && UseItalics)) { arg = $"_{arg}_"; }
+			if (options.Contains(RuntimeFormatUtils.UNDERLINE) || (!ignoreDefaults && UseUnderline)) { arg = $"__{arg}__"; }
+			if (options.Contains(RuntimeFormatUtils.STRIKETHROUGH) || (!ignoreDefaults && UseStrikethrough)) { arg = $"~~{arg}~~"; }
+			if (options.Contains(RuntimeFormatUtils.BIG_CODE) || (!ignoreDefaults && UseBigCode)) { arg = $"```\n{arg}\n```"; }
 			return arg;
 		}
 	}
