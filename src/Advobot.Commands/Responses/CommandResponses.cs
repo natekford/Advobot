@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Advobot.Classes;
 using Advobot.Classes.Formatting;
 using Advobot.Classes.Results;
@@ -10,9 +11,28 @@ namespace Advobot.Commands.Responses
 {
 	public abstract class CommandResponses : AdvobotResult
 	{
-		protected static readonly IFormatProvider Default = new ArgumentFormatter { UseCode = true, };
-		protected static readonly IFormatProvider Title = new ArgumentFormatter { UseTitleCase = true, };
-		protected static readonly IFormatProvider BigBlock = new ArgumentFormatter { UseBigCode = true, Joiner = "\n", };
+		protected static readonly IFormatProvider Default = new ArgumentFormatter
+		{
+			Formats = new List<ArgumentFormatter.Formatter>
+			{
+				new ArgumentFormatter.Formatter(RuntimeFormatUtils.CODE, s => $"`{s}`"),
+			},
+		};
+		protected static readonly IFormatProvider Title = new ArgumentFormatter
+		{
+			Formats = new List<ArgumentFormatter.Formatter>
+			{
+				new ArgumentFormatter.Formatter(RuntimeFormatUtils.TITLE, s => s.FormatTitle()),
+			},
+		};
+		protected static readonly IFormatProvider BigBlock = new ArgumentFormatter
+		{
+			Joiner = "\n",
+			Formats = new List<ArgumentFormatter.Formatter>
+			{
+				new ArgumentFormatter.Formatter(RuntimeFormatUtils.BIG_CODE, s => $"```{s}```"),
+			},
+		};
 		protected static readonly TimeSpan DefaultTime = CreateTime(5);
 
 		protected CommandResponses() : base(null, "") { }

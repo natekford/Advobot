@@ -20,37 +20,9 @@ namespace Advobot.Classes.Formatting
 		/// </summary>
 		public string Joiner { get; set; } = ", ";
 		/// <summary>
-		/// Whether to use title case by defaul.t
+		/// Specified formats.
 		/// </summary>
-		public bool UseTitleCase { get; set; }
-		/// <summary>
-		/// Whether to use colons by default.
-		/// </summary>
-		public bool UseColon { get; set; }
-		/// <summary>
-		/// Whether to put into markdown code by default.
-		/// </summary>
-		public bool UseCode { get; set; }
-		/// <summary>
-		/// Whether to put into markdown big code by default.
-		/// </summary>
-		public bool UseBigCode { get; set; }
-		/// <summary>
-		/// Whether to put into markdown bold by default.
-		/// </summary>
-		public bool UseBold { get; set; }
-		/// <summary>
-		/// Whether to put into markdown italics by default.
-		/// </summary>
-		public bool UseItalics { get; set; }
-		/// <summary>
-		/// Whether to put into markdown underline by default.
-		/// </summary>
-		public bool UseUnderline { get; set; }
-		/// <summary>
-		/// Whether to put into markdown strikethrough by default.
-		/// </summary>
-		public bool UseStrikethrough { get; set; }
+		public IList<Formatter> Formats { get; set; } = new List<Formatter>();
 
 		/// <inheritdoc />
 		public object? GetFormat(Type formatType)
@@ -103,18 +75,49 @@ namespace Advobot.Classes.Formatting
 		}
 		private string Format(string format, string arg)
 		{
-			var options = (format ?? "").Split(RuntimeFormatUtils.FORMAT_JOINER).Select(x => x.Trim());
-			var ignoreDefaults = options.Any();
-
-			if (options.Contains(RuntimeFormatUtils.TITLE) || (!ignoreDefaults && UseTitleCase)) { arg = arg.FormatTitle(); }
-			if (options.Contains(RuntimeFormatUtils.COLON) || (!ignoreDefaults && UseColon)) { arg += ":"; }
-			if (options.Contains(RuntimeFormatUtils.CODE) || (!ignoreDefaults && UseCode)) { arg = $"`{arg}`"; }
-			if (options.Contains(RuntimeFormatUtils.BOLD) || (!ignoreDefaults && UseBold)) { arg = $"**{arg}**"; }
-			if (options.Contains(RuntimeFormatUtils.ITALICS) || (!ignoreDefaults && UseItalics)) { arg = $"_{arg}_"; }
-			if (options.Contains(RuntimeFormatUtils.UNDERLINE) || (!ignoreDefaults && UseUnderline)) { arg = $"__{arg}__"; }
-			if (options.Contains(RuntimeFormatUtils.STRIKETHROUGH) || (!ignoreDefaults && UseStrikethrough)) { arg = $"~~{arg}~~"; }
-			if (options.Contains(RuntimeFormatUtils.BIG_CODE) || (!ignoreDefaults && UseBigCode)) { arg = $"```\n{arg}\n```"; }
+			var options = (format ?? "").Split(RuntimeFormatUtils.FORMAT_JOINER).Select(x => x.Trim()).ToArray();
+			foreach (var kvp in Formats)
+			{
+				arg = kvp.Format(options, arg);
+			}
 			return arg;
+		}
+
+		/// <summary>
+		/// Determines whether to add some formatting to a string.
+		/// </summary>
+		public class Formatter
+		{
+			/// <summary>
+			/// Whether this is enabled.
+			/// </summary>
+			public bool Enabled { get; set; } = true;
+			/// <summary>
+			/// The format this formatter applies to.
+			/// </summary>
+			public string FormatString { get; }
+			
+			private readonly Func<string, string> _Modifier;
+
+			/// <summary>
+			/// Creates an instance of <see cref="Formatter"/>.
+			/// </summary>
+			/// <param name="format"></param>
+			/// <param name="modifier"></param>
+			public Formatter(string format, Func<string, string> modifier)
+			{
+				FormatString = format;
+				_Modifier = modifier;
+			}
+
+			/// <summary>
+			/// Returns a modified string if <paramref name="formats"/> contains the format this formatter is specified for or if this is enaabled and no formats are passed in.
+			/// </summary>
+			/// <param name="formats"></param>
+			/// <param name="arg"></param>
+			/// <returns></returns>
+			public string Format(IReadOnlyCollection<string> formats, string arg)
+				=> formats.Contains(FormatString) || (formats.Count == 0 && Enabled) ? _Modifier(arg) : arg;
 		}
 	}
 }
