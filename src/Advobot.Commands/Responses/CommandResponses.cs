@@ -1,5 +1,6 @@
 ﻿using System;
 using Advobot.Classes;
+using Advobot.Classes.Formatting;
 using Advobot.Classes.Results;
 using Advobot.Utilities;
 using AdvorangesUtils;
