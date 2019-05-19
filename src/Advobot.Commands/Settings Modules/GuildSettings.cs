@@ -199,6 +199,7 @@ namespace Advobot.Commands
 				bool enable,
 				[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 				=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, enable, channel.Id).CAF();*/
+				/*
 			[ImplicitCommand, ImplicitAlias]
 			public Task Category(bool enable, [ValidateCommandCategory] string category, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 			{
@@ -209,7 +210,7 @@ namespace Advobot.Commands
 				{
 					return ReplyErrorAsync($"`{category}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
 				}
-				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{commands.Join("`, `")}` on `{channel.Format()}`.");*/
+				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{commands.Join("`, `")}` on `{channel.Format()}`.");
 			}
 			[Command]
 			public Task Command(bool enable, IHelpEntry helpEntry, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
@@ -220,8 +221,8 @@ namespace Advobot.Commands
 				{
 					return ReplyErrorAsync($"`{helpEntry.Name}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
 				}
-				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{helpEntry.Name}` on `{channel.Format()}`.");*/
-			}
+				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{helpEntry.Name}` on `{channel.Format()}`.");
+			}*/
 		}
 
 		/*

@@ -68,7 +68,7 @@ namespace Advobot.Classes.Settings
 		/// <inheritdoc />
 		public string Format(SocketGuild? guild = null)
 		{
-			var roles = Roles.Join("`, `", x => guild != null && guild.GetRole(x) is SocketRole role ? role.Format() : x.ToString());
+			var roles = Roles.Join("`, `", x => guild != null && guild.GetRole(x) is IRole role ? role.Format() : x.ToString());
 			return $"**Roles:**\n{roles}";
 		}
 		/// <inheritdoc />
