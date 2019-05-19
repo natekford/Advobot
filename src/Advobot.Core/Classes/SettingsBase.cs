@@ -52,6 +52,10 @@ namespace Advobot.Classes
 		/// <inheritdoc />
 		public async Task<string> FormatAsync(IDiscordClient client, IGuild guild)
 		{
+			if (client is BaseSocketClient socketClient && guild is SocketGuild socketGuild)
+			{
+				return Format(socketClient, socketGuild);
+			}
 			var tasks = _Settings.Select(async x => (x.Key, await FormatAsync(client, guild, x.Value.GetValue(this)).CAF()));
 			var settings = await Task.WhenAll(tasks).CAF();
 			return JoinFormattedSettings(settings);
