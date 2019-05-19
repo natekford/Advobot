@@ -1,4 +1,6 @@
-﻿namespace Advobot.Classes.UsageGeneration
+﻿using System;
+
+namespace Advobot.Classes.UsageGeneration
 {
 	/// <summary>
 	/// Information about something to be used in <see cref="UsageGenerator"/>.
@@ -10,12 +12,17 @@
 
 		public UsageDetails(int deepness, string name)
 		{
+			if (string.IsNullOrWhiteSpace(name))
+			{
+				throw new ArgumentException(nameof(name));
+			}
+
 			Deepness = deepness;
-			Name = !string.IsNullOrWhiteSpace(name) ? CapitalizeFirstLetter(name) : name;
+#pragma warning disable CS8620 // Nullability of reference types in argument doesn't match target type.
+			Name = name.Length == 1 ? name.ToUpper() : name[0].ToString().ToUpper() + name[1..];
+#pragma warning restore CS8620 // Nullability of reference types in argument doesn't match target type.
 		}
 
-		protected static string CapitalizeFirstLetter(string n)
-			=> n[0].ToString().ToUpper() + n[1..];
 		public override string ToString()
 			=> Name;
 	}

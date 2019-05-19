@@ -2,7 +2,7 @@
 using System.Threading;
 using Advobot.Enums;
 using Advobot.Utilities;
-using Discord.WebSocket;
+using Discord;
 
 namespace Advobot.Classes.UserInformation
 {
@@ -47,7 +47,7 @@ namespace Advobot.Classes.UserInformation
 		/// Creates an instance of bannedphraseuserinfo.
 		/// </summary>
 		/// <param name="user"></param>
-		public BannedPhraseUserInfo(SocketGuildUser user) : base(user) { }
+		public BannedPhraseUserInfo(IGuildUser user) : base(user) { }
 
 		/// <summary>
 		/// Returns the value of the specified punishment.

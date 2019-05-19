@@ -67,11 +67,10 @@ namespace Advobot.Commands.Responses
 
 		private static AdvobotResult Punished(bool punished, string punishment, string unpunishment, IUser user, PunishmentArgs? args)
 		{
-			args ??= PunishmentArgs.Default;
 			if (punished)
 			{
 				var str = Default.FormatInterpolated($"Successfully {punishment.NoFormatting()} {user}.");
-				if (args.Time != null && args.Timers != null)
+				if (args != null && args.Time != null && args.Timers != null)
 				{
 					str += Default.FormatInterpolated($" They will be {unpunishment.NoFormatting()} in {args.Time:0:00:00:00}.");
 				}

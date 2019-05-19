@@ -4,6 +4,7 @@ using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
@@ -48,7 +49,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="info"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public Task PunishAsync(IGuildSettings settings, SocketGuild guild, BannedPhraseUserInfo info, ITimerService timers)
+		public Task PunishAsync(IGuildSettings settings, IGuild guild, BannedPhraseUserInfo info, ITimerService timers)
 		{
 			var count = info.Increment(Punishment);
 			if (!settings.BannedPhrasePunishments.TryGetSingle(x => x.Punishment == Punishment && x.NumberOfRemoves == count, out var punishment))

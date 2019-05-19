@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
 using AdvorangesUtils;
-using Discord.WebSocket;
+using Discord;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.GuildSettings
@@ -38,7 +38,7 @@ namespace Advobot.Services.GuildSettings
 			return Task.CompletedTask;
 		}
 		/// <inheritdoc />
-		public async Task<IGuildSettings> GetOrCreateAsync(SocketGuild guild)
+		public async Task<IGuildSettings> GetOrCreateAsync(IGuild guild)
 		{
 			if (_GuildSettings.TryGetValue(guild.Id, out var settings))
 			{

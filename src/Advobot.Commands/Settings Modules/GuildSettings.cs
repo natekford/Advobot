@@ -30,10 +30,10 @@ namespace Advobot.Commands
 				=> Responses.GuildSettings.DisplayNames(Settings);
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public Task<RuntimeResult> All()
-				=> Responses.GuildSettings.DisplaySettings(Settings);
+				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
 			[Command]
 			public Task<RuntimeResult> Command(string name)
-				=> Responses.GuildSettings.DisplaySetting(Settings, name);
+				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
 		}
 
 		/*
@@ -199,7 +199,7 @@ namespace Advobot.Commands
 				bool enable,
 				[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 				=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, enable, channel.Id).CAF();*/
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[ImplicitCommand, ImplicitAlias]
 			public Task Category(bool enable, [ValidateCommandCategory] string category, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 			{
 				throw new NotImplementedException();

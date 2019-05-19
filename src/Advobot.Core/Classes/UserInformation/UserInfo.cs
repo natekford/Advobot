@@ -1,6 +1,6 @@
 ﻿using System;
 using Advobot.Interfaces;
-using Discord.WebSocket;
+using Discord;
 
 namespace Advobot.Classes.UserInformation
 {
@@ -24,13 +24,13 @@ namespace Advobot.Classes.UserInformation
 		/// Creates an instance of userinfo with the supplied user and time as datetime.utcnow.
 		/// </summary>
 		/// <param name="user"></param>
-		public UserInfo(SocketGuildUser user) : this(TimeSpan.Zero, user) { }
+		public UserInfo(IGuildUser user) : this(TimeSpan.Zero, user) { }
 		/// <summary>
 		/// Creates an instance of userinfo with the supplied user and time.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="user"></param>
-		public UserInfo(TimeSpan time, SocketGuildUser user)
+		public UserInfo(TimeSpan time, IGuildUser user)
 		{
 			Time = DateTime.UtcNow.Add(time);
 			GuildId = user.Guild.Id;

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -10,6 +11,12 @@ namespace Advobot.Interfaces
 	/// </summary>
 	public interface ISettingsBase : ISavable, INotifyPropertyChanged
 	{
+		/// <summary>
+		/// Returns the names of settings.
+		/// </summary>
+		/// <returns></returns>
+		IReadOnlyCollection<string> SettingNames { get; }
+
 		/// <summary>
 		/// Formats the settings so they are readable by a human.
 		/// </summary>
@@ -56,16 +63,5 @@ namespace Advobot.Interfaces
 		/// <param name="value"></param>
 		/// <returns></returns>
 		Task<string> FormatValueAsync(IDiscordClient client, IGuild guild, object? value);
-		/// <summary>
-		/// Returns true if the supplied name is the name of a setting.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		bool IsSetting(string name);
-		/// <summary>
-		/// Returns the names of settings.
-		/// </summary>
-		/// <returns></returns>
-		string[] GetSettingNames();
 	}
 }

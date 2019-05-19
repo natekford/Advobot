@@ -44,12 +44,6 @@
     <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="System">
-      <HintPath>System</HintPath>
-    </Reference>
-  </ItemGroup>
-
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	<NullableContextOptions>enable</NullableContextOptions>

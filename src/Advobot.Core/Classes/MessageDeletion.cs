@@ -33,7 +33,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Clears any messages currently held.
 		/// </summary>
-		public void ClearBag()
+		public void Clear()
 			=> Interlocked.Exchange(ref _Messages, new ConcurrentBag<SocketMessage>());
 		/// <inheritdoc />
 		public void Dispose()

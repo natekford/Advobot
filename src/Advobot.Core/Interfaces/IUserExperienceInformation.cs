@@ -1,5 +1,5 @@
 ﻿using System;
-using Discord.WebSocket;
+using Discord;
 
 namespace Advobot.Interfaces
 {
@@ -26,16 +26,15 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Adds experience to the user if the author of the message is this user.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <param name="message"></param>
 		/// <param name="experience"></param>
-		void AddExperience(IGuildSettings settings, SocketUserMessage message, int experience);
+		void AddExperience(IUserMessage message, int experience);
 		/// <summary>
 		/// Removes the experience from the user if the author of the message is this user.
 		/// </summary>
 		/// <param name="message"></param>
 		/// <param name="experience"></param>
-		void RemoveExperience(SocketUserMessage message, int experience);
+		void RemoveExperience(IUserMessage message, int experience);
 		/// <summary>
 		/// Gets the experience a user has in total.
 		/// </summary>
@@ -46,12 +45,12 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		int GetExperience(SocketGuild guild);
+		int GetExperience(IGuild guild);
 		/// <summary>
 		/// Gets the experience a user has in a specific channel.
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		int GetExperience(SocketTextChannel channel);
+		int GetExperience(ITextChannel channel);
 	}
 }

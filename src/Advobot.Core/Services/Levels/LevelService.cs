@@ -26,7 +26,7 @@ namespace Advobot.Services.Levels
 		/// <summary>
 		/// The bot client.
 		/// </summary>
-		private DiscordShardedClient Client { get; }
+		private BaseSocketClient Client { get; }
 		/// <summary>
 		/// Used in calculating XP.
 		/// </summary>
@@ -56,7 +56,7 @@ namespace Advobot.Services.Levels
 		/// <param name="args"></param>
 		public LevelService(IServiceProvider provider, LevelServiceArguments args) : base(provider)
 		{
-			Client = provider.GetRequiredService<DiscordShardedClient>();
+			Client = provider.GetRequiredService<BaseSocketClient>();
 			GuildSettings = provider.GetRequiredService<IGuildSettingsFactory>();
 			Log = args.Log;
 			Pow = args.Pow;
@@ -64,78 +64,81 @@ namespace Advobot.Services.Levels
 			BaseExperience = args.BaseExperience;
 
 			Client.MessageReceived += AddExperienceAsync;
-			Client.MessageDeleted += RemoveExperienceAsync;
+			Client.MessageDeleted += (cached, _) => RemoveExperienceAsync(cached);
 		}
 
 		/// <inheritdoc />
-		public async Task AddExperienceAsync(SocketMessage message)
+		public async Task AddExperienceAsync(IMessage message)
 		{
 			if (message.Author.IsBot
 				|| message.Author.IsWebhook
-				|| !(message is SocketUserMessage msg)
-				|| !(msg.Channel is SocketTextChannel channel)
-				|| !(channel.Guild is SocketGuild guild)
+				|| !(message is IUserMessage msg)
+				|| !(msg.Channel is ITextChannel channel)
+				|| !(channel.Guild is IGuild guild)
 				|| !(await GuildSettings.GetOrCreateAsync(guild).CAF() is IGuildSettings settings)
-				|| settings.IgnoredXpChannels.Contains(message.Channel.Id)
-				|| !(GetUserXpInformation(message.Author.Id) is UserExperienceInformation info)
+				|| settings.IgnoredXpChannels.Contains(msg.Channel.Id)
+				|| !(GetUserXpInformation(message.Author) is UserExperienceInformation info)
 				|| info.Time > (DateTime.UtcNow - Time))
 			{
 				return;
 			}
-			info.AddExperience(settings, msg, BaseExperience);
+
+			info.AddExperience(msg, BaseExperience);
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Update(new[] { info }));
-			UpdateUserRank(info, ((SocketTextChannel)msg.Channel).Guild);
+			UpdateUserRank(info, guild);
 		}
 		/// <inheritdoc />
-		public Task RemoveExperienceAsync(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
+		public async Task RemoveExperienceAsync(Cacheable<IMessage, ulong> cached)
 		{
 			if (!cached.HasValue
 				|| cached.Value.Author.IsBot
 				|| cached.Value.Author.IsWebhook
-				|| !(cached.Value is SocketUserMessage msg)
-				|| !(GetUserXpInformation(msg.Author.Id) is UserExperienceInformation info)
+				|| !(cached.Value is IUserMessage msg)
+				|| !(msg.Channel is ITextChannel channel)
+				|| !(channel.Guild is IGuild guild)
+				|| !(await GuildSettings.GetOrCreateAsync(guild).CAF() is IGuildSettings settings)
+				|| settings.IgnoredXpChannels.Contains(msg.Channel.Id)
+				|| !(GetUserXpInformation(msg.Author) is UserExperienceInformation info)
 				|| !(info.RemoveMessageHash(cached.Id) is MessageHash hash)
 				|| hash.MessageId == 0)
 			{
-				return Task.CompletedTask;
+				return;
 			}
+
 			info.RemoveExperience(msg, hash.ExperienceGiven);
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Update(new[] { info }));
-			UpdateUserRank(info, ((SocketTextChannel)msg.Channel).Guild);
-			return Task.CompletedTask;
+			UpdateUserRank(info, guild);
 		}
 		/// <inheritdoc />
 		public int CalculateLevel(int experience)
+			=> Math.Min((int)Math.Pow(Math.Log(experience, Log), Pow), 0); //No negative levels
+		/// <inheritdoc />
+		public (int Rank, int TotalUsers) GetGuildRank(IGuild guild, IUser user)
+			=> GetRank(guild.Id.ToString(), user.Id);
+		/// <inheritdoc />
+		public (int Rank, int TotalUsers) GetGlobalRank(IUser user)
+			=> GetRank("Global", user.Id);
+		/// <inheritdoc />
+		public IUserExperienceInformation GetUserXpInformation(IUser user)
 		{
-			//No negative levels
-			return Math.Min((int)Math.Pow(Math.Log(experience, Log), Pow), 0);
-		}
-		/// <inheritdoc />
-		public (int Rank, int TotalUsers) GetGuildRank(SocketGuild guild, ulong userId) => GetRank(guild.Id.ToString(), userId);
-		/// <inheritdoc />
-		public (int Rank, int TotalUsers) GetGlobalRank(ulong userId) => GetRank("Global", userId);
-		/// <inheritdoc />
-		public IUserExperienceInformation GetUserXpInformation(ulong userId)
-		{
-			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Get(x => x.UserId == userId, 1));
+			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Get(x => x.UserId == user.Id, 1));
 			if (!values.Any())
 			{
-				var value = new UserExperienceInformation(userId);
+				var value = new UserExperienceInformation(user);
 				DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Insert(new[] { value }));
 				return value;
 			}
 			return values.Single();
 		}
 		/// <inheritdoc />
-		public EmbedWrapper GetUserXpInformationEmbedWrapper(SocketGuild guild, ulong userId, bool global)
+		public EmbedWrapper GetUserXpInformationEmbedWrapper(IGuild guild, IUser user, bool global)
 		{
-			var info = GetUserXpInformation(userId);
-			var (rank, totalUsers) = global ? GetGlobalRank(userId) : GetGuildRank(guild, userId);
+			var info = GetUserXpInformation(user);
+			var (rank, totalUsers) = global ? GetGlobalRank(user) : GetGuildRank(guild, user);
 			var experience = global ? info.GetExperience() : info.GetExperience(guild);
 			var level = CalculateLevel(experience);
 
-			var user = guild.GetUser(userId);
-			var name = user?.Format() ?? userId.ToString();
+			var name = user.Format() ?? user.Id.ToString();
 			var description = $"!!!TEMP PLACEHOLDER!!!\n\nRank: {rank} out of {totalUsers}\nXP: {experience}\nLevel: {level}";
 
 			//TODO: implement rest of embed
@@ -143,12 +146,12 @@ namespace Advobot.Services.Levels
 			{
 				Title = $"{(global ? "Global" : "Guild")} xp information for {name}",
 				Description = description,
-				ThumbnailUrl = user?.GetAvatarUrl(),
-				Author = user?.CreateAuthor(),
+				ThumbnailUrl = user.GetAvatarUrl(),
+				Author = user.CreateAuthor(),
 				Footer = new EmbedFooterBuilder { Text = "Xp Information", },
 			};
 		}
-		private void UpdateUserRank(IUserExperienceInformation info, SocketGuild guild)
+		private void UpdateUserRank(IUserExperienceInformation info, IGuild guild)
 		{
 			UpsertRank(guild.Id.ToString(), info.UserId, info.GetExperience(guild));
 			UpsertRank("Global", info.UserId, info.GetExperience());

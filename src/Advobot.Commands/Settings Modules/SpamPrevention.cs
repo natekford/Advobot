@@ -4,6 +4,7 @@ using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -27,7 +28,8 @@ namespace Advobot.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Create(SpamType spamType, [Remainder] SpamPrev args)
 			{
-				Settings[spamType] = args;
+				Settings.SpamPrevention.RemoveAll(x => x.Type == spamType);
+				Settings.SpamPrevention.Add(args);
 				return Responses.SpamPrevention.CreatedSpamPrevention(spamType);
 			}
 			[DontSaveAfterExecution]
@@ -41,7 +43,7 @@ namespace Advobot.Commands
 
 			private async Task<RuntimeResult> CommandRunner(SpamType spamType, bool enable)
 			{
-				if (!(Settings[spamType] is SpamPrev antiSpam))
+				if (!Settings.SpamPrevention.TryGetSingle(x => x.Type == spamType, out var antiSpam))
 				{
 					return Responses.SpamPrevention.NoSpamPrevention(spamType);
 				}
@@ -65,7 +67,8 @@ namespace Advobot.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Create(RaidType raidType, [Remainder] RaidPrev args)
 			{
-				Settings[raidType] = args;
+				Settings.RaidPrevention.RemoveAll(x => x.Type == raidType);
+				Settings.RaidPrevention.Add(args);
 				return Responses.SpamPrevention.CreatedRaidPrevention(raidType);
 			}
 			[DontSaveAfterExecution]
@@ -79,7 +82,7 @@ namespace Advobot.Commands
 
 			private async Task<RuntimeResult> CommandRunner(RaidType raidType, bool enable)
 			{
-				if (!(Settings[raidType] is RaidPrev antiRaid))
+				if (!Settings.RaidPrevention.TryGetSingle(x => x.Type == raidType, out var antiRaid))
 				{
 					return Responses.SpamPrevention.NoRaidPrevention(raidType);
 				}

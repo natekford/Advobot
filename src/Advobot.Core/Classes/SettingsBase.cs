@@ -24,6 +24,8 @@ namespace Advobot.Classes
 	{
 		private readonly Dictionary<string, PropertyInfo> _Settings;
 
+		public IReadOnlyCollection<string> SettingNames => _Settings.Keys.ToArray();
+
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -35,12 +37,6 @@ namespace Advobot.Classes
 				.ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
 		}
 
-		/// <inheritdoc />
-		public bool IsSetting(string name)
-			=> _Settings.ContainsKey(name);
-		/// <inheritdoc />
-		public string[] GetSettingNames()
-			=> _Settings.Keys.ToArray();
 		/// <inheritdoc />
 		public string Format(BaseSocketClient client, SocketGuild guild)
 		{
@@ -133,22 +129,59 @@ namespace Advobot.Classes
 		}
 		private string Format(BaseSocketClient client, SocketGuild guild, object? value) => value switch
 		{
-			MemberInfo m => throw new ArgumentException($"{nameof(value)} must not be a {nameof(MemberInfo)}."),
-			null => "`Nothing`",
+			object obj when IsCommonFormatting(obj, out var s) => s,
 			ulong id when guild?.GetChannel(id) is IChannel tempChannel => $"`{tempChannel.Format()}`",
 			ulong id when guild?.GetRole(id) is IRole tempRole => $"`{tempRole.Format()}`",
 			ulong id when guild?.GetUser(id) is IUser tempUser => $"`{tempUser.Format()}`",
 			ulong id when client?.GetUser(id) is IUser tempUser => $"`{tempUser.Format()}`",
 			ulong id when client?.GetGuild(id) is IGuild tempGuild => $"`{tempGuild.Format()}`",
-			string str => string.IsNullOrWhiteSpace(str) ? "`Nothing`" : $"`{str}`",
 			IGuildFormattable formattable => formattable.Format(guild),
 			IDictionary dict => dict.Keys.Cast<object>().Join("\n", x => $"{Format(client, guild, x)}: {Format(client, guild, dict[x])}"),
 			IEnumerable enumerable => enumerable.Cast<object>().Join("\n", x => Format(client, guild, x)),
 			_ => $"`{value}`",
 		};
-		private Task<string> FormatAsync(IDiscordClient client, IGuild guild, object? value)
+		private async Task<string> FormatAsync(IDiscordClient client, IGuild guild, object? value) => value switch
 		{
-			throw new NotImplementedException();
+			object obj when IsCommonFormatting(obj, out var s) => s,
+			ulong id when await guild?.GetChannelAsync(id) is IChannel tempChannel => $"`{tempChannel.Format()}`",
+			ulong id when guild?.GetRole(id) is IRole tempRole => $"`{tempRole.Format()}`",
+			ulong id when await guild?.GetUserAsync(id) is IUser tempUser => $"`{tempUser.Format()}`",
+			ulong id when await client?.GetUserAsync(id) is IUser tempUser => $"`{tempUser.Format()}`",
+			ulong id when await client?.GetGuildAsync(id) is IGuild tempGuild => $"`{tempGuild.Format()}`",
+			//IGuildFormattable formattable => formattable.Format(guild),
+			IDictionary dict => await FormatDictionaryAsync(dict, client, guild).CAF(),
+			IEnumerable enumerable => await FormatEnumerableAsync(enumerable, client, guild).CAF(),
+			_ => $"`{value}`",
+		};
+		private bool IsCommonFormatting(object? value, out string? response)
+		{
+			response = value switch
+			{
+				null => "`Nothing`",
+				string s => string.IsNullOrWhiteSpace(s) ? "`Nothing`" : $"`{s}`",
+				MemberInfo _ => throw new ArgumentException($"{nameof(value)} must not be a {nameof(MemberInfo)}."),
+				_ => null,
+			};
+			return response != null;
+		}
+		private async Task<string> FormatDictionaryAsync(IDictionary dict, IDiscordClient client, IGuild guild)
+		{
+			var parts = new string[dict.Count];
+			var index = 0;
+			foreach (var key in dict.Keys)
+			{
+				parts[index++] = await FormatAsync(client, guild, dict[key]).CAF();
+			}
+			return parts.Join("\n");
+		}
+		private async Task<string> FormatEnumerableAsync(IEnumerable e, IDiscordClient client, IGuild guild)
+		{
+			var parts = new List<string>();
+			foreach (var value in e)
+			{
+				parts.Add(await FormatAsync(client, guild, value).CAF());
+			}
+			return parts.Join("\n");
 		}
 	}
 }

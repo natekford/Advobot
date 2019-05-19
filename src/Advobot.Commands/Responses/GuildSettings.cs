@@ -5,6 +5,7 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Commands.Responses
 {
@@ -17,28 +18,26 @@ namespace Advobot.Commands.Responses
 			return Success(new EmbedWrapper
 			{
 				Title = Title.FormatInterpolated($"{settings.GetType().Name}"),
-				Description = Default.FormatInterpolated($"{settings.GetSettingNames()}"),
+				Description = Default.FormatInterpolated($"{settings.SettingNames}"),
 			});
 		}
-		public static AdvobotResult DisplaySettings(ISettingsBase settings)
+		public static AdvobotResult DisplaySettings(BaseSocketClient client, SocketGuild guild, ISettingsBase settings)
 		{
-			//TODO: fix this. pass in client and guild?
 			return Success(new TextFileInfo
 			{
 				Name = settings.GetType().Name.FormatTitle().Replace(' ', '_'),
-				Text = settings.Format(null, null),
+				Text = settings.Format(client, guild),
 			});
 		}
-		public static AdvobotResult DisplaySetting(ISettingsBase settings, string name)
+		public static AdvobotResult DisplaySetting(BaseSocketClient client, SocketGuild guild, ISettingsBase settings, string name)
 		{
 			//TODO: make into precondition?
-			if (!settings.IsSetting(name))
+			if (!settings.SettingNames.CaseInsContains(name))
 			{
 				return Failure(Default.FormatInterpolated($"{name} is not a valid setting.")).WithTime(DefaultTime);
 			}
 
-			//TODO: fix this. pass in client and guild?
-			var description = settings.FormatSetting(null, null, name);
+			var description = settings.FormatSetting(client, guild, name);
 			if (description.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				return Success(new EmbedWrapper

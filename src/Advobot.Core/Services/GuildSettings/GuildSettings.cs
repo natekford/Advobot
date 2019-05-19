@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -10,9 +9,8 @@ using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
-using AdvorangesSettingParser.Utils;
 using AdvorangesUtils;
-using Discord.WebSocket;
+using Discord;
 using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings
@@ -122,48 +120,14 @@ namespace Advobot.Services.GuildSettings
 		public ulong GuildId { get; private set; }
 
 		/// <inheritdoc />
-		public SpamPrev? this[SpamType type]
-		{
-			get => SpamPrevention.SingleOrDefault(x => x.Type == type);
-			set
-			{
-				if (value == null)
-				{
-					throw new ArgumentException(nameof(value));
-				}
-
-				SpamPrevention.RemoveAll(x => x.Type == type);
-				SpamPrevention.Add(value);
-				RaisePropertyChanged(nameof(SpamPrevention));
-			}
-		}
-		/// <inheritdoc />
-		public RaidPrev? this[RaidType type]
-		{
-			get => RaidPrevention.SingleOrDefault(x => x.Type == type);
-			set
-			{
-				if (value == null)
-				{
-					throw new ArgumentException(nameof(value));
-				}
-
-				RaidPrevention.RemoveAll(x => x.Type == type);
-				value.Type = type;
-				RaidPrevention.Add(value);
-				RaisePropertyChanged(nameof(RaidPrevention));
-			}
-		}
-
-		/// <inheritdoc />
-		public async Task PostDeserializeAsync(SocketGuild guild)
+		public async Task PostDeserializeAsync(IGuild guild)
 		{
 			GuildId = guild.Id;
 			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
 			{
 				CachedInvites.Add(new CachedInvite(invite));
 			}
-			foreach (var group in SelfAssignableGroups ?? Enumerable.Empty<SelfAssignableRoles>())
+			foreach (var group in SelfAssignableGroups)
 			{
 				group.RemoveRoles(group.Roles.Where(x => guild.GetRole(x) == null));
 			}

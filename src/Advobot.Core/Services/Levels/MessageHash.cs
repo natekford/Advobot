@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using Discord.WebSocket;
+using Discord;
 
 namespace Advobot.Services.Levels
 {
@@ -40,9 +40,9 @@ namespace Advobot.Services.Levels
 		/// </summary>
 		/// <param name="message"></param>
 		/// <param name="xp"></param>
-		public MessageHash(SocketUserMessage message, int xp)
+		public MessageHash(IUserMessage message, int xp)
 		{
-			GuildId = ((SocketTextChannel)message.Channel).Guild.Id;
+			GuildId = ((ITextChannel)message.Channel).Guild.Id;
 			ChannelId = message.Channel.Id;
 			MessageId = message.Id;
 			using (var md5 = MD5.Create())

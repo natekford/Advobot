@@ -281,7 +281,7 @@ namespace Advobot.Services.Logging.Loggers
 
 				//Give the messages to a new list so they can be removed from the old one
 				var messages = context.Settings.MessageDeletion.Messages.ToArray();
-				context.Settings.MessageDeletion.ClearBag();
+				context.Settings.MessageDeletion.Clear();
 
 				var sb = new StringBuilder();
 				while (inEmbed)

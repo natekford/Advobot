@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Advobot.Classes;
 using Advobot.Interfaces;
-using Discord.WebSocket;
+using Discord;
 
 namespace Advobot.Services.Levels
 {
@@ -30,18 +30,18 @@ namespace Advobot.Services.Levels
 		/// <summary>
 		/// Creates an instance of <see cref="UserExperienceInformation"/>.
 		/// </summary>
-		public UserExperienceInformation() : base(TimeSpan.FromSeconds(0)) { }
+		public UserExperienceInformation() : base(TimeSpan.Zero) { }
 		/// <summary>
 		/// Creates an instance of <see cref="UserExperienceInformation"/> with the supplied user id.
 		/// </summary>
-		/// <param name="userId"></param>
-		public UserExperienceInformation(ulong userId) : this()
+		/// <param name="user"></param>
+		public UserExperienceInformation(IUser user) : this()
 		{
-			UserId = userId;
+			UserId = user.Id;
 		}
 
 		/// <inheritdoc />
-		public void AddExperience(IGuildSettings settings, SocketUserMessage message, int experience)
+		public void AddExperience(IUserMessage message, int experience)
 		{
 			if (message.Author.Id != UserId)
 			{
@@ -49,7 +49,7 @@ namespace Advobot.Services.Levels
 			}
 
 			var xp = CalculateExperience(message, experience);
-			GetChannels((SocketTextChannel)message.Channel)[message.Channel.Id] += xp;
+			GetChannels((ITextChannel)message.Channel)[message.Channel.Id] += xp;
 			Time = DateTime.UtcNow;
 			++MessageCount;
 
@@ -61,14 +61,14 @@ namespace Advobot.Services.Levels
 			}
 		}
 		/// <inheritdoc />
-		public void RemoveExperience(SocketUserMessage message, int xp)
+		public void RemoveExperience(IUserMessage message, int xp)
 		{
 			if (message.Author.Id != UserId)
 			{
 				return;
 			}
 
-			GetChannels((SocketTextChannel)message.Channel)[message.Channel.Id] -= xp;
+			GetChannels((ITextChannel)message.Channel)[message.Channel.Id] -= xp;
 			--MessageCount;
 		}
 		/// <summary>
@@ -77,7 +77,7 @@ namespace Advobot.Services.Levels
 		/// <param name="message"></param>
 		/// <param name="experience"></param>
 		/// <returns></returns>
-		private int CalculateExperience(SocketUserMessage message, int experience)
+		private int CalculateExperience(IUserMessage message, int experience)
 		{
 			var rng = new Random();
 			//Be within 20% of the base value
@@ -102,7 +102,7 @@ namespace Advobot.Services.Levels
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		private Dictionary<ulong, int> GetChannels(SocketTextChannel channel)
+		private Dictionary<ulong, int> GetChannels(ITextChannel channel)
 		{
 			if (!Experience.TryGetValue(channel.Guild.Id, out var channels))
 			{
@@ -129,10 +129,10 @@ namespace Advobot.Services.Levels
 		public int GetExperience()
 			=> Experience.Sum(g => g.Value.Sum(c => c.Value));
 		/// <inheritdoc />
-		public int GetExperience(SocketGuild guild)
+		public int GetExperience(IGuild guild)
 			=> Experience.TryGetValue(guild.Id, out var channels) ? channels.Values.Sum() : 0;
 		/// <inheritdoc />
-		public int GetExperience(SocketTextChannel channel)
+		public int GetExperience(ITextChannel channel)
 			=> Experience.TryGetValue(channel.Guild.Id, out var channels) && channels.TryGetValue(channel.Id, out var xp) ? xp : 0;
 	}
 }

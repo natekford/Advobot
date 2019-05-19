@@ -101,7 +101,9 @@ namespace Advobot.Utilities
 				}
 				if (name.EndsWith("s"))
 				{
+#pragma warning disable CS8620 // Nullability of reference types in argument doesn't match target type.
 					name = name[0..^1] + "S";
+#pragma warning restore CS8620 // Nullability of reference types in argument doesn't match target type.
 				}
 			}
 

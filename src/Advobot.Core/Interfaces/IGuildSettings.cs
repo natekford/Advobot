@@ -127,18 +127,5 @@ namespace Advobot.Interfaces
 		/// Holds messages which have been deleted and waits to print them out. This is not saved.
 		/// </summary>
 		MessageDeletion MessageDeletion { get; }
-
-		/// <summary>
-		/// Gets and sets spam prevention.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		SpamPrev? this[SpamType type] { get; set; }
-		/// <summary>
-		/// Gets and sets raid prevention.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <returns></returns>
-		RaidPrev? this[RaidType type] { get; set; }
 	}
 }
