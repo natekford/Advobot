@@ -13,24 +13,24 @@ namespace Advobot.Commands.Responses
 	{
 		protected static readonly IFormatProvider Default = new ArgumentFormatter
 		{
-			Formats = new List<ArgumentFormatter.Formatter>
+			Formats = new List<FormatApplier>
 			{
-				new ArgumentFormatter.Formatter(RuntimeFormatUtils.CODE, s => $"`{s}`"),
+				new FormatApplier(RuntimeFormatUtils.CODE, s => $"`{s}`"),
 			},
 		};
 		protected static readonly IFormatProvider Title = new ArgumentFormatter
 		{
-			Formats = new List<ArgumentFormatter.Formatter>
+			Formats = new List<FormatApplier>
 			{
-				new ArgumentFormatter.Formatter(RuntimeFormatUtils.TITLE, s => s.FormatTitle()),
+				new FormatApplier(RuntimeFormatUtils.TITLE, s => s.FormatTitle()),
 			},
 		};
 		protected static readonly IFormatProvider BigBlock = new ArgumentFormatter
 		{
 			Joiner = "\n",
-			Formats = new List<ArgumentFormatter.Formatter>
+			Formats = new List<FormatApplier>
 			{
-				new ArgumentFormatter.Formatter(RuntimeFormatUtils.BIG_CODE, s => $"```{s}```"),
+				new FormatApplier(RuntimeFormatUtils.BIG_CODE, s => $"```{s}```"),
 			},
 		};
 		protected static readonly TimeSpan DefaultTime = CreateTime(5);
