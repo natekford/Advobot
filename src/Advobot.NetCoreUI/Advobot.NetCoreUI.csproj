@@ -29,14 +29,14 @@
     <PackageReference Include="Avalonia" Version="0.8.1-cibuild0002070-beta" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.7.0" />
     <PackageReference Include="Avalonia.Desktop" Version="0.8.1-cibuild0002070-beta" />
-    <PackageReference Include="Discord.Net" Version="2.0.2-dev-20190326.4" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.12.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
-    <PackageReference Include="ReactiveUI" Version="10.0.1-preview.2" />
-    <PackageReference Include="System.Reactive.Core" Version="4.1.2" />
-    <PackageReference Include="System.Reactive.Interfaces" Version="4.1.2" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.1.2" />
+    <PackageReference Include="Discord.Net" Version="2.1.1-dev-20190519.7" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.13.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview5.19227.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.0.0-preview5.19227.9" />
+    <PackageReference Include="ReactiveUI" Version="10.0.1-preview.4" />
+    <PackageReference Include="System.Reactive.Core" Version="4.2.0-preview.102" />
+    <PackageReference Include="System.Reactive.Interfaces" Version="4.2.0-preview.102" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.2.0-preview.102" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Advobot.Commands\Advobot.Commands.csproj" />

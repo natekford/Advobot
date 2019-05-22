@@ -47,9 +47,9 @@
     <PackageReference Include="AdvorangesUtils" Version="1.0.11.2">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Discord.Net" Version="2.0.2-dev-20190326.4" />
+    <PackageReference Include="Discord.Net" Version="2.1.1-dev-20190519.7" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.12.0" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.13.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.9.0-beta1" />
   </ItemGroup>
 

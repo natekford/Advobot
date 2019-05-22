@@ -18,12 +18,12 @@
     <PackageReference Include="AdvorangesUtils" Version="1.0.11.2">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Discord.Net" Version="2.0.2-dev-20190326.4" />
+    <PackageReference Include="Discord.Net" Version="2.1.1-dev-20190519.7" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.12.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.2.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.13.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.1.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.0.0-beta4" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.0.0-beta4" />
   </ItemGroup>
 
   <ItemGroup>
