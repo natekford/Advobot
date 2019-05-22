@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Advobot.Enums;
 using Advobot.Interfaces;
 
@@ -42,7 +43,7 @@ namespace Advobot.Utilities
 		/// <param name="g"></param>
 		/// <returns></returns>
 		public static string GetPrefix(this IBotSettings b, IGuildSettings g)
-			=> g == null || string.IsNullOrWhiteSpace(g.Prefix) ? b.Prefix : g.Prefix;
+			=> string.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g.Prefix;
 		/// <summary>
 		/// Joins the strings together after selecting them.
 		/// </summary>

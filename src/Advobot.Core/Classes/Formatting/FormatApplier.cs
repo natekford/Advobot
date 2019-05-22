@@ -31,13 +31,9 @@ namespace Advobot.Classes.Formatting
 			{
 				throw new ArgumentException(nameof(name));
 			}
-			if (modifier == null)
-			{
-				throw new ArgumentException(nameof(name));
-			}
 
 			FormatName = name;
-			_Modifier = modifier;
+			_Modifier = modifier ?? throw new ArgumentException(nameof(name));
 		}
 
 		/// <summary>

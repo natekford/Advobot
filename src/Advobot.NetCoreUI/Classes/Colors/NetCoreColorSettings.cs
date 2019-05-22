@@ -12,6 +12,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
+using Advobot.Utilities;
 
 namespace Advobot.NetCoreUI.Classes.Colors
 {
@@ -20,8 +21,8 @@ namespace Advobot.NetCoreUI.Classes.Colors
 	/// </summary>
 	public sealed class NetCoreColorSettings : ColorSettings<ISolidColorBrush, NetCoreBrushFactory>
 	{
-		private static string AssemblyName { get; } = Assembly.GetExecutingAssembly().GetName().Name;
-		private static Dictionary<string, string[]> ColorNameMappings { get; } = new Dictionary<string, string[]>
+		private static readonly string _AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+		private static readonly Dictionary<string, string[]> _ColorNameMappings = new Dictionary<string, string[]>
 		{
 			{ ColorTargets.BaseBackground, new[] { "ThemeBackgroundBrush" } },
 			//{ BaseForeground, "ThemeAccentBrush" },
@@ -31,42 +32,41 @@ namespace Advobot.NetCoreUI.Classes.Colors
 			{ ColorTargets.ButtonBorder, new[] { "ThemeBorderLightBrush" } },
 			{ ColorTargets.ButtonMouseOverBackground, new[] { "ThemeBorderMidBrush" } },
 		};
-		private IResourceDictionary Resources
+		private static readonly Lazy<IResourceDictionary> _Resources = new Lazy<IResourceDictionary>(() =>
 		{
-			get
-			{
-				if (_Resources != null)
-				{
-					return _Resources;
-				}
-
-				var styles = Application.Current.Styles.OfType<StyleInclude>();
-				var colors = styles.Single(x => x.Source.ToString().CaseInsContains("BaseLight.xaml"));
-				return _Resources = ((Style)colors.Loaded).Resources;
-			}
-		}
-
-		private IResourceDictionary? _Resources;
+			var styles = Application.Current.Styles.OfType<StyleInclude>();
+			var colors = styles.Single(x => x.Source.ToString().CaseInsContains("BaseLight.xaml"));
+			return ((Style)colors.Loaded).Resources;
+		});
 
 		static NetCoreColorSettings()
 		{
-			LoadSyntaxHighlighting($"{AssemblyName}.Resources.JsonSyntaxHighlighting.xshd", "Json", new[] { ".json" });
+			LoadSyntaxHighlighting($"{_AssemblyName}.Resources.JsonSyntaxHighlighting.xshd", "Json", new[] { ".json" });
 		}
 
 		/// <summary>
 		/// Creates an instance of <see cref="NetCoreColorSettings"/>.
 		/// </summary>
-		public NetCoreColorSettings() { }
+		public NetCoreColorSettings()
+		{
+			PropertyChanged += (sender, e) =>
+			{
+				if (e.PropertyName == nameof(ActiveTheme))
+				{
+					SetSyntaxHighlightingColors("Json");
+				}
+			};
+		}
 
 		/// <inheritdoc />
 		protected override void UpdateResource(string target, ISolidColorBrush value)
 		{
 			//If this is remapped to take advantage of how it's easy to recolor already defined background, etc then do that
-			if (ColorNameMappings.TryGetValue(target, out var names))
+			if (_ColorNameMappings.TryGetValue(target, out var names))
 			{
 				foreach (var name in names)
 				{
-					Resources[name] = value;
+					_Resources.Value[name] = value;
 				}
 			}
 
@@ -74,9 +74,6 @@ namespace Advobot.NetCoreUI.Classes.Colors
 			Application.Current.Resources[target] = value;
 			UpdateSyntaxHighlightingColor(target, value);
 		}
-		/// <inheritdoc />
-		protected override void AfterThemeUpdated()
-			=> SetSyntaxHighlightingColors("Json");
 		private void SetSyntaxHighlightingColors(params string[] names)
 		{
 			foreach (var name in names)
@@ -88,13 +85,13 @@ namespace Advobot.NetCoreUI.Classes.Colors
 				{
 					//E.G.: Highlighting name is json, color name is Param, searches for jsonParam
 					var colorName = highlighting.Name + namedColor.Name;
-					if (!(LightMode.Keys.SingleOrDefault(x => x.CaseInsEquals(colorName)) is string str))
+					if (!LightMode.Keys.TryGetSingle(x => x.CaseInsEquals(colorName), out var s))
 					{
 						continue;
 					}
 
 					//Get the set color, if one doesn't exist, use the default light mode
-					var color = ((ISolidColorBrush)Application.Current.Resources[str])?.Color ?? LightMode[str].Color;
+					var color = ((ISolidColorBrush)Application.Current.Resources[s])?.Color ?? LightMode[s].Color;
 					namedColor.Foreground = new SimpleHighlightingBrush(color);
 				}
 			}

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Advobot.Interfaces;
@@ -57,64 +58,53 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		/// </summary>
 		public static BrushFactory<TBrush> Factory { get; } = new TBrushFactory();
 
-		/// <inheritdoc />
-		[JsonProperty("ColorTargets", Order = 1)]
-		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
-		/// <inheritdoc />
-		[JsonProperty("Theme", Order = 2)]
-		public ColorTheme Theme
-		{
-			get => _Theme;
-			set
-			{
-				if (_Theme == value)
-				{
-					return;
-				}
-
-				void UpdateResources(ITheme<TBrush> theme)
-				{
-					foreach (var key in theme.Keys)
-					{
-						UpdateResource(key, theme[key]);
-					}
-				}
-
-				_Theme = value;
-				switch (value)
-				{
-					case ColorTheme.LightMode:
-						UpdateResources(LightMode);
-						break;
-					case ColorTheme.DarkMode:
-						UpdateResources(DarkMode);
-						break;
-					case ColorTheme.UserMade:
-						UpdateResources(UserDefinedColors);
-						break;
-				}
-				AfterThemeUpdated();
-				RaisePropertyChanged();
-			}
-		}
-		[JsonIgnore]
-		private ColorTheme _Theme = ColorTheme.LightMode;
-
-		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
-
 		static ColorSettings()
 		{
 			LightMode.Freeze();
 			DarkMode.Freeze();
 		}
 
+		/// <inheritdoc />
+		[JsonProperty("ColorTargets", Order = 1)] //Deserialize this first so when Theme gets set it will update the UI
+		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
+		/// <inheritdoc />
+		[JsonProperty("Theme", Order = 2)]
+		public ColorTheme ActiveTheme
+		{
+			get => _ActiveTheme;
+			set
+			{
+				if (_ActiveTheme == value) //Don't bother reloading the theme if it's the same value
+				{
+					return;
+				}
+
+				var themeBrushes = (_ActiveTheme = value) switch
+				{
+					ColorTheme.LightMode => LightMode,
+					ColorTheme.DarkMode => DarkMode,
+					ColorTheme.UserMade => UserDefinedColors,
+					_ => throw new ArgumentException(nameof(value)),
+				};
+
+				foreach (var kvp in themeBrushes)
+				{
+					UpdateResource(kvp.Key, kvp.Value);
+				}
+				RaisePropertyChanged();
+			}
+		}
+		[JsonIgnore]
+		private ColorTheme _ActiveTheme = ColorTheme.LightMode;
+
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		/// <summary>
 		/// Creates an instance of <see cref="ColorSettings{TBrush, TBrushFactory}"/> and sets the default theme and colors to light.
 		/// </summary>
 		public ColorSettings()
 		{
-			Theme = ColorTheme.LightMode;
 			foreach (var key in LightMode.Keys)
 			{
 				if (!UserDefinedColors.TryGetValue(key, out var val))
@@ -124,7 +114,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 			}
 			UserDefinedColors.PropertyChanged += (sender, e) =>
 			{
-				if (Theme == ColorTheme.UserMade)
+				if (ActiveTheme == ColorTheme.UserMade)
 				{
 					UpdateResource(e.PropertyName, ((ITheme<TBrush>)sender)[e.PropertyName]);
 				}
@@ -138,10 +128,6 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		/// <param name="value"></param>
 		protected abstract void UpdateResource(string target, TBrush value);
 		/// <summary>
-		/// Does an action after the theme has been updated.
-		/// </summary>
-		protected virtual void AfterThemeUpdated() { }
-		/// <summary>
 		/// Raises the property changed event.
 		/// </summary>
 		/// <param name="caller"></param>
@@ -149,7 +135,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
 		/// <inheritdoc />
 		public FileInfo GetFile(IBotDirectoryAccessor accessor)
-			=> StaticGetPath(accessor);
+			=> StaticGetFile(accessor);
 		/// <inheritdoc />
 		public void Save(IBotDirectoryAccessor accessor)
 			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
@@ -158,9 +144,9 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		/// </summary>
 		/// <param name="accessor"></param>
 		/// <returns></returns>
-		public static T Load<T>(IBotDirectoryAccessor accessor) where T : ColorSettings<TBrush, TBrushFactory>, new()
-			=> IOUtils.DeserializeFromFile<T>(StaticGetPath(accessor)) ?? new T();
-		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor)
+		public static T? Load<T>(IBotDirectoryAccessor accessor) where T : ColorSettings<TBrush, TBrushFactory>
+			=> IOUtils.DeserializeFromFile<T>(StaticGetFile(accessor));
+		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor)
 			=> accessor.GetBaseBotDirectoryFile("UISettings.json");
 	}
 }

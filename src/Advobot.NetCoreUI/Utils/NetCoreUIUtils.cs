@@ -15,8 +15,6 @@ namespace Advobot.NetCoreUI.Utils
 	/// </summary>
 	public static class NetCoreUIUtils
 	{
-		public static string AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
-
 		/// <summary>
 		/// Because <see cref="ReactiveUI.ReactiveCommand"/> implements this method explicitly.
 		/// </summary>

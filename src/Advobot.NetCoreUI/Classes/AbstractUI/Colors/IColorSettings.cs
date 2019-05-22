@@ -12,7 +12,7 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		/// <summary>
 		/// The active theme in the bot UI.
 		/// </summary>
-		ColorTheme Theme { get; set; }
+		ColorTheme ActiveTheme { get; set; }
 		/// <summary>
 		/// The user defined colors for <see cref="ColorTheme"/>.
 		/// </summary>

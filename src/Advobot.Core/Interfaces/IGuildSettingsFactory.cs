@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System;
 using System.Threading.Tasks;
 using Discord;
 
@@ -10,6 +9,11 @@ namespace Advobot.Interfaces
 	/// </summary>
 	public interface IGuildSettingsFactory
 	{
+		/// <summary>
+		/// The type of settings this factory is making.
+		/// </summary>
+		Type GuildSettingsType { get; }
+
 		/// <summary>
 		/// If the given guild is already in the module this will return its settings.
 		/// Otherwise it will create them, add them to the module, then return them.
@@ -24,28 +28,11 @@ namespace Advobot.Interfaces
 		/// <returns></returns>
 		Task RemoveAsync(ulong guildId);
 		/// <summary>
-		/// Returns all of the settings in the module.
-		/// </summary>
-		/// <returns></returns>
-		IEnumerable<IGuildSettings> GetAll();
-		/// <summary>
 		/// Attempts to get the guild settings with the passed in id.
 		/// </summary>
 		/// <param name="guildId"></param>
 		/// <param name="settings"></param>
 		/// <returns></returns>
 		bool TryGet(ulong guildId, out IGuildSettings settings);
-		/// <summary>
-		/// Checks if a guild has settings.
-		/// </summary>
-		/// <param name="guildId"></param>
-		/// <returns></returns>
-		bool Contains(ulong guildId);
-		/// <summary>
-		/// Returns the directory these files are stored in.
-		/// </summary>
-		/// <param name="accessor"></param>
-		/// <returns></returns>
-		DirectoryInfo GetDirectory(IBotDirectoryAccessor accessor);
 	}
 }

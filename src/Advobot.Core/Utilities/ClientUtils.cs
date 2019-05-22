@@ -14,7 +14,7 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class ClientUtils
 	{
-		private static ulong _BotOwnerId;
+		private static ulong? _BotOwnerId;
 
 		/// <summary>
 		/// Gets the id of the bot owner.
@@ -22,18 +22,24 @@ namespace Advobot.Utilities
 		/// <param name="client"></param>
 		/// <returns></returns>
 		public static async Task<ulong> GetOwnerIdAsync(this IDiscordClient client)
-			=> _BotOwnerId != 0 ? _BotOwnerId : (_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id);
+		{
+			if (!_BotOwnerId.HasValue)
+			{
+				_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id;
+			}
+			return _BotOwnerId.Value;
+		}
 		/// <summary>
-		/// Updates a given client's stream and game using settings from the <paramref name="botSettings"/> parameter.
+		/// Updates a given client's stream and game using settings from the <paramref name="settings"/> parameter.
 		/// </summary>
 		/// <param name="client">The client to update.</param>
-		/// <param name="botSettings">The information to update with.</param>
+		/// <param name="settings">The information to update with.</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static Task UpdateGameAsync(this BaseSocketClient client, IBotSettings botSettings)
+		public static Task UpdateGameAsync(this BaseSocketClient client, IBotSettings settings)
 		{
-			var game = botSettings.Game;
-			var stream = botSettings.Stream;
+			var game = settings.Game;
+			var stream = settings.Stream;
 			var activityType = ActivityType.Playing;
 			if (!string.IsNullOrWhiteSpace(stream))
 			{

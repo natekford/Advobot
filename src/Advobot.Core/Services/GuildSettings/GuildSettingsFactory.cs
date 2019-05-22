@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
 using AdvorangesUtils;
@@ -14,8 +12,11 @@ namespace Advobot.Services.GuildSettings
 	/// Handles guild setting creation and storage.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	internal sealed class GuildSettingsFactory<T> : IGuildSettingsFactory where T : class, IGuildSettings, new()
+	internal sealed class GuildSettingsFactory<T> : IGuildSettingsFactory where T : IGuildSettings
 	{
+		/// <inheritdoc />
+		public Type GuildSettingsType => typeof(T);
+
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
 		private readonly IBotSettings _Settings;
 
@@ -29,15 +30,6 @@ namespace Advobot.Services.GuildSettings
 		}
 
 		/// <inheritdoc />
-		public Task RemoveAsync(ulong guildId)
-		{
-			if (_GuildSettings.ContainsKey(guildId) && !_GuildSettings.TryRemove(guildId, out _))
-			{
-				ConsoleUtils.WriteLine($"Failed to remove {guildId} from the guild settings holder.", ConsoleColor.Yellow);
-			}
-			return Task.CompletedTask;
-		}
-		/// <inheritdoc />
 		public async Task<IGuildSettings> GetOrCreateAsync(IGuild guild)
 		{
 			if (_GuildSettings.TryGetValue(guild.Id, out var settings))
@@ -45,23 +37,25 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			var concrete = GuildSettings.Load(_Settings, guild.Id);
+			var concrete = GuildSettings.Load(_Settings, guild);
+			if (concrete == null)
+			{
+				concrete = new GuildSettings();
+				concrete.Save(_Settings);
+			}
+
 			await concrete.PostDeserializeAsync(guild).CAF();
-			concrete.Save(_Settings);
 			_GuildSettings.TryAdd(guild.Id, concrete);
 			return concrete;
 		}
 		/// <inheritdoc />
-		public IEnumerable<IGuildSettings> GetAll()
-			=> _GuildSettings.Values;
+		public Task RemoveAsync(ulong guildId)
+		{
+			_GuildSettings.TryRemove(guildId, out _);
+			return Task.CompletedTask;
+		}
 		/// <inheritdoc />
 		public bool TryGet(ulong guildId, out IGuildSettings settings)
 			=> _GuildSettings.TryGetValue(guildId, out settings);
-		/// <inheritdoc />
-		public bool Contains(ulong guildId)
-			=> _GuildSettings.ContainsKey(guildId);
-		/// <inheritdoc />
-		public DirectoryInfo GetDirectory(IBotDirectoryAccessor accessor)
-			=> new DirectoryInfo(Path.Combine(accessor.BaseBotDirectory.FullName, "GuildSettings"));
 	}
 }

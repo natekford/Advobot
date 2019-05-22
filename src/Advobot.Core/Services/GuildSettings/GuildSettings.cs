@@ -117,12 +117,14 @@ namespace Advobot.Services.GuildSettings
 		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public ulong GuildId { get; private set; }
+		public ulong GuildId => _Guild?.Id ?? 0;
+
+		private IGuild? _Guild;
 
 		/// <inheritdoc />
 		public async Task PostDeserializeAsync(IGuild guild)
 		{
-			GuildId = guild.Id;
+			_Guild = guild;
 			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
 			{
 				CachedInvites.Add(new CachedInvite(invite));
@@ -134,16 +136,16 @@ namespace Advobot.Services.GuildSettings
 		}
 		/// <inheritdoc />
 		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
-			=> GetFile(accessor, GuildId);
+			=> StaticGetFile(accessor, GuildId);
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettings"/> from file.
 		/// </summary>
 		/// <param name="accessor"></param>
-		/// <param name="guildId"></param>
+		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static GuildSettings Load(IBotDirectoryAccessor accessor, ulong guildId)
-			=> IOUtils.DeserializeFromFile<GuildSettings>(GetFile(accessor, guildId)) ?? new GuildSettings();
-		private static FileInfo GetFile(IBotDirectoryAccessor accessor, ulong guildId)
+		public static GuildSettings? Load(IBotDirectoryAccessor accessor, IGuild guild)
+			=> IOUtils.DeserializeFromFile<GuildSettings>(StaticGetFile(accessor, guild.Id));
+		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor, ulong guildId)
 			=> accessor.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
 	}
 }

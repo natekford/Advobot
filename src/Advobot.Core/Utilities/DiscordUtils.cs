@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
@@ -59,11 +60,12 @@ namespace Advobot.Utilities
 		/// <param name="position"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> ModifyRolePositionAsync(SocketRole role, int position, RequestOptions options)
+		public static async Task<int> ModifyRolePositionAsync(IRole role, int position, RequestOptions options)
 		{
 			//Make sure it's put at the highest a bot can edit, so no permission exception
+			var bot = await role.Guild.GetCurrentUserAsync().CAF();
 			var roles = role.Guild.Roles
-				.Where(x => x.Id != role.Id && x.Position < role.Guild.CurrentUser.Hierarchy)
+				.Where(x => x.Id != role.Id && bot.CanModify(x))
 				.OrderBy(x => x.Position)
 				.ToArray();
 			position = Math.Max(1, Math.Min(position, roles.Length));
@@ -87,7 +89,7 @@ namespace Advobot.Utilities
 				}
 			}
 
-			await role.Guild.ReorderRolesAsync(reorderProperties.Where(x => x != null), options).CAF();
+			await role.Guild.ReorderRolesAsync(reorderProperties, options).CAF();
 			return newPosition;
 		}
 		/// <summary>
@@ -97,11 +99,12 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static IReadOnlyCollection<Assembly> GetCommandAssemblies()
 		{
-			var unloadedAssemblies = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly)
+			var assemblies = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly)
 				.Where(x => Path.GetFileName(x).CaseInsContains("Commands"))
-				.Select(x => Assembly.LoadFrom(x));
-			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Concat(unloadedAssemblies)
-				.Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null).ToArray();
+				.Select(x => Assembly.LoadFrom(x))
+				.Concat(AppDomain.CurrentDomain.GetAssemblies())
+				.Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null)
+				.ToArray();
 			if (assemblies.Length > 0)
 			{
 				return assemblies;
@@ -135,7 +138,7 @@ namespace Advobot.Utilities
 		/// <param name="invites"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static async Task<CachedInvite?> GetInviteUserJoinedOnAsync(this IList<CachedInvite> invites, IGuildUser user)
+		public static async Task<CachedInvite?> GetInviteUserJoinedOnAsync(this ICollection<CachedInvite> invites, IGuildUser user)
 		{
 			//Bots join by being invited by admin, not through invites.
 			if (user.IsBot)
@@ -182,5 +185,22 @@ namespace Advobot.Utilities
 			}
 			return null;
 		}
+		/// <summary>
+		/// Gets an <see cref="ISnowflakeEntity"/> from a <see cref="ulong"/>.
+		/// </summary>
+		/// <param name="c"></param>
+		/// <param name="g"></param>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public static async Task<ISnowflakeEntity?> GetSnowflakeEntityAsync(IDiscordClient c, IGuild g, ulong id) => id switch
+		{
+			_ when g != null && g.Id == id => g,
+			_ when g != null && g.GetRole(id) is ISnowflakeEntity role => role,
+			_ when g != null && await g.GetChannelAsync(id).CAF() is ISnowflakeEntity channel => channel,
+			_ when g != null && await g.GetUserAsync(id).CAF() is ISnowflakeEntity user => user,
+			_ when c != null && await c.GetUserAsync(id).CAF() is ISnowflakeEntity user => user,
+			_ when c != null && await c.GetGuildAsync(id) is ISnowflakeEntity guild => guild,
+			_ => null,
+		};
 	}
 }

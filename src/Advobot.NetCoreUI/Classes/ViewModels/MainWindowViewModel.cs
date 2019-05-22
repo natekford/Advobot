@@ -92,7 +92,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public ICommand SaveOutputCommand { get; }
 		public ICommand OpenOutputSearchWindowCommand { get; }
 
-		private readonly DiscordShardedClient _Client;
+		private readonly BaseSocketClient _Client;
 		private readonly ILogService _LogService;
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
@@ -100,11 +100,11 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 
 		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
 		{
-			_Client = provider.GetRequiredService<DiscordShardedClient>();
+			_Client = provider.GetRequiredService<BaseSocketClient>();
 			_LogService = provider.GetRequiredService<ILogService>();
 			_BotSettings = provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = provider.GetRequiredService<IGuildSettingsFactory>();
-			_Colors = NetCoreColorSettings.Load<NetCoreColorSettings>(_BotSettings);
+			_Colors = NetCoreColorSettings.Load<NetCoreColorSettings>(_BotSettings) ?? new NetCoreColorSettings();
 
 			LogServiceViewModel = new LogServiceViewModel(_LogService);
 			BotSettingsViewModel = new BotSettingsViewModel(_BotSettings);
@@ -135,7 +135,8 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 
 		private bool GetMenuStatus([CallerMemberName] string caller = "")
 			=> _MenuStatuses.GetOrAdd(caller, false);
-		private void PrintOutput(string value) => Output += value;
+		private void PrintOutput(string value)
+			=> Output += value;
 		private void TakeInput()
 		{
 			ConsoleUtils.WriteLine(Input, name: "UIInput");
@@ -179,24 +180,19 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private async Task OpenFileSearchWindowAsync(Window window)
 		{
-			Type? GetDeserializationType(string fileName) => fileName switch
-			{
-				string str when str == _BotSettings.GetFile().FullName => _BotSettings.GetType(),
-				string str when str == _Colors.GetFile(_BotSettings).FullName => _Colors.GetType(),
-				string str when Path.GetDirectoryName(str) == _GuildSettings.GetDirectory(_BotSettings).FullName => _BotSettings.GetType(),
-				_ => null,
-			};
-
 			//Returns array of strings, but AllowMultiple is false so should only have 1 or 0
 			var file = (await new OpenFileDialog
 			{
 				InitialDirectory = _BotSettings.BaseBotDirectory.FullName,
 				Title = "Advobot - File Search",
+				AllowMultiple = false,
 			}.ShowAsync(window)).SingleOrDefault();
 			if (file != null)
 			{
-				var type = GetDeserializationType(file);
-				await new FileViewingWindow { DataContext = new FileViewingWindowViewModel(new FileInfo(file), type), }.ShowDialog(window);
+				await new FileViewingWindow
+				{
+					DataContext = new FileViewingWindowViewModel(new FileInfo(file), null),
+				}.ShowDialog(window);
 			}
 		}
 		private void SaveColorSettings()

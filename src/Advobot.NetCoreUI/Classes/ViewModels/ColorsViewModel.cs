@@ -11,8 +11,8 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 	{
 		public ColorTheme Theme
 		{
-			get => _Colors.Theme;
-			set => _Colors.Theme = value;
+			get => _Colors.ActiveTheme;
+			set => _Colors.ActiveTheme = value;
 		}
 		[ColorValidation]
 		public string BaseBackground
