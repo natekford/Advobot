@@ -28,11 +28,11 @@ namespace Advobot.Commands.Misc
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 			"If left blank will provide general help.")]
 		[EnabledByDefault(true, AbleToToggle = false)]
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public sealed class Help : AdvobotModuleBase
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 			public IHelpEntryService HelpEntries { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			[Command]
 			public Task<RuntimeResult> Command()
@@ -56,11 +56,11 @@ namespace Advobot.Commands.Misc
 		[Summary("Prints out the commands in that category of the command list. " +
 			"Inputting nothing will list the command categories.")]
 		[EnabledByDefault(true)]
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public sealed class Commands : AdvobotModuleBase
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 			public IHelpEntryService HelpEntries { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> All()

@@ -51,7 +51,7 @@ namespace Advobot.Commands.Responses
 				Description = BigBlock.FormatInterpolated($"{bans.Select((x, i) => $"{i.ToString().PadLeft(padLen, '0')}. {x.User}")}"),
 			});
 		}
-		public static AdvobotResult RemovedMessages(ITextChannel channel, IUser user, int deleted)
+		public static AdvobotResult RemovedMessages(ITextChannel channel, IUser? user, int deleted)
 		{
 			if (user == null)
 			{

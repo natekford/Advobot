@@ -48,7 +48,7 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 			//Make sure the file is not currently being used if it exists
 			if (file.Exists)
 			{
-				using (var fs = file.Open(System.IO.FileMode.Open, FileAccess.Read, FileShare.None)) { }
+				using var _ = file.Open(System.IO.FileMode.Open, FileAccess.Read, FileShare.None);
 			}
 			return new LiteDatabase(new ConnectionString
 			{

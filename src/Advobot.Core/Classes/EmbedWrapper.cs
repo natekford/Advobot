@@ -486,7 +486,7 @@ namespace Advobot.Classes
 		/// <param name="inline"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddField(string name, string value, bool inline, out List<EmbedError> errors)
+		public bool TryAddField(string? name, string? value, bool inline, out List<EmbedError> errors)
 		{
 			errors = new List<EmbedError>();
 			if (_Builder.Fields.Count >= EmbedBuilder.MaxFieldCount)
@@ -505,24 +505,24 @@ namespace Advobot.Classes
 			{
 				errors.Add(EmbedError.MaxLength(nameof(Fields), LINE_BREAKS, value, MAX_FIELD_LINES));
 			}
-			if (name.Length > EmbedFieldBuilder.MaxFieldNameLength)
+			if (name?.Length > EmbedFieldBuilder.MaxFieldNameLength)
 			{
 				errors.Add(EmbedError.MaxLength(nameof(Fields), nameof(EmbedFieldBuilder.Name), name, EmbedFieldBuilder.MaxFieldNameLength));
 			}
-			if (value.Length > EmbedFieldBuilder.MaxFieldValueLength)
+			if (value?.Length > EmbedFieldBuilder.MaxFieldValueLength)
 			{
 				errors.Add(EmbedError.MaxLength(nameof(Fields), nameof(EmbedFieldBuilder.Value), value, EmbedFieldBuilder.MaxFieldValueLength));
 			}
 			var remainingLen = GetRemainingLength(null);
-			if (name.Length > remainingLen)
+			if (name?.Length > remainingLen)
 			{
 				errors.Add(EmbedError.LengthRemaining(nameof(Fields), nameof(EmbedFieldBuilder.Name), name, remainingLen));
 			}
-			if (value.Length > remainingLen)
+			if (value?.Length > remainingLen)
 			{
 				errors.Add(EmbedError.LengthRemaining(nameof(Fields), nameof(EmbedFieldBuilder.Value), value, remainingLen));
 			}
-			if (name.Length + value.Length > remainingLen)
+			if (name?.Length + value?.Length > remainingLen)
 			{
 				errors.Add(EmbedError.LengthRemaining(nameof(Fields), nameof(EmbedBuilder.MaxEmbedLength), name + "\n" + value, remainingLen));
 			}
@@ -688,6 +688,6 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="wrapper"></param>
 		public static implicit operator Embed(EmbedWrapper wrapper)
-			=> wrapper?.Build();
+			=> wrapper.Build();
 	}
 }

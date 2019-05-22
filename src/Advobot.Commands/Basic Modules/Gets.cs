@@ -25,11 +25,11 @@ namespace Advobot.Commands
 		[Summary("Shows information about the given object. " +
 			"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[EnabledByDefault(true)]
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public sealed class GetInfo : AdvobotModuleBase
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 			public ILogService Logging { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Bot()

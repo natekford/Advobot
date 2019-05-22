@@ -17,9 +17,9 @@ namespace Advobot.Services.HelpEntries
 	internal sealed class HelpEntryService : IHelpEntryService
 	{
 		//Maps the name and aliases of a command to the name
-		private Dictionary<string, string> _NameMap { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		private readonly Dictionary<string, string> _NameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		//Maps the name to the helpentry
-		private Dictionary<string, HelpEntry> _Source { get; } = new Dictionary<string, HelpEntry>(StringComparer.OrdinalIgnoreCase);
+		private readonly Dictionary<string, HelpEntry> _Source = new Dictionary<string, HelpEntry>(StringComparer.OrdinalIgnoreCase);
 
 		/// <inheritdoc />
 		public IHelpEntry? this[string name]
@@ -109,36 +109,35 @@ namespace Advobot.Services.HelpEntries
 		private bool IsCommand(IEnumerable<Attribute> attrs)
 			=> attrs.Any(x => x is EnabledByDefaultAttribute);
 		[Conditional("DEBUG")]
-		private void VerifyCommandType(Type type)
+		private void VerifyCommandType(Type t)
 		{
 			var flags = BindingFlags.Instance | BindingFlags.Public;
-			var nestedAliases = type.GetNestedTypes(flags).Select(x => x.GetCustomAttribute<AliasAttribute>()?.Aliases);
-			var methodAliases = type.GetMethods(flags).Select(x => x.GetCustomAttribute<AliasAttribute>()?.Aliases);
-
-			VerifyAllAliasesAreDifferent(type.FullName, nestedAliases, methodAliases);
-			if (type.IsNested)
+			var nested = GetAliases(t.GetNestedTypes(flags), x => x.GetCustomAttribute<AliasAttribute>());
+			var method = GetAliases(t.GetMethods(flags), x => x.GetCustomAttribute<AliasAttribute>());
+			VerifyAllAliasesAreDifferent(t.FullName, nested, method);
+			if (t.IsNested)
 			{
 				return;
 			}
 
 			//Make sure is public
-			if (type.IsNotPublic)
+			if (t.IsNotPublic)
 			{
-				throw new InvalidOperationException($"{type.FullName} is not public and commands will not execute from it.");
+				throw new InvalidOperationException($"{t.FullName} is not public and commands will not execute from it.");
 			}
 			//Make sure no commands are unmarked
-			var methods = type.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
+			var methods = t.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
 			if (methods.Any(x => x.GetCustomAttribute<CommandAttribute>() == null))
 			{
-				throw new InvalidOperationException($"{type.FullName} has a command missing the command attribute.");
+				throw new InvalidOperationException($"{t.FullName} has a command missing the command attribute.");
 			}
 		}
 		[Conditional("DEBUG")]
-		private void VerifyCommandModule(ModuleInfo module)
+		private void VerifyCommandModule(ModuleInfo m)
 		{
-			var nestedAliases = module.Submodules.Select(x => x.Attributes.GetAttribute<AliasAttribute>()?.Aliases);
-			var methodAliases = module.Commands.Select(x => x.Attributes.GetAttribute<AliasAttribute>()?.Aliases);
-			VerifyAllAliasesAreDifferent(module.Name, nestedAliases, methodAliases);
+			var nested = GetAliases(m.Submodules, x => x.Attributes.GetAttribute<AliasAttribute>());
+			var method = GetAliases(m.Commands, x => x.Attributes.GetAttribute<AliasAttribute>());
+			VerifyAllAliasesAreDifferent(m.Name, nested, method);
 		}
 		[Conditional("DEBUG")]
 		private void VerifyAllAliasesAreDifferent(string name, IEnumerable<string[]> nestedAliases, IEnumerable<string[]> methodAliases)
@@ -153,6 +152,17 @@ namespace Advobot.Services.HelpEntries
 					{
 						throw new InvalidOperationException($"The following aliases in {name} have conflicts: {string.Join(" + ", intersected)}");
 					}
+				}
+			}
+		}
+		private static IEnumerable<string[]> GetAliases<T>(IReadOnlyCollection<T> source, Func<T, AliasAttribute?> getAlias)
+		{
+			foreach (var obj in source)
+			{
+				var aliasAttr = getAlias(obj);
+				if (aliasAttr != null)
+				{
+					yield return aliasAttr.Aliases;
 				}
 			}
 		}

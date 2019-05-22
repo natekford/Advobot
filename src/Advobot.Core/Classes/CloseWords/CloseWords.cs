@@ -79,7 +79,7 @@ namespace Advobot.Classes.CloseWords
 		/// <returns></returns>
 		public static int FindCloseness(string source, string target, int threshold = 10)
 		{
-			void Swap<T2>(ref T2 arg1, ref T2 arg2)
+			static void Swap<T2>(ref T2 arg1, ref T2 arg2)
 			{
 				var temp = arg1;
 				arg1 = arg2;
@@ -112,7 +112,7 @@ namespace Advobot.Classes.CloseWords
 
 			for (var i = 0; i <= maxi; i++) { dCurrent[i] = i; }
 
-			int jm1 = 0, im1 = 0, im2 = -1;
+			int jm1 = 0, im1, im2;
 
 			for (var j = 1; j <= maxj; j++)
 			{

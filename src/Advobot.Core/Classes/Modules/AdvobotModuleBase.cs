@@ -16,9 +16,7 @@ namespace Advobot.Classes.Modules
 	/// </summary>
 	[RequireCommandEnabled]
 	[RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	{
 		/// <summary>
 		/// Attempts to parse a value from a message.
@@ -37,11 +35,15 @@ namespace Advobot.Classes.Modules
 		/// <summary>
 		/// The timers to use for deleting messages and other things.
 		/// </summary>
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public ITimerService Timers { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 		/// <summary>
 		/// The settings for the bot.
 		/// </summary>
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public IBotSettings BotSettings { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 		/// <summary>
 		/// Uses user input to get the item at a specified index. This is blocking.
@@ -55,9 +57,9 @@ namespace Advobot.Classes.Modules
 			var message = await ReplyAsync($"Did you mean any of the following:\n{source.FormatNumberedList(format)}").CAF();
 			var index = await NextIndexAsync(0, source.Count - 1).CAF();
 			await message.DeleteAsync(GenerateRequestOptions()).CAF();
-#pragma warning disable CS8603 // Possible null reference return.
+#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
 			return index != null ? source[index.Value] : default;
-#pragma warning restore CS8603 // Possible null reference return.
+#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
 		}
 		/// <summary>
 		/// Gets the next valid index supplied by the user. This is blocking.
@@ -110,9 +112,9 @@ namespace Advobot.Classes.Modules
 			var task = await Task.WhenAny(trigger, delay).CAF();
 			Context.Client.MessageReceived -= Handler;
 
-#pragma warning disable CS8603 // Possible null reference return.
+#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
 			return task == trigger ? await trigger.CAF() : default;
-#pragma warning restore CS8603 // Possible null reference return.
+#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
 		}
 		/// <summary>
 		/// Gets the main prefix to use in this module.

@@ -73,14 +73,13 @@ namespace Advobot.Utilities
 				//If the file name and text exists, then attempt to send as a file instead of message
 				if (!string.IsNullOrWhiteSpace(textFile.Name) && !string.IsNullOrWhiteSpace(textFile.Text))
 				{
-					using (var stream = new MemoryStream())
-					using (var writer = new StreamWriter(stream))
-					{
-						writer.Write(textFile.Text.Trim());
-						writer.Flush();
-						stream.Seek(0, SeekOrigin.Begin);
-						return channel.SendFileAsync(stream, textFile.Name, content, embed: embedWrapper?.Build());
-					}
+					using var stream = new MemoryStream();
+					using var writer = new StreamWriter(stream);
+
+					writer.Write(textFile.Text.Trim());
+					writer.Flush();
+					stream.Seek(0, SeekOrigin.Begin);
+					return channel.SendFileAsync(stream, textFile.Name, content, embed: embedWrapper?.Build());
 				}
 				return channel.SendMessageAsync(content, embed: embedWrapper?.Build());
 			}

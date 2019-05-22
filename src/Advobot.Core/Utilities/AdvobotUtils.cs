@@ -72,9 +72,9 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static bool TryGetFirst<T>(this IEnumerable<T> source, Func<T, bool> predicate, out T found)
 		{
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
 			found = default;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
 			foreach (var item in source)
 			{
 				if (predicate(item))
@@ -95,9 +95,9 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static bool TryGetSingle<T>(this IEnumerable<T> source, Func<T, bool> predicate, out T found)
 		{
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
 			found = default;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
 			var matched = false;
 			foreach (var item in source)
 			{

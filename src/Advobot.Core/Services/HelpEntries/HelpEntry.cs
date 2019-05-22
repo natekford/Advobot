@@ -41,10 +41,8 @@ namespace Advobot.Services.HelpEntries
 		/// <param name="type"></param>
 		public HelpEntry(Type type)
 		{
-			Type GetParentType(Type t)
-			{
-				return t.DeclaringType == null ? t : GetParentType(t.DeclaringType);
-			}
+			static Type GetParentType(Type t)
+				=> t.DeclaringType == null ? t : GetParentType(t.DeclaringType);
 
 			var attrs = type.GetCustomAttributes();
 			var parent = GetParentType(type);
@@ -63,10 +61,8 @@ namespace Advobot.Services.HelpEntries
 		/// <param name="module"></param>
 		public HelpEntry(ModuleInfo module)
 		{
-			ModuleInfo GetParentModule(ModuleInfo m)
-			{
-				return m.Parent == null ? m : GetParentModule(m.Parent);
-			}
+			static ModuleInfo GetParentModule(ModuleInfo m)
+				=> m.Parent == null ? m : GetParentModule(m.Parent);
 
 			var attrs = module.Attributes;
 			var parent = GetParentModule(module);

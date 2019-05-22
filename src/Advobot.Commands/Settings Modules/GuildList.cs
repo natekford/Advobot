@@ -14,11 +14,11 @@ using Discord.Commands;
 
 namespace Advobot.Commands
 {
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 	public abstract class AdvobotGuildListingModule : AdvobotModuleBase
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public IInviteListService Invites { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 
 

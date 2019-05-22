@@ -27,7 +27,7 @@ namespace Advobot.Utilities
 			IWebhook webhook => webhook.Format(),
 			IInviteMetadata invite => invite.Format(),
 			IEmote emote => emote.Format(),
-			_ => obj?.ToString(),
+			_ => obj.ToString(),
 		};
 		/// <summary>
 		/// Returns a string with the user's name, discriminator and id.

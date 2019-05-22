@@ -116,12 +116,11 @@ namespace Advobot.NetCoreUI.Classes.Colors
 		}
 		private static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
 		{
-			using (var r = new XmlTextReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(loc))
-				?? throw new InvalidOperationException($"{loc} is missing."))
-			{
-				var highlighting = HighlightingLoader.Load(r, HighlightingManager.Instance);
-				HighlightingManager.Inst‌​ance.RegisterHighlighting(name, extensions, highlighting);
-			}
+			using var s = Assembly.GetExecutingAssembly().GetManifestResourceStream(loc);
+			using var r = new XmlTextReader(s) ?? throw new InvalidOperationException($"{loc} is missing.");
+
+			var highlighting = HighlightingLoader.Load(r, HighlightingManager.Instance);
+			HighlightingManager.Inst‌​ance.RegisterHighlighting(name, extensions, highlighting);
 		}
 	}
 }

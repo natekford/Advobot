@@ -18,7 +18,7 @@ namespace Advobot.Commands.Responses
 
 		public static AdvobotResult Bot(DiscordShardedClient client, ILogService logging)
 		{
-			string FormatLogCounters(ILogCounter[] counters)
+			static string FormatLogCounters(ILogCounter[] counters)
 			{
 				var titlesAndCount = new (string Title, string Count)[counters.Length];
 				var right = 0;
@@ -33,7 +33,9 @@ namespace Advobot.Commands.Responses
 				}
 
 				var sb = new StringBuilder();
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 				foreach (var (Title, Count) in titlesAndCount)
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 				{
 					sb.AppendLineFeed($"{Title.PadRight(Math.Max(right + 1, 0))}{Count.PadLeft(Math.Max(left, 0))}");
 				}

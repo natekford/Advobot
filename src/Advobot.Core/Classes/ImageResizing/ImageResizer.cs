@@ -237,29 +237,28 @@ namespace Advobot.Classes.ImageResizing
 				FileName = _FfmpegLocation,
 				Arguments = $@"-f mp4 -i \\.\pipe\{Name} -ss {args.UserArgs.StartInSeconds} -t {args.UserArgs.LengthInSeconds} -vf fps=12,scale=256:256 -f gif pipe:1",
 			};
-			using (var process = new Process { StartInfo = info, })
+			using var process = new Process { StartInfo = info, };
 			//Have to use this pipe and not StandardInput b/c StandardInput hangs
-			using (var inPipe = new NamedPipeServerStream(Name, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, (int)ms.Length, (int)ms.Length))
-			{
-				process.Start();
+			using var inPipe = new NamedPipeServerStream(Name, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, (int)ms.Length, (int)ms.Length);
 
-				//Make sure the pipe is connected
-				await inPipe.WaitForConnectionAsync().CAF();
-				//Make sure to start at the beginning of the data to not get a "moov atom not found" error
-				ms.Seek(0, SeekOrigin.Begin);
-				await ms.CopyToAsync(inPipe).CAF();
-				//Flush and close, otherwise hangs
-				inPipe.Flush();
-				inPipe.Close();
+			process.Start();
 
-				//Clear and overwrite
-				ms.SetLength(0);
-				await process.StandardOutput.BaseStream.CopyToAsync(ms).CAF();
-			}
+			//Make sure the pipe is connected
+			await inPipe.WaitForConnectionAsync().CAF();
+			//Make sure to start at the beginning of the data to not get a "moov atom not found" error
+			ms.Seek(0, SeekOrigin.Begin);
+			await ms.CopyToAsync(inPipe).CAF();
+			//Flush and close, otherwise hangs
+			inPipe.Flush();
+			inPipe.Close();
+
+			//Clear and overwrite
+			ms.SetLength(0);
+			await process.StandardOutput.BaseStream.CopyToAsync(ms).CAF();
 		}
 		private static bool ResizeFile(MemoryStream ms, IImageArgs args, MagickFormat format, out int width, out int height)
 		{
-			MagickGeometry CreateGeo(IMagickImage image, double shrink, out int w, out int h)
+			static MagickGeometry CreateGeo(IMagickImage image, double shrink, out int w, out int h)
 			{
 				return new MagickGeometry
 				{
@@ -268,9 +267,9 @@ namespace Advobot.Classes.ImageResizing
 					Height = h = (int)Math.Min(128, image.Height / shrink),
 				};
 			}
-			void Overwrite(Action<MemoryStream> func, MemoryStream stream)
+			static void Overwrite(Action<MemoryStream> func, MemoryStream stream)
 			{
-				stream.SetLength(0);
+				stream.Position = 0;
 				func(stream);
 			}
 

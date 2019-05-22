@@ -118,7 +118,9 @@ namespace Advobot.Classes
 		private string JoinFormattedSettings(IEnumerable<(string Name, string FormattedValue)> settings)
 		{
 			var sb = new StringBuilder();
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 			foreach (var (Name, FormattedValue) in settings)
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 			{
 				if (string.IsNullOrWhiteSpace(FormattedValue))
 				{
@@ -147,26 +149,22 @@ namespace Advobot.Classes
 		private async Task<string> FormatAsync(IDiscordClient client, IGuild guild, object? value) => value switch
 		{
 			object obj when IsCommonFormatting(obj, out var s) => s,
-			ulong id when await guild?.GetChannelAsync(id) is IChannel tempChannel => $"`{tempChannel.Format()}`",
-			ulong id when guild?.GetRole(id) is IRole tempRole => $"`{tempRole.Format()}`",
-			ulong id when await guild?.GetUserAsync(id) is IUser tempUser => $"`{tempUser.Format()}`",
-			ulong id when await client?.GetUserAsync(id) is IUser tempUser => $"`{tempUser.Format()}`",
-			ulong id when await client?.GetGuildAsync(id) is IGuild tempGuild => $"`{tempGuild.Format()}`",
+			ulong id when await DiscordUtils.GetSnowflakeEntityAsync(client, guild, id) is ISnowflakeEntity snowflake => $"`{snowflake.Format()}`",
 			//IGuildFormattable formattable => formattable.Format(guild),
 			IDictionary dict => await FormatDictionaryAsync(dict, client, guild).CAF(),
 			IEnumerable enumerable => await FormatEnumerableAsync(enumerable, client, guild).CAF(),
 			_ => $"`{value}`",
 		};
-		private bool IsCommonFormatting(object? value, out string? response)
+		private bool IsCommonFormatting(object? value, out string response)
 		{
 			response = value switch
 			{
 				null => "`Nothing`",
 				string s => string.IsNullOrWhiteSpace(s) ? "`Nothing`" : $"`{s}`",
 				MemberInfo _ => throw new ArgumentException($"{nameof(value)} must not be a {nameof(MemberInfo)}."),
-				_ => null,
+				_ => "",
 			};
-			return response != null;
+			return !string.IsNullOrEmpty(response);
 		}
 		private async Task<string> FormatDictionaryAsync(IDictionary dict, IDiscordClient client, IGuild guild)
 		{

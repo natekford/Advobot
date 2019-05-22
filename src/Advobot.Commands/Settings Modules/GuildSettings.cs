@@ -184,11 +184,11 @@ namespace Advobot.Commands
 			"If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true, AbleToToggle = false)]
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public sealed class ModifyIgnoredCommandChannels : AdvobotSettingsModuleBase<IGuildSettings>
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 			public IHelpEntryService HelpEntries { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			protected override IGuildSettings Settings => Context.GuildSettings;
 			//protected override string SettingName => nameof(IGuildSettings.IgnoredCommandChannels);

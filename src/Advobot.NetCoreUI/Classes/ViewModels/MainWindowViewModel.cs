@@ -72,7 +72,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public bool OpenInfoMenu => GetMenuStatus();
 		public bool OpenColorsMenu => GetMenuStatus();
 		public bool OpenSettingsMenu => GetMenuStatus();
-		private ConcurrentDictionary<string, bool> _MenuStatuses { get; } = new ConcurrentDictionary<string, bool>();
+		private readonly ConcurrentDictionary<string, bool> _MenuStatuses = new ConcurrentDictionary<string, bool>();
 
 		public IObservable<string> Uptime { get; }
 		public IObservable<string> Latency { get; }
@@ -95,7 +95,6 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		private readonly BaseSocketClient _Client;
 		private readonly ILogService _LogService;
 		private readonly IBotSettings _BotSettings;
-		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IColorSettings<ISolidColorBrush> _Colors;
 
 		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
@@ -103,7 +102,6 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			_Client = provider.GetRequiredService<BaseSocketClient>();
 			_LogService = provider.GetRequiredService<ILogService>();
 			_BotSettings = provider.GetRequiredService<IBotSettings>();
-			_GuildSettings = provider.GetRequiredService<IGuildSettingsFactory>();
 			_Colors = NetCoreColorSettings.Load<NetCoreColorSettings>(_BotSettings) ?? new NetCoreColorSettings();
 
 			LogServiceViewModel = new LogServiceViewModel(_LogService);

@@ -319,7 +319,7 @@ namespace Advobot.Commands
 				var startMsg = thisChannel ? Context.Message : (await channel.GetMessagesAsync(1).FlattenAsync().CAF()).FirstOrDefault();
 
 				//If there is a non null user then delete messages specifically from that user
-				var predicate = user == null ? default(Func<IMessage, bool>) : x => x.Author.Id == user.Id;
+				var predicate = user == null ? default(Func<IMessage, bool>) : x => x.Author.Id == user?.Id;
 				var deletedAmt = await MessageUtils.DeleteMessagesAsync(channel, startMsg, requestCount, GenerateRequestOptions(), predicate).CAF();
 
 				//If the context channel isn't the targetted channel then delete the start message
@@ -369,7 +369,7 @@ namespace Advobot.Commands
 
 			private async Task<RuntimeResult> CommandRunner(IRole role, bool bypass, Func<IGuildUser, Task> update)
 			{
-				string CreateResult(MultiUserActionProgressArgs i) => Responses.Users.MultiUserAction(i.AmountLeft).Reason;
+				static string CreateResult(MultiUserActionProgressArgs i) => Responses.Users.MultiUserAction(i.AmountLeft).Reason;
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, CreateResult, GenerateRequestOptions());
 
 				var amountChanged = await ProcessAsync(bypass, u => u.RoleIds.Contains(role.Id), update).CAF();
