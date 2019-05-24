@@ -16,7 +16,7 @@ namespace Advobot.Classes.CloseWords
 		/// <summary>
 		/// What to search through.
 		/// </summary>
-		protected ImmutableArray<T> Source { get; }
+		protected IReadOnlyCollection<T> Source { get; }
 		/// <summary>
 		/// How similar a string has to be to match.
 		/// </summary>
@@ -44,7 +44,7 @@ namespace Advobot.Classes.CloseWords
 		/// </summary>
 		/// <param name="search"></param>
 		/// <returns></returns>
-		public ImmutableArray<CloseWord<T>> FindMatches(string search)
+		public IReadOnlyCollection<CloseWord<T>> FindMatches(string search)
 		{
 			var list = new List<CloseWord<T>>();
 			foreach (var item in Source)
@@ -54,7 +54,7 @@ namespace Advobot.Classes.CloseWords
 					list.Add(closeWord);
 				}
 			}
-			return list.OrderBy(x => x.Closeness).ThenBy(x => x.Name.Length).Take(MaxOutput).ToImmutableArray();
+			return list.OrderBy(x => x.Closeness).ThenBy(x => x.Name.Length).Take(MaxOutput).ToArray();
 		}
 		/// <summary>
 		/// Determines whether this is a close word.

@@ -1,6 +1,6 @@
-﻿using Advobot.Enums;
-using Advobot.Interfaces;
-using Discord.WebSocket;
+﻿using Advobot.Classes.Formatting;
+using Advobot.Enums;
+using Discord;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes.Settings
@@ -53,20 +53,23 @@ namespace Advobot.Classes.Settings
 		/// <param name="role"></param>
 		/// <param name="removes"></param>
 		/// <param name="time"></param>
-		public BannedPhrasePunishment(SocketRole role, int removes, int time) : this(Punishment.RoleMute, removes, time)
+		public BannedPhrasePunishment(IRole role, int removes, int time)
+			: this(Punishment.RoleMute, removes, time)
 		{
 			RoleId = role.Id;
 		}
 
 		/// <inheritdoc />
-		public string Format(SocketGuild? guild = null)
+		public IDiscordFormattableString GetFormattableString()
 		{
-			var punishment = RoleId == 0 ? Punishment.ToString() : guild?.GetRole(RoleId)?.Name ?? RoleId.ToString();
-			var time = Time <= 0 ? "" : $" `{Time} minutes`";
-			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
+			var numRemoves = NumberOfRemoves.ToString("00");
+			var punishment = RoleId == 0 ? Punishment : (object)RoleId;
+			var output = new DiscordFormattableStringCollection($"{numRemoves}: {punishment}");
+			if (Time > 0)
+			{
+				output.Add($" ({Time}M)");
+			}
+			return output;
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> Format();
 	}
 }

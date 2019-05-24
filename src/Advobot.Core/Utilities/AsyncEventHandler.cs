@@ -41,7 +41,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task InvokeAsync<T>(this AsyncEventHandler<T> handler, object sender, T e) where T : EventArgs
 		{
-			//Invoke sequentially instead of all at once just in case
+			//Invoke sequentially instead of all at once
 			foreach (var h in handler.GetHandlers())
 			{
 				await h.Invoke(sender, e).CAF();

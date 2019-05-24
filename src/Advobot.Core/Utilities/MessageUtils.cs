@@ -27,7 +27,7 @@ namespace Advobot.Utilities
 		/// </param>
 		/// <returns></returns>
 		[Obsolete]
-		public static Task<IUserMessage?> SendMessageAsync(
+		public static Task<IUserMessage> SendMessageAsync(
 			IMessageChannel channel,
 			string? content = null,
 			EmbedWrapper? embedWrapper = null,
@@ -40,7 +40,7 @@ namespace Advobot.Utilities
 			}
 			if (content == null && embedWrapper == null && textFile == null)
 			{
-				throw new ArgumentNullException($"Input ({nameof(content)}, {nameof(embedWrapper)}, or {nameof(textFile)} must have a value)");
+				throw new ArgumentNullException($"{nameof(content)}, {nameof(embedWrapper)}, or {nameof(textFile)} must have a value.");
 			}
 
 			textFile ??= new TextFileInfo();
@@ -115,16 +115,8 @@ namespace Advobot.Utilities
 				}
 				fromMessage = messages.Last();
 
-				IMessage[] cutMessages;
-				if (predicate != null)
-				{
-					cutMessages = messages.Where(predicate).Take(count).ToArray();
-				}
-				else
-				{
-					cutMessages = new IMessage[Math.Min(count, messages.Length)];
-					Array.Copy(messages, cutMessages, cutMessages.Length);
-				}
+				var filteredMessages = predicate == null ? messages : messages.Where(predicate);
+				var cutMessages = filteredMessages.Take(count).ToArray();
 
 				//If less messages are deleted than gathered, that means there are some that are too old meaning we can stop
 				var deletedThisIteration = await DeleteMessagesAsync(channel, cutMessages, options).CAF();
@@ -146,23 +138,23 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, RequestOptions? options)
 		{
-			var validMessages = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14).ToArray();
-			if (validMessages.Length == 0)
+			var m = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14).ToArray();
+			if (m.Length == 0)
 			{
 				return 0;
 			}
 
 			try
 			{
-				if (validMessages.Length == 1)
+				if (m.Length == 1)
 				{
-					await validMessages[0].DeleteAsync(options).CAF();
+					await m[0].DeleteAsync(options).CAF();
 				}
 				else
 				{
-					await channel.DeleteMessagesAsync(validMessages, options).CAF();
+					await channel.DeleteMessagesAsync(m, options).CAF();
 				}
-				return validMessages.Length;
+				return m.Length;
 			}
 			catch
 			{

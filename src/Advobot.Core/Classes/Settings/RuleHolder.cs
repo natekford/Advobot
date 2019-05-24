@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Advobot.Interfaces;
 using AdvorangesUtils;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes.Settings
@@ -11,13 +9,13 @@ namespace Advobot.Classes.Settings
 	/// <summary>
 	/// Holds rules on a guild.
 	/// </summary>
-	public sealed class RuleHolder : IGuildFormattable
+	public sealed class RuleHolder
 	{
 		/// <summary>
 		/// Holds the categories for rules which in turn hold the rules.
 		/// </summary>
 		[JsonProperty]
-		public Dictionary<string, List<string>> Categories = new Dictionary<string, List<string>>();
+		public Dictionary<string, List<string>> Categories { get; set; } = new Dictionary<string, List<string>>();
 
 		/// <summary>
 		/// Sends the rules to the specified channel.
@@ -32,16 +30,16 @@ namespace Advobot.Classes.Settings
 				return SplitFormattedCategoryIntoValidParts(ToString(formatter, category)).ToArray();
 			}
 
-			var formattedCategories = Categories.Select(x => ToString(formatter, x.Key)).ToArray();
-			var formattedRules = string.Join("\n", formattedCategories);
+			var categories = Categories.Select(x => ToString(formatter, x.Key));
+			var rules = categories.Join("\n");
 			//If all of the rules can be sent in one message, do that.
-			if (!string.IsNullOrWhiteSpace(formattedRules) && formattedRules.Length <= 2000)
+			if (rules?.Length <= 2000)
 			{
-				return new[] { formattedRules };
+				return new[] { rules };
 			}
 
 			//If not, go by category
-			return formattedCategories.SelectMany(x => SplitFormattedCategoryIntoValidParts(x)).ToArray();
+			return categories.SelectMany(x => SplitFormattedCategoryIntoValidParts(x)).ToArray();
 		}
 		private IEnumerable<string> SplitFormattedCategoryIntoValidParts(string formattedCategory)
 		{
@@ -78,9 +76,6 @@ namespace Advobot.Classes.Settings
 		/// <inheritdoc />
 		public override string ToString()
 			=> ToString(new RuleFormatter());
-		/// <inheritdoc />
-		public string Format(SocketGuild? guild = null)
-			=> ToString();
 		/// <summary>
 		/// Uses the specified rule formatter to format every rule category.
 		/// </summary>
@@ -89,15 +84,13 @@ namespace Advobot.Classes.Settings
 		public string ToString(RuleFormatter formatter)
 		{
 			var sb = new StringBuilder();
-			var index = 0;
-			foreach (var kvp in Categories)
+			var categoryIndex = 0;
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+			foreach (var (Category, Rules) in Categories)
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 			{
-				sb.AppendLineFeed(formatter.FormatName(kvp.Key));
-				for (var r = 0; r < kvp.Value.Count; ++r)
-				{
-					sb.AppendLineFeed(formatter.FormatRule(kvp.Value[r], r, kvp.Value.Count));
-				}
-				++index;
+				AppendCategory(formatter, sb, Rules, Category);
+				++categoryIndex;
 			}
 			return sb.ToString();
 		}
@@ -109,14 +102,17 @@ namespace Advobot.Classes.Settings
 		/// <returns></returns>
 		public string ToString(RuleFormatter formatter, string category)
 		{
-			var c = Categories[category];
 			var sb = new StringBuilder();
-			sb.AppendLineFeed(formatter.FormatName(category));
-			for (var r = 0; r < c.Count; ++r)
-			{
-				sb.AppendLineFeed(formatter.FormatRule(c[r], r, c.Count));
-			}
+			AppendCategory(formatter, sb, Categories[category], category);
 			return sb.ToString();
+		}
+		private void AppendCategory(RuleFormatter formatter, StringBuilder sb, IList<string> rules, string name)
+		{
+			sb.AppendLineFeed(formatter.FormatName(name));
+			for (var i = 0; i < rules.Count; ++i)
+			{
+				sb.AppendLineFeed(formatter.FormatRule(rules[i], i, rules.Count));
+			}
 		}
 	}
 }

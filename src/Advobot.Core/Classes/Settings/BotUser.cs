@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
+using Advobot.Classes.Formatting;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes.Settings
@@ -84,14 +83,15 @@ namespace Advobot.Classes.Settings
 		/// <returns></returns>
 		public IEnumerable<string> ModifyPermissions(bool add, IGuildUser invoker, ulong flags)
 			=> add ? AddPermissions(invoker, flags) : RemovePermissions(invoker, flags);
+
 		/// <inheritdoc />
-		public string Format(SocketGuild? guild = null)
+		public IDiscordFormattableString GetFormattableString()
 		{
-			var user = guild?.GetUser(UserId)?.Format() ?? UserId.ToString();
-			return $"**User:** `{user}`\n**Permissions:** `{Permissions}`";
+			return new Dictionary<string, object>
+			{
+				{ "User", UserId },
+				{ "Permissions", (GuildPermission)Permissions },
+			}.ToDiscordFormattableStringCollection();
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> Format();
 	}
 }

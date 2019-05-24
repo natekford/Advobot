@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using Advobot.Classes.Formatting;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes
@@ -38,46 +33,27 @@ namespace Advobot.Classes
 		}
 
 		/// <inheritdoc />
-		public string Format(BaseSocketClient client, SocketGuild guild)
+		public IDiscordFormattableString Format()
 		{
-			var settings = _Settings.Select(x => (x.Key, FormatValue(client, guild, x.Value.GetValue(this))));
-			return JoinFormattedSettings(settings);
-		}
-		/// <inheritdoc />
-		public string FormatSetting(BaseSocketClient client, SocketGuild guild, string name)
-			=> FormatValue(client, guild, _Settings[name].GetValue(this));
-		/// <inheritdoc />
-		public string FormatValue(BaseSocketClient client, SocketGuild guild, object? value)
-			=> Format(client, guild, value);
-		/// <inheritdoc />
-		public async Task<string> FormatAsync(IDiscordClient client, IGuild guild)
-		{
-			if (client is BaseSocketClient socketClient && guild is SocketGuild socketGuild)
+			var settings = _Settings.Select(x => (x.Key, FormatValue(x.Value.GetValue(this))));
+			var formattable = new DiscordFormattableStringCollection();
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+			foreach (var (Name, FormattedValue) in settings)
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 			{
-				return Format(socketClient, socketGuild);
+				if (FormattedValue != null)
+				{
+					formattable.Add($"{Name.AsTitle()}\n{FormattedValue.NoFormatting()}\n\n");
+				}
 			}
-			var tasks = _Settings.Select(async x => (x.Key, await FormatValueAsync(client, guild, x.Value.GetValue(this)).CAF()));
-			var settings = await Task.WhenAll(tasks).CAF();
-			return JoinFormattedSettings(settings);
+			return formattable;
 		}
 		/// <inheritdoc />
-		public Task<string> FormatSettingAsync(IDiscordClient client, IGuild guild, string name)
-		{
-			if (client is BaseSocketClient socketClient && guild is SocketGuild socketGuild)
-			{
-				return Task.FromResult(FormatSetting(socketClient, socketGuild, name));
-			}
-			return FormatValueAsync(client, guild, _Settings[name].GetValue(this));
-		}
+		public IDiscordFormattableString FormatSetting(string name)
+			=> FormatValue(_Settings[name].GetValue(this));
 		/// <inheritdoc />
-		public Task<string> FormatValueAsync(IDiscordClient client, IGuild guild, object? value)
-		{
-			if (client is BaseSocketClient socketClient && guild is SocketGuild socketGuild)
-			{
-				return Task.FromResult(FormatValue(socketClient, socketGuild, value));
-			}
-			return FormatAsync(client, guild, value);
-		}
+		public IDiscordFormattableString FormatValue(object? value)
+			=> new DiscordFormattableString($"{value}");
 		/// <inheritdoc />
 		public void Save(IBotDirectoryAccessor accessor)
 			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
@@ -114,76 +90,6 @@ namespace Advobot.Classes
 			}
 			field = value;
 			RaisePropertyChanged(caller);
-		}
-		private string JoinFormattedSettings(IEnumerable<(string Name, string FormattedValue)> settings)
-		{
-			var sb = new StringBuilder();
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-			foreach (var (Name, FormattedValue) in settings)
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
-			{
-				if (string.IsNullOrWhiteSpace(FormattedValue))
-				{
-					continue;
-				}
-
-				sb.AppendLineFeed($"**{Name.FormatTitle()}**:");
-				sb.AppendLineFeed(FormattedValue);
-				sb.AppendLineFeed();
-			}
-			return sb.ToString();
-		}
-		private string Format(BaseSocketClient client, SocketGuild guild, object? value) => value switch
-		{
-			object obj when IsCommonFormatting(obj, out var s) => s,
-			ulong id when guild?.GetChannel(id) is IChannel tempChannel => $"`{tempChannel.Format()}`",
-			ulong id when guild?.GetRole(id) is IRole tempRole => $"`{tempRole.Format()}`",
-			ulong id when guild?.GetUser(id) is IUser tempUser => $"`{tempUser.Format()}`",
-			ulong id when client?.GetUser(id) is IUser tempUser => $"`{tempUser.Format()}`",
-			ulong id when client?.GetGuild(id) is IGuild tempGuild => $"`{tempGuild.Format()}`",
-			IGuildFormattable formattable => formattable.Format(guild),
-			IDictionary dict => dict.Keys.Cast<object>().Join("\n", x => $"{Format(client, guild, x)}: {Format(client, guild, dict[x])}"),
-			IEnumerable enumerable => enumerable.Cast<object>().Join("\n", x => Format(client, guild, x)),
-			_ => $"`{value}`",
-		};
-		private async Task<string> FormatAsync(IDiscordClient client, IGuild guild, object? value) => value switch
-		{
-			object obj when IsCommonFormatting(obj, out var s) => s,
-			ulong id when await DiscordUtils.GetSnowflakeEntityAsync(client, guild, id) is ISnowflakeEntity snowflake => $"`{snowflake.Format()}`",
-			//IGuildFormattable formattable => formattable.Format(guild),
-			IDictionary dict => await FormatDictionaryAsync(dict, client, guild).CAF(),
-			IEnumerable enumerable => await FormatEnumerableAsync(enumerable, client, guild).CAF(),
-			_ => $"`{value}`",
-		};
-		private bool IsCommonFormatting(object? value, out string response)
-		{
-			response = value switch
-			{
-				null => "`Nothing`",
-				string s => string.IsNullOrWhiteSpace(s) ? "`Nothing`" : $"`{s}`",
-				MemberInfo _ => throw new ArgumentException($"{nameof(value)} must not be a {nameof(MemberInfo)}."),
-				_ => "",
-			};
-			return !string.IsNullOrEmpty(response);
-		}
-		private async Task<string> FormatDictionaryAsync(IDictionary dict, IDiscordClient client, IGuild guild)
-		{
-			var parts = new string[dict.Count];
-			var index = 0;
-			foreach (var key in dict.Keys)
-			{
-				parts[index++] = await FormatAsync(client, guild, dict[key]).CAF();
-			}
-			return parts.Join("\n");
-		}
-		private async Task<string> FormatEnumerableAsync(IEnumerable e, IDiscordClient client, IGuild guild)
-		{
-			var parts = new List<string>();
-			foreach (var value in e)
-			{
-				parts.Add(await FormatAsync(client, guild, value).CAF());
-			}
-			return parts.Join("\n");
 		}
 	}
 }

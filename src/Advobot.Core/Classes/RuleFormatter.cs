@@ -14,7 +14,8 @@ namespace Advobot.Classes
 	[NamedArgumentType]
 	public sealed class RuleFormatter
 	{
-		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultTitleFormats = new Dictionary<RuleFormat, MarkDownFormat[]>
+		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultTitleFormats
+			= new Dictionary<RuleFormat, MarkDownFormat[]>
 		{
 			{ default, new[] { MarkDownFormat.Bold } },
 			{ RuleFormat.Numbers, new[] { MarkDownFormat.Bold } },
@@ -22,7 +23,8 @@ namespace Advobot.Classes
 			{ RuleFormat.Bullets, new[] { MarkDownFormat.Bold } },
 			{ RuleFormat.Bold, new[] { MarkDownFormat.Bold | MarkDownFormat.Italics } }
 		}.ToImmutableDictionary();
-		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultRuleFormats = new Dictionary<RuleFormat, MarkDownFormat[]>
+		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultRuleFormats
+			= new Dictionary<RuleFormat, MarkDownFormat[]>
 		{
 			{ default, new MarkDownFormat[0] },
 			{ RuleFormat.Numbers, new MarkDownFormat[0] },
@@ -89,7 +91,11 @@ namespace Advobot.Classes
 			};
 
 			r += rule;
-			r = (CharAfterNumbers != default ? AddCharAfterNumbers(r, CharAfterNumbers) : r).Trim();
+			if (CharAfterNumbers != default)
+			{
+				r = AddCharAfterNumbers(r, CharAfterNumbers);
+			}
+			r = r.Trim();
 			if (Options.Contains(RuleFormatOption.ExtraLines))
 			{
 				r += "\n";

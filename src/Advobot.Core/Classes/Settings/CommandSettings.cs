@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Formatting;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -18,9 +17,9 @@ namespace Advobot.Classes.Settings
 	public sealed class CommandSettings : IGuildFormattable
 	{
 		[JsonProperty("CommandValues")]
-		private Dictionary<string, bool> _CommandValues { get; } = new Dictionary<string, bool>();
+		private readonly Dictionary<string, bool> _CommandValues = new Dictionary<string, bool>();
 		[JsonProperty("Overrides")]
-		private Dictionary<ulong, Dictionary<string, bool>> _Overrides { get; } = new Dictionary<ulong, Dictionary<string, bool>>();
+		private readonly Dictionary<ulong, Dictionary<string, bool>> _Overrides = new Dictionary<ulong, Dictionary<string, bool>>();
 
 		/// <summary>
 		/// Changes the value for whether or not the commands are enabled on a guild.
@@ -90,10 +89,10 @@ namespace Advobot.Classes.Settings
 		public bool IsCommandEnabled(SocketGuildUser user, SocketTextChannel channel, CommandInfo command)
 		{
 			//Hierarchy:
-			//User
-			//Role -> Ordered by position
-			//Channel
-			//Guild
+			//	User
+			//	Role -> Ordered by position
+			//	Channel
+			//	Guild
 
 			var module = command.Module;
 			while (module.Parent != null && module.Parent.IsSubmodule)
@@ -102,20 +101,20 @@ namespace Advobot.Classes.Settings
 			}
 			var name = module.Name;
 
-			if (_Overrides.TryGetValue(user.Id, out var uDict) && uDict.TryGetValue(name, out var uValue))
+			if (_Overrides.TryGetValue(user.Id, out var uD) && uD.TryGetValue(name, out var u))
 			{
-				return uValue;
+				return u;
 			}
 			foreach (var role in user.Roles.OrderByDescending(x => x.Position))
 			{
-				if (_Overrides.TryGetValue(role.Id, out var rDict) && rDict.TryGetValue(name, out var rValue))
+				if (_Overrides.TryGetValue(role.Id, out var rD) && rD.TryGetValue(name, out var r))
 				{
-					return rValue;
+					return r;
 				}
 			}
-			if (_Overrides.TryGetValue(channel.Id, out var cDict) && cDict.TryGetValue(name, out var cValue))
+			if (_Overrides.TryGetValue(channel.Id, out var cD) && cD.TryGetValue(name, out var c))
 			{
-				return cValue;
+				return c;
 			}
 			if (_CommandValues.TryGetValue(name, out var value))
 			{
@@ -123,7 +122,8 @@ namespace Advobot.Classes.Settings
 			}
 
 			//If they get here it means they're not in the command values currently so they should just use the default value.
-			var defaultEnabled = module.Attributes.GetAttribute<EnabledByDefaultAttribute>().Enabled;
+			var defaultEnabledAttr = module.Attributes.GetAttribute<EnabledByDefaultAttribute>();
+			var defaultEnabled = defaultEnabledAttr?.Enabled ?? false;
 			_CommandValues.Add(name, defaultEnabled);
 			return defaultEnabled;
 		}
@@ -135,60 +135,6 @@ namespace Advobot.Classes.Settings
 		/// <returns></returns>
 		public bool? IsCommandEnabled(string name)
 			=> _CommandValues.TryGetValue(name, out var val) ? val : (bool?)null;
-		/// <inheritdoc />
-		public string Format(SocketGuild? guild = null)
-		{
-			var guildWideCommandOverrides = _CommandValues.Join("\n", x => $"`{x.Key}:` `{x.Value}`");
-			var sb = new StringBuilder();
-			foreach (var kvp in _Overrides)
-			{
-				string title;
-				if (guild?.GetChannel(kvp.Key) is IGuildChannel channel)
-				{
-					title = $"**Channel:** `{channel.Format()}`";
-				}
-				else if (guild?.GetRole(kvp.Key) is IRole role)
-				{
-					title = $"**Role:** `{role.Format()}`";
-				}
-				else if (guild?.GetUser(kvp.Key) is IUser user)
-				{
-					title = $"**User:** `{user.Format()}`";
-				}
-				else
-				{
-					title = $"**Unspecified:** `{kvp.Key}`";
-				}
-
-				var enabled = "";
-				var disabled = "";
-				foreach (var command in kvp.Value)
-				{
-					if (command.Value)
-					{
-						enabled += (string.IsNullOrWhiteSpace(enabled) ? "" : "`, `") + command.Key;
-					}
-					else
-					{
-						disabled += (string.IsNullOrWhiteSpace(disabled) ? "" : "`, `") + command.Key;
-					}
-				}
-
-				sb.AppendLine(title);
-				if (!string.IsNullOrWhiteSpace(enabled))
-				{
-					sb.AppendLineFeed($"\t**Enabled:** `{enabled}`");
-				}
-				if (!string.IsNullOrWhiteSpace(disabled))
-				{
-					sb.AppendLineFeed($"\t**Disabled:** `{disabled}`");
-				}
-			}
-			return $"{guildWideCommandOverrides}\n\n{sb}".TrimEnd();
-		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> Format();
 		private static bool ModifyOverride(IDictionary<string, bool> dict, IHelpEntry help, bool? enable)
 		{
 			if (!help.AbleToBeToggled)
@@ -205,6 +151,26 @@ namespace Advobot.Classes.Settings
 			}
 			dict[help.Name] = enable.Value;
 			return true;
+		}
+
+		/// <inheritdoc />
+		public IDiscordFormattableString GetFormattableString()
+		{
+			var formattable = new DiscordFormattableStringCollection();
+			foreach (var kvp in _CommandValues)
+			{
+				formattable.Add($"{kvp.Key}: {kvp.Value}");
+			}
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+			foreach (var (Id, Dict) in _Overrides)
+			{
+				foreach (var (CommandName, Enabled) in Dict)
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+				{
+					formattable.Add($"{Id}: {CommandName} ({Enabled})");
+				}
+			}
+			return formattable;
 		}
 	}
 }

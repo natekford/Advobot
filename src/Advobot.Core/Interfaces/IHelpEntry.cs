@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
 using Advobot.Classes.Settings;
 
 namespace Advobot.Interfaces
@@ -15,7 +15,7 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Other names to invoke the command.
 		/// </summary>
-		ImmutableArray<string> Aliases { get; }
+		IReadOnlyCollection<string> Aliases { get; }
 		/// <summary>
 		/// The base permissions to use the command.
 		/// </summary>

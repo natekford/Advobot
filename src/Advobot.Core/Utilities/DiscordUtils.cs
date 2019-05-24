@@ -4,14 +4,12 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Advobot.Utilities
 {
@@ -185,22 +183,5 @@ namespace Advobot.Utilities
 			}
 			return null;
 		}
-		/// <summary>
-		/// Gets an <see cref="ISnowflakeEntity"/> from a <see cref="ulong"/>.
-		/// </summary>
-		/// <param name="c"></param>
-		/// <param name="g"></param>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		public static async Task<ISnowflakeEntity?> GetSnowflakeEntityAsync(IDiscordClient c, IGuild g, ulong id) => id switch
-		{
-			_ when g != null && g.Id == id => g,
-			_ when g != null && g.GetRole(id) is ISnowflakeEntity role => role,
-			_ when g != null && await g.GetChannelAsync(id).CAF() is ISnowflakeEntity channel => channel,
-			_ when g != null && await g.GetUserAsync(id).CAF() is ISnowflakeEntity user => user,
-			_ when c != null && await c.GetUserAsync(id).CAF() is ISnowflakeEntity user => user,
-			_ when c != null && await c.GetGuildAsync(id) is ISnowflakeEntity guild => guild,
-			_ => null,
-		};
 	}
 }

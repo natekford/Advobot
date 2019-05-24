@@ -183,8 +183,8 @@ namespace Advobot.Utilities
 		/// <param name="provider"></param>
 		/// <param name="formattable"></param>
 		/// <returns></returns>
-		public static string FormatInterpolated(this IFormatProvider provider, IFormattable formattable)
-			=> formattable.ToString(null, provider);
+		public static string FormatInterpolated(this IFormatProvider provider, FormattableString formattable)
+			=> formattable.ToString(provider);
 		/// <summary>
 		/// Returns a new <see cref="EmbedAuthorBuilder"/> containing the user's info.
 		/// </summary>

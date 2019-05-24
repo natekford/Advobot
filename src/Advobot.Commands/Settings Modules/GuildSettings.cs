@@ -1,14 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Advobot.Commands
 {

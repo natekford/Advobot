@@ -15,7 +15,7 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 	/// </summary>
 	public sealed class LiteDBWrapperFactory : IDatabaseWrapperFactory
 	{
-		private readonly IBotSettings _Settings;
+		private readonly IBotDirectoryAccessor _DirectoryAccessor;
 
 		/// <summary>
 		/// Creates an instance of <see cref="LiteDBWrapperFactory"/>.
@@ -23,7 +23,7 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 		/// <param name="provider"></param>
 		public LiteDBWrapperFactory(IServiceProvider provider)
 		{
-			_Settings = provider.GetRequiredService<IBotSettings>();
+			_DirectoryAccessor = provider.GetRequiredService<IBotDirectoryAccessor>();
 		}
 
 		/// <inheritdoc />
@@ -33,7 +33,7 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 			{
 				databaseName += ".db";
 			}
-			return new LiteDBWrapper(GetDatabase(_Settings, databaseName));
+			return new LiteDBWrapper(GetDatabase(_DirectoryAccessor, databaseName));
 		}
 		/// <summary>
 		/// Gets the database and makes sure there will be no errors when dealing with it.

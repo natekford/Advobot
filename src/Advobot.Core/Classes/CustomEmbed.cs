@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using Advobot.Classes.Formatting;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -11,7 +11,7 @@ namespace Advobot.Classes
 	/// Allows a user to make an embed.
 	/// </summary>
 	[NamedArgumentType]
-	public sealed class CustomEmbed
+	public sealed class CustomEmbed : IGuildFormattable
 	{
 		/// <summary>
 		/// The title of the embed.
@@ -86,36 +86,32 @@ namespace Advobot.Classes
 			}
 			return embed;
 		}
-		/// <summary>
-		/// Returns the formatted properties.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
+		/// <inheritdoc />
+		public IDiscordFormattableString GetFormattableString()
 		{
-			var sb = new StringBuilder();
-			AddIfNotNull(sb, Title, nameof(Title));
-			AddIfNotNull(sb, Description, nameof(Description));
-			AddIfNotNull(sb, ImageUrl, nameof(ImageUrl));
-			AddIfNotNull(sb, Url, nameof(Url));
-			AddIfNotNull(sb, ThumbUrl, nameof(ThumbUrl));
-			AddIfNotNull(sb, Color, nameof(Color));
-			AddIfNotNull(sb, AuthorName, nameof(AuthorName));
-			AddIfNotNull(sb, AuthorIconUrl, nameof(AuthorIconUrl));
-			AddIfNotNull(sb, AuthorUrl, nameof(AuthorUrl));
-			AddIfNotNull(sb, Footer, nameof(Footer));
-			AddIfNotNull(sb, FooterIconUrl, nameof(FooterIconUrl));
+			var dict = new Dictionary<string, object?>
+			{
+				{ nameof(Title), Title },
+				{ nameof(Description), Description },
+				{ nameof(ImageUrl), ImageUrl },
+				{ nameof(Url), Url },
+				{ nameof(ThumbUrl), ThumbUrl },
+				{ nameof(AuthorName), AuthorName },
+				{ nameof(AuthorIconUrl), AuthorIconUrl },
+				{ nameof(AuthorUrl), AuthorUrl },
+				{ nameof(Footer), Footer },
+				{ nameof(FooterIconUrl), FooterIconUrl },
+			};
+			dict.RemoveAll(x => x.Value == null);
 			for (var i = 0; i < FieldInfo.Count; ++i)
 			{
-				AddIfNotNull(sb, FieldInfo[i], $"Field {i}");
+				var field = FieldInfo[i];
+				if (field != null)
+				{
+					dict.Add($"Field {i}", field);
+				}
 			}
-			return sb.ToString();
-		}
-		private void AddIfNotNull(StringBuilder sb, object? value, string name)
-		{
-			if (value != null)
-			{
-				sb.AppendLineFeed($"**{name}:** `{value}`");
-			}
+			return dict.ToDiscordFormattableStringCollection();
 		}
 	}
 }

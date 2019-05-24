@@ -155,9 +155,10 @@ namespace Advobot
 				.AddSingleton<BaseSocketClient>(discordClient)
 				.AddSingleton<IDiscordClient>(discordClient)
 				.AddSingleton<IBotSettings>(botSettings)
+				.AddSingleton<IBotDirectoryAccessor>(botSettings)
 				.AddSingleton<IHelpEntryService, HelpEntryService>()
 				.AddSingleton<ICommandHandlerService, CommandHandlerService>()
-				.AddSingleton<IGuildSettingsFactory, GuildSettingsFactory<GuildSettings>>()
+				.AddSingleton<IGuildSettingsFactory, GuildSettingsFactory>()
 				.AddSingleton<ILogService, LogService>()
 				.AddSingleton<ILevelService, LevelService>()
 				.AddSingleton<ITimerService, TimerService>()
@@ -173,7 +174,7 @@ namespace Advobot
 				//-DatabaseType MongoDB -DatabaseConnectionString "mongodb://localhost:27017"
 				case DatabaseType.MongoDB:
 					s.AddSingleton<IDatabaseWrapperFactory, MongoDBWrapperFactory>();
-					s.AddSingleton<IMongoClient>(p => new MongoClient(config.DatabaseConnectionString));
+					s.AddSingleton<IMongoClient>(_ => new MongoClient(config.DatabaseConnectionString));
 					break;
 			}
 			return s;

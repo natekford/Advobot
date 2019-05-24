@@ -1,25 +1,17 @@
-﻿using Advobot.Utilities;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using AdvorangesUtils;
 
 namespace Advobot.Classes.Formatting
 {
 	/// <summary>
-	/// Utilities for <see cref="RuntimeFormattedObject"/>.
+	/// Utilities for formatting arguments.
 	/// </summary>
-	public static class RuntimeFormatUtils
+	public static class ArgumentFormattingUtils
 	{
 		/// <summary>
 		/// What each piece of the format string will be joined with.
 		/// </summary>
 		public const string FORMAT_JOINER = "|";
-		/// <summary>
-		/// Put the object in title case.
-		/// </summary>
-		public const string TITLE = "title";
-		/// <summary>
-		/// Append a colon to object.
-		/// </summary>
-		public const string COLON = ":";
 		/// <summary>
 		/// Put the object in markdown code.
 		/// </summary>
@@ -45,6 +37,47 @@ namespace Advobot.Classes.Formatting
 		/// </summary>
 		public const string STRIKETHROUGH = "~~";
 
+		/// <summary>
+		/// Converts a dictionary to a <see cref="DiscordFormattableStringCollection"/>.
+		/// </summary>
+		/// <typeparam name="TValue"></typeparam>
+		/// <param name="source"></param>
+		/// <param name="joiner"></param>
+		/// <returns></returns>
+		public static DiscordFormattableStringCollection ToDiscordFormattableStringCollection<TValue>(
+			this IDictionary<string, TValue> source,
+			string joiner = "\n")
+		{
+			var collection = new DiscordFormattableStringCollection();
+			var i = 0;
+			foreach (var kvp in source)
+			{
+				if (i == source.Count - 1)
+				{
+					collection.Add($"{kvp.AsTitle()} {kvp.Value}");
+				}
+				else
+				{
+					collection.Add($"{kvp.AsTitle()} {kvp.Value}{joiner.NoFormatting()}");
+				}
+				++i;
+			}
+			return collection;
+		}
+		/// <summary>
+		/// Formats the object as a title (in title case, with a colon at the end, and in bold).
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static RuntimeFormattedObject AsTitle(this object value)
+		{
+			var title = value.ToString().FormatTitle();
+			if (!title.EndsWith(':'))
+			{
+				title += ":";
+			}
+			return RuntimeFormattedObject.Create(title, "**");
+		}
 		/// <summary>
 		/// Creates an instance of <see cref="RuntimeFormattedObject"/> with no format.
 		/// </summary>

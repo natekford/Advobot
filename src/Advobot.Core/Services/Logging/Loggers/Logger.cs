@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Interfaces;
@@ -74,11 +73,14 @@ namespace Advobot.Services.Logging.Loggers
 			if (context.CanLog)
 			{
 				NotifyLogCounterIncrement(name, 1);
-				await Task.WhenAll(whenCanLog.Select(x => x.Invoke())).CAF();
+				foreach (var task in whenCanLog)
+				{
+					await task.Invoke().CAF();
+				}
 			}
-			if (tasks.Length > 0)
+			foreach (var task in tasks)
 			{
-				await Task.WhenAll(tasks).CAF();
+				await task.CAF();
 			}
 		}
 		protected Task ReplyAsync(SocketTextChannel? channel, string content = "", EmbedWrapper? embedWrapper = null, TextFileInfo? textFile = null)

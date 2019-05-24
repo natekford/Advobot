@@ -21,7 +21,7 @@ namespace Advobot.Services.HelpEntries
 		/// <inheritdoc />
 		public bool AbleToBeToggled { get; }
 		/// <inheritdoc />
-		public ImmutableArray<string> Aliases { get; }
+		public IReadOnlyCollection<string> Aliases { get; }
 		/// <inheritdoc />
 		public string BasePerms { get; }
 		/// <inheritdoc />

@@ -114,9 +114,9 @@ namespace Advobot.Services.Commands
 		}
 		private Task LogExecution(AdvobotCommandContext context, IResult result)
 		{
-			static bool CanBeIgnored(AdvobotCommandContext context, IResult r) //Ignore annoying unknown command errors and errors with no reason
+			static bool CanBeIgnored(AdvobotCommandContext c, IResult r) //Ignore annoying unknown command errors and errors with no reason
 				=> r == null || r.Error == CommandError.UnknownCommand
-				|| (!r.IsSuccess && (r.ErrorReason == null || context.GuildSettings.NonVerboseErrors));
+				|| (!r.IsSuccess && (r.ErrorReason == null || c.GuildSettings.NonVerboseErrors));
 
 			return result switch
 			{

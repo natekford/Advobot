@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading.Tasks;
-using Discord;
-using Discord.WebSocket;
+using Advobot.Classes.Formatting;
 
 namespace Advobot.Interfaces
 {
@@ -20,48 +18,19 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// Formats the settings so they are readable by a human.
 		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="guild"></param>
 		/// <returns></returns>
-		string Format(BaseSocketClient client, SocketGuild guild);
+		IDiscordFormattableString Format();
 		/// <summary>
 		/// Formats a specific setting.
 		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="guild"></param>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		string FormatSetting(BaseSocketClient client, SocketGuild guild, string name);
+		IDiscordFormattableString FormatSetting(string name);
 		/// <summary>
 		/// Formats a specific value.
 		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="guild"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		string FormatValue(BaseSocketClient client, SocketGuild guild, object? value);
-		/// <summary>
-		/// Formats the settings asynchronously so they are readable by a human.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		Task<string> FormatAsync(IDiscordClient client, IGuild guild);
-		/// <summary>
-		/// Formats a specific setting asynchronously.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="guild"></param>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		Task<string> FormatSettingAsync(IDiscordClient client, IGuild guild, string name);
-		/// <summary>
-		/// Formats a specific value asynchronously.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="guild"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		Task<string> FormatValueAsync(IDiscordClient client, IGuild guild, object? value);
+		IDiscordFormattableString FormatValue(object? value);
 	}
 }

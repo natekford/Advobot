@@ -19,7 +19,7 @@ namespace Advobot.Classes.TypeReaders
 		{
 			var helpEntries = services.GetRequiredService<IHelpEntryService>();
 			var matches = new CloseHelpEntries(helpEntries).FindMatches(input);
-			return matches.Length == 0
+			return matches.Count == 0
 				? Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"Unable to find an object matching `{input}`."))
 				: Task.FromResult(TypeReaderResult.FromSuccess(matches.Select(x => x.Value)));
 		}

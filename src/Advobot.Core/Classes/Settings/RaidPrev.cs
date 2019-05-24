@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Classes.Formatting;
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes.Settings
@@ -57,14 +58,6 @@ namespace Advobot.Classes.Settings
 			_ => throw new ArgumentException(nameof(Type)),
 		};
 		/// <inheritdoc />
-		public override string Format(SocketGuild? guild = null)
-		{
-			return $"**Enabled:** `{Enabled}`\n" +
-				$"**Users:** `{RaidCount}`\n" +
-				$"**Time Interval:** `{TimeInterval}`\n" +
-				$"**Punishment:** `{Punishment.ToString()}`";
-		}
-		/// <inheritdoc />
 		public override async Task EnableAsync(IGuild guild)
 		{
 			Enabled = true;
@@ -83,6 +76,18 @@ namespace Advobot.Classes.Settings
 		{
 			Enabled = false;
 			return Task.CompletedTask;
+		}
+
+		/// <inheritdoc />
+		public override IDiscordFormattableString GetFormattableString()
+		{
+			return new Dictionary<string, object>
+			{
+				{ "Enabled", Enabled },
+				{ "Interval", TimeInterval },
+				{ "Punishment", Punishment },
+				{ "Users", RaidCount },
+			}.ToDiscordFormattableStringCollection();
 		}
 	}
 }

@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using Advobot.Enums;
-using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 
 namespace Advobot.Classes.UserInformation

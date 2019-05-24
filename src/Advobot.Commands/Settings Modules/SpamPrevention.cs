@@ -4,7 +4,6 @@ using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

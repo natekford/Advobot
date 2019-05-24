@@ -1,5 +1,6 @@
-﻿using System.Threading.Tasks;
-using Advobot.Interfaces;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Advobot.Classes.Formatting;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -63,8 +64,15 @@ namespace Advobot.Classes.Settings
 			var channel = guild?.GetTextChannel(ChannelId)?.Format() ?? ChannelId.ToString();
 			return $"**Channel:** `{channel}`\n**Content:** `{Content}`\n{CustomEmbed}";
 		}
+
 		/// <inheritdoc />
-		public override string ToString()
-			=> Format();
+		public IDiscordFormattableString GetFormattableString()
+		{
+			return new Dictionary<string, object?>
+			{
+				{ "Channel", ChannelId },
+				{ "Content", Content },
+			}.ToDiscordFormattableStringCollection();
+		}
 	}
 }

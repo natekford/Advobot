@@ -54,7 +54,7 @@ namespace Advobot.Services.Logging.LoggingContexts
 			Settings = settings;
 			ServerLog = guild.GetTextChannel(settings.ServerLogId);
 			ImageLog = guild.GetTextChannel(settings.ImageLogId);
-			CanLog = Settings.LogActions.Contains(LogAction);
+			CanLog = ServerLog != null && Settings.LogActions.Contains(LogAction);
 		}
 	}
 }

@@ -1,9 +1,9 @@
-﻿using Advobot.Enums;
+﻿using Advobot.Classes.Formatting;
+using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
@@ -76,14 +76,6 @@ namespace Advobot.Classes.Settings
 			_ => throw new ArgumentException(nameof(Type)),
 		};
 		/// <inheritdoc />
-		public override string Format(SocketGuild? guild = null)
-		{
-			return $"**Punishment:** `{Punishment}`\n" +
-				$"**Spam Instances:** `{SpamInstances}`\n" +
-				$"**Spam Amount:** `{SpamPerMessage}`\n" +
-				$"**Time Interval:** `{TimeInterval}`";
-		}
-		/// <inheritdoc />
 		public override Task EnableAsync(IGuild guild)
 		{
 			Enabled = true;
@@ -94,6 +86,19 @@ namespace Advobot.Classes.Settings
 		{
 			Enabled = false;
 			return Task.CompletedTask;
+		}
+
+		/// <inheritdoc />
+		public override IDiscordFormattableString GetFormattableString()
+		{
+			return new Dictionary<string, object>
+			{
+				{ "Enabled", Enabled },
+				{ "Interval", TimeInterval },
+				{ "Punishment", Punishment },
+				{ "Instances", SpamInstances },
+				{ "Amount", SpamPerMessage },
+			}.ToDiscordFormattableStringCollection();
 		}
 	}
 }

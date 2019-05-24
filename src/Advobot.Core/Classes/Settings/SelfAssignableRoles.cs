@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Advobot.Interfaces;
-using Advobot.Utilities;
+using Advobot.Classes.Formatting;
 using Discord;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes.Settings
@@ -65,14 +63,15 @@ namespace Advobot.Classes.Settings
 		/// <param name="roles"></param>
 		public void RemoveRoles(IEnumerable<IRole> roles)
 			=> RemoveRoles(roles.Select(x => x.Id));
+
 		/// <inheritdoc />
-		public string Format(SocketGuild? guild = null)
+		public IDiscordFormattableString GetFormattableString()
 		{
-			var roles = Roles.Join("`, `", x => guild != null && guild.GetRole(x) is IRole role ? role.Format() : x.ToString());
-			return $"**Roles:**\n{roles}";
+			return new Dictionary<string, object>
+			{
+				{ "Group", Group },
+				{ "Roles", Roles },
+			}.ToDiscordFormattableStringCollection();
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> Format();
 	}
 }

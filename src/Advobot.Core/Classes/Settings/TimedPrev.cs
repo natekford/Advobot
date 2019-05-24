@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Classes.Formatting;
 using Advobot.Enums;
-using Advobot.Interfaces;
 using Discord;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes.Settings
@@ -110,10 +109,8 @@ namespace Advobot.Classes.Settings
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public abstract Task DisableAsync(IGuild guild);
+
 		/// <inheritdoc />
-		public abstract string Format(SocketGuild? guild = null);
-		/// <inheritdoc />
-		public override string ToString()
-			=> Format();
+		public abstract IDiscordFormattableString GetFormattableString();
 	}
 }

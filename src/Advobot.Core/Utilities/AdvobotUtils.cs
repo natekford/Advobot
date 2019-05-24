@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Advobot.Enums;
 using Advobot.Interfaces;
 
@@ -44,75 +43,6 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static string GetPrefix(this IBotSettings b, IGuildSettings g)
 			=> string.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g.Prefix;
-		/// <summary>
-		/// Joins the strings together after selecting them.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="source"></param>
-		/// <param name="seperator"></param>
-		/// <param name="selector"></param>
-		/// <returns></returns>
-		public static string Join<T>(this IEnumerable<T> source, string seperator, Func<T, string> selector)
-			=> string.Join(seperator, source.Select(selector));
-		/// <summary>
-		/// Joins the strings together with the seperator.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="seperator"></param>
-		/// <returns></returns>
-		public static string Join(this IEnumerable<string> source, string seperator)
-			=> string.Join(seperator, source);
-		/// <summary>
-		/// Attempts to get the first matching value. Will return default if no matches are found.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="source"></param>
-		/// <param name="predicate"></param>
-		/// <param name="found"></param>
-		/// <returns></returns>
-		public static bool TryGetFirst<T>(this IEnumerable<T> source, Func<T, bool> predicate, out T found)
-		{
-#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
-			found = default;
-#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
-			foreach (var item in source)
-			{
-				if (predicate(item))
-				{
-					found = item;
-					return true;
-				}
-			}
-			return false;
-		}
-		/// <summary>
-		/// Attempts to get a single matching value. Will throw if more than one match is found. Will return default if no matches are found.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="source"></param>
-		/// <param name="predicate"></param>
-		/// <param name="found"></param>
-		/// <returns></returns>
-		public static bool TryGetSingle<T>(this IEnumerable<T> source, Func<T, bool> predicate, out T found)
-		{
-#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
-			found = default;
-#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
-			var matched = false;
-			foreach (var item in source)
-			{
-				if (predicate(item))
-				{
-					if (matched)
-					{
-						throw new InvalidOperationException("More than one match found.");
-					}
-					found = item;
-					matched = true;
-				}
-			}
-			return matched;
-		}
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
 		/// </summary>

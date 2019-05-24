@@ -128,7 +128,7 @@ namespace Advobot.Tests
 					Debug.Print($"Created user {userId}.\n");
 #endif
 
-					for (var i = 0; i < 1000; ++i)
+					for (var c = 0; c < 1000; ++c)
 					{
 						var id = _Snowflakes.Next();
 						var mockUserMessage = new MockUserMessage(threadUser, GenerateMentionSpam(), id);

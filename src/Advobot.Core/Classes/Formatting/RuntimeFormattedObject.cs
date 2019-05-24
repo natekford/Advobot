@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Gets around the limitation of not being able to use a variable as a format in <see cref="System.String.Format(string, object)"/>.
 	/// </summary>
-	public struct RuntimeFormattedObject
+	public readonly struct RuntimeFormattedObject
 	{
 		/// <summary>
 		/// The value to format.
@@ -17,7 +17,7 @@
 		private RuntimeFormattedObject(object value, string? format)
 		{
 			Value = value;
-			Format = format ?? "NONE";
+			Format = format ?? "G";
 		}
 
 		/// <summary>

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes.Formatting;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 
 namespace Advobot.Classes.Settings
@@ -64,11 +65,9 @@ namespace Advobot.Classes.Settings
 			};
 			return PunishmentUtils.GiveAsync(Punishment, guild, info.UserId, punishment.RoleId, punishmentArgs);
 		}
+
 		/// <inheritdoc />
-		public string Format(SocketGuild? guild = null)
-			=> $"`{(Punishment == default ? 'N' : Punishment.ToString()[0])}` `{Phrase}`";
-		/// <inheritdoc />
-		public override string ToString()
-			=> Format();
+		public IDiscordFormattableString GetFormattableString()
+			=> new DiscordFormattableString($"{Punishment.ToString()[0]} {Phrase}");
 	}
 }

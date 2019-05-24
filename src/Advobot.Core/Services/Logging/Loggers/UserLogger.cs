@@ -78,11 +78,6 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private async Task HandleJoinLogging(UserLoggingContext context)
 		{
-			if (context.ServerLog == null)
-			{
-				return;
-			}
-
 			var inv = await context.Settings.CachedInvites.GetInviteUserJoinedOnAsync(context.User).CAF();
 			var invite = inv != null
 				? $"**Invite:** {inv.Code}"
@@ -142,11 +137,6 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private Task HandleLeftLogging(UserLoggingContext context)
 		{
-			if (context.ServerLog == null)
-			{
-				return Task.CompletedTask;
-			}
-
 			var stay = "";
 			if (context.User.JoinedAt.HasValue)
 			{

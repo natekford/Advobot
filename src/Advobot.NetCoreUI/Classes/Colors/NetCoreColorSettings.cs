@@ -12,7 +12,6 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
-using Advobot.Utilities;
 
 namespace Advobot.NetCoreUI.Classes.Colors
 {

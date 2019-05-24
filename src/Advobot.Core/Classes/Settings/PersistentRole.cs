@@ -1,9 +1,9 @@
 ﻿using Advobot.Interfaces;
-using Advobot.Utilities;
+using Advobot.Classes.Formatting;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace Advobot.Classes.Settings
 {
@@ -38,14 +38,13 @@ namespace Advobot.Classes.Settings
 		}
 
 		/// <inheritdoc />
-		public string Format(SocketGuild? guild = null)
+		public IDiscordFormattableString GetFormattableString()
 		{
-			var user = guild?.GetUser(UserId)?.Format() ?? UserId.ToString();
-			var role = guild?.GetRole(RoleId)?.Format() ?? RoleId.ToString();
-			return $"**User:** `{user}`\n**Role:** `{role}`";
+			return new Dictionary<string, object>
+			{
+				{ "User", UserId },
+				{ "Role", RoleId },
+			}.ToDiscordFormattableStringCollection();
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> Format();
 	}
 }
