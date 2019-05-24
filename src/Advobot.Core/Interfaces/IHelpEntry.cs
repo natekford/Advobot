@@ -1,29 +1,18 @@
-﻿using System.Collections.Generic;
-using Advobot.Classes.Settings;
+﻿using System;
+using System.Collections.Generic;
+using Discord.Commands;
 
 namespace Advobot.Interfaces
 {
 	/// <summary>
 	/// Abstraction for information about a module.
 	/// </summary>
-	public interface IHelpEntry : INameable
+	public interface IHelpEntry : IFormattable, INameable
 	{
 		/// <summary>
 		/// Whether or not the command can be toggled.
 		/// </summary>
 		bool AbleToBeToggled { get; }
-		/// <summary>
-		/// Other names to invoke the command.
-		/// </summary>
-		IReadOnlyCollection<string> Aliases { get; }
-		/// <summary>
-		/// The base permissions to use the command.
-		/// </summary>
-		string BasePerms { get; }
-		/// <summary>
-		/// The category the command is in.
-		/// </summary>
-		string Category { get; }
 		/// <summary>
 		/// Whether or not the command is on by default.
 		/// </summary>
@@ -33,20 +22,32 @@ namespace Advobot.Interfaces
 		/// </summary>
 		string Description { get; }
 		/// <summary>
-		/// How to use the command. This is automatically generated.
+		/// The category the command is in.
 		/// </summary>
-		string Usage { get; }
-
+		string? Category { get; }
 		/// <summary>
-		/// Returns a string with all the information about the command.
+		/// Other names to invoke the command.
 		/// </summary>
-		/// <returns></returns>
-		string ToString();
+		IReadOnlyCollection<string> Aliases { get; }
+		/// <summary>
+		/// The base permissions to use the command.
+		/// </summary>
+		IReadOnlyCollection<PreconditionAttribute> BasePerms { get; }
+
 		/// <summary>
 		/// Returns a string with all the information about the command and whether it's currently enabled.
 		/// </summary>
 		/// <param name="settings"></param>
+		/// <param name="formatProvider"></param>
 		/// <returns></returns>
-		string ToString(CommandSettings? settings);
+		string ToString(IGuildSettings? settings, IFormatProvider? formatProvider);
+		/// <summary>
+		/// Returns a string with all the information about the command and whether it's currently enabled.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="commandIndex"></param>
+		/// <param name="formatProvider"></param>
+		/// <returns></returns>
+		string ToString(int commandIndex, IGuildSettings? settings, IFormatProvider? formatProvider);
 	}
 }

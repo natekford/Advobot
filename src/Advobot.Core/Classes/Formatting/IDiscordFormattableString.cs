@@ -8,14 +8,8 @@ namespace Advobot.Classes.Formatting
 	/// <summary>
 	/// Converts certain arguments into discord specific arguments then formats the string.
 	/// </summary>
-	public interface IDiscordFormattableString
+	public interface IDiscordFormattableString : IFormattable
 	{
-		/// <summary>
-		/// Returns the formatted string not converting any types into discord specific types.
-		/// </summary>
-		/// <param name="formatProvider"></param>
-		/// <returns></returns>
-		string ToString(IFormatProvider formatProvider);
 		/// <summary>
 		/// Returns the formatted string after converting some types into discord specific types.
 		/// </summary>
@@ -23,7 +17,7 @@ namespace Advobot.Classes.Formatting
 		/// <param name="client"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		string ToString(IFormatProvider formatProvider, BaseSocketClient client, SocketGuild guild);
+		string ToString(BaseSocketClient client, SocketGuild guild, IFormatProvider? formatProvider);
 		/// <summary>
 		/// Returns the formatted string after converting some types into discord specific types asynchronously.
 		/// </summary>
@@ -31,6 +25,6 @@ namespace Advobot.Classes.Formatting
 		/// <param name="client"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		Task<string> ToStringAsync(IFormatProvider formatProvider, IDiscordClient client, IGuild guild);
+		Task<string> ToStringAsync(IDiscordClient client, IGuild guild, IFormatProvider? formatProvider);
 	}
 }

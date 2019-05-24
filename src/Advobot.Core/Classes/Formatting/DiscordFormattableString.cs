@@ -26,11 +26,14 @@ namespace Advobot.Classes.Formatting
 		}
 
 		/// <inheritdoc />
-		public string ToString(IFormatProvider formatProvider)
+		public override string ToString()
+			=> ToString(null);
+		/// <inheritdoc />
+		public string ToString(IFormatProvider? formatProvider)
 			=> _Source.ToString(formatProvider);
 
 		/// <inheritdoc />
-		public string ToString(IFormatProvider formatProvider, BaseSocketClient client, SocketGuild guild)
+		public string ToString(BaseSocketClient client, SocketGuild guild, IFormatProvider? formatProvider)
 		{
 			var converted = _Source.GetArguments().Select(x => ConvertArgument(client, guild, x));
 			return string.Format(formatProvider, _Source.Format, converted);
@@ -61,11 +64,11 @@ namespace Advobot.Classes.Formatting
 		}
 
 		/// <inheritdoc />
-		public async Task<string> ToStringAsync(IFormatProvider formatProvider, IDiscordClient client, IGuild guild)
+		public async Task<string> ToStringAsync(IDiscordClient client, IGuild guild, IFormatProvider? formatProvider)
 		{
 			if (client is BaseSocketClient socketClient && guild is SocketGuild socketGuild)
 			{
-				return ToString(formatProvider, socketClient, socketGuild);
+				return ToString(socketClient, socketGuild, formatProvider);
 			}
 
 			var tasks = _Source.GetArguments().Select(x => ConvertArgumentAsync(client, guild, x));
@@ -97,5 +100,7 @@ namespace Advobot.Classes.Formatting
 			}
 			return output;
 		}
+
+		string IFormattable.ToString(string format, IFormatProvider formatProvider) => ToString(formatProvider);
 	}
 }

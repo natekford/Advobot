@@ -38,7 +38,7 @@ namespace Advobot.Classes.Formatting
 				new ObjectToStringConverter<Enum>(1, (f, v) => FormatEnumerable(f, EnumUtils.GetFlagNames(v))),
 				new ObjectToStringConverter<RuntimeFormattedObject>(1, (f, v) => Format(v.Format ?? f, v.Value)),
 				new ObjectToStringConverter<IGuildFormattable>(1, (f, v) => Format(f, v.GetFormattableString())),
-				new ObjectToStringConverter<IDiscordFormattableString>(1, (f, v) => v.ToString(this)),
+				new ObjectToStringConverter<IDiscordFormattableString>(1, (f, v) => v.ToString("", this)),
 				new ObjectToStringConverter<ISnowflakeEntity>(1, (f, v) => FormatString(f, v.Format())),
 				new ObjectToStringConverter<IEnumerable>(.5, (f, v) => FormatEnumerable(f, v)),
 			};
@@ -59,7 +59,7 @@ namespace Advobot.Classes.Formatting
 		private string Format(string format, object arg)
 		{
 			var applicableConverters = _ObjectConverters.Where(x => x.CanFormat(arg));
-			var highestPriority = applicableConverters.GroupBy(x => x.Priority).Last().ToArray();
+			var highestPriority = applicableConverters.GroupBy(x => x.Priority).OrderBy(x => x.Key).Last().ToArray();
 			if (highestPriority.Length > 1)
 			{
 				throw new InvalidOperationException("Cannot decide between multiple object formatters with the same priority.");

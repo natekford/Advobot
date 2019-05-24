@@ -26,7 +26,7 @@ namespace Advobot.Commands.Responses
 			return Success(new TextFileInfo
 			{
 				Name = settings.GetType().Name.FormatTitle().Replace(' ', '_'),
-				Text = settings.Format().ToString(Default, client, guild),
+				Text = settings.Format().ToString(client, guild, Default),
 			});
 		}
 		public static AdvobotResult DisplaySetting(BaseSocketClient client, SocketGuild guild, ISettingsBase settings, string name)
@@ -37,7 +37,7 @@ namespace Advobot.Commands.Responses
 				return Failure(Default.FormatInterpolated($"{name} is not a valid setting.")).WithTime(DefaultTime);
 			}
 
-			var description = settings.FormatSetting(name).ToString(Default, client, guild);
+			var description = settings.FormatSetting(name).ToString(client, guild, Default);
 			if (description.Length <= EmbedBuilder.MaxDescriptionLength)
 			{
 				return Success(new EmbedWrapper

@@ -17,7 +17,7 @@ namespace Advobot.Services.GuildSettings
 		public Type GuildSettingsType => typeof(GuildSettings);
 
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
-		private readonly IBotDirectoryAccessor _DirectoryAccessor;
+		private readonly IBotSettings _BotSettings;
 
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettingsFactory"/>.
@@ -25,7 +25,7 @@ namespace Advobot.Services.GuildSettings
 		/// <param name="provider"></param>
 		public GuildSettingsFactory(IServiceProvider provider)
 		{
-			_DirectoryAccessor = provider.GetRequiredService<IBotDirectoryAccessor>();
+			_BotSettings = provider.GetRequiredService<IBotSettings>();
 		}
 
 		/// <inheritdoc />
@@ -36,14 +36,14 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			var concrete = GuildSettings.Load(_DirectoryAccessor, guild);
+			var concrete = GuildSettings.Load(_BotSettings, guild);
 			if (concrete == null)
 			{
 				concrete = new GuildSettings();
-				concrete.Save(_DirectoryAccessor);
+				concrete.Save(_BotSettings);
 			}
 
-			await concrete.PostDeserializeAsync(guild).CAF();
+			await concrete.PostDeserializeAsync(_BotSettings, guild).CAF();
 			_GuildSettings.TryAdd(guild.Id, concrete);
 			return concrete;
 		}

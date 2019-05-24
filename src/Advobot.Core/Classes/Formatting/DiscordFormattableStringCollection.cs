@@ -55,7 +55,10 @@ namespace Advobot.Classes.Formatting
 			=> _Source.Remove(item);
 
 		/// <inheritdoc />
-		public string ToString(IFormatProvider formatProvider)
+		public override string ToString()
+			=> ToString(null);
+		/// <inheritdoc />
+		public string ToString(IFormatProvider? formatProvider)
 		{
 			var sb = new StringBuilder();
 			foreach (var item in _Source)
@@ -65,32 +68,32 @@ namespace Advobot.Classes.Formatting
 			return sb.ToString();
 		}
 		/// <inheritdoc />
-		public string ToString(IFormatProvider formatProvider, BaseSocketClient client, SocketGuild guild)
+		public string ToString(BaseSocketClient client, SocketGuild guild, IFormatProvider? formatProvider)
 		{
 			var sb = new StringBuilder();
 			foreach (var item in _Source)
 			{
-				sb.Append(new DiscordFormattableString(item).ToString(formatProvider, client, guild));
+				sb.Append(new DiscordFormattableString(item).ToString(client, guild, formatProvider));
 			}
 			return sb.ToString();
 		}
 		/// <inheritdoc />
-		public async Task<string> ToStringAsync(IFormatProvider formatProvider, IDiscordClient client, IGuild guild)
+		public async Task<string> ToStringAsync(IDiscordClient client, IGuild guild, IFormatProvider? formatProvider)
 		{
 			if (client is BaseSocketClient socketClient && guild is SocketGuild socketGuild)
 			{
-				return ToString(formatProvider, socketClient, socketGuild);
+				return ToString(socketClient, socketGuild, formatProvider);
 			}
 
 			var sb = new StringBuilder();
 			foreach (var item in _Source)
 			{
-				sb.Append(await new DiscordFormattableString(item).ToStringAsync(formatProvider, client, guild));
+				sb.Append(await new DiscordFormattableString(item).ToStringAsync(client, guild, formatProvider));
 			}
 			return sb.ToString();
 		}
 
-		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator() => _Source.GetEnumerator();
+		string IFormattable.ToString(string format, IFormatProvider formatProvider) => ToString(formatProvider);
 	}
 }

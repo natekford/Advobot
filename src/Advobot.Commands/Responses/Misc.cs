@@ -12,9 +12,6 @@ namespace Advobot.Commands.Responses
 {
 	public sealed class Misc : CommandResponses
 	{
-		private static readonly string _GeneralHelp =
-			$"Type `{Constants.PREFIX}{nameof(Commands.Misc.Misc.Commands)}` for the list of commands.\n" +
-			$"Type `{Constants.PREFIX}{nameof(Commands.Misc.Misc.Help)} [Command]` for help with a command.";
 		private static readonly string _BasicSyntax =
 			"`[]` means required.\n" +
 			"`<>` means optional.\n" +
@@ -31,10 +28,13 @@ namespace Advobot.Commands.Responses
 
 		public static AdvobotResult GeneralHelp(string prefix)
 		{
+			var description =
+				$"Type `{prefix}{nameof(Commands.Misc.Misc.Commands)}` for the list of commands.\n" +
+				$"Type `{prefix}{nameof(Commands.Misc.Misc.Help)} [Command]` for help with a command.";
 			return Success(new EmbedWrapper
 			{
 				Title = "General Help",
-				Description = _GeneralHelp.Replace(Constants.PREFIX, prefix),
+				Description = description,
 				Footer = new EmbedFooterBuilder { Text = "Help" },
 				Fields = new List<EmbedFieldBuilder>
 				{
@@ -44,12 +44,12 @@ namespace Advobot.Commands.Responses
 				},
 			});
 		}
-		public static AdvobotResult Help(CommandSettings settings, IHelpEntry entry, string prefix)
+		public static AdvobotResult Help(IHelpEntry entry, IGuildSettings settings)
 		{
 			return Success(new EmbedWrapper
 			{
 				Title = entry.Name,
-				Description = entry.ToString(settings).Replace(Constants.PREFIX, prefix),
+				Description = entry.ToString(settings, Default),
 				Footer = new EmbedFooterBuilder { Text = "Help", },
 			});
 		}
@@ -74,7 +74,7 @@ namespace Advobot.Commands.Responses
 			return Success(new EmbedWrapper
 			{
 				Title = "Categories",
-				Description = Default.FormatInterpolated($"Type {prefix}{nameof(Commands)} [Category] for commands from a category.\n\n{categories}"),
+				Description = Default.FormatInterpolated($"Type {prefix}{nameof(Commands.Misc.Misc.Commands)} [Category] for commands from a category.\n\n{categories}"),
 			});
 		}
 		public static AdvobotResult MakeAnEmbed(CustomEmbed embed)

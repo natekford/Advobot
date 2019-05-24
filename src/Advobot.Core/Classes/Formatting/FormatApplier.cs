@@ -12,7 +12,7 @@ namespace Advobot.Classes.Formatting
 		/// <summary>
 		/// Whether this is enabled.
 		/// </summary>
-		public bool Enabled { get; set; } = true;
+		public bool Enabled { get; set; }
 		/// <summary>
 		/// The format this formatter applies to.
 		/// </summary>
@@ -23,15 +23,17 @@ namespace Advobot.Classes.Formatting
 		/// <summary>
 		/// Creates an instance of <see cref="FormatApplier"/>.
 		/// </summary>
+		/// <param name="enabled"></param>
 		/// <param name="name"></param>
 		/// <param name="modifier"></param>
-		public FormatApplier(string name, Func<string, string> modifier)
+		public FormatApplier(bool enabled, string name, Func<string, string> modifier)
 		{
 			if (string.IsNullOrWhiteSpace(name))
 			{
 				throw new ArgumentException(nameof(name));
 			}
 
+			Enabled = enabled;
 			FormatName = name;
 			_Modifier = modifier ?? throw new ArgumentException(nameof(name));
 		}

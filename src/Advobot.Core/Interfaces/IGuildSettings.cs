@@ -127,5 +127,11 @@ namespace Advobot.Interfaces
 		/// Holds messages which have been deleted and waits to print them out. This is not saved.
 		/// </summary>
 		MessageDeletion MessageDeletion { get; }
+
+		/// <summary>
+		/// Returns <see cref="Prefix"/> if it's not null, otherwise returns the bot's global prefix.
+		/// </summary>
+		/// <returns></returns>
+		string GetPrefix();
 	}
 }

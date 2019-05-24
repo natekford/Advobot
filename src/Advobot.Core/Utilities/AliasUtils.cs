@@ -14,7 +14,7 @@ namespace Advobot.Utilities
 			{ "clear", "clr" }
 		}.ToImmutableDictionary();
 		private static readonly Dictionary<string, Type> _AlreadyUsedModuleAliases = new Dictionary<string, Type>();
-		private static readonly List<(string Edited, ImmutableArray<string> Parts)> _ModuleInitialisms = new List<(string Edited, ImmutableArray<string> Parts)>();
+		private static readonly List<(string Edited, string[] Parts)> _ModuleInitialisms = new List<(string Edited, string[] Parts)>();
 
 		public static string[] ConcatCommandAliases(string name, string[] aliases)
 			=> ConcatAliases(null, name, aliases);
@@ -69,8 +69,13 @@ namespace Advobot.Utilities
 
 					//Would do one loop and change ChangeChannelPerms' initialism from ccp to ccpe
 					var length = 1;
-					while (_ModuleInitialisms.TryGetFirst(x => x.Edited.CaseInsEquals(initialism.Edited), out _))
+					while (_ModuleInitialisms.TryGetFirst(x => x.Edited == initialism.Edited, out _))
 					{
+						if (length > name.Length)
+						{
+							throw new InvalidOperationException($"Unable to generate an initialism for {name} which is not already being used.");
+						}
+
 						var newInitialism = new StringBuilder();
 						for (var i = 0; i < initialism.Parts.Length; ++i)
 						{
@@ -88,7 +93,7 @@ namespace Advobot.Utilities
 			}
 			return initialism.Edited;
 		}
-		private static (string Edited, ImmutableArray<string> Parts) CreateInitialism(string name, bool isModule)
+		private static (string Edited, string[] Parts) CreateInitialism(string name, bool isModule)
 		{
 			var parts = new List<StringBuilder>();
 			var initialism = new StringBuilder();
@@ -124,7 +129,7 @@ namespace Advobot.Utilities
 				parts.Last().Append(c);
 			}
 
-			return (initialism.ToString().ToLower(), parts.Select(x => x.ToString()).ToImmutableArray());
+			return (initialism.ToString().ToLower(), parts.Select(x => x.ToString()).ToArray());
 		}
 	}
 }

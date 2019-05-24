@@ -36,17 +36,17 @@ namespace Advobot.Commands.Misc
 
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.Misc.GeneralHelp(GetPrefix());
+				=> Responses.Misc.GeneralHelp(Context.GuildSettings.GetPrefix());
 			[Command, Priority(1)]
 			public Task<RuntimeResult> Command([Remainder] IHelpEntry command)
-				=> Responses.Misc.Help(Context.GuildSettings.CommandSettings, command, GetPrefix());
+				=> Responses.Misc.Help(command, Context.GuildSettings);
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			public async Task<RuntimeResult> Command([Remainder, OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
 			{
 				var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
 				if (entry != null)
 				{
-					return Responses.Misc.Help(Context.GuildSettings.CommandSettings, entry, GetPrefix());
+					return Responses.Misc.Help(entry, Context.GuildSettings);
 				}
 				return AdvobotResult.Ignore;
 			}
@@ -70,7 +70,7 @@ namespace Advobot.Commands.Misc
 				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), GetPrefix());
+				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Context.GuildSettings.GetPrefix());
 		}
 
 		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]

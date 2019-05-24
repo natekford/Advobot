@@ -117,12 +117,6 @@ namespace Advobot.Classes.Modules
 #pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
 		}
 		/// <summary>
-		/// Gets the main prefix to use in this module.
-		/// </summary>
-		/// <returns></returns>
-		public string GetPrefix()
-			=> BotSettings.GetPrefix(Context.GuildSettings);
-		/// <summary>
 		/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.
 		/// </summary>
 		/// <param name="reason"></param>

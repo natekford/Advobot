@@ -45,14 +45,14 @@ namespace Advobot.Classes.UsageGeneration
 		/// <param name="command"></param>
 		/// <returns></returns>
 		public static string GenerateUsage(Type command)
-			=> GenerateUsage(command, (c, l, i) => GetAllNestedClassesAndMethods(c, l, i));
+			=> GenerateUsage(command, GetAllNestedClassesAndMethods);
 		/// <summary>
 		/// Generates a string indicating how the command is used.
 		/// </summary>
 		/// <param name="module"></param>
 		/// <returns></returns>
 		public static string GenerateUsage(ModuleInfo module)
-			=> GenerateUsage(module, (m, l, i) => GetAllNestedClassesAndMethods(m, l, i));
+			=> GenerateUsage(module, GetAllNestedClassesAndMethods);
 		private static string GenerateUsage<T>(T obj, Action<T, MemberLists, int> fillLists)
 		{
 			var lists = new MemberLists();

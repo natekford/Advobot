@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using AdvorangesUtils;
-using Discord.Commands;
 
 namespace Advobot.Services.HelpEntries
 {
@@ -16,154 +12,93 @@ namespace Advobot.Services.HelpEntries
 	/// </summary>
 	internal sealed class HelpEntryService : IHelpEntryService
 	{
-		//Maps the name and aliases of a command to the name
-		private readonly Dictionary<string, string> _NameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		//Maps the name to the helpentry
-		private readonly Dictionary<string, HelpEntry> _Source = new Dictionary<string, HelpEntry>(StringComparer.OrdinalIgnoreCase);
+		/// <inheritdoc />
+		public int Count => _Source.Count;
+		/// <inheritdoc />
+		public bool IsReadOnly => false;
+		/// <inheritdoc />
+		public IEnumerable<string> Keys => _NameMap.Keys;
+		/// <inheritdoc />
+		public IEnumerable<IHelpEntry> Values => _Source.Values;
 
 		/// <inheritdoc />
-		public IHelpEntry? this[string name]
-			=> _NameMap.TryGetValue(name, out var n) ? _Source[n] : null;
+		public IHelpEntry this[string key] => _Source[_NameMap[key]];
+
+		private readonly Dictionary<string, Guid> _NameMap = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+		private readonly Dictionary<Guid, IHelpEntry> _Source = new Dictionary<Guid, IHelpEntry>();
 
 		/// <inheritdoc />
-		public void Add(IEnumerable<Assembly> assemblies)
+		public void Add(IHelpEntry item)
 		{
-			var types = assemblies.SelectMany(x =>
+			var guid = Guid.NewGuid();
+			foreach (var alias in item.Aliases)
 			{
-				try
-				{
-					return x.GetTypes();
-				}
-				catch (ReflectionTypeLoadException e)
-				{
-					return e.Types;
-				}
-			}).Where(x => x.GetCustomAttribute<GroupAttribute>() != null && x.InheritsFromGeneric(typeof(ModuleBase<>)));
-			foreach (var type in types)
-			{
-				VerifyCommandType(type);
-				if (!IsCommand(type.GetCustomAttributes()) || !type.IsNested)
-				{
-					continue;
-				}
-
-				var helpEntry = new HelpEntry(type);
-				foreach (var alias in helpEntry.Aliases)
-				{
-					_NameMap.Add(alias, helpEntry.Name);
-				}
-				_NameMap.Add(helpEntry.Name, helpEntry.Name);
-				_Source.Add(helpEntry.Name, helpEntry);
+				_NameMap.Add(alias, guid);
 			}
+			_Source.Add(guid, item);
 		}
 		/// <inheritdoc />
-		public void Add(IEnumerable<ModuleInfo> modules)
+		public bool Remove(IHelpEntry helpEntry)
 		{
-			foreach (var module in modules)
+			if (!_NameMap.TryGetValue(helpEntry.Name, out var guid))
 			{
-				VerifyCommandModule(module);
-				if (!IsCommand(module.Attributes) || !module.IsSubmodule)
-				{
-					continue;
-				}
+				return false;
+			}
 
-				var helpEntry = new HelpEntry(module);
-				foreach (var alias in helpEntry.Aliases)
-				{
-					_NameMap.Add(alias, helpEntry.Name);
-				}
-				_Source.Add(helpEntry.Name, helpEntry);
-			}
-		}
-		/// <inheritdoc />
-		public void Remove(IHelpEntry helpEntry)
-		{
-			foreach (var kvp in _Source.Where(x => x.Value.Name == helpEntry.Name).ToList())
+			foreach (var kvp in _NameMap.Where(x => x.Value == guid).ToArray())
 			{
-				_Source.Remove(kvp.Key);
-				foreach (var kvp2 in _NameMap.Where(x => x.Value == kvp.Key).ToList())
-				{
-					_NameMap.Remove(kvp2.Key);
-				}
+				_NameMap.Remove(kvp.Key);
 			}
+			return _Source.Remove(guid);
 		}
 		/// <inheritdoc />
-		public IHelpEntry[] GetUnsetCommands(IEnumerable<string> setCommands)
-			=> _Source.Values.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
+		public void Clear()
+		{
+			_NameMap.Clear();
+			_Source.Clear();
+		}
 		/// <inheritdoc />
-		public IHelpEntry[] GetHelpEntries(string? category = null)
+		public bool Contains(IHelpEntry item)
+			=> _Source.Values.Contains(item);
+		/// <inheritdoc />
+		public void CopyTo(IHelpEntry[] array, int arrayIndex)
+			=> _Source.Values.CopyTo(array, arrayIndex);
+		/// <inheritdoc />
+		public IEnumerator<IHelpEntry> GetEnumerator()
+			=> _Source.Values.GetEnumerator();
+		/// <inheritdoc />
+		public bool ContainsKey(string key)
+			=> _NameMap.ContainsKey(key);
+		/// <inheritdoc />
+		public bool TryGetValue(string key, out IHelpEntry value)
+		{
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+			value = default;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+			return _NameMap.TryGetValue(key, out var guid) && _Source.TryGetValue(guid, out value);
+		}
+		/// <inheritdoc />
+		public IReadOnlyCollection<string> GetCategories()
+			=> _Source.Values.Select(x => x.Category).Distinct().ToArray();
+		/// <inheritdoc />
+		public IReadOnlyCollection<IHelpEntry> GetHelpEntries(string? category = null)
 		{
 			return category == null
 				? _Source.Values.ToArray()
 				: _Source.Values.Where(x => x.Category.CaseInsEquals(category)).ToArray();
 		}
 		/// <inheritdoc />
-		public string[] GetCategories()
-			=> _Source.Values.Select(x => x.Category).Distinct().ToArray();
-		/// <inheritdoc />
-		public IEnumerator<IHelpEntry> GetEnumerator()
-			=> _Source.Values.GetEnumerator();
+		public IReadOnlyCollection<IHelpEntry> GetUnsetCommands(IEnumerable<string> setCommands)
+			=> _Source.Values.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
 		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator()
 			=> GetEnumerator();
-		private bool IsCommand(IEnumerable<Attribute> attrs)
-			=> attrs.Any(x => x is EnabledByDefaultAttribute);
-		[Conditional("DEBUG")]
-		private void VerifyCommandType(Type t)
+		/// <inheritdoc />
+		IEnumerator<KeyValuePair<string, IHelpEntry>> IEnumerable<KeyValuePair<string, IHelpEntry>>.GetEnumerator()
 		{
-			var flags = BindingFlags.Instance | BindingFlags.Public;
-			var nested = GetAliases(t.GetNestedTypes(flags), x => x.GetCustomAttribute<AliasAttribute>());
-			var method = GetAliases(t.GetMethods(flags), x => x.GetCustomAttribute<AliasAttribute>());
-			VerifyAllAliasesAreDifferent(t.FullName, nested, method);
-			if (t.IsNested)
+			foreach (var kvp in _NameMap)
 			{
-				return;
-			}
-
-			//Make sure is public
-			if (t.IsNotPublic)
-			{
-				throw new InvalidOperationException($"{t.FullName} is not public and commands will not execute from it.");
-			}
-			//Make sure no commands are unmarked
-			var methods = t.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
-			if (methods.Any(x => x.GetCustomAttribute<CommandAttribute>() == null))
-			{
-				throw new InvalidOperationException($"{t.FullName} has a command missing the command attribute.");
-			}
-		}
-		[Conditional("DEBUG")]
-		private void VerifyCommandModule(ModuleInfo m)
-		{
-			var nested = GetAliases(m.Submodules, x => x.Attributes.GetAttribute<AliasAttribute>());
-			var method = GetAliases(m.Commands, x => x.Attributes.GetAttribute<AliasAttribute>());
-			VerifyAllAliasesAreDifferent(m.Name, nested, method);
-		}
-		[Conditional("DEBUG")]
-		private void VerifyAllAliasesAreDifferent(string name, IEnumerable<string[]> nestedAliases, IEnumerable<string[]> methodAliases)
-		{
-			var both = nestedAliases.Concat(methodAliases).Where(x => x != null).ToArray();
-			for (var i = 0; i < both.Length; ++i)
-			{
-				for (var j = i + 1; j < both.Length; ++j)
-				{
-					var intersected = both[i].Intersect(both[j], StringComparer.OrdinalIgnoreCase).ToList();
-					if (intersected.Any())
-					{
-						throw new InvalidOperationException($"The following aliases in {name} have conflicts: {string.Join(" + ", intersected)}");
-					}
-				}
-			}
-		}
-		private static IEnumerable<string[]> GetAliases<T>(IReadOnlyCollection<T> source, Func<T, AliasAttribute?> getAlias)
-		{
-			foreach (var obj in source)
-			{
-				var aliasAttr = getAlias(obj);
-				if (aliasAttr != null)
-				{
-					yield return aliasAttr.Aliases;
-				}
+				yield return new KeyValuePair<string, IHelpEntry>(kvp.Key, _Source[kvp.Value]);
 			}
 		}
 	}

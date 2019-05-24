@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
@@ -10,6 +11,7 @@ using Advobot.Classes.Attributes;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
+using Discord.Net;
 
 namespace Advobot.Utilities
 {
@@ -126,7 +128,14 @@ namespace Advobot.Utilities
 			var currentUser = await guild.GetCurrentUserAsync().CAF();
 			if (currentUser.GuildPermissions.ManageGuild)
 			{
-				return await guild.GetInvitesAsync().CAF();
+				try
+				{
+					return await guild.GetInvitesAsync(new RequestOptions { Timeout = 250, }).CAF();
+				}
+				catch (HttpException e) when (e.HttpCode == HttpStatusCode.InternalServerError)
+				{
+					return Array.Empty<IInviteMetadata>();
+				}
 			}
 			return Array.Empty<IInviteMetadata>();
 		}

@@ -22,8 +22,8 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			return services.GetRequiredService<IHelpEntryService>()[input] is IHelpEntry helpEntry
-				? Task.FromResult(TypeReaderResult.FromSuccess(helpEntry))
+			return services.GetRequiredService<IHelpEntryService>().TryGetValue(input, out var entry)
+				? Task.FromResult(TypeReaderResult.FromSuccess(entry))
 				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"Unable to find a command matching `{input}`."));
 		}
 	}

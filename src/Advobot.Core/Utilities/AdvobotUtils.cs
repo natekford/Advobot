@@ -36,14 +36,6 @@ namespace Advobot.Utilities
 		public static void SaveSettings<T>(this T obj) where T : IBotDirectoryAccessor, ISettingsBase
 			=> obj.Save(obj);
 		/// <summary>
-		/// Checks whether to use the bot prefix, or the guild settings prefix.
-		/// </summary>
-		/// <param name="b"></param>
-		/// <param name="g"></param>
-		/// <returns></returns>
-		public static string GetPrefix(this IBotSettings b, IGuildSettings g)
-			=> string.IsNullOrWhiteSpace(g?.Prefix) ? b.Prefix : g.Prefix;
-		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>

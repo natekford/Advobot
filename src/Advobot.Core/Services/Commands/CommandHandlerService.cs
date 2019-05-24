@@ -9,6 +9,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Interfaces;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -74,7 +75,13 @@ namespace Advobot.Services.Commands
 			foreach (var assembly in commands)
 			{
 				var modules = await _Commands.AddModulesAsync(assembly, _Provider).CAF();
-				_HelpEntries.Add(modules);
+				foreach (var categoryModule in modules)
+				{
+					foreach (var commandModule in categoryModule.Submodules)
+					{
+						_HelpEntries.Add(new HelpEntryV2(commandModule));
+					}
+				}
 				ConsoleUtils.WriteLine($"Successfully loaded {modules.Count()} command modules from {assembly.GetName().Name}.");
 			}
 		}
@@ -102,7 +109,7 @@ namespace Advobot.Services.Commands
 				|| !(msg.Author is SocketGuildUser user)
 				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
 				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
-				|| !(msg.HasStringPrefix(_BotSettings.GetPrefix(settings), ref argPos) || msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
+				|| !(msg.HasStringPrefix(settings.GetPrefix(), ref argPos) || msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
 			{
 				return;
 			}

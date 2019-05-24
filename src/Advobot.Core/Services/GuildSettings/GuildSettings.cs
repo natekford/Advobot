@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -120,11 +121,16 @@ namespace Advobot.Services.GuildSettings
 		public ulong GuildId => _Guild?.Id ?? 0;
 
 		private IGuild? _Guild;
+		private IBotSettings? _BotSettings;
 
 		/// <inheritdoc />
-		public async Task PostDeserializeAsync(IGuild guild)
+		public string GetPrefix()
+			=> Prefix ?? _BotSettings?.Prefix ?? throw new InvalidOperationException("Unable to find a prefix.");
+		/// <inheritdoc />
+		public async Task PostDeserializeAsync(IBotSettings botSettings, IGuild guild)
 		{
 			_Guild = guild;
+			_BotSettings = botSettings;
 			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
 			{
 				CachedInvites.Add(new CachedInvite(invite));

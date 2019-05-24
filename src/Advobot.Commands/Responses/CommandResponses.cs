@@ -15,14 +15,19 @@ namespace Advobot.Commands.Responses
 		{
 			Formats = new List<FormatApplier>
 			{
-				new FormatApplier(ArgumentFormattingUtils.CODE, s => $"`{s}`"),
+				new FormatApplier(true, ArgumentFormattingUtils.CODE, s => $"`{s}`"),
+				new FormatApplier(false, ArgumentFormattingUtils.BIG_CODE, s => $"```{s}```"),
+				new FormatApplier(false, ArgumentFormattingUtils.BOLD, s => $"**{s}**"),
+				new FormatApplier(false, ArgumentFormattingUtils.ITALICS, s => $"_{s}_"),
+				new FormatApplier(false, ArgumentFormattingUtils.UNDERLINE, s => $"__{s}__"),
+				new FormatApplier(false, ArgumentFormattingUtils.STRIKETHROUGH, s => $"~~{s}~~"),
 			},
 		};
 		protected static readonly IFormatProvider Title = new ArgumentFormatter
 		{
 			Formats = new List<FormatApplier>
 			{
-				new FormatApplier("title", s => s.FormatTitle()),
+				new FormatApplier(true, "title", s => s.FormatTitle()),
 			},
 		};
 		protected static readonly IFormatProvider BigBlock = new ArgumentFormatter
@@ -30,7 +35,7 @@ namespace Advobot.Commands.Responses
 			Joiner = "\n",
 			Formats = new List<FormatApplier>
 			{
-				new FormatApplier(ArgumentFormattingUtils.BIG_CODE, s => $"```{s}```"),
+				new FormatApplier(true, ArgumentFormattingUtils.BIG_CODE, s => $"```{s}```"),
 			},
 		};
 		protected static readonly TimeSpan DefaultTime = CreateTime(5);
