@@ -37,14 +37,14 @@ namespace Advobot.Commands.Responses
 				Description = BigBlock.FormatInterpolated($"{groups.OrderBy(x => x.Group).Join("\n", x => x.Group.ToString())}"),
 			});
 		}
-		public static AdvobotResult DisplayGroup(SelfAssignableRoles group)
+		public static AdvobotResult DisplayGroup(IGuild guild, SelfAssignableRoles group)
 		{
 			/*TODO: pass in guild to get the roles or rewrite self assignable roles?*/
-			throw new NotImplementedException();
+			var validRoles = group.Roles.Select(x => guild.GetRole(x)).Where(x => x != null);
 			return Success(new EmbedWrapper
 			{
 				Title = Title.FormatInterpolated($"Self Assignable Roles Group {group.Group}"),
-				Description = "",
+				Description = BigBlock.FormatInterpolated($"{validRoles.Join("\n", x => x.Format())}"),
 			});
 		}
 	}

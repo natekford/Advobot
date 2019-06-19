@@ -11,11 +11,27 @@ namespace Advobot.Commands.Responses
 {
 	public abstract class CommandResponses : AdvobotResult
 	{
+		protected const string CODE = ArgumentFormattingUtils.CODE;
+		protected const string BIG_CODE = ArgumentFormattingUtils.BIG_CODE;
+
+#warning make these stop applying formatting at default
 		protected static readonly IFormatProvider Default = new ArgumentFormatter
 		{
 			Formats = new List<FormatApplier>
 			{
 				new FormatApplier(true, ArgumentFormattingUtils.CODE, s => $"`{s}`"),
+				new FormatApplier(false, ArgumentFormattingUtils.BIG_CODE, s => $"```{s}```"),
+				new FormatApplier(false, ArgumentFormattingUtils.BOLD, s => $"**{s}**"),
+				new FormatApplier(false, ArgumentFormattingUtils.ITALICS, s => $"_{s}_"),
+				new FormatApplier(false, ArgumentFormattingUtils.UNDERLINE, s => $"__{s}__"),
+				new FormatApplier(false, ArgumentFormattingUtils.STRIKETHROUGH, s => $"~~{s}~~"),
+			},
+		};
+		protected static readonly IFormatProvider Markdown = new ArgumentFormatter
+		{
+			Formats = new List<FormatApplier>
+			{
+				new FormatApplier(false, ArgumentFormattingUtils.CODE, s => $"`{s}`"),
 				new FormatApplier(false, ArgumentFormattingUtils.BIG_CODE, s => $"```{s}```"),
 				new FormatApplier(false, ArgumentFormattingUtils.BOLD, s => $"**{s}**"),
 				new FormatApplier(false, ArgumentFormattingUtils.ITALICS, s => $"_{s}_"),

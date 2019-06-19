@@ -48,6 +48,6 @@ namespace Advobot.Interfaces
 		/// <param name="commandIndex"></param>
 		/// <param name="formatProvider"></param>
 		/// <returns></returns>
-		string ToString(int commandIndex, IGuildSettings? settings, IFormatProvider? formatProvider);
+		string ToString(IGuildSettings? settings, IFormatProvider? formatProvider, int commandIndex);
 	}
 }

@@ -45,6 +45,9 @@ namespace Advobot.Classes.Formatting
 		/// <param name="arg"></param>
 		/// <returns></returns>
 		public string ModifyString(IReadOnlyCollection<string> formats, string arg)
-			=> formats.Contains(FormatName) || (formats.Count == 0 && Enabled) ? _Modifier(arg) : arg;
+		{
+			var shouldModify = formats.Contains(FormatName) || (formats.Count == 0 && Enabled);
+			return shouldModify ? _Modifier(arg) : arg;
+		}
 	}
 }

@@ -25,8 +25,7 @@ namespace Advobot.Commands.Misc
 	public sealed class Misc : ModuleBase
 	{
 		[Group(nameof(Help)), ModuleInitialismAlias(typeof(Help))]
-		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
-			"If left blank will provide general help.")]
+		[Summary("Prints out help information")]
 		[EnabledByDefault(true, AbleToToggle = false)]
 		public sealed class Help : AdvobotModuleBase
 		{
@@ -34,14 +33,23 @@ namespace Advobot.Commands.Misc
 			public IHelpEntryService HelpEntries { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
+			private const string TEMP_SUMMARY = "Input the name of the module you want to get information for";
+
 			[Command]
+			[Summary("Prints out general help information for the bot.")]
 			public Task<RuntimeResult> Command()
 				=> Responses.Misc.GeneralHelp(Context.GuildSettings.GetPrefix());
 			[Command, Priority(1)]
-			public Task<RuntimeResult> Command([Remainder] IHelpEntry command)
+			[Summary("Prints out help information for a specified module.")]
+			public Task<RuntimeResult> Command([Summary(TEMP_SUMMARY)] IHelpEntry command)
 				=> Responses.Misc.Help(command, Context.GuildSettings);
+			[Command, Priority(1)]
+			[Summary("Prints out help information for a specific command in a specified module.")]
+			public Task<RuntimeResult> Command([Summary(TEMP_SUMMARY)] IHelpEntry command, [ValidatePositiveNumber] int position)
+				=> Responses.Misc.Help(command, Context.GuildSettings, position - 1);
 			[Command(RunMode = RunMode.Async), Priority(0)]
-			public async Task<RuntimeResult> Command([Remainder, OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
+			[Summary("Attempts to find a help entry with a name similar to the input. This command only gets used if an invalid name is provided.")]
+			public async Task<RuntimeResult> Command([Summary(TEMP_SUMMARY), OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
 			{
 				var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
 				if (entry != null)
@@ -142,11 +150,17 @@ namespace Advobot.Commands.Misc
 		[EnabledByDefault(true)]
 		public sealed class Test : AdvobotModuleBase
 		{
-			[Command]
+			[Command("steven")]
 			public Task<RuntimeResult> Command()
 			{
 				//var invite = await Context.Channel.CreateInviteAsync(123, 3, false, false).CAF();
 				return AdvobotResult.Success("test test");
+			}
+			[Command]
+			public Task<RuntimeResult> Command2([Summary("womp is a very useful string which can be used in many uses like this one very usage here :)")] string womp)
+			{
+				var a = 2 + 2;
+				return AdvobotResult.Success(a.ToString() + womp);
 			}
 		}
 	}

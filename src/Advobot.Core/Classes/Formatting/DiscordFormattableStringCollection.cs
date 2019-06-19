@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using AdvorangesUtils;
+using Discord;
 using Discord.WebSocket;
 using System;
 using System.Collections;
@@ -88,7 +89,7 @@ namespace Advobot.Classes.Formatting
 			var sb = new StringBuilder();
 			foreach (var item in _Source)
 			{
-				sb.Append(await new DiscordFormattableString(item).ToStringAsync(client, guild, formatProvider));
+				sb.Append(await new DiscordFormattableString(item).ToStringAsync(client, guild, formatProvider).CAF());
 			}
 			return sb.ToString();
 		}

@@ -79,7 +79,7 @@ namespace Advobot.Services.Commands
 				{
 					foreach (var commandModule in categoryModule.Submodules)
 					{
-						_HelpEntries.Add(new HelpEntryV2(commandModule));
+						_HelpEntries.Add(new HelpEntry(commandModule));
 					}
 				}
 				ConsoleUtils.WriteLine($"Successfully loaded {modules.Count()} command modules from {assembly.GetName().Name}.");

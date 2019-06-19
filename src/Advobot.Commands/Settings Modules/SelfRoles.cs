@@ -103,7 +103,7 @@ namespace Advobot.Commands
 				=> Responses.SelfRoles.DisplayGroups(Context.GuildSettings.SelfAssignableGroups);
 			[Command]
 			public Task<RuntimeResult> Command(SelfAssignableRoles group)
-				=> Responses.SelfRoles.DisplayGroup(group);
+				=> Responses.SelfRoles.DisplayGroup(Context.Guild, group);
 		}
 	}
 }

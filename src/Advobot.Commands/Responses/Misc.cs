@@ -45,14 +45,9 @@ namespace Advobot.Commands.Responses
 			});
 		}
 		public static AdvobotResult Help(IHelpEntry entry, IGuildSettings settings)
-		{
-			return Success(new EmbedWrapper
-			{
-				Title = entry.Name,
-				Description = entry.ToString(settings, Default),
-				Footer = new EmbedFooterBuilder { Text = "Help", },
-			});
-		}
+			=> Help(entry.Name, entry.ToString(settings, Markdown));
+		public static AdvobotResult Help(IHelpEntry entry, IGuildSettings settings, int index)
+			=> Help(entry.Name, entry.ToString(settings, Markdown, index));
 		public static AdvobotResult AllCommands(IReadOnlyCollection<IHelpEntry> entries)
 		{
 			return Success(new EmbedWrapper
@@ -81,5 +76,15 @@ namespace Advobot.Commands.Responses
 			=> Success(embed.BuildWrapper());
 		public static AdvobotResult Remind(TimeSpan time)
 			=> Success(Default.FormatInterpolated($"Successfully added a reminder which will trigger in {time:00:00:00}."));
+
+		private static AdvobotResult Help(string name, string entry)
+		{
+			return Success(new EmbedWrapper
+			{
+				Title = name,
+				Description = entry,
+				Footer = new EmbedFooterBuilder { Text = "Help", },
+			});
+		}
 	}
 }

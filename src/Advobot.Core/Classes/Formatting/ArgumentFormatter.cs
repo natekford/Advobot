@@ -81,7 +81,12 @@ namespace Advobot.Classes.Formatting
 		}
 		private string FormatString(string format, string arg)
 		{
-			var options = (format ?? "").Split(ArgumentFormattingUtils.FORMAT_JOINER).Select(x => x.Trim()).ToArray();
+			var validFormatOptions = Formats.Select(x => x.FormatName);
+			var options = (format ?? "")
+				.Split(ArgumentFormattingUtils.FORMAT_JOINER)
+				.Select(x => x.Trim())
+				.Where(x => x == "G" || validFormatOptions.Contains(x))
+				.ToArray();
 			foreach (var kvp in Formats)
 			{
 				arg = kvp.ModifyString(options, arg);
