@@ -9,7 +9,7 @@ namespace Advobot.NetCoreUI.Classes.Views
 {
 	public sealed class MessageBox : Window
 	{
-		private MessageBox()
+		public MessageBox()
 		{
 			InitializeComponent();
 #if DEBUG

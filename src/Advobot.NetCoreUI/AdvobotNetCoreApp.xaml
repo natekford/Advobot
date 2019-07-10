@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:converters="clr-namespace:Advobot.NetCoreUI.Classes.Converters;assembly=Advobot.NetCoreUI"
              xmlns:classes="clr-namespace:Advobot.NetCoreUI.Classes;assembly=Advobot.NetCoreUI"
-             xmlns:colors="clr-namespace:Advobot.NetCoreUI.Classes.AbstractUI.Colors;assembly=Advobot.NetCoreUI">
+             xmlns:colors="clr-namespace:Advobot.NetCoreUI.Classes.AbstractUI.Colors;assembly=Advobot.NetCoreUI"
+             x:Class="Advobot.NetCoreUI.AdvobotNetCoreApp">
   
   <!-- Don't use Application.Resources because it messes something up with how I'm targetting colors. -->
   <Application.Styles>

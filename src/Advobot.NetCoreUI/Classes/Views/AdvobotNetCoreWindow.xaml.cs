@@ -11,6 +11,12 @@ namespace Advobot.NetCoreUI.Classes.Views
 	{
 		public AdvobotNetCoreWindow()
 		{
+			//Because unless the state is changed directly after creation the height will be double.NaN
+			Activated += (sender, e)
+				=> WindowState = WindowState.Maximized;
+			Closed += (sender, e)
+				=> Environment.Exit(0);
+
 			InitializeComponent();
 #if DEBUG
 			this.AttachDevTools();
@@ -19,19 +25,12 @@ namespace Advobot.NetCoreUI.Classes.Views
 
 		private void InitializeComponent()
 			=> AvaloniaXamlLoader.Load(this);
-		private void EnterKeyPressed(object sender, KeyEventArgs e)
+		public void EnterKeyPressed(object sender, KeyEventArgs e)
 		{
 			if (e.Key == Key.Enter || e.Key == Key.Return)
 			{
 				((AdvobotNetCoreWindowViewModel)DataContext).TakeInputCommand.Execute(null);
 			}
 		}
-		private void OnActivated(object sender, EventArgs e)
-		{
-			//Because unless the state is changed directly after creation the height will be double.NaN
-			WindowState = WindowState.Maximized;
-		}
-		private void OnClosed(object sender, EventArgs e)
-			=> Environment.Exit(0);
 	}
 }

@@ -17,8 +17,6 @@
     <None Remove="Advobot.NetCoreUI\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Classes\Controls\NumberBox.xaml" />
-    <None Remove="Classes\Controls\UserListEditor.xaml" />
     <None Remove="Classes\Views\MessageBox.xaml" />
     <None Remove="FileViewingWindow.xaml" />
     <None Remove="OutputSearchWindow.xaml" />
@@ -26,9 +24,9 @@
   <ItemGroup>
     <PackageReference Include="AdvorangesSettingParser" Version="1.3.2.4" />
     <PackageReference Include="AdvorangesUtils" Version="1.0.11.3" />
-    <PackageReference Include="Avalonia" Version="0.8.1-cibuild0002317-beta" />
+    <PackageReference Include="Avalonia" Version="0.8.999-cibuild0003137-beta" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.7.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.8.1-cibuild0002317-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.8.999-cibuild0003137-beta" />
     <PackageReference Include="Discord.Net" Version="2.1.1-dev-20190519.7" />
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.13.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview5.19227.9" />
@@ -54,12 +52,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="Classes\Controls\NumberBox.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Classes\Controls\UserListEditor.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
     <EmbeddedResource Update="Classes\Views\FileViewingWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>

@@ -9,6 +9,13 @@ namespace Advobot.NetCoreUI.Classes.Views
 	{
 		public FileViewingWindow()
 		{
+			Activated += (sender, e) =>
+			{
+				//Resize so dynamic font works
+				Width = 800;
+				Height = 600;
+			};
+
 			InitializeComponent();
 #if DEBUG
 			this.AttachDevTools();
@@ -17,11 +24,5 @@ namespace Advobot.NetCoreUI.Classes.Views
 
 		private void InitializeComponent()
 			=> AvaloniaXamlLoader.Load(this);
-		private void OnActivated(object sender, EventArgs e)
-		{
-			//Resize so dynamic font works
-			Width = 800;
-			Height = 600;
-		}
 	}
 }

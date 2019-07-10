@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using Portable.Xaml.Markup;
+using Avalonia.Markup.Xaml;
 
 namespace Advobot.NetCoreUI.Classes.Extensions
 {
 	/// <summary>
 	/// Acts as nameof(x) for XAML.
 	/// </summary>
-	[MarkupExtensionReturnType(typeof(string))]
 	public sealed class NameOfExtension : MarkupExtension
 	{
 		/// <summary>

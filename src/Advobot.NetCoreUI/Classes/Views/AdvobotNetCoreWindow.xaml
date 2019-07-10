@@ -7,11 +7,10 @@
         xmlns:controls="clr-namespace:Advobot.NetCoreUI.Classes.Controls;assembly=Advobot.NetCoreUI"
         xmlns:colors="clr-namespace:Advobot.NetCoreUI.Classes.AbstractUI.Colors;assembly=Advobot.NetCoreUI"
         xmlns:discord="clr-namespace:Discord;assembly=Discord.Net.Core"
+        x:Class="Advobot.NetCoreUI.Classes.Views.AdvobotNetCoreWindow"
         Name="MainWindow"
         Title="Advobot"
-        FontFamily="Courier New"
-        Activated="OnActivated"
-        Closed="OnClosed">
+        FontFamily="Courier New">
 
     <controls:DynamicFontSizeGrid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*" DynamicFontSize=".02">
         <!-- Output -->
@@ -28,7 +27,8 @@
 
         <!-- Input -->
         <Grid Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
-            <TextBox Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed"/>
+            <!-- TODO: reimplement keydown sending with enter. -->
+            <TextBox Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap"/>
             <Button Grid.Column="1" Content="Enter" Command="{Binding TakeInputCommand}"/>
         </Grid>
 
@@ -204,6 +204,7 @@
                 <TextBox Text="{Binding Prefix}"/>
                 <TextBox Text="{Binding Game}"/>
                 <TextBox Text="{Binding Stream}"/>
+                <!--
                 <controls:NumberBox StoredValue="{Binding MessageCacheSize}" HasError="{Binding Errors[MessageCacheSize]}" MaxValue="1000000"/>
                 <controls:NumberBox StoredValue="{Binding MaxUserGatherCount}" HasError="{Binding Errors[MaxUserGatherCount]}" MaxValue="500000"/>
                 <controls:NumberBox StoredValue="{Binding MaxMessageGatherSize}" HasError="{Binding Errors[MaxMessageGatherSize]}" MaxValue="10000000"/>
@@ -215,10 +216,13 @@
                 <controls:NumberBox StoredValue="{Binding MaxBannedRegex}" HasError="{Binding Errors[MaxBannedRegex]}" MaxValue="10000"/>
                 <controls:NumberBox StoredValue="{Binding MaxBannedNames}" HasError="{Binding Errors[MaxBannedNames]}" MaxValue="10000"/>
                 <controls:NumberBox StoredValue="{Binding MaxBannedPunishments}" HasError="{Binding Errors[MaxBannedPunishments]}" MaxValue="10000"/>
+                -->
                 <ComboBox classes:SourceEnum.SourceEnum="{x:Type discord:LogSeverity}" SelectedItem="{Binding LogLevel}"/>
+                <!--
                 <controls:UserListEditor UserList="{Binding TrustedUsers}" HasError="{Binding Errors[TrustedUsers]}" />
                 <controls:UserListEditor UserList="{Binding UsersUnableToDmOwner}" HasError="{Binding Errors[UsersUnableToDmOwner]}" />
                 <controls:UserListEditor UserList="{Binding UsersIgnoredFromCommands}" HasError="{Binding Errors[UsersIgnoredFromCommands]}" />
+                -->
             </UniformGrid>
 
             <!-- Save Settings Button -->
