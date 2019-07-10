@@ -21,6 +21,7 @@ namespace Advobot.Tests.Mocks
 		public bool IsSuppressed => false;
 		public IVoiceChannel VoiceChannel { get; private set; }
 		public string VoiceSessionId { get; private set; }
+		public DateTimeOffset? PremiumSince => throw new NotImplementedException();
 
 		private readonly MockGuild _Guild;
 		private readonly HashSet<ulong> _RoleIds = new HashSet<ulong>();

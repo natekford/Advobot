@@ -1,5 +1,6 @@
 ﻿using Discord;
 using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 namespace Advobot.Tests.Mocks
@@ -17,6 +18,7 @@ namespace Advobot.Tests.Mocks
 		public string Mention => MentionUtils.MentionUser(Id);
 		public IActivity Activity => throw new NotImplementedException();
 		public UserStatus Status => throw new NotImplementedException();
+		public IImmutableSet<ClientType> ActiveClients => throw new NotImplementedException();
 
 		public MockUser(ulong id)
 		{

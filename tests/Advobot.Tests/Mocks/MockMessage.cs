@@ -27,6 +27,7 @@ namespace Advobot.Tests.Mocks
 		public MessageApplication Application => throw new NotImplementedException();
 		public DateTimeOffset CreatedAt => SnowflakeUtils.FromSnowflake(Id);
 		public ulong Id { get; }
+		public bool IsSuppressed => throw new NotImplementedException();
 
 		public MockMessage(IUser author, string content, ulong? id = null)
 		{

@@ -41,6 +41,14 @@ namespace Advobot.Tests.Mocks
 		public Dictionary<ulong, IWebhook> Webhooks { get; } = new Dictionary<ulong, IWebhook>();
 		public Dictionary<ulong, IBan> Bans { get; } = new Dictionary<ulong, IBan>();
 
+		public PremiumTier PremiumTier => throw new NotImplementedException();
+		public string BannerId => throw new NotImplementedException();
+		public string BannerUrl => throw new NotImplementedException();
+		public string VanityURLCode => throw new NotImplementedException();
+		public SystemChannelMessageDeny SystemChannelFlags => throw new NotImplementedException();
+		public string Description => throw new NotImplementedException();
+		public int PremiumSubscriptionCount => throw new NotImplementedException();
+
 		public void AddMockUser(MockGuildUser user)
 			=> Users[user.Id] = user;
 
