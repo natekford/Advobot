@@ -44,7 +44,6 @@ namespace Advobot
 		public AdvobotLauncher(ILowLevelConfig config)
 		{
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
-			Console.Title = "Advobot";
 			ConsoleUtils.PrintingFlags = 0
 				| ConsolePrintingFlags.Print
 				| ConsolePrintingFlags.LogTime
@@ -98,13 +97,7 @@ namespace Advobot
 		/// </summary>
 		/// <returns></returns>
 		public IServiceCollection GetDefaultServices()
-		{
-			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
-			{
-				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
-			}
-			return _Services ?? (_Services = CreateDefaultServices(_Config));
-		}
+			=> _Services ?? (_Services = CreateDefaultServices(_Config));
 		/// <summary>
 		/// Creates a provider and initializes all of its singletons.
 		/// </summary>

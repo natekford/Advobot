@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Formatting;
-using Advobot.Classes.Settings;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord.Commands;

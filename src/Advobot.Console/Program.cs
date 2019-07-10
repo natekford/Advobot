@@ -10,6 +10,7 @@ namespace Advobot.Console
 	{
 		private static async Task Main(string[] args)
 		{
+			System.Console.Title = "Advobot";
 			await AdvobotLauncher.NoConfigurationStart(args).CAF();
 			await Task.Delay(-1).CAF();
 		}

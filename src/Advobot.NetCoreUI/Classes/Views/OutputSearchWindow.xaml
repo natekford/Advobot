@@ -3,6 +3,9 @@
         xmlns:controls="clr-namespace:Advobot.NetCoreUI.Classes.Controls;assembly=Advobot.NetCoreUI"
         xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         x:Class="Advobot.NetCoreUI.Classes.Views.OutputSearchWindow"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         Name="OutputSearchWindow"
         Title="Advobot"
         FontFamily="Courier New">
@@ -14,7 +17,7 @@
 
         <ComboBox Name="Keys" Grid.Column="1" Items="{Binding Keys}" SelectedItem="{Binding SearchTerm}"/>
         <Button Grid.Column="1" Grid.Row="2" Content="Search" Command="{Binding SearchCommand}"/>
-        <Button Grid.Column="1" Grid.Row="3" Content="Save" HotKey="Ctrl+s"  Command="{Binding SaveCommand}"/>
-        <Button Grid.Column="1" Grid.Row="4" Content="Close" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=OutputSearchWindow}"/>
+        <Button Grid.Column="1" Grid.Row="3" Content="Save" HotKey="Ctrl+s" Command="{Binding SaveCommand}"/>
+        <Button Grid.Column="1" Grid.Row="4" Content="Close" HotKey="Ctrl+w" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=OutputSearchWindow}"/>
     </controls:DynamicFontSizeGrid>
 </Window>

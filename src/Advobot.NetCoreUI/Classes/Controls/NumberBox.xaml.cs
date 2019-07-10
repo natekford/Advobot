@@ -10,31 +10,6 @@ namespace Advobot.NetCoreUI.Classes.Controls
 {
 	public class NumberBox : UserControl
 	{
-		//Need this because otherwise when the text gets into an invalid state e.g. 1 backspace to empty, then 1 is typed again
-		//the text wouldn't update correctly, but this does.
-		public static readonly DirectProperty<NumberBox, string> TextProperty =
-			AvaloniaProperty.RegisterDirect<NumberBox, string>(
-				nameof(Text),
-				o => o.Text,
-				(o, v) => o.Text = v,
-				defaultBindingMode: BindingMode.TwoWay,
-				enableDataValidation: true);
-		public string Text
-		{
-			get => _FixesBug;
-			set
-			{
-				SetAndRaise(TextProperty, ref _FixesBug, value);
-				if (!int.TryParse(value, out var parsed))
-				{
-					throw new FormatException("Supplied input was not a number.");
-				}
-
-				StoredValue = parsed;
-			}
-		}
-		private string _FixesBug = "";
-
 		public static readonly DirectProperty<NumberBox, int> StoredValueProperty =
 			AvaloniaProperty.RegisterDirect<NumberBox, int>(
 				nameof(StoredValue),
@@ -54,10 +29,6 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				if (value > MaxValue)
 				{
 					throw new ArgumentException($"{nameof(StoredValue)} must be less than {MaxValue}.");
-				}
-				if (Text != value.ToString())
-				{
-					Text = value.ToString();
 				}
 
 				SetAndRaise(StoredValueProperty, ref _StoredValue, value);

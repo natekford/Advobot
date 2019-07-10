@@ -1,7 +1,7 @@
 ﻿namespace Advobot.Classes.Formatting
 {
 	/// <summary>
-	/// Gets around the limitation of not being able to use a variable as a format in <see cref="System.String.Format(string, object)"/>.
+	/// Gets around the limitation of not being able to use a variable as a format in <see cref="string.Format(string, object)"/>.
 	/// </summary>
 	public readonly struct RuntimeFormattedObject
 	{

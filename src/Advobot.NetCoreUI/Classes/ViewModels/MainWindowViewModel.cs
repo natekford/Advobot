@@ -195,13 +195,13 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private void SaveColorSettings()
 		{
-			ConsoleUtils.WriteLine("Successfully saved the color settings.", name: "Saving");
 			_Colors.Save(_BotSettings);
+			ConsoleUtils.WriteLine("Successfully saved the color settings.", name: "Saving");
 		}
 		private void SaveBotSettings()
 		{
-			ConsoleUtils.WriteLine("Successfully saved the bot settings.", name: "Saving");
 			_BotSettings.SaveSettings();
+			ConsoleUtils.WriteLine("Successfully saved the bot settings.", name: "Saving");
 		}
 		private async Task ClearOutput(Window window)
 		{
@@ -215,7 +215,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			var response = _BotSettings.GenerateFileName("Output").SaveAndGetResponse(Output).Text;
 			ConsoleUtils.WriteLine(response, name: "Saving Output");
 		}
-		private async Task OpenOutputSearchWindowAsync(Window window)
-			=> await new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog(window);
+		private Task OpenOutputSearchWindowAsync(Window window)
+			=> new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog(window);
 	}
 }

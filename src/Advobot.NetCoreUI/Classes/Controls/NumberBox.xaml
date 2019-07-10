@@ -8,7 +8,7 @@
   <!-- For some reason this doesn't work at all when the datacontext is set on the user control itself -->
   <Grid RowDefinitions="1*,1*" ColumnDefinitions="4*,1*"
         DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl}}}">
-    <TextBox Grid.RowSpan="2" Text="{Binding Text}"/>
+    <TextBox Grid.RowSpan="2" Text="{Binding StoredValue}"/>
 
     <!-- &#xE110; = up arrow -->
     <!-- &#xE1FD; = down arrow -->
