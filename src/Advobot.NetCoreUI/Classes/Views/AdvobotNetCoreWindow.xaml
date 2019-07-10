@@ -28,7 +28,7 @@
         <!-- Input -->
         <Grid Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
             <!-- TODO: reimplement keydown sending with enter. -->
-            <TextBox Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap"/>
+            <TextBox Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed"/>
             <Button Grid.Column="1" Content="Enter" Command="{Binding TakeInputCommand}"/>
         </Grid>
 
