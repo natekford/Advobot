@@ -17,6 +17,8 @@
     <None Remove="Advobot.NetCoreUI\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Classes\Controls\NumberBox.xaml" />
+    <None Remove="Classes\Controls\UserListEditor.xaml" />
     <None Remove="Classes\Views\MessageBox.xaml" />
     <None Remove="FileViewingWindow.xaml" />
     <None Remove="OutputSearchWindow.xaml" />
@@ -52,6 +54,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Update="Classes\Controls\NumberBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Classes\Controls\UserListEditor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
     <EmbeddedResource Update="Classes\Views\FileViewingWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
