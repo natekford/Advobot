@@ -28,7 +28,7 @@ namespace Advobot.Utilities
 			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
 			if (ban != null && ban.User != null)
 			{
-				await AfterGiveAsync(Punishment.Softban, guild, ban.User, options);
+				await AfterGiveAsync(Punishment.Softban, guild, ban.User, options).CAF();
 			}
 		}
 		/// <summary>
@@ -46,7 +46,7 @@ namespace Advobot.Utilities
 			await guild.RemoveBanAsync(userId, options.Options).CAF();
 			if (ban != null && ban.User != null)
 			{
-				await AfterGiveAsync(Punishment.Softban, guild, ban.User, options);
+				await AfterGiveAsync(Punishment.Softban, guild, ban.User, options).CAF();
 			}
 		}
 		/// <summary>
@@ -59,7 +59,7 @@ namespace Advobot.Utilities
 		{
 			options ??= PunishmentArgs.Default;
 			await user.KickAsync(null, options.Options).CAF();
-			await AfterGiveAsync(Punishment.Kick, user.Guild, user, options);
+			await AfterGiveAsync(Punishment.Kick, user.Guild, user, options).CAF();
 		}
 		/// <summary>
 		/// Gives a user the mute role.
@@ -72,7 +72,7 @@ namespace Advobot.Utilities
 		{
 			options ??= PunishmentArgs.Default;
 			await user.AddRoleAsync(role, options.Options).CAF();
-			await AfterGiveAsync(Punishment.RoleMute, user.Guild, user, options);
+			await AfterGiveAsync(Punishment.RoleMute, user.Guild, user, options).CAF();
 		}
 		/// <summary>
 		/// Mutes a user from voice chat.
@@ -84,7 +84,7 @@ namespace Advobot.Utilities
 		{
 			options ??= PunishmentArgs.Default;
 			await user.ModifyAsync(x => x.Mute = true, options.Options).CAF();
-			await AfterGiveAsync(Punishment.VoiceMute, user.Guild, user, options);
+			await AfterGiveAsync(Punishment.VoiceMute, user.Guild, user, options).CAF();
 		}
 		/// <summary>
 		/// Deafens a user from voice chat.
@@ -96,7 +96,7 @@ namespace Advobot.Utilities
 		{
 			options ??= PunishmentArgs.Default;
 			await user.ModifyAsync(x => x.Deaf = true, options.Options).CAF();
-			await AfterGiveAsync(Punishment.Deafen, user.Guild, user, options);
+			await AfterGiveAsync(Punishment.Deafen, user.Guild, user, options).CAF();
 		}
 		/// <summary>
 		/// Gives the specified punishment type to the user.

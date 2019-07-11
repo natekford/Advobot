@@ -48,7 +48,7 @@ namespace Advobot.Tests
 		{
 			//CreateInviteArguments
 			var createInviteCommand = new Invites.CreateInvite();
-			await createInviteCommand.Command();
+			await createInviteCommand.Command().CAF();
 		}
 	}
 }

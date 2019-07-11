@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using Advobot.Classes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
@@ -19,6 +20,10 @@ namespace Advobot.Interfaces
 		/// Message to display when a user leaves the guild.
 		/// </summary>
 		GuildNotification? GoodbyeMessage { get; set; }
+		/// <summary>
+		/// The culture to use for the bot's responses.
+		/// </summary>
+		CultureInfo Culture { get; set; }
 		/// <summary>
 		/// The prefix to use for the guild. If this is null, the bot prefix will be used.
 		/// </summary>

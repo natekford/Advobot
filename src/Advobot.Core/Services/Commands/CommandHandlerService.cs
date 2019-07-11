@@ -114,8 +114,7 @@ namespace Advobot.Services.Commands
 				return;
 			}
 
-			ConsoleUtils.DebugWrite($"Culture in command handler: {CultureInfo.CurrentCulture.Name}");
-#warning set culture
+			CultureInfo.CurrentCulture = settings.Culture;
 			var context = new AdvobotCommandContext(settings, _Client, msg);
 			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
@@ -135,7 +134,6 @@ namespace Advobot.Services.Commands
 		}
 		private async Task HandleResult(AdvobotCommandContext c, IResult result)
 		{
-			ConsoleUtils.DebugWrite($"Culture in result handler: {CultureInfo.CurrentCulture.Name}");
 			if (result.IsSuccess)
 			{
 				await c.Message.DeleteAsync(_Options).CAF();
@@ -155,7 +153,7 @@ namespace Advobot.Services.Commands
 			await (result switch
 			{
 				AdvobotResult a => a.SendAsync(c),
-#warning delete after time
+				//TODO: delete after time
 				IResult i => MessageUtils.SendMessageAsync(c.Channel, i.ErrorReason),
 				_ => throw new ArgumentException(nameof(result)),
 			}).CAF();

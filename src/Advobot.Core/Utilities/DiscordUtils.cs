@@ -119,7 +119,7 @@ namespace Advobot.Utilities
 		public static IReadOnlyCollection<T> OrderByJoinDate<T>(this IEnumerable<T> users) where T : IGuildUser
 			=> users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks).ToArray();
 		/// <summary>
-		/// If the bot can get invites then returns the invites otherwise returns null.
+		/// If the bot can get invites then returns the invites otherwise returns an empty array.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
@@ -177,7 +177,8 @@ namespace Advobot.Utilities
 			var uncached = current.Where(x => !cached.Contains(x.Code)).ToArray();
 			invites.AddRange(uncached.Select(x => new CachedInvite(x)));
 			//If no new invites then assume it was the vanity url, linked twitch, or something I don't know
-			if ((!uncached.Any() || uncached.All(x => x.Uses == 0)) && user.Guild.Features.CaseInsContains(Constants.VANITY_URL))
+			if ((!uncached.Any() || uncached.All(x => x.Uses == 0))
+				&& !string.IsNullOrWhiteSpace(user.Guild.VanityURLCode))
 			{
 				return new CachedInvite("Single use invite, vanity url, or linked Twitch account.", 0);
 			}

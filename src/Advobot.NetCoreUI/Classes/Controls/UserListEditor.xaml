@@ -9,12 +9,13 @@
   <Grid RowDefinitions="1*,1*" ColumnDefinitions="9*,1*"
         DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl}}}">
     <Grid Grid.RowSpan="2" ColumnDefinitions="5*,1*">
-      <DropDown Grid.ColumnSpan="2" Items="{Binding UserList}" SelectedItem="{Binding CurrentId, Mode=OneWayToSource}" BorderThickness="0"/>
-      <TextBox Name="InputBox" Text="{Binding CurrentId}" BorderThickness="0"/>
+      <DropDown Grid.ColumnSpan="2" Items="{Binding UserList}" SelectedItem="{Binding CurrentId, Mode=TwoWay}"
+                BorderThickness="0"/>
+      <TextBox Name="Input" Text="{Binding Text}" BorderThickness="0"/>
 
       <!-- Cannot simply bind to Path=BorderBrush because the default TextBox style modifies the border inside the control template -->
       <!-- This can be broken if someone redefines the Template property in the default style of a TextBox -->
-      <Border Classes="b1" BorderBrush="{Binding VisualChildren[0].BorderBrush, ElementName=InputBox}"/>
+      <Border Classes="b1" BorderBrush="{Binding VisualChildren[0].BorderBrush, ElementName=Input}"/>
     </Grid>
 
     <Button Grid.Row="0" Grid.Column="1" Content="+" Command="{Binding ModifyListCommand}" CommandParameter="True"/>

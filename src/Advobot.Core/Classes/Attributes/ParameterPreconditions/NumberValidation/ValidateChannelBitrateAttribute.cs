@@ -1,10 +1,11 @@
 ﻿using AdvorangesUtils;
 using Discord.Commands;
+using Discord;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 {
 	/// <summary>
-	/// Validates the channel bitrate allowing 8 to 96 unless the guild is partnered in which the maximum is raised to 128.
+	/// Validates the channel bitrate allowing 8 to 96 unless the guild is partnered or has a premium tier in which the maximum is raised to 128.
 	/// </summary>
 	public class ValidateChannelBitrateAttribute : ValidateNumberAttribute
 	{
@@ -14,7 +15,13 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
 		public ValidateChannelBitrateAttribute() : base(8, 96) { }
 
 		/// <inheritdoc />
-		public override int GetEnd(ICommandContext context)
-			=> context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? 128 : base.GetEnd(context);
+		public override int GetEnd(ICommandContext context) => context.Guild.PremiumTier switch
+		{
+			PremiumTier.Tier3 => 384,
+			PremiumTier.Tier2 => 256,
+			PremiumTier.Tier1 => 128,
+			_ when context.Guild.Features.CaseInsContains("VIP_REGIONS") => 128,
+			_ => base.GetEnd(context),
+		};
 	}
 }

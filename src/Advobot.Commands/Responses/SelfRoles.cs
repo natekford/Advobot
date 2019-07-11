@@ -9,7 +9,6 @@ using System.Linq;
 
 namespace Advobot.Commands.Responses
 {
-#warning give every command a unique number, not disabled/enabled based on name
 	public sealed class SelfRoles : CommandResponses
 	{
 		private SelfRoles() { }

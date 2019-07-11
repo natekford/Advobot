@@ -10,6 +10,24 @@ namespace Advobot.NetCoreUI.Classes.Controls
 {
 	public class NumberBox : UserControl
 	{
+		public static readonly DirectProperty<NumberBox, string> TextProperty =
+			AvaloniaProperty.RegisterDirect<NumberBox, string>(
+				nameof(Text),
+				o => o.Text,
+				(o, v) => o.Text = v,
+				defaultBindingMode: BindingMode.TwoWay,
+				enableDataValidation: true);
+		public string Text
+		{
+			get => _Text;
+			set
+			{
+				SetAndRaise(TextProperty, ref _Text, value);
+				StoredValue = int.Parse(value);
+			}
+		}
+		private string _Text;
+
 		public static readonly DirectProperty<NumberBox, int> StoredValueProperty =
 			AvaloniaProperty.RegisterDirect<NumberBox, int>(
 				nameof(StoredValue),
@@ -30,7 +48,10 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				{
 					throw new ArgumentException($"{nameof(StoredValue)} must be less than {MaxValue}.");
 				}
-
+				if (Text != value.ToString())
+				{
+					Text = value.ToString();
+				}
 				SetAndRaise(StoredValueProperty, ref _StoredValue, value);
 			}
 		}
@@ -69,8 +90,14 @@ namespace Advobot.NetCoreUI.Classes.Controls
 
 		public NumberBox()
 		{
+			_Text = StoredValue.ToString();
+
 			ModifyValueCommand = ReactiveCommand.Create<string>(x => StoredValue += int.Parse(x));
 			InitializeComponent();
+
+			var input = this.FindControl<TextBox>("Input");
+			var errorBinding = DataValidationErrors.HasErrorsProperty.Bind().WithMode(BindingMode.OneWay);
+			this[HasErrorProperty.Bind()] = input[errorBinding];
 		}
 
 		private void InitializeComponent()

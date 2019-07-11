@@ -14,7 +14,6 @@ namespace Advobot.Commands.Responses
 		protected const string CODE = ArgumentFormattingUtils.CODE;
 		protected const string BIG_CODE = ArgumentFormattingUtils.BIG_CODE;
 
-#warning make these stop applying formatting at default
 		protected static readonly IFormatProvider Default = new ArgumentFormatter
 		{
 			Formats = new List<FormatApplier>

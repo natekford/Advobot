@@ -85,7 +85,7 @@ namespace Advobot.Classes.Modules
 					return true;
 				}
 				return false;
-			});
+			}).CAF();
 		}
 		/// <summary>
 		/// Gets the next message which makes <paramref name="tryParser"/> return true. This is blocking.

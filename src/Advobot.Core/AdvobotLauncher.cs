@@ -195,7 +195,7 @@ namespace Advobot
 			await launcher.GetPathAndKeyAsync().CAF();
 			var services = launcher.CreateProvider(launcher.GetDefaultServices());
 			var commandHandler = services.GetRequiredService<ICommandHandlerService>();
-			await commandHandler.AddCommandsAsync(DiscordUtils.GetCommandAssemblies());
+			await commandHandler.AddCommandsAsync(DiscordUtils.GetCommandAssemblies()).CAF();
 			await launcher.StartAsync(services).CAF();
 			return services;
 		}

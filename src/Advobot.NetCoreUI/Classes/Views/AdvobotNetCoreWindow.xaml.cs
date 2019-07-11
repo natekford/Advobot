@@ -9,9 +9,22 @@ namespace Advobot.NetCoreUI.Classes.Views
 {
 	public sealed class AdvobotNetCoreWindow : Window
 	{
+		public new AdvobotNetCoreWindowViewModel DataContext
+		{
+			get => (AdvobotNetCoreWindowViewModel)base.DataContext;
+			set
+			{
+				if (!(value is AdvobotNetCoreWindowViewModel))
+				{
+					throw new ArgumentException("Invalid data context provided.");
+				}
+				base.DataContext = value;
+			}
+		}
+
 		public AdvobotNetCoreWindow()
 		{
-			//Because unless the state is changed directly after creation the height will be double.NaN
+			//Unless the state is changed after creation the height will be double.NaN
 			Activated += (sender, e)
 				=> WindowState = WindowState.Maximized;
 			Closed += (sender, e)
@@ -29,7 +42,7 @@ namespace Advobot.NetCoreUI.Classes.Views
 		{
 			if (e.Key == Key.Enter || e.Key == Key.Return)
 			{
-				((AdvobotNetCoreWindowViewModel)DataContext).TakeInputCommand.Execute(null);
+				DataContext.TakeInputCommand.Execute(null);
 			}
 		}
 	}

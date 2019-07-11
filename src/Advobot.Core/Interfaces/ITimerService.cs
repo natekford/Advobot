@@ -6,7 +6,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for a timers module. Handles timed punishments, close words, and timed message deletion/sending.
 	/// </summary>
-	public interface ITimerService : IUsesDatabase
+	public interface ITimerService
 	{
 		/// <summary>
 		/// Removes all older instances, and stores <paramref name="value"/>.

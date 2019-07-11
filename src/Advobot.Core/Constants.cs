@@ -34,17 +34,5 @@ namespace Advobot
 		/// The repository of the bot.
 		/// </summary>
 		public const string REPO = "https://github.com/advorange/Advobot";
-		/// <summary>
-		/// Partnered server feature of additional voice servers.
-		/// </summary>
-		public const string VIP_REGIONS = "VIP_REGIONS";
-		/// <summary>
-		/// Partnered server feature of custom url.
-		/// </summary>
-		public const string VANITY_URL = "VANITY_URL";
-		/// <summary>
-		/// Partnered server feature of image that pops up when you join a server.
-		/// </summary>
-		public const string INVITE_SPLASH = "INVITE_SPLASH";
 	}
 }

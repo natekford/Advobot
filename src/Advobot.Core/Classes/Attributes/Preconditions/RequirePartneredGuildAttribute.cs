@@ -6,7 +6,7 @@ using Discord.Commands;
 namespace Advobot.Classes.Attributes.Preconditions
 {
 	/// <summary>
-	/// Requires the guild in the command context to be 
+	/// Requires the guild in the command context to be partnered.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 	public sealed class RequirePartneredGuildAttribute : AdvobotPreconditionAttribute

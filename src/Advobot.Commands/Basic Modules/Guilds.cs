@@ -24,7 +24,6 @@ namespace Advobot.Commands
 		[EnabledByDefault(true)]
 		public sealed class LeaveGuild : AdvobotModuleBase
 		{
-#warning change help entry to show the overloads of each command
 			[Command]
 			[RequireGuildOwner]
 			public Task Command()

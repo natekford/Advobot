@@ -65,8 +65,8 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		public ICommand CloseCommand { get; }
 		public ICommand DeleteCommand { get; }
 
-		private FileInfo _File { get; }
-		private Type? _FileType { get; }
+		private readonly FileInfo _File;
+		private readonly Type? _FileType;
 		private CancellationTokenSource? _SavingNotificationCancelToken;
 
 		public FileViewingWindowViewModel(FileInfo file, Type? fileType = null)

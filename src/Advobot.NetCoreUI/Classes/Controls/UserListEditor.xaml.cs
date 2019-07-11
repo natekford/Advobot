@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Input;
+using AdvorangesUtils;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -29,7 +30,7 @@ namespace Advobot.NetCoreUI.Classes.Controls
 			set
 			{
 				//If null, no reason to bother creating a display list
-				if ((_ActualList = value) == null)
+				if ((_UserList = value) == null)
 				{
 					SetAndRaise(UserListProperty, ref _DisplayList, value);
 					return;
@@ -37,8 +38,8 @@ namespace Advobot.NetCoreUI.Classes.Controls
 
 				//If not null, need to create a display list since the original observable collection
 				//will have an invalid invoking thread for some reason
-				var displayList = new ObservableCollection<ulong>(_ActualList);
-				_ActualList.CollectionChanged += (sender, e) =>
+				var displayList = new ObservableCollection<ulong>(_UserList);
+				_UserList.CollectionChanged += (sender, e) =>
 				{
 					Dispatcher.UIThread.InvokeAsync(() =>
 					{
@@ -68,25 +69,51 @@ namespace Advobot.NetCoreUI.Classes.Controls
 			}
 		}
 		private ObservableCollection<ulong> _DisplayList = new ObservableCollection<ulong>();
-		private ObservableCollection<ulong> _ActualList = new ObservableCollection<ulong>();
 #else
 		public ObservableCollection<ulong> UserList
 		{
 			get => _UserList;
 			set => SetAndRaise(UserListProperty, ref _UserList, value);
 		}
-		private ObservableCollection<ulong> _UserList;
 #endif
+		private ObservableCollection<ulong> _UserList = new ObservableCollection<ulong>();
+
+		public static readonly DirectProperty<NumberBox, string> TextProperty =
+			AvaloniaProperty.RegisterDirect<NumberBox, string>(
+				nameof(Text),
+				o => o.Text,
+				(o, v) => o.Text = v,
+				defaultBindingMode: BindingMode.TwoWay,
+				enableDataValidation: true);
+		public string Text
+		{
+			get => _Text;
+			set
+			{
+				SetAndRaise(TextProperty, ref _Text, value);
+				CurrentId = ulong.Parse(value);
+			}
+		}
+		private string _Text;
 
 		public static readonly DirectProperty<UserListEditor, ulong> CurrentIdProperty =
 			AvaloniaProperty.RegisterDirect<UserListEditor, ulong>(
 				nameof(CurrentId),
 				o => o.CurrentId,
-				(o, v) => o.CurrentId = v);
+				(o, v) => o.CurrentId = v,
+				defaultBindingMode: BindingMode.TwoWay,
+				enableDataValidation: true);
 		public ulong CurrentId
 		{
 			get => _CurrentId;
-			set => SetAndRaise(CurrentIdProperty, ref _CurrentId, value);
+			set
+			{
+				if (Text != value.ToString())
+				{
+					Text = value.ToString();
+				}
+				SetAndRaise(CurrentIdProperty, ref _CurrentId, value);
+			}
 		}
 		private ulong _CurrentId;
 
@@ -107,23 +134,12 @@ namespace Advobot.NetCoreUI.Classes.Controls
 
 		public UserListEditor()
 		{
+			_Text = CurrentId.ToString();
+
 			ModifyListCommand = ReactiveCommand.Create<string>(x =>
 			{
-				//Actual has to go before display because display being modified modifies the displayed text
-				//Or we can capture the value in a variable
+				//Capture variable due to UI changes
 				var id = CurrentId;
-#if TWO_LISTS
-				if (!bool.Parse(x))
-				{
-					_ActualList.Remove(id);
-					_DisplayList.Remove(id);
-				}
-				else if (!_ActualList.Contains(id))
-				{
-					_ActualList.Add(id);
-					_DisplayList.Add(id);
-				}
-#else
 				if (!bool.Parse(x))
 				{
 					_UserList.Remove(id);
@@ -132,9 +148,13 @@ namespace Advobot.NetCoreUI.Classes.Controls
 				{
 					_UserList.Add(id);
 				}
-#endif
+				CurrentId = 0;
 			}, this.WhenAnyValue(x => x.HasError, x => !x));
 			InitializeComponent();
+
+			var input = this.FindControl<TextBox>("Input");
+			var errorBinding = DataValidationErrors.HasErrorsProperty.Bind().WithMode(BindingMode.OneWay);
+			this[HasErrorProperty.Bind()] = input[errorBinding];
 		}
 
 		private void InitializeComponent()

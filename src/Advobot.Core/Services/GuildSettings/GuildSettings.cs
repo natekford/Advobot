@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
@@ -23,35 +25,76 @@ namespace Advobot.Services.GuildSettings
 	{
 		/// <inheritdoc />
 		[JsonProperty("WelcomeMessage")]
-		public GuildNotification? WelcomeMessage { get => _WelcomeMessage; set => SetValue(ref _WelcomeMessage, value); }
+		public GuildNotification? WelcomeMessage
+		{
+			get => _WelcomeMessage;
+			set => SetValue(ref _WelcomeMessage, value);
+		}
 		private GuildNotification? _WelcomeMessage;
 		/// <inheritdoc />
 		[JsonProperty("GoodbyeMessage")]
-		public GuildNotification? GoodbyeMessage { get => _GoodbyeMessage; set => SetValue(ref _GoodbyeMessage, value); }
+		public GuildNotification? GoodbyeMessage
+		{
+			get => _GoodbyeMessage;
+			set => SetValue(ref _GoodbyeMessage, value);
+		}
 		private GuildNotification? _GoodbyeMessage;
 		/// <inheritdoc />
+		[JsonIgnore]
+		public CultureInfo Culture
+		{
+			get => CultureInfo.GetCultureInfo(_Culture);
+			set => SetValue(ref _Culture, value.Name);
+		}
+		[JsonProperty("Culture")]
+		private string _Culture = "en-US";
+		/// <inheritdoc />
 		[JsonProperty("Prefix")]
-		public string? Prefix { get => _Prefix; set => SetValue(ref _Prefix, value); }
+		public string? Prefix
+		{
+			get => _Prefix;
+			set => SetValue(ref _Prefix, value);
+		}
 		private string? _Prefix;
 		/// <inheritdoc />
 		[JsonProperty("ServerLog")]
-		public ulong ServerLogId { get => _ServerLogId; set => SetValue(ref _ServerLogId, value); }
+		public ulong ServerLogId
+		{
+			get => _ServerLogId;
+			set => SetValue(ref _ServerLogId, value);
+		}
 		private ulong _ServerLogId;
 		/// <inheritdoc />
 		[JsonProperty("ModLog")]
-		public ulong ModLogId { get => _ModLogId; set => SetValue(ref _ModLogId, value); }
+		public ulong ModLogId
+		{
+			get => _ModLogId;
+			set => SetValue(ref _ModLogId, value);
+		}
 		private ulong _ModLogId;
 		/// <inheritdoc />
 		[JsonProperty("ImageLog")]
-		public ulong ImageLogId { get => _ImageLogId; set => SetValue(ref _ImageLogId, value); }
+		public ulong ImageLogId
+		{
+			get => _ImageLogId;
+			set => SetValue(ref _ImageLogId, value);
+		}
 		private ulong _ImageLogId;
 		/// <inheritdoc />
 		[JsonProperty("MuteRole")]
-		public ulong MuteRoleId { get => _MuteRoleId; set => SetValue(ref _MuteRoleId, value); }
+		public ulong MuteRoleId
+		{
+			get => _MuteRoleId;
+			set => SetValue(ref _MuteRoleId, value);
+		}
 		private ulong _MuteRoleId;
 		/// <inheritdoc />
 		[JsonProperty("NonVerboseErrors")]
-		public bool NonVerboseErrors { get => _NonVerboseErrors; set => SetValue(ref _NonVerboseErrors, value); }
+		public bool NonVerboseErrors
+		{
+			get => _NonVerboseErrors;
+			set => SetValue(ref _NonVerboseErrors, value);
+		}
 		private bool _NonVerboseErrors;
 		/// <inheritdoc />
 		[JsonProperty("SpamPrevention")]
@@ -143,6 +186,9 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
 			=> StaticGetFile(accessor, GuildId);
+		/// <inheritdoc />
+		protected override string GetLocalizedName(SettingAttribute attr)
+			=> attr.UnlocalizedName;
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettings"/> from file.
 		/// </summary>

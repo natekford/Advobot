@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -16,10 +17,10 @@ namespace Advobot.Services.BotSettings
 	internal sealed class BotSettings : SettingsBase, IBotSettings
 	{
 		/// <inheritdoc />
-		[JsonProperty("LogLevel")]
+		[Setting(nameof(BotSettingNames.LogLevel)), JsonProperty("LogLevel")]
 		public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;
 		/// <inheritdoc />
-		[JsonProperty("Prefix")]
+		[Setting(nameof(BotSettingNames.Prefix)), JsonProperty("Prefix")]
 		public string Prefix
 		{
 			get => _Prefix;
@@ -27,7 +28,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private string _Prefix = "&&";
 		/// <inheritdoc />
-		[JsonProperty("Game")]
+		[Setting(nameof(BotSettingNames.Game)), JsonProperty("Game")]
 		public string? Game
 		{
 			get => _Game;
@@ -35,7 +36,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private string? _Game;
 		/// <inheritdoc />
-		[JsonProperty("Stream")]
+		[Setting(nameof(BotSettingNames.Stream)), JsonProperty("Stream")]
 		public string? Stream
 		{
 			get => _Stream;
@@ -43,10 +44,10 @@ namespace Advobot.Services.BotSettings
 		}
 		private string? _Stream;
 		/// <inheritdoc />
-		[JsonProperty("AlwaysDownloadUsers")]
+		[Setting(nameof(BotSettingNames.AlwaysDownloadUsers)), JsonProperty("AlwaysDownloadUsers")]
 		public bool AlwaysDownloadUsers { get; set; } = true;
 		/// <inheritdoc />
-		[JsonProperty("MessageCacheSize")]
+		[Setting(nameof(BotSettingNames.MessageCacheSize)), JsonProperty("MessageCacheSize")]
 		public int MessageCacheSize
 		{
 			get => _MessageCacheSize;
@@ -54,7 +55,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MessageCacheSize = 1000;
 		/// <inheritdoc />
-		[JsonProperty("MaxUserGatherCount")]
+		[Setting(nameof(BotSettingNames.MaxUserGatherCount)), JsonProperty("MaxUserGatherCount")]
 		public int MaxUserGatherCount
 		{
 			get => _MaxUserGatherCount;
@@ -62,7 +63,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxUserGatherCount = 100;
 		/// <inheritdoc />
-		[JsonProperty("MaxMessageGatherSize")]
+		[Setting(nameof(BotSettingNames.MaxMessageGatherSize)), JsonProperty("MaxMessageGatherSize")]
 		public int MaxMessageGatherSize
 		{
 			get => _MaxMessageGatherSize;
@@ -70,7 +71,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxMessageGatherSize = 500000;
 		/// <inheritdoc />
-		[JsonProperty("MaxRuleCategories")]
+		[Setting(nameof(BotSettingNames.MaxRuleCategories)), JsonProperty("MaxRuleCategories")]
 		public int MaxRuleCategories
 		{
 			get => _MaxRuleCategories;
@@ -78,7 +79,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxRuleCategories = 20;
 		/// <inheritdoc />
-		[JsonProperty("MaxRulesPerCategory")]
+		[Setting(nameof(BotSettingNames.MaxRulesPerCategory)), JsonProperty("MaxRulesPerCategory")]
 		public int MaxRulesPerCategory
 		{
 			get => _MaxRulesPerCategory;
@@ -86,7 +87,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxRulesPerCategory = 20;
 		/// <inheritdoc />
-		[JsonProperty("MaxSelfAssignableRoleGroups")]
+		[Setting(nameof(BotSettingNames.MaxSelfAssignableRoleGroups)), JsonProperty("MaxSelfAssignableRoleGroups")]
 		public int MaxSelfAssignableRoleGroups
 		{
 			get => _MaxSelfAssignableRoleGroups;
@@ -94,7 +95,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxSelfAssignableRoleGroups = 10;
 		/// <inheritdoc />
-		[JsonProperty("MaxQuotes")]
+		[Setting(nameof(BotSettingNames.MaxQuotes)), JsonProperty("MaxQuotes")]
 		public int MaxQuotes
 		{
 			get => _MaxQuotes;
@@ -102,7 +103,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxQuotes = 500;
 		/// <inheritdoc />
-		[JsonProperty("MaxBannedStrings")]
+		[Setting(nameof(BotSettingNames.MaxBannedStrings)), JsonProperty("MaxBannedStrings")]
 		public int MaxBannedStrings
 		{
 			get => _MaxBannedStrings;
@@ -110,7 +111,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxBannedStrings = 50;
 		/// <inheritdoc />
-		[JsonProperty("MaxBannedRegex")]
+		[Setting(nameof(BotSettingNames.MaxBannedRegex)), JsonProperty("MaxBannedRegex")]
 		public int MaxBannedRegex
 		{
 			get => _MaxBannedRegex;
@@ -118,7 +119,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxBannedRegex = 25;
 		/// <inheritdoc />
-		[JsonProperty("MaxBannedNames")]
+		[Setting(nameof(BotSettingNames.MaxBannedNames)), JsonProperty("MaxBannedNames")]
 		public int MaxBannedNames
 		{
 			get => _MaxBannedNames;
@@ -126,7 +127,7 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxBannedNames = 25;
 		/// <inheritdoc />
-		[JsonProperty("MaxBannedPunishments")]
+		[Setting(nameof(BotSettingNames.MaxBannedPunishments)), JsonProperty("MaxBannedPunishments")]
 		public int MaxBannedPunishments
 		{
 			get => _MaxBannedPunishments;
@@ -134,13 +135,13 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxBannedPunishments = 10;
 		/// <inheritdoc />
-		[JsonProperty("TrustedUsers")]
+		[Setting(nameof(BotSettingNames.TrustedUsers)), JsonProperty("TrustedUsers")]
 		public IList<ulong> TrustedUsers { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("UsersUnableToDmOwner")]
+		[Setting(nameof(BotSettingNames.UsersUnableToDmOwner)), JsonProperty("UsersUnableToDmOwner")]
 		public IList<ulong> UsersUnableToDmOwner { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("UsersIgnoredFromCommands")]
+		[Setting(nameof(BotSettingNames.UsersIgnoredFromCommands)), JsonProperty("UsersIgnoredFromCommands")]
 		public IList<ulong> UsersIgnoredFromCommands { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -152,85 +153,12 @@ namespace Advobot.Services.BotSettings
 		[JsonIgnore]
 		public string RestartArguments { get; private set; } = "";
 
-
-		/// <summary>
-		/// Creates an instance of <see cref="BotSettings"/>.
-		/// </summary>
-		private BotSettings()
-		{
-			/*
-			SettingParser.Add(new Setting<LogSeverity>(() => LogLevel)
-			{
-				ResetValueFactory = x => LogSeverity.Warning,
-			});
-			SettingParser.Add(new Setting<string>(() => Prefix)
-			{
-				ResetValueFactory = x => "&&",
-			});
-			SettingParser.Add(new Setting<string?>(() => Game)
-			{
-				ResetValueFactory = x => null,
-			});
-			SettingParser.Add(new Setting<string?>(() => Stream)
-			{
-				ResetValueFactory = x => null,
-			});
-			SettingParser.Add(new Setting<bool>(() => AlwaysDownloadUsers)
-			{
-				ResetValueFactory = x => true,
-			});
-			SettingParser.Add(new Setting<int>(() => MessageCacheSize)
-			{
-				ResetValueFactory = x => 1000,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxUserGatherCount)
-			{
-				ResetValueFactory = x => 100,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxMessageGatherSize)
-			{
-				ResetValueFactory = x => 500000,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxRuleCategories)
-			{
-				ResetValueFactory = x => 20,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxRulesPerCategory)
-			{
-				ResetValueFactory = x => 20,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxSelfAssignableRoleGroups)
-			{
-				ResetValueFactory = x => 10,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxQuotes)
-			{
-				ResetValueFactory = x => 500,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxBannedStrings)
-			{
-				ResetValueFactory = x => 50,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxBannedRegex)
-			{
-				ResetValueFactory = x => 25,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxBannedNames)
-			{
-				ResetValueFactory = x => 25,
-			});
-			SettingParser.Add(new Setting<int>(() => MaxBannedPunishments)
-			{
-				ResetValueFactory = x => 10,
-			});
-			SettingParser.Add(new CollectionSetting<ulong>(() => TrustedUsers));
-			SettingParser.Add(new CollectionSetting<ulong>(() => UsersUnableToDmOwner));
-			SettingParser.Add(new CollectionSetting<ulong>(() => UsersIgnoredFromCommands));*/
-		}
-
 		/// <inheritdoc />
 		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
 			=> StaticGetPath(accessor);
+		/// <inheritdoc />
+		protected override string GetLocalizedName(SettingAttribute attr)
+			=> BotSettingNames.ResourceManager.GetString(attr.UnlocalizedName);
 		/// <summary>
 		/// Creates an instance of <see cref="BotSettings"/> from file.
 		/// </summary>

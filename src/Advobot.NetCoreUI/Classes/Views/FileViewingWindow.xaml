@@ -10,8 +10,8 @@
         Title="{Binding WindowTitle}"
         FontFamily="Courier New">
 
-    <controls:DynamicFontSizeGrid RowDefinitions="5*,15*,4*" ColumnDefinitions="7*,1*" DynamicFontSize=".02">
-        <!-- TODO: Uncomment when this nuget package is updated past 0.7.0 and te work -->
+    <controls:DynamicFontSizeGrid Name="MainGrid" RowDefinitions="5*,15*,4*" ColumnDefinitions="7*,1*" DynamicFontSize=".02">
+        <!-- TODO: Uncomment when this nuget package is updated past 0.8.0 and texteditor works -->
         <!-- <ae:TextEditor Grid.RowSpan="1000" Document="{Binding Output}" VerticalScrollBarVisibility="Visible" SyntaxHighlighting="Json" ShowLineNumbers="True" WordWrap="True"/> -->
         <TextBox Grid.RowSpan="1000" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True"/>
         <TextBox Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"

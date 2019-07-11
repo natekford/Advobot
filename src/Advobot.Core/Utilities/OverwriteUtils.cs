@@ -113,7 +113,7 @@ namespace Advobot.Utilities
 		private static async Task<ISnowflakeEntity> GetEntityAsync(this Overwrite overwrite, IGuild guild) => overwrite.TargetType switch
 		{
 			PermissionTarget.Role => (ISnowflakeEntity)guild.GetRole(overwrite.TargetId),
-			PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId),
+			PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).CAF(),
 			_ => throw new ArgumentException(nameof(overwrite.TargetType)),
 		};
 	}

@@ -24,7 +24,7 @@ namespace Advobot.Classes.DatabaseWrappers
 		/// </summary>
 		protected IDatabaseWrapperFactory DatabaseFactory { get; }
 
-		private IDatabaseWrapper? _DatabaseWrapper { get; set; }
+		private IDatabaseWrapper? _DatabaseWrapper;
 
 		/// <summary>
 		/// Creates an instance of <see cref="DatabaseWrapperConsumer"/>.

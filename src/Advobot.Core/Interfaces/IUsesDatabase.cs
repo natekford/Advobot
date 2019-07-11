@@ -1,9 +1,11 @@
-﻿namespace Advobot.Interfaces
+﻿using System;
+
+namespace Advobot.Interfaces
 {
 	/// <summary>
 	/// Indicates that the class uses a database.
 	/// </summary>
-	public interface IUsesDatabase
+	internal interface IUsesDatabase : IDisposable
 	{
 		/// <summary>
 		/// Starts the database connection.
