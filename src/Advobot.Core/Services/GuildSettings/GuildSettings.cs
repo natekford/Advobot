@@ -11,6 +11,7 @@ using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Resources;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -24,7 +25,7 @@ namespace Advobot.Services.GuildSettings
 	internal sealed class GuildSettings : SettingsBase, IGuildSettings
 	{
 		/// <inheritdoc />
-		[JsonProperty("WelcomeMessage")]
+		[Setting(nameof(GuildSettingNames.WelcomeMessage)), JsonProperty("WelcomeMessage")]
 		public GuildNotification? WelcomeMessage
 		{
 			get => _WelcomeMessage;
@@ -32,7 +33,7 @@ namespace Advobot.Services.GuildSettings
 		}
 		private GuildNotification? _WelcomeMessage;
 		/// <inheritdoc />
-		[JsonProperty("GoodbyeMessage")]
+		[Setting(nameof(GuildSettingNames.GoodbyeMessage)), JsonProperty("GoodbyeMessage")]
 		public GuildNotification? GoodbyeMessage
 		{
 			get => _GoodbyeMessage;
@@ -40,7 +41,7 @@ namespace Advobot.Services.GuildSettings
 		}
 		private GuildNotification? _GoodbyeMessage;
 		/// <inheritdoc />
-		[JsonIgnore]
+		[Setting(nameof(GuildSettingNames.GuildCulture)), JsonIgnore]
 		public CultureInfo Culture
 		{
 			get => CultureInfo.GetCultureInfo(_Culture);
@@ -49,7 +50,7 @@ namespace Advobot.Services.GuildSettings
 		[JsonProperty("Culture")]
 		private string _Culture = "en-US";
 		/// <inheritdoc />
-		[JsonProperty("Prefix")]
+		[Setting(nameof(GuildSettingNames.Prefix)), JsonProperty("Prefix")]
 		public string? Prefix
 		{
 			get => _Prefix;
@@ -57,7 +58,7 @@ namespace Advobot.Services.GuildSettings
 		}
 		private string? _Prefix;
 		/// <inheritdoc />
-		[JsonProperty("ServerLog")]
+		[Setting(nameof(GuildSettingNames.ServerLog)), JsonProperty("ServerLog")]
 		public ulong ServerLogId
 		{
 			get => _ServerLogId;
@@ -65,7 +66,7 @@ namespace Advobot.Services.GuildSettings
 		}
 		private ulong _ServerLogId;
 		/// <inheritdoc />
-		[JsonProperty("ModLog")]
+		[Setting(nameof(GuildSettingNames.ModLog)), JsonProperty("ModLog")]
 		public ulong ModLogId
 		{
 			get => _ModLogId;
@@ -73,7 +74,7 @@ namespace Advobot.Services.GuildSettings
 		}
 		private ulong _ModLogId;
 		/// <inheritdoc />
-		[JsonProperty("ImageLog")]
+		[Setting(nameof(GuildSettingNames.ImageLog)), JsonProperty("ImageLog")]
 		public ulong ImageLogId
 		{
 			get => _ImageLogId;
@@ -81,7 +82,7 @@ namespace Advobot.Services.GuildSettings
 		}
 		private ulong _ImageLogId;
 		/// <inheritdoc />
-		[JsonProperty("MuteRole")]
+		[Setting(nameof(GuildSettingNames.MuteRole)), JsonProperty("MuteRole")]
 		public ulong MuteRoleId
 		{
 			get => _MuteRoleId;
@@ -89,7 +90,7 @@ namespace Advobot.Services.GuildSettings
 		}
 		private ulong _MuteRoleId;
 		/// <inheritdoc />
-		[JsonProperty("NonVerboseErrors")]
+		[Setting(nameof(GuildSettingNames.NonVerboseErrors)), JsonProperty("NonVerboseErrors")]
 		public bool NonVerboseErrors
 		{
 			get => _NonVerboseErrors;
@@ -97,55 +98,55 @@ namespace Advobot.Services.GuildSettings
 		}
 		private bool _NonVerboseErrors;
 		/// <inheritdoc />
-		[JsonProperty("SpamPrevention")]
+		[Setting(nameof(GuildSettingNames.SpamPrevention)), JsonProperty("SpamPrevention")]
 		public IList<SpamPrev> SpamPrevention { get; } = new ObservableCollection<SpamPrev>();
 		/// <inheritdoc />
-		[JsonProperty("RaidPrevention")]
+		[Setting(nameof(GuildSettingNames.RaidPrevention)), JsonProperty("RaidPrevention")]
 		public IList<RaidPrev> RaidPrevention { get; } = new ObservableCollection<RaidPrev>();
 		/// <inheritdoc />
-		[JsonProperty("PersistentRoles")]
+		[Setting(nameof(GuildSettingNames.PersistentRoles)), JsonProperty("PersistentRoles")]
 		public IList<PersistentRole> PersistentRoles { get; } = new ObservableCollection<PersistentRole>();
 		/// <inheritdoc />
-		[JsonProperty("BotUsers")]
+		[Setting(nameof(GuildSettingNames.BotUsers)), JsonProperty("BotUsers")]
 		public IList<BotUser> BotUsers { get; } = new ObservableCollection<BotUser>();
 		/// <inheritdoc />
-		[JsonProperty("SelfAssignableGroups")]
+		[Setting(nameof(GuildSettingNames.SelfAssignableGroups)), JsonProperty("SelfAssignableGroups")]
 		public IList<SelfAssignableRoles> SelfAssignableGroups { get; } = new ObservableCollection<SelfAssignableRoles>();
 		/// <inheritdoc />
-		[JsonProperty("Quotes")]
+		[Setting(nameof(GuildSettingNames.Quotes)), JsonProperty("Quotes")]
 		public IList<Quote> Quotes { get; } = new ObservableCollection<Quote>();
 		/// <inheritdoc />
-		[JsonProperty("LogActions")]
+		[Setting(nameof(GuildSettingNames.LogActions)), JsonProperty("LogActions")]
 		public IList<LogAction> LogActions { get; } = new ObservableCollection<LogAction>();
 		/// <inheritdoc />
-		[JsonProperty("IgnoredCommandChannels")]
+		[Setting(nameof(GuildSettingNames.IgnoredCommandChannels)), JsonProperty("IgnoredCommandChannels")]
 		public IList<ulong> IgnoredCommandChannels { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("IgnoredLogChannels")]
+		[Setting(nameof(GuildSettingNames.IgnoredLogChannels)), JsonProperty("IgnoredLogChannels")]
 		public IList<ulong> IgnoredLogChannels { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("IgnoredXpChannels")]
+		[Setting(nameof(GuildSettingNames.IgnoredXpChannels)), JsonProperty("IgnoredXpChannels")]
 		public IList<ulong> IgnoredXpChannels { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("ImageOnlyChannels")]
+		[Setting(nameof(GuildSettingNames.ImageOnlyChannels)), JsonProperty("ImageOnlyChannels")]
 		public IList<ulong> ImageOnlyChannels { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhraseStrings")]
+		[Setting(nameof(GuildSettingNames.BannedPhraseStrings)), JsonProperty("BannedPhraseStrings")]
 		public IList<BannedPhrase> BannedPhraseStrings { get; } = new ObservableCollection<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhraseRegex")]
+		[Setting(nameof(GuildSettingNames.BannedPhraseRegex)), JsonProperty("BannedPhraseRegex")]
 		public IList<BannedPhrase> BannedPhraseRegex { get; } = new ObservableCollection<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhraseNames")]
+		[Setting(nameof(GuildSettingNames.BannedPhraseNames)), JsonProperty("BannedPhraseNames")]
 		public IList<BannedPhrase> BannedPhraseNames { get; } = new ObservableCollection<BannedPhrase>();
 		/// <inheritdoc />
-		[JsonProperty("BannedPhrasePunishments")]
+		[Setting(nameof(GuildSettingNames.BannedPhrasePunishments)), JsonProperty("BannedPhrasePunishments")]
 		public IList<BannedPhrasePunishment> BannedPhrasePunishments { get; } = new ObservableCollection<BannedPhrasePunishment>();
 		/// <inheritdoc />
-		[JsonProperty("Rules")]
+		[Setting(nameof(GuildSettingNames.Rules)), JsonProperty("Rules")]
 		public RuleHolder Rules { get; private set; } = new RuleHolder();
 		/// <inheritdoc />
-		[JsonProperty("CommandSettings")]
+		[Setting(nameof(GuildSettingNames.CommandSettings)), JsonProperty("CommandSettings")]
 		public CommandSettings CommandSettings { get; private set; } = new CommandSettings();
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -166,38 +167,59 @@ namespace Advobot.Services.GuildSettings
 		private IGuild? _Guild;
 		private IBotSettings? _BotSettings;
 
+		private GuildSettings() { }
+
 		/// <inheritdoc />
 		public string GetPrefix()
 			=> Prefix ?? _BotSettings?.Prefix ?? throw new InvalidOperationException("Unable to find a prefix.");
 		/// <inheritdoc />
-		public async Task PostDeserializeAsync(IBotSettings botSettings, IGuild guild)
-		{
-			_Guild = guild;
-			_BotSettings = botSettings;
-			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
-			{
-				CachedInvites.Add(new CachedInvite(invite));
-			}
-			foreach (var group in SelfAssignableGroups)
-			{
-				group.RemoveRoles(group.Roles.Where(x => guild.GetRole(x) == null));
-			}
-		}
-		/// <inheritdoc />
-		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
-			=> StaticGetFile(accessor, GuildId);
-		/// <inheritdoc />
 		protected override string GetLocalizedName(SettingAttribute attr)
-			=> attr.UnlocalizedName;
+			=> GuildSettingNames.ResourceManager.GetString(attr.UnlocalizedName);
+
+		#region Saving and Loading
+		/// <inheritdoc />
+		public override void Save()
+		{
+			if (_BotSettings == null)
+			{
+				throw new InvalidOperationException("Unable to save.");
+			}
+
+			var path = StaticGetFile(_BotSettings, GuildId);
+			IOUtils.SafeWriteAllText(path, IOUtils.Serialize(this));
+		}
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettings"/> from file.
 		/// </summary>
-		/// <param name="accessor"></param>
+		/// <param name="settings"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static GuildSettings? Load(IBotDirectoryAccessor accessor, IGuild guild)
-			=> IOUtils.DeserializeFromFile<GuildSettings>(StaticGetFile(accessor, guild.Id));
+		public static async Task<GuildSettings> CreateOrLoadAsync(IBotSettings settings, IGuild guild)
+		{
+			var path = StaticGetFile(settings, guild.Id);
+			var instance = IOUtils.DeserializeFromFile<GuildSettings>(path);
+			if (instance == null)
+			{
+				instance = new GuildSettings();
+				instance.Save();
+			}
+
+			instance._BotSettings = settings;
+			instance._Guild = guild;
+
+			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
+			{
+				instance.CachedInvites.Add(new CachedInvite(invite));
+			}
+			foreach (var group in instance.SelfAssignableGroups)
+			{
+				group.RemoveRoles(group.Roles.Where(x => guild.GetRole(x) == null));
+			}
+
+			return instance;
+		}
 		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor, ulong guildId)
 			=> accessor.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
+		#endregion
 	}
 }

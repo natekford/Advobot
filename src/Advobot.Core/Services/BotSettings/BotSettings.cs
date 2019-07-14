@@ -4,6 +4,7 @@ using System.IO;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
+using Advobot.Resources;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -153,18 +154,22 @@ namespace Advobot.Services.BotSettings
 		[JsonIgnore]
 		public string RestartArguments { get; private set; } = "";
 
-		/// <inheritdoc />
-		public override FileInfo GetFile(IBotDirectoryAccessor accessor)
-			=> StaticGetPath(accessor);
+		private BotSettings() { }
+
 		/// <inheritdoc />
 		protected override string GetLocalizedName(SettingAttribute attr)
 			=> BotSettingNames.ResourceManager.GetString(attr.UnlocalizedName);
+
+		#region Saving and Loading
+		/// <inheritdoc />
+		public override void Save()
+			=> IOUtils.SafeWriteAllText(StaticGetPath(this), IOUtils.Serialize(this));
 		/// <summary>
 		/// Creates an instance of <see cref="BotSettings"/> from file.
 		/// </summary>
 		/// <param name="config"></param>
 		/// <returns></returns>
-		public static BotSettings Load(ILowLevelConfig config)
+		public static BotSettings CreateOrLoad(ILowLevelConfig config)
 		{
 			var settings = IOUtils.DeserializeFromFile<BotSettings>(StaticGetPath(config)) ?? new BotSettings();
 			settings.BaseBotDirectory = config.BaseBotDirectory;
@@ -173,5 +178,6 @@ namespace Advobot.Services.BotSettings
 		}
 		private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor)
 			=> accessor.GetBaseBotDirectoryFile("BotSettings.json");
+		#endregion
 	}
 }

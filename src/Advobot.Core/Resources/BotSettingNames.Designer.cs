@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Advobot.Services.BotSettings {
+namespace Advobot.Resources {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Advobot.Services.BotSettings {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Advobot.Services.BotSettings.BotSettingNames", typeof(BotSettingNames).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Advobot.Resources.BotSettingNames", typeof(BotSettingNames).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

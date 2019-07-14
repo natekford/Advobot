@@ -102,7 +102,7 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 			_Client = provider.GetRequiredService<BaseSocketClient>();
 			_LogService = provider.GetRequiredService<ILogService>();
 			_BotSettings = provider.GetRequiredService<IBotSettings>();
-			_Colors = NetCoreColorSettings.Load<NetCoreColorSettings>(_BotSettings) ?? new NetCoreColorSettings();
+			_Colors = NetCoreColorSettings.CreateOrLoad(_BotSettings);
 
 			LogServiceViewModel = new LogServiceViewModel(_LogService);
 			BotSettingsViewModel = new BotSettingsViewModel(_BotSettings);
@@ -195,12 +195,12 @@ namespace Advobot.NetCoreUI.Classes.ViewModels
 		}
 		private void SaveColorSettings()
 		{
-			_Colors.Save(_BotSettings);
+			_Colors.Save();
 			ConsoleUtils.WriteLine("Successfully saved the color settings.", name: "Saving");
 		}
 		private void SaveBotSettings()
 		{
-			_BotSettings.SaveSettings();
+			_BotSettings.Save();
 			ConsoleUtils.WriteLine("Successfully saved the bot settings.", name: "Saving");
 		}
 		private async Task ClearOutput(Window window)

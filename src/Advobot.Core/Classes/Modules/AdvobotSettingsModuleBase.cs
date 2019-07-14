@@ -35,7 +35,7 @@ namespace Advobot.Classes.Modules
 		{
 			if (!command.Attributes.Any(x => x is DontSaveAfterExecutionAttribute))
 			{
-				Settings.Save(BotSettings);
+				Settings.Save();
 			}
 			base.AfterExecute(command);
 		}

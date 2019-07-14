@@ -121,6 +121,8 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 			};
 		}
 
+		/// <inheritdoc />
+		public abstract void Save();
 		/// <summary>
 		/// Updates a resource dictionary with the specified value.
 		/// </summary>
@@ -133,20 +135,5 @@ namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 		/// <param name="caller"></param>
 		protected void RaisePropertyChanged([CallerMemberName] string caller = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
-		/// <inheritdoc />
-		public FileInfo GetFile(IBotDirectoryAccessor accessor)
-			=> StaticGetFile(accessor);
-		/// <inheritdoc />
-		public void Save(IBotDirectoryAccessor accessor)
-			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
-		/// <summary>
-		/// Loads the UI settings from file.
-		/// </summary>
-		/// <param name="accessor"></param>
-		/// <returns></returns>
-		public static T? Load<T>(IBotDirectoryAccessor accessor) where T : ColorSettings<TBrush, TBrushFactory>
-			=> IOUtils.DeserializeFromFile<T>(StaticGetFile(accessor));
-		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor)
-			=> accessor.GetBaseBotDirectoryFile("UISettings.json");
 	}
 }

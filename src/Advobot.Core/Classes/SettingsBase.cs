@@ -58,10 +58,7 @@ namespace Advobot.Classes
 		public IDiscordFormattableString FormatValue(object? value)
 			=> new DiscordFormattableString($"{value}");
 		/// <inheritdoc />
-		public void Save(IBotDirectoryAccessor accessor)
-			=> IOUtils.SafeWriteAllText(GetFile(accessor), IOUtils.Serialize(this));
-		/// <inheritdoc />
-		public abstract FileInfo GetFile(IBotDirectoryAccessor accessor);
+		public abstract void Save();
 		/// <summary>
 		/// Gets the localized setting name.
 		/// </summary>

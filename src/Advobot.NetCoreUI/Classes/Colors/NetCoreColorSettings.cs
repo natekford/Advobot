@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
+using Advobot.Interfaces;
 using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Avalonia;
 using Avalonia.Controls;
@@ -43,10 +46,12 @@ namespace Advobot.NetCoreUI.Classes.Colors
 			LoadSyntaxHighlighting($"{_AssemblyName}.Resources.JsonSyntaxHighlighting.xshd", "Json", new[] { ".json" });
 		}
 
+		private IBotDirectoryAccessor? _DirectoryAccessor;
+
 		/// <summary>
 		/// Creates an instance of <see cref="NetCoreColorSettings"/>.
 		/// </summary>
-		public NetCoreColorSettings()
+		private NetCoreColorSettings()
 		{
 			PropertyChanged += (sender, e) =>
 			{
@@ -73,6 +78,37 @@ namespace Advobot.NetCoreUI.Classes.Colors
 			Application.Current.Resources[target] = value;
 			UpdateSyntaxHighlightingColor(target, value);
 		}
+		/// <inheritdoc />
+		public override void Save()
+		{
+			if (_DirectoryAccessor == null)
+			{
+				throw new InvalidOperationException("Unable to save.");
+			}
+
+			var path = StaticGetFile(_DirectoryAccessor);
+			IOUtils.SafeWriteAllText(path, IOUtils.Serialize(this));
+		}
+		/// <summary>
+		/// Loads the UI settings from file.
+		/// </summary>
+		/// <param name="accessor"></param>
+		/// <returns></returns>
+		public static NetCoreColorSettings CreateOrLoad(IBotDirectoryAccessor accessor)
+		{
+			var path = StaticGetFile(accessor);
+			var instance = IOUtils.DeserializeFromFile<NetCoreColorSettings>(path);
+			if (instance == null)
+			{
+				instance = new NetCoreColorSettings();
+				instance.Save();
+			}
+
+			instance._DirectoryAccessor = accessor;
+			return instance;
+		}
+		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor)
+			=> accessor.GetBaseBotDirectoryFile("UISettings.json");
 		private void SetSyntaxHighlightingColors(params string[] names)
 		{
 			foreach (var name in names)

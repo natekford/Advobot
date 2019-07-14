@@ -63,17 +63,26 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
-    <Compile Update="Services\BotSettings\BotSettingNames.Designer.cs">
+    <Compile Update="Resources\BotSettingNames.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>BotSettingNames.resx</DependentUpon>
     </Compile>
+    <Compile Update="Resources\GuildSettingNames.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GuildSettingNames.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Services\BotSettings\BotSettingNames.resx">
+    <EmbeddedResource Update="Resources\BotSettingNames.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>BotSettingNames.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\GuildSettingNames.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>GuildSettingNames.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

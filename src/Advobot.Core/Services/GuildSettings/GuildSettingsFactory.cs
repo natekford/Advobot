@@ -36,14 +36,7 @@ namespace Advobot.Services.GuildSettings
 				return settings;
 			}
 
-			var concrete = GuildSettings.Load(_BotSettings, guild);
-			if (concrete == null)
-			{
-				concrete = new GuildSettings();
-				concrete.Save(_BotSettings);
-			}
-
-			await concrete.PostDeserializeAsync(_BotSettings, guild).CAF();
+			var concrete = await GuildSettings.CreateOrLoadAsync(_BotSettings, guild).CAF();
 			_GuildSettings.TryAdd(guild.Id, concrete);
 			return concrete;
 		}

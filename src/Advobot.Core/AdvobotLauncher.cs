@@ -119,7 +119,7 @@ namespace Advobot
 		private static IServiceCollection CreateDefaultServices(ILowLevelConfig config)
 		{
 			//I have no idea if I am providing services correctly, but it works.
-			var botSettings = BotSettings.Load(config);
+			var botSettings = BotSettings.CreateOrLoad(config);
 			var commands = new CommandService(new CommandServiceConfig
 			{
 				CaseSensitiveCommands = false,

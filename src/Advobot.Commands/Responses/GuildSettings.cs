@@ -52,19 +52,6 @@ namespace Advobot.Commands.Responses
 				Text = description,
 			});
 		}
-		public static AdvobotResult GetFile(ISettingsBase settings, IBotDirectoryAccessor accessor)
-		{
-			var file = settings.GetFile(accessor);
-			if (!file.Exists)
-			{
-				return Failure("The settings file does not exist.").WithTime(DefaultTime);
-			}
-			return Success(new TextFileInfo
-			{
-				Name = file.Name,
-				Text = System.IO.File.ReadAllText(file.FullName),
-			});
-		}
 
 		public static AdvobotResult SendWelcomeNotification(GuildNotification? notif)
 			=> SendNotification(notif, "welcome");
