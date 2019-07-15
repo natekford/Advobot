@@ -19,12 +19,12 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// The phrase which is banned. Can be string or regex pattern.
 		/// </summary>
-		[JsonProperty]
-		public string? Phrase { get; private set; }
+		[JsonProperty("Phrase")]
+		public string? Phrase { get; set; }
 		/// <summary>
 		/// The type of punishment associated with this phrase.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("Punishment")]
 		public Punishment Punishment { get; set; }
 
 		/// <summary>

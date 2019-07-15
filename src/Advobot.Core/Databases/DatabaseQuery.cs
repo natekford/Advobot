@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Advobot.Interfaces;
+using Advobot.Databases.Abstract;
 
-namespace Advobot.Classes.DatabaseWrappers
+namespace Advobot.Databases
 {
 	/// <summary>
 	/// Class holding information about how to use <see cref="IDatabaseWrapper"/> methods.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public sealed class DatabaseQuery<T> where T : DatabaseEntry
+	internal sealed class DatabaseQuery<T> where T : IDatabaseEntry
 	{
 		/// <summary>
 		/// The name of the collection to search.

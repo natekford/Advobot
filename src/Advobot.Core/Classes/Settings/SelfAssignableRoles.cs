@@ -14,13 +14,13 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// The group number all the roles belong to.
 		/// </summary>
-		[JsonProperty]
-		public int Group { get; private set; }
+		[JsonProperty("Group")]
+		public int Group { get; set; }
 		/// <summary>
 		/// The ids of the roles.
 		/// </summary>
 		[JsonProperty("Roles")]
-		public ISet<ulong> Roles { get; } = new HashSet<ulong>();
+		public ISet<ulong> Roles { get; set; } = new HashSet<ulong>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="SelfAssignableRoles"/>.

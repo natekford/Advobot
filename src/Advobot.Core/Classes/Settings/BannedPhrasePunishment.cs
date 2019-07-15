@@ -13,22 +13,22 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// The punishment to use on a user.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("Punishment")]
 		public Punishment Punishment { get; private set; }
 		/// <summary>
 		/// The role to give a user if the punishment is role.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("Role")]
 		public ulong RoleId { get; private set; }
 		/// <summary>
 		/// How many removes before this is used on the user.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("NumberOfRemoves")]
 		public int NumberOfRemoves { get; private set; }
 		/// <summary>
 		/// How long the punishment should last in minutes.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("Time")]
 		public int Time { get; private set; }
 
 		/// <summary>

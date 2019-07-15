@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Advobot.Databases.Abstract;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 using FileMode = LiteDB.FileMode;
 
-namespace Advobot.Classes.DatabaseWrappers.LiteDB
+namespace Advobot.Databases.LiteDB
 {
 	/// <summary>
 	/// Generates wrappers for <see cref="LiteDatabase"/>.
 	/// </summary>
-	public sealed class LiteDBWrapperFactory : IDatabaseWrapperFactory
+	internal sealed class LiteDBWrapperFactory : IDatabaseWrapperFactory
 	{
 		private readonly IBotDirectoryAccessor _DirectoryAccessor;
 
@@ -53,7 +54,7 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 			return new LiteDatabase(new ConnectionString
 			{
 				Filename = file.FullName,
-				Mode = FileMode.Exclusive, //One of my computer's will throw exceptions if this is shared
+				Mode = FileMode.Exclusive, //One of my computers will throw exceptions if this is shared
 			}, mapper);
 		}
 
@@ -74,7 +75,7 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 			}
 
 			/// <inheritdoc />
-			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : DatabaseEntry
+			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : IDatabaseEntry
 			{
 				var collection = _Database.GetCollection<T>(options.CollectionName);
 				switch (options.Action)
@@ -97,11 +98,10 @@ namespace Advobot.Classes.DatabaseWrappers.LiteDB
 						collection.Delete(options.Selector);
 						return values;
 					case DatabaseQuery<T>.DBAction.DeleteFromValues:
-						foreach (var value in options.Values ?? Enumerable.Empty<T>())
-						{
-							collection.Delete(value.Id);
-						}
-						return options.Values ?? Enumerable.Empty<T>();
+						var removed = options.Values ?? Enumerable.Empty<T>();
+						var ids = removed.Select(x => x.Id);
+						collection.Delete(x => ids.Contains(x.Id));
+						return removed;
 					default:
 						throw new ArgumentException(nameof(options.Action));
 				}

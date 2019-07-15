@@ -1,28 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Classes;
+﻿using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
+using Advobot.Databases.Abstract;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Resources;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Discord;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
 
 namespace Advobot.Services.GuildSettings
 {
 	/// <summary>
 	/// Holds settings for a guild.
 	/// </summary>
-	internal sealed class GuildSettings : SettingsBase, IGuildSettings
+	internal sealed class GuildSettings : SettingsBase, IGuildSettings, IDatabaseEntry
 	{
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.WelcomeMessage)), JsonProperty("WelcomeMessage")]
@@ -41,13 +36,12 @@ namespace Advobot.Services.GuildSettings
 		}
 		private GuildNotification? _GoodbyeMessage;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.GuildCulture)), JsonIgnore]
-		public CultureInfo Culture
+		[Setting(nameof(GuildSettingNames.GuildCulture)), JsonProperty("Culture")]
+		public string Culture
 		{
-			get => CultureInfo.GetCultureInfo(_Culture);
-			set => SetValue(ref _Culture, value.Name);
+			get => _Culture;
+			set => ThrowIfElseSet(ref _Culture, value, x => CultureInfo.GetCultureInfo(x) == null, "Invalid culture provided.");
 		}
-		[JsonProperty("Culture")]
 		private string _Culture = "en-US";
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.Prefix)), JsonProperty("Prefix")]
@@ -99,55 +93,55 @@ namespace Advobot.Services.GuildSettings
 		private bool _NonVerboseErrors;
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.SpamPrevention)), JsonProperty("SpamPrevention")]
-		public IList<SpamPrev> SpamPrevention { get; } = new ObservableCollection<SpamPrev>();
+		public IList<SpamPrev> SpamPrevention { get; set; } = new ObservableCollection<SpamPrev>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.RaidPrevention)), JsonProperty("RaidPrevention")]
-		public IList<RaidPrev> RaidPrevention { get; } = new ObservableCollection<RaidPrev>();
+		public IList<RaidPrev> RaidPrevention { get; set; } = new ObservableCollection<RaidPrev>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.PersistentRoles)), JsonProperty("PersistentRoles")]
-		public IList<PersistentRole> PersistentRoles { get; } = new ObservableCollection<PersistentRole>();
+		public IList<PersistentRole> PersistentRoles { get; set; } = new ObservableCollection<PersistentRole>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.BotUsers)), JsonProperty("BotUsers")]
-		public IList<BotUser> BotUsers { get; } = new ObservableCollection<BotUser>();
+		public IList<BotUser> BotUsers { get; set; } = new ObservableCollection<BotUser>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.SelfAssignableGroups)), JsonProperty("SelfAssignableGroups")]
-		public IList<SelfAssignableRoles> SelfAssignableGroups { get; } = new ObservableCollection<SelfAssignableRoles>();
+		public IList<SelfAssignableRoles> SelfAssignableGroups { get; set; } = new ObservableCollection<SelfAssignableRoles>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.Quotes)), JsonProperty("Quotes")]
-		public IList<Quote> Quotes { get; } = new ObservableCollection<Quote>();
+		public IList<Quote> Quotes { get; set; } = new ObservableCollection<Quote>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.LogActions)), JsonProperty("LogActions")]
-		public IList<LogAction> LogActions { get; } = new ObservableCollection<LogAction>();
+		public IList<LogAction> LogActions { get; set; } = new ObservableSet<LogAction>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.IgnoredCommandChannels)), JsonProperty("IgnoredCommandChannels")]
-		public IList<ulong> IgnoredCommandChannels { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> IgnoredCommandChannels { get; set; } = new ObservableSet<ulong>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.IgnoredLogChannels)), JsonProperty("IgnoredLogChannels")]
-		public IList<ulong> IgnoredLogChannels { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> IgnoredLogChannels { get; set; } = new ObservableSet<ulong>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.IgnoredXpChannels)), JsonProperty("IgnoredXpChannels")]
-		public IList<ulong> IgnoredXpChannels { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> IgnoredXpChannels { get; set; } = new ObservableSet<ulong>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.ImageOnlyChannels)), JsonProperty("ImageOnlyChannels")]
-		public IList<ulong> ImageOnlyChannels { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> ImageOnlyChannels { get; set; } = new ObservableSet<ulong>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.BannedPhraseStrings)), JsonProperty("BannedPhraseStrings")]
-		public IList<BannedPhrase> BannedPhraseStrings { get; } = new ObservableCollection<BannedPhrase>();
+		public IList<BannedPhrase> BannedPhraseStrings { get; set; } = new ObservableCollection<BannedPhrase>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.BannedPhraseRegex)), JsonProperty("BannedPhraseRegex")]
-		public IList<BannedPhrase> BannedPhraseRegex { get; } = new ObservableCollection<BannedPhrase>();
+		public IList<BannedPhrase> BannedPhraseRegex { get; set; } = new ObservableCollection<BannedPhrase>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.BannedPhraseNames)), JsonProperty("BannedPhraseNames")]
-		public IList<BannedPhrase> BannedPhraseNames { get; } = new ObservableCollection<BannedPhrase>();
+		public IList<BannedPhrase> BannedPhraseNames { get; set; } = new ObservableCollection<BannedPhrase>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.BannedPhrasePunishments)), JsonProperty("BannedPhrasePunishments")]
-		public IList<BannedPhrasePunishment> BannedPhrasePunishments { get; } = new ObservableCollection<BannedPhrasePunishment>();
+		public IList<BannedPhrasePunishment> BannedPhrasePunishments { get; set; } = new ObservableCollection<BannedPhrasePunishment>();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.Rules)), JsonProperty("Rules")]
-		public RuleHolder Rules { get; private set; } = new RuleHolder();
+		public RuleHolder Rules { get; set; } = new RuleHolder();
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.CommandSettings)), JsonProperty("CommandSettings")]
-		public CommandSettings CommandSettings { get; private set; } = new CommandSettings();
+		public CommandSettings CommandSettings { get; set; } = new CommandSettings();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public IList<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
@@ -162,64 +156,20 @@ namespace Advobot.Services.GuildSettings
 		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public ulong GuildId => _Guild?.Id ?? 0;
+		public ulong GuildId { get; set; }
 
-		private IGuild? _Guild;
-		private IBotSettings? _BotSettings;
+		public GuildSettings() { }
 
-		private GuildSettings() { }
-
-		/// <inheritdoc />
-		public string GetPrefix()
-			=> Prefix ?? _BotSettings?.Prefix ?? throw new InvalidOperationException("Unable to find a prefix.");
 		/// <inheritdoc />
 		protected override string GetLocalizedName(SettingAttribute attr)
 			=> GuildSettingNames.ResourceManager.GetString(attr.UnlocalizedName);
-
-		#region Saving and Loading
 		/// <inheritdoc />
 		public override void Save()
 		{
-			if (_BotSettings == null)
-			{
-				throw new InvalidOperationException("Unable to save.");
-			}
-
-			var path = StaticGetFile(_BotSettings, GuildId);
-			IOUtils.SafeWriteAllText(path, IOUtils.Serialize(this));
+			throw new NotImplementedException();
 		}
-		/// <summary>
-		/// Creates an instance of <see cref="GuildSettings"/> from file.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		public static async Task<GuildSettings> CreateOrLoadAsync(IBotSettings settings, IGuild guild)
-		{
-			var path = StaticGetFile(settings, guild.Id);
-			var instance = IOUtils.DeserializeFromFile<GuildSettings>(path);
-			if (instance == null)
-			{
-				instance = new GuildSettings();
-				instance.Save();
-			}
 
-			instance._BotSettings = settings;
-			instance._Guild = guild;
-
-			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
-			{
-				instance.CachedInvites.Add(new CachedInvite(invite));
-			}
-			foreach (var group in instance.SelfAssignableGroups)
-			{
-				group.RemoveRoles(group.Roles.Where(x => guild.GetRole(x) == null));
-			}
-
-			return instance;
-		}
-		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor, ulong guildId)
-			=> accessor.GetBaseBotDirectoryFile(Path.Combine("GuildSettings", $"{guildId}.json"));
-		#endregion
+		//IDatabseEntry
+		object IDatabaseEntry.Id { get => GuildId; set => GuildId = (ulong)value; }
 	}
 }

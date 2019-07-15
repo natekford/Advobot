@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes;
+using Advobot.Databases.Abstract;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
@@ -13,7 +13,7 @@ namespace Advobot.Services.InviteList
 	/// <summary>
 	/// Lists an invite for use in <see cref="IInviteListService"/>.
 	/// </summary>
-	internal sealed class ListedInvite : DatabaseEntry, IListedInvite
+	internal sealed class ListedInvite : TimedDatabaseEntry, IListedInvite
 	{
 		/// <inheritdoc />
 		public string Code { get; private set; }

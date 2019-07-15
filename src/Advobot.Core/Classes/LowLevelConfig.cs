@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using Advobot.Classes.DatabaseWrappers;
+using Advobot.Databases;
 using Advobot.Interfaces;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;

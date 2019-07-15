@@ -18,6 +18,10 @@ namespace Advobot
 		/// </summary>
 		public const string BOT_VERSION = Version.VERSION_NUMBER;
 		/// <summary>
+		/// The schema 
+		/// </summary>
+		public const int SCHEMA_VERSION = 1;
+		/// <summary>
 		/// The Discord api wrapper version.
 		/// </summary>
 		public static readonly string API_VERSION = Assembly.GetAssembly(typeof(IDiscordClient)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;

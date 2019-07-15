@@ -1,11 +1,11 @@
-﻿using Advobot.Classes;
+﻿using Advobot.Databases.Abstract;
 
 namespace Advobot.Services.Levels
 {
 	/// <summary>
 	/// Holds the user id and experience a user has.
 	/// </summary>
-	internal sealed class LeaderboardPosition : DatabaseEntry
+	internal sealed class LeaderboardPosition : TimedDatabaseEntry
 	{
 		/// <summary>
 		/// The id of the user.

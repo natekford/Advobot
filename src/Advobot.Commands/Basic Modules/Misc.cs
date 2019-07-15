@@ -38,7 +38,7 @@ namespace Advobot.Commands.Misc
 			[Command]
 			[Summary("Prints out general help information for the bot.")]
 			public Task<RuntimeResult> Command()
-				=> Responses.Misc.GeneralHelp(Context.GuildSettings.GetPrefix());
+				=> Responses.Misc.GeneralHelp(Context.GuildSettings.GetPrefix(BotSettings));
 			[Command, Priority(1)]
 			[Summary("Prints out help information for a specified module.")]
 			public Task<RuntimeResult> Command([Summary(TEMP_SUMMARY)] IHelpEntry command)
@@ -78,7 +78,7 @@ namespace Advobot.Commands.Misc
 				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Context.GuildSettings.GetPrefix());
+				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Context.GuildSettings.GetPrefix(BotSettings));
 		}
 
 		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]

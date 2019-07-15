@@ -14,7 +14,7 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// Holds the categories for rules which in turn hold the rules.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("Categories")]
 		public Dictionary<string, List<string>> Categories { get; set; } = new Dictionary<string, List<string>>();
 
 		/// <summary>

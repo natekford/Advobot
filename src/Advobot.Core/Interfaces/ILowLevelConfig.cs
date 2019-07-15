@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes.DatabaseWrappers;
+using Advobot.Databases;
 using Discord.WebSocket;
 
 namespace Advobot.Interfaces
@@ -15,7 +15,7 @@ namespace Advobot.Interfaces
 		/// </summary>
 		ulong BotId { get; }
 		/// <summary>
-		/// The previous process id of the application. This is used with the .Net Framework version to make sure the old one is killed first when restarting.
+		/// The previous process id of the application.
 		/// </summary>
 		int PreviousProcessId { get; }
 		/// <summary>

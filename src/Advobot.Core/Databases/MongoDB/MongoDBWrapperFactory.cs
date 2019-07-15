@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Interfaces;
+using Advobot.Databases.Abstract;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 
-namespace Advobot.Classes.DatabaseWrappers.MongoDB
+namespace Advobot.Databases.MongoDB
 {
 	/// <summary>
 	/// Generates wrappers for <see cref="IMongoDatabase"/>.
 	/// </summary>
-	public sealed class MongoDBWrapperFactory : IDatabaseWrapperFactory
+	internal sealed class MongoDBWrapperFactory : IDatabaseWrapperFactory
 	{
 		private readonly IMongoClient _Client;
 
@@ -54,7 +54,7 @@ namespace Advobot.Classes.DatabaseWrappers.MongoDB
 			}
 
 			/// <inheritdoc />
-			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : DatabaseEntry
+			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : IDatabaseEntry
 			{
 				var collection = _Database.GetCollection<T>(options.CollectionName);
 				switch (options.Action)

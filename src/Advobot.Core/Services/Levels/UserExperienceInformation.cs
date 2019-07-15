@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Classes;
+using Advobot.Databases.Abstract;
 using Advobot.Interfaces;
 using Discord;
 
@@ -10,7 +10,7 @@ namespace Advobot.Services.Levels
 	/// <summary>
 	/// Holds the experience a user has.
 	/// </summary>
-	internal sealed class UserExperienceInformation : DatabaseEntry, IUserExperienceInformation
+	internal sealed class UserExperienceInformation : TimedDatabaseEntry, IUserExperienceInformation
 	{
 		private const int _MESSAGE_AMOUNT = 10;
 

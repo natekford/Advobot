@@ -22,7 +22,7 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// The amount of users to count for a raid.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("RaidCount")]
 		public int RaidCount { get; set; }
 
 		[JsonIgnore]

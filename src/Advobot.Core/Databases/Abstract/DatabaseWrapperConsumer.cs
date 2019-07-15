@@ -1,14 +1,15 @@
 ﻿using System;
+using System.Linq;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Classes.DatabaseWrappers
+namespace Advobot.Databases.Abstract
 {
 	/// <summary>
 	/// This class is the base of a service which uses a database.
 	/// </summary>
-	public abstract class DatabaseWrapperConsumer : IUsesDatabase, IDisposable
+	internal abstract class DatabaseWrapperConsumer : IUsesDatabase, IDisposable
 	{
 		/// <summary>
 		/// The name of the database.
@@ -39,13 +40,29 @@ namespace Advobot.Classes.DatabaseWrappers
 		public void Start()
 		{
 			_DatabaseWrapper = DatabaseFactory.CreateWrapper(DatabaseName);
-			ConsoleUtils.DebugWrite($"Started the database connection for {DatabaseName}.");
-			AfterStart();
+			ConsoleUtils.DebugWrite($"Started the database connection {DatabaseName}.");
+
+			const string META_COLLECTION_NAME = "Meta";
+
+			var findQuery = DatabaseQuery<DatabaseMetadata>.GetAll();
+			findQuery.CollectionName = META_COLLECTION_NAME;
+			var metas = DatabaseWrapper.ExecuteQuery(findQuery);
+			var schema = metas.Any() ? metas.Max(x => x.SchemaVersion) : -1;
+
+			AfterStart(schema);
+
+			if (schema != Constants.SCHEMA_VERSION)
+			{
+				var insertQuery = DatabaseQuery<DatabaseMetadata>.Insert(new[] { new DatabaseMetadata() });
+				insertQuery.CollectionName = META_COLLECTION_NAME;
+				DatabaseWrapper.ExecuteQuery(insertQuery);
+			}
 		}
 		/// <summary>
 		/// Actions to do after the database connection has started.
 		/// </summary>
-		protected virtual void AfterStart()
+		/// <param name="schema"></param>
+		protected virtual void AfterStart(int schema)
 		{
 			return;
 		}
@@ -61,6 +78,15 @@ namespace Advobot.Classes.DatabaseWrappers
 		protected virtual void BeforeDispose()
 		{
 			return;
+		}
+
+		internal sealed class DatabaseMetadata : IDatabaseEntry
+		{
+			public int SchemaVersion { get; set; } = Constants.SCHEMA_VERSION;
+			public string ProgramVersion { get; set; } = Constants.BOT_VERSION;
+
+			//IDatabaseEntry
+			object IDatabaseEntry.Id { get => ProgramVersion; set => ProgramVersion = (string)value; }
 		}
 	}
 }

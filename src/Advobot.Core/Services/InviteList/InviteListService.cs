@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes.DatabaseWrappers;
+using Advobot.Databases;
+using Advobot.Databases.Abstract;
 using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;

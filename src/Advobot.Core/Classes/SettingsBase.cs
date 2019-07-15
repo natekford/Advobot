@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Formatting;
 using Advobot.Interfaces;
-using AdvorangesUtils;
 
 namespace Advobot.Classes
 {
@@ -90,9 +88,16 @@ namespace Advobot.Classes
 		/// <param name="caller"></param>
 		protected void ThrowIfElseSet<T>(ref T field, T value, Func<T, bool> condition, string msg, [CallerMemberName] string caller = "")
 		{
-			if (condition(value))
+			try
 			{
-				throw new ArgumentException(msg, caller);
+				if (condition(value))
+				{
+					throw new ArgumentException(msg, caller);
+				}
+			}
+			catch (Exception e)
+			{
+				throw new ArgumentException(msg, caller, e);
 			}
 			field = value;
 			RaisePropertyChanged(caller);

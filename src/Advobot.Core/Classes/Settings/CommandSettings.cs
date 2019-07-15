@@ -16,10 +16,16 @@ namespace Advobot.Classes.Settings
 	/// </summary>
 	public sealed class CommandSettings : IGuildFormattable
 	{
+		/// <summary>
+		/// Whether each command is enabled or disabled.
+		/// </summary>
 		[JsonProperty("CommandValues")]
-		private readonly Dictionary<string, bool> _CommandValues = new Dictionary<string, bool>();
+		public Dictionary<string, bool> CommandValues { get; set; } = new Dictionary<string, bool>();
+		/// <summary>
+		/// Overrides for each command.
+		/// </summary>
 		[JsonProperty("Overrides")]
-		private readonly Dictionary<ulong, Dictionary<string, bool>> _Overrides = new Dictionary<ulong, Dictionary<string, bool>>();
+		public Dictionary<ulong, Dictionary<string, bool>> Overrides { get; set; } = new Dictionary<ulong, Dictionary<string, bool>>();
 
 		/// <summary>
 		/// Changes the value for whether or not the commands are enabled on a guild.
@@ -46,7 +52,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="enable"></param>
 		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
 		public bool ModifyCommandValue(IHelpEntry value, bool? enable)
-			=> ModifyOverride(_CommandValues, value, enable);
+			=> ModifyOverride(CommandValues, value, enable);
 		/// <summary>
 		/// Enabled/disables/removes overrides on specified commands for a specified object. Object can be channel, role, or user.
 		/// </summary>
@@ -75,7 +81,7 @@ namespace Advobot.Classes.Settings
 		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
 		public bool ModifyOverride(IHelpEntry value, ISnowflakeEntity obj, bool? enable)
 		{
-			var innerDict = _Overrides.TryGetValue(obj.Id, out var inner) ? inner : _Overrides[obj.Id] = new Dictionary<string, bool>();
+			var innerDict = Overrides.TryGetValue(obj.Id, out var inner) ? inner : Overrides[obj.Id] = new Dictionary<string, bool>();
 			return ModifyOverride(innerDict, value, enable);
 		}
 		/// <summary>
@@ -101,22 +107,22 @@ namespace Advobot.Classes.Settings
 			}
 			var name = module.Name;
 
-			if (_Overrides.TryGetValue(user.Id, out var uD) && uD.TryGetValue(name, out var u))
+			if (Overrides.TryGetValue(user.Id, out var uD) && uD.TryGetValue(name, out var u))
 			{
 				return u;
 			}
 			foreach (var role in user.Roles.OrderByDescending(x => x.Position))
 			{
-				if (_Overrides.TryGetValue(role.Id, out var rD) && rD.TryGetValue(name, out var r))
+				if (Overrides.TryGetValue(role.Id, out var rD) && rD.TryGetValue(name, out var r))
 				{
 					return r;
 				}
 			}
-			if (_Overrides.TryGetValue(channel.Id, out var cD) && cD.TryGetValue(name, out var c))
+			if (Overrides.TryGetValue(channel.Id, out var cD) && cD.TryGetValue(name, out var c))
 			{
 				return c;
 			}
-			if (_CommandValues.TryGetValue(name, out var value))
+			if (CommandValues.TryGetValue(name, out var value))
 			{
 				return value;
 			}
@@ -124,7 +130,7 @@ namespace Advobot.Classes.Settings
 			//If they get here it means they're not in the command values currently so they should just use the default value.
 			var defaultEnabledAttr = module.Attributes.GetAttribute<EnabledByDefaultAttribute>();
 			var defaultEnabled = defaultEnabledAttr?.Enabled ?? false;
-			_CommandValues.Add(name, defaultEnabled);
+			CommandValues.Add(name, defaultEnabled);
 			return defaultEnabled;
 		}
 		/// <summary>
@@ -134,7 +140,7 @@ namespace Advobot.Classes.Settings
 		/// <param name="name"></param>
 		/// <returns></returns>
 		public bool? IsCommandEnabled(string name)
-			=> _CommandValues.TryGetValue(name, out var val) ? val : (bool?)null;
+			=> CommandValues.TryGetValue(name, out var val) ? val : (bool?)null;
 		private static bool ModifyOverride(IDictionary<string, bool> dict, IHelpEntry help, bool? enable)
 		{
 			if (!help.AbleToBeToggled)
@@ -157,12 +163,12 @@ namespace Advobot.Classes.Settings
 		public IDiscordFormattableString GetFormattableString()
 		{
 			var formattable = new DiscordFormattableStringCollection();
-			foreach (var kvp in _CommandValues)
+			foreach (var kvp in CommandValues)
 			{
 				formattable.Add($"{kvp.Key}: {kvp.Value}");
 			}
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-			foreach (var (Id, Dict) in _Overrides)
+			foreach (var (Id, Dict) in Overrides)
 			{
 				foreach (var (CommandName, Enabled) in Dict)
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.

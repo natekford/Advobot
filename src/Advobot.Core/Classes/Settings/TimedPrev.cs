@@ -18,17 +18,17 @@ namespace Advobot.Classes.Settings
 		/// <summary>
 		/// The type of thing this is preventing.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("Type")]
 		public T Type { get; set; }
 		/// <summary>
 		/// The punishment to give raiders.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("Punishment")]
 		public Punishment Punishment { get; set; }
 		/// <summary>
 		/// How long the prevention should look at.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("Time")]
 		public TimeSpan TimeInterval { get; set; }
 		/// <summary>
 		/// The role to give as a punishment.

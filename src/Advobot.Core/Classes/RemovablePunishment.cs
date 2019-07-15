@@ -1,4 +1,5 @@
 ﻿using System;
+using Advobot.Databases.Abstract;
 using Advobot.Enums;
 using Discord;
 
@@ -7,7 +8,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Punishments that will be removed after the time has passed.
 	/// </summary>
-	public class RemovablePunishment : DatabaseEntry
+	public class RemovablePunishment : TimedDatabaseEntry
 	{
 		/// <summary>
 		/// The type of punishment that was given.

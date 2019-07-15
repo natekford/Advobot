@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
 
-namespace Advobot.Classes.DatabaseWrappers.MongoDB
+namespace Advobot.Databases.MongoDB
 {
 	/// <summary>
 	/// Lets dictionaries get serialized correctly.

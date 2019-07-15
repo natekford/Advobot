@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Advobot.Databases.Abstract;
 using Discord;
 using Discord.Commands;
 
@@ -9,7 +10,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Messages that will get deleted after the time has passed.
 	/// </summary>
-	public class RemovableMessage : DatabaseEntry
+	public class RemovableMessage : TimedDatabaseEntry
 	{
 		/// <summary>
 		/// The id of the guild from the passed in context.

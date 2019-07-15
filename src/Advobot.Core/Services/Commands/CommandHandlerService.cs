@@ -109,12 +109,13 @@ namespace Advobot.Services.Commands
 				|| !(msg.Author is SocketGuildUser user)
 				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
 				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
-				|| !(msg.HasStringPrefix(settings.GetPrefix(), ref argPos) || msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
+				|| !(msg.HasStringPrefix(settings.GetPrefix(_BotSettings), ref argPos)
+					|| msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
 			{
 				return;
 			}
 
-			CultureInfo.CurrentCulture = settings.Culture;
+			CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(settings.Culture);
 			var context = new AdvobotCommandContext(settings, _Client, msg);
 			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}

@@ -1,4 +1,5 @@
 ﻿using System;
+using Advobot.Databases.Abstract;
 using Discord;
 
 namespace Advobot.Classes
@@ -6,7 +7,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Sends a message to the author after the time has passed.
 	/// </summary>
-	public class TimedMessage : DatabaseEntry
+	public class TimedMessage : TimedDatabaseEntry
 	{
 		/// <summary>
 		/// The user to send the message to.

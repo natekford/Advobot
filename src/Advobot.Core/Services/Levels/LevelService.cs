@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.DatabaseWrappers;
+using Advobot.Databases;
+using Advobot.Databases.Abstract;
 using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;

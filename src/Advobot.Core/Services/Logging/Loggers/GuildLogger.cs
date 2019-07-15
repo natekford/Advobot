@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Utilities;
@@ -26,7 +27,12 @@ namespace Advobot.Services.Logging.Loggers
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {guild.MemberCount}, {ProcessInfoUtils.GetMemoryMB().ToString("0.00")}MB)");
-			await GuildSettings.GetOrCreateAsync(guild).CAF();
+
+			var settings = await GuildSettings.GetOrCreateAsync(guild).CAF();
+			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
+			{
+				settings.CachedInvites.Add(new CachedInvite(invite));
+			}
 		}
 		/// <inheritdoc />
 		public Task OnGuildUnavailable(SocketGuild guild)

@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes.DatabaseWrappers
+﻿namespace Advobot.Databases
 {
 	/// <summary>
 	/// The possible types of databases.

@@ -15,12 +15,12 @@ namespace Advobot.Classes.Settings
 	public sealed class BotUser : IGuildFormattable, ITargetsUser
 	{
 		/// <inheritdoc />
-		[JsonProperty]
+		[JsonProperty("UserId")]
 		public ulong UserId { get; set; }
 		/// <summary>
 		/// The given permissions.
 		/// </summary>
-		[JsonProperty]
+		[JsonProperty("Permissions")]
 		public ulong Permissions { get; set; }
 
 		/// <summary>

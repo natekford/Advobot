@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using Advobot.Classes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
@@ -23,7 +22,7 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// The culture to use for the bot's responses.
 		/// </summary>
-		CultureInfo Culture { get; set; }
+		string Culture { get; set; }
 		/// <summary>
 		/// The prefix to use for the guild. If this is null, the bot prefix will be used.
 		/// </summary>
@@ -132,11 +131,5 @@ namespace Advobot.Interfaces
 		/// Holds messages which have been deleted and waits to print them out. This is not saved.
 		/// </summary>
 		MessageDeletion MessageDeletion { get; }
-
-		/// <summary>
-		/// Returns <see cref="Prefix"/> if it's not null, otherwise returns the bot's global prefix.
-		/// </summary>
-		/// <returns></returns>
-		string GetPrefix();
 	}
 }
