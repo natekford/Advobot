@@ -37,8 +37,7 @@ namespace Advobot.Commands.Responses
 		}
 		public static AdvobotResult DisplayGroup(IGuild guild, SelfAssignableRoles group)
 		{
-			/*TODO: pass in guild to get the roles or rewrite self assignable roles?*/
-			var validRoles = group.Roles.Select(x => guild.GetRole(x)).Where(x => x != null);
+			var validRoles = group.GetValidRoles(guild);
 			return Success(new EmbedWrapper
 			{
 				Title = Title.FormatInterpolated($"Self Assignable Roles Group {group.Group}"),

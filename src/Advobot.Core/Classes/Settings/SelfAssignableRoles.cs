@@ -62,7 +62,31 @@ namespace Advobot.Classes.Settings
 		/// </summary>
 		/// <param name="roles"></param>
 		public void RemoveRoles(IEnumerable<IRole> roles)
-			=> RemoveRoles(roles.Select(x => x.Id));
+		{
+			foreach (var role in roles)
+			{
+				Roles.Remove(role.Id);
+			}
+		}
+		/// <summary>
+		/// Gets roles which still exist. Also deletes roles which do not exist from this object.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
+		public IEnumerable<IRole> GetValidRoles(IGuild guild)
+		{
+			foreach (var id in Roles.ToArray())
+			{
+				if (guild.GetRole(id) is IRole role)
+				{
+					yield return role;
+				}
+				else
+				{
+					Roles.Remove(id);
+				}
+			}
+		}
 
 		/// <inheritdoc />
 		public IDiscordFormattableString GetFormattableString()

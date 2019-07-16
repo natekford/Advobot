@@ -22,17 +22,12 @@ namespace Advobot.Services.Logging.Loggers
 		public GuildLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <inheritdoc />
-		public async Task OnGuildAvailable(SocketGuild guild)
+		public Task OnGuildAvailable(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 			ConsoleUtils.WriteLine($"{guild.Format()} ({Client.GetShardIdFor(guild)}, {guild.MemberCount}, {ProcessInfoUtils.GetMemoryMB().ToString("0.00")}MB)");
-
-			var settings = await GuildSettings.GetOrCreateAsync(guild).CAF();
-			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
-			{
-				settings.CachedInvites.Add(new CachedInvite(invite));
-			}
+			return Task.CompletedTask;
 		}
 		/// <inheritdoc />
 		public Task OnGuildUnavailable(SocketGuild guild)
@@ -50,30 +45,16 @@ namespace Advobot.Services.Logging.Loggers
 			ConsoleUtils.WriteLine($"Bot has joined {guild.Format()}.");
 
 			//Determine what percentage of bot users to leave at
-			var users = guild.MemberCount;
-			double percentage;
-			if (users <= 8)
+			var percentage = guild.MemberCount switch
 			{
-				percentage = .7;
-			}
-			else if (users <= 25)
-			{
-				percentage = .5;
-			}
-			else if (users <= 40)
-			{
-				percentage = .4;
-			}
-			else if (users <= 120)
-			{
-				percentage = .3;
-			}
-			else
-			{
-				percentage = .2;
-			}
+				int users when users <= 8 => .7,
+				int users when users <= 25 => .5,
+				int users when users <= 40 => .4,
+				int users when users <= 120 => .3,
+				_ => .2,
+			};
 			//Leave if too many bots
-			if ((double)guild.Users.Count(x => x.IsBot) / users > percentage)
+			if ((double)guild.Users.Count(x => x.IsBot) / guild.MemberCount > percentage)
 			{
 				await guild.LeaveAsync().CAF();
 			}

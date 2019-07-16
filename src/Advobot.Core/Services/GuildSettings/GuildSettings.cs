@@ -20,6 +20,9 @@ namespace Advobot.Services.GuildSettings
 	internal sealed class GuildSettings : SettingsBase, IGuildSettings, IDatabaseEntry
 	{
 		/// <inheritdoc />
+		[JsonIgnore]
+		public ulong GuildId { get; set; }
+		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.WelcomeMessage)), JsonProperty("WelcomeMessage")]
 		public GuildNotification? WelcomeMessage
 		{
@@ -154,9 +157,8 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		[JsonIgnore]
 		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
-		/// <inheritdoc />
-		[JsonIgnore]
-		public ulong GuildId { get; set; }
+
+		private GuildSettingsFactory? _Parent;
 
 		public GuildSettings() { }
 
@@ -166,8 +168,18 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		public override void Save()
 		{
-			throw new NotImplementedException();
+			if (_Parent == null)
+			{
+				throw new InvalidOperationException("Unable to save due to parent not being set.");
+			}
+			_Parent.Save(this);
 		}
+		/// <summary>
+		/// Stores the factory so <see cref="Save"/> can be called solely from this object.
+		/// </summary>
+		/// <param name="parent"></param>
+		public void StoreGuildSettingsFactory(GuildSettingsFactory parent)
+			=> _Parent = parent;
 
 		//IDatabseEntry
 		object IDatabaseEntry.Id { get => GuildId; set => GuildId = (ulong)value; }

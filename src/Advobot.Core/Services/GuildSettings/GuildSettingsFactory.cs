@@ -25,8 +25,21 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		public override string DatabaseName => "GuildSettings";
 
-		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
+		private readonly ConcurrentDictionary<ulong, IGuildSettings> _Cache = new ConcurrentDictionary<ulong, IGuildSettings>();
 		private readonly IBotSettings _BotSettings;
+
+		static GuildSettingsFactory()
+		{
+			BsonMapper.Global.Entity<GuildSettings>()
+				.Id(x => x.GuildId)
+				.Ignore(x => x.SettingNames)
+				.Ignore(x => x.EvaluatedRegex)
+				.Ignore(x => x.MessageDeletion)
+				.Ignore(x => x.CachedInvites)
+				.Ignore(x => x.BannedPhraseUsers);
+			BsonMapper.Global.Entity<DatabaseMetadata>()
+				.Id(x => x.ProgramVersion);
+		}
 
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettingsFactory"/>.
@@ -40,18 +53,6 @@ namespace Advobot.Services.GuildSettings
 		protected override void AfterStart(int schema)
 		{
 			//Before setting this up, guild settings relied on JSON files for every guild
-
-			BsonMapper.Global.Entity<GuildSettings>()
-				.Id(x => x.GuildId)
-				.Ignore(x => x.SettingNames)
-				.Ignore(x => x.EvaluatedRegex)
-				.Ignore(x => x.MessageDeletion)
-				.Ignore(x => x.CachedInvites)
-				.Ignore(x => x.BannedPhraseUsers);
-
-			BsonMapper.Global.Entity<DatabaseMetadata>()
-				.Id(x => x.ProgramVersion);
-
 			if (schema < 1) //Relying on LiteDB
 			{
 				var path = Path.Combine(_BotSettings.BaseBotDirectory.FullName, "GuildSettings");
@@ -68,8 +69,13 @@ namespace Advobot.Services.GuildSettings
 		}
 
 		/// <inheritdoc />
-		public Task<IGuildSettings> GetOrCreateAsync(IGuild guild)
+		public async Task<IGuildSettings> GetOrCreateAsync(IGuild guild)
 		{
+			if (_Cache.TryGetValue(guild.Id, out var cached))
+			{
+				return cached;
+			}
+
 			var query = DatabaseQuery<GuildSettings>.Get(x => x.GuildId == guild.Id);
 			var instance = DatabaseWrapper.ExecuteQuery(query).SingleOrDefault();
 			if (instance == null)
@@ -78,24 +84,39 @@ namespace Advobot.Services.GuildSettings
 				{
 					GuildId = guild.Id,
 				};
+				DatabaseWrapper.ExecuteQuery(DatabaseQuery<GuildSettings>.Update(new[] { instance }));
 			}
+			instance.StoreGuildSettingsFactory(this);
 
-			foreach (var group in instance.SelfAssignableGroups)
+			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
 			{
-				group.RemoveRoles(group.Roles.Where(x => guild.GetRole(x) == null));
+				instance.CachedInvites.Add(new CachedInvite(invite));
 			}
 
-			DatabaseWrapper.ExecuteQuery(DatabaseQuery<GuildSettings>.Update(new[] { instance }));
-			return Task.FromResult<IGuildSettings>(instance);
+			_Cache.TryAdd(guild.Id, instance);
+			return instance;
 		}
 		/// <inheritdoc />
 		public Task RemoveAsync(ulong guildId)
 		{
-			_GuildSettings.TryRemove(guildId, out _);
+			_Cache.TryRemove(guildId, out _);
+
+			var query = DatabaseQuery<GuildSettings>.Delete(x => x.GuildId == guildId);
+			DatabaseWrapper.ExecuteQuery(query);
+
 			return Task.CompletedTask;
 		}
 		/// <inheritdoc />
 		public bool TryGet(ulong guildId, out IGuildSettings settings)
-			=> _GuildSettings.TryGetValue(guildId, out settings);
+			=> _Cache.TryGetValue(guildId, out settings);
+		/// <summary>
+		/// Saves any changes done to <paramref name="settings"/> to the backing database.
+		/// </summary>
+		/// <param name="settings"></param>
+		public void Save(GuildSettings settings)
+		{
+			var query = DatabaseQuery<GuildSettings>.Update(new[] { settings });
+			DatabaseWrapper.ExecuteQuery(query);
+		}
 	}
 }
