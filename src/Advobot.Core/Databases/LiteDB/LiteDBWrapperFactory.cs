@@ -41,7 +41,7 @@ namespace Advobot.Databases.LiteDB
 		/// <inheritdoc />
 		public IDatabaseWrapper CreateWrapper(string databaseName)
 		{
-			databaseName = AdvobotUtils.EnsureDb(databaseName);
+			databaseName = AdvobotUtils.EnsureDb("LiteDB", databaseName);
 			return new LiteDBWrapper(GetDatabase(_DirectoryAccessor, databaseName));
 		}
 		/// <summary>

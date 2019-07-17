@@ -27,7 +27,7 @@ namespace Advobot.Databases.EFCore
 
 		protected override DbContextOptionsBuilder GenerateOptions(string databaseName)
 		{
-			var dbFile = AdvobotUtils.EnsureDb(Path.Combine("SQLite", databaseName));
+			var dbFile = AdvobotUtils.EnsureDb("SQLite", databaseName);
 			var path = _DirectoryAccessor.GetBaseBotDirectoryFile(dbFile).FullName;
 			//Make sure the directory the db will be created in exists
 			Directory.CreateDirectory(Path.GetDirectoryName(path));

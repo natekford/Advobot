@@ -31,21 +31,27 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Ensures the extension of the file is '.db'
 		/// </summary>
+		/// <param name="dbType"></param>
 		/// <param name="fileName"></param>
 		/// <returns></returns>
-		public static string EnsureDb(string fileName)
+		public static string EnsureDb(string dbType, string fileName)
 		{
 			const string EXT = ".db";
 
-			if (!Path.HasExtension(fileName))
+			string ExtensionValidation()
 			{
-				return fileName + EXT;
+				if (!Path.HasExtension(fileName))
+				{
+					return fileName + EXT;
+				}
+				else if (Path.GetExtension(fileName) == EXT)
+				{
+					return fileName;
+				}
+				return Path.GetFileNameWithoutExtension(fileName) + EXT;
 			}
-			else if (Path.GetExtension(fileName) == EXT)
-			{
-				return fileName;
-			}
-			return Path.GetFileNameWithoutExtension(fileName) + EXT;
+
+			return Path.Combine(dbType, ExtensionValidation());
 		}
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.

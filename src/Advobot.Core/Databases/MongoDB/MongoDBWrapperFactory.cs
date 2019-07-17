@@ -60,20 +60,20 @@ namespace Advobot.Databases.MongoDB
 				switch (options.Action)
 				{
 					case DatabaseQuery<T>.DBAction.Update:
-						foreach (var value in options?.Values ?? Enumerable.Empty<T>())
+						foreach (var value in options.Values)
 						{
 							collection.ReplaceOne(x => x.Id == value.Id, value);
 						}
-						return options?.Values ?? Enumerable.Empty<T>();
+						return options.Values;
 					case DatabaseQuery<T>.DBAction.Upsert:
-						foreach (var value in options?.Values ?? Enumerable.Empty<T>())
+						foreach (var value in options.Values)
 						{
 							collection.ReplaceOne(x => x.Id == value.Id, value, options: new UpdateOptions { IsUpsert = true });
 						}
-						return options?.Values ?? Enumerable.Empty<T>();
+						return options.Values;
 					case DatabaseQuery<T>.DBAction.Insert:
 						collection.InsertMany(options.Values);
-						return options?.Values ?? Enumerable.Empty<T>();
+						return options.Values;
 					case DatabaseQuery<T>.DBAction.Get:
 						return collection.Find(options.Selector).Limit(options.Limit).ToEnumerable();
 					case DatabaseQuery<T>.DBAction.GetAll:
@@ -85,7 +85,7 @@ namespace Advobot.Databases.MongoDB
 					case DatabaseQuery<T>.DBAction.DeleteFromValues:
 						var ids = options.Values.Select(x => x.Id);
 						collection.DeleteMany(Builders<T>.Filter.In(x => x.Id, ids));
-						return options?.Values ?? Enumerable.Empty<T>();
+						return options.Values;
 					default:
 						throw new InvalidOperationException("Invalid database action supplied.");
 				}
