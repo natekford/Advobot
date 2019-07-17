@@ -21,8 +21,6 @@ namespace Advobot.Classes
 			x => x.Property,
 			StringComparer.OrdinalIgnoreCase);
 
-		public IReadOnlyCollection<string> SettingNames => Settings.Keys.ToArray();
-
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -33,6 +31,9 @@ namespace Advobot.Classes
 				.Where(x => x.Attribute != null);
 		}
 
+		/// <inheritdoc />
+		public IReadOnlyCollection<string> GetSettingNames()
+			=> Settings.Keys.ToArray();
 		/// <inheritdoc />
 		public IDiscordFormattableString Format()
 		{

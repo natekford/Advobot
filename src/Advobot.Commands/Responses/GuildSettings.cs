@@ -13,12 +13,20 @@ namespace Advobot.Commands.Responses
 	{
 		private GuildSettings() { }
 
+		public static AdvobotResult DisplayJson(ISettingsBase settings)
+		{
+			return Success(new TextFileInfo
+			{
+				Name = "Settings_JSON",
+				Text = IOUtils.Serialize(settings),
+			});
+		}
 		public static AdvobotResult DisplayNames(ISettingsBase settings)
 		{
 			return Success(new EmbedWrapper
 			{
 				Title = Title.FormatInterpolated($"{settings.GetType().Name}"),
-				Description = Default.FormatInterpolated($"{settings.SettingNames}"),
+				Description = Default.FormatInterpolated($"{settings.GetSettingNames()}"),
 			});
 		}
 		public static AdvobotResult DisplaySettings(BaseSocketClient client, SocketGuild guild, ISettingsBase settings)
@@ -32,7 +40,7 @@ namespace Advobot.Commands.Responses
 		public static AdvobotResult DisplaySetting(BaseSocketClient client, SocketGuild guild, ISettingsBase settings, string name)
 		{
 			//TODO: make into precondition?
-			if (!settings.SettingNames.CaseInsContains(name))
+			if (!settings.GetSettingNames().CaseInsContains(name))
 			{
 				return Failure(Default.FormatInterpolated($"{name} is not a valid setting.")).WithTime(DefaultTime);
 			}

@@ -145,20 +145,17 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.CommandSettings)), JsonProperty("CommandSettings")]
 		public CommandSettings CommandSettings { get; set; } = new CommandSettings();
+
 		/// <inheritdoc />
 		[JsonIgnore]
 		public IList<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
 		/// <inheritdoc />
 		[JsonIgnore]
-		public IList<CachedInvite> CachedInvites { get; } = new List<CachedInvite>();
-		/// <inheritdoc />
-		[JsonIgnore]
 		public IList<string> EvaluatedRegex { get; } = new List<string>();
-		/// <inheritdoc />
-		[JsonIgnore]
-		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 
 		private GuildSettingsFactory? _Parent;
+		private readonly InviteCache _InviteCache = new InviteCache();
+		private readonly DeletedMessageCache _DeletedMessageCache = new DeletedMessageCache();
 
 		public GuildSettings() { }
 
@@ -174,6 +171,12 @@ namespace Advobot.Services.GuildSettings
 			}
 			_Parent.Save(this);
 		}
+		/// <inheritdoc />
+		public InviteCache GetInviteCache()
+			=> _InviteCache;
+		/// <inheritdoc />
+		public DeletedMessageCache GetDeletedMessageCache()
+			=> _DeletedMessageCache;
 		/// <summary>
 		/// Stores the factory so <see cref="Save"/> can be called solely from this object.
 		/// </summary>

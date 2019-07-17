@@ -45,20 +45,11 @@ namespace Advobot.Services.Commands
 		public CommandHandlerService(IServiceProvider provider)
 		{
 			_Provider = provider;
-			_Commands = provider.GetRequiredService<CommandService>();
+			_Commands = _Provider.GetRequiredService<CommandService>();
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
 			_HelpEntries = _Provider.GetRequiredService<IHelpEntryService>();
-
-			var typeReaders = Assembly.GetExecutingAssembly().GetTypes()
-				.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
-				.Where(x => x.Attribute != null);
-			foreach (var typeReader in typeReaders)
-			{
-				var instance = (TypeReader)Activator.CreateInstance(typeReader.Type);
-				_Commands.AddTypeReader(typeReader.Attribute.TargetType, instance);
-			}
 
 			_Commands.Log += (e) =>
 			{
@@ -66,7 +57,7 @@ namespace Advobot.Services.Commands
 				return Task.CompletedTask;
 			};
 			_Commands.CommandExecuted += (_, context, result) => LogExecution((AdvobotCommandContext)context, result);
-			_Client.ShardReady += _ => OnReady();
+			_Client.ShardReady += OnReady;
 			_Client.MessageReceived += HandleCommand;
 		}
 
@@ -85,7 +76,7 @@ namespace Advobot.Services.Commands
 				ConsoleUtils.WriteLine($"Successfully loaded {modules.Count()} command modules from {assembly.GetName().Name}.");
 			}
 		}
-		private async Task OnReady()
+		private async Task OnReady(DiscordSocketClient _)
 		{
 			if (_Loaded)
 			{

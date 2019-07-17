@@ -15,7 +15,7 @@ namespace Advobot.Classes
 			get => $"{_Name}_{FormattingUtils.ToSaving()}.txt";
 			set => _Name = value.FormatTitle().Replace(' ', '_').TrimEnd('_');
 		}
-		private string _Name = "temp.txt";
+		private string _Name = "Temp";
 		/// <summary>
 		/// The text of the text file.
 		/// </summary>

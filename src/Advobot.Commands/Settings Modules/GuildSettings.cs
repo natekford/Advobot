@@ -19,6 +19,9 @@ namespace Advobot.Commands
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			public Task<RuntimeResult> Json()
+				=> Responses.GuildSettings.DisplayJson(Settings);
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public Task<RuntimeResult> Names()
 				=> Responses.GuildSettings.DisplayNames(Settings);
 			[ImplicitCommand, ImplicitAlias, Priority(1)]

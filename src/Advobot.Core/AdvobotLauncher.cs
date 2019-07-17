@@ -3,9 +3,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
 using Advobot.Classes.ImageResizing;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
@@ -141,6 +143,15 @@ namespace Advobot
 				Proxy = new WebProxy(),
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
 			});
+
+			var typeReaders = Assembly.GetExecutingAssembly().GetTypes()
+				.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
+				.Where(x => x.Attribute != null);
+			foreach (var typeReader in typeReaders)
+			{
+				var instance = (TypeReader)Activator.CreateInstance(typeReader.Type);
+				commands.AddTypeReader(typeReader.Attribute.TargetType, instance);
+			}
 
 			var s = new ServiceCollection()
 				.AddSingleton(commands)

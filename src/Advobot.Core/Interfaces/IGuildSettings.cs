@@ -115,21 +115,24 @@ namespace Advobot.Interfaces
 		/// Settings for commands. Which ones are enabled, disabled, for specific roles/users/channel/guild.
 		/// </summary>
 		CommandSettings CommandSettings { get; }
+
+		//TODO: make into getter methods rather than properties
 		/// <summary>
 		/// Users which have been affected by banned phrases. This is not saved.
 		/// </summary>
 		IList<BannedPhraseUserInfo> BannedPhraseUsers { get; }
 		/// <summary>
-		/// Cached invites holding uses. This is not saved.
-		/// </summary>
-		IList<CachedInvite> CachedInvites { get; }
-		/// <summary>
 		/// Regex which has been evaluted to be mostly safe. This is not saved.
 		/// </summary>
 		IList<string> EvaluatedRegex { get; }
+
 		/// <summary>
-		/// Holds messages which have been deleted and waits to print them out. This is not saved.
+		/// Cached invites holding uses.
 		/// </summary>
-		MessageDeletion MessageDeletion { get; }
+		InviteCache GetInviteCache();
+		/// <summary>
+		/// Holds messages which have been deleted and waits to print them out.
+		/// </summary>
+		DeletedMessageCache GetDeletedMessageCache();
 	}
 }

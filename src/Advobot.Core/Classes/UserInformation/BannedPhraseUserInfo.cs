@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Advobot.Enums;
 using AdvorangesUtils;
@@ -11,6 +12,8 @@ namespace Advobot.Classes.UserInformation
 	/// </summary>
 	public sealed class BannedPhraseUserInfo : UserInfo
 	{
+		private static readonly PropertyInfo[] _Properties = typeof(BannedPhraseUserInfo).GetProperties();
+
 		/// <summary>
 		/// The amount of messages that gave them a kick punishment.
 		/// </summary>
@@ -109,6 +112,6 @@ namespace Advobot.Classes.UserInformation
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> GetType().GetProperties().Join("/", x => $"{x.Name[0]}{x.GetValue(this)}");
+			=> _Properties.Join("/", x => $"{x.Name[0]}{x.GetValue(this)}");
 	}
 }

@@ -257,17 +257,17 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private Task HandleMessageDeletedLogging(MessageLoggingContext context)
 		{
-			context.Settings.MessageDeletion.Messages.Add(context.Message);
-			//The old cancel token gets canceled in its getter
-			var cancelToken = context.Settings.MessageDeletion.CancelToken;
+			var cache = context.Settings.GetDeletedMessageCache();
+			cache.Add(context.Message);
+			var cancelToken = cache.GetNewCancellationToken();
 
 			//Has to run on completely separate thread, else prints early
 			_ = Task.Run(async () =>
 			{
 				//Wait three seconds. If a new message comes in then the token will be canceled and this won't continue.
 				//If more than 25 messages just start printing them out so people can't stall the messages forever.
-				var inEmbed = context.Settings.MessageDeletion.Messages.Count < 10; //Needs very few messages to fit in an embed
-				if (context.Settings.MessageDeletion.Messages.Count < 25)
+				var inEmbed = cache.Count < 10; //Needs very few messages to fit in an embed
+				if (cache.Count < 25)
 				{
 					try
 					{
@@ -280,9 +280,7 @@ namespace Advobot.Services.Logging.Loggers
 				}
 
 				//Give the messages to a new list so they can be removed from the old one
-				var messages = context.Settings.MessageDeletion.Messages.ToArray();
-				context.Settings.MessageDeletion.Clear();
-
+				var messages = cache.Empty();
 				var sb = new StringBuilder();
 				while (inEmbed)
 				{
@@ -315,7 +313,7 @@ namespace Advobot.Services.Logging.Loggers
 						sb.AppendLineFeed(m.Format(withMentions: false));
 					}
 
-					await ReplyAsync(context.ServerLog, $"**{messages.Length} Deleted Messages:**", textFile: new TextFileInfo
+					await ReplyAsync(context.ServerLog, $"**{messages.Count} Deleted Messages:**", textFile: new TextFileInfo
 					{
 						Name = "Deleted_Messages",
 						Text = sb.ToString().RemoveDuplicateNewLines().RemoveAllMarkdown(),

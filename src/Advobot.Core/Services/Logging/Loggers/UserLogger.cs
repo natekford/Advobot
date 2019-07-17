@@ -78,9 +78,9 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private async Task HandleJoinLogging(UserLoggingContext context)
 		{
-			var inv = await context.Settings.CachedInvites.GetInviteUserJoinedOnAsync(context.User).CAF();
+			var inv = await context.Settings.GetInviteCache().GetInviteUserJoinedOnAsync(context.User).CAF();
 			var invite = inv != null
-				? $"**Invite:** {inv.Code}"
+				? $"**Invite:** {inv}"
 				: "";
 			var time = DateTime.UtcNow - context.User.CreatedAt.ToUniversalTime();
 			var age = time.TotalHours < 24

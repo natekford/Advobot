@@ -13,8 +13,7 @@ namespace Advobot.Interfaces
 		/// Returns the names of settings.
 		/// </summary>
 		/// <returns></returns>
-		IReadOnlyCollection<string> SettingNames { get; }
-
+		IReadOnlyCollection<string> GetSettingNames();
 		/// <summary>
 		/// Formats the settings so they are readable by a human.
 		/// </summary>

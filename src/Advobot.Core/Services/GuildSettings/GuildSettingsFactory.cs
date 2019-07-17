@@ -73,11 +73,7 @@ namespace Advobot.Services.GuildSettings
 				DatabaseWrapper.ExecuteQuery(DatabaseQuery<GuildSettings>.Update(new[] { instance }));
 			}
 			instance.StoreGuildSettingsFactory(this);
-
-			foreach (var invite in await guild.SafeGetInvitesAsync().CAF())
-			{
-				instance.CachedInvites.Add(new CachedInvite(invite));
-			}
+			await instance.GetInviteCache().CacheInvitesAsync(guild).CAF();
 
 			_Cache.TryAdd(guild.Id, instance);
 			return instance;
