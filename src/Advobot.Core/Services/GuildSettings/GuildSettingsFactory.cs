@@ -10,7 +10,6 @@ using Advobot.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
-using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.GuildSettings
@@ -27,19 +26,6 @@ namespace Advobot.Services.GuildSettings
 
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _Cache = new ConcurrentDictionary<ulong, IGuildSettings>();
 		private readonly IBotSettings _BotSettings;
-
-		static GuildSettingsFactory()
-		{
-			BsonMapper.Global.Entity<GuildSettings>()
-				.Id(x => x.GuildId)
-				.Ignore(x => x.SettingNames)
-				.Ignore(x => x.EvaluatedRegex)
-				.Ignore(x => x.MessageDeletion)
-				.Ignore(x => x.CachedInvites)
-				.Ignore(x => x.BannedPhraseUsers);
-			BsonMapper.Global.Entity<DatabaseMetadata>()
-				.Id(x => x.ProgramVersion);
-		}
 
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettingsFactory"/>.

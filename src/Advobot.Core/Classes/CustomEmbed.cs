@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Advobot.Classes.Formatting;
+using Advobot.Classes.TypeReaders;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -24,19 +24,23 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The image url of the embed.
 		/// </summary>
-		public Uri? ImageUrl { get; set; }
+		[OverrideTypeReader(typeof(UriTypeReader))]
+		public string? ImageUrl { get; set; }
 		/// <summary>
 		/// The url of the embed.
 		/// </summary>
-		public Uri? Url { get; set; }
+		[OverrideTypeReader(typeof(UriTypeReader))]
+		public string? Url { get; set; }
 		/// <summary>
 		/// The thumbnail url of the embed.
 		/// </summary>
-		public Uri? ThumbUrl { get; set; }
+		[OverrideTypeReader(typeof(UriTypeReader))]
+		public string? ThumbUrl { get; set; }
 		/// <summary>
 		/// The color of the embed.
 		/// </summary>
-		public Color? Color { get; set; }
+		[OverrideTypeReader(typeof(ColorTypeReader))]
+		public uint Color { get; set; }
 		/// <summary>
 		/// The author of the embed.
 		/// </summary>
@@ -44,11 +48,13 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The author's picture.
 		/// </summary>
-		public Uri? AuthorIconUrl { get; set; }
+		[OverrideTypeReader(typeof(UriTypeReader))]
+		public string? AuthorIconUrl { get; set; }
 		/// <summary>
 		/// The url to use when clicking on the author's name.
 		/// </summary>
-		public Uri? AuthorUrl { get; set; }
+		[OverrideTypeReader(typeof(UriTypeReader))]
+		public string? AuthorUrl { get; set; }
 		/// <summary>
 		/// The footer text.
 		/// </summary>
@@ -56,7 +62,8 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The footer's picture.
 		/// </summary>
-		public Uri? FooterIconUrl { get; set; }
+		[OverrideTypeReader(typeof(UriTypeReader))]
+		public string? FooterIconUrl { get; set; }
 		/// <summary>
 		/// All of the fields on the embed.
 		/// </summary>
@@ -72,7 +79,7 @@ namespace Advobot.Classes
 			{
 				Title = Title,
 				Description = Description,
-				Color = Color,
+				Color = Color == 0 ? (Color?)null : new Color(Color),
 				ImageUrl = ImageUrl?.ToString(),
 				Url = Url?.ToString(),
 				ThumbnailUrl = ThumbUrl?.ToString(),

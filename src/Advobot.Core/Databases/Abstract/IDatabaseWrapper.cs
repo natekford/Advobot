@@ -14,6 +14,6 @@ namespace Advobot.Databases.Abstract
 		/// <typeparam name="T"></typeparam>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : IDatabaseEntry;
+		IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : class, IDatabaseEntry;
 	}
 }

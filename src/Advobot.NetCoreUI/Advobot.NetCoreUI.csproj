@@ -30,7 +30,7 @@
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.8.0" />
     <PackageReference Include="Avalonia.Desktop" Version="0.8.999-cibuild0003137-beta" />
     <PackageReference Include="Discord.Net" Version="2.2.0-dev-20190629.2" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.14.0.2" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.14.0.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview6.19304.6" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.0.0-preview6.19304.6" />
     <PackageReference Include="ReactiveUI" Version="10.0.1-preview.6" />

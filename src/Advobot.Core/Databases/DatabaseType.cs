@@ -10,7 +10,7 @@
 		/// </summary>
 		LiteDB,
 		/// <summary>
-		/// Specifies to user a MongoDB database.
+		/// Specifies to use a MongoDB database.
 		/// </summary>
 		MongoDB,
 	}

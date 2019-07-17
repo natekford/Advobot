@@ -24,10 +24,29 @@ namespace Advobot.Utilities
 		/// Gets the file inside the bot directory.
 		/// </summary>
 		/// <param name="accessor"></param>
-		/// <param name="fileName"></param>
+		/// <param name="fileName">The name of the file without the bot directory.</param>
 		/// <returns></returns>
 		public static FileInfo GetBaseBotDirectoryFile(this IBotDirectoryAccessor accessor, string fileName)
 			=> new FileInfo(Path.Combine(accessor.BaseBotDirectory.FullName, fileName));
+		/// <summary>
+		/// Ensures the extension of the file is '.db'
+		/// </summary>
+		/// <param name="fileName"></param>
+		/// <returns></returns>
+		public static string EnsureDb(string fileName)
+		{
+			const string EXT = ".db";
+
+			if (!Path.HasExtension(fileName))
+			{
+				return fileName + EXT;
+			}
+			else if (Path.GetExtension(fileName) == EXT)
+			{
+				return fileName;
+			}
+			return Path.GetFileNameWithoutExtension(fileName) + EXT;
+		}
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
 		/// </summary>

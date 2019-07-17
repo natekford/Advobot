@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Utilities;

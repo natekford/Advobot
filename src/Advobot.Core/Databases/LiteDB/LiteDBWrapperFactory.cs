@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Advobot.Databases.Abstract;
 using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
 using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,15 +26,22 @@ namespace Advobot.Databases.LiteDB
 		public LiteDBWrapperFactory(IServiceProvider provider)
 		{
 			_DirectoryAccessor = provider.GetRequiredService<IBotDirectoryAccessor>();
+
+			BsonMapper.Global.Entity<GuildSettings>()
+				.Id(x => x.GuildId)
+				.Ignore(x => x.SettingNames)
+				.Ignore(x => x.EvaluatedRegex)
+				.Ignore(x => x.MessageDeletion)
+				.Ignore(x => x.CachedInvites)
+				.Ignore(x => x.BannedPhraseUsers);
+			BsonMapper.Global.Entity<DatabaseMetadata>()
+				.Id(x => x.ProgramVersion);
 		}
 
 		/// <inheritdoc />
 		public IDatabaseWrapper CreateWrapper(string databaseName)
 		{
-			if (!Path.HasExtension(databaseName))
-			{
-				databaseName += ".db";
-			}
+			databaseName = AdvobotUtils.EnsureDb(databaseName);
 			return new LiteDBWrapper(GetDatabase(_DirectoryAccessor, databaseName));
 		}
 		/// <summary>
@@ -43,7 +51,7 @@ namespace Advobot.Databases.LiteDB
 		/// <param name="fileName"></param>
 		/// <param name="mapper"></param>
 		/// <returns></returns>
-		public static LiteDatabase GetDatabase(IBotDirectoryAccessor accessor, string fileName, BsonMapper? mapper = null)
+		private static LiteDatabase GetDatabase(IBotDirectoryAccessor accessor, string fileName, BsonMapper? mapper = null)
 		{
 			var file = accessor.GetBaseBotDirectoryFile(fileName);
 			//Make sure the file is not currently being used if it exists
@@ -75,20 +83,20 @@ namespace Advobot.Databases.LiteDB
 			}
 
 			/// <inheritdoc />
-			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : IDatabaseEntry
+			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : class, IDatabaseEntry
 			{
 				var collection = _Database.GetCollection<T>(options.CollectionName);
 				switch (options.Action)
 				{
 					case DatabaseQuery<T>.DBAction.Update:
 						collection.Update(options.Values);
-						return options.Values ?? Enumerable.Empty<T>();
+						return options.Values;
 					case DatabaseQuery<T>.DBAction.Upsert:
 						collection.Upsert(options.Values);
-						return options.Values ?? Enumerable.Empty<T>();
+						return options.Values;
 					case DatabaseQuery<T>.DBAction.Insert:
 						collection.Insert(options.Values);
-						return options.Values ?? Enumerable.Empty<T>();
+						return options.Values;
 					case DatabaseQuery<T>.DBAction.Get:
 						return collection.Find(options.Selector, limit: options.Limit);
 					case DatabaseQuery<T>.DBAction.GetAll:
@@ -98,10 +106,9 @@ namespace Advobot.Databases.LiteDB
 						collection.Delete(options.Selector);
 						return values;
 					case DatabaseQuery<T>.DBAction.DeleteFromValues:
-						var removed = options.Values ?? Enumerable.Empty<T>();
-						var ids = removed.Select(x => x.Id);
+						var ids = options.Values.Select(x => x.Id);
 						collection.Delete(x => ids.Contains(x.Id));
-						return removed;
+						return options.Values;
 					default:
 						throw new ArgumentException(nameof(options.Action));
 				}

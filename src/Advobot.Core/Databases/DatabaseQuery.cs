@@ -18,7 +18,7 @@ namespace Advobot.Databases
 		/// <summary>
 		/// The new value to either insert or update.
 		/// </summary>
-		public IEnumerable<T>? Values { get; private set; }
+		public IEnumerable<T> Values { get; private set; } = Array.Empty<T>();
 		/// <summary>
 		/// How to select values.
 		/// </summary>

@@ -54,7 +54,7 @@ namespace Advobot.Databases.MongoDB
 			}
 
 			/// <inheritdoc />
-			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : IDatabaseEntry
+			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : class, IDatabaseEntry
 			{
 				var collection = _Database.GetCollection<T>(options.CollectionName);
 				switch (options.Action)

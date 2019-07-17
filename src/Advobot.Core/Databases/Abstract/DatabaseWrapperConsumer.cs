@@ -9,7 +9,7 @@ namespace Advobot.Databases.Abstract
 	/// <summary>
 	/// This class is the base of a service which uses a database.
 	/// </summary>
-	internal abstract class DatabaseWrapperConsumer : IUsesDatabase, IDisposable
+	internal abstract partial class DatabaseWrapperConsumer : IUsesDatabase, IDisposable
 	{
 		/// <summary>
 		/// The name of the database.
@@ -78,15 +78,6 @@ namespace Advobot.Databases.Abstract
 		protected virtual void BeforeDispose()
 		{
 			return;
-		}
-
-		internal sealed class DatabaseMetadata : IDatabaseEntry
-		{
-			public int SchemaVersion { get; set; } = Constants.SCHEMA_VERSION;
-			public string ProgramVersion { get; set; } = Constants.BOT_VERSION;
-
-			//IDatabaseEntry
-			object IDatabaseEntry.Id { get => ProgramVersion; set => ProgramVersion = (string)value; }
 		}
 	}
 }
