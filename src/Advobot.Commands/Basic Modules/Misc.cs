@@ -13,7 +13,7 @@ using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Classes.TypeReaders;
 using Advobot.Commands.Localization;
-using Advobot.Interfaces;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -43,7 +43,7 @@ namespace Advobot.Commands.Misc
 			[Summary("Prints out help information for a specified module.")]
 			public Task<RuntimeResult> Command([Summary(TEMP_SUMMARY)] IHelpEntry command)
 				=> Responses.Misc.Help(command, Context.GuildSettings);
-			[Command, Priority(1)]
+			[Command, Priority(2)]
 			[Summary("Prints out help information for a specific command in a specified module.")]
 			public Task<RuntimeResult> Command([Summary(TEMP_SUMMARY)] IHelpEntry command, [ValidatePositiveNumber] int position)
 				=> Responses.Misc.Help(command, Context.GuildSettings, position - 1);

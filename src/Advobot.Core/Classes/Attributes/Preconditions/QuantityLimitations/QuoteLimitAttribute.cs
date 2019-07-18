@@ -1,6 +1,7 @@
 ﻿using System;
 using Advobot.Classes.Modules;
-using Advobot.Interfaces;
+using Advobot.Services.BotSettings;
+using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
 

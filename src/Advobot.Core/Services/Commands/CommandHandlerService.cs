@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
-using Advobot.Interfaces;
+using Advobot.Services.BotSettings;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -55,7 +56,7 @@ namespace Advobot.Services.Commands
 				ConsoleUtils.WriteLine(e.ToString());
 				return Task.CompletedTask;
 			};
-			_Commands.CommandExecuted += (_, context, result) => LogExecution((AdvobotCommandContext)context, result);
+			_Commands.CommandExecuted += (_, context, result) => LogExecutionAsync((AdvobotCommandContext)context, result);
 			_Client.ShardReady += OnReady;
 			_Client.MessageReceived += HandleCommand;
 		}
@@ -107,9 +108,14 @@ namespace Advobot.Services.Commands
 
 			CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(settings.Culture);
 			var context = new AdvobotCommandContext(settings, _Client, msg);
-			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
+			var r = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
+#warning temporary fix until parameter precondition results work correctly
+			if (!r.IsSuccess && r is ExecuteResult exeR)
+			{
+				await LogExecutionAsync(context, exeR).CAF();
+			}
 		}
-		private Task LogExecution(AdvobotCommandContext context, IResult result)
+		private Task LogExecutionAsync(AdvobotCommandContext context, IResult result)
 		{
 			static bool CanBeIgnored(AdvobotCommandContext c, IResult r) //Ignore annoying unknown command errors and errors with no reason
 				=> r == null || r.Error == CommandError.UnknownCommand

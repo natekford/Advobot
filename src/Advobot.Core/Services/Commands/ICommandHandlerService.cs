@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Discord.Commands;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.Commands
 {
 	/// <summary>
 	/// Interface for a class to handle commands.

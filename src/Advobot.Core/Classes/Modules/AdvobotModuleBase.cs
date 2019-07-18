@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes.Preconditions;
-using Advobot.Interfaces;
+using Advobot.Services.BotSettings;
+using Advobot.Services.Timers;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

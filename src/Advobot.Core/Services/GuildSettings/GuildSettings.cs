@@ -1,11 +1,11 @@
 ﻿using Advobot.Classes;
-using Advobot.Classes.Attributes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Databases.Abstract;
 using Advobot.Enums;
-using Advobot.Interfaces;
 using Advobot.Resources;
+using Advobot.Settings;
+using Advobot.Settings.GenerateResetValues;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -19,11 +19,14 @@ namespace Advobot.Services.GuildSettings
 	/// </summary>
 	internal sealed class GuildSettings : SettingsBase, IGuildSettings, IDatabaseEntry
 	{
+		private const string DEFAULT_CULTURE = "en-US";
+
 		/// <inheritdoc />
 		[JsonIgnore]
 		public ulong GuildId { get; set; }
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.WelcomeMessage)), JsonProperty("WelcomeMessage")]
+		[Setting(nameof(GuildSettingNames.WelcomeMessage), ResetValueClass = typeof(Null))]
+		[JsonProperty("WelcomeMessage")]
 		public GuildNotification? WelcomeMessage
 		{
 			get => _WelcomeMessage;
@@ -31,7 +34,8 @@ namespace Advobot.Services.GuildSettings
 		}
 		private GuildNotification? _WelcomeMessage;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.GoodbyeMessage)), JsonProperty("GoodbyeMessage")]
+		[Setting(nameof(GuildSettingNames.GoodbyeMessage), ResetValueClass = typeof(Null))]
+		[JsonProperty("GoodbyeMessage")]
 		public GuildNotification? GoodbyeMessage
 		{
 			get => _GoodbyeMessage;
@@ -39,15 +43,17 @@ namespace Advobot.Services.GuildSettings
 		}
 		private GuildNotification? _GoodbyeMessage;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.GuildCulture)), JsonProperty("Culture")]
+		[Setting(nameof(GuildSettingNames.GuildCulture), DefaultValue = DEFAULT_CULTURE)]
+		[JsonProperty("Culture")]
 		public string Culture
 		{
 			get => _Culture;
 			set => ThrowIfElseSet(ref _Culture, value, x => CultureInfo.GetCultureInfo(x) == null, "Invalid culture provided.");
 		}
-		private string _Culture = "en-US";
+		private string _Culture = DEFAULT_CULTURE;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.Prefix)), JsonProperty("Prefix")]
+		[Setting(nameof(GuildSettingNames.Prefix), ResetValueClass = typeof(Null))]
+		[JsonProperty("Prefix")]
 		public string? Prefix
 		{
 			get => _Prefix;
@@ -55,7 +61,8 @@ namespace Advobot.Services.GuildSettings
 		}
 		private string? _Prefix;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.ServerLog)), JsonProperty("ServerLog")]
+		[Setting(nameof(GuildSettingNames.ServerLog), DefaultValue = 0)]
+		[JsonProperty("ServerLog")]
 		public ulong ServerLogId
 		{
 			get => _ServerLogId;
@@ -63,7 +70,8 @@ namespace Advobot.Services.GuildSettings
 		}
 		private ulong _ServerLogId;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.ModLog)), JsonProperty("ModLog")]
+		[Setting(nameof(GuildSettingNames.ModLog), DefaultValue = 0)]
+		[JsonProperty("ModLog")]
 		public ulong ModLogId
 		{
 			get => _ModLogId;
@@ -71,7 +79,8 @@ namespace Advobot.Services.GuildSettings
 		}
 		private ulong _ModLogId;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.ImageLog)), JsonProperty("ImageLog")]
+		[Setting(nameof(GuildSettingNames.ImageLog), DefaultValue = 0)]
+		[JsonProperty("ImageLog")]
 		public ulong ImageLogId
 		{
 			get => _ImageLogId;
@@ -79,7 +88,8 @@ namespace Advobot.Services.GuildSettings
 		}
 		private ulong _ImageLogId;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.MuteRole)), JsonProperty("MuteRole")]
+		[Setting(nameof(GuildSettingNames.MuteRole), DefaultValue = 0)]
+		[JsonProperty("MuteRole")]
 		public ulong MuteRoleId
 		{
 			get => _MuteRoleId;
@@ -87,7 +97,8 @@ namespace Advobot.Services.GuildSettings
 		}
 		private ulong _MuteRoleId;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.NonVerboseErrors)), JsonProperty("NonVerboseErrors")]
+		[Setting(nameof(GuildSettingNames.NonVerboseErrors), DefaultValue = false)]
+		[JsonProperty("NonVerboseErrors")]
 		public bool NonVerboseErrors
 		{
 			get => _NonVerboseErrors;
@@ -95,64 +106,78 @@ namespace Advobot.Services.GuildSettings
 		}
 		private bool _NonVerboseErrors;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.SpamPrevention)), JsonProperty("SpamPrevention")]
+		[Setting(nameof(GuildSettingNames.SpamPrevention), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("SpamPrevention")]
 		public IList<SpamPrev> SpamPrevention { get; set; } = new ObservableCollection<SpamPrev>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.RaidPrevention)), JsonProperty("RaidPrevention")]
+		[Setting(nameof(GuildSettingNames.RaidPrevention), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("RaidPrevention")]
 		public IList<RaidPrev> RaidPrevention { get; set; } = new ObservableCollection<RaidPrev>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.PersistentRoles)), JsonProperty("PersistentRoles")]
+		[Setting(nameof(GuildSettingNames.PersistentRoles), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("PersistentRoles")]
 		public IList<PersistentRole> PersistentRoles { get; set; } = new ObservableCollection<PersistentRole>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.BotUsers)), JsonProperty("BotUsers")]
+		[Setting(nameof(GuildSettingNames.BotUsers), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("BotUsers")]
 		public IList<BotUser> BotUsers { get; set; } = new ObservableCollection<BotUser>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.SelfAssignableGroups)), JsonProperty("SelfAssignableGroups")]
+		[Setting(nameof(GuildSettingNames.SelfAssignableGroups), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("SelfAssignableGroups")]
 		public IList<SelfAssignableRoles> SelfAssignableGroups { get; set; } = new ObservableCollection<SelfAssignableRoles>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.Quotes)), JsonProperty("Quotes")]
+		[Setting(nameof(GuildSettingNames.Quotes), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("Quotes")]
 		public IList<Quote> Quotes { get; set; } = new ObservableCollection<Quote>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.LogActions)), JsonProperty("LogActions")]
+		[Setting(nameof(GuildSettingNames.LogActions), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("LogActions")]
 		public IList<LogAction> LogActions { get; set; } = new ObservableSet<LogAction>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.IgnoredCommandChannels)), JsonProperty("IgnoredCommandChannels")]
+		[Setting(nameof(GuildSettingNames.IgnoredCommandChannels), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("IgnoredCommandChannels")]
 		public IList<ulong> IgnoredCommandChannels { get; set; } = new ObservableSet<ulong>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.IgnoredLogChannels)), JsonProperty("IgnoredLogChannels")]
+		[Setting(nameof(GuildSettingNames.IgnoredLogChannels), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("IgnoredLogChannels")]
 		public IList<ulong> IgnoredLogChannels { get; set; } = new ObservableSet<ulong>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.IgnoredXpChannels)), JsonProperty("IgnoredXpChannels")]
+		[Setting(nameof(GuildSettingNames.IgnoredXpChannels), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("IgnoredXpChannels")]
 		public IList<ulong> IgnoredXpChannels { get; set; } = new ObservableSet<ulong>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.ImageOnlyChannels)), JsonProperty("ImageOnlyChannels")]
+		[Setting(nameof(GuildSettingNames.ImageOnlyChannels), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("ImageOnlyChannels")]
 		public IList<ulong> ImageOnlyChannels { get; set; } = new ObservableSet<ulong>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.BannedPhraseStrings)), JsonProperty("BannedPhraseStrings")]
+		[Setting(nameof(GuildSettingNames.BannedPhraseStrings), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("BannedPhraseStrings")]
 		public IList<BannedPhrase> BannedPhraseStrings { get; set; } = new ObservableCollection<BannedPhrase>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.BannedPhraseRegex)), JsonProperty("BannedPhraseRegex")]
+		[Setting(nameof(GuildSettingNames.BannedPhraseRegex), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("BannedPhraseRegex")]
 		public IList<BannedPhrase> BannedPhraseRegex { get; set; } = new ObservableCollection<BannedPhrase>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.BannedPhraseNames)), JsonProperty("BannedPhraseNames")]
+		[Setting(nameof(GuildSettingNames.BannedPhraseNames), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("BannedPhraseNames")]
 		public IList<BannedPhrase> BannedPhraseNames { get; set; } = new ObservableCollection<BannedPhrase>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.BannedPhrasePunishments)), JsonProperty("BannedPhrasePunishments")]
+		[Setting(nameof(GuildSettingNames.BannedPhrasePunishments), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("BannedPhrasePunishments")]
 		public IList<BannedPhrasePunishment> BannedPhrasePunishments { get; set; } = new ObservableCollection<BannedPhrasePunishment>();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.Rules)), JsonProperty("Rules")]
+		[Setting(nameof(GuildSettingNames.Rules), ResetValueClass = typeof(NoParams<RuleHolder>))]
+		[JsonProperty("Rules")]
 		public RuleHolder Rules { get; set; } = new RuleHolder();
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.CommandSettings)), JsonProperty("CommandSettings")]
+		[Setting(nameof(GuildSettingNames.CommandSettings), ResetValueClass = typeof(NoParams<CommandSettings>))]
+		[JsonProperty("CommandSettings")]
 		public CommandSettings CommandSettings { get; set; } = new CommandSettings();
-
-		/// <inheritdoc />
-		[JsonIgnore]
-		public IList<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
 
 		private GuildSettingsFactory? _Parent;
 		private readonly InviteCache _InviteCache = new InviteCache();
 		private readonly DeletedMessageCache _DeletedMessageCache = new DeletedMessageCache();
+		private readonly List<BannedPhraseUserInfo> _BannedPhraseUsers = new List<BannedPhraseUserInfo>();
 
 		public GuildSettings() { }
 
@@ -168,6 +193,9 @@ namespace Advobot.Services.GuildSettings
 			}
 			_Parent.Save(this);
 		}
+		/// <inheritdoc />
+		public IList<BannedPhraseUserInfo> GetBannedPhraseUsers()
+			=> _BannedPhraseUsers;
 		/// <inheritdoc />
 		public InviteCache GetInviteCache()
 			=> _InviteCache;

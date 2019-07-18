@@ -1,7 +1,7 @@
 ﻿using System;
 using Discord;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.Levels
 {
 	/// <summary>
 	/// Abstraction for the information used for the level service.

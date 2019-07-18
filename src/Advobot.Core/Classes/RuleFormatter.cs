@@ -16,22 +16,22 @@ namespace Advobot.Classes
 	{
 		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultTitleFormats
 			= new Dictionary<RuleFormat, MarkDownFormat[]>
-		{
-			{ default, new[] { MarkDownFormat.Bold } },
-			{ RuleFormat.Numbers, new[] { MarkDownFormat.Bold } },
-			{ RuleFormat.Dashes, new[] { MarkDownFormat.Code } },
-			{ RuleFormat.Bullets, new[] { MarkDownFormat.Bold } },
-			{ RuleFormat.Bold, new[] { MarkDownFormat.Bold | MarkDownFormat.Italics } }
-		}.ToImmutableDictionary();
+			{
+				{ default, new[] { MarkDownFormat.Bold } },
+				{ RuleFormat.Numbers, new[] { MarkDownFormat.Bold } },
+				{ RuleFormat.Dashes, new[] { MarkDownFormat.Code } },
+				{ RuleFormat.Bullets, new[] { MarkDownFormat.Bold } },
+				{ RuleFormat.Bold, new[] { MarkDownFormat.Bold | MarkDownFormat.Italics } }
+			}.ToImmutableDictionary();
 		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultRuleFormats
 			= new Dictionary<RuleFormat, MarkDownFormat[]>
-		{
-			{ default, new MarkDownFormat[0] },
-			{ RuleFormat.Numbers, new MarkDownFormat[0] },
-			{ RuleFormat.Dashes, new MarkDownFormat[0] },
-			{ RuleFormat.Bullets, new MarkDownFormat[0] },
-			{ RuleFormat.Bold, new[] { MarkDownFormat.Bold } }
-		}.ToImmutableDictionary();
+			{
+				{ default, new MarkDownFormat[0] },
+				{ RuleFormat.Numbers, new MarkDownFormat[0] },
+				{ RuleFormat.Dashes, new MarkDownFormat[0] },
+				{ RuleFormat.Bullets, new MarkDownFormat[0] },
+				{ RuleFormat.Bold, new[] { MarkDownFormat.Bold } }
+			}.ToImmutableDictionary();
 
 		/// <summary>
 		/// The character to put after numbers in the lists.

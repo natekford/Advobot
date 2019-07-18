@@ -8,7 +8,7 @@ using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Attributes.Preconditions.QuantityLimitations;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Settings;
-using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

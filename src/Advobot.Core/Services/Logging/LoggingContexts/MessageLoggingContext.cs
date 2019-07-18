@@ -1,6 +1,6 @@
 ﻿using System;
 using Advobot.Enums;
-using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
 using Discord.WebSocket;
 
 namespace Advobot.Services.Logging.LoggingContexts

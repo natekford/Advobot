@@ -1,5 +1,5 @@
 ﻿using System;
-using Advobot.Interfaces;
+using Advobot.Services.Timers;
 using Discord;
 
 namespace Advobot.Classes

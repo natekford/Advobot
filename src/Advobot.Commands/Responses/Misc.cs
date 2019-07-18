@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Advobot.Classes;
 using Advobot.Classes.Results;
-using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using Discord;
 

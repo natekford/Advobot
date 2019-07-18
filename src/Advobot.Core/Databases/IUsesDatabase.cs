@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Interfaces
+namespace Advobot.Databases
 {
 	/// <summary>
 	/// Indicates that the class uses a database.

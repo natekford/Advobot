@@ -26,12 +26,6 @@ namespace Advobot.Databases.LiteDB
 		public LiteDBWrapperFactory(IServiceProvider provider)
 		{
 			_DirectoryAccessor = provider.GetRequiredService<IBotDirectoryAccessor>();
-
-			BsonMapper.Global.Entity<GuildSettings>()
-				.Id(x => x.GuildId)
-				.Ignore(x => x.BannedPhraseUsers);
-			BsonMapper.Global.Entity<DatabaseMetadata>()
-				.Id(x => x.ProgramVersion);
 		}
 
 		/// <inheritdoc />
@@ -40,14 +34,7 @@ namespace Advobot.Databases.LiteDB
 			databaseName = AdvobotUtils.EnsureDb("LiteDB", databaseName);
 			return new LiteDBWrapper(GetDatabase(_DirectoryAccessor, databaseName));
 		}
-		/// <summary>
-		/// Gets the database and makes sure there will be no errors when dealing with it.
-		/// </summary>
-		/// <param name="accessor"></param>
-		/// <param name="fileName"></param>
-		/// <param name="mapper"></param>
-		/// <returns></returns>
-		private static LiteDatabase GetDatabase(IBotDirectoryAccessor accessor, string fileName, BsonMapper? mapper = null)
+		private static LiteDatabase GetDatabase(IBotDirectoryAccessor accessor, string fileName)
 		{
 			var file = accessor.GetBaseBotDirectoryFile(fileName);
 			//Make sure the file is not currently being used if it exists
@@ -59,7 +46,7 @@ namespace Advobot.Databases.LiteDB
 			{
 				Filename = file.FullName,
 				Mode = FileMode.Exclusive, //One of my computers will throw exceptions if this is shared
-			}, mapper);
+			}, new BsonMapper());
 		}
 
 		/// <summary>
@@ -76,6 +63,11 @@ namespace Advobot.Databases.LiteDB
 			public LiteDBWrapper(LiteDatabase db)
 			{
 				_Database = db;
+
+				db.Mapper.Entity<GuildSettings>()
+					.Id(x => x.GuildId);
+				db.Mapper.Entity<DatabaseMetadata>()
+					.Id(x => x.ProgramVersion);
 			}
 
 			/// <inheritdoc />

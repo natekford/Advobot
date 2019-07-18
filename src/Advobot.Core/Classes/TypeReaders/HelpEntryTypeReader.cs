@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
-using Advobot.Interfaces;
+using Advobot.Services.HelpEntries;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 

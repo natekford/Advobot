@@ -16,7 +16,7 @@ namespace Advobot.Classes.Results
 		/// <summary>
 		/// The result to use when this should be fully ignored.
 		/// </summary>
-		public static AdvobotResult Ignore { get; } = Failure(null, null);
+		public static AdvobotResult Ignore { get; } = Failure(null, CommandError.Unsuccessful);
 
 		/// <summary>
 		/// How long to let this message stay up for.

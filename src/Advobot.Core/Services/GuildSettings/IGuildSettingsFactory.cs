@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.GuildSettings
 {
 	/// <summary>
 	/// Abstraction for a guild settings module. Handles containing guild settings and adding/removing them.

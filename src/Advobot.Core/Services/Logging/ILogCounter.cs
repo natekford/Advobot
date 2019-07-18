@@ -1,4 +1,4 @@
-﻿namespace Advobot.Interfaces
+﻿namespace Advobot.Services.Logging
 {
 	/// <summary>
 	/// Counts the actions of something.

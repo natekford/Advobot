@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using Advobot.Classes;
-using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using Advobot.Resources;
+using Advobot.Settings;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -154,7 +153,7 @@ namespace Advobot.Services.BotSettings
 		[JsonIgnore]
 		public string RestartArguments { get; private set; } = "";
 
-		private BotSettings() { }
+		public BotSettings() { }
 
 		/// <inheritdoc />
 		protected override string GetLocalizedName(SettingAttribute attr)

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.HelpEntries
 {
 	/// <summary>
 	/// Abstraction for a service providing information about commands.
@@ -12,6 +12,12 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <returns></returns>
 		IReadOnlyCollection<string> GetCategories();
+		/// <summary>
+		/// Returns an array of help entries with similar names.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		IReadOnlyCollection<IHelpEntry> FindCloseHelpEntries(string input);
 		/// <summary>
 		/// Returns an array of every <see cref="IHelpEntry"/> unless a category is specified.
 		/// </summary>

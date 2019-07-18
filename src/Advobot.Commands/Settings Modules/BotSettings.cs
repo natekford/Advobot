@@ -3,7 +3,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Modules;
-using Advobot.Interfaces;
+using Advobot.Services.BotSettings;
 using Discord.Commands;
 
 namespace Advobot.Commands

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using Advobot.Classes.Formatting;
 
 namespace Advobot.Interfaces
@@ -7,13 +6,18 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for something which has settings.
 	/// </summary>
-	public interface ISettingsBase : ISavable, INotifyPropertyChanged
+	public interface ISettingsBase : ISavable
 	{
 		/// <summary>
 		/// Returns the names of settings.
 		/// </summary>
 		/// <returns></returns>
 		IReadOnlyCollection<string> GetSettingNames();
+		/// <summary>
+		/// Resets the value of the specified setting to its default value.
+		/// </summary>
+		/// <param name="name"></param>
+		void ResetSetting(string name);
 		/// <summary>
 		/// Formats the settings so they are readable by a human.
 		/// </summary>

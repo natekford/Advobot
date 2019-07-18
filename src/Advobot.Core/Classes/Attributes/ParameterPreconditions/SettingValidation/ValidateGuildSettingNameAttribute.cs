@@ -15,7 +15,8 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
-			return context.GuildSettings.GetSettingNames().CaseInsContains((string)value)
+			var settingNames = context.GuildSettings.GetSettingNames();
+			return settingNames.CaseInsContains((string)value)
 				? Task.FromResult(PreconditionResult.FromSuccess())
 				: Task.FromResult(PreconditionResult.FromError("Invalid guild setting name supplied."));
 		}

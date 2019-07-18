@@ -9,7 +9,7 @@ using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Enums;
-using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

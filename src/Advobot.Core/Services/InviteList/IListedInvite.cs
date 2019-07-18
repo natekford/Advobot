@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.WebSocket;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.InviteList
 {
 	/// <summary>
 	/// Abstraction for a listed invite used in <see cref="IInviteListService"/>.

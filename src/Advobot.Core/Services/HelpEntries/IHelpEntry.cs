@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
 using Discord.Commands;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.HelpEntries
 {
 	/// <summary>
 	/// Abstraction for information about a module.

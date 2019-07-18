@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using Advobot.Interfaces;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {

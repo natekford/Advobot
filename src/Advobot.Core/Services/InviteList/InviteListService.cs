@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
-using Advobot.Interfaces;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;

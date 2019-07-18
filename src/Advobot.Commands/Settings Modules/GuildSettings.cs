@@ -3,7 +3,9 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
-using Advobot.Interfaces;
+using Advobot.Classes.Results;
+using Advobot.Services.GuildSettings;
+using Advobot.Services.HelpEntries;
 using Discord;
 using Discord.Commands;
 
@@ -377,7 +379,6 @@ namespace Advobot.Commands
 		[EnabledByDefault(false)]
 		public sealed class TestGuildNotifs : AdvobotModuleBase
 		{
-			//TODO: make one of these for every event
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Welcome()
 				=> Responses.GuildSettings.SendWelcomeNotification(Context.GuildSettings.WelcomeMessage);

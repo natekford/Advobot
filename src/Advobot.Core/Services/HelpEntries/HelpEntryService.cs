@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Interfaces;
 using AdvorangesUtils;
 
 namespace Advobot.Services.HelpEntries
@@ -80,6 +79,9 @@ namespace Advobot.Services.HelpEntries
 		/// <inheritdoc />
 		public IReadOnlyCollection<string> GetCategories()
 			=> _Source.Values.Select(x => x.Category).Distinct().ToArray();
+		/// <inheritdoc />
+		public IReadOnlyCollection<IHelpEntry> FindCloseHelpEntries(string input)
+			=> new CloseHelpEntries(GetHelpEntries()).FindMatches(input).Select(x => x.Value).ToArray();
 		/// <inheritdoc />
 		public IReadOnlyCollection<IHelpEntry> GetHelpEntries(string? category = null)
 		{

@@ -10,7 +10,7 @@ using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Classes.TypeReaders;
-using Advobot.Interfaces;
+using Advobot.Services.Logging;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Interfaces;
+using Advobot.Classes.CloseWords;
 using AdvorangesUtils;
 
-namespace Advobot.Classes.CloseWords
+namespace Advobot.Services.HelpEntries
 {
 	/// <summary>
 	/// Implementation of <see cref="CloseWords{T}"/> which searches through help entries.
 	/// </summary>
-	public sealed class CloseHelpEntries : CloseWords<IHelpEntry>
+	internal sealed class CloseHelpEntries : CloseWords<IHelpEntry>
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="CloseHelpEntries"/>.

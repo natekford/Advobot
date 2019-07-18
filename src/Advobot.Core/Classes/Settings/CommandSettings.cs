@@ -2,7 +2,7 @@
 using System.Linq;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Formatting;
-using Advobot.Interfaces;
+using Advobot.Services.HelpEntries;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

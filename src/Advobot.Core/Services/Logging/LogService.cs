@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using Advobot.Interfaces;
+using Advobot.Services.Commands;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Services.Logging.LogCounters;
 using Advobot.Services.Logging.Loggers;
@@ -98,8 +98,7 @@ namespace Advobot.Services.Logging
 			client.MessageUpdated += MessageLogger.OnMessageUpdated;
 			client.MessageDeleted += MessageLogger.OnMessageDeleted;
 
-			var commands = provider.GetRequiredService<ICommandHandlerService>();
-			commands.CommandInvoked += result =>
+			provider.GetRequiredService<ICommandHandlerService>().CommandInvoked += result =>
 			{
 				(result.IsSuccess ? SuccessfulCommands : FailedCommands).Add(1);
 				AttemptedCommands.Add(1);

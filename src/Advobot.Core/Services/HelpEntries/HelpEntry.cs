@@ -5,7 +5,7 @@ using System.Linq;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Formatting;
-using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
 using Discord.Commands;
 

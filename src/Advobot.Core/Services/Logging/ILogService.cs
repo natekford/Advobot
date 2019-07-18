@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.Logging
 {
 	/// <summary>
 	/// Abstraction for a log module. Handles counts of actions, and which commands have been ran. 

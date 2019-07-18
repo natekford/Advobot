@@ -3,8 +3,9 @@ using Advobot.Classes;
 using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
+using Advobot.Interfaces;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.GuildSettings
 {
 	/// <summary>
 	/// Holds guild settings.
@@ -116,12 +117,10 @@ namespace Advobot.Interfaces
 		/// </summary>
 		CommandSettings CommandSettings { get; }
 
-		//TODO: make into getter methods rather than properties
 		/// <summary>
-		/// Users which have been affected by banned phrases. This is not saved.
+		/// Users which have been affected by banned phrases.
 		/// </summary>
-		IList<BannedPhraseUserInfo> BannedPhraseUsers { get; }
-
+		IList<BannedPhraseUserInfo> GetBannedPhraseUsers();
 		/// <summary>
 		/// Cached invites holding uses.
 		/// </summary>

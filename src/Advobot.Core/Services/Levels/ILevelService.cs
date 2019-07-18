@@ -2,7 +2,7 @@
 using Advobot.Classes;
 using Discord;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.Levels
 {
 	/// <summary>
 	/// Abstraction for giving experience and rewards for chatting.

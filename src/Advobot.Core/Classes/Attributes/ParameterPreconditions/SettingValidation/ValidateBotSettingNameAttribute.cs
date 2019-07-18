@@ -1,5 +1,5 @@
 ﻿using Advobot.Classes.Modules;
-using Advobot.Interfaces;
+using Advobot.Services.BotSettings;
 using AdvorangesUtils;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +17,8 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
-			var helpEntries = services.GetRequiredService<IBotSettings>();
-			return helpEntries.GetSettingNames().CaseInsContains((string)value)
+			var settingNames = services.GetRequiredService<IBotSettings>().GetSettingNames();
+			return settingNames.CaseInsContains((string)value)
 				? Task.FromResult(PreconditionResult.FromSuccess())
 				: Task.FromResult(PreconditionResult.FromError("Invalid bot setting name supplied."));
 		}

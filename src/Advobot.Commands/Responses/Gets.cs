@@ -1,6 +1,7 @@
 ﻿using Advobot.Classes;
 using Advobot.Classes.Results;
-using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
+using Advobot.Services.Logging;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

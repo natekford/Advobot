@@ -7,7 +7,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
-using Advobot.Interfaces;
+using Advobot.Services.InviteList;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

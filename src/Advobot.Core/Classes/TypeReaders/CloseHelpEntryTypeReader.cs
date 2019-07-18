@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes.CloseWords;
 using Advobot.Classes.Modules;
-using Advobot.Interfaces;
+using Advobot.Services.HelpEntries;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,10 +16,10 @@ namespace Advobot.Classes.TypeReaders
 		public override Task<TypeReaderResult> ReadAsync(AdvobotCommandContext context, string input, IServiceProvider services)
 		{
 			var helpEntries = services.GetRequiredService<IHelpEntryService>();
-			var matches = new CloseHelpEntries(helpEntries).FindMatches(input);
+			var matches = helpEntries.FindCloseHelpEntries(input);
 			return matches.Count == 0
 				? Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"Unable to find an object matching `{input}`."))
-				: Task.FromResult(TypeReaderResult.FromSuccess(matches.Select(x => x.Value)));
+				: Task.FromResult(TypeReaderResult.FromSuccess(matches));
 		}
 	}
 }

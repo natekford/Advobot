@@ -1,7 +1,7 @@
 ﻿using Advobot.Classes;
 using Advobot.Enums;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.Timers
 {
 	/// <summary>
 	/// Abstraction for a timers module. Handles timed punishments, close words, and timed message deletion/sending.

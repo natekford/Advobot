@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
-using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

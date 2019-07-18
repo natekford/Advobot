@@ -23,7 +23,7 @@ namespace Advobot.Services.GuildSettings
 		public override string DatabaseName => "GuildSettings";
 
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _Cache = new ConcurrentDictionary<ulong, IGuildSettings>();
-		private readonly IBotSettings _BotSettings;
+		private readonly IBotDirectoryAccessor _Accessor;
 
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettingsFactory"/>.
@@ -31,7 +31,7 @@ namespace Advobot.Services.GuildSettings
 		/// <param name="provider"></param>
 		public GuildSettingsFactory(IServiceProvider provider) : base(provider)
 		{
-			_BotSettings = provider.GetRequiredService<IBotSettings>();
+			_Accessor = provider.GetRequiredService<IBotDirectoryAccessor>();
 		}
 
 		protected override void AfterStart(int schema)
@@ -39,7 +39,7 @@ namespace Advobot.Services.GuildSettings
 			//Before setting this up, guild settings relied on JSON files for every guild
 			if (schema < 1) //Relying on LiteDB
 			{
-				var path = Path.Combine(_BotSettings.BaseBotDirectory.FullName, "GuildSettings");
+				var path = Path.Combine(_Accessor.BaseBotDirectory.FullName, "GuildSettings");
 				var files = Directory.GetFiles(path);
 				var instances = files.Select(x =>
 				{

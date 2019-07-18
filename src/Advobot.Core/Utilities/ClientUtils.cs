@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Interfaces;
+using Advobot.Services.BotSettings;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;

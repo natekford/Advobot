@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
-using Advobot.Interfaces;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Services.Logging.LoggingContexts;
 using Advobot.Utilities;
@@ -177,9 +176,9 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			if (!context.Settings.BannedPhraseUsers.TryGetSingle(x => x.UserId == context.User.Id, out var info))
+			if (!context.Settings.GetBannedPhraseUsers().TryGetSingle(x => x.UserId == context.User.Id, out var info))
 			{
-				context.Settings.BannedPhraseUsers.Add(info = new BannedPhraseUserInfo(context.User));
+				context.Settings.GetBannedPhraseUsers().Add(info = new BannedPhraseUserInfo(context.User));
 			}
 			if (context.Settings.BannedPhraseStrings.TryGetFirst(x => context.Message.Content.CaseInsContains(x.Phrase), out var str))
 			{

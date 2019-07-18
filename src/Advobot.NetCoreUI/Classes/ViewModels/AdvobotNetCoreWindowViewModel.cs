@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Advobot.Interfaces;
 using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 using Advobot.NetCoreUI.Classes.Colors;
 using Advobot.NetCoreUI.Classes.Views;

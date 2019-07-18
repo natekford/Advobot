@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.InviteList
 {
 	/// <summary>
 	/// Abstraction for an invite list module. Handles a list of server invites.

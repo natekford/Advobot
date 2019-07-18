@@ -9,7 +9,7 @@ using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
-using Advobot.Interfaces;
+using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

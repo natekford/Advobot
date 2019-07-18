@@ -5,7 +5,7 @@ namespace Advobot.Classes.CloseWords
 	/// <summary>
 	/// Holds an object which has a name and text and its closeness.
 	/// </summary>
-	[DebuggerDisplay("Name = {Name}, Closeness = {Closeness}")]
+	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public sealed class CloseWord<T>
 	{
 		/// <summary>
@@ -33,5 +33,8 @@ namespace Advobot.Classes.CloseWords
 			Name = name;
 			Value = value;
 		}
+
+		private string DebuggerDisplay
+			=> $"Name = {Name}, Closeness = {Closeness}";
 	}
 }

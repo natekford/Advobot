@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using Advobot.Interfaces;
 using Discord;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.BotSettings
 {
 	/// <summary>
 	/// Holds bot settings.
