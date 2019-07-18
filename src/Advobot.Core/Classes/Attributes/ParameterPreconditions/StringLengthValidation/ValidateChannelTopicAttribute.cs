@@ -1,9 +1,12 @@
-﻿namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
+﻿using System;
+
+namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the channel topic by making sure it is between 0 and 1024 characters.
 	/// </summary>
-	public sealed class ValidateChannelTopicAttribute : ValidateStringAttribute
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+	public sealed class ValidateChannelTopicAttribute : ValidateStringLengthAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateChannelTopicAttribute"/>.

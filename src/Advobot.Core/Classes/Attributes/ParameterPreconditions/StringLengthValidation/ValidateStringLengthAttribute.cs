@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 using Advobot.Classes.Modules;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
+namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides errors stating the min/max if under/over.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public abstract class ValidateStringAttribute : AdvobotParameterPreconditionAttribute
+	public abstract class ValidateStringLengthAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <summary>
 		/// Minimum valid length for this object.
@@ -21,11 +21,11 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
 		protected int Max { get; }
 
 		/// <summary>
-		/// Creates an instance of <see cref="ValidateStringAttribute"/>.
+		/// Creates an instance of <see cref="ValidateStringLengthAttribute"/>.
 		/// </summary>
 		/// <param name="min"></param>
 		/// <param name="max"></param>
-		public ValidateStringAttribute(int min, int max)
+		public ValidateStringLengthAttribute(int min, int max)
 		{
 			Min = min;
 			Max = max;
@@ -36,7 +36,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
 		{
 			if (!(value is string s))
 			{
-				throw new NotSupportedException($"{nameof(ValidateStringAttribute)} only supports strings.");
+				throw new NotSupportedException($"{nameof(ValidateStringLengthAttribute)} only supports strings.");
 			}
 			return CheckPermissionsAsync(context, parameter, s, services);
 		}

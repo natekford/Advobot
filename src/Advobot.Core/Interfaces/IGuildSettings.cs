@@ -121,10 +121,6 @@ namespace Advobot.Interfaces
 		/// Users which have been affected by banned phrases. This is not saved.
 		/// </summary>
 		IList<BannedPhraseUserInfo> BannedPhraseUsers { get; }
-		/// <summary>
-		/// Regex which has been evaluted to be mostly safe. This is not saved.
-		/// </summary>
-		IList<string> EvaluatedRegex { get; }
 
 		/// <summary>
 		/// Cached invites holding uses.

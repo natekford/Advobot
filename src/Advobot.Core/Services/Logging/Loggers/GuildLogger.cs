@@ -64,7 +64,7 @@ namespace Advobot.Services.Logging.Loggers
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), -1);
 			ConsoleUtils.WriteLine($"Bot has left {guild.Format()}.");
-			await GuildSettings.RemoveAsync(guild.Id).CAF();
+			await GuildSettingsFactory.RemoveAsync(guild.Id).CAF();
 		}
 	}
 }

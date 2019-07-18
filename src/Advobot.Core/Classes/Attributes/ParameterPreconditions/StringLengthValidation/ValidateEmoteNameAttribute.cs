@@ -1,9 +1,12 @@
-﻿namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
+﻿using System;
+
+namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the emote name by making sure it is between 2 and 32 characters.
 	/// </summary>
-	public sealed class ValidateEmoteNameAttribute : ValidateStringAttribute
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+	public sealed class ValidateEmoteNameAttribute : ValidateStringLengthAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateEmoteNameAttribute"/>.

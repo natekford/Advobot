@@ -1,9 +1,12 @@
-﻿namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
+﻿using System;
+
+namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the bot prefix by making sure it is between 1 and 10 characters.
 	/// </summary>
-	public sealed class ValidatePrefixAttribute : ValidateStringAttribute
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+	public sealed class ValidatePrefixAttribute : ValidateStringLengthAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidatePrefixAttribute"/>.

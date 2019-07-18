@@ -1,9 +1,12 @@
-﻿namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
+﻿using System;
+
+namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the nickname by making sure it is between 1 and 32 characters.
 	/// </summary>
-	public sealed class ValidateNicknameAttribute : ValidateStringAttribute
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+	public sealed class ValidateNicknameAttribute : ValidateStringLengthAttribute
 	{
 		/// <summary>
 		/// Creates an instance of <see cref="ValidateNicknameAttribute"/>.

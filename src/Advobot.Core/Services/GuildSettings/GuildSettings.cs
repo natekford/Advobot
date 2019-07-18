@@ -149,9 +149,6 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		[JsonIgnore]
 		public IList<BannedPhraseUserInfo> BannedPhraseUsers { get; } = new List<BannedPhraseUserInfo>();
-		/// <inheritdoc />
-		[JsonIgnore]
-		public IList<string> EvaluatedRegex { get; } = new List<string>();
 
 		private GuildSettingsFactory? _Parent;
 		private readonly InviteCache _InviteCache = new InviteCache();

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Classes.TypeReaders;

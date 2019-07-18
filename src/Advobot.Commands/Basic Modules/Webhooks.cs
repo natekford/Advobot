@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.ImageResizing;
 using Advobot.Classes.Modules;

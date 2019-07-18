@@ -39,7 +39,7 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageReceived, message);
+			var context = new MessageLoggingContext(GuildSettingsFactory, LogAction.MessageReceived, message);
 			await HandleAsync(context, nameof(ILogService.Messages), new[] { HandleChannelSettingsAsync(context) }, new Func<Task>[]
 			{
 				() => HandleImageLoggingAsync(context),
@@ -55,7 +55,7 @@ namespace Advobot.Services.Logging.Loggers
 				return Task.CompletedTask;
 			}
 
-			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageUpdated, message);
+			var context = new MessageLoggingContext(GuildSettingsFactory, LogAction.MessageUpdated, message);
 			return HandleAsync(context, nameof(ILogService.MessageEdits), Array.Empty<Task>(), new Func<Task>[]
 			{
 				() => HandleBannedPhrasesAsync(context),
@@ -72,7 +72,7 @@ namespace Advobot.Services.Logging.Loggers
 				return Task.CompletedTask;
 			}
 
-			var context = new MessageLoggingContext(GuildSettings, LogAction.MessageDeleted, message);
+			var context = new MessageLoggingContext(GuildSettingsFactory, LogAction.MessageDeleted, message);
 			return HandleAsync(context, nameof(ILogService.MessageDeletes), Array.Empty<Task>(), new Func<Task>[]
 			{
 				() => HandleMessageDeletedLogging(context),

@@ -176,10 +176,7 @@ namespace Advobot.Services.Levels
 		}
 		private void UpsertRank(string collectionName, ulong userId, int experience)
 		{
-			var deleteQuery = DatabaseQuery<LeaderboardPosition>.Delete(x => x.UserId == userId);
-			deleteQuery.CollectionName = collectionName;
-			DatabaseWrapper.ExecuteQuery(deleteQuery);
-			var insertQuery = DatabaseQuery<LeaderboardPosition>.Insert(new[] { new LeaderboardPosition(userId, experience) });
+			var insertQuery = DatabaseQuery<LeaderboardPosition>.Upsert(new[] { new LeaderboardPosition(userId, experience) });
 			insertQuery.CollectionName = collectionName;
 			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}

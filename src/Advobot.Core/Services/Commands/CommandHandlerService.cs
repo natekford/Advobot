@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.Attributes;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Interfaces;

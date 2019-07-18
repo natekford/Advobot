@@ -32,7 +32,7 @@ namespace Advobot.Services.Logging.Loggers
 		public Task OnUserJoined(SocketGuildUser user)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), 1);
-			var context = new UserLoggingContext(GuildSettings, LogAction.UserJoined, user);
+			var context = new UserLoggingContext(GuildSettingsFactory, LogAction.UserJoined, user);
 			return HandleAsync(context, nameof(ILogService.UserJoins), new[] { HandleOtherJoinActions(context) }, new Func<Task>[]
 			{
 				() => HandleJoinLogging(context),
@@ -42,7 +42,7 @@ namespace Advobot.Services.Logging.Loggers
 		public Task OnUserLeft(SocketGuildUser user)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -1);
-			var context = new UserLoggingContext(GuildSettings, LogAction.UserJoined, user);
+			var context = new UserLoggingContext(GuildSettingsFactory, LogAction.UserJoined, user);
 			return HandleAsync(context, nameof(ILogService.UserLeaves), new[] { HandleOtherLeftActions(context) }, new Func<Task>[]
 			{
 				() => HandleLeftLogging(context),
@@ -63,7 +63,7 @@ namespace Advobot.Services.Logging.Loggers
 					continue;
 				}
 
-				var context = new UserLoggingContext(GuildSettings, LogAction.UserUpdated, user);
+				var context = new UserLoggingContext(GuildSettingsFactory, LogAction.UserUpdated, user);
 				await HandleAsync(context, nameof(ILogService.UserChanges), Array.Empty<Task>(), new Func<Task>[]
 				{
 					() => HandleUsernameUpdated(context, beforeUser),
@@ -102,7 +102,6 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private async Task HandleOtherJoinActions(UserLoggingContext context)
 		{
-			//TODO: remove a lot of these from the logger
 			//Banned names
 			if (context.Settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(context.User.Username)))
 			{
@@ -118,8 +117,10 @@ namespace Advobot.Services.Logging.Loggers
 				await antiRaid.PunishAsync(context.User).CAF();
 			}
 			//Persistent roles
-			var roles = context.Settings.PersistentRoles.Where(x => x.UserId == context.User.Id)
-				.Select(x => context.Guild.GetRole(x.RoleId)).Where(x => x != null).ToArray();
+			var roles = context.Settings.PersistentRoles
+				.Where(x => x.UserId == context.User.Id)
+				.Select(x => context.Guild.GetRole(x.RoleId))
+				.Where(x => x != null).ToArray();
 			if (roles.Length > 0)
 			{
 				await context.User.AddRolesAsync(roles, _PersistentRolesOptions).CAF();

@@ -39,12 +39,6 @@ namespace Advobot.Commands.Responses
 		}
 		public static AdvobotResult DisplaySetting(BaseSocketClient client, SocketGuild guild, ISettingsBase settings, string name)
 		{
-			//TODO: make into precondition?
-			if (!settings.GetSettingNames().CaseInsContains(name))
-			{
-				return Failure(Default.FormatInterpolated($"{name} is not a valid setting.")).WithTime(DefaultTime);
-			}
-
 			var description = settings.FormatSetting(name).ToString(client, guild, Default);
 			if (description.Length <= EmbedBuilder.MaxDescriptionLength)
 			{

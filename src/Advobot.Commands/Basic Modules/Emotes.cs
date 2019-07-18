@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.Classes.Attributes.ParameterPreconditions.StringValidation;
+using Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.ImageResizing;

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Modules;
 using Advobot.Interfaces;
@@ -27,7 +28,7 @@ namespace Advobot.Commands
 			public Task<RuntimeResult> All()
 				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
 			[Command]
-			public Task<RuntimeResult> Command(string name)
+			public Task<RuntimeResult> Command([ValidateBotSettingName] string name)
 				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
 		}
 

@@ -4,12 +4,13 @@ using Advobot.Classes.Modules;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.StringValidation
+namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the rule category by making sure it is between 1 and 250 characters.
 	/// </summary>
-	public sealed class ValidateRuleCategoryAttribute : ValidateStringAttribute
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+	public sealed class ValidateRuleCategoryAttribute : ValidateStringLengthAttribute
 	{
 		/// <summary>
 		/// If true, returns an error if the category already exists. Otherwise, returns an error if the category does not exist.

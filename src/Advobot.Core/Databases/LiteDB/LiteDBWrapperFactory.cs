@@ -29,7 +29,6 @@ namespace Advobot.Databases.LiteDB
 
 			BsonMapper.Global.Entity<GuildSettings>()
 				.Id(x => x.GuildId)
-				.Ignore(x => x.EvaluatedRegex)
 				.Ignore(x => x.BannedPhraseUsers);
 			BsonMapper.Global.Entity<DatabaseMetadata>()
 				.Id(x => x.ProgramVersion);
