@@ -151,16 +151,10 @@ namespace Advobot.Commands.Misc
 		public sealed class Test : AdvobotModuleBase
 		{
 			[Command("steven")]
-			public Task<RuntimeResult> Command()
+			public Task<RuntimeResult> Command([ValidatePositiveNumber] int num)
 			{
 				//var invite = await Context.Channel.CreateInviteAsync(123, 3, false, false).CAF();
-				return AdvobotResult.Success("test test");
-			}
-			[Command]
-			public Task<RuntimeResult> Command2([Summary("womp is a very useful string which can be used in many uses like this one very usage here :)")] string womp)
-			{
-				var a = 2 + 2;
-				return AdvobotResult.Success(a.ToString() + womp);
+				return AdvobotResult.Success("test test " + num.ToString());
 			}
 		}
 	}
