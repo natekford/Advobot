@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Advobot.Services.Logging;
+using System.ComponentModel;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
 {

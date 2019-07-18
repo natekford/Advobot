@@ -12,6 +12,8 @@ using Advobot.NetCoreUI.Classes.AbstractUI.Colors;
 using Advobot.NetCoreUI.Classes.Colors;
 using Advobot.NetCoreUI.Classes.Views;
 using Advobot.NetCoreUI.Utils;
+using Advobot.Services.BotSettings;
+using Advobot.Services.Logging;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Avalonia.Controls;

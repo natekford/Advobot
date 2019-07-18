@@ -108,12 +108,7 @@ namespace Advobot.Services.Commands
 
 			CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(settings.Culture);
 			var context = new AdvobotCommandContext(settings, _Client, msg);
-			var r = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
-#warning temporary fix until parameter precondition results work correctly
-			if (!r.IsSuccess && r is ExecuteResult exeR)
-			{
-				await LogExecutionAsync(context, exeR).CAF();
-			}
+			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
 		private Task LogExecutionAsync(AdvobotCommandContext context, IResult result)
 		{

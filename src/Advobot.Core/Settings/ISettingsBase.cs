@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using Advobot.Classes.Formatting;
 
 namespace Advobot.Interfaces
@@ -6,7 +7,7 @@ namespace Advobot.Interfaces
 	/// <summary>
 	/// Abstraction for something which has settings.
 	/// </summary>
-	public interface ISettingsBase : ISavable
+	public interface ISettingsBase : INotifyPropertyChanged, ISavable
 	{
 		/// <summary>
 		/// Returns the names of settings.

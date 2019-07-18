@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Advobot.NetCoreUI.Classes.ValidationAttributes;
+using Advobot.Services.BotSettings;
 using Discord;
 
 namespace Advobot.NetCoreUI.Classes.ViewModels
