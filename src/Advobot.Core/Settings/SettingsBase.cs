@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -16,34 +19,28 @@ namespace Advobot.Settings
 	/// </summary>
 	internal abstract class SettingsBase : ISettingsBase
 	{
-		private readonly IEnumerable<Setting> _Settings;
-		private IDictionary<string, Setting> Settings => _Settings.ToDictionary(
-			x => GetLocalizedName(x.SettingAttribute),
-			x => x,
-			StringComparer.OrdinalIgnoreCase);
+		private readonly ConcurrentDictionary<Type, Setting[]> _Settings
+			= new ConcurrentDictionary<Type, Setting[]>();
+		private readonly ConcurrentDictionary<(Type Type, object LocalizationKey), IReadOnlyDictionary<string, Setting>> _Localized
+			= new ConcurrentDictionary<(Type, object), IReadOnlyDictionary<string, Setting>>();
 
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		public SettingsBase()
-		{
-			_Settings = GenerateSettings();
-		}
-
 		/// <inheritdoc />
 		public IReadOnlyCollection<string> GetSettingNames()
-			=> Settings.Keys.ToArray();
+			=> GetSettings().Keys.ToArray();
 		/// <inheritdoc />
 		public void ResetSetting(string name)
-			=> Settings[name].Reset();
+			=> GetSettings()[name].Reset(this);
 		/// <inheritdoc />
 		public IDiscordFormattableString Format()
 		{
 			var formattable = new DiscordFormattableStringCollection();
-			foreach (var kvp in Settings)
+			foreach (var kvp in GetSettings())
 			{
 				var name = kvp.Key;
-				var formatted = FormatValue(kvp.Value.GetCurrentValue());
+				var formatted = FormatValue(kvp.Value.GetCurrentValue(this));
 				if (formatted != null)
 				{
 					formattable.Add($"{name.AsTitle()}\n{formatted.NoFormatting()}\n\n");
@@ -53,7 +50,7 @@ namespace Advobot.Settings
 		}
 		/// <inheritdoc />
 		public IDiscordFormattableString FormatSetting(string name)
-			=> FormatValue(Settings[name].GetCurrentValue());
+			=> FormatValue(GetSettings()[name].GetCurrentValue(this));
 		/// <inheritdoc />
 		public IDiscordFormattableString FormatValue(object? value)
 			=> new DiscordFormattableString($"{value}");
@@ -65,6 +62,12 @@ namespace Advobot.Settings
 		/// <param name="attr"></param>
 		/// <returns></returns>
 		protected abstract string GetLocalizedName(SettingAttribute attr);
+		/// <summary>
+		/// Returns the object being used for localization. By default this will use <see cref="CultureInfo.CurrentCulture"/>.
+		/// </summary>
+		/// <returns></returns>
+		protected virtual object GetLocalizationKey()
+			=> CultureInfo.CurrentCulture;
 		/// <inheritdoc />
 		protected void RaisePropertyChanged([CallerMemberName] string caller = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
@@ -104,14 +107,25 @@ namespace Advobot.Settings
 			field = value;
 			RaisePropertyChanged(caller);
 		}
-		private IEnumerable<Setting> GenerateSettings()
+		private IReadOnlyDictionary<string, Setting> GetSettings()
 		{
-			foreach (var property in GetType().GetProperties())
+			return _Localized.GetOrAdd((GetType(), GetLocalizationKey()), key =>
+			{
+				var settings = _Settings.GetOrAdd(key.Type, t => GenerateSettings(t).ToArray());
+				return settings.ToImmutableDictionary(
+					x => GetLocalizedName(x.SettingAttribute),
+					x => x,
+					StringComparer.OrdinalIgnoreCase);
+			});
+		}
+		private IEnumerable<Setting> GenerateSettings(Type type)
+		{
+			foreach (var property in type.GetProperties())
 			{
 				var attr = property.GetCustomAttribute<SettingAttribute>();
 				if (attr != null)
 				{
-					yield return new Setting(this, attr, property);
+					yield return new Setting(attr, property);
 				}
 			}
 		}
@@ -122,7 +136,6 @@ namespace Advobot.Settings
 
 			public SettingAttribute SettingAttribute { get; }
 
-			private readonly SettingsBase _Parent;
 			private readonly Func<SettingsBase, object?> _Getter;
 			private readonly Action<SettingsBase, object?> _Setter;
 			private readonly bool _IsValueType;
@@ -130,25 +143,24 @@ namespace Advobot.Settings
 			private IGenerateResetValue? _GenerateResetValue;
 			private Type? _GenerateResetValueType;
 
-			public Setting(SettingsBase parent, SettingAttribute settingAttribute, PropertyInfo property)
+			public Setting(SettingAttribute settingAttribute, PropertyInfo property)
 			{
 				SettingAttribute = settingAttribute;
 
-				_Parent = parent;
 				_Getter = BuildUntypedGetter(property);
 				_Setter = BuildUntypedSetter(property);
 				_IsValueType = property.PropertyType.IsValueType;
 			}
 
-			public object? GetCurrentValue()
-				=> _Getter(_Parent);
-			public void Reset()
+			public object? GetCurrentValue(SettingsBase parent)
+				=> _Getter(parent);
+			public void Reset(SettingsBase parent)
 			{
 				if (SettingAttribute.DefaultValue != null)
 				{
-					if (!AreEqual(GetCurrentValue(), SettingAttribute.DefaultValue))
+					if (!AreEqual(GetCurrentValue(parent), SettingAttribute.DefaultValue))
 					{
-						_Setter(_Parent, SettingAttribute.DefaultValue);
+						_Setter(parent, SettingAttribute.DefaultValue);
 					}
 					return;
 				}
@@ -164,11 +176,11 @@ namespace Advobot.Settings
 					_GenerateResetValue = (IGenerateResetValue)Activator.CreateInstance(_GenerateResetValueType);
 				}
 
-				var currentValue = GetCurrentValue();
+				var currentValue = GetCurrentValue(parent);
 				var resetValue = _GenerateResetValue?.GenerateResetValue(currentValue);
 				if (!AreEqual(currentValue, resetValue))
 				{
-					_Setter(_Parent, resetValue);
+					_Setter(parent, resetValue);
 				}
 			}
 			private Func<SettingsBase, object?> BuildUntypedGetter(PropertyInfo propertyInfo)

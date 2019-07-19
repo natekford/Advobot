@@ -54,12 +54,15 @@ namespace Advobot.Commands.Responses
 				Text = description,
 			});
 		}
+		public static AdvobotResult ResetAll()
+			=> Success($"Successfully reset all settings.");
+		public static AdvobotResult Reset(string name)
+			=> Success(Default.FormatInterpolated($"Successfully reset the setting {name}"));
 
 		public static AdvobotResult SendWelcomeNotification(GuildNotification? notif)
 			=> SendNotification(notif, "welcome");
 		public static AdvobotResult SendGoodbyeNotification(GuildNotification? notif)
 			=> SendNotification(notif, "goodbye");
-
 		private static AdvobotResult SendNotification(GuildNotification? notif, string notifName)
 		{
 			if (notif == null)

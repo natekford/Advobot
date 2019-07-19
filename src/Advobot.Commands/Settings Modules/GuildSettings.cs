@@ -30,8 +30,33 @@ namespace Advobot.Commands
 			public Task<RuntimeResult> All()
 				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
 			[Command]
-			public Task<RuntimeResult> Command([ValidateGuildSettingName] string name)
+			public Task<RuntimeResult> Command([Remainder, ValidateGuildSettingName] string name)
 				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
+		}
+
+		[Group(nameof(ResetGuildSettings)), ModuleInitialismAlias(typeof(ResetGuildSettings))]
+		[Summary("Sets settings back to their default values.")]
+		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[EnabledByDefault(true)]
+		public sealed class ResetGuildSettings : AdvobotSettingsModuleBase<IGuildSettings>
+		{
+			protected override IGuildSettings Settings => Context.GuildSettings;
+
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			public Task<RuntimeResult> All()
+			{
+				foreach (var setting in Settings.GetSettingNames())
+				{
+					Settings.ResetSetting(setting);
+				}
+				return Responses.GuildSettings.ResetAll();
+			}
+			[Command]
+			public Task<RuntimeResult> Command([Remainder, ValidateGuildSettingName] string name)
+			{
+				Settings.ResetSetting(name);
+				return Responses.GuildSettings.Reset(name);
+			}
 		}
 
 		/*
