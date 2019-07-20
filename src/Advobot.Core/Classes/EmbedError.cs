@@ -148,7 +148,9 @@ namespace Advobot.Classes
 				return name;
 			}
 			//Can potentially get the direct value and replace the name with it, 
-			//but if the class doesn't implement a good .ToString then that's worse than the var name
+			//but if the class doesn't implement a good .ToString then that's
+			//worse than the var name
+			//It's also annoying when dealing with closure because the 
 			if (member.Expression.NodeType == ExpressionType.Constant)
 			{
 				return name;
@@ -164,20 +166,41 @@ namespace Advobot.Classes
 		}
 		private static string GetFromCall(this MethodCallExpression call)
 		{
-			var obj = call.Object.GetFromAny();
 			var name = call.Method.Name;
 			var args = call.Arguments.Join(", ", x => x.GetFromAny());
 
+			//Changing indexer from obj.get_Item to obj[]
 			if (call.Method.IsSpecialName)
 			{
 				var type = call.Method.DeclaringType;
-				var defaultMem = type.GetCustomAttributes<DefaultMemberAttribute>().FirstOrDefault();
-				if (defaultMem != null && name == $"get_{defaultMem.MemberName}")
+				var def = type.GetCustomAttributes<DefaultMemberAttribute>().FirstOrDefault();
+				if (def != null && name == $"get_{def.MemberName}")
 				{
-					return $"{obj}[{args}]";
+					return $"{call.Object.GetFromAny()}[{args}]";
 				}
 			}
-			return $"{obj}.{name}({args})";
+
+			var nameAndArgs = $"{name}({args})";
+			if (call.Method.IsStatic)
+			{
+				var type = call.Method.DeclaringType;
+				if (!type.IsNested)
+				{
+					return $"{type.Name}.{nameAndArgs}";
+				}
+
+				var fn = call.Method.DeclaringType.FullName;
+				var nestedClasses = fn.Substring(fn.LastIndexOf('.') + 1);
+				var withPeriods = nestedClasses.Replace('+', '.');
+				return $"{withPeriods}.{nameAndArgs}";
+			}
+
+			var obj = call.Object?.GetFromAny();
+			if (!string.IsNullOrWhiteSpace(obj))
+			{
+				return $"{obj}.{nameAndArgs}";
+			}
+			return nameAndArgs;
 		}
 		private static string GetFromNew(this NewExpression @new)
 		{
@@ -186,6 +209,23 @@ namespace Advobot.Classes
 			return $"new {name}({args})";
 		}
 		private static string GetFromConstant(this ConstantExpression constant)
-			=> constant.Value.ToString();
+		{
+			//Has to go first since strings are not value types
+			//In quotes because strings are declared in quotes
+			if (constant.Value is string s)
+			{
+				return $"\"{s}\"";
+			}
+			else if (constant.Type.IsEnum)
+			{
+				return constant.Value.ToString();
+			}
+			//Only occurs if 'this' is the constant value
+			else if (!constant.Type.IsPrimitive)
+			{
+				return "";
+			}
+			return constant.Value.ToString();
+		}
 	}
 }
