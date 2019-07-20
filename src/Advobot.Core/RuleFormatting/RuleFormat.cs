@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Enums
+namespace Advobot.RuleFormatting
 {
 	/// <summary>
 	/// The main rule format options for rule formatter.

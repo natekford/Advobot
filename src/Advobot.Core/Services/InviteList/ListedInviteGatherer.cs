@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Advobot.Enums;
-using Advobot.Services.InviteList;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes
+namespace Advobot.Services.InviteList
 {
 	/// <summary>
 	/// Gathers invites which meet specified criteria.

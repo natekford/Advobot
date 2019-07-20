@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Formatting;
 using Advobot.Enums;
 using Advobot.Utilities;
@@ -11,7 +12,7 @@ using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Holds information about raid prevention such as how long the interval is, and how many users to target.

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Discord;
 
-namespace Advobot.Classes
+namespace Advobot.Services.GuildSettings
 {
 	/// <summary>
 	/// Handles deleted message collection.

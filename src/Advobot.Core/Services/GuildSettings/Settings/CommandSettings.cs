@@ -9,7 +9,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Holds the settings for commands on a guild in the bot.

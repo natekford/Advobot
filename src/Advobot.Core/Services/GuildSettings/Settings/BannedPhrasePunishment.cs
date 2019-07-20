@@ -3,7 +3,7 @@ using Advobot.Enums;
 using Discord;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Holds a variety of information which allows a punishment to be given for <see cref="BannedPhrase"/>.

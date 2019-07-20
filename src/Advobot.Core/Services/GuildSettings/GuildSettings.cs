@@ -1,9 +1,9 @@
 ﻿using Advobot.Classes;
-using Advobot.Classes.Settings;
 using Advobot.Classes.UserInformation;
 using Advobot.Databases.Abstract;
 using Advobot.Enums;
 using Advobot.Resources;
+using Advobot.Services.GuildSettings.Settings;
 using Advobot.Settings;
 using Advobot.Settings.GenerateResetValues;
 using Newtonsoft.Json;
@@ -211,5 +211,34 @@ namespace Advobot.Services.GuildSettings
 
 		//IDatabseEntry
 		object IDatabaseEntry.Id { get => GuildId; set => GuildId = (ulong)value; }
+
+		/// <summary>
+		/// Observable collection but only allows one of each matching item in.
+		/// Gotten from https://stackoverflow.com/a/527000.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		private class ObservableSet<T> : ObservableCollection<T>
+		{
+			/// <inheritdoc />
+			protected override void InsertItem(int index, T item)
+			{
+				if (Contains(item))
+				{
+					return;
+				}
+
+				base.InsertItem(index, item);
+			}
+			/// <inheritdoc />
+			protected override void SetItem(int index, T item)
+			{
+				var i = IndexOf(item);
+				if (i >= 0 && i != index)
+				{
+					return;
+				}
+				base.SetItem(index, item);
+			}
+		}
 	}
 }

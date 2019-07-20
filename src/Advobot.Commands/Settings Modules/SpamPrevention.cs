@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Modules;
-using Advobot.Classes.Settings;
 using Advobot.Enums;
 using Advobot.Services.GuildSettings;
+using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

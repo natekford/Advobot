@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Formatting;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
-using Advobot.Services.GuildSettings;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Holds a phrase and punishment.

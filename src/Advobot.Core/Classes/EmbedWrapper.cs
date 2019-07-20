@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Text;
 using AdvorangesUtils;
 using Discord;
 
@@ -50,81 +53,49 @@ namespace Advobot.Classes
 		/// The maximum length in lines a field can be before it won't render on mobile.
 		/// </summary>
 		public const int MAX_FIELD_LINES = 5;
-		private const string LINE_BREAKS = "Line Breaks";
 
 		/// <summary>
-		/// The title of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The title of the embed.
 		/// </summary>
 		public string? Title
 		{
 			get => _Builder.Title;
-			set
-			{
-				if (TryAddTitle(value, out var errors)) { return; }
-				if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				_Builder.Title = ShortenString(errors, value);
-			}
+			set => _Builder.Title = value;
 		}
 		/// <summary>
-		/// The description of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The description of the embed.
 		/// </summary>
 		public string? Description
 		{
 			get => _Builder.Description;
-			set
-			{
-				if (TryAddDescription(value, out var errors)) { return; }
-				if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				var shortenedOnLines = ShortenString(errors.Where(x => x.SubProperty == LINE_BREAKS), value, true);
-				_Builder.Description = ShortenString(errors.Where(x => x.SubProperty == null), shortenedOnLines);
-			}
+			set => _Builder.Description = value;
 		}
 		/// <summary>
-		/// The url of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The url of the embed.
 		/// </summary>
 		public string? Url
 		{
 			get => _Builder.Url;
-			set
-			{
-				if (TryAddUrl(value, out var errors)) { return; }
-				if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				_Builder.Url = value;
-			}
+			set => _Builder.Url = value;
 		}
 		/// <summary>
-		/// The thumnail url of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The thumnail url of the embed.
 		/// </summary>
 		public string? ThumbnailUrl
 		{
 			get => _Builder.ThumbnailUrl;
-			set
-			{
-				if (TryAddThumbnailUrl(value, out var errors)) { return; }
-				if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				_Builder.ThumbnailUrl = value;
-			}
+			set => _Builder.ThumbnailUrl = value;
 		}
 		/// <summary>
-		/// The image url of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The image url of the embed.
 		/// </summary>
 		public string? ImageUrl
 		{
 			get => _Builder.ImageUrl;
-			set
-			{
-				if (TryAddImageUrl(value, out var errors)) { return; }
-				if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				_Builder.ImageUrl = value;
-			}
+			set => _Builder.ImageUrl = value;
 		}
 		/// <summary>
-		/// The color of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The color of the embed.
 		/// </summary>
 		public Color? Color
 		{
@@ -132,7 +103,7 @@ namespace Advobot.Classes
 			set => _Builder.Color = value;
 		}
 		/// <summary>
-		/// The timestamp of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The timestamp of the embed.
 		/// </summary>
 		public DateTimeOffset? Timestamp
 		{
@@ -140,120 +111,61 @@ namespace Advobot.Classes
 			set => _Builder.Timestamp = value;
 		}
 		/// <summary>
-		/// The author of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The author of the embed.
 		/// </summary>
 		public EmbedAuthorBuilder Author
 		{
 			get => _Builder.Author;
-			set
-			{
-				if (value == null) { _Builder.Author = null; return; }
-				if (TryAddAuthor(value?.Name, value?.Url, value?.IconUrl, out var errors)) { return; }
-				if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				//No need to error check the Urls since they are going to always be valid
-				//Since Discord.Net checks them in the builder or throws
-				_Builder.Author = new EmbedAuthorBuilder
-				{
-					Name = ShortenString(errors, value?.Name),
-					Url = value?.Url,
-					IconUrl = value?.IconUrl
-				};
-			}
+			set => _Builder.Author = value;
 		}
 		/// <summary>
-		/// The footer of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The footer of the embed.
 		/// </summary>
 		public EmbedFooterBuilder Footer
 		{
 			get => _Builder.Footer;
-			set
-			{
-				if (value == null) { _Builder.Footer = null; return; }
-				if (TryAddFooter(value?.Text, value?.IconUrl, out var errors)) { return; }
-				if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-				//No need to error check the Urls since they are going to always be valid
-				//Since Discord.Net checks them in the builder or throws
-				_Builder.Footer = new EmbedFooterBuilder
-				{
-					Text = ShortenString(errors, value?.Text),
-					IconUrl = value?.IconUrl
-				};
-			}
+			set => _Builder.Footer = value;
 		}
 		/// <summary>
-		/// The fields of the embed. Will either eat errors or throw if the constructor was told to throw.
+		/// The fields of the embed.
 		/// </summary>
 		public List<EmbedFieldBuilder> Fields
 		{
 			get => _Builder.Fields;
 			set
 			{
-				if (_ThrowOnInvalid && value.Count > EmbedBuilder.MaxFieldCount)
+				const int MAX_FIELDS = EmbedBuilder.MaxFieldCount;
+
+				if (value.Count > MAX_FIELDS)
 				{
-					throw CreateException(new[] { EmbedError.MaxLength(nameof(Fields), nameof(Fields.Count), value.Count, EmbedBuilder.MaxFieldCount) });
+					throw new InvalidOperationException("Too many fields provided.");
 				}
 
 				//Have to clear and do it step by step instead of temp list
 				//Because TryAddField adds to the builder if success and also checks against total embed length
 				_Builder.Fields.Clear();
-				for (var i = 0; i < Math.Min(value.Count, EmbedBuilder.MaxFieldCount); ++i)
+				for (var i = 0; i < Math.Min(value.Count, MAX_FIELDS); ++i)
 				{
 					var f = value[i];
-					if (TryAddField(f?.Name, f?.Value?.ToString(), f?.IsInline ?? false, out var errors)) { continue; }
-					if (_ThrowOnInvalid) { throw CreateException(errors); }
-
-					var fName = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Name)), f?.Name);
-					var fValue = ShortenString(errors.Where(x => x.SubProperty == LINE_BREAKS), f?.Value?.ToString(), true);
-					fValue = ShortenString(errors.Where(x => x.SubProperty == nameof(EmbedFieldBuilder.Value)), fValue);
-					//If there's a total length error then don't even bother trying to put any more fields in
-					//Because it's impossible to know what length the name and value should be made
-					if (errors.SingleOrDefault(x => x.SubProperty == nameof(EmbedBuilder.MaxEmbedLength)).RemainingLength > -1)
+					if (!TryAddField(f.Name, f.Value?.ToString(), f.IsInline, out _))
 					{
-						break;
+						throw new InvalidOperationException($"Unable to add field at index {i}");
 					}
-
-					//No need to check again 
-					_Builder.Fields.Add(new EmbedFieldBuilder
-					{
-						Name = fName,
-						Value = fValue,
-						IsInline = f?.IsInline ?? false,
-					});
 				}
 			}
 		}
 		/// <summary>
 		/// Any errors which have happened when building the embed.
 		/// </summary>
-		public ImmutableList<EmbedError> Errors => _Errors.ToImmutableList();
-		/// <summary>
-		/// The values which have failed to set.
-		/// </summary>
-		public ImmutableDictionary<string, string?> FailedValues => _FailedValues.ToImmutableDictionary();
+		public IReadOnlyList<IEmbedError> Errors
+			=> _Errors.ToImmutableList();
 
-		private readonly bool _ThrowOnInvalid;
 		private readonly EmbedBuilder _Builder = new EmbedBuilder
 		{
 			Color = Base,
 			Timestamp = DateTimeOffset.UtcNow
 		};
-		private readonly List<EmbedError> _Errors = new List<EmbedError>();
-		private readonly Dictionary<string, string?> _FailedValues = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-
-		/// <summary>
-		/// Creates an <see cref="EmbedWrapper"/> that can throw on exceptions if <paramref name="throwOnInvalid"/> is true.
-		/// </summary>
-		/// <param name="throwOnInvalid">Whether or not to throw exceptions. True throws them, false swallows them via error checking.</param>
-		public EmbedWrapper(bool throwOnInvalid)
-		{
-			_ThrowOnInvalid = throwOnInvalid;
-		}
-		/// <summary>
-		/// Creates an <see cref="EmbedWrapper"/> that won't throw exceptions.
-		/// </summary>
-		public EmbedWrapper() : this(false) { }
+		private readonly List<IEmbedError> _Errors = new List<IEmbedError>();
 
 		/// <summary>
 		/// Attempts to modify the title. Does nothing if fails.
@@ -261,29 +173,19 @@ namespace Advobot.Classes
 		/// <param name="title"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddTitle(string? title, out List<EmbedError> errors)
+		public bool TryAddTitle(
+			string? title,
+			out IReadOnlyList<IEmbedError> errors)
 		{
-			errors = new List<EmbedError>();
-			if (title?.Length > EmbedBuilder.MaxTitleLength)
-			{
-				errors.Add(EmbedError.MaxLength(nameof(Title), null, title, EmbedBuilder.MaxTitleLength));
-			}
-			var remainingLen = GetRemainingLength(nameof(Title));
-			if (title?.Length > remainingLen)
-			{
-				errors.Add(EmbedError.LengthRemaining(nameof(Title), null, title, remainingLen));
-			}
+			const int LENGTH = EmbedBuilder.MaxTitleLength;
 
-			if (errors.Any())
-			{
-				_Errors.AddRange(errors);
-				_FailedValues[nameof(Title)] = title;
-				return false;
-			}
-
-			_Builder.Title = title;
-			_FailedValues.Remove(nameof(Title));
-			return true;
+			var remaining = GetRemainingLength(nameof(Title));
+			errors = new RuleHandler(_Errors)
+				.Property<EmbedBuilder, string?>(x => x.Title, title)
+					.Rule(v => v?.Length > LENGTH, e => e.WithMax(LENGTH))
+					.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.End();
+			return SetIfSuccess(errors, () => _Builder.Title = title);
 		}
 		/// <summary>
 		/// Attempts to modify the description. Does nothing if fails.
@@ -291,33 +193,21 @@ namespace Advobot.Classes
 		/// <param name="description"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddDescription(string? description, out List<EmbedError> errors)
+		public bool TryAddDescription(
+			string? description,
+			out IReadOnlyList<IEmbedError> errors)
 		{
-			errors = new List<EmbedError>();
-			if (description?.Length > EmbedBuilder.MaxDescriptionLength)
-			{
-				errors.Add(EmbedError.MaxLength(nameof(Description), null, description, EmbedBuilder.MaxDescriptionLength));
-			}
-			if (description?.CountLineBreaks() > MAX_DESCRIPTION_LINES)
-			{
-				errors.Add(EmbedError.MaxLength(nameof(Description), LINE_BREAKS, description, MAX_DESCRIPTION_LINES));
-			}
-			var remainingLen = GetRemainingLength(nameof(Description));
-			if (description?.Length > remainingLen)
-			{
-				errors.Add(EmbedError.LengthRemaining(nameof(Description), null, description, remainingLen));
-			}
+			const int LENGTH = EmbedBuilder.MaxDescriptionLength;
+			const int LINES = MAX_DESCRIPTION_LINES;
 
-			if (errors.Any())
-			{
-				_Errors.AddRange(errors);
-				_FailedValues[nameof(Description)] = description;
-				return false;
-			}
-
-			_Builder.Description = description;
-			_FailedValues.Remove(nameof(Description));
-			return true;
+			var remaining = GetRemainingLength(nameof(Description));
+			errors = new RuleHandler(_Errors)
+				.Property<EmbedBuilder, string?>(x => x.Description, description)
+					.Rule(v => v?.Length > LENGTH, e => e.WithMax(LENGTH))
+					.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+					.Rule(v => v?.CountLineBreaks() > LINES, e => e.WithMax(LINES))
+				.End();
+			return SetIfSuccess(errors, () => _Builder.Description = description);
 		}
 		/// <summary>
 		/// Attempts to modify the url. Does nothing if fails.
@@ -325,21 +215,15 @@ namespace Advobot.Classes
 		/// <param name="url"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddUrl(string? url, out List<EmbedError> errors)
+		public bool TryAddUrl(
+			string? url,
+			out IReadOnlyList<IEmbedError> errors)
 		{
-			errors = new List<EmbedError>();
-			if (url != null && !url.IsValidUrl())
-			{
-				errors.Add(EmbedError.Url(nameof(Url), null, url));
-
-				_Errors.AddRange(errors);
-				_FailedValues[nameof(Url)] = url;
-				return false;
-			}
-
-			_Builder.Url = url;
-			_FailedValues.Remove(nameof(Url));
-			return true;
+			errors = new RuleHandler(_Errors)
+				.Property<EmbedBuilder, string?>(x => x.Url, url)
+					.Rule(v => v != null && !v.IsValidUrl(), e => e.WithInvalidUrl())
+				.End();
+			return SetIfSuccess(errors, () => _Builder.Url = url);
 		}
 		/// <summary>
 		/// Attempts to modify the thumbnail url. Does nothing if fails.
@@ -347,21 +231,15 @@ namespace Advobot.Classes
 		/// <param name="thumbnailUrl"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddThumbnailUrl(string? thumbnailUrl, out List<EmbedError> errors)
+		public bool TryAddThumbnailUrl(
+			string? thumbnailUrl,
+			out IReadOnlyList<IEmbedError> errors)
 		{
-			errors = new List<EmbedError>();
-			if (thumbnailUrl != null && !thumbnailUrl.IsValidUrl())
-			{
-				errors.Add(EmbedError.Url(nameof(ThumbnailUrl), null, thumbnailUrl));
-
-				_Errors.AddRange(errors);
-				_FailedValues[nameof(ThumbnailUrl)] = thumbnailUrl;
-				return false;
-			}
-
-			_Builder.ThumbnailUrl = thumbnailUrl;
-			_FailedValues.Remove(nameof(ThumbnailUrl));
-			return true;
+			errors = new RuleHandler(_Errors)
+				.Property<EmbedBuilder, string?>(x => x.ThumbnailUrl, thumbnailUrl)
+					.Rule(v => v != null && !v.IsValidUrl(), e => e.WithInvalidUrl())
+				.End();
+			return SetIfSuccess(errors, () => _Builder.ThumbnailUrl = thumbnailUrl);
 		}
 		/// <summary>
 		/// Attempts to modify the image url. Does nothing if fails.
@@ -369,21 +247,15 @@ namespace Advobot.Classes
 		/// <param name="imageUrl"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddImageUrl(string? imageUrl, out List<EmbedError> errors)
+		public bool TryAddImageUrl(
+			string? imageUrl,
+			out IReadOnlyList<IEmbedError> errors)
 		{
-			errors = new List<EmbedError>();
-			if (imageUrl != null && !imageUrl.IsValidUrl())
-			{
-				errors.Add(EmbedError.Url(nameof(ImageUrl), null, imageUrl));
-
-				_Errors.AddRange(errors);
-				_FailedValues[nameof(ImageUrl)] = imageUrl;
-				return false;
-			}
-
-			_Builder.ImageUrl = imageUrl;
-			_FailedValues.Remove(nameof(ImageUrl));
-			return true;
+			errors = new RuleHandler(_Errors)
+				.Property<EmbedBuilder, string?>(x => x.ImageUrl, imageUrl)
+					.Rule(v => v != null && !v.IsValidUrl(), e => e.WithInvalidUrl())
+				.End();
+			return SetIfSuccess(errors, () => _Builder.ImageUrl = imageUrl);
 		}
 		/// <summary>
 		/// Attempts to modify the author. Does nothing if fails.
@@ -393,42 +265,33 @@ namespace Advobot.Classes
 		/// <param name="iconUrl"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddAuthor(string? name, string? url, string? iconUrl, out List<EmbedError> errors)
+		public bool TryAddAuthor(
+			string? name,
+			string? url,
+			string? iconUrl,
+			out IReadOnlyList<IEmbedError> errors)
 		{
-			errors = new List<EmbedError>();
-			if (name?.Length > EmbedAuthorBuilder.MaxAuthorNameLength)
-			{
-				errors.Add(EmbedError.MaxLength(nameof(Author), nameof(EmbedAuthorBuilder.Name), name, EmbedAuthorBuilder.MaxAuthorNameLength));
-			}
-			var remainingLen = GetRemainingLength(nameof(Author));
-			if (name?.Length > remainingLen)
-			{
-				errors.Add(EmbedError.LengthRemaining(nameof(Author), nameof(EmbedAuthorBuilder.Name), name, remainingLen));
-			}
-			if (url != null && !url.IsValidUrl())
-			{
-				errors.Add(EmbedError.Url(nameof(Author), nameof(EmbedAuthorBuilder.Url), url));
-			}
-			if (iconUrl != null && !iconUrl.IsValidUrl())
-			{
-				errors.Add(EmbedError.Url(nameof(Author), nameof(EmbedAuthorBuilder.IconUrl), iconUrl));
-			}
+			const int LENGTH = EmbedAuthorBuilder.MaxAuthorNameLength;
 
-			if (errors.Any())
+			var remaining = GetRemainingLength(nameof(Author));
+			errors = new RuleHandler(_Errors)
+				.Property<EmbedAuthorBuilder, string?>(x => x.Name, name)
+					.Rule(v => v?.Length > LENGTH, e => e.WithMax(LENGTH))
+					.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.Property<EmbedAuthorBuilder, string?>(x => x.Url, url)
+					.Rule(v => v != null && !v.IsValidUrl(), e => e.WithInvalidUrl())
+				.Property<EmbedAuthorBuilder, string?>(x => x.IconUrl, iconUrl)
+					.Rule(v => v != null && !v.IsValidUrl(), e => e.WithInvalidUrl())
+				.End();
+			return SetIfSuccess(errors, () =>
 			{
-				_Errors.AddRange(errors);
-				_FailedValues[nameof(Author)] = $"{name}\n{url}\n{iconUrl}";
-				return false;
-			}
-
-			_Builder.Author = new EmbedAuthorBuilder
-			{
-				Name = name,
-				Url = url,
-				IconUrl = iconUrl
-			};
-			_FailedValues.Remove(nameof(Author));
-			return true;
+				_Builder.Author = new EmbedAuthorBuilder
+				{
+					Name = name,
+					Url = url,
+					IconUrl = iconUrl
+				};
+			});
 		}
 		/// <summary>
 		/// Attempts to modify the author using a user. Does nothing if fails.
@@ -436,7 +299,9 @@ namespace Advobot.Classes
 		/// <param name="user"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddAuthor(IUser user, out List<EmbedError> errors)
+		public bool TryAddAuthor(
+			IUser user,
+			out IReadOnlyList<IEmbedError> errors)
 			=> TryAddAuthor(user?.Username, user?.GetAvatarUrl(), user?.GetAvatarUrl(), out errors);
 		/// <summary>
 		/// Attempts to modify the footer. Does nothing if fails.
@@ -445,37 +310,29 @@ namespace Advobot.Classes
 		/// <param name="iconUrl"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddFooter(string? text, string? iconUrl, out List<EmbedError> errors)
+		public bool TryAddFooter(
+			string? text,
+			string? iconUrl,
+			out IReadOnlyList<IEmbedError> errors)
 		{
-			errors = new List<EmbedError>();
-			if (text?.Length > EmbedFooterBuilder.MaxFooterTextLength)
-			{
-				errors.Add(EmbedError.MaxLength(nameof(Footer), nameof(EmbedFooterBuilder.Text), text, EmbedFooterBuilder.MaxFooterTextLength));
-			}
-			var remainingLen = GetRemainingLength(nameof(Footer));
-			if (text?.Length > remainingLen)
-			{
-				errors.Add(EmbedError.LengthRemaining(nameof(Footer), nameof(EmbedFooterBuilder.Text), text, remainingLen));
-			}
-			if (iconUrl != null && !iconUrl.IsValidUrl())
-			{
-				errors.Add(EmbedError.Url(nameof(Footer), nameof(iconUrl), iconUrl));
-			}
+			const int LENGTH = EmbedFooterBuilder.MaxFooterTextLength;
 
-			if (errors.Any())
+			var remaining = GetRemainingLength(nameof(Footer));
+			errors = new RuleHandler(_Errors)
+				.Property<EmbedFooterBuilder, string?>(x => x.Text, text)
+					.Rule(v => v?.Length > LENGTH, e => e.WithMax(LENGTH))
+					.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.Property<EmbedFooterBuilder, string?>(x => x.IconUrl, iconUrl)
+					.Rule(v => v != null && !v.IsValidUrl(), e => e.WithInvalidUrl())
+				.End();
+			return SetIfSuccess(errors, () =>
 			{
-				_Errors.AddRange(errors);
-				_FailedValues[nameof(Footer)] = $"{text}\n{iconUrl}";
-				return false;
-			}
-
-			_Builder.Footer = new EmbedFooterBuilder
-			{
-				Text = text,
-				IconUrl = iconUrl
-			};
-			_FailedValues.Remove(nameof(Footer));
-			return true;
+				_Builder.Footer = new EmbedFooterBuilder
+				{
+					Text = text,
+					IconUrl = iconUrl
+				};
+			});
 		}
 		/// <summary>
 		/// Attempts to add a field. Does nothing if fails.
@@ -485,62 +342,42 @@ namespace Advobot.Classes
 		/// <param name="inline"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryAddField(string? name, string? value, bool inline, out List<EmbedError> errors)
+		public bool TryAddField(
+			string? name,
+			string? value,
+			bool inline,
+			out IReadOnlyList<IEmbedError> errors)
 		{
-			errors = new List<EmbedError>();
-			if (_Builder.Fields.Count >= EmbedBuilder.MaxFieldCount)
-			{
-				errors.Add(new EmbedError(nameof(Fields), null, null, $"Max fields is {EmbedBuilder.MaxFieldCount}."));
-			}
-			if (string.IsNullOrWhiteSpace(name))
-			{
-				errors.Add(new EmbedError(nameof(Fields), nameof(EmbedFieldBuilder.Name), name, $"Cannot be null or whitespace."));
-			}
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				errors.Add(new EmbedError(nameof(Fields), nameof(EmbedFieldBuilder.Value), value, $"Cannot be null or whitespace."));
-			}
-			if (value?.CountLineBreaks() > MAX_DESCRIPTION_LINES)
-			{
-				errors.Add(EmbedError.MaxLength(nameof(Fields), LINE_BREAKS, value, MAX_FIELD_LINES));
-			}
-			if (name?.Length > EmbedFieldBuilder.MaxFieldNameLength)
-			{
-				errors.Add(EmbedError.MaxLength(nameof(Fields), nameof(EmbedFieldBuilder.Name), name, EmbedFieldBuilder.MaxFieldNameLength));
-			}
-			if (value?.Length > EmbedFieldBuilder.MaxFieldValueLength)
-			{
-				errors.Add(EmbedError.MaxLength(nameof(Fields), nameof(EmbedFieldBuilder.Value), value, EmbedFieldBuilder.MaxFieldValueLength));
-			}
-			var remainingLen = GetRemainingLength(null);
-			if (name?.Length > remainingLen)
-			{
-				errors.Add(EmbedError.LengthRemaining(nameof(Fields), nameof(EmbedFieldBuilder.Name), name, remainingLen));
-			}
-			if (value?.Length > remainingLen)
-			{
-				errors.Add(EmbedError.LengthRemaining(nameof(Fields), nameof(EmbedFieldBuilder.Value), value, remainingLen));
-			}
-			if (name?.Length + value?.Length > remainingLen)
-			{
-				errors.Add(EmbedError.LengthRemaining(nameof(Fields), nameof(EmbedBuilder.MaxEmbedLength), name + "\n" + value, remainingLen));
-			}
+			const int VALUE_LENGTH = EmbedFieldBuilder.MaxFieldValueLength;
+			const int NAME_LENGTH = EmbedFieldBuilder.MaxFieldNameLength;
+			const int MAX_FIELDS = EmbedBuilder.MaxFieldCount;
+			const int LINES = MAX_FIELD_LINES;
 
-			if (errors.Any())
+			var remaining = GetRemainingLength(null);
+			errors = new RuleHandler(_Errors)
+				.Property<EmbedBuilder, int>(x => _Builder.Fields.Count, _Builder.Fields.Count + 1)
+					.Rule(v => v > MAX_FIELDS, e => e.WithMax(MAX_FIELDS))
+				.Property<EmbedFieldBuilder, string?>(x => x.Name, name)
+					.Rule(v => string.IsNullOrWhiteSpace(v), e => e.WithNotEmpty())
+					.Rule(v => v?.Length > NAME_LENGTH, e => e.WithMax(NAME_LENGTH))
+					.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.Property<EmbedFieldBuilder, string?>(x => (string)x.Value, value)
+					.Rule(v => string.IsNullOrWhiteSpace(v), e => e.WithNotEmpty())
+					.Rule(v => v?.Length > VALUE_LENGTH, e => e.WithMax(VALUE_LENGTH))
+					.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+					.Rule(v => v?.CountLineBreaks() > LINES, e => e.WithMax(LINES))
+				.Property<EmbedFieldBuilder, string?>(x => x.Name + (string)x.Value, name + value)
+					.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.End();
+			return SetIfSuccess(errors, () =>
 			{
-				_Errors.AddRange(errors);
-				_FailedValues[$"Field {_Builder.Fields.Count}"] = $"{name}\n{value}";
-				return false;
-			}
-
-			_FailedValues.Remove($"Field {_Builder.Fields.Count}");
-			_Builder.Fields.Add(new EmbedFieldBuilder
-			{
-				Name = name,
-				Value = value,
-				IsInline = inline
+				_Builder.Fields.Add(new EmbedFieldBuilder
+				{
+					Name = name,
+					Value = value,
+					IsInline = inline
+				});
 			});
-			return true;
 		}
 		/// <summary>
 		/// Attempts to remove a field. Does nothing if fails.
@@ -549,26 +386,20 @@ namespace Advobot.Classes
 		/// <param name="field"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryRemoveField(int index, out EmbedFieldBuilder? field, out List<EmbedError> errors)
+		public bool TryRemoveField(
+			int index,
+			out EmbedFieldBuilder? field,
+			out IReadOnlyList<IEmbedError> errors)
 		{
-			errors = new List<EmbedError>();
 			field = default;
-			if (index < 0)
-			{
-				errors.Add(new EmbedError(nameof(Fields), nameof(index), index, $"Cannot be less than 0."));
-			}
-			if (_Builder.Fields.Count == 0)
-			{
-				errors.Add(new EmbedError(nameof(Fields), nameof(index), index, $"No fields to remove."));
-			}
-			if (_Builder.Fields.Count - 1 < index)
-			{
-				errors.Add(new EmbedError(nameof(Fields), nameof(index), index, $"Out of bounds."));
-			}
-
+			errors = new RuleHandler(_Errors)
+				.Property<EmbedBuilder, int>(x => x.Fields.Count, index)
+					.Rule(v => v < 0, e => e.WithMustBePositive())
+					.Rule(v => _Builder.Fields.Count == 0, e => e.WithNone())
+					.Rule(v => _Builder.Fields.Count - 1 < v, e => e.WithOutOfBounds())
+				.End();
 			if (errors.Any())
 			{
-				_Errors.AddRange(errors);
 				return false;
 			}
 
@@ -582,17 +413,22 @@ namespace Advobot.Classes
 		/// <param name="index"></param>
 		/// <param name="name"></param>
 		/// <param name="value"></param>
-		/// <param name="inLine"></param>
+		/// <param name="inline"></param>
 		/// <param name="errors"></param>
 		/// <returns></returns>
-		public bool TryModifyField(int index, string name, string value, bool inLine, out List<EmbedError> errors)
+		public bool TryModifyField(
+			int index,
+			string name,
+			string value,
+			bool inline,
+			out IReadOnlyList<IEmbedError> errors)
 		{
 			if (!TryRemoveField(index, out var field, out errors))
 			{
 				return false;
 			}
-			//If the field fails to be removed then it has to be reinserted
-			if (!TryAddField(name, value, inLine, out errors))
+			//If the field fails to be added then the old value has to be reinserted
+			if (!TryAddField(name, value, inline, out errors))
 			{
 				_Builder.Fields.Insert(index, field);
 				return false;
@@ -610,83 +446,94 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public Embed Build()
 			=> _Builder.Build();
-		/// <summary>
-		/// Returns the calculated length of an embed.
-		/// Can ignore the length of title, author, description, or footer
-		/// </summary>
-		/// <returns></returns>
+
 		private int GetRemainingLength(string? propertyToDisregard)
 		{
 			//Gotten from https://github.com/RogueException/Discord.Net/blob/7837c4862cab32ecc432b3c6794277d92d89647d/src/Discord.Net.Core/Entities/Messages/Embed.cs#L60
-			var currentLength = _Builder.Title?.Length
-				+ _Builder.Author?.Name?.Length
-				+ _Builder.Description?.Length
-				+ _Builder.Footer?.Text?.Length
-				+ _Builder.Fields.Sum(f => f.Name.Length + f.Value.ToString().Length) ?? 0;
-			currentLength -= propertyToDisregard switch
+			return EmbedBuilder.MaxEmbedLength - _Builder.Length + propertyToDisregard switch
 			{
 				nameof(Title) => _Builder.Title?.Length ?? 0,
 				nameof(Author) => _Builder.Author?.Name?.Length ?? 0,
 				nameof(Description) => _Builder.Description?.Length ?? 0,
 				nameof(Footer) => _Builder.Footer?.Text?.Length ?? 0,
+				nameof(Fields) => _Builder.Fields.Sum(f => f.Name.Length + f.Value.ToString().Length),
 				_ => 0,
-			};
-			return EmbedBuilder.MaxEmbedLength - currentLength;
+			}; ;
 		}
-		/// <summary>
-		/// Shortens a string to the smallest valid length gotten from <paramref name="errors"/>.
-		/// </summary>
-		/// <param name="errors"></param>
-		/// <param name="value"></param>
-		/// <param name="newLines"></param>
-		/// <returns></returns>
-		private string? ShortenString(IEnumerable<EmbedError> errors, string? value, bool newLines = false)
+		private bool SetIfSuccess(IReadOnlyCollection<IEmbedError> errors, Action setter)
 		{
-			if (value == null)
+			var success = errors.Count == 0;
+			if (success)
 			{
-				return null;
+				setter.Invoke();
 			}
-
-			var remaining = errors.Select(x => x.RemainingLength).Where(x => x > -1).DefaultIfEmpty(-1).Min();
-			if (remaining < 0)
-			{
-				return value;
-			}
-
-			var shortened = "";
-			if (newLines)
-			{
-				var lines = value.Split('\n', '\r');
-				for (var i = 0; i < Math.Min(lines.Length, remaining); ++i)
-				{
-					shortened += lines[i] + "\n";
-				}
-			}
-			else
-			{
-				shortened = value.Substring(remaining);
-			}
-			return shortened.Length == 0 ? null : shortened;
+			return success;
 		}
-		/// <summary>
-		/// Creates an <see cref="ArgumentException"/> with the formatted errors as its text and the caller as its param name.
-		/// </summary>
-		/// <param name="errors"></param>
-		/// <param name="caller"></param>
-		/// <returns></returns>
-		private ArgumentException CreateException(IEnumerable<EmbedError> errors, [CallerMemberName] string caller = "")
-			=> new ArgumentException(string.Join("\n", errors), caller);
-		/// <summary>
-		/// Returns all the failed values.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-			=> _FailedValues.Join("\n\n", x => $"{x.Key}:\n{x.Value}");
+
 		/// <summary>
 		/// Converts an <see cref="EmbedWrapper"/> to a <see cref="Embed"/>.
 		/// </summary>
 		/// <param name="wrapper"></param>
 		public static implicit operator Embed(EmbedWrapper wrapper)
 			=> wrapper.Build();
+
+		private sealed class RuleHandler
+		{
+			private readonly List<IEmbedError> _GlobalErrors;
+			private readonly List<IEmbedError> _Errors = new List<IEmbedError>();
+
+			public RuleHandler(List<IEmbedError> globalErrors)
+			{
+				_GlobalErrors = globalErrors;
+			}
+
+			public PropertyHandler<TEmbed, T> Property<TEmbed, T>(
+				Expression<Func<TEmbed, T>> p,
+				T v)
+				=> new PropertyHandler<TEmbed, T>(this, _GlobalErrors, _Errors, v, p);
+		}
+
+		private sealed class PropertyHandler<TEmbed, T>
+		{
+			private readonly RuleHandler _Parent;
+			private readonly List<IEmbedError> _GlobalErrors;
+			private readonly List<IEmbedError> _PropertyErrors;
+			private readonly T _Value;
+			private readonly Expression<Func<TEmbed, T>> _Property;
+
+			public PropertyHandler(
+				RuleHandler parent,
+				List<IEmbedError> globalErrors,
+				List<IEmbedError> propertyErrors,
+				T value,
+				Expression<Func<TEmbed, T>> property)
+			{
+				_Parent = parent;
+				_GlobalErrors = globalErrors;
+				_PropertyErrors = propertyErrors;
+				_Value = value;
+				_Property = property;
+			}
+
+			public PropertyHandler<TEmbed2, T2> Property<TEmbed2, T2>(
+				Expression<Func<TEmbed2, T2>> p,
+				T2 v)
+				=> _Parent.Property<TEmbed2, T2>(p, v);
+			public PropertyHandler<TEmbed, T> Rule(
+				Func<T, bool> invalidation,
+				Func<EmbedError<TEmbed, T>, IEmbedError> addReason)
+			{
+				if (invalidation.Invoke(_Value))
+				{
+					var initial = new EmbedError<TEmbed, T>(_Property, _Value);
+					var reasoned = addReason.Invoke(initial);
+					_GlobalErrors.Add(reasoned);
+					_PropertyErrors.Add(reasoned);
+				}
+				return this;
+			}
+			public IReadOnlyList<IEmbedError> End()
+				=> _PropertyErrors;
+		}
 	}
 }

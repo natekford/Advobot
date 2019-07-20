@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Classes.Formatting;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -7,7 +8,7 @@ using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Notification that gets sent whenever certain events happen depending on what is linked to this notification.

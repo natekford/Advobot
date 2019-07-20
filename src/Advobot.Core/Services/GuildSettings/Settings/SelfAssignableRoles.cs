@@ -4,7 +4,7 @@ using Advobot.Classes.Formatting;
 using Discord;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Groups self assignable roles together.

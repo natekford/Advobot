@@ -1,4 +1,5 @@
-﻿using Advobot.Classes.Formatting;
+﻿using Advobot.Classes;
+using Advobot.Classes.Formatting;
 using Advobot.Enums;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -11,7 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Holds information about spam prevention, such as how much is considered spam, required spam instances, and votes to kick.

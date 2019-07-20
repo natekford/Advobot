@@ -6,7 +6,7 @@ using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Extra permissions within the bot given to a user on a guild.

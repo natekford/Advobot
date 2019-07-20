@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation;
@@ -9,6 +8,7 @@ using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Enums;
+using Advobot.RuleFormatting;
 using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
 using Discord;

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Modules;
-using Advobot.Classes.Settings;
+using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
 using Discord.Commands;
 

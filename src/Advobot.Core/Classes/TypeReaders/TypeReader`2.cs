@@ -1,5 +1,4 @@
-﻿using Advobot.Utilities;
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 using Discord.Commands;
 using System;
 using System.Threading.Tasks;
@@ -14,9 +13,22 @@ namespace Advobot.Classes.TypeReaders
 	public abstract class TypeReader<TBase, TContext> : TypeReader<TContext> where TContext : ICommandContext
 	{
 		/// <summary>
+		/// Attempts to convert a string to a specified type asynchronously.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		public delegate Task<(bool, T)> AsyncTryConverter<T>(
+			TContext context,
+			string input,
+			IServiceProvider services);
+
+		/// <summary>
 		/// Converts a string into an object of type <typeparamref name="TBase"/> asynchronously.
 		/// </summary>
-		public abstract AsyncTryConverter<TBase, TContext> TryConverter { get; }
+		public abstract AsyncTryConverter<TBase> TryConverter { get; }
 
 		/// <inheritdoc />
 		public override async Task<TypeReaderResult> ReadAsync(TContext context, string input, IServiceProvider services)

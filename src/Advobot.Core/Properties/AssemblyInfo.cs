@@ -1,6 +1,7 @@
 ﻿using Advobot;
 using System.Reflection;
 using System.Resources;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -32,3 +33,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Constants.BOT_VERSION)]
 [assembly: AssemblyFileVersion(Constants.BOT_VERSION)]
 [assembly: AssemblyInformationalVersion(Constants.BOT_VERSION)]
+
+[assembly: InternalsVisibleTo("Advobot.Tests")]

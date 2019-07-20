@@ -4,7 +4,7 @@ using Advobot.Interfaces;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Holds a name and description.

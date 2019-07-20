@@ -1,7 +1,6 @@
 ﻿using Advobot.Classes.Attributes;
 using Advobot.Classes.Modules;
-using Advobot.Classes.Settings;
-using Advobot.Utilities;
+using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
 using Discord.Commands;
 using System;
@@ -16,8 +15,8 @@ namespace Advobot.Classes.TypeReaders
 	public sealed class SelfAssignableRolesTypeReader : TypeReader<int, AdvobotCommandContext>
 	{
 		/// <inheritdoc />
-		public override AsyncTryConverter<int, AdvobotCommandContext> TryConverter
-			=> AsyncTryConverters.TryConvertIntAsync;
+		public override AsyncTryConverter<int> TryConverter
+			=> (_1, input, _2) => Task.FromResult((int.TryParse(input, out var num), num));
 
 		/// <inheritdoc />
 		public override Task<TypeReaderResult> ReadAsync(AdvobotCommandContext context, int input, IServiceProvider services)

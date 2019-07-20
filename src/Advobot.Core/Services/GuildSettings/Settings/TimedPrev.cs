@@ -7,7 +7,7 @@ using Advobot.Enums;
 using Discord;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// A prevention of some type which is timed.

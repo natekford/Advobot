@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes
+namespace Advobot.Services.GuildSettings
 {
 	/// <summary>
 	/// Caches invites and attempts to figure out which invite a user joined from.

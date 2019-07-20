@@ -6,7 +6,7 @@ using Advobot.Enums;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes
+namespace Advobot.RuleFormatting
 {
 	/// <summary>
 	/// Formats rules to look nice.

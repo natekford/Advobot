@@ -5,7 +5,7 @@ using Discord.Commands;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Roles which are given back to users when they rejoin a guild.
