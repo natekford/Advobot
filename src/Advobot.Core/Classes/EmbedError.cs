@@ -118,6 +118,10 @@ namespace Advobot.Classes
 
 	internal static class EmbedUtils
 	{
+		//make into class
+		//options: no param expression names or yes param expression names
+		//options: use closure variable names or attempt to get value
+
 		public static string GetPropertyPath(this LambdaExpression expr)
 			=> expr.Body.GetFromAny();
 		private static string GetFromAny(this Expression expr) => expr switch
@@ -129,7 +133,7 @@ namespace Advobot.Classes
 			MethodCallExpression call => call.GetFromCall(),
 			NewExpression @new => @new.GetFromNew(),
 			ConstantExpression constant => constant.GetFromConstant(),
-			ParameterExpression _ => "",
+			ParameterExpression _ => "", //Change to 'param' and 'param.Name' to include them
 			_ => throw new NotImplementedException(),
 		};
 		private static string GetFromBinary(this BinaryExpression binary)
@@ -150,7 +154,8 @@ namespace Advobot.Classes
 			//Can potentially get the direct value and replace the name with it, 
 			//but if the class doesn't implement a good .ToString then that's
 			//worse than the var name
-			//It's also annoying when dealing with closure because the 
+			//It's also annoying when dealing with closure because anonymous classes
+			//have long annoying names
 			if (member.Expression.NodeType == ExpressionType.Constant)
 			{
 				return name;
