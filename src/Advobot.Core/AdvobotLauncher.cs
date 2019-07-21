@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -98,15 +99,16 @@ namespace Advobot
 		/// <summary>
 		/// Returns the default services for the bot if both the path and key have been set.
 		/// </summary>
+		/// <param name="assemblies"></param>
 		/// <returns></returns>
-		public IServiceCollection GetDefaultServices()
-			=> _Services ?? (_Services = CreateDefaultServices(_Config));
+		private async Task<IServiceCollection> GetDefaultServices(CommandAssemblies assemblies)
+			=> _Services ?? (_Services = await CreateDefaultServices(assemblies, _Config).CAF());
 		/// <summary>
 		/// Creates a provider and initializes all of its singletons.
 		/// </summary>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public IServiceProvider CreateProvider(IServiceCollection services)
+		private IServiceProvider CreateProvider(IServiceCollection services)
 		{
 			var provider = services.BuildServiceProvider();
 			foreach (var service in services.Where(x => x.Lifetime == ServiceLifetime.Singleton))
@@ -119,7 +121,7 @@ namespace Advobot
 			}
 			return provider;
 		}
-		private static IServiceCollection CreateDefaultServices(ILowLevelConfig config)
+		private static async Task<IServiceCollection> CreateDefaultServices(CommandAssemblies assemblies, ILowLevelConfig config)
 		{
 			//I have no idea if I am providing services correctly, but it works.
 			var botSettings = BotSettings.CreateOrLoad(config);
@@ -182,6 +184,12 @@ namespace Advobot
 					s.AddSingleton<IMongoClient>(_ => new MongoClient(config.DatabaseConnectionString));
 					break;
 			}
+
+			foreach (var assembly in assemblies.Assemblies)
+			{
+				await assembly.Attribute.InstantiateAsync(s);
+			}
+
 			return s;
 		}
 		/// <summary>
@@ -205,11 +213,13 @@ namespace Advobot
 		{
 			var launcher = new AdvobotLauncher(LowLevelConfig.Load(args));
 			await launcher.GetPathAndKeyAsync().CAF();
-			var services = launcher.CreateProvider(launcher.GetDefaultServices());
-			var commandHandler = services.GetRequiredService<ICommandHandlerService>();
-			await commandHandler.AddCommandsAsync(DiscordUtils.GetCommandAssemblies()).CAF();
-			await launcher.StartAsync(services).CAF();
-			return services;
+			var commands = CommandAssemblies.Find();
+			var defaultServices = await launcher.GetDefaultServices(commands).CAF();
+			var provider = launcher.CreateProvider(defaultServices);
+			var commandHandler = provider.GetRequiredService<ICommandHandlerService>();
+			await commandHandler.AddCommandsAsync(commands.Assemblies.Select(x => x.Assembly)).CAF();
+			await launcher.StartAsync(provider).CAF();
+			return provider;
 		}
 	}
 }

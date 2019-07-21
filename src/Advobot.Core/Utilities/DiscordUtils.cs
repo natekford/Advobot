@@ -89,25 +89,6 @@ namespace Advobot.Utilities
 			return newPosition;
 		}
 		/// <summary>
-		/// Returns all the assemblies in the base directory which have the <see cref="CommandAssemblyAttribute"/>.
-		/// This loads assemblies with a matching name so this can be a risk to use if bad files are in the folder.
-		/// </summary>
-		/// <returns></returns>
-		public static IReadOnlyCollection<Assembly> GetCommandAssemblies()
-		{
-			var assemblies = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly)
-				.Where(x => Path.GetFileName(x).CaseInsContains("Commands"))
-				.Select(x => Assembly.LoadFrom(x))
-				.Concat(AppDomain.CurrentDomain.GetAssemblies())
-				.Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null)
-				.ToArray();
-			if (assemblies.Length > 0)
-			{
-				return assemblies;
-			}
-			throw new DllNotFoundException("Unable to find any command assemblies.");
-		}
-		/// <summary>
 		/// Returns every user that has a non null join time in order from least to greatest.
 		/// </summary>
 		/// <param name="users"></param>

@@ -16,7 +16,6 @@ namespace Advobot.Tests.UnitTests
 
 		private int GetNum() => 1;
 		private static int GetNum2() => 2;
-		private Nested Nesto => new Nested();
 
 		[TestMethod]
 		public void Captured_Test()
@@ -157,7 +156,7 @@ namespace Advobot.Tests.UnitTests
 
 		public sealed class MegaNested : Nested
 		{
-			public static MegaNested Create()
+			public new static MegaNested Create()
 				=> new MegaNested();
 		}
 	}
