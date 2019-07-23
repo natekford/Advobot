@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>Advorange</Authors>
+    <Company>Advorange</Company>
+    <Product>Advobot</Product>
+    <Description>Some shitty attempt at a gacha game in Discord.</Description>
+    <Copyright>Copyright © 2019</Copyright>
+    <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
+    <NeutralLanguage>English</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>preview</LangVersion>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DocumentationFile>bin\Debug\netstandard2.0\Advobot.Commands.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;1591;NU1701</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>  <ItemGroup>
+    <PackageReference Include="AdvorangesSettingParser" Version="1.3.2.4" />
+    <PackageReference Include="AdvorangesUtils" Version="1.0.11.3" />
+    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20190629.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.6" />
+  </ItemGroup>  <ItemGroup>
+  <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
+</ItemGroup>
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NullableContextOptions>enable</NullableContextOptions>
+    <PackageReleaseNotes />
+  </PropertyGroup>
+
+</Project>

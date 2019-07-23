@@ -58,8 +58,11 @@ namespace Advobot.Classes.Formatting
 		}
 		private string Format(string format, object arg)
 		{
-			var applicableConverters = _ObjectConverters.Where(x => x.CanFormat(arg));
-			var highestPriority = applicableConverters.GroupBy(x => x.Priority).OrderBy(x => x.Key).Last().ToArray();
+			var highestPriority = _ObjectConverters
+				.Where(x => x.CanFormat(arg))
+				.GroupBy(x => x.Priority)
+				.OrderBy(x => x.Key)
+				.Last().ToArray();
 			if (highestPriority.Length > 1)
 			{
 				throw new InvalidOperationException("Cannot decide between multiple object formatters with the same priority.");

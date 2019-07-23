@@ -1,5 +1,4 @@
-﻿using Advobot.Classes;
-using Advobot.Classes.UserInformation;
+﻿using Advobot.Classes.UserInformation;
 using Advobot.Databases.Abstract;
 using Advobot.Enums;
 using Advobot.Resources;

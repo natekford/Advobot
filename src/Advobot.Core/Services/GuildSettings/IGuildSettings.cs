@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Advobot.Classes;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;

@@ -31,12 +31,11 @@ namespace Advobot.Databases.LiteDB
 		/// <inheritdoc />
 		public IDatabaseWrapper CreateWrapper(string databaseName)
 		{
-			databaseName = AdvobotUtils.EnsureDb("LiteDB", databaseName);
-			return new LiteDBWrapper(GetDatabase(_DirectoryAccessor, databaseName));
+			var file = AdvobotUtils.ValidateDbPath(_DirectoryAccessor, "LiteDB", databaseName);
+			return new LiteDBWrapper(GetDatabase(file));
 		}
-		private static LiteDatabase GetDatabase(IBotDirectoryAccessor accessor, string fileName)
+		private static LiteDatabase GetDatabase(FileInfo file)
 		{
-			var file = accessor.GetBaseBotDirectoryFile(fileName);
 			//Make sure the file is not currently being used if it exists
 			if (file.Exists)
 			{

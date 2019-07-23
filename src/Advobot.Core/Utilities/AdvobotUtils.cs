@@ -31,29 +31,32 @@ namespace Advobot.Utilities
 		public static FileInfo GetBaseBotDirectoryFile(this IBotDirectoryAccessor accessor, string fileName)
 			=> new FileInfo(Path.Combine(accessor.BaseBotDirectory.FullName, fileName));
 		/// <summary>
-		/// Ensures the extension of the file is '.db'
+		/// Ensures the extension of the file is '.db' and that the directory exists.
 		/// </summary>
-		/// <param name="dbType"></param>
-		/// <param name="fileName"></param>
+		/// <param name="accessor"></param>
+		/// <param name="fileNameParts"></param>
 		/// <returns></returns>
-		public static string EnsureDb(string dbType, string fileName)
+		public static FileInfo ValidateDbPath(IBotDirectoryAccessor accessor, params string[] fileNameParts)
 		{
-			const string EXT = ".db";
-
-			string ExtensionValidation()
+			static void ExtensionValidation(ref string fileName)
 			{
+				const string EXT = ".db";
 				if (!Path.HasExtension(fileName))
 				{
-					return fileName + EXT;
+					fileName += EXT;
 				}
-				else if (Path.GetExtension(fileName) == EXT)
+				else if (Path.GetExtension(fileName) != EXT)
 				{
-					return fileName;
+					fileName = Path.GetFileNameWithoutExtension(fileName) + EXT;
 				}
-				return Path.GetFileNameWithoutExtension(fileName) + EXT;
 			}
+			ExtensionValidation(ref fileNameParts[^1]);
 
-			return Path.Combine(dbType, ExtensionValidation());
+			var relativePath = Path.Combine(fileNameParts);
+			var absolutePath = accessor.GetBaseBotDirectoryFile(relativePath).FullName;
+			//Make sure the directory the db will be created in exists
+			Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
+			return new FileInfo(absolutePath);
 		}
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.

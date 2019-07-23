@@ -1,11 +1,8 @@
 ﻿using AdvorangesUtils;
-using Discord;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace Advobot.Classes
 {
@@ -45,6 +42,9 @@ namespace Advobot.Classes
 		}
 	}
 
+	/// <summary>
+	/// An error which occurs when attempting to modify an <see cref="EmbedWrapper"/>.
+	/// </summary>
 	public interface IEmbedError
 	{
 		/// <summary>

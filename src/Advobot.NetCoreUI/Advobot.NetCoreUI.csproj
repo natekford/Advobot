@@ -39,7 +39,6 @@
     <PackageReference Include="System.Reactive.Linq" Version="4.2.0-preview.566" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Advobot.Commands\Advobot.Commands.csproj" />
     <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
