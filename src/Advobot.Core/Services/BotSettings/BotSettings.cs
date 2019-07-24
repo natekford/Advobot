@@ -16,6 +16,7 @@ namespace Advobot.Services.BotSettings
 	/// </summary>
 	internal sealed class BotSettings : SettingsBase, IBotSettings
 	{
+		//TODO: set up reset options in here
 		/// <inheritdoc />
 		[Setting(nameof(BotSettingNames.LogLevel)), JsonProperty("LogLevel")]
 		public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;

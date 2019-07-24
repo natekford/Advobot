@@ -22,7 +22,6 @@ namespace Advobot.Gacha.Displays
 			new MovementEmoji(Constants.DoubleLeft, -2),
 			new ConfirmationEmoji(Constants.Confirm, true),
 		};
-		protected override bool ShouldUpdateLastInteractedWith { get; } = true;
 
 		private readonly Character _Character;
 		private readonly Marriage? _Marriage;
@@ -59,15 +58,10 @@ namespace Advobot.Gacha.Displays
 		}
 
 		protected override Task HandleReactionsAsync(
-			Cacheable<IUserMessage, ulong> cached,
-			ISocketMessageChannel channel,
-			SocketReaction reaction)
+			IUserMessage message,
+			SocketReaction reaction,
+			IMenuEmote emoji)
 		{
-			if (!TryGetMenuEmoji(cached, reaction, out var emoji))
-			{
-				return Task.CompletedTask;
-			}
-
 			if (emoji is MovementEmoji m && m.TryUpdatePage(ref _PageIndex, _Character.Images.Count))
 			{
 				return Message?.ModifyAsync(x => x.Embed = GenerateEmbed()) ?? Task.CompletedTask;
@@ -83,7 +77,7 @@ namespace Advobot.Gacha.Displays
 			=> Task.FromResult(GenerateEmbed());
 		protected override Task<string> GenerateTextAsync()
 			=> Task.FromResult("");
-		protected override async Task KeepMenuAlive()
+		protected override async Task KeepMenuAliveAsync()
 		{
 			//TODO: see if this works as intended
 			//Intention = keep menu alive unless last interacted with over 30 seconds ago
@@ -126,15 +120,21 @@ namespace Advobot.Gacha.Displays
 			return embed.Build();
 		}
 
-		public static async Task<CharacterDisplay> RunCharacterDisplayAsync(
+		public static async Task<CharacterDisplay> CreateAsync(
 			GachaDatabase db,
 			AdvobotCommandContext context,
 			Character character)
 		{
 			var marriage = await db.GetMarriageAsync(context.Guild, character.CharacterId).CAF();
-			var display = new CharacterDisplay(context.Client, db, character, marriage);
+			return new CharacterDisplay(context.Client, db, character, marriage);
+		}
+		public static async Task RunAsync(
+			GachaDatabase db,
+			AdvobotCommandContext context,
+			Character character)
+		{
+			var display = await CreateAsync(db, context, character).CAF();
 			await display.SendAsync(context.Channel).CAF();
-			return display;
 		}
 	}
 }

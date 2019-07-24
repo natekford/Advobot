@@ -8,6 +8,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
+using Cached = Discord.Cacheable<Discord.IUserMessage, ulong>;
 
 namespace Advobot.Gacha.Displays
 {
@@ -20,7 +21,6 @@ namespace Advobot.Gacha.Displays
 		protected BaseSocketClient Client { get; }
 		protected GachaDatabase Database { get; }
 		protected abstract EmojiMenu? Menu { get; }
-		protected abstract bool ShouldUpdateLastInteractedWith { get; }
 
 		public Display(BaseSocketClient client, GachaDatabase db)
 		{
@@ -43,42 +43,39 @@ namespace Advobot.Gacha.Displays
 				return AdvobotResult.Failure("Unable to add reactions.", CommandError.Exception);
 			}
 
+			Task Handle(Cached cached, ISocketMessageChannel _, SocketReaction reaction)
+			{
+				if (!TryGetMenuEmote(cached, reaction, out var emoji) || emoji == null)
+				{
+					return Task.CompletedTask;
+				}
+
+				LastInteractedWith = DateTime.UtcNow;
+				return HandleReactionsAsync(cached.Value, reaction, emoji);
+			}
+
 			Message = message;
-			Client.ReactionAdded += HandleReactionsAsync;
-			if (ShouldUpdateLastInteractedWith)
-			{
-				Client.ReactionAdded += UpdateLastInteractedWith;
-			}
-			await KeepMenuAlive().CAF();
-			Client.ReactionAdded -= HandleReactionsAsync;
-			if (ShouldUpdateLastInteractedWith)
-			{
-				Client.ReactionAdded -= UpdateLastInteractedWith;
-			}
+			Client.ReactionAdded += Handle;
+			Client.ReactionRemoved += Handle;
+			await KeepMenuAliveAsync().CAF();
+			Client.ReactionAdded -= Handle;
+			Client.ReactionRemoved -= Handle;
+			await DisposeMenuAsync().CAF();
 			return AdvobotResult.Ignore;
 		}
 		protected abstract Task HandleReactionsAsync(
-			Cacheable<IUserMessage, ulong> cached,
-			ISocketMessageChannel channel,
-			SocketReaction reaction);
-		protected abstract Task KeepMenuAlive();
+			IUserMessage message,
+			SocketReaction reaction,
+			IMenuEmote emoji);
+		protected abstract Task KeepMenuAliveAsync();
+		protected virtual Task DisposeMenuAsync()
+			=> Message?.RemoveAllReactionsAsync() ?? Task.CompletedTask;
 		protected abstract Task<Embed> GenerateEmbedAsync();
 		protected abstract Task<string> GenerateTextAsync();
-		protected bool TryGetMenuEmoji(Cacheable<IUserMessage, ulong> cached, SocketReaction reaction, out Emoji? emoji)
+		protected bool TryGetMenuEmote(Cached cached, SocketReaction reaction, out IMenuEmote? emoji)
 		{
 			emoji = null;
 			return cached.Id == Message?.Id && (Menu == null || Menu.TryGet(reaction.Emote, out emoji));
-		}
-		private Task UpdateLastInteractedWith(
-			Cacheable<IUserMessage, ulong> cached,
-			ISocketMessageChannel channel,
-			SocketReaction reaction)
-		{
-			if (TryGetMenuEmoji(cached, reaction, out _))
-			{
-				LastInteractedWith = DateTime.UtcNow;
-			}
-			return Task.CompletedTask;
 		}
 	}
 }

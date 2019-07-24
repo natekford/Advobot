@@ -7,16 +7,16 @@ namespace Advobot.Gacha.Utils
 {
 	public static class GachaUtils
 	{
-		public static async Task<bool> SafeAddReactionsAsync(this IUserMessage message, params Emoji[] emojis)
+		public static async Task<bool> SafeAddReactionsAsync(this IUserMessage message, params IEmote[] emotes)
 		{
 			try
 			{
-				await message.AddReactionsAsync(emojis).CAF();
+				await message.AddReactionsAsync(emotes).CAF();
 				return true;
 			}
 			catch (Exception e)
 			{
-				throw new NotImplementedException();
+				throw new NotImplementedException("Not implemented yet.", e);
 				return false;
 			}
 		}

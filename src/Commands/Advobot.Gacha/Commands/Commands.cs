@@ -3,6 +3,7 @@ using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
 using Advobot.Gacha.Database;
+using Advobot.Gacha.Displays;
 using Advobot.Gacha.Models;
 using Discord;
 using Discord.Commands;
@@ -56,6 +57,17 @@ namespace Advobot.Gacha.Commands
 			{
 				return AdvobotResult.Success("Successfully seeded gacha data.");
 			}
+		}
+
+		public sealed class DisplayCharacter : AdvobotModuleBase
+		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
+			public GachaDatabase Database { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+
+			[Command]
+			public Task Command(Character character)
+				=> CharacterDisplay.RunAsync(Database, Context, character);
 		}
 
 		public sealed class GachaTrade : AdvobotModuleBase

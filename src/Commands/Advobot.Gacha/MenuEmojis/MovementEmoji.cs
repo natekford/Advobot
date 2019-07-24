@@ -2,7 +2,7 @@
 
 namespace Advobot.Gacha.MenuEmojis
 {
-	public sealed class MovementEmoji : Emoji
+	public sealed class MovementEmoji : Emoji, IMenuEmote
 	{
 		public int Value { get; }
 

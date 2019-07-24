@@ -2,7 +2,7 @@
 
 namespace Advobot.Gacha.MenuEmojis
 {
-	public sealed class ConfirmationEmoji : Emoji
+	public sealed class ConfirmationEmoji : Emoji, IMenuEmote
 	{
 		public bool Value { get; }
 
