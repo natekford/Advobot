@@ -3,6 +3,7 @@ using Advobot.Gacha.Models;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,18 +14,17 @@ namespace Advobot.Gacha.Displays
 	/// </summary>
 	public class HaremDisplay : PaginatedDisplay
 	{
-		private readonly User _User;
-		private readonly Marriage? _Primary;
+		private readonly IReadOnlyCollection<Claim> _Marriages;
+		private readonly Claim? _Primary;
 
 		public HaremDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
-			User user) : base(client, db, user.Marriages.Count, Constants.CharactersPerPage)
+			IReadOnlyCollection<Claim> marriages) : base(client, db, marriages.Count, Constants.CharactersPerPage)
 		{
-			_User = user;
-			_Primary = _User.Marriages.FirstOrDefault();
+			_Primary = marriages.FirstOrDefault();
 
-			foreach (var marriage in _User.Marriages)
+			foreach (var marriage in marriages)
 			{
 				if (marriage.IsPrimaryMarriage)
 				{
@@ -39,13 +39,13 @@ namespace Advobot.Gacha.Displays
 			=> Task.FromResult("");
 		private Embed GenerateEmbed()
 		{
-			var values = GetPageValues(_User.Marriages);
+			var values = GetPageValues(_Marriages);
 			var description = values.Select(x => x.Character.Name).Join("\n");
 
 			return new EmbedBuilder
 			{
 				Description = description,
-				ThumbnailUrl = _Primary?.Image?.Url,
+				ThumbnailUrl = _Primary?.ImageUrl,
 				Author = new EmbedAuthorBuilder
 				{
 					Name = "Placeholder Name",

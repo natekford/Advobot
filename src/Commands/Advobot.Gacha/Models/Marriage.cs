@@ -5,10 +5,10 @@ using System;
 
 namespace Advobot.Gacha.Models
 {
-	public class Marriage : IReadOnlyMarriage
+	public class Claim : IReadOnlyMarriage
 	{
-		public ulong GuildId { get; private set; }
-		public ulong UserId { get; private set; }
+		public string GuildId { get; private set; }
+		public string UserId { get; private set; }
 		public int CharacterId { get; private set; }
 		public User User
 		{
@@ -31,13 +31,12 @@ namespace Advobot.Gacha.Models
 		}
 		private Character? _Character;
 
-		public Image? Image { get; set; }
+		public string? ImageUrl { get; set; }
 		public bool IsPrimaryMarriage { get; set; }
 
 		public long TimeCreated { get; set; } = TimeUtils.Now();
 
 		IReadOnlyCharacter ICharacterChild.Character => Character;
 		IReadOnlyUser IUserChild.User => User;
-		IReadOnlyImage? IReadOnlyMarriage.Image => Image;
 	}
 }

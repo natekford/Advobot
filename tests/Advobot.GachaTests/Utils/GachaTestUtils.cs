@@ -1,0 +1,14 @@
+﻿using System;
+
+namespace Advobot.GachaTests.Utils
+{
+	public static class GachaTestUtils
+	{
+		public static ulong NextUlong(this Random rng)
+		{
+			var buffer = new byte[sizeof(ulong)];
+			rng.NextBytes(buffer);
+			return BitConverter.ToUInt64(buffer, 0);
+		}
+	}
+}

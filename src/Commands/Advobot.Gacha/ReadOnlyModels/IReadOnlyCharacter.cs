@@ -16,5 +16,7 @@ namespace Advobot.Gacha.ReadOnlyModels
 
 		IReadOnlyList<IReadOnlyImage> Images { get; }
 		IReadOnlyList<IReadOnlyAlias> Aliases { get; }
+		IReadOnlyList<IReadOnlyMarriage> Marriages { get; }
+		IReadOnlyList<IReadOnlyWish> Wishes { get; }
 	}
 }

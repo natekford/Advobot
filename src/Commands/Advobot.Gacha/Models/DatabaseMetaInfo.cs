@@ -1,4 +1,4 @@
-﻿namespace Advobot.Gacha.Database
+﻿namespace Advobot.Gacha.Models
 {
 	public class DatabaseMetaInfo
 	{

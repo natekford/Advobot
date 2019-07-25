@@ -27,13 +27,17 @@ namespace Advobot.Gacha.Models
 		public RollType RollType { get; set; }
 		public string? FlavorText { get; set; }
 		public bool IsFakeCharacter { get; set; }
-		public IList<Image> Images { get; set; } = new List<Image>();
 		public IList<Alias> Aliases { get; set; } = new List<Alias>();
+		public IList<Image> Images { get; set; } = new List<Image>();
+		public IList<Claim> Marriages { get; set; } = new List<Claim>();
+		public IList<Wish> Wishes { get; set; } = new List<Wish>();
 
 		public long TimeCreated { get; set; } = TimeUtils.Now();
 
 		IReadOnlySource ISourceChild.Source => Source;
-		IReadOnlyList<IReadOnlyImage> IReadOnlyCharacter.Images => (IReadOnlyList<IReadOnlyImage>)Images;
 		IReadOnlyList<IReadOnlyAlias> IReadOnlyCharacter.Aliases => (IReadOnlyList<IReadOnlyAlias>)Aliases;
+		IReadOnlyList<IReadOnlyImage> IReadOnlyCharacter.Images => (IReadOnlyList<IReadOnlyImage>)Images;
+		IReadOnlyList<IReadOnlyMarriage> IReadOnlyCharacter.Marriages => (IReadOnlyList<IReadOnlyMarriage>)Marriages;
+		IReadOnlyList<IReadOnlyWish> IReadOnlyCharacter.Wishes => (IReadOnlyList<IReadOnlyWish>)Wishes;
 	}
 }

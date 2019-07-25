@@ -48,10 +48,10 @@ namespace Advobot.Gacha.TypeReaders
 			{
 				var newEntry = new User
 				{
-					GuildId = guildUser.GuildId,
-					UserId = guildUser.Id,
+					GuildId = guildUser.GuildId.ToString(),
+					UserId = guildUser.Id.ToString(),
 				};
-				await db.AddAndSaveAsync(newEntry).CAF();
+				await db.AddUserAsync(newEntry).CAF();
 				return TypeReaderResult.FromSuccess(newEntry);
 			}
 		}

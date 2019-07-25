@@ -1,10 +1,6 @@
-﻿using Advobot.Gacha.Metadata;
-using Advobot.Gacha.Relationships;
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 using Discord;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot.Gacha.Utils
@@ -23,6 +19,7 @@ namespace Advobot.Gacha.Utils
 				throw new NotImplementedException("Not implemented yet.", e);
 			}
 		}
+		/*
 		public static AmountAndRank GetRankAsync<T>(
 			this DbSet<T> children,
 			int id,
@@ -42,6 +39,6 @@ namespace Advobot.Gacha.Utils
 				}
 			}
 			return new AmountAndRank(name, amount, rank);
-		}
+		}*/
 	}
 }

@@ -3,12 +3,9 @@ using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Results;
 using Advobot.Gacha.Models;
-using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using System;
 using System.Threading.Tasks;
-using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Commands
 {
@@ -23,6 +20,9 @@ namespace Advobot.Gacha.Commands
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command([ValidatePositiveNumber] int amt)
 			{
+				await Task.Yield();
+				return AdvobotResult.Ignore;
+				/*
 				var source = new Source
 				{
 					Name = Guid.NewGuid().ToString(),
@@ -52,7 +52,7 @@ namespace Advobot.Gacha.Commands
 					source.Characters.Add(character);
 				}
 				await Database.AddAndSaveAsync(source).CAF();
-				return AdvobotResult.Success($"Successfully added {amt} fake characters.");
+				return AdvobotResult.Success($"Successfully added {amt} fake characters.");*/
 			}
 		}
 

@@ -14,7 +14,7 @@ namespace Advobot.Gacha.Displays
 	public class CharacterDisplay : PaginatedDisplay
 	{
 		private readonly CharacterMetadata _Character;
-		private readonly Marriage? _Marriage;
+		private readonly Claim? _Marriage;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CharacterDisplay"/>.
@@ -27,14 +27,14 @@ namespace Advobot.Gacha.Displays
 			BaseSocketClient client,
 			GachaDatabase db,
 			CharacterMetadata character,
-			Marriage? marriage) : base(client, db, character.Data.Images.Count, 1)
+			Claim? marriage) : base(client, db, character.Data.Images.Count, 1)
 		{
 			_Character = character;
 			_Marriage = marriage;
 
 			Menu.Add(new ConfirmationEmoji(Constants.Confirm, true));
 
-			if (marriage?.Image?.Url is string url)
+			if (marriage?.ImageUrl is string url)
 			{
 				for (var i = 0; i < _Character.Data.Images.Count; ++i)
 				{
@@ -53,9 +53,10 @@ namespace Advobot.Gacha.Displays
 			IMenuEmote emoji)
 		{
 			if (emoji is ConfirmationEmoji c && c.Value && _Marriage != null
-				&& reaction.UserId == _Marriage.User.UserId)
+				&& reaction.UserId.ToString() == _Marriage.User.UserId)
 			{
-				return Database.UpdateAsync(_Marriage, x => x.Image, _Character.Data.Images[PageIndex]);
+				var url = _Character.Data.Images[PageIndex].Url;
+				return Database.UpdateClaimImageUrlAsync(_Marriage, url);
 			}
 			return base.HandleReactionsAsync(message, reaction, emoji);
 		}
@@ -85,7 +86,7 @@ namespace Advobot.Gacha.Displays
 				return embed.Build();
 			}
 
-			var owner = Client.GetUser(_Marriage.User.UserId);
+			var owner = Client.GetUser(ulong.Parse(_Marriage.User.UserId));
 			var ownerStr = owner?.ToString() ?? _Marriage.User.UserId.ToString();
 
 			embed.Color = Constants.Claimed;

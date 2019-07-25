@@ -7,8 +7,8 @@ namespace Advobot.Gacha.Models
 {
 	public class Wish : IReadOnlyWish
 	{
-		public ulong GuildId { get; private set; }
-		public ulong UserId { get; private set; }
+		public string GuildId { get; private set; }
+		public string UserId { get; private set; }
 		public int CharacterId { get; private set; }
 		public User User
 		{

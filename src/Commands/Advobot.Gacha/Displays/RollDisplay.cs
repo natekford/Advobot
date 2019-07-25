@@ -48,7 +48,7 @@ namespace Advobot.Gacha.Displays
 				//TODO: verify the user can claim
 
 				_Claimed.SetResult(null);
-				await Database.AddAndSaveAsync(new Marriage
+				await Database.AddClaimAsync(new Claim
 				{
 					User = user,
 					Character = _Character,
@@ -86,7 +86,7 @@ namespace Advobot.Gacha.Displays
 			var sb = new StringBuilder("Wished by ");
 			foreach (var wish in _Wishes)
 			{
-				var mention = MentionUtils.MentionUser(wish.User.UserId) + " ";
+				var mention = MentionUtils.MentionUser(ulong.Parse(wish.User.UserId)) + " ";
 				if (sb.Length + mention.Length > DiscordConfig.MaxMessageSize)
 				{
 					break;

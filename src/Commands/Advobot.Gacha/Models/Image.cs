@@ -1,6 +1,7 @@
 ﻿using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Relationships;
 using System;
+using System.Collections.Generic;
 
 namespace Advobot.Gacha.Models
 {
@@ -19,6 +20,7 @@ namespace Advobot.Gacha.Models
 		private Character? _Character;
 
 		public string Url { get; set; }
+		public IList<Claim> Marriages { get; set; } = new List<Claim>();
 
 		IReadOnlyCharacter ICharacterChild.Character => Character;
 	}

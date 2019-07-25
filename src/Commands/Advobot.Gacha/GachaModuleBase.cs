@@ -23,7 +23,8 @@ namespace Advobot.Gacha
 		}
 		protected async Task<HaremDisplay> CreateHaremDisplayAsync(User user, bool fireAndForget = true)
 		{
-			var display = new HaremDisplay(Context.Client, Database, user);
+			var marriages = await Database.GetClaimsAsync(user).CAF();
+			var display = new HaremDisplay(Context.Client, Database, marriages);
 			return await FireAndForget(display, fireAndForget).CAF();
 		}
 		protected async Task<RollDisplay> CreateRollDisplayAsync(bool fireAndForget = true)
