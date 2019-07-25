@@ -1,4 +1,5 @@
 ﻿using Advobot.Gacha.Database;
+using Advobot.Gacha.MenuEmojis;
 using Advobot.Gacha.Models;
 using AdvorangesUtils;
 using Discord;
@@ -8,29 +9,16 @@ using System.Threading.Tasks;
 
 namespace Advobot.Gacha.Displays
 {
-	/// <summary>
-	/// Displays a list of all the characters someone has claimed.
-	/// </summary>
-	public class HaremDisplay : PaginatedDisplay
+	public class SourceDisplay : PaginatedDisplay
 	{
-		private readonly User _User;
-		private readonly Marriage? _Primary;
+		private readonly Source _Source;
 
-		public HaremDisplay(
+		public SourceDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
-			User user) : base(client, db, user.Marriages.Count, Constants.CharactersPerPage)
+			Source source) : base(client, db, source.Characters.Count, Constants.CharactersPerPage)
 		{
-			_User = user;
-			_Primary = _User.Marriages.FirstOrDefault();
-
-			foreach (var marriage in _User.Marriages)
-			{
-				if (marriage.IsPrimaryMarriage)
-				{
-					_Primary = marriage;
-				}
-			}
+			_Source = source;
 		}
 
 		protected override Task<Embed> GenerateEmbedAsync()
@@ -39,13 +27,13 @@ namespace Advobot.Gacha.Displays
 			=> Task.FromResult("");
 		private Embed GenerateEmbed()
 		{
-			var values = GetPageValues(_User.Marriages);
-			var description = values.Select(x => x.Character.Name).Join("\n");
+			var values = GetPageValues(_Source.Characters);
+			var description = values.Select(x => x.Name).Join("\n");
 
 			return new EmbedBuilder
 			{
 				Description = description,
-				ThumbnailUrl = _Primary?.Image?.Url,
+				ThumbnailUrl = _Source.ThumbnailUrl,
 				Author = new EmbedAuthorBuilder
 				{
 					Name = "Placeholder Name",

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Threading.Tasks;
 
 namespace Advobot.CommandMarking
@@ -9,10 +10,16 @@ namespace Advobot.CommandMarking
 	public interface ICommandAssemblyInstantiator
 	{
 		/// <summary>
-		/// Does some start up work when the assembly in created.
+		/// Adds some services to <paramref name="services"/>.
 		/// </summary>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		Task Instantiate(IServiceCollection services);
+		Task AddServicesAsync(IServiceCollection services);
+		/// <summary>
+		/// Configures the services and makes sure they are set up correctly.
+		/// </summary>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		Task ConfigureServicesAsync(IServiceProvider services);
 	}
 }

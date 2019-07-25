@@ -18,5 +18,7 @@ namespace Advobot.Gacha
 		public static readonly Color Wished = new Color(50, 205, 50);
 
 		public static readonly TimeSpan ClaimLength = TimeSpan.FromSeconds(15);
+
+		public static readonly int CharactersPerPage = 15;
 	}
 }

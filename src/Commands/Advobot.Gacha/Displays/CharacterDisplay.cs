@@ -1,31 +1,20 @@
-﻿using Advobot.Classes.Modules;
-using Advobot.Gacha.Database;
+﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
+using Advobot.Gacha.Metadata;
 using Advobot.Gacha.Models;
-using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using System;
 using System.Threading.Tasks;
 
 namespace Advobot.Gacha.Displays
 {
-	public class CharacterDisplay : Display
+	/// <summary>
+	/// Displays information and images about a character.
+	/// </summary>
+	public class CharacterDisplay : PaginatedDisplay
 	{
-		public int PageIndex => _PageIndex;
-
-		protected override EmojiMenu? Menu { get; } = new EmojiMenu
-		{
-			new MovementEmoji(Constants.Right, 1),
-			new MovementEmoji(Constants.DoubleRight, 2),
-			new MovementEmoji(Constants.Left, -1),
-			new MovementEmoji(Constants.DoubleLeft, -2),
-			new ConfirmationEmoji(Constants.Confirm, true),
-		};
-
-		private readonly Character _Character;
+		private readonly CharacterMetadata _Character;
 		private readonly Marriage? _Marriage;
-		private int _PageIndex;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CharacterDisplay"/>.
@@ -34,23 +23,24 @@ namespace Advobot.Gacha.Displays
 		/// <param name="db"></param>
 		/// <param name="character"></param>
 		/// <param name="marriage"></param>
-		private CharacterDisplay(
+		public CharacterDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
-			Character character,
-			Marriage? marriage) : base(client, db)
+			CharacterMetadata character,
+			Marriage? marriage) : base(client, db, character.Data.Images.Count, 1)
 		{
 			_Character = character;
 			_Marriage = marriage;
-			_PageIndex = 0;
+
+			Menu.Add(new ConfirmationEmoji(Constants.Confirm, true));
 
 			if (marriage?.Image?.Url is string url)
 			{
-				for (var i = 0; i < _Character.Images.Count; ++i)
+				for (var i = 0; i < _Character.Data.Images.Count; ++i)
 				{
-					if (_Character.Images[i].Url == url)
+					if (_Character.Data.Images[i].Url == url)
 					{
-						_PageIndex = i;
+						PageIndex = i;
 						break;
 					}
 				}
@@ -62,49 +52,33 @@ namespace Advobot.Gacha.Displays
 			SocketReaction reaction,
 			IMenuEmote emoji)
 		{
-			if (emoji is MovementEmoji m && m.TryUpdatePage(ref _PageIndex, _Character.Images.Count))
-			{
-				return Message?.ModifyAsync(x => x.Embed = GenerateEmbed()) ?? Task.CompletedTask;
-			}
-			else if (emoji is ConfirmationEmoji c && c.Value && _Marriage != null
+			if (emoji is ConfirmationEmoji c && c.Value && _Marriage != null
 				&& reaction.UserId == _Marriage.User.UserId)
 			{
-				return Database.UpdateAsync(_Marriage, x => x.Image, _Character.Images[_PageIndex]);
+				return Database.UpdateAsync(_Marriage, x => x.Image, _Character.Data.Images[PageIndex]);
 			}
-			return Task.CompletedTask;
+			return base.HandleReactionsAsync(message, reaction, emoji);
 		}
 		protected override Task<Embed> GenerateEmbedAsync()
 			=> Task.FromResult(GenerateEmbed());
 		protected override Task<string> GenerateTextAsync()
 			=> Task.FromResult("");
-		protected override async Task KeepMenuAliveAsync()
-		{
-			//TODO: see if this works as intended
-			//Intention = keep menu alive unless last interacted with over 30 seconds ago
-			var timeout = TimeSpan.FromSeconds(30);
-			while (DateTime.UtcNow - LastInteractedWith > timeout)
-			{
-				await Task.Delay(timeout).CAF();
-			}
-		}
 		private Embed GenerateEmbed()
 		{
-			var description = $"{_Character.Source} {_Character.GenderIcon}\n" +
-				$"{_Character.RollType.ToString()}\n" +
-				$"Claims: {_Character.Claims} (#-1)\n" +
-				$"Likes: {_Character.Likes} (#-1)\n" +
-				$"{_Character.FlavorText}";
+			var description = $"{_Character.Data.Source.Name} {_Character.Data.GenderIcon}\n" +
+				$"{_Character.Data.RollType}\n" +
+				$"{_Character.Claims}\n" +
+				$"{_Character.Likes}\n" +
+				$"{_Character.Wishes}\n" +
+				$"{_Character.Data.FlavorText}";
 
 			var embed = new EmbedBuilder
 			{
-				Title = _Character.Name,
+				Title = _Character.Data.Name,
 				Description = description,
-				ImageUrl = _Character.Images[_PageIndex].Url,
+				ImageUrl = _Character.Data.Images[PageIndex].Url,
 				Color = Constants.Unclaimed,
-				Footer = new EmbedFooterBuilder
-				{
-					Text = $"{_PageIndex + 1}/{_Character.Images.Count}",
-				},
+				Footer = GeneratePaginationFooter(),
 			};
 			if (_Marriage == null)
 			{
@@ -118,23 +92,6 @@ namespace Advobot.Gacha.Displays
 			embed.Footer.Text = $"Belongs to {ownerStr} -- {embed.Footer.Text}";
 			embed.Footer.IconUrl = owner?.GetAvatarUrl();
 			return embed.Build();
-		}
-
-		public static async Task<CharacterDisplay> CreateAsync(
-			GachaDatabase db,
-			AdvobotCommandContext context,
-			Character character)
-		{
-			var marriage = await db.GetMarriageAsync(context.Guild, character.CharacterId).CAF();
-			return new CharacterDisplay(context.Client, db, character, marriage);
-		}
-		public static async Task RunAsync(
-			GachaDatabase db,
-			AdvobotCommandContext context,
-			Character character)
-		{
-			var display = await CreateAsync(db, context, character).CAF();
-			await display.SendAsync(context.Channel).CAF();
 		}
 	}
 }

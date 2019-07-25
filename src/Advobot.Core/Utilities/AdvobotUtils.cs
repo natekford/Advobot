@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Services.BotSettings;
@@ -58,6 +60,14 @@ namespace Advobot.Utilities
 			Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
 			return new FileInfo(absolutePath);
 		}
+		/// <summary>
+		/// Sets <see cref="ValueTask{TResult}.ConfigureAwait(bool)"/> to false.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="valueTask"></param>
+		/// <returns></returns>
+		public static ConfiguredValueTaskAwaitable<T> CAF<T>(this ValueTask<T> valueTask)
+			=> valueTask.ConfigureAwait(false);
 		/// <summary>
 		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
 		/// </summary>

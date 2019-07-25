@@ -1,7 +1,8 @@
-﻿using Advobot.Classes.Modules;
-using Advobot.Gacha.Database;
+﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
 using Advobot.Gacha.Models;
+using Advobot.Gacha.Utils;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -12,9 +13,12 @@ using System.Threading.Tasks;
 
 namespace Advobot.Gacha.Displays
 {
+	/// <summary>
+	/// Displays a character which has been rolled for claiming.
+	/// </summary>
 	public class RollDisplay : Display
 	{
-		protected override EmojiMenu? Menu { get; } = new EmojiMenu
+		protected override EmojiMenu Menu { get; } = new EmojiMenu
 		{
 			new ConfirmationEmoji(Constants.Heart, true),
 		};
@@ -23,7 +27,7 @@ namespace Advobot.Gacha.Displays
 		private readonly IReadOnlyList<Wish> _Wishes;
 		private readonly TaskCompletionSource<object?> _Claimed = new TaskCompletionSource<object?>();
 
-		private RollDisplay(
+		public RollDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
 			Character character,
@@ -40,16 +44,22 @@ namespace Advobot.Gacha.Displays
 		{
 			if (emoji is ConfirmationEmoji c && c.Value)
 			{
-				_Claimed.SetResult(null);
 				var user = await Database.GetUserAsync((IGuildUser)reaction.User.Value).CAF();
-				await Database.AddAndSaveAsync(new Marriage(user, _Character)).CAF();
+				//TODO: verify the user can claim
+
+				_Claimed.SetResult(null);
+				await Database.AddAndSaveAsync(new Marriage
+				{
+					User = user,
+					Character = _Character,
+				}).CAF();
 			}
 		}
 		protected override Task<Embed> GenerateEmbedAsync()
 			=> Task.FromResult(GenerateEmbed());
 		protected override Task<string> GenerateTextAsync()
 			=> Task.FromResult(GenerateText());
-		protected override Task KeepMenuAliveAsync()
+		protected override Task KeepDisplayAliveAsync()
 		{
 			var trigger = _Claimed.Task;
 			var delay = Task.Delay(Constants.ClaimLength);
@@ -72,7 +82,7 @@ namespace Advobot.Gacha.Displays
 				return "";
 			}
 
-			var orderedWishes = _Wishes.OrderBy(x => x.TimeWished);
+			var orderedWishes = _Wishes.OrderBy(x => x.GetTimeCreated());
 			var sb = new StringBuilder("Wished by ");
 			foreach (var wish in _Wishes)
 			{
@@ -84,22 +94,6 @@ namespace Advobot.Gacha.Displays
 				sb.Append(mention);
 			}
 			return sb.ToString();
-		}
-
-		public static async Task<RollDisplay> CreateAsync(
-			GachaDatabase db,
-			AdvobotCommandContext context)
-		{
-			var character = await db.GetRandomCharacterAsync(context.User).CAF();
-			var wishes = await db.GetWishesAsync(context.Guild, character.CharacterId).CAF();
-			return new RollDisplay(context.Client, db, character, wishes);
-		}
-		public static async Task RunAsync(
-			GachaDatabase db,
-			AdvobotCommandContext context)
-		{
-			var display = await CreateAsync(db, context).CAF();
-			await display.SendAsync(context.Channel).CAF();
 		}
 	}
 }

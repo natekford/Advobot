@@ -12,12 +12,12 @@ namespace Advobot.Gacha.MenuEmojis
 			Value = value;
 		}
 
-		public bool TryUpdatePage(ref int i, int m)
+		public bool TryUpdatePage(ref int currentPage, int pageCount)
 		{
-			var current = i;
+			var current = currentPage;
 			//Don't use standard % because it does not do what we want for negative values
-			i = (i + Value % m + m) % m;
-			return current != i;
+			currentPage = (currentPage + Value % pageCount + pageCount) % pageCount;
+			return current != currentPage;
 		}
 	}
 }

@@ -146,7 +146,9 @@ namespace Advobot
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
 			});
 
-			var typeReaders = Assembly.GetExecutingAssembly().GetTypes()
+			var typeReaders = assemblies.Assemblies.Select(x => x.Assembly)
+				.Concat(new[] { Assembly.GetExecutingAssembly() })
+				.SelectMany(x => x.GetTypes())
 				.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
 				.Where(x => x.Attribute != null);
 			foreach (var typeReader in typeReaders)
@@ -187,7 +189,10 @@ namespace Advobot
 
 			foreach (var assembly in assemblies.Assemblies)
 			{
-				await assembly.Attribute.InstantiateAsync(s);
+				if (assembly.Attribute.Instantiator != null)
+				{
+					await assembly.Attribute.Instantiator.AddServicesAsync(s).CAF();
+				}
 			}
 
 			return s;
@@ -217,7 +222,7 @@ namespace Advobot
 			var defaultServices = await launcher.GetDefaultServices(commands).CAF();
 			var provider = launcher.CreateProvider(defaultServices);
 			var commandHandler = provider.GetRequiredService<ICommandHandlerService>();
-			await commandHandler.AddCommandsAsync(commands.Assemblies.Select(x => x.Assembly)).CAF();
+			await commandHandler.AddCommandsAsync(commands.Assemblies).CAF();
 			await launcher.StartAsync(provider).CAF();
 			return provider;
 		}

@@ -1,7 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.CommandMarking
 {
@@ -12,37 +10,27 @@ namespace Advobot.CommandMarking
 	public sealed class CommandAssemblyAttribute : Attribute
 	{
 		/// <summary>
+		/// An instance of <see cref="InstantiatorType"/>.
+		/// </summary>
+		public ICommandAssemblyInstantiator? Instantiator { get; private set; }
+		/// <summary>
 		/// Specifies things to do before these commands can start being used.
 		/// </summary>
-		public Type? InstantiationFactory
+		public Type? InstantiatorType
 		{
-			get => _InstantiationFactory;
+			get => _InstatiatorType;
 			set
 			{
 				if (value != null && !value.GetInterfaces().Contains(typeof(ICommandAssemblyInstantiator)))
 				{
-					throw new ArgumentException($"{nameof(InstantiationFactory)} must implement {nameof(ICommandAssemblyInstantiator)}");
+					throw new ArgumentException($"{nameof(InstantiatorType)} must implement {nameof(ICommandAssemblyInstantiator)}");
 				}
-				_InstantiationFactory = value;
+				_InstatiatorType = value;
+
+				var instance = Activator.CreateInstance(InstantiatorType);
+				Instantiator = (ICommandAssemblyInstantiator)instance;
 			}
 		}
-		private Type? _InstantiationFactory;
-
-		/// <summary>
-		/// Instantiates the assembly and calls a start up method.
-		/// </summary>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		public Task InstantiateAsync(IServiceCollection services)
-		{
-			if (InstantiationFactory == null)
-			{
-				return Task.CompletedTask;
-			}
-
-			var instance = Activator.CreateInstance(InstantiationFactory);
-			var cast = (ICommandAssemblyInstantiator)instance;
-			return cast.Instantiate(services);
-		}
+		private Type? _InstatiatorType;
 	}
 }

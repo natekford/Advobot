@@ -10,14 +10,13 @@ using Advobot.Utilities;
 
 namespace Advobot.Gacha.TypeReaders
 {
-	[TypeReaderTargetType(typeof(Character))]
-	public sealed class CharacterTypeReader : TypeReader
+	[TypeReaderTargetType(typeof(Source))]
+	public sealed class SourceTypeReader : TypeReader
 	{
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			var db = services.GetRequiredService<GachaDatabase>();
-			var id = int.Parse(input);
-			return TypeReaderResult.FromSuccess(await db.GetCharacterAsync(id).CAF());
+			return TypeReaderResult.FromSuccess(await db.GetSourceAsync(1).CAF());
 		}
 	}
 }

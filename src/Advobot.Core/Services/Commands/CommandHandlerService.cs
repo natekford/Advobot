@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
+using Advobot.CommandMarking;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
@@ -61,11 +61,11 @@ namespace Advobot.Services.Commands
 			_Client.MessageReceived += HandleCommand;
 		}
 
-		public async Task AddCommandsAsync(IEnumerable<Assembly> commands)
+		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> commands)
 		{
 			foreach (var assembly in commands)
 			{
-				var modules = await _Commands.AddModulesAsync(assembly, _Provider).CAF();
+				var modules = await _Commands.AddModulesAsync(assembly.Assembly, _Provider).CAF();
 				foreach (var categoryModule in modules)
 				{
 					foreach (var commandModule in categoryModule.Submodules)
@@ -73,7 +73,11 @@ namespace Advobot.Services.Commands
 						_HelpEntries.Add(new HelpEntry(commandModule));
 					}
 				}
-				ConsoleUtils.WriteLine($"Successfully loaded {modules.Count()} command modules from {assembly.GetName().Name}.");
+				if (assembly.Attribute.Instantiator != null)
+				{
+					await assembly.Attribute.Instantiator.ConfigureServicesAsync(_Provider).CAF();
+				}
+				ConsoleUtils.WriteLine($"Successfully loaded {modules.Count()} command modules from {assembly.Assembly.GetName().Name}.");
 			}
 		}
 		private async Task OnReady(DiscordSocketClient _)
@@ -112,7 +116,8 @@ namespace Advobot.Services.Commands
 		}
 		private Task LogExecutionAsync(AdvobotCommandContext context, IResult result)
 		{
-			static bool CanBeIgnored(AdvobotCommandContext c, IResult r) //Ignore annoying unknown command errors and errors with no reason
+			//Ignore annoying unknown command errors and errors with no reason
+			static bool CanBeIgnored(AdvobotCommandContext c, IResult r)
 				=> r == null || r.Error == CommandError.UnknownCommand
 				|| (!r.IsSuccess && (r.ErrorReason == null || c.GuildSettings.NonVerboseErrors));
 
@@ -145,8 +150,9 @@ namespace Advobot.Services.Commands
 			await (result switch
 			{
 				AdvobotResult a => a.SendAsync(c),
+				IResult i when i.IsSuccess => Task.CompletedTask,
 				//TODO: delete after time
-				IResult i => MessageUtils.SendMessageAsync(c.Channel, i.ErrorReason),
+				IResult error => MessageUtils.SendMessageAsync(c.Channel, error.ErrorReason),
 				_ => throw new ArgumentException(nameof(result)),
 			}).CAF();
 		}

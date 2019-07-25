@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.CommandMarking;
 using Discord.Commands;
 
 namespace Advobot.Services.Commands
@@ -21,6 +21,6 @@ namespace Advobot.Services.Commands
 		/// </summary>
 		/// <param name="commands"></param>
 		/// <returns></returns>
-		Task AddCommandsAsync(IEnumerable<Assembly> commands);
+		Task AddCommandsAsync(IEnumerable<CommandAssembly> commands);
 	}
 }

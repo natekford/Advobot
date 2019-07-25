@@ -1,10 +1,26 @@
-﻿namespace Advobot.Gacha.Models
+﻿using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Relationships;
+using System;
+
+namespace Advobot.Gacha.Models
 {
-	public class Alias
+	public class Alias : IReadOnlyAlias
 	{
-		public string Name { get; set; } = "";
+		public int CharacterId { get; private set; }
+		public Character Character
+		{
+			get => _Character ?? throw new InvalidOperationException($"Alias.Character is not set.");
+			set
+			{
+				CharacterId = value.CharacterId;
+				_Character = value;
+			}
+		}
+		private Character? _Character;
+
+		public string Name { get; set; }
 		public bool IsSpoiler { get; set; }
 
-		public Character Character { get; set; } = new Character();
+		IReadOnlyCharacter ICharacterChild.Character => Character;
 	}
 }

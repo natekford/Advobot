@@ -20,7 +20,7 @@ namespace Advobot.Gacha.Displays
 
 		protected BaseSocketClient Client { get; }
 		protected GachaDatabase Database { get; }
-		protected abstract EmojiMenu? Menu { get; }
+		protected abstract EmojiMenu Menu { get; }
 
 		public Display(BaseSocketClient client, GachaDatabase db)
 		{
@@ -38,7 +38,7 @@ namespace Advobot.Gacha.Displays
 			var text = await GenerateTextAsync().CAF();
 			var embed = await GenerateEmbedAsync().CAF();
 			var message = await channel.SendMessageAsync(text, embed: embed);
-			if (Menu != null && !await message.SafeAddReactionsAsync(Menu.Values).CAF())
+			if (Menu?.Count > 0 && !await message.SafeAddReactionsAsync(Menu.Values).CAF())
 			{
 				return AdvobotResult.Failure("Unable to add reactions.", CommandError.Exception);
 			}
@@ -57,7 +57,7 @@ namespace Advobot.Gacha.Displays
 			Message = message;
 			Client.ReactionAdded += Handle;
 			Client.ReactionRemoved += Handle;
-			await KeepMenuAliveAsync().CAF();
+			await KeepDisplayAliveAsync().CAF();
 			Client.ReactionAdded -= Handle;
 			Client.ReactionRemoved -= Handle;
 			await DisposeMenuAsync().CAF();
@@ -67,7 +67,7 @@ namespace Advobot.Gacha.Displays
 			IUserMessage message,
 			SocketReaction reaction,
 			IMenuEmote emoji);
-		protected abstract Task KeepMenuAliveAsync();
+		protected abstract Task KeepDisplayAliveAsync();
 		protected virtual Task DisposeMenuAsync()
 			=> Message?.RemoveAllReactionsAsync() ?? Task.CompletedTask;
 		protected abstract Task<Embed> GenerateEmbedAsync();

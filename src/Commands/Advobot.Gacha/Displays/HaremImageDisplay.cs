@@ -1,6 +1,6 @@
 ﻿namespace Advobot.Gacha.Displays
 {
-	public class HaremListDisplay
+	public class HaremImageDisplay
 	{
 
 	}

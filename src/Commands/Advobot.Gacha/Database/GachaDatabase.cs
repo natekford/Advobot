@@ -1,9 +1,9 @@
-﻿using Advobot.Gacha.Models;
-using Advobot.Interfaces;
+﻿using Advobot.Gacha.Metadata;
+using Advobot.Gacha.Models;
+using Advobot.Gacha.Utils;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -11,147 +11,128 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Database
 {
-	public sealed class GachaDatabase : DbContext
+	public sealed class GachaDatabase
 	{
-		public DbSet<Character> Characters { get; set; }
-		public DbSet<User> Users { get; set; }
-		public DbSet<Marriage> Marriages { get; set; }
-		public DbSet<Wish> Wishes { get; set; }
-		public DbSet<Image> Images { get; set; }
+		private readonly DbContextOptions _Options;
 
-		private readonly IBotDirectoryAccessor _DirectoryAccessor;
-
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public GachaDatabase(IServiceProvider provider)
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 		{
-			_DirectoryAccessor = provider.GetRequiredService<IBotDirectoryAccessor>();
-		}
-
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
-		{
-			modelBuilder.Entity<User>(m =>
-			{
-				m.ToTable("User");
-				m.HasKey(x => new { x.GuildId, x.UserId });
-				m.HasMany(x => x.Marriages).WithOne(x => x.User).OnDelete(DeleteBehavior.Cascade);
-				m.HasMany(x => x.Wishlist).WithOne(x => x.User).OnDelete(DeleteBehavior.Cascade);
-			});
-
-			modelBuilder.Entity<Character>(m =>
-			{
-				m.ToTable("Character");
-				m.HasKey(x => x.CharacterId);
-				m.HasMany(x => x.Images).WithOne(x => x.Character).OnDelete(DeleteBehavior.Cascade);
-				m.HasMany(x => x.Marriages).WithOne(x => x.Character).OnDelete(DeleteBehavior.Cascade);
-				m.HasMany(x => x.Wishlist).WithOne(x => x.Character).OnDelete(DeleteBehavior.Cascade);
-				m.HasOne(x => x.Source).WithMany(x => x.Characters);
-			});
-
-			modelBuilder.Entity<Marriage>(m =>
-			{
-				m.ToTable("Marriage");
-				m.HasKey(x => new { x.User.GuildId, x.Character.CharacterId });
-				m.HasOne(x => x.Image).WithOne().OnDelete(DeleteBehavior.Cascade);
-				m.HasOne(x => x.User).WithMany(x => x.Marriages).IsRequired();
-				m.HasOne(x => x.Character).WithMany(x => x.Marriages).IsRequired();
-			});
-
-			modelBuilder.Entity<Wish>(m =>
-			{
-				m.ToTable("Wish");
-				m.HasKey(x => new { x.User.GuildId, x.User.UserId, x.Character.CharacterId });
-				m.HasOne(x => x.User).WithMany(x => x.Wishlist).IsRequired();
-				m.HasOne(x => x.Character).WithMany(x => x.Wishlist).IsRequired();
-			});
-
-			modelBuilder.Entity<Image>(m =>
-			{
-				m.ToTable("Image");
-				m.HasKey(x => new { x.Character.CharacterId, x.Url });
-				m.HasOne(x => x.Character).WithMany(x => x.Images).IsRequired();
-			});
-
-			modelBuilder.Entity<Alias>(m =>
-			{
-				m.ToTable("Alias");
-				m.HasKey(x => new { x.Character.CharacterId, x.Name });
-				m.HasOne(x => x.Character).WithMany(x => x.Aliases);
-			});
-
-			modelBuilder.Entity<Source>(m =>
-			{
-				m.ToTable("Source");
-				m.HasKey(x => x.SourceId);
-				m.HasMany(x => x.Characters).WithOne(x => x.Source).IsRequired();
-			});
-
-			base.OnModelCreating(modelBuilder);
-		}
-		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-		{
-			var file = AdvobotUtils.ValidateDbPath(_DirectoryAccessor, "SQLite", "Gacha.db");
-			var connectionStringBuilder = new SqliteConnectionStringBuilder
-			{
-				DataSource = file.FullName,
-				Mode = SqliteOpenMode.ReadWriteCreate,
-			};
-			optionsBuilder.UseSqlite(connectionStringBuilder.ToString());
-
-			base.OnConfiguring(optionsBuilder);
+			_Options = provider.GetRequiredService<DbContextOptions>();
 		}
 
 		public async Task AddAndSaveAsync<T>(T value) where T : class
 		{
-			var set = Set<T>();
+			using var context = new GachaContext(_Options);
+
+			var set = context.Set<T>();
 			await set.AddAsync(value).CAF();
-			await SaveChangesAsync().CAF();
+			await context.SaveChangesAsync().CAF();
 		}
 		public async Task UpdateAsync<T>(T value) where T : class
 		{
-			var set = Set<T>();
+			using var context = new GachaContext(_Options);
+
+			var set = context.Set<T>();
 			set.Update(value);
-			await SaveChangesAsync().CAF();
+			await context.SaveChangesAsync().CAF();
 		}
 		public async Task UpdateAsync<T, TProperty>(
 			T entity,
 			Expression<Func<T, TProperty>> propertyExpression,
 			TProperty value) where T : class
 		{
-			Attach(entity);
-			Entry(entity).Property(propertyExpression).CurrentValue = value;
-			await SaveChangesAsync().CAF();
+			using var context = new GachaContext(_Options);
+
+			context.Attach(entity);
+			context.Entry(entity).Property(propertyExpression).CurrentValue = value;
+			await context.SaveChangesAsync().CAF();
 		}
 
-		public Task<Character> GetRandomCharacterAsync(IGuildUser user)
+		public Task<Character> GetRandomCharacterAsync(ulong guildId)
 		{
-			var untaken = Characters.Where(c => !Marriages.Any(m =>
-				m.User.GuildId == user.GuildId &&
-				m.User.UserId == user.Id &&
-				m.Character.CharacterId == c.CharacterId)
+			using var context = new GachaContext(_Options);
+
+			var untaken = context.Characters.Where(c => !context.Marriages.Any(m =>
+				m.GuildId == guildId && m.CharacterId == c.CharacterId)
 			);
 			var count = untaken.Count();
 			var rng = new Random().Next(1, count + 1);
 			return untaken.Skip(rng).FirstOrDefaultAsync();
 		}
-		public async Task<IReadOnlyList<Wish>> GetWishesAsync(IGuild guild, int id)
+		public async Task<IReadOnlyList<Wish>> GetWishesAsync(ulong guildId, int characterId)
 		{
-			var filtered = Wishes.Where(x => x.User.GuildId == guild.Id && x.Character.CharacterId == id);
+			using var context = new GachaContext(_Options);
+
+			var filtered = context.Wishes.Where(x => 
+				x.User.GuildId == guildId && x.Character.CharacterId == characterId);
 			return await filtered.ToArrayAsync().CAF();
 		}
+		public ValueTask<User> GetUserAsync(ulong guildId, ulong userId)
+		{
+			using var context = new GachaContext(_Options);
 
-		public Task<User> GetUserAsync(IGuildUser user)
-			=> Users.FindAsync(new { user.GuildId, user.Id });
+			return context.Users.FindAsync(guildId, userId);
+		}
+		public ValueTask<Marriage> GetMarriageAsync(ulong guildId, int characterId)
+		{
+			using var context = new GachaContext(_Options);
 
+			return context.Marriages.FindAsync(guildId, characterId);
+		}
+		public Task<Source> GetSourceAsync(int sourceId)
+		{
+			using var context = new GachaContext(_Options);
 
-		public Task<Marriage> GetMarriageAsync(IGuild guild, int id)
-			=> Marriages.FindAsync(new { guild.Id, id });
+			return context.Sources
+				.Include(x => x.Characters)
+					.ThenInclude(x => x.Images)
+						.ThenInclude(x => x.Character)
+				.SingleOrDefaultAsync(x => x.SourceId == sourceId);
+		}
+		public Task<Character> GetCharacterAsync(int characterId)
+		{
+			using var context = new GachaContext(_Options);
 
-		public Task<Character> GetCharacterAsync(int id)
-			=> Characters.FindAsync(id);
+			return context.Characters
+				.Include(x => x.Images)
+					.ThenInclude(x => x.Character)
+				.Include(x => x.Source)
+				.SingleOrDefaultAsync(x => x.CharacterId == characterId);
+		}
+
+		public async Task<CharacterMetadata> GetCharacterMetadataAsync(Character character)
+		{
+			using var context = new GachaContext(_Options);
+
+			var claims = context.Marriages.GetRankAsync(character.CharacterId, "Claims");
+			var likes = new AmountAndRank("Likes", -1, -1);
+			var wishes = context.Wishes.GetRankAsync(character.CharacterId, "Wishes");
+			return new CharacterMetadata(character, claims, likes, wishes);
+		}
+	}
+
+	public static class GachaDatabaseUtils
+	{
+		public static Task<Character> GetRandomCharacterAsync(
+			this GachaDatabase db,
+			IGuild guild)
+			=> db.GetRandomCharacterAsync(guild.Id);
+		public static Task<IReadOnlyList<Wish>> GetWishesAsync(
+			this GachaDatabase db,
+			IGuild guild,
+			Character character)
+			=> db.GetWishesAsync(guild.Id, character.CharacterId);
+		public static ValueTask<User> GetUserAsync(
+			this GachaDatabase db,
+			IGuildUser user)
+			=> db.GetUserAsync(user.GuildId, user.Id);
+		public static ValueTask<Marriage> GetMarriageAsync(
+			this GachaDatabase db,
+			IGuild guild,
+			Character character)
+			=> db.GetMarriageAsync(guild.Id, character.CharacterId);
 	}
 }

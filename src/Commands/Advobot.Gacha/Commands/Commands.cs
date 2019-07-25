@@ -1,13 +1,14 @@
 ﻿using Advobot.Classes.Attributes;
+using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Modules;
 using Advobot.Classes.Results;
-using Advobot.Gacha.Database;
-using Advobot.Gacha.Displays;
 using Advobot.Gacha.Models;
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
+using System;
 using System.Threading.Tasks;
+using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Commands
 {
@@ -17,81 +18,99 @@ namespace Advobot.Gacha.Commands
 		[Summary("temp")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true)]
-		public sealed class SeedGachaData : AdvobotModuleBase
+		public sealed class SeedGachaData : GachaModuleBase
 		{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-			public GachaDatabase Database { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
-
-			[Command]
-			public Task<RuntimeResult> Command()
+			[Command(RunMode = RunMode.Async)]
+			public async Task<RuntimeResult> Command([ValidatePositiveNumber] int amt)
 			{
-				var char1 = new Character
+				var source = new Source
 				{
-
+					Name = Guid.NewGuid().ToString(),
 				};
-				return AdvobotResult.Success("Successfully seeded gacha data.");
+				for (var i = 0; i < amt; ++i)
+				{
+					var character = new Character
+					{
+						IsFakeCharacter = true,
+						Name = Guid.NewGuid().ToString(),
+						GenderIcon = "gender icon",
+						Source = source,
+					};
+					character.Images.AddRange(new[]
+					{
+						new Image
+						{
+							Character = character,
+							Url = "https://cdn.discordapp.com/attachments/367092372636434443/597957772763594772/8ds6xte9dz831.jpg",
+						},
+						new Image
+						{
+							Character = character,
+							Url = "https://cdn.discordapp.com/attachments/367092372636434443/597957777599496202/hgs5xuhnf2931.png",
+						}
+					});
+					source.Characters.Add(character);
+				}
+				await Database.AddAndSaveAsync(source).CAF();
+				return AdvobotResult.Success($"Successfully added {amt} fake characters.");
 			}
 		}
 
 		[Group(nameof(GachaRoll)), ModuleInitialismAlias(typeof(GachaRoll))]
 		[Summary("temp")]
 		[EnabledByDefault(true)]
-		public sealed class GachaRoll : AdvobotModuleBase
+		public sealed class GachaRoll : GachaModuleBase
 		{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-			public GachaDatabase Database { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
-
-			[Command]
-			public Task<RuntimeResult> Command()
-			{
-				return AdvobotResult.Success("Successfully seeded gacha data.");
-			}
+			[Command(RunMode = RunMode.Async)]
+			public Task Command()
+				=> CreateRollDisplayAsync();
 		}
 
-		public sealed class GetCharacterImages : AdvobotModuleBase
+		[Group(nameof(DisplayCharacter)), ModuleInitialismAlias(typeof(DisplayCharacter))]
+		[Summary("temp")]
+		[EnabledByDefault(true)]
+		public sealed class DisplayCharacter : GachaModuleBase
 		{
-			[Command]
-			public Task<RuntimeResult> Command(Character character)
-			{
-				return AdvobotResult.Success("Successfully seeded gacha data.");
-			}
-		}
-
-		public sealed class DisplayCharacter : AdvobotModuleBase
-		{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-			public GachaDatabase Database { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
-
-			[Command]
+			[Command(RunMode = RunMode.Async)]
 			public Task Command(Character character)
-				=> CharacterDisplay.RunAsync(Database, Context, character);
+				=> CreateCharacterDisplayAsync(character);
 		}
 
-		public sealed class GachaTrade : AdvobotModuleBase
+		[Group(nameof(DisplaySource)), ModuleInitialismAlias(typeof(DisplaySource))]
+		[Summary("temp")]
+		[EnabledByDefault(true)]
+		public sealed class DisplaySource : GachaModuleBase
 		{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-			public GachaDatabase Database { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+			[Command(RunMode = RunMode.Async)]
+			public Task Command(Source source)
+				=> CreateSourceDisplayAsync(source);
+		}
 
-			public Task Command(IGuildUser user, params Character[] characters)
+		[Group(nameof(DisplayHarem)), ModuleInitialismAlias(typeof(DisplayHarem))]
+		[Summary("temp")]
+		[EnabledByDefault(true)]
+		public sealed class DisplayHarem : GachaModuleBase
+		{
+			[Command(RunMode = RunMode.Async)]
+			public Task Command(User user)
+				=> CreateHaremDisplayAsync(user);
+		}
+
+		/*
+		public sealed class GachaTrade : GachaModuleBase
+		{
+			public Task Command(User user, params Character[] characters)
 			{
 
 			}
 		}
 
-		public sealed class GachaGive : AdvobotModuleBase
+		public sealed class GachaGive : GachaModuleBase
 		{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-			public GachaDatabase Database { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
-
-			public Task Command(IGuildUser user, params Character[] characters)
+			public Task Command(User user, params Character[] characters)
 			{
 
 			}
-		}
+		}*/
 	}
 }
