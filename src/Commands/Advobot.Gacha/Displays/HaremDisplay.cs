@@ -14,7 +14,7 @@ namespace Advobot.Gacha.Displays
 	/// </summary>
 	public class HaremDisplay : PaginatedDisplay
 	{
-		private readonly IReadOnlyCollection<Claim> _Marriages;
+		private readonly IReadOnlyCollection<long> _Marriages;
 		private readonly Claim? _Primary;
 
 		public HaremDisplay(
@@ -22,6 +22,7 @@ namespace Advobot.Gacha.Displays
 			GachaDatabase db,
 			IReadOnlyCollection<Claim> marriages) : base(client, db, marriages.Count, Constants.CharactersPerPage)
 		{
+			_Marriages = marriages.Select(x => x.CharacterId).ToArray();
 			_Primary = marriages.FirstOrDefault();
 
 			foreach (var marriage in marriages)
@@ -33,14 +34,11 @@ namespace Advobot.Gacha.Displays
 			}
 		}
 
-		protected override Task<Embed> GenerateEmbedAsync()
-			=> Task.FromResult(GenerateEmbed());
-		protected override Task<string> GenerateTextAsync()
-			=> Task.FromResult("");
-		private Embed GenerateEmbed()
+		protected override async Task<Embed> GenerateEmbedAsync()
 		{
 			var values = GetPageValues(_Marriages);
-			var description = values.Select(x => x.Character.Name).Join("\n");
+			var characters = await Database.GetCharactersAsync(values).CAF();
+			var description = characters.Select(x => x.Name).Join("\n");
 
 			return new EmbedBuilder
 			{
@@ -54,5 +52,7 @@ namespace Advobot.Gacha.Displays
 				Footer = GeneratePaginationFooter(),
 			}.Build();
 		}
+		protected override Task<string> GenerateTextAsync()
+			=> Task.FromResult("");
 	}
 }

@@ -3,6 +3,7 @@ using Advobot.Gacha.Models;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,13 +12,16 @@ namespace Advobot.Gacha.Displays
 	public class SourceDisplay : PaginatedDisplay
 	{
 		private readonly Source _Source;
+		private readonly IReadOnlyList<Character> _Characters;
 
 		public SourceDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
-			Source source) : base(client, db, source.Characters.Count, Constants.CharactersPerPage)
+			Source source,
+			IReadOnlyList<Character> characters) : base(client, db, characters.Count, Constants.CharactersPerPage)
 		{
 			_Source = source;
+			_Characters = characters;
 		}
 
 		protected override Task<Embed> GenerateEmbedAsync()
@@ -26,7 +30,7 @@ namespace Advobot.Gacha.Displays
 			=> Task.FromResult("");
 		private Embed GenerateEmbed()
 		{
-			var values = GetPageValues(_Source.Characters);
+			var values = GetPageValues(_Characters);
 			var description = values.Select(x => x.Name).Join("\n");
 
 			return new EmbedBuilder

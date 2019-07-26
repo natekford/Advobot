@@ -2,7 +2,7 @@
 
 namespace Advobot.Gacha.ReadOnlyModels
 {
-	public interface IReadOnlyMarriage : ITimeCreated, IUserChild, ICharacterChild
+	public interface IReadOnlyClaim : ITimeCreated, IUserChild, ICharacterChild
 	{
 		string? ImageUrl { get; }
 	}

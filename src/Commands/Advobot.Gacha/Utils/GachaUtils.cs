@@ -19,26 +19,5 @@ namespace Advobot.Gacha.Utils
 				throw new NotImplementedException("Not implemented yet.", e);
 			}
 		}
-		/*
-		public static AmountAndRank GetRankAsync<T>(
-			this DbSet<T> children,
-			int id,
-			string name)
-			where T : class, ICharacterChild
-		{
-			var ids = children.Select(x => x.CharacterId).ToList();
-			var grouped = ids.GroupBy(x => x).ToDictionary(x => x.Key, x => x.Count());
-
-			var rank = 1;
-			var amount = grouped.TryGetValue(id, out var val) ? val : 0;
-			foreach (var kvp in grouped)
-			{
-				if (kvp.Value > amount)
-				{
-					++rank;
-				}
-			}
-			return new AmountAndRank(name, amount, rank);
-		}*/
 	}
 }

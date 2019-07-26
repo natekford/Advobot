@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Displays
 {
@@ -25,16 +26,19 @@ namespace Advobot.Gacha.Displays
 
 		private readonly Character _Character;
 		private readonly IReadOnlyList<Wish> _Wishes;
+		private readonly IReadOnlyList<Image> _Images;
 		private readonly TaskCompletionSource<object?> _Claimed = new TaskCompletionSource<object?>();
 
 		public RollDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
 			Character character,
-			IReadOnlyList<Wish> wishes) : base(client, db)
+			IReadOnlyList<Wish> wishes,
+			IReadOnlyList<Image> images) : base(client, db)
 		{
 			_Character = character;
 			_Wishes = wishes;
+			_Images = images;
 		}
 
 		protected override async Task HandleReactionsAsync(
@@ -48,11 +52,7 @@ namespace Advobot.Gacha.Displays
 				//TODO: verify the user can claim
 
 				_Claimed.SetResult(null);
-				await Database.AddClaimAsync(new Claim
-				{
-					User = user,
-					Character = _Character,
-				}).CAF();
+				await Database.AddClaimAsync(new Claim(user, _Character)).CAF();
 			}
 		}
 		protected override Task<Embed> GenerateEmbedAsync()
@@ -70,8 +70,8 @@ namespace Advobot.Gacha.Displays
 			return new EmbedBuilder
 			{
 				Title = _Character.Name,
-				Description = _Character.Source.Name,
-				ImageUrl = _Character.Images.First().Url,
+				//Description = _Character.Source.Name,
+				ImageUrl = _Images.First().Url,
 				Color = _Wishes.Count > 0 ? Constants.Wished : Constants.Unclaimed,
 			}.Build();
 		}
@@ -86,7 +86,7 @@ namespace Advobot.Gacha.Displays
 			var sb = new StringBuilder("Wished by ");
 			foreach (var wish in _Wishes)
 			{
-				var mention = MentionUtils.MentionUser(ulong.Parse(wish.User.UserId)) + " ";
+				var mention = MentionUtils.MentionUser(ulong.Parse(wish.UserId)) + " ";
 				if (sb.Length + mention.Length > DiscordConfig.MaxMessageSize)
 				{
 					break;

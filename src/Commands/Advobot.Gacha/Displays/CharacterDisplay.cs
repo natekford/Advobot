@@ -4,7 +4,9 @@ using Advobot.Gacha.Metadata;
 using Advobot.Gacha.Models;
 using Discord;
 using Discord.WebSocket;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Displays
 {
@@ -14,7 +16,8 @@ namespace Advobot.Gacha.Displays
 	public class CharacterDisplay : PaginatedDisplay
 	{
 		private readonly CharacterMetadata _Character;
-		private readonly Claim? _Marriage;
+		private readonly IReadOnlyList<Image> _Images;
+		private readonly Claim? _Claim;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CharacterDisplay"/>.
@@ -22,23 +25,26 @@ namespace Advobot.Gacha.Displays
 		/// <param name="client"></param>
 		/// <param name="db"></param>
 		/// <param name="character"></param>
-		/// <param name="marriage"></param>
+		/// <param name="images"></param>
+		/// <param name="claim"></param>
 		public CharacterDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
 			CharacterMetadata character,
-			Claim? marriage) : base(client, db, character.Data.Images.Count, 1)
+			IReadOnlyList<Image> images,
+			Claim? claim) : base(client, db, images.Count, 1)
 		{
 			_Character = character;
-			_Marriage = marriage;
+			_Images = images;
+			_Claim = claim;
 
 			Menu.Add(new ConfirmationEmoji(Constants.Confirm, true));
 
-			if (marriage?.ImageUrl is string url)
+			if (claim?.ImageUrl is string url)
 			{
-				for (var i = 0; i < _Character.Data.Images.Count; ++i)
+				for (var i = 0; i < _Images.Count; ++i)
 				{
-					if (_Character.Data.Images[i].Url == url)
+					if (_Images[i].Url == url)
 					{
 						PageIndex = i;
 						break;
@@ -52,11 +58,11 @@ namespace Advobot.Gacha.Displays
 			SocketReaction reaction,
 			IMenuEmote emoji)
 		{
-			if (emoji is ConfirmationEmoji c && c.Value && _Marriage != null
-				&& reaction.UserId.ToString() == _Marriage.User.UserId)
+			if (emoji is ConfirmationEmoji c && c.Value && _Claim != null
+				&& reaction.UserId.ToString() == _Claim.UserId)
 			{
-				var url = _Character.Data.Images[PageIndex].Url;
-				return Database.UpdateClaimImageUrlAsync(_Marriage, url);
+				var url = _Images[PageIndex].Url;
+				return Database.UpdateClaimImageUrlAsync(_Claim, url);
 			}
 			return base.HandleReactionsAsync(message, reaction, emoji);
 		}
@@ -66,7 +72,7 @@ namespace Advobot.Gacha.Displays
 			=> Task.FromResult("");
 		private Embed GenerateEmbed()
 		{
-			var description = $"{_Character.Data.Source.Name} {_Character.Data.GenderIcon}\n" +
+			var description = $"{_Character.Source.Name} {_Character.Data.GenderIcon}\n" +
 				$"{_Character.Data.RollType}\n" +
 				$"{_Character.Claims}\n" +
 				$"{_Character.Likes}\n" +
@@ -77,17 +83,17 @@ namespace Advobot.Gacha.Displays
 			{
 				Title = _Character.Data.Name,
 				Description = description,
-				ImageUrl = _Character.Data.Images[PageIndex].Url,
+				ImageUrl = _Images[PageIndex].Url,
 				Color = Constants.Unclaimed,
 				Footer = GeneratePaginationFooter(),
 			};
-			if (_Marriage == null)
+			if (_Claim == null)
 			{
 				return embed.Build();
 			}
 
-			var owner = Client.GetUser(ulong.Parse(_Marriage.User.UserId));
-			var ownerStr = owner?.ToString() ?? _Marriage.User.UserId.ToString();
+			var owner = Client.GetUser(ulong.Parse(_Claim.UserId));
+			var ownerStr = owner?.ToString() ?? _Claim.UserId.ToString();
 
 			embed.Color = Constants.Claimed;
 			embed.Footer.Text = $"Belongs to {ownerStr} -- {embed.Footer.Text}";

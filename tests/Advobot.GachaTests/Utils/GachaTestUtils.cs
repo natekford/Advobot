@@ -10,5 +10,7 @@ namespace Advobot.GachaTests.Utils
 			rng.NextBytes(buffer);
 			return BitConverter.ToUInt64(buffer, 0);
 		}
+		public static bool NextBool(this Random rng)
+			=> rng.NextDouble() >= 0.5;
 	}
 }
