@@ -1,5 +1,5 @@
 ﻿using Advobot.Gacha.Database;
-using Advobot.Gacha.Models;
+using Advobot.Gacha.ReadOnlyModels;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -14,20 +14,21 @@ namespace Advobot.Gacha.Displays
 	/// </summary>
 	public class HaremDisplay : PaginatedDisplay
 	{
-		private readonly IReadOnlyCollection<long> _Marriages;
-		private readonly Claim? _Primary;
+		private readonly IReadOnlyCollection<long> _Claims;
+		private readonly IReadOnlyClaim? _Primary;
 
 		public HaremDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
-			IReadOnlyCollection<Claim> marriages) : base(client, db, marriages.Count, Constants.CharactersPerPage)
+			IReadOnlyCollection<IReadOnlyClaim> claims)
+			: base(client, db, claims.Count, Constants.CharactersPerPage)
 		{
-			_Marriages = marriages.Select(x => x.CharacterId).ToArray();
-			_Primary = marriages.FirstOrDefault();
+			_Claims = claims.Select(x => x.CharacterId).ToArray();
+			_Primary = claims.FirstOrDefault();
 
-			foreach (var marriage in marriages)
+			foreach (var marriage in claims)
 			{
-				if (marriage.IsPrimaryMarriage)
+				if (marriage.IsPrimaryClaim)
 				{
 					_Primary = marriage;
 				}
@@ -36,7 +37,7 @@ namespace Advobot.Gacha.Displays
 
 		protected override async Task<Embed> GenerateEmbedAsync()
 		{
-			var values = GetPageValues(_Marriages);
+			var values = GetPageValues(_Claims);
 			var characters = await Database.GetCharactersAsync(values).CAF();
 			var description = characters.Select(x => x.Name).Join("\n");
 

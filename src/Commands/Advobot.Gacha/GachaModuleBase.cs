@@ -32,8 +32,8 @@ namespace Advobot.Gacha
 		}
 		protected async Task<RollDisplay> CreateRollDisplayAsync(bool fireAndForget = true)
 		{
-			var character = await Database.GetRandomCharacterAsync(Context.Guild).CAF();
-			var wishes = await Database.GetWishesAsync(Context.Guild, character).CAF();
+			var character = await Database.GetUnclaimedCharacter(Context.Guild.Id).CAF();
+			var wishes = await Database.GetWishesAsync(Context.Guild.Id, character).CAF();
 			var images = await Database.GetImagesAsync(character).CAF();
 			var display = new RollDisplay(Context.Client, Database, character, wishes, images);
 			return await FireAndForget(display, fireAndForget).CAF();

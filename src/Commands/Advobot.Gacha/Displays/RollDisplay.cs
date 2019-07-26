@@ -1,6 +1,7 @@
 ﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
 using Advobot.Gacha.Models;
+using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utils;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -10,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Displays
 {
@@ -24,17 +24,18 @@ namespace Advobot.Gacha.Displays
 			new ConfirmationEmoji(Constants.Heart, true),
 		};
 
-		private readonly Character _Character;
-		private readonly IReadOnlyList<Wish> _Wishes;
-		private readonly IReadOnlyList<Image> _Images;
+		private readonly IReadOnlyCharacter _Character;
+		private readonly IReadOnlyList<IReadOnlyWish> _Wishes;
+		private readonly IReadOnlyList<IReadOnlyImage> _Images;
 		private readonly TaskCompletionSource<object?> _Claimed = new TaskCompletionSource<object?>();
 
 		public RollDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
-			Character character,
-			IReadOnlyList<Wish> wishes,
-			IReadOnlyList<Image> images) : base(client, db)
+			IReadOnlyCharacter character,
+			IReadOnlyList<IReadOnlyWish> wishes,
+			IReadOnlyList<IReadOnlyImage> images)
+			: base(client, db)
 		{
 			_Character = character;
 			_Wishes = wishes;
@@ -48,7 +49,8 @@ namespace Advobot.Gacha.Displays
 		{
 			if (emoji is ConfirmationEmoji c && c.Value)
 			{
-				var user = await Database.GetUserAsync((IGuildUser)reaction.User.Value).CAF();
+				var guildUser = (IGuildUser)reaction.User.Value;
+				var user = await Database.GetUserAsync(guildUser.GuildId, guildUser.Id).CAF();
 				//TODO: verify the user can claim
 
 				_Claimed.SetResult(null);

@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot.GachaTests
@@ -23,15 +22,6 @@ namespace Advobot.GachaTests
 				.AddSingleton<GachaDatabase>()
 				.AddSingleton<IDatabaseStarter, SQLiteTestDatabaseFactory>()
 				.BuildServiceProvider();
-		}
-
-		private async Task<GachaDatabase> GetDatabaseAsync()
-		{
-			var db = _Provider.GetRequiredService<GachaDatabase>();
-#pragma warning disable IDE0059 // Value assigned to symbol is never used
-			var tables = await db.CreateDatabaseAsync().CAF();
-#pragma warning restore IDE0059 // Value assigned to symbol is never used
-			return db;
 		}
 
 		[TestMethod]
@@ -56,7 +46,7 @@ namespace Advobot.GachaTests
 			var db = await GetDatabaseAsync().CAF();
 
 			var fakeSource = GenerateFakeSource();
-			await db.AddSourceAsync(fakeSource).CAF();
+			fakeSource.SourceId = await db.AddSourceAsync(fakeSource).CAF();
 
 			var retrieved = await db.GetSourceAsync(fakeSource.SourceId).CAF();
 			Assert.AreNotEqual(null, retrieved);
@@ -72,7 +62,7 @@ namespace Advobot.GachaTests
 
 			var fakeSource = GenerateFakeSource();
 			var fakeCharacter = GenerateFakeCharacter(fakeSource);
-			await db.AddCharacterAsync(fakeCharacter).CAF();
+			fakeCharacter.CharacterId = await db.AddCharacterAsync(fakeCharacter).CAF();
 
 			var retrieved = await db.GetCharacterAsync(fakeCharacter.CharacterId).CAF();
 			Assert.AreNotEqual(null, retrieved);
@@ -103,7 +93,7 @@ namespace Advobot.GachaTests
 			Assert.AreEqual(fakeClaim.UserId, retrieved.UserId);
 			Assert.AreEqual(fakeClaim.CharacterId, retrieved.CharacterId);
 			Assert.AreEqual(fakeClaim.ImageUrl, retrieved.ImageUrl);
-			Assert.AreEqual(fakeClaim.IsPrimaryMarriage, retrieved.IsPrimaryMarriage);
+			Assert.AreEqual(fakeClaim.IsPrimaryClaim, retrieved.IsPrimaryClaim);
 			Assert.AreEqual(fakeClaim.TimeCreated, retrieved.TimeCreated);
 		}
 		[TestMethod]
@@ -157,6 +147,14 @@ namespace Advobot.GachaTests
 			Assert.AreEqual(CHARACTER_COUNT, claims.Count);
 		}
 
+		private async Task<GachaDatabase> GetDatabaseAsync()
+		{
+			var db = _Provider.GetRequiredService<GachaDatabase>();
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
+			var tables = await db.CreateDatabaseAsync().CAF();
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
+			return db;
+		}
 		private Source GenerateFakeSource(long sourceId = 1)
 		{
 			return new Source
@@ -192,7 +190,7 @@ namespace Advobot.GachaTests
 		{
 			return new Claim(user, character)
 			{
-				IsPrimaryMarriage = _Rng.NextBool(),
+				IsPrimaryClaim = _Rng.NextBool(),
 			};
 		}
 	}

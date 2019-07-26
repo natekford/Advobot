@@ -2,7 +2,7 @@
 
 namespace Advobot.Gacha.Metadata
 {
-	public readonly struct CharacterMetadata
+	public readonly struct CharacterMetadata : IMetadata<IReadOnlyCharacter>
 	{
 		public IReadOnlySource Source { get; }
 		public IReadOnlyCharacter Data { get; }

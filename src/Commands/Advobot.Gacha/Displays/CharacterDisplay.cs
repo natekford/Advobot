@@ -1,12 +1,11 @@
 ﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
 using Advobot.Gacha.Metadata;
-using Advobot.Gacha.Models;
+using Advobot.Gacha.ReadOnlyModels;
 using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Displays
 {
@@ -16,8 +15,8 @@ namespace Advobot.Gacha.Displays
 	public class CharacterDisplay : PaginatedDisplay
 	{
 		private readonly CharacterMetadata _Character;
-		private readonly IReadOnlyList<Image> _Images;
-		private readonly Claim? _Claim;
+		private readonly IReadOnlyList<IReadOnlyImage> _Images;
+		private readonly IReadOnlyClaim? _Claim;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CharacterDisplay"/>.
@@ -31,8 +30,9 @@ namespace Advobot.Gacha.Displays
 			BaseSocketClient client,
 			GachaDatabase db,
 			CharacterMetadata character,
-			IReadOnlyList<Image> images,
-			Claim? claim) : base(client, db, images.Count, 1)
+			IReadOnlyList<IReadOnlyImage> images,
+			IReadOnlyClaim? claim)
+			: base(client, db, images.Count, 1)
 		{
 			_Character = character;
 			_Images = images;

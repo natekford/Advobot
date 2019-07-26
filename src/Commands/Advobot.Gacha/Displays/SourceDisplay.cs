@@ -1,5 +1,5 @@
 ﻿using Advobot.Gacha.Database;
-using Advobot.Gacha.Models;
+using Advobot.Gacha.ReadOnlyModels;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -11,14 +11,15 @@ namespace Advobot.Gacha.Displays
 {
 	public class SourceDisplay : PaginatedDisplay
 	{
-		private readonly Source _Source;
-		private readonly IReadOnlyList<Character> _Characters;
+		private readonly IReadOnlySource _Source;
+		private readonly IReadOnlyList<IReadOnlyCharacter> _Characters;
 
 		public SourceDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
-			Source source,
-			IReadOnlyList<Character> characters) : base(client, db, characters.Count, Constants.CharactersPerPage)
+			IReadOnlySource source,
+			IReadOnlyList<IReadOnlyCharacter> characters)
+			: base(client, db, characters.Count, Constants.CharactersPerPage)
 		{
 			_Source = source;
 			_Characters = characters;

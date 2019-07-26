@@ -9,11 +9,13 @@ namespace Advobot.Gacha.Models
 		public string UserId { get; set; }
 		public long CharacterId { get; set; }
 		public string? ImageUrl { get; set; }
-		public bool IsPrimaryMarriage { get; set; }
+		public bool IsPrimaryClaim { get; set; }
 		public long TimeCreated { get; set; } = TimeUtils.Now();
 
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public Claim() { }
-		public Claim(User user, Character character)
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+		public Claim(IReadOnlyUser user, IReadOnlyCharacter character)
 		{
 			GuildId = user.GuildId;
 			UserId = user.UserId;

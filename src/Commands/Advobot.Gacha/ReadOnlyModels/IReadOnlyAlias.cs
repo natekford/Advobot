@@ -4,7 +4,7 @@ namespace Advobot.Gacha.ReadOnlyModels
 {
 	public interface IReadOnlyAlias : ICharacterChild
 	{
-		string Name { get; }
+		string? Name { get; }
 		bool IsSpoiler { get; }
 	}
 }

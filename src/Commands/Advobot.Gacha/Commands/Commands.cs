@@ -1,9 +1,5 @@
 ﻿using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Classes.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Results;
 using Advobot.Gacha.Models;
-using Discord;
 using Discord.Commands;
 using System.Threading.Tasks;
 
@@ -11,51 +7,6 @@ namespace Advobot.Gacha.Commands
 {
 	public sealed class Gacha : ModuleBase
 	{
-		[Group(nameof(SeedGachaData)), ModuleInitialismAlias(typeof(SeedGachaData))]
-		[Summary("temp")]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(true)]
-		public sealed class SeedGachaData : GachaModuleBase
-		{
-			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command([ValidatePositiveNumber] int amt)
-			{
-				await Task.Yield();
-				return AdvobotResult.Ignore;
-				/*
-				var source = new Source
-				{
-					Name = Guid.NewGuid().ToString(),
-				};
-				for (var i = 0; i < amt; ++i)
-				{
-					var character = new Character
-					{
-						IsFakeCharacter = true,
-						Name = Guid.NewGuid().ToString(),
-						GenderIcon = "gender icon",
-						Source = source,
-					};
-					character.Images.AddRange(new[]
-					{
-						new Image
-						{
-							Character = character,
-							Url = "https://cdn.discordapp.com/attachments/367092372636434443/597957772763594772/8ds6xte9dz831.jpg",
-						},
-						new Image
-						{
-							Character = character,
-							Url = "https://cdn.discordapp.com/attachments/367092372636434443/597957777599496202/hgs5xuhnf2931.png",
-						}
-					});
-					source.Characters.Add(character);
-				}
-				await Database.AddAndSaveAsync(source).CAF();
-				return AdvobotResult.Success($"Successfully added {amt} fake characters.");*/
-			}
-		}
-
 		[Group(nameof(GachaRoll)), ModuleInitialismAlias(typeof(GachaRoll))]
 		[Summary("temp")]
 		[EnabledByDefault(true)]
