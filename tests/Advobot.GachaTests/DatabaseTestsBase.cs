@@ -1,5 +1,6 @@
 ﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
+using Advobot.Gacha.ReadOnlyModels;
 using Advobot.GachaTests.Utilities;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,8 +11,9 @@ namespace Advobot.GachaTests
 {
 	public abstract class DatabaseTestsBase
 	{
+		protected readonly static Random Rng = new Random();
+
 		protected IServiceProvider Provider { get; }
-		protected Random Rng { get; } = new Random();
 
 		public DatabaseTestsBase()
 		{
@@ -29,7 +31,7 @@ namespace Advobot.GachaTests
 #pragma warning restore IDE0059 // Value assigned to symbol is never used
 			return db;
 		}
-		protected Source GenerateFakeSource(long sourceId = 1)
+		protected static Source GenerateFakeSource(long sourceId = 1)
 		{
 			return new Source
 			{
@@ -37,7 +39,7 @@ namespace Advobot.GachaTests
 				Name = Guid.NewGuid().ToString(),
 			};
 		}
-		protected Character GenerateFakeCharacter(Source fakeSource, long characterId = 1)
+		protected static Character GenerateFakeCharacter(IReadOnlySource fakeSource, long characterId = 1)
 		{
 			return new Character(fakeSource)
 			{
@@ -49,7 +51,7 @@ namespace Advobot.GachaTests
 				IsFakeCharacter = true,
 			};
 		}
-		protected User GenerateFakeUser(ulong? userId = null, ulong? guildId = null)
+		protected static User GenerateFakeUser(ulong? userId = null, ulong? guildId = null)
 		{
 			return new User
 			{
@@ -57,14 +59,14 @@ namespace Advobot.GachaTests
 				GuildId = (guildId ?? Rng.NextUlong()).ToString(),
 			};
 		}
-		protected Claim GenerateFakeClaim(User user, Character character)
+		protected static Claim GenerateFakeClaim(IReadOnlyUser user, IReadOnlyCharacter character)
 		{
 			return new Claim(user, character)
 			{
 				IsPrimaryClaim = Rng.NextBool(),
 			};
 		}
-		protected Wish GenerateFakeWish(User user, Character character)
+		protected static Wish GenerateFakeWish(IReadOnlyUser user, IReadOnlyCharacter character)
 		{
 			return new Wish(user, character)
 			{

@@ -210,6 +210,21 @@ namespace Advobot.Gacha.Database
 			", user).CAF();
 			return connection.LastInsertRowId;
 		}
+		public async Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users)
+		{
+			//Scope is needed to make the bulk adding not take ages
+			using var connection = await GetConnectionAsync().CAF();
+			using var transaction = connection.BeginTransaction();
+
+			var affectedRowCount = await connection.ExecuteAsync(@"
+				INSERT INTO User
+				( GuildId, UserId )
+				VALUES
+				( @GuildId, @UserId )
+			", users).CAF();
+			transaction.Commit();
+			return affectedRowCount;
+		}
 
 		public async Task<IReadOnlySource> GetSourceAsync(long sourceId)
 		{
@@ -233,6 +248,21 @@ namespace Advobot.Gacha.Database
 				( @SourceId, @Name, @ThumbnailUrl, @TimeCreated )
 			", source).CAF();
 			return connection.LastInsertRowId;
+		}
+		public async Task<int> AddSourcesAsync(IEnumerable<IReadOnlySource> sources)
+		{
+			//Scope is needed to make the bulk adding not take ages
+			using var connection = await GetConnectionAsync().CAF();
+			using var transaction = connection.BeginTransaction();
+
+			var affectedRowCount = await connection.ExecuteAsync(@"
+				INSERT INTO Source
+				( SourceId, Name, ThumbnailUrl, TimeCreated )
+				VALUES
+				( @SourceId, @Name, @ThumbnailUrl, @TimeCreated )
+			", sources).CAF();
+			transaction.Commit();
+			return affectedRowCount;
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(IReadOnlySource source)
@@ -274,7 +304,7 @@ namespace Advobot.Gacha.Database
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
-			//Time for 500,000 records:
+			//Time for 500,000 records in both Character and Claim:
 			//NOT IN = 3796ms
 			//NOT EXISTS = 3946ms
 			//LEFT JOIN = 3636ms
@@ -324,7 +354,7 @@ namespace Advobot.Gacha.Database
 			var id = character.CharacterId;
 			var source = await GetSourceAsync(character.SourceId).CAF();
 			var claims = await connection.GetRankAsync<Claim>("Claim", id).CAF();
-			var likes = new AmountAndRank("Likes", -1, -1);
+			var likes = new AmountAndRank("Likes", -1, -1, -1, -1);
 			var wishes = await connection.GetRankAsync<Wish>("Wish", id).CAF();
 			return new CharacterMetadata(source, character, claims, likes, wishes);
 		}

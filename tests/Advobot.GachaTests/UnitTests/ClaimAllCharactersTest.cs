@@ -1,4 +1,5 @@
 ﻿using Advobot.Gacha.Models;
+using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utils;
 using AdvorangesUtils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -22,7 +23,7 @@ namespace Advobot.GachaTests.UnitTests
 			await db.AddSourceAsync(fakeSource).CAF();
 
 			//Create 500 fake characters
-			var fakeCharacters = new List<Character>();
+			var fakeCharacters = new List<IReadOnlyCharacter>();
 			for (var i = 1; i <= CHARACTER_COUNT; ++i) //Start at id 1 and end at id 500
 			{
 				fakeCharacters.Add(GenerateFakeCharacter(fakeSource, i));
@@ -34,7 +35,7 @@ namespace Advobot.GachaTests.UnitTests
 
 			//Create fake claims for 80% of the fake characters
 			var fakeUser = GenerateFakeUser();
-			var dict = new Dictionary<long, Claim>();
+			var dict = new Dictionary<long, IReadOnlyClaim>();
 			for (var i = 0; i < CLAIM_COUNT; ++i)
 			{
 				dict[i] = new Claim(fakeUser, fakeCharacters[i]);
@@ -55,8 +56,8 @@ namespace Advobot.GachaTests.UnitTests
 				else if (dict.TryGetValue(retrieved.CharacterId, out _))
 				{
 					Assert.Fail($"Retrieved an already claimed character " +
-						$"on the retrieval #{dict.Count - CLAIM_COUNT + 1} " +
-						$"with the id {retrieved.CharacterId}.");
+						$"on retrieval #{dict.Count - CLAIM_COUNT + 1} " +
+						$"with the character id {retrieved.CharacterId}.");
 				}
 
 				var fakeClaim = new Claim(fakeUser, retrieved);
