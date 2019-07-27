@@ -1,4 +1,5 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.Gacha.Relationships;
+using AdvorangesUtils;
 using Discord;
 using System;
 using System.Threading.Tasks;
@@ -19,5 +20,10 @@ namespace Advobot.Gacha.Utils
 				throw new NotImplementedException("Not implemented yet.", e);
 			}
 		}
+
+		public static ulong GetGuildId(this IUserChild child)
+			=> ulong.Parse(child.GuildId);
+		public static ulong GetUserId(this IUserChild child)
+			=> ulong.Parse(child.UserId);
 	}
 }

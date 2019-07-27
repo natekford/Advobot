@@ -2,6 +2,7 @@
 using Advobot.Gacha.MenuEmojis;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Utils;
 using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;
@@ -59,7 +60,7 @@ namespace Advobot.Gacha.Displays
 			IMenuEmote emoji)
 		{
 			if (emoji is ConfirmationEmoji c && c.Value && _Claim != null
-				&& reaction.UserId.ToString() == _Claim.UserId)
+				&& reaction.UserId == _Claim.GetUserId())
 			{
 				var url = _Images[PageIndex].Url;
 				return Database.UpdateClaimImageUrlAsync(_Claim, url);
@@ -92,7 +93,7 @@ namespace Advobot.Gacha.Displays
 				return embed.Build();
 			}
 
-			var owner = Client.GetUser(ulong.Parse(_Claim.UserId));
+			var owner = Client.GetUser(_Claim.GetUserId());
 			var ownerStr = owner?.ToString() ?? _Claim.UserId.ToString();
 
 			embed.Color = Constants.Claimed;

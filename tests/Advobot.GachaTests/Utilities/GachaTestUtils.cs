@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.GachaTests.Utils
+namespace Advobot.GachaTests.Utilities
 {
 	public static class GachaTestUtils
 	{

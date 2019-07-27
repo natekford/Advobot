@@ -1,8 +1,8 @@
-﻿namespace Advobot.Gacha.ReadOnlyModels
+﻿using Advobot.Gacha.Relationships;
+
+namespace Advobot.Gacha.ReadOnlyModels
 {
-	public interface IReadOnlyUser
+	public interface IReadOnlyUser : IUserChild
 	{
-		string GuildId { get; }
-		string UserId { get; }
 	}
 }
