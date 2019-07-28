@@ -1,4 +1,5 @@
 ﻿using Advobot.CommandMarking;
+using Advobot.Gacha.Checkers;
 using Advobot.Gacha.Database;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,8 @@ namespace Advobot.Gacha
 		{
 			services
 				.AddSingleton<GachaDatabase>()
-				.AddSingleton<IDatabaseStarter, SQLiteFileDatabaseFactory>();
+				.AddSingleton<IDatabaseStarter, SQLiteFileDatabaseFactory>()
+				.AddSingleton<ICheckersService, CheckersService>();
 			return Task.CompletedTask;
 		}
 		public async Task ConfigureServicesAsync(IServiceProvider services)

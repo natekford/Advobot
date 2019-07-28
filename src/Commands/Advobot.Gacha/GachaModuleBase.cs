@@ -1,4 +1,5 @@
 ﻿using Advobot.Classes.Modules;
+using Advobot.Gacha.Checkers;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Displays;
 using Advobot.Gacha.Models;
@@ -13,6 +14,7 @@ namespace Advobot.Gacha
 	{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public GachaDatabase Database { get; set; }
+		public ICheckersService Checkers { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 		protected async Task<CharacterDisplay> CreateCharacterDisplayAsync(Character character, bool fireAndForget = true)
@@ -32,10 +34,12 @@ namespace Advobot.Gacha
 		}
 		protected async Task<RollDisplay> CreateRollDisplayAsync(bool fireAndForget = true)
 		{
+			var checker = Checkers.GetClaimChecker(Context.Guild);
 			var character = await Database.GetUnclaimedCharacter(Context.Guild.Id).CAF();
+			var source = await Database.GetSourceAsync(character.SourceId).CAF();
 			var wishes = await Database.GetWishesAsync(Context.Guild.Id, character).CAF();
 			var images = await Database.GetImagesAsync(character).CAF();
-			var display = new RollDisplay(Context.Client, Database, character, wishes, images);
+			var display = new RollDisplay(Context.Client, Database, checker, character, source, wishes, images);
 			return await FireAndForget(display, fireAndForget).CAF();
 		}
 		protected async Task<SourceDisplay> CreateSourceDisplayAsync(Source source, bool fireAndForget = true)

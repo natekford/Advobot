@@ -1,5 +1,6 @@
 ﻿using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Gacha.Utils;
+using Advobot.Gacha.Utilities;
+using Advobot.GachaTests.Utilities;
 using AdvorangesUtils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
@@ -12,68 +13,44 @@ namespace Advobot.GachaTests.UnitTests
 	{
 		public const int SOURCE_COUNT = 20;
 		public const int CHARACTERS_PER_SOURCE = 25;
-		public const int CHARACTER_COUNT = SOURCE_COUNT * CHARACTERS_PER_SOURCE;
+		public const int MIN_CLAIMS = 1;
+		public const int MAX_CLAIMS = 25;
 
 		[TestMethod]
 		public async Task GetCharacterMetadata_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
+			var (_, characters) = await AddSourcesAndCharacters(db, SOURCE_COUNT, CHARACTERS_PER_SOURCE).CAF();
 
-			{
-				var fakeSources = new List<IReadOnlySource>();
-				var fakeCharacters = new List<IReadOnlyCharacter>();
-				for (var i = 1; i <= SOURCE_COUNT; ++i)
-				{
-					var fakeSource = GenerateFakeSource(i);
-					fakeSources.Add(fakeSource);
-
-					for (var j = 1; j <= CHARACTERS_PER_SOURCE; ++j)
-					{
-						var id = i * (CHARACTERS_PER_SOURCE - 1) + j;
-						fakeCharacters.Add(GenerateFakeCharacter(fakeSource, id));
-					}
-				}
-
-				var addedFakeSources = await db.AddSourcesAsync(fakeSources).CAF();
-				Assert.AreEqual(SOURCE_COUNT, addedFakeSources);
-				var addedFakeCharacters = await db.AddCharactersAsync(fakeCharacters).CAF();
-				Assert.AreEqual(CHARACTER_COUNT, addedFakeCharacters);
-			}
-
+			//Set up a random number of claims on each character
 			var dict = new Dictionary<IReadOnlyCharacter, int>();
+			var users = new List<IReadOnlyUser>();
+			var claims = new List<IReadOnlyClaim>();
+			foreach (var character in characters)
 			{
-				var fakeUsers = new List<IReadOnlyUser>();
-				var fakeClaims = new List<IReadOnlyClaim>();
-				for (var i = 1; i <= CHARACTER_COUNT; ++i)
+				var claimCount = Rng.Next(MIN_CLAIMS, MAX_CLAIMS);
+				dict[character] = claimCount;
+				for (var j = 0; j < claimCount; ++j)
 				{
-					var fakeCharacter = await db.GetCharacterAsync(i).CAF();
-					var claimCount = Rng.Next(1, 25);
-					dict[fakeCharacter] = claimCount;
-					for (var j = 0; j < claimCount; ++j)
-					{
-						var fakeUser = GenerateFakeUser();
-						var fakeClaim = GenerateFakeClaim(fakeUser, fakeCharacter);
-						fakeUsers.Add(fakeUser);
-						fakeClaims.Add(fakeClaim);
-					}
+					var user = GachaTestUtils.GenerateFakeUser();
+					var claim = GachaTestUtils.GenerateFakeClaim(user, character);
+					users.Add(user);
+					claims.Add(claim);
 				}
-
-				Assert.AreEqual(fakeUsers.Count, fakeClaims.Count);
-				var addedFakeUsers = await db.AddUsersAsync(fakeUsers).CAF();
-				Assert.AreEqual(fakeUsers.Count, addedFakeUsers);
-				var addedFakeClaims = await db.AddClaimsAsync(fakeClaims).CAF();
-				Assert.AreEqual(fakeUsers.Count, addedFakeClaims);
 			}
+			Assert.AreEqual(users.Count, claims.Count);
+			var addedUsers = await db.AddUsersAsync(users).CAF();
+			Assert.AreEqual(users.Count, addedUsers);
+			var addedClaims = await db.AddClaimsAsync(claims).CAF();
+			Assert.AreEqual(users.Count, addedClaims);
 
+			foreach (var kvp in dict)
 			{
-				foreach (var kvp in dict)
-				{
-					var expectedRank = RankUtils.GetRank(dict.Values, kvp.Value);
-					var metadata = await db.GetCharacterMetadataAsync(kvp.Key).CAF();
+				var expectedRank = RankUtils.GetRank(dict.Values, kvp.Value);
+				var metadata = await db.GetCharacterMetadataAsync(kvp.Key).CAF();
 
-					Assert.AreEqual(expectedRank, metadata.Claims.Rank);
-					Assert.AreEqual(kvp.Value, metadata.Claims.Amount);
-				}
+				Assert.AreEqual(expectedRank, metadata.Claims.Rank);
+				Assert.AreEqual(kvp.Value, metadata.Claims.Amount);
 			}
 		}
 	}

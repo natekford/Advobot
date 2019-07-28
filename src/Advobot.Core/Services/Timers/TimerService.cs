@@ -26,14 +26,14 @@ namespace Advobot.Services.Timers
 	{
 		/// <inheritdoc />
 		public override string DatabaseName => "TimedDatabase";
-		private readonly DiscordShardedClient Client;
-		private readonly Timer HourTimer = new Timer(60 * 60 * 1000);
-		private readonly Timer MinuteTimer = new Timer(60 * 1000);
-		private readonly Timer SecondTimer = new Timer(1000);
-		private readonly PunishmentArgs PunishmentArgs;
-		private readonly AsyncProcessingQueue RemovablePunishments;
-		private readonly AsyncProcessingQueue TimedMessages;
-		private readonly AsyncProcessingQueue RemovableMessages;
+		private readonly BaseSocketClient _Client;
+		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
+		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
+		private readonly Timer _SecondTimer = new Timer(1000);
+		private readonly PunishmentArgs _PunishmentArgs;
+		private readonly AsyncProcessingQueue _RemovablePunishments;
+		private readonly AsyncProcessingQueue _TimedMessages;
+		private readonly AsyncProcessingQueue _RemovableMessages;
 		private readonly ConcurrentDictionary<ulong, byte> _AlreadyDeletedMessages = new ConcurrentDictionary<ulong, byte>();
 
 		/// <summary>
@@ -42,42 +42,42 @@ namespace Advobot.Services.Timers
 		/// <param name="provider"></param>
 		public TimerService(IServiceProvider provider) : base(provider)
 		{
-			Client = provider.GetRequiredService<DiscordShardedClient>();
-			PunishmentArgs = new PunishmentArgs
+			_Client = provider.GetRequiredService<BaseSocketClient>();
+			_PunishmentArgs = new PunishmentArgs
 			{
 				Options = DiscordUtils.GenerateRequestOptions("Automatically done from the timer service."),
 			};
 
-			RemovablePunishments = new AsyncProcessingQueue(1, () =>
+			_RemovablePunishments = new AsyncProcessingQueue(1, () =>
 			{
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(x => x.Time < DateTime.UtcNow));
-				return ProcessRemovablePunishments(Client, PunishmentArgs, values);
+				return ProcessRemovablePunishments(_Client, _PunishmentArgs, values);
 			});
-			TimedMessages = new AsyncProcessingQueue(1, () =>
+			_TimedMessages = new AsyncProcessingQueue(1, () =>
 			{
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<TimedMessage>.Delete(x => x.Time < DateTime.UtcNow));
-				return ProcessTimedMessages(Client, values);
+				return ProcessTimedMessages(_Client, values);
 			});
-			RemovableMessages = new AsyncProcessingQueue(1, () =>
+			_RemovableMessages = new AsyncProcessingQueue(1, () =>
 			{
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableMessage>.Delete(x => x.Time < DateTime.UtcNow));
-				return ProcessRemovableMessagesAsync(Client, PunishmentArgs, _AlreadyDeletedMessages, values);
+				return ProcessRemovableMessagesAsync(_Client, _PunishmentArgs, _AlreadyDeletedMessages, values);
 			});
 
-			HourTimer.Elapsed += (sender, e) =>
+			_HourTimer.Elapsed += (sender, e) =>
 			{
 				//Clear this bag every hour because most of these errors only happen a few seconds after input
 				//Meaning there's not much of a need for longer term storage of message ids
 				_AlreadyDeletedMessages.Clear();
 			};
-			MinuteTimer.Elapsed += (sender, e) =>
+			_MinuteTimer.Elapsed += (sender, e) =>
 			{
-				RemovablePunishments.Process();
-				TimedMessages.Process();
+				_RemovablePunishments.Process();
+				_TimedMessages.Process();
 			};
-			SecondTimer.Elapsed += (sender, e) => RemovableMessages.Process();
+			_SecondTimer.Elapsed += (sender, e) => _RemovableMessages.Process();
 
-			Client.MessageDeleted += (cached, channel) =>
+			_Client.MessageDeleted += (cached, channel) =>
 			{
 				_AlreadyDeletedMessages.TryAdd(cached.Id, 0);
 				return Task.CompletedTask;
@@ -118,17 +118,17 @@ namespace Advobot.Services.Timers
 		/// <inheritdoc />
 		protected override void AfterStart(int schema)
 		{
-			HourTimer.Start();
-			MinuteTimer.Start();
-			SecondTimer.Start();
+			_HourTimer.Start();
+			_MinuteTimer.Start();
+			_SecondTimer.Start();
 			base.AfterStart(schema);
 		}
 		/// <inheritdoc />
 		protected override void BeforeDispose()
 		{
-			HourTimer.Dispose();
-			MinuteTimer.Dispose();
-			SecondTimer.Dispose();
+			_HourTimer.Dispose();
+			_MinuteTimer.Dispose();
+			_SecondTimer.Dispose();
 			base.BeforeDispose();
 		}
 

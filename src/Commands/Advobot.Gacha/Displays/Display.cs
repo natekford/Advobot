@@ -1,7 +1,7 @@
 ﻿using Advobot.Classes.Results;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
-using Advobot.Gacha.Utils;
+using Advobot.Gacha.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

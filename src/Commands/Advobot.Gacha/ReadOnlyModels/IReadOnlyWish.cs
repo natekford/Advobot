@@ -4,5 +4,6 @@ namespace Advobot.Gacha.ReadOnlyModels
 {
 	public interface IReadOnlyWish : ITimeCreated, IUserChild, ICharacterChild
 	{
+		long WishId { get; }
 	}
 }

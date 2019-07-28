@@ -1,4 +1,5 @@
-using Advobot.Gacha.Utils;
+using Advobot.Gacha.Utilities;
+using Advobot.GachaTests.Utilities;
 using AdvorangesUtils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
@@ -14,93 +15,102 @@ namespace Advobot.GachaTests.UnitTests
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var fakeUser = GenerateFakeUser();
-			await db.AddUserAsync(fakeUser).CAF();
+			var user = GachaTestUtils.GenerateFakeUser();
+			await db.AddUserAsync(user).CAF();
 
-			var retrieved = await db.GetUserAsync(fakeUser.GetGuildId(), fakeUser.GetUserId()).CAF();
+			var retrieved = await db.GetUserAsync(user.GetGuildId(), user.GetUserId()).CAF();
 			Assert.AreNotEqual(null, retrieved);
-			Assert.AreEqual(fakeUser.UserId, retrieved.UserId);
-			Assert.AreEqual(fakeUser.GuildId, retrieved.GuildId);
+			Assert.AreEqual(user.UserId, retrieved.UserId);
+			Assert.AreEqual(user.GuildId, retrieved.GuildId);
 		}
 		[TestMethod]
 		public async Task SourceInsertionAndRetrieval_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var fakeSource = GenerateFakeSource();
-			fakeSource.SourceId = await db.AddSourceAsync(fakeSource).CAF();
+			var source = GachaTestUtils.GenerateFakeSource();
+			await db.AddSourceAsync(source).CAF();
 
-			var retrieved = await db.GetSourceAsync(fakeSource.SourceId).CAF();
+			var retrieved = await db.GetSourceAsync(source.SourceId).CAF();
 			Assert.AreNotEqual(null, retrieved);
-			Assert.AreEqual(fakeSource.SourceId, retrieved.SourceId);
-			Assert.AreEqual(fakeSource.Name, retrieved.Name);
-			Assert.AreEqual(fakeSource.ThumbnailUrl, retrieved.ThumbnailUrl);
-			Assert.AreEqual(fakeSource.TimeCreated, retrieved.TimeCreated);
+			Assert.AreEqual(source.SourceId, retrieved.SourceId);
+			Assert.AreEqual(source.Name, retrieved.Name);
+			Assert.AreEqual(source.ThumbnailUrl, retrieved.ThumbnailUrl);
 		}
 		[TestMethod]
 		public async Task CharacterInsertionAndRetrieval_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var fakeSource = GenerateFakeSource();
-			var fakeCharacter = GenerateFakeCharacter(fakeSource);
-			fakeCharacter.CharacterId = await db.AddCharacterAsync(fakeCharacter).CAF();
+			var source = GachaTestUtils.GenerateFakeSource();
+			var character = GachaTestUtils.GenerateFakeCharacter(source);
+			await db.AddCharacterAsync(character).CAF();
 
-			var retrieved = await db.GetCharacterAsync(fakeCharacter.CharacterId).CAF();
+			var retrieved = await db.GetCharacterAsync(character.CharacterId).CAF();
 			Assert.AreNotEqual(null, retrieved);
-			Assert.AreEqual(fakeCharacter.SourceId, retrieved.SourceId);
-			Assert.AreEqual(fakeCharacter.CharacterId, retrieved.CharacterId);
-			Assert.AreEqual(fakeCharacter.Name, retrieved.Name);
-			Assert.AreEqual(fakeCharacter.GenderIcon, retrieved.GenderIcon);
-			Assert.AreEqual(fakeCharacter.Gender, retrieved.Gender);
-			Assert.AreEqual(fakeCharacter.RollType, retrieved.RollType);
-			Assert.AreEqual(fakeCharacter.FlavorText, retrieved.FlavorText);
-			Assert.AreEqual(fakeCharacter.IsFakeCharacter, retrieved.IsFakeCharacter);
-			Assert.AreEqual(fakeCharacter.TimeCreated, retrieved.TimeCreated);
+			Assert.AreEqual(character.SourceId, retrieved.SourceId);
+			Assert.AreEqual(character.CharacterId, retrieved.CharacterId);
+			Assert.AreEqual(character.Name, retrieved.Name);
+			Assert.AreEqual(character.GenderIcon, retrieved.GenderIcon);
+			Assert.AreEqual(character.Gender, retrieved.Gender);
+			Assert.AreEqual(character.RollType, retrieved.RollType);
+			Assert.AreEqual(character.FlavorText, retrieved.FlavorText);
+			Assert.AreEqual(character.IsFakeCharacter, retrieved.IsFakeCharacter);
 		}
 		[TestMethod]
 		public async Task ClaimInsertionAndRetrieval_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var fakeSource = GenerateFakeSource();
-			var fakeCharacter = GenerateFakeCharacter(fakeSource);
-			var fakeUser = GenerateFakeUser();
-			var fakeClaim = GenerateFakeClaim(fakeUser, fakeCharacter);
-			await db.AddClaimAsync(fakeClaim).CAF();
+			var source = GachaTestUtils.GenerateFakeSource();
+			var character = GachaTestUtils.GenerateFakeCharacter(source);
+			var user = GachaTestUtils.GenerateFakeUser();
+			var claim = GachaTestUtils.GenerateFakeClaim(user, character);
+			await db.AddClaimAsync(claim).CAF();
 
-			var retrieved = await db.GetClaimAsync(fakeUser, fakeCharacter).CAF();
+			var retrieved = await db.GetClaimAsync(user, character).CAF();
 			Assert.AreNotEqual(null, retrieved);
-			Assert.AreEqual(fakeClaim.GuildId, retrieved.GuildId);
-			Assert.AreEqual(fakeClaim.UserId, retrieved.UserId);
-			Assert.AreEqual(fakeClaim.CharacterId, retrieved.CharacterId);
-			Assert.AreEqual(fakeClaim.ImageUrl, retrieved.ImageUrl);
-			Assert.AreEqual(fakeClaim.IsPrimaryClaim, retrieved.IsPrimaryClaim);
-			Assert.AreEqual(fakeClaim.TimeCreated, retrieved.TimeCreated);
+			Assert.AreEqual(claim.ClaimId, retrieved.ClaimId);
+			Assert.AreEqual(claim.GuildId, retrieved.GuildId);
+			Assert.AreEqual(claim.UserId, retrieved.UserId);
+			Assert.AreEqual(claim.CharacterId, retrieved.CharacterId);
+			Assert.AreEqual(claim.ImageUrl, retrieved.ImageUrl);
+			Assert.AreEqual(claim.IsPrimaryClaim, retrieved.IsPrimaryClaim);
 		}
 		[TestMethod]
 		public async Task WishInsertionAndRetrieval_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var fakeSource = GenerateFakeSource();
-			var fakeCharacter = GenerateFakeCharacter(fakeSource);
-			var fakeUser = GenerateFakeUser();
-			var fakeWish = GenerateFakeWish(fakeUser, fakeCharacter);
-			await db.AddWishAsync(fakeWish).CAF();
+			var source = GachaTestUtils.GenerateFakeSource();
+			var character = GachaTestUtils.GenerateFakeCharacter(source);
+			var user = GachaTestUtils.GenerateFakeUser();
+			var wish = GachaTestUtils.GenerateFakeWish(user, character);
+			await db.AddWishAsync(wish).CAF();
 
-			var retrievedList = await db.GetWishesAsync(fakeUser).CAF();
-			var retrieved = retrievedList.SingleOrDefault(x => x.CharacterId == fakeCharacter.CharacterId);
+			var retrievedList = await db.GetWishesAsync(user).CAF();
+			var retrieved = retrievedList.SingleOrDefault(x => x.CharacterId == character.CharacterId);
 			Assert.AreNotEqual(null, retrieved);
-			Assert.AreEqual(fakeWish.GuildId, retrieved.GuildId);
-			Assert.AreEqual(fakeWish.UserId, retrieved.UserId);
-			Assert.AreEqual(fakeWish.CharacterId, retrieved.CharacterId);
-			Assert.AreEqual(fakeWish.TimeCreated, retrieved.TimeCreated);
+			Assert.AreEqual(wish.WishId, retrieved.WishId);
+			Assert.AreEqual(wish.GuildId, retrieved.GuildId);
+			Assert.AreEqual(wish.UserId, retrieved.UserId);
+			Assert.AreEqual(wish.CharacterId, retrieved.CharacterId);
 		}
 		[TestMethod]
 		public async Task ImageInsertionAndRetrieval_Test()
 		{
+			var db = await GetDatabaseAsync().CAF();
 
+			var source = GachaTestUtils.GenerateFakeSource();
+			var character = GachaTestUtils.GenerateFakeCharacter(source);
+			var image = GachaTestUtils.GenerateFakeImage(character);
+			await db.AddImageAsync(image).CAF();
+
+			var retrievedList = await db.GetImagesAsync(character).CAF();
+			var retrieved = retrievedList.Single();
+			Assert.AreNotEqual(null, retrieved);
+			Assert.AreEqual(image.CharacterId, retrieved.CharacterId);
+			Assert.AreEqual(image.Url, retrieved.Url);
 		}
 	}
 }

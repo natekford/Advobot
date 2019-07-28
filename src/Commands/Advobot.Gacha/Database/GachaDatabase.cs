@@ -1,7 +1,8 @@
 ﻿using Advobot.Gacha.Metadata;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Gacha.Utils;
+using Advobot.Gacha.Trading;
+using Advobot.Gacha.Utilities;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Dapper;
@@ -39,8 +40,7 @@ namespace Advobot.Gacha.Database
 			(
 				SourceId					INTEGER NOT NULL PRIMARY KEY,
 				Name						TEXT NOT NULL,
-				ThumbnailUrl				TEXT,
-				TimeCreated					INTEGER NOT NULL
+				ThumbnailUrl				TEXT
 			);
 			CREATE UNIQUE INDEX Source_Name_Index ON Source
 			(
@@ -59,7 +59,6 @@ namespace Advobot.Gacha.Database
 				Gender						INTEGER NOT NULL,
 				RollType					INTEGER NOT NULL,
 				FlavorText					TEXT,
-				TimeCreated					INTEGER NOT NULL,
 				IsFakeCharacter				INTEGER NOT NULL,
 				FOREIGN KEY(SourceId) REFERENCES Source(SourceId) ON DELETE CASCADE
 			);
@@ -122,12 +121,12 @@ namespace Advobot.Gacha.Database
 			await connection.ExecuteAsync(@"
 			CREATE TABLE Claim
 			(
+				ClaimId						INTEGER NOT NULL,
 				GuildId						TEXT NOT NULL,
 				UserId						TEXT NOT NULL,
 				CharacterId					INTEGER NOT NULL,
 				ImageUrl					TEXT,
 				IsPrimaryClaim				INTEGER NOT NULL,
-				TimeCreated					INTEGER NOT NULL,
 				PRIMARY KEY(GuildId, CharacterId)
 			);
 			CREATE INDEX Claim_GuildId_Index ON Claim
@@ -145,10 +144,10 @@ namespace Advobot.Gacha.Database
 			await connection.ExecuteAsync(@"
 			CREATE TABLE Wish
 			(
+				WishId						INTEGER NOT NULL,
 				GuildId						TEXT NOT NULL,
 				UserId						TEXT NOT NULL,
 				CharacterId					INTEGER NOT NULL,
-				TimeCreated					INTEGER NOT NULL,
 				PRIMARY KEY(GuildId, UserId, CharacterId)
 			);
 			CREATE INDEX Wish_GuildId_Index ON Wish
@@ -198,18 +197,6 @@ namespace Advobot.Gacha.Database
 				WHERE GuildId = @GuildId AND UserId = @UserId
 			", param).CAF();
 		}
-		public async Task<long> AddUserAsync(IReadOnlyUser user)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.QueryAsync(@"
-				INSERT INTO User
-				( GuildId, UserId )
-				VALUES
-				( @GuildId, @UserId )
-			", user).CAF();
-			return connection.LastInsertRowId;
-		}
 		public async Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users)
 		{
 			//Scope is needed to make the bulk adding not take ages
@@ -225,6 +212,17 @@ namespace Advobot.Gacha.Database
 			transaction.Commit();
 			return affectedRowCount;
 		}
+		public async Task AddUserAsync(IReadOnlyUser user)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+
+			await connection.QueryAsync(@"
+				INSERT INTO User
+				( GuildId, UserId )
+				VALUES
+				( @GuildId, @UserId )
+			", user).CAF();
+		}
 
 		public async Task<IReadOnlySource> GetSourceAsync(long sourceId)
 		{
@@ -232,22 +230,10 @@ namespace Advobot.Gacha.Database
 
 			var param = new { SourceId = sourceId };
 			return await connection.QuerySingleOrDefaultAsync<Source>(@"
-				SELECT SourceId, Name, ThumbnailUrl, TimeCreated
+				SELECT *
 				FROM Source
 				WHERE SourceId = @SourceId
 			", param).CAF();
-		}
-		public async Task<long> AddSourceAsync(IReadOnlySource source)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.QueryAsync(@"
-				INSERT INTO Source
-				( SourceId, Name, ThumbnailUrl, TimeCreated )
-				VALUES
-				( @SourceId, @Name, @ThumbnailUrl, @TimeCreated )
-			", source).CAF();
-			return connection.LastInsertRowId;
 		}
 		public async Task<int> AddSourcesAsync(IEnumerable<IReadOnlySource> sources)
 		{
@@ -257,21 +243,42 @@ namespace Advobot.Gacha.Database
 
 			var affectedRowCount = await connection.ExecuteAsync(@"
 				INSERT INTO Source
-				( SourceId, Name, ThumbnailUrl, TimeCreated )
+				( SourceId, Name, ThumbnailUrl )
 				VALUES
-				( @SourceId, @Name, @ThumbnailUrl, @TimeCreated )
+				( @SourceId, @Name, @ThumbnailUrl )
 			", sources).CAF();
 			transaction.Commit();
 			return affectedRowCount;
 		}
+		public async Task AddSourceAsync(IReadOnlySource source)
+		{
+			using var connection = await GetConnectionAsync().CAF();
 
+			await connection.QueryAsync(@"
+				INSERT INTO Source
+				( SourceId, Name, ThumbnailUrl )
+				VALUES
+				( @SourceId, @Name, @ThumbnailUrl )
+			", source).CAF();
+		}
+
+		public async Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync()
+		{
+			using var connection = await GetConnectionAsync().CAF();
+
+			var query = await connection.QueryAsync<Character>(@"
+				SELECT *
+				FROM Character
+			").CAF();
+			return query.ToArray();
+		}
 		public async Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(IReadOnlySource source)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
 			var param = new { source.SourceId };
 			var query = await connection.QueryAsync<Character>(@"
-				SELECT SourceId, CharacterId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter, TimeCreated
+				SELECT *
 				FROM Character
 				WHERE SourceId = @SourceId
 			", param).CAF();
@@ -283,7 +290,7 @@ namespace Advobot.Gacha.Database
 
 			var param = new { Ids = ids };
 			var query = await connection.QueryAsync<Character>(@"
-				SELECT SourceId, CharacterId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter, TimeCreated
+				SELECT *
 				FROM Character
 				WHERE CharacterId IN @Ids
 			", param).CAF();
@@ -295,7 +302,7 @@ namespace Advobot.Gacha.Database
 
 			var param = new { CharacterId = characterId };
 			return await connection.QuerySingleOrDefaultAsync<Character>(@"
-				SELECT SourceId, CharacterId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter, TimeCreated
+				SELECT *
 				FROM Character
 				WHERE CharacterId = @CharacterId
 			", param).CAF();
@@ -320,18 +327,6 @@ namespace Advobot.Gacha.Database
 				ORDER BY RANDOM() LIMIT 1
 			", param).CAF();
 		}
-		public async Task<long> AddCharacterAsync(IReadOnlyCharacter character)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.QueryAsync(@"
-				INSERT INTO Character
-				( SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter, TimeCreated )
-				VALUES
-				( @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter, @TimeCreated )
-			", character).CAF();
-			return connection.LastInsertRowId;
-		}
 		public async Task<int> AddCharactersAsync(IEnumerable<IReadOnlyCharacter> characters)
 		{
 			//Scope is needed to make the bulk adding not take ages
@@ -340,12 +335,23 @@ namespace Advobot.Gacha.Database
 
 			var affectedRowCount = await connection.ExecuteAsync(@"
 				INSERT INTO Character
-				( SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter, TimeCreated )
+				( CharacterId, SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter )
 				VALUES
-				( @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter, @TimeCreated )
+				( @CharacterId, @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter )
 			", characters).CAF();
 			transaction.Commit();
 			return affectedRowCount;
+		}
+		public async Task AddCharacterAsync(IReadOnlyCharacter character)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+
+			await connection.QueryAsync(@"
+				INSERT INTO Character
+				( CharacterId, SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter )
+				VALUES
+				( @CharacterId, @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter )
+			", character).CAF();
 		}
 		public async Task<CharacterMetadata> GetCharacterMetadataAsync(IReadOnlyCharacter character)
 		{
@@ -365,7 +371,7 @@ namespace Advobot.Gacha.Database
 
 			var param = new { GuildId = guildId.ToString() };
 			var query = await connection.QueryAsync<Claim>(@"
-				SELECT GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim, TimeCreated
+				SELECT *
 				FROM Claim
 				WHERE GuildId = @GuildId
 			", param).CAF();
@@ -377,7 +383,7 @@ namespace Advobot.Gacha.Database
 
 			var param = new { user.GuildId, user.UserId };
 			var query = await connection.QueryAsync<Claim>(@"
-				SELECT GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim, TimeCreated
+				SELECT *
 				FROM Claim
 				WHERE GuildId = @GuildId AND UserId = @UserId
 			", param).CAF();
@@ -389,22 +395,10 @@ namespace Advobot.Gacha.Database
 
 			var param = new { user.GuildId, user.UserId, character.CharacterId };
 			return await connection.QuerySingleOrDefaultAsync<Claim>(@"
-				SELECT GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim, TimeCreated
+				SELECT *
 				FROM Claim
 				WHERE GuildId = @GuildId AND UserId = @UserId AND CharacterId = @CharacterId
 			", param).CAF();
-		}
-		public async Task<long> AddClaimAsync(IReadOnlyClaim claim)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.QueryAsync(@"
-				INSERT INTO Claim
-				( GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim, TimeCreated )
-				VALUES
-				( @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim, @TimeCreated )
-			", claim).CAF();
-			return connection.LastInsertRowId;
 		}
 		public async Task<int> AddClaimsAsync(IEnumerable<IReadOnlyClaim> claims)
 		{
@@ -414,12 +408,23 @@ namespace Advobot.Gacha.Database
 
 			var affectedRowCount = await connection.ExecuteAsync(@"
 				INSERT INTO Claim
-				( GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim, TimeCreated )
+				( ClaimId, GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim )
 				VALUES
-				( @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim, @TimeCreated )
+				( @ClaimId, @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim )
 			", claims).CAF();
 			transaction.Commit();
 			return affectedRowCount;
+		}
+		public async Task AddClaimAsync(IReadOnlyClaim claim)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+
+			await connection.QueryAsync(@"
+				INSERT INTO Claim
+				( ClaimId, GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim )
+				VALUES
+				( @ClaimId, @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim )
+			", claim).CAF();
 		}
 		public async Task UpdateClaimImageUrlAsync(IReadOnlyClaim claim, string? url)
 		{
@@ -439,7 +444,7 @@ namespace Advobot.Gacha.Database
 
 			var param = new { GuildId = guildId.ToString() };
 			var query = await connection.QueryAsync<Wish>(@"
-				SELECT GuildId, UserId, CharacterId, TimeCreated
+				SELECT *
 				FROM Wish
 				WHERE GuildId = @GuildId
 			", param).CAF();
@@ -451,7 +456,7 @@ namespace Advobot.Gacha.Database
 
 			var param = new { GuildId = guildId.ToString(), character.CharacterId };
 			var query = await connection.QueryAsync<Wish>(@"
-				SELECT GuildId, UserId, CharacterId, TimeCreated
+				SELECT *
 				FROM Wish
 				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
 			", param).CAF();
@@ -463,23 +468,22 @@ namespace Advobot.Gacha.Database
 
 			var param = new { user.GuildId, user.UserId };
 			var query = await connection.QueryAsync<Wish>(@"
-				SELECT GuildId, UserId, CharacterId, TimeCreated
+				SELECT *
 				FROM Wish
 				WHERE GuildId = @GuildId AND UserId = @UserId
 			", param).CAF();
 			return query.ToArray();
 		}
-		public async Task<long> AddWishAsync(IReadOnlyWish wish)
+		public async Task AddWishAsync(IReadOnlyWish wish)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
 			await connection.QueryAsync(@"
 				INSERT INTO Wish
-				( GuildId, UserId, CharacterId, TimeCreated )
+				( WishId, GuildId, UserId, CharacterId )
 				VALUES
-				( @GuildId, @UserId, @CharacterId, @TimeCreated )
+				( @WishId, @GuildId, @UserId, @CharacterId )
 			", wish).CAF();
-			return connection.LastInsertRowId;
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyImage>> GetImagesAsync(IReadOnlyCharacter character)
@@ -488,13 +492,13 @@ namespace Advobot.Gacha.Database
 
 			var param = new { character.CharacterId };
 			var query = await connection.QueryAsync<Image>(@"
-				SELECT CharacterId, Url
+				SELECT *
 				FROM Image
 				WHERE CharacterId = @CharacterId
 			", param).CAF();
 			return query.ToArray();
 		}
-		public async Task<long> AddImageAsync(IReadOnlyImage image)
+		public async Task AddImageAsync(IReadOnlyImage image)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -504,7 +508,20 @@ namespace Advobot.Gacha.Database
 				VALUES
 				( @CharacterId, @Url )
 			", image).CAF();
-			return connection.LastInsertRowId;
+		}
+
+		public async Task<int> TradeAsync(IEnumerable<ITrade> trades)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+			using var transaction = connection.BeginTransaction();
+
+			var affectedRowCount = await connection.ExecuteAsync(@"
+				UPDATE Claim
+				SET UserId = @ReceiverId
+				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
+			", trades).CAF();
+			transaction.Commit();
+			return affectedRowCount;
 		}
 	}
 }

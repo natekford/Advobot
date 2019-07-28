@@ -1,8 +1,9 @@
-﻿using Advobot.Gacha.Database;
+﻿using Advobot.Gacha.Checkers;
+using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Gacha.Utils;
+using Advobot.Gacha.Utilities;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -24,7 +25,9 @@ namespace Advobot.Gacha.Displays
 			new ConfirmationEmoji(Constants.Heart, true),
 		};
 
+		private readonly IChecker<ulong> _Checker;
 		private readonly IReadOnlyCharacter _Character;
+		private readonly IReadOnlySource _Source;
 		private readonly IReadOnlyList<IReadOnlyWish> _Wishes;
 		private readonly IReadOnlyList<IReadOnlyImage> _Images;
 		private readonly TaskCompletionSource<object?> _Claimed = new TaskCompletionSource<object?>();
@@ -32,12 +35,16 @@ namespace Advobot.Gacha.Displays
 		public RollDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
+			IChecker<ulong> checker,
 			IReadOnlyCharacter character,
+			IReadOnlySource source,
 			IReadOnlyList<IReadOnlyWish> wishes,
 			IReadOnlyList<IReadOnlyImage> images)
 			: base(client, db)
 		{
+			_Checker = checker;
 			_Character = character;
+			_Source = source;
 			_Wishes = wishes;
 			_Images = images;
 		}
@@ -47,14 +54,17 @@ namespace Advobot.Gacha.Displays
 			SocketReaction reaction,
 			IMenuEmote emoji)
 		{
-			if (emoji is ConfirmationEmoji c && c.Value)
+			if (emoji is ConfirmationEmoji c && c.Value
+				&& !_Claimed.Task.IsCompleted
+				&& _Checker.CanDo(reaction.UserId))
 			{
+				_Claimed.SetResult(null);
+				_Checker.HasBeenDone(reaction.UserId);
+
 				var guildUser = (IGuildUser)reaction.User.Value;
 				var user = await Database.GetUserAsync(guildUser.GuildId, guildUser.Id).CAF();
-				//TODO: verify the user can claim
-
-				_Claimed.SetResult(null);
-				await Database.AddClaimAsync(new Claim(user, _Character)).CAF();
+				var claim = new Claim(user, _Character);
+				await Database.AddClaimAsync(claim).CAF();
 			}
 		}
 		protected override Task<Embed> GenerateEmbedAsync()
@@ -72,7 +82,7 @@ namespace Advobot.Gacha.Displays
 			return new EmbedBuilder
 			{
 				Title = _Character.Name,
-				//Description = _Character.Source.Name,
+				Description = _Source.Name,
 				ImageUrl = _Images.First().Url,
 				Color = _Wishes.Count > 0 ? Constants.Wished : Constants.Unclaimed,
 			}.Build();

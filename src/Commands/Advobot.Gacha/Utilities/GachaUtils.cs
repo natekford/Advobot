@@ -4,7 +4,7 @@ using Discord;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Gacha.Utils
+namespace Advobot.Gacha.Utilities
 {
 	public static class GachaUtils
 	{

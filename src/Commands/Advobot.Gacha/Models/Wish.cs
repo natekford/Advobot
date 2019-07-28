@@ -1,14 +1,15 @@
 ﻿using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Gacha.Utils;
+using Advobot.Gacha.Utilities;
+using System;
 
 namespace Advobot.Gacha.Models
 {
 	public class Wish : IReadOnlyWish
 	{
+		public long WishId { get; set; } = TimeUtils.UtcNowTicks;
 		public string GuildId { get; set; }
 		public string UserId { get; set; }
 		public long CharacterId { get; set; }
-		public long TimeCreated { get; set; } = TimeUtils.Now();
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public Wish() { }
@@ -19,5 +20,8 @@ namespace Advobot.Gacha.Models
 			UserId = user.UserId;
 			CharacterId = character.CharacterId;
 		}
+
+		public DateTime GetTimeCreated()
+			=> WishId.ToTime();
 	}
 }

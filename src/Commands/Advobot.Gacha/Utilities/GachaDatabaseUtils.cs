@@ -3,18 +3,14 @@ using Advobot.Gacha.Relationships;
 using AdvorangesUtils;
 using Dapper;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Threading.Tasks;
 
-namespace Advobot.Gacha.Utils
+namespace Advobot.Gacha.Utilities
 {
 	public static class RankUtils
 	{
-		private static readonly ConcurrentDictionary<long, Lazy<Task<long>>> _Times
-			= new ConcurrentDictionary<long, Lazy<Task<long>>>();
-
 		public static async Task<AmountAndRank> GetRankAsync<T>(
 			this SQLiteConnection connection,
 			string tableName,
@@ -38,14 +34,7 @@ namespace Advobot.Gacha.Utils
 			var normalizedDict = new Dictionary<long, double>();
 			foreach (var cId in dict.Keys)
 			{
-				var created = await _Times.GetOrAdd(cId, key => new Lazy<Task<long>>(
-					connection.QuerySingleAsync<long>(@"
-						SELECT TimeCreated
-						FROM Character
-						WHERE CharacterId = @CharacterId
-					", new { CharacterId = key }))
-				).Value.CAF();
-				normalizedDict[cId] = Normalize(created.ToTime(), dict[cId]);
+				normalizedDict[cId] = Normalize(cId.ToTime(), dict[cId]);
 			}
 
 			var amount = dict.TryGetValue(id, out var v) ? v : 0;

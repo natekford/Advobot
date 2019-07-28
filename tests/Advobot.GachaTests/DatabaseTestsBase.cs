@@ -1,17 +1,18 @@
 ﻿using Advobot.Gacha.Database;
-using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.GachaTests.Utilities;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Advobot.GachaTests
 {
 	public abstract class DatabaseTestsBase
 	{
-		protected readonly static Random Rng = new Random();
+		public readonly static Random Rng = new Random();
 
 		protected IServiceProvider Provider { get; }
 
@@ -31,47 +32,28 @@ namespace Advobot.GachaTests
 #pragma warning restore IDE0059 // Value assigned to symbol is never used
 			return db;
 		}
-		protected static Source GenerateFakeSource(long sourceId = 1)
+		protected async Task<(List<IReadOnlySource>, List<IReadOnlyCharacter>)> AddSourcesAndCharacters(
+			GachaDatabase db,
+			int sourceCount,
+			int charactersPerSource)
 		{
-			return new Source
+			var sources = new List<IReadOnlySource>();
+			var characters = new List<IReadOnlyCharacter>();
+			for (var i = 0; i < sourceCount; ++i)
 			{
-				SourceId = sourceId,
-				Name = Guid.NewGuid().ToString(),
-			};
-		}
-		protected static Character GenerateFakeCharacter(IReadOnlySource fakeSource, long characterId = 1)
-		{
-			return new Character(fakeSource)
-			{
-				CharacterId = characterId,
-				Name = Guid.NewGuid().ToString(),
-				GenderIcon = "\uD83D\uDE39",
-				Gender = Gender.Other,
-				RollType = RollType.All,
-				IsFakeCharacter = true,
-			};
-		}
-		protected static User GenerateFakeUser(ulong? userId = null, ulong? guildId = null)
-		{
-			return new User
-			{
-				UserId = (userId ?? Rng.NextUlong()).ToString(),
-				GuildId = (guildId ?? Rng.NextUlong()).ToString(),
-			};
-		}
-		protected static Claim GenerateFakeClaim(IReadOnlyUser user, IReadOnlyCharacter character)
-		{
-			return new Claim(user, character)
-			{
-				IsPrimaryClaim = Rng.NextBool(),
-			};
-		}
-		protected static Wish GenerateFakeWish(IReadOnlyUser user, IReadOnlyCharacter character)
-		{
-			return new Wish(user, character)
-			{
+				var source = GachaTestUtils.GenerateFakeSource();
+				sources.Add(source);
 
-			};
+				for (var j = 0; j < charactersPerSource; ++j)
+				{
+					characters.Add(GachaTestUtils.GenerateFakeCharacter(source));
+				}
+			}
+			var addedSources = await db.AddSourcesAsync(sources).CAF();
+			Assert.AreEqual(sourceCount, addedSources);
+			var addedCharacters = await db.AddCharactersAsync(characters).CAF();
+			Assert.AreEqual(sourceCount * charactersPerSource, addedCharacters);
+			return (sources, characters);
 		}
 	}
 }

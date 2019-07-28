@@ -154,7 +154,10 @@ namespace Advobot
 			foreach (var typeReader in typeReaders)
 			{
 				var instance = (TypeReader)Activator.CreateInstance(typeReader.Type);
-				commands.AddTypeReader(typeReader.Attribute.TargetType, instance);
+				foreach (var type in typeReader.Attribute.TargetTypes)
+				{
+					commands.AddTypeReader(type, instance);
+				}
 			}
 
 			var s = new ServiceCollection()

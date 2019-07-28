@@ -2,7 +2,7 @@
 using Advobot.Gacha.MenuEmojis;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Gacha.Utils;
+using Advobot.Gacha.Utilities;
 using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;

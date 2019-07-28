@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Advobot.Classes.Attributes
 {
@@ -11,15 +12,15 @@ namespace Advobot.Classes.Attributes
 		/// <summary>
 		/// The type this type reader targets.
 		/// </summary>
-		public Type TargetType { get; }
+		public IReadOnlyList<Type> TargetTypes { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="TypeReaderTargetTypeAttribute"/>.
 		/// </summary>
-		/// <param name="type"></param>
-		public TypeReaderTargetTypeAttribute(Type type)
+		/// <param name="types"></param>
+		public TypeReaderTargetTypeAttribute(params Type[] types)
 		{
-			TargetType = type;
+			TargetTypes = types;
 		}
 	}
 }
