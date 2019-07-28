@@ -22,11 +22,7 @@ namespace Advobot.Gacha.Displays
 		}
 
 		protected virtual TimeSpan Timeout { get; } = TimeSpan.FromSeconds(30);
-		protected override EmojiMenu Menu { get; } = new EmojiMenu
-		{
-			new MovementEmoji(Constants.Left, -1),
-			new MovementEmoji(Constants.Right, 1),
-		};
+		protected override EmojiMenu Menu { get; } = new EmojiMenu();
 
 		private int _PageIndex;
 
@@ -40,6 +36,12 @@ namespace Advobot.Gacha.Displays
 			ItemsPerPage = itemsPerPage;
 			PageCount = (ItemCount + ItemsPerPage - 1) / ItemsPerPage;
 			_PageIndex = 0;
+
+			if (PageCount > 1)
+			{
+				Menu.Add(new MovementEmoji(Constants.Left, -1));
+				Menu.Add(new MovementEmoji(Constants.Right, 1));
+			}
 		}
 
 		protected override async Task HandleReactionsAsync(

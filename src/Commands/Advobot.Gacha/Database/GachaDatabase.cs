@@ -389,6 +389,17 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 			return query.ToArray();
 		}
+		public async Task<IReadOnlyClaim> GetClaimAsync(ulong guildId, IReadOnlyCharacter character)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+
+			var param = new { GuildId = guildId.ToString(), character.CharacterId };
+			return await connection.QuerySingleOrDefaultAsync<Claim>(@"
+				SELECT *
+				FROM Claim
+				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
+			", param).CAF();
+		}
 		public async Task<IReadOnlyClaim> GetClaimAsync(IReadOnlyUser user, IReadOnlyCharacter character)
 		{
 			using var connection = await GetConnectionAsync().CAF();

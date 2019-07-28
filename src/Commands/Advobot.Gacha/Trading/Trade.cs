@@ -4,15 +4,16 @@ namespace Advobot.Gacha.Trading
 {
 	public sealed class Trade : ITrade
 	{
-		public string GuildId { get; }
-		public string ReceiverId { get; }
-		public long CharacterId { get; }
+		public IReadOnlyCharacter Character { get; }
+		public IReadOnlyUser Receiver { get; }
+		public string GuildId => Receiver.GuildId;
+		public string ReceiverId => Receiver.UserId;
+		public long CharacterId => Character.CharacterId;
 
 		public Trade(IReadOnlyUser receiver, IReadOnlyCharacter character)
 		{
-			GuildId = receiver.GuildId;
-			ReceiverId = receiver.UserId;
-			CharacterId = character.CharacterId;
+			Receiver = receiver;
+			Character = character;
 		}
 	}
 }
