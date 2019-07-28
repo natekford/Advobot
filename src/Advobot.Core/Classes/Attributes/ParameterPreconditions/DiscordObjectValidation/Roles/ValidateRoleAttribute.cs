@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.Modules;
-using Advobot.Classes.Results;
 using Advobot.Utilities;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 
 namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
@@ -25,7 +25,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		protected override object GetFromContext(AdvobotCommandContext context)
 			=> throw new NotSupportedException();
 		/// <inheritdoc />
-		protected override Task<ValidatedObjectResult> ValidateObject(AdvobotCommandContext context, object value)
+		protected override Task<PreconditionResult> ValidateObject(AdvobotCommandContext context, object value)
 			=> context.User.ValidateRole((IRole)value, GetValidationRules().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.

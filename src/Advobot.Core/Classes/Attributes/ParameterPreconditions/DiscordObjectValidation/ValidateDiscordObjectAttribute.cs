@@ -1,5 +1,4 @@
 ﻿using Advobot.Classes.Modules;
-using Advobot.Classes.Results;
 using AdvorangesUtils;
 using Discord.Commands;
 using System;
@@ -41,7 +40,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		}
 		private async Task<PreconditionResult> GetPreconditionResult(AdvobotCommandContext context, object value)
 		{
-			ValidatedObjectResult result;
+			PreconditionResult result;
 			switch (value)
 			{
 				case IEnumerable enumerable:
@@ -55,7 +54,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 						}
 					}
 					//If nothing failed then it gets to this point, so return success
-					result = ValidatedObjectResult.FromSuccess(value);
+					result = PreconditionResult.FromSuccess();
 					break;
 				default:
 					result = await ValidateObject(context, value).CAF();
@@ -75,6 +74,6 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// <param name="context"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected abstract Task<ValidatedObjectResult> ValidateObject(AdvobotCommandContext context, object value);
+		protected abstract Task<PreconditionResult> ValidateObject(AdvobotCommandContext context, object value);
 	}
 }

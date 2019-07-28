@@ -1,8 +1,8 @@
 ﻿using Advobot.Classes.Modules;
-using Advobot.Classes.Results;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +25,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		protected override object GetFromContext(AdvobotCommandContext context)
 			=> throw new NotSupportedException();
 		/// <inheritdoc />
-		protected override async Task<ValidatedObjectResult> ValidateObject(AdvobotCommandContext context, object value)
+		protected override async Task<PreconditionResult> ValidateObject(AdvobotCommandContext context, object value)
 		{
 			var invite = (IInviteMetadata)value;
 			foreach (var rule in GetValidationRules())
@@ -36,7 +36,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 					return validationResult;
 				}
 			}
-			return ValidatedObjectResult.FromSuccess(invite);
+			return PreconditionResult.FromSuccess();
 		}
 		/// <summary>
 		/// Extra checks to use in validation.

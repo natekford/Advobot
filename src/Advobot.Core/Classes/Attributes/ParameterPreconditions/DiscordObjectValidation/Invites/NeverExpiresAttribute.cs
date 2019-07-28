@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Advobot.Classes.Results;
+using System.Threading.Tasks;
 using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
@@ -18,11 +18,11 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		{
 			yield return (user, target) =>
 			{
-				if (target.MaxAge != null)
+				if (target.MaxAge == null)
 				{
-					return ValidatedObjectResult.FromError(CommandError.UnmetPrecondition, "The passed in invite must not expire.");
+					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
-				return ValidatedObjectResult.FromSuccess(target);
+				return Task.FromResult(PreconditionResult.FromError("The passed in invite must not expire."));
 			};
 		}
 	}
