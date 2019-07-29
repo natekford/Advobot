@@ -5,7 +5,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Finds a channel based on position and type.

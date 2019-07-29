@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Attempts to parse permissions.

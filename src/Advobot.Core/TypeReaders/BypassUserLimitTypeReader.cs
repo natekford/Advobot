@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Attempts to see if the input matches <see cref="BYPASS_STRING"/>.

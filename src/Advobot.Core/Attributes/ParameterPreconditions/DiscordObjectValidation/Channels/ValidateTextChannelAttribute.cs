@@ -3,7 +3,7 @@ using Discord;
 using Discord.WebSocket;
 using System;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 {
 	/// <summary>
 	/// Validates the passed in <see cref="SocketTextChannel"/>.

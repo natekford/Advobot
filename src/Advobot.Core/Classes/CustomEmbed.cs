@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Advobot.Classes.TypeReaders;
+using Advobot.TypeReaders;
 using Advobot.Formatting;
 using AdvorangesUtils;
 using Discord;

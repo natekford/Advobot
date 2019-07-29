@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation;
-using Advobot.Classes.Attributes.Preconditions;
+using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
+using Advobot.Attributes.Preconditions;
 using Advobot.Classes.Modules;
 using Advobot.Services.ImageResizing;
 using Advobot.Utilities;

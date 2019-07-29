@@ -6,7 +6,7 @@ using AdvorangesUtils;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation
+namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 {
 	/// <summary>
 	/// Makes sure the passed in string is a valid command category.

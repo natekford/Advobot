@@ -5,7 +5,7 @@ using Discord.Commands;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes.Preconditions
+namespace Advobot.Attributes.Preconditions
 {
 	/// <summary>
 	/// Checks to make sure the bot is loaded, the guild is loaded, the channel isn't ignored from commands, and the command is enabled for the user.

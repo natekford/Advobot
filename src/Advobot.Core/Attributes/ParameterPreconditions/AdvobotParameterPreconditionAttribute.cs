@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Advobot.Classes.Modules;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions
+namespace Advobot.Attributes.ParameterPreconditions
 {
 	/// <summary>
 	/// Allows the parameter to not validate when optional.

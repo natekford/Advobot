@@ -5,7 +5,7 @@ using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
 	/// <summary>
 	/// Does not allow invites which can expire.

@@ -5,7 +5,7 @@ using Advobot.Services.HelpEntries;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Finds help entries with names or aliases similar to the passed in input.

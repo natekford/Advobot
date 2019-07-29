@@ -1,11 +1,11 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation;
-using Advobot.Classes.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Attributes.Preconditions.QuantityLimitations;
+using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.Attributes.ParameterPreconditions.NumberValidation;
+using Advobot.Attributes.ParameterPreconditions.SettingValidation;
+using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Attributes.Preconditions.QuantityLimitations;
 using Advobot.Classes.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;

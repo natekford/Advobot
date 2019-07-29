@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Attempts to parse bools and also other positive/negative words.

@@ -4,7 +4,7 @@ using Discord.Commands;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation
+namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 {
 	/// <summary>
 	/// Makes sure the passed in string is a valid guild setting name.

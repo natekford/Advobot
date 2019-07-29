@@ -8,7 +8,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
 	/// <summary>
 	/// Validates the passed in <see cref="SocketRole"/> making sure it can be accessed by the user and optionally whether it can be modifed by anyone.

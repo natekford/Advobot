@@ -8,7 +8,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
 {
 	/// <summary>
 	/// Validates the passed in <see cref="SocketGuildUser"/>.

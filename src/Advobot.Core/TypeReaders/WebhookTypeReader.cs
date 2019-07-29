@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Attempts to find an <see cref="IWebhook"/> on a guild.

@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
-	/// Attempts to find a <see cref="GuildEmote"/> on the guild.
+	/// Attempts to find an <see cref="Emote"/>.
 	/// </summary>
-	[TypeReaderTargetType(typeof(GuildEmote))]
-	public sealed class GuildEmoteTypeReader : TypeReader
+	[TypeReaderTargetType(typeof(Emote))]
+	public sealed class EmoteTypeReader : TypeReader
 	{
 		/// <summary>
-		/// Checks for any guild emotes matching the input. Input is tested as an emote id, then emote name.
+		/// Checks for any emotes matching the input. Input is tested as an emote id, then emote name.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="input"></param>
@@ -26,18 +26,14 @@ namespace Advobot.Classes.TypeReaders
 			var emotes = context.Guild.Emotes;
 			if (Emote.TryParse(input, out var tempEmote))
 			{
-				var guildEmote = emotes.FirstOrDefault(x => x.Id == tempEmote.Id);
-				if (guildEmote != null)
-				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(guildEmote));
-				}
+				return Task.FromResult(TypeReaderResult.FromSuccess(tempEmote));
 			}
 			if (ulong.TryParse(input, out var id))
 			{
-				var guildEmote = emotes.FirstOrDefault(x => x.Id == id);
-				if (guildEmote != null)
+				var emote = emotes.FirstOrDefault(x => x.Id == id);
+				if (emote != null)
 				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(guildEmote));
+					return Task.FromResult(TypeReaderResult.FromSuccess(emote));
 				}
 			}
 

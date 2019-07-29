@@ -4,7 +4,7 @@ using Discord.Commands;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
+namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the text channel name by making sure it is between 2 and 100 characters and has no spaces.

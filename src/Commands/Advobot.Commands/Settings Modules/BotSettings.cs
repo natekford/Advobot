@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation;
-using Advobot.Classes.Attributes.Preconditions;
+using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.SettingValidation;
+using Advobot.Attributes.Preconditions;
 using Advobot.Classes.Modules;
 using Advobot.Services.BotSettings;
 using Discord.Commands;

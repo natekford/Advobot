@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using Advobot.Formatting;
 using Advobot.Services.HelpEntries;
 using AdvorangesUtils;

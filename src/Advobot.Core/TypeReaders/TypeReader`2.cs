@@ -3,7 +3,7 @@ using Discord.Commands;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Type reader for converting the passed in string to a basic type then using that basic type to find an object.

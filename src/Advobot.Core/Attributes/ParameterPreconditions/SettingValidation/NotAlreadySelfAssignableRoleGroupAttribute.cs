@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Classes.Modules;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation
+namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 {
 	/// <summary>
 	/// Makes sure the passed in number isn't currently being used for a self assignable roles group.

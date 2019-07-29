@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
 	/// <summary>
 	/// Validates the passed in <see cref="IInviteMetadata"/>.

@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Attributes
 {
 	/// <summary>
 	/// Uses <see cref="CallerMemberNameAttribute"/> to implicitly pass in the name of the method this attribute is applied to.

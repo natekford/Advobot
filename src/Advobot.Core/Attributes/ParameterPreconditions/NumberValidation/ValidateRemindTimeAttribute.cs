@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
+﻿namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 {
 	/// <summary>
 	/// Validates the amount of time a reminder can last for in seconds allowing 1 to 526000 (1 year).

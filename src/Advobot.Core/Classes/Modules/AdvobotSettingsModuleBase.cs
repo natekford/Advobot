@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using Advobot.Settings;
 using Discord.Commands;
 

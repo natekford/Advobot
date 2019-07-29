@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
+﻿namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 {
 	/// <summary>
 	/// Validates the amount of days to prune with allowing specified valid values.

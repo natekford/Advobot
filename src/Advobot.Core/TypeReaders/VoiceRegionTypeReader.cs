@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Gets a voice region from a string.

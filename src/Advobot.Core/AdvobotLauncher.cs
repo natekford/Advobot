@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
 using Advobot.Databases.LiteDB;

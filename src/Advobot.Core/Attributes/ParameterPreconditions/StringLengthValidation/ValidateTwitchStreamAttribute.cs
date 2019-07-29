@@ -4,7 +4,7 @@ using Advobot.Classes.Modules;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
+namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the Twitch stream name by making sure it is between 4 and 25 characters and matches a Regex for Twitch usernames.

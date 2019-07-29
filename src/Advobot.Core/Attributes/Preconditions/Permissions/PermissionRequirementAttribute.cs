@@ -9,7 +9,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Attributes.Preconditions.Permissions
+namespace Advobot.Attributes.Preconditions.Permissions
 {
 	/// <summary>
 	/// For verifying <see cref="SocketGuildUser"/> permissions.

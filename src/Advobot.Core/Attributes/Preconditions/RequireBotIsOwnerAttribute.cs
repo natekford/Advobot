@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Advobot.Classes.Modules;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.Preconditions
+namespace Advobot.Attributes.Preconditions
 {
 	/// <summary>
 	/// Will return success if the bot is the owner of the guild in the context.

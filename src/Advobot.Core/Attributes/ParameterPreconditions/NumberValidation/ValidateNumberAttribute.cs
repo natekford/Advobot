@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Advobot.Classes.Modules;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
+namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 {
 	/// <summary>
 	/// Makes sure the passed in number is in the supplied list.

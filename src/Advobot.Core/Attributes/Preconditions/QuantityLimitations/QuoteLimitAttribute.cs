@@ -5,7 +5,7 @@ using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Classes.Attributes.Preconditions.QuantityLimitations
+namespace Advobot.Attributes.Preconditions.QuantityLimitations
 {
 	/// <summary>
 	/// Requires there to be less than the maximum amount of quotes.

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Advobot.Classes.Modules;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.Preconditions
+namespace Advobot.Attributes.Preconditions
 {
 	/// <summary>
 	/// Requires the guild in the command context to be partnered.

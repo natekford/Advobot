@@ -2,7 +2,7 @@
 using Discord;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 {
 	/// <summary>
 	/// Validates the passed in <see cref="SocketGuildChannel"/>.

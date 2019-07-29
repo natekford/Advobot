@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Parses an enum type from its name.

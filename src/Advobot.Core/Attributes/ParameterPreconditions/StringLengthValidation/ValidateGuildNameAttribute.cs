@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
+namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the guild name by making sure it is between 2 and 100 characters.

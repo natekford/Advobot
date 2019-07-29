@@ -2,9 +2,9 @@
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using AdvorangesUtils;
 using Discord;

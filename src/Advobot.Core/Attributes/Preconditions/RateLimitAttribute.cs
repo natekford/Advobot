@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Classes.Modules;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.Preconditions
+namespace Advobot.Attributes.Preconditions
 {
 	/// <summary>
 	/// Limits the rate a command can be used.

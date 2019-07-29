@@ -4,7 +4,7 @@ using Advobot.Classes.Modules;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.Preconditions
+namespace Advobot.Attributes.Preconditions
 {
 	/// <summary>
 	/// Downloads all users before executing the command.

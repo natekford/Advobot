@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Advobot.Classes.Modules;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.Preconditions.QuantityLimitations
+namespace Advobot.Attributes.Preconditions.QuantityLimitations
 {
 	/// <summary>
 	/// Requires specific amounts of items in commands adding or removing items.

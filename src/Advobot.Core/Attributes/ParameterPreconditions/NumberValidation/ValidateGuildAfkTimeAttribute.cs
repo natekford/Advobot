@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
+﻿namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 {
 	/// <summary>
 	/// Validates the guild afk timer in seconds allowing specified valid values.

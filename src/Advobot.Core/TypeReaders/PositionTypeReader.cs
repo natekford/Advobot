@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Parses something from a position.

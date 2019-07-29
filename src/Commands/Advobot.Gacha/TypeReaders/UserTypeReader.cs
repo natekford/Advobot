@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
 using System;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using Advobot.Gacha.Models;
 using System.Threading.Tasks;
 using Discord;

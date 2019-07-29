@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Attributes
 {
 	/// <summary>
 	/// Indicates that the settings should not be saved.

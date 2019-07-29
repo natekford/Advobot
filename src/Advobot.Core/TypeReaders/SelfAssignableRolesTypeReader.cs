@@ -1,4 +1,4 @@
-﻿using Advobot.Classes.Attributes;
+﻿using Advobot.Attributes;
 using Advobot.Classes.Modules;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
@@ -6,7 +6,7 @@ using Discord.Commands;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Attempst to find a self assignable role group in the guild settings.

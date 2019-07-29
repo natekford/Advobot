@@ -1,4 +1,4 @@
-﻿using Advobot.Classes.Attributes.Preconditions;
+﻿using Advobot.Attributes.Preconditions;
 using Advobot.Services.ImageResizing;
 
 namespace Advobot.Classes.Modules

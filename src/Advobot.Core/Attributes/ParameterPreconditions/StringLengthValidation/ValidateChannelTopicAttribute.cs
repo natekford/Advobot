@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
+namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the channel topic by making sure it is between 0 and 1024 characters.

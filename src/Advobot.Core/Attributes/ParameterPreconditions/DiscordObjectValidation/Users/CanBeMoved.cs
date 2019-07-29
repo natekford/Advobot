@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Advobot.Utilities;
 using Discord;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
 {
 	/// <summary>
 	/// Checks if the user can be moved from their voice channel.

@@ -4,7 +4,7 @@ using Advobot.Classes.Modules;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation
+namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 {
 	/// <summary>
 	/// Validates the rule category by making sure it is between 1 and 250 characters.

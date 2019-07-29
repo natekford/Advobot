@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.Preconditions;
+using Advobot.Attributes;
+using Advobot.Attributes.Preconditions;
 using Advobot.Formatting;
 using Advobot.Services.GuildSettings;
 using AdvorangesUtils;

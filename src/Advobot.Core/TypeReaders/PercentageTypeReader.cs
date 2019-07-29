@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using Discord.Commands;
 using ImageMagick;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Attempts to parse a percentage from a string.

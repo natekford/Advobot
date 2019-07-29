@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation;
-using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.SettingValidation;
+using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;

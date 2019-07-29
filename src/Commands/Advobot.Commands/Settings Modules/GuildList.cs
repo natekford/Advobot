@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
-using Advobot.Classes.Attributes.Preconditions.Permissions;
+using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
+using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes.Modules;
 using Advobot.Services.InviteList;
 using AdvorangesUtils;

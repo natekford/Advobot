@@ -3,7 +3,7 @@ using System.Linq;
 using Advobot.Classes.Modules;
 using Discord;
 
-namespace Advobot.Classes.Attributes.Preconditions.Permissions
+namespace Advobot.Attributes.Preconditions.Permissions
 {
 	/// <summary>
 	/// Verifies the invoking user's permissions.

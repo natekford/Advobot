@@ -6,7 +6,7 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 {
 	/// <summary>
 	/// Abstract class for validating an object from Discord.

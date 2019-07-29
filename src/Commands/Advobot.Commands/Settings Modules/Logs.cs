@@ -2,8 +2,8 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;

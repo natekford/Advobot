@@ -2,7 +2,7 @@
 using Discord.Commands;
 using Discord;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
+namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 {
 	/// <summary>
 	/// Validates the channel bitrate allowing 8 to 96 unless the guild is partnered or has a premium tier in which the maximum is raised to 128.

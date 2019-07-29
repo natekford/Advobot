@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 {
 	/// <summary>
 	/// Makes sure the passed in <see cref="ulong"/> is not already banned.

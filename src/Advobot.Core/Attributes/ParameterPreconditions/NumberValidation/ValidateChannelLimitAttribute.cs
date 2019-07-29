@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
+﻿namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 {
 	/// <summary>
 	/// Validates the channel limit allowing 0 to 99.

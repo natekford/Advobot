@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes.Preconditions;
+using Advobot.Attributes.Preconditions;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Timers;
 using Advobot.Utilities;

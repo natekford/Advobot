@@ -5,7 +5,7 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.Preconditions
+namespace Advobot.Attributes.Preconditions
 {
 	/// <summary>
 	/// Requires bot owner before this command will execute.

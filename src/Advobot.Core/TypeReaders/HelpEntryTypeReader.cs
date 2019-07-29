@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using Advobot.Services.HelpEntries;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Attempts to find a help entry with the supplied name.

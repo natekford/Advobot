@@ -5,7 +5,7 @@ using Advobot.Services.BotSettings;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Classes.Attributes.Preconditions
+namespace Advobot.Attributes.Preconditions
 {
 	/// <summary>
 	/// Requires trusted user status before this command will execute.

@@ -5,7 +5,7 @@ using Advobot.Classes.Modules;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.SettingValidation
+namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 {
 	/// <summary>
 	/// Makes sure the passed in string is not already being used for a quote name.

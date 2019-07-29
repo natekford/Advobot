@@ -5,7 +5,7 @@ using Advobot.Services.ImageResizing;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Classes.Attributes.Preconditions
+namespace Advobot.Attributes.Preconditions
 {
 	/// <summary>
 	/// Disallows the command from running if an image is currently being resized.

@@ -1,4 +1,4 @@
-﻿using Advobot.Classes.Attributes;
+﻿using Advobot.Attributes;
 using Advobot.Gacha.Displays;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.ParameterPreconditions;

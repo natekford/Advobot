@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Advobot.Utilities;
 using Discord.Commands;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Attributes
 {
 	/// <summary>
 	/// Shortens a name down to an initialism. 

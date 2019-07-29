@@ -6,7 +6,7 @@ using Advobot.Classes.Modules;
 using Advobot.Services.GuildSettings.Settings;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Finds quotes with names similar to the passed in input.

@@ -9,7 +9,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
+namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 {
 	/// <summary>
 	/// Base for validating any <see cref="SocketGuildChannel"/>.

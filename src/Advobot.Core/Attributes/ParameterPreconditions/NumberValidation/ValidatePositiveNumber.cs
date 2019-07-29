@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation
+﻿namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 {
 	/// <summary>
 	/// Validates the passed in number allowing 1 to <see cref="int.MaxValue"/>.

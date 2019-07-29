@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes.Attributes;
+using Advobot.Attributes;
 using Advobot.Classes.Modules;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Attempts to find a quote with the supplied name.
