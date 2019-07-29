@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.ImageResizing
 {
 	/// <summary>
 	/// Resizes and uses images.
@@ -16,7 +16,7 @@ namespace Advobot.Interfaces
 		/// All the items which are queued.
 		/// </summary>
 		/// <returns></returns>
-		IEnumerable<IImageArgs> GetQueuedArguments();
+		IEnumerable<IImageContext> GetQueuedArguments();
 		/// <summary>
 		/// Whether the guild is currently having an image worked on.
 		/// </summary>
@@ -27,6 +27,6 @@ namespace Advobot.Interfaces
 		/// Adds the arguments to the queue and then eventually gets to processing it.
 		/// </summary>
 		/// <param name="arguments"></param>
-		void Enqueue(IImageArgs arguments);
+		void Enqueue(IImageContext arguments);
 	}
 }

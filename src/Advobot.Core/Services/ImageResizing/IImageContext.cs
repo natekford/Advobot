@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
-using Advobot.Classes.ImageResizing;
 using Discord.Commands;
 using ImageMagick;
 
-namespace Advobot.Interfaces
+namespace Advobot.Services.ImageResizing
 {
 	/// <summary>
 	/// Specifies how to use and resize an image.
 	/// </summary>
-	public interface IImageArgs
+	public interface IImageContext
 	{
-		/// <summary>
-		/// Valid formats so an invalid image isn't attempted to resize.
-		/// </summary>
-		ImmutableArray<MagickFormat> ValidFormats { get; }
 		/// <summary>
 		/// The largest allowed file size.
 		/// </summary>
@@ -25,10 +19,11 @@ namespace Advobot.Interfaces
 		/// What this is targeting, e.g. emote, profile picture, etc.
 		/// </summary>
 		string Type { get; }
+
 		/// <summary>
-		/// The context this was invoked in.
+		/// The guild this image context is for.
 		/// </summary>
-		ICommandContext Context { get; }
+		ulong GuildId { get; }
 		/// <summary>
 		/// The url to download from.
 		/// </summary>
@@ -36,24 +31,31 @@ namespace Advobot.Interfaces
 		/// <summary>
 		/// The user provided arguments.
 		/// </summary>
-		UserProvidedImageArgs UserArgs { get; }
+		UserProvidedImageArgs Args { get; }
 
 		/// <summary>
 		/// Uses the supplied stream to do the specified action.
 		/// </summary>
 		/// <param name="stream"></param>
+		/// <returns></returns>
+		Task<IResult> UseStream(MemoryStream stream);
+		/// <summary>
+		/// Whether or not this context can use <paramref name="format"/>.
+		/// </summary>
 		/// <param name="format"></param>
 		/// <returns></returns>
-		Task<IResult> UseStream(MemoryStream stream, MagickFormat? format);
+		IResult CanUseFormat(MagickFormat format);
 		/// <summary>
-		/// Determines whether an image can be used for the specified action.
+		/// Sends the response to the context channel.
 		/// </summary>
+		/// <param name="result"></param>
 		/// <returns></returns>
-		IResult CanUseImage();
+		Task SendFinalResponseAsync(IResult result);
 		/// <summary>
-		/// Determines whether a gif can be used for the specified action.
+		/// Sends a message noting the progress of this.
 		/// </summary>
+		/// <param name="text"></param>
 		/// <returns></returns>
-		IResult CanUseGif();
+		Task SendOrUpdateProgressAsync(string text);
 	}
 }

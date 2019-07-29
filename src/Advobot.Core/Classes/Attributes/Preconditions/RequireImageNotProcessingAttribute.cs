@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Classes.Modules;
-using Advobot.Interfaces;
+using Advobot.Services.ImageResizing;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 

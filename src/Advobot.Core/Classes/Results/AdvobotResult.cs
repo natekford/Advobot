@@ -17,6 +17,10 @@ namespace Advobot.Classes.Results
 		/// The result to use when this should be fully ignored.
 		/// </summary>
 		public static AdvobotResult Ignore { get; } = Failure(null, CommandError.Unsuccessful);
+		/// <summary>
+		/// The result to use when indicating a success that has no reason.
+		/// </summary>
+		public static AdvobotResult EmptySuccess { get; } = Success("");
 
 		/// <summary>
 		/// How long to let this message stay up for.
@@ -161,6 +165,13 @@ namespace Advobot.Classes.Results
 		/// <returns></returns>
 		public static AdvobotResult Failure(string? reason, CommandError? error = CommandError.Unsuccessful)
 			=> new AdvobotResult(error, reason);
+		/// <summary>
+		/// Creates an error result from an exception.
+		/// </summary>
+		/// <param name="e"></param>
+		/// <returns></returns>
+		public static AdvobotResult Exception(Exception e)
+			=> Failure(e.Message, CommandError.Exception);
 		/// <summary>
 		/// Converts the result into a task returning the result.
 		/// </summary>

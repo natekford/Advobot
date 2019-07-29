@@ -22,10 +22,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		public override bool FromContext => false;
 
 		/// <inheritdoc />
-		protected override object GetFromContext(AdvobotCommandContext context)
-			=> throw new NotSupportedException();
-		/// <inheritdoc />
-		protected override Task<PreconditionResult> ValidateObject(AdvobotCommandContext context, object value)
+		protected override Task<PreconditionResult> Validate(AdvobotCommandContext context, object value)
 			=> context.User.ValidateRole((IRole)value, GetValidationRules().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.

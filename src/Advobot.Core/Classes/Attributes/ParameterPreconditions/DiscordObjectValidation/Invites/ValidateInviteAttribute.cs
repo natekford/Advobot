@@ -22,10 +22,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		public override bool FromContext => false;
 
 		/// <inheritdoc />
-		protected override object GetFromContext(AdvobotCommandContext context)
-			=> throw new NotSupportedException();
-		/// <inheritdoc />
-		protected override async Task<PreconditionResult> ValidateObject(AdvobotCommandContext context, object value)
+		protected override async Task<PreconditionResult> Validate(AdvobotCommandContext context, object value)
 		{
 			var invite = (IInviteMetadata)value;
 			foreach (var rule in GetValidationRules())

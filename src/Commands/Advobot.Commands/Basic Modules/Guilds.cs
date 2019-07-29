@@ -6,8 +6,8 @@ using Advobot.Classes.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
-using Advobot.Classes.ImageResizing;
 using Advobot.Classes.Modules;
+using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -157,7 +157,7 @@ namespace Advobot.CommandMarking
 			[Command]
 			public Task<RuntimeResult> Command(Uri url)
 			{
-				var position = Enqueue(new IconCreationArgs("Guild Icon", Context, url, default,
+				var position = Enqueue(new IconCreationContext(Context, url, default, "Guild Icon",
 					(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Snowflakes.EnqueuedIcon(Context.Guild, position);
 			}
@@ -179,7 +179,7 @@ namespace Advobot.CommandMarking
 			[Command]
 			public Task<RuntimeResult> Command(Uri url)
 			{
-				var position = Enqueue(new IconCreationArgs("Guild Splash", Context, url, default,
+				var position = Enqueue(new IconCreationContext(Context, url, default, "Guild Splash",
 					(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Splash = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Guilds.EnqueuedSplash(position);
 			}

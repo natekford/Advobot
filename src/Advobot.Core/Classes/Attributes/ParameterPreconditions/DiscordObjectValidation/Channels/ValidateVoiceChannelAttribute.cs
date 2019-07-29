@@ -15,7 +15,8 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// Creates an instance of <see cref="ValidateVoiceChannelAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
-		public ValidateVoiceChannelAttribute(params ChannelPermission[] permissions) : base(permissions) { }
+		public ValidateVoiceChannelAttribute(params ChannelPermission[] permissions)
+			: base(permissions) { }
 
 		/// <inheritdoc />
 		protected override object GetFromContext(AdvobotCommandContext context)

@@ -2,25 +2,25 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
+using Advobot.Classes.Results;
 using AdvorangesUtils;
 using Discord.Commands;
 using ImageMagick;
 
-namespace Advobot.Classes.ImageResizing
+namespace Advobot.Services.ImageResizing
 {
 	/// <summary>
 	/// Creates an icon for the specified callback.
 	/// </summary>
-	public sealed class IconCreationArgs : ImageArgs
+	public sealed class IconCreationContext : ImageContextBase
 	{
-		private static ImmutableArray<MagickFormat> _ValidFormats { get; } = ImmutableArray.Create(
+		private static readonly ImmutableArray<MagickFormat> _ValidFormats = ImmutableArray.Create(new[]
+		{
 			MagickFormat.Png,
 			MagickFormat.Jpg,
 			MagickFormat.Jpeg
-		);
+		});
 
-		/// <inheritdoc />
-		public override ImmutableArray<MagickFormat> ValidFormats => _ValidFormats;
 		/// <inheritdoc />
 		public override long MaxAllowedLengthInBytes => 10000000;
 		/// <inheritdoc />
@@ -29,37 +29,46 @@ namespace Advobot.Classes.ImageResizing
         private readonly Func<ICommandContext, MemoryStream, Task> _Callback;
 
 		/// <summary>
-		/// Creates an instance of <see cref="IconCreationArgs"/>.
+		/// Creates an instance of <see cref="IconCreationContext"/>.
 		/// </summary>
 		/// <param name="type"></param>
 		/// <param name="context"></param>
 		/// <param name="url"></param>
-		/// <param name="userArgs"></param>
+		/// <param name="args"></param>
 		/// <param name="callback"></param>
-		public IconCreationArgs(
-			string type,
+		public IconCreationContext(
 			ICommandContext context,
 			Uri url,
-			UserProvidedImageArgs? userArgs,
+			UserProvidedImageArgs? args,
+			string type,
 			Func<ICommandContext, MemoryStream, Task> callback)
-			: base(context, url, userArgs)
+			: base(context, url, args)
 		{
 			Type = type;
 			_Callback = callback;
 		}
 
 		/// <inheritdoc />
-		public override async Task<IResult> UseStream(MemoryStream stream, MagickFormat? format)
+		public override async Task<IResult> UseStream(MemoryStream stream)
 		{
 			try
 			{
 				await _Callback.Invoke(Context, stream).CAF();
-				return DefaultResult;
+				return AdvobotResult.EmptySuccess;
 			}
 			catch (Exception e)
 			{
-				return ImageResult.FromError(CommandError.Exception, e.Message);
+				return AdvobotResult.Exception(e);
 			}
+		}
+		/// <inheritdoc />
+		public override IResult CanUseFormat(MagickFormat format)
+		{
+			if (_ValidFormats.Contains(format))
+			{
+				return AdvobotResult.EmptySuccess;
+			}
+			return AdvobotResult.Failure($"Cannot use an image with the format {format}.");
 		}
 	}
 }

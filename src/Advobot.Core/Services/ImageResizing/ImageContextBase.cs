@@ -1,0 +1,79 @@
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord;
+using Discord.Commands;
+using ImageMagick;
+
+namespace Advobot.Services.ImageResizing
+{
+	/// <summary>
+	/// How to use and resize an image.
+	/// </summary>
+	public abstract class ImageContextBase : IImageContext
+	{
+		/// <inheritdoc />
+		public abstract long MaxAllowedLengthInBytes { get; }
+		/// <inheritdoc />
+		public abstract string Type { get; }
+		/// <inheritdoc />
+		public ulong GuildId => Context.Guild.Id;
+		/// <inheritdoc />
+		public Uri Url { get; }
+		/// <inheritdoc />
+		public UserProvidedImageArgs Args { get; }
+
+		/// <summary>
+		/// The command context for this image context.
+		/// </summary>
+		protected ICommandContext Context { get; }
+
+		private IUserMessage? _Message;
+
+		/// <summary>
+		/// Creates an instance of <see cref="ImageContextBase"/>.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="url"></param>
+		/// <param name="userArgs"></param>
+		public ImageContextBase(ICommandContext context, Uri url, UserProvidedImageArgs? userArgs)
+		{
+			Context = context ?? throw new ArgumentNullException(nameof(context));
+			Url = url ?? throw new ArgumentNullException(nameof(url));
+			Args = userArgs ?? new UserProvidedImageArgs();
+		}
+
+		/// <inheritdoc />
+		public abstract Task<IResult> UseStream(MemoryStream stream);
+		/// <inheritdoc />
+		public abstract IResult CanUseFormat(MagickFormat format);
+		/// <inheritdoc />
+		public async Task SendFinalResponseAsync(IResult result)
+		{
+			if (_Message != null)
+			{
+				await _Message.DeleteAsync().CAF();
+			}
+
+			var t = Type.ToLower();
+			var text = result.IsSuccess
+				? $"Successfully created the {t}."
+				: $"Failed to create the {t}. Reason: {result.ErrorReason}.";
+			await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
+		}
+		/// <inheritdoc />
+		public async Task SendOrUpdateProgressAsync(string text)
+		{
+			if (_Message != null)
+			{
+				await _Message.ModifyAsync(x => x.Content = text).CAF();
+			}
+			else
+			{
+				_Message = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
+			}
+		}
+	}
+}

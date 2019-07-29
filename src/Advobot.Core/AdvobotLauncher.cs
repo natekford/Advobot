@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
-using Advobot.Classes.ImageResizing;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
 using Advobot.Databases.LiteDB;
@@ -30,6 +29,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Advobot.CommandMarking;
+using Advobot.Services.ImageResizing;
 
 namespace Advobot
 {

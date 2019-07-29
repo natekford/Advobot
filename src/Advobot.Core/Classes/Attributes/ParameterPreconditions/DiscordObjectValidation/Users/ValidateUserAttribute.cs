@@ -20,7 +20,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		protected override object GetFromContext(AdvobotCommandContext context)
 			=> context.User;
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> ValidateObject(AdvobotCommandContext context, object value)
+		protected override Task<PreconditionResult> Validate(AdvobotCommandContext context, object value)
 			=> context.User.ValidateUser((IGuildUser)value, GetValidationRules().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.

@@ -1,7 +1,7 @@
 ﻿using Discord.Commands;
 using ImageMagick;
 
-namespace Advobot.Classes.ImageResizing
+namespace Advobot.Services.ImageResizing
 {
 	/// <summary>
 	/// Arguments the user can provide for image resizing/creation.

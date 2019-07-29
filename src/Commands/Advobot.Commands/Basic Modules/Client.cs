@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Classes.Attributes.Preconditions;
-using Advobot.Classes.ImageResizing;
 using Advobot.Classes.Modules;
+using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -38,7 +38,7 @@ namespace Advobot.CommandMarking
 			[Command]
 			public Task<RuntimeResult> Command(Uri url)
 			{
-				var position = Enqueue(new IconCreationArgs("Bot Icon", Context, url, default,
+				var position = Enqueue(new IconCreationContext(Context, url, default, "Bot Icon",
 					(ctx, ms) => ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Snowflakes.EnqueuedIcon(Context.Client.CurrentUser, position);
 			}

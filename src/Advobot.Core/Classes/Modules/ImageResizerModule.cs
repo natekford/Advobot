@@ -1,5 +1,5 @@
 ﻿using Advobot.Classes.Attributes.Preconditions;
-using Advobot.Interfaces;
+using Advobot.Services.ImageResizing;
 
 namespace Advobot.Classes.Modules
 {
@@ -21,7 +21,7 @@ namespace Advobot.Classes.Modules
 		/// </summary>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		protected int Enqueue(IImageArgs args)
+		protected int Enqueue(IImageContext args)
 		{
 			Resizer.Enqueue(args);
 			return Resizer.QueueCount;

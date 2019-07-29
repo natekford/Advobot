@@ -1,5 +1,4 @@
 ﻿using System;
-using Advobot.Classes.Modules;
 using Discord;
 using Discord.WebSocket;
 
@@ -20,10 +19,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		/// Creates an instance of <see cref="ValidateGenericChannelAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
-		public ValidateGenericChannelAttribute(params ChannelPermission[] permissions) : base(permissions) { }
-
-		/// <inheritdoc />
-		protected override object GetFromContext(AdvobotCommandContext context)
-			=> throw new NotSupportedException();
+		public ValidateGenericChannelAttribute(params ChannelPermission[] permissions)
+			: base(permissions) { }
 	}
 }

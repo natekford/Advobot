@@ -5,8 +5,8 @@ using Advobot.Classes.Attributes;
 using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
-using Advobot.Classes.ImageResizing;
 using Advobot.Classes.Modules;
+using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -99,7 +99,7 @@ namespace Advobot.CommandMarking
 			[Command]
 			public Task<RuntimeResult> Command(IWebhook webhook, Uri url)
 			{
-				var position = Enqueue(new IconCreationArgs("Webhook Icon", Context, url, default,
+				var position = Enqueue(new IconCreationContext(Context, url, default, "Webhook Icon",
 					(ctx, ms) => webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Snowflakes.EnqueuedIcon(webhook, position);
 			}

@@ -37,7 +37,7 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 		}
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> ValidateObject(AdvobotCommandContext context, object value)
+		protected override Task<PreconditionResult> Validate(AdvobotCommandContext context, object value)
 			=> context.User.ValidateChannel((IGuildChannel)value, Permissions, GetValidationRules().ToArray());
 		/// <summary>
 		/// Extra checks to use in validation.

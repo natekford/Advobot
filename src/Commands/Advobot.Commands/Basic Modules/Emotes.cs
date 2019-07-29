@@ -8,8 +8,8 @@ using Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidation.
 using Advobot.Classes.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Classes.Attributes.Preconditions;
 using Advobot.Classes.Attributes.Preconditions.Permissions;
-using Advobot.Classes.ImageResizing;
 using Advobot.Classes.Modules;
+using Advobot.Services.ImageResizing;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -31,8 +31,11 @@ namespace Advobot.CommandMarking
 			public Task<RuntimeResult> Command(Emote emote)
 				=> Command(emote.Name, new Uri(emote.Url));
 			[Command, Priority(1)]
-			public Task<RuntimeResult> Command([ValidateEmoteName] string name, Uri url, [Optional, Remainder] UserProvidedImageArgs args)
-				=> Responses.Emotes.EnqueuedCreation(name, Enqueue(new EmoteCreationArgs(Context, url, args, name)));
+			public Task<RuntimeResult> Command(
+				[ValidateEmoteName] string name,
+				Uri url,
+				[Optional, Remainder] UserProvidedImageArgs args)
+				=> Responses.Emotes.EnqueuedCreation(name, Enqueue(new EmoteCreationContext(Context, url, args, name)));
 		}
 
 		[Group(nameof(DeleteEmote)), ModuleInitialismAlias(typeof(DeleteEmote))]
@@ -56,7 +59,9 @@ namespace Advobot.CommandMarking
 		public sealed class ModifyEmoteName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(GuildEmote emote, [Remainder, ValidateEmoteName] string name)
+			public async Task<RuntimeResult> Command(
+				GuildEmote emote,
+				[Remainder, ValidateEmoteName] string name)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = name, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.ModifiedName(emote, name);
@@ -71,7 +76,9 @@ namespace Advobot.CommandMarking
 		public sealed class ModifyEmoteRoles : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task<RuntimeResult> Add(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
+			public async Task<RuntimeResult> Add(
+				GuildEmote emote,
+				[NotEveryoneOrManaged] params SocketRole[] roles)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x =>
 				{
@@ -82,7 +89,9 @@ namespace Advobot.CommandMarking
 				return Responses.Emotes.AddedRequiredRoles(emote, roles);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task<RuntimeResult> Remove(GuildEmote emote, [NotEveryoneOrManaged] params SocketRole[] roles)
+			public async Task<RuntimeResult> Remove(
+				GuildEmote emote,
+				[NotEveryoneOrManaged] params SocketRole[] roles)
 			{
 				if (!emote.RoleIds.Any())
 				{

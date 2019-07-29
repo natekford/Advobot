@@ -28,52 +28,43 @@ namespace Advobot.Classes.Attributes.ParameterPreconditions.DiscordObjectValidat
 			{
 				return GetPreconditionResult(context, value);
 			}
-			if (FromContext)
+			else if (FromContext)
 			{
 				return GetPreconditionResult(context, GetFromContext(context));
-			}
-			if (parameter.IsOptional)
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
 			return Task.FromResult(PreconditionResult.FromError($"No value was passed in for {parameter.Name}."));
 		}
 		private async Task<PreconditionResult> GetPreconditionResult(AdvobotCommandContext context, object value)
 		{
-			PreconditionResult result;
-			switch (value)
+			if (value is IEnumerable enumerable)
 			{
-				case IEnumerable enumerable:
-					foreach (var item in enumerable)
+				foreach (var item in enumerable)
+				{
+					var preconditionResult = await GetPreconditionResult(context, item).CAF();
+					//Don't bother testing more if anything is a failure.
+					if (!preconditionResult.IsSuccess)
 					{
-						var preconditionResult = await GetPreconditionResult(context, item).CAF();
-						//Don't bother testing more if anything is a failure.
-						if (!preconditionResult.IsSuccess)
-						{
-							return preconditionResult;
-						}
+						return preconditionResult;
 					}
-					//If nothing failed then it gets to this point, so return success
-					result = PreconditionResult.FromSuccess();
-					break;
-				default:
-					result = await ValidateObject(context, value).CAF();
-					break;
+				}
+				//If nothing failed then it gets to this point, so return success
+				return PreconditionResult.FromSuccess();
 			}
-			return result.IsSuccess ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(result);
+			return await Validate(context, value).CAF();
 		}
 		/// <summary>
 		/// Gets an object to use if the passed in value is null and <see cref="FromContext"/> is true.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		protected abstract object GetFromContext(AdvobotCommandContext context);
+		protected virtual object GetFromContext(AdvobotCommandContext context)
+			=> throw new NotSupportedException();
 		/// <summary>
 		/// Verifies the object with the specified verification options.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected abstract Task<PreconditionResult> ValidateObject(AdvobotCommandContext context, object value);
+		protected abstract Task<PreconditionResult> Validate(AdvobotCommandContext context, object value);
 	}
 }
