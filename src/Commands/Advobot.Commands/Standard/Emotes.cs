@@ -13,9 +13,8 @@ using Advobot.Services.ImageResizing;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Standard
 {
 	public sealed class Emotes : ModuleBase
 	{
@@ -78,7 +77,7 @@ namespace Advobot.CommandMarking
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Add(
 				GuildEmote emote,
-				[NotEveryoneOrManaged] params SocketRole[] roles)
+				[NotEveryoneOrManaged] params IRole[] roles)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x =>
 				{
@@ -91,7 +90,7 @@ namespace Advobot.CommandMarking
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Remove(
 				GuildEmote emote,
-				[NotEveryoneOrManaged] params SocketRole[] roles)
+				[NotEveryoneOrManaged] params IRole[] roles)
 			{
 				if (!emote.RoleIds.Any())
 				{

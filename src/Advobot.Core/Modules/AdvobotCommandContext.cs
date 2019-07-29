@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics;
 using Advobot.Services.GuildSettings;
-using Advobot.Utilities;
-using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;

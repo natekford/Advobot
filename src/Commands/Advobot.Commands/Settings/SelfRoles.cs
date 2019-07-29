@@ -6,15 +6,15 @@ using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Attributes.Preconditions.QuantityLimitations;
+using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Settings
 {
 	public sealed class SelfRoles : ModuleBase
 	{
@@ -31,7 +31,8 @@ namespace Advobot.CommandMarking
 
 			[SelfRoleGroupsLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Create([ValidatePositiveNumber, NotAlreadySelfAssignableRoleGroup] int group)
+			public Task<RuntimeResult> Create(
+				[ValidatePositiveNumber, NotAlreadySelfAssignableRoleGroup] int group)
 			{
 				Settings.SelfAssignableGroups.Add(new SelfAssignableRoles(group));
 				return Responses.SelfRoles.CreatedGroup(group);
@@ -44,13 +45,16 @@ namespace Advobot.CommandMarking
 				return Responses.SelfRoles.DeletedGroup(group);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Add(SelfAssignableRoles group, [ValidateRole] params SocketRole[] roles)
+			public Task<RuntimeResult> Add(SelfAssignableRoles group,
+				[ValidateRole] params IRole[] roles)
 			{
 				group.AddRoles(roles);
 				return Responses.SelfRoles.ModifiedGroup(group, roles, true);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Remove(SelfAssignableRoles group, [ValidateRole] params SocketRole[] roles)
+			public Task<RuntimeResult> Remove(
+				SelfAssignableRoles group,
+				[ValidateRole] params IRole[] roles)
 			{
 				group.RemoveRoles(roles);
 				return Responses.SelfRoles.ModifiedGroup(group, roles, false);
@@ -63,32 +67,26 @@ namespace Advobot.CommandMarking
 		[EnabledByDefault(false)]
 		public sealed class AssignSelfRole : AdvobotModuleBase
 		{
-			//Inherit from this to make this accept a self role instead of regular role?
-			//https://github.com/discord-net/Discord.Net/blob/ff0fea98a65d907fbce07856f1a9ef4aebb9108b/src/Discord.Net.Commands/Readers/RoleTypeReader.cs
 			[Command]
-			public async Task<RuntimeResult> Command(SocketRole role)
+			public async Task<RuntimeResult> Command(SelfAssignableRole role)
 			{
-				if (!Context.Settings.SelfAssignableGroups.TryGetSingle(x => x.Roles.Contains(role.Id), out var group))
+				if (Context.User.Roles.Any(x => x.Id == role.Role.Id))
 				{
-					return Responses.SelfRoles.NotSelfAssignable(role);
-				}
-				if (Context.User.Roles.Any(x => x.Id == role.Id))
-				{
-					await Context.User.AddRoleAsync(role, GenerateRequestOptions("self role removal")).CAF();
-					return Responses.SelfRoles.RemovedRole(role);
+					await Context.User.AddRoleAsync(role.Role, GenerateRequestOptions("self role removal")).CAF();
+					return Responses.SelfRoles.RemovedRole(role.Role);
 				}
 
-				await Context.User.AddRoleAsync(role, GenerateRequestOptions("self role giving")).CAF();
+				await Context.User.AddRoleAsync(role.Role, GenerateRequestOptions("self role giving")).CAF();
 
 				//Remove roles the user already has from the group if they're targetting an exclusivity group
-				var otherRoles = Context.User.Roles.Where(x => group.Roles.Contains(x.Id));
-				if (group.Group != 0 && otherRoles.Any())
+				var otherRoles = Context.User.Roles.Where(x => role.Group.Roles.Contains(x.Id));
+				if (role.Group.Group != 0 && otherRoles.Any())
 				{
 					await Context.User.RemoveRolesAsync(otherRoles, GenerateRequestOptions("self role removal")).CAF();
-					return Responses.SelfRoles.AddedRoleAndRemovedOthers(role, otherRoles);
+					return Responses.SelfRoles.AddedRoleAndRemovedOthers(role.Role, otherRoles);
 				}
 
-				return Responses.SelfRoles.AddedRole(role);
+				return Responses.SelfRoles.AddedRole(role.Role);
 			}
 		}
 

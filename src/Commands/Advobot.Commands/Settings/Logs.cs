@@ -12,7 +12,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Settings
 {
 	public sealed class Logs : ModuleBase
 	{

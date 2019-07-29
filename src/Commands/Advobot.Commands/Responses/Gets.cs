@@ -5,13 +5,15 @@ using Advobot.Services.Logging;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace Advobot.CommandMarking.Responses
+namespace Advobot.Commands.Responses
 {
 	public sealed class Gets : CommandResponses
 	{
@@ -82,7 +84,7 @@ namespace Advobot.CommandMarking.Responses
 				Author = client.CurrentUser.CreateAuthor(),
 			});
 		}
-		public static AdvobotResult Guild(SocketGuild guild)
+		public static async Task<RuntimeResult> Guild(IGuild guild)
 		{
 			int local = 0, animated = 0, managed = 0;
 			foreach (var emote in guild.Emotes)
@@ -92,32 +94,43 @@ namespace Advobot.CommandMarking.Responses
 				else { ++local; }
 			}
 
+			var owner = await guild.GetOwnerAsync().CAF();
+			var memberCount = (await guild.GetUsersAsync().CAF()).Count;
+			var channelCount = (await guild.GetChannelsAsync().CAF()).Count;
+			var textChannelCount = (await guild.GetTextChannelsAsync().CAF()).Count;
+			var voiceChannelCount = (await guild.GetVoiceChannelsAsync().CAF()).Count;
+			var categoryChannelCount = (await guild.GetCategoriesAsync().CAF()).Count;
+			var defaultChannel = await guild.GetDefaultChannelAsync().CAF();
+			var afkChannel = await guild.GetAFKChannelAsync().CAF();
+			var systemChannel = await guild.GetSystemChannelAsync().CAF();
+			var embedChannel = await guild.GetEmbedChannelAsync().CAF();
+
 			return Success(new EmbedWrapper
 			{
 				Description = FormatIdAndCreatedAt(guild) +
-					$"**Owner:** `{guild.Owner.Format()}`\n" +
+					$"**Owner:** `{owner.Format()}`\n" +
 					$"**Default Message Notifs:** `{guild.DefaultMessageNotifications}`\n" +
 					$"**Verification Level:** `{guild.VerificationLevel}`\n" +
 					$"**Region:** `{guild.VoiceRegionId}`\n\n" +
 					$"**Emotes:** `{guild.Emotes.Count}` (`{local}` local, `{animated}` animated, `{managed}` managed)\n" +
-					$"**User Count:** `{guild.MemberCount}`\n" +
+					$"**User Count:** `{memberCount}`\n" +
 					$"**Role Count:** `{guild.Roles.Count}`\n" +
-					$"**Channel Count:** `{guild.Channels.Count}` " +
-						$"(`{guild.TextChannels.Count}` text, " +
-						$"`{guild.VoiceChannels.Count}` voice, " +
-						$"`{guild.CategoryChannels.Count}` categories)\n\n" +
-					$"**Default Channel:** `{guild.DefaultChannel?.Format() ?? "None"}`\n" +
-					$"**AFK Channel:** `{guild.AFKChannel?.Format() ?? "None"}` (Time: `{guild.AFKTimeout / 60}`)\n" +
-					$"**System Channel:** `{guild.SystemChannel?.Format() ?? "None"}`\n" +
-					$"**Embed Channel:** `{guild.EmbedChannel?.Format() ?? "None"}`\n" +
+					$"**Channel Count:** `{channelCount}` " +
+						$"(`{textChannelCount}` text, " +
+						$"`{voiceChannelCount}` voice, " +
+						$"`{categoryChannelCount}` categories)\n\n" +
+					$"**Default Channel:** `{defaultChannel?.Format() ?? "None"}`\n" +
+					$"**AFK Channel:** `{afkChannel?.Format() ?? "None"}` (Time: `{guild.AFKTimeout / 60}`)\n" +
+					$"**System Channel:** `{systemChannel?.Format() ?? "None"}`\n" +
+					$"**Embed Channel:** `{embedChannel?.Format() ?? "None"}`\n" +
 					(guild.Features.Any() ? $"**Features:** `{string.Join("`, `", guild.Features)}`" : ""),
-				Color = guild.Owner.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).LastOrDefault(x => x.Color.RawValue != 0)?.Color,
+				Color = owner.GetRoles().LastOrDefault(x => x.Color.RawValue != 0)?.Color,
 				ThumbnailUrl = guild.IconUrl,
 				Author = new EmbedAuthorBuilder { Name = guild.Format(), },
 				Footer = new EmbedFooterBuilder { Text = "Guild Info", },
 			});
 		}
-		public static AdvobotResult User(SocketUser user)
+		public static async Task<RuntimeResult> User(IUser user)
 		{
 			var embed = new EmbedWrapper
 			{
@@ -129,21 +142,40 @@ namespace Advobot.CommandMarking.Responses
 				Footer = new EmbedFooterBuilder { Text = "User Info", },
 			};
 
-			if (!(user is SocketGuildUser guildUser))
+			if (!(user is IGuildUser guildUser))
 			{
 				return Success(embed);
 			}
 
-			var guild = guildUser.Guild;
-			var textChannels = guild.TextChannels.Where(x => guildUser.GetPermissions(x).ViewChannel).OrderBy(x => x.Position).Select(x => x.Name);
-			var voiceChannels = guild.VoiceChannels.Where(x =>
+			var channels = new List<string>();
+			foreach (var t in (await guildUser.Guild.GetTextChannelsAsync().CAF()).OrderBy(x => x.Position))
 			{
-				var perms = guildUser.GetPermissions(x);
-				return perms.ViewChannel && perms.Connect;
-			}).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)");
-			var channels = textChannels.Concat(voiceChannels).ToArray();
-			var roles = guildUser.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone).ToArray();
-			var join = guild.Users.OrderByJoinDate().Select((Val, Index) => new { Val.Id, Index }).First(x => x.Id == user.Id).Index + 1;
+				var perms = guildUser.GetPermissions(t);
+				if (perms.ViewChannel)
+				{
+					channels.Add(t.Name);
+				}
+			}
+			foreach (var v in (await guildUser.Guild.GetVoiceChannelsAsync().CAF()).OrderBy(x => x.Position))
+			{
+				var perms = guildUser.GetPermissions(v);
+				if (perms.ViewChannel && perms.Connect)
+				{
+					channels.Add($"{v.Name} (Voice)");
+				}
+			}
+
+			var join = 1;
+			foreach (var u in (await guildUser.Guild.GetUsersAsync().CAF()).OrderByJoinDate())
+			{
+				if (u.Id == user.Id)
+				{
+					break;
+				}
+				++join;
+			}
+
+			var roles = guildUser.GetRoles();
 
 			embed.Description += "\n\n" +
 				$"**Nickname:** `{guildUser.Nickname?.EscapeBackTicks() ?? "No nickname"}`\n" +
@@ -152,7 +184,7 @@ namespace Advobot.CommandMarking.Responses
 
 			if (channels.Any())
 			{
-				embed.TryAddField("Channels", $"`{string.Join("`, `", channels)}`", false, out _);
+				embed.TryAddField("Channels", $"`{channels.Join("`, `")}`", false, out _);
 			}
 			if (roles.Any())
 			{
@@ -168,8 +200,9 @@ namespace Advobot.CommandMarking.Responses
 			}
 			return Success(embed);
 		}
-		public static AdvobotResult Role(SocketRole role)
+		public static async Task<RuntimeResult> Role(IRole role)
 		{
+			var users = await role.Guild.GetUsersAsync().CAF();
 			return Success(new EmbedWrapper
 			{
 				Description = FormatIdAndCreatedAt(role) +
@@ -178,21 +211,29 @@ namespace Advobot.CommandMarking.Responses
 					$"**Is Hoisted:** `{role.IsHoisted}`\n" +
 					$"**Is Managed:** `{role.IsManaged}`\n" +
 					$"**Is Mentionable:** `{role.IsMentionable}`\n\n" +
-					$"**User Count:** `{role.Guild.Users.Count(u => u.Roles.Any(r => r.Id == role.Id))}`\n" +
+					$"**User Count:** `{users.Count(u => u.RoleIds.Any(r => r == role.Id))}`\n" +
 					$"**Permissions:** `{string.Join("`, `", Enum.GetValues(typeof(GuildPermission)).Cast<GuildPermission>().Where(x => role.Permissions.Has(x)))}`",
 				Color = role.Color,
 				Author = new EmbedAuthorBuilder { Name = role.Format(), },
 				Footer = new EmbedFooterBuilder { Text = "Role Info", },
 			});
 		}
-		public static AdvobotResult Channel(SocketGuildChannel channel, IGuildSettings guildSettings)
+		public static async Task<RuntimeResult> Channel(IGuildChannel channel, IGuildSettings guildSettings)
 		{
-			var overwriteNames = channel.PermissionOverwrites.Select(o => o.TargetType switch
+			var overwriteNames = new List<string>();
+			foreach (var o in channel.PermissionOverwrites)
 			{
-				PermissionTarget.Role => channel.Guild.GetRole(o.TargetId).Name,
-				PermissionTarget.User => channel.Guild.GetUser(o.TargetId).Username,
-				_ => throw new ArgumentException(nameof(o.TargetType)),
-			});
+				if (o.TargetType == PermissionTarget.Role)
+				{
+					overwriteNames.Add(channel.Guild.GetRole(o.TargetId).Name);
+				}
+				else if (o.TargetType == PermissionTarget.User)
+				{
+					var user = await channel.Guild.GetUserAsync(o.TargetId).CAF();
+					overwriteNames.Add(user.Username);
+				}
+			}
+			var userCount = (await channel.GetUsersAsync().FlattenAsync().CAF()).Count();
 			return Success(new EmbedWrapper
 			{
 				Description = FormatIdAndCreatedAt(channel) +
@@ -203,18 +244,19 @@ namespace Advobot.CommandMarking.Responses
 					$"**Is Serverlog:** `{guildSettings.ServerLogId == channel.Id}`\n" +
 					$"**Is Modlog:** `{guildSettings.ModLogId == channel.Id}`\n" +
 					$"**Is Imagelog:** `{guildSettings.ImageLogId == channel.Id}`\n\n" +
-					$"**User Count:** `{channel.Users.Count}`\n" +
+					$"**User Count:** `{userCount}`\n" +
 					$"**Overwrites:** `{overwriteNames.Join("`, `")}`",
 				Author = new EmbedAuthorBuilder { Name = channel.Format(), },
 				Footer = new EmbedFooterBuilder { Text = "Channel Info", },
 			});
 		}
-		public static AdvobotResult AllGuildUsers(SocketGuild guild)
+		public static async Task<RuntimeResult> AllGuildUsers(IGuild guild)
 		{
+			var users = await guild.GetUsersAsync().CAF();
 			var statuses = Enum.GetValues(typeof(UserStatus)).Cast<UserStatus>().ToDictionary(x => x, x => 0);
 			var activities = Enum.GetValues(typeof(ActivityType)).Cast<ActivityType>().ToDictionary(x => x, x => 0);
 			int webhooks = 0, bots = 0, nickname = 0, voice = 0;
-			foreach (var user in guild.Users)
+			foreach (var user in users)
 			{
 				++statuses[user.Status];
 				if (user.Activity != null) { ++activities[user.Activity.Type]; }
@@ -226,7 +268,7 @@ namespace Advobot.CommandMarking.Responses
 
 			var embed = new EmbedWrapper
 			{
-				Description = $"**Count:** `{guild.Users.Count}`\n" +
+				Description = $"**Count:** `{users.Count}`\n" +
 					$"**Bots:** `{bots}`\n" +
 					$"**Webhooks:** `{webhooks}`\n" +
 					$"**In Voice:** `{voice}`\n" +
@@ -270,13 +312,13 @@ namespace Advobot.CommandMarking.Responses
 				Footer = new EmbedFooterBuilder { Text = "Invite Info", },
 			});
 		}
-		public static AdvobotResult Webhook(IWebhook webhook, SocketGuild guild)
+		public static AdvobotResult Webhook(IWebhook webhook)
 		{
 			return Success(new EmbedWrapper
 			{
 				Description = FormatIdAndCreatedAt(webhook) +
 					$"**Creator:** `{webhook.Creator.Format()}`\n" +
-					$"**Channel:** `{guild.GetChannel(webhook.ChannelId).Format()}`\n",
+					$"**Channel:** `{webhook.Channel.Format()}`\n",
 				ThumbnailUrl = webhook.GetAvatarUrl(),
 				Author = new EmbedAuthorBuilder { Name = webhook.Name, IconUrl = webhook.GetAvatarUrl(), Url = webhook.GetAvatarUrl(), },
 				Footer = new EmbedFooterBuilder { Text = "Webhook Info", },
@@ -292,12 +334,12 @@ namespace Advobot.CommandMarking.Responses
 		}
 		public static AdvobotResult UserJoinPosition(IGuildUser user, int position)
 			=> Success(Default.FormatInterpolated($"{user} is #{position} to join the guild on {user.JoinedAt?.UtcDateTime.ToReadable()}."));
-		public static AdvobotResult Guilds(IReadOnlyCollection<SocketGuild> guilds)
+		public static AdvobotResult Guilds(IReadOnlyCollection<IGuild> guilds)
 		{
 			return Success(new EmbedWrapper
 			{
 				Title = "Guilds",
-				Description = BigBlock.FormatInterpolated($"{guilds.FormatNumberedList(x => Default.FormatInterpolated($"{x} Owner: {x.Owner}"))}"),
+				Description = BigBlock.FormatInterpolated($"{guilds.FormatNumberedList(x => Default.FormatInterpolated($"{x} Owner: {x.OwnerId}"))}"),
 			});
 		}
 		public static AdvobotResult UserJoin(IReadOnlyCollection<IGuildUser> users)

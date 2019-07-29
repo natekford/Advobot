@@ -12,9 +12,8 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.Webhook;
-using Discord.WebSocket;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Standard
 {
 	public sealed class Webhooks : ModuleBase
 	{
@@ -28,7 +27,7 @@ namespace Advobot.CommandMarking
 			public async Task<RuntimeResult> Command()
 				=> Responses.Webhooks.DisplayWebhooks(Context.Guild, await Context.Guild.GetWebhooksAsync().CAF());
 			[Command]
-			public async Task<RuntimeResult> Command(SocketTextChannel channel)
+			public async Task<RuntimeResult> Command(ITextChannel channel)
 				=> Responses.Webhooks.DisplayWebhooks(channel, await channel.GetWebhooksAsync().CAF());
 		}
 
@@ -39,7 +38,8 @@ namespace Advobot.CommandMarking
 		public sealed class CreateWebhook : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateTextChannel(ChannelPermission.ManageWebhooks, FromContext = true)] SocketTextChannel channel,
+			public async Task<RuntimeResult> Command(
+				[ValidateTextChannel(ChannelPermission.ManageWebhooks, FromContext = true)] ITextChannel channel,
 				[Remainder, ValidateUsername] string name)
 			{
 				var webhook = await channel.CreateWebhookAsync(name, options: GenerateRequestOptions()).CAF();
@@ -68,7 +68,9 @@ namespace Advobot.CommandMarking
 		public sealed class ModifyWebhookName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(IWebhook webhook, [Remainder, ValidateUsername] string name)
+			public async Task<RuntimeResult> Command(
+				IWebhook webhook,
+				[Remainder, ValidateUsername] string name)
 			{
 				await webhook.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.ModifiedName(webhook, name);
@@ -82,10 +84,11 @@ namespace Advobot.CommandMarking
 		public sealed class ModifyWebhookChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(IWebhook webhook,
-				[ValidateTextChannel(ChannelPermission.ManageWebhooks, FromContext = true)] SocketTextChannel channel)
+			public async Task<RuntimeResult> Command(
+				IWebhook webhook,
+				[ValidateTextChannel(ChannelPermission.ManageWebhooks, FromContext = true)] ITextChannel channel)
 			{
-				await webhook.ModifyAsync(x => x.Channel = Optional.Create<ITextChannel>(channel), GenerateRequestOptions()).CAF();
+				await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Webhooks.ModifiedChannel(webhook, channel);
 			}
 		}

@@ -8,7 +8,6 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Advobot.Modules
 {

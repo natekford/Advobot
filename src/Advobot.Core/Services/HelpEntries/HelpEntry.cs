@@ -96,7 +96,7 @@ namespace Advobot.Services.HelpEntries
 			var formattedCommands = _Module.Commands.Select((x, i) =>
 			{
 				var output = $"\t{i + 1}.";
-				if (x.Aliases.Any(y => y.Contains(x.Name))) //If the name of the command is not in its alias, then the name isnt set
+				if (x.Aliases.Any(y => y.CaseInsContains(x.Name))) //If the name of the command is not in its alias, then the name isnt set
 				{
 					output += $" {x.Name}";
 				}

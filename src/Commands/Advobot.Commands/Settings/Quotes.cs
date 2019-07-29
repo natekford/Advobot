@@ -13,7 +13,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Settings
 {
 	public sealed class Quotes : ModuleBase
 	{

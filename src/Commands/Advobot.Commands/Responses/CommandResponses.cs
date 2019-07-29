@@ -7,7 +7,7 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 
-namespace Advobot.CommandMarking.Responses
+namespace Advobot.Commands.Responses
 {
 	public abstract class CommandResponses : AdvobotResult
 	{

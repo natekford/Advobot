@@ -6,7 +6,7 @@ using Discord;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.CommandMarking.Responses
+namespace Advobot.Commands.Responses
 {
 	public sealed class Users : CommandResponses
 	{

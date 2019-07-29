@@ -183,5 +183,11 @@ namespace Advobot.Modules
 		/// <param name="result"></param>
 		public static implicit operator Task<RuntimeResult>(AdvobotResult result)
 			=> Task.FromResult<RuntimeResult>(result);
+		/// <summary>
+		/// Converts the result into a task returning the result.
+		/// </summary>
+		/// <param name="result"></param>
+		public static implicit operator Task<AdvobotResult>(AdvobotResult result)
+			=> Task.FromResult(result);
 	}
 }

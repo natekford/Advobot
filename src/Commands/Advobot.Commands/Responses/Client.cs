@@ -1,4 +1,4 @@
-﻿namespace Advobot.CommandMarking.Responses
+﻿namespace Advobot.Commands.Responses
 {
 	public sealed class Client : CommandResponses
 	{

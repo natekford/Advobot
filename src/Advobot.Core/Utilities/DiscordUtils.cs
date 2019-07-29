@@ -90,7 +90,20 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="users"></param>
 		/// <returns></returns>
-		public static IReadOnlyCollection<T> OrderByJoinDate<T>(this IEnumerable<T> users) where T : IGuildUser
+		public static IReadOnlyList<T> OrderByJoinDate<T>(this IEnumerable<T> users) where T : IGuildUser
 			=> users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks).ToArray();
+		/// <summary>
+		/// Returns all the roles a user has.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public static IReadOnlyList<IRole> GetRoles(this IGuildUser user)
+		{
+			return user.RoleIds
+				.Select(x => user.Guild.GetRole(x))
+				.OrderBy(x => x.Position)
+				.Where(x => x.Id != user.GuildId)
+				.ToArray();
+		}
 	}
 }

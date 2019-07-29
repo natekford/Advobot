@@ -12,9 +12,8 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Standard
 {
 	public sealed class Guilds : ModuleBase
 	{
@@ -92,7 +91,8 @@ namespace Advobot.CommandMarking
 		public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateVoiceChannel(ChannelPermission.ManageChannels, FromContext = true)] SocketVoiceChannel? channel)
+			public async Task<RuntimeResult> Command(
+				[ValidateVoiceChannel(ChannelPermission.ManageChannels, FromContext = true)] IVoiceChannel? channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel?>(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedAfkChannel(channel);
@@ -109,9 +109,10 @@ namespace Advobot.CommandMarking
 		public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateTextChannel(ChannelPermission.ManageChannels, FromContext = true)] SocketTextChannel? channel)
+			public async Task<RuntimeResult> Command(
+				[ValidateTextChannel(ChannelPermission.ManageChannels, FromContext = true)] ITextChannel? channel)
 			{
-				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create<ITextChannel?>(channel), GenerateRequestOptions()).CAF();
+				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedSystemChannel(channel);
 			}
 			[ImplicitCommand, ImplicitAlias]

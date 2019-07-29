@@ -4,7 +4,7 @@ using Advobot.Utilities;
 using Discord;
 using System.Collections.Generic;
 
-namespace Advobot.CommandMarking.Responses
+namespace Advobot.Commands.Responses
 {
 	public sealed class Logs : CommandResponses
 	{

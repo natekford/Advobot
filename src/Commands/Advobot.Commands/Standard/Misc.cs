@@ -11,15 +11,15 @@ using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Modules;
 using Advobot.TypeReaders;
-using Advobot.CommandMarking.Localization;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
+using Advobot.Commands.Resources;
+using Advobot.Commands.Localization;
 
-namespace Advobot.CommandMarking.Misc
+namespace Advobot.Commands.Standard
 {
 	public sealed class Misc : ModuleBase
 	{
@@ -99,7 +99,7 @@ namespace Advobot.CommandMarking.Misc
 		public sealed class MessageRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([NotEveryone, NotMentionable] SocketRole role, [Remainder] string message)
+			public async Task Command([NotEveryone, NotMentionable] IRole role, [Remainder] string message)
 			{
 				var text = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly

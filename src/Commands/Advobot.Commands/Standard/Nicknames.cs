@@ -11,9 +11,8 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Standard
 {
 	public sealed class Nicknames : ModuleBase
 	{
@@ -25,7 +24,9 @@ namespace Advobot.CommandMarking
 		public sealed class ModifyNickName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateUser] SocketGuildUser user, [Optional, ValidateNickname] string nickname)
+			public async Task<RuntimeResult> Command(
+				[ValidateUser] IGuildUser user,
+				[Optional, ValidateNickname] string nickname)
 			{
 				await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, GenerateRequestOptions()).CAF();
 				return Responses.Nicknames.ModifiedNickname(user.Format(), nickname ?? "Nothing");
@@ -40,7 +41,8 @@ namespace Advobot.CommandMarking
 		public sealed class ReplaceWordsInNames : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command([ValidateNickname] string search,
+			public async Task<RuntimeResult> Command(
+				[ValidateNickname] string search,
 				[ValidateNickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
@@ -60,7 +62,8 @@ namespace Advobot.CommandMarking
 		public sealed class ReplaceByUtf16 : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command([ValidatePositiveNumber] int upperLimit,
+			public async Task<RuntimeResult> Command(
+				[ValidatePositiveNumber] int upperLimit,
 				[ValidateNickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
@@ -80,7 +83,8 @@ namespace Advobot.CommandMarking
 		public sealed class RemoveAllNickNames : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+			public async Task<RuntimeResult> Command(
+				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
 				var amountChanged = await ProcessAsync(bypass,

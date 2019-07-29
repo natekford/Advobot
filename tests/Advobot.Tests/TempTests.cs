@@ -1,4 +1,4 @@
-﻿using Advobot.CommandMarking;
+﻿using Advobot.Commands.Standard;
 using Advobot.Databases;
 using Advobot.Settings;
 using AdvorangesUtils;

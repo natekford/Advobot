@@ -6,7 +6,6 @@ using Advobot.Services.HelpEntries;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings.Settings

@@ -7,7 +7,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 
-namespace Advobot.CommandMarking.Responses
+namespace Advobot.Commands.Responses
 {
 	public sealed class GuildSettings : CommandResponses
 	{

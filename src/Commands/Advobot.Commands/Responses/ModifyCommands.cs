@@ -2,7 +2,7 @@
 using Advobot.Modules;
 using Advobot.Utilities;
 
-namespace Advobot.CommandMarking.Responses
+namespace Advobot.Commands.Responses
 {
 	public sealed class ModifyCommands : CommandResponses
 	{

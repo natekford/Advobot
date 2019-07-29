@@ -15,9 +15,8 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Standard
 {
 	public sealed class Gets : ModuleBase
 	{
@@ -44,13 +43,13 @@ namespace Advobot.CommandMarking
 			public Task<RuntimeResult> GuildUsers()
 				=> Responses.Gets.AllGuildUsers(Context.Guild);
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Channel(SocketGuildChannel channel)
+			public Task<RuntimeResult> Channel(IGuildChannel channel)
 				=> Responses.Gets.Channel(channel, Context.Settings);
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Role(SocketRole role)
+			public Task<RuntimeResult> Role(IRole role)
 				=> Responses.Gets.Role(role);
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> User(SocketUser user)
+			public Task<RuntimeResult> User(IUser user)
 				=> Responses.Gets.User(user);
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Emote(Emote emote)
@@ -60,7 +59,7 @@ namespace Advobot.CommandMarking
 				=> Responses.Gets.Invite(invite);
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Webhook(IWebhook webhook)
-				=> Responses.Gets.Webhook(webhook, Context.Guild);
+				=> Responses.Gets.Webhook(webhook);
 		}
 
 		[Group(nameof(GetUsersWithReason)), ModuleInitialismAlias(typeof(GetUsersWithReason))]
@@ -70,7 +69,7 @@ namespace Advobot.CommandMarking
 		public sealed class GetUsersWithReason : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Role(SocketRole role)
+			public Task<RuntimeResult> Role(IRole role)
 				=> Responses.Gets.UsersWithReason($"Users With The Role '{role.Name}'", Context.Guild.Users.Where(x => x.Roles.Select(r => r.Id).Contains(role.Id)));
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Name(string name)
@@ -138,7 +137,9 @@ namespace Advobot.CommandMarking
 		public sealed class GetMessages : AdvobotModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command(int number, [Optional, ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
+			public async Task<RuntimeResult> Command(
+				int number,
+				[Optional, ValidateTextChannel(FromContext = true)] ITextChannel channel)
 			{
 				var messages = await channel.GetMessagesAsync(Math.Min(number, 1000)).FlattenAsync().CAF();
 				var orderedMessages = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();
@@ -170,7 +171,8 @@ namespace Advobot.CommandMarking
 			public Task<RuntimeResult> Command()
 				=> Responses.Gets.ShowAllEnums(EnumTypeTypeReader.Enums);
 			[Command]
-			public Task<RuntimeResult> Command([OverrideTypeReader(typeof(EnumTypeTypeReader))] Type enumType)
+			public Task<RuntimeResult> Command(
+				[OverrideTypeReader(typeof(EnumTypeTypeReader))] Type enumType)
 				=> Responses.Gets.ShowEnumValues(enumType);
 		}
 	}

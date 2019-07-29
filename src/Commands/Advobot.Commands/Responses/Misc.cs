@@ -8,7 +8,7 @@ using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using Discord;
 
-namespace Advobot.CommandMarking.Responses
+namespace Advobot.Commands.Responses
 {
 	public sealed class Misc : CommandResponses
 	{
@@ -29,8 +29,8 @@ namespace Advobot.CommandMarking.Responses
 		public static AdvobotResult GeneralHelp(string prefix)
 		{
 			var description =
-				$"Type `{prefix}{nameof(CommandMarking.Misc.Misc.Commands)}` for the list of commands.\n" +
-				$"Type `{prefix}{nameof(CommandMarking.Misc.Misc.Help)} [Command]` for help with a command.";
+				$"Type `{prefix}{nameof(Standard.Misc.Commands)}` for the list of commands.\n" +
+				$"Type `{prefix}{nameof(Standard.Misc.Help)} [Command]` for help with a command.";
 			return Success(new EmbedWrapper
 			{
 				Title = "General Help",
@@ -69,7 +69,7 @@ namespace Advobot.CommandMarking.Responses
 			return Success(new EmbedWrapper
 			{
 				Title = "Categories",
-				Description = Default.FormatInterpolated($"Type {prefix}{nameof(CommandMarking.Misc.Misc.Commands)} [Category] for commands from a category.\n\n{categories}"),
+				Description = Default.FormatInterpolated($"Type {prefix}{nameof(Standard.Misc.Commands)} [Category] for commands from a category.\n\n{categories}"),
 			});
 		}
 		public static AdvobotResult MakeAnEmbed(CustomEmbed embed)

@@ -6,7 +6,7 @@ using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Discord.Commands;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Settings
 {
 	public sealed class BotSettings : ModuleBase
 	{

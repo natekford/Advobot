@@ -11,24 +11,20 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Settings
 {
-	public abstract class AdvobotGuildListingModule : AdvobotModuleBase
-	{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public IInviteListService Invites { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
-	}
-
-
 	public sealed class GuildList : ModuleBase
 	{
 		[Group(nameof(ModifyGuildListing)), ModuleInitialismAlias(typeof(ModifyGuildListing))]
 		[Summary("Adds or removes a guild from the public guild list.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		public sealed class ModifyGuildListing : AdvobotGuildListingModule
+		public sealed class ModifyGuildListing : AdvobotModuleBase
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
+			public IInviteListService Invites { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Add([NeverExpires] IInviteMetadata invite, [Optional] params string[] keywords)
 			{
@@ -47,8 +43,12 @@ namespace Advobot.CommandMarking
 		[Summary("Bumps the invite on the guild.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
-		public sealed class BumpGuildListing : AdvobotGuildListingModule
+		public sealed class BumpGuildListing : AdvobotModuleBase
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
+			public IInviteListService Invites { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+
 			[Command]
 			public async Task<RuntimeResult> Command()
 			{
@@ -68,10 +68,14 @@ namespace Advobot.CommandMarking
 		[Group(nameof(GetGuildListing)), ModuleInitialismAlias(typeof(GetGuildListing))]
 		[Summary("Gets an invite meeting the given criteria.")]
 		[EnabledByDefault(true)]
-		public sealed class GetGuildListing : AdvobotGuildListingModule
+		public sealed class GetGuildListing : AdvobotModuleBase
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
+			public IInviteListService Invites { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+
 			[Command]
-			public Task Command([Remainder] ListedInviteGatherer args)
+			public Task<RuntimeResult> Command([Remainder] ListedInviteGatherer args)
 			{
 				var invites = args.GatherInvites(Invites).ToArray();
 				if (!invites.Any())

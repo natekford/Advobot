@@ -17,9 +17,8 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
-namespace Advobot.CommandMarking
+namespace Advobot.Commands.Standard
 {
 	public sealed class Users : ModuleBase
 	{
@@ -49,12 +48,14 @@ namespace Advobot.CommandMarking
 				| ChannelPermission.MoveMembers;
 
 			[Command]
-			public async Task<RuntimeResult> Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(
+				IGuildUser user,
+				[Optional, Remainder] ModerationReason reason)
 			{
 				var muteRole = await GetOrCreateMuteRoleAsync().CAF();
 
 				var punishmentArgs = reason.ToPunishmentArgs(this);
-				var shouldPunish = !user.Roles.Select(x => x.Id).Contains(muteRole.Id);
+				var shouldPunish = !user.RoleIds.Contains(muteRole.Id);
 				if (shouldPunish)
 				{
 					await PunishmentUtils.RoleMuteAsync(user, muteRole, punishmentArgs).CAF();
@@ -104,7 +105,9 @@ namespace Advobot.CommandMarking
 		public sealed class VoiceMute : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(
+				IGuildUser user,
+				[Optional, Remainder] ModerationReason reason)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
 				var shouldPunish = !user.IsMuted;
@@ -128,7 +131,9 @@ namespace Advobot.CommandMarking
 		public sealed class Deafen : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(
+				IGuildUser user,
+				[Optional, Remainder] ModerationReason reason)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
 				var shouldPunish = !user.IsDeafened;
@@ -151,7 +156,9 @@ namespace Advobot.CommandMarking
 		public sealed class Kick : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(
+				[ValidateUser] IGuildUser user,
+				[Optional, Remainder] ModerationReason reason)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
 				await PunishmentUtils.KickAsync(user, punishmentArgs).CAF();
@@ -166,10 +173,14 @@ namespace Advobot.CommandMarking
 		public sealed class SoftBan : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public Task<RuntimeResult> Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public Task<RuntimeResult> Command(
+				[ValidateUser] IGuildUser user,
+				[Optional, Remainder] ModerationReason reason)
 				=> Command(user.Id, reason);
 			[Command]
-			public async Task<RuntimeResult> Command([NotBanned] ulong userId, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(
+				[NotBanned] ulong userId,
+				[Optional, Remainder] ModerationReason reason)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
 				await PunishmentUtils.SoftbanAsync(Context.Guild, userId, punishmentArgs).CAF();
@@ -185,10 +196,14 @@ namespace Advobot.CommandMarking
 		public sealed class Ban : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
-			public Task Command([ValidateUser] SocketGuildUser user, [Optional, Remainder] ModerationReason reason)
+			public Task Command(
+				[ValidateUser] IGuildUser user,
+				[Optional, Remainder] ModerationReason reason)
 				=> Command(user.Id, reason);
 			[Command]
-			public async Task<RuntimeResult> Command([NotBanned] ulong userId, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(
+				[NotBanned] ulong userId,
+				[Optional, Remainder] ModerationReason reason)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
 				await PunishmentUtils.BanAsync(Context.Guild, userId, options: punishmentArgs).CAF();
@@ -203,7 +218,9 @@ namespace Advobot.CommandMarking
 		public sealed class Unban : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(IBan ban, [Optional, Remainder] ModerationReason reason)
+			public async Task<RuntimeResult> Command(
+				IBan ban,
+				[Optional, Remainder] ModerationReason reason)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
 				await PunishmentUtils.UnbanAsync(Context.Guild, ban.User.Id, punishmentArgs).CAF();
@@ -218,7 +235,9 @@ namespace Advobot.CommandMarking
 		public sealed class MoveUser : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([CanBeMoved] SocketGuildUser user, [ValidateVoiceChannel(ChannelPermission.MoveMembers)] SocketVoiceChannel channel)
+			public async Task<RuntimeResult> Command(
+				[CanBeMoved] IGuildUser user,
+				[ValidateVoiceChannel(ChannelPermission.MoveMembers)] IVoiceChannel channel)
 			{
 				if (user.VoiceChannel?.Id == channel.Id)
 				{
@@ -238,14 +257,16 @@ namespace Advobot.CommandMarking
 		public sealed class MoveUsers : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command([ValidateVoiceChannel(ChannelPermission.MoveMembers)] SocketVoiceChannel input,
-				[ValidateVoiceChannel(ChannelPermission.MoveMembers)] SocketVoiceChannel output,
+			public async Task<RuntimeResult> Command(
+				[ValidateVoiceChannel(ChannelPermission.MoveMembers)] IVoiceChannel input,
+				[ValidateVoiceChannel(ChannelPermission.MoveMembers)] IVoiceChannel output,
 				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
-				var amountChanged = await ProcessAsync(input.Users, bypass,
+				var users = await input.GetUsersAsync().FlattenAsync().CAF();
+				var amountChanged = await ProcessAsync(users, bypass,
 					u => true,
-					u => u.ModifyAsync(x => x.Channel = output, GenerateRequestOptions())).CAF();
+					u => u.ModifyAsync(x => x.Channel = Optional.Create(output), GenerateRequestOptions())).CAF();
 				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
 		}

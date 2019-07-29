@@ -2,7 +2,7 @@
 using Advobot.Utilities;
 using Discord;
 
-namespace Advobot.CommandMarking.Responses
+namespace Advobot.Commands.Responses
 {
 	public sealed class Snowflakes : CommandResponses
 	{

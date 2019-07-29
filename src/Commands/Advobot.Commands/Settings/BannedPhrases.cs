@@ -1,4 +1,4 @@
-﻿namespace Advobot.CommandMarking.BannedPhrases
+﻿namespace Advobot.Commands.Settings
 {
 	/*
 	[Category(typeof(EvaluateBannedRegex)), Group(nameof(EvaluateBannedRegex)), TopLevelShortAlias(typeof(EvaluateBannedRegex))]
@@ -334,7 +334,7 @@
 				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command([ValidateObject(Verif.CanBeEdited)] SocketRole role, uint position, [Optional] uint time)
+			public async Task Command([ValidateObject(Verif.CanBeEdited)] IRole role, uint position, [Optional] uint time)
 			{
 				if (position == default)
 				{

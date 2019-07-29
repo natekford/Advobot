@@ -7,7 +7,7 @@ using Discord;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.CommandMarking.Responses
+namespace Advobot.Commands.Responses
 {
 	public sealed class SelfRoles : CommandResponses
 	{
@@ -19,8 +19,6 @@ namespace Advobot.CommandMarking.Responses
 			=> Success(Default.FormatInterpolated($"Successfully deleted self assignable role group {group.Group}."));
 		public static AdvobotResult ModifiedGroup(SelfAssignableRoles group, IReadOnlyCollection<IRole> roles, bool added)
 			=> Success(Default.FormatInterpolated($"Successfully {GetAdded(added)} the following roles to self assignable role group {group.Group}: {roles}"));
-		public static AdvobotResult NotSelfAssignable(IRole role)
-			=> Failure(Default.FormatInterpolated($"{role} is not a self assignable role.")).WithTime(DefaultTime);
 		public static AdvobotResult RemovedRole(IRole role)
 			=> Success(Default.FormatInterpolated($"Successfully removed {role}."));
 		public static AdvobotResult AddedRole(IRole role)
