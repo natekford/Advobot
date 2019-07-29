@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
@@ -86,7 +86,7 @@ namespace Advobot.CommandMarking
 		[Summary("Ignores all logging info that would have been gotten from a channel.")]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		public sealed class ModifyIgnoredLogChannels : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ModifyIgnoredLogChannels : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
@@ -110,7 +110,7 @@ namespace Advobot.CommandMarking
 			"`" + nameof(ModifyLogActions.Show) + "` displays the possible actions.")]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		public sealed class ModifyLogActions : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ModifyLogActions : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 

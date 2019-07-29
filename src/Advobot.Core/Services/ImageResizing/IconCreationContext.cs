@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
-using Advobot.Classes.Results;
+using Advobot.Modules;
 using AdvorangesUtils;
 using Discord.Commands;
 using ImageMagick;

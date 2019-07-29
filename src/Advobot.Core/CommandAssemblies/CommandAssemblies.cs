@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-namespace Advobot.CommandMarking
+namespace Advobot.CommandAssemblies
 {
 	/// <summary>
 	/// A collection of <see cref="CommandAssembly"/>.
 	/// </summary>
-	public sealed class CommandAssemblies
+	public sealed class CommandAssemblyCollection
 	{
 		/// <summary>
 		/// The assemblies to be used as command assemblies.
@@ -17,7 +17,7 @@ namespace Advobot.CommandMarking
 
 		private readonly Dictionary<string, CommandAssembly> _Assemblies = new Dictionary<string, CommandAssembly>();
 
-		private CommandAssemblies() { }
+		private CommandAssemblyCollection() { }
 
 		private void Add(Assembly assembly)
 		{
@@ -38,9 +38,9 @@ namespace Advobot.CommandMarking
 		/// This loads assemblies with a matching name so this can be a risk to use if bad files are in the folder.
 		/// </summary>
 		/// <returns></returns>
-		public static CommandAssemblies Find()
+		public static CommandAssemblyCollection Find()
 		{
-			var assemblies = new CommandAssemblies();
+			var assemblies = new CommandAssemblyCollection();
 			foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
 			{
 				assemblies.Add(assembly);

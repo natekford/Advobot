@@ -5,8 +5,7 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Modules;
-using Advobot.Classes.Results;
+using Advobot.Modules;
 using Advobot.Formatting.Rules;
 using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
@@ -21,7 +20,7 @@ namespace Advobot.CommandMarking
 		[Summary("Modifies the rule categories which hold rules.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		public sealed class ModifyRuleCategories : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ModifyRuleCategories : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
@@ -51,7 +50,7 @@ namespace Advobot.CommandMarking
 		[Summary("Modifies the rules which are saved in the bot settings.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		public sealed class ModifyRules : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ModifyRules : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 

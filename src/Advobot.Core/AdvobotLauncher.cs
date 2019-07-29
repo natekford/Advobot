@@ -26,9 +26,9 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
-using Advobot.CommandMarking;
 using Advobot.Services.ImageResizing;
 using Advobot.Settings;
+using Advobot.CommandAssemblies;
 
 namespace Advobot
 {
@@ -100,7 +100,7 @@ namespace Advobot
 		/// </summary>
 		/// <param name="assemblies"></param>
 		/// <returns></returns>
-		private async Task<IServiceCollection> GetDefaultServices(CommandAssemblies assemblies)
+		private async Task<IServiceCollection> GetDefaultServices(CommandAssemblyCollection assemblies)
 			=> _Services ?? (_Services = await CreateDefaultServices(assemblies, _Config).CAF());
 		/// <summary>
 		/// Creates a provider and initializes all of its singletons.
@@ -120,7 +120,7 @@ namespace Advobot
 			}
 			return provider;
 		}
-		private static async Task<IServiceCollection> CreateDefaultServices(CommandAssemblies assemblies, ILowLevelConfig config)
+		private static async Task<IServiceCollection> CreateDefaultServices(CommandAssemblyCollection assemblies, ILowLevelConfig config)
 		{
 			//I have no idea if I am providing services correctly, but it works.
 			var botSettings = BotSettings.CreateOrLoad(config);
@@ -220,7 +220,7 @@ namespace Advobot
 		{
 			var launcher = new AdvobotLauncher(LowLevelConfig.Load(args));
 			await launcher.GetPathAndKeyAsync().CAF();
-			var commands = CommandAssemblies.Find();
+			var commands = CommandAssemblyCollection.Find();
 			var defaultServices = await launcher.GetDefaultServices(commands).CAF();
 			var provider = launcher.CreateProvider(defaultServices);
 			var commandHandler = provider.GetRequiredService<ICommandHandlerService>();

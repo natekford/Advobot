@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.NumberValidation

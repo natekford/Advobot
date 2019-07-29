@@ -2,7 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Discord.Commands;
 
@@ -14,7 +14,7 @@ namespace Advobot.CommandMarking
 		[Summary("Shows information about the bot settings.")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
-		public sealed class ShowBotSettings : ReadOnlyAdvobotSettingsModuleBase<IBotSettings>
+		public sealed class ShowBotSettings : ReadOnlySettingsModule<IBotSettings>
 		{
 			protected override IBotSettings Settings => BotSettings;
 

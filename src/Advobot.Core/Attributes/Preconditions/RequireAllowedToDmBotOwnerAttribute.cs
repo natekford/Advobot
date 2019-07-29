@@ -1,4 +1,4 @@
-﻿using Advobot.Classes.Modules;
+﻿using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Discord.Commands;
 

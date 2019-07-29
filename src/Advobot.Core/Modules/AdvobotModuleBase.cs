@@ -10,7 +10,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Modules
+namespace Advobot.Modules
 {
 	/// <summary>
 	/// Shorter way to write the used modulebase and also has every command go through the <see cref="RequireCommandEnabledAttribute"/> first.

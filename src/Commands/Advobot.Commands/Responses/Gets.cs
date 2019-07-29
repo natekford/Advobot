@@ -1,5 +1,5 @@
 ﻿using Advobot.Classes;
-using Advobot.Classes.Results;
+using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging;
 using Advobot.Utilities;

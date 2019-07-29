@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Advobot.CommandMarking;
+using Advobot.CommandAssemblies;
 using Discord.Commands;
 
 namespace Advobot.Services.Commands

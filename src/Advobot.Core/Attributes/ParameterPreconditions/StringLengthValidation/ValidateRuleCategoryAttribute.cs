@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using AdvorangesUtils;
 using Discord.Commands;
 

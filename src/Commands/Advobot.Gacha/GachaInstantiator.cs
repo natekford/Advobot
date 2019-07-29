@@ -1,4 +1,4 @@
-﻿using Advobot.CommandMarking;
+﻿using Advobot.CommandAssemblies;
 using Advobot.Gacha.Checkers;
 using Advobot.Gacha.Database;
 using AdvorangesUtils;

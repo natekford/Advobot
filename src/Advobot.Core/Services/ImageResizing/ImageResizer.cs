@@ -9,7 +9,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Advobot.Classes.Results;
+using Advobot.Modules;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;

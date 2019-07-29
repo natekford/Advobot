@@ -5,8 +5,7 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Attributes.Preconditions.QuantityLimitations;
-using Advobot.Classes.Modules;
-using Advobot.Classes.Results;
+using Advobot.Modules;
 using Advobot.TypeReaders;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
@@ -22,7 +21,7 @@ namespace Advobot.CommandMarking
 		[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		public sealed class ModifyQuotes : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ModifyQuotes : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 

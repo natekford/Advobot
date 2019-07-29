@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Advobot.CommandMarking
+namespace Advobot.CommandAssemblies
 {
 	/// <summary>
 	/// Specifies the assembly is one that holds commands.

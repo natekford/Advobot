@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes.Results;
+using Advobot.Modules;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

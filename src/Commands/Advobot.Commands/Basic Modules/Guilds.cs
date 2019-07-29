@@ -6,7 +6,7 @@ using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 using AdvorangesUtils;

@@ -1,5 +1,5 @@
 ﻿using Advobot.Attributes;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
 using Discord.Commands;

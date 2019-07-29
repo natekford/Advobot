@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Advobot.Classes;
-using Advobot.Classes.Results;
+using Advobot.Modules;
 using Advobot.Utilities;
 using Discord;
 

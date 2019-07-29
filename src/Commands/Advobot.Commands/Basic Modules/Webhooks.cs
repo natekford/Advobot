@@ -5,7 +5,7 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 using AdvorangesUtils;

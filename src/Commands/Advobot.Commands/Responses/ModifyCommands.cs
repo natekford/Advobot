@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Advobot.Classes.Results;
+using Advobot.Modules;
 using Advobot.Utilities;
 
 namespace Advobot.CommandMarking.Responses

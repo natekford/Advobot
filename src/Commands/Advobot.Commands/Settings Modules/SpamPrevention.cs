@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Advobot.Attributes;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
@@ -19,7 +19,7 @@ namespace Advobot.CommandMarking
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		//[SaveGuildSettings]
-		public sealed class PreventSpam : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class PreventSpam : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
@@ -58,7 +58,7 @@ namespace Advobot.CommandMarking
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		//[SaveGuildSettings]
-		public sealed class PreventRaid : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class PreventRaid : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 

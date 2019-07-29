@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using AdvorangesUtils;
 
 namespace Advobot.Classes

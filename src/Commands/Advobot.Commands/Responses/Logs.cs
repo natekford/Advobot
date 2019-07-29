@@ -1,4 +1,4 @@
-﻿using Advobot.Classes.Results;
+﻿using Advobot.Modules;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
 using Discord;

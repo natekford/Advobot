@@ -5,7 +5,7 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
 using AdvorangesUtils;

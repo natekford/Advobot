@@ -5,7 +5,7 @@ using Advobot.Classes;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

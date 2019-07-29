@@ -8,7 +8,7 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.TypeReaders;
 using Advobot.Services.Logging;
 using Advobot.Utilities;

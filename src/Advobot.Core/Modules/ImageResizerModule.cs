@@ -1,7 +1,7 @@
 ﻿using Advobot.Attributes.Preconditions;
 using Advobot.Services.ImageResizing;
 
-namespace Advobot.Classes.Modules
+namespace Advobot.Modules
 {
 	/// <summary>
 	/// Module which is used to resize and upload images.

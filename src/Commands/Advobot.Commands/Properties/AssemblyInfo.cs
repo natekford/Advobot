@@ -1,5 +1,5 @@
 ﻿using Advobot;
-using Advobot.CommandMarking;
+using Advobot.CommandAssemblies;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;

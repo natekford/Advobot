@@ -1,4 +1,4 @@
-﻿using Advobot.Classes.Modules;
+﻿using Advobot.Modules;
 using Advobot.Gacha.Checkers;
 using Advobot.Gacha.Database;
 

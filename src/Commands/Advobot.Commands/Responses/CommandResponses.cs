@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Advobot.Classes;
-using Advobot.Classes.Results;
 using Advobot.Formatting;
+using Advobot.Modules;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

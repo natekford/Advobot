@@ -2,7 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Discord;
@@ -16,7 +16,7 @@ namespace Advobot.CommandMarking
 		[Summary("Shows information about guild settings.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
-		public sealed class ShowGuildSettings : ReadOnlyAdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ShowGuildSettings : ReadOnlySettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
@@ -38,7 +38,7 @@ namespace Advobot.CommandMarking
 		[Summary("Sets settings back to their default values.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true)]
-		public sealed class ResetGuildSettings : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ResetGuildSettings : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 
@@ -207,7 +207,7 @@ namespace Advobot.CommandMarking
 			"If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true, AbleToToggle = false)]
-		public sealed class ModifyIgnoredCommandChannels : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ModifyIgnoredCommandChannels : SettingsModule<IGuildSettings>
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 			public IHelpEntryService HelpEntries { get; set; }

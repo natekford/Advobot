@@ -1,4 +1,4 @@
-﻿using Advobot.CommandMarking;
+﻿using Advobot.CommandAssemblies;
 using Advobot.Gacha;
 using System.Reflection;
 using System.Resources;

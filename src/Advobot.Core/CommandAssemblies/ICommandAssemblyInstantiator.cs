@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.CommandMarking
+namespace Advobot.CommandAssemblies
 {
 	/// <summary>
 	/// Specifies how to instantiate the command assembly.

@@ -4,9 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.Modules;
-using Advobot.Classes.Results;
-using Advobot.CommandMarking;
+using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
@@ -16,6 +14,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Advobot.CommandAssemblies;
 
 namespace Advobot.Services.Commands
 {

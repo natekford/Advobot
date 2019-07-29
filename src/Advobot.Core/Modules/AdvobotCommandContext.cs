@@ -5,7 +5,7 @@ using AdvorangesUtils;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Modules
+namespace Advobot.Modules
 {
 	/// <summary>
 	/// A <see cref="ShardedCommandContext"/> which contains settings and the service provider.

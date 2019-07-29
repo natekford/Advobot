@@ -6,7 +6,7 @@ using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Attributes.Preconditions.QuantityLimitations;
-using Advobot.Classes.Modules;
+using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
@@ -25,7 +25,7 @@ namespace Advobot.CommandMarking
 			"Add and Remove modify a single role in a group.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		public sealed class ModifySelfRoles : AdvobotSettingsModuleBase<IGuildSettings>
+		public sealed class ModifySelfRoles : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.GuildSettings;
 

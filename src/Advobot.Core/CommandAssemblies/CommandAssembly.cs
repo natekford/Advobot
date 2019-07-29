@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Advobot.CommandMarking
+namespace Advobot.CommandAssemblies
 {
 	/// <summary>
 	/// Holds an assembly and the attribute marking it as a command assembly.
