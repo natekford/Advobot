@@ -18,9 +18,10 @@ namespace Advobot.Attributes.Preconditions
 		public override bool Visible => true;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			return services.GetRequiredService<IBotSettings>().TrustedUsers.Contains(context.User.Id)
+			var botSettings = services.GetRequiredService<IBotSettings>();
+			return botSettings.TrustedUsers.Contains(context.User.Id)
 				? Task.FromResult(PreconditionResult.FromSuccess())
 				: Task.FromResult(PreconditionResult.FromError("User is not a trusted user."));
 		}

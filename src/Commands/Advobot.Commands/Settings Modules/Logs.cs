@@ -88,7 +88,7 @@ namespace Advobot.CommandMarking
 		[EnabledByDefault(false)]
 		public sealed class ModifyIgnoredLogChannels : SettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Add([ValidateTextChannel(ChannelPermission.ManageChannels, ChannelPermission.ManageRoles)] params SocketTextChannel[] channels)
@@ -112,7 +112,7 @@ namespace Advobot.CommandMarking
 		[EnabledByDefault(false)]
 		public sealed class ModifyLogActions : SettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]

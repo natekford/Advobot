@@ -15,7 +15,7 @@ namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 	public sealed class ValidateBotSettingNameAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			var settingNames = services.GetRequiredService<IBotSettings>().GetSettingNames();
 			return settingNames.CaseInsContains((string)value)

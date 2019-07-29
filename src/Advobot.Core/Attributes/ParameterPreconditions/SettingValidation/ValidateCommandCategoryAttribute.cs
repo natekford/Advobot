@@ -15,7 +15,7 @@ namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 	public sealed class ValidateCommandCategoryAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			var helpEntries = services.GetRequiredService<IHelpEntryService>();
 			return helpEntries.GetCategories().CaseInsContains((string)value)

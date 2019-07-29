@@ -83,34 +83,35 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		}
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			var userPerms = GetUserPermissions(context);
+			var userPerms = await GetUserPermissionsAsync(context).CAF();
 			//If the user has no permissions this should just return an error
 			if (userPerms == 0)
 			{
-				return Task.FromResult(PreconditionResult.FromError("You have no permissions."));
+				return PreconditionResult.FromError("You have no permissions.");
 			}
 
 			foreach (var validPermissions in Permissions)
 			{
 				if ((userPerms & validPermissions.RawValue) == validPermissions.RawValue)
 				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
+					return PreconditionResult.FromSuccess();
 				}
 			}
-			return Task.FromResult(PreconditionResult.FromError("You are missing permissions"));
+			return PreconditionResult.FromError("You are missing permissions");
 		}
 		/// <summary>
 		/// Returns the invoking user's permissions.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		public abstract ulong GetUserPermissions(AdvobotCommandContext context);
+		public abstract Task<ulong> GetUserPermissionsAsync(IAdvobotCommandContext context);
 		/// <summary>
 		/// Returns a string describing what this attribute requires.
 		/// </summary>
 		/// <returns></returns>
-		public override string ToString() => PermissionsText;
+		public override string ToString()
+			=> PermissionsText;
 	}
 }

@@ -23,14 +23,14 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 		public ValidateRuleCategoryAttribute() : base(1, 250) { }
 
 		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
 		{
 			var result = await base.CheckPermissionsAsync(context, parameter, value, services).CAF();
 			if (!result.IsSuccess)
 			{
 				return result;
 			}
-			var categoryExists = context.GuildSettings.Rules?.Categories?.Keys?.CaseInsContains(value) ?? false;
+			var categoryExists = context.Settings.Rules?.Categories?.Keys?.CaseInsContains(value) ?? false;
 			if (ErrorOnCategoryExisting && categoryExists)
 			{
 				return PreconditionResult.FromError($"`{value}` already exists as a rule category.");

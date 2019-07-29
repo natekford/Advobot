@@ -45,7 +45,7 @@ namespace Advobot.CommandMarking
 				=> Responses.Gets.AllGuildUsers(Context.Guild);
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Channel(SocketGuildChannel channel)
-				=> Responses.Gets.Channel(channel, Context.GuildSettings);
+				=> Responses.Gets.Channel(channel, Context.Settings);
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Role(SocketRole role)
 				=> Responses.Gets.Role(role);
@@ -97,7 +97,6 @@ namespace Advobot.CommandMarking
 		[Summary("Shows the user which joined the guild in that position.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
-		[DownloadUsers]
 		public sealed class GetUserJoinedAt : AdvobotModuleBase
 		{
 			[Command]
@@ -124,7 +123,6 @@ namespace Advobot.CommandMarking
 		[Summary("Lists most of the users who have joined the guild.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
-		[DownloadUsers]
 		public sealed class GetUserJoinList : AdvobotModuleBase
 		{
 			[Command]

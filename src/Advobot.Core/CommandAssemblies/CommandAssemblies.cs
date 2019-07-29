@@ -45,8 +45,7 @@ namespace Advobot.CommandAssemblies
 			{
 				assemblies.Add(assembly);
 			}
-#warning fix this security risk
-			//This is probably a huge security risk. Like mega huge.
+			//TODO: fix this so it doesn't load completely random dlls
 			//Probably should pass in a json file with the command assembly locations tbh
 			foreach (var file in Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly))
 			{

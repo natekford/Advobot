@@ -21,7 +21,7 @@ namespace Advobot.CommandMarking
 		//[SaveGuildSettings]
 		public sealed class PreventSpam : SettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Create(SpamType spamType, [Remainder] SpamPrev args)
@@ -60,7 +60,7 @@ namespace Advobot.CommandMarking
 		//[SaveGuildSettings]
 		public sealed class PreventRaid : SettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Create(RaidType raidType, [Remainder] RaidPrev args)

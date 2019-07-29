@@ -22,25 +22,26 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		public virtual bool FromContext { get; set; } = false;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (value != null)
 			{
-				return GetPreconditionResult(context, value);
+				return await GetPreconditionResultAsync(context, value).CAF();
 			}
 			else if (FromContext)
 			{
-				return GetPreconditionResult(context, GetFromContext(context));
+				var fromContext = await GetFromContextAsync(context).CAF();
+				return await GetPreconditionResultAsync(context, fromContext).CAF(); ;
 			}
-			return Task.FromResult(PreconditionResult.FromError($"No value was passed in for {parameter.Name}."));
+			return PreconditionResult.FromError($"No value was passed in for {parameter.Name}.");
 		}
-		private async Task<PreconditionResult> GetPreconditionResult(AdvobotCommandContext context, object value)
+		private async Task<PreconditionResult> GetPreconditionResultAsync(IAdvobotCommandContext context, object value)
 		{
 			if (value is IEnumerable enumerable)
 			{
 				foreach (var item in enumerable)
 				{
-					var preconditionResult = await GetPreconditionResult(context, item).CAF();
+					var preconditionResult = await GetPreconditionResultAsync(context, item).CAF();
 					//Don't bother testing more if anything is a failure.
 					if (!preconditionResult.IsSuccess)
 					{
@@ -50,14 +51,14 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 				//If nothing failed then it gets to this point, so return success
 				return PreconditionResult.FromSuccess();
 			}
-			return await Validate(context, value).CAF();
+			return await ValidateAsync(context, value).CAF();
 		}
 		/// <summary>
 		/// Gets an object to use if the passed in value is null and <see cref="FromContext"/> is true.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		protected virtual object GetFromContext(AdvobotCommandContext context)
+		protected virtual Task<object> GetFromContextAsync(IAdvobotCommandContext context)
 			=> throw new NotSupportedException();
 		/// <summary>
 		/// Verifies the object with the specified verification options.
@@ -65,6 +66,6 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		/// <param name="context"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected abstract Task<PreconditionResult> Validate(AdvobotCommandContext context, object value);
+		protected abstract Task<PreconditionResult> ValidateAsync(IAdvobotCommandContext context, object value);
 	}
 }

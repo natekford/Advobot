@@ -37,15 +37,15 @@ namespace Advobot.CommandMarking.Misc
 			[Command]
 			[Summary("Prints out general help information for the bot.")]
 			public Task<RuntimeResult> Command()
-				=> Responses.Misc.GeneralHelp(Context.GuildSettings.GetPrefix(BotSettings));
+				=> Responses.Misc.GeneralHelp(Context.Settings.GetPrefix(BotSettings));
 			[Command, Priority(1)]
 			[Summary("Prints out help information for a specified module.")]
 			public Task<RuntimeResult> Command([Summary(TEMP_SUMMARY)] IHelpEntry command)
-				=> Responses.Misc.Help(command, Context.GuildSettings);
+				=> Responses.Misc.Help(command, Context.Settings);
 			[Command, Priority(2)]
 			[Summary("Prints out help information for a specific command in a specified module.")]
 			public Task<RuntimeResult> Command([Summary(TEMP_SUMMARY)] IHelpEntry command, [ValidatePositiveNumber] int position)
-				=> Responses.Misc.Help(command, Context.GuildSettings, position - 1);
+				=> Responses.Misc.Help(command, Context.Settings, position - 1);
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Summary("Attempts to find a help entry with a name similar to the input. This command only gets used if an invalid name is provided.")]
 			public async Task<RuntimeResult> Command([Summary(TEMP_SUMMARY), OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
@@ -53,7 +53,7 @@ namespace Advobot.CommandMarking.Misc
 				var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
 				if (entry != null)
 				{
-					return Responses.Misc.Help(entry, Context.GuildSettings);
+					return Responses.Misc.Help(entry, Context.Settings);
 				}
 				return AdvobotResult.IgnoreFailure;
 			}
@@ -77,7 +77,7 @@ namespace Advobot.CommandMarking.Misc
 				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Context.GuildSettings.GetPrefix(BotSettings));
+				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Context.Settings.GetPrefix(BotSettings));
 		}
 
 		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]

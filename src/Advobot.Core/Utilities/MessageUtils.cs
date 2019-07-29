@@ -26,7 +26,6 @@ namespace Advobot.Utilities
 		/// This ends up taking up extra space if used with embeds or files.
 		/// </param>
 		/// <returns></returns>
-		[Obsolete]
 		public static Task<IUserMessage> SendMessageAsync(
 			IMessageChannel channel,
 			string? content = null,

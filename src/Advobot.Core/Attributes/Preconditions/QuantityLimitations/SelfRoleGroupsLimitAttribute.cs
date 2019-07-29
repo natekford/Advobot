@@ -23,10 +23,10 @@ namespace Advobot.Attributes.Preconditions.QuantityLimitations
 		public SelfRoleGroupsLimitAttribute(QuantityLimitAction action) : base(action) { }
 
 		/// <inheritdoc />
-		public override int GetCurrent(AdvobotCommandContext context, IServiceProvider services)
-			=> context.GuildSettings.SelfAssignableGroups.Count;
+		public override int GetCurrent(IAdvobotCommandContext context, IServiceProvider services)
+			=> context.Settings.SelfAssignableGroups.Count;
 		/// <inheritdoc />
-		public override int GetMaximumAllowed(AdvobotCommandContext context, IServiceProvider services)
+		public override int GetMaximumAllowed(IAdvobotCommandContext context, IServiceProvider services)
 			=> services.GetRequiredService<IBotSettings>().MaxSelfAssignableRoleGroups;
 	}
 }

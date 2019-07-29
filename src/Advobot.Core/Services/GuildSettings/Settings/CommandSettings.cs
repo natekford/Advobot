@@ -92,7 +92,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="channel"></param>
 		/// <param name="command"></param>
 		/// <returns></returns>
-		public bool IsCommandEnabled(SocketGuildUser user, SocketTextChannel channel, CommandInfo command)
+		public bool IsCommandEnabled(IGuildUser user, ITextChannel channel, CommandInfo command)
 		{
 			//Hierarchy:
 			//	User
@@ -111,9 +111,9 @@ namespace Advobot.Services.GuildSettings.Settings
 			{
 				return u;
 			}
-			foreach (var role in user.Roles.OrderByDescending(x => x.Position))
+			foreach (var role in user.RoleIds.OrderByDescending(x => user.Guild.GetRole(x).Position))
 			{
-				if (Overrides.TryGetValue(role.Id, out var rD) && rD.TryGetValue(name, out var r))
+				if (Overrides.TryGetValue(role, out var rD) && rD.TryGetValue(name, out var r))
 				{
 					return r;
 				}

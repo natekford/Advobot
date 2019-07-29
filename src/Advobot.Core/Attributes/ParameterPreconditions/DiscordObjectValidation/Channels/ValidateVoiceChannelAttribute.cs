@@ -2,6 +2,7 @@
 using Discord;
 using Discord.WebSocket;
 using System;
+using System.Threading.Tasks;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 {
@@ -19,7 +20,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 			: base(permissions) { }
 
 		/// <inheritdoc />
-		protected override object GetFromContext(AdvobotCommandContext context)
-			=> context.User.VoiceChannel;
+		protected override Task<object> GetFromContextAsync(IAdvobotCommandContext context)
+			=> Task.FromResult<object>(context.User.VoiceChannel);
 	}
 }

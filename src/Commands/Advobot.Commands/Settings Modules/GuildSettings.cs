@@ -18,7 +18,7 @@ namespace Advobot.CommandMarking
 		[EnabledByDefault(true)]
 		public sealed class ShowGuildSettings : ReadOnlySettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public Task<RuntimeResult> Json()
@@ -40,7 +40,7 @@ namespace Advobot.CommandMarking
 		[EnabledByDefault(true)]
 		public sealed class ResetGuildSettings : SettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public Task<RuntimeResult> All()
@@ -210,7 +210,7 @@ namespace Advobot.CommandMarking
 			public IHelpEntryService HelpEntries { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 			//protected override string SettingName => nameof(IGuildSettings.IgnoredCommandChannels);
 
 			/*
@@ -295,7 +295,6 @@ namespace Advobot.CommandMarking
 			protected override IGuildSettings GetSettings() => Context.GuildSettings;
 		}*/
 
-#warning reenable
 		/*
 		[Group(nameof(ModifyPersistentRoles)), ModuleInitialismAlias(typeof(ModifyPersistentRoles))]
 		[Summary("Gives a user a role that stays even when they leave and rejoin the server.")]
@@ -402,10 +401,10 @@ namespace Advobot.CommandMarking
 		{
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Welcome()
-				=> Responses.GuildSettings.SendWelcomeNotification(Context.GuildSettings.WelcomeMessage);
+				=> Responses.GuildSettings.SendWelcomeNotification(Context.Settings.WelcomeMessage);
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Goodbye()
-				=> Responses.GuildSettings.SendGoodbyeNotification(Context.GuildSettings.GoodbyeMessage);
+				=> Responses.GuildSettings.SendGoodbyeNotification(Context.Settings.GoodbyeMessage);
 		}
 	}
 }

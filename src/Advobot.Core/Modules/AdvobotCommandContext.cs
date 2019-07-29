@@ -2,6 +2,7 @@
 using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -10,7 +11,7 @@ namespace Advobot.Modules
 	/// <summary>
 	/// A <see cref="ShardedCommandContext"/> which contains settings and the service provider.
 	/// </summary>
-	public class AdvobotCommandContext : ShardedCommandContext
+	public class AdvobotCommandContext : ShardedCommandContext, IAdvobotCommandContext
 	{
 		/// <summary>
 		/// The user this command is executing from.
@@ -23,7 +24,7 @@ namespace Advobot.Modules
 		/// <summary>
 		/// The settings for the guild.
 		/// </summary>
-		public IGuildSettings GuildSettings { get; }
+		public IGuildSettings Settings { get; }
 		/// <summary>
 		/// The time since starting the command.
 		/// </summary>
@@ -42,23 +43,10 @@ namespace Advobot.Modules
 			_Stopwatch.Start();
 			User = (SocketGuildUser)msg.Author;
 			Channel = (SocketTextChannel)msg.Channel;
-			GuildSettings = settings;
+			Settings = settings;
 		}
 
-		/// <summary>
-		/// Returns information about the context and how long it's taken to execute, but also includes any errors.
-		/// </summary>
-		/// <param name="result"></param>
-		/// <returns></returns>
-		public string FormatResult(IResult result)
-		{
-			var resp = $"\n\tGuild: {Guild.Format()}" +
-				$"\n\tChannel: {Channel.Format()}" +
-				$"\n\tUser: {User.Format()}" +
-				$"\n\tTime: {Message.CreatedAt.UtcDateTime.ToReadable()} ({ElapsedMilliseconds}ms)" +
-				$"\n\tText: {Message.Content}";
-			resp += result.IsSuccess || result.ErrorReason == null ? "" : $"\n\tError: {result.ErrorReason}";
-			return resp;
-		}
+		IGuildUser IAdvobotCommandContext.User => User;
+		ITextChannel IAdvobotCommandContext.Channel => Channel;
 	}
 }

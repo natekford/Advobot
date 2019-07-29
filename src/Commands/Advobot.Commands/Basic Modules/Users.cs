@@ -68,14 +68,14 @@ namespace Advobot.CommandMarking
 
 			private async Task<IRole> GetOrCreateMuteRoleAsync()
 			{
-				var existingMuteRole = Context.Guild.GetRole(Context.GuildSettings.MuteRoleId);
+				var existingMuteRole = Context.Guild.GetRole(Context.Settings.MuteRoleId);
 				IRole muteRole = existingMuteRole;
 				var validationResult = await Context.User.ValidateRole(existingMuteRole, ValidationUtils.RoleIsNotEveryone, ValidationUtils.RoleIsNotManaged).CAF();
 				if (!validationResult.IsSuccess)
 				{
 					muteRole = await Context.Guild.CreateRoleAsync("Advobot Mute", new GuildPermissions(0)).CAF();
-					Context.GuildSettings.MuteRoleId = muteRole.Id;
-					Context.GuildSettings.Save();
+					Context.Settings.MuteRoleId = muteRole.Id;
+					Context.Settings.Save();
 				}
 
 				foreach (var textChannel in Context.Guild.TextChannels)

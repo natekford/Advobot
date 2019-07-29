@@ -48,7 +48,7 @@ namespace Advobot.Attributes.Preconditions
 		}
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			var commandDict = _Times.GetOrAdd(command.Name, new ConcurrentDictionary<ulong, DateTime>());
 			if (commandDict.TryGetValue(context.User.Id, out var time) && DateTime.UtcNow < time)

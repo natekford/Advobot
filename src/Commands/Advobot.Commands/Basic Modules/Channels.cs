@@ -52,7 +52,8 @@ namespace Advobot.CommandMarking.Channels
 		public sealed class SoftDeleteChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateGenericChannel(ChannelPermission.ManageChannels)] SocketGuildChannel channel)
+			public async Task<RuntimeResult> Command(
+				[ValidateGenericChannel(ChannelPermission.ManageChannels)] IGuildChannel channel)
 			{
 				var view = (ulong)ChannelPermission.ViewChannel;
 				foreach (var overwrite in channel.PermissionOverwrites)
@@ -77,7 +78,8 @@ namespace Advobot.CommandMarking.Channels
 		public sealed class DeleteChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateGenericChannel(ChannelPermission.ManageChannels)] SocketGuildChannel channel)
+			public async Task<RuntimeResult> Command(
+				[ValidateGenericChannel(ChannelPermission.ManageChannels)] IGuildChannel channel)
 			{
 				await channel.DeleteAsync(GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.Deleted(channel);

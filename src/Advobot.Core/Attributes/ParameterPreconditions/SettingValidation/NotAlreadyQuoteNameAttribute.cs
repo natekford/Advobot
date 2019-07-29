@@ -14,13 +14,13 @@ namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 	public sealed class NotAlreadyQuoteNameAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (!(value is string str))
 			{
 				throw new ArgumentException(nameof(value));
 			}
-			return context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(str))
+			return context.Settings.Quotes.Any(x => x.Name.CaseInsEquals(str))
 				? Task.FromResult(PreconditionResult.FromError($"The quote name `{str}` is already being used."))
 				: Task.FromResult(PreconditionResult.FromSuccess());
 		}

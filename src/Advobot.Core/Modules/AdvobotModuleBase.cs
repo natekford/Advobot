@@ -26,7 +26,7 @@ namespace Advobot.Modules
 		/// <param name="message"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public delegate bool MessageTryParser<T>(SocketMessage message, out T value);
+		public delegate bool MessageTryParser<T>(IMessage message, out T value);
 
 		/// <summary>
 		/// How long timed messages should stay for.
@@ -70,7 +70,7 @@ namespace Advobot.Modules
 		/// <returns></returns>
 		public async Task<int?> NextIndexAsync(int minVal, int maxVal)
 		{
-			return await NextValueAsync((SocketMessage x, out int? value) =>
+			return await NextValueAsync((IMessage x, out int? value) =>
 			{
 				value = null;
 				var sameInvoker = x.Author.Id == Context.User.Id && x.Channel.Id == Context.Channel.Id;
@@ -98,7 +98,7 @@ namespace Advobot.Modules
 		{
 			var eventTrigger = new TaskCompletionSource<T>();
 
-			async Task Handler(SocketMessage message)
+			async Task Handler(IMessage message)
 			{
 				if (tryParser(message, out var value))
 				{

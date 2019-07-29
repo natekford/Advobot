@@ -23,10 +23,10 @@ namespace Advobot.Attributes.Preconditions.QuantityLimitations
 		public QuoteLimitAttribute(QuantityLimitAction action) : base(action) { }
 
 		/// <inheritdoc />
-		public override int GetCurrent(AdvobotCommandContext context, IServiceProvider services)
-			=> context.GuildSettings.Quotes.Count;
+		public override int GetCurrent(IAdvobotCommandContext context, IServiceProvider services)
+			=> context.Settings.Quotes.Count;
 		/// <inheritdoc />
-		public override int GetMaximumAllowed(AdvobotCommandContext context, IServiceProvider services)
+		public override int GetMaximumAllowed(IAdvobotCommandContext context, IServiceProvider services)
 			=> services.GetRequiredService<IBotSettings>().MaxQuotes;
 	}
 }

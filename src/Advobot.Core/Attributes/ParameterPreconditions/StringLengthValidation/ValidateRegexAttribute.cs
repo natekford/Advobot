@@ -20,7 +20,7 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 		public ValidateRegexAttribute() : base(1, 100) { }
 
 		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
 		{
 			var result = await base.CheckPermissionsAsync(context, parameter, value, services).CAF();
 			if (!result.IsSuccess)

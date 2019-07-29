@@ -46,18 +46,19 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public Task SendAsync(SocketGuild guild, IUser? user)
+		public async Task SendAsync(IGuild guild, IUser? user)
 		{
 			if (ChannelId == 0)
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
 			var content = Content
                 ?.CaseInsReplace(USER_MENTION, user?.Mention ?? "Invalid User")
 				?.CaseInsReplace(USER_STRING, user?.Format() ?? "Invalid User");
 
-			return MessageUtils.SendMessageAsync(guild.GetTextChannel(ChannelId), content, CustomEmbed?.BuildWrapper());
+			var channel = await guild.GetTextChannelAsync(ChannelId).CAF();
+			await MessageUtils.SendMessageAsync(channel, content, CustomEmbed?.BuildWrapper()).CAF();
 		}
 		/// <inheritdoc />
 		public string Format(SocketGuild? guild = null)

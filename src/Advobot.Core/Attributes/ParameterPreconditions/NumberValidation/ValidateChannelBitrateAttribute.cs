@@ -1,6 +1,7 @@
 ﻿using AdvorangesUtils;
 using Discord.Commands;
 using Discord;
+using Advobot.Modules;
 
 namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 {
@@ -15,7 +16,7 @@ namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 		public ValidateChannelBitrateAttribute() : base(8, 96) { }
 
 		/// <inheritdoc />
-		public override int GetEnd(ICommandContext context) => context.Guild.PremiumTier switch
+		public override int GetEnd(IAdvobotCommandContext context) => context.Guild.PremiumTier switch
 		{
 			PremiumTier.Tier3 => 384,
 			PremiumTier.Tier2 => 256,

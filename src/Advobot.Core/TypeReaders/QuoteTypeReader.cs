@@ -12,7 +12,7 @@ namespace Advobot.TypeReaders
 	/// Attempts to find a quote with the supplied name.
 	/// </summary>
 	[TypeReaderTargetType(typeof(Quote))]
-	public sealed class QuoteTypeReader : TypeReader<AdvobotCommandContext>
+	public sealed class QuoteTypeReader : TypeReader<IAdvobotCommandContext>
 	{
 		/// <summary>
 		/// Attempts to find a quote with the supplied input as a name.
@@ -21,9 +21,9 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(AdvobotCommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(IAdvobotCommandContext context, string input, IServiceProvider services)
 		{
-			return context.GuildSettings.Quotes.TryGetSingle(x => x.Name.CaseInsEquals(input), out var quote)
+			return context.Settings.Quotes.TryGetSingle(x => x.Name.CaseInsEquals(input), out var quote)
 				? Task.FromResult(TypeReaderResult.FromSuccess(quote))
 				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"Unable to find a quote matching `{input}`."));
 		}

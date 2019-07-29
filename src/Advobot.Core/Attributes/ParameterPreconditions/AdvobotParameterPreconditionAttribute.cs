@@ -18,7 +18,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			return CheckPermissionsAsync((AdvobotCommandContext)context, parameter, value, services);
+			return CheckPermissionsAsync((IAdvobotCommandContext)context, parameter, value, services);
 		}
 		/// <summary>
 		/// Checks whether the command can execute.
@@ -28,6 +28,6 @@ namespace Advobot.Attributes.ParameterPreconditions
 		/// <param name="value"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public abstract Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services);
+		public abstract Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services);
 	}
 }

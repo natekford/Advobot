@@ -49,7 +49,7 @@ namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 		}
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (!(value is int num) && !int.TryParse(value.ToString(), out num))
 			{
@@ -72,14 +72,14 @@ namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		public virtual int GetStart(ICommandContext context)
+		public virtual int GetStart(IAdvobotCommandContext context)
 			=> Start;
 		/// <summary>
 		/// Returns the number to use for the end. This will only be used if <see cref="ValidNumbers"/> is empty.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		public virtual int GetEnd(ICommandContext context)
+		public virtual int GetEnd(IAdvobotCommandContext context)
 			=> End;
 		/// <summary>
 		/// Returns a string indicating what this attribute requires.

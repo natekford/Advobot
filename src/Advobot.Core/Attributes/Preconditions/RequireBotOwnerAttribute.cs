@@ -17,7 +17,7 @@ namespace Advobot.Attributes.Preconditions
 		public override bool Visible => true;
 
 		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			return await context.Client.GetOwnerIdAsync().CAF() == context.User.Id
 				? PreconditionResult.FromSuccess()

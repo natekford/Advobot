@@ -59,7 +59,7 @@ namespace Advobot.Services.Commands
 				ConsoleUtils.WriteLine(e.ToString());
 				return Task.CompletedTask;
 			};
-			_Commands.CommandExecuted += (_, context, result) => LogExecutionAsync((AdvobotCommandContext)context, result);
+			_Commands.CommandExecuted += (_, context, result) => LogExecutionAsync((IAdvobotCommandContext)context, result);
 			_Client.ShardReady += OnReady;
 			_Client.MessageReceived += HandleCommand;
 		}
@@ -97,14 +97,14 @@ namespace Advobot.Services.Commands
 				$"Prefix: {_BotSettings.Prefix}; " +
 				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
 		}
-		private async Task HandleCommand(SocketMessage message)
+		private async Task HandleCommand(IMessage message)
 		{
 			var argPos = -1;
 			if (!_Loaded || _BotSettings.Pause || message.Author.IsBot || string.IsNullOrWhiteSpace(message.Content)
 				//Disallow running commands if the user is blocked, unless the owner of the bot blocks themselves either accidentally or idiotically
 				|| (_BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id) && message.Author.Id != _OwnerId)
-				|| !(message is SocketUserMessage msg)
-				|| !(msg.Author is SocketGuildUser user)
+				|| !(message is IUserMessage msg)
+				|| !(msg.Author is IGuildUser user)
 				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
 				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
 				|| !(msg.HasStringPrefix(settings.GetPrefix(_BotSettings), ref argPos)
@@ -114,15 +114,15 @@ namespace Advobot.Services.Commands
 			}
 
 			CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(settings.Culture);
-			var context = new AdvobotCommandContext(settings, _Client, msg);
+			var context = new AdvobotCommandContext(settings, _Client, (SocketUserMessage)msg);
 			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
-		private Task LogExecutionAsync(AdvobotCommandContext context, IResult result)
+		private Task LogExecutionAsync(IAdvobotCommandContext context, IResult result)
 		{
 			//Ignore annoying unknown command errors and errors with no reason
-			static bool CanBeIgnored(AdvobotCommandContext c, IResult r)
+			static bool CanBeIgnored(IAdvobotCommandContext c, IResult r)
 				=> r == null || r.Error == CommandError.UnknownCommand
-				|| (!r.IsSuccess && (r.ErrorReason == null || c.GuildSettings.NonVerboseErrors));
+				|| (!r.IsSuccess && (r.ErrorReason == null || c.Settings.NonVerboseErrors));
 
 			return result switch
 			{
@@ -132,7 +132,7 @@ namespace Advobot.Services.Commands
 				_ => throw new ArgumentException(nameof(result)),
 			};
 		}
-		private async Task HandleResult(AdvobotCommandContext context, IResult result)
+		private async Task HandleResult(IAdvobotCommandContext context, IResult result)
 		{
 			if (result.IsSuccess)
 			{
@@ -141,7 +141,7 @@ namespace Advobot.Services.Commands
 			}
 
 			CommandInvoked?.Invoke(result);
-			ConsoleUtils.WriteLine(context.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+			ConsoleUtils.WriteLine(FormatResult(context, result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
 
 			if (result is AdvobotResult a)
 			{
@@ -154,25 +154,38 @@ namespace Advobot.Services.Commands
 				_Timers.Add(removable);
 			}
 		}
-		private Task HandleModLog(AdvobotCommandContext context)
+		private async Task HandleModLog(IAdvobotCommandContext context)
 		{
-			if (context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
+			if (context.Settings.IgnoredLogChannels.Contains(context.Channel.Id))
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
-			var modLog = context.Guild.GetTextChannel(context.GuildSettings.ModLogId);
+			var modLog = await context.Guild.GetTextChannelAsync(context.Settings.ModLogId).CAF();
 			if (modLog == null)
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
-			return MessageUtils.SendMessageAsync(modLog, embedWrapper: new EmbedWrapper
+			await MessageUtils.SendMessageAsync(modLog, embedWrapper: new EmbedWrapper
 			{
 				Description = context.Message.Content,
 				Author = context.User.CreateAuthor(),
 				Footer = new EmbedFooterBuilder { Text = "Mod Log", },
-			});
+			}).CAF();
+		}
+		private string FormatResult(IAdvobotCommandContext context, IResult result)
+		{
+			var resp = $"\n\tGuild: {context.Guild.Format()}" +
+				$"\n\tChannel: {context.Channel.Format()}" +
+				$"\n\tUser: {context.User.Format()}" +
+				$"\n\tTime: {context.Message.CreatedAt.UtcDateTime.ToReadable()} ({context.ElapsedMilliseconds}ms)" +
+				$"\n\tText: {context.Message.Content}";
+			if (result.ErrorReason != null)
+			{
+				resp += $"\n\tError: {result.ErrorReason}";
+			}
+			return resp;
 		}
 	}
 }

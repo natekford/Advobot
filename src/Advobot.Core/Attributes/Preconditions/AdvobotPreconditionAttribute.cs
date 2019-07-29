@@ -26,7 +26,7 @@ namespace Advobot.Attributes.Preconditions
 
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
-			=> CheckPermissionsAsync((AdvobotCommandContext)context, command, services);
+			=> CheckPermissionsAsync((IAdvobotCommandContext)context, command, services);
 		/// <summary>
 		/// Checks if the command can be executed.
 		/// </summary>
@@ -34,6 +34,6 @@ namespace Advobot.Attributes.Preconditions
 		/// <param name="command"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public abstract Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services);
+		public abstract Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services);
 	}
 }

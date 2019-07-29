@@ -15,7 +15,7 @@ namespace Advobot.Attributes.Preconditions
 		public override bool Visible => true;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			return context.Guild.Features.Count > 0
 				? Task.FromResult(PreconditionResult.FromSuccess())

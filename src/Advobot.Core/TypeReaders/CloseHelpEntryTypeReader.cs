@@ -10,10 +10,10 @@ namespace Advobot.TypeReaders
 	/// <summary>
 	/// Finds help entries with names or aliases similar to the passed in input.
 	/// </summary>
-	public sealed class CloseHelpEntryTypeReader : TypeReader<AdvobotCommandContext>
+	public sealed class CloseHelpEntryTypeReader : TypeReader<IAdvobotCommandContext>
 	{
 		/// <inheritdoc />
-		public override Task<TypeReaderResult> ReadAsync(AdvobotCommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(IAdvobotCommandContext context, string input, IServiceProvider services)
 		{
 			var helpEntries = services.GetRequiredService<IHelpEntryService>();
 			var matches = helpEntries.FindCloseHelpEntries(input);

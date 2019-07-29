@@ -19,9 +19,10 @@ namespace Advobot.Attributes.Preconditions
 		public override bool Visible => true;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			return services.GetRequiredService<IBotSettings>().UsersUnableToDmOwner.Contains(context.User.Id)
+			var botSettings = services.GetRequiredService<IBotSettings>();
+			return botSettings.UsersUnableToDmOwner.Contains(context.User.Id)
 				? Task.FromResult(PreconditionResult.FromError("You are unable to dm the bot owner."))
 				: Task.FromResult(PreconditionResult.FromSuccess());
 		}

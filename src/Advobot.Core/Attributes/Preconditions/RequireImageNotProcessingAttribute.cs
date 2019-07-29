@@ -17,7 +17,7 @@ namespace Advobot.Attributes.Preconditions
 		public override bool Visible => true;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			var resizer = services.GetRequiredService<IImageResizer>();
 			return resizer.IsGuildAlreadyProcessing(context.Guild.Id)

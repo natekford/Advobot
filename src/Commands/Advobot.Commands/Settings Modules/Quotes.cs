@@ -23,7 +23,7 @@ namespace Advobot.CommandMarking
 		[EnabledByDefault(false)]
 		public sealed class ModifyQuotes : SettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[QuoteLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
@@ -50,7 +50,7 @@ namespace Advobot.CommandMarking
 		{
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.Quotes.ShowQuotes(Context.GuildSettings.Quotes);
+				=> Responses.Quotes.ShowQuotes(Context.Settings.Quotes);
 			[Command, Priority(1)]
 			public Task<RuntimeResult> Command([Remainder] Quote quote)
 				=> Responses.Quotes.Quote(quote);

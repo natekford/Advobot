@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Advobot.Modules;
 using Discord;
 
@@ -21,11 +22,11 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		public UserPermissionRequirementAttribute(params GuildPermission[] permissions) : base(permissions) { }
 
 		/// <inheritdoc />
-		public override ulong GetUserPermissions(AdvobotCommandContext context)
+		public override Task<ulong> GetUserPermissionsAsync(IAdvobotCommandContext context)
 		{
 			var guildBits = context.User.GuildPermissions.RawValue;
-			var botBits = context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id)?.Permissions ?? 0;
-			return guildBits | botBits;
+			var botBits = context.Settings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id)?.Permissions ?? 0;
+			return Task.FromResult(guildBits | botBits);
 		}
 	}
 }

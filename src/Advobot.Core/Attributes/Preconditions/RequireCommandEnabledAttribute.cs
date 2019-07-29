@@ -17,9 +17,9 @@ namespace Advobot.Attributes.Preconditions
 		public override bool Visible => false;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			return context.GuildSettings.CommandSettings.IsCommandEnabled(context.User, context.Channel, command)
+			return context.Settings.CommandSettings.IsCommandEnabled(context.User, context.Channel, command)
 				? Task.FromResult(PreconditionResult.FromSuccess())
 				: Task.FromResult(PreconditionResult.FromError("This command is disabled on the guild."));
 		}

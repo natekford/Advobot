@@ -32,7 +32,7 @@ namespace Advobot.Attributes.Preconditions.QuantityLimitations
 		}
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			if (Action == QuantityLimitAction.Add)
 			{
@@ -52,14 +52,14 @@ namespace Advobot.Attributes.Preconditions.QuantityLimitations
 		/// <param name="context"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public abstract int GetMaximumAllowed(AdvobotCommandContext context, IServiceProvider services);
+		public abstract int GetMaximumAllowed(IAdvobotCommandContext context, IServiceProvider services);
 		/// <summary>
 		/// Gets the current amount of these items stored.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public abstract int GetCurrent(AdvobotCommandContext context, IServiceProvider services);
+		public abstract int GetCurrent(IAdvobotCommandContext context, IServiceProvider services);
 		/// <summary>
 		/// Returns a string describing what this attribute requires.
 		/// </summary>

@@ -16,7 +16,7 @@ namespace Advobot.Attributes.Preconditions
 		public override bool Visible => false;
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
 			=> Task.FromResult(PreconditionResult.FromError("This command is disabled globally."));
 		/// <summary>
 		/// Returns a string describing what this attributes requires.

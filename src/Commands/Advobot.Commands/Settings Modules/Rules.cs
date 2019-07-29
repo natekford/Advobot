@@ -22,7 +22,7 @@ namespace Advobot.CommandMarking
 		[EnabledByDefault(false)]
 		public sealed class ModifyRuleCategories : SettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Create([ValidateRuleCategory(ErrorOnCategoryExisting = true)] string name)
@@ -52,7 +52,7 @@ namespace Advobot.CommandMarking
 		[EnabledByDefault(false)]
 		public sealed class ModifyRules : SettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Add([ValidateRuleCategory] string category, [ValidateRule] string rule)
@@ -104,7 +104,7 @@ namespace Advobot.CommandMarking
 		{
 			[Command]
 			public Task<RuntimeResult> Command([ValidateRuleCategory] string? category, [Optional, Remainder] RuleFormatter? args)
-				=> AdvobotResult.FromReasonSegments(Context.GuildSettings.Rules.GetParts(args ?? new RuleFormatter(), category));
+				=> AdvobotResult.FromReasonSegments(Context.Settings.Rules.GetParts(args ?? new RuleFormatter(), category));
 			[Command]
 			public Task<RuntimeResult> Command([Optional, Remainder] RuleFormatter? args)
 				=> Command(null, args);

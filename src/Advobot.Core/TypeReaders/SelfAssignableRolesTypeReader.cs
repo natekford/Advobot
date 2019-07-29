@@ -12,16 +12,16 @@ namespace Advobot.TypeReaders
 	/// Attempst to find a self assignable role group in the guild settings.
 	/// </summary>
 	[TypeReaderTargetType(typeof(SelfAssignableRoles))]
-	public sealed class SelfAssignableRolesTypeReader : TypeReader<int, AdvobotCommandContext>
+	public sealed class SelfAssignableRolesTypeReader : TypeReader<int, IAdvobotCommandContext>
 	{
 		/// <inheritdoc />
 		public override AsyncTryConverter<int> TryConverter
 			=> (_1, input, _2) => Task.FromResult((int.TryParse(input, out var num), num));
 
 		/// <inheritdoc />
-		public override Task<TypeReaderResult> ReadAsync(AdvobotCommandContext context, int input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(IAdvobotCommandContext context, int input, IServiceProvider services)
 		{
-			if (context.GuildSettings.SelfAssignableGroups.TryGetSingle(x => x.Group == input, out var group))
+			if (context.Settings.SelfAssignableGroups.TryGetSingle(x => x.Group == input, out var group))
 			{
 				return Task.FromResult(TypeReaderResult.FromSuccess(group));
 			}

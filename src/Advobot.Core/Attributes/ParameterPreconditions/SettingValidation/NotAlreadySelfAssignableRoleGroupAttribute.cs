@@ -13,13 +13,13 @@ namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 	public sealed class NotAlreadySelfAssignableRoleGroupAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(AdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (!(value is int num))
 			{
 				throw new ArgumentException(nameof(value));
 			}
-			return context.GuildSettings.SelfAssignableGroups.Any(x => x.Group == num)
+			return context.Settings.SelfAssignableGroups.Any(x => x.Group == num)
 				? Task.FromResult(PreconditionResult.FromError($"The group number `{num}` is already being used."))
 				: Task.FromResult(PreconditionResult.FromSuccess());
 		}

@@ -27,7 +27,7 @@ namespace Advobot.CommandMarking
 		[EnabledByDefault(false)]
 		public sealed class ModifySelfRoles : SettingsModule<IGuildSettings>
 		{
-			protected override IGuildSettings Settings => Context.GuildSettings;
+			protected override IGuildSettings Settings => Context.Settings;
 
 			[SelfRoleGroupsLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
@@ -68,7 +68,7 @@ namespace Advobot.CommandMarking
 			[Command]
 			public async Task<RuntimeResult> Command(SocketRole role)
 			{
-				if (!Context.GuildSettings.SelfAssignableGroups.TryGetSingle(x => x.Roles.Contains(role.Id), out var group))
+				if (!Context.Settings.SelfAssignableGroups.TryGetSingle(x => x.Roles.Contains(role.Id), out var group))
 				{
 					return Responses.SelfRoles.NotSelfAssignable(role);
 				}
@@ -100,7 +100,7 @@ namespace Advobot.CommandMarking
 		{
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.SelfRoles.DisplayGroups(Context.GuildSettings.SelfAssignableGroups);
+				=> Responses.SelfRoles.DisplayGroups(Context.Settings.SelfAssignableGroups);
 			[Command]
 			public Task<RuntimeResult> Command(SelfAssignableRoles group)
 				=> Responses.SelfRoles.DisplayGroup(Context.Guild, group);
