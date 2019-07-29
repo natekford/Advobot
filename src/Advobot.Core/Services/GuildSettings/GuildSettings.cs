@@ -17,8 +17,6 @@ namespace Advobot.Services.GuildSettings
 	/// </summary>
 	internal sealed class GuildSettings : SettingsBase, IGuildSettings, IDatabaseEntry
 	{
-		private const string DEFAULT_CULTURE = "en-US";
-
 		/// <inheritdoc />
 		[JsonIgnore]
 		public ulong GuildId { get; set; }
@@ -41,14 +39,14 @@ namespace Advobot.Services.GuildSettings
 		}
 		private GuildNotification? _GoodbyeMessage;
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.GuildCulture), DefaultValue = DEFAULT_CULTURE)]
+		[Setting(nameof(GuildSettingNames.GuildCulture), DefaultValue = "en-US")]
 		[JsonProperty("Culture")]
 		public string Culture
 		{
 			get => _Culture;
 			set => ThrowIfElseSet(ref _Culture, value, x => CultureInfo.GetCultureInfo(x) == null, "Invalid culture provided.");
 		}
-		private string _Culture = DEFAULT_CULTURE;
+		private string _Culture = "en-US";
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.Prefix), ResetValueClass = typeof(Null))]
 		[JsonProperty("Prefix")]

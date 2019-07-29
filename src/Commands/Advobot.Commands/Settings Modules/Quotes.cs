@@ -62,7 +62,7 @@ namespace Advobot.CommandMarking
 				{
 					return Responses.Quotes.Quote(entry);
 				}
-				return AdvobotResult.Ignore;
+				return AdvobotResult.IgnoreFailure;
 			}
 		}
 	}

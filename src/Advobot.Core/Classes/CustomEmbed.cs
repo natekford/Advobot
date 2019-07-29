@@ -64,10 +64,6 @@ namespace Advobot.Classes
 		/// </summary>
 		[OverrideTypeReader(typeof(UriTypeReader))]
 		public string? FooterIconUrl { get; set; }
-		/// <summary>
-		/// All of the fields on the embed.
-		/// </summary>
-		public IList<CustomField> FieldInfo { get; set; } = new List<CustomField>();
 
 		/// <summary>
 		/// Builds the embed from the fields.
@@ -87,10 +83,11 @@ namespace Advobot.Classes
 			embed.TryAddAuthor(AuthorName, AuthorUrl?.ToString(), AuthorIconUrl?.ToString(), out _);
 			embed.TryAddFooter(Footer, FooterIconUrl?.ToString(), out _);
 
+			/*
 			foreach (var field in FieldInfo)
 			{
 				embed.TryAddField(field.Name, field.Text, field.Inline, out _);
-			}
+			}*/
 			return embed;
 		}
 		/// <inheritdoc />
@@ -110,6 +107,7 @@ namespace Advobot.Classes
 				{ nameof(FooterIconUrl), FooterIconUrl },
 			};
 			dict.RemoveAll(x => x.Value == null);
+			/*
 			for (var i = 0; i < FieldInfo.Count; ++i)
 			{
 				var field = FieldInfo[i];
@@ -117,7 +115,7 @@ namespace Advobot.Classes
 				{
 					dict.Add($"Field {i}", field);
 				}
-			}
+			}*/
 			return dict.ToDiscordFormattableStringCollection();
 		}
 	}

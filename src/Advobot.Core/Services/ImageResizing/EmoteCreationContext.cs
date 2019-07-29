@@ -63,7 +63,7 @@ namespace Advobot.Services.ImageResizing
 			try
 			{
 				await Context.Guild.CreateEmoteAsync(Name, new Image(stream), default, Context.GenerateRequestOptions()).CAF();
-				return AdvobotResult.EmptySuccess;
+				return AdvobotResult.IgnoreSuccess;
 			}
 			catch (Exception e)
 			{
@@ -94,7 +94,7 @@ namespace Advobot.Services.ImageResizing
 			{
 				return AdvobotResult.Failure($"Cannot use an image with the format {format}.");
 			}
-			return AdvobotResult.EmptySuccess;
+			return AdvobotResult.IgnoreSuccess;
 		}
 	}
 }

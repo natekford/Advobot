@@ -15,6 +15,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Advobot.CommandAssemblies;
+using Advobot.Services.Timers;
 
 namespace Advobot.Services.Commands
 {
@@ -24,6 +25,7 @@ namespace Advobot.Services.Commands
 	internal sealed class CommandHandlerService : ICommandHandlerService
 	{
 		private static readonly RequestOptions _Options = DiscordUtils.GenerateRequestOptions("Command successfully executed.");
+		private static readonly TimeSpan _RemovalTime = TimeSpan.FromSeconds(10);
 
 		private readonly IServiceProvider _Provider;
 		private readonly CommandService _Commands;
@@ -31,6 +33,7 @@ namespace Advobot.Services.Commands
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IHelpEntryService _HelpEntries;
+		private readonly ITimerService _Timers;
 		private bool _Loaded;
 		private ulong _OwnerId;
 
@@ -49,6 +52,7 @@ namespace Advobot.Services.Commands
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
 			_HelpEntries = _Provider.GetRequiredService<IHelpEntryService>();
+			_Timers = _Provider.GetRequiredService<ITimerService>();
 
 			_Commands.Log += (e) =>
 			{
@@ -128,32 +132,47 @@ namespace Advobot.Services.Commands
 				_ => throw new ArgumentException(nameof(result)),
 			};
 		}
-		private async Task HandleResult(AdvobotCommandContext c, IResult result)
+		private async Task HandleResult(AdvobotCommandContext context, IResult result)
 		{
 			if (result.IsSuccess)
 			{
-				await c.Message.DeleteAsync(_Options).CAF();
-				if (c.GuildSettings.ModLogId != 0 && !c.GuildSettings.IgnoredLogChannels.Contains(c.Channel.Id))
-				{
-					await MessageUtils.SendMessageAsync(c.Guild.GetTextChannel(c.GuildSettings.ModLogId), embedWrapper: new EmbedWrapper
-					{
-						Description = c.Message.Content,
-						Author = c.User.CreateAuthor(),
-						Footer = new EmbedFooterBuilder { Text = "Mod Log", },
-					}).CAF();
-				}
+				await context.Message.DeleteAsync(_Options).CAF();
+				await HandleModLog(context).CAF();
 			}
 
 			CommandInvoked?.Invoke(result);
-			ConsoleUtils.WriteLine(c.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
-			await (result switch
+			ConsoleUtils.WriteLine(context.FormatResult(result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+
+			if (result is AdvobotResult a)
 			{
-				AdvobotResult a => a.SendAsync(c),
-				IResult i when i.IsSuccess => Task.CompletedTask,
-				//TODO: delete after time
-				IResult error => MessageUtils.SendMessageAsync(c.Channel, error.ErrorReason),
-				_ => throw new ArgumentException(nameof(result)),
-			}).CAF();
+				await a.SendAsync(context).CAF();
+			}
+			else if (!result.IsSuccess)
+			{
+				var message = await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
+				var removable = new RemovableMessage(context, new[] { message }, _RemovalTime);
+				_Timers.Add(removable);
+			}
+		}
+		private Task HandleModLog(AdvobotCommandContext context)
+		{
+			if (context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
+			{
+				return Task.CompletedTask;
+			}
+
+			var modLog = context.Guild.GetTextChannel(context.GuildSettings.ModLogId);
+			if (modLog == null)
+			{
+				return Task.CompletedTask;
+			}
+
+			return MessageUtils.SendMessageAsync(modLog, embedWrapper: new EmbedWrapper
+			{
+				Description = context.Message.Content,
+				Author = context.User.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = "Mod Log", },
+			});
 		}
 	}
 }

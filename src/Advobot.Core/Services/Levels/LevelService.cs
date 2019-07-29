@@ -140,9 +140,7 @@ namespace Advobot.Services.Levels
 			var level = CalculateLevel(experience);
 
 			var name = user.Format() ?? user.Id.ToString();
-			var description = $"!!!TEMP PLACEHOLDER!!!\n\nRank: {rank} out of {totalUsers}\nXP: {experience}\nLevel: {level}";
-
-			//TODO: implement rest of embed
+			var description = $"Rank: {rank} out of {totalUsers}\nXP: {experience}\nLevel: {level}";
 			return new EmbedWrapper
 			{
 				Title = $"{(global ? "Global" : "Guild")} xp information for {name}",

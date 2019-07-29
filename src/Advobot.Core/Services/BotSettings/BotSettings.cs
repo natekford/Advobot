@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using Advobot.Resources;
 using Advobot.Settings;
+using Advobot.Settings.GenerateResetValues;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -15,12 +16,13 @@ namespace Advobot.Services.BotSettings
 	/// </summary>
 	internal sealed class BotSettings : SettingsBase, IBotSettings
 	{
-		//TODO: set up reset options in here
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.LogLevel)), JsonProperty("LogLevel")]
+		[Setting(nameof(BotSettingNames.LogLevel), DefaultValue = LogSeverity.Warning)]
+		[JsonProperty("LogLevel")]
 		public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.Prefix)), JsonProperty("Prefix")]
+		[Setting(nameof(BotSettingNames.Prefix), DefaultValue = "&&")]
+		[JsonProperty("Prefix")]
 		public string Prefix
 		{
 			get => _Prefix;
@@ -28,7 +30,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private string _Prefix = "&&";
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.Game)), JsonProperty("Game")]
+		[Setting(nameof(BotSettingNames.Game), ResetValueClass = typeof(Null))]
+		[JsonProperty("Game")]
 		public string? Game
 		{
 			get => _Game;
@@ -36,7 +39,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private string? _Game;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.Stream)), JsonProperty("Stream")]
+		[Setting(nameof(BotSettingNames.Stream), ResetValueClass = typeof(Null))]
+		[JsonProperty("Stream")]
 		public string? Stream
 		{
 			get => _Stream;
@@ -44,10 +48,12 @@ namespace Advobot.Services.BotSettings
 		}
 		private string? _Stream;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.AlwaysDownloadUsers)), JsonProperty("AlwaysDownloadUsers")]
+		[Setting(nameof(BotSettingNames.AlwaysDownloadUsers), DefaultValue = true)]
+		[JsonProperty("AlwaysDownloadUsers")]
 		public bool AlwaysDownloadUsers { get; set; } = true;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MessageCacheSize)), JsonProperty("MessageCacheSize")]
+		[Setting(nameof(BotSettingNames.MessageCacheSize), DefaultValue = 1000)]
+		[JsonProperty("MessageCacheSize")]
 		public int MessageCacheSize
 		{
 			get => _MessageCacheSize;
@@ -55,7 +61,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MessageCacheSize = 1000;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxUserGatherCount)), JsonProperty("MaxUserGatherCount")]
+		[Setting(nameof(BotSettingNames.MaxUserGatherCount), DefaultValue = 100)]
+		[JsonProperty("MaxUserGatherCount")]
 		public int MaxUserGatherCount
 		{
 			get => _MaxUserGatherCount;
@@ -63,7 +70,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxUserGatherCount = 100;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxMessageGatherSize)), JsonProperty("MaxMessageGatherSize")]
+		[Setting(nameof(BotSettingNames.MaxMessageGatherSize), DefaultValue = 500000)]
+		[JsonProperty("MaxMessageGatherSize")]
 		public int MaxMessageGatherSize
 		{
 			get => _MaxMessageGatherSize;
@@ -71,7 +79,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxMessageGatherSize = 500000;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxRuleCategories)), JsonProperty("MaxRuleCategories")]
+		[Setting(nameof(BotSettingNames.MaxRuleCategories), DefaultValue = 20)]
+		[JsonProperty("MaxRuleCategories")]
 		public int MaxRuleCategories
 		{
 			get => _MaxRuleCategories;
@@ -79,7 +88,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxRuleCategories = 20;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxRulesPerCategory)), JsonProperty("MaxRulesPerCategory")]
+		[Setting(nameof(BotSettingNames.MaxRulesPerCategory), DefaultValue = 20)]
+		[JsonProperty("MaxRulesPerCategory")]
 		public int MaxRulesPerCategory
 		{
 			get => _MaxRulesPerCategory;
@@ -87,7 +97,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxRulesPerCategory = 20;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxSelfAssignableRoleGroups)), JsonProperty("MaxSelfAssignableRoleGroups")]
+		[Setting(nameof(BotSettingNames.MaxSelfAssignableRoleGroups), DefaultValue = 10)]
+		[JsonProperty("MaxSelfAssignableRoleGroups")]
 		public int MaxSelfAssignableRoleGroups
 		{
 			get => _MaxSelfAssignableRoleGroups;
@@ -95,7 +106,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxSelfAssignableRoleGroups = 10;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxQuotes)), JsonProperty("MaxQuotes")]
+		[Setting(nameof(BotSettingNames.MaxQuotes), DefaultValue = 500)]
+		[JsonProperty("MaxQuotes")]
 		public int MaxQuotes
 		{
 			get => _MaxQuotes;
@@ -103,7 +115,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxQuotes = 500;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxBannedStrings)), JsonProperty("MaxBannedStrings")]
+		[Setting(nameof(BotSettingNames.MaxBannedStrings), DefaultValue = 50)]
+		[JsonProperty("MaxBannedStrings")]
 		public int MaxBannedStrings
 		{
 			get => _MaxBannedStrings;
@@ -111,7 +124,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxBannedStrings = 50;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxBannedRegex)), JsonProperty("MaxBannedRegex")]
+		[Setting(nameof(BotSettingNames.MaxBannedRegex), DefaultValue = 25)]
+		[JsonProperty("MaxBannedRegex")]
 		public int MaxBannedRegex
 		{
 			get => _MaxBannedRegex;
@@ -119,7 +133,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxBannedRegex = 25;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxBannedNames)), JsonProperty("MaxBannedNames")]
+		[Setting(nameof(BotSettingNames.MaxBannedNames), DefaultValue = 25)]
+		[JsonProperty("MaxBannedNames")]
 		public int MaxBannedNames
 		{
 			get => _MaxBannedNames;
@@ -127,7 +142,8 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxBannedNames = 25;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.MaxBannedPunishments)), JsonProperty("MaxBannedPunishments")]
+		[Setting(nameof(BotSettingNames.MaxBannedPunishments), DefaultValue = 10)]
+		[JsonProperty("MaxBannedPunishments")]
 		public int MaxBannedPunishments
 		{
 			get => _MaxBannedPunishments;
@@ -135,13 +151,16 @@ namespace Advobot.Services.BotSettings
 		}
 		private int _MaxBannedPunishments = 10;
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.TrustedUsers)), JsonProperty("TrustedUsers")]
+		[Setting(nameof(BotSettingNames.TrustedUsers), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("TrustedUsers")]
 		public IList<ulong> TrustedUsers { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.UsersUnableToDmOwner)), JsonProperty("UsersUnableToDmOwner")]
+		[Setting(nameof(BotSettingNames.UsersUnableToDmOwner), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("UsersUnableToDmOwner")]
 		public IList<ulong> UsersUnableToDmOwner { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.UsersIgnoredFromCommands)), JsonProperty("UsersIgnoredFromCommands")]
+		[Setting(nameof(BotSettingNames.UsersIgnoredFromCommands), ResetValueClass = typeof(ClearList))]
+		[JsonProperty("UsersIgnoredFromCommands")]
 		public IList<ulong> UsersIgnoredFromCommands { get; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[JsonIgnore]

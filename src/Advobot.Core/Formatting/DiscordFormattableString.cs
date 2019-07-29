@@ -40,7 +40,6 @@ namespace Advobot.Formatting
 		}
 		private static object? ConvertArgument(BaseSocketClient c, SocketGuild g, object? value) => value switch
 		{
-			//TODO: IDictionary support?
 			ulong id => GetSnowflakeEntity(c, g, id),
 			IEnumerable enumerable => ConvertEnumerable(c, g, enumerable),
 			_ => value,

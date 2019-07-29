@@ -54,7 +54,7 @@ namespace Advobot.Services.ImageResizing
 			try
 			{
 				await _Callback.Invoke(Context, stream).CAF();
-				return AdvobotResult.EmptySuccess;
+				return AdvobotResult.IgnoreSuccess;
 			}
 			catch (Exception e)
 			{
@@ -66,7 +66,7 @@ namespace Advobot.Services.ImageResizing
 		{
 			if (_ValidFormats.Contains(format))
 			{
-				return AdvobotResult.EmptySuccess;
+				return AdvobotResult.IgnoreSuccess;
 			}
 			return AdvobotResult.Failure($"Cannot use an image with the format {format}.");
 		}

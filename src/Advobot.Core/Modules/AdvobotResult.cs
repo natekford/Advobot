@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 
 namespace Advobot.Modules
@@ -17,11 +16,11 @@ namespace Advobot.Modules
 		/// <summary>
 		/// The result to use when this should be fully ignored.
 		/// </summary>
-		public static AdvobotResult Ignore { get; } = Failure(null, CommandError.Unsuccessful);
+		public static AdvobotResult IgnoreFailure { get; } = Failure(null, CommandError.Unsuccessful);
 		/// <summary>
 		/// The result to use when indicating a success that has no reason.
 		/// </summary>
-		public static AdvobotResult EmptySuccess { get; } = Success("");
+		public static AdvobotResult IgnoreSuccess { get; } = Success("");
 
 		/// <summary>
 		/// How long to let this message stay up for.
@@ -99,11 +98,16 @@ namespace Advobot.Modules
 		public async Task SendAsync(ICommandContext context)
 		{
 			var destinationChannel = context.Channel;
-			if (OverrideDestinationChannelId != null)
+			if (OverrideDestinationChannelId is ulong id)
 			{
-				destinationChannel = (IMessageChannel)await context.Client.GetChannelAsync(OverrideDestinationChannelId.Value).CAF();
+				destinationChannel = await context.Guild.GetTextChannelAsync(id).CAF();
+				if (destinationChannel == null)
+				{
+					await MessageUtils.SendMessageAsync(context.Channel, $"{id} is not a valid channel.").CAF();
+					return;
+				}
 			}
-			//TODO: handle null channel above eventually
+
 			if (ReasonSegments != null)
 			{
 				foreach (var segment in ReasonSegments)

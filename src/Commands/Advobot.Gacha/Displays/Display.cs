@@ -61,7 +61,7 @@ namespace Advobot.Gacha.Displays
 			Client.ReactionAdded -= Handle;
 			Client.ReactionRemoved -= Handle;
 			await DisposeMenuAsync().CAF();
-			return AdvobotResult.Ignore;
+			return AdvobotResult.IgnoreFailure;
 		}
 		protected abstract Task HandleReactionsAsync(
 			IUserMessage message,

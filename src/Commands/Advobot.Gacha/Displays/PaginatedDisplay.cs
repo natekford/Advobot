@@ -60,8 +60,6 @@ namespace Advobot.Gacha.Displays
 		}
 		protected override async Task KeepDisplayAliveAsync()
 		{
-			//TODO: see if this works as intended
-			//Intention = keep menu alive unless last interacted with over 30 seconds ago
 			while (DateTime.UtcNow - LastInteractedWith > Timeout)
 			{
 				await Task.Delay(Timeout).CAF();

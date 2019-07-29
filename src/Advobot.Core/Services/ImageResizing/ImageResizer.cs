@@ -156,7 +156,7 @@ namespace Advobot.Services.ImageResizing
 			{
 				return AdvobotResult.Failure("File is empty after shrinking.");
 			}
-			return AdvobotResult.EmptySuccess;
+			return AdvobotResult.IgnoreSuccess;
 		}
 		private static bool ResizeFile(MemoryStream ms, IImageContext context, MagickFormat format)
 		{

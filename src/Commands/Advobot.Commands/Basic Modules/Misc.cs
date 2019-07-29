@@ -55,7 +55,7 @@ namespace Advobot.CommandMarking.Misc
 				{
 					return Responses.Misc.Help(entry, Context.GuildSettings);
 				}
-				return AdvobotResult.Ignore;
+				return AdvobotResult.IgnoreFailure;
 			}
 		}
 
@@ -82,9 +82,7 @@ namespace Advobot.CommandMarking.Misc
 
 		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]
 		[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. " +
-			"FieldInfo can have up to 25 arguments supplied. " +
-			//TODO: redocument field format
-			"Each must be formatted like the following: `temp`.")]
+			"Field info cannot be supplied.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class MakeAnEmbed : AdvobotModuleBase

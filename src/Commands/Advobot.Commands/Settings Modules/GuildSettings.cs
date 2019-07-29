@@ -77,8 +77,6 @@ namespace Advobot.CommandMarking
 			[ImplicitCommand, ImplicitAlias]
 			public Task NonVerboseErrors(bool value)
 				=> ModifyAsync(x => x.NonVerboseErrors, value);
-			//TODO: rewrite the log channel stuff? or not cause the user has to be admin to execute this meaning they can see every channel
-			//TODO: validate invoker has higher role than bot
 			[ImplicitCommand, ImplicitAlias]
 			public Task ServerLogId([Optional, ValidateTextChannel(CPerm.ManageChannels)] SocketTextChannel value)
 				=> ModifyAsync(x => x.ServerLogId, value?.Id ?? 0);
@@ -120,7 +118,6 @@ namespace Advobot.CommandMarking
 				=> ModifyCollectionAsync(x => x.Quotes, add, new[] { new Quote(name, text ?? "") });
 
 
-			//TODO: go back to old way in separate command because this is kind of unwieldy?
 			[ImplicitCommand, ImplicitAlias]
 			public Task BotUsers(
 				bool add,
