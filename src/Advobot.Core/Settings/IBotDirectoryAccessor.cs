@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Advobot.Interfaces
+namespace Advobot.Settings
 {
 	/// <summary>
 	/// Abstraction for something holding the paths to where the bot files are stored.

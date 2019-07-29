@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Advobot.Interfaces;
 using Discord.Commands;
 using ImageMagick;
 
@@ -9,7 +10,7 @@ namespace Advobot.Services.ImageResizing
 	/// <summary>
 	/// Specifies how to use and resize an image.
 	/// </summary>
-	public interface IImageContext
+	public interface IImageContext : IAsyncProgress<string>
 	{
 		/// <summary>
 		/// The largest allowed file size.
@@ -51,11 +52,5 @@ namespace Advobot.Services.ImageResizing
 		/// <param name="result"></param>
 		/// <returns></returns>
 		Task SendFinalResponseAsync(IResult result);
-		/// <summary>
-		/// Sends a message noting the progress of this.
-		/// </summary>
-		/// <param name="text"></param>
-		/// <returns></returns>
-		Task SendOrUpdateProgressAsync(string text);
 	}
 }

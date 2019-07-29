@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Advobot.Interfaces;
+using Advobot.Settings;
 using Discord;
 
 namespace Advobot.Services.BotSettings

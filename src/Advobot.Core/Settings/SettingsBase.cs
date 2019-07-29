@@ -8,8 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Advobot.Classes.Formatting;
-using Advobot.Interfaces;
+using Advobot.Formatting;
 using Advobot.Settings.GenerateResetValues;
 
 namespace Advobot.Settings

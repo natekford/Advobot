@@ -1,4 +1,4 @@
-﻿namespace Advobot.Enums
+﻿namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Specify what punishment should be given.

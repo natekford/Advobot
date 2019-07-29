@@ -5,9 +5,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Advobot.Enums;
-using Advobot.Interfaces;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
+using Advobot.Settings;
 
 namespace Advobot.Utilities
 {

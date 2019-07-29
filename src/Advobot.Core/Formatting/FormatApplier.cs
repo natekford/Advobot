@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Classes.Formatting
+namespace Advobot.Formatting
 {
 	/// <summary>
 	/// Determines whether to add some formatting to a string.

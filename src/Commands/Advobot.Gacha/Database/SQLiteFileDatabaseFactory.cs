@@ -1,4 +1,4 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Settings;
 using Advobot.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;

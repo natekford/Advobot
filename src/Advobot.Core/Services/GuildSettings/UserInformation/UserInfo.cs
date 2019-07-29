@@ -1,13 +1,12 @@
 ﻿using System;
-using Advobot.Interfaces;
 using Discord;
 
-namespace Advobot.Classes.UserInformation
+namespace Advobot.Services.GuildSettings.UserInformation
 {
 	/// <summary>
 	/// Holds a user and a time.
 	/// </summary>
-	public abstract class UserInfo : ITargetsUser
+	public abstract class UserInfo
 	{
 		/// <summary>
 		/// The time to reset the user.

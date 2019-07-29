@@ -64,15 +64,15 @@ namespace Advobot.Services.ImageResizing
 			await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
 		}
 		/// <inheritdoc />
-		public async Task SendOrUpdateProgressAsync(string text)
+		public async Task ReportAsync(string value)
 		{
 			if (_Message != null)
 			{
-				await _Message.ModifyAsync(x => x.Content = text).CAF();
+				await _Message.ModifyAsync(x => x.Content = value).CAF();
 			}
 			else
 			{
-				_Message = await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
+				_Message = await MessageUtils.SendMessageAsync(Context.Channel, value).CAF();
 			}
 		}
 	}

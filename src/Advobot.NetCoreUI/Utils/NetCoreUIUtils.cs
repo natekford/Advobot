@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Input;
-using Advobot.Interfaces;
+using Advobot.Settings;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Avalonia.Media;

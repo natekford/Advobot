@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using AdvorangesUtils;
 
-namespace Advobot.Classes.Formatting
+namespace Advobot.Formatting
 {
 	/// <summary>
 	/// Utilities for formatting arguments.

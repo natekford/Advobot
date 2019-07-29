@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Advobot.Databases;
 using Discord.WebSocket;
 
-namespace Advobot.Interfaces
+namespace Advobot.Settings
 {
 	/// <summary>
 	/// Abstraction for low level configuration in the bot.

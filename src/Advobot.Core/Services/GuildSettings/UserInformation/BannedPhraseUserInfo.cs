@@ -1,11 +1,11 @@
 ﻿using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Advobot.Enums;
+using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
 using Discord;
 
-namespace Advobot.Classes.UserInformation
+namespace Advobot.Services.GuildSettings.UserInformation
 {
 	/// <summary>
 	/// Holds a user and the counts of which punishments they should get.

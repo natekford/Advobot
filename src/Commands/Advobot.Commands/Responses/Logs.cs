@@ -1,5 +1,5 @@
 ﻿using Advobot.Classes.Results;
-using Advobot.Enums;
+using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
 using Discord;
 using System.Collections.Generic;

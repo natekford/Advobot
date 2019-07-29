@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Advobot.RuleFormatting;
+using Advobot.Formatting.Rules;
 using AdvorangesUtils;
 using Newtonsoft.Json;
 

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Advobot.Classes.Formatting;
 using Advobot.Classes.TypeReaders;
+using Advobot.Formatting;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;

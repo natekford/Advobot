@@ -1,6 +1,6 @@
 ﻿using System;
 using Advobot.Databases.Abstract;
-using Advobot.Enums;
+using Advobot.Services.GuildSettings.Settings;
 using Discord;
 
 namespace Advobot.Classes

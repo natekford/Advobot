@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Enums;
+using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Services.Logging.LoggingContexts;
 using Advobot.Utilities;

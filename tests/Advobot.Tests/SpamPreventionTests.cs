@@ -1,7 +1,6 @@
 ﻿#define DEBUG_MESSAGES
 #undef DEBUG_MESSAGES
 
-using Advobot.Enums;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Tests.Mocks;
 using Advobot.Tests.Utilities;

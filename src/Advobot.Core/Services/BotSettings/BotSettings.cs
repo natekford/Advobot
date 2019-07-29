@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using Advobot.Interfaces;
 using Advobot.Resources;
 using Advobot.Settings;
 using Advobot.Utilities;

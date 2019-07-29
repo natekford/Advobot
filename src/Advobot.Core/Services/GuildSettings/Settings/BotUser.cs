@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using Advobot.Classes.Formatting;
-using Advobot.Interfaces;
+using Advobot.Formatting;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -12,7 +11,7 @@ namespace Advobot.Services.GuildSettings.Settings
 	/// Extra permissions within the bot given to a user on a guild.
 	/// </summary>
 	[NamedArgumentType]
-	public sealed class BotUser : IGuildFormattable, ITargetsUser
+	public sealed class BotUser : IGuildFormattable
 	{
 		/// <inheritdoc />
 		[JsonProperty("UserId")]

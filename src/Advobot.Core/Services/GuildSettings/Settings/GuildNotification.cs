@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.Formatting;
+using Advobot.Formatting;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

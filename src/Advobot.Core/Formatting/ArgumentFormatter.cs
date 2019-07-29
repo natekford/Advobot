@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using AdvorangesUtils;
 
-namespace Advobot.Classes.Formatting
+namespace Advobot.Formatting
 {
 	/// <summary>
 	/// Formats arguments with markdown.

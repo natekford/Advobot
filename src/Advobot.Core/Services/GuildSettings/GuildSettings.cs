@@ -1,8 +1,7 @@
-﻿using Advobot.Classes.UserInformation;
-using Advobot.Databases.Abstract;
-using Advobot.Enums;
+﻿using Advobot.Databases.Abstract;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings.Settings;
+using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Settings;
 using Advobot.Settings.GenerateResetValues;
 using Newtonsoft.Json;
@@ -208,7 +207,7 @@ namespace Advobot.Services.GuildSettings
 		public void StoreGuildSettingsFactory(GuildSettingsFactory parent)
 			=> _Parent = parent;
 
-		//IDatabseEntry
+		//IDatabaseEntry
 		object IDatabaseEntry.Id { get => GuildId; set => GuildId = (ulong)value; }
 
 		/// <summary>

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Classes;
-using Advobot.Classes.Formatting;
-using Advobot.Classes.UserInformation;
-using Advobot.Enums;
+using Advobot.Formatting;
+using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
 using AdvorangesUtils;

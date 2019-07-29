@@ -1,6 +1,5 @@
 ﻿using Advobot.Classes;
-using Advobot.Classes.Formatting;
-using Advobot.Enums;
+using Advobot.Formatting;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

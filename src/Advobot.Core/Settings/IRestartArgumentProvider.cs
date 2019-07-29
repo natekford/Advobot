@@ -1,4 +1,4 @@
-﻿namespace Advobot.Interfaces
+﻿namespace Advobot.Settings
 {
 	/// <summary>
 	/// Abstraction for something that supplies arguments for restarting.

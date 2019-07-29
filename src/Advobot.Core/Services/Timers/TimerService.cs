@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
-using Advobot.Enums;
+using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;

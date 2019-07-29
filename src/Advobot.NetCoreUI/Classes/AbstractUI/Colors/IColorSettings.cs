@@ -1,5 +1,5 @@
-﻿using System.ComponentModel;
-using Advobot.Interfaces;
+﻿using Advobot.Settings;
+using System.ComponentModel;
 
 namespace Advobot.NetCoreUI.Classes.AbstractUI.Colors
 {

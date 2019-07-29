@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Advobot.Databases;
-using Advobot.Interfaces;
 using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesSettingParser.Implementation.Static;
@@ -15,7 +14,7 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes
+namespace Advobot.Settings
 {
 	/// <summary>
 	/// Low level configuration that is necessary for the bot to run. Holds the bot key, bot id, and save path.
@@ -113,7 +112,10 @@ namespace Advobot.Classes
 			return false;
 		}
 		/// <inheritdoc />
-		public async Task<bool> ValidateBotKey(string? input, bool startup, Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
+		public async Task<bool> ValidateBotKey(
+			string? input,
+			bool startup,
+			Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
 		{
 			if (ValidatedKey)
 			{

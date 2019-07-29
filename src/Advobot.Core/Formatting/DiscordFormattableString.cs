@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Formatting
+namespace Advobot.Formatting
 {
 	/// <summary>
 	/// Converts certain arguments into discord specific arguments then formats the string.

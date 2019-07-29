@@ -1,5 +1,4 @@
-﻿using Advobot.Classes.Formatting;
-using Advobot.Enums;
+﻿using Advobot.Formatting;
 using Discord;
 using Newtonsoft.Json;
 

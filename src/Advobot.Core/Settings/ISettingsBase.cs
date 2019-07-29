@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Advobot.Formatting;
+using System.Collections.Generic;
 using System.ComponentModel;
-using Advobot.Classes.Formatting;
 
-namespace Advobot.Interfaces
+namespace Advobot.Settings
 {
 	/// <summary>
 	/// Abstraction for something which has settings.

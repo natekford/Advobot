@@ -1,8 +1,8 @@
 ﻿using System;
-using Advobot.Classes.Formatting;
 using Advobot.Interfaces;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using Advobot.Formatting;
 
 namespace Advobot.Services.GuildSettings.Settings
 {

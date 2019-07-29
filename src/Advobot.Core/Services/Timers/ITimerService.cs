@@ -1,5 +1,5 @@
 ﻿using Advobot.Classes;
-using Advobot.Enums;
+using Advobot.Services.GuildSettings.Settings;
 
 namespace Advobot.Services.Timers
 {

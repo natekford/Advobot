@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes.Formatting
+﻿namespace Advobot.Formatting
 {
 	/// <summary>
 	/// Formats something which potentially involves a guild.

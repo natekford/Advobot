@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
-using Advobot.Interfaces;
+using Advobot.Settings;
 using AdvorangesUtils;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;

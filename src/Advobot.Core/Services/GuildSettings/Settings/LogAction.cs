@@ -1,6 +1,4 @@
-﻿using Advobot.Services.GuildSettings;
-
-namespace Advobot.Enums
+﻿namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Allows certain guild events to be logged when these are in <see cref="IGuildSettings.LogActions"/>.

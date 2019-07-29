@@ -2,11 +2,10 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Advobot.Enums;
 using AdvorangesUtils;
 using Discord.Commands;
 
-namespace Advobot.RuleFormatting
+namespace Advobot.Formatting.Rules
 {
 	/// <summary>
 	/// Formats rules to look nice.

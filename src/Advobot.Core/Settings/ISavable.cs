@@ -1,4 +1,4 @@
-﻿namespace Advobot.Interfaces
+﻿namespace Advobot.Settings
 {
 	/// <summary>
 	/// Indicates the object can be saved to a file.

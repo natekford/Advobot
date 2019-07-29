@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes.Formatting
+﻿namespace Advobot.Formatting
 {
 	/// <summary>
 	/// Gets around the limitation of not being able to use a variable as a format in <see cref="string.Format(string, object)"/>.

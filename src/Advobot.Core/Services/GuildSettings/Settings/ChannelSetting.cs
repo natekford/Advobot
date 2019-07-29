@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Enums
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Specifies what external settings to use on a channel.

@@ -6,13 +6,11 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
 using Advobot.Databases.LiteDB;
 using Advobot.Databases.MongoDB;
-using Advobot.Interfaces;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
@@ -30,6 +28,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Advobot.CommandMarking;
 using Advobot.Services.ImageResizing;
+using Advobot.Settings;
 
 namespace Advobot
 {

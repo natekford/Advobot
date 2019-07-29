@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Enums
+namespace Advobot.Services.GuildSettings.Settings
 {
 	/// <summary>
 	/// Specifies what spam prevention to modify/set up.

@@ -74,7 +74,7 @@ namespace Advobot.Services.ImageResizing
 				{
 					try
 					{
-						await args.SendOrUpdateProgressAsync("Starting to download the file.").CAF();
+						await args.ReportAsync("Starting to download the file.").CAF();
 
 						using var ms = new MemoryStream();
 						var result = await ResizeImageAsync(ms, _Client, args).CAF();
@@ -134,7 +134,7 @@ namespace Advobot.Services.ImageResizing
 
 			if (format == MagickFormat.Mp4) //Convert mp4 to gif so it can be used in animated gifs
 			{
-				await context.SendOrUpdateProgressAsync("Converting mp4 to gif.").CAF();
+				await context.ReportAsync("Converting mp4 to gif.").CAF();
 				await ConvertMp4ToGifAsync(ms, context).CAF();
 				format = MagickFormat.Gif;
 			}
@@ -142,7 +142,7 @@ namespace Advobot.Services.ImageResizing
 			//Getting to this point has already checked resize tries, so this image needs to be resized if it's too big
 			for (var i = 0; i < context.Args.ResizeTries && ms.Length > context.MaxAllowedLengthInBytes; ++i)
 			{
-				await context.SendOrUpdateProgressAsync($"Attempting to resize {i + 1}/{context.Args.ResizeTries}.").CAF();
+				await context.ReportAsync($"Attempting to resize {i + 1}/{context.Args.ResizeTries}.").CAF();
 				if (ResizeFile(ms, context, format)) //Acceptable size
 				{
 					break;

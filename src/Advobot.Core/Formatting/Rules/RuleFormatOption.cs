@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.RuleFormatting
+namespace Advobot.Formatting.Rules
 {
 	/// <summary>
 	/// Additional format options for rule formatter.

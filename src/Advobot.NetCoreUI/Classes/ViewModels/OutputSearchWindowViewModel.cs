@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
-using Advobot.Interfaces;
 using Advobot.NetCoreUI.Utils;
+using Advobot.Settings;
 using AdvorangesUtils;
 using Avalonia.Controls;
 using ReactiveUI;

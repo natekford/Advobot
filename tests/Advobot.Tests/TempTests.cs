@@ -1,6 +1,6 @@
 ﻿using Advobot.CommandMarking;
 using Advobot.Databases;
-using Advobot.Interfaces;
+using Advobot.Settings;
 using AdvorangesUtils;
 using Discord.WebSocket;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
