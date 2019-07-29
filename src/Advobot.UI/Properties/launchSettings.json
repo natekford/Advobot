@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Advobot.UI": {
+      "commandName": "Project",
+      "commandLineArgs": "-instance 2000"
+    }
+  }
+}

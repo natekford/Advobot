@@ -1,5 +1,5 @@
 # Advobot
-The console or .Net Core UI versions run on any OS that supports .Net Core 2.1. The .Net Framework UI version only runs on Windows.
+Both the console and the UI versions can run on any operating system that supports .Net Core.
 
 When wanting to run more than one bot at a time, supply the command line argument "-instance [number]" where the number is not 1 or a number supplied for any other currently running bots.
 

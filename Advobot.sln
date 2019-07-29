@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E276056E-5A61-45A7-8D86-BE4A4900C1F2}"
 	ProjectSection(SolutionItems) = preProject
 		LICENSE.txt = LICENSE.txt
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Console", "src\Advobot.Console\Advobot.Console.csproj", "{8C84976D-92F8-43D8-BB29-B97ECAF5DB41}"
@@ -14,8 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Core", "src\Advobot
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Tests", "tests\Advobot.Tests\Advobot.Tests.csproj", "{DE77ECB1-50AB-4216-B231-8D2EE5B7BD53}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.NetCoreUI", "src\Advobot.NetCoreUI\Advobot.NetCoreUI.csproj", "{71EB6561-916B-4CA1-9F98-3744E5E2B29B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.UI", "src\Advobot.UI\Advobot.UI.csproj", "{71EB6561-916B-4CA1-9F98-3744E5E2B29B}"
 	ProjectSection(ProjectDependencies) = postProject
+		{E762CE2D-7EB9-47ED-99DA-B4BE4761AE45} = {E762CE2D-7EB9-47ED-99DA-B4BE4761AE45}
+		{ECFBA359-5A3D-44DF-BD66-0AD0B111CDA1} = {ECFBA359-5A3D-44DF-BD66-0AD0B111CDA1}
 		{8C3632B5-6172-4D77-9044-345A64C205A0} = {8C3632B5-6172-4D77-9044-345A64C205A0}
 	EndProjectSection
 EndProject
@@ -27,7 +30,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Commands", "src\Com
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{291D61D3-D94D-4BE5-BC7C-A2CC27FCAE4E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot.GachaTests", "tests\Advobot.GachaTests\Advobot.GachaTests.csproj", "{9B22F126-1E66-4282-9684-43F31DCA2574}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.GachaTests", "tests\Advobot.GachaTests\Advobot.GachaTests.csproj", "{9B22F126-1E66-4282-9684-43F31DCA2574}"
 	ProjectSection(ProjectDependencies) = postProject
 		{ECFBA359-5A3D-44DF-BD66-0AD0B111CDA1} = {ECFBA359-5A3D-44DF-BD66-0AD0B111CDA1}
 	EndProjectSection

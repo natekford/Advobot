@@ -1,0 +1,27 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Advobot.UI.Controls;assembly=Advobot.UI"
+        xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        x:Class="Advobot.UI.Views.FileViewingWindow"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Name="FileViewingWindow"
+        Title="{Binding WindowTitle}"
+        FontFamily="Courier New">
+
+    <controls:DynamicFontSizeGrid Name="MainGrid" RowDefinitions="5*,15*,4*" ColumnDefinitions="7*,1*" DynamicFontSize=".02">
+        <!-- TODO: Uncomment when this nuget package is updated past 0.8.0 and texteditor works -->
+        <!-- <ae:TextEditor Grid.RowSpan="1000" Document="{Binding Output}" VerticalScrollBarVisibility="Visible" SyntaxHighlighting="Json" ShowLineNumbers="True" WordWrap="True"/> -->
+        <TextBox Grid.RowSpan="1000" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True"/>
+        <TextBox Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"
+             Text="{Binding SavingText}" Background="{Binding SavingBackground}" IsVisible="{Binding SavingOpen}"/>
+
+        <UniformGrid Grid.Row="2" Grid.Column="1" Columns="1">
+            <Button Content="Save" HotKey="Ctrl+s" Command="{Binding SaveCommand}"/>
+            <Button Content="Copy" Command="{Binding CopyCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+            <Button Content="Close" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+            <Button Content="Delete" Command="{Binding DeleteCommand}" CommandParameter="{Binding ElementName=FileViewingWindow}"/>
+        </UniformGrid>
+    </controls:DynamicFontSizeGrid>
+</Window>
