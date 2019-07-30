@@ -71,6 +71,6 @@ namespace Advobot.Services.InviteList
 		}
 		/// <inheritdoc />
 		public IListedInvite Get(ulong guildId)
-			=> DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Get(x => x.GuildId == guildId)).Single();
+			=> DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Get(x => x.GuildId == guildId)).SingleOrDefault();
 	}
 }

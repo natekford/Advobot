@@ -2,24 +2,27 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes.CloseWords;
-using Advobot.Modules;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
+using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.TypeReaders
 {
 	/// <summary>
 	/// Finds quotes with names similar to the passed in input.
 	/// </summary>
-	public sealed class CloseQuoteTypeReader : TypeReader<IAdvobotCommandContext>
+	public sealed class CloseQuoteTypeReader : TypeReader
 	{
 		/// <inheritdoc />
-		public override Task<TypeReaderResult> ReadAsync(IAdvobotCommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			var matches = new CloseWords<Quote>(context.Settings.Quotes).FindMatches(input);
-			return matches.Count == 0
-				? Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"Unable to find an object matching `{input}`."))
-				: Task.FromResult(TypeReaderResult.FromSuccess(matches.Select(x => x.Value)));
+			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			var matches = new CloseWords<Quote>(settings.Quotes).FindMatches(input).Select(x => x.Value).ToArray();
+			return TypeReaderUtils.MatchesResult(matches, "quotes", input);
 		}
 	}
 }

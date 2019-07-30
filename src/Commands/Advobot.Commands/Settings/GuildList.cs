@@ -1,9 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
+using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Modules;
 using Advobot.Services.InviteList;
@@ -26,7 +26,9 @@ namespace Advobot.Commands.Settings
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Add([NeverExpires] IInviteMetadata invite, [Optional] params string[] keywords)
+			public Task<RuntimeResult> Add(
+				[NeverExpires, FromThisGuild] IInviteMetadata invite,
+				[Optional] params string[] keywords)
 			{
 				Invites.Add(Context.Guild, invite, keywords);
 				return Responses.GuildList.CreatedListing(invite, keywords);
@@ -43,6 +45,7 @@ namespace Advobot.Commands.Settings
 		[Summary("Bumps the invite on the guild.")]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
+		[NotRecentlyBumped]
 		public sealed class BumpGuildListing : AdvobotModuleBase
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
@@ -52,14 +55,7 @@ namespace Advobot.Commands.Settings
 			[Command]
 			public async Task<RuntimeResult> Command()
 			{
-				if (!(Invites.Get(Context.Guild.Id) is IListedInvite invite))
-				{
-					return Responses.GuildList.NoInviteToBump();
-				}
-				if ((DateTime.UtcNow - invite.Time).TotalHours < 1)
-				{
-					return Responses.GuildList.LastBumpTooRecent();
-				}
+				var invite = Invites.Get(Context.Guild.Id);
 				await invite.BumpAsync(Context.Guild).CAF();
 				return Responses.GuildList.Bumped();
 			}

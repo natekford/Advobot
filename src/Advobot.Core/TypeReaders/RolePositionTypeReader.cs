@@ -12,13 +12,10 @@ namespace Advobot.TypeReaders
 	public class RolePositionTypeReader : PositionTypeReader<IRole>
 	{
 		/// <inheritdoc />
-		public override string ObjectType => "role";
+		public override string ObjectTypeName => "roles";
 
 		/// <inheritdoc />
-		public override Task<IReadOnlyCollection<IRole>> GetObjectsWithPosition(ICommandContext context, int position)
-		{
-			var roles = context.Guild.Roles.Where(x => x.Position == position).ToArray();
-			return Task.FromResult<IReadOnlyCollection<IRole>>(roles);
-		}
+		protected override Task<IEnumerable<IRole>> GetObjectsWithPositionAsync(ICommandContext context, int position)
+			=> Task.FromResult(context.Guild.Roles.Where(x => x.Position == position));
 	}
 }

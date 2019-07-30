@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -33,16 +34,8 @@ namespace Advobot.TypeReaders
 				}
 			}
 
-			var matchingWebhooks = webhooks.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			if (matchingWebhooks.Length == 1)
-			{
-				return TypeReaderResult.FromSuccess(matchingWebhooks[0]);
-			}
-			if (matchingWebhooks.Length > 1)
-			{
-				return TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many webhooks found with the same name.");
-			}
-			return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Webhook not found.");
+			var matches = webhooks.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+			return TypeReaderUtils.MatchesResult(matches, "webhooks", input);
 		}
 	}
 }

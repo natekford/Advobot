@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Advobot.Attributes;
-using AdvorangesUtils;
 using Discord.Commands;
 
 namespace Advobot.TypeReaders
@@ -16,11 +15,27 @@ namespace Advobot.TypeReaders
 		/// <summary>
 		/// Values that will set the stored bool to true.
 		/// </summary>
-		public static IList<string> TrueVals { get; } = new List<string> { "true", "yes", "add", "enable", "set", "positive" };
+		public static readonly ImmutableHashSet<string> TrueVals = new[]
+		{
+			"true",
+			"yes",
+			"add",
+			"enable",
+			"set",
+			"positive"
+		}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 		/// <summary>
 		/// Values that will set the stored bool to false.
 		/// </summary>
-		public static IList<string> FalseVals { get; } = new List<string> { "false", "no", "remove", "disable", "unset", "negative" };
+		public static readonly ImmutableHashSet<string> FalseVals = new[]
+		{
+			"false",
+			"no",
+			"remove",
+			"disable",
+			"unset",
+			"negative"
+		}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 
 		/// <summary>
 		/// Converts a string into a true bool if it has a match in <see cref="TrueVals"/>, 
@@ -33,11 +48,11 @@ namespace Advobot.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			if (TrueVals.CaseInsContains(input))
+			if (TrueVals.Contains(input))
 			{
 				return Task.FromResult(TypeReaderResult.FromSuccess(true));
 			}
-			else if (FalseVals.CaseInsContains(input))
+			else if (FalseVals.Contains(input))
 			{
 				return Task.FromResult(TypeReaderResult.FromSuccess(false));
 			}

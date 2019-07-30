@@ -77,20 +77,20 @@ namespace Advobot.Services.HelpEntries
 			return _NameMap.TryGetValue(key, out var guid) && _Source.TryGetValue(guid, out value);
 		}
 		/// <inheritdoc />
-		public IReadOnlyCollection<string> GetCategories()
+		public IReadOnlyList<string> GetCategories()
 			=> _Source.Values.Select(x => x.Category).Distinct().ToArray();
 		/// <inheritdoc />
-		public IReadOnlyCollection<IHelpEntry> FindCloseHelpEntries(string input)
+		public IReadOnlyList<IHelpEntry> FindCloseHelpEntries(string input)
 			=> new CloseHelpEntries(GetHelpEntries()).FindMatches(input).Select(x => x.Value).ToArray();
 		/// <inheritdoc />
-		public IReadOnlyCollection<IHelpEntry> GetHelpEntries(string? category = null)
+		public IReadOnlyList<IHelpEntry> GetHelpEntries(string? category = null)
 		{
 			return category == null
 				? _Source.Values.ToArray()
 				: _Source.Values.Where(x => x.Category.CaseInsEquals(category)).ToArray();
 		}
 		/// <inheritdoc />
-		public IReadOnlyCollection<IHelpEntry> GetUnsetCommands(IEnumerable<string> setCommands)
+		public IReadOnlyList<IHelpEntry> GetUnsetCommands(IEnumerable<string> setCommands)
 			=> _Source.Values.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
 		/// <inheritdoc />
 		IEnumerator IEnumerable.GetEnumerator()

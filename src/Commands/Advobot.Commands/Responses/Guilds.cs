@@ -11,10 +11,6 @@ namespace Advobot.Commands.Responses
 	{
 		private Guilds() { }
 
-		public static AdvobotResult NotBotOwner()
-			=> Failure(Default.FormatInterpolated($"Only the bot owner can use this command targetting other guilds."));
-		public static AdvobotResult InvalidGuild(ulong guildId)
-			=> Failure(Default.FormatInterpolated($"Failed to find a guild with the id {guildId}.")).WithTime(DefaultTime);
 		public static AdvobotResult LeftGuild(IGuild guild)
 			=> Success(Default.FormatInterpolated($"Successfully left {guild}."));
 		public static AdvobotResult DisplayRegions(IReadOnlyCollection<IVoiceRegion> regions)

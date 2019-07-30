@@ -9,6 +9,7 @@ using Advobot.Modules;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
+using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 
 namespace Advobot.Commands.Standard
 {
@@ -60,7 +61,7 @@ namespace Advobot.Commands.Standard
 		public sealed class DeleteInvite : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(IInviteMetadata invite)
+			public async Task<RuntimeResult> Command([FromThisGuild] IInviteMetadata invite)
 			{
 				await invite.DeleteAsync(GenerateRequestOptions()).CAF();
 				return Responses.Invites.DeletedInvite(invite);

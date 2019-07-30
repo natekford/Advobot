@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -23,34 +24,25 @@ namespace Advobot.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			var emotes = context.Guild.Emotes;
-			if (Emote.TryParse(input, out var tempEmote))
+			if (Emote.TryParse(input, out var temp))
 			{
-				var guildEmote = emotes.FirstOrDefault(x => x.Id == tempEmote.Id);
-				if (guildEmote != null)
+				var emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == temp.Id);
+				if (emote != null)
 				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(guildEmote));
+					return Task.FromResult(TypeReaderResult.FromSuccess(emote));
 				}
 			}
 			if (ulong.TryParse(input, out var id))
 			{
-				var guildEmote = emotes.FirstOrDefault(x => x.Id == id);
-				if (guildEmote != null)
+				var emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == id);
+				if (emote != null)
 				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(guildEmote));
+					return Task.FromResult(TypeReaderResult.FromSuccess(emote));
 				}
 			}
 
-			var matchingEmotes = emotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			if (matchingEmotes.Length == 1)
-			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(matchingEmotes[0]));
-			}
-			if (matchingEmotes.Length > 1)
-			{
-				return Task.FromResult(TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many emotes have the provided name."));
-			}
-			return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Emote not found."));
+			var matches = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+			return TypeReaderUtils.MatchesResultAsync(matches, "emotes", input);
 		}
 	}
 }

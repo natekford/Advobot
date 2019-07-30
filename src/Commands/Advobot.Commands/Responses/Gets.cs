@@ -371,7 +371,7 @@ namespace Advobot.Commands.Responses
 		}
 		public static AdvobotResult ShowEnumNames<T>(ulong value) where T : struct, Enum
 			=> Success(Default.FormatInterpolated($"{value} has the following permissions: {EnumUtils.GetFlagNames((T)(object)value)}"));
-		public static AdvobotResult ShowAllEnums(IReadOnlyCollection<Type> enums)
+		public static AdvobotResult ShowAllEnums(IEnumerable<Type> enums)
 		{
 			return Success(new EmbedWrapper
 			{

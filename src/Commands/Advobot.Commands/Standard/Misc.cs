@@ -40,15 +40,19 @@ namespace Advobot.Commands.Standard
 				=> Responses.Misc.GeneralHelp(Context.Settings.GetPrefix(BotSettings));
 			[Command, Priority(1)]
 			[Summary("Prints out help information for a specified module.")]
-			public Task<RuntimeResult> Command([Summary(TEMP_SUMMARY)] IHelpEntry command)
+			public Task<RuntimeResult> Command(
+				[Summary(TEMP_SUMMARY)] IHelpEntry command)
 				=> Responses.Misc.Help(command, Context.Settings);
 			[Command, Priority(2)]
 			[Summary("Prints out help information for a specific command in a specified module.")]
-			public Task<RuntimeResult> Command([Summary(TEMP_SUMMARY)] IHelpEntry command, [ValidatePositiveNumber] int position)
+			public Task<RuntimeResult> Command(
+				[Summary(TEMP_SUMMARY)] IHelpEntry command,
+				[ValidatePositiveNumber] int position)
 				=> Responses.Misc.Help(command, Context.Settings, position - 1);
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Summary("Attempts to find a help entry with a name similar to the input. This command only gets used if an invalid name is provided.")]
-			public async Task<RuntimeResult> Command([Summary(TEMP_SUMMARY), OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
+			public async Task<RuntimeResult> Command(
+				[Summary(TEMP_SUMMARY), OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IHelpEntry> command)
 			{
 				var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
 				if (entry != null)

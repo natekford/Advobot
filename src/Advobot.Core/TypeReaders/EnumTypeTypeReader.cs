@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 
@@ -19,22 +20,14 @@ namespace Advobot.TypeReaders
 			.Where(x => x.FullName.CaseInsContains("Discord") || x.FullName.CaseInsContains("Advobot"))
 			.SelectMany(x => x.GetTypes())
 			.Where(x => x.IsEnum && x.IsPublic)
-			.Distinct().OrderBy(x => x.Name)
+			.Distinct()
 			.ToImmutableArray();
 
 		/// <inheritdoc />
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			var matchingNames = Enums.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			if (matchingNames.Length == 1)
-			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(matchingNames[0]));
-			}
-			if (matchingNames.Length > 1)
-			{
-				return Task.FromResult(TypeReaderResult.FromError(CommandError.MultipleMatches, $"Too many enums have the name `{input}`."));
-			}
-			return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"No enum has the name `{input}`."));
+			var matches = Enums.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+			return TypeReaderUtils.MatchesResultAsync(matches, "enums", input);
 		}
 	}
 }

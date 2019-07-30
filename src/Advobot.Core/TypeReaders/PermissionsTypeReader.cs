@@ -35,7 +35,7 @@ namespace Advobot.TypeReaders
 				return Task.FromResult(TypeReaderResult.FromSuccess(value));
 			}
 
-			var resp = $"Invalid permission(s) provided: `{string.Join("`, `", invalidPerms)}`.";
+			var resp = $"Invalid permission(s) provided: `{invalidPerms.Join("`, `")}`.";
 			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, resp));
 		}
 	}

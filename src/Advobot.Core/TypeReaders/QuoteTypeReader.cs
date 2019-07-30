@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
-using Advobot.Modules;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.TypeReaders
 {
@@ -12,7 +15,7 @@ namespace Advobot.TypeReaders
 	/// Attempts to find a quote with the supplied name.
 	/// </summary>
 	[TypeReaderTargetType(typeof(Quote))]
-	public sealed class QuoteTypeReader : TypeReader<IAdvobotCommandContext>
+	public sealed class QuoteTypeReader : TypeReader
 	{
 		/// <summary>
 		/// Attempts to find a quote with the supplied input as a name.
@@ -21,11 +24,12 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(IAdvobotCommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			return context.Settings.Quotes.TryGetSingle(x => x.Name.CaseInsEquals(input), out var quote)
-				? Task.FromResult(TypeReaderResult.FromSuccess(quote))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"Unable to find a quote matching `{input}`."));
+			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			var matches = settings.Quotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+			return TypeReaderUtils.MatchesResult(matches, "quotes", input);
 		}
 	}
 }

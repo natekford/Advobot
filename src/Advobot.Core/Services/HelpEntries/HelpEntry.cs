@@ -67,8 +67,6 @@ namespace Advobot.Services.HelpEntries
 
 			return groups.JoinNonNullValues(" & ", g => $"({g})");
 		}
-		private string GetEnabledStatus(IGuildSettings? settings)
-			=> settings?.CommandSettings?.IsCommandEnabled(Name) ?? DefaultEnabled ? "Yes" : "No";
 		private static string FormatType(Type type)
 		{
 			if (!type.IsGenericType)
@@ -79,7 +77,10 @@ namespace Advobot.Services.HelpEntries
 			var name = type.Name.Split('`')[0];
 			return $"{name}<{type.GetGenericArguments().Join(", ", x => FormatType(x))}>";
 		}
-
+		private static string FormatParameter(ParameterInfo p)
+			=> $"{FormatType(p.Type)}: {p.Name}";
+		private string GetEnabledStatus(IGuildSettings? settings)
+			=> settings?.CommandSettings?.IsCommandEnabled(Name) ?? DefaultEnabled ? "Yes" : "No";
 		public string ToString(IFormatProvider? formatProvider)
 			=> ToString(null, formatProvider);
 		public string ToString(IGuildSettings? settings, IFormatProvider? formatProvider)
@@ -93,14 +94,18 @@ namespace Advobot.Services.HelpEntries
 				$"{"Description".AsTitle()}\n{Description}\n\n",
 			};
 
-			var formattedCommands = _Module.Commands.Select((x, i) =>
+			var formattedCommands = _Module.Commands.Select((c, i) =>
 			{
 				var output = $"\t{i + 1}.";
-				if (x.Aliases.Any(y => y.CaseInsContains(x.Name))) //If the name of the command is not in its alias, then the name isnt set
+				//If the name of the command is not in its alias, then the name isnt set
+				if (c.Aliases.Any(a => a.CaseInsContains(c.Name)))
 				{
-					output += $" {x.Name}";
+					output += $" {c.Name}";
 				}
-				var parameters = x.Parameters.Select(x => $"{FormatType(x.Type)}: {x.Name}").Join(", ");
+				var parameters = c.Parameters
+					.Where(p => !p.Attributes.Any(a => a is HiddenAttribute))
+					.Select(FormatParameter)
+					.Join(", ");
 				return output + $" ({parameters})";
 			}).Join("\n");
 			collection.Add($"{"Commands".AsTitle()} {formattedCommands:```}");
@@ -122,12 +127,13 @@ namespace Advobot.Services.HelpEntries
 				return collection.ToString(formatProvider);
 			}
 
-			var formattedParameters = command.Parameters.Select((x, i) =>
+			var visibleParameters = command.Parameters.Where(p => !p.Attributes.Any(a => a is HiddenAttribute));
+			var formattedParameters = visibleParameters.Select((p, i) =>
 			{
-				var output = $"\t{i + 1}. {FormatType(x.Type)}: {x.Name}";
-				if (x.Summary != null)
+				var output = $"\t{i + 1}. {FormatParameter(p)}";
+				if (p.Summary != null)
 				{
-					output += $"\n{x.Summary}";
+					output += $"\n{p.Summary}";
 				}
 				return output;
 			}).Join("\n");
@@ -135,6 +141,7 @@ namespace Advobot.Services.HelpEntries
 			return collection.ToString(formatProvider);
 		}
 
-		string IFormattable.ToString(string format, IFormatProvider formatProvider) => ToString(formatProvider);
+		string IFormattable.ToString(string format, IFormatProvider formatProvider)
+			=> ToString(formatProvider);
 	}
 }

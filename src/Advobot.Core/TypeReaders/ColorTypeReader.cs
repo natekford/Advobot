@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
 
@@ -30,9 +31,11 @@ namespace Advobot.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			return TryParseColor(input, out var color)
-				? Task.FromResult(TypeReaderResult.FromSuccess(color))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching color."));
+			if (TryParseColor(input, out var color))
+			{
+				return Task.FromResult(TypeReaderResult.FromSuccess(color));
+			}
+			return TypeReaderUtils.ParseFailedResultAsync<Color>();
 		}
 		/// <summary>
 		/// Attempts to parse a color from the input. If unable to parse, returns null.

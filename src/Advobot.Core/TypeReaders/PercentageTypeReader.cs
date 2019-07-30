@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Utilities;
 using Discord.Commands;
 using ImageMagick;
 
@@ -21,9 +22,11 @@ namespace Advobot.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			return double.TryParse(input, out var val)
-				? Task.FromResult(TypeReaderResult.FromSuccess(new Percentage(val)))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, $"Invalid percentage supplied."));
+			if (double.TryParse(input, out var val))
+			{
+				return Task.FromResult(TypeReaderResult.FromSuccess(new Percentage(val)));
+			}
+			return TypeReaderUtils.ParseFailedResultAsync<Percentage>();
 		}
 	}
 }

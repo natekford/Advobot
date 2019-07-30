@@ -14,13 +14,13 @@ namespace Advobot.TypeReaders
 	public class ChannelPositionTypeReader<T> : PositionTypeReader<T> where T : IGuildChannel
 	{
 		/// <inheritdoc />
-		public override string ObjectType => "channel";
+		public override string ObjectTypeName => "channels";
 
 		/// <inheritdoc />
-		public override async Task<IReadOnlyCollection<T>> GetObjectsWithPosition(ICommandContext context, int position)
+		protected override async Task<IEnumerable<T>> GetObjectsWithPositionAsync(ICommandContext context, int position)
 		{
 			var channels = await context.Guild.GetChannelsAsync().CAF();
-			return channels.OfType<T>().Where(x => x.Position == position).ToArray();
+			return channels.OfType<T>().Where(x => x.Position == position);
 		}
 	}
 }

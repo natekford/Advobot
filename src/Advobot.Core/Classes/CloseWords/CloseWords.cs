@@ -16,7 +16,7 @@ namespace Advobot.Classes.CloseWords
 		/// <summary>
 		/// What to search through.
 		/// </summary>
-		protected IReadOnlyCollection<T> Source { get; }
+		protected IReadOnlyList<T> Source { get; }
 		/// <summary>
 		/// How similar a string has to be to match.
 		/// </summary>
@@ -44,7 +44,7 @@ namespace Advobot.Classes.CloseWords
 		/// </summary>
 		/// <param name="search"></param>
 		/// <returns></returns>
-		public IReadOnlyCollection<CloseWord<T>> FindMatches(string search)
+		public IReadOnlyList<CloseWord<T>> FindMatches(string search)
 		{
 			var list = new List<CloseWord<T>>();
 			foreach (var item in Source)

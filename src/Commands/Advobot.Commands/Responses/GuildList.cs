@@ -26,15 +26,11 @@ namespace Advobot.Commands.Responses
 			=> Success(Default.FormatInterpolated($"Successfully created a listed invite from {invite} with the keywords {keywords}."));
 		public static AdvobotResult DeletedListing()
 			=> Success("Successfully deleted the listed invite.");
-		public static AdvobotResult NoInviteToBump()
-			=> Failure("Failed to bump the listed invite; there is no listed invite.").WithTime(DefaultTime);
-		public static AdvobotResult LastBumpTooRecent()
-			=> Failure("Failed to bump the listed invite; the last bump was too recent.").WithTime(DefaultTime);
 		public static AdvobotResult Bumped()
 			=> Success("Successfully bumped the listed invite.");
 		public static AdvobotResult NoInviteMatch()
 			=> Failure("Failed to find an invite with the supplied options.").WithTime(DefaultTime);
-		public static AdvobotResult InviteMatches(IReadOnlyCollection<IListedInvite> invites)
+		public static AdvobotResult InviteMatches(IEnumerable<IListedInvite> invites)
 		{
 			var formatted = invites.Join("\n", x =>
 			{

@@ -1,4 +1,5 @@
 ﻿using Advobot.Attributes;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -33,16 +34,8 @@ namespace Advobot.TypeReaders
 			}
 
 			var guilds = await context.Client.GetGuildsAsync().CAF();
-			var matchingGuilds = guilds.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			if (matchingGuilds.Length == 1)
-			{
-				return TypeReaderResult.FromSuccess(matchingGuilds[0]);
-			}
-			if (matchingGuilds.Length > 1)
-			{
-				return TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many guilds have the provided name.");
-			}
-			return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Guild not found.");
+			var matches = guilds.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+			return TypeReaderUtils.MatchesResult(matches, "guilds", input);
 		}
 	}
 }

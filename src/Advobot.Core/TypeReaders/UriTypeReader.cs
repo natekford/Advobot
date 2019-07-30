@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.TypeReaders
@@ -20,9 +21,11 @@ namespace Advobot.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			return Uri.TryCreate(input, UriKind.Absolute, out var url)
-				? Task.FromResult(TypeReaderResult.FromSuccess(url))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Invalid url provided."));
+			if (Uri.TryCreate(input, UriKind.Absolute, out var url))
+			{
+				return Task.FromResult(TypeReaderResult.FromSuccess(url));
+			}
+			return TypeReaderUtils.ParseFailedResultAsync<Uri>();
 		}
 	}
 }

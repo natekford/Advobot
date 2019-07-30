@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Services.HelpEntries;
+using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,9 +25,9 @@ namespace Advobot.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
-			return services.GetRequiredService<IHelpEntryService>().TryGetValue(input, out var entry)
-				? Task.FromResult(TypeReaderResult.FromSuccess(entry))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, $"Unable to find a command matching `{input}`."));
+			var help = services.GetRequiredService<IHelpEntryService>();
+			var matches = help.GetHelpEntries().Where(x => x.Name.CaseInsEquals(input)).ToArray();
+			return TypeReaderUtils.MatchesResultAsync(matches, "help entries", input);
 		}
 	}
 }
