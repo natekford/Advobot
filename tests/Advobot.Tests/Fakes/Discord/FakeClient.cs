@@ -1,12 +1,12 @@
-﻿using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Discord;
 
-namespace Advobot.Tests.Mocks
+namespace Advobot.Tests.Fakes.Discord
 {
-	class MockClient : IDiscordClient
+	public class FakeClient : IDiscordClient
 	{
 		public ConnectionState ConnectionState => throw new NotImplementedException();
 		public ISelfUser CurrentUser => throw new NotImplementedException();

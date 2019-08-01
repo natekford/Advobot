@@ -16,7 +16,10 @@ namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 		public ValidateChannelBitrateAttribute() : base(8, 96) { }
 
 		/// <inheritdoc />
-		public override int GetEnd(ICommandContext context, ParameterInfo parameter, IServiceProvider services)
+		public override int GetEnd(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IServiceProvider services)
 		{
 			return context.Guild.PremiumTier switch
 			{

@@ -35,7 +35,7 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 		{
 			if (!(value is string s))
 			{
-				throw new NotSupportedException($"{nameof(ValidateStringLengthAttribute)} only supports strings.");
+				throw new ArgumentException($"{nameof(ValidateStringLengthAttribute)} only supports strings.");
 			}
 			return CheckPermissionsAsync(context, parameter, s, services);
 		}
@@ -49,13 +49,14 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 		/// <returns></returns>
 		public virtual Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
 		{
+			//TODO: handle localizaion for parameter info
 			if (value.Length < Min)
 			{
-				return Task.FromResult(PreconditionResult.FromError($"{parameter.Name} must be at least `{Min}` characters long."));
+				return Task.FromResult(PreconditionResult.FromError($"{parameter?.Name} must be at least `{Min}` characters long."));
 			}
 			if (value.Length > Max)
 			{
-				return Task.FromResult(PreconditionResult.FromError($"{parameter.Name} must be at most `{Max}` characters long."));
+				return Task.FromResult(PreconditionResult.FromError($"{parameter?.Name} must be at most `{Max}` characters long."));
 			}
 			return Task.FromResult(PreconditionResult.FromSuccess());
 		}

@@ -23,9 +23,12 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 			{
 				return result;
 			}
-			return value.Contains(" ")
-				? PreconditionResult.FromError("Spaces are not allowed in text channel names.")
-				: PreconditionResult.FromSuccess();
+
+			if (!value.Contains(" "))
+			{
+				return PreconditionResult.FromSuccess();
+			}
+			return PreconditionResult.FromError("Spaces are not allowed in text channel names.");
 		}
 	}
 }

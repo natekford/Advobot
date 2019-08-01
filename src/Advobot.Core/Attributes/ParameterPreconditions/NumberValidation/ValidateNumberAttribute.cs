@@ -50,21 +50,22 @@ namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
-			if (!(value is int num) && !int.TryParse(value.ToString(), out num))
+			//TODO: handle localizaion for parameter info
+			if (!(value is int num))
 			{
-				throw new NotSupportedException($"{nameof(ValidateNumberAttribute)} only supports {nameof(Int32)}.");
+				throw new ArgumentException($"{nameof(ValidateNumberAttribute)} only supports {nameof(Int32)}.");
 			}
 			if (ValidNumbers.Any())
 			{
 				return ValidNumbers.Contains(num)
 					? Task.FromResult(PreconditionResult.FromSuccess())
-					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{string.Join("`, `", ValidNumbers)}`"));
+					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter?.Name} supplied, must be one of the following: `{string.Join("`, `", ValidNumbers)}`"));
 			}
 			var start = GetStart(context, parameter, services);
 			var end = GetEnd(context, parameter, services);
 			return num >= start && num <= end
 				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{start}` and `{end}`."));
+				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter?.Name} supplied, must be between `{start}` and `{end}`."));
 		}
 		/// <summary>
 		/// Returns the number to use for the start. This will only be used if <see cref="ValidNumbers"/> is empty.

@@ -41,12 +41,12 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 				return PreconditionResult.FromError("Invalid regex provided.");
 			}
 
-			var tests = new (string Name, Func<bool> Test)[]
+			var tests = new (string Name, Func<string, bool> Test)[]
 			{
-				("empty", () => RegexUtils.IsMatch("", value)),
-				("space", () => RegexUtils.IsMatch(" ", value)),
-				("new line", () =>  RegexUtils.IsMatch(Environment.NewLine, value)),
-				("random", () =>
+				("empty", x => RegexUtils.IsMatch("", x)),
+				("space", x => RegexUtils.IsMatch(" ", x)),
+				("new line", x =>  RegexUtils.IsMatch(Environment.NewLine, x)),
+				("random", x =>
 				{
 					var randomMatchCount = 0;
 					for (var i = 0; i < 10; ++i)
@@ -57,7 +57,7 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 						{
 							p.Append((char)r.Next(1, 10000));
 						}
-						if (RegexUtils.IsMatch(p.ToString(), value))
+						if (RegexUtils.IsMatch(p.ToString(), x))
 						{
 							++randomMatchCount;
 						}
@@ -70,7 +70,7 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 			foreach (var (Name, Test) in tests)
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 			{
-				if (Test())
+				if (Test.Invoke(value))
 				{
 					return PreconditionResult.FromError($"Invalid regex; matched {Name} when it should not have.");
 				}

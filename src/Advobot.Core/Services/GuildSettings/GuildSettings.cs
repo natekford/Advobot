@@ -1,14 +1,14 @@
-﻿using Advobot.Databases.Abstract;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using Advobot.Databases.Abstract;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Settings;
 using Advobot.Settings.GenerateResetValues;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Globalization;
 
 namespace Advobot.Services.GuildSettings
 {

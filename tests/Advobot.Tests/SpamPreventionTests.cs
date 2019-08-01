@@ -1,13 +1,14 @@
 ﻿#define DEBUG_MESSAGES
 #undef DEBUG_MESSAGES
 
+using System;
+using System.Threading.Tasks;
 using Advobot.Services.GuildSettings.Settings;
-using Advobot.Tests.Mocks;
+using Advobot.Tests.Fakes.Discord;
+using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Utilities;
 using AdvorangesUtils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Threading.Tasks;
 using static Discord.MentionUtils;
 
 namespace Advobot.Tests
@@ -15,8 +16,9 @@ namespace Advobot.Tests
 	[TestClass]
 	public sealed class SpamPreventionTests
 	{
-		private readonly MockGuild _Guild = new MockGuild();
-		private readonly MockGuildUser _GuildUser;
+		private readonly FakeGuild _Guild;
+		private readonly FakeTextChannel _Channel;
+		private readonly FakeGuildUser _User;
 		private readonly SnowflakeGenerator _Snowflakes = new SnowflakeGenerator(TimeSpan.FromMilliseconds(200));
 		private readonly SpamPrev _SpamPrev1 = new SpamPrev
 		{
@@ -29,7 +31,12 @@ namespace Advobot.Tests
 
 		public SpamPreventionTests()
 		{
-			_GuildUser = new MockGuildUser(_Guild, 172138437246320640);
+			_Guild = new FakeGuild();
+			_Channel = new FakeTextChannel(_Guild);
+			_User = new FakeGuildUser(_Guild)
+			{
+				Id = 172138437246320640,
+			};
 		}
 
 		[TestMethod]
@@ -39,9 +46,11 @@ namespace Advobot.Tests
 
 			for (var i = 0; i < 10; ++i)
 			{
-				var id = _Snowflakes.Next(_SpamPrev1.TimeInterval / 10);
-				var mockUserMessage = new MockUserMessage(_GuildUser, GenerateMentionSpam(), id);
-				var punished = await _SpamPrev1.PunishAsync(_GuildUser, mockUserMessage).CAF();
+				var msg = new FakeUserMessage(_Channel, _User, GenerateMentionSpam())
+				{
+					Id = _Snowflakes.Next(_SpamPrev1.TimeInterval / 10),
+				};
+				var punished = await _SpamPrev1.PunishAsync(msg).CAF();
 				if (punished)
 				{
 					return;
@@ -56,9 +65,11 @@ namespace Advobot.Tests
 
 			for (var i = 0; i < 10; ++i)
 			{
-				var id = _Snowflakes.Next(_SpamPrev1.TimeInterval / 10);
-				var mockUserMessage = new MockUserMessage(_GuildUser, GenerateNotSpam(), id);
-				var punished = await _SpamPrev1.PunishAsync(_GuildUser, mockUserMessage).CAF();
+				var msg = new FakeUserMessage(_Channel, _User, GenerateNotSpam())
+				{
+					Id = _Snowflakes.Next(_SpamPrev1.TimeInterval / 10),
+				};
+				var punished = await _SpamPrev1.PunishAsync(msg).CAF();
 				if (punished)
 				{
 					Assert.Fail("This should not have been caught as spam.");
@@ -72,9 +83,11 @@ namespace Advobot.Tests
 
 			for (var i = 0; i < 10; ++i)
 			{
-				var id = _Snowflakes.Next(_SpamPrev1.TimeInterval * 10);
-				var mockUserMessage = new MockUserMessage(_GuildUser, GenerateMentionSpam(), id);
-				var punished = await _SpamPrev1.PunishAsync(_GuildUser, mockUserMessage).CAF();
+				var msg = new FakeUserMessage(_Channel, _User, GenerateMentionSpam())
+				{
+					Id = _Snowflakes.Next(_SpamPrev1.TimeInterval * 10),
+				};
+				var punished = await _SpamPrev1.PunishAsync(msg).CAF();
 				if (punished)
 				{
 					Assert.Fail("This should not have been caught as spam.");
@@ -86,26 +99,29 @@ namespace Advobot.Tests
 		{
 			await _SpamPrev1.EnableAsync(_Guild).CAF();
 
-			for (var i = 0; i < 10; ++i)
+			var timeMults = new[]
 			{
-				var timeMult = i switch
-				{
-					0 => 1.0,
-					1 => 1.0,
-					2 => 2.0,
-					3 => 2.0,
-					4 => 1.0,
-					5 => 3.0,
-					6 => 1.0,
-					7 => 1.0,
-					8 => 1.0,
-					9 => 4.0,
-					_ => 2.0,
-				} / (_SpamPrev1.SpamInstances + 1);
+				1.0,
+				1.0,
+				2.0,
+				2.0,
+				1.0,
+				3.0,
+				1.0,
+				1.0,
+				1.0,
+				4.0,
+				2.0,
+			};
 
-				var id = _Snowflakes.Next(_SpamPrev1.TimeInterval * timeMult, false);
-				var mockUserMessage = new MockUserMessage(_GuildUser, GenerateMentionSpam(), id);
-				var punished = await _SpamPrev1.PunishAsync(_GuildUser, mockUserMessage).CAF();
+			foreach (var timeMult in timeMults)
+			{
+				var normalizedTimeMult = timeMult / (_SpamPrev1.SpamInstances + 1);
+				var msg = new FakeUserMessage(_Channel, _User, GenerateMentionSpam())
+				{
+					Id = _Snowflakes.Next(_SpamPrev1.TimeInterval * normalizedTimeMult, false),
+				};
+				var punished = await _SpamPrev1.PunishAsync(msg).CAF();
 				if (punished)
 				{
 					Assert.Fail("This should not have been caught as spam.");
@@ -122,16 +138,21 @@ namespace Advobot.Tests
 			{
 				tasks[i] = new Task(async userId =>
 				{
-					var threadUser = new MockGuildUser(_Guild, (ulong)(int)userId);
+					var threadUser = new FakeGuildUser(_Guild)
+					{
+						Id = (ulong)(int)userId,
+					};
 #if DEBUG_MESSAGES
 					Debug.Print($"Created user {userId}.\n");
 #endif
 
 					for (var c = 0; c < 1000; ++c)
 					{
-						var id = _Snowflakes.Next();
-						var mockUserMessage = new MockUserMessage(threadUser, GenerateMentionSpam(), id);
-						await _SpamPrev1.PunishAsync(_GuildUser, mockUserMessage).CAF();
+						var msg = new FakeUserMessage(_Channel, threadUser, GenerateMentionSpam())
+						{
+							Id = _Snowflakes.Next(),
+						};
+						await _SpamPrev1.PunishAsync(msg).CAF();
 					}
 				}, i);
 			}

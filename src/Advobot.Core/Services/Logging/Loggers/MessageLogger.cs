@@ -160,7 +160,7 @@ namespace Advobot.Services.Logging.Loggers
 
 			foreach (var antiSpam in context.Settings.SpamPrevention)
 			{
-				await antiSpam.PunishAsync(context.User, context.Message).CAF();
+				await antiSpam.PunishAsync(context.Message).CAF();
 			}
 		}
 		/// <summary>

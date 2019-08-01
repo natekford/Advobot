@@ -1,15 +1,15 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Formatting;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Services.GuildSettings.Settings
 {
@@ -36,10 +36,9 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <summary>
 		/// Punishes a user.
 		/// </summary>
-		/// <param name="user"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public async Task<bool> PunishAsync(IGuildUser user, IUserMessage message)
+		public async Task<bool> PunishAsync(IUserMessage message)
 		{
 			if (!Enabled)
 			{
@@ -61,7 +60,8 @@ namespace Advobot.Services.GuildSettings.Settings
 				{
 					Options = DiscordUtils.GenerateRequestOptions("Spam prevention."),
 				};
-				await PunishmentUtils.GiveAsync(Punishment, user.Guild, user.Id, RoleId, punishmentArgs).CAF();
+				var guild = ((ITextChannel)message.Channel).Guild;
+				await PunishmentUtils.GiveAsync(Punishment, guild, message.Author.Id, RoleId, punishmentArgs).CAF();
 				return true;
 			}
 			return false;

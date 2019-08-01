@@ -1,12 +1,12 @@
-﻿using Discord;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 
-namespace Advobot.Tests.Mocks
+namespace Advobot.Tests.Fakes.Discord
 {
-	public class MockGuildUser : MockUser, IGuildUser
+	public class FakeGuildUser : FakeUser, IGuildUser
 	{
 		public DateTimeOffset? JoinedAt => throw new NotImplementedException();
 		public string Nickname { get; private set; }
@@ -23,13 +23,13 @@ namespace Advobot.Tests.Mocks
 		public string VoiceSessionId { get; private set; }
 		public DateTimeOffset? PremiumSince => throw new NotImplementedException();
 
-		private readonly MockGuild _Guild;
+		private readonly FakeGuild _Guild;
 		private readonly HashSet<ulong> _RoleIds = new HashSet<ulong>();
 
-		public MockGuildUser(MockGuild guild, ulong id) : base(id)
+		public FakeGuildUser(FakeGuild guild)
 		{
 			_Guild = guild;
-			_Guild.AddMockUser(this);
+			_Guild.AddFakeUser(this);
 		}
 
 		public Task AddRoleAsync(IRole role, RequestOptions options = null)

@@ -1,16 +1,16 @@
-﻿using AdvorangesUtils;
-using Discord;
-using Discord.Audio;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AdvorangesUtils;
+using Discord;
+using Discord.Audio;
 
-namespace Advobot.Tests.Mocks
+namespace Advobot.Tests.Fakes.Discord
 {
-	public class MockGuild : IGuild
+	public class FakeGuild : FakeSnowflake, IGuild
 	{
-		public string Name => "Mock Guild";
+		public string Name => "Fake Guild";
 		public int AFKTimeout => throw new NotImplementedException();
 		public bool IsEmbeddable => throw new NotImplementedException();
 		public DefaultMessageNotifications DefaultMessageNotifications => throw new NotImplementedException();
@@ -32,24 +32,28 @@ namespace Advobot.Tests.Mocks
 		public IAudioClient AudioClient => throw new NotImplementedException();
 		public IRole EveryoneRole => throw new NotImplementedException();
 		public IReadOnlyCollection<GuildEmote> Emotes => throw new NotImplementedException();
-		public IReadOnlyCollection<string> Features => throw new NotImplementedException();
+		public IReadOnlyCollection<string> Features { get; } = Array.Empty<string>();
 		public IReadOnlyCollection<IRole> Roles => throw new NotImplementedException();
-		public DateTimeOffset CreatedAt => throw new NotImplementedException();
-		public ulong Id => throw new NotImplementedException();
 
 		public Dictionary<ulong, IGuildUser> Users { get; } = new Dictionary<ulong, IGuildUser>();
 		public Dictionary<ulong, IWebhook> Webhooks { get; } = new Dictionary<ulong, IWebhook>();
 		public Dictionary<ulong, IBan> Bans { get; } = new Dictionary<ulong, IBan>();
 
-		public PremiumTier PremiumTier => throw new NotImplementedException();
+		public PremiumTier PremiumTier => PremiumSubscriptionCount switch
+		{
+			int i when i >= 50 => PremiumTier.Tier3,
+			int i when i >= 10 => PremiumTier.Tier2,
+			int i when i >= 2 => PremiumTier.Tier1,
+			_ => PremiumTier.None,
+		};
 		public string BannerId => throw new NotImplementedException();
 		public string BannerUrl => throw new NotImplementedException();
 		public string VanityURLCode => throw new NotImplementedException();
 		public SystemChannelMessageDeny SystemChannelFlags => throw new NotImplementedException();
 		public string Description => throw new NotImplementedException();
-		public int PremiumSubscriptionCount => throw new NotImplementedException();
+		public int PremiumSubscriptionCount { get; set; }
 
-		public void AddMockUser(MockGuildUser user)
+		public void AddFakeUser(FakeGuildUser user)
 			=> Users[user.Id] = user;
 
 		public Task AddBanAsync(IUser user, int pruneDays = 0, string reason = null, RequestOptions options = null)
