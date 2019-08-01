@@ -1,8 +1,8 @@
-﻿using Advobot.Modules;
+﻿using System.Collections.Generic;
+using Advobot.Modules;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
 using Discord;
-using System.Collections.Generic;
 
 namespace Advobot.Commands.Responses
 {

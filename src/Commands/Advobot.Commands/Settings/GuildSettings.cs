@@ -2,6 +2,8 @@
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
@@ -13,7 +15,7 @@ namespace Advobot.Commands.Settings
 	public sealed class GuildSettings : ModuleBase
 	{
 		[Group(nameof(ShowGuildSettings)), ModuleInitialismAlias(typeof(ShowGuildSettings))]
-		[Summary("Shows information about guild settings.")]
+		[LocalizedSummary(nameof(Summaries.ShowGuildSettings))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class ShowGuildSettings : ReadOnlySettingsModule<IGuildSettings>
@@ -35,7 +37,7 @@ namespace Advobot.Commands.Settings
 		}
 
 		[Group(nameof(ResetGuildSettings)), ModuleInitialismAlias(typeof(ResetGuildSettings))]
-		[Summary("Sets settings back to their default values.")]
+		[LocalizedSummary(nameof(Summaries.ResetGuildSettings))]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true)]
 		public sealed class ResetGuildSettings : SettingsModule<IGuildSettings>
@@ -200,8 +202,7 @@ namespace Advobot.Commands.Settings
 		}*/
 
 		[Group(nameof(ModifyIgnoredCommandChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredCommandChannels))]
-		[Summary("The bot will ignore commands said on these channels. " +
-			"If a command is input then the bot will instead ignore only that command on the given channel.")]
+		[LocalizedSummary(nameof(Summaries.ModifyIgnoredCommandChannels))]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true, AbleToToggle = false)]
 		public sealed class ModifyIgnoredCommandChannels : SettingsModule<IGuildSettings>
@@ -219,30 +220,30 @@ namespace Advobot.Commands.Settings
 				bool enable,
 				[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
 				=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, enable, channel.Id).CAF();*/
-				/*
-			[ImplicitCommand, ImplicitAlias]
-			public Task Category(bool enable, [ValidateCommandCategory] string category, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
+			/*
+		[ImplicitCommand, ImplicitAlias]
+		public Task Category(bool enable, [ValidateCommandCategory] string category, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
+		{
+			throw new NotImplementedException();
+			/*
+			var commands = Settings.CommandSettings.ModifyOverrides(HelpEntries.GetHelpEntries(category), channel, enable);
+			if (!commands.Any())
 			{
-				throw new NotImplementedException();
-				/*
-				var commands = Settings.CommandSettings.ModifyOverrides(HelpEntries.GetHelpEntries(category), channel, enable);
-				if (!commands.Any())
-				{
-					return ReplyErrorAsync($"`{category}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
-				}
-				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{commands.Join("`, `")}` on `{channel.Format()}`.");
+				return ReplyErrorAsync($"`{category}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
 			}
-			[Command]
-			public Task Command(bool enable, IHelpEntry helpEntry, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
+			return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{commands.Join("`, `")}` on `{channel.Format()}`.");
+		}
+		[Command]
+		public Task Command(bool enable, IHelpEntry helpEntry, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
+		{
+			throw new NotImplementedException();
+			/*
+			if (!Settings.CommandSettings.ModifyOverride(helpEntry, channel, enable))
 			{
-				throw new NotImplementedException();
-				/*
-				if (!Settings.CommandSettings.ModifyOverride(helpEntry, channel, enable))
-				{
-					return ReplyErrorAsync($"`{helpEntry.Name}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
-				}
-				return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{helpEntry.Name}` on `{channel.Format()}`.");
-			}*/
+				return ReplyErrorAsync($"`{helpEntry.Name}` is already {(enable ? "unignored" : "ignored")} on `{channel.Format()}`.");
+			}
+			return ReplyTimedAsync($"Successfully {(enable ? "unignored" : "ignored")} `{helpEntry.Name}` on `{channel.Format()}`.");
+		}*/
 		}
 
 		/*
@@ -394,7 +395,7 @@ namespace Advobot.Commands.Settings
 		}*/
 
 		[Group(nameof(TestGuildNotifs)), ModuleInitialismAlias(typeof(TestGuildNotifs))]
-		[Summary("Sends the given guild notification in order to test it.")]
+		[LocalizedSummary(nameof(Summaries.TestGuildNotifs))]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class TestGuildNotifs : AdvobotModuleBase

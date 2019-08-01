@@ -5,6 +5,8 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.InviteList;
 using AdvorangesUtils;
@@ -16,7 +18,7 @@ namespace Advobot.Commands.Settings
 	public sealed class GuildList : ModuleBase
 	{
 		[Group(nameof(ModifyGuildListing)), ModuleInitialismAlias(typeof(ModifyGuildListing))]
-		[Summary("Adds or removes a guild from the public guild list.")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildListing))]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifyGuildListing : AdvobotModuleBase
@@ -42,7 +44,7 @@ namespace Advobot.Commands.Settings
 		}
 
 		[Group(nameof(BumpGuildListing)), ModuleInitialismAlias(typeof(BumpGuildListing))]
-		[Summary("Bumps the invite on the guild.")]
+		[LocalizedSummary(nameof(Summaries.BumpGuildListing))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
 		[NotRecentlyBumped]
@@ -62,7 +64,7 @@ namespace Advobot.Commands.Settings
 		}
 
 		[Group(nameof(GetGuildListing)), ModuleInitialismAlias(typeof(GetGuildListing))]
-		[Summary("Gets an invite meeting the given criteria.")]
+		[LocalizedSummary(nameof(Summaries.GetGuildListing))]
 		[EnabledByDefault(true)]
 		public sealed class GetGuildListing : AdvobotModuleBase
 		{

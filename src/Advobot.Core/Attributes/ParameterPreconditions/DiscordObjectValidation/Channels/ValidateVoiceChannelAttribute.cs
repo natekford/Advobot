@@ -1,8 +1,8 @@
-﻿using Advobot.Modules;
-using Discord;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 {
@@ -20,7 +20,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 			: base(permissions) { }
 
 		/// <inheritdoc />
-		protected override Task<object> GetFromContextAsync(IAdvobotCommandContext context)
-			=> Task.FromResult<object>(context.User.VoiceChannel);
+		protected override Task<object> GetFromContextAsync(ICommandContext context)
+		{
+			if (!(context.User is IGuildUser user))
+			{
+				throw new ArgumentException("Invalid user.");
+			}
+			return Task.FromResult<object>(user.VoiceChannel);
+		}
 	}
 }

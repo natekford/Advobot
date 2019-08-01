@@ -1,10 +1,9 @@
-﻿using Advobot.Modules;
-using AdvorangesUtils;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AdvorangesUtils;
+using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 {
@@ -20,7 +19,11 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 		public ValidateRegexAttribute() : base(1, 100) { }
 
 		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			string value,
+			IServiceProvider services)
 		{
 			var result = await base.CheckPermissionsAsync(context, parameter, value, services).CAF();
 			if (!result.IsSuccess)

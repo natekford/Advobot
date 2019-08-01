@@ -1,8 +1,9 @@
-﻿using Advobot.Modules;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
 using Discord.Commands;
-using System;
-using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 {
@@ -13,12 +14,20 @@ namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 	public sealed class ValidateGuildSettingNameAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			object value,
+			IServiceProvider services)
 		{
-			var settingNames = context.Settings.GetSettingNames();
-			return settingNames.CaseInsContains((string)value)
-				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError("Invalid guild setting name supplied."));
+			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			var settingNames = settings.GetSettingNames();
+			if (settingNames.CaseInsContains((string)value))
+			{
+				return PreconditionResult.FromSuccess();
+			}
+			return PreconditionResult.FromError("Invalid guild setting name supplied.");
 		}
 		/// <summary>
 		/// Returns a string describing what this attribute requires.

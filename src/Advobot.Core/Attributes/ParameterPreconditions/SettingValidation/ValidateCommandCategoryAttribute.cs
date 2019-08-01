@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using Advobot.Services.HelpEntries;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -15,12 +14,18 @@ namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 	public sealed class ValidateCommandCategoryAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			object value,
+			IServiceProvider services)
 		{
 			var helpEntries = services.GetRequiredService<IHelpEntryService>();
-			return helpEntries.GetCategories().CaseInsContains((string)value)
-				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError("Invalid category supplied."));
+			if (helpEntries.GetCategories().CaseInsContains((string)value))
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+			return Task.FromResult(PreconditionResult.FromError("Invalid category supplied."));
 		}
 		/// <summary>
 		/// Returns a string describing what this attribute requires.

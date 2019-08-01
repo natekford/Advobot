@@ -5,10 +5,12 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Attributes.Preconditions.QuantityLimitations;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
-using Advobot.TypeReaders;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
+using Advobot.TypeReaders;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -18,7 +20,7 @@ namespace Advobot.Commands.Settings
 	public sealed class Quotes : ModuleBase
 	{
 		[Group(nameof(ModifyQuotes)), ModuleInitialismAlias(typeof(ModifyQuotes))]
-		[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
+		[LocalizedSummary(nameof(Summaries.ModifyQuotes))]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifyQuotes : SettingsModule<IGuildSettings>
@@ -27,7 +29,9 @@ namespace Advobot.Commands.Settings
 
 			[QuoteLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Add([NotAlreadyQuoteName] string name, [Remainder] string text)
+			public Task<RuntimeResult> Add(
+				[NotAlreadyQuoteName] string name,
+				[Remainder] string text)
 			{
 				var quote = new Quote(name, text);
 				Settings.Quotes.Add(quote);
@@ -43,8 +47,7 @@ namespace Advobot.Commands.Settings
 		}
 
 		[Group(nameof(SayQuote)), ModuleInitialismAlias(typeof(SayQuote))]
-		[Summary("Shows the content for the given quote. " +
-			"If nothing is input, then shows the list of the current quotes.")]
+		[LocalizedSummary(nameof(Summaries.SayQuote))]
 		[EnabledByDefault(false)]
 		public sealed class SayQuote : AdvobotModuleBase
 		{

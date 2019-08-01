@@ -1,9 +1,9 @@
-﻿using Advobot.Modules;
+﻿using System;
+using System.Threading.Tasks;
 using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Threading.Tasks;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 {
@@ -21,7 +21,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 			: base(permissions) { }
 
 		/// <inheritdoc />
-		protected override async Task<object> GetFromContextAsync(IAdvobotCommandContext context)
-			=> await context.Channel.GetCategoryAsync().CAF();
+		protected override async Task<object> GetFromContextAsync(ICommandContext context)
+		{
+			if (!(context.Channel is INestedChannel channel))
+			{
+				throw new ArgumentException("Invalid channel.");
+			}
+			return await channel.GetCategoryAsync().CAF();
+		}
 	}
 }

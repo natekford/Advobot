@@ -1,114 +1,109 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Advobot.Localization;
 using AdvorangesUtils;
 
 namespace Advobot.Utilities
 {
 	internal static class AliasUtils
 	{
-		private static readonly ImmutableDictionary<string, string> _ShortenedPhrases = new Dictionary<string, string>
-		{
-			{ "clear", "clr" }
-		}.ToImmutableDictionary();
-		private static readonly Dictionary<string, Type> _AlreadyUsedModuleAliases = new Dictionary<string, Type>();
-		private static readonly List<(string Edited, string[] Parts)> _ModuleInitialisms = new List<(string Edited, string[] Parts)>();
+		private static readonly AliasManager _Manager = new AliasManager();
 
-		public static string[] ConcatCommandAliases(string name, string[] aliases)
+		public static string[] ConcatCommandAliases(string name, IReadOnlyList<string> aliases)
 			=> ConcatAliases(null, name, aliases);
-		public static string[] ConcatModuleAliases(Type module, string[] aliases)
+		public static string[] ConcatModuleAliases(Type module, IReadOnlyList<string> aliases)
 			=> ConcatAliases(module, module.Name, aliases);
-		private static string[] ConcatAliases(Type? module, string name, string[] aliases)
+		private static string[] ConcatAliases(Type? module, string name, IReadOnlyList<string> aliases)
 		{
-			Array.Resize(ref aliases, aliases.Length + 1);
-			aliases[^1] = Shorten(name, module != null);
-
-			if (module != null)
+			var array = new string[aliases.Count + 1];
+			for (var i = 0; i < aliases.Count; ++i)
 			{
-				foreach (var alias in aliases)
-				{
-					if (_AlreadyUsedModuleAliases.TryGetValue(alias, out var owner))
-					{
-						throw new InvalidOperationException($"{owner.Name} already has registered the alias {alias}.");
-					}
-					_AlreadyUsedModuleAliases[alias] = module;
-				}
+				array[i] = aliases[i];
 			}
-			return aliases;
+			array[^1] = Shorten(name, module != null);
+
+			if (module == null)
+			{
+				return array;
+			}
+
+			foreach (var alias in aliases)
+			{
+				_Manager.RegisterAlias(module, alias);
+			}
+			return array;
 		}
 		private static string Shorten(string name, bool isModule)
 		{
 			var initialism = CreateInitialism(name, isModule);
-			if (isModule)
+			if (!isModule)
 			{
-				//Example with:
-				//ChangeChannelPosition
-				//ChangeChannelPerms
-				var matchingInitialisms = _ModuleInitialisms.Where(x => x.Edited.CaseInsEquals(initialism.Edited)).ToArray();
-				if (matchingInitialisms.Any())
-				{
-					//ChangeChannel is in both at the start, so would match with ChangeChannelPosition.
-					var matchingStarts = matchingInitialisms.Select(x =>
-					{
-						var index = -1;
-						for (var i = 0; i < Math.Min(x.Parts.Length, initialism.Parts.Length); ++i)
-						{
-							if (!x.Parts[i].CaseInsEquals(initialism.Parts[i]))
-							{
-								break;
-							}
-							++index;
-						}
-						return (Holder: x, MatchingStartPartsIndex: index);
-					}).Where(x => x.MatchingStartPartsIndex > -1).ToArray();
-
-					//ChangeChannel is 2 parts, so this would return 2. Add 1 to start adding from Perms instead of Channel.
-					var indexToAddAt = matchingStarts.Any() ? matchingStarts.Max(x => x.MatchingStartPartsIndex) + 1 : 1;
-
-					//Would do one loop and change ChangeChannelPerms' initialism from ccp to ccpe
-					var length = 1;
-					while (_ModuleInitialisms.TryGetFirst(x => x.Edited == initialism.Edited, out _))
-					{
-						if (length > name.Length)
-						{
-							throw new InvalidOperationException($"Unable to generate an initialism for {name} which is not already being used.");
-						}
-
-						var newInitialism = new StringBuilder();
-						for (var i = 0; i < initialism.Parts.Length; ++i)
-						{
-							var p = initialism.Parts[i];
-							var l = i == indexToAddAt ? length : 1;
-							newInitialism.Append(p.Substring(0, l));
-						}
-						initialism.Edited = newInitialism.ToString().ToLower();
-						++length;
-					}
-
-					ConsoleUtils.DebugWrite($"Changed the alias of {name} to {initialism.Edited}.");
-				}
-				_ModuleInitialisms.Add(initialism);
+				return initialism.Edited;
 			}
+
+			var initialisms = _Manager.GetInitialisms();
+			var matching = initialisms.Where(x => x.Edited.CaseInsEquals(initialism.Edited));
+			if (!matching.Any())
+			{
+				initialisms.Add(initialism);
+				return initialism.Edited;
+			}
+
+			//Example with:
+			//ChangeChannelPosition
+			//ChangeChannelPerms
+			//ChangeChannel is in both at the start, so would match with ChangeChannelPosition.
+			//ChangeChannel is 2 parts, so this would return 2. Add 1 to start adding from Perms instead of Channel.
+			var offset = 1 + matching.Select(x =>
+			{
+				var index = -1;
+				for (var i = 0; i < Math.Min(x.Parts.Count, initialism.Parts.Count); ++i)
+				{
+					if (!x.Parts[i].CaseInsEquals(initialism.Parts[i]))
+					{
+						break;
+					}
+					++index;
+				}
+				return index;
+			}).Where(x => x > -1).DefaultIfEmpty(0).Max();
+
+			//Would do one loop and change ChangeChannelPerms' initialism from ccp to ccpe
+			for (var i = 0; i < name.Length && initialisms.TryGetFirst(x => x.Edited == initialism.Edited, out _); ++i)
+			{
+				if (i > name.Length)
+				{
+					throw new InvalidOperationException($"Unable to generate an initialism for {name} which is not already being used.");
+				}
+
+				var newInitialism = new StringBuilder();
+				for (var j = 0; j < initialism.Parts.Count; ++j)
+				{
+					var part = initialism.Parts[j];
+					var length = j == offset ? i : 1;
+					newInitialism.Append(part.Substring(0, length));
+				}
+
+				initialism.Edited = newInitialism.ToString().ToLower();
+			}
+
+			ConsoleUtils.DebugWrite($"Changed the alias of {name} to {initialism.Edited}.");
+			initialisms.Add(initialism);
 			return initialism.Edited;
 		}
-		private static (string Edited, string[] Parts) CreateInitialism(string name, bool isModule)
+		private static Initialism CreateInitialism(string name, bool isModule)
 		{
 			var parts = new List<StringBuilder>();
 			var initialism = new StringBuilder();
 
 			if (isModule)
 			{
-				foreach (var kvp in _ShortenedPhrases)
-				{
-					name = name.CaseInsReplace(kvp.Key, kvp.Value.ToUpper());
-				}
 				if (name.EndsWith("s"))
 				{
-#pragma warning disable CS8620 // Nullability of reference types in argument doesn't match target type.
 					name = name[0..^1] + "S";
-#pragma warning restore CS8620 // Nullability of reference types in argument doesn't match target type.
 				}
 			}
 
@@ -129,7 +124,36 @@ namespace Advobot.Utilities
 				parts.Last().Append(c);
 			}
 
-			return (initialism.ToString().ToLower(), parts.Select(x => x.ToString()).ToArray());
+			return new Initialism(initialism, parts);
+		}
+
+		private sealed class AliasManager
+		{
+			private readonly Localized<ConcurrentDictionary<string, Type>> _Aliases
+				= Localized.Create<ConcurrentDictionary<string, Type>>();
+			private readonly Localized<ConcurrentBag<Initialism>> _Initialisms
+				= Localized.Create<ConcurrentBag<Initialism>>();
+
+			public void RegisterAlias(Type module, string alias)
+			{
+				_Aliases.Get().AddOrUpdate(alias, module,
+					(key, value) => throw new InvalidOperationException($"{value.Name} already has registered the alias {key}."));
+			}
+			public ConcurrentBag<Initialism> GetInitialisms()
+				=> _Initialisms.Get();
+		}
+		private sealed class Initialism
+		{
+			public string Edited { get; set; }
+			public IReadOnlyList<string> Parts { get; }
+			
+			public Initialism(StringBuilder edited, IEnumerable<StringBuilder> parts)
+				: this(edited.ToString().ToLower(), parts.Select(x => x.ToString())) { }
+			public Initialism(string edited, IEnumerable<string> parts)
+			{
+				Edited = edited;
+				Parts = parts.ToArray();
+			}
 		}
 	}
 }

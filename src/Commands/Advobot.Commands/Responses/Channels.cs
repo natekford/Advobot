@@ -16,10 +16,13 @@ namespace Advobot.Commands.Responses
 
 		public static AdvobotResult Display(IEnumerable<IGuildChannel> channels, [CallerMemberName] string caller = "")
 		{
+			var text = channels
+				.OrderBy(x => x.Position)
+				.Join("\n", x => $"{x.Position.ToString("00")}. {x.Name}");
 			return Success(new EmbedWrapper
 			{
 				Title = Title.Format(strings.Responses_Channels_Positions_Title, caller),
-				Description = BigBlock.FormatInterpolated($"{channels.Join("\n", x => $"{x.Position.ToString("00")}. {x.Name}")}"),
+				Description = BigBlock.FormatInterpolated($"{text}"),
 			});
 		}
 		public static AdvobotResult Moved(IGuildChannel channel, int position)

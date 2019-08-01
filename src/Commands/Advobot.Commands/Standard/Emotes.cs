@@ -8,6 +8,8 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.ImageResizing;
 using AdvorangesUtils;
@@ -19,8 +21,7 @@ namespace Advobot.Commands.Standard
 	public sealed class Emotes : ModuleBase
 	{
 		[Group(nameof(CreateEmote)), ModuleInitialismAlias(typeof(CreateEmote))]
-		[Summary("Adds an emote to the server. " +
-			"Requires either an emote to copy, or the name and file to make an emote out of.")]
+		[LocalizedSummary(nameof(Summaries.CreateEmote))]
 		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
 		[RateLimit(RateLimitAttribute.TimeUnit.Minutes, 1)]
@@ -38,7 +39,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(DeleteEmote)), ModuleInitialismAlias(typeof(DeleteEmote))]
-		[Summary("Deletes the supplied emote from the guild.")]
+		[LocalizedSummary(nameof(Summaries.DeleteEmote))]
 		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
 		public sealed class DeleteEmote : AdvobotModuleBase
@@ -52,7 +53,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyEmoteName)), ModuleInitialismAlias(typeof(ModifyEmoteName))]
-		[Summary("Changes the name of the supplied emote.")]
+		[LocalizedSummary(nameof(Summaries.ModifyEmoteName))]
 		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyEmoteName : AdvobotModuleBase
@@ -68,8 +69,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyEmoteRoles)), ModuleInitialismAlias(typeof(ModifyEmoteRoles))]
-		[Summary("Changes the roles which are ALL necessary to use an emote. " +
-			"Your Discord client will need to be restarted after editing this in order to see the emote again, even if you give yourself the roles.")]
+		[LocalizedSummary(nameof(Summaries.ModifyEmoteRoles))]
 		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyEmoteRoles : AdvobotModuleBase
@@ -115,7 +115,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(DisplayEmotes)), ModuleInitialismAlias(typeof(DisplayEmotes))]
-		[Summary("Lists the emotes in the guild. If there are more than 20 emotes of a specified type, they will be uploaded in a file.")]
+		[LocalizedSummary(nameof(Summaries.DisplayEmotes))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class DisplayEmotes : AdvobotModuleBase

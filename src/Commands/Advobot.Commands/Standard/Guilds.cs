@@ -6,20 +6,22 @@ using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
+using static Discord.ChannelPermission;
 
 namespace Advobot.Commands.Standard
 {
 	public sealed class Guilds : ModuleBase
 	{
 		[Group(nameof(LeaveGuild)), ModuleInitialismAlias(typeof(LeaveGuild))]
-		[Summary("Makes the bot leave the guild. " +
-			"Settings and preferences will be preserved.")]
+		[LocalizedSummary(nameof(Summaries.LeaveGuild))]
 		[EnabledByDefault(true)]
 		public sealed class LeaveGuild : AdvobotModuleBase
 		{
@@ -37,7 +39,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyGuildName)), ModuleInitialismAlias(typeof(ModifyGuildName))]
-		[Summary("Change the name of the guild to the given name.")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildName))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildName : AdvobotModuleBase
@@ -51,7 +53,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyGuildRegion)), ModuleInitialismAlias(typeof(ModifyGuildRegion))]
-		[Summary("Changes the guild server region.")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildRegion))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildRegion : AdvobotModuleBase
@@ -71,7 +73,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyGuildAfkTimer)), ModuleInitialismAlias(typeof(ModifyGuildAfkTimer))]
-		[Summary("Changes the guild AFK timeout.")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkTimer))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
@@ -85,14 +87,14 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyGuildAfkChannel)), ModuleInitialismAlias(typeof(ModifyGuildAfkChannel))]
-		[Summary("Changes the guild afk channel.")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkChannel))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[ValidateVoiceChannel(ChannelPermission.ManageChannels, FromContext = true)] IVoiceChannel? channel)
+				[ValidateVoiceChannel(ManageChannels, FromContext = true)] IVoiceChannel? channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel?>(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedAfkChannel(channel);
@@ -103,14 +105,14 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyGuildSystemChannel)), ModuleInitialismAlias(typeof(ModifyGuildSystemChannel))]
-		[Summary("Changes the guild system channel.")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildSystemChannel))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[ValidateTextChannel(ChannelPermission.ManageChannels, FromContext = true)] ITextChannel? channel)
+				[ValidateTextChannel(ManageChannels, FromContext = true)] ITextChannel? channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedSystemChannel(channel);
@@ -121,7 +123,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyGuildMsgNotif)), ModuleInitialismAlias(typeof(ModifyGuildMsgNotif))]
-		[Summary("Changes the message notifications to either all messages or mentions only.")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildMsgNotif))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildMsgNotif : AdvobotModuleBase
@@ -135,8 +137,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyGuildVerif)), ModuleInitialismAlias(typeof(ModifyGuildVerif))]
-		[Summary("Changes the verification level. " +
-			"None is the most lenient (no requirements to type), extreme is the harshest (phone verification).")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildVerif))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildVerif : AdvobotModuleBase
@@ -150,7 +151,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyGuildIcon)), ModuleInitialismAlias(typeof(ModifyGuildIcon))]
-		[Summary("Changes the guild's icon to the given image.")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildIcon))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildIcon : ImageResizerModule
@@ -171,7 +172,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ModifyGuildSplash)), ModuleInitialismAlias(typeof(ModifyGuildSplash))]
-		[Summary("Changes the guild splash to the given image. Won't be modified unless the server is a partnered server.")]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildSplash))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		[RequirePartneredGuild]
@@ -193,7 +194,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(CreateGuild)), ModuleInitialismAlias(typeof(CreateGuild))]
-		[Summary("Creates a guild with the bot as the owner.")]
+		[LocalizedSummary(nameof(Summaries.CreateGuild))]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
 		public sealed class CreateGuild : AdvobotModuleBase
@@ -210,7 +211,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(SwapGuildOwner)), ModuleInitialismAlias(typeof(SwapGuildOwner))]
-		[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
+		[LocalizedSummary(nameof(Summaries.SwapGuildOwner))]
 		[RequireBotIsOwner]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -225,7 +226,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(DeleteGuild)), ModuleInitialismAlias(typeof(DeleteGuild))]
-		[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
+		[LocalizedSummary(nameof(Summaries.DeleteGuild))]
 		[RequireBotIsOwner]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]

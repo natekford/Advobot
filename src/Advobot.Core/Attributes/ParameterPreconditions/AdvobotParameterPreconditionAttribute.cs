@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions
@@ -18,16 +17,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			return CheckPermissionsAsync((IAdvobotCommandContext)context, parameter, value, services);
+			return CheckPermissionsAsync(context, parameter, value, services);
 		}
-		/// <summary>
-		/// Checks whether the command can execute.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parameter"></param>
-		/// <param name="value"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		public abstract Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services);
 	}
 }

@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 [assembly: NeutralResourcesLanguage("en")]
 
 // Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly(InstantiatorType = typeof(GachaInstantiation))]
+[assembly: CommandAssembly("en-US", InstantiatorType = typeof(GachaInstantiation))]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

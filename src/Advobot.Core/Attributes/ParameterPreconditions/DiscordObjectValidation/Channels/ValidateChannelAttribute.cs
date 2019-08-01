@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
@@ -37,8 +36,20 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 		}
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> ValidateAsync(IAdvobotCommandContext context, object value)
-			=> context.User.ValidateChannel((IGuildChannel)value, Permissions, GetValidationRules().ToArray());
+		protected override Task<PreconditionResult> ValidateAsync(
+			ICommandContext context,
+			object value)
+		{
+			if (!(context.User is IGuildUser invoker))
+			{
+				return Task.FromResult(PreconditionResult.FromError("Invalid invoker."));
+			}
+			if (!(value is IGuildChannel channel))
+			{
+				return Task.FromResult(PreconditionResult.FromError("Invalid channel."));
+			}
+			return invoker.ValidateChannel(channel, Permissions, GetValidationRules().ToArray());
+		}
 		/// <summary>
 		/// Extra checks to use in validation.
 		/// </summary>

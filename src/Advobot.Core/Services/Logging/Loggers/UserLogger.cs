@@ -48,26 +48,18 @@ namespace Advobot.Services.Logging.Loggers
 			});
 		}
 		/// <inheritdoc />
-		public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
+		public async Task OnGuildMemberUpdated(SocketGuildUser before, SocketGuildUser after)
 		{
-			if (beforeUser.Username.CaseInsEquals(afterUser.Username))
+			if (before.Username.CaseInsEquals(after.Username))
 			{
 				return;
 			}
 
-			foreach (var guild in Client.Guilds)
+			var context = new UserLoggingContext(GuildSettingsFactory, LogAction.UserUpdated, after);
+			await HandleAsync(context, nameof(ILogService.UserChanges), Array.Empty<Task>(), new Func<Task>[]
 			{
-				if (!guild.Users.TryGetFirst(x => x.Id == afterUser.Id, out var user))
-				{
-					continue;
-				}
-
-				var context = new UserLoggingContext(GuildSettingsFactory, LogAction.UserUpdated, user);
-				await HandleAsync(context, nameof(ILogService.UserChanges), Array.Empty<Task>(), new Func<Task>[]
-				{
-					() => HandleUsernameUpdated(context, beforeUser),
-				}).CAF();
-			}
+				() => HandleUsernameUpdated(context, before),
+			}).CAF();
 		}
 
 		/// <summary>

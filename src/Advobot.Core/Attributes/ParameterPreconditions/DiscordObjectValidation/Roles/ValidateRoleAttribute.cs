@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
@@ -22,8 +21,20 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 		public override bool FromContext => false;
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> ValidateAsync(IAdvobotCommandContext context, object value)
-			=> context.User.ValidateRole((IRole)value, GetValidationRules().ToArray());
+		protected override Task<PreconditionResult> ValidateAsync(
+			ICommandContext context,
+			object value)
+		{
+			if (!(context.User is IGuildUser invoker))
+			{
+				return Task.FromResult(PreconditionResult.FromError("Invalid invoker."));
+			}
+			if (!(value is IRole role))
+			{
+				return Task.FromResult(PreconditionResult.FromError("Invalid role."));
+			}
+			return invoker.ValidateRole(role, GetValidationRules().ToArray());
+		}
 		/// <summary>
 		/// Extra checks to use in validation.
 		/// </summary>

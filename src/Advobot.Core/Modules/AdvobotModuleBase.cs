@@ -28,6 +28,10 @@ namespace Advobot.Modules
 		public delegate bool MessageTryParser<T>(IMessage message, out T value);
 
 		/// <summary>
+		/// The prefix for this context.
+		/// </summary>
+		public string Prefix => Context.Settings.GetPrefix(BotSettings);
+		/// <summary>
 		/// How long timed messages should stay for.
 		/// </summary>
 		[DontInject]

@@ -16,6 +16,9 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Advobot.CommandAssemblies;
 using Advobot.Services.Timers;
+using Advobot.Attributes;
+using System.Reflection;
+using Advobot.Localization;
 
 namespace Advobot.Services.Commands
 {
@@ -28,8 +31,9 @@ namespace Advobot.Services.Commands
 		private static readonly TimeSpan _RemovalTime = TimeSpan.FromSeconds(10);
 
 		private readonly IServiceProvider _Provider;
-		private readonly CommandService _Commands;
 		private readonly DiscordShardedClient _Client;
+		private readonly CommandServiceConfig _CommandConfig;
+		private readonly Localized<CommandService> _CommandServices;
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IHelpEntryService _HelpEntries;
@@ -47,41 +51,65 @@ namespace Advobot.Services.Commands
 		public CommandHandlerService(IServiceProvider provider)
 		{
 			_Provider = provider;
-			_Commands = _Provider.GetRequiredService<CommandService>();
+			_CommandConfig = _Provider.GetRequiredService<CommandServiceConfig>();
 			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
 			_HelpEntries = _Provider.GetRequiredService<IHelpEntryService>();
 			_Timers = _Provider.GetRequiredService<ITimerService>();
-
-			_Commands.Log += (e) =>
+			_CommandServices = new Localized<CommandService>(x =>
 			{
-				ConsoleUtils.WriteLine(e.ToString());
-				return Task.CompletedTask;
-			};
-			_Commands.CommandExecuted += (_, context, result) => LogExecutionAsync((IAdvobotCommandContext)context, result);
+				var commands = new CommandService(_CommandConfig);
+				commands.Log += OnLog;
+				commands.CommandExecuted += OnCommandExecuted;
+				return commands;
+			});
+
 			_Client.ShardReady += OnReady;
 			_Client.MessageReceived += HandleCommand;
 		}
 
-		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> commands)
+		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> aseemblies)
 		{
-			foreach (var assembly in commands)
+			var currentCulture = CultureInfo.CurrentCulture;
+			foreach (var assembly in aseemblies)
 			{
-				var modules = await _Commands.AddModulesAsync(assembly.Assembly, _Provider).CAF();
-				foreach (var categoryModule in modules)
-				{
-					foreach (var commandModule in categoryModule.Submodules)
-					{
-						_HelpEntries.Add(new HelpEntry(commandModule));
-					}
-				}
 				if (assembly.Attribute.Instantiator != null)
 				{
 					await assembly.Attribute.Instantiator.ConfigureServicesAsync(_Provider).CAF();
 				}
-				ConsoleUtils.WriteLine($"Successfully loaded {modules.Count()} command modules from {assembly.Assembly.GetName().Name}.");
+
+				foreach (var culture in assembly.Attribute.SupportedCultures)
+				{
+					CultureInfo.CurrentCulture = culture;
+
+					var commands = _CommandServices.Get();
+					var typeReaders = new[] { Assembly.GetExecutingAssembly(), assembly.Assembly }
+						.SelectMany(x => x.GetTypes())
+						.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
+						.Where(x => x.Attribute != null);
+					foreach (var typeReader in typeReaders)
+					{
+						var instance = (TypeReader)Activator.CreateInstance(typeReader.Type);
+						foreach (var type in typeReader.Attribute.TargetTypes)
+						{
+							commands.AddTypeReader(type, instance, true);
+						}
+					}
+					var modules = await commands.AddModulesAsync(assembly.Assembly, _Provider).CAF();
+					ConsoleUtils.WriteLine($"Successfully loaded {modules.Count()} command modules " +
+						$"from {assembly.Assembly.GetName().Name} in the {culture} culture.");
+
+					foreach (var category in modules)
+					{
+						foreach (var command in category.Submodules)
+						{
+							_HelpEntries.Add(new HelpEntry(command));
+						}
+					}
+				}
 			}
+			CultureInfo.CurrentCulture = currentCulture;
 		}
 		private async Task OnReady(DiscordSocketClient _)
 		{
@@ -115,29 +143,29 @@ namespace Advobot.Services.Commands
 
 			CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(settings.Culture);
 			var context = new AdvobotCommandContext(settings, _Client, (SocketUserMessage)msg);
-			await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
+			await _CommandServices.Get().ExecuteAsync(context, argPos, _Provider).CAF();
 		}
-		private Task LogExecutionAsync(IAdvobotCommandContext context, IResult result)
-		{
-			//Ignore annoying unknown command errors and errors with no reason
-			static bool CanBeIgnored(IAdvobotCommandContext c, IResult r)
-				=> r == null || r.Error == CommandError.UnknownCommand
-				|| (!r.IsSuccess && (r.ErrorReason == null || c.Settings.NonVerboseErrors));
 
-			return result switch
-			{
-				IResult r when CanBeIgnored(context, result) => Task.CompletedTask,
-				PreconditionGroupResult g when g.PreconditionResults.All(x => CanBeIgnored(context, x)) => Task.CompletedTask,
-				IResult r => HandleResult(context, r),
-				_ => throw new ArgumentException(nameof(result)),
-			};
-		}
-		private async Task HandleResult(IAdvobotCommandContext context, IResult result)
+		private Task OnLog(LogMessage e)
 		{
+			ConsoleUtils.WriteLine(e.ToString());
+			return Task.CompletedTask;
+		}
+		private async Task OnCommandExecuted(Optional<CommandInfo> command, ICommandContext originalContext, IResult result)
+		{
+			if (!(originalContext is IAdvobotCommandContext context))
+			{
+				throw new ArgumentException(nameof(originalContext));
+			}
+			else if (CanBeIgnored(context, result))
+			{
+				return;
+			}
+
 			if (result.IsSuccess)
 			{
 				await context.Message.DeleteAsync(_Options).CAF();
-				await HandleModLog(context).CAF();
+				await ModLogAsync(context).CAF();
 			}
 
 			CommandInvoked?.Invoke(result);
@@ -154,7 +182,7 @@ namespace Advobot.Services.Commands
 				_Timers.Add(removable);
 			}
 		}
-		private async Task HandleModLog(IAdvobotCommandContext context)
+		private static async Task ModLogAsync(IAdvobotCommandContext context)
 		{
 			if (context.Settings.IgnoredLogChannels.Contains(context.Channel.Id))
 			{
@@ -174,7 +202,7 @@ namespace Advobot.Services.Commands
 				Footer = new EmbedFooterBuilder { Text = "Mod Log", },
 			}).CAF();
 		}
-		private string FormatResult(IAdvobotCommandContext context, IResult result)
+		private static string FormatResult(IAdvobotCommandContext context, IResult result)
 		{
 			var resp = $"\n\tGuild: {context.Guild.Format()}" +
 				$"\n\tChannel: {context.Channel.Format()}" +
@@ -186,6 +214,13 @@ namespace Advobot.Services.Commands
 				resp += $"\n\tError: {result.ErrorReason}";
 			}
 			return resp;
+		}
+		private static bool CanBeIgnored(IAdvobotCommandContext c, IResult r)
+		{
+			return r == null
+				|| r.Error == CommandError.UnknownCommand
+				|| (!r.IsSuccess && (r.ErrorReason == null || c.Settings.NonVerboseErrors))
+				|| (r is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(c, r)));
 		}
 	}
 }

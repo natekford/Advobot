@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Advobot.Localization;
 using AdvorangesUtils;
 
 namespace Advobot.Services.HelpEntries
@@ -11,97 +11,52 @@ namespace Advobot.Services.HelpEntries
 	/// </summary>
 	internal sealed class HelpEntryService : IHelpEntryService
 	{
+		private readonly Localized<List<IHelpEntry>> _HelpEntries = Localized.Create<List<IHelpEntry>>();
+
 		/// <inheritdoc />
-		public int Count => _Source.Count;
+		public int Count => _HelpEntries.Get().Count;
 		/// <inheritdoc />
 		public bool IsReadOnly => false;
-		/// <inheritdoc />
-		public IEnumerable<string> Keys => _NameMap.Keys;
-		/// <inheritdoc />
-		public IEnumerable<IHelpEntry> Values => _Source.Values;
 
-		/// <inheritdoc />
-		public IHelpEntry this[string key] => _Source[_NameMap[key]];
-
-		private readonly Dictionary<string, Guid> _NameMap = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-		private readonly Dictionary<Guid, IHelpEntry> _Source = new Dictionary<Guid, IHelpEntry>();
-
-		/// <inheritdoc />
-		public void Add(IHelpEntry item)
-		{
-			var guid = Guid.NewGuid();
-			foreach (var alias in item.Aliases)
-			{
-				_NameMap.Add(alias, guid);
-			}
-			_Source.Add(guid, item);
-		}
-		/// <inheritdoc />
-		public bool Remove(IHelpEntry helpEntry)
-		{
-			if (!_NameMap.TryGetValue(helpEntry.Name, out var guid))
-			{
-				return false;
-			}
-
-			foreach (var kvp in _NameMap.Where(x => x.Value == guid).ToArray())
-			{
-				_NameMap.Remove(kvp.Key);
-			}
-			return _Source.Remove(guid);
-		}
-		/// <inheritdoc />
-		public void Clear()
-		{
-			_NameMap.Clear();
-			_Source.Clear();
-		}
-		/// <inheritdoc />
-		public bool Contains(IHelpEntry item)
-			=> _Source.Values.Contains(item);
-		/// <inheritdoc />
-		public void CopyTo(IHelpEntry[] array, int arrayIndex)
-			=> _Source.Values.CopyTo(array, arrayIndex);
-		/// <inheritdoc />
-		public IEnumerator<IHelpEntry> GetEnumerator()
-			=> _Source.Values.GetEnumerator();
-		/// <inheritdoc />
-		public bool ContainsKey(string key)
-			=> _NameMap.ContainsKey(key);
-		/// <inheritdoc />
-		public bool TryGetValue(string key, out IHelpEntry value)
-		{
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-			value = default;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-			return _NameMap.TryGetValue(key, out var guid) && _Source.TryGetValue(guid, out value);
-		}
 		/// <inheritdoc />
 		public IReadOnlyList<string> GetCategories()
-			=> _Source.Values.Select(x => x.Category).Distinct().ToArray();
+			=> GetHelpEntries().Select(x => x.Category).ToArray();
 		/// <inheritdoc />
 		public IReadOnlyList<IHelpEntry> FindCloseHelpEntries(string input)
 			=> new CloseHelpEntries(GetHelpEntries()).FindMatches(input).Select(x => x.Value).ToArray();
 		/// <inheritdoc />
 		public IReadOnlyList<IHelpEntry> GetHelpEntries(string? category = null)
 		{
-			return category == null
-				? _Source.Values.ToArray()
-				: _Source.Values.Where(x => x.Category.CaseInsEquals(category)).ToArray();
+			var helpEntries = _HelpEntries.Get();
+			if (category == null)
+			{
+				return helpEntries;
+			}
+			return helpEntries.Where(x => x.Category.CaseInsEquals(category)).ToArray();
 		}
 		/// <inheritdoc />
 		public IReadOnlyList<IHelpEntry> GetUnsetCommands(IEnumerable<string> setCommands)
-			=> _Source.Values.Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
+			=> GetHelpEntries().Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
 		/// <inheritdoc />
+		public void Add(IHelpEntry item)
+			=> _HelpEntries.Get().Add(item);
+		/// <inheritdoc />
+		public void Clear()
+			=> _HelpEntries.Get().Clear();
+		/// <inheritdoc />
+		public bool Contains(IHelpEntry item)
+			=> _HelpEntries.Get().Contains(item);
+		/// <inheritdoc />
+		public void CopyTo(IHelpEntry[] array, int arrayIndex)
+			=> _HelpEntries.Get().CopyTo(array, arrayIndex);
+		/// <inheritdoc />
+		public bool Remove(IHelpEntry item)
+			=> _HelpEntries.Get().Remove(item);
+		/// <inheritdoc />
+		public IEnumerator<IHelpEntry> GetEnumerator()
+			=> _HelpEntries.Get().GetEnumerator();
+
 		IEnumerator IEnumerable.GetEnumerator()
-			=> GetEnumerator();
-		/// <inheritdoc />
-		IEnumerator<KeyValuePair<string, IHelpEntry>> IEnumerable<KeyValuePair<string, IHelpEntry>>.GetEnumerator()
-		{
-			foreach (var kvp in _NameMap)
-			{
-				yield return new KeyValuePair<string, IHelpEntry>(kvp.Key, _Source[kvp.Value]);
-			}
-		}
+			=> _HelpEntries.Get().GetEnumerator();
 	}
 }

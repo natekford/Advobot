@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Advobot.CommandAssemblies
@@ -9,6 +11,11 @@ namespace Advobot.CommandAssemblies
 	[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = true)]
 	public sealed class CommandAssemblyAttribute : Attribute
 	{
+		/// <summary>
+		/// The cultures this command assembly can support.
+		/// </summary>
+		public IReadOnlyList<CultureInfo> SupportedCultures { get; }
+
 		/// <summary>
 		/// An instance of <see cref="InstantiatorType"/>.
 		/// </summary>
@@ -32,5 +39,14 @@ namespace Advobot.CommandAssemblies
 			}
 		}
 		private Type? _InstatiatorType;
+
+		/// <summary>
+		/// Creates an instance of <see cref="CommandAssemblyAttribute"/>.
+		/// </summary>
+		/// <param name="supportedCultures"></param>
+		public CommandAssemblyAttribute(params string[] supportedCultures)
+		{
+			SupportedCultures = supportedCultures.Select(x => CultureInfo.GetCultureInfo(x)).ToArray();
+		}
 	}
 }

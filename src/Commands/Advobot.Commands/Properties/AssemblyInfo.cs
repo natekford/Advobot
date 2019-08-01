@@ -1,8 +1,8 @@
-﻿using Advobot;
-using Advobot.CommandAssemblies;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
+using Advobot;
+using Advobot.CommandAssemblies;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 [assembly: NeutralResourcesLanguage("en")]
 
 // Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly]
+[assembly: CommandAssembly("en-US")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

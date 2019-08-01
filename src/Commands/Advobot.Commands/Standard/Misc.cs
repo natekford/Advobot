@@ -2,29 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Classes;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
-using Advobot.TypeReaders;
 using Advobot.Services.HelpEntries;
+using Advobot.TypeReaders;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Advobot.Commands.Resources;
-using Advobot.Commands.Localization;
 
 namespace Advobot.Commands.Standard
 {
 	public sealed class Misc : ModuleBase
 	{
 		[Group(nameof(Help)), ModuleInitialismAlias(typeof(Help))]
-		[Summary("Prints out help information")]
+		[LocalizedSummary(nameof(Summaries.Help))]
 		[EnabledByDefault(true, AbleToToggle = false)]
 		public sealed class Help : AdvobotModuleBase
 		{
@@ -64,8 +64,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(Commands)), ModuleInitialismAlias(typeof(Commands))]
-		[Summary("Prints out the commands in that category of the command list. " +
-			"Inputting nothing will list the command categories.")]
+		[LocalizedSummary(nameof(Summaries.Commands))]
 		[EnabledByDefault(true)]
 		public sealed class Commands : AdvobotModuleBase
 		{
@@ -81,12 +80,11 @@ namespace Advobot.Commands.Standard
 				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Context.Settings.GetPrefix(BotSettings));
+				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Prefix);
 		}
 
 		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]
-		[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. " +
-			"Field info cannot be supplied.")]
+		[LocalizedSummary(nameof(Summaries.MakeAnEmbed))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class MakeAnEmbed : AdvobotModuleBase
@@ -97,13 +95,15 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(MessageRole)), ModuleInitialismAlias(typeof(MessageRole))]
-		[Summary("Mention an unmentionable role with the given message.")]
+		[LocalizedSummary(nameof(Summaries.MessageRole))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
 		public sealed class MessageRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([NotEveryone, NotMentionable] IRole role, [Remainder] string message)
+			public async Task Command(
+				[NotEveryone, NotMentionable] IRole role,
+				[Remainder] string message)
 			{
 				var text = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
@@ -114,8 +114,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(MessageBotOwner)), ModuleInitialismAlias(typeof(MessageBotOwner))]
-		[Summary("Sends a message to the bot owner with the given text. " +
-			"Messages will be cut down to 250 characters.")]
+		[LocalizedSummary(nameof(Summaries.MessageBotOwner))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
 		[RequireAllowedToDmBotOwnerAttribute]
@@ -131,13 +130,14 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(Remind)), ModuleInitialismAlias(typeof(Remind))]
-		[Summary("Sends a message to the person who said the command after the passed in time is up. " +
-			"Potentially may take one minute longer than asked for if the command is input at certain times.")]
+		[LocalizedSummary(nameof(Summaries.Remind))]
 		[EnabledByDefault(true)]
 		public sealed class Remind : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command([ValidateRemindTime] int minutes, [Remainder] string message)
+			public Task<RuntimeResult> Command(
+				[ValidateRemindTime] int minutes,
+				[Remainder] string message)
 			{
 				var time = TimeSpan.FromMinutes(minutes);
 				Timers.Add(new TimedMessage(time, Context.User, message));
@@ -146,7 +146,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(Test)), ModuleInitialismAlias(typeof(Test))]
-		[LocalizedSummary(nameof(strings.Summary_Test))]
+		[LocalizedSummary(nameof(Summaries.Test))]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
 		public sealed class Test : AdvobotModuleBase

@@ -2,7 +2,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
@@ -49,7 +48,7 @@ namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 		}
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (!(value is int num) && !int.TryParse(value.ToString(), out num))
 			{
@@ -61,8 +60,8 @@ namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 					? Task.FromResult(PreconditionResult.FromSuccess())
 					: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be one of the following: `{string.Join("`, `", ValidNumbers)}`"));
 			}
-			var start = GetStart(context);
-			var end = GetEnd(context);
+			var start = GetStart(context, parameter, services);
+			var end = GetEnd(context, parameter, services);
 			return num >= start && num <= end
 				? Task.FromResult(PreconditionResult.FromSuccess())
 				: Task.FromResult(PreconditionResult.FromError($"Invalid {parameter.Name} supplied, must be between `{start}` and `{end}`."));
@@ -71,15 +70,19 @@ namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 		/// Returns the number to use for the start. This will only be used if <see cref="ValidNumbers"/> is empty.
 		/// </summary>
 		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="services"></param>
 		/// <returns></returns>
-		public virtual int GetStart(IAdvobotCommandContext context)
+		public virtual int GetStart(ICommandContext context, ParameterInfo parameter, IServiceProvider services)
 			=> Start;
 		/// <summary>
 		/// Returns the number to use for the end. This will only be used if <see cref="ValidNumbers"/> is empty.
 		/// </summary>
 		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="services"></param>
 		/// <returns></returns>
-		public virtual int GetEnd(IAdvobotCommandContext context)
+		public virtual int GetEnd(ICommandContext context, ParameterInfo parameter, IServiceProvider services)
 			=> End;
 		/// <summary>
 		/// Returns a string indicating what this attribute requires.

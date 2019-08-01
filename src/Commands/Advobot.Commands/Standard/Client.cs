@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Attributes.Preconditions;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
@@ -15,7 +17,7 @@ namespace Advobot.Commands.Standard
 	public sealed class Client : ModuleBase
 	{
 		[Group(nameof(ModifyBotName)), ModuleInitialismAlias(typeof(ModifyBotName))]
-		[Summary("Changes the bot's name to the given name.")]
+		[LocalizedSummary(nameof(Summaries.ModifyBotName))]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
 		public sealed class ModifyBotName : AdvobotModuleBase
@@ -31,6 +33,7 @@ namespace Advobot.Commands.Standard
 		[Group(nameof(ModifyBotIcon)), ModuleInitialismAlias(typeof(ModifyBotIcon))]
 		[Summary("Changes the bot's icon to the given image. " +
 			"The image must be smaller than 2.5MB.")]
+		[LocalizedSummary(nameof(Summaries.ModifyBotIcon))]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
 		public sealed class ModifyBotIcon : ImageResizerModule
@@ -51,7 +54,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(DisconnectBot)), ModuleInitialismAlias(new[] { "runescapeservers" }, typeof(DisconnectBot))]
-		[Summary("Turns the bot off.")]
+		[LocalizedSummary(nameof(Summaries.DisconnectBot))]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
 		public sealed class DisconnectBot : AdvobotModuleBase
@@ -62,7 +65,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(RestartBot)), ModuleInitialismAlias(typeof(RestartBot))]
-		[Summary("Restarts the bot.")]
+		[LocalizedSummary(nameof(Summaries.RestartBot))]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
 		public sealed class RestartBot : AdvobotModuleBase

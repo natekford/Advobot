@@ -1,22 +1,25 @@
 ﻿using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Advobot.Classes;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Classes;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
+using static Discord.ChannelPermission;
 
 namespace Advobot.Commands.Standard
 {
 	public sealed class Invites : ModuleBase
 	{
 		[Group(nameof(DisplayInvites)), ModuleInitialismAlias(typeof(DisplayInvites))]
-		[Summary("Gives a list of all the instant invites on the guild.")]
+		[LocalizedSummary(nameof(Summaries.DisplayInvites))]
 		[UserPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class DisplayInvites : AdvobotModuleBase
@@ -24,26 +27,26 @@ namespace Advobot.Commands.Standard
 			[Command]
 			public async Task<RuntimeResult> Command()
 			{
-				var invites = (await Context.Guild.GetInvitesAsync().CAF()).OrderByDescending(x => x.Uses).ToArray();
-				return Responses.Invites.DisplayInvites(invites);
+				var invites = await Context.Guild.GetInvitesAsync().CAF();
+				var ordered = invites.OrderByDescending(x => x.Uses).ToArray();
+				return Responses.Invites.DisplayInvites(ordered);
 			}
 		}
 
 		[Group(nameof(CreateInvite)), ModuleInitialismAlias(typeof(CreateInvite))]
-		[Summary("Creates an invite on the given channel. " +
-			"No time specifies to not expire. " +
-			"No uses has no usage limit. " +
-			"Temp membership means when the user goes offline they get kicked.")]
+		[LocalizedSummary(nameof(Summaries.CreateInvite))]
 		[UserPermissionRequirement(GuildPermission.CreateInstantInvite)]
 		[EnabledByDefault(true)]
 		public sealed class CreateInvite : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command([Optional, ValidateTextChannel(ChannelPermission.CreateInstantInvite, FromContext = true)] ITextChannel channel,
-				[Optional] CreateInviteArguments arguments) 
+			public Task<RuntimeResult> Command(
+				[Optional, ValidateTextChannel(CreateInstantInvite, FromContext = true)] ITextChannel channel,
+				[Optional] CreateInviteArguments arguments)
 				=> CommandRunner(channel, arguments);
 			[Command]
-			public Task<RuntimeResult> Command([ValidateVoiceChannel(ChannelPermission.CreateInstantInvite, FromContext = true)] IVoiceChannel channel,
+			public Task<RuntimeResult> Command(
+				[ValidateVoiceChannel(CreateInstantInvite, FromContext = true)] IVoiceChannel channel,
 				[Optional] CreateInviteArguments arguments)
 				=> CommandRunner(channel, arguments);
 
@@ -55,7 +58,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(DeleteInvite)), ModuleInitialismAlias(typeof(DeleteInvite))]
-		[Summary("Deletes the invite with the given code.")]
+		[LocalizedSummary(nameof(Summaries.DeleteInvite))]
 		[UserPermissionRequirement(GuildPermission.ManageChannels)]
 		[EnabledByDefault(true)]
 		public sealed class DeleteInvite : AdvobotModuleBase
@@ -69,9 +72,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(DeleteMultipleInvites)), ModuleInitialismAlias(typeof(DeleteMultipleInvites))]
-		[Summary("Deletes all invites satisfying the given conditions. " +
-			"CountTarget parameters are either `Equal`, `Below`, or `Above`. " +
-			"IsTemporary, NeverExpires, and NoMaxUses are either `True`, or `False`.")]
+		[LocalizedSummary(nameof(Summaries.DeleteMultipleInvites))]
 		[UserPermissionRequirement(GuildPermission.ManageChannels)]
 		[EnabledByDefault(true)]
 		public sealed class DeleteMultipleInvites : AdvobotModuleBase

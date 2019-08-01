@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
@@ -12,13 +14,9 @@ namespace Advobot.Commands.Settings
 	public sealed class SpamPrevention : ModuleBase
 	{
 		[Group(nameof(PreventSpam)), ModuleInitialismAlias(typeof(PreventSpam))]
-		[Summary("Spam prevention allows for some protection against mention spammers. " +
-			"Messages is the amount of messages a user has to send with the given amount of mentions before being considered as potential spam. " +
-			"Votes is the amount of users that have to agree with the potential punishment. " +
-			"The spam users are reset every hour.")]
+		[LocalizedSummary(nameof(Summaries.PreventSpam))]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		//[SaveGuildSettings]
 		public sealed class PreventSpam : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
@@ -52,12 +50,9 @@ namespace Advobot.Commands.Settings
 		}
 
 		[Group(nameof(PreventRaid)), ModuleInitialismAlias(typeof(PreventRaid))]
-		[Summary("Any users who joins from now on will get text muted. " +
-			"Once `" + nameof(PreventRaid) + "` is turned off all the users who were muted will be unmuted. " +
-			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
+		[LocalizedSummary(nameof(Summaries.PreventRaid))]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
-		//[SaveGuildSettings]
 		public sealed class PreventRaid : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;

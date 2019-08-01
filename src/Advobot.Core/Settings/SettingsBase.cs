@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Advobot.Formatting;
+using Advobot.Localization;
 using Advobot.Settings.GenerateResetValues;
 
 namespace Advobot.Settings
@@ -18,25 +17,50 @@ namespace Advobot.Settings
 	/// </summary>
 	internal abstract class SettingsBase : ISettingsBase
 	{
-		private readonly ConcurrentDictionary<Type, Setting[]> _Settings
-			= new ConcurrentDictionary<Type, Setting[]>();
-		private readonly ConcurrentDictionary<(Type Type, object LocalizationKey), IReadOnlyDictionary<string, Setting>> _Localized
-			= new ConcurrentDictionary<(Type, object), IReadOnlyDictionary<string, Setting>>();
+		private readonly IReadOnlyList<Setting> _Settings;
+		private readonly Localized<IReadOnlyDictionary<string, Setting>> _Localized;
 
 		/// <inheritdoc />
 		public event PropertyChangedEventHandler PropertyChanged;
 
+		/// <summary>
+		/// Creates an instance of <see cref="SettingsBase"/>.
+		/// </summary>
+		public SettingsBase()
+		{
+			IEnumerable<Setting> GetSettings()
+			{
+				foreach (var property in GetType().GetProperties())
+				{
+					var attr = property.GetCustomAttribute<SettingAttribute>();
+					if (attr != null)
+					{
+						yield return new Setting(attr, property);
+					}
+				}
+			}
+
+			_Settings = GetSettings().ToArray();
+			_Localized = new Localized<IReadOnlyDictionary<string, Setting>>(x =>
+			{
+				return _Settings.ToImmutableDictionary(
+					k => GetLocalizedName(k.SettingAttribute),
+					v => v,
+					StringComparer.OrdinalIgnoreCase);
+			});
+		}
+
 		/// <inheritdoc />
 		public IReadOnlyCollection<string> GetSettingNames()
-			=> GetSettings().Keys.ToArray();
+			=> _Localized.Get().Keys.ToArray();
 		/// <inheritdoc />
 		public void ResetSetting(string name)
-			=> GetSettings()[name].Reset(this);
+			=> _Localized.Get()[name].Reset(this);
 		/// <inheritdoc />
 		public IDiscordFormattableString Format()
 		{
 			var formattable = new DiscordFormattableStringCollection();
-			foreach (var kvp in GetSettings())
+			foreach (var kvp in _Localized.Get())
 			{
 				var name = kvp.Key;
 				var formatted = FormatValue(kvp.Value.GetCurrentValue(this));
@@ -49,7 +73,7 @@ namespace Advobot.Settings
 		}
 		/// <inheritdoc />
 		public IDiscordFormattableString FormatSetting(string name)
-			=> FormatValue(GetSettings()[name].GetCurrentValue(this));
+			=> FormatValue(_Localized.Get()[name].GetCurrentValue(this));
 		/// <inheritdoc />
 		public IDiscordFormattableString FormatValue(object? value)
 			=> new DiscordFormattableString($"{value}");
@@ -61,12 +85,6 @@ namespace Advobot.Settings
 		/// <param name="attr"></param>
 		/// <returns></returns>
 		protected abstract string GetLocalizedName(SettingAttribute attr);
-		/// <summary>
-		/// Returns the object being used for localization. By default this will use <see cref="CultureInfo.CurrentCulture"/>.
-		/// </summary>
-		/// <returns></returns>
-		protected virtual object GetLocalizationKey()
-			=> CultureInfo.CurrentCulture;
 		/// <inheritdoc />
 		protected void RaisePropertyChanged([CallerMemberName] string caller = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
@@ -105,28 +123,6 @@ namespace Advobot.Settings
 			}
 			field = value;
 			RaisePropertyChanged(caller);
-		}
-		private IReadOnlyDictionary<string, Setting> GetSettings()
-		{
-			return _Localized.GetOrAdd((GetType(), GetLocalizationKey()), key =>
-			{
-				var settings = _Settings.GetOrAdd(key.Type, t => GenerateSettings(t).ToArray());
-				return settings.ToImmutableDictionary(
-					x => GetLocalizedName(x.SettingAttribute),
-					x => x,
-					StringComparer.OrdinalIgnoreCase);
-			});
-		}
-		private IEnumerable<Setting> GenerateSettings(Type type)
-		{
-			foreach (var property in type.GetProperties())
-			{
-				var attr = property.GetCustomAttribute<SettingAttribute>();
-				if (attr != null)
-				{
-					yield return new Setting(attr, property);
-				}
-			}
 		}
 
 		private sealed class Setting

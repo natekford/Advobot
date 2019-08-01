@@ -1,10 +1,9 @@
-﻿using Advobot.Modules;
-using AdvorangesUtils;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using AdvorangesUtils;
+using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 {
@@ -22,7 +21,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		public virtual bool FromContext { get; set; } = false;
 
 		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			object value,
+			IServiceProvider services)
 		{
 			if (value != null)
 			{
@@ -35,7 +38,9 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 			}
 			return PreconditionResult.FromError($"No value was passed in for {parameter.Name}.");
 		}
-		private async Task<PreconditionResult> GetPreconditionResultAsync(IAdvobotCommandContext context, object value)
+		private async Task<PreconditionResult> GetPreconditionResultAsync(
+			ICommandContext context,
+			object value)
 		{
 			if (value is IEnumerable enumerable)
 			{
@@ -58,7 +63,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		protected virtual Task<object> GetFromContextAsync(IAdvobotCommandContext context)
+		protected virtual Task<object> GetFromContextAsync(ICommandContext context)
 			=> throw new NotSupportedException();
 		/// <summary>
 		/// Verifies the object with the specified verification options.
@@ -66,6 +71,8 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		/// <param name="context"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		protected abstract Task<PreconditionResult> ValidateAsync(IAdvobotCommandContext context, object value);
+		protected abstract Task<PreconditionResult> ValidateAsync(
+			ICommandContext context,
+			object value);
 	}
 }

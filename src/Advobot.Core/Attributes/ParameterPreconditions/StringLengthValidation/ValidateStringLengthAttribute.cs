@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
@@ -32,7 +31,7 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 		}
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			if (!(value is string s))
 			{
@@ -48,7 +47,7 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 		/// <param name="value"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public virtual Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
+		public virtual Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
 		{
 			if (value.Length < Min)
 			{

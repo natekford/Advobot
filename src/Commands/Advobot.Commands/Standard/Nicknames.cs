@@ -5,6 +5,8 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
@@ -17,8 +19,7 @@ namespace Advobot.Commands.Standard
 	public sealed class Nicknames : ModuleBase
 	{
 		[Group(nameof(ModifyNickName)), ModuleInitialismAlias(typeof(ModifyNickName))]
-		[Summary("Gives the user a nickname. " +
-			"Inputting no nickname resets their nickname.")]
+		[LocalizedSummary(nameof(Summaries.ModifyNickName))]
 		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyNickName : AdvobotModuleBase
@@ -34,8 +35,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ReplaceWordsInNames)), ModuleInitialismAlias(typeof(ReplaceWordsInNames))]
-		[Summary("Gives users a new nickname if their nickname or username contains the search phrase. " +
-			"Max is 100 users per use unless the bypass string is said.")]
+		[LocalizedSummary(nameof(Summaries.ReplaceWordsInNames))]
 		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
 		[EnabledByDefault(true)]
 		public sealed class ReplaceWordsInNames : MultiUserActionModule
@@ -55,8 +55,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(ReplaceByUtf16)), ModuleInitialismAlias(typeof(ReplaceByUtf16))]
-		[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. " +
-			"Max is 100 users per use unless the bypass string is said.")]
+		[LocalizedSummary(nameof(Summaries.ReplaceByUtf16))]
 		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
 		[EnabledByDefault(true)]
 		public sealed class ReplaceByUtf16 : MultiUserActionModule
@@ -76,8 +75,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(RemoveAllNickNames)), ModuleInitialismAlias(typeof(RemoveAllNickNames))]
-		[Summary("Remove all nicknames of users on the guild. " +
-			"Max is 100 users per use unless the bypass string is said.")]
+		[LocalizedSummary(nameof(Summaries.RemoveAllNickNames))]
 		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
 		[EnabledByDefault(true)]
 		public sealed class RemoveAllNickNames : MultiUserActionModule

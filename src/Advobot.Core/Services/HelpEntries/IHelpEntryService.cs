@@ -5,7 +5,7 @@ namespace Advobot.Services.HelpEntries
 	/// <summary>
 	/// Abstraction for a service providing information about commands.
 	/// </summary>
-	public interface IHelpEntryService : IReadOnlyDictionary<string, IHelpEntry>, ICollection<IHelpEntry>
+	public interface IHelpEntryService : ICollection<IHelpEntry>
 	{
 		/// <summary>
 		/// Returns an array of every command category.

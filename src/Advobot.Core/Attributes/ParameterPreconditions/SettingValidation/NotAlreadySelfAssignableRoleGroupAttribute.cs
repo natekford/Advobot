@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Modules;
+using Advobot.Services.GuildSettings;
+using AdvorangesUtils;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 {
@@ -13,15 +15,24 @@ namespace Advobot.Attributes.ParameterPreconditions.SettingValidation
 	public sealed class NotAlreadySelfAssignableRoleGroupAttribute : AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			object value,
+			IServiceProvider services)
 		{
 			if (!(value is int num))
 			{
 				throw new ArgumentException(nameof(value));
 			}
-			return context.Settings.SelfAssignableGroups.Any(x => x.Group == num)
-				? Task.FromResult(PreconditionResult.FromError($"The group number `{num}` is already being used."))
-				: Task.FromResult(PreconditionResult.FromSuccess());
+
+			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			if (!settings.SelfAssignableGroups.Any(x => x.Group == num))
+			{
+				return PreconditionResult.FromSuccess();
+			}
+			return PreconditionResult.FromError($"The group number `{num}` is already being used.");
 		}
 		/// <summary>
 		/// Returns a string describing what this attribute requires.

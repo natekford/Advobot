@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using AdvorangesUtils;
 using Discord.Commands;
 
@@ -18,7 +17,11 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 		public ValidateTwitchStreamAttribute() : base(4, 25) { }
 
 		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			string value,
+			IServiceProvider services)
 		{
 			var result = await base.CheckPermissionsAsync(context, parameter, value, services).CAF();
 			if (!result.IsSuccess)

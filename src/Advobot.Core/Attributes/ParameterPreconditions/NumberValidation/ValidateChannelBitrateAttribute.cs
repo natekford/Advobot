@@ -1,6 +1,7 @@
-﻿using AdvorangesUtils;
+﻿using System;
+using AdvorangesUtils;
 using Discord;
-using Advobot.Modules;
+using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 {
@@ -15,13 +16,16 @@ namespace Advobot.Attributes.ParameterPreconditions.NumberValidation
 		public ValidateChannelBitrateAttribute() : base(8, 96) { }
 
 		/// <inheritdoc />
-		public override int GetEnd(IAdvobotCommandContext context) => context.Guild.PremiumTier switch
+		public override int GetEnd(ICommandContext context, ParameterInfo parameter, IServiceProvider services)
 		{
-			PremiumTier.Tier3 => 384,
-			PremiumTier.Tier2 => 256,
-			PremiumTier.Tier1 => 128,
-			_ when context.Guild.Features.CaseInsContains("VIP_REGIONS") => 128,
-			_ => base.GetEnd(context),
-		};
+			return context.Guild.PremiumTier switch
+			{
+				PremiumTier.Tier3 => 384,
+				PremiumTier.Tier2 => 256,
+				PremiumTier.Tier1 => 128,
+				_ when context.Guild.Features.CaseInsContains("VIP_REGIONS") => 128,
+				_ => base.GetEnd(context, parameter, services),
+			};
+		}
 	}
 }

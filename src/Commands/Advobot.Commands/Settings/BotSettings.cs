@@ -2,6 +2,8 @@
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Discord.Commands;
@@ -11,7 +13,7 @@ namespace Advobot.Commands.Settings
 	public sealed class BotSettings : ModuleBase
 	{
 		[Group(nameof(ShowBotSettings)), ModuleInitialismAlias(typeof(ShowBotSettings))]
-		[Summary("Shows information about the bot settings.")]
+		[LocalizedSummary(nameof(Summaries.ShowBotSettings))]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
 		public sealed class ShowBotSettings : ReadOnlySettingsModule<IBotSettings>

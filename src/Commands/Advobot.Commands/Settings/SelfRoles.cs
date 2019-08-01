@@ -7,6 +7,8 @@ using Advobot.Attributes.ParameterPreconditions.SettingValidation;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Attributes.Preconditions.QuantityLimitations;
 using Advobot.Classes;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
@@ -19,10 +21,7 @@ namespace Advobot.Commands.Settings
 	public sealed class SelfRoles : ModuleBase
 	{
 		[Group(nameof(ModifySelfRoles)), ModuleInitialismAlias(typeof(ModifySelfRoles))]
-		[Summary("Adds a role to the self assignable list. " +
-			"Roles can be grouped together which means only one role in the group can be self assigned at a time. " +
-			"Create and Delete modify the entire group. " +
-			"Add and Remove modify a single role in a group.")]
+		[LocalizedSummary(nameof(Summaries.ModifySelfRoles))]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifySelfRoles : SettingsModule<IGuildSettings>
@@ -45,7 +44,8 @@ namespace Advobot.Commands.Settings
 				return Responses.SelfRoles.DeletedGroup(group);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Add(SelfAssignableRoles group,
+			public Task<RuntimeResult> Add(
+				SelfAssignableRoles group,
 				[ValidateRole] params IRole[] roles)
 			{
 				group.AddRoles(roles);
@@ -62,8 +62,7 @@ namespace Advobot.Commands.Settings
 		}
 
 		[Group(nameof(AssignSelfRole)), ModuleInitialismAlias(typeof(AssignSelfRole))]
-		[Summary("Gives or takes a role depending on if the user has it already. " +
-			"Removes all other roles in the same group unless the group is `0`.")]
+		[LocalizedSummary(nameof(Summaries.AssignSelfRole))]
 		[EnabledByDefault(false)]
 		public sealed class AssignSelfRole : AdvobotModuleBase
 		{
@@ -91,8 +90,7 @@ namespace Advobot.Commands.Settings
 		}
 
 		[Group(nameof(DisplaySelfRoles)), ModuleInitialismAlias(typeof(DisplaySelfRoles))]
-		[Summary("Shows the current group numbers that exists on the guild. " +
-			"If a number is input then it shows the roles in that group.")]
+		[LocalizedSummary(nameof(Summaries.DisplaySelfRoles))]
 		[EnabledByDefault(false)]
 		public sealed class DisplaySelfRoles : AdvobotModuleBase
 		{

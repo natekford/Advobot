@@ -4,27 +4,30 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
+using static Discord.ChannelPermission;
 
 namespace Advobot.Commands.Settings
 {
 	public sealed class Logs : ModuleBase
 	{
-#warning reintroduce
+#warning reimplement
 		/*
-		[Category(typeof(ModifyLogChannels)), Group(nameof(ModifyLogChannels)), TopLevelShortAlias(typeof(ModifyLogChannels))]
+		[Group(nameof(ModifyLogChannels)), ModuleInitialismAlias(typeof(ModifyLogChannels))]
 		[Summary("Puts the serverlog on the specified channel. The serverlog logs things specified in " + nameof(ModifyLogActions))]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
-		[SaveGuildSettings]
-		public sealed class ModifyLogChannels : AdvobotModuleBase
+		[RequireUserPermission(GuildPermission.Administrator)]
+		[EnabledByDefault(false)]
+		public sealed class ModifyLogChannels : SettingsModule<IGuildSettings>
 		{
+			protected override IGuildSettings Settings => Context.Settings;
+
 			[ImplicitCommand]
 			public async Task Enable(
 				LogChannelType logChannelType,
@@ -83,7 +86,7 @@ namespace Advobot.Commands.Settings
 		}*/
 
 		[Group(nameof(ModifyIgnoredLogChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredLogChannels))]
-		[Summary("Ignores all logging info that would have been gotten from a channel.")]
+		[LocalizedSummary(nameof(Summaries.ModifyIgnoredLogChannels))]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifyIgnoredLogChannels : SettingsModule<IGuildSettings>
@@ -91,13 +94,15 @@ namespace Advobot.Commands.Settings
 			protected override IGuildSettings Settings => Context.Settings;
 
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Add([ValidateTextChannel(ChannelPermission.ManageChannels, ChannelPermission.ManageRoles)] params SocketTextChannel[] channels)
+			public Task<RuntimeResult> Add(
+				[ValidateTextChannel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
 			{
 				Settings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
 				return Responses.Logs.ModifiedIgnoredLogChannels(channels, true);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Remove([ValidateTextChannel(ChannelPermission.ManageChannels, ChannelPermission.ManageRoles)] params SocketTextChannel[] channels)
+			public Task<RuntimeResult> Remove(
+				[ValidateTextChannel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
 			{
 				Settings.IgnoredLogChannels.RemoveAll(x => channels.Select(x => x.Id).Contains(x));
 				return Responses.Logs.ModifiedIgnoredLogChannels(channels, false);
@@ -105,9 +110,7 @@ namespace Advobot.Commands.Settings
 		}
 
 		[Group(nameof(ModifyLogActions)), ModuleInitialismAlias(typeof(ModifyLogActions))]
-		[Summary("The server log will send messages when these events happen. " +
-			"`" + nameof(ModifyLogActions.Reset) + "` overrides the current settings. " +
-			"`" + nameof(ModifyLogActions.Show) + "` displays the possible actions.")]
+		[LocalizedSummary(nameof(Summaries.ModifyLogActions))]
 		[RequireUserPermission(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifyLogActions : SettingsModule<IGuildSettings>

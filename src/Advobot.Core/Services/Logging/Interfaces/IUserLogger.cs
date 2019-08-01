@@ -23,9 +23,9 @@ namespace Advobot.Services.Logging.Interfaces
 		/// <summary>
 		/// When a user updates themself. (name, picture, etc)
 		/// </summary>
-		/// <param name="beforeUser"></param>
-		/// <param name="afterUser"></param>
+		/// <param name="before"></param>
+		/// <param name="after"></param>
 		/// <returns></returns>
-		Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser);
+		Task OnGuildMemberUpdated(SocketGuildUser before, SocketGuildUser after);
 	}
 }

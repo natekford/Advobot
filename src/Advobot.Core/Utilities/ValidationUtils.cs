@@ -39,7 +39,8 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static async Task<PreconditionResult> ValidateUser(this IGuildUser invoker,
+		public static async Task<PreconditionResult> ValidateUser(
+			this IGuildUser invoker,
 			IGuildUser target,
 			params ValidationRule<IGuildUser>[] rules)
 		{
@@ -53,7 +54,8 @@ namespace Advobot.Utilities
 		/// <param name="target"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static Task<PreconditionResult> ValidateRole(this IGuildUser invoker,
+		public static Task<PreconditionResult> ValidateRole(
+			this IGuildUser invoker,
 			IRole target,
 			params ValidationRule<IRole>[] rules)
 			=> invoker.ValidateAsync(target, (u, t) => CanModify(u, t), rules);
@@ -65,7 +67,8 @@ namespace Advobot.Utilities
 		/// <param name="permissions"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static Task<PreconditionResult> ValidateChannel(this IGuildUser invoker,
+		public static Task<PreconditionResult> ValidateChannel(
+			this IGuildUser invoker,
 			IGuildChannel target,
 			IEnumerable<ChannelPermission> permissions,
 			params ValidationRule<IGuildChannel>[] rules)
@@ -97,7 +100,8 @@ namespace Advobot.Utilities
 		/// <param name="permissionsCallback"></param>
 		/// <param name="rules"></param>
 		/// <returns></returns>
-		private static async Task<PreconditionResult> ValidateAsync<T>(this IGuildUser invoker,
+		private static async Task<PreconditionResult> ValidateAsync<T>(
+			this IGuildUser invoker,
 			T target,
 			ValidatePermissions<T> permissionsCallback,
 			params ValidationRule<T>[] rules)

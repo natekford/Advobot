@@ -8,9 +8,11 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 using Advobot.Attributes.ParameterPreconditions.NumberValidation;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
 using Advobot.Modules;
-using Advobot.TypeReaders;
 using Advobot.Services.Logging;
+using Advobot.TypeReaders;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -21,8 +23,7 @@ namespace Advobot.Commands.Standard
 	public sealed class Gets : ModuleBase
 	{
 		[Group(nameof(GetInfo)), ModuleInitialismAlias(typeof(GetInfo))]
-		[Summary("Shows information about the given object. " +
-			"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
+		[LocalizedSummary(nameof(Summaries.GetInfo))]
 		[EnabledByDefault(true)]
 		public sealed class GetInfo : AdvobotModuleBase
 		{
@@ -63,27 +64,31 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(GetUsersWithReason)), ModuleInitialismAlias(typeof(GetUsersWithReason))]
-		[Summary("Finds users with either a role, a name, a game, or who are streaming.")]
+		[LocalizedSummary(nameof(Summaries.GetUsersWithReason))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetUsersWithReason : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Role(IRole role)
-				=> Responses.Gets.UsersWithReason($"Users With The Role '{role.Name}'", Context.Guild.Users.Where(x => x.Roles.Select(r => r.Id).Contains(role.Id)));
+				=> Responses.Gets.UsersWithReason($"Users With The Role '{role.Name}'",
+					Context.Guild.Users.Where(x => x.Roles.Select(r => r.Id).Contains(role.Id)));
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Name(string name)
-				=> Responses.Gets.UsersWithReason($"Users With Names/Nicknames Containing '{name}'", Context.Guild.Users.Where(x => x.Username.CaseInsContains(name) || x.Nickname.CaseInsContains(name)));
+				=> Responses.Gets.UsersWithReason($"Users With Names/Nicknames Containing '{name}'",
+					Context.Guild.Users.Where(x => x.Username.CaseInsContains(name) || x.Nickname.CaseInsContains(name)));
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Game(string game)
-				=> Responses.Gets.UsersWithReason($"Users With Games Containing '{game}'", Context.Guild.Users.Where(x => x.Activity is Game g && g.Name.CaseInsContains(game)));
+				=> Responses.Gets.UsersWithReason($"Users With Games Containing '{game}'",
+					Context.Guild.Users.Where(x => x.Activity is Game g && g.Name.CaseInsContains(game)));
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Stream()
-				=> Responses.Gets.UsersWithReason("Users Who Are Streaming", Context.Guild.Users.Where(x => x.Activity is StreamingGame));
+				=> Responses.Gets.UsersWithReason("Users Who Are Streaming",
+					Context.Guild.Users.Where(x => x.Activity is StreamingGame));
 		}
 
 		[Group(nameof(GetUserAvatar)), ModuleInitialismAlias(typeof(GetUserAvatar))]
-		[Summary("Shows the URL of the given user's avatar.")]
+		[LocalizedSummary(nameof(Summaries.GetUserAvatar))]
 		[EnabledByDefault(true)]
 		public sealed class GetUserAvatar : AdvobotModuleBase
 		{
@@ -93,7 +98,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(GetUserJoinedAt)), ModuleInitialismAlias(typeof(GetUserJoinedAt))]
-		[Summary("Shows the user which joined the guild in that position.")]
+		[LocalizedSummary(nameof(Summaries.GetUserJoinedAt))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetUserJoinedAt : AdvobotModuleBase
@@ -108,7 +113,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(GetGuilds)), ModuleInitialismAlias(typeof(GetGuilds))]
-		[Summary("Lists the name, id, and owner of every guild the bot is on.")]
+		[LocalizedSummary(nameof(Summaries.GetGuilds))]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
 		public sealed class GetGuilds : AdvobotModuleBase
@@ -119,7 +124,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(GetUserJoinList)), ModuleInitialismAlias(typeof(GetUserJoinList))]
-		[Summary("Lists most of the users who have joined the guild.")]
+		[LocalizedSummary(nameof(Summaries.GetUserJoinList))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetUserJoinList : AdvobotModuleBase
@@ -130,8 +135,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(GetMessages)), ModuleInitialismAlias(typeof(GetMessages))]
-		[Summary("Downloads the past x amount of messages. " +
-			"Up to 1000 messages or 500KB worth of formatted text.")]
+		[LocalizedSummary(nameof(Summaries.GetMessages))]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true)]
 		public sealed class GetMessages : AdvobotModuleBase
@@ -148,7 +152,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(GetPermNamesFromValue)), ModuleInitialismAlias(typeof(GetPermNamesFromValue))]
-		[Summary("Lists all the perms that come from the given value.")]
+		[LocalizedSummary(nameof(Summaries.GetPermNamesFromValue))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetPermNamesFromValue : AdvobotModuleBase
@@ -162,7 +166,7 @@ namespace Advobot.Commands.Standard
 		}
 
 		[Group(nameof(GetEnumNames)), ModuleInitialismAlias(typeof(GetEnumNames))]
-		[Summary("Prints out all the options of an enum.")]
+		[LocalizedSummary(nameof(Summaries.GetEnumNames))]
 		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetEnumNames : AdvobotModuleBase

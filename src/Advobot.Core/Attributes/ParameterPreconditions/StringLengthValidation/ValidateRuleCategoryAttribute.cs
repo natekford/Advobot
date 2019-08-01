@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Modules;
+using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 {
@@ -23,14 +24,21 @@ namespace Advobot.Attributes.ParameterPreconditions.StringLengthValidation
 		public ValidateRuleCategoryAttribute() : base(1, 250) { }
 
 		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, ParameterInfo parameter, string value, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			string value,
+			IServiceProvider services)
 		{
 			var result = await base.CheckPermissionsAsync(context, parameter, value, services).CAF();
 			if (!result.IsSuccess)
 			{
 				return result;
 			}
-			var categoryExists = context.Settings.Rules?.Categories?.Keys?.CaseInsContains(value) ?? false;
+
+			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			var categoryExists = settings.Rules?.Categories?.Keys?.CaseInsContains(value) ?? false;
 			if (ErrorOnCategoryExisting && categoryExists)
 			{
 				return PreconditionResult.FromError($"`{value}` already exists as a rule category.");

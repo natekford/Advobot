@@ -48,12 +48,21 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>strings.resx</DependentUpon>
     </Compile>
+    <Compile Update="Resources\Summaries.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Summaries.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Resources\strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Summaries.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Summaries.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

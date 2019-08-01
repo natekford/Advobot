@@ -153,15 +153,15 @@ namespace Advobot.Services.BotSettings
 		/// <inheritdoc />
 		[Setting(nameof(BotSettingNames.TrustedUsers), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("TrustedUsers")]
-		public IList<ulong> TrustedUsers { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> TrustedUsers { get; set; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[Setting(nameof(BotSettingNames.UsersUnableToDmOwner), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("UsersUnableToDmOwner")]
-		public IList<ulong> UsersUnableToDmOwner { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> UsersUnableToDmOwner { get; set; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[Setting(nameof(BotSettingNames.UsersIgnoredFromCommands), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("UsersIgnoredFromCommands")]
-		public IList<ulong> UsersIgnoredFromCommands { get; } = new ObservableCollection<ulong>();
+		public IList<ulong> UsersIgnoredFromCommands { get; set; } = new ObservableCollection<ulong>();
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool Pause { get; set; }

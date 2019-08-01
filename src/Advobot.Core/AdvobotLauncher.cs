@@ -3,10 +3,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Advobot.Attributes;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
 using Advobot.Databases.LiteDB;
@@ -122,21 +120,19 @@ namespace Advobot
 		}
 		private static async Task<IServiceCollection> CreateDefaultServices(CommandAssemblyCollection assemblies, ILowLevelConfig config)
 		{
-			//I have no idea if I am providing services correctly, but it works.
 			var botSettings = BotSettings.CreateOrLoad(config);
-			var commands = new CommandService(new CommandServiceConfig
+			var commandConfig = new CommandServiceConfig
 			{
 				CaseSensitiveCommands = false,
 				ThrowOnError = false,
 				LogLevel = botSettings.LogLevel,
-			});
+			};
 			var discordClient = new DiscordShardedClient(new DiscordSocketConfig
 			{
 				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
 				MessageCacheSize = botSettings.MessageCacheSize,
 				LogLevel = botSettings.LogLevel,
 			});
-			//TODO: replace with a different downloader client?
 			var httpClient = new HttpClient(new HttpClientHandler
 			{
 				AllowAutoRedirect = true,
@@ -145,22 +141,8 @@ namespace Advobot
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
 			});
 
-			var typeReaders = assemblies.Assemblies.Select(x => x.Assembly)
-				.Concat(new[] { Assembly.GetExecutingAssembly() })
-				.SelectMany(x => x.GetTypes())
-				.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
-				.Where(x => x.Attribute != null);
-			foreach (var typeReader in typeReaders)
-			{
-				var instance = (TypeReader)Activator.CreateInstance(typeReader.Type);
-				foreach (var type in typeReader.Attribute.TargetTypes)
-				{
-					commands.AddTypeReader(type, instance);
-				}
-			}
-
 			var s = new ServiceCollection()
-				.AddSingleton(commands)
+				.AddSingleton(commandConfig)
 				.AddSingleton(discordClient)
 				.AddSingleton(httpClient)
 				.AddSingleton<BaseSocketClient>(discordClient)
