@@ -12,31 +12,17 @@
     <NeutralLanguage>English</NeutralLanguage>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>preview</LangVersion>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DocumentationFile>bin\Debug\netstandard2.0\Advobot.Commands.xml</DocumentationFile>
-    <NoWarn>1701;1702;1705;1591;NU1701</NoWarn>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>  <ItemGroup>
+  <ItemGroup>
     <PackageReference Include="AdvorangesSettingParser" Version="1.3.2.4" />
     <PackageReference Include="AdvorangesUtils" Version="1.0.11.3" />
     <PackageReference Include="Dapper" Version="1.60.6" />
     <PackageReference Include="Discord.Net" Version="2.2.0-dev-20190629.2" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.111" />
-  </ItemGroup>  <ItemGroup>
-  <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
-</ItemGroup>
-
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <NullableContextOptions>enable</NullableContextOptions>
-    <PackageReleaseNotes />
-  </PropertyGroup>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
+  </ItemGroup>
 
   <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
     <ItemGroup>
@@ -45,5 +31,18 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NullableContextOptions>enable</NullableContextOptions>
+    <LangVersion>preview</LangVersion>
+    <NoWarn>CS8632</NoWarn>
+  </PropertyGroup>
 
 </Project>

@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFrameworks>netcoreapp3.0;</TargetFrameworks>
   </PropertyGroup>
+  
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
@@ -11,11 +13,13 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
+  
   <ItemGroup>
     <Compile Remove="Advobot.UI\**" />
     <EmbeddedResource Remove="Advobot.UI\**" />
     <None Remove="Advobot.UI\**" />
   </ItemGroup>
+  
   <ItemGroup>
     <None Remove="Controls\NumberBox.xaml" />
     <None Remove="Controls\UserListEditor.xaml" />
@@ -23,6 +27,7 @@
     <None Remove="FileViewingWindow.xaml" />
     <None Remove="OutputSearchWindow.xaml" />
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="AdvorangesSettingParser" Version="1.3.2.4" />
     <PackageReference Include="AdvorangesUtils" Version="1.0.11.3" />
@@ -38,11 +43,13 @@
     <PackageReference Include="System.Reactive.Interfaces" Version="4.2.0-preview.566" />
     <PackageReference Include="System.Reactive.Linq" Version="4.2.0-preview.566" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
     <ProjectReference Include="..\Commands\Advobot.Commands\Advobot.Commands.csproj" />
     <ProjectReference Include="..\Commands\Advobot.Gacha\Advobot.Gacha.csproj" />
   </ItemGroup>
+  
   <ItemGroup>
     <Compile Update="AdvobotApp.xaml.cs">
       <DependentUpon>AdvobotApp.xaml</DependentUpon>
@@ -54,6 +61,7 @@
       <DependentUpon>FileViewingWindow.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
+  
   <ItemGroup>
     <EmbeddedResource Update="Controls\NumberBox.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -71,9 +79,11 @@
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
   </ItemGroup>
+  
   <ItemGroup>
     <EmbeddedResource Include="Resources\JsonSyntaxHighlighting.xshd" />
   </ItemGroup>
+  
   <ItemGroup>
     <None Update="Views\FileViewingWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -84,15 +94,22 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <LangVersion>preview</LangVersion>
-	<NullableContextOptions>enable</NullableContextOptions>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <ApplicationIcon />
     <StartupObject />
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.1|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NullableContextOptions>enable</NullableContextOptions>
+    <LangVersion>preview</LangVersion>
+    <NoWarn>CS8632</NoWarn>
+  </PropertyGroup>
+
 </Project>

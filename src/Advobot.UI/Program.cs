@@ -21,7 +21,7 @@ namespace Advobot.UI
 		}
 		public static void AppMain(Application app, IServiceProvider services)
 		{
-			var cts = new CancellationTokenSource();
+			using var cts = new CancellationTokenSource();
 
 			new AdvobotNetCoreWindow
 			{
