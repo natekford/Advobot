@@ -31,13 +31,11 @@
   <ItemGroup>
     <PackageReference Include="AdvorangesSettingParser" Version="1.3.2.4" />
     <PackageReference Include="AdvorangesUtils" Version="1.0.11.3" />
-    <PackageReference Include="Avalonia" Version="0.8.999-cibuild0003137-beta" />
+    <PackageReference Include="Avalonia" Version="0.8.999-cibuild0003269-beta" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.8.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.8.999-cibuild0003137-beta" />
-    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20190629.2" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.14.0.3" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview6.19304.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.0.0-preview6.19304.6" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.8.999-cibuild0003269-beta" />
+    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20190730.2" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.14.1" />
     <PackageReference Include="ReactiveUI" Version="10.0.1-preview.6" />
     <PackageReference Include="System.Reactive.Core" Version="4.2.0-preview.566" />
     <PackageReference Include="System.Reactive.Interfaces" Version="4.2.0-preview.566" />
