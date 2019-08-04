@@ -91,7 +91,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="channel"></param>
 		/// <param name="command"></param>
 		/// <returns></returns>
-		public bool IsCommandEnabled(IGuildUser user, ITextChannel channel, CommandInfo command)
+		public bool IsCommandEnabled(IGuildUser user, IMessageChannel channel, CommandInfo command)
 		{
 			//Hierarchy:
 			//	User

@@ -19,7 +19,7 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ModifyGuildListing)), ModuleInitialismAlias(typeof(ModifyGuildListing))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildListing))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifyGuildListing : AdvobotModuleBase
 		{
@@ -45,7 +45,7 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(BumpGuildListing)), ModuleInitialismAlias(typeof(BumpGuildListing))]
 		[LocalizedSummary(nameof(Summaries.BumpGuildListing))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
 		[NotRecentlyBumped]
 		public sealed class BumpGuildListing : AdvobotModuleBase

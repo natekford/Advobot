@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using Advobot.Services.BotSettings;
+using Advobot.Utilities;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,24 +12,20 @@ namespace Advobot.Attributes.Preconditions
 	/// </summary>
 	[Obsolete("Remove this for safety reasons? Or let trusted users exist?")]
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireTrustedUserAttribute : AdvobotPreconditionAttribute
+	public sealed class RequireTrustedUserAttribute : PreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override bool Visible => true;
-
-		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
 		{
 			var botSettings = services.GetRequiredService<IBotSettings>();
-			return botSettings.TrustedUsers.Contains(context.User.Id)
-				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError("User is not a trusted user."));
+			if (botSettings.TrustedUsers.Contains(context.User.Id))
+			{
+				return this.FromSuccessAsync();
+			}
+			return this.FromErrorAsync("User is not a trusted user.");
 		}
-		/// <summary>
-		/// Returns a string describing what this attribute requires.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-			=> "Trusted user";
 	}
 }

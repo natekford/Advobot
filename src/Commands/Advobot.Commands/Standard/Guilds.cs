@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
+using Advobot.Attributes.ParameterPreconditions.Numbers;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
@@ -40,12 +40,12 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyGuildName)), ModuleInitialismAlias(typeof(ModifyGuildName))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildName))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([Remainder, ValidateGuildName] string name)
+			public async Task<RuntimeResult> Command([Remainder, GuildName] string name)
 			{
 				await Context.Guild.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.ModifiedName(Context.Guild, name);
@@ -54,7 +54,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyGuildRegion)), ModuleInitialismAlias(typeof(ModifyGuildRegion))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildRegion))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildRegion : AdvobotModuleBase
 		{
@@ -74,12 +74,12 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyGuildAfkTimer)), ModuleInitialismAlias(typeof(ModifyGuildAfkTimer))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkTimer))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateGuildAfkTime] int time)
+			public async Task<RuntimeResult> Command([GuildAfkTime] int time)
 			{
 				await Context.Guild.ModifyAsync(x => x.AfkTimeout = time, GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedAfkTime(time);
@@ -88,43 +88,43 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyGuildAfkChannel)), ModuleInitialismAlias(typeof(ModifyGuildAfkChannel))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkChannel))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 		{
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Remove()
+				=> Command(null);
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[ValidateVoiceChannel(ManageChannels, FromContext = true)] IVoiceChannel? channel)
+				[Channel(ManageChannels)] IVoiceChannel channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel?>(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedAfkChannel(channel);
 			}
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Remove()
-				=> Command(null);
 		}
 
 		[Group(nameof(ModifyGuildSystemChannel)), ModuleInitialismAlias(typeof(ModifyGuildSystemChannel))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildSystemChannel))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 		{
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Remove()
+				=> Command(null);
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[ValidateTextChannel(ManageChannels, FromContext = true)] ITextChannel? channel)
+				[Channel(ManageChannels)] ITextChannel channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedSystemChannel(channel);
 			}
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Remove()
-				=> Command(null);
 		}
 
 		[Group(nameof(ModifyGuildMsgNotif)), ModuleInitialismAlias(typeof(ModifyGuildMsgNotif))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildMsgNotif))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildMsgNotif : AdvobotModuleBase
 		{
@@ -138,7 +138,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyGuildVerif)), ModuleInitialismAlias(typeof(ModifyGuildVerif))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildVerif))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildVerif : AdvobotModuleBase
 		{
@@ -152,7 +152,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyGuildIcon)), ModuleInitialismAlias(typeof(ModifyGuildIcon))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildIcon))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyGuildIcon : ImageResizerModule
 		{
@@ -173,7 +173,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyGuildSplash)), ModuleInitialismAlias(typeof(ModifyGuildSplash))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildSplash))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		[RequirePartneredGuild]
 		public sealed class ModifyGuildSplash : ImageResizerModule
@@ -200,7 +200,7 @@ namespace Advobot.Commands.Standard
 		public sealed class CreateGuild : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([Remainder, ValidateGuildName] string name)
+			public async Task Command([Remainder, GuildName] string name)
 			{
 				var optimalVoiceRegion = await Context.Client.GetOptimalVoiceRegionAsync().CAF();
 				var newGuild = await Context.Client.CreateGuildAsync(name, optimalVoiceRegion).CAF();

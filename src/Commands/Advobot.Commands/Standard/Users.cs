@@ -7,8 +7,8 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
-using Advobot.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
+using Advobot.Attributes.ParameterPreconditions.Numbers;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
 using Advobot.Commands.Localization;
@@ -27,7 +27,7 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(Mute)), ModuleInitialismAlias(typeof(Mute))]
 		[LocalizedSummary(nameof(Summaries.Mute))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
 		[EnabledByDefault(true)]
 		public sealed class Mute : AdvobotModuleBase
 		{
@@ -71,10 +71,14 @@ namespace Advobot.Commands.Standard
 
 			private async Task<IRole> GetOrCreateMuteRoleAsync()
 			{
-				var existingMuteRole = Context.Guild.GetRole(Context.Settings.MuteRoleId);
-				IRole muteRole = existingMuteRole;
-				var validationResult = await Context.User.ValidateRole(existingMuteRole, ValidationUtils.RoleIsNotEveryone, ValidationUtils.RoleIsNotManaged).CAF();
-				if (!validationResult.IsSuccess)
+				IRole muteRole = Context.Guild.GetRole(Context.Settings.MuteRoleId);
+				var rules = new Precondition<IRole>[]
+				{
+					PreconditionUtils.RoleIsNotEveryone,
+					PreconditionUtils.RoleIsNotManaged
+				};
+				var result = await Context.User.ValidateRole(muteRole, rules).CAF();
+				if (!result.IsSuccess)
 				{
 					muteRole = await Context.Guild.CreateRoleAsync("Advobot Mute", new GuildPermissions(0)).CAF();
 					Context.Settings.MuteRoleId = muteRole.Id;
@@ -101,7 +105,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(VoiceMute)), ModuleInitialismAlias(typeof(VoiceMute))]
 		[LocalizedSummary(nameof(Summaries.VoiceMute))]
-		[UserPermissionRequirement(GuildPermission.MuteMembers)]
+		[GuildPermissionRequirement(GuildPermission.MuteMembers)]
 		[EnabledByDefault(true)]
 		public sealed class VoiceMute : AdvobotModuleBase
 		{
@@ -126,7 +130,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Deafen)), ModuleInitialismAlias(typeof(Deafen))]
 		[LocalizedSummary(nameof(Summaries.Deafen))]
-		[UserPermissionRequirement(GuildPermission.DeafenMembers)]
+		[GuildPermissionRequirement(GuildPermission.DeafenMembers)]
 		[EnabledByDefault(true)]
 		public sealed class Deafen : AdvobotModuleBase
 		{
@@ -151,13 +155,13 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Kick)), ModuleInitialismAlias(typeof(Kick))]
 		[LocalizedSummary(nameof(Summaries.Kick))]
-		[UserPermissionRequirement(GuildPermission.KickMembers)]
+		[GuildPermissionRequirement(GuildPermission.KickMembers)]
 		[EnabledByDefault(true)]
 		public sealed class Kick : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[ValidateUser] IGuildUser user,
+				[User] IGuildUser user,
 				[Optional, Remainder] ModerationReason reason)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
@@ -168,13 +172,13 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(SoftBan)), ModuleInitialismAlias(typeof(SoftBan))]
 		[LocalizedSummary(nameof(Summaries.SoftBan))]
-		[UserPermissionRequirement(GuildPermission.BanMembers, GuildPermission.KickMembers)]
+		[GuildPermissionRequirement(GuildPermission.BanMembers, GuildPermission.KickMembers)]
 		[EnabledByDefault(true)]
 		public sealed class SoftBan : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
 			public Task<RuntimeResult> Command(
-				[ValidateUser] IGuildUser user,
+				[User] IGuildUser user,
 				[Optional, Remainder] ModerationReason reason)
 				=> Command(user.Id, reason);
 			[Command]
@@ -190,13 +194,13 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Ban)), ModuleInitialismAlias(typeof(Ban))]
 		[LocalizedSummary(nameof(Summaries.Ban))]
-		[UserPermissionRequirement(GuildPermission.BanMembers)]
+		[GuildPermissionRequirement(GuildPermission.BanMembers)]
 		[EnabledByDefault(true)]
 		public sealed class Ban : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
 			public Task Command(
-				[ValidateUser] IGuildUser user,
+				[User] IGuildUser user,
 				[Optional, Remainder] ModerationReason reason)
 				=> Command(user.Id, reason);
 			[Command]
@@ -212,7 +216,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Unban)), ModuleInitialismAlias(typeof(Unban))]
 		[LocalizedSummary(nameof(Summaries.Unban))]
-		[UserPermissionRequirement(GuildPermission.BanMembers)]
+		[GuildPermissionRequirement(GuildPermission.BanMembers)]
 		[EnabledByDefault(true)]
 		public sealed class Unban : AdvobotModuleBase
 		{
@@ -229,35 +233,35 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MoveUser)), ModuleInitialismAlias(typeof(MoveUser))]
 		[LocalizedSummary(nameof(Summaries.MoveUser))]
-		[UserPermissionRequirement(GuildPermission.MoveMembers)]
+		[GuildPermissionRequirement(GuildPermission.MoveMembers)]
 		[EnabledByDefault(true)]
 		public sealed class MoveUser : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
 				[CanBeMoved] IGuildUser user,
-				[ValidateVoiceChannel(MoveMembers)] IVoiceChannel channel)
+				[Channel(MoveMembers)] IVoiceChannel channel)
 			{
 				if (user.VoiceChannel?.Id == channel.Id)
 				{
 					return Responses.Users.AlreadyInChannel(user, channel);
 				}
 
-				await user.ModifyAsync(x => x.Channel = Optional.Create<IVoiceChannel>(channel), GenerateRequestOptions()).CAF();
+				await user.ModifyAsync(x => x.Channel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Users.Moved(user, channel);
 			}
 		}
 
 		[Group(nameof(MoveUsers)), ModuleInitialismAlias(typeof(MoveUsers))]
 		[LocalizedSummary(nameof(Summaries.MoveUsers))]
-		[UserPermissionRequirement(GuildPermission.MoveMembers)]
+		[GuildPermissionRequirement(GuildPermission.MoveMembers)]
 		[EnabledByDefault(true)]
 		public sealed class MoveUsers : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(
-				[ValidateVoiceChannel(MoveMembers)] IVoiceChannel input,
-				[ValidateVoiceChannel(MoveMembers)] IVoiceChannel output,
+				[Channel(MoveMembers)] IVoiceChannel input,
+				[Channel(MoveMembers)] IVoiceChannel output,
 				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
@@ -271,18 +275,18 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(PruneUsers)), ModuleInitialismAlias(typeof(PruneUsers))]
 		[LocalizedSummary(nameof(Summaries.PruneUsers))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true)]
 		public sealed class PruneUsers : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
-			public async Task<RuntimeResult> RealPrune([ValidatePruneDays] int days)
+			public async Task<RuntimeResult> RealPrune([PruneDays] int days)
 			{
 				var amt = await Context.Guild.PruneUsersAsync(days, simulate: false, GenerateRequestOptions()).CAF();
 				return Responses.Users.Pruned(days, amt);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task<RuntimeResult> FakePrune([ValidatePruneDays] int days)
+			public async Task<RuntimeResult> FakePrune([PruneDays] int days)
 			{
 				var amt = await Context.Guild.PruneUsersAsync(days, simulate: true, GenerateRequestOptions()).CAF();
 				return Responses.Users.FakePruned(days, amt);
@@ -291,7 +295,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetBanReason)), ModuleInitialismAlias(typeof(GetBanReason))]
 		[LocalizedSummary(nameof(Summaries.GetBanReason))]
-		[UserPermissionRequirement(GuildPermission.BanMembers)]
+		[GuildPermissionRequirement(GuildPermission.BanMembers)]
 		[EnabledByDefault(true)]
 		public sealed class GetBanReason : AdvobotModuleBase
 		{
@@ -302,7 +306,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DisplayCurrentBanList)), ModuleInitialismAlias(typeof(DisplayCurrentBanList))]
 		[LocalizedSummary(nameof(Summaries.DisplayCurrentBanList))]
-		[UserPermissionRequirement(GuildPermission.BanMembers)]
+		[GuildPermissionRequirement(GuildPermission.BanMembers)]
 		[EnabledByDefault(true)]
 		public sealed class DisplayCurrentBanList : AdvobotModuleBase
 		{
@@ -316,49 +320,67 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(RemoveMessages)), ModuleInitialismAlias(typeof(RemoveMessages))]
 		[LocalizedSummary(nameof(Summaries.RemoveMessages))]
-		[UserPermissionRequirement(GuildPermission.ManageMessages)]
+		[GuildPermissionRequirement(GuildPermission.ManageMessages)]
 		[EnabledByDefault(true)]
 		public sealed class RemoveMessages : AdvobotModuleBase
 		{
 			[Command]
 			public Task<RuntimeResult> Command(
-				[ValidatePositiveNumber] int requestCount,
-				[Optional] IGuildUser user,
-				[Optional, ValidateTextChannel(ManageMessages, FromContext = true)] ITextChannel channel)
+				[Positive] int requestCount,
+				[Optional] IGuildUser? user,
+				[Optional, OverrideTypeReader(typeof(TestTypeReader)), Channel(ManageMessages)] ITextChannel? channel)
 				=> Command(requestCount, channel, user);
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[ValidatePositiveNumber] int requestCount,
-				[Optional, ValidateTextChannel(ManageMessages, FromContext = true)] ITextChannel channel,
-				[Optional] IGuildUser user)
+				[Positive] int requestCount,
+				[Optional, OverrideTypeReader(typeof(TestTypeReader)), Channel(ManageMessages)] ITextChannel? channel,
+				[Optional] IGuildUser? user)
 			{
-				channel ??= Context.Channel;
-
 				//If not the context channel then get the first message in that channel
 				var thisChannel = Context.Message.Channel.Id == channel.Id;
-				var startMsg = thisChannel
-					? Context.Message
-					: (await channel.GetMessagesAsync(1).FlattenAsync().CAF()).FirstOrDefault();
+				IMessage start = Context.Message;
+				if (!thisChannel)
+				{
+					var msgs = await channel.GetMessagesAsync(1).FlattenAsync().CAF();
+					start = msgs.FirstOrDefault();
+				}
 
 				//If there is a non null user then delete messages specifically from that user
 				var predicate = user == null ? default(Func<IMessage, bool>) : x => x.Author.Id == user?.Id;
-				var deletedAmt = await MessageUtils.DeleteMessagesAsync(channel, startMsg, requestCount, GenerateRequestOptions(), predicate).CAF();
+				var deleted = await MessageUtils.DeleteMessagesAsync(channel, start, requestCount, GenerateRequestOptions(), predicate).CAF();
 
 				//If the context channel isn't the targetted channel then delete the start message
 				//Increase by one to account for it not being targetted.
 				if (!thisChannel)
 				{
-					await startMsg.DeleteAsync(GenerateRequestOptions()).CAF();
-					deletedAmt++;
+					await start.DeleteAsync(GenerateRequestOptions()).CAF();
+					++deleted;
 				}
 
-				return Responses.Users.RemovedMessages(channel, user, deletedAmt);
+				return Responses.Users.RemovedMessages(channel, user, deleted);
+			}
+		}
+
+		public sealed class TestTypeReader : TypeReader
+		{
+			private readonly TypeReader _Reader = new ChannelTypeReader<ITextChannel>();
+
+			public override Task<TypeReaderResult> ReadAsync(
+				ICommandContext context,
+				string input,
+				IServiceProvider services)
+			{
+				if (input == null)
+				{
+					return Task.FromResult(TypeReaderResult.FromSuccess(context.Channel));
+				}
+				return _Reader.ReadAsync(context, input, services);
 			}
 		}
 
 		[Group(nameof(ForAllWithRole)), ModuleInitialismAlias(typeof(ForAllWithRole))]
 		[LocalizedSummary(nameof(Summaries.ForAllWithRole))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true)]
 		public sealed class ForAllWithRole : MultiUserActionModule
 		{
@@ -382,13 +404,13 @@ namespace Advobot.Commands.Standard
 				=> CommandRunner(target, bypass, u => u.RemoveRoleAsync(take, GenerateRequestOptions()));
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
 			public Task<RuntimeResult> GiveNickname(
-				[ValidateRole] IRole target,
-				[ValidateNickname] string nickname,
+				[Role] IRole target,
+				[Nickname] string nickname,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions())));
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
 			public Task<RuntimeResult> ClearNickname(
-				[ValidateRole] IRole target,
+				[Role] IRole target,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions())));
 

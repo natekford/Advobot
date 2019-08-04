@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Modules;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -15,7 +14,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	/// For verifying <see cref="SocketGuildUser"/> permissions.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public abstract class PermissionRequirementAttribute : AdvobotPreconditionAttribute
+	public abstract class PermissionRequirementAttribute : PreconditionAttribute
 	{
 		/// <summary>
 		/// Indicates this user has a permission which should allow them to use basic commands which could potentially be spammy.
@@ -38,11 +37,9 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		/// <summary>
 		/// The flags required (each is a separate valid combination of flags).
 		/// </summary>
-		public ImmutableArray<GuildPermissions> Permissions { get; }
-		/// <summary>
-		/// Text displaying all the valid permissions in a single string.
-		/// </summary>
-		public string PermissionsText { get; }
+		public ImmutableHashSet<GuildPermission> Permissions { get; }
+
+		private readonly string _PermissionsText;
 
 		/// <summary>
 		/// Creates an instance of <see cref="PermissionRequirementAttribute"/>.
@@ -50,51 +47,38 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		/// <param name="permissions"></param>
 		public PermissionRequirementAttribute(params GuildPermission[] permissions)
 		{
-			var list = permissions.ToList();
-			if (!permissions.Contains(GuildPermission.Administrator))
-			{
-				list.Add(GuildPermission.Administrator);
-			}
+			Permissions = permissions
+				.Concat(new[] { GuildPermission.Administrator })
+				.ToImmutableHashSet();
 
-			Permissions = list.Select(x => new GuildPermissions((ulong)x)).Where(x => x.RawValue != 0).ToImmutableArray();
-			var text = Permissions.Select(x =>
+			var text = Permissions.FormatPermissions(x =>
 			{
 				//Special case, greatly shortens the output string while retaining what it means
-				if (x.RawValue == (ulong)GenericPerms)
+				if (x == GenericPerms)
 				{
 					return "Any ending with 'Members' | Any starting with 'Manage'";
 				}
-
-				var perms = new List<string>();
-				foreach (GuildPermission e in Enum.GetValues(typeof(GuildPermission)))
-				{
-					if (x.RawValue == (ulong)e)
-					{
-						return e.ToString();
-					}
-					if (x.Has(e))
-					{
-						perms.Add(e.ToString());
-					}
-				}
-				return perms.JoinNonNullStrings(" & ");
+				return null;
 			});
-			PermissionsText = $"[{string.Join(" | ", text)}]";
+			_PermissionsText = $"[{text}]";
 		}
 
 		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
 		{
-			var userPerms = await GetUserPermissionsAsync(context).CAF();
+			var userPerms = await GetUserPermissionsAsync(context, services).CAF();
 			//If the user has no permissions this should just return an error
 			if (userPerms == 0)
 			{
 				return PreconditionResult.FromError("You have no permissions.");
 			}
 
-			foreach (var validPermissions in Permissions)
+			foreach (ulong permission in Permissions)
 			{
-				if ((userPerms & validPermissions.RawValue) == validPermissions.RawValue)
+				if ((userPerms & permission) == permission)
 				{
 					return PreconditionResult.FromSuccess();
 				}
@@ -105,13 +89,13 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		/// Returns the invoking user's permissions.
 		/// </summary>
 		/// <param name="context"></param>
+		/// <param name="services"></param>
 		/// <returns></returns>
-		public abstract Task<ulong> GetUserPermissionsAsync(IAdvobotCommandContext context);
-		/// <summary>
-		/// Returns a string describing what this attribute requires.
-		/// </summary>
-		/// <returns></returns>
+		public abstract Task<ulong> GetUserPermissionsAsync(
+			ICommandContext context,
+			IServiceProvider services);
+		/// <inheritdoc />
 		public override string ToString()
-			=> PermissionsText;
+			=> _PermissionsText;
 	}
 }

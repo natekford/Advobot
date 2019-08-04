@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Modules;
+using Advobot.Services.GuildSettings;
+using AdvorangesUtils;
 using Discord;
+using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.Preconditions.Permissions
 {
@@ -10,23 +13,28 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	/// Verifies the invoking user's permissions.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class UserPermissionRequirementAttribute : PermissionRequirementAttribute
+	public sealed class GuildPermissionRequirementAttribute : PermissionRequirementAttribute
 	{
-		/// <inheritdoc />
-		public override bool Visible => true;
-
 		/// <summary>
-		/// Creates an instance of <see cref="UserPermissionRequirementAttribute"/>.
+		/// Creates an instance of <see cref="GuildPermissionRequirementAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
-		public UserPermissionRequirementAttribute(params GuildPermission[] permissions) : base(permissions) { }
+		public GuildPermissionRequirementAttribute(params GuildPermission[] permissions)
+			: base(permissions) { }
 
 		/// <inheritdoc />
-		public override Task<ulong> GetUserPermissionsAsync(IAdvobotCommandContext context)
+		public override async Task<ulong> GetUserPermissionsAsync(
+			ICommandContext context,
+			IServiceProvider services)
 		{
-			var guildBits = context.User.GuildPermissions.RawValue;
-			var botBits = context.Settings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id)?.Permissions ?? 0;
-			return Task.FromResult(guildBits | botBits);
+			var guildUser = await context.Guild.GetUserAsync(context.User.Id).CAF();
+			var guildBits = guildUser.GuildPermissions.RawValue;
+
+			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			var match = settings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id);
+			var botBits = match?.Permissions ?? 0;
+			return guildBits | botBits;
 		}
 	}
 }

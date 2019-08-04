@@ -2,8 +2,9 @@
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
+using Advobot.Attributes.ParameterPreconditions;
+using Advobot.Attributes.ParameterPreconditions.Numbers;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
@@ -20,7 +21,7 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ModifyRuleCategories)), ModuleInitialismAlias(typeof(ModifyRuleCategories))]
 		[LocalizedSummary(nameof(Summaries.ModifyRuleCategories))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifyRuleCategories : SettingsModule<IGuildSettings>
 		{
@@ -28,15 +29,15 @@ namespace Advobot.Commands.Settings
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Create(
-				[ValidateRuleCategory(ErrorOnCategoryExisting = true)] string name)
+				[RuleCategory(Status = ExistenceStatus.MustNotExist)] string name)
 			{
 				Settings.Rules.Categories.Add(name, new List<string>());
 				return Responses.Rules.CreatedCategory(name);
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> ModifyName(
-				[ValidateRuleCategory] string category,
-				[ValidateRuleCategory(ErrorOnCategoryExisting = true)] string newName)
+				[RuleCategory] string category,
+				[RuleCategory(Status = ExistenceStatus.MustNotExist)] string newName)
 			{
 				var temp = Settings.Rules.Categories[category];
 				Settings.Rules.Categories.Remove(category);
@@ -44,7 +45,7 @@ namespace Advobot.Commands.Settings
 				return Responses.Rules.ModifiedCategoryName(category, newName);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Delete([ValidateRuleCategory] string category)
+			public Task<RuntimeResult> Delete([RuleCategory] string category)
 			{
 				Settings.Rules.Categories.Remove(category);
 				return Responses.Rules.DeletedCategory(category);
@@ -53,7 +54,7 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(ModifyRules)), ModuleInitialismAlias(typeof(ModifyRules))]
 		[LocalizedSummary(nameof(Summaries.ModifyRules))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifyRules : SettingsModule<IGuildSettings>
 		{
@@ -61,8 +62,8 @@ namespace Advobot.Commands.Settings
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Add(
-				[ValidateRuleCategory] string category,
-				[ValidateRule] string rule)
+				[RuleCategory] string category,
+				[Rule] string rule)
 			{
 				if (Settings.Rules.Categories[category].CaseInsContains(rule))
 				{
@@ -74,9 +75,9 @@ namespace Advobot.Commands.Settings
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Insert(
-				[ValidateRuleCategory] string category,
-				[ValidatePositiveNumber] int position,
-				[ValidateRule] string rule)
+				[RuleCategory] string category,
+				[Positive] int position,
+				[Rule] string rule)
 			{
 				var index = position - 1;
 				if (Settings.Rules.Categories[category].Count > index)
@@ -89,8 +90,8 @@ namespace Advobot.Commands.Settings
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Remove(
-				[ValidateRuleCategory] string category,
-				[ValidatePositiveNumber] int position)
+				[RuleCategory] string category,
+				[Positive] int position)
 			{
 				var index = position - 1;
 				if (Settings.Rules.Categories[category].Count > index)
@@ -105,18 +106,22 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(PrintOutRules)), ModuleInitialismAlias(typeof(PrintOutRules))]
 		[LocalizedSummary(nameof(Summaries.PrintOutRules))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
 		public sealed class PrintOutRules : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command(
-				[ValidateRuleCategory] string? category,
-				[Optional, Remainder] RuleFormatter? args)
-				=> AdvobotResult.FromReasonSegments(Context.Settings.Rules.GetParts(args ?? new RuleFormatter(), category));
-			[Command]
-			public Task<RuntimeResult> Command([Optional, Remainder] RuleFormatter? args)
+			public Task<RuntimeResult> Command([Optional] RuleFormatter? args)
 				=> Command(null, args);
+			[Command]
+			public Task<RuntimeResult> Command(
+				[RuleCategory] string? category,
+				[Optional] RuleFormatter? args)
+			{
+				args ??= new RuleFormatter();
+				var segments = Context.Settings.Rules.GetParts(args, category);
+				return AdvobotResult.FromReasonSegments(segments);
+			}
 		}
 	}
 }

@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
-using Advobot.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
+using Advobot.Attributes.ParameterPreconditions.Numbers;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
@@ -20,30 +20,37 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(ModifyNickName)), ModuleInitialismAlias(typeof(ModifyNickName))]
 		[LocalizedSummary(nameof(Summaries.ModifyNickName))]
-		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
+		[GuildPermissionRequirement(GuildPermission.ManageNicknames)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyNickName : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[ValidateUser] IGuildUser user,
-				[Optional, ValidateNickname] string nickname)
+				[User] IGuildUser user)
 			{
-				await user.ModifyAsync(x => x.Nickname = nickname ?? user.Username, GenerateRequestOptions()).CAF();
-				return Responses.Nicknames.ModifiedNickname(user.Format(), nickname ?? "Nothing");
+				await user.ModifyAsync(x => x.Nickname = user.Username, GenerateRequestOptions()).CAF();
+				return Responses.Nicknames.RemovedNickname(user);
+			}
+			[Command]
+			public async Task<RuntimeResult> Command(
+				[User] IGuildUser user,
+				[Nickname] string nickname)
+			{
+				await user.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions()).CAF();
+				return Responses.Nicknames.ModifiedNickname(user, nickname);
 			}
 		}
 
 		[Group(nameof(ReplaceWordsInNames)), ModuleInitialismAlias(typeof(ReplaceWordsInNames))]
 		[LocalizedSummary(nameof(Summaries.ReplaceWordsInNames))]
-		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
+		[GuildPermissionRequirement(GuildPermission.ManageNicknames)]
 		[EnabledByDefault(true)]
 		public sealed class ReplaceWordsInNames : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(
-				[ValidateNickname] string search,
-				[ValidateNickname] string replace,
+				[Nickname] string search,
+				[Nickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
@@ -56,14 +63,14 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ReplaceByUtf16)), ModuleInitialismAlias(typeof(ReplaceByUtf16))]
 		[LocalizedSummary(nameof(Summaries.ReplaceByUtf16))]
-		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
+		[GuildPermissionRequirement(GuildPermission.ManageNicknames)]
 		[EnabledByDefault(true)]
 		public sealed class ReplaceByUtf16 : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(
-				[ValidatePositiveNumber] int upperLimit,
-				[ValidateNickname] string replace,
+				[Positive] int upperLimit,
+				[Nickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
@@ -76,7 +83,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(RemoveAllNickNames)), ModuleInitialismAlias(typeof(RemoveAllNickNames))]
 		[LocalizedSummary(nameof(Summaries.RemoveAllNickNames))]
-		[UserPermissionRequirement(GuildPermission.ManageNicknames)]
+		[GuildPermissionRequirement(GuildPermission.ManageNicknames)]
 		[EnabledByDefault(true)]
 		public sealed class RemoveAllNickNames : MultiUserActionModule
 		{

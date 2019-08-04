@@ -3,8 +3,8 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
+using Advobot.Attributes.ParameterPreconditions.Numbers;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
@@ -21,14 +21,14 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(GiveRole)), ModuleInitialismAlias(typeof(GiveRole))]
 		[LocalizedSummary(nameof(Summaries.GiveRole))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class GiveRole : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IGuildUser user,
-				[ValidateRole] params IRole[] roles)
+				[Role] params IRole[] roles)
 			{
 				await user.AddRolesAsync(roles, GenerateRequestOptions()).CAF();
 				return Responses.Roles.Gave(roles, user);
@@ -37,14 +37,14 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(TakeRole)), ModuleInitialismAlias(typeof(TakeRole))]
 		[LocalizedSummary(nameof(Summaries.TakeRole))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class TakeRole : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IGuildUser user,
-				[ValidateRole] params IRole[] roles)
+				[Role] params IRole[] roles)
 			{
 				await user.RemoveRolesAsync(roles, GenerateRequestOptions()).CAF();
 				return Responses.Roles.Took(roles, user);
@@ -53,12 +53,12 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(CreateRole)), ModuleInitialismAlias(typeof(CreateRole))]
 		[LocalizedSummary(nameof(Summaries.CreateRole))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class CreateRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateRoleName] string name)
+			public async Task<RuntimeResult> Command([RoleName] string name)
 			{
 				var role = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), null, false, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.Created(role);
@@ -67,7 +67,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(SoftDeleteRole)), ModuleInitialismAlias(typeof(SoftDeleteRole))]
 		[LocalizedSummary(nameof(Summaries.SoftDeleteRole))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class SoftDeleteRole : AdvobotModuleBase
 		{
@@ -83,7 +83,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DeleteRole)), ModuleInitialismAlias(typeof(DeleteRole))]
 		[LocalizedSummary(nameof(Summaries.DeleteRole))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class DeleteRole : AdvobotModuleBase
 		{
@@ -97,7 +97,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DisplayRolePositions)), ModuleInitialismAlias(typeof(DisplayRolePositions))]
 		[LocalizedSummary(nameof(Summaries.DisplayRolePositions))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class DisplayRolePositions : AdvobotModuleBase
 		{
@@ -108,14 +108,14 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyRolePosition)), ModuleInitialismAlias(typeof(ModifyRolePosition))]
 		[LocalizedSummary(nameof(Summaries.ModifyRolePosition))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyRolePosition : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
 				[NotEveryone] IRole role,
-				[ValidatePositiveNumber] int position)
+				[Positive] int position)
 			{
 				var pos = await DiscordUtils.ModifyRolePositionAsync(role, position, GenerateRequestOptions()).CAF();
 				return Responses.Roles.Moved(role, pos);
@@ -124,7 +124,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DisplayRolePerms)), ModuleInitialismAlias(typeof(DisplayRolePerms))]
 		[LocalizedSummary(nameof(Summaries.DisplayRolePerms))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class DisplayRolePerms : AdvobotModuleBase
 		{
@@ -138,13 +138,13 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyRolePerms)), ModuleInitialismAlias(typeof(ModifyRolePerms))]
 		[LocalizedSummary(nameof(Summaries.ModifyRolePerms))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyRolePerms : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[ValidateRole] IRole role,
+				[Role] IRole role,
 				bool allow,
 				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
 			{
@@ -159,14 +159,14 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(CopyRolePerms)), ModuleInitialismAlias(typeof(CopyRolePerms))]
 		[LocalizedSummary(nameof(Summaries.CopyRolePerms))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class CopyRolePerms : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IRole input,
-				[ValidateRole] IRole output)
+				[Role] IRole output)
 			{
 				var copyable = input.Permissions.RawValue & Context.User.GuildPermissions.RawValue; //Perms which the user can copy from the input role
 				var immovable = output.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue; //Output perms which can't be modified by the user
@@ -179,12 +179,12 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ClearRolePerms)), ModuleInitialismAlias(typeof(ClearRolePerms))]
 		[LocalizedSummary(nameof(Summaries.ClearRolePerms))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class ClearRolePerms : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([ValidateRole] IRole role)
+			public async Task<RuntimeResult> Command([Role] IRole role)
 			{
 				var immovable = role.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
 				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovable), GenerateRequestOptions()).CAF();
@@ -194,14 +194,14 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyRoleName)), ModuleInitialismAlias(typeof(ModifyRoleName))]
 		[LocalizedSummary(nameof(Summaries.ModifyRoleName))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyRoleName : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
 			public async Task<RuntimeResult> Command(
 				[NotEveryone] IRole role,
-				[Remainder, ValidateRoleName] string name)
+				[Remainder, RoleName] string name)
 			{
 				await role.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.ModifiedName(role, name);
@@ -209,13 +209,13 @@ namespace Advobot.Commands.Standard
 			[ImplicitCommand]
 			public Task<RuntimeResult> Position(
 				[OverrideTypeReader(typeof(RolePositionTypeReader)), NotEveryone] IRole role,
-				[Remainder, ValidateRoleName] string name)
+				[Remainder, RoleName] string name)
 				=> Command(role, name);
 		}
 
 		[Group(nameof(ModifyRoleColor)), ModuleInitialismAlias(typeof(ModifyRoleColor))]
 		[LocalizedSummary(nameof(Summaries.ModifyRoleColor))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyRoleColor : AdvobotModuleBase
 		{
@@ -231,7 +231,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyRoleHoist)), ModuleInitialismAlias(typeof(ModifyRoleHoist))]
 		[LocalizedSummary(nameof(Summaries.ModifyRoleHoist))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyRoleHoist : AdvobotModuleBase
 		{
@@ -246,7 +246,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyRoleMentionability)), ModuleInitialismAlias(typeof(ModifyRoleMentionability))]
 		[LocalizedSummary(nameof(Summaries.ModifyRoleMentionability))]
-		[UserPermissionRequirement(GuildPermission.ManageRoles)]
+		[GuildPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyRoleMentionability : AdvobotModuleBase
 		{

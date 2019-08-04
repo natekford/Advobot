@@ -1,9 +1,10 @@
-﻿using Advobot.Modules;
-
-using Discord.Commands;
-
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Advobot.Services.GuildSettings;
+using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.Preconditions
 {
@@ -11,23 +12,25 @@ namespace Advobot.Attributes.Preconditions
 	/// Checks to make sure the bot is loaded, the guild is loaded, the channel isn't ignored from commands, and the command is enabled for the user.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireCommandEnabledAttribute : AdvobotPreconditionAttribute
+	public sealed class RequireCommandEnabledAttribute : PreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override bool Visible => false;
-
-		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
 		{
-			return context.Settings.CommandSettings.IsCommandEnabled(context.User, context.Channel, command)
-				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError("This command is disabled on the guild."));
+			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			var guildUser = await context.Guild.GetUserAsync(context.User.Id).CAF();
+			if (settings.CommandSettings.IsCommandEnabled(guildUser, context.Channel, command))
+			{
+				return this.FromSuccess();
+			}
+			return this.FromError("This command is disabled.");
 		}
-		/// <summary>
-		/// Returns a string describing what this attribute requires.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public override string ToString()
-			=> "Default command requirements";
+			=> "Command is turned on";
 	}
 }

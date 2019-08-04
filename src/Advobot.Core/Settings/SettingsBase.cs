@@ -43,10 +43,18 @@ namespace Advobot.Settings
 			_Settings = GetSettings().ToArray();
 			_Localized = new Localized<IReadOnlyDictionary<string, Setting>>(x =>
 			{
-				return _Settings.ToImmutableDictionary(
-					k => GetLocalizedName(k.SettingAttribute),
-					v => v,
-					StringComparer.OrdinalIgnoreCase);
+				var dict = new Dictionary<string, Setting>();
+				foreach (var setting in _Settings)
+				{
+					var name = GetLocalizedName(setting.SettingAttribute);
+					dict.Add(name, setting);
+
+					if (name.Contains(" "))
+					{
+						dict.Add(name.Replace(" ", ""), setting);
+					}
+				}
+				return dict.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 			});
 		}
 

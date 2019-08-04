@@ -2,8 +2,7 @@
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Attributes.ParameterPreconditions.SettingValidation;
+using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Attributes.Preconditions.QuantityLimitations;
 using Advobot.Classes;
@@ -22,7 +21,7 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ModifySelfRoles)), ModuleInitialismAlias(typeof(ModifySelfRoles))]
 		[LocalizedSummary(nameof(Summaries.ModifySelfRoles))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifySelfRoles : SettingsModule<IGuildSettings>
 		{
@@ -31,7 +30,7 @@ namespace Advobot.Commands.Settings
 			[SelfRoleGroupsLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Create(
-				[ValidatePositiveNumber, NotAlreadySelfAssignableRoleGroup] int group)
+				[SelfRoleGroup] int group)
 			{
 				Settings.SelfAssignableGroups.Add(new SelfAssignableRoles(group));
 				return Responses.SelfRoles.CreatedGroup(group);
@@ -46,7 +45,7 @@ namespace Advobot.Commands.Settings
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Add(
 				SelfAssignableRoles group,
-				[ValidateRole] params IRole[] roles)
+				[Role] params IRole[] roles)
 			{
 				group.AddRoles(roles);
 				return Responses.SelfRoles.ModifiedGroup(group, roles, true);
@@ -54,7 +53,7 @@ namespace Advobot.Commands.Settings
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Remove(
 				SelfAssignableRoles group,
-				[ValidateRole] params IRole[] roles)
+				[Role] params IRole[] roles)
 			{
 				group.RemoveRoles(roles);
 				return Responses.SelfRoles.ModifiedGroup(group, roles, false);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Advobot.Modules;
+using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.Attributes.Preconditions
@@ -10,10 +10,8 @@ namespace Advobot.Attributes.Preconditions
 	/// Limits the rate a command can be used.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RateLimitAttribute : AdvobotPreconditionAttribute
+	public sealed class RateLimitAttribute : PreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override bool Visible => true;
 		/// <summary>
 		/// The actual timespan.
 		/// </summary>
@@ -48,22 +46,22 @@ namespace Advobot.Attributes.Preconditions
 		}
 
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
 		{
-			var commandDict = _Times.GetOrAdd(command.Name, new ConcurrentDictionary<ulong, DateTime>());
-			if (commandDict.TryGetValue(context.User.Id, out var time) && DateTime.UtcNow < time)
+			var dict = _Times.GetOrAdd(command.Name, new ConcurrentDictionary<ulong, DateTime>());
+			if (dict.TryGetValue(context.User.Id, out var time) && DateTime.UtcNow < time)
 			{
-				return Task.FromResult(PreconditionResult.FromError($"Command can be next used at `{time.ToLongTimeString()}`."));
+				return this.FromErrorAsync($"Command can be next used at `{time.ToLongTimeString()}`.");
 			}
-			commandDict[context.User.Id] = DateTime.UtcNow.Add(Time);
-			return Task.FromResult(PreconditionResult.FromSuccess());
+			dict[context.User.Id] = DateTime.UtcNow.Add(Time);
+			return this.FromSuccessAsync();
 		}
-		/// <summary>
-		/// Returns a string describing what this attribute requires.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public override string ToString()
-			=> $"{Value} {Unit.ToString().ToLower()}";
+			=> $"Rate limit of {Value} {Unit.ToString().ToLower()}";
 
 		/// <summary>
 		/// The unit of time to use.

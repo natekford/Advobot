@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Modules;
+using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.Attributes.Preconditions
@@ -9,22 +9,21 @@ namespace Advobot.Attributes.Preconditions
 	/// Will return success if the bot is the owner of the guild in the context.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class RequireBotIsOwnerAttribute : AdvobotPreconditionAttribute
+	public class RequireBotIsOwnerAttribute : PreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override bool Visible => true;
-
-		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
 		{
-			return context.Client.CurrentUser.Id == context.Guild.OwnerId
-				? Task.FromResult(PreconditionResult.FromSuccess())
-				: Task.FromResult(PreconditionResult.FromError("The bot is not the owner of the guild."));
+			if (context.Client.CurrentUser.Id == context.Guild.OwnerId)
+			{
+				return this.FromSuccessAsync();
+			}
+			return this.FromErrorAsync("The bot is not the owner of the guild.");
 		}
-		/// <summary>
-		/// Returns a string describing what this attribute requires.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public override string ToString()
 			=> "Bot is guild owner";
 	}

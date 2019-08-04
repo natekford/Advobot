@@ -57,8 +57,10 @@ namespace Advobot.Commands.Responses
 			=> Success(Default.FormatInterpolated($"Successfully removed {count} overwrites from {channel}.")).WithTime(DefaultTime);
 		public static AdvobotResult ModifiedNsfw(ITextChannel channel, bool nsfw)
 			=> Success(Default.FormatInterpolated($"Successfully {(nsfw ? "un" : "")}marked {channel} as NSFW."));
+		public static AdvobotResult RemovedTopic(ITextChannel channel)
+			=> Success(Default.FormatInterpolated($"Successfully removed the topic for {channel}."));
 		public static AdvobotResult ModifiedTopic(ITextChannel channel, string topic)
-			=> Success(Default.FormatInterpolated($"Successfully changed the topic for {channel} to {topic ?? "Nothing"}."));
+			=> Success(Default.FormatInterpolated($"Successfully changed the topic for {channel} to {topic}."));
 		public static AdvobotResult ModifiedLimit(IVoiceChannel channel, int limit)
 			=> Success(Default.FormatInterpolated($"Successfully changed the user limit for {channel} to {limit}."));
 		public static AdvobotResult ModifiedBitRate(IVoiceChannel channel, int bitrate)

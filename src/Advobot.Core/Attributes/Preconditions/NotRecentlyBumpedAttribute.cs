@@ -1,8 +1,9 @@
-﻿using Advobot.Services.InviteList;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.Services.InviteList;
+using Advobot.Utilities;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Threading.Tasks;
 
 namespace Advobot.Attributes.Preconditions
 {
@@ -13,19 +14,25 @@ namespace Advobot.Attributes.Preconditions
 	public sealed class NotRecentlyBumpedAttribute : PreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
 		{
 			var inviteService = services.GetRequiredService<IInviteListService>();
 			var invite = inviteService.Get(context.Guild.Id);
 			if (invite == null)
 			{
-				return Task.FromResult(PreconditionResult.FromError("There is no listed invite."));
+				return this.FromErrorAsync("There is no listed invite.");
 			}
 			else if ((DateTime.UtcNow - invite.Time).TotalHours > 1)
 			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
+				return this.FromSuccessAsync();
 			}
-			return Task.FromResult(PreconditionResult.FromError("The last invite bump was too recent."));
+			return this.FromErrorAsync("The last invite bump was too recent.");
 		}
+		/// <inheritdoc />
+		public override string ToString()
+			=> "A listed invite exists and has not been bumped within the past hour";
 	}
 }

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
@@ -22,7 +22,7 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(CreateEmote)), ModuleInitialismAlias(typeof(CreateEmote))]
 		[LocalizedSummary(nameof(Summaries.CreateEmote))]
-		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
+		[GuildPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
 		[RateLimit(RateLimitAttribute.TimeUnit.Minutes, 1)]
 		public sealed class CreateEmote : ImageResizerModule
@@ -32,15 +32,18 @@ namespace Advobot.Commands.Standard
 				=> Command(emote.Name, new Uri(emote.Url));
 			[Command, Priority(1)]
 			public Task<RuntimeResult> Command(
-				[ValidateEmoteName] string name,
+				[EmoteName] string name,
 				Uri url,
-				[Optional, Remainder] UserProvidedImageArgs args)
-				=> Responses.Emotes.EnqueuedCreation(name, Enqueue(new EmoteCreationContext(Context, url, args, name)));
+				[Optional] UserProvidedImageArgs? args)
+			{
+				var position = Enqueue(new EmoteCreationContext(Context, url, args, name));
+				return Responses.Emotes.EnqueuedCreation(name, position);
+			}
 		}
 
 		[Group(nameof(DeleteEmote)), ModuleInitialismAlias(typeof(DeleteEmote))]
 		[LocalizedSummary(nameof(Summaries.DeleteEmote))]
-		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
+		[GuildPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
 		public sealed class DeleteEmote : AdvobotModuleBase
 		{
@@ -54,14 +57,14 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyEmoteName)), ModuleInitialismAlias(typeof(ModifyEmoteName))]
 		[LocalizedSummary(nameof(Summaries.ModifyEmoteName))]
-		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
+		[GuildPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyEmoteName : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
 				GuildEmote emote,
-				[Remainder, ValidateEmoteName] string name)
+				[Remainder, EmoteName] string name)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = name, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.ModifiedName(emote, name);
@@ -70,7 +73,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyEmoteRoles)), ModuleInitialismAlias(typeof(ModifyEmoteRoles))]
 		[LocalizedSummary(nameof(Summaries.ModifyEmoteRoles))]
-		[UserPermissionRequirement(GuildPermission.ManageEmojis)]
+		[GuildPermissionRequirement(GuildPermission.ManageEmojis)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyEmoteRoles : AdvobotModuleBase
 		{
@@ -116,7 +119,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DisplayEmotes)), ModuleInitialismAlias(typeof(DisplayEmotes))]
 		[LocalizedSummary(nameof(Summaries.DisplayEmotes))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class DisplayEmotes : AdvobotModuleBase
 		{

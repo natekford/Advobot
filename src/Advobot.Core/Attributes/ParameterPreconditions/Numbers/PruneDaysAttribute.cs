@@ -1,0 +1,20 @@
+﻿using System;
+
+namespace Advobot.Attributes.ParameterPreconditions.Numbers
+{
+	/// <summary>
+	/// Validates the amount of days to prune with allowing specified valid values.
+	/// </summary>
+	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+	public class PruneDaysAttribute : IntParameterPreconditionAttribute
+	{
+		/// <summary>
+		/// Creates an instance of <see cref="PruneDaysAttribute"/>.
+		/// </summary>
+		public PruneDaysAttribute() : base(new[] { 1, 7, 30 }) { }
+
+		/// <inheritdoc />
+		public override string ToString()
+			=> $"Valid prune days ({Numbers})";
+	}
+}

@@ -95,14 +95,14 @@ namespace Advobot.Commands.Settings
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Add(
-				[ValidateTextChannel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
+				[Channel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
 			{
 				Settings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
 				return Responses.Logs.ModifiedIgnoredLogChannels(channels, true);
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Remove(
-				[ValidateTextChannel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
+				[Channel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
 			{
 				Settings.IgnoredLogChannels.RemoveAll(x => channels.Select(x => x.Id).Contains(x));
 				return Responses.Logs.ModifiedIgnoredLogChannels(channels, false);

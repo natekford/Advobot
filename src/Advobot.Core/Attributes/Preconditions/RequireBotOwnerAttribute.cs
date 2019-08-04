@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -11,22 +10,21 @@ namespace Advobot.Attributes.Preconditions
 	/// Requires bot owner before this command will execute.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireBotOwnerAttribute : AdvobotPreconditionAttribute
+	public sealed class RequireBotOwnerAttribute : PreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override bool Visible => true;
-
-		/// <inheritdoc />
-		public override async Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
 		{
-			return await context.Client.GetOwnerIdAsync().CAF() == context.User.Id
-				? PreconditionResult.FromSuccess()
-				: PreconditionResult.FromError(default(string));
+			if (await context.Client.GetOwnerIdAsync().CAF() == context.User.Id)
+			{
+				return this.FromSuccess();
+			}
+			return this.FromError("You are not the bot owner.");
 		}
-		/// <summary>
-		/// Returns a string describing what this attribute requires.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public override string ToString()
 			=> "Bot owner";
 	}

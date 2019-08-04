@@ -1,8 +1,9 @@
 ﻿using System;
-using Advobot.Modules;
+using System.Threading.Tasks;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
+using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.Preconditions.QuantityLimitations
@@ -14,7 +15,7 @@ namespace Advobot.Attributes.Preconditions.QuantityLimitations
 	public sealed class QuoteLimitAttribute : QuantityLimitAttribute
 	{
 		/// <inheritdoc />
-		public override string QuantityName => nameof(IGuildSettings.Quotes).FormatTitle().ToLower();
+		public override string QuantityName => "quote";
 
 		/// <summary>
 		/// Creates an instance of <see cref="QuoteLimitAttribute"/>.
@@ -23,10 +24,21 @@ namespace Advobot.Attributes.Preconditions.QuantityLimitations
 		public QuoteLimitAttribute(QuantityLimitAction action) : base(action) { }
 
 		/// <inheritdoc />
-		public override int GetCurrent(IAdvobotCommandContext context, IServiceProvider services)
-			=> context.Settings.Quotes.Count;
+		public override async Task<int> GetCurrentAsync(
+			ICommandContext context,
+			IServiceProvider services)
+		{
+			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			return settings.Quotes.Count;
+		}
 		/// <inheritdoc />
-		public override int GetMaximumAllowed(IAdvobotCommandContext context, IServiceProvider services)
-			=> services.GetRequiredService<IBotSettings>().MaxQuotes;
+		public override Task<int> GetMaximumAllowedAsync(
+			ICommandContext context,
+			IServiceProvider services)
+		{
+			var botSettings = services.GetRequiredService<IBotSettings>();
+			return Task.FromResult(botSettings.MaxQuotes);
+		}
 	}
 }

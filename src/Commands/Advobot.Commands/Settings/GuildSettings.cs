@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.SettingValidation;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
@@ -16,7 +16,7 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ShowGuildSettings)), ModuleInitialismAlias(typeof(ShowGuildSettings))]
 		[LocalizedSummary(nameof(Summaries.ShowGuildSettings))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class ShowGuildSettings : ReadOnlySettingsModule<IGuildSettings>
 		{
@@ -32,13 +32,13 @@ namespace Advobot.Commands.Settings
 			public Task<RuntimeResult> All()
 				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
 			[Command]
-			public Task<RuntimeResult> Command([Remainder, ValidateGuildSettingName] string name)
+			public Task<RuntimeResult> Command([Remainder, GuildSettingName] string name)
 				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
 		}
 
 		[Group(nameof(ResetGuildSettings)), ModuleInitialismAlias(typeof(ResetGuildSettings))]
 		[LocalizedSummary(nameof(Summaries.ResetGuildSettings))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true)]
 		public sealed class ResetGuildSettings : SettingsModule<IGuildSettings>
 		{
@@ -54,7 +54,7 @@ namespace Advobot.Commands.Settings
 				return Responses.GuildSettings.ResetAll();
 			}
 			[Command]
-			public Task<RuntimeResult> Command([Remainder, ValidateGuildSettingName] string name)
+			public Task<RuntimeResult> Command([Remainder, GuildSettingName] string name)
 			{
 				Settings.ResetSetting(name);
 				return Responses.GuildSettings.Reset(name);
@@ -203,7 +203,7 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(ModifyIgnoredCommandChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredCommandChannels))]
 		[LocalizedSummary(nameof(Summaries.ModifyIgnoredCommandChannels))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true, AbleToToggle = false)]
 		public sealed class ModifyIgnoredCommandChannels : SettingsModule<IGuildSettings>
 		{
@@ -396,7 +396,7 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(TestGuildNotifs)), ModuleInitialismAlias(typeof(TestGuildNotifs))]
 		[LocalizedSummary(nameof(Summaries.TestGuildNotifs))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class TestGuildNotifs : AdvobotModuleBase
 		{

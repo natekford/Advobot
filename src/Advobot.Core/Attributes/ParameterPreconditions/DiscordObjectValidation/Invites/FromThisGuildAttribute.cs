@@ -11,10 +11,10 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 	/// Does not allow invites which are not from this guild.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class FromThisGuildAttribute : ValidateInviteAttribute
+	public sealed class FromThisGuildAttribute : InviteAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidationRule<IInviteMetadata>> GetValidationRules()
+		protected override IEnumerable<Precondition<IInviteMetadata>> GetPreconditions()
 		{
 			yield return (user, target) =>
 			{
@@ -25,5 +25,8 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 				return Task.FromResult(PreconditionResult.FromError("The passed in invite must belong to this guild."));
 			};
 		}
+		/// <inheritdoc />
+		public override string ToString()
+			=> "For this guild";
 	}
 }

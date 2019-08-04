@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.SettingValidation;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Attributes.Preconditions.QuantityLimitations;
 using Advobot.Commands.Localization;
@@ -21,7 +21,7 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ModifyQuotes)), ModuleInitialismAlias(typeof(ModifyQuotes))]
 		[LocalizedSummary(nameof(Summaries.ModifyQuotes))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
 		public sealed class ModifyQuotes : SettingsModule<IGuildSettings>
 		{
@@ -29,9 +29,7 @@ namespace Advobot.Commands.Settings
 
 			[QuoteLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Add(
-				[NotAlreadyQuoteName] string name,
-				[Remainder] string text)
+			public Task<RuntimeResult> Add([QuoteName] string name, [Remainder] string text)
 			{
 				var quote = new Quote(name, text);
 				Settings.Quotes.Add(quote);

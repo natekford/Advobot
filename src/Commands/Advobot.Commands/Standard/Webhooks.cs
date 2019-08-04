@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
@@ -22,7 +22,7 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(DisplayWebhooks)), ModuleInitialismAlias(typeof(DisplayWebhooks))]
 		[LocalizedSummary(nameof(Summaries.DisplayWebhooks))]
-		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
+		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
 		public sealed class DisplayWebhooks : AdvobotModuleBase
 		{
@@ -42,14 +42,14 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(CreateWebhook)), ModuleInitialismAlias(typeof(CreateWebhook))]
 		[LocalizedSummary(nameof(Summaries.CreateWebhook))]
-		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
+		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
 		public sealed class CreateWebhook : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[ValidateTextChannel(ManageWebhooks, FromContext = true)] ITextChannel channel,
-				[Remainder, ValidateUsername] string name)
+				[Channel(ManageWebhooks)] ITextChannel channel,
+				[Remainder, Username] string name)
 			{
 				var webhook = await channel.CreateWebhookAsync(name, options: GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.Created(webhook);
@@ -58,7 +58,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DeleteWebhook)), ModuleInitialismAlias(typeof(DeleteWebhook))]
 		[LocalizedSummary(nameof(Summaries.DeleteWebhook))]
-		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
+		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
 		public sealed class DeleteWebhook : AdvobotModuleBase
 		{
@@ -72,14 +72,14 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyWebhookName)), ModuleInitialismAlias(typeof(ModifyWebhookName))]
 		[LocalizedSummary(nameof(Summaries.ModifyWebhookName))]
-		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
+		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyWebhookName : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IWebhook webhook,
-				[Remainder, ValidateUsername] string name)
+				[Remainder, Username] string name)
 			{
 				await webhook.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.ModifiedName(webhook, name);
@@ -88,14 +88,14 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyWebhookChannel)), ModuleInitialismAlias(typeof(ModifyWebhookChannel))]
 		[LocalizedSummary(nameof(Summaries.ModifyWebhookChannel))]
-		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
+		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyWebhookChannel : AdvobotModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IWebhook webhook,
-				[ValidateTextChannel(ManageWebhooks, FromContext = true)] ITextChannel channel)
+				[Channel(ManageWebhooks)] ITextChannel channel)
 			{
 				await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Webhooks.ModifiedChannel(webhook, channel);
@@ -104,7 +104,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyWebhookIcon)), ModuleInitialismAlias(typeof(ModifyWebhookIcon))]
 		[LocalizedSummary(nameof(Summaries.ModifyWebhookIcon))]
-		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
+		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(true)]
 		public sealed class ModifyWebhookIcon : ImageResizerModule
 		{
@@ -125,7 +125,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(SendMessageThroughWebhook)), ModuleInitialismAlias(typeof(SendMessageThroughWebhook))]
 		[LocalizedSummary(nameof(Summaries.SendMessageThroughWebhook))]
-		[UserPermissionRequirement(GuildPermission.ManageWebhooks)]
+		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
 		[EnabledByDefault(false)]
 		public sealed class SendMessageThroughWebhook : AdvobotModuleBase
 		{

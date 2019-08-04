@@ -9,12 +9,15 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 	/// Does not allow roles which are already mentionable to be used.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NotMentionableAttribute : ValidateRoleAttribute
+	public sealed class NotMentionableAttribute : RoleAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidationRule<IRole>> GetValidationRules()
+		protected override IEnumerable<Precondition<IRole>> GetPreconditions()
 		{
-			yield return ValidationUtils.RoleIsNotMentionable;
+			yield return PreconditionUtils.RoleIsNotMentionable;
 		}
+		/// <inheritdoc />
+		public override string ToString()
+			=> "Not already mentionable";
 	}
 }

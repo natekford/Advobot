@@ -2,23 +2,23 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Attributes;
 using Advobot.Classes;
+using Advobot.CommandAssemblies;
+using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
+using Advobot.Services.Timers;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using Advobot.CommandAssemblies;
-using Advobot.Services.Timers;
-using Advobot.Attributes;
-using System.Reflection;
-using Advobot.Localization;
 
 namespace Advobot.Services.Commands
 {
@@ -96,17 +96,20 @@ namespace Advobot.Services.Commands
 							commands.AddTypeReader(type, instance, true);
 						}
 					}
-					var modules = await commands.AddModulesAsync(assembly.Assembly, _Provider).CAF();
-					ConsoleUtils.WriteLine($"Successfully loaded {modules.Count()} command modules " +
-						$"from {assembly.Assembly.GetName().Name} in the {culture} culture.");
 
+					var modules = await commands.AddModulesAsync(assembly.Assembly, _Provider).CAF();
+					var count = 0;
 					foreach (var category in modules)
 					{
+						++count;
 						foreach (var command in category.Submodules)
 						{
 							_HelpEntries.Add(new HelpEntry(command));
 						}
 					}
+
+					ConsoleUtils.WriteLine($"Successfully loaded {count} command modules " +
+						$"from {assembly.Assembly.GetName().Name} in the {culture} culture.");
 				}
 			}
 			CultureInfo.CurrentCulture = currentCulture;
@@ -143,7 +146,8 @@ namespace Advobot.Services.Commands
 
 			CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(settings.Culture);
 			var context = new AdvobotCommandContext(settings, _Client, (SocketUserMessage)msg);
-			await _CommandServices.Get().ExecuteAsync(context, argPos, _Provider).CAF();
+			var commands = _CommandServices.Get();
+			await commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
 
 		private Task OnLog(LogMessage e)

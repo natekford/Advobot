@@ -25,7 +25,7 @@ namespace Advobot.Tests
 		public void Test()
 		{
 			_Watches.Clear();
-			for (int i = 0; i < Times; i++)
+			for (var i = 0; i < Times; i++)
 			{
 				var sw = Stopwatch.StartNew();
 				for (int o = 0; o < Iterations; o++)

@@ -9,12 +9,15 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 	/// Checks if the user can be moved from their voice channel.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public class CanBeMovedAttribute : ValidateUserAttribute
+	public class CanBeMovedAttribute : UserAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidationRule<IGuildUser>> GetValidationRules()
+		protected override IEnumerable<Precondition<IGuildUser>> GetPreconditions()
 		{
-			yield return ValidationUtils.MovingUserFromVoiceChannel;
+			yield return PreconditionUtils.MovingUserFromVoiceChannel;
 		}
+		/// <inheritdoc />
+		public override string ToString()
+			=> "Can be moved from their current channel";
 	}
 }

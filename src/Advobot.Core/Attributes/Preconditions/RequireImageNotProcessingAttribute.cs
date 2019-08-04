@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Advobot.Modules;
 using Advobot.Services.ImageResizing;
+using Advobot.Utilities;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,23 +11,22 @@ namespace Advobot.Attributes.Preconditions
 	/// Disallows the command from running if an image is currently being resized.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireImageNotProcessingAttribute : AdvobotPreconditionAttribute
+	public sealed class RequireImageNotProcessingAttribute : PreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override bool Visible => true;
-
-		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
 		{
 			var resizer = services.GetRequiredService<IImageResizer>();
-			return resizer.IsGuildAlreadyProcessing(context.Guild.Id)
-				? Task.FromResult(PreconditionResult.FromError("Guild already has an image processing."))
-				: Task.FromResult(PreconditionResult.FromSuccess());
+			if (!resizer.IsGuildAlreadyProcessing(context.Guild.Id))
+			{
+				return this.FromSuccessAsync();
+			}
+			return this.FromErrorAsync("Guild already has an image processing.");
 		}
-		/// <summary>
-		/// Returns a string describing what this attribute requires.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public override string ToString()
 			=> "Not currently processing another image";
 	}

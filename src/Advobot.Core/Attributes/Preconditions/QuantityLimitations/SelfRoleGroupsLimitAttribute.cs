@@ -1,9 +1,10 @@
-﻿using Advobot.Modules;
+﻿using System;
+using System.Threading.Tasks;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
+using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace Advobot.Attributes.Preconditions.QuantityLimitations
 {
@@ -14,7 +15,7 @@ namespace Advobot.Attributes.Preconditions.QuantityLimitations
 	public sealed class SelfRoleGroupsLimitAttribute : QuantityLimitAttribute
 	{
 		/// <inheritdoc />
-		public override string QuantityName => nameof(IGuildSettings.SelfAssignableGroups).FormatTitle().ToLower();
+		public override string QuantityName => "self role group";
 
 		/// <summary>
 		/// Creates an instance of <see cref="SelfRoleGroupsLimitAttribute"/>.
@@ -23,10 +24,21 @@ namespace Advobot.Attributes.Preconditions.QuantityLimitations
 		public SelfRoleGroupsLimitAttribute(QuantityLimitAction action) : base(action) { }
 
 		/// <inheritdoc />
-		public override int GetCurrent(IAdvobotCommandContext context, IServiceProvider services)
-			=> context.Settings.SelfAssignableGroups.Count;
+		public override async Task<int> GetCurrentAsync(
+			ICommandContext context,
+			IServiceProvider services)
+		{
+			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			return settings.SelfAssignableGroups.Count;
+		}
 		/// <inheritdoc />
-		public override int GetMaximumAllowed(IAdvobotCommandContext context, IServiceProvider services)
-			=> services.GetRequiredService<IBotSettings>().MaxSelfAssignableRoleGroups;
+		public override Task<int> GetMaximumAllowedAsync(
+			ICommandContext context,
+			IServiceProvider services)
+		{
+			var botSettings = services.GetRequiredService<IBotSettings>();
+			return Task.FromResult(botSettings.MaxSelfAssignableRoleGroups);
+		}
 	}
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Utilities;
 using Discord;
+using static Discord.MentionUtils;
 
 namespace Advobot.Tests.Fakes.Discord
 {
@@ -22,9 +23,9 @@ namespace Advobot.Tests.Fakes.Discord
 		public IReadOnlyCollection<IAttachment> Attachments => throw new NotImplementedException();
 		public IReadOnlyCollection<IEmbed> Embeds => throw new NotImplementedException();
 		public IReadOnlyCollection<ITag> Tags => throw new NotImplementedException();
-		public IReadOnlyCollection<ulong> MentionedChannelIds => Content.GetMentions(MentionUtils.TryParseChannel);
-		public IReadOnlyCollection<ulong> MentionedRoleIds => Content.GetMentions(MentionUtils.TryParseRole);
-		public IReadOnlyCollection<ulong> MentionedUserIds => Content.GetMentions(MentionUtils.TryParseUser);
+		public IReadOnlyCollection<ulong> MentionedChannelIds => Content.GetMentions(TryParseChannel);
+		public IReadOnlyCollection<ulong> MentionedRoleIds => Content.GetMentions(TryParseRole);
+		public IReadOnlyCollection<ulong> MentionedUserIds => Content.GetMentions(TryParseUser);
 		public MessageActivity Activity => throw new NotImplementedException();
 		public MessageApplication Application => throw new NotImplementedException();
 

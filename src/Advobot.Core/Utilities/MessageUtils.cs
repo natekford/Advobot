@@ -92,14 +92,14 @@ namespace Advobot.Utilities
 		/// Removes the given count of messages from a channel.
 		/// </summary>
 		/// <param name="channel"></param>
-		/// <param name="fromMessage"></param>
+		/// <param name="from"></param>
 		/// <param name="count"></param>
 		/// <param name="predicate"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(
 			ITextChannel channel,
-			IMessage fromMessage,
+			IMessage from,
 			int count,
 			RequestOptions options,
 			Func<IMessage, bool>? predicate = null)
@@ -107,12 +107,13 @@ namespace Advobot.Utilities
 			var deletedCount = 0;
 			while (count > 0)
 			{
-				var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).FlattenAsync().CAF()).ToArray();
+				var flattened = await channel.GetMessagesAsync(from, Direction.Before, 100).FlattenAsync().CAF();
+				var messages = flattened.ToArray();
 				if (messages.Length == 0)
 				{
 					break;
 				}
-				fromMessage = messages.Last();
+				from = messages.Last();
 
 				var filteredMessages = predicate == null ? messages : messages.Where(predicate);
 				var cutMessages = filteredMessages.Take(count).ToArray();

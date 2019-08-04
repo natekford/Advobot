@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.Attributes.ParameterPreconditions.NumberValidation;
+using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
@@ -65,7 +65,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetUsersWithReason)), ModuleInitialismAlias(typeof(GetUsersWithReason))]
 		[LocalizedSummary(nameof(Summaries.GetUsersWithReason))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetUsersWithReason : AdvobotModuleBase
 		{
@@ -99,12 +99,12 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetUserJoinedAt)), ModuleInitialismAlias(typeof(GetUserJoinedAt))]
 		[LocalizedSummary(nameof(Summaries.GetUserJoinedAt))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetUserJoinedAt : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command([ValidatePositiveNumber] int position)
+			public Task<RuntimeResult> Command([Positive] int position)
 			{
 				var users = Context.Guild.Users.OrderByJoinDate();
 				var newPos = Math.Min(position, users.Count);
@@ -125,7 +125,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetUserJoinList)), ModuleInitialismAlias(typeof(GetUserJoinList))]
 		[LocalizedSummary(nameof(Summaries.GetUserJoinList))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetUserJoinList : AdvobotModuleBase
 		{
@@ -136,16 +136,15 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetMessages)), ModuleInitialismAlias(typeof(GetMessages))]
 		[LocalizedSummary(nameof(Summaries.GetMessages))]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
+		[GuildPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(true)]
 		public sealed class GetMessages : AdvobotModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command(
-				int number,
-				[Optional, ValidateTextChannel(FromContext = true)] ITextChannel channel)
+			public async Task<RuntimeResult> Command([Channel] ITextChannel channel, int number)
 			{
-				var messages = await channel.GetMessagesAsync(Math.Min(number, 1000)).FlattenAsync().CAF();
+				var num = Math.Min(number, 1000);
+				var messages = await channel.GetMessagesAsync(num).FlattenAsync().CAF();
 				var orderedMessages = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();
 				return Responses.Gets.Messages(channel, orderedMessages, BotSettings.MaxMessageGatherSize);
 			}
@@ -153,7 +152,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetPermNamesFromValue)), ModuleInitialismAlias(typeof(GetPermNamesFromValue))]
 		[LocalizedSummary(nameof(Summaries.GetPermNamesFromValue))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetPermNamesFromValue : AdvobotModuleBase
 		{
@@ -167,7 +166,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetEnumNames)), ModuleInitialismAlias(typeof(GetEnumNames))]
 		[LocalizedSummary(nameof(Summaries.GetEnumNames))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class GetEnumNames : AdvobotModuleBase
 		{

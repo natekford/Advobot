@@ -20,7 +20,7 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(DisplayInvites)), ModuleInitialismAlias(typeof(DisplayInvites))]
 		[LocalizedSummary(nameof(Summaries.DisplayInvites))]
-		[UserPermissionRequirement(GuildPermission.ManageGuild)]
+		[GuildPermissionRequirement(GuildPermission.ManageGuild)]
 		[EnabledByDefault(true)]
 		public sealed class DisplayInvites : AdvobotModuleBase
 		{
@@ -35,31 +35,34 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(CreateInvite)), ModuleInitialismAlias(typeof(CreateInvite))]
 		[LocalizedSummary(nameof(Summaries.CreateInvite))]
-		[UserPermissionRequirement(GuildPermission.CreateInstantInvite)]
+		[GuildPermissionRequirement(GuildPermission.CreateInstantInvite)]
 		[EnabledByDefault(true)]
 		public sealed class CreateInvite : AdvobotModuleBase
 		{
 			[Command]
 			public Task<RuntimeResult> Command(
-				[Optional, ValidateTextChannel(CreateInstantInvite, FromContext = true)] ITextChannel channel,
-				[Optional] CreateInviteArguments arguments)
+				[Channel(CreateInstantInvite)] ITextChannel channel,
+				[Optional] CreateInviteArguments? arguments)
 				=> CommandRunner(channel, arguments);
 			[Command]
 			public Task<RuntimeResult> Command(
-				[ValidateVoiceChannel(CreateInstantInvite, FromContext = true)] IVoiceChannel channel,
-				[Optional] CreateInviteArguments arguments)
+				[Channel(CreateInstantInvite)] IVoiceChannel channel,
+				[Optional] CreateInviteArguments? arguments)
 				=> CommandRunner(channel, arguments);
 
-			private async Task<RuntimeResult> CommandRunner(INestedChannel channel, CreateInviteArguments? arguments)
+			private async Task<RuntimeResult> CommandRunner(
+				INestedChannel channel,
+				CreateInviteArguments? arguments)
 			{
-				var invite = await (arguments ?? new CreateInviteArguments()).CreateInviteAsync(channel, GenerateRequestOptions()).CAF();
+				arguments ??= new CreateInviteArguments();
+				var invite = await arguments.CreateInviteAsync(channel, GenerateRequestOptions()).CAF();
 				return Responses.Invites.CreatedInvite(invite);
 			}
 		}
 
 		[Group(nameof(DeleteInvite)), ModuleInitialismAlias(typeof(DeleteInvite))]
 		[LocalizedSummary(nameof(Summaries.DeleteInvite))]
-		[UserPermissionRequirement(GuildPermission.ManageChannels)]
+		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
 		[EnabledByDefault(true)]
 		public sealed class DeleteInvite : AdvobotModuleBase
 		{
@@ -73,7 +76,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DeleteMultipleInvites)), ModuleInitialismAlias(typeof(DeleteMultipleInvites))]
 		[LocalizedSummary(nameof(Summaries.DeleteMultipleInvites))]
-		[UserPermissionRequirement(GuildPermission.ManageChannels)]
+		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
 		[EnabledByDefault(true)]
 		public sealed class DeleteMultipleInvites : AdvobotModuleBase
 		{

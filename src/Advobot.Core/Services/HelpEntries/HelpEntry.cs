@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Advobot.Attributes;
-using Advobot.Attributes.Preconditions;
 using Advobot.Formatting;
 using Advobot.Services.GuildSettings;
 using AdvorangesUtils;
@@ -45,8 +44,6 @@ namespace Advobot.Services.HelpEntries
 
 		private static string FormatPreconditions(IEnumerable<PreconditionAttribute> preconditions)
 		{
-			//Don't let users see preconditions which are designated as not visible (e.g the basic command requirement one)
-			preconditions = preconditions.Where(x => x is AdvobotPreconditionAttribute temp && temp.Visible);
 			if (!preconditions.Any())
 			{
 				return "N/A";

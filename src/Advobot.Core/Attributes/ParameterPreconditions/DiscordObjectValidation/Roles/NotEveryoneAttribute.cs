@@ -9,12 +9,15 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 	/// Does not allow the everyone role but does allow managed roles.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NotEveryoneAttribute : ValidateRoleAttribute
+	public sealed class NotEveryoneAttribute : RoleAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidationRule<IRole>> GetValidationRules()
+		protected override IEnumerable<Precondition<IRole>> GetPreconditions()
 		{
-			yield return ValidationUtils.RoleIsNotEveryone;
+			yield return PreconditionUtils.RoleIsNotEveryone;
 		}
+		/// <inheritdoc />
+		public override string ToString()
+			=> "Not everyone";
 	}
 }

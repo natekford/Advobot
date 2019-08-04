@@ -1,6 +1,6 @@
-﻿using Discord.Commands;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Discord.Commands;
 
 namespace Advobot.Utilities
 {

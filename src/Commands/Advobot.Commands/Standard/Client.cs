@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.StringLengthValidation;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
@@ -23,7 +23,7 @@ namespace Advobot.Commands.Standard
 		public sealed class ModifyBotName : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command([Remainder, ValidateUsername] string name)
+			public async Task<RuntimeResult> Command([Remainder, Username] string name)
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).CAF();
 				return Responses.Snowflakes.ModifiedName(Context.Client.CurrentUser, name);

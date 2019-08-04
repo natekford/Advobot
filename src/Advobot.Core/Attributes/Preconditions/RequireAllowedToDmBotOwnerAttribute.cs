@@ -1,11 +1,9 @@
-﻿using Advobot.Modules;
-using Advobot.Services.BotSettings;
-using Discord.Commands;
-
-using Microsoft.Extensions.DependencyInjection;
-
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Advobot.Services.BotSettings;
+using Advobot.Utilities;
+using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.Preconditions
 {
@@ -13,24 +11,23 @@ namespace Advobot.Attributes.Preconditions
 	/// Checks to make sure the user is allowed to dm the bot owner.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireAllowedToDmBotOwnerAttribute : AdvobotPreconditionAttribute
+	public sealed class RequireAllowedToDmBotOwnerAttribute : PreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override bool Visible => true;
-
-		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(IAdvobotCommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
 		{
 			var botSettings = services.GetRequiredService<IBotSettings>();
-			return botSettings.UsersUnableToDmOwner.Contains(context.User.Id)
-				? Task.FromResult(PreconditionResult.FromError("You are unable to dm the bot owner."))
-				: Task.FromResult(PreconditionResult.FromSuccess());
+			if (!botSettings.UsersUnableToDmOwner.Contains(context.User.Id))
+			{
+				return this.FromSuccessAsync();
+			}
+			return this.FromErrorAsync("You are unable to dm the bot owner.");
 		}
-		/// <summary>
-		/// Returns a string describing what this attribute requires.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public override string ToString()
-			=> "Allowed to dm the bot owner";
+			=> "Not blocked by the bot owner";
 	}
 }

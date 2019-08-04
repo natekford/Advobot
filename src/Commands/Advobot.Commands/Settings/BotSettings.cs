@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.SettingValidation;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
@@ -30,7 +30,7 @@ namespace Advobot.Commands.Settings
 			public Task<RuntimeResult> All()
 				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
 			[Command]
-			public Task<RuntimeResult> Command([ValidateBotSettingName] string name)
+			public Task<RuntimeResult> Command([BotSettingName] string name)
 				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
 		}
 

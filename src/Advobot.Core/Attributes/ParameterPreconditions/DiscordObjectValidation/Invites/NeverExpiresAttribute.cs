@@ -11,10 +11,10 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 	/// Does not allow invites which can expire.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NeverExpiresAttribute : ValidateInviteAttribute
+	public sealed class NeverExpiresAttribute : InviteAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<ValidationRule<IInviteMetadata>> GetValidationRules()
+		protected override IEnumerable<Precondition<IInviteMetadata>> GetPreconditions()
 		{
 			yield return (user, target) =>
 			{
@@ -25,5 +25,8 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 				return Task.FromResult(PreconditionResult.FromError("The passed in invite must not expire."));
 			};
 		}
+		/// <inheritdoc />
+		public override string ToString()
+			=> "Never expires";
 	}
 }

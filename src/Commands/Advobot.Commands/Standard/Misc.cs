@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.Attributes.ParameterPreconditions.NumberValidation;
-using Advobot.Attributes.ParameterPreconditions.SettingValidation;
+using Advobot.Attributes.ParameterPreconditions.Numbers;
+using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
@@ -47,7 +47,7 @@ namespace Advobot.Commands.Standard
 			[Summary("Prints out help information for a specific command in a specified module.")]
 			public Task<RuntimeResult> Command(
 				[Summary(TEMP_SUMMARY)] IHelpEntry command,
-				[ValidatePositiveNumber] int position)
+				[Positive] int position)
 				=> Responses.Misc.Help(command, Context.Settings, position - 1);
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Summary("Attempts to find a help entry with a name similar to the input. This command only gets used if an invalid name is provided.")]
@@ -76,7 +76,7 @@ namespace Advobot.Commands.Standard
 			public Task<RuntimeResult> All()
 				=> Responses.Misc.AllCommands(HelpEntries.GetHelpEntries());
 			[Command]
-			public Task<RuntimeResult> Command([ValidateCommandCategory] string category)
+			public Task<RuntimeResult> Command([CommandCategory] string category)
 				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);
 			[Command]
 			public Task<RuntimeResult> Command()
@@ -85,7 +85,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]
 		[LocalizedSummary(nameof(Summaries.MakeAnEmbed))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(true)]
 		public sealed class MakeAnEmbed : AdvobotModuleBase
 		{
@@ -96,7 +96,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MessageRole)), ModuleInitialismAlias(typeof(MessageRole))]
 		[LocalizedSummary(nameof(Summaries.MessageRole))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
 		public sealed class MessageRole : AdvobotModuleBase
 		{
@@ -115,9 +115,9 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MessageBotOwner)), ModuleInitialismAlias(typeof(MessageBotOwner))]
 		[LocalizedSummary(nameof(Summaries.MessageBotOwner))]
-		[UserPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
 		[EnabledByDefault(false)]
-		[RequireAllowedToDmBotOwnerAttribute]
+		[RequireAllowedToDmBotOwner]
 		public sealed class MessageBotOwner : AdvobotModuleBase
 		{
 			[Command]
@@ -136,7 +136,7 @@ namespace Advobot.Commands.Standard
 		{
 			[Command]
 			public Task<RuntimeResult> Command(
-				[ValidateRemindTime] int minutes,
+				[RemindTime] int minutes,
 				[Remainder] string message)
 			{
 				var time = TimeSpan.FromMinutes(minutes);
@@ -151,11 +151,11 @@ namespace Advobot.Commands.Standard
 		[EnabledByDefault(true)]
 		public sealed class Test : AdvobotModuleBase
 		{
-			[Command("steven")]
-			public Task<RuntimeResult> Command([ValidatePositiveNumber] int num)
+			[Command]
+			public Task<RuntimeResult> Command([GuildSettingName] string name)
 			{
 				//var invite = await Context.Channel.CreateInviteAsync(123, 3, false, false).CAF();
-				return AdvobotResult.Success("test test " + num.ToString());
+				return AdvobotResult.Success("test test " + name);
 			}
 		}
 	}
