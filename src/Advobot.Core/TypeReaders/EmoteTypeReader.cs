@@ -38,7 +38,7 @@ namespace Advobot.TypeReaders
 			}
 
 			var matches = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.MatchesResultAsync(matches, "emotes", input);
+			return TypeReaderUtils.SingleValidResultAsync(matches, "emotes", input);
 		}
 	}
 }

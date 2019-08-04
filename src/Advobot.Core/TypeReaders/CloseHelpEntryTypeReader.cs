@@ -17,7 +17,7 @@ namespace Advobot.TypeReaders
 		{
 			var helpEntries = services.GetRequiredService<IHelpEntryService>();
 			var matches = helpEntries.FindCloseHelpEntries(input);
-			return TypeReaderUtils.MatchesResultAsync(matches, "help entries", input);
+			return TypeReaderUtils.MultipleValidResultsAsync(matches, "help entries", input);
 		}
 	}
 }

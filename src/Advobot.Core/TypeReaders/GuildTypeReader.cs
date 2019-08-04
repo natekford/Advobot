@@ -1,11 +1,11 @@
-﻿using Advobot.Attributes;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Attributes;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.TypeReaders
 {
@@ -35,7 +35,7 @@ namespace Advobot.TypeReaders
 
 			var guilds = await context.Client.GetGuildsAsync().CAF();
 			var matches = guilds.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.MatchesResult(matches, "guilds", input);
+			return TypeReaderUtils.SingleValidResult(matches, "guilds", input);
 		}
 	}
 }

@@ -27,7 +27,7 @@ namespace Advobot.TypeReaders
 		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			var matches = Enums.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.MatchesResultAsync(matches, "enums", input);
+			return TypeReaderUtils.SingleValidResultAsync(matches, "enums", input);
 		}
 	}
 }

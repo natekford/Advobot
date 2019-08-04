@@ -35,13 +35,14 @@ namespace Advobot.TypeReaders
 
 			{
 				var invite = await context.Client.GetInviteAsync(input).CAF();
+				//TODO: put the invite.GuildId == context.Guild.Id into parameter precon?
 				if (invite is IInviteMetadata meta && invite.GuildId == context.Guild.Id)
 				{
 					return TypeReaderResult.FromSuccess(meta);
 				}
 			}
 
-			return TypeReaderUtils.MatchesResult(Array.Empty<IInviteMetadata>(), "invites", input);
+			return TypeReaderUtils.SingleValidResult(Array.Empty<IInviteMetadata>(), "invites", input);
 		}
 	}
 }

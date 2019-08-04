@@ -29,7 +29,7 @@ namespace Advobot.TypeReaders
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var matches = settings.Quotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.MatchesResult(matches, "quotes", input);
+			return TypeReaderUtils.SingleValidResult(matches, "quotes", input);
 		}
 	}
 }

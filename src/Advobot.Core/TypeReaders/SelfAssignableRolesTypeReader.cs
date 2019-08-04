@@ -1,13 +1,13 @@
-﻿using Advobot.Attributes;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Attributes;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.TypeReaders
 {
@@ -28,7 +28,7 @@ namespace Advobot.TypeReaders
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var matches = settings.SelfAssignableGroups.Where(x => x.Group == group).ToArray();
-			return TypeReaderUtils.MatchesResult(matches, "self assignable role groups", input);
+			return TypeReaderUtils.SingleValidResult(matches, "self assignable role groups", input);
 		}
 	}
 }

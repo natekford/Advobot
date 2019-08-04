@@ -28,7 +28,7 @@ namespace Advobot.TypeReaders
 			}
 
 			var matches = (await GetObjectsWithPositionAsync(context, position).CAF()).ToArray();
-			return TypeReaderUtils.MatchesResult(matches, $"{ObjectTypeName} by position", input);
+			return TypeReaderUtils.SingleValidResult(matches, $"{ObjectTypeName} by position", input);
 		}
 		/// <summary>
 		/// Gets objects with the supplied position.

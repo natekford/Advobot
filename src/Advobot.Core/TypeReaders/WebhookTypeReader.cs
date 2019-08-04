@@ -35,7 +35,7 @@ namespace Advobot.TypeReaders
 			}
 
 			var matches = webhooks.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.MatchesResult(matches, "webhooks", input);
+			return TypeReaderUtils.SingleValidResult(matches, "webhooks", input);
 		}
 	}
 }

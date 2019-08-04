@@ -27,7 +27,7 @@ namespace Advobot.TypeReaders
 		{
 			var help = services.GetRequiredService<IHelpEntryService>();
 			var matches = help.GetHelpEntries().Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.MatchesResultAsync(matches, "help entries", input);
+			return TypeReaderUtils.SingleValidResultAsync(matches, "help entries", input);
 		}
 	}
 }

@@ -10,18 +10,18 @@ namespace Advobot.Utilities
 	public static class TypeReaderUtils
 	{
 		/// <summary>
-		/// Acts as <see cref="MatchesResult{T}(IReadOnlyList{T}, string, string)"/> but async.
+		/// Acts as <see cref="SingleValidResult{T}(IReadOnlyList{T}, string, string)"/> but async.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="matches"></param>
 		/// <param name="type"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static Task<TypeReaderResult> MatchesResultAsync<T>(
+		public static Task<TypeReaderResult> SingleValidResultAsync<T>(
 			IReadOnlyList<T> matches,
 			string type,
 			string value)
-			=> Task.FromResult(MatchesResult(matches, type, value));
+			=> Task.FromResult(SingleValidResult(matches, type, value));
 		/// <summary>
 		/// Returns success if only one object, returns errors if zero or multiple.
 		/// </summary>
@@ -30,7 +30,7 @@ namespace Advobot.Utilities
 		/// <param name="type"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static TypeReaderResult MatchesResult<T>(
+		public static TypeReaderResult SingleValidResult<T>(
 			IReadOnlyList<T> matches,
 			string type,
 			string value)
@@ -43,6 +43,39 @@ namespace Advobot.Utilities
 			{
 				var tooManyError = $"{matches.Count} {type} match `{value}`.";
 				return TypeReaderResult.FromError(CommandError.MultipleMatches, tooManyError);
+			}
+			var noneError = $"Unable to find any {type} matching `{value}`.";
+			return TypeReaderResult.FromError(CommandError.ObjectNotFound, noneError);
+		}
+		/// <summary>
+		/// Acts as <see cref="MultipleValidResults{T}(IReadOnlyList{T}, string, string)"/> but async.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="matches"></param>
+		/// <param name="type"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static Task<TypeReaderResult> MultipleValidResultsAsync<T>(
+			IReadOnlyList<T> matches,
+			string type,
+			string value)
+			=> Task.FromResult(MultipleValidResults(matches, type, value));
+		/// <summary>
+		/// Returns success if at least one object, returns error if multiple.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="matches"></param>
+		/// <param name="type"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static TypeReaderResult MultipleValidResults<T>(
+			IReadOnlyList<T> matches,
+			string type,
+			string value)
+		{
+			if (matches.Count > 0)
+			{
+				return TypeReaderResult.FromSuccess(matches);
 			}
 			var noneError = $"Unable to find any {type} matching `{value}`.";
 			return TypeReaderResult.FromError(CommandError.ObjectNotFound, noneError);
