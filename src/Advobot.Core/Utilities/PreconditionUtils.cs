@@ -214,23 +214,14 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="permissions"></param>
-		/// <param name="callback"></param>
 		/// <returns></returns>
-		public static string FormatPermissions<T>(
-			this IEnumerable<T> permissions,
-			Func<T, string?>? callback = null)
+		public static string FormatPermissions<T>(this IEnumerable<T> permissions)
 			where T : Enum
 		{
 			return permissions.Select(x =>
 			{
-				var value = callback?.Invoke(x);
-				if (value != null)
-				{
-					return value;
-				}
-
 				var perms = new List<string>();
-				foreach (T e in Enum.GetValues(typeof(T)))
+				foreach (Enum e in Enum.GetValues(x.GetType()))
 				{
 					if (x.Equals(e))
 					{

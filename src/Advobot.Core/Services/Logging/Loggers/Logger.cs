@@ -5,10 +5,10 @@ using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Services.Logging.LogCounters;
-using Advobot.Services.Logging.LoggingContexts;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,7 +22,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <summary>
 		/// The bot client.
 		/// </summary>
-		protected DiscordShardedClient Client { get; }
+		protected BaseSocketClient Client { get; }
 		/// <summary>
 		/// The settings used in the bot.
 		/// </summary>
@@ -45,47 +45,54 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="provider"></param>
 		protected Logger(IServiceProvider provider)
 		{
-			Client = provider.GetRequiredService<DiscordShardedClient>();
+			Client = provider.GetRequiredService<BaseSocketClient>();
 			BotSettings = provider.GetRequiredService<IBotSettings>();
 			GuildSettingsFactory = provider.GetRequiredService<IGuildSettingsFactory>();
 			Timers = provider.GetRequiredService<ITimerService>();
 		}
 
-		/// <summary>
-		/// Fires the log counter increment event.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="count"></param>
 		protected void NotifyLogCounterIncrement(string name, int count)
 			=> LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
-		/// <summary>
-		/// Awaits task in <paramref name="tasks"/> and if the context can log will await every task in <paramref name="whenCanLog"/>.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="name"></param>
-		/// <param name="tasks"></param>
-		/// <param name="whenCanLog"></param>
-		/// <returns></returns>
-		protected async Task HandleAsync(LoggingContext context, string name, Task[] tasks, Func<Task>[] whenCanLog)
+		protected Task ReplyAsync(
+			ITextChannel? channel,
+			string content = "",
+			EmbedWrapper? embedWrapper = null,
+			TextFileInfo? textFile = null)
 		{
-			if (BotSettings.Pause)
+			if (channel == null)
+			{
+				return Task.CompletedTask;
+			}
+			return MessageUtils.SendMessageAsync(channel, content, embedWrapper, textFile);
+		}
+		protected async Task HandleAsync(IGuildUser user, LoggingContextArgs args)
+		{
+			var context = await LoggingContext.CreateAsync(user, GuildSettingsFactory, args).CAF();
+			await HandleAsync(context).CAF();
+		}
+		protected async Task HandleAsync(IMessage message, LoggingContextArgs args)
+		{
+			var context = await LoggingContext.CreateAsync(message, GuildSettingsFactory, args).CAF();
+			await HandleAsync(context).CAF();
+		}
+		private async Task HandleAsync(LoggingContext? context)
+		{
+			if (context == null || BotSettings.Pause)
 			{
 				return;
 			}
 			if (context.CanLog)
 			{
-				NotifyLogCounterIncrement(name, 1);
-				foreach (var task in whenCanLog)
+				NotifyLogCounterIncrement(context.Args.LogCounterName, 1);
+				foreach (var task in context.Args.WhenCanLog)
 				{
-					await task.Invoke().CAF();
+					await task.Invoke(context).CAF();
 				}
 			}
-			foreach (var task in tasks)
+			foreach (var task in context.Args.AnyTime)
 			{
-				await task.CAF();
+				await task.Invoke(context).CAF();
 			}
 		}
-		protected Task ReplyAsync(SocketTextChannel? channel, string content = "", EmbedWrapper? embedWrapper = null, TextFileInfo? textFile = null)
-			=> channel == null ? Task.CompletedTask : MessageUtils.SendMessageAsync(channel, content, embedWrapper, textFile);
 	}
 }

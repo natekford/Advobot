@@ -85,7 +85,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]
 		[LocalizedSummary(nameof(Summaries.MakeAnEmbed))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(true)]
 		public sealed class MakeAnEmbed : AdvobotModuleBase
 		{
@@ -96,7 +96,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MessageRole)), ModuleInitialismAlias(typeof(MessageRole))]
 		[LocalizedSummary(nameof(Summaries.MessageRole))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(false)]
 		public sealed class MessageRole : AdvobotModuleBase
 		{
@@ -115,7 +115,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MessageBotOwner)), ModuleInitialismAlias(typeof(MessageBotOwner))]
 		[LocalizedSummary(nameof(Summaries.MessageBotOwner))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(false)]
 		[RequireAllowedToDmBotOwner]
 		public sealed class MessageBotOwner : AdvobotModuleBase

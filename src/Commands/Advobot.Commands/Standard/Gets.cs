@@ -65,7 +65,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetUsersWithReason)), ModuleInitialismAlias(typeof(GetUsersWithReason))]
 		[LocalizedSummary(nameof(Summaries.GetUsersWithReason))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(true)]
 		public sealed class GetUsersWithReason : AdvobotModuleBase
 		{
@@ -99,7 +99,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetUserJoinedAt)), ModuleInitialismAlias(typeof(GetUserJoinedAt))]
 		[LocalizedSummary(nameof(Summaries.GetUserJoinedAt))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(true)]
 		public sealed class GetUserJoinedAt : AdvobotModuleBase
 		{
@@ -125,7 +125,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetUserJoinList)), ModuleInitialismAlias(typeof(GetUserJoinList))]
 		[LocalizedSummary(nameof(Summaries.GetUserJoinList))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(true)]
 		public sealed class GetUserJoinList : AdvobotModuleBase
 		{
@@ -152,7 +152,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetPermNamesFromValue)), ModuleInitialismAlias(typeof(GetPermNamesFromValue))]
 		[LocalizedSummary(nameof(Summaries.GetPermNamesFromValue))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(true)]
 		public sealed class GetPermNamesFromValue : AdvobotModuleBase
 		{
@@ -166,7 +166,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetEnumNames)), ModuleInitialismAlias(typeof(GetEnumNames))]
 		[LocalizedSummary(nameof(Summaries.GetEnumNames))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(true)]
 		public sealed class GetEnumNames : AdvobotModuleBase
 		{

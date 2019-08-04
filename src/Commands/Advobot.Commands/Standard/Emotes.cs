@@ -119,7 +119,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DisplayEmotes)), ModuleInitialismAlias(typeof(DisplayEmotes))]
 		[LocalizedSummary(nameof(Summaries.DisplayEmotes))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(true)]
 		public sealed class DisplayEmotes : AdvobotModuleBase
 		{

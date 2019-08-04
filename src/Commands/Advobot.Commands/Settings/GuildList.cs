@@ -45,7 +45,7 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(BumpGuildListing)), ModuleInitialismAlias(typeof(BumpGuildListing))]
 		[LocalizedSummary(nameof(Summaries.BumpGuildListing))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(false)]
 		[NotRecentlyBumped]
 		public sealed class BumpGuildListing : AdvobotModuleBase

@@ -16,7 +16,7 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ShowGuildSettings)), ModuleInitialismAlias(typeof(ShowGuildSettings))]
 		[LocalizedSummary(nameof(Summaries.ShowGuildSettings))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(true)]
 		public sealed class ShowGuildSettings : ReadOnlySettingsModule<IGuildSettings>
 		{

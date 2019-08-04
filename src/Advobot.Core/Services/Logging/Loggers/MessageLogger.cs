@@ -8,7 +8,6 @@ using Advobot.Classes;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Services.Logging.Interfaces;
-using Advobot.Services.Logging.LoggingContexts;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -31,50 +30,73 @@ namespace Advobot.Services.Logging.Loggers
 		public MessageLogger(IServiceProvider provider) : base(provider) { }
 
 		/// <inheritdoc />
-		public async Task OnMessageReceived(SocketMessage message)
+		public Task OnMessageReceived(SocketMessage message)
 		{
-			if (!(message.Author is SocketGuildUser user))
-			{
-				return;
-			}
-
-			var context = new MessageLoggingContext(GuildSettingsFactory, LogAction.MessageReceived, message);
-			await HandleAsync(context, nameof(ILogService.Messages), new[] { HandleChannelSettingsAsync(context) }, new Func<Task>[]
-			{
-				() => HandleImageLoggingAsync(context),
-				() => HandleSpamPreventionAsync(context),
-				() => HandleBannedPhrasesAsync(context),
-			}).CAF();
-		}
-		/// <inheritdoc />
-		public Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
-		{
-			if (!(message.Author is SocketGuildUser user))
+			if (!(message.Author is IGuildUser user))
 			{
 				return Task.CompletedTask;
 			}
 
-			var context = new MessageLoggingContext(GuildSettingsFactory, LogAction.MessageUpdated, message);
-			return HandleAsync(context, nameof(ILogService.MessageEdits), Array.Empty<Task>(), new Func<Task>[]
+			return HandleAsync(message, new LoggingContextArgs
 			{
-				() => HandleBannedPhrasesAsync(context),
-				() => HandleMessageEditedLoggingAsync(context, cached.Value as SocketMessage),
-				() => HandleMessageEditedImageLoggingAsync(context, cached.Value as SocketMessage),
+				Action = LogAction.MessageReceived,
+				LogCounterName = nameof(ILogService.Messages),
+				WhenCanLog = new Func<LoggingContext, Task>[]
+				{
+					x => HandleChannelSettingsAsync(x),
+				},
+				AnyTime = new Func<LoggingContext, Task>[]
+				{
+					x => HandleImageLoggingAsync(x),
+					x => HandleSpamPreventionAsync(x),
+					x => HandleBannedPhrasesAsync(x),
+				},
 			});
 		}
 		/// <inheritdoc />
-		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
+		public Task OnMessageUpdated(
+			Cacheable<IMessage, ulong> cached,
+			SocketMessage message,
+			ISocketMessageChannel channel)
 		{
-			//Ignore uncached messages since not much can be done with them
-			if (!(cached.Value is SocketMessage message) || !(message.Author is SocketGuildUser author))
+			if (!(message.Author is IGuildUser user))
 			{
 				return Task.CompletedTask;
 			}
 
-			var context = new MessageLoggingContext(GuildSettingsFactory, LogAction.MessageDeleted, message);
-			return HandleAsync(context, nameof(ILogService.MessageDeletes), Array.Empty<Task>(), new Func<Task>[]
+			return HandleAsync(message, new LoggingContextArgs
 			{
-				() => HandleMessageDeletedLogging(context),
+				Action = LogAction.MessageUpdated,
+				LogCounterName = nameof(ILogService.MessageEdits),
+				WhenCanLog = new Func<LoggingContext, Task>[]
+				{
+					x => HandleBannedPhrasesAsync(x),
+					x => HandleMessageEditedLoggingAsync(x, cached.Value),
+					x => HandleMessageEditedImageLoggingAsync(x, cached.Value),
+				},
+				AnyTime = Array.Empty<Func<LoggingContext, Task>>(),
+			});
+		}
+		/// <inheritdoc />
+		public Task OnMessageDeleted(
+			Cacheable<IMessage, ulong> cached,
+			ISocketMessageChannel channel)
+		{
+			//Ignore uncached messages since not much can be done with them
+			if (!(cached.Value is IMessage message))
+			{
+				return Task.CompletedTask;
+			}
+
+			return HandleAsync(message, new LoggingContextArgs
+			{
+				Action = LogAction.MessageDeleted,
+				LogCounterName = nameof(ILogService.MessageDeletes),
+				WhenCanLog = new Func<LoggingContext, Task>[]
+				{
+					x => HandleMessageDeletedLogging(x),
+				},
+				AnyTime = Array.Empty<Func<LoggingContext, Task>>(),
 			});
 		}
 
@@ -83,7 +105,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		private Task HandleChannelSettingsAsync(MessageLoggingContext context)
+		private Task HandleChannelSettingsAsync(LoggingContext context)
 		{
 			if (!context.User.GuildPermissions.Administrator
 				&& context.Settings.ImageOnlyChannels.Contains(context.Channel.Id)
@@ -100,7 +122,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleImageLoggingAsync(MessageLoggingContext context)
+		private async Task HandleImageLoggingAsync(LoggingContext context)
 		{
 			if (context.ImageLog == null)
 			{
@@ -151,9 +173,9 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleSpamPreventionAsync(MessageLoggingContext context)
+		private async Task HandleSpamPreventionAsync(LoggingContext context)
 		{
-			if (!context.Guild.CurrentUser.CanModify(context.Guild.CurrentUser.Id, context.User))
+			if (!context.Bot.CanModify(context.Bot.Id, context.User))
 			{
 				return;
 			}
@@ -168,7 +190,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		private async Task HandleBannedPhrasesAsync(MessageLoggingContext context)
+		private async Task HandleBannedPhrasesAsync(LoggingContext context)
 		{
 			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
 			if (context.User.GuildPermissions.Administrator || (DateTime.UtcNow - context.Message.CreatedAt.UtcDateTime).Hours > 0)
@@ -199,7 +221,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="context"></param>
 		/// <param name="before"></param>
 		/// <returns></returns>
-		private Task HandleMessageEditedImageLoggingAsync(MessageLoggingContext context, SocketMessage? before)
+		private Task HandleMessageEditedImageLoggingAsync(LoggingContext context, IMessage? before)
 		{
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
@@ -215,7 +237,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="context"></param>
 		/// <param name="before"></param>
 		/// <returns></returns>
-		private Task HandleMessageEditedLoggingAsync(MessageLoggingContext context, SocketMessage? before)
+		private Task HandleMessageEditedLoggingAsync(LoggingContext context, IMessage? before)
 		{
 			var uneditedBMsgContent = before?.Content;
 			var uneditedAMsgContent = context.Message.Content;
@@ -254,7 +276,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		private Task HandleMessageDeletedLogging(MessageLoggingContext context)
+		private Task HandleMessageDeletedLogging(LoggingContext context)
 		{
 			var cache = context.Settings.GetDeletedMessageCache();
 			cache.Add(context.Message);

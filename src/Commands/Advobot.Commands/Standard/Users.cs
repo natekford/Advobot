@@ -325,16 +325,38 @@ namespace Advobot.Commands.Standard
 		public sealed class RemoveMessages : AdvobotModuleBase
 		{
 			[Command]
+			[ChannelPermissionRequirement(ManageMessages)]
+			public Task<RuntimeResult> Command(
+				[Positive] int requestCount)
+				=> CommandRunner(requestCount, Context.Channel, null);
+			[Command]
+			[ChannelPermissionRequirement(ManageMessages)]
 			public Task<RuntimeResult> Command(
 				[Positive] int requestCount,
-				[Optional] IGuildUser? user,
-				[Optional, OverrideTypeReader(typeof(TestTypeReader)), Channel(ManageMessages)] ITextChannel? channel)
-				=> Command(requestCount, channel, user);
+				IGuildUser user)
+				=> CommandRunner(requestCount, Context.Channel, user);
 			[Command]
-			public async Task<RuntimeResult> Command(
+			public Task<RuntimeResult> Command(
 				[Positive] int requestCount,
-				[Optional, OverrideTypeReader(typeof(TestTypeReader)), Channel(ManageMessages)] ITextChannel? channel,
-				[Optional] IGuildUser? user)
+				[Channel(ManageMessages)] ITextChannel channel)
+				=> CommandRunner(requestCount, channel, null);
+			[Command]
+			public Task<RuntimeResult> Command(
+				[Positive] int requestCount,
+				IGuildUser user,
+				[Channel(ManageMessages)] ITextChannel channel)
+				=> CommandRunner(requestCount, channel, user);
+			[Command]
+			public Task<RuntimeResult> Command(
+				[Positive] int requestCount,
+				[Channel(ManageMessages)] ITextChannel channel,
+				IGuildUser user)
+				=> CommandRunner(requestCount, channel, user);
+
+			private async Task<RuntimeResult> CommandRunner(
+				int req,
+				ITextChannel channel,
+				IUser? user)
 			{
 				//If not the context channel then get the first message in that channel
 				var thisChannel = Context.Message.Channel.Id == channel.Id;
@@ -346,8 +368,12 @@ namespace Advobot.Commands.Standard
 				}
 
 				//If there is a non null user then delete messages specifically from that user
-				var predicate = user == null ? default(Func<IMessage, bool>) : x => x.Author.Id == user?.Id;
-				var deleted = await MessageUtils.DeleteMessagesAsync(channel, start, requestCount, GenerateRequestOptions(), predicate).CAF();
+				Func<IMessage, bool> predicate = null;
+				if (user != null)
+				{
+					predicate = x => x.Author.Id == user?.Id;
+				}
+				var deleted = await MessageUtils.DeleteMessagesAsync(channel, start, req, GenerateRequestOptions(), predicate).CAF();
 
 				//If the context channel isn't the targetted channel then delete the start message
 				//Increase by one to account for it not being targetted.
@@ -358,23 +384,6 @@ namespace Advobot.Commands.Standard
 				}
 
 				return Responses.Users.RemovedMessages(channel, user, deleted);
-			}
-		}
-
-		public sealed class TestTypeReader : TypeReader
-		{
-			private readonly TypeReader _Reader = new ChannelTypeReader<ITextChannel>();
-
-			public override Task<TypeReaderResult> ReadAsync(
-				ICommandContext context,
-				string input,
-				IServiceProvider services)
-			{
-				if (input == null)
-				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(context.Channel));
-				}
-				return _Reader.ReadAsync(context, input, services);
 			}
 		}
 

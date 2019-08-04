@@ -106,7 +106,7 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(PrintOutRules)), ModuleInitialismAlias(typeof(PrintOutRules))]
 		[LocalizedSummary(nameof(Summaries.PrintOutRules))]
-		[GuildPermissionRequirement(PermissionRequirementAttribute.GenericPerms)]
+		[GenericGuildPermissionRequirement]
 		[EnabledByDefault(false)]
 		public sealed class PrintOutRules : AdvobotModuleBase
 		{

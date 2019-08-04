@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -13,31 +11,13 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	/// <summary>
 	/// For verifying <see cref="SocketGuildUser"/> permissions.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public abstract class PermissionRequirementAttribute : PreconditionAttribute
 	{
 		/// <summary>
-		/// Indicates this user has a permission which should allow them to use basic commands which could potentially be spammy.
-		/// </summary>
-		public const GuildPermission GenericPerms = 0
-			| GuildPermission.Administrator
-			| GuildPermission.BanMembers
-			| GuildPermission.DeafenMembers
-			| GuildPermission.KickMembers
-			| GuildPermission.ManageChannels
-			| GuildPermission.ManageEmojis
-			| GuildPermission.ManageGuild
-			| GuildPermission.ManageMessages
-			| GuildPermission.ManageNicknames
-			| GuildPermission.ManageRoles
-			| GuildPermission.ManageWebhooks
-			| GuildPermission.MoveMembers
-			| GuildPermission.MuteMembers;
-
-		/// <summary>
 		/// The flags required (each is a separate valid combination of flags).
 		/// </summary>
-		public ImmutableHashSet<GuildPermission> Permissions { get; }
+		public ImmutableHashSet<Enum> Permissions { get; }
 
 		private readonly string _PermissionsText;
 
@@ -45,22 +25,11 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		/// Creates an instance of <see cref="PermissionRequirementAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
-		public PermissionRequirementAttribute(params GuildPermission[] permissions)
+		public PermissionRequirementAttribute(params Enum[] permissions)
 		{
-			Permissions = permissions
-				.Concat(new[] { GuildPermission.Administrator })
-				.ToImmutableHashSet();
+			Permissions = permissions.ToImmutableHashSet();
 
-			var text = Permissions.FormatPermissions(x =>
-			{
-				//Special case, greatly shortens the output string while retaining what it means
-				if (x == GenericPerms)
-				{
-					return "Any ending with 'Members' | Any starting with 'Manage'";
-				}
-				return null;
-			});
-			_PermissionsText = $"[{text}]";
+			_PermissionsText = Permissions.FormatPermissions();
 		}
 
 		/// <inheritdoc />
@@ -71,19 +40,19 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		{
 			var userPerms = await GetUserPermissionsAsync(context, services).CAF();
 			//If the user has no permissions this should just return an error
-			if (userPerms == 0)
+			if (userPerms == null)
 			{
 				return PreconditionResult.FromError("You have no permissions.");
 			}
 
-			foreach (ulong permission in Permissions)
+			foreach (var flag in Permissions)
 			{
-				if ((userPerms & permission) == permission)
+				if (userPerms.HasFlag(flag))
 				{
 					return PreconditionResult.FromSuccess();
 				}
 			}
-			return PreconditionResult.FromError("You are missing permissions");
+			return PreconditionResult.FromError("You are missing permissions.");
 		}
 		/// <summary>
 		/// Returns the invoking user's permissions.
@@ -91,7 +60,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		/// <param name="context"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public abstract Task<ulong> GetUserPermissionsAsync(
+		public abstract Task<Enum?> GetUserPermissionsAsync(
 			ICommandContext context,
 			IServiceProvider services);
 		/// <inheritdoc />
