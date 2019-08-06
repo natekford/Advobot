@@ -601,6 +601,15 @@ namespace Advobot.Commands.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Turns commands on and off..
+        /// </summary>
+        internal static string ModifyCommands {
+            get {
+                return ResourceManager.GetString("ModifyCommands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifies an emote name..
         /// </summary>
         internal static string ModifyEmoteName {

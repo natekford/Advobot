@@ -20,7 +20,7 @@ namespace Advobot
 		/// <summary>
 		/// The schema 
 		/// </summary>
-		public const int SCHEMA_VERSION = 1;
+		public const int SCHEMA_VERSION = 2;
 		/// <summary>
 		/// The Discord api wrapper version.
 		/// </summary>

@@ -9,6 +9,10 @@ namespace Advobot.Databases.Abstract
 	internal interface IDatabaseWrapper : IDisposable
 	{
 		/// <summary>
+		/// The underlying database.
+		/// </summary>
+		object UnderlyingDatabase { get; }
+		/// <summary>
 		/// Executes a query and returns some values.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>

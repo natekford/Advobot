@@ -11,7 +11,7 @@ namespace Advobot.Attributes
 		/// <summary>
 		/// The id of the command.
 		/// </summary>
-		public Guid Id { get; }
+		public Guid Guid { get; }
 		/// <summary>
 		/// Whether or not the command is enabled by default.
 		/// </summary>
@@ -27,7 +27,7 @@ namespace Advobot.Attributes
 		/// <param name="guid"></param>
 		public CommandMetaAttribute(string guid)
 		{
-			Id = Guid.Parse(guid);
+			Guid = Guid.Parse(guid);
 		}
 	}
 }

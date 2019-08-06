@@ -5,9 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
+using Advobot.Services.GuildSettings.Settings;
 using Advobot.Settings;
 using AdvorangesUtils;
 using Discord;
+using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.GuildSettings
@@ -49,6 +51,16 @@ namespace Advobot.Services.GuildSettings
 				});
 
 				DatabaseWrapper.ExecuteQuery(DatabaseQuery<GuildSettings>.Upsert(instances));
+			}
+			if (schema < 2) //Relying on LiteDB
+			{
+				var db = (LiteDatabase)DatabaseWrapper.UnderlyingDatabase;
+				var col = db.GetCollection("GuildSettings");
+				foreach (var doc in col.FindAll())
+				{
+					doc["CommandSettings"] = db.Mapper.ToDocument(new CommandSettings());
+					col.Update(doc);
+				}
 			}
 		}
 

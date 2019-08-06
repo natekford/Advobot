@@ -12,8 +12,9 @@ namespace Advobot.Services.HelpEntries
 {
 	internal readonly struct HelpEntry : IHelpEntry
 	{
-		public bool AbleToBeToggled { get; }
-		public bool DefaultEnabled { get; }
+		public bool AbleToBeToggled => _Meta.CanToggle;
+		public bool DefaultEnabled => _Meta.IsEnabled;
+		public string Id => _Meta.Guid.ToString();
 		public string? Category { get; }
 		public string Description { get; }
 		public string Name { get; }
@@ -21,12 +22,11 @@ namespace Advobot.Services.HelpEntries
 		public IReadOnlyCollection<PreconditionAttribute> BasePerms { get; }
 
 		private readonly ModuleInfo _Module;
+		private readonly CommandMetaAttribute _Meta;
 
 		public HelpEntry(ModuleInfo module)
 		{
-			var enabledByDefaultAttr = module.Attributes.GetAttribute<CommandMetaAttribute>();
-			AbleToBeToggled = enabledByDefaultAttr.CanToggle;
-			DefaultEnabled = enabledByDefaultAttr.IsEnabled;
+			_Meta = module.Attributes.GetAttribute<CommandMetaAttribute>();
 
 			static ModuleInfo GetParentModule(ModuleInfo m)
 				=> m.Parent == null ? m : GetParentModule(m.Parent);
@@ -77,7 +77,7 @@ namespace Advobot.Services.HelpEntries
 		private static string FormatParameter(ParameterInfo p)
 			=> $"{FormatType(p.Type)}: {p.Name}";
 		private string GetEnabledStatus(IGuildSettings? settings)
-			=> settings?.CommandSettings?.IsCommandEnabled(Name) ?? DefaultEnabled ? "Yes" : "No";
+			=> settings?.CommandSettings?.IsCommandEnabled(Id) ?? DefaultEnabled ? "Yes" : "No";
 		public string ToString(IFormatProvider? formatProvider)
 			=> ToString(null, formatProvider);
 		public string ToString(IGuildSettings? settings, IFormatProvider? formatProvider)

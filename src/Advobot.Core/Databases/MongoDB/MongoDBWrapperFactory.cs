@@ -92,6 +92,8 @@ namespace Advobot.Databases.MongoDB
 			}
 			/// <inheritdoc />
 			public void Dispose() { }
+
+			object IDatabaseWrapper.UnderlyingDatabase => _Database;
 		}
 	}
 }

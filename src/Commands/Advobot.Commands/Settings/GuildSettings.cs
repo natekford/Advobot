@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
@@ -152,53 +153,40 @@ namespace Advobot.Commands.Settings
 			}
 		}*/
 
-#warning reenable
-		/*
 		[Group(nameof(ModifyCommands)), ModuleInitialismAlias(typeof(ModifyCommands))]
-		[Summary("Turns a command on or off. " +
-			"Can turn all commands in a category on or off too. " +
-			"Cannot turn off commands which are untoggleable.")]
-		[UserPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(true, AbleToToggle = false)]
-		public sealed class ModifyCommands
-			: AdvobotSettingsModuleBase<IGuildSettings>, ICollectionSettingModule<string>, ICollectionSettingModule<IHelpEntry>
+		[LocalizedSummary(nameof(Summaries.ModifyCommands))]
+		[RequireGuildPermissions]
+		[CommandMeta("6fb02198-9eab-4e44-a59a-7ba7f7317c10", IsEnabled = true, CanToggle = false)]
+		public sealed class ModifyCommands : SettingsModule<IGuildSettings>
 		{
 			public IHelpEntryService HelpEntries { get; set; }
 
-			protected override IGuildSettings Settings => Context.GuildSettings;
-			protected override string SettingName => nameof(IGuildSettings.CommandSettings);
+			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> All(bool enable)
 			{
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(HelpEntries, enable);
-				return ResponsesOf.ModifyCommands.For(Context).ModifiedMultiple(Subject.Is(commands), enable);
+				var entries = HelpEntries.GetHelpEntries();
+				var commands = Settings.CommandSettings.ModifyCommandValues(entries, enable);
+				return Responses.ModifyCommands.ModifiedMultiple(commands, enable);
 			}
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task<RuntimeResult> Modify(bool enable, string category)
+			[Command]
+			public Task<RuntimeResult> Command([CommandCategory] string category, bool enable)
 			{
-				if (!HelpEntries.GetCategories().CaseInsContains(category))
-				{
-					return ResponsesOf.ModifyCommands.For(Context).InvalidCategory(Subject.Is(category));
-				}
-				//Only grab commands that are already disabled and in the same category and are able to be changed.
-				var commands = Context.GuildSettings.CommandSettings.ModifyCommandValues(HelpEntries.GetHelpEntries(category), enable);
-				return ResponsesOf.ModifyCommands.For(Context).ModifiedMultiple(Subject.Is(commands), enable);
+				var entries = HelpEntries.GetHelpEntries(category);
+				var commands = Settings.CommandSettings.ModifyCommandValues(entries, enable);
+				return Responses.ModifyCommands.ModifiedMultiple(commands, enable);
 			}
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Modify(bool enable, IHelpEntry command)
+			[Command]
+			public Task<RuntimeResult> Command([RequireCanToggle] IHelpEntry command, bool enable)
 			{
-				if (!command.AbleToBeToggled)
+				if (Settings.CommandSettings.ModifyCommandValue(command, enable))
 				{
-					return ResponsesOf.ModifyCommands.For(Context).CannotBeEdited(Subject.Is(command.Name));
+					return Responses.ModifyCommands.Modified(command.Name, enable);
 				}
-				if (!Context.GuildSettings.CommandSettings.ModifyCommandValue(command, enable))
-				{
-					return ResponsesOf.ModifyCommands.For(Context).Unmodified(Subject.Is(command.Name), enable);
-				}
-				return ResponsesOf.ModifyCommands.For(Context).Modified(Subject.Is(command.Name), enable);
+				return Responses.ModifyCommands.Unmodified(command.Name, enable);
 			}
-		}*/
+		}
 
 		[Group(nameof(ModifyIgnoredCommandChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredCommandChannels))]
 		[LocalizedSummary(nameof(Summaries.ModifyIgnoredCommandChannels))]

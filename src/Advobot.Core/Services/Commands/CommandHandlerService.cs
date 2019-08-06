@@ -213,7 +213,7 @@ namespace Advobot.Services.Commands
 				$"\n\tUser: {context.User.Format()}" +
 				$"\n\tTime: {context.Message.CreatedAt.UtcDateTime.ToReadable()} ({context.ElapsedMilliseconds}ms)" +
 				$"\n\tText: {context.Message.Content}";
-			if (result.ErrorReason != null)
+			if (!result.IsSuccess && result.ErrorReason != null)
 			{
 				resp += $"\n\tError: {result.ErrorReason}";
 			}

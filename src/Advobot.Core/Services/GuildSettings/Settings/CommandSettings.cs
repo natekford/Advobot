@@ -19,12 +19,14 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// Whether each command is enabled or disabled.
 		/// </summary>
 		[JsonProperty("CommandValues")]
-		public Dictionary<string, bool> CommandValues { get; set; } = new Dictionary<string, bool>();
+		public Dictionary<string, bool> CommandValues { get; set; }
+			= new Dictionary<string, bool>();
 		/// <summary>
 		/// Overrides for each command.
 		/// </summary>
 		[JsonProperty("Overrides")]
-		public Dictionary<ulong, Dictionary<string, bool>> Overrides { get; set; } = new Dictionary<ulong, Dictionary<string, bool>>();
+		public Dictionary<ulong, Dictionary<string, bool>> Overrides { get; set; }
+			= new Dictionary<ulong, Dictionary<string, bool>>();
 
 		/// <summary>
 		/// Changes the value for whether or not the commands are enabled on a guild.
@@ -32,7 +34,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="values">The commands to change.</param>
 		/// <param name="enable"></param>
 		/// <returns>The names of the commands which were successfully changed.</returns>
-		public string[] ModifyCommandValues(IEnumerable<IHelpEntry> values, bool? enable)
+		public IReadOnlyList<string> ModifyCommandValues(IEnumerable<IHelpEntry> values, bool? enable)
 		{
 			var changed = new List<string>();
 			foreach (var value in values)
@@ -42,7 +44,7 @@ namespace Advobot.Services.GuildSettings.Settings
 					changed.Add(value.Name);
 				}
 			}
-			return changed.ToArray();
+			return changed;
 		}
 		/// <summary>
 		/// Changes the values for whether or not a command is enabled on a guild.
@@ -59,7 +61,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="obj">The object to target.</param>
 		/// <param name="enable"></param>
 		/// <returns>The names of the commands which were successfully changed.</returns>
-		public string[] ModifyOverrides(IEnumerable<IHelpEntry> values, ISnowflakeEntity obj, bool? enable)
+		public IReadOnlyList<string> ModifyOverrides(IEnumerable<IHelpEntry> values, ISnowflakeEntity obj, bool? enable)
 		{
 			var changed = new List<string>();
 			foreach (var value in values)
@@ -69,7 +71,7 @@ namespace Advobot.Services.GuildSettings.Settings
 					changed.Add(value.Name);
 				}
 			}
-			return changed.ToArray();
+			return changed;
 		}
 		/// <summary>
 		/// Enables/disables/removes an override on a specified command for a specified object.
@@ -104,42 +106,41 @@ namespace Advobot.Services.GuildSettings.Settings
 			{
 				module = module.Parent;
 			}
-			var name = module.Name;
+			var meta = module.Attributes.GetAttribute<CommandMetaAttribute>();
+			var guid = meta.Guid.ToString();
 
-			if (Overrides.TryGetValue(user.Id, out var uD) && uD.TryGetValue(name, out var u))
+			if (Overrides.TryGetValue(user.Id, out var uD) && uD.TryGetValue(guid, out var u))
 			{
 				return u;
 			}
 			foreach (var role in user.RoleIds.OrderByDescending(x => user.Guild.GetRole(x).Position))
 			{
-				if (Overrides.TryGetValue(role, out var rD) && rD.TryGetValue(name, out var r))
+				if (Overrides.TryGetValue(role, out var rD) && rD.TryGetValue(guid, out var r))
 				{
 					return r;
 				}
 			}
-			if (Overrides.TryGetValue(channel.Id, out var cD) && cD.TryGetValue(name, out var c))
+			if (Overrides.TryGetValue(channel.Id, out var cD) && cD.TryGetValue(guid, out var c))
 			{
 				return c;
 			}
-			if (CommandValues.TryGetValue(name, out var value))
+			if (CommandValues.TryGetValue(guid, out var value))
 			{
 				return value;
 			}
 
 			//If they get here it means they're not in the command values currently so they should just use the default value.
-			var defaultEnabledAttr = module.Attributes.GetAttribute<CommandMetaAttribute>();
-			var defaultEnabled = defaultEnabledAttr?.IsEnabled ?? false;
-			CommandValues.Add(name, defaultEnabled);
-			return defaultEnabled;
+			CommandValues.Add(guid, meta.IsEnabled);
+			return meta.IsEnabled;
 		}
 		/// <summary>
 		/// Checks whether the command is enabled on the guild.
 		/// Returns true if set to true, returns false it set to false, returns null if not set.
 		/// </summary>
-		/// <param name="name"></param>
+		/// <param name="id"></param>
 		/// <returns></returns>
-		public bool? IsCommandEnabled(string name)
-			=> CommandValues.TryGetValue(name, out var val) ? val : (bool?)null;
+		public bool? IsCommandEnabled(string id)
+			=> CommandValues.TryGetValue(id, out var val) ? val : (bool?)null;
 		private static bool ModifyOverride(IDictionary<string, bool> dict, IHelpEntry help, bool? enable)
 		{
 			if (!help.AbleToBeToggled)
@@ -148,13 +149,13 @@ namespace Advobot.Services.GuildSettings.Settings
 			}
 			if (enable == null)
 			{
-				return dict.Remove(help.Name);
+				return dict.Remove(help.Id);
 			}
-			if (dict.TryGetValue(help.Name, out var currentValue) && currentValue == enable)
+			if (dict.TryGetValue(help.Id, out var currentValue) && currentValue == enable)
 			{
 				return false;
 			}
-			dict[help.Name] = enable.Value;
+			dict[help.Id] = enable.Value;
 			return true;
 		}
 

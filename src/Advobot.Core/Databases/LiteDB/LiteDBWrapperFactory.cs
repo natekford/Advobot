@@ -103,6 +103,8 @@ namespace Advobot.Databases.LiteDB
 			/// <inheritdoc />
 			public void Dispose()
 				=> _Database?.Dispose();
+
+			object IDatabaseWrapper.UnderlyingDatabase => _Database;
 		}
 	}
 }

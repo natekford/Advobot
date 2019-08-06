@@ -297,6 +297,9 @@
   <data name="ModifyChannelTopic" xml:space="preserve">
     <value>Modifies a channel's topic.</value>
   </data>
+  <data name="ModifyCommands" xml:space="preserve">
+    <value>Turns commands on and off.</value>
+  </data>
   <data name="ModifyEmoteName" xml:space="preserve">
     <value>Modifies an emote name.</value>
   </data>

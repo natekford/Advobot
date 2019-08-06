@@ -20,6 +20,10 @@ namespace Advobot.Services.HelpEntries
 		/// </summary>
 		bool DefaultEnabled { get; }
 		/// <summary>
+		/// The constant Id for this help entry.
+		/// </summary>
+		string Id { get; }
+		/// <summary>
 		/// Describes what the command does.
 		/// </summary>
 		string Description { get; }

@@ -10,6 +10,7 @@ namespace Advobot.Tests.Fakes.Services.HelpEntries
 	{
 		public bool AbleToBeToggled { get; set; }
 		public bool DefaultEnabled { get; set; }
+		public string Id { get; set; }
 		public string Description { get; set; }
 		public string? Category { get; set; }
 		public IReadOnlyCollection<string> Aliases { get; set; }
