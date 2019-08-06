@@ -24,9 +24,9 @@ namespace Advobot.Services.HelpEntries
 
 		public HelpEntry(ModuleInfo module)
 		{
-			var enabledByDefaultAttr = module.Attributes.GetAttribute<EnabledByDefaultAttribute>();
-			AbleToBeToggled = enabledByDefaultAttr.AbleToToggle;
-			DefaultEnabled = enabledByDefaultAttr.Enabled;
+			var enabledByDefaultAttr = module.Attributes.GetAttribute<CommandMetaAttribute>();
+			AbleToBeToggled = enabledByDefaultAttr.CanToggle;
+			DefaultEnabled = enabledByDefaultAttr.IsEnabled;
 
 			static ModuleInfo GetParentModule(ModuleInfo m)
 				=> m.Parent == null ? m : GetParentModule(m.Parent);

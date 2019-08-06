@@ -14,8 +14,8 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ShowBotSettings)), ModuleInitialismAlias(typeof(ShowBotSettings))]
 		[LocalizedSummary(nameof(Summaries.ShowBotSettings))]
+		[CommandMeta("3a3a0bad-2124-4a4f-bbc8-60b1f684c2f7", IsEnabled = true)]
 		[RequireBotOwner]
-		[EnabledByDefault(true)]
 		public sealed class ShowBotSettings : ReadOnlySettingsModule<IBotSettings>
 		{
 			protected override IBotSettings Settings => BotSettings;

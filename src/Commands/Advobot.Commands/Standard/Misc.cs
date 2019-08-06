@@ -25,7 +25,7 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(Help)), ModuleInitialismAlias(typeof(Help))]
 		[LocalizedSummary(nameof(Summaries.Help))]
-		[EnabledByDefault(true, AbleToToggle = false)]
+		[CommandMeta("0e89a6fd-5c9c-4008-a912-7c719ea7827d", IsEnabled = true, CanToggle = false)]
 		public sealed class Help : AdvobotModuleBase
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
@@ -65,7 +65,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Commands)), ModuleInitialismAlias(typeof(Commands))]
 		[LocalizedSummary(nameof(Summaries.Commands))]
-		[EnabledByDefault(true)]
+		[CommandMeta("ec0f7aef-85d6-4251-9c8e-7c70890f455e", IsEnabled = true, CanToggle = false)]
 		public sealed class Commands : AdvobotModuleBase
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
@@ -85,8 +85,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]
 		[LocalizedSummary(nameof(Summaries.MakeAnEmbed))]
-		[GenericGuildPermissionRequirement]
-		[EnabledByDefault(true)]
+		[CommandMeta("6acf2d14-b251-46a6-a645-095cbc8300f9", IsEnabled = true)]
+		[RequireGenericGuildPermissions]
 		public sealed class MakeAnEmbed : AdvobotModuleBase
 		{
 			[Command]
@@ -96,8 +96,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MessageRole)), ModuleInitialismAlias(typeof(MessageRole))]
 		[LocalizedSummary(nameof(Summaries.MessageRole))]
-		[GenericGuildPermissionRequirement]
-		[EnabledByDefault(false)]
+		[CommandMeta("db524980-4a8e-4933-aa9b-527094d60165", IsEnabled = false)]
+		[RequireGenericGuildPermissions]
 		public sealed class MessageRole : AdvobotModuleBase
 		{
 			[Command]
@@ -106,7 +106,6 @@ namespace Advobot.Commands.Standard
 				[Remainder] string message)
 			{
 				var text = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
-				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
 				await role.ModifyAsync(x => x.Mentionable = true, GenerateRequestOptions()).CAF();
 				await ReplyAsync(text).CAF();
 				await role.ModifyAsync(x => x.Mentionable = false, GenerateRequestOptions()).CAF();
@@ -115,8 +114,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MessageBotOwner)), ModuleInitialismAlias(typeof(MessageBotOwner))]
 		[LocalizedSummary(nameof(Summaries.MessageBotOwner))]
-		[GenericGuildPermissionRequirement]
-		[EnabledByDefault(false)]
+		[CommandMeta("3562f937-4d3c-46aa-afda-70e04040be53", IsEnabled = false)]
+		[RequireGenericGuildPermissions]
 		[RequireAllowedToDmBotOwner]
 		public sealed class MessageBotOwner : AdvobotModuleBase
 		{
@@ -131,7 +130,7 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Remind)), ModuleInitialismAlias(typeof(Remind))]
 		[LocalizedSummary(nameof(Summaries.Remind))]
-		[EnabledByDefault(true)]
+		[CommandMeta("3cedf19e-7a4d-47c0-ac2f-1c39a92026ec", IsEnabled = true)]
 		public sealed class Remind : AdvobotModuleBase
 		{
 			[Command]
@@ -147,8 +146,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Test)), ModuleInitialismAlias(typeof(Test))]
 		[LocalizedSummary(nameof(Summaries.Test))]
+		[CommandMeta("6c0b693e-e3ac-421e-910e-3178110d791d", IsEnabled = true)]
 		[RequireBotOwner]
-		[EnabledByDefault(true)]
 		public sealed class Test : AdvobotModuleBase
 		{
 			[Command]

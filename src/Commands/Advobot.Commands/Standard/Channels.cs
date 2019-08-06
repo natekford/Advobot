@@ -23,8 +23,8 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(CreateChannel)), ModuleInitialismAlias(typeof(CreateChannel))]
 		[LocalizedSummary(nameof(Summaries.CreateChannel))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
-		[EnabledByDefault(true)]
+		[CommandMeta("edf9ac62-3fcf-4ceb-8679-c3743470ea4b", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class CreateChannel : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
@@ -47,8 +47,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(SoftDeleteChannel)), ModuleInitialismAlias(typeof(SoftDeleteChannel))]
 		[LocalizedSummary(nameof(Summaries.SoftDeleteChannel))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
-		[EnabledByDefault(true)]
+		[CommandMeta("a24408d0-86c9-4020-9361-4bfd199fcf8d", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 		public sealed class SoftDeleteChannel : AdvobotModuleBase
 		{
 			[Command]
@@ -73,8 +73,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DeleteChannel)), ModuleInitialismAlias(typeof(DeleteChannel))]
 		[LocalizedSummary(nameof(Summaries.DeleteChannel))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
-		[EnabledByDefault(true)]
+		[CommandMeta("c0993449-9e27-470c-82a1-fecbefa69d5b", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class DeleteChannel : AdvobotModuleBase
 		{
 			[Command]
@@ -88,8 +88,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DisplayChannelPosition)), ModuleInitialismAlias(typeof(DisplayChannelPosition))]
 		[LocalizedSummary(nameof(Summaries.DisplayChannelPosition))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
-		[EnabledByDefault(true)]
+		[CommandMeta("644d866a-22dc-4845-85d2-5c4e4c43a2a3", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class DisplayChannelPosition : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
@@ -105,8 +105,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyChannelPosition)), ModuleInitialismAlias(typeof(ModifyChannelPosition))]
 		[LocalizedSummary(nameof(Summaries.ModifyChannelPosition))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
-		[EnabledByDefault(true)]
+		[CommandMeta("ba7af615-dc33-4e62-835c-00826592a269", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class ModifyChannelPosition : AdvobotModuleBase
 		{
 			[Command]
@@ -121,8 +121,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DisplayChannelPerms)), ModuleInitialismAlias(typeof(DisplayChannelPerms))]
 		[LocalizedSummary(nameof(Summaries.DisplayChannelPerms))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
-		[EnabledByDefault(false)]
+		[CommandMeta("27fe826f-13a9-4974-88d6-bb78e545ba9e", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 		public sealed class DisplayChannelPerms : AdvobotModuleBase
 		{
 			[Command]
@@ -189,8 +189,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyChannelPerms)), ModuleInitialismAlias(typeof(ModifyChannelPerms))]
 		[LocalizedSummary(nameof(Summaries.ModifyChannelPerms))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
-		[EnabledByDefault(true)]
+		[CommandMeta("b806e35e-ea65-4fd3-a14a-b1dc8b921db0", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 		public sealed class ModifyChannelPerms : AdvobotModuleBase
 		{
 			[Command]
@@ -242,8 +242,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(CopyChannelPerms)), ModuleInitialismAlias(typeof(CopyChannelPerms))]
 		[LocalizedSummary(nameof(Summaries.CopyChannelPerms))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
-		[EnabledByDefault(true)]
+		[CommandMeta("621f61a8-f3ba-41d1-b9b8-9e2075bcfa11", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 		public sealed class CopyChannelPerms : AdvobotModuleBase
 		{
 			[Command]
@@ -279,8 +279,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ClearChannelPerms)), ModuleInitialismAlias(typeof(ClearChannelPerms))]
 		[LocalizedSummary(nameof(Summaries.ClearChannelPerms))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
-		[EnabledByDefault(true)]
+		[CommandMeta("5710430c-ce62-4474-9296-071eca65c9b1", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 		public sealed class ClearChannelPerms : AdvobotModuleBase
 		{
 			[Command]
@@ -294,8 +294,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyChannelNsfw)), ModuleInitialismAlias(typeof(ModifyChannelNsfw))]
 		[LocalizedSummary(nameof(Summaries.ModifyChannelNsfw))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
-		[EnabledByDefault(true)]
+		[CommandMeta("a2c3ba17-c9a5-4214-ba5d-5cf39763b917", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class ModifyChannelNsfw : AdvobotModuleBase
 		{
 			[Command]
@@ -310,8 +310,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyChannelName)), ModuleInitialismAlias(typeof(ModifyChannelName))]
 		[LocalizedSummary(nameof(Summaries.ModifyChannelName))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
-		[EnabledByDefault(true)]
+		[CommandMeta("0bb3ec82-2c2b-4a6a-ab28-c3d950212eb7", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class ModifyChannelName : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
@@ -354,8 +354,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyChannelTopic)), ModuleInitialismAlias(typeof(ModifyChannelTopic))]
 		[LocalizedSummary(nameof(Summaries.ModifyChannelTopic))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
-		[EnabledByDefault(true)]
+		[CommandMeta("611f21cf-2c85-4d4c-b38a-4f2cf2808162", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class ModifyChannelTopic : AdvobotModuleBase
 		{
 			[Command]
@@ -377,8 +377,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyChannelLimit)), ModuleInitialismAlias(typeof(ModifyChannelLimit))]
 		[LocalizedSummary(nameof(Summaries.ModifyChannelLimit))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
-		[EnabledByDefault(true)]
+		[CommandMeta("37d2d107-9754-4d56-9a88-613c173156af", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class ModifyChannelLimit : AdvobotModuleBase
 		{
 			[Command]
@@ -393,8 +393,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyChannelBitRate)), ModuleInitialismAlias(typeof(ModifyChannelBitRate))]
 		[LocalizedSummary(nameof(Summaries.ModifyChannelBitRate))]
-		[GuildPermissionRequirement(GuildPermission.ManageChannels)]
-		[EnabledByDefault(true)]
+		[CommandMeta("5d12b830-64e3-4bd1-9ee3-f0f0f646e9eb", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class ModifyChannelBitRate : AdvobotModuleBase
 		{
 			[Command]

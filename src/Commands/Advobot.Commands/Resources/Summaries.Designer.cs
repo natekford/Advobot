@@ -997,15 +997,6 @@ namespace Advobot.Commands.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sends a message through a webhook. Use this command if you&apos;re annoying..
-        /// </summary>
-        internal static string SendMessageThroughWebhook {
-            get {
-                return ResourceManager.GetString("SendMessageThroughWebhook", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Shows information about the bot settings..
         /// </summary>
         internal static string ShowBotSettings {
@@ -1047,6 +1038,15 @@ namespace Advobot.Commands.Resources {
         internal static string SoftDeleteRole {
             get {
                 return ResourceManager.GetString("SoftDeleteRole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sends a message through a webhook. Use this command if you&apos;re annoying..
+        /// </summary>
+        internal static string SpeakThroughWebhook {
+            get {
+                return ResourceManager.GetString("SpeakThroughWebhook", resourceCulture);
             }
         }
         

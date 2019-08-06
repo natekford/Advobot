@@ -429,9 +429,6 @@
   <data name="SayQuote" xml:space="preserve">
     <value>Shows the content for the given quote.</value>
   </data>
-  <data name="SendMessageThroughWebhook" xml:space="preserve">
-    <value>Sends a message through a webhook. Use this command if you're annoying.</value>
-  </data>
   <data name="ShowBotSettings" xml:space="preserve">
     <value>Shows information about the bot settings.</value>
   </data>
@@ -446,6 +443,9 @@
   </data>
   <data name="SoftDeleteRole" xml:space="preserve">
     <value>Deletes a role then creates a role with the exact same information.</value>
+  </data>
+  <data name="SpeakThroughWebhook" xml:space="preserve">
+    <value>Sends a message through a webhook. Use this command if you're annoying.</value>
   </data>
   <data name="SwapGuildOwner" xml:space="preserve">
     <value>If the bot is the current owner of the guild, this command will give you owner.</value>

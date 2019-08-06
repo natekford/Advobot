@@ -12,7 +12,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	/// For verifying <see cref="SocketGuildUser"/> permissions.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public abstract class PermissionRequirementAttribute : PreconditionAttribute
+	public abstract class RequirePermissionsAttribute : PreconditionAttribute
 	{
 		/// <summary>
 		/// The flags required (each is a separate valid combination of flags).
@@ -22,10 +22,10 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		private readonly string _PermissionsText;
 
 		/// <summary>
-		/// Creates an instance of <see cref="PermissionRequirementAttribute"/>.
+		/// Creates an instance of <see cref="RequirePermissionsAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
-		public PermissionRequirementAttribute(params Enum[] permissions)
+		public RequirePermissionsAttribute(params Enum[] permissions)
 		{
 			Permissions = permissions.ToImmutableHashSet();
 

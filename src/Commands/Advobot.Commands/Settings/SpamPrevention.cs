@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 
 namespace Advobot.Commands.Settings
@@ -15,8 +15,8 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(PreventSpam)), ModuleInitialismAlias(typeof(PreventSpam))]
 		[LocalizedSummary(nameof(Summaries.PreventSpam))]
-		[RequireUserPermission(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
+		[CommandMeta("901e3443-0ed9-41cd-9d29-1dc890f3c329")]
+		[RequireGuildPermissions]
 		public sealed class PreventSpam : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
@@ -51,8 +51,8 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(PreventRaid)), ModuleInitialismAlias(typeof(PreventRaid))]
 		[LocalizedSummary(nameof(Summaries.PreventRaid))]
-		[RequireUserPermission(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
+		[CommandMeta("9e11556d-f61b-4921-936b-ecf1b6fa0582")]
+		[RequireGuildPermissions]
 		public sealed class PreventRaid : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;

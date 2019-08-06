@@ -7,7 +7,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	/// Verifies the invoker user has permissions which would allow them to use most commands.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class GenericGuildPermissionRequirementAttribute : GuildPermissionRequirementAttribute
+	public sealed class RequireGenericGuildPermissionsAttribute : RequireGuildPermissionsAttribute
 	{
 		private static readonly GuildPermission[] _GenericPerms = new[]
 		{
@@ -27,9 +27,9 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		};
 
 		/// <summary>
-		/// Creates an instance of <see cref="GenericGuildPermissionRequirementAttribute"/>.
+		/// Creates an instance of <see cref="RequireGenericGuildPermissionsAttribute"/>.
 		/// </summary>
-		public GenericGuildPermissionRequirementAttribute() : base(_GenericPerms) { }
+		public RequireGenericGuildPermissionsAttribute() : base(_GenericPerms) { }
 
 		/// <inheritdoc />
 		public override string ToString()

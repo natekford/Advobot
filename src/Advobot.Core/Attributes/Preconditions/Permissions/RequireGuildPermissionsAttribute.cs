@@ -12,8 +12,11 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	/// <summary>
 	/// Verifies the invoking user's permissions on a guild.
 	/// </summary>
+	/// <remarks>
+	/// Admin will always be added to the list of valid permissions.
+	/// </remarks>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class GuildPermissionRequirementAttribute : PermissionRequirementAttribute
+	public class RequireGuildPermissionsAttribute : RequirePermissionsAttribute
 	{
 		/// <summary>
 		/// Whether this precondition targets the bot rather than the user.
@@ -23,10 +26,10 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		private static readonly Enum[] _Admin = new Enum[] { GuildPermission.Administrator };
 
 		/// <summary>
-		/// Creates an instance of <see cref="GuildPermissionRequirementAttribute"/>.
+		/// Creates an instance of <see cref="RequireGuildPermissionsAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
-		public GuildPermissionRequirementAttribute(params GuildPermission[] permissions)
+		public RequireGuildPermissionsAttribute(params GuildPermission[] permissions)
 			: base(permissions.Cast<Enum>().Concat(_Admin).ToArray()) { }
 
 		/// <inheritdoc />

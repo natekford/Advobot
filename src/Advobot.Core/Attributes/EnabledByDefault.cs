@@ -6,24 +6,28 @@ namespace Advobot.Attributes
 	/// Specifies the default value for whether a command is enabled or not.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class EnabledByDefaultAttribute : Attribute
+	public sealed class CommandMetaAttribute : Attribute
 	{
+		/// <summary>
+		/// The id of the command.
+		/// </summary>
+		public Guid Id { get; }
 		/// <summary>
 		/// Whether or not the command is enabled by default.
 		/// </summary>
-		public bool Enabled { get; }
+		public bool IsEnabled { get; set; } = false;
 		/// <summary>
 		/// Whether or not the command can be toggled.
 		/// </summary>
-		public bool AbleToToggle { get; set; } = true;
+		public bool CanToggle { get; set; } = true;
 
 		/// <summary>
-		/// Creates an instance of <see cref="EnabledByDefaultAttribute"/>.
+		/// Creates an instance of <see cref="CommandMetaAttribute"/>.
 		/// </summary>
-		/// <param name="enabled"></param>
-		public EnabledByDefaultAttribute(bool enabled)
+		/// <param name="guid"></param>
+		public CommandMetaAttribute(string guid)
 		{
-			Enabled = enabled;
+			Id = Guid.Parse(guid);
 		}
 	}
 }

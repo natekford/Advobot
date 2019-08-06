@@ -27,8 +27,8 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(Mute)), ModuleInitialismAlias(typeof(Mute))]
 		[LocalizedSummary(nameof(Summaries.Mute))]
-		[GuildPermissionRequirement(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
-		[EnabledByDefault(true)]
+		[CommandMeta("b9f305d4-d343-4350-a140-c54a42af8d8d", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
 		public sealed class Mute : AdvobotModuleBase
 		{
 			private static readonly OverwritePermissions TextPerms = new OverwritePermissions(0, (ulong)(0
@@ -105,8 +105,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(VoiceMute)), ModuleInitialismAlias(typeof(VoiceMute))]
 		[LocalizedSummary(nameof(Summaries.VoiceMute))]
-		[GuildPermissionRequirement(GuildPermission.MuteMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("a51ea911-10be-4e40-8995-a507015a7e57", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.MuteMembers)]
 		public sealed class VoiceMute : AdvobotModuleBase
 		{
 			[Command]
@@ -130,8 +130,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Deafen)), ModuleInitialismAlias(typeof(Deafen))]
 		[LocalizedSummary(nameof(Summaries.Deafen))]
-		[GuildPermissionRequirement(GuildPermission.DeafenMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("99aa7f17-5710-41ce-ba12-291c2971c0a4", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.DeafenMembers)]
 		public sealed class Deafen : AdvobotModuleBase
 		{
 			[Command]
@@ -155,8 +155,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Kick)), ModuleInitialismAlias(typeof(Kick))]
 		[LocalizedSummary(nameof(Summaries.Kick))]
-		[GuildPermissionRequirement(GuildPermission.KickMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("1d86aa7d-da06-478c-861b-a62ca279523b", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.KickMembers)]
 		public sealed class Kick : AdvobotModuleBase
 		{
 			[Command]
@@ -172,8 +172,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(SoftBan)), ModuleInitialismAlias(typeof(SoftBan))]
 		[LocalizedSummary(nameof(Summaries.SoftBan))]
-		[GuildPermissionRequirement(GuildPermission.BanMembers, GuildPermission.KickMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("a6084728-77bf-469c-af09-41e53ac021d9", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.BanMembers, GuildPermission.KickMembers)]
 		public sealed class SoftBan : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
@@ -194,8 +194,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Ban)), ModuleInitialismAlias(typeof(Ban))]
 		[LocalizedSummary(nameof(Summaries.Ban))]
-		[GuildPermissionRequirement(GuildPermission.BanMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("b798e679-3ca7-4af1-9544-585672ec9936", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.BanMembers)]
 		public sealed class Ban : AdvobotModuleBase
 		{
 			[Command, Priority(1)]
@@ -216,8 +216,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(Unban)), ModuleInitialismAlias(typeof(Unban))]
 		[LocalizedSummary(nameof(Summaries.Unban))]
-		[GuildPermissionRequirement(GuildPermission.BanMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("417e9dd0-306b-4d1f-8b62-0427f01f921a", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.BanMembers)]
 		public sealed class Unban : AdvobotModuleBase
 		{
 			[Command]
@@ -233,8 +233,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MoveUser)), ModuleInitialismAlias(typeof(MoveUser))]
 		[LocalizedSummary(nameof(Summaries.MoveUser))]
-		[GuildPermissionRequirement(GuildPermission.MoveMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("158dca6d-fc89-43b3-a6b5-d055f6672547", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.MoveMembers)]
 		public sealed class MoveUser : AdvobotModuleBase
 		{
 			[Command]
@@ -254,8 +254,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(MoveUsers)), ModuleInitialismAlias(typeof(MoveUsers))]
 		[LocalizedSummary(nameof(Summaries.MoveUsers))]
-		[GuildPermissionRequirement(GuildPermission.MoveMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("4e8439fa-cc29-4acb-9049-89865be825c8", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.MoveMembers)]
 		public sealed class MoveUsers : MultiUserActionModule
 		{
 			[Command(RunMode = RunMode.Async)]
@@ -275,8 +275,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(PruneUsers)), ModuleInitialismAlias(typeof(PruneUsers))]
 		[LocalizedSummary(nameof(Summaries.PruneUsers))]
-		[GuildPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(true)]
+		[CommandMeta("89abd319-c597-4e1a-9397-4f7d079f4e0e", IsEnabled = true)]
+		[RequireGuildPermissions]
 		public sealed class PruneUsers : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]
@@ -295,8 +295,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(GetBanReason)), ModuleInitialismAlias(typeof(GetBanReason))]
 		[LocalizedSummary(nameof(Summaries.GetBanReason))]
-		[GuildPermissionRequirement(GuildPermission.BanMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("5ba658c2-c689-4b3a-b7f1-77329dd6e971", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.BanMembers)]
 		public sealed class GetBanReason : AdvobotModuleBase
 		{
 			[Command]
@@ -306,8 +306,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DisplayCurrentBanList)), ModuleInitialismAlias(typeof(DisplayCurrentBanList))]
 		[LocalizedSummary(nameof(Summaries.DisplayCurrentBanList))]
-		[GuildPermissionRequirement(GuildPermission.BanMembers)]
-		[EnabledByDefault(true)]
+		[CommandMeta("419c1846-b232-475e-aa19-45cb282dc9e0", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.BanMembers)]
 		public sealed class DisplayCurrentBanList : AdvobotModuleBase
 		{
 			[Command]
@@ -320,17 +320,17 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(RemoveMessages)), ModuleInitialismAlias(typeof(RemoveMessages))]
 		[LocalizedSummary(nameof(Summaries.RemoveMessages))]
-		[GuildPermissionRequirement(GuildPermission.ManageMessages)]
-		[EnabledByDefault(true)]
+		[CommandMeta("a4f3959e-1f56-4bf0-b377-dc98ef017906", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageMessages)]
 		public sealed class RemoveMessages : AdvobotModuleBase
 		{
 			[Command]
-			[ChannelPermissionRequirement(ManageMessages)]
+			[RequireChannelPermissions(ManageMessages)]
 			public Task<RuntimeResult> Command(
 				[Positive] int requestCount)
 				=> CommandRunner(requestCount, Context.Channel, null);
 			[Command]
-			[ChannelPermissionRequirement(ManageMessages)]
+			[RequireChannelPermissions(ManageMessages)]
 			public Task<RuntimeResult> Command(
 				[Positive] int requestCount,
 				IGuildUser user)
@@ -389,8 +389,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ForAllWithRole)), ModuleInitialismAlias(typeof(ForAllWithRole))]
 		[LocalizedSummary(nameof(Summaries.ForAllWithRole))]
-		[GuildPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(true)]
+		[CommandMeta("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c", IsEnabled = true)]
+		[RequireGuildPermissions]
 		public sealed class ForAllWithRole : MultiUserActionModule
 		{
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]

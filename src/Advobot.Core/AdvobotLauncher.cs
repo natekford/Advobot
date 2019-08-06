@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Advobot.CommandAssemblies;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
 using Advobot.Databases.LiteDB;
@@ -13,10 +14,12 @@ using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
+using Advobot.Services.ImageResizing;
 using Advobot.Services.InviteList;
 using Advobot.Services.Levels;
 using Advobot.Services.Logging;
 using Advobot.Services.Timers;
+using Advobot.Settings;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -24,9 +27,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
-using Advobot.Services.ImageResizing;
-using Advobot.Settings;
-using Advobot.CommandAssemblies;
 
 namespace Advobot
 {
@@ -79,20 +79,20 @@ namespace Advobot
 		/// <returns></returns>
 		public async Task GetPathAndKeyAsync()
 		{
-            //Get the save path
-            var startup = true;
-            while (!_Config.ValidatedPath)
-            {
-                startup = _Config.ValidatePath(startup ? null : Console.ReadLine(), startup);
-            }
+			//Get the save path
+			var startup = true;
+			while (!_Config.ValidatedPath)
+			{
+				startup = _Config.ValidatePath(startup ? null : Console.ReadLine(), startup);
+			}
 
-            //Get the bot key
-            startup = true;
-            while (!_Config.ValidatedKey)
-            {
-                startup = await _Config.ValidateBotKey(startup ? null : Console.ReadLine(), startup, ClientUtils.RestartBotAsync).CAF();
-            }
-        }
+			//Get the bot key
+			startup = true;
+			while (!_Config.ValidatedKey)
+			{
+				startup = await _Config.ValidateBotKey(startup ? null : Console.ReadLine(), startup, ClientUtils.RestartBotAsync).CAF();
+			}
+		}
 		/// <summary>
 		/// Returns the default services for the bot if both the path and key have been set.
 		/// </summary>
@@ -132,6 +132,7 @@ namespace Advobot
 				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
 				MessageCacheSize = botSettings.MessageCacheSize,
 				LogLevel = botSettings.LogLevel,
+				ExclusiveBulkDelete = false,
 			});
 			var httpClient = new HttpClient(new HttpClientHandler
 			{

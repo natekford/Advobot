@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
 using Advobot.Modules;
@@ -87,8 +88,8 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(ModifyIgnoredLogChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredLogChannels))]
 		[LocalizedSummary(nameof(Summaries.ModifyIgnoredLogChannels))]
-		[RequireUserPermission(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
+		[CommandMeta("c348ba6c-7112-4a36-b0b9-3a546d8efd68")]
+		[RequireGuildPermissions]
 		public sealed class ModifyIgnoredLogChannels : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
@@ -111,8 +112,8 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(ModifyLogActions)), ModuleInitialismAlias(typeof(ModifyLogActions))]
 		[LocalizedSummary(nameof(Summaries.ModifyLogActions))]
-		[RequireUserPermission(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
+		[CommandMeta("1457fb28-6510-47f1-998f-3bdca737f9b9")]
+		[RequireGuildPermissions]
 		public sealed class ModifyLogActions : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;

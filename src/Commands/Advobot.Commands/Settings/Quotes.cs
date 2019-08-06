@@ -12,7 +12,6 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.TypeReaders;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 
 namespace Advobot.Commands.Settings
@@ -21,8 +20,8 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ModifyQuotes)), ModuleInitialismAlias(typeof(ModifyQuotes))]
 		[LocalizedSummary(nameof(Summaries.ModifyQuotes))]
-		[GuildPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
+		[CommandMeta("6a6c952a-ea22-4478-9433-99304ae440b7")]
+		[RequireGuildPermissions]
 		public sealed class ModifyQuotes : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
@@ -46,7 +45,7 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(SayQuote)), ModuleInitialismAlias(typeof(SayQuote))]
 		[LocalizedSummary(nameof(Summaries.SayQuote))]
-		[EnabledByDefault(false)]
+		[CommandMeta("70dd6bb8-789c-4d72-931d-c72cb58041f2")]
 		public sealed class SayQuote : AdvobotModuleBase
 		{
 			[Command]

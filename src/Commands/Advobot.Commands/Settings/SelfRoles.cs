@@ -21,8 +21,8 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ModifySelfRoles)), ModuleInitialismAlias(typeof(ModifySelfRoles))]
 		[LocalizedSummary(nameof(Summaries.ModifySelfRoles))]
-		[GuildPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
+		[CommandMeta("2cb8f177-dc52-404c-a7f4-a63c84d976ba")]
+		[RequireGuildPermissions]
 		public sealed class ModifySelfRoles : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
@@ -62,7 +62,7 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(AssignSelfRole)), ModuleInitialismAlias(typeof(AssignSelfRole))]
 		[LocalizedSummary(nameof(Summaries.AssignSelfRole))]
-		[EnabledByDefault(false)]
+		[CommandMeta("6c574af7-31a7-4733-9f10-badfe1e72f4c")]
 		public sealed class AssignSelfRole : AdvobotModuleBase
 		{
 			[Command]
@@ -90,7 +90,7 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(DisplaySelfRoles)), ModuleInitialismAlias(typeof(DisplaySelfRoles))]
 		[LocalizedSummary(nameof(Summaries.DisplaySelfRoles))]
-		[EnabledByDefault(false)]
+		[CommandMeta("3e3487e0-691a-45fa-9974-9d345b5337b7")]
 		public sealed class DisplaySelfRoles : AdvobotModuleBase
 		{
 			[Command]

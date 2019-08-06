@@ -11,7 +11,7 @@ namespace Advobot.Attributes.Preconditions
 	/// Makes sure the guild <see cref="IListedInvite"/> has not been bumped within the past hour.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class NotRecentlyBumpedAttribute : PreconditionAttribute
+	public sealed class RequireNotRecentlyBumpedAttribute : PreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(

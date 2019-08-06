@@ -22,8 +22,8 @@ namespace Advobot.Commands.Standard
 	{
 		[Group(nameof(DisplayWebhooks)), ModuleInitialismAlias(typeof(DisplayWebhooks))]
 		[LocalizedSummary(nameof(Summaries.DisplayWebhooks))]
-		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
-		[EnabledByDefault(true)]
+		[CommandMeta("b8e90320-b827-4b61-81ea-92d43ea1ba6e", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 		public sealed class DisplayWebhooks : AdvobotModuleBase
 		{
 			[Command]
@@ -42,8 +42,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(CreateWebhook)), ModuleInitialismAlias(typeof(CreateWebhook))]
 		[LocalizedSummary(nameof(Summaries.CreateWebhook))]
-		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
-		[EnabledByDefault(true)]
+		[CommandMeta("a177bff8-5ade-4c21-8e6a-97a254c26331", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 		public sealed class CreateWebhook : AdvobotModuleBase
 		{
 			[Command]
@@ -58,8 +58,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(DeleteWebhook)), ModuleInitialismAlias(typeof(DeleteWebhook))]
 		[LocalizedSummary(nameof(Summaries.DeleteWebhook))]
-		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
-		[EnabledByDefault(true)]
+		[CommandMeta("8fb67520-b0b2-4d77-8588-0b9924b767c0", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 		public sealed class DeleteWebhook : AdvobotModuleBase
 		{
 			[Command]
@@ -72,8 +72,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyWebhookName)), ModuleInitialismAlias(typeof(ModifyWebhookName))]
 		[LocalizedSummary(nameof(Summaries.ModifyWebhookName))]
-		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
-		[EnabledByDefault(true)]
+		[CommandMeta("953dd979-c51a-4a1b-b4ba-05576faf11c2", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 		public sealed class ModifyWebhookName : AdvobotModuleBase
 		{
 			[Command]
@@ -88,8 +88,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyWebhookChannel)), ModuleInitialismAlias(typeof(ModifyWebhookChannel))]
 		[LocalizedSummary(nameof(Summaries.ModifyWebhookChannel))]
-		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
-		[EnabledByDefault(true)]
+		[CommandMeta("082ca529-66b7-4c39-ade2-3f2501778070", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 		public sealed class ModifyWebhookChannel : AdvobotModuleBase
 		{
 			[Command]
@@ -104,8 +104,8 @@ namespace Advobot.Commands.Standard
 
 		[Group(nameof(ModifyWebhookIcon)), ModuleInitialismAlias(typeof(ModifyWebhookIcon))]
 		[LocalizedSummary(nameof(Summaries.ModifyWebhookIcon))]
-		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
-		[EnabledByDefault(true)]
+		[CommandMeta("bcfae3ac-2e52-4151-b692-738ed7297bab", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 		public sealed class ModifyWebhookIcon : ImageResizerModule
 		{
 			[Command]
@@ -123,11 +123,11 @@ namespace Advobot.Commands.Standard
 			}
 		}
 
-		[Group(nameof(SendMessageThroughWebhook)), ModuleInitialismAlias(typeof(SendMessageThroughWebhook))]
-		[LocalizedSummary(nameof(Summaries.SendMessageThroughWebhook))]
-		[GuildPermissionRequirement(GuildPermission.ManageWebhooks)]
-		[EnabledByDefault(false)]
-		public sealed class SendMessageThroughWebhook : AdvobotModuleBase
+		[Group(nameof(SpeakThroughWebhook)), ModuleInitialismAlias(typeof(SpeakThroughWebhook))]
+		[LocalizedSummary(nameof(Summaries.SpeakThroughWebhook))]
+		[CommandMeta("d830df02-b33b-4e95-88d7-8acb029506f6")]
+		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
+		public sealed class SpeakThroughWebhook : AdvobotModuleBase
 		{
 			private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks
 				= new ConcurrentDictionary<ulong, ulong>();

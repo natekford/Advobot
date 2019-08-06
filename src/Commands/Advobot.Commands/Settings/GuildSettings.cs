@@ -7,7 +7,6 @@ using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
-using Discord;
 using Discord.Commands;
 
 namespace Advobot.Commands.Settings
@@ -16,8 +15,8 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ShowGuildSettings)), ModuleInitialismAlias(typeof(ShowGuildSettings))]
 		[LocalizedSummary(nameof(Summaries.ShowGuildSettings))]
-		[GenericGuildPermissionRequirement]
-		[EnabledByDefault(true)]
+		[CommandMeta("b6ee91c4-05dc-4017-a08f-0c1478435179", IsEnabled = true)]
+		[RequireGenericGuildPermissions]
 		public sealed class ShowGuildSettings : ReadOnlySettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
@@ -38,8 +37,8 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(ResetGuildSettings)), ModuleInitialismAlias(typeof(ResetGuildSettings))]
 		[LocalizedSummary(nameof(Summaries.ResetGuildSettings))]
-		[GuildPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(true)]
+		[CommandMeta("316df0fc-1c5e-40fe-8580-7b8ca5f63b43", IsEnabled = true)]
+		[RequireGuildPermissions]
 		public sealed class ResetGuildSettings : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
@@ -203,8 +202,8 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(ModifyIgnoredCommandChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredCommandChannels))]
 		[LocalizedSummary(nameof(Summaries.ModifyIgnoredCommandChannels))]
-		[GuildPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(true, AbleToToggle = false)]
+		[CommandMeta("e485777b-1b3f-411a-afd7-59f24858cd24", IsEnabled = true, CanToggle = false)]
+		[RequireGuildPermissions]
 		public sealed class ModifyIgnoredCommandChannels : SettingsModule<IGuildSettings>
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
@@ -396,8 +395,8 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(TestGuildNotifs)), ModuleInitialismAlias(typeof(TestGuildNotifs))]
 		[LocalizedSummary(nameof(Summaries.TestGuildNotifs))]
-		[GuildPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
+		[CommandMeta("f5d09649-ac5c-4281-86d9-01a3f7fd43fa")]
+		[RequireGuildPermissions]
 		public sealed class TestGuildNotifs : AdvobotModuleBase
 		{
 			[ImplicitCommand, ImplicitAlias]

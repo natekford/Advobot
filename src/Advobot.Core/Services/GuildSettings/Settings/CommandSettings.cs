@@ -127,8 +127,8 @@ namespace Advobot.Services.GuildSettings.Settings
 			}
 
 			//If they get here it means they're not in the command values currently so they should just use the default value.
-			var defaultEnabledAttr = module.Attributes.GetAttribute<EnabledByDefaultAttribute>();
-			var defaultEnabled = defaultEnabledAttr?.Enabled ?? false;
+			var defaultEnabledAttr = module.Attributes.GetAttribute<CommandMetaAttribute>();
+			var defaultEnabled = defaultEnabledAttr?.IsEnabled ?? false;
 			CommandValues.Add(name, defaultEnabled);
 			return defaultEnabled;
 		}

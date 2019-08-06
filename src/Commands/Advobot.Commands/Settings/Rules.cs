@@ -21,8 +21,8 @@ namespace Advobot.Commands.Settings
 	{
 		[Group(nameof(ModifyRuleCategories)), ModuleInitialismAlias(typeof(ModifyRuleCategories))]
 		[LocalizedSummary(nameof(Summaries.ModifyRuleCategories))]
-		[GuildPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
+		[CommandMeta("29ce9d5e-59c0-4262-8922-e444a9fc0ec6")]
+		[RequireGuildPermissions]
 		public sealed class ModifyRuleCategories : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
@@ -54,8 +54,8 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(ModifyRules)), ModuleInitialismAlias(typeof(ModifyRules))]
 		[LocalizedSummary(nameof(Summaries.ModifyRules))]
-		[GuildPermissionRequirement(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
+		[CommandMeta("2808540d-9dd7-4c4a-bd87-b6bd83c37cd5")]
+		[RequireGuildPermissions]
 		public sealed class ModifyRules : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
@@ -106,8 +106,8 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(PrintOutRules)), ModuleInitialismAlias(typeof(PrintOutRules))]
 		[LocalizedSummary(nameof(Summaries.PrintOutRules))]
-		[GenericGuildPermissionRequirement]
-		[EnabledByDefault(false)]
+		[CommandMeta("9ae48ca4-68a3-468f-8a6c-2cffd4483deb")]
+		[RequireGenericGuildPermissions]
 		public sealed class PrintOutRules : AdvobotModuleBase
 		{
 			[Command]

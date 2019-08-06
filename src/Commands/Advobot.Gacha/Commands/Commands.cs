@@ -15,7 +15,7 @@ namespace Advobot.Gacha.Commands
 	{
 		[Group(nameof(GachaRoll)), ModuleInitialismAlias(typeof(GachaRoll))]
 		[Summary("temp")]
-		[EnabledByDefault(true)]
+		[CommandMeta("ea1f45fd-d9e1-43df-bd9b-46c31b4ec221")]
 		public sealed class GachaRoll : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
@@ -33,7 +33,7 @@ namespace Advobot.Gacha.Commands
 
 		[Group(nameof(DisplayCharacter)), ModuleInitialismAlias(typeof(DisplayCharacter))]
 		[Summary("temp")]
-		[EnabledByDefault(true)]
+		[CommandMeta("23e41fce-8760-4f5a-8f68-154bb8ce1bc8")]
 		public sealed class DisplayCharacter : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
@@ -49,7 +49,7 @@ namespace Advobot.Gacha.Commands
 
 		[Group(nameof(DisplaySource)), ModuleInitialismAlias(typeof(DisplaySource))]
 		[Summary("temp")]
-		[EnabledByDefault(true)]
+		[CommandMeta("12827e74-4ba1-439c-9c39-9e2d2b7f2cfb")]
 		public sealed class DisplaySource : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
@@ -63,7 +63,7 @@ namespace Advobot.Gacha.Commands
 
 		[Group(nameof(DisplayHarem)), ModuleInitialismAlias(typeof(DisplayHarem))]
 		[Summary("temp")]
-		[EnabledByDefault(true)]
+		[CommandMeta("cdd5d2e6-e26e-4d1b-85d2-28b3778b6c2c")]
 		public sealed class DisplayHarem : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
@@ -77,7 +77,7 @@ namespace Advobot.Gacha.Commands
 
 		[Group(nameof(GachaTrade)), ModuleInitialismAlias(typeof(GachaTrade))]
 		[Summary("temp")]
-		[EnabledByDefault(true)]
+		[CommandMeta("dfd7e368-5a03-4af7-8054-4eb156a5e4fb")]
 		public sealed class GachaTrade : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
@@ -89,7 +89,7 @@ namespace Advobot.Gacha.Commands
 
 		[Group(nameof(GachaGive)), ModuleInitialismAlias(typeof(GachaGive))]
 		[Summary("temp")]
-		[EnabledByDefault(true)]
+		[CommandMeta("db62db89-d645-4bdd-9794-2945ca8dde9c")]
 		public sealed class GachaGive : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
