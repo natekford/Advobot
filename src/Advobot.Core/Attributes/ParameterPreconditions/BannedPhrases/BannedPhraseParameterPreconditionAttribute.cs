@@ -1,25 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Services.GuildSettings;
+using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
 using AdvorangesUtils;
-using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Attributes.ParameterPreconditions.Logs
+namespace Advobot.Attributes.ParameterPreconditions.BannedPhrases
 {
 	/// <summary>
-	/// Makes sure the passed in <see cref="ITextChannel"/> is not the current log channel.
+	/// Makes sure the passed in <see cref="string"/> is not already a banned phrase.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public abstract class LogParameterPreconditionAttribute
+	public abstract class BannedPhraseParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
 		/// <summary>
-		/// Gets the name of the log.
+		/// Gets the name of the banned phrase type.
 		/// </summary>
-		protected abstract string LogName { get; }
+		protected abstract string BannedPhraseName { get; }
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
@@ -28,27 +30,27 @@ namespace Advobot.Attributes.ParameterPreconditions.Logs
 			object value,
 			IServiceProvider services)
 		{
-			if (!(value is ITextChannel channel))
+			if (!(value is string regex))
 			{
-				throw this.OnlySupports(typeof(ITextChannel));
+				throw this.OnlySupports(typeof(string));
 			}
 
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
-			if (GetId(settings) != channel.Id)
+			if (!GetPhrases(settings).Select(x => x.Phrase).Contains(regex))
 			{
 				return this.FromSuccess();
 			}
-			return this.FromError($"`{channel.Format()}` is already the current {LogName} log.");
+			return this.FromError($"`{regex}` is already a banned regex.");
 		}
 		/// <summary>
-		/// Gets the current id of this log.
+		/// Gets the phrases this should look through.
 		/// </summary>
 		/// <param name="settings"></param>
 		/// <returns></returns>
-		protected abstract ulong GetId(IGuildSettings settings);
+		protected abstract IEnumerable<BannedPhrase> GetPhrases(IGuildSettings settings);
 		/// <inheritdoc />
 		public override string ToString()
-			=> $"Not the current {LogName} log";
+			=> $"Not the already a banned {BannedPhraseName}";
 	}
 }

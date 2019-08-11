@@ -1,14 +1,12 @@
-﻿using Advobot.Gacha.Database;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
-using Advobot.Gacha.Utilities;
 using Advobot.Modules;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
-using System.Threading.Tasks;
-using Cached = Discord.Cacheable<Discord.IUserMessage, ulong>;
 
 namespace Advobot.Gacha.Displays
 {
@@ -20,12 +18,14 @@ namespace Advobot.Gacha.Displays
 
 		protected BaseSocketClient Client { get; }
 		protected GachaDatabase Database { get; }
-		protected abstract EmojiMenu Menu { get; }
+		protected int Id { get; }
+		protected abstract InteractiveMenu Menu { get; }
 
-		public Display(BaseSocketClient client, GachaDatabase db)
+		public Display(BaseSocketClient client, GachaDatabase db, int id)
 		{
 			Client = client;
 			Database = db;
+			Id = id;
 		}
 
 		public virtual async Task<IResult> SendAsync(IMessageChannel channel)
@@ -37,45 +37,65 @@ namespace Advobot.Gacha.Displays
 
 			var text = await GenerateTextAsync().CAF();
 			var embed = await GenerateEmbedAsync().CAF();
-			var message = await channel.SendMessageAsync(text, embed: embed);
-			if (Menu?.Count > 0 && !await message.SafeAddReactionsAsync(Menu.Values).CAF())
-			{
-				return AdvobotResult.Failure("Unable to add reactions.", CommandError.Exception);
-			}
+			Message = await channel.SendMessageAsync(text, embed: embed);
 
-			Task Handle(Cached cached, ISocketMessageChannel _, SocketReaction reaction)
+			Task Handle(SocketMessage message)
 			{
-				if (!TryGetMenuEmote(cached, reaction, out var emoji) || emoji == null)
+				if (!(message is IUserMessage msg)
+					|| !TryGetMenuAction(msg, out var action)
+					|| action == null)
 				{
 					return Task.CompletedTask;
 				}
 
 				LastInteractedWith = DateTime.UtcNow;
-				return HandleReactionsAsync(cached.Value, reaction, emoji);
+				return HandleActionAsync(new ActionContext(msg, action));
 			}
 
-			Message = message;
-			Client.ReactionAdded += Handle;
-			Client.ReactionRemoved += Handle;
+			Client.MessageReceived += Handle;
 			await KeepDisplayAliveAsync().CAF();
-			Client.ReactionAdded -= Handle;
-			Client.ReactionRemoved -= Handle;
+			Client.MessageReceived -= Handle;
 			await DisposeMenuAsync().CAF();
-			return AdvobotResult.IgnoreFailure;
+			return AdvobotResult.IgnoreSuccess;
 		}
-		protected abstract Task HandleReactionsAsync(
-			IUserMessage message,
-			SocketReaction reaction,
-			IMenuEmote emoji);
+		protected abstract Task HandleActionAsync(ActionContext context);
 		protected abstract Task KeepDisplayAliveAsync();
 		protected virtual Task DisposeMenuAsync()
-			=> Message?.RemoveAllReactionsAsync() ?? Task.CompletedTask;
+			=> Task.CompletedTask;
 		protected abstract Task<Embed> GenerateEmbedAsync();
 		protected abstract Task<string> GenerateTextAsync();
-		protected bool TryGetMenuEmote(Cached cached, SocketReaction reaction, out IMenuEmote? emoji)
+		protected EmbedFooterBuilder GenerateDefaultFooter()
 		{
-			emoji = null;
-			return cached.Id == Message?.Id && (Menu == null || Menu.TryGet(reaction.Emote, out emoji));
+			return new EmbedFooterBuilder
+			{
+				Text = $"Id: {Id}",
+			};
+		}
+		protected bool TryGetMenuAction(IUserMessage message, out IMenuAction? action)
+		{
+			action = null;
+			var argPos = -1;
+			return Menu != null
+				&& message.HasStringPrefix(Id.ToString(), ref argPos)
+				&& Menu.TryGet(message.Content.Substring(argPos), out action);
+		}
+
+		protected sealed class ActionContext
+		{
+			public IUserMessage Message { get; }
+			public IGuildUser User { get; }
+			public ITextChannel Channel { get; }
+			public IGuild Guild { get; }
+			public IMenuAction Action { get; }
+
+			public ActionContext(IMessage message, IMenuAction action)
+			{
+				Message = (IUserMessage)message;
+				User = (IGuildUser)message.Author;
+				Channel = (ITextChannel)message.Channel;
+				Guild = Channel.Guild;
+				Action = action;
+			}
 		}
 	}
 }

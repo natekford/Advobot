@@ -1,12 +1,12 @@
-﻿using Advobot.Gacha.Database;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Gacha.Displays
 {
@@ -22,15 +22,16 @@ namespace Advobot.Gacha.Displays
 		}
 
 		protected virtual TimeSpan Timeout { get; } = TimeSpan.FromSeconds(30);
-		protected override EmojiMenu Menu { get; } = new EmojiMenu();
+		protected override InteractiveMenu Menu { get; } = new InteractiveMenu();
 
 		private int _PageIndex;
 
 		public PaginatedDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
+			int id,
 			int itemCount,
-			int itemsPerPage) : base(client, db)
+			int itemsPerPage) : base(client, db, id)
 		{
 			ItemCount = itemCount;
 			ItemsPerPage = itemsPerPage;
@@ -39,17 +40,14 @@ namespace Advobot.Gacha.Displays
 
 			if (PageCount > 1)
 			{
-				Menu.Add(new MovementEmoji(Constants.Left, -1));
-				Menu.Add(new MovementEmoji(Constants.Right, 1));
+				Menu.Add(new Movement(Constants.Left, -1));
+				Menu.Add(new Movement(Constants.Right, 1));
 			}
 		}
 
-		protected override async Task HandleReactionsAsync(
-			IUserMessage message,
-			SocketReaction reaction,
-			IMenuEmote emoji)
+		protected override async Task HandleActionAsync(ActionContext context)
 		{
-			if (emoji is MovementEmoji m && m.TryUpdatePage(ref _PageIndex, PageCount))
+			if (context.Action is Movement m && m.TryUpdatePage(ref _PageIndex, PageCount))
 			{
 				if (Message != null)
 				{
@@ -67,10 +65,9 @@ namespace Advobot.Gacha.Displays
 		}
 		protected EmbedFooterBuilder GeneratePaginationFooter()
 		{
-			return new EmbedFooterBuilder
-			{
-				Text = $"Page {PageIndex + 1} / {PageCount}",
-			};
+			var footer = GenerateDefaultFooter();
+			footer.Text += $"| Page {PageIndex + 1} / {PageCount}";
+			return footer;
 		}
 		protected IEnumerable<T> GetPageValues<T>(IEnumerable<T> values)
 			=> values.Skip(PageIndex * ItemsPerPage).Take(ItemsPerPage);

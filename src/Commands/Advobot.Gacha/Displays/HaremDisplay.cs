@@ -1,11 +1,11 @@
-﻿using Advobot.Gacha.Database;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Gacha.Displays
 {
@@ -20,8 +20,9 @@ namespace Advobot.Gacha.Displays
 		public HaremDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
+			int id,
 			IReadOnlyCollection<IReadOnlyClaim> claims)
-			: base(client, db, claims.Count, Constants.CharactersPerPage)
+			: base(client, db, id, claims.Count, Constants.CharactersPerPage)
 		{
 			_Claims = claims.Select(x => x.CharacterId).ToArray();
 			_Primary = claims.FirstOrDefault();

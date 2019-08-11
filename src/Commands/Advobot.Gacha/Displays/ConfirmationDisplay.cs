@@ -1,16 +1,16 @@
-﻿using Advobot.Gacha.Database;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
 using Advobot.Gacha.Trading;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Gacha.Displays
 {
-	class ConfirmationDisplay
+	internal class ConfirmationDisplay
 	{
 	}
 
@@ -23,17 +23,18 @@ namespace Advobot.Gacha.Displays
 		public GiveDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
+			int id,
 			IGuildUser giver,
 			IGuildUser receiver,
 			IReadOnlyList<ITrade> trades)
-			: base(client, db, trades.Count, Constants.CharactersPerPage)
+			: base(client, db, id, trades.Count, Constants.CharactersPerPage)
 		{
 			_Giver = giver;
 			_Receiver = receiver;
 			_Trades = trades;
 
-			Menu.Add(new ConfirmationEmoji(Constants.Confirm, true));
-			Menu.Add(new ConfirmationEmoji(Constants.Deny, false));
+			Menu.Add(new Confirmation(Constants.Confirm, true));
+			Menu.Add(new Confirmation(Constants.Deny, false));
 		}
 
 		protected override Task<Embed> GenerateEmbedAsync()

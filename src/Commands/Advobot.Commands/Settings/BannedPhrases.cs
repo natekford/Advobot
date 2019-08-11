@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.BannedPhrases;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Attributes.Preconditions.QuantityLimits;

@@ -1,4 +1,8 @@
-﻿using Advobot.Gacha.Checkers;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Advobot.Gacha.Checkers;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.MenuEmojis;
 using Advobot.Gacha.Models;
@@ -8,10 +12,6 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Advobot.Gacha.Displays
 {
@@ -20,9 +20,9 @@ namespace Advobot.Gacha.Displays
 	/// </summary>
 	public class RollDisplay : Display
 	{
-		protected override EmojiMenu Menu { get; } = new EmojiMenu
+		protected override InteractiveMenu Menu { get; } = new InteractiveMenu
 		{
-			new ConfirmationEmoji(Constants.Heart, true),
+			new Confirmation(Constants.Heart, true),
 		};
 
 		private readonly IChecker<ulong> _ClaimChecker;
@@ -35,12 +35,13 @@ namespace Advobot.Gacha.Displays
 		public RollDisplay(
 			BaseSocketClient client,
 			GachaDatabase db,
+			int id,
 			IChecker<ulong> claimChecker,
 			IReadOnlyCharacter character,
 			IReadOnlySource source,
 			IReadOnlyList<IReadOnlyWish> wishes,
 			IReadOnlyList<IReadOnlyImage> images)
-			: base(client, db)
+			: base(client, db, id)
 		{
 			_ClaimChecker = claimChecker;
 			_Character = character;
@@ -49,20 +50,16 @@ namespace Advobot.Gacha.Displays
 			_Images = images;
 		}
 
-		protected override async Task HandleReactionsAsync(
-			IUserMessage message,
-			SocketReaction reaction,
-			IMenuEmote emoji)
+		protected override async Task HandleActionAsync(ActionContext context)
 		{
-			if (emoji is ConfirmationEmoji c && c.Value
+			if (context.Action is Confirmation c && c.Value
 				&& !_Claimed.Task.IsCompleted
-				&& _ClaimChecker.CanDo(reaction.UserId))
+				&& _ClaimChecker.CanDo(context.User.Id))
 			{
 				_Claimed.SetResult(null);
-				_ClaimChecker.HasBeenDone(reaction.UserId);
+				_ClaimChecker.HasBeenDone(context.User.Id);
 
-				var guildUser = (IGuildUser)reaction.User.Value;
-				var user = await Database.GetUserAsync(guildUser.GuildId, guildUser.Id).CAF();
+				var user = await Database.GetUserAsync(context.Guild.Id, context.User.Id).CAF();
 				var claim = new Claim(user, _Character);
 				await Database.AddClaimAsync(claim).CAF();
 			}

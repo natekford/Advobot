@@ -1,6 +1,6 @@
-﻿using Advobot.Modules;
-using Advobot.Gacha.Checkers;
+﻿using Advobot.Gacha.Checkers;
 using Advobot.Gacha.Database;
+using Advobot.Modules;
 
 namespace Advobot.Gacha
 {

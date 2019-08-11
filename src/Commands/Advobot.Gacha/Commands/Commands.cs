@@ -18,15 +18,12 @@ namespace Advobot.Gacha.Commands
 		[CommandMeta("ea1f45fd-d9e1-43df-bd9b-46c31b4ec221")]
 		public sealed class GachaRoll : GachaModuleBase
 		{
+			public DisplayManager Displays { get; set; }
+
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command()
 			{
-				var checker = Checkers.GetClaimChecker(Context.Guild);
-				var character = await Database.GetUnclaimedCharacter(Context.Guild.Id).CAF();
-				var source = await Database.GetSourceAsync(character.SourceId).CAF();
-				var wishes = await Database.GetWishesAsync(Context.Guild.Id, character).CAF();
-				var images = await Database.GetImagesAsync(character).CAF();
-				var display = new RollDisplay(Context.Client, Database, checker, character, source, wishes, images);
+				var display = await Displays.CreateRollDisplayAsync(Context).CAF();
 				await display.SendAsync(Context.Channel).CAF();
 			}
 		}
@@ -36,13 +33,12 @@ namespace Advobot.Gacha.Commands
 		[CommandMeta("23e41fce-8760-4f5a-8f68-154bb8ce1bc8")]
 		public sealed class DisplayCharacter : GachaModuleBase
 		{
+			public DisplayManager Displays { get; set; }
+
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command(Character character)
 			{
-				var metadata = await Database.GetCharacterMetadataAsync(character).CAF();
-				var images = await Database.GetImagesAsync(character).CAF();
-				var claim = await Database.GetClaimAsync(Context.Guild.Id, character).CAF();
-				var display = new CharacterDisplay(Context.Client, Database, metadata, images, claim);
+				var display = await Displays.CreateCharacterDisplayAsync(Context, character).CAF();
 				await display.SendAsync(Context.Channel).CAF();
 			}
 		}
@@ -52,11 +48,12 @@ namespace Advobot.Gacha.Commands
 		[CommandMeta("12827e74-4ba1-439c-9c39-9e2d2b7f2cfb")]
 		public sealed class DisplaySource : GachaModuleBase
 		{
+			public DisplayManager Displays { get; set; }
+
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command(Source source)
 			{
-				var characters = await Database.GetCharactersAsync(source).CAF();
-				var display = new SourceDisplay(Context.Client, Database, source, characters);
+				var display = await Displays.CreateSourceDisplayAsync(Context, source).CAF();
 				await display.SendAsync(Context.Channel).CAF();
 			}
 		}
@@ -66,11 +63,12 @@ namespace Advobot.Gacha.Commands
 		[CommandMeta("cdd5d2e6-e26e-4d1b-85d2-28b3778b6c2c")]
 		public sealed class DisplayHarem : GachaModuleBase
 		{
+			public DisplayManager Displays { get; set; }
+
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command(User user)
 			{
-				var marriages = await Database.GetClaimsAsync(user).CAF();
-				var display = new HaremDisplay(Context.Client, Database, marriages);
+				var display = await Displays.CreateHaremDisplayAsync(Context, user).CAF();
 				await display.SendAsync(Context.Channel).CAF();
 			}
 		}
