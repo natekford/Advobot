@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 
@@ -22,21 +23,22 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			//Check numbers first
 			if (ulong.TryParse(input, out var rawValue))
 			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(rawValue));
+				return this.FromSuccessAsync(rawValue);
 			}
 			//Then check permission names
 			if (EnumUtils.TryParseFlags(input.Split(_SplitChars).Select(x => x.Trim(_TrimChars)), out T value, out var invalidPerms))
 			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(value));
+				return this.FromSuccessAsync(value);
 			}
-
-			var resp = $"Invalid permission(s) provided: `{invalidPerms.Join("`, `")}`.";
-			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, resp));
+			return this.ParseFailedResultAsync<T>();
 		}
 	}
 }

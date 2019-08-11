@@ -23,11 +23,14 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			var help = services.GetRequiredService<IHelpEntryService>();
 			var matches = help.GetHelpEntries().Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.SingleValidResultAsync(matches, "help entries", input);
+			return this.SingleValidResultAsync(matches, "help entries", input);
 		}
 	}
 }

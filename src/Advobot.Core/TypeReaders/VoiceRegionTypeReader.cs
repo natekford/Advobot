@@ -16,11 +16,14 @@ namespace Advobot.TypeReaders
 	public class VoiceRegionTypeReader : TypeReader
 	{
 		/// <inheritdoc />
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			var regions = await context.Guild.GetVoiceRegionsAsync().CAF();
 			var matches = regions.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.SingleValidResult(matches, "voice regions", input);
+			return this.SingleValidResult(matches, "voice regions", input);
 		}
 	}
 }

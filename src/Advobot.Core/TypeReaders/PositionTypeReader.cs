@@ -20,15 +20,18 @@ namespace Advobot.TypeReaders
 		public abstract string ObjectTypeName { get; }
 
 		/// <inheritdoc />
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			if (!int.TryParse(input, out var position))
 			{
-				return TypeReaderUtils.ParseFailedResult<int>();
+				return this.ParseFailedResult<int>();
 			}
 
 			var matches = (await GetObjectsWithPositionAsync(context, position).CAF()).ToArray();
-			return TypeReaderUtils.SingleValidResult(matches, $"{ObjectTypeName} by position", input);
+			return this.SingleValidResult(matches, $"{ObjectTypeName} by position", input);
 		}
 		/// <summary>
 		/// Gets objects with the supplied position.
@@ -36,6 +39,8 @@ namespace Advobot.TypeReaders
 		/// <param name="context"></param>
 		/// <param name="position"></param>
 		/// <returns></returns>
-		protected abstract Task<IEnumerable<T>> GetObjectsWithPositionAsync(ICommandContext context, int position);
+		protected abstract Task<IEnumerable<T>> GetObjectsWithPositionAsync(
+			ICommandContext context,
+			int position);
 	}
 }

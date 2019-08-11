@@ -13,11 +13,14 @@ namespace Advobot.TypeReaders
 	public sealed class CloseHelpEntryTypeReader : TypeReader
 	{
 		/// <inheritdoc />
-		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			var helpEntries = services.GetRequiredService<IHelpEntryService>();
 			var matches = helpEntries.FindCloseHelpEntries(input);
-			return TypeReaderUtils.MultipleValidResultsAsync(matches, "help entries", input);
+			return this.MultipleValidResultsAsync(matches, "help entries", input);
 		}
 	}
 }

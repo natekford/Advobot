@@ -22,7 +22,10 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			var webhooks = await context.Guild.GetWebhooksAsync().CAF();
 			if (ulong.TryParse(input, out var id))
@@ -30,12 +33,12 @@ namespace Advobot.TypeReaders
 				var webhook = webhooks.FirstOrDefault(x => x.Id == id);
 				if (webhook != null)
 				{
-					return TypeReaderResult.FromSuccess(webhook);
+					return this.FromSuccess(webhook);
 				}
 			}
 
 			var matches = webhooks.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.SingleValidResult(matches, "webhooks", input);
+			return this.SingleValidResult(matches, "webhooks", input);
 		}
 	}
 }

@@ -29,13 +29,16 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			if (TryParseColor(input, out var color))
 			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(color));
+				return this.FromSuccessAsync(color);
 			}
-			return TypeReaderUtils.ParseFailedResultAsync<Color>();
+			return this.ParseFailedResultAsync<Color>();
 		}
 		/// <summary>
 		/// Attempts to parse a color from the input. If unable to parse, returns null.

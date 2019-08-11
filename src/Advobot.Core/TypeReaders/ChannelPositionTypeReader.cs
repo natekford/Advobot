@@ -17,7 +17,9 @@ namespace Advobot.TypeReaders
 		public override string ObjectTypeName => "channels";
 
 		/// <inheritdoc />
-		protected override async Task<IEnumerable<T>> GetObjectsWithPositionAsync(ICommandContext context, int position)
+		protected override async Task<IEnumerable<T>> GetObjectsWithPositionAsync(
+			ICommandContext context,
+			int position)
 		{
 			var channels = await context.Guild.GetChannelsAsync().CAF();
 			return channels.OfType<T>().Where(x => x.Position == position);

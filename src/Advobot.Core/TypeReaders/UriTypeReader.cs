@@ -19,13 +19,16 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			if (Uri.TryCreate(input, UriKind.Absolute, out var url))
 			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(url));
+				return this.FromSuccessAsync(url);
 			}
-			return TypeReaderUtils.ParseFailedResultAsync<Uri>();
+			return this.ParseFailedResultAsync<Uri>();
 		}
 	}
 }

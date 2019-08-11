@@ -237,6 +237,14 @@ namespace Advobot.Utilities
 		}
 
 		/// <summary>
+		/// Acts as <see cref="FromSuccess(Attribute)"/> but async.
+		/// </summary>
+		/// <param name="_"></param>
+		/// <returns></returns>
+		public static Task<PreconditionResult> FromSuccessAsync(
+			this Attribute _)
+			=> Task.FromResult(FromSuccess(_));
+		/// <summary>
 		/// Creates <see cref="PreconditionResult.FromSuccess"/>.
 		/// </summary>
 		/// <param name="_"></param>
@@ -245,13 +253,15 @@ namespace Advobot.Utilities
 			this Attribute _)
 			=> PreconditionResult.FromSuccess();
 		/// <summary>
-		/// Creates <see cref="PreconditionResult.FromSuccess"/> async.
+		/// Acts as <see cref="FromError(Attribute, string)"/> but async.
 		/// </summary>
 		/// <param name="_"></param>
+		/// <param name="error"></param>
 		/// <returns></returns>
-		public static Task<PreconditionResult> FromSuccessAsync(
-			this Attribute _)
-			=> Task.FromResult(PreconditionResult.FromSuccess());
+		public static Task<PreconditionResult> FromErrorAsync(
+			this Attribute _,
+			string error)
+			=> Task.FromResult(FromError(_, error));
 		/// <summary>
 		/// Creates <see cref="PreconditionResult.FromError(string)"/>.
 		/// </summary>
@@ -262,16 +272,6 @@ namespace Advobot.Utilities
 			this Attribute _,
 			string error)
 			=> PreconditionResult.FromError(error);
-		/// <summary>
-		/// Creates <see cref="PreconditionResult.FromError(string)"/> async.
-		/// </summary>
-		/// <param name="_"></param>
-		/// <param name="error"></param>
-		/// <returns></returns>
-		public static Task<PreconditionResult> FromErrorAsync(
-			this Attribute _,
-			string error)
-			=> Task.FromResult(PreconditionResult.FromError(error));
 		/// <summary>
 		/// Creates a <see cref="PreconditionResult"/> from the exist status of an object.
 		/// </summary>

@@ -22,14 +22,17 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			{
 				var invites = await context.Guild.GetInvitesAsync().CAF();
 				var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(input));
 				if (invite != null)
 				{
-					return TypeReaderResult.FromSuccess(invite);
+					return this.FromSuccess(invite);
 				}
 			}
 
@@ -38,11 +41,11 @@ namespace Advobot.TypeReaders
 				//TODO: put the invite.GuildId == context.Guild.Id into parameter precon?
 				if (invite is IInviteMetadata meta && invite.GuildId == context.Guild.Id)
 				{
-					return TypeReaderResult.FromSuccess(meta);
+					return this.FromSuccess(meta);
 				}
 			}
 
-			return TypeReaderUtils.SingleValidResult(Array.Empty<IInviteMetadata>(), "invites", input);
+			return this.SingleValidResult(Array.Empty<IInviteMetadata>(), "invites", input);
 		}
 	}
 }

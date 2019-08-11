@@ -17,12 +17,15 @@ namespace Advobot.TypeReaders
 	public sealed class CloseQuoteTypeReader : TypeReader
 	{
 		/// <inheritdoc />
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var matches = new CloseWords<Quote>(settings.Quotes).FindMatches(input).Select(x => x.Value).ToArray();
-			return TypeReaderUtils.MultipleValidResults(matches, "quotes", input);
+			return this.MultipleValidResults(matches, "quotes", input);
 		}
 	}
 }

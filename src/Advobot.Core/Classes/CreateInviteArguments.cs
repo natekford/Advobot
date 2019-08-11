@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
 
@@ -36,21 +37,26 @@ namespace Advobot.Classes
 		/// <param name="channel"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public Task<IInviteMetadata> CreateInviteAsync(INestedChannel channel, RequestOptions? options = null)
+		public Task<IInviteMetadata> CreateInviteAsync(
+			INestedChannel channel,
+			RequestOptions? options = null)
 			=> channel.CreateInviteAsync(Time, Uses, IsTemporary, IsUnique, options);
 
 		private sealed class PositiveNullableIntTypeReader : TypeReader
 		{
 			/// <inheritdoc />
-			public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+			public override Task<TypeReaderResult> ReadAsync(
+				ICommandContext context,
+				string input,
+				IServiceProvider services)
 			{
 				if (input == null)
 				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(null));
+					return this.FromSuccessAsync(null);
 				}
 				else if (!int.TryParse(input, out var value))
 				{
-					return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, $"Failed to parse {typeof(int?).Name}."));
+					return this.ParseFailedResultAsync<int?>();
 				}
 				else if (value < 1)
 				{
@@ -58,7 +64,7 @@ namespace Advobot.Classes
 				}
 				else
 				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(value));
+					return this.FromSuccessAsync(value);
 				}
 			}
 		}

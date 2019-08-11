@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -21,7 +22,10 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			var bans = await context.Guild.GetBansAsync().CAF();
 			if (MentionUtils.TryParseUser(input, out var id) || ulong.TryParse(input, out id))
@@ -29,7 +33,7 @@ namespace Advobot.TypeReaders
 				var ban = bans.FirstOrDefault(x => x.User.Id == id);
 				if (ban != null)
 				{
-					return TypeReaderResult.FromSuccess(ban);
+					return this.FromSuccess(ban);
 				}
 			}
 
@@ -39,20 +43,12 @@ namespace Advobot.TypeReaders
 				var ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == d && x.User.Username.CaseInsEquals(parts[0]));
 				if (ban != null)
 				{
-					return TypeReaderResult.FromSuccess(ban);
+					return this.FromSuccess(ban);
 				}
 			}
 
-			var matchingBans = bans.Where(x => x.User.Username.CaseInsEquals(input)).ToArray();
-			if (matchingBans.Length == 1)
-			{
-				return TypeReaderResult.FromSuccess(matchingBans[0]);
-			}
-			if (matchingBans.Length > 1)
-			{
-				return TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many bans found with the same username.");
-			}
-			return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Ban not found.");
+			var matches = bans.Where(x => x.User.Username.CaseInsEquals(input)).ToArray();
+			return this.SingleValidResult(matches, "bans", input);
 		}
 	}
 }

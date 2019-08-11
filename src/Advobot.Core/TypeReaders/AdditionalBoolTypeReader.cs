@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.TypeReaders
@@ -46,17 +47,20 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			if (TrueVals.Contains(input))
 			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(true));
+				return this.FromSuccessAsync(true);
 			}
 			else if (FalseVals.Contains(input))
 			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(false));
+				return this.FromSuccessAsync(false);
 			}
-			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Invalid boolean value provided."));
+			return this.ParseFailedResultAsync<bool>();
 		}
 	}
 }

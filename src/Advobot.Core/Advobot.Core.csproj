@@ -80,6 +80,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TypeReaders\BannedPhraseTypeReaders\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <RootNamespace>Advobot</RootNamespace>
   </PropertyGroup>

@@ -24,12 +24,15 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var matches = settings.Quotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.SingleValidResult(matches, "quotes", input);
+			return this.SingleValidResult(matches, "quotes", input);
 		}
 	}
 }

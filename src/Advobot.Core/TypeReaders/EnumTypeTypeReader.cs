@@ -24,10 +24,13 @@ namespace Advobot.TypeReaders
 			.ToImmutableArray();
 
 		/// <inheritdoc />
-		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			var matches = Enums.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.SingleValidResultAsync(matches, "enums", input);
+			return this.SingleValidResultAsync(matches, "enums", input);
 		}
 	}
 }

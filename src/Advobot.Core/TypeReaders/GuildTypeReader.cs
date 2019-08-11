@@ -22,20 +22,23 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			if (ulong.TryParse(input, out var id))
 			{
 				var guild = await context.Client.GetGuildAsync(id).CAF();
 				if (guild != null)
 				{
-					return TypeReaderResult.FromSuccess(guild);
+					return this.FromSuccess(guild);
 				}
 			}
 
 			var guilds = await context.Client.GetGuildsAsync().CAF();
 			var matches = guilds.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.SingleValidResult(matches, "guilds", input);
+			return this.SingleValidResult(matches, "guilds", input);
 		}
 	}
 }

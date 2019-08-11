@@ -22,14 +22,17 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			if (Emote.TryParse(input, out var temp))
 			{
 				var emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == temp.Id);
 				if (emote != null)
 				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(emote));
+					return this.FromSuccessAsync(emote);
 				}
 			}
 			if (ulong.TryParse(input, out var id))
@@ -37,12 +40,12 @@ namespace Advobot.TypeReaders
 				var emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == id);
 				if (emote != null)
 				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(emote));
+					return this.FromSuccessAsync(emote);
 				}
 			}
 
 			var matches = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.SingleValidResultAsync(matches, "emotes", input);
+			return this.SingleValidResultAsync(matches, "emotes", input);
 		}
 	}
 }

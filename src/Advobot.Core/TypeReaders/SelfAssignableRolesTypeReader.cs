@@ -18,17 +18,20 @@ namespace Advobot.TypeReaders
 	public sealed class SelfAssignableRolesTypeReader : TypeReader
 	{
 		/// <inheritdoc />
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
 			if (!int.TryParse(input, out var group))
 			{
-				return TypeReaderUtils.ParseFailedResult<int>();
+				return this.ParseFailedResult<int>();
 			}
 
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var matches = settings.SelfAssignableGroups.Where(x => x.Group == group).ToArray();
-			return TypeReaderUtils.SingleValidResult(matches, "self assignable role groups", input);
+			return this.SingleValidResult(matches, "self assignable role groups", input);
 		}
 	}
 }

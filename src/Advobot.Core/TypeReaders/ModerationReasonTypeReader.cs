@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Classes;
+using Advobot.Utilities;
 using Discord.Commands;
 
 namespace Advobot.TypeReaders
@@ -19,7 +20,10 @@ namespace Advobot.TypeReaders
 		/// <param name="input"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
-			=> Task.FromResult(TypeReaderResult.FromSuccess(new ModerationReason(input)));
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
+			=> this.FromSuccessAsync(new ModerationReason(input));
 	}
 }
