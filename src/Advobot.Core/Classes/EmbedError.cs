@@ -1,8 +1,8 @@
-﻿using AdvorangesUtils;
-using System;
+﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using AdvorangesUtils;
 
 namespace Advobot.Classes
 {
@@ -134,7 +134,7 @@ namespace Advobot.Classes
 			NewExpression @new => @new.GetFromNew(),
 			ConstantExpression constant => constant.GetFromConstant(),
 			ParameterExpression _ => "", //Change to 'param' and 'param.Name' to include them
-			_ => throw new NotImplementedException(),
+			_ => throw new ArgumentException("This expression has not been implemented yet."),
 		};
 		private static string GetFromBinary(this BinaryExpression binary)
 		{

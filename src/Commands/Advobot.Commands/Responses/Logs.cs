@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Advobot.Formatting;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
@@ -10,6 +11,10 @@ namespace Advobot.Commands.Responses
 	{
 		private Logs() { }
 
+		public static AdvobotResult SetLog(string logType, ITextChannel channel)
+			=> Success(Default.FormatInterpolated($"Successfully set {channel} as the {logType.NoFormatting()} log."));
+		public static AdvobotResult Removed(string logType)
+			=> Success(Default.FormatInterpolated($"Successfully removed the {logType.NoFormatting()} log."));
 		public static AdvobotResult ModifiedIgnoredLogChannels(IReadOnlyCollection<IGuildChannel> channels, bool ignored)
 			=> Success(Default.FormatInterpolated($"Successfully {GetIgnored(ignored)} the channels {channels}."));
 		public static AdvobotResult DefaultLogActions()

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Attributes.Preconditions.QuantityLimitations;
+using Advobot.Attributes.Preconditions.QuantityLimits;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
 using Advobot.Modules;
@@ -26,16 +26,16 @@ namespace Advobot.Commands.Settings
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[QuoteLimit(QuantityLimitAction.Add)]
 			[ImplicitCommand, ImplicitAlias]
+			[QuoteLimit(QuantityLimitAction.Add)]
 			public Task<RuntimeResult> Add([QuoteName] string name, [Remainder] string text)
 			{
 				var quote = new Quote(name, text);
 				Settings.Quotes.Add(quote);
 				return Responses.Quotes.ModifiedQuote(quote, true);
 			}
-			[QuoteLimit(QuantityLimitAction.Remove)]
 			[ImplicitCommand, ImplicitAlias]
+			[QuoteLimit(QuantityLimitAction.Remove)]
 			public Task<RuntimeResult> Remove([Remainder] Quote quote)
 			{
 				Settings.Quotes.Remove(quote);

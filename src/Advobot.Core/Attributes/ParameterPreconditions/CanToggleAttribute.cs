@@ -10,7 +10,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 	/// Makes sure that the passed in <see cref="IHelpEntry"/> can be toggled.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireCanToggleAttribute
+	public sealed class CanToggleAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />

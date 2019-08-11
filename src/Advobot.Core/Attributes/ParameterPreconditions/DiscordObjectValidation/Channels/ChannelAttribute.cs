@@ -45,11 +45,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 		{
 			if (!(context.User is IGuildUser invoker))
 			{
-				return Task.FromResult(PreconditionResult.FromError("Invalid invoker."));
+				return this.FromErrorAsync("Invalid invoker.");
 			}
 			if (!(value is IGuildChannel channel))
 			{
-				return Task.FromResult(PreconditionResult.FromError("Invalid channel."));
+				return this.FromErrorAsync("Invalid channel.");
 			}
 			return invoker.ValidateChannel(channel, Permissions, GetPreconditions());
 		}

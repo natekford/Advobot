@@ -16,7 +16,7 @@ namespace Advobot.Services.HelpEntries
 		public bool DefaultEnabled => _Meta.IsEnabled;
 		public string Id => _Meta.Guid.ToString();
 		public string? Category { get; }
-		public string Description { get; }
+		public string Summary { get; }
 		public string Name { get; }
 		public IReadOnlyCollection<string> Aliases { get; }
 		public IReadOnlyCollection<PreconditionAttribute> BasePerms { get; }
@@ -33,10 +33,10 @@ namespace Advobot.Services.HelpEntries
 
 			var parent = GetParentModule(module);
 			Category = parent == module ? null : parent.Name;
-			Description = module.Summary ?? throw new ArgumentException(nameof(Description));
+			Summary = module.Summary ?? throw new ArgumentException(nameof(Summary));
 			Name = module.Name ?? throw new ArgumentException(nameof(Name));
 
-			Aliases = module.Aliases.Any() ? module.Aliases : new[] { "N/A" }.ToImmutableArray();
+			Aliases = module.Aliases.Any() ? module.Aliases : ImmutableArray.Create("N/A");
 			BasePerms = module.Preconditions;
 
 			_Module = module;
@@ -88,7 +88,7 @@ namespace Advobot.Services.HelpEntries
 				$"{"Currently Enabled".AsTitle()} {GetEnabledStatus(settings)}\n",
 				$"{"Enabled By Default".AsTitle()} {(DefaultEnabled ? "Yes" : "No")}{(AbleToBeToggled ? "" : " (Not toggleable)")}\n\n",
 				$"{"Base Permission(s)".AsTitle()}\n{FormatPreconditions(BasePerms)}\n\n",
-				$"{"Description".AsTitle()}\n{Description}\n\n",
+				$"{"Description".AsTitle()}\n{Summary}\n\n",
 			};
 
 			var formattedCommands = _Module.Commands.Select((c, i) =>
@@ -111,7 +111,6 @@ namespace Advobot.Services.HelpEntries
 		public string ToString(IGuildSettings? settings, IFormatProvider? formatProvider, int commandIndex)
 		{
 			var command = _Module.Commands[commandIndex];
-
 			var collection = new DiscordFormattableStringCollection
 			{
 				$"{"Aliases".AsTitle()} {command.Aliases.Join(", ")}\n\n",
@@ -124,7 +123,8 @@ namespace Advobot.Services.HelpEntries
 				return collection.ToString(formatProvider);
 			}
 
-			var visibleParameters = command.Parameters.Where(p => !p.Attributes.Any(a => a is HiddenAttribute));
+			var visibleParameters = command.Parameters
+				.Where(p => !p.Attributes.Any(a => a is HiddenAttribute));
 			var formattedParameters = visibleParameters.Select((p, i) =>
 			{
 				var output = $"\t{i + 1}. {FormatParameter(p)}";

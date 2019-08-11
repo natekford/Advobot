@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 
@@ -38,7 +39,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			}
 			catch (ArgumentException)
 			{
-				return PreconditionResult.FromError("Invalid regex provided.");
+				return this.FromError("Invalid regex provided.");
 			}
 
 			var tests = new (string Name, Func<string, bool> Test)[]
@@ -72,10 +73,10 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			{
 				if (Test.Invoke(value))
 				{
-					return PreconditionResult.FromError($"Invalid regex; matched {Name} when it should not have.");
+					return this.FromError($"Invalid regex; matched {Name} when it should not have.");
 				}
 			}
-			return PreconditionResult.FromSuccess();
+			return this.FromSuccess();
 		}
 		/// <inheritdoc />
 		public override string ToString()

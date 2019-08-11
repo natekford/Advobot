@@ -270,6 +270,18 @@
   <data name="MessageRole" xml:space="preserve">
     <value>Mentions an unmentionable role with a message.</value>
   </data>
+  <data name="ModifyBannedNames" xml:space="preserve">
+    <value>Adds or removes banned names.</value>
+  </data>
+  <data name="ModifyBannedPhrasePunishments" xml:space="preserve">
+    <value>Adds or removes banned phrase punishments.</value>
+  </data>
+  <data name="ModifyBannedRegex" xml:space="preserve">
+    <value>Adds or removes banned regex.</value>
+  </data>
+  <data name="ModifyBannedStrings" xml:space="preserve">
+    <value>Adds or removes banned strings.</value>
+  </data>
   <data name="ModifyBotIcon" xml:space="preserve">
     <value>Modifies the bot's icon.</value>
   </data>
@@ -342,8 +354,14 @@
   <data name="ModifyIgnoredLogChannels" xml:space="preserve">
     <value>Ignores all logging info that would have been gotten from a channel.</value>
   </data>
+  <data name="ModifyImageLog" xml:space="preserve">
+    <value>Modifies which channel is designated as the image log.</value>
+  </data>
   <data name="ModifyLogActions" xml:space="preserve">
     <value>The server log will send messages when these events happen.</value>
+  </data>
+  <data name="ModifyModLog" xml:space="preserve">
+    <value>Modifies which channel is designated as the mod log.</value>
   </data>
   <data name="ModifyNickName" xml:space="preserve">
     <value>Modifies a user's nickname.</value>
@@ -377,6 +395,9 @@
   </data>
   <data name="ModifySelfRoles" xml:space="preserve">
     <value>Modifies self assignable roles.</value>
+  </data>
+  <data name="ModifyServerLog" xml:space="preserve">
+    <value>Modifies which channel is designated as the server log.</value>
   </data>
   <data name="ModifyWebhookChannel" xml:space="preserve">
     <value>Changes the channel of a webhook.</value>

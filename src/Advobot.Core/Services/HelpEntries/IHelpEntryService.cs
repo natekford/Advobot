@@ -29,11 +29,5 @@ namespace Advobot.Services.HelpEntries
 		/// <param name="category"></param>
 		/// <returns></returns>
 		IReadOnlyList<IHelpEntry> GetHelpEntries(string? category = null);
-		/// <summary>
-		/// Retrurns an array of <see cref="IHelpEntry"/> which have not had their values set in guild settings.
-		/// </summary>
-		/// <param name="setCommands"></param>
-		/// <returns></returns>
-		IReadOnlyList<IHelpEntry> GetUnsetCommands(IEnumerable<string> setCommands);
 	}
 }

@@ -520,6 +520,42 @@ namespace Advobot.Commands.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adds or removes banned names..
+        /// </summary>
+        internal static string ModifyBannedNames {
+            get {
+                return ResourceManager.GetString("ModifyBannedNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adds or removes banned phrase punishments..
+        /// </summary>
+        internal static string ModifyBannedPhrasePunishments {
+            get {
+                return ResourceManager.GetString("ModifyBannedPhrasePunishments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adds or removes banned regex..
+        /// </summary>
+        internal static string ModifyBannedRegex {
+            get {
+                return ResourceManager.GetString("ModifyBannedRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adds or removes banned strings..
+        /// </summary>
+        internal static string ModifyBannedStrings {
+            get {
+                return ResourceManager.GetString("ModifyBannedStrings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifies the bot&apos;s icon..
         /// </summary>
         internal static string ModifyBotIcon {
@@ -736,11 +772,29 @@ namespace Advobot.Commands.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifies which channel is designated as the image log..
+        /// </summary>
+        internal static string ModifyImageLog {
+            get {
+                return ResourceManager.GetString("ModifyImageLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server log will send messages when these events happen..
         /// </summary>
         internal static string ModifyLogActions {
             get {
                 return ResourceManager.GetString("ModifyLogActions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifies which channel is designated as the mod log..
+        /// </summary>
+        internal static string ModifyModLog {
+            get {
+                return ResourceManager.GetString("ModifyModLog", resourceCulture);
             }
         }
         
@@ -840,6 +894,15 @@ namespace Advobot.Commands.Resources {
         internal static string ModifySelfRoles {
             get {
                 return ResourceManager.GetString("ModifySelfRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifies which channel is designated as the server log..
+        /// </summary>
+        internal static string ModifyServerLog {
+            get {
+                return ResourceManager.GetString("ModifyServerLog", resourceCulture);
             }
         }
         

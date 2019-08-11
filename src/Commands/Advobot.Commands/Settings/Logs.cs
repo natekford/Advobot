@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Attributes.ParameterPreconditions.Logs;
+using Advobot.Attributes.Preconditions.Logs;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;
@@ -19,72 +21,77 @@ namespace Advobot.Commands.Settings
 {
 	public sealed class Logs : ModuleBase
 	{
-#warning reimplement
-		/*
-		[Group(nameof(ModifyLogChannels)), ModuleInitialismAlias(typeof(ModifyLogChannels))]
-		[Summary("Puts the serverlog on the specified channel. The serverlog logs things specified in " + nameof(ModifyLogActions))]
-		[RequireUserPermission(GuildPermission.Administrator)]
-		[EnabledByDefault(false)]
-		public sealed class ModifyLogChannels : SettingsModule<IGuildSettings>
+		[Group(nameof(ModifyServerLog)), ModuleInitialismAlias(typeof(ModifyServerLog))]
+		[LocalizedSummary(nameof(Summaries.ModifyServerLog))]
+		[CommandMeta("58abc6df-6814-4946-9f04-b99b024ec8ac")]
+		[RequireGuildPermissions]
+		public sealed class ModifyServerLog : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand]
-			public async Task Enable(
-				LogChannelType logChannelType,
-				[ValidateObject(Verif.CanBeViewed, Verif.CanModifyPermissions)] SocketTextChannel channel)
+			[Command]
+			public Task<RuntimeResult> Command(
+				[NotServerLog, Channel(ManageChannels, ManageRoles)] ITextChannel channel)
 			{
-				if (!SetLogChannel(Context.GuildSettings, logChannelType, channel.Id))
-				{
-					await ReplyErrorAsync($"That channel is already the current {logChannelType.ToLower()} log.")).CAF();
-					return;
-				}
-				await ReplyTimedAsync($"Successfully set the {logChannelType.ToLower()} log as `{channel.Format()}`.").CAF();
+				Settings.ServerLogId = channel.Id;
+				return Responses.Logs.SetLog("server", channel);
 			}
-			[ImplicitCommand]
-			public async Task Disable(LogChannelType logChannelType)
+			[ImplicitCommand, ImplicitAlias]
+			[RequireServerLog]
+			public Task<RuntimeResult> Remove()
 			{
-				if (!SetLogChannel(Context.GuildSettings, logChannelType, 0))
-				{
-					var error = $"The {logChannelType.ToLower()} log is already off.");
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-					return;
-				}
+				Settings.ServerLogId = 0;
+				return Responses.Logs.Removed("server");
+			}
+		}
 
-				var resp = $"Successfully removed the {logChannelType.ToString().ToLower()} log.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
-			}
+		[Group(nameof(ModifyModLog)), ModuleInitialismAlias(typeof(ModifyModLog))]
+		[LocalizedSummary(nameof(Summaries.ModifyModLog))]
+		[CommandMeta("00199443-02f9-4873-ba21-d6d462a0052a")]
+		[RequireGuildPermissions]
+		public sealed class ModifyModLog : SettingsModule<IGuildSettings>
+		{
+			protected override IGuildSettings Settings => Context.Settings;
 
-			private bool SetLogChannel(IGuildSettings settings, LogChannelType type, ulong id)
+			[Command]
+			public Task<RuntimeResult> Command(
+				[NotModLog, Channel(ManageChannels, ManageRoles)] ITextChannel channel)
 			{
-				switch (type)
-				{
-					case LogChannelType.Server:
-						if (settings.ServerLogId == id)
-						{
-							return false;
-						}
-						settings.ServerLogId = id;
-						return true;
-					case LogChannelType.Mod:
-						if (settings.ModLogId == id)
-						{
-							return false;
-						}
-						settings.ModLogId = id;
-						return true;
-					case LogChannelType.Image:
-						if (settings.ImageLogId == id)
-						{
-							return false;
-						}
-						settings.ImageLogId = id;
-						return true;
-					default:
-						throw new ArgumentException("invalid type", nameof(type));
-				}
+				Settings.ModLogId = channel.Id;
+				return Responses.Logs.SetLog("mod", channel);
 			}
-		}*/
+			[ImplicitCommand, ImplicitAlias]
+			[RequireModLog]
+			public Task<RuntimeResult> Remove()
+			{
+				Settings.ModLogId = 0;
+				return Responses.Logs.Removed("mod");
+			}
+		}
+
+		[Group(nameof(ModifyImageLog)), ModuleInitialismAlias(typeof(ModifyImageLog))]
+		[LocalizedSummary(nameof(Summaries.ModifyImageLog))]
+		[CommandMeta("dd36f347-a33b-490a-a751-8d671e50abe1")]
+		[RequireGuildPermissions]
+		public sealed class ModifyImageLog : SettingsModule<IGuildSettings>
+		{
+			protected override IGuildSettings Settings => Context.Settings;
+
+			[Command]
+			public Task<RuntimeResult> Command(
+				[NotImageLog, Channel(ManageChannels, ManageRoles)] ITextChannel channel)
+			{
+				Settings.ImageLogId = channel.Id;
+				return Responses.Logs.SetLog("image", channel);
+			}
+			[ImplicitCommand, ImplicitAlias]
+			[RequireImageLog]
+			public Task<RuntimeResult> Remove()
+			{
+				Settings.ImageLogId = 0;
+				return Responses.Logs.Removed("image");
+			}
+		}
 
 		[Group(nameof(ModifyIgnoredLogChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredLogChannels))]
 		[LocalizedSummary(nameof(Summaries.ModifyIgnoredLogChannels))]
@@ -105,7 +112,8 @@ namespace Advobot.Commands.Settings
 			public Task<RuntimeResult> Remove(
 				[Channel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
 			{
-				Settings.IgnoredLogChannels.RemoveAll(x => channels.Select(x => x.Id).Contains(x));
+				var ids = channels.Select(x => x.Id);
+				Settings.IgnoredLogChannels.RemoveAll(x => ids.Contains(x));
 				return Responses.Logs.ModifiedIgnoredLogChannels(channels, false);
 			}
 		}
@@ -116,14 +124,13 @@ namespace Advobot.Commands.Settings
 		[RequireGuildPermissions]
 		public sealed class ModifyLogActions : SettingsModule<IGuildSettings>
 		{
+			private static readonly LogAction[] _All
+				= Enum.GetValues(typeof(LogAction)).Cast<LogAction>().ToArray();
+
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[DontSaveAfterExecution]
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Show()
-				=> Responses.CommandResponses.DisplayEnumValues<LogAction>();
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Reset()
+			public Task<RuntimeResult> Default()
 			{
 				Settings.LogActions.Clear();
 				Settings.LogActions.AddRange(new[]
@@ -137,12 +144,12 @@ namespace Advobot.Commands.Settings
 				return Responses.Logs.DefaultLogActions();
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> ToggleAll(bool enable)
+			public Task<RuntimeResult> All(bool enable)
 			{
 				Settings.LogActions.Clear();
 				if (enable)
 				{
-					Settings.LogActions.AddRange(Enum.GetValues(typeof(LogAction)).Cast<LogAction>());
+					Settings.LogActions.AddRange(_All);
 				}
 				return Responses.Logs.ModifiedAllLogActions(enable);
 			}

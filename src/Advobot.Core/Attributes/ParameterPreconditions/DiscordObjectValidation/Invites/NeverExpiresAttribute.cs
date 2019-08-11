@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Advobot.Utilities;
 using Discord;
-using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
@@ -20,9 +18,9 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 			{
 				if (target.MaxAge == null)
 				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
+					return this.FromSuccessAsync();
 				}
-				return Task.FromResult(PreconditionResult.FromError("The passed in invite must not expire."));
+				return this.FromErrorAsync("The passed in invite must not expire.");
 			};
 		}
 		/// <inheritdoc />

@@ -33,7 +33,7 @@ namespace Advobot.Services.Commands
 		private readonly IServiceProvider _Provider;
 		private readonly DiscordShardedClient _Client;
 		private readonly CommandServiceConfig _CommandConfig;
-		private readonly Localized<CommandService> _CommandServices;
+		private readonly Localized<CommandService> _CommandService;
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IHelpEntryService _HelpEntries;
@@ -57,7 +57,7 @@ namespace Advobot.Services.Commands
 			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
 			_HelpEntries = _Provider.GetRequiredService<IHelpEntryService>();
 			_Timers = _Provider.GetRequiredService<ITimerService>();
-			_CommandServices = new Localized<CommandService>(x =>
+			_CommandService = new Localized<CommandService>(x =>
 			{
 				var commands = new CommandService(_CommandConfig);
 				commands.Log += OnLog;
@@ -71,7 +71,7 @@ namespace Advobot.Services.Commands
 
 		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> aseemblies)
 		{
-			var currentCulture = CultureInfo.CurrentCulture;
+			var currentCulture = CultureInfo.CurrentUICulture;
 			foreach (var assembly in aseemblies)
 			{
 				if (assembly.Attribute.Instantiator != null)
@@ -81,9 +81,9 @@ namespace Advobot.Services.Commands
 
 				foreach (var culture in assembly.Attribute.SupportedCultures)
 				{
-					CultureInfo.CurrentCulture = culture;
+					CultureInfo.CurrentUICulture = culture;
 
-					var commands = _CommandServices.Get();
+					var commands = _CommandService.Get();
 					var typeReaders = new[] { Assembly.GetExecutingAssembly(), assembly.Assembly }
 						.SelectMany(x => x.GetTypes())
 						.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
@@ -112,7 +112,7 @@ namespace Advobot.Services.Commands
 						$"from {assembly.Assembly.GetName().Name} in the {culture} culture.");
 				}
 			}
-			CultureInfo.CurrentCulture = currentCulture;
+			CultureInfo.CurrentUICulture = currentCulture;
 		}
 		private async Task OnReady(DiscordSocketClient _)
 		{
@@ -144,9 +144,9 @@ namespace Advobot.Services.Commands
 				return;
 			}
 
-			CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(settings.Culture);
+			CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(settings.Culture);
 			var context = new AdvobotCommandContext(settings, _Client, (SocketUserMessage)msg);
-			var commands = _CommandServices.Get();
+			var commands = _CommandService.Get();
 			await commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
 

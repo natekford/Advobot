@@ -19,7 +19,7 @@ namespace Advobot.Localization
 	}
 
 	/// <summary>
-	/// Holds different instances of <typeparamref name="T"/> based on <see cref="CultureInfo.CurrentCulture"/>.
+	/// Holds different instances of <typeparamref name="T"/> based on <see cref="CultureInfo.CurrentUICulture"/>.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	public sealed class Localized<T>
@@ -42,6 +42,6 @@ namespace Advobot.Localization
 		/// </summary>
 		/// <returns></returns>
 		public T Get()
-			=> _Source.GetOrAdd(CultureInfo.CurrentCulture, _ValueFactory);
+			=> _Source.GetOrAdd(CultureInfo.CurrentUICulture, _ValueFactory);
 	}
 }

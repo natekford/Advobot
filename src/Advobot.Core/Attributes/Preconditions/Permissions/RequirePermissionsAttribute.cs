@@ -42,17 +42,17 @@ namespace Advobot.Attributes.Preconditions.Permissions
 			//If the user has no permissions this should just return an error
 			if (userPerms == null)
 			{
-				return PreconditionResult.FromError("You have no permissions.");
+				return this.FromError("You have no permissions.");
 			}
 
 			foreach (var flag in Permissions)
 			{
 				if (userPerms.HasFlag(flag))
 				{
-					return PreconditionResult.FromSuccess();
+					return this.FromSuccess();
 				}
 			}
-			return PreconditionResult.FromError("You are missing permissions.");
+			return this.FromError("You are missing permissions.");
 		}
 		/// <summary>
 		/// Returns the invoking user's permissions.

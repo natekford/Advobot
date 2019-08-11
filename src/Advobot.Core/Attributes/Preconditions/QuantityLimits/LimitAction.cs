@@ -1,4 +1,4 @@
-﻿namespace Advobot.Attributes.Preconditions.QuantityLimitations
+﻿namespace Advobot.Attributes.Preconditions.QuantityLimits
 {
 	/// <summary>
 	/// Specifies what action the command is going to do.

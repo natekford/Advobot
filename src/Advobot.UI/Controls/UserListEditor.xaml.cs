@@ -40,29 +40,26 @@ namespace Advobot.UI.Controls
 				var displayList = new ObservableCollection<ulong>(_UserList);
 				_UserList.CollectionChanged += (sender, e) =>
 				{
-					Dispatcher.UIThread.InvokeAsync(() =>
+					var action = e.Action switch
 					{
-						switch (e.Action)
+						NotifyCollectionChangedAction.Add => (Action)(() =>
 						{
-							case NotifyCollectionChangedAction.Add:
-								foreach (ulong item in e.NewItems)
-								{
-									displayList.Add(item);
-								}
-								return;
-							case NotifyCollectionChangedAction.Remove:
-								foreach (ulong item in e.OldItems)
-								{
-									displayList.Remove(item);
-								}
-								return;
-							case NotifyCollectionChangedAction.Reset:
-								displayList.Clear();
-								return;
-							default:
-								throw new NotImplementedException();
-						}
-					});
+							foreach (ulong item in e.NewItems)
+							{
+								displayList.Add(item);
+							}
+						}),
+						NotifyCollectionChangedAction.Remove => (() =>
+						{
+							foreach (ulong item in e.OldItems)
+							{
+								displayList.Remove(item);
+							}
+						}),
+						NotifyCollectionChangedAction.Reset => displayList.Clear,
+						_ => throw new ArgumentException(nameof(e.Action)),
+					};
+					Dispatcher.UIThread.InvokeAsync(action);
 				};
 				SetAndRaise(UserListProperty, ref _DisplayList, displayList);
 			}

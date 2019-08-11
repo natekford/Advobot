@@ -1,75 +1,85 @@
-﻿namespace Advobot.Commands.Settings
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.Strings;
+using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Attributes.Preconditions.QuantityLimits;
+using Advobot.Commands.Localization;
+using Advobot.Commands.Resources;
+using Advobot.Modules;
+using Advobot.Services.GuildSettings;
+using Advobot.Services.GuildSettings.Settings;
+using Discord.Commands;
+
+namespace Advobot.Commands.Settings
 {
-	/*
-	[Category(typeof(EvaluateBannedRegex)), Group(nameof(EvaluateBannedRegex)), TopLevelShortAlias(typeof(EvaluateBannedRegex))]
-	[Summary("Evaluates a regex (case is ignored). " +
-		"The regex are also restricted to a 5,000 tick timeout. " +
-		"Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
-	[PermissionRequirement(null, null)]
-	[DefaultEnabled(false)]
-	public sealed class EvaluateBannedRegex : AdvobotModuleBase
+	public sealed class BannedPhrases : ModuleBase
 	{
-		[Command]
-		public async Task Command([ValidateString(Target.Regex)] string regex, [Remainder] string testPhrase)
+		[Group(nameof(ModifyBannedStrings)), ModuleInitialismAlias(typeof(ModifyBannedStrings))]
+		[LocalizedSummary(nameof(Summaries.ModifyBannedStrings))]
+		[CommandMeta("6e494bca-519e-41ce-998a-f71f0677dfb0")]
+		[RequireGuildPermissions]
+		public sealed class ModifyBannedStrings : SettingsModule<IGuildSettings>
 		{
-			Regex regexOutput;
-			try
-			{
-				regexOutput = new Regex(regex);
-			}
-			catch (ArgumentException e)
-			{
-				await MessageUtils.SendErrorMessageAsync(Context, e)).CAF();
-				return;
-			}
+			protected override IGuildSettings Settings => Context.Settings;
+		}
 
-			//Test to make sure it doesn't match stuff it shouldn't
-			var matchesMessage = RegexUtils.IsMatch(testPhrase, regex);
-			var matchesEmpty = RegexUtils.IsMatch("", regex);
-			var matchesSpace = RegexUtils.IsMatch(" ", regex);
-			var matchesNewLine = RegexUtils.IsMatch(Environment.NewLine, regex);
-			var randomMatchCount = 0;
-			for (var i = 0; i < 10; ++i)
-			{
-				var r = new Random();
-				var p = new StringBuilder();
-				for (var j = 0; j < r.Next(1, 100); ++j)
-				{
-					p.Append((char)r.Next(1, 10000));
-				}
-				if (RegexUtils.IsMatch(p.ToString(), regex))
-				{
-					++randomMatchCount;
-				}
-			}
-			var matchesRandom = randomMatchCount >= 5;
-			var okToUse = matchesMessage && !(matchesEmpty || matchesSpace || matchesNewLine || matchesRandom);
+		[Group(nameof(ModifyBannedRegex)), ModuleInitialismAlias(typeof(ModifyBannedRegex))]
+		[LocalizedSummary(nameof(Summaries.ModifyBannedRegex))]
+		[CommandMeta("3438fb1e-e78b-44d2-960f-f19c73113879")]
+		[RequireGuildPermissions]
+		public sealed class ModifyBannedRegex : SettingsModule<IGuildSettings>
+		{
+			protected override IGuildSettings Settings => Context.Settings;
 
-			//If the regex is ok then add it to the evaluated list
-			if (okToUse)
+			[ImplicitCommand, ImplicitAlias]
+			[BannedRegexLimit(QuantityLimitAction.Add)]
+			public Task<RuntimeResult> Add(
+				[Regex] string regex,
+				[Optional] Punishment punishment)
 			{
-				var eval = Context.GuildSettings.EvaluatedRegex;
-				if (eval.Count >= 5)
-				{
-					eval.RemoveAt(0);
-				}
-				eval.Add(regex);
+				var phrase = new BannedPhrase(regex, punishment);
+				Settings.BannedPhraseRegex.Add(phrase);
+				throw new NotImplementedException();
 			}
-
-			var embed = new EmbedWrapper
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> ChangePunishment(
+				BannedPhrase regex,
+				Punishment punishment)
 			{
-				Title = regex,
-				Description = $"The given regex matches the given string: `{matchesMessage}`." +
-					$"The given regex matches empty strings: `{matchesEmpty}`." +
-					$"The given regex matches spaces: `{matchesSpace}`." +
-					$"The given regex matches new lines: `{matchesNewLine}`." +
-					$"The given regex matches random strings: `{matchesRandom}`." +
-					$"The given regex is `{(okToUse ? "GOOD" : "BAD")}`.",
-			};
-			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				regex.Punishment = punishment;
+				throw new NotImplementedException();
+			}
+			[ImplicitCommand, ImplicitAlias]
+			[BannedRegexLimit(QuantityLimitAction.Remove)]
+			public Task<RuntimeResult> Remove(
+				BannedPhrase regex)
+			{
+				Settings.BannedPhraseRegex.Remove(regex);
+				throw new NotImplementedException();
+			}
+		}
+
+		[Group(nameof(ModifyBannedNames)), ModuleInitialismAlias(typeof(ModifyBannedNames))]
+		[LocalizedSummary(nameof(Summaries.ModifyBannedNames))]
+		[CommandMeta("c19c7402-4206-48ce-b109-ab11da476ac2")]
+		[RequireGuildPermissions]
+		public sealed class ModifyBannedNames : SettingsModule<IGuildSettings>
+		{
+			protected override IGuildSettings Settings => Context.Settings;
+		}
+
+		[Group(nameof(ModifyBannedPhrasePunishments)), ModuleInitialismAlias(typeof(ModifyBannedPhrasePunishments))]
+		[LocalizedSummary(nameof(Summaries.ModifyBannedPhrasePunishments))]
+		[CommandMeta("4b4584ae-2b60-4aff-92a1-fb2c929f3daf")]
+		[RequireGuildPermissions]
+		public sealed class ModifyBannedPhrasePunishments : SettingsModule<IGuildSettings>
+		{
+			protected override IGuildSettings Settings => Context.Settings;
 		}
 	}
-
+	/*
 	[Category(typeof(ModifyBannedPhrases)), Group(nameof(ModifyBannedPhrases)), TopLevelShortAlias(typeof(ModifyBannedPhrases))]
 	[Summary("Banned regex and strings delete messages if they are detected in them. " +
 		"Banned names ban users if they join and they have them in their name.")]

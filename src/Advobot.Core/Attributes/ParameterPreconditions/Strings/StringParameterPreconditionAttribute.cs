@@ -58,10 +58,10 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		{
 			if (ValidLength.Contains(value.Length))
 			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
+				return this.FromSuccessAsync();
 			}
 			//TODO: handle localizaion for parameter info
-			return Task.FromResult(PreconditionResult.FromError($"Invalid {parameter?.Name} supplied, must have a length in `{ValidLength}`"));
+			return this.FromErrorAsync($"Invalid {parameter?.Name} supplied, must have a length in `{ValidLength}`");
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Threading.Tasks;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 
@@ -30,22 +31,22 @@ namespace Advobot.Attributes.ParameterPreconditions
 			//If optional, return success when nothing is supplied
 			if (IsOptionalSuccess && parameter.IsOptional && parameter.DefaultValue == value)
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 
 			if (AllowEnumerating && value is IEnumerable enumerable)
 			{
 				foreach (var item in enumerable)
 				{
-					var preconditionResult = await CheckPermissionsAsync(context, parameter, item, services).CAF();
+					var result = await CheckPermissionsAsync(context, parameter, item, services).CAF();
 					//Don't bother testing more if anything is a failure.
-					if (!preconditionResult.IsSuccess)
+					if (!result.IsSuccess)
 					{
-						return preconditionResult;
+						return result;
 					}
 				}
 				//If nothing failed then it gets to this point, so return success
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return await SingularCheckPermissionsAsync(context, parameter, value, services).CAF();
 		}

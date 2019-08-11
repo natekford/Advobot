@@ -34,8 +34,5 @@ namespace Advobot.Services.HelpEntries
 			}
 			return helpEntries.Where(x => x.Category.CaseInsEquals(category)).ToArray();
 		}
-		/// <inheritdoc />
-		public IReadOnlyList<IHelpEntry> GetUnsetCommands(IEnumerable<string> setCommands)
-			=> GetHelpEntries().Where(x => !setCommands.CaseInsContains(x.Name)).ToArray();
 	}
 }

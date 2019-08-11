@@ -26,7 +26,7 @@ namespace Advobot.Services.HelpEntries
 		/// <summary>
 		/// Describes what the command does.
 		/// </summary>
-		string Description { get; }
+		string Summary { get; }
 		/// <summary>
 		/// The category the command is in.
 		/// </summary>

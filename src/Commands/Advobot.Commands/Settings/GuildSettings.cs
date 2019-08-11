@@ -155,8 +155,8 @@ namespace Advobot.Commands.Settings
 
 		[Group(nameof(ModifyCommands)), ModuleInitialismAlias(typeof(ModifyCommands))]
 		[LocalizedSummary(nameof(Summaries.ModifyCommands))]
-		[RequireGuildPermissions]
 		[CommandMeta("6fb02198-9eab-4e44-a59a-7ba7f7317c10", IsEnabled = true, CanToggle = false)]
+		[RequireGuildPermissions]
 		public sealed class ModifyCommands : SettingsModule<IGuildSettings>
 		{
 			public IHelpEntryService HelpEntries { get; set; }
@@ -178,7 +178,7 @@ namespace Advobot.Commands.Settings
 				return Responses.ModifyCommands.ModifiedMultiple(commands, enable);
 			}
 			[Command]
-			public Task<RuntimeResult> Command([RequireCanToggle] IHelpEntry command, bool enable)
+			public Task<RuntimeResult> Command([CanToggle] IHelpEntry command, bool enable)
 			{
 				if (Settings.CommandSettings.ModifyCommandValue(command, enable))
 				{

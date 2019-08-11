@@ -4,7 +4,7 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Attributes.Preconditions.QuantityLimitations;
+using Advobot.Attributes.Preconditions.QuantityLimits;
 using Advobot.Classes;
 using Advobot.Commands.Localization;
 using Advobot.Commands.Resources;

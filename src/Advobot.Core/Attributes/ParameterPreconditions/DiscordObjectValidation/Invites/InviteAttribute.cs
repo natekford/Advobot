@@ -24,11 +24,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 		{
 			if (!(context.User is IGuildUser user))
 			{
-				return PreconditionResult.FromError("Invalid user.");
+				return this.FromError("Invalid user.");
 			}
 			if (!(value is IInviteMetadata invite))
 			{
-				return PreconditionResult.FromError("Invalid invite.");
+				return this.FromError("Invalid invite.");
 			}
 
 			foreach (var rule in GetPreconditions())
@@ -39,7 +39,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 					return result;
 				}
 			}
-			return PreconditionResult.FromSuccess();
+			return this.FromSuccess();
 		}
 		/// <summary>
 		/// Extra checks to use in validation.
