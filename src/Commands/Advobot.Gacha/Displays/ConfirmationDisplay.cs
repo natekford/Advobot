@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Gacha.Database;
-using Advobot.Gacha.MenuEmojis;
+using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Trading;
 using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Gacha.Displays
 {
@@ -21,20 +20,19 @@ namespace Advobot.Gacha.Displays
 		private readonly IReadOnlyList<ITrade> _Trades;
 
 		public GiveDisplay(
-			BaseSocketClient client,
-			GachaDatabase db,
+			IServiceProvider services,
 			int id,
 			IGuildUser giver,
 			IGuildUser receiver,
 			IReadOnlyList<ITrade> trades)
-			: base(client, db, id, trades.Count, Constants.CharactersPerPage)
+			: base(services, id, trades.Count, Constants.CharactersPerPage)
 		{
 			_Giver = giver;
 			_Receiver = receiver;
 			_Trades = trades;
 
-			Menu.Add(new Confirmation(Constants.Confirm, true));
-			Menu.Add(new Confirmation(Constants.Deny, false));
+			InteractionHandler.AddInteraction(InteractionType.Confirm);
+			InteractionHandler.AddInteraction(InteractionType.Deny);
 		}
 
 		protected override Task<Embed> GenerateEmbedAsync()

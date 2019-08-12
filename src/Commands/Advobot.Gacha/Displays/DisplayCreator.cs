@@ -1,61 +1,62 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Advobot.Gacha.Checkers;
+using Advobot.Gacha.Counters;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
 using AdvorangesUtils;
 using Discord;
-using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.Displays
 {
 	public sealed class DisplayManager
 	{
+		private readonly IServiceProvider _Services;
 		private readonly GachaDatabase _Db;
-		private readonly ICheckersService _Checkers;
-		private readonly ConcurrentDictionary<ulong, int> _DisplayIds
+		private readonly ICounterService _Checkers;
+		private readonly ConcurrentDictionary<ulong, int> _Ids
 			= new ConcurrentDictionary<ulong, int>();
 
 		public DisplayManager(IServiceProvider services)
 		{
+			_Services = services;
 			_Db = services.GetRequiredService<GachaDatabase>();
-			_Checkers = services.GetRequiredService<ICheckersService>();
+			_Checkers = services.GetRequiredService<ICounterService>();
 		}
 
-		public async Task<Display> CreateRollDisplayAsync(SocketCommandContext context)
+		public async Task<Display> CreateRollDisplayAsync(IGuild guild)
 		{
-			var id = GetDisplayId(context.Guild);
-			var checker = _Checkers.GetClaimChecker(context.Guild);
-			var character = await _Db.GetUnclaimedCharacter(context.Guild.Id).CAF();
+			var id = GetDisplayId(guild);
+			var checker = _Checkers.GetClaims(guild);
+			var character = await _Db.GetUnclaimedCharacter(guild.Id).CAF();
 			var source = await _Db.GetSourceAsync(character.SourceId).CAF();
-			var wishes = await _Db.GetWishesAsync(context.Guild.Id, character).CAF();
+			var wishes = await _Db.GetWishesAsync(guild.Id, character).CAF();
 			var images = await _Db.GetImagesAsync(character).CAF();
-			return new RollDisplay(context.Client, _Db, id, checker, character, source, wishes, images);
+			return new RollDisplay(_Services, id, checker, character, source, wishes, images);
 		}
-		public async Task<Display> CreateCharacterDisplayAsync(SocketCommandContext context, Character character)
+		public async Task<Display> CreateCharacterDisplayAsync(IGuild guild, Character character)
 		{
-			var id = GetDisplayId(context.Guild);
+			var id = GetDisplayId(guild);
 			var metadata = await _Db.GetCharacterMetadataAsync(character).CAF();
 			var images = await _Db.GetImagesAsync(character).CAF();
-			var claim = await _Db.GetClaimAsync(context.Guild.Id, character).CAF();
-			return new CharacterDisplay(context.Client, _Db, id, metadata, images, claim);
+			var claim = await _Db.GetClaimAsync(guild.Id, character).CAF();
+			return new CharacterDisplay(_Services, id, metadata, images, claim);
 		}
-		public async Task<Display> CreateSourceDisplayAsync(SocketCommandContext context, Source source)
+		public async Task<Display> CreateSourceDisplayAsync(IGuild guild, Source source)
 		{
-			var id = GetDisplayId(context.Guild);
+			var id = GetDisplayId(guild);
 			var characters = await _Db.GetCharactersAsync(source).CAF();
-			return new SourceDisplay(context.Client, _Db, id, source, characters);
+			return new SourceDisplay(_Services, id, source, characters);
 		}
-		public async Task<Display> CreateHaremDisplayAsync(SocketCommandContext context, User user)
+		public async Task<Display> CreateHaremDisplayAsync(IGuild guild, User user)
 		{
-			var id = GetDisplayId(context.Guild);
+			var id = GetDisplayId(guild);
 			var marriages = await _Db.GetClaimsAsync(user).CAF();
-			return new HaremDisplay(context.Client, _Db, id, marriages);
+			return new HaremDisplay(_Services, id, marriages);
 		}
 
 		private int GetDisplayId(IGuild guild)
-			=> _DisplayIds.AddOrUpdate(guild.Id, 1, (key, value) => value + 1);
+			=> _Ids.AddOrUpdate(guild.Id, 1, (key, value) => value + 1);
 	}
 }

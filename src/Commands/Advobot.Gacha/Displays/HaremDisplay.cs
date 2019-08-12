@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
 using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Gacha.Displays
 {
@@ -18,11 +17,10 @@ namespace Advobot.Gacha.Displays
 		private readonly IReadOnlyClaim? _Primary;
 
 		public HaremDisplay(
-			BaseSocketClient client,
-			GachaDatabase db,
+			IServiceProvider services,
 			int id,
 			IReadOnlyCollection<IReadOnlyClaim> claims)
-			: base(client, db, id, claims.Count, Constants.CharactersPerPage)
+			: base(services, id, claims.Count, Constants.CharactersPerPage)
 		{
 			_Claims = claims.Select(x => x.CharacterId).ToArray();
 			_Primary = claims.FirstOrDefault();

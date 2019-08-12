@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Advobot.Gacha.Checkers;
-using Advobot.Gacha.Database;
-using Advobot.Gacha.MenuEmojis;
+using Advobot.Gacha.Counters;
+using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Gacha.Displays
 {
@@ -20,12 +19,7 @@ namespace Advobot.Gacha.Displays
 	/// </summary>
 	public class RollDisplay : Display
 	{
-		protected override InteractiveMenu Menu { get; } = new InteractiveMenu
-		{
-			new Confirmation(Constants.Heart, true),
-		};
-
-		private readonly IChecker<ulong> _ClaimChecker;
+		private readonly ICounter<ulong> _ClaimChecker;
 		private readonly IReadOnlyCharacter _Character;
 		private readonly IReadOnlySource _Source;
 		private readonly IReadOnlyList<IReadOnlyWish> _Wishes;
@@ -33,24 +27,25 @@ namespace Advobot.Gacha.Displays
 		private readonly TaskCompletionSource<object?> _Claimed = new TaskCompletionSource<object?>();
 
 		public RollDisplay(
-			BaseSocketClient client,
-			GachaDatabase db,
+			IServiceProvider services,
 			int id,
-			IChecker<ulong> claimChecker,
+			ICounter<ulong> claimChecker,
 			IReadOnlyCharacter character,
 			IReadOnlySource source,
 			IReadOnlyList<IReadOnlyWish> wishes,
 			IReadOnlyList<IReadOnlyImage> images)
-			: base(client, db, id)
+			: base(services, id)
 		{
 			_ClaimChecker = claimChecker;
 			_Character = character;
 			_Source = source;
 			_Wishes = wishes;
 			_Images = images;
+
+			InteractionHandler.AddInteraction(InteractionType.Claim);
 		}
 
-		protected override async Task HandleActionAsync(ActionContext context)
+		protected override async Task HandleInteractionAsync(IInteractionContext context)
 		{
 			if (context.Action is Confirmation c && c.Value
 				&& !_Claimed.Task.IsCompleted

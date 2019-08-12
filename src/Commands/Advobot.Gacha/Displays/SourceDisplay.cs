@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
 using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Gacha.Displays
 {
@@ -15,12 +14,11 @@ namespace Advobot.Gacha.Displays
 		private readonly IReadOnlyList<IReadOnlyCharacter> _Characters;
 
 		public SourceDisplay(
-			BaseSocketClient client,
-			GachaDatabase db,
+			IServiceProvider services,
 			int id,
 			IReadOnlySource source,
 			IReadOnlyList<IReadOnlyCharacter> characters)
-			: base(client, db, id, characters.Count, Constants.CharactersPerPage)
+			: base(services, id, characters.Count, Constants.CharactersPerPage)
 		{
 			_Source = source;
 			_Characters = characters;

@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Advobot.Gacha.Database;
-using Advobot.Gacha.MenuEmojis;
+using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
+using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.Displays
 {
@@ -15,6 +16,7 @@ namespace Advobot.Gacha.Displays
 	/// </summary>
 	public class CharacterDisplay : PaginatedDisplay
 	{
+		private readonly IDiscordClient _Client;
 		private readonly CharacterMetadata _Character;
 		private readonly IReadOnlyList<IReadOnlyImage> _Images;
 		private readonly IReadOnlyClaim? _Claim;
@@ -28,19 +30,19 @@ namespace Advobot.Gacha.Displays
 		/// <param name="images"></param>
 		/// <param name="claim"></param>
 		public CharacterDisplay(
-			BaseSocketClient client,
-			GachaDatabase db,
+			IServiceProvider services,
 			int id,
 			CharacterMetadata character,
 			IReadOnlyList<IReadOnlyImage> images,
 			IReadOnlyClaim? claim)
-			: base(client, db, id, images.Count, 1)
+			: base(services, id, images.Count, 1)
 		{
+			_Client = services.GetRequiredService<IDiscordClient>();
 			_Character = character;
 			_Images = images;
 			_Claim = claim;
 
-			Menu.Add(new Confirmation(Constants.Confirm, true));
+			InteractionHandler.AddInteraction(InteractionType.Confirm);
 
 			if (claim?.ImageUrl is string url)
 			{
@@ -55,7 +57,8 @@ namespace Advobot.Gacha.Displays
 			}
 		}
 
-		protected override Task HandleActionAsync(ActionContext context)
+		/// <inheritdoc />
+		protected override Task HandleInteractionAsync(IInteractionContext context)
 		{
 			if (context.Action is Confirmation c && c.Value && _Claim != null
 				&& context.User.Id == _Claim.GetUserId())
@@ -63,13 +66,10 @@ namespace Advobot.Gacha.Displays
 				var url = _Images[PageIndex].Url;
 				return Database.UpdateClaimImageUrlAsync(_Claim, url);
 			}
-			return base.HandleActionAsync(context);
+			return base.HandleInteractionAsync(context);
 		}
-		protected override Task<Embed> GenerateEmbedAsync()
-			=> Task.FromResult(GenerateEmbed());
-		protected override Task<string> GenerateTextAsync()
-			=> Task.FromResult("");
-		private Embed GenerateEmbed()
+		/// <inheritdoc />
+		protected override async Task<Embed> GenerateEmbedAsync()
 		{
 			var description = $"{_Character.Source.Name} {_Character.Data.GenderIcon}\n" +
 				$"{_Character.Data.RollType}\n" +
@@ -91,7 +91,7 @@ namespace Advobot.Gacha.Displays
 				return embed.Build();
 			}
 
-			var owner = Client.GetUser(_Claim.GetUserId());
+			var owner = await _Client.GetUserAsync(_Claim.GetUserId()).CAF();
 			var ownerStr = owner?.ToString() ?? _Claim.UserId.ToString();
 
 			embed.Color = Constants.Claimed;
@@ -99,5 +99,8 @@ namespace Advobot.Gacha.Displays
 			embed.Footer.IconUrl = owner?.GetAvatarUrl();
 			return embed.Build();
 		}
+		/// <inheritdoc />
+		protected override Task<string> GenerateTextAsync()
+			=> Task.FromResult("");
 	}
 }

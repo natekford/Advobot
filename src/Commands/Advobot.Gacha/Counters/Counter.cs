@@ -1,8 +1,8 @@
 ﻿using System.Collections.Concurrent;
 
-namespace Advobot.Gacha.Checkers
+namespace Advobot.Gacha.Counters
 {
-	public sealed class Counter : IChecker<ulong>
+	public sealed class Counter : ICounter<ulong>
 	{
 		private readonly ConcurrentDictionary<ulong, int> _AmountLeft
 			= new ConcurrentDictionary<ulong, int>();

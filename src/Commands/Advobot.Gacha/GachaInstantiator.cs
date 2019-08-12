@@ -1,10 +1,12 @@
-﻿using Advobot.CommandAssemblies;
-using Advobot.Gacha.Checkers;
+﻿using System;
+using System.Threading.Tasks;
+using Advobot.CommandAssemblies;
+using Advobot.Gacha.Counters;
 using Advobot.Gacha.Database;
+using Advobot.Gacha.Displays;
+using Advobot.Gacha.Interaction;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Threading.Tasks;
 
 namespace Advobot.Gacha
 {
@@ -14,8 +16,11 @@ namespace Advobot.Gacha
 		{
 			services
 				.AddSingleton<GachaDatabase>()
+				.AddSingleton<DisplayManager>()
+				.AddSingleton<IInteractionProvider, InteractionProvider>()
+				.AddSingleton<IInteractionManager, InteractionManager>()
 				.AddSingleton<IDatabaseStarter, SQLiteFileDatabaseFactory>()
-				.AddSingleton<ICheckersService, CheckersService>();
+				.AddSingleton<ICounterService, CounterService>();
 			return Task.CompletedTask;
 		}
 		public async Task ConfigureServicesAsync(IServiceProvider services)

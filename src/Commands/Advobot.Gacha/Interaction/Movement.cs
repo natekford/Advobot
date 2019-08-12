@@ -1,6 +1,6 @@
-﻿namespace Advobot.Gacha.MenuEmojis
+﻿namespace Advobot.Gacha.Interaction
 {
-	public sealed class Movement : IMenuAction
+	public sealed class Movement : IInteraction
 	{
 		public string Name { get; }
 		public int Value { get; }

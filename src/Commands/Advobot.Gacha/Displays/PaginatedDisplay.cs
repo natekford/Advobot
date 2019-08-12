@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Gacha.Database;
-using Advobot.Gacha.MenuEmojis;
+using Advobot.Gacha.Interaction;
 using AdvorangesUtils;
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Gacha.Displays
 {
@@ -22,16 +20,14 @@ namespace Advobot.Gacha.Displays
 		}
 
 		protected virtual TimeSpan Timeout { get; } = TimeSpan.FromSeconds(30);
-		protected override InteractiveMenu Menu { get; } = new InteractiveMenu();
 
 		private int _PageIndex;
 
 		public PaginatedDisplay(
-			BaseSocketClient client,
-			GachaDatabase db,
+			IServiceProvider services,
 			int id,
 			int itemCount,
-			int itemsPerPage) : base(client, db, id)
+			int itemsPerPage) : base(services, id)
 		{
 			ItemCount = itemCount;
 			ItemsPerPage = itemsPerPage;
@@ -40,12 +36,12 @@ namespace Advobot.Gacha.Displays
 
 			if (PageCount > 1)
 			{
-				Menu.Add(new Movement(Constants.Left, -1));
-				Menu.Add(new Movement(Constants.Right, 1));
+				InteractionHandler.AddInteraction(InteractionType.Left);
+				InteractionHandler.AddInteraction(InteractionType.Right);
 			}
 		}
 
-		protected override async Task HandleActionAsync(ActionContext context)
+		protected override async Task HandleInteractionAsync(IInteractionContext context)
 		{
 			if (context.Action is Movement m && m.TryUpdatePage(ref _PageIndex, PageCount))
 			{

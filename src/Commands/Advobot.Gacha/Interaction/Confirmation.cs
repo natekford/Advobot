@@ -1,6 +1,6 @@
-﻿namespace Advobot.Gacha.MenuEmojis
+﻿namespace Advobot.Gacha.Interaction
 {
-	public sealed class Confirmation : IMenuAction
+	public sealed class Confirmation : IInteraction
 	{
 		public string Name { get; }
 		public bool Value { get; }

@@ -2,11 +2,11 @@
 {
 	public readonly struct AmountAndRank
 	{
-		public readonly string Name;
-		public readonly int Amount;
-		public readonly int Rank;
-		public readonly double NormalizedAmount;
-		public readonly int NormalizedRank;
+		public string Name { get; }
+		public int Amount { get; }
+		public int Rank { get; }
+		public double NormalizedAmount { get; }
+		public int NormalizedRank { get; }
 
 		public AmountAndRank(string name, int amount, int rank, double normalizedAmount, int normalizedRank)
 		{
