@@ -11,7 +11,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		/// <summary>
 		/// Creates an instance of <see cref="ChannelTopicAttribute"/>.
 		/// </summary>
-		public ChannelTopicAttribute() : base(1, 1024) { }
+		public ChannelTopicAttribute() : base(0, 1024) { }
 
 		/// <inheritdoc />
 		public override string ToString()

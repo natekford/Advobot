@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Services.GuildSettings;
-using Advobot.Services.GuildSettings.Settings;
 using Advobot.Tests.Fakes.Services.GuildSettings;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,20 +31,10 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
 		}
 		[TestMethod]
-		public async Task QuoteExisting_Test()
-		{
-			const string QUOTE_NAME = "i exist";
-
-			_Settings.Quotes.Add(new Quote(QUOTE_NAME, "description"));
-
-			var result = await CheckAsync(QUOTE_NAME).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
-		}
-		[TestMethod]
 		public async Task QuoteNotExisting_Test()
 		{
 			var result = await CheckAsync("i dont exist").CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.AreEqual(true, result.IsSuccess);
 		}
 	}
 }

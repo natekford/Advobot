@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Globalization;
 using System.Resources;
+using AdvorangesUtils;
 using Discord.Commands;
 
 namespace Advobot.Localization
@@ -29,6 +31,7 @@ namespace Advobot.Localization
 		{
 			Name = name;
 			ResourceManager = resources;
+			ConsoleUtils.DebugWrite($"Current culture: {CultureInfo.CurrentCulture}");
 		}
 	}
 }
