@@ -25,10 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Resources\strings.Designer.cs">
+    <Compile Update="Resources\Responses.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>strings.resx</DependentUpon>
+      <DependentUpon>Responses.resx</DependentUpon>
     </Compile>
     <Compile Update="Resources\Summaries.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -38,9 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Resources\strings.resx">
+    <EmbeddedResource Update="Resources\Responses.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>strings.Designer.cs</LastGenOutput>
+      <LastGenOutput>Responses.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Resources\Summaries.resx">
       <Generator>ResXFileCodeGenerator</Generator>

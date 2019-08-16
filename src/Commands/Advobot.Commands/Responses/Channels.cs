@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Advobot.Classes;
-using Advobot.Commands.Resources;
 using Advobot.Modules;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using static Advobot.Commands.Resources.Responses;
 
 namespace Advobot.Commands.Responses
 {
@@ -21,15 +21,15 @@ namespace Advobot.Commands.Responses
 				.Join("\n", x => $"{x.Position.ToString("00")}. {x.Name}");
 			return Success(new EmbedWrapper
 			{
-				Title = Title.Format(strings.Responses_Channels_Positions_Title, caller),
+				Title = Title.Format(TitleChannelPositions, caller),
 				Description = BigBlock.FormatInterpolated($"{text}"),
 			});
 		}
 		public static AdvobotResult Moved(IGuildChannel channel, int position)
-			=> Success(Default.Format(strings.Responses_Channels_Moved, channel, position));
+			=> Success(Default.Format(MovedChannel, channel, position));
 		public static AdvobotResult DisplayOverwrites(IGuildChannel channel, IEnumerable<string> roleNames, IEnumerable<string> userNames)
 		{
-			var embed = new EmbedWrapper { Title = Title.Format(strings.Responses_Channels_AllOverwrites_Title, channel), };
+			var embed = new EmbedWrapper { Title = Title.Format(TitleAllOverwrites, channel), };
 			embed.TryAddField("Roles", Default.FormatInterpolated($"{roleNames}"), false, out _);
 			embed.TryAddField("Users", Default.FormatInterpolated($"{userNames}"), false, out _);
 			return Success(embed);

@@ -22,14 +22,14 @@ namespace Advobot.Commands.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class strings {
+    internal class Responses {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal strings() {
+        internal Responses() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Advobot.Commands.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Advobot.Commands.Resources.strings", typeof(strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Advobot.Commands.Resources.Responses", typeof(Responses).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,74 +61,56 @@ namespace Advobot.Commands.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} Overwrites.
-        /// </summary>
-        internal static string Responses_Channels_AllOverwrites_Title {
-            get {
-                return ResourceManager.GetString("Responses_Channels_AllOverwrites_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Successfully created {0}..
         /// </summary>
-        internal static string Responses_Channels_Created {
+        internal static string CreatedChannel {
             get {
-                return ResourceManager.GetString("Responses_Channels_Created", resourceCulture);
+                return ResourceManager.GetString("CreatedChannel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Successfully deleted {0}..
         /// </summary>
-        internal static string Responses_Channels_Deleted {
+        internal static string DeletedChannel {
             get {
-                return ResourceManager.GetString("Responses_Channels_Deleted", resourceCulture);
+                return ResourceManager.GetString("DeletedChannel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Successfully moved {0} to position {1}..
         /// </summary>
-        internal static string Responses_Channels_Moved {
+        internal static string MovedChannel {
             get {
-                return ResourceManager.GetString("Responses_Channels_Moved", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string Responses_Channels_Positions_Description {
-            get {
-                return ResourceManager.GetString("Responses_Channels_Positions_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0} Channel Positions.
-        /// </summary>
-        internal static string Responses_Channels_Positions_Title {
-            get {
-                return ResourceManager.GetString("Responses_Channels_Positions_Title", resourceCulture);
+                return ResourceManager.GetString("MovedChannel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Successfully softdeleted {0}..
         /// </summary>
-        internal static string Responses_Channels_SoftDeleted {
+        internal static string SoftDeletedChannel {
             get {
-                return ResourceManager.GetString("Responses_Channels_SoftDeleted", resourceCulture);
+                return ResourceManager.GetString("SoftDeletedChannel", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mostly just makes the bot say test..
+        ///   Looks up a localized string similar to {0} Overwrites.
         /// </summary>
-        internal static string Summary_Test {
+        internal static string TitleAllOverwrites {
             get {
-                return ResourceManager.GetString("Summary_Test", resourceCulture);
+                return ResourceManager.GetString("TitleAllOverwrites", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Channel Positions.
+        /// </summary>
+        internal static string TitleChannelPositions {
+            get {
+                return ResourceManager.GetString("TitleChannelPositions", resourceCulture);
             }
         }
     }

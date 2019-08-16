@@ -117,30 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AssignSelfRole" xml:space="preserve">
-    <value>Gives or takes a role depending on if the user already has it. Removes all other roles in the same group unless the group is 0.</value>
-  </data>
-  <data name="Ban" xml:space="preserve">
-    <value>Bans the user from the guild.</value>
-  </data>
-  <data name="BumpGuildListing" xml:space="preserve">
-    <value>Bumps the invite on the guild.</value>
-  </data>
-  <data name="ClearChannelPerms" xml:space="preserve">
-    <value>Clears the permission overwrites from a channel.</value>
-  </data>
-  <data name="ClearRolePerms" xml:space="preserve">
-    <value>Removes all permissions from a role.</value>
-  </data>
-  <data name="Commands" xml:space="preserve">
-    <value>Displays the names and categories of commands.</value>
-  </data>
-  <data name="CopyChannelPerms" xml:space="preserve">
-    <value>Copies the permissions overwrites from one channel to another.</value>
-  </data>
-  <data name="CopyRolePerms" xml:space="preserve">
-    <value>Copies the permissions from one role to another.</value>
-  </data>
   <data name="CreateChannel" xml:space="preserve">
     <value>Creates a channel.</value>
   </data>
@@ -470,6 +446,30 @@
   </data>
   <data name="SpeakThroughWebhook" xml:space="preserve">
     <value>Sends a message through a webhook. Use this command if you're annoying.</value>
+  </data>
+  <data name="AssignSelfRole" xml:space="preserve">
+    <value>Gives or takes a role depending on if the user already has it. Removes all other roles in the same group unless the group is 0.</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Bans the user from the guild.</value>
+  </data>
+  <data name="BumpGuildListing" xml:space="preserve">
+    <value>Bumps the invite on the guild.</value>
+  </data>
+  <data name="ClearChannelPerms" xml:space="preserve">
+    <value>Clears the permission overwrites from a channel.</value>
+  </data>
+  <data name="ClearRolePerms" xml:space="preserve">
+    <value>Removes all permissions from a role.</value>
+  </data>
+  <data name="Commands" xml:space="preserve">
+    <value>Displays the names and categories of commands.</value>
+  </data>
+  <data name="CopyChannelPerms" xml:space="preserve">
+    <value>Copies the permissions overwrites from one channel to another.</value>
+  </data>
+  <data name="CopyRolePerms" xml:space="preserve">
+    <value>Copies the permissions from one role to another.</value>
   </data>
   <data name="SwapGuildOwner" xml:space="preserve">
     <value>If the bot is the current owner of the guild, this command will give you owner.</value>
