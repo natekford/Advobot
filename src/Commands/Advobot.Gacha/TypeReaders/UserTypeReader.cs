@@ -1,22 +1,22 @@
-﻿using Discord.Commands;
-using System;
-using Advobot.Attributes;
-using Advobot.Gacha.Models;
+﻿using System;
 using System.Threading.Tasks;
-using Discord;
-using AdvorangesUtils;
+using Advobot.Attributes;
 using Advobot.Gacha.Database;
-using Microsoft.Extensions.DependencyInjection;
+using Advobot.Gacha.Models;
 using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord;
+using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.TypeReaders
 {
 	[TypeReaderTargetType(typeof(User))]
 	public sealed class UserTypeReader : TypeReader
 	{
-		public bool CreateIfNotFound { get; set; }
+		private static readonly UserTypeReader<IUser> _UserTypeReader = new UserTypeReader<IUser>();
 
-		private readonly UserTypeReader<IUser> _UserTypeReader = new UserTypeReader<IUser>();
+		public bool CreateIfNotFound { get; set; }
 
 		//TODO: add in the ability to get users who have left the server
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)

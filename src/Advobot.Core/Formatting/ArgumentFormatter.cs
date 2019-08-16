@@ -1,11 +1,11 @@
-﻿using Advobot.Utilities;
-using Discord;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Advobot.Utilities;
 using AdvorangesUtils;
+using Discord;
 
 namespace Advobot.Formatting
 {
@@ -62,7 +62,8 @@ namespace Advobot.Formatting
 				.Where(x => x.CanFormat(arg))
 				.GroupBy(x => x.Priority)
 				.OrderBy(x => x.Key)
-				.Last().ToArray();
+				.Last()
+				.ToArray();
 			if (highestPriority.Length > 1)
 			{
 				throw new InvalidOperationException("Cannot decide between multiple object formatters with the same priority.");

@@ -156,7 +156,10 @@ namespace Advobot.Utilities
 		/// <param name="format"></param>
 		/// <param name="arg0"></param>
 		/// <returns></returns>
-		public static string Format(this IFormatProvider provider, string format, object arg0)
+		public static string Format(
+			this IFormatProvider provider,
+			string format,
+			object arg0)
 			=> string.Format(provider, format, arg0);
 		/// <summary>
 		/// Invokes <see cref="string.Format(IFormatProvider, string, object, object)"/>.
@@ -166,7 +169,11 @@ namespace Advobot.Utilities
 		/// <param name="arg0"></param>
 		/// <param name="arg1"></param>
 		/// <returns></returns>
-		public static string Format(this IFormatProvider provider, string format, object arg0, object arg1)
+		public static string Format(
+			this IFormatProvider provider,
+			string format,
+			object arg0,
+			object arg1)
 			=> string.Format(provider, format, arg0, arg1);
 		/// <summary>
 		/// Invokes <see cref="string.Format(IFormatProvider, string, object[])"/>.
@@ -175,7 +182,10 @@ namespace Advobot.Utilities
 		/// <param name="format"></param>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public static string Format(this IFormatProvider provider, string format, object[] args)
+		public static string Format(
+			this IFormatProvider provider,
+			string format,
+			object[] args)
 			=> string.Format(provider, format, args);
 		/// <summary>
 		/// Formats the interpolated string with the specified format provider.
@@ -183,7 +193,9 @@ namespace Advobot.Utilities
 		/// <param name="provider"></param>
 		/// <param name="formattable"></param>
 		/// <returns></returns>
-		public static string FormatInterpolated(this IFormatProvider provider, FormattableString formattable)
+		public static string FormatInterpolated(
+			this IFormatProvider provider,
+			FormattableString formattable)
 			=> formattable.ToString(provider);
 		/// <summary>
 		/// Returns a new <see cref="EmbedAuthorBuilder"/> containing the user's info.

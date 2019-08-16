@@ -155,7 +155,10 @@ namespace Advobot.Services.Commands
 			ConsoleUtils.WriteLine(e.ToString());
 			return Task.CompletedTask;
 		}
-		private async Task OnCommandExecuted(Optional<CommandInfo> command, ICommandContext originalContext, IResult result)
+		private async Task OnCommandExecuted(
+			Optional<CommandInfo> command,
+			ICommandContext originalContext,
+			IResult result)
 		{
 			if (!(originalContext is IAdvobotCommandContext context))
 			{
@@ -169,7 +172,7 @@ namespace Advobot.Services.Commands
 			if (result.IsSuccess)
 			{
 				await context.Message.DeleteAsync(_Options).CAF();
-				await ModLogAsync(context).CAF();
+				await LogAsync(context).CAF();
 			}
 
 			CommandInvoked?.Invoke(result);
@@ -186,7 +189,7 @@ namespace Advobot.Services.Commands
 				_Timers.Add(removable);
 			}
 		}
-		private static async Task ModLogAsync(IAdvobotCommandContext context)
+		private static async Task LogAsync(IAdvobotCommandContext context)
 		{
 			if (context.Settings.IgnoredLogChannels.Contains(context.Channel.Id))
 			{

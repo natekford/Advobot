@@ -51,6 +51,6 @@ namespace Advobot.Attributes.ParameterPreconditions.BannedPhrases
 		protected abstract IEnumerable<BannedPhrase> GetPhrases(IGuildSettings settings);
 		/// <inheritdoc />
 		public override string ToString()
-			=> $"Not the already a banned {BannedPhraseName}";
+			=> $"Not already a banned {BannedPhraseName}";
 	}
 }

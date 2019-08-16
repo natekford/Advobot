@@ -468,7 +468,7 @@ namespace Advobot.Classes
 		}
 
 		/// <summary>
-		/// Converts an <see cref="EmbedWrapper"/> to a <see cref="Embed"/>.
+		/// Converts an <see cref="EmbedWrapper"/> to an <see cref="Embed"/>.
 		/// </summary>
 		/// <param name="wrapper"></param>
 		public static implicit operator Embed(EmbedWrapper wrapper)
@@ -515,7 +515,7 @@ namespace Advobot.Classes
 			public PropertyHandler<TEmbed2, T2> Property<TEmbed2, T2>(
 				Expression<Func<TEmbed2, T2>> p,
 				T2 v)
-				=> _Parent.Property<TEmbed2, T2>(p, v);
+				=> _Parent.Property(p, v);
 			public PropertyHandler<TEmbed, T> Rule(
 				Func<T, bool> invalidation,
 				Func<EmbedError<TEmbed, T>, IEmbedError> addReason)

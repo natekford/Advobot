@@ -30,7 +30,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 		public ChannelAttribute(params ChannelPermission[] permissions)
 		{
 			Permissions = permissions
-				.Concat(new[] { ChannelPermission.ViewChannel })
+				.Append(ChannelPermission.ViewChannel)
 				.ToImmutableHashSet();
 
 			_PermissionsText = Permissions.FormatPermissions();

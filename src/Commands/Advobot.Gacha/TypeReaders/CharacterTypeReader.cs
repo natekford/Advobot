@@ -1,12 +1,12 @@
-﻿using Discord.Commands;
-using System;
-using Advobot.Attributes;
-using Advobot.Gacha.Models;
+﻿using System;
 using System.Threading.Tasks;
-using AdvorangesUtils;
+using Advobot.Attributes;
 using Advobot.Gacha.Database;
-using Microsoft.Extensions.DependencyInjection;
+using Advobot.Gacha.Models;
 using Advobot.Utilities;
+using AdvorangesUtils;
+using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.TypeReaders
 {
@@ -17,7 +17,7 @@ namespace Advobot.Gacha.TypeReaders
 		{
 			var db = services.GetRequiredService<GachaDatabase>();
 			var id = int.Parse(input);
-			return TypeReaderResult.FromSuccess(await db.GetCharacterAsync(id).CAF());
+			return this.FromSuccess(await db.GetCharacterAsync(id).CAF());
 		}
 	}
 }

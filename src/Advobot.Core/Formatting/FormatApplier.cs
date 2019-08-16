@@ -35,7 +35,7 @@ namespace Advobot.Formatting
 
 			Enabled = enabled;
 			FormatName = name;
-			_Modifier = modifier ?? throw new ArgumentException(nameof(name));
+			_Modifier = modifier ?? throw new ArgumentException(nameof(modifier));
 		}
 
 		/// <summary>

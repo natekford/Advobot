@@ -15,12 +15,14 @@ namespace Advobot.Attributes
 		/// Creates an instance of <see cref="ImplicitAliasAttribute"/>.
 		/// </summary>
 		/// <param name="caller"></param>
-		public ImplicitAliasAttribute([CallerMemberName] string caller = "") : this(new string[0], caller) { }
+		public ImplicitAliasAttribute([CallerMemberName] string caller = "")
+			: this(new string[0], caller) { }
 		/// <summary>
 		/// Creates an instance of <see cref="ImplicitAliasAttribute"/>.
 		/// </summary>
 		/// <param name="aliases"></param>
 		/// <param name="caller"></param>
-		public ImplicitAliasAttribute(string[] aliases, [CallerMemberName] string caller = "") : base(AliasUtils.ConcatCommandAliases(caller, aliases)) { }
+		public ImplicitAliasAttribute(string[] aliases, [CallerMemberName] string caller = "")
+			: base(AliasUtils.ConcatCommandAliases(caller, aliases)) { }
 	}
 }

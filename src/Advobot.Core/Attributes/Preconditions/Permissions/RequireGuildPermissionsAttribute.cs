@@ -23,14 +23,14 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		/// </summary>
 		public bool ForBot { get; set; }
 
-		private static readonly Enum[] _Admin = new Enum[] { GuildPermission.Administrator };
+		private static readonly Enum _Admin = GuildPermission.Administrator;
 
 		/// <summary>
 		/// Creates an instance of <see cref="RequireGuildPermissionsAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
 		public RequireGuildPermissionsAttribute(params GuildPermission[] permissions)
-			: base(permissions.Cast<Enum>().Concat(_Admin).ToArray()) { }
+			: base(permissions.Cast<Enum>().Append(_Admin).ToArray()) { }
 
 		/// <inheritdoc />
 		public override async Task<Enum?> GetUserPermissionsAsync(

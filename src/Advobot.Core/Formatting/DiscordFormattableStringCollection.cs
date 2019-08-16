@@ -1,19 +1,20 @@
-﻿using AdvorangesUtils;
-using Discord;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AdvorangesUtils;
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Formatting
 {
 	/// <summary>
 	/// Converts certain arguments into discord specific arguments then formats the string.
 	/// </summary>
-	public class DiscordFormattableStringCollection : ICollection<FormattableString>, IDiscordFormattableString
+	public class DiscordFormattableStringCollection
+		: ICollection<FormattableString>, IDiscordFormattableString
 	{
 		/// <inheritdoc />
 		public int Count => _Source.Count;
@@ -34,7 +35,8 @@ namespace Advobot.Formatting
 		/// Creates an instance of <see cref="FormattableString"/>.
 		/// </summary>
 		/// <param name="source"></param>
-		public DiscordFormattableStringCollection(params FormattableString[] source) : this((IEnumerable<FormattableString>)source) { }
+		public DiscordFormattableStringCollection(params FormattableString[] source)
+			: this((IEnumerable<FormattableString>)source) { }
 
 		/// <inheritdoc />
 		public void Add(FormattableString item)
@@ -54,7 +56,6 @@ namespace Advobot.Formatting
 		/// <inheritdoc />
 		public bool Remove(FormattableString item)
 			=> _Source.Remove(item);
-
 		/// <inheritdoc />
 		public override string ToString()
 			=> ToString(null);
@@ -94,7 +95,9 @@ namespace Advobot.Formatting
 			return sb.ToString();
 		}
 
-		IEnumerator IEnumerable.GetEnumerator() => _Source.GetEnumerator();
-		string IFormattable.ToString(string format, IFormatProvider formatProvider) => ToString(formatProvider);
+		IEnumerator IEnumerable.GetEnumerator()
+			=> _Source.GetEnumerator();
+		string IFormattable.ToString(string format, IFormatProvider formatProvider)
+			=> ToString(formatProvider);
 	}
 }

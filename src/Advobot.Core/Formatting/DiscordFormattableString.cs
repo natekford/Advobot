@@ -1,11 +1,11 @@
-﻿using AdvorangesUtils;
-using Discord;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AdvorangesUtils;
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Formatting
 {
@@ -70,8 +70,12 @@ namespace Advobot.Formatting
 				return ToString(socketClient, socketGuild, formatProvider);
 			}
 
-			var tasks = _Source.GetArguments().Select(x => ConvertArgumentAsync(client, guild, x));
-			var converted = await Task.WhenAll(tasks).CAF();
+			var args = _Source.GetArguments();
+			var converted = new object[args.Length];
+			for (var i = 0; i < args.Length; ++i)
+			{
+				converted[i] = await ConvertArgumentAsync(client, guild, args[i]).CAF();
+			}
 			return string.Format(formatProvider, _Source.Format, converted);
 		}
 		private static async Task<object?> ConvertArgumentAsync(IDiscordClient c, IGuild g, object? value) => value switch
@@ -100,6 +104,7 @@ namespace Advobot.Formatting
 			return output;
 		}
 
-		string IFormattable.ToString(string format, IFormatProvider formatProvider) => ToString(formatProvider);
+		string IFormattable.ToString(string format, IFormatProvider formatProvider)
+			=> ToString(formatProvider);
 	}
 }

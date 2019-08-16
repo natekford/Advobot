@@ -48,11 +48,15 @@ namespace Advobot.Commands.Responses
 		public static AdvobotResult ModifiedOverwrite(IGuildChannel channel, ISnowflakeEntity obj, ChannelPermission permissions, PermValue action)
 			=> Success(Default.FormatInterpolated($"Successfully {GetAction(action)} {EnumUtils.GetFlagNames(permissions)} for {obj} on {channel}."));
 		public static AdvobotResult MismatchType(IGuildChannel input, IGuildChannel output)
-			=> Failure($"Failed to copy channel permissions because channels {input} and {output} are not the same type.");
+			=> Failure($"Failed to copy channel permissions because {input} and {output} are not the same type.");
 		public static AdvobotResult CopiedOverwrites(IGuildChannel input, IGuildChannel output, ISnowflakeEntity? obj, IReadOnlyCollection<Overwrite> overwrites)
-			=> overwrites.Count > 0
-				? Success(Default.FormatInterpolated($"Successfully copied {obj?.Format() ?? "All"} from {input} to {output}"))
-				: Success($"There are no matching overwrite{(obj == null ? "" : "s")} to copy.").WithTime(DefaultTime);
+		{
+			if (overwrites.Count > 0)
+			{
+				return Success(Default.FormatInterpolated($"Successfully copied {obj?.Format() ?? "All"} from {input} to {output}"));
+			}
+			return Success($"There are no matching overwrite{(obj == null ? "" : "s")} to copy.").WithTime(DefaultTime);
+		}
 		public static AdvobotResult ClearedOverwrites(IGuildChannel channel, int count)
 			=> Success(Default.FormatInterpolated($"Successfully removed {count} overwrites from {channel}.")).WithTime(DefaultTime);
 		public static AdvobotResult ModifiedNsfw(ITextChannel channel, bool nsfw)
