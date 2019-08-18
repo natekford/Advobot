@@ -63,7 +63,7 @@ namespace Advobot.Services.Logging.Loggers
 			LogAction.MessageUpdated => !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel.Id),
 			//Log all deleted messages, no matter the source user, unless they're on an unlogged channel
 			LogAction.MessageDeleted => !Settings.IgnoredLogChannels.Contains(Channel.Id),
-			_ => throw new ArgumentException(nameof(Args)),
+			_ => throw new ArgumentOutOfRangeException(nameof(Args)),
 		};
 
 		/// <summary>

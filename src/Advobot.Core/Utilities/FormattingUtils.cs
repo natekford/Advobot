@@ -176,6 +176,22 @@ namespace Advobot.Utilities
 			object arg1)
 			=> string.Format(provider, format, arg0, arg1);
 		/// <summary>
+		/// Invokes <see cref="string.Format(IFormatProvider, string, object, object, object)"/>.
+		/// </summary>
+		/// <param name="provider"></param>
+		/// <param name="format"></param>
+		/// <param name="arg0"></param>
+		/// <param name="arg1"></param>
+		/// <param name="arg2"></param>
+		/// <returns></returns>
+		public static string Format(
+			this IFormatProvider provider,
+			string format,
+			object arg0,
+			object arg1,
+			object arg2)
+			=> string.Format(provider, format, arg0, arg1, arg2);
+		/// <summary>
 		/// Invokes <see cref="string.Format(IFormatProvider, string, object[])"/>.
 		/// </summary>
 		/// <param name="provider"></param>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using AdvorangesUtils;
 
 namespace Advobot.Formatting
@@ -49,18 +50,18 @@ namespace Advobot.Formatting
 			string joiner = "\n")
 		{
 			var collection = new DiscordFormattableStringCollection();
-			var i = 0;
-			foreach (var kvp in source)
+			var values = source.ToArray();
+			for (var i = 0; i < values.Length; ++i)
 			{
+				var kvp = values[i];
 				if (i == source.Count - 1)
 				{
-					collection.Add($"{kvp.AsTitle()} {kvp.Value}");
+					collection.Add($"{kvp.Key.AsTitle()} {kvp.Value}");
 				}
 				else
 				{
-					collection.Add($"{kvp.AsTitle()} {kvp.Value}{joiner.NoFormatting()}");
+					collection.Add($"{kvp.Key.AsTitle()} {kvp.Value}{joiner.NoFormatting()}");
 				}
-				++i;
 			}
 			return collection;
 		}
@@ -69,9 +70,9 @@ namespace Advobot.Formatting
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
-		public static RuntimeFormattedObject AsTitle(this object value)
+		public static RuntimeFormattedObject AsTitle(this string value)
 		{
-			var title = value.ToString().FormatTitle();
+			var title = value.FormatTitle();
 			if (!title.EndsWith(':'))
 			{
 				title += ":";

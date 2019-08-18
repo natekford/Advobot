@@ -54,7 +54,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		{
 			RaidType.Regular => int.MaxValue,
 			RaidType.RapidJoins => CountItemsInTimeFrame(_Instances.Keys, TimeInterval),
-			_ => throw new ArgumentException(nameof(Type)),
+			_ => throw new ArgumentOutOfRangeException(nameof(Type)),
 		};
 		/// <inheritdoc />
 		public override async Task EnableAsync(IGuild guild)

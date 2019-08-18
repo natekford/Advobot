@@ -41,7 +41,7 @@ namespace Advobot.Attributes.Preconditions
 				TimeUnit.Seconds => TimeSpan.FromSeconds(value),
 				TimeUnit.Minutes => TimeSpan.FromMinutes(value),
 				TimeUnit.Hours => TimeSpan.FromHours(value),
-				_ => throw new ArgumentException(nameof(unit)),
+				_ => throw new ArgumentOutOfRangeException(nameof(unit)),
 			};
 		}
 

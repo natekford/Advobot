@@ -97,22 +97,118 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="TitleAllOverwrites" xml:space="preserve">
+  <data name="ChannelsTitleAllOverwrites" xml:space="preserve">
     <value>{0} Overwrites</value>
   </data>
-  <data name="CreatedChannel" xml:space="preserve">
+  <data name="ChannelsMoved" xml:space="preserve">
+    <value>Successfully modified the position for {0} to {1}.</value>
+  </data>
+  <data name="ChannelsTitleChannelPositions" xml:space="preserve">
+    <value>{0} Channel Positions</value>
+  </data>
+  <data name="ChannelsFailedPermissionCopy" xml:space="preserve">
+    <value>Failed to copy channel permissions because {0} and {1} are not the same type.</value>
+  </data>
+  <data name="ChannelsModifiedBitrate" xml:space="preserve">
+    <value>Successfully modified the bitrate for {0} to {1}kbps.</value>
+  </data>
+  <data name="ChannelsModifiedLimit" xml:space="preserve">
+    <value>Successfully modified the user limit for {0} to {1}.</value>
+  </data>
+  <data name="SnowflakesModifiedName" xml:space="preserve">
+    <value>Successfully modified the name of {0} to {1}.</value>
+  </data>
+  <data name="SnowflakesCreated" xml:space="preserve">
     <value>Successfully created {0}.</value>
   </data>
-  <data name="DeletedChannel" xml:space="preserve">
+  <data name="SnowflakesDeleted" xml:space="preserve">
     <value>Successfully deleted {0}.</value>
   </data>
-  <data name="MovedChannel" xml:space="preserve">
-    <value>Successfully moved {0} to position {1}.</value>
+  <data name="SnowflakesSoftDeleted" xml:space="preserve">
+    <value>Successfully soft deleted {0}.</value>
   </data>
-  <data name="SoftDeletedChannel" xml:space="preserve">
-    <value>Successfully softdeleted {0}.</value>
+  <data name="SnowflakesRemovedIcon" xml:space="preserve">
+    <value>Successfully removed the icon for {0}.</value>
   </data>
-  <data name="TitleChannelPositions" xml:space="preserve">
-    <value>{0} Channel Positions</value>
+  <data name="SnowflakesEnqueuedIcon" xml:space="preserve">
+    <value>Successfully queued changing the icon for {0} at position {1}.</value>
+  </data>
+  <data name="EmotesTitleDisplay" xml:space="preserve">
+    <value>{0} Emotes</value>
+  </data>
+  <data name="ChannelsNoOverwrite" xml:space="preserve">
+    <value>There is no overwrite for {0} on {1}.</value>
+  </data>
+  <data name="ChannelsModifiedTopic" xml:space="preserve">
+    <value>Successfully modified the topic for {0} to {1}.</value>
+  </data>
+  <data name="ChannelsRemovedTopic" xml:space="preserve">
+    <value>Successfully removed the topic for {0}.</value>
+  </data>
+  <data name="ChannelsModifiedNsfw" xml:space="preserve">
+    <value>Successfully modified the NSFW status for {0} to {1}.</value>
+  </data>
+  <data name="ChannelsClearedOverwrites" xml:space="preserve">
+    <value>Successfully cleared {0} overwrites from {1}.</value>
+  </data>
+  <data name="ChannelsTitleSingleOverwrite" xml:space="preserve">
+    <value>{0} On {1}</value>
+  </data>
+  <data name="ChannelsCopiedOverwrite" xml:space="preserve">
+    <value>Successfully copied {0} from {1} to {2}.</value>
+  </data>
+  <data name="ChannelsNoCopyableOverwrite" xml:space="preserve">
+    <value>There are not any matching overwrites to copy.</value>
+  </data>
+  <data name="ChannelsTitleAllOverwritesRoles" xml:space="preserve">
+    <value>Role Overwrites</value>
+  </data>
+  <data name="ChannelsTitleAllOverwritesUsers" xml:space="preserve">
+    <value>User Overwrites</value>
+  </data>
+  <data name="ChannelsModifiedOverwriteAllow" xml:space="preserve">
+    <value>Successfully allowed {0} for {1} on {2}.</value>
+  </data>
+  <data name="WebhooksTitleDisplayWebhooks" xml:space="preserve">
+    <value>Webhooks On {0}</value>
+  </data>
+  <data name="WebhooksModifiedChannel" xml:space="preserve">
+    <value>Successfully modified the channel for {0} to {1}.</value>
+  </data>
+  <data name="RolesModifiedMentionability" xml:space="preserve">
+    <value>Successfully modified the mentionable status for {0} to {1}.</value>
+  </data>
+  <data name="RolesModifiedHoistedStatus" xml:space="preserve">
+    <value>Successfully modified the hosted status for {0} to {1}.</value>
+  </data>
+  <data name="RolesModifiedColor" xml:space="preserve">
+    <value>Successfully modified the color for {0} to #{1}.</value>
+  </data>
+  <data name="RolesClearedPermissions" xml:space="preserve">
+    <value>Successfully cleared as many permissions as allowed from {0}.</value>
+  </data>
+  <data name="RolesCopiedPermissions" xml:space="preserve">
+    <value>Successfully copied {0} from {1} to {2}.</value>
+  </data>
+  <data name="RolesTitleDisplay" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="RoleMoved" xml:space="preserve">
+    <value>Successfully modified the position for {0} to {1}.</value>
+  </data>
+  <data name="RolesGave" xml:space="preserve">
+    <value>Successfully gave {0} to {1}.</value>
+  </data>
+  <data name="RolesTook" xml:space="preserve">
+    <value>Successfully took {0} from {1}.</value>
+  </data>
+  <data name="ChannelsModifiedOverwriteDeny" xml:space="preserve">
+    <value>Successfully denied {0} for {1} on {2}.</value>
+  </data>
+  <data name="ChannelsModifiedOverwriteInherit" xml:space="preserve">
+    <value>Successfully inherited {0} for {1} on {2}.</value>
+  </data>
+  <data name="ChannelsVariableAllOverwrites" xml:space="preserve">
+    <value>all overwrites</value>
   </data>
 </root>

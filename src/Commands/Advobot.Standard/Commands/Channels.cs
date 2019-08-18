@@ -58,7 +58,12 @@ namespace Advobot.Standard.Commands
 				var view = (ulong)ViewChannel;
 				foreach (var overwrite in channel.PermissionOverwrites)
 				{
-					await channel.UpdateOverwriteAsync(overwrite, x => x & ~view, x => x | view, GenerateRequestOptions()).CAF();
+					await channel.UpdateOverwriteAsync(overwrite, x =>
+					{
+						var allow = x.AllowValue & ~view;
+						var deny = x.DenyValue | view;
+						return new OverwritePermissions(allow, deny);
+					}, GenerateRequestOptions()).CAF();
 				}
 
 				//Double check the everyone role has the correct perms
@@ -158,7 +163,7 @@ namespace Advobot.Standard.Commands
 					return Responses.Channels.NoOverwriteFound(channel, obj);
 				}
 
-				var temp = new List<(string Name, string Value)>();
+				var temp = new List<(string, string)>();
 				foreach (var e in GetPermissions(channel).ToList())
 				{
 					var name = e.ToString();
@@ -214,28 +219,9 @@ namespace Advobot.Standard.Commands
 				ISnowflakeEntity obj,
 				ulong permissions)
 			{
-				//Only allow the user to modify permissions they are allowed to
-				permissions &= Context.User.GuildPermissions.RawValue;
-
-				var allow = channel.GetPermissionOverwrite(obj)?.AllowValue ?? 0;
-				var deny = channel.GetPermissionOverwrite(obj)?.DenyValue ?? 0;
-				switch (action)
-				{
-					case PermValue.Allow:
-						allow |= permissions;
-						deny &= ~permissions;
-						break;
-					case PermValue.Inherit:
-						allow &= ~permissions;
-						deny &= ~permissions;
-						break;
-					case PermValue.Deny:
-						allow &= ~permissions;
-						deny |= permissions;
-						break;
-				}
-
-				await channel.AddPermissionOverwriteAsync(obj, allow, deny, GenerateRequestOptions()).CAF();
+				var overwrite = channel.GetPermissionOverwrite(obj);
+				var perms = overwrite.ModifyPermissions(action, Context.User, permissions);
+				await channel.AddPermissionOverwriteAsync(obj, perms, GenerateRequestOptions()).CAF();
 				return Responses.Channels.ModifiedOverwrite(channel, obj, (ChannelPermission)permissions, action);
 			}
 		}
@@ -404,7 +390,7 @@ namespace Advobot.Standard.Commands
 			{
 				//Have to multiply by 1000 because in bps and treats, say, 50 as 50bps and not 50kbps
 				await channel.ModifyAsync(x => x.Bitrate = bitrate * 1000, GenerateRequestOptions()).CAF();
-				return Responses.Channels.ModifiedBitRate(channel, bitrate);
+				return Responses.Channels.ModifiedBitrate(channel, bitrate);
 			}
 		}
 	}

@@ -82,7 +82,7 @@ namespace Advobot.Utilities
 			CountTarget.Equal => objects.Where(x => f(x) == number),
 			CountTarget.Below => objects.Where(x => f(x) < number),
 			CountTarget.Above => objects.Where(x => f(x) > number),
-			_ => throw new ArgumentException(nameof(method)),
+			_ => throw new ArgumentOutOfRangeException(nameof(method)),
 		};
 	}
 }

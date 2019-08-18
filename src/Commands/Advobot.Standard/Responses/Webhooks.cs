@@ -3,6 +3,7 @@ using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
 using Discord;
+using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
@@ -10,15 +11,17 @@ namespace Advobot.Standard.Responses
 	{
 		private Webhooks() { }
 
-		public static AdvobotResult DisplayWebhooks(ISnowflakeEntity source, IReadOnlyCollection<IWebhook> webhooks)
+		public static AdvobotResult DisplayWebhooks(
+			ISnowflakeEntity source,
+			IReadOnlyCollection<IWebhook> webhooks)
 		{
 			return Success(new EmbedWrapper
 			{
-				Title = Title.FormatInterpolated($"Webhooks For {source}"),
+				Title = Title.Format(WebhooksTitleDisplayWebhooks, source),
 				Description = BigBlock.FormatInterpolated($"{webhooks}"),
 			});
 		}
 		public static AdvobotResult ModifiedChannel(IWebhook webhook, ITextChannel channel)
-			=> Success(Default.FormatInterpolated($"Successfully changed the channel of {webhook} to {channel}."));
+			=> Success(Default.Format(WebhooksModifiedChannel, webhook, channel));
 	}
 }

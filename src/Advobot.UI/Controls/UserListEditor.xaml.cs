@@ -57,7 +57,7 @@ namespace Advobot.UI.Controls
 							}
 						}),
 						NotifyCollectionChangedAction.Reset => displayList.Clear,
-						_ => throw new ArgumentException(nameof(e.Action)),
+						_ => throw new ArgumentOutOfRangeException(nameof(e.Action)),
 					};
 					Dispatcher.UIThread.InvokeAsync(action);
 				};

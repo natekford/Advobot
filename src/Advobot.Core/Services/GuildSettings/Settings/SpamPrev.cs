@@ -73,7 +73,7 @@ namespace Advobot.Services.GuildSettings.Settings
 			SpamType.Link => message.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) ?? 0,
 			SpamType.Image => message.Attachments.Count(x => x.Height != null || x.Width != null) + message.Embeds.Count(x => x.Image != null || x.Video != null),
 			SpamType.Mention => message.MentionedUserIds.Distinct().Count(),
-			_ => throw new ArgumentException(nameof(Type)),
+			_ => throw new ArgumentOutOfRangeException(nameof(Type)),
 		};
 		/// <inheritdoc />
 		public override Task EnableAsync(IGuild guild)

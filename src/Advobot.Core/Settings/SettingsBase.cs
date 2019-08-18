@@ -84,7 +84,7 @@ namespace Advobot.Settings
 			=> FormatValue(_Localized.Get()[name].GetCurrentValue(this));
 		/// <inheritdoc />
 		public IDiscordFormattableString FormatValue(object? value)
-			=> new DiscordFormattableString($"{value}");
+			=> new DiscordFormattableString(value);
 		/// <inheritdoc />
 		public abstract void Save();
 		/// <summary>

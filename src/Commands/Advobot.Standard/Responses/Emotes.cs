@@ -6,6 +6,7 @@ using Advobot.Modules;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
+using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
@@ -16,17 +17,18 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult EnqueuedCreation(string name, int position)
 			=> Success(Default.FormatInterpolated($"Successfully queued creating the emote {name} at position {position}."));
 		public static AdvobotResult AddedRequiredRoles(IEmote emote, IEnumerable<IRole> roles)
-			=> Success(Default.FormatInterpolated($"Successfully added {roles} as roles necessary to use {emote}."));
-		public static AdvobotResult NoRequiredRoles(IEmote emote)
-			=> Success(Default.FormatInterpolated($"There are no required roles for {emote}."));
+			=> Success(Default.FormatInterpolated($"Successfully added {roles} as roles required to use {emote}."));
 		public static AdvobotResult RemoveRequiredRoles(IEmote emote, IEnumerable<IRole> roles)
-			=> Success(Default.FormatInterpolated($"Successfully removed {roles} as roles necessary to use {emote}."));
-		public static AdvobotResult DisplayMany(IEnumerable<IEmote> emotes, [CallerMemberName] string caller = "")
+			=> Success(Default.FormatInterpolated($"Successfully removed {roles} as roles required to use {emote}."));
+		public static AdvobotResult DisplayMany(
+			IEnumerable<IEmote> emotes,
+			[CallerMemberName] string caller = "")
 		{
+			var text = emotes.Join("\n", x => $"{x.Format()}");
 			return Success(new EmbedWrapper
 			{
-				Title = Title.FormatInterpolated($"{caller} Emotes"),
-				Description = BigBlock.FormatInterpolated($"{emotes.Join("\n", x => $"{x.Format()}")}"),
+				Title = Title.Format(EmotesTitleDisplay, caller),
+				Description = BigBlock.FormatInterpolated($"{text}"),
 			});
 		}
 	}

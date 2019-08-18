@@ -82,7 +82,7 @@ namespace Advobot.UI.AbstractUI.Colors
 					ColorTheme.LightMode => LightMode,
 					ColorTheme.DarkMode => DarkMode,
 					ColorTheme.UserMade => UserDefinedColors,
-					_ => throw new ArgumentException(nameof(value)),
+					_ => throw new ArgumentOutOfRangeException(nameof(value)),
 				};
 
 				foreach (var kvp in themeBrushes)

@@ -61,56 +61,344 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully created {0}..
+        ///   Looks up a localized string similar to Successfully cleared {0} overwrites from {1}..
         /// </summary>
-        internal static string CreatedChannel {
+        internal static string ChannelsClearedOverwrites {
             get {
-                return ResourceManager.GetString("CreatedChannel", resourceCulture);
+                return ResourceManager.GetString("ChannelsClearedOverwrites", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully deleted {0}..
+        ///   Looks up a localized string similar to Successfully copied {0} from {1} to {2}..
         /// </summary>
-        internal static string DeletedChannel {
+        internal static string ChannelsCopiedOverwrite {
             get {
-                return ResourceManager.GetString("DeletedChannel", resourceCulture);
+                return ResourceManager.GetString("ChannelsCopiedOverwrite", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully moved {0} to position {1}..
+        ///   Looks up a localized string similar to Failed to copy channel permissions because {0} and {1} are not the same type..
         /// </summary>
-        internal static string MovedChannel {
+        internal static string ChannelsFailedPermissionCopy {
             get {
-                return ResourceManager.GetString("MovedChannel", resourceCulture);
+                return ResourceManager.GetString("ChannelsFailedPermissionCopy", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully softdeleted {0}..
+        ///   Looks up a localized string similar to Successfully modified the bitrate for {0} to {1}kbps..
         /// </summary>
-        internal static string SoftDeletedChannel {
+        internal static string ChannelsModifiedBitrate {
             get {
-                return ResourceManager.GetString("SoftDeletedChannel", resourceCulture);
+                return ResourceManager.GetString("ChannelsModifiedBitrate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the user limit for {0} to {1}..
+        /// </summary>
+        internal static string ChannelsModifiedLimit {
+            get {
+                return ResourceManager.GetString("ChannelsModifiedLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the NSFW status for {0} to {1}..
+        /// </summary>
+        internal static string ChannelsModifiedNsfw {
+            get {
+                return ResourceManager.GetString("ChannelsModifiedNsfw", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully allowed {0} for {1} on {2}..
+        /// </summary>
+        internal static string ChannelsModifiedOverwriteAllow {
+            get {
+                return ResourceManager.GetString("ChannelsModifiedOverwriteAllow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully denied {0} for {1} on {2}..
+        /// </summary>
+        internal static string ChannelsModifiedOverwriteDeny {
+            get {
+                return ResourceManager.GetString("ChannelsModifiedOverwriteDeny", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully inherited {0} for {1} on {2}..
+        /// </summary>
+        internal static string ChannelsModifiedOverwriteInherit {
+            get {
+                return ResourceManager.GetString("ChannelsModifiedOverwriteInherit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the topic for {0} to {1}..
+        /// </summary>
+        internal static string ChannelsModifiedTopic {
+            get {
+                return ResourceManager.GetString("ChannelsModifiedTopic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the position for {0} to {1}..
+        /// </summary>
+        internal static string ChannelsMoved {
+            get {
+                return ResourceManager.GetString("ChannelsMoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There are not any matching overwrites to copy..
+        /// </summary>
+        internal static string ChannelsNoCopyableOverwrite {
+            get {
+                return ResourceManager.GetString("ChannelsNoCopyableOverwrite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no overwrite for {0} on {1}..
+        /// </summary>
+        internal static string ChannelsNoOverwrite {
+            get {
+                return ResourceManager.GetString("ChannelsNoOverwrite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully removed the topic for {0}..
+        /// </summary>
+        internal static string ChannelsRemovedTopic {
+            get {
+                return ResourceManager.GetString("ChannelsRemovedTopic", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {0} Overwrites.
         /// </summary>
-        internal static string TitleAllOverwrites {
+        internal static string ChannelsTitleAllOverwrites {
             get {
-                return ResourceManager.GetString("TitleAllOverwrites", resourceCulture);
+                return ResourceManager.GetString("ChannelsTitleAllOverwrites", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Overwrites.
+        /// </summary>
+        internal static string ChannelsTitleAllOverwritesRoles {
+            get {
+                return ResourceManager.GetString("ChannelsTitleAllOverwritesRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Overwrites.
+        /// </summary>
+        internal static string ChannelsTitleAllOverwritesUsers {
+            get {
+                return ResourceManager.GetString("ChannelsTitleAllOverwritesUsers", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {0} Channel Positions.
         /// </summary>
-        internal static string TitleChannelPositions {
+        internal static string ChannelsTitleChannelPositions {
             get {
-                return ResourceManager.GetString("TitleChannelPositions", resourceCulture);
+                return ResourceManager.GetString("ChannelsTitleChannelPositions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} On {1}.
+        /// </summary>
+        internal static string ChannelsTitleSingleOverwrite {
+            get {
+                return ResourceManager.GetString("ChannelsTitleSingleOverwrite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all overwrites.
+        /// </summary>
+        internal static string ChannelsVariableAllOverwrites {
+            get {
+                return ResourceManager.GetString("ChannelsVariableAllOverwrites", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Emotes.
+        /// </summary>
+        internal static string EmotesTitleDisplay {
+            get {
+                return ResourceManager.GetString("EmotesTitleDisplay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the position for {0} to {1}..
+        /// </summary>
+        internal static string RoleMoved {
+            get {
+                return ResourceManager.GetString("RoleMoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully cleared as many permissions as allowed from {0}..
+        /// </summary>
+        internal static string RolesClearedPermissions {
+            get {
+                return ResourceManager.GetString("RolesClearedPermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully copied {0} from {1} to {2}..
+        /// </summary>
+        internal static string RolesCopiedPermissions {
+            get {
+                return ResourceManager.GetString("RolesCopiedPermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully gave {0} to {1}..
+        /// </summary>
+        internal static string RolesGave {
+            get {
+                return ResourceManager.GetString("RolesGave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the color for {0} to #{1}..
+        /// </summary>
+        internal static string RolesModifiedColor {
+            get {
+                return ResourceManager.GetString("RolesModifiedColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the hosted status for {0} to {1}..
+        /// </summary>
+        internal static string RolesModifiedHoistedStatus {
+            get {
+                return ResourceManager.GetString("RolesModifiedHoistedStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the mentionable status for {0} to {1}..
+        /// </summary>
+        internal static string RolesModifiedMentionability {
+            get {
+                return ResourceManager.GetString("RolesModifiedMentionability", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Roles.
+        /// </summary>
+        internal static string RolesTitleDisplay {
+            get {
+                return ResourceManager.GetString("RolesTitleDisplay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully took {0} from {1}..
+        /// </summary>
+        internal static string RolesTook {
+            get {
+                return ResourceManager.GetString("RolesTook", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully created {0}..
+        /// </summary>
+        internal static string SnowflakesCreated {
+            get {
+                return ResourceManager.GetString("SnowflakesCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully deleted {0}..
+        /// </summary>
+        internal static string SnowflakesDeleted {
+            get {
+                return ResourceManager.GetString("SnowflakesDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully queued changing the icon for {0} at position {1}..
+        /// </summary>
+        internal static string SnowflakesEnqueuedIcon {
+            get {
+                return ResourceManager.GetString("SnowflakesEnqueuedIcon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the name of {0} to {1}..
+        /// </summary>
+        internal static string SnowflakesModifiedName {
+            get {
+                return ResourceManager.GetString("SnowflakesModifiedName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully removed the icon for {0}..
+        /// </summary>
+        internal static string SnowflakesRemovedIcon {
+            get {
+                return ResourceManager.GetString("SnowflakesRemovedIcon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully soft deleted {0}..
+        /// </summary>
+        internal static string SnowflakesSoftDeleted {
+            get {
+                return ResourceManager.GetString("SnowflakesSoftDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the channel for {0} to {1}..
+        /// </summary>
+        internal static string WebhooksModifiedChannel {
+            get {
+                return ResourceManager.GetString("WebhooksModifiedChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Webhooks On {0}.
+        /// </summary>
+        internal static string WebhooksTitleDisplayWebhooks {
+            get {
+                return ResourceManager.GetString("WebhooksTitleDisplayWebhooks", resourceCulture);
             }
         }
     }

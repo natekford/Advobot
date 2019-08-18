@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
@@ -14,15 +15,26 @@ namespace Advobot.Formatting
 	/// </summary>
 	public class DiscordFormattableString : IDiscordFormattableString
 	{
-		private readonly FormattableString _Source;
+		private readonly string _Format;
+		private readonly object[] _Args;
 
 		/// <summary>
-		/// Creates an instance of <see cref="DiscordFormattableString"/>.
+		/// Creates an instance of <see cref="DiscordFormattableString"/> mimicking <paramref name="source"/>.
 		/// </summary>
 		/// <param name="source"></param>
 		public DiscordFormattableString(FormattableString source)
 		{
-			_Source = source;
+			_Format = source.Format;
+			_Args = source.GetArguments();
+		}
+		/// <summary>
+		/// Creates an instance of <see cref="DiscordFormattableString"/>.
+		/// </summary>
+		/// <param name="value"></param>
+		public DiscordFormattableString(object value)
+		{
+			_Format = "{0}";
+			_Args = new[] { value };
 		}
 
 		/// <inheritdoc />
@@ -30,13 +42,13 @@ namespace Advobot.Formatting
 			=> ToString(null);
 		/// <inheritdoc />
 		public string ToString(IFormatProvider? formatProvider)
-			=> _Source.ToString(formatProvider);
+			=> string.Format(formatProvider, _Format, _Args);
 
 		/// <inheritdoc />
 		public string ToString(BaseSocketClient client, SocketGuild guild, IFormatProvider? formatProvider)
 		{
-			var converted = _Source.GetArguments().Select(x => ConvertArgument(client, guild, x));
-			return string.Format(formatProvider, _Source.Format, converted);
+			var converted = _Args.Select(x => ConvertArgument(client, guild, x));
+			return string.Format(formatProvider, _Format, converted);
 		}
 		private static object? ConvertArgument(BaseSocketClient c, SocketGuild g, object? value) => value switch
 		{
@@ -70,13 +82,12 @@ namespace Advobot.Formatting
 				return ToString(socketClient, socketGuild, formatProvider);
 			}
 
-			var args = _Source.GetArguments();
-			var converted = new object[args.Length];
-			for (var i = 0; i < args.Length; ++i)
+			var converted = new object[_Args.Length];
+			for (var i = 0; i < _Args.Length; ++i)
 			{
-				converted[i] = await ConvertArgumentAsync(client, guild, args[i]).CAF();
+				converted[i] = await ConvertArgumentAsync(client, guild, _Args[i]).CAF();
 			}
-			return string.Format(formatProvider, _Source.Format, converted);
+			return string.Format(formatProvider, _Format, converted);
 		}
 		private static async Task<object?> ConvertArgumentAsync(IDiscordClient c, IGuild g, object? value) => value switch
 		{

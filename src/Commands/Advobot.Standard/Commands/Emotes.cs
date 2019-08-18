@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
@@ -92,25 +93,16 @@ namespace Advobot.Standard.Commands
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Remove(
-				GuildEmote emote,
+				[HasRequiredRoles] GuildEmote emote,
 				[NotEveryoneOrManaged] params IRole[] roles)
 			{
-				if (!emote.RoleIds.Any())
-				{
-					return Responses.Emotes.NoRequiredRoles(emote);
-				}
-
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Contains(r))), GenerateRequestOptions()).CAF();
 				return Responses.Emotes.RemoveRequiredRoles(emote, roles);
 			}
 			[ImplicitCommand, ImplicitAlias]
-			public async Task<RuntimeResult> RemoveAll(GuildEmote emote)
+			public async Task<RuntimeResult> RemoveAll(
+				[HasRequiredRoles] GuildEmote emote)
 			{
-				if (!emote.RoleIds.Any())
-				{
-					return Responses.Emotes.NoRequiredRoles(emote);
-				}
-
 				var roles = emote.RoleIds.Select(x => Context.Guild.GetRole(x));
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create<IEnumerable<IRole>?>(null), GenerateRequestOptions()).CAF();
 				return Responses.Emotes.RemoveRequiredRoles(emote, roles);

@@ -74,7 +74,7 @@ namespace Advobot.Standard.Responses
 					ConnectionState.Disconnecting => '\u274C', //❌
 					ConnectionState.Connected => '\u2705', //❌
 					ConnectionState.Connecting => '\u2705', //❌
-					_ => throw new ArgumentException(nameof(shard.ConnectionState)),
+					_ => throw new ArgumentOutOfRangeException(nameof(shard.ConnectionState)),
 				};
 				return $"Shard `{shard.ShardId}`: `{statusEmoji} ({shard.Latency}ms)`";
 			});

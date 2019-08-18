@@ -1,10 +1,10 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Classes;
 using Advobot.Services.GuildSettings.Settings;
 using AdvorangesUtils;
 using Discord;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Utilities
 {
@@ -115,7 +115,7 @@ namespace Advobot.Utilities
 			Punishment.Deafen => RequireUser(DeafenAsync, guild, userId, options),
 			Punishment.VoiceMute => RequireUser(VoiceMuteAsync, guild, userId, options),
 			Punishment.RoleMute => RequireUserAndRole(RoleMuteAsync, guild, userId, roleId, options),
-			_ => throw new ArgumentException(nameof(type)),
+			_ => throw new ArgumentOutOfRangeException(nameof(type)),
 		};
 		private static Task AfterGiveAsync(Punishment type, IGuild guild, IUser user, PunishmentArgs options)
 		{
@@ -197,7 +197,7 @@ namespace Advobot.Utilities
 			Punishment.Deafen => RequireUser(RemoveDeafenAsync, guild, userId, options),
 			Punishment.VoiceMute => RequireUser(RemoveVoiceMuteAsync, guild, userId, options),
 			Punishment.RoleMute => RequireUserAndRole(RemoveRoleMuteAsync, guild, userId, roleId, options),
-			_ => throw new ArgumentException(nameof(type)),
+			_ => throw new ArgumentOutOfRangeException(nameof(type)),
 		};
 		private static Task AfterRemoveAsync(Punishment type, IGuild guild, IUser user, PunishmentArgs options)
 		{

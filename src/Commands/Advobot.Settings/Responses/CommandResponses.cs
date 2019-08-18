@@ -72,7 +72,7 @@ namespace Advobot.Settings.Responses
 			PermValue.Allow => "allowed".NoFormatting(),
 			PermValue.Inherit => "inherited".NoFormatting(),
 			PermValue.Deny => "denied".NoFormatting(),
-			_ => throw new InvalidOperationException("Invalid action."),
+			_ => throw new ArgumentOutOfRangeException(nameof(action)),
 		};
 		protected static RuntimeFormattedObject GetEnabled(bool enabled)
 			=> (enabled ? "enabled" : "disabled").NoFormatting();

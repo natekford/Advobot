@@ -168,12 +168,14 @@ namespace Advobot.Standard.Commands
 				IRole input,
 				[Role] IRole output)
 			{
-				var copyable = input.Permissions.RawValue & Context.User.GuildPermissions.RawValue; //Perms which the user can copy from the input role
-				var immovable = output.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue; //Output perms which can't be modified by the user
+				//Perms which the user can copy from the input role
+				var copyable = input.Permissions.RawValue & Context.User.GuildPermissions.RawValue;
+				//Output perms which can't be modified by the user
+				var immovable = output.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
 				var permissions = immovable | copyable;
 
 				await output.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), GenerateRequestOptions()).CAF();
-				return Responses.Roles.CopiedPermissions(input, output, (GuildPermission)permissions);
+				return Responses.Roles.CopiedPermissions(input, output, (GuildPermission)copyable);
 			}
 		}
 
@@ -188,7 +190,7 @@ namespace Advobot.Standard.Commands
 			{
 				var immovable = role.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
 				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovable), GenerateRequestOptions()).CAF();
-				return Responses.Roles.ClearedPermissions(role, (GuildPermission)immovable);
+				return Responses.Roles.ClearedPermissions(role);
 			}
 		}
 

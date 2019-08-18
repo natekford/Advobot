@@ -55,7 +55,7 @@ namespace Advobot.UI.Utils
 			SaveStatus.Failure => ($"Unable to correctly save {file}.", Brushes.Red),
 			SaveStatus.Success => ($"Successfully saved {file}.", Brushes.Green),
 			SaveStatus.DeserializationError => ($"Deserialization error occurred during saving {file}. This is caused by putting invalid values in Json.", Brushes.Red),
-			_ => throw new ArgumentException(nameof(response)),
+			_ => throw new ArgumentOutOfRangeException(nameof(response)),
 		};
 	}
 
