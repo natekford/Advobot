@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Attributes;
@@ -132,7 +131,7 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.CommandResponses.DisplayEnumValues<ChannelPermission>();
+				=> Responses.Gets.ShowEnumValues(typeof(ChannelPermission));
 			[Command]
 			public Task<RuntimeResult> Command(
 				[Channel(ManageChannels, ManageRoles)] IGuildChannel channel)
@@ -156,40 +155,18 @@ namespace Advobot.Standard.Commands
 				IGuildUser user)
 				=> FormatOverwrite(channel, user);
 
-			private Task<RuntimeResult> FormatOverwrite(IGuildChannel channel, ISnowflakeEntity obj)
+			private Task<RuntimeResult> FormatOverwrite(
+				IGuildChannel channel,
+				ISnowflakeEntity obj)
 			{
 				if (!channel.PermissionOverwrites.TryGetSingle(x => x.TargetId == obj.Id, out var overwrite))
 				{
 					return Responses.Channels.NoOverwriteFound(channel, obj);
 				}
 
-				var temp = new List<(string, string)>();
-				foreach (var e in GetPermissions(channel).ToList())
-				{
-					var name = e.ToString();
-					if ((overwrite.Permissions.AllowValue & (ulong)e) != 0)
-					{
-						temp.Add((name, nameof(PermValue.Allow)));
-					}
-					else if ((overwrite.Permissions.DenyValue & (ulong)e) != 0)
-					{
-						temp.Add((name, nameof(PermValue.Deny)));
-					}
-					else
-					{
-						temp.Add((name, nameof(PermValue.Inherit)));
-					}
-				}
-
-				return Responses.Channels.DisplayOverwrite(channel, obj, temp);
+				var values = channel.GetOverwriteValues(overwrite);
+				return Responses.Channels.DisplayOverwrite(channel, obj, values);
 			}
-			private static ChannelPermissions GetPermissions(IGuildChannel channel) => channel switch
-			{
-				ITextChannel _ => ChannelPermissions.Text,
-				IVoiceChannel _ => ChannelPermissions.Voice,
-				ICategoryChannel _ => ChannelPermissions.Category,
-				_ => throw new ArgumentException(nameof(channel)),
-			};
 		}
 
 		[Group(nameof(ModifyChannelPerms)), ModuleInitialismAlias(typeof(ModifyChannelPerms))]

@@ -12,11 +12,17 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
 	public sealed class Gets : CommandResponses
 	{
+		private static readonly IReadOnlyList<UserStatus> _Statuses
+			= Enum.GetValues(typeof(UserStatus)).Cast<UserStatus>().ToArray();
+		private static readonly IReadOnlyList<ActivityType> _Activities
+			= Enum.GetValues(typeof(ActivityType)).Cast<ActivityType>().ToArray();
+
 		private Gets() { }
 
 		public static AdvobotResult Bot(DiscordShardedClient client, ILogService logging)
@@ -36,9 +42,7 @@ namespace Advobot.Standard.Responses
 				}
 
 				var sb = new StringBuilder();
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 				foreach (var (Title, Count) in titlesAndCount)
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 				{
 					sb.AppendLineFeed($"{Title.PadRight(Math.Max(right + 1, 0))}{Count.PadLeft(Math.Max(left, 0))}");
 				}
@@ -56,12 +60,27 @@ namespace Advobot.Standard.Responses
 				Author = client.CurrentUser.CreateAuthor(),
 				Footer = new EmbedFooterBuilder { Text = $"Versions [Bot: {Constants.BOT_VERSION}] [API: {Constants.API_VERSION}]", },
 			};
-			var userCounters = new[] { logging.UserJoins, logging.UserLeaves, logging.UserChanges };
-			embed.TryAddField("Users", FormatLogCounters(userCounters), true, out _);
-			var msgCounters = new[] { logging.MessageEdits, logging.MessageDeletes, logging.Images, logging.Animated, logging.Files };
-			embed.TryAddField("Messages", FormatLogCounters(msgCounters), true, out _);
-			var cmdCounters = new[] { logging.AttemptedCommands, logging.SuccessfulCommands, logging.FailedCommands };
-			embed.TryAddField("Commands", FormatLogCounters(cmdCounters), true, out _);
+
+			embed.TryAddField("Users", FormatLogCounters(new[]
+			{
+				logging.UserJoins,
+				logging.UserLeaves,
+				logging.UserChanges
+			}), true, out _);
+			embed.TryAddField("Messages", FormatLogCounters(new[]
+			{
+				logging.MessageEdits,
+				logging.MessageDeletes,
+				logging.Images,
+				logging.Animated,
+				logging.Files
+			}), true, out _);
+			embed.TryAddField("Commands", FormatLogCounters(new[]
+			{
+				logging.AttemptedCommands,
+				logging.SuccessfulCommands,
+				logging.FailedCommands
+			}), true, out _);
 			return Success(embed);
 		}
 		public static AdvobotResult Shards(DiscordShardedClient client)
@@ -82,6 +101,7 @@ namespace Advobot.Standard.Responses
 			{
 				Description = description,
 				Author = client.CurrentUser.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = GetsFooterShards, },
 			});
 		}
 		public static async Task<RuntimeResult> Guild(IGuild guild)
@@ -127,7 +147,7 @@ namespace Advobot.Standard.Responses
 				Color = owner.GetRoles().LastOrDefault(x => x.Color.RawValue != 0)?.Color,
 				ThumbnailUrl = guild.IconUrl,
 				Author = new EmbedAuthorBuilder { Name = guild.Format(), },
-				Footer = new EmbedFooterBuilder { Text = "Guild Info", },
+				Footer = new EmbedFooterBuilder { Text = GetsFooterGuild, },
 			});
 		}
 		public static async Task<RuntimeResult> User(IUser user)
@@ -139,7 +159,7 @@ namespace Advobot.Standard.Responses
 					$"**Online status:** `{user.Status}`",
 				ThumbnailUrl = user.GetAvatarUrl(),
 				Author = user.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = "User Info", },
+				Footer = new EmbedFooterBuilder { Text = GetsFooterUser, },
 			};
 
 			if (!(user is IGuildUser guildUser))
@@ -215,7 +235,7 @@ namespace Advobot.Standard.Responses
 					$"**Permissions:** `{string.Join("`, `", Enum.GetValues(typeof(GuildPermission)).Cast<GuildPermission>().Where(x => role.Permissions.Has(x)))}`",
 				Color = role.Color,
 				Author = new EmbedAuthorBuilder { Name = role.Format(), },
-				Footer = new EmbedFooterBuilder { Text = "Role Info", },
+				Footer = new EmbedFooterBuilder { Text = GetsFooterRole, },
 			});
 		}
 		public static async Task<RuntimeResult> Channel(IGuildChannel channel, IGuildSettings guildSettings)
@@ -247,14 +267,14 @@ namespace Advobot.Standard.Responses
 					$"**User Count:** `{userCount}`\n" +
 					$"**Overwrites:** `{overwriteNames.Join("`, `")}`",
 				Author = new EmbedAuthorBuilder { Name = channel.Format(), },
-				Footer = new EmbedFooterBuilder { Text = "Channel Info", },
+				Footer = new EmbedFooterBuilder { Text = GetsFooterChannel, },
 			});
 		}
 		public static async Task<RuntimeResult> AllGuildUsers(IGuild guild)
 		{
 			var users = await guild.GetUsersAsync().CAF();
-			var statuses = Enum.GetValues(typeof(UserStatus)).Cast<UserStatus>().ToDictionary(x => x, x => 0);
-			var activities = Enum.GetValues(typeof(ActivityType)).Cast<ActivityType>().ToDictionary(x => x, x => 0);
+			var statuses = _Statuses.ToDictionary(x => x, x => 0);
+			var activities = _Activities.ToDictionary(x => x, x => 0);
 			int webhooks = 0, bots = 0, nickname = 0, voice = 0;
 			foreach (var user in users)
 			{
@@ -273,8 +293,7 @@ namespace Advobot.Standard.Responses
 					$"**Webhooks:** `{webhooks}`\n" +
 					$"**In Voice:** `{voice}`\n" +
 					$"**Has Nickname:** `{nickname}`\n",
-				Author = new EmbedAuthorBuilder { Name = "Guild Users", },
-				Footer = new EmbedFooterBuilder { Text = "Guild Users Info", },
+				Footer = new EmbedFooterBuilder { Text = GetsFooterGuildUsers, },
 			};
 			embed.TryAddField("Statuses", statuses.Join("\n", kvp => $"**{kvp.Key.ToString().FormatTitle()}:** `{kvp.Value}`"), false, out _);
 			embed.TryAddField("Activities", activities.Join("\n", kvp => $"**{kvp.Key.ToString().FormatTitle()}:** `{kvp.Value}`"), false, out _);
@@ -287,7 +306,7 @@ namespace Advobot.Standard.Responses
 				Description = FormatIdAndCreatedAt(emote),
 				ThumbnailUrl = emote.Url,
 				Author = new EmbedAuthorBuilder { Name = FormatIdAndCreatedAt(emote), },
-				Footer = new EmbedFooterBuilder { Text = "Emote Info", },
+				Footer = new EmbedFooterBuilder { Text = GetsFooterEmote, },
 			};
 
 			if (!(emote is GuildEmote guildEmote))
@@ -309,7 +328,7 @@ namespace Advobot.Standard.Responses
 					$"**Channel:** `{invite.Channel.Format()}`\n" +
 					$"**Uses:** `{invite.Uses}`",
 				Author = new EmbedAuthorBuilder { Name = invite.Code, },
-				Footer = new EmbedFooterBuilder { Text = "Invite Info", },
+				Footer = new EmbedFooterBuilder { Text = GetsFooterInvite, },
 			});
 		}
 		public static AdvobotResult Webhook(IWebhook webhook)
@@ -320,42 +339,70 @@ namespace Advobot.Standard.Responses
 					$"**Creator:** `{webhook.Creator.Format()}`\n" +
 					$"**Channel:** `{webhook.Channel.Format()}`\n",
 				ThumbnailUrl = webhook.GetAvatarUrl(),
-				Author = new EmbedAuthorBuilder { Name = webhook.Name, IconUrl = webhook.GetAvatarUrl(), Url = webhook.GetAvatarUrl(), },
-				Footer = new EmbedFooterBuilder { Text = "Webhook Info", },
+				Author = new EmbedAuthorBuilder
+				{
+					Name = webhook.Name,
+					IconUrl = webhook.GetAvatarUrl(),
+					Url = webhook.GetAvatarUrl(),
+				},
+				Footer = new EmbedFooterBuilder { Text = GetsFooterWebhook, },
 			});
 		}
-		public static AdvobotResult UsersWithReason(string title, IEnumerable<IGuildUser> users)
+		public static AdvobotResult UsersWithReason(
+			string title,
+			IEnumerable<IGuildUser> users)
 		{
-			return Success(new EmbedWrapper
+			var text = users.FormatNumberedList(x => x.Format());
+			return Success(new TextFileInfo
 			{
-				Title = title,
-				Description = users.FormatNumberedList(x => x.Format()),
+				Name = GetsFileUsersWithReason,
+				Text = text,
 			});
 		}
 		public static AdvobotResult UserJoinPosition(IGuildUser user, int position)
-			=> Success(Default.FormatInterpolated($"{user} is #{position} to join the guild on {user.JoinedAt?.UtcDateTime.ToReadable()}."));
+		{
+			return Success(GetsUserJoinPosition.Format(
+				user.Format().WithBlock(),
+				position.ToString().WithBlock(),
+				user.JoinedAt.Value.UtcDateTime.ToReadable().WithBlock()
+			));
+		}
 		public static AdvobotResult Guilds(IReadOnlyCollection<IGuild> guilds)
 		{
-			return Success(new EmbedWrapper
+			var text = guilds.FormatNumberedList(x => GetsUserJoins.Format(
+				x.Format().WithNoMarkdown(),
+				x.OwnerId.ToString().WithNoMarkdown()
+			));
+			return Success(new TextFileInfo
 			{
-				Title = "Guilds",
-				Description = BigBlock.FormatInterpolated($"{guilds.FormatNumberedList(x => Default.FormatInterpolated($"{x} Owner: {x.OwnerId}"))}"),
+				Name = GetsTitleGuilds,
+				Text = text,
 			});
 		}
 		public static AdvobotResult UserJoin(IReadOnlyCollection<IGuildUser> users)
 		{
+			var text = users.FormatNumberedList(x => GetsUserJoins.Format(
+				x.Format().WithNoMarkdown(),
+				x.JoinedAt.Value.UtcDateTime.ToReadable().WithNoMarkdown()
+			));
 			return Success(new TextFileInfo
 			{
-				Name = "User_Joins",
-				Text = users.FormatNumberedList(x => Default.FormatInterpolated($"{x} joined on {x.JoinedAt?.UtcDateTime.ToReadable()}")),
+				Name = GetsFileUserJoins,
+				Text = text,
 			});
 		}
-		public static AdvobotResult Messages(IChannel channel, IMessage[] messages, int maxSize)
+		public static AdvobotResult Messages(
+			IMessageChannel channel,
+			IReadOnlyCollection<IMessage> messages,
+			int maxSize)
 		{
 			var formattedMessagesBuilder = new StringBuilder();
-			for (var count = 0; count < messages.Length; ++count)
+			foreach (var message in messages)
 			{
-				var text = messages[count].Format(withMentions: false).RemoveAllMarkdown().RemoveDuplicateNewLines();
+				var text = message
+					.Format(withMentions: false)
+					.RemoveAllMarkdown()
+					.RemoveDuplicateNewLines();
 				if (formattedMessagesBuilder.Length + text.Length >= maxSize)
 				{
 					break;
@@ -365,26 +412,39 @@ namespace Advobot.Standard.Responses
 
 			return Success(new TextFileInfo
 			{
-				Name = $"{channel.Name}_Messages",
+				Name = GetsFileMessages.Format(channel.Name.WithNoMarkdown()),
 				Text = formattedMessagesBuilder.ToString(),
 			});
 		}
 		public static AdvobotResult ShowEnumNames<T>(ulong value) where T : struct, Enum
-			=> Success(Default.FormatInterpolated($"{value} has the following permissions: {EnumUtils.GetFlagNames((T)(object)value)}"));
+		{
+			return Success(GetsShowEnumNames.Format(
+				value.ToString().WithBlock(),
+				EnumUtils.GetFlagNames((T)(object)value).ToDelimitedString().WithBlock()
+			));
+		}
 		public static AdvobotResult ShowAllEnums(IEnumerable<Type> enums)
 		{
+			var description = enums
+				.ToDelimitedString(x => x.Name)
+				.WithBlock()
+				.Value;
 			return Success(new EmbedWrapper
 			{
-				Title = "Enum Names",
-				Description = Default.FormatInterpolated($"{enums.Select(x => x.Name)}"),
+				Title = GetsTitleEnumNames,
+				Description = description,
 			});
 		}
 		public static AdvobotResult ShowEnumValues(Type enumType)
 		{
+			var description = Enum.GetNames(enumType)
+				.ToDelimitedString()
+				.WithBlock()
+				.Value;
 			return Success(new EmbedWrapper
 			{
-				Title = enumType.Name,
-				Description = Default.FormatInterpolated($"{Enum.GetNames(enumType)}"),
+				Title = enumType.Name, //TODO: Localize enum name
+				Description = description,
 			});
 		}
 

@@ -130,7 +130,7 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.CommandResponses.DisplayEnumValues<GuildPermission>();
+				=> Responses.Gets.ShowEnumValues(typeof(GuildPermission));
 			[Command]
 			public Task<RuntimeResult> Command(IRole role)
 				=> Responses.Roles.DisplayPermissions(role);

@@ -53,7 +53,7 @@ namespace Advobot.Standard.Commands
 				[Nickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
 				var amountChanged = await ProcessAsync(bypass,
 					u => (u.Nickname != null && u.Nickname.CaseInsContains(search)) || (u.Nickname == null && u.Username.CaseInsContains(search)),
 					u => u.ModifyAsync(x => x.Nickname = replace, GenerateRequestOptions())).CAF();
@@ -73,7 +73,7 @@ namespace Advobot.Standard.Commands
 				[Nickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
 				var amountChanged = await ProcessAsync(bypass,
 					u => (u.Nickname != null && !u.Nickname.AllCharsWithinLimit(upperLimit)) || (u.Nickname == null && !u.Username.AllCharsWithinLimit(upperLimit)),
 					u => u.ModifyAsync(x => x.Nickname = replace, GenerateRequestOptions())).CAF();
@@ -91,7 +91,7 @@ namespace Advobot.Standard.Commands
 			public async Task<RuntimeResult> Command(
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
 				var amountChanged = await ProcessAsync(bypass,
 					u => u.Nickname != null,
 					u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions())).CAF();

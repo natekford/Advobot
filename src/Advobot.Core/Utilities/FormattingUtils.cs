@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using AdvorangesUtils;
@@ -16,7 +18,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="obj"></param>
 		/// <returns></returns>
-		public static string Format(this ISnowflakeEntity obj) => obj switch
+		public static string Format<T>(this IEntity<T> obj) where T : IEquatable<T> => obj switch
 		{
 			IUser user => user.Format(),
 			IRole role => role.Format(),
@@ -214,6 +216,131 @@ namespace Advobot.Utilities
 			FormattableString formattable)
 			=> formattable.ToString(provider);
 		/// <summary>
+		/// Returns a dictionary of the names of each permission and its value.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="values"></param>
+		/// <param name="localizer"></param>
+		/// <param name="padLength"></param>
+		/// <returns></returns>
+		public static IDictionary<string, string> FormatPermissionValues<T>(
+			this IDictionary<T, PermValue> values,
+			Func<T, string> localizer,
+			out int padLength) where T : Enum
+		{
+			padLength = -1;
+			var temp = new Dictionary<string, string>();
+			foreach (var kvp in values)
+			{
+				var name = localizer(kvp.Key);
+				var value = kvp.Value switch
+				{
+					PermValue.Allow => Constants.ALLOWED,
+					PermValue.Deny => Constants.DENIED,
+					_ => throw new ArgumentOutOfRangeException(nameof(kvp.Value)),
+				};
+				padLength = Math.Max(padLength, name.Length);
+				temp.Add(name, value);
+			}
+			return temp;
+		}
+		/// <summary>
+		/// Invokes <see cref="string.Join(string, string[])"/> with the current culture's list separator.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <returns></returns>
+		public static string ToDelimitedString(
+			this IEnumerable<string> source)
+		{
+			var separator = CultureInfo.CurrentCulture.TextInfo.ListSeparator + " ";
+			return source.ToDelimitedString(separator);
+		}
+		/// <summary>
+		/// Invokes <see cref="string.Join(string, string[])"/> with <paramref name="separator"/>.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="separator"></param>
+		/// <returns></returns>
+		public static string ToDelimitedString(
+			this IEnumerable<string> source,
+			string separator)
+			=> string.Join(separator, source);
+		/// <summary>
+		/// Invokes <see cref="string.Join(string, string[])"/> with the current culture's list separator.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="converter"></param>
+		/// <returns></returns>
+		public static string ToDelimitedString<T>(
+			this IEnumerable<T> source,
+			Func<T, string> converter)
+		{
+			var separator = CultureInfo.CurrentCulture.TextInfo.ListSeparator + " ";
+			return source.ToDelimitedString(converter, separator);
+		}
+		/// <summary>
+		/// Invokes <see cref="string.Join(string, string[])"/> with <paramref name="separator"/>.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="converter"></param>
+		/// <param name="separator"></param>
+		/// <returns></returns>
+		public static string ToDelimitedString<T>(
+			this IEnumerable<T> source,
+			Func<T, string> converter,
+			string separator)
+			=> string.Join(separator, source.Select(converter));
+		/// <summary>
+		/// Invokes <see cref="string.Format(string, object[])"/>.
+		/// </summary>
+		/// <param name="format"></param>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		public static string Format(this string format, params MarkdownFormattedArg[] args)
+			=> string.Format(format, args);
+		/// <summary>
+		/// Formats the string as a title (in title case, with a colon at the end, and in bold).
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static MarkdownFormattedArg AsTitleWithColon(this string value)
+		{
+			var title = value.FormatTitle();
+			if (!title.EndsWith(':'))
+			{
+				title += ":";
+			}
+			return new MarkdownFormattedArg(value, title.AddMarkdown("**"));
+		}
+		/// <summary>
+		/// Returns the string as itself.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static MarkdownFormattedArg WithNoMarkdown(this string value)
+			=> new MarkdownFormattedArg(value, value);
+		/// <summary>
+		/// Returns the string in title case.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static MarkdownFormattedArg WithTitleCase(this string value)
+			=> new MarkdownFormattedArg(value, value.FormatTitle());
+		/// <summary>
+		/// Formats the string inside a standard code block.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static MarkdownFormattedArg WithBlock(this string value)
+			=> new MarkdownFormattedArg(value, value.AddMarkdown("`"));
+		/// <summary>
+		/// Formats the string inside a big code block.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static MarkdownFormattedArg WithBigBlock(this string value)
+			=> new MarkdownFormattedArg(value, value.AddMarkdown("```"));
+		/// <summary>
 		/// Returns a new <see cref="EmbedAuthorBuilder"/> containing the user's info.
 		/// </summary>
 		/// <param name="author"></param>
@@ -221,6 +348,8 @@ namespace Advobot.Utilities
 		public static EmbedAuthorBuilder CreateAuthor(this IUser author)
 			=> new EmbedAuthorBuilder { IconUrl = author?.GetAvatarUrl(), Name = author?.Format(), Url = author?.GetAvatarUrl(), };
 
+		private static string AddMarkdown(this string value, string markdown)
+			=> $"{markdown}{value}{markdown}";
 		private static string GetChannelType(this IChannel channel) => channel switch
 		{
 			IMessageChannel _ => "text",
@@ -228,5 +357,35 @@ namespace Advobot.Utilities
 			ICategoryChannel _ => "category",
 			_ => "unknown",
 		};
+
+		/// <summary>
+		/// Contains the original value and a newly formatted value.
+		/// </summary>
+		public sealed class MarkdownFormattedArg
+		{
+			/// <summary>
+			/// The original value.
+			/// </summary>
+			public string Original { get; }
+			/// <summary>
+			/// The newly created value.
+			/// </summary>
+			public string Value { get; }
+
+			/// <summary>
+			/// Creates an instance of <see cref="MarkdownFormattedArg"/>.
+			/// </summary>
+			/// <param name="original"></param>
+			/// <param name="current"></param>
+			public MarkdownFormattedArg(string original, string current)
+			{
+				Original = original;
+				Value = current;
+			}
+
+			/// <inheritdoc />
+			public override string ToString()
+				=> Value;
+		}
 	}
 }

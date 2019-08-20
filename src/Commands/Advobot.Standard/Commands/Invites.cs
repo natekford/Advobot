@@ -56,7 +56,7 @@ namespace Advobot.Standard.Commands
 			{
 				arguments ??= new CreateInviteArguments();
 				var invite = await arguments.CreateInviteAsync(channel, GenerateRequestOptions()).CAF();
-				return Responses.Invites.CreatedInvite(invite);
+				return Responses.Snowflakes.Created(invite);
 			}
 		}
 
@@ -70,7 +70,7 @@ namespace Advobot.Standard.Commands
 			public async Task<RuntimeResult> Command([FromThisGuild] IInviteMetadata invite)
 			{
 				await invite.DeleteAsync(GenerateRequestOptions()).CAF();
-				return Responses.Invites.DeletedInvite(invite);
+				return Responses.Snowflakes.Deleted(invite);
 			}
 		}
 

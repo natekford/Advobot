@@ -1,4 +1,5 @@
-﻿using Advobot.Modules;
+﻿using System;
+using Advobot.Modules;
 using Advobot.Utilities;
 using Discord;
 using static Advobot.Standard.Resources.Responses;
@@ -9,17 +10,49 @@ namespace Advobot.Standard.Responses
 	{
 		private Snowflakes() { }
 
-		public static AdvobotResult ModifiedName(ISnowflakeEntity snowflake, string name)
-			=> Success(Default.Format(SnowflakesModifiedName, snowflake, name));
-		public static AdvobotResult Created(ISnowflakeEntity snowflake)
-			=> Success(Default.Format(SnowflakesCreated, snowflake));
-		public static AdvobotResult Deleted(ISnowflakeEntity snowflake)
-			=> Success(Default.Format(SnowflakesDeleted, snowflake));
-		public static AdvobotResult SoftDeleted(ISnowflakeEntity snowflake)
-			=> Success(Default.Format(SnowflakesSoftDeleted, snowflake));
-		public static AdvobotResult EnqueuedIcon(ISnowflakeEntity snowflake, int position)
-			=> Success(Default.Format(SnowflakesEnqueuedIcon, snowflake, position));
-		public static AdvobotResult RemovedIcon(ISnowflakeEntity snowflake)
-			=> Success(Default.Format(SnowflakesRemovedIcon, snowflake));
+		public static AdvobotResult ModifiedName<T>(IEntity<T> snowflake, string name)
+			where T : IEquatable<T>
+		{
+			return Success(SnowflakesModifiedName.Format(
+				snowflake.Format().WithBlock(),
+				name.WithBlock()
+			));
+		}
+		public static AdvobotResult Created<T>(IEntity<T> snowflake)
+			where T : IEquatable<T>
+		{
+			return Success(SnowflakesCreated.Format(
+				snowflake.Format().WithBlock()
+			));
+		}
+		public static AdvobotResult Deleted<T>(IEntity<T> snowflake)
+			where T : IEquatable<T>
+		{
+			return Success(SnowflakesDeleted.Format(
+				snowflake.Format().WithBlock()
+			));
+		}
+		public static AdvobotResult SoftDeleted<T>(IEntity<T> snowflake)
+			where T : IEquatable<T>
+		{
+			return Success(SnowflakesSoftDeleted.Format(
+				snowflake.Format().WithBlock()
+			));
+		}
+		public static AdvobotResult EnqueuedIcon<T>(IEntity<T> snowflake, int position)
+			where T : IEquatable<T>
+		{
+			return Success(SnowflakesEnqueuedIcon.Format(
+				snowflake.Format().WithBlock(),
+				position.ToString().WithBlock()
+			));
+		}
+		public static AdvobotResult RemovedIcon<T>(IEntity<T> snowflake)
+			where T : IEquatable<T>
+		{
+			return Success(SnowflakesRemovedIcon.Format(
+				snowflake.Format().WithBlock()
+			));
+		}
 	}
 }

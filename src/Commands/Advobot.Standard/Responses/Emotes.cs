@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
-using AdvorangesUtils;
 using Discord;
 using static Advobot.Standard.Resources.Responses;
 
@@ -15,20 +14,41 @@ namespace Advobot.Standard.Responses
 		private Emotes() { }
 
 		public static AdvobotResult EnqueuedCreation(string name, int position)
-			=> Success(Default.FormatInterpolated($"Successfully queued creating the emote {name} at position {position}."));
+		{
+			return Success(EmotesEnqueuedCreation.Format(
+				name.WithBlock(),
+				position.ToString().WithBlock()
+			));
+		}
 		public static AdvobotResult AddedRequiredRoles(IEmote emote, IEnumerable<IRole> roles)
-			=> Success(Default.FormatInterpolated($"Successfully added {roles} as roles required to use {emote}."));
+		{
+			return Success(EmotesAddedRequiredRoles.Format(
+				roles.ToDelimitedString(x => x.Format()).WithBlock(),
+				emote.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult RemoveRequiredRoles(IEmote emote, IEnumerable<IRole> roles)
-			=> Success(Default.FormatInterpolated($"Successfully removed {roles} as roles required to use {emote}."));
+		{
+			return Success(EmotesRemovedRequiredRoles.Format(
+				roles.ToDelimitedString(x => x.Format()).WithBlock(),
+				emote.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult DisplayMany(
 			IEnumerable<IEmote> emotes,
 			[CallerMemberName] string caller = "")
 		{
-			var text = emotes.Join("\n", x => $"{x.Format()}");
+			var title = EmotesTitleDisplay.Format(
+				caller.WithTitleCase()
+			);
+			var description = emotes
+				.ToDelimitedString(x => x.Format(), Environment.NewLine)
+				.WithBigBlock()
+				.Value;
 			return Success(new EmbedWrapper
 			{
-				Title = Title.Format(EmotesTitleDisplay, caller),
-				Description = BigBlock.FormatInterpolated($"{text}"),
+				Title = title,
+				Description = description,
 			});
 		}
 	}

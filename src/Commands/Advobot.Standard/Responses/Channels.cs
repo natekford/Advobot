@@ -19,45 +19,74 @@ namespace Advobot.Standard.Responses
 			IEnumerable<IGuildChannel> channels,
 			[CallerMemberName] string caller = "")
 		{
-			var text = channels
+			var title = ChannelsTitleChannelPositions.Format(
+				caller.WithNoMarkdown()
+			);
+			var description = channels
 				.OrderBy(x => x.Position)
-				.Join("\n", x => $"{x.Position.ToString("00")}. {x.Name}");
+				.ToDelimitedString(x => $"{x.Position.ToString("00")}. {x.Name}", "\n")
+				.WithBigBlock()
+				.Value;
 			return Success(new EmbedWrapper
 			{
-				Title = Title.Format(ChannelsTitleChannelPositions, caller),
-				Description = BigBlock.FormatInterpolated($"{text}"),
+				Title = title,
+				Description = description,
 			});
 		}
 		public static AdvobotResult Moved(IGuildChannel channel, int position)
-			=> Success(Default.Format(ChannelsMoved, channel, position));
+		{
+			return Success(ChannelsMoved.Format(
+				channel.Format().WithBlock(),
+				position.ToString().WithBlock()
+			));
+		}
 		public static AdvobotResult DisplayOverwrites(
 			IGuildChannel channel,
 			IEnumerable<string> roleNames,
 			IEnumerable<string> userNames)
 		{
+			var title = ChannelsTitleAllOverwrites.Format(
+				channel.Format().WithNoMarkdown()
+			);
 			var embed = new EmbedWrapper
 			{
-				Title = Title.Format(ChannelsTitleAllOverwrites, channel),
+				Title = title,
 			};
-			embed.TryAddField(ChannelsTitleAllOverwritesRoles, Default.FormatInterpolated($"{roleNames}"), false, out _);
-			embed.TryAddField(ChannelsTitleAllOverwritesUsers, Default.FormatInterpolated($"{userNames}"), false, out _);
+
+			var rolesValue = roleNames.ToDelimitedString().WithBigBlock().Value;
+			embed.TryAddField(ChannelsTitleAllOverwritesRoles, rolesValue, false, out _);
+			var usersValue = userNames.ToDelimitedString().WithBigBlock().Value;
+			embed.TryAddField(ChannelsTitleAllOverwritesUsers, usersValue, false, out _);
+
 			return Success(embed);
 		}
 		public static AdvobotResult NoOverwriteFound(
 			IGuildChannel channel,
 			ISnowflakeEntity obj)
-			=> Success(Default.Format(ChannelsNoOverwrite, obj, channel));
+		{
+			return Success(ChannelsNoOverwrite.Format(
+				obj.Format().WithBlock(),
+				channel.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult DisplayOverwrite(
 			IGuildChannel channel,
 			ISnowflakeEntity obj,
-			IEnumerable<(string Name, string Value)> values)
+			IDictionary<ChannelPermission, PermValue> values)
 		{
-			var padLen = values.Max(x => x.Name.Length);
-			var text = values.Join("\n", x => $"{x.Name.PadRight(padLen)} {x.Value}");
+			var title = ChannelsTitleSingleOverwrite.Format(
+				obj.Format().WithNoMarkdown(),
+				channel.Format().WithNoMarkdown()
+			);
+			var description = values
+				.FormatPermissionValues(x => x.ToString(), out var padLen)
+				.ToDelimitedString(x => $"{x.Key.PadRight(padLen)} {x.Value}", Environment.NewLine)
+				.WithBigBlock()
+				.Value;
 			return Success(new EmbedWrapper
 			{
-				Title = Title.Format(ChannelsTitleSingleOverwrite, obj, channel),
-				Description = BigBlock.FormatInterpolated($"{text}"),
+				Title = title,
+				Description = description,
 			});
 		}
 		public static AdvobotResult ModifiedOverwrite(
@@ -74,13 +103,21 @@ namespace Advobot.Standard.Responses
 				_ => throw new ArgumentOutOfRangeException(nameof(action)),
 			};
 
-			var flags = EnumUtils.GetFlagNames(permissions);
-			return Success(Default.Format(format, flags, obj, channel));
+			return Success(format.Format(
+				EnumUtils.GetFlagNames(permissions).ToDelimitedString().WithBlock(),
+				obj.Format().WithBlock(),
+				channel.Format().WithBlock()
+			));
 		}
 		public static AdvobotResult MismatchType(
 			IGuildChannel input,
 			IGuildChannel output)
-			=> Failure(Default.Format(ChannelsFailedPermissionCopy, input, output));
+		{
+			return Failure(ChannelsFailedPermissionCopy.Format(
+				input.Format().WithBlock(),
+				output.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult CopiedOverwrites(
 			IGuildChannel input,
 			IGuildChannel output,
@@ -91,20 +128,53 @@ namespace Advobot.Standard.Responses
 			{
 				return Success(ChannelsNoCopyableOverwrite);
 			}
-			var value = obj?.Format() ?? ChannelsVariableAllOverwrites;
-			return Success(Default.Format(ChannelsCopiedOverwrite, value, input, output));
+
+			return Success(ChannelsCopiedOverwrite.Format(
+				(obj?.Format() ?? ChannelsVariableAllOverwrites).WithBlock(),
+				input.Format().WithBlock(),
+				output.Format().WithBlock()
+			));
 		}
 		public static AdvobotResult ClearedOverwrites(IGuildChannel channel, int count)
-			=> Success(Default.Format(ChannelsClearedOverwrites, count, channel));
+		{
+			return Success(ChannelsClearedOverwrites.Format(
+				count.ToString().WithBlock(),
+				channel.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedNsfw(ITextChannel channel, bool nsfw)
-			=> Success(Default.Format(ChannelsModifiedNsfw, channel, nsfw));
+		{
+			return Success(ChannelsModifiedNsfw.Format(
+				channel.Format().WithBlock(),
+				nsfw.ToString().WithBlock()
+			));
+		}
 		public static AdvobotResult RemovedTopic(ITextChannel channel)
-			=> Success(Default.Format(ChannelsRemovedTopic, channel));
+		{
+			return Success(ChannelsRemovedTopic.Format(
+				channel.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedTopic(ITextChannel channel, string topic)
-			=> Success(Default.Format(ChannelsModifiedTopic, channel, topic));
+		{
+			return Success(ChannelsModifiedTopic.Format(
+				channel.Format().WithBlock(),
+				topic.WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedLimit(IVoiceChannel channel, int limit)
-			=> Success(Default.Format(ChannelsModifiedLimit, channel, limit));
+		{
+			return Success(ChannelsModifiedLimit.Format(
+				channel.Format().WithBlock(),
+				limit.ToString().WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedBitrate(IVoiceChannel channel, int bitrate)
-			=> Success(Default.Format(ChannelsModifiedBitrate, channel, bitrate));
+		{
+			return Success(ChannelsModifiedBitrate.Format(
+				channel.Format().WithBlock(),
+				bitrate.ToString().WithBlock()
+			));
+		}
 	}
 }

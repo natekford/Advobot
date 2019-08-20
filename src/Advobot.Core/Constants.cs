@@ -14,6 +14,14 @@ namespace Advobot
 		/// </summary>
 		public const string ZERO_LENGTH_CHAR = "\u200b";
 		/// <summary>
+		/// The emoji to use for an allowed permission. ✅
+		/// </summary>
+		public const string ALLOWED = "\u2705";
+		/// <summary>
+		/// The emoji to use for a denied permission. ❌
+		/// </summary>
+		public const string DENIED = "\u274C";
+		/// <summary>
 		/// The bot's version.
 		/// </summary>
 		public const string BOT_VERSION = Version.VERSION_NUMBER;

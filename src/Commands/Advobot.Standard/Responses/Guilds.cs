@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
 using Discord;
+using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
@@ -12,32 +13,72 @@ namespace Advobot.Standard.Responses
 		private Guilds() { }
 
 		public static AdvobotResult LeftGuild(IGuild guild)
-			=> Success(Default.FormatInterpolated($"Successfully left {guild}."));
+		{
+			return Success(GuildsLeftGuild.Format(
+				guild.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult DisplayRegions(IReadOnlyCollection<IVoiceRegion> regions)
 		{
+			var description = regions
+				.ToDelimitedString(x => x.Id, Environment.NewLine)
+				.WithBigBlock()
+				.Value;
 			return Success(new EmbedWrapper
 			{
-				Title = "Region Ids",
-				Description = Default.FormatInterpolated($"{regions.Select(x => x.Id)}"),
+				Title = GuildsTitleRegionIds,
+				Description = description,
 			});
 		}
 		public static AdvobotResult ModifiedRegion(IVoiceRegion region)
-			=> Success(Default.FormatInterpolated($"Successfully changed the server region to {region.Id}."));
+		{
+			return Success(GuildsModifiedRegion.Format(
+				region.Id.WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedAfkTime(int time)
-			=> Success(Default.FormatInterpolated($"Successfully changed the AFK timeout to {time} minutes."));
+		{
+			return Success(GuildsModifiedAfkTime.Format(
+				time.ToString().WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedAfkChannel(IVoiceChannel? channel)
-			=> Success(Default.FormatInterpolated($"Successfully changed the AFK channel to {channel}."));
+		{
+			return Success(GuildsModifiedAfkChannel.Format(
+				channel.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedSystemChannel(ITextChannel? channel)
-			=> Success(Default.FormatInterpolated($"Successfully changed the system channel to {channel}."));
+		{
+			return Success(GuildsModifiedSystemChannel.Format(
+				channel.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedMsgNotif(DefaultMessageNotifications notifs)
-			=> Success(Default.FormatInterpolated($"Successfully changed the default message notification setting to {notifs}."));
+		{
+			return Success(GuildsModifiedMsgNotif.Format(
+				notifs.ToString().WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedVerif(VerificationLevel verif)
-			=> Success(Default.FormatInterpolated($"Successfully changed the verification level to {verif}."));
+		{
+			return Success(GuildsModifiedVerif.Format(
+				verif.ToString().WithBlock()
+			));
+		}
 		public static AdvobotResult EnqueuedSplash(int position)
-			=> Success(Default.FormatInterpolated($"Successfully queued changing the splash image at position {position}."));
+		{
+			return Success(GuildsEnqueuedSplash.Format(
+				position.ToString().WithBlock()
+			));
+		}
 		public static AdvobotResult RemovedSplash()
-			=> Success("Successfully removed the splash image.");
+			=> Success(GuildsRemovedSplash);
 		public static AdvobotResult ModifiedOwner(IUser user)
-			=> Success(Default.FormatInterpolated($"Successfully changed the owner to {user}."));
+		{
+			return Success(GuildsModifiedOwner.Format(
+				user.Format().WithBlock()
+			));
+		}
 	}
 }

@@ -12,6 +12,13 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class OverwriteUtils
 	{
+		private static readonly IReadOnlyList<ChannelPermission> _Text
+			= ChannelPermissions.Text.ToList();
+		private static readonly IReadOnlyList<ChannelPermission> _Voice
+			= ChannelPermissions.Voice.ToList();
+		private static readonly IReadOnlyList<ChannelPermission> _Category
+			= ChannelPermissions.Category.ToList();
+
 		/// <summary>
 		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.
 		/// </summary>
@@ -168,6 +175,38 @@ namespace Advobot.Utilities
 			}
 			return channel.PermissionOverwrites;
 		}
+		/// <summary>
+		/// Returns a dictionary of permissions and their current values.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="overwrite"></param>
+		/// <returns></returns>
+		public static IDictionary<ChannelPermission, PermValue> GetOverwriteValues(
+			this IGuildChannel channel,
+			Overwrite overwrite)
+		{
+			var allow = overwrite.Permissions.AllowValue;
+			var deny = overwrite.Permissions.DenyValue;
+			return GetPermissions(channel).ToDictionary(
+				x => x,
+				x =>
+				{
+					var permission = (ulong)x;
+					if ((allow & permission) == permission)
+					{
+						return PermValue.Allow;
+					}
+					else if ((deny & permission) == permission)
+					{
+						return PermValue.Deny;
+					}
+					else
+					{
+						return PermValue.Inherit;
+					}
+				}
+			);
+		}
 		private static async Task<ISnowflakeEntity> GetEntityAsync(
 			this Overwrite overwrite,
 			IGuild guild) => overwrite.TargetType switch
@@ -176,5 +215,12 @@ namespace Advobot.Utilities
 				PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).CAF(),
 				_ => throw new ArgumentOutOfRangeException(nameof(overwrite.TargetType)),
 			};
+		private static IReadOnlyList<ChannelPermission> GetPermissions(IGuildChannel channel) => channel switch
+		{
+			ITextChannel _ => _Text,
+			IVoiceChannel _ => _Voice,
+			ICategoryChannel _ => _Category,
+			_ => throw new ArgumentException(nameof(channel)),
+		};
 	}
 }

@@ -211,4 +211,183 @@
   <data name="ChannelsVariableAllOverwrites" xml:space="preserve">
     <value>all overwrites</value>
   </data>
+  <data name="RolesTitleDisplayPermissions" xml:space="preserve">
+    <value>Permissions For {0}</value>
+  </data>
+  <data name="RolesModifiedPermissionsAllow" xml:space="preserve">
+    <value>Successfully allowed {0} for {1}.</value>
+  </data>
+  <data name="RolesModifiedPermissionsDeny" xml:space="preserve">
+    <value>Successfully denied {0} for {1}.</value>
+  </data>
+  <data name="EmotesRemovedRequiredRoles" xml:space="preserve">
+    <value>Successfully removed {0} as roles required to use {1}.</value>
+  </data>
+  <data name="EmotesAddedRequiredRoles" xml:space="preserve">
+    <value>Successfully added {0} as roles required to use {1}.</value>
+  </data>
+  <data name="EmotesEnqueuedCreation" xml:space="preserve">
+    <value>Successfully enqueued creating the emote {0} at position {1}.</value>
+  </data>
+  <data name="GuildsLeftGuild" xml:space="preserve">
+    <value>Successfully left {0}.</value>
+  </data>
+  <data name="GuildsTitleRegionIds" xml:space="preserve">
+    <value>Region Ids</value>
+  </data>
+  <data name="GuildsModifiedRegion" xml:space="preserve">
+    <value>Successfully modified the voice region for this guild to {0} minutes.</value>
+  </data>
+  <data name="GuildsModifiedAfkTime" xml:space="preserve">
+    <value>Successfully modified the AFK timeout for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedAfkChannel" xml:space="preserve">
+    <value>Successfully modified the AFK channel for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedSystemChannel" xml:space="preserve">
+    <value>Successfully modified the system channel for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedMsgNotif" xml:space="preserve">
+    <value>Successfully modified the default message notification option for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedVerif" xml:space="preserve">
+    <value>Successfully modified the verification level for this guild to {0}.</value>
+  </data>
+  <data name="GuildsEnqueuedSplash" xml:space="preserve">
+    <value>Successfully enqueued modifying the splash image for this guild at position {0}.</value>
+  </data>
+  <data name="GuildsRemovedSplash" xml:space="preserve">
+    <value>Successfully removed the splash image for this guild.</value>
+  </data>
+  <data name="GuildsModifiedOwner" xml:space="preserve">
+    <value>Successfully modified the owner for this guild to {0}.</value>
+  </data>
+  <data name="InvitesTitleDisplay" xml:space="preserve">
+    <value>Invites</value>
+  </data>
+  <data name="InvitesNoInviteMatches" xml:space="preserve">
+    <value>Failed to find any invites matching the given conditions.</value>
+  </data>
+  <data name="InvitesDeletedMultipleInvites" xml:space="preserve">
+    <value>Successfully deleted {0} matching invites.</value>
+  </data>
+  <data name="NicknamesRemovedNickname" xml:space="preserve">
+    <value>Successfully removed the nickname for {0}.</value>
+  </data>
+  <data name="NicknamesModifiedNickname" xml:space="preserve">
+    <value>Successfully modified the nickname for {0} to {1}.</value>
+  </data>
+  <data name="NicknamesMultiUserActionProgress" xml:space="preserve">
+    <value>Attempting to modify the nicknames of {0} users. ETA on completion: {1} seconds.</value>
+  </data>
+  <data name="NicknamesMultiUserActionSuccess" xml:space="preserve">
+    <value>Successfully modified the nicknames of {0} users.</value>
+  </data>
+  <data name="MiscRemind" xml:space="preserve">
+    <value>Successfully added a reminder which will trigger in {0}.</value>
+  </data>
+  <data name="MiscFooterHelp" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="MiscTitleGeneralHelp" xml:space="preserve">
+    <value>General Help</value>
+  </data>
+  <data name="MiscTitleBasicSyntax" xml:space="preserve">
+    <value>Basic Syntax</value>
+  </data>
+  <data name="MiscTitleMentionSyntax" xml:space="preserve">
+    <value>Mention Syntax</value>
+  </data>
+  <data name="MiscTitleLinks" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="MiscBasicSyntax" xml:space="preserve">
+    <value>`[]` means required.
+`&lt;&gt;` means optional.
+`|` means or.</value>
+  </data>
+  <data name="MiscMentionSyntax" xml:space="preserve">
+    <value>`User` means `@User|"Username#Discriminator"`
+`Role` means `@Role|"Role name"`
+`Channel` means `#Channel|"Channel name"`</value>
+  </data>
+  <data name="MiscLinks" xml:space="preserve">
+    <value>[GitHub Repository]({0})
+[Discord Server]({1})</value>
+  </data>
+  <data name="MiscTitleAllCommands" xml:space="preserve">
+    <value>All Commands</value>
+  </data>
+  <data name="MiscTitleCategories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="MiscTitleCategoryCommands" xml:space="preserve">
+    <value>Commands In {0}</value>
+  </data>
+  <data name="MiscVariableCategoryParameter" xml:space="preserve">
+    <value>[Category]</value>
+  </data>
+  <data name="MiscGeneralHelp" xml:space="preserve">
+    <value>Type {0} for a list of commands.
+Type {1} for help with a command.</value>
+  </data>
+  <data name="MiscGeneralCommandInfo" xml:space="preserve">
+    <value>Type {0} for commands from a category.
+
+{1}</value>
+  </data>
+  <data name="GetsTitleEnumNames" xml:space="preserve">
+    <value>Enum Names</value>
+  </data>
+  <data name="GetsShowEnumNames" xml:space="preserve">
+    <value>{0} has the following permissions: {1}.</value>
+  </data>
+  <data name="GetsFileMessages" xml:space="preserve">
+    <value>{0}_Messages</value>
+  </data>
+  <data name="GetsFileUserJoins" xml:space="preserve">
+    <value>User_Joins</value>
+  </data>
+  <data name="GetsUserJoinPosition" xml:space="preserve">
+    <value>{0} is #{1} to join the guild on {2}.</value>
+  </data>
+  <data name="GetsFileUsersWithReason" xml:space="preserve">
+    <value>Users_With_Reason</value>
+  </data>
+  <data name="GetsTitleGuilds" xml:space="preserve">
+    <value>Guilds</value>
+  </data>
+  <data name="GetsUserJoins" xml:space="preserve">
+    <value>{0} joined on {1}</value>
+  </data>
+  <data name="GetsGuilds" xml:space="preserve">
+    <value>{0} Owner: {1}</value>
+  </data>
+  <data name="GetsFooterWebhook" xml:space="preserve">
+    <value>Webhook Info</value>
+  </data>
+  <data name="GetsFooterInvite" xml:space="preserve">
+    <value>Invite Info</value>
+  </data>
+  <data name="GetsFooterEmote" xml:space="preserve">
+    <value>Emote Info</value>
+  </data>
+  <data name="GetsFooterGuildUsers" xml:space="preserve">
+    <value>Guild Users Info</value>
+  </data>
+  <data name="GetsFooterChannel" xml:space="preserve">
+    <value>Channel Info</value>
+  </data>
+  <data name="GetsFooterRole" xml:space="preserve">
+    <value>Role Info</value>
+  </data>
+  <data name="GetsFooterUser" xml:space="preserve">
+    <value>User Info</value>
+  </data>
+  <data name="GetsFooterGuild" xml:space="preserve">
+    <value>Guild Info</value>
+  </data>
+  <data name="GetsFooterShards" xml:space="preserve">
+    <value>Shards Info</value>
+  </data>
 </root>

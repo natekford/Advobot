@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
@@ -15,13 +16,25 @@ namespace Advobot.Standard.Responses
 			ISnowflakeEntity source,
 			IReadOnlyCollection<IWebhook> webhooks)
 		{
+			var title = WebhooksTitleDisplayWebhooks.Format(
+				source.Format().WithBlock()
+			);
+			var description = webhooks
+				.ToDelimitedString(x => x.Format(), Environment.NewLine)
+				.WithBigBlock()
+				.Value;
 			return Success(new EmbedWrapper
 			{
-				Title = Title.Format(WebhooksTitleDisplayWebhooks, source),
-				Description = BigBlock.FormatInterpolated($"{webhooks}"),
+				Title = title,
+				Description = description,
 			});
 		}
 		public static AdvobotResult ModifiedChannel(IWebhook webhook, ITextChannel channel)
-			=> Success(Default.Format(WebhooksModifiedChannel, webhook, channel));
+		{
+			return Success(WebhooksModifiedChannel.Format(
+				webhook.Format().WithBlock(),
+				channel.Format().WithBlock()
+			));
+		}
 	}
 }

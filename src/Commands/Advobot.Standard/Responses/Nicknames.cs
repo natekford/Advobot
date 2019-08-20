@@ -1,6 +1,7 @@
 ﻿using Advobot.Modules;
 using Advobot.Utilities;
 using Discord;
+using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
@@ -9,12 +10,30 @@ namespace Advobot.Standard.Responses
 		private Nicknames() { }
 
 		public static AdvobotResult RemovedNickname(IGuildUser user)
-			=> Success(Default.FormatInterpolated($"Successfully removed the nickname of {user}."));
+		{
+			return Success(NicknamesRemovedNickname.Format(
+				user.Format().WithBlock()
+			));
+		}
 		public static AdvobotResult ModifiedNickname(IGuildUser user, string name)
-			=> Success(Default.FormatInterpolated($"Successfully changed the nickname of {user} to {name}."));
-		public static AdvobotResult MultiUserAction(int amountLeft)
-			=> Success(Default.FormatInterpolated($"Attempting to change the nicknames of {amountLeft} users. ETA on completion: {(int)(amountLeft * 1.2)} seconds."));
+		{
+			return Success(NicknamesModifiedNickname.Format(
+				user.Format().WithBlock(),
+				name.WithBlock()
+			));
+		}
+		public static AdvobotResult MultiUserActionProgress(int amountLeft)
+		{
+			return Success(NicknamesMultiUserActionProgress.Format(
+				amountLeft.ToString().WithBlock(),
+				((int)(amountLeft * 1.2)).ToString().WithBlock()
+			));
+		}
 		public static AdvobotResult MultiUserActionSuccess(int modified)
-			=> Success(Default.FormatInterpolated($"Successfully changed the nicknames of {modified} users."));
+		{
+			return Success(NicknamesMultiUserActionSuccess.Format(
+				modified.ToString().WithBlock()
+			));
+		}
 	}
 }
