@@ -20,11 +20,12 @@ using Discord.Commands;
 
 namespace Advobot.Standard.Commands
 {
+	[Category(nameof(Gets))]
 	public sealed class Gets : ModuleBase
 	{
 		[Group(nameof(GetInfo)), ModuleInitialismAlias(typeof(GetInfo))]
 		[LocalizedSummary(nameof(Summaries.GetInfo))]
-		[CommandMeta("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18", IsEnabled = true)]
+		[Meta("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18", IsEnabled = true)]
 		public sealed class GetInfo : AdvobotModuleBase
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
@@ -65,7 +66,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(GetUsersWithReason)), ModuleInitialismAlias(typeof(GetUsersWithReason))]
 		[LocalizedSummary(nameof(Summaries.GetUsersWithReason))]
-		[CommandMeta("2442d1e5-ac94-4524-a108-37e2f9c23a47", IsEnabled = true)]
+		[Meta("2442d1e5-ac94-4524-a108-37e2f9c23a47", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
 		public sealed class GetUsersWithReason : AdvobotModuleBase
 		{
@@ -89,7 +90,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(GetUserAvatar)), ModuleInitialismAlias(typeof(GetUserAvatar))]
 		[LocalizedSummary(nameof(Summaries.GetUserAvatar))]
-		[CommandMeta("9978b327-b1bb-46af-9e9f-b43ff411902d", IsEnabled = true)]
+		[Meta("9978b327-b1bb-46af-9e9f-b43ff411902d", IsEnabled = true)]
 		public sealed class GetUserAvatar : AdvobotModuleBase
 		{
 			[Command]
@@ -99,7 +100,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(GetUserJoinedAt)), ModuleInitialismAlias(typeof(GetUserJoinedAt))]
 		[LocalizedSummary(nameof(Summaries.GetUserJoinedAt))]
-		[CommandMeta("32c92c8f-537f-4551-96a6-709c89c5dfac", IsEnabled = true)]
+		[Meta("32c92c8f-537f-4551-96a6-709c89c5dfac", IsEnabled = true)]
 		public sealed class GetUserJoinedAt : AdvobotModuleBase
 		{
 			[Command]
@@ -113,7 +114,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(GetGuilds)), ModuleInitialismAlias(typeof(GetGuilds))]
 		[LocalizedSummary(nameof(Summaries.GetGuilds))]
-		[CommandMeta("7ef0f627-453d-45c1-8bd3-ad5b623cb34f", IsEnabled = true)]
+		[Meta("7ef0f627-453d-45c1-8bd3-ad5b623cb34f", IsEnabled = true)]
 		[RequireBotOwner]
 		public sealed class GetGuilds : AdvobotModuleBase
 		{
@@ -124,7 +125,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(GetUserJoinList)), ModuleInitialismAlias(typeof(GetUserJoinList))]
 		[LocalizedSummary(nameof(Summaries.GetUserJoinList))]
-		[CommandMeta("7ceac749-15ea-4f7f-9c7a-f531b1288d98", IsEnabled = true)]
+		[Meta("7ceac749-15ea-4f7f-9c7a-f531b1288d98", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
 		public sealed class GetUserJoinList : AdvobotModuleBase
 		{
@@ -135,7 +136,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(GetMessages)), ModuleInitialismAlias(typeof(GetMessages))]
 		[LocalizedSummary(nameof(Summaries.GetMessages))]
-		[CommandMeta("0004a4f6-23ab-4e5e-bb4a-0b16e5b403a3", IsEnabled = true)]
+		[Meta("0004a4f6-23ab-4e5e-bb4a-0b16e5b403a3", IsEnabled = true)]
 		[RequireGuildPermissions]
 		public sealed class GetMessages : AdvobotModuleBase
 		{
@@ -151,7 +152,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(GetPermNamesFromValue)), ModuleInitialismAlias(typeof(GetPermNamesFromValue))]
 		[LocalizedSummary(nameof(Summaries.GetPermNamesFromValue))]
-		[CommandMeta("85c6c3a8-f718-4cae-8331-531a149dee60", IsEnabled = true)]
+		[Meta("85c6c3a8-f718-4cae-8331-531a149dee60", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
 		public sealed class GetPermNamesFromValue : AdvobotModuleBase
 		{
@@ -165,7 +166,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(GetEnumNames)), ModuleInitialismAlias(typeof(GetEnumNames))]
 		[LocalizedSummary(nameof(Summaries.GetEnumNames))]
-		[CommandMeta("ed4e05f9-d380-4708-95af-49f0232e15f7", IsEnabled = true)]
+		[Meta("ed4e05f9-d380-4708-95af-49f0232e15f7", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
 		public sealed class GetEnumNames : AdvobotModuleBase
 		{

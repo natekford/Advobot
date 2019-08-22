@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Globalization;
 using System.Resources;
-using AdvorangesUtils;
 using Discord.Commands;
 
 namespace Advobot.Localization
@@ -10,16 +8,14 @@ namespace Advobot.Localization
 	/// Used for a localized summary.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public abstract class LocalizedSummaryBaseAttribute : SummaryAttribute
+	public abstract class LocalizedSummaryBaseAttribute : SummaryAttribute, ILocalized
 	{
 		/// <summary>
 		/// The name of the summary to use for localization.
 		/// </summary>
 		public string Name { get; }
-		/// <summary>
-		/// The resource manager containing the 
-		/// </summary>
-		protected ResourceManager ResourceManager { get; }
+		/// <inheritdoc />
+		public ResourceManager ResourceManager { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="LocalizedSummaryBaseAttribute"/>.
@@ -31,7 +27,6 @@ namespace Advobot.Localization
 		{
 			Name = name;
 			ResourceManager = resources;
-			ConsoleUtils.DebugWrite($"Current culture: {CultureInfo.CurrentCulture}");
 		}
 	}
 }

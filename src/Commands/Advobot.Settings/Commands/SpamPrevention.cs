@@ -11,11 +11,12 @@ using Discord.Commands;
 
 namespace Advobot.Settings.Commands
 {
+	[Category(nameof(SpamPrevention))]
 	public sealed class SpamPrevention : ModuleBase
 	{
 		[Group(nameof(PreventSpam)), ModuleInitialismAlias(typeof(PreventSpam))]
 		[LocalizedSummary(nameof(Summaries.PreventSpam))]
-		[CommandMeta("901e3443-0ed9-41cd-9d29-1dc890f3c329")]
+		[Meta("901e3443-0ed9-41cd-9d29-1dc890f3c329")]
 		[RequireGuildPermissions]
 		public sealed class PreventSpam : SettingsModule<IGuildSettings>
 		{
@@ -51,7 +52,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(PreventRaid)), ModuleInitialismAlias(typeof(PreventRaid))]
 		[LocalizedSummary(nameof(Summaries.PreventRaid))]
-		[CommandMeta("9e11556d-f61b-4921-936b-ecf1b6fa0582")]
+		[Meta("9e11556d-f61b-4921-936b-ecf1b6fa0582")]
 		[RequireGuildPermissions]
 		public sealed class PreventRaid : SettingsModule<IGuildSettings>
 		{

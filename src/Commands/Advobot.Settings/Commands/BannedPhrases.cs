@@ -15,11 +15,12 @@ using Discord.Commands;
 
 namespace Advobot.Settings.Commands
 {
+	[Category(nameof(BannedPhrases))]
 	public sealed class BannedPhrases : ModuleBase
 	{
 		[Group(nameof(ModifyBannedStrings)), ModuleInitialismAlias(typeof(ModifyBannedStrings))]
 		[LocalizedSummary(nameof(Summaries.ModifyBannedStrings))]
-		[CommandMeta("6e494bca-519e-41ce-998a-f71f0677dfb0")]
+		[Meta("6e494bca-519e-41ce-998a-f71f0677dfb0")]
 		[RequireGuildPermissions]
 		public sealed class ModifyBannedStrings : SettingsModule<IGuildSettings>
 		{
@@ -28,7 +29,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ModifyBannedRegex)), ModuleInitialismAlias(typeof(ModifyBannedRegex))]
 		[LocalizedSummary(nameof(Summaries.ModifyBannedRegex))]
-		[CommandMeta("3438fb1e-e78b-44d2-960f-f19c73113879")]
+		[Meta("3438fb1e-e78b-44d2-960f-f19c73113879")]
 		[RequireGuildPermissions]
 		public sealed class ModifyBannedRegex : SettingsModule<IGuildSettings>
 		{
@@ -64,7 +65,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ModifyBannedNames)), ModuleInitialismAlias(typeof(ModifyBannedNames))]
 		[LocalizedSummary(nameof(Summaries.ModifyBannedNames))]
-		[CommandMeta("c19c7402-4206-48ce-b109-ab11da476ac2")]
+		[Meta("c19c7402-4206-48ce-b109-ab11da476ac2")]
 		[RequireGuildPermissions]
 		public sealed class ModifyBannedNames : SettingsModule<IGuildSettings>
 		{
@@ -73,7 +74,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ModifyBannedPhrasePunishments)), ModuleInitialismAlias(typeof(ModifyBannedPhrasePunishments))]
 		[LocalizedSummary(nameof(Summaries.ModifyBannedPhrasePunishments))]
-		[CommandMeta("4b4584ae-2b60-4aff-92a1-fb2c929f3daf")]
+		[Meta("4b4584ae-2b60-4aff-92a1-fb2c929f3daf")]
 		[RequireGuildPermissions]
 		public sealed class ModifyBannedPhrasePunishments : SettingsModule<IGuildSettings>
 		{

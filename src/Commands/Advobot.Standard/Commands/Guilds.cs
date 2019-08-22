@@ -18,11 +18,12 @@ using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands
 {
+	[Category(nameof(Guilds))]
 	public sealed class Guilds : ModuleBase
 	{
 		[Group(nameof(LeaveGuild)), ModuleInitialismAlias(typeof(LeaveGuild))]
 		[LocalizedSummary(nameof(Summaries.LeaveGuild))]
-		[CommandMeta("3090730c-1377-4a56-b379-485baed393e7", IsEnabled = true)]
+		[Meta("3090730c-1377-4a56-b379-485baed393e7", IsEnabled = true)]
 		public sealed class LeaveGuild : AdvobotModuleBase
 		{
 			[Command]
@@ -40,7 +41,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyGuildName)), ModuleInitialismAlias(typeof(ModifyGuildName))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildName))]
-		[CommandMeta("54a75c3c-be5a-46d4-93d3-b1cbc1af9def", IsEnabled = true)]
+		[Meta("54a75c3c-be5a-46d4-93d3-b1cbc1af9def", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class ModifyGuildName : AdvobotModuleBase
 		{
@@ -54,7 +55,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyGuildRegion)), ModuleInitialismAlias(typeof(ModifyGuildRegion))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildRegion))]
-		[CommandMeta("e2ab50b0-ce20-48ee-bac9-1fac2e53387d", IsEnabled = true)]
+		[Meta("e2ab50b0-ce20-48ee-bac9-1fac2e53387d", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class ModifyGuildRegion : AdvobotModuleBase
 		{
@@ -74,7 +75,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyGuildAfkTimer)), ModuleInitialismAlias(typeof(ModifyGuildAfkTimer))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkTimer))]
-		[CommandMeta("bb4ceabc-2660-431d-aa0c-d0f6176b88a1", IsEnabled = true)]
+		[Meta("bb4ceabc-2660-431d-aa0c-d0f6176b88a1", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
 		{
@@ -88,7 +89,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyGuildAfkChannel)), ModuleInitialismAlias(typeof(ModifyGuildAfkChannel))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkChannel))]
-		[CommandMeta("ec19c9b8-cc0c-46d6-a207-9eb6abf69c9e", IsEnabled = true)]
+		[Meta("ec19c9b8-cc0c-46d6-a207-9eb6abf69c9e", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
 		{
@@ -106,7 +107,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyGuildSystemChannel)), ModuleInitialismAlias(typeof(ModifyGuildSystemChannel))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildSystemChannel))]
-		[CommandMeta("f6cc90d9-ae1d-4eab-ae15-226d88e42092", IsEnabled = true)]
+		[Meta("f6cc90d9-ae1d-4eab-ae15-226d88e42092", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 		{
@@ -124,7 +125,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyGuildMsgNotif)), ModuleInitialismAlias(typeof(ModifyGuildMsgNotif))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildMsgNotif))]
-		[CommandMeta("f32a347c-e2d8-4b64-9a3c-53cd46d0f3ed", IsEnabled = true)]
+		[Meta("f32a347c-e2d8-4b64-9a3c-53cd46d0f3ed", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class ModifyGuildMsgNotif : AdvobotModuleBase
 		{
@@ -138,7 +139,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyGuildVerif)), ModuleInitialismAlias(typeof(ModifyGuildVerif))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildVerif))]
-		[CommandMeta("5640e2e6-7ee8-416c-982c-9efb22634f54", IsEnabled = true)]
+		[Meta("5640e2e6-7ee8-416c-982c-9efb22634f54", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class ModifyGuildVerif : AdvobotModuleBase
 		{
@@ -152,7 +153,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyGuildIcon)), ModuleInitialismAlias(typeof(ModifyGuildIcon))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildIcon))]
-		[CommandMeta("c6f5c58e-4784-4f30-91a9-3727e580ddf2", IsEnabled = true)]
+		[Meta("c6f5c58e-4784-4f30-91a9-3727e580ddf2", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class ModifyGuildIcon : ImageResizerModule
 		{
@@ -173,7 +174,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyGuildSplash)), ModuleInitialismAlias(typeof(ModifyGuildSplash))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildSplash))]
-		[CommandMeta("0a02898e-0e5c-417d-9309-7f93714b61f7", IsEnabled = true)]
+		[Meta("0a02898e-0e5c-417d-9309-7f93714b61f7", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		[RequirePartneredGuild]
 		public sealed class ModifyGuildSplash : ImageResizerModule
@@ -195,7 +196,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(CreateGuild)), ModuleInitialismAlias(typeof(CreateGuild))]
 		[LocalizedSummary(nameof(Summaries.CreateGuild))]
-		[CommandMeta("f3e7e812-067a-4be3-9904-42eb9eac8791", IsEnabled = true)]
+		[Meta("f3e7e812-067a-4be3-9904-42eb9eac8791", IsEnabled = true)]
 		[RequireBotOwner]
 		public sealed class CreateGuild : AdvobotModuleBase
 		{
@@ -212,7 +213,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(SwapGuildOwner)), ModuleInitialismAlias(typeof(SwapGuildOwner))]
 		[LocalizedSummary(nameof(Summaries.SwapGuildOwner))]
-		[CommandMeta("3cb8a267-5d62-4644-b5af-60281dd8e182", IsEnabled = true)]
+		[Meta("3cb8a267-5d62-4644-b5af-60281dd8e182", IsEnabled = true)]
 		[RequireBotIsOwner]
 		[RequireBotOwner]
 		public sealed class SwapGuildOwner : AdvobotModuleBase
@@ -227,7 +228,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DeleteGuild)), ModuleInitialismAlias(typeof(DeleteGuild))]
 		[LocalizedSummary(nameof(Summaries.DeleteGuild))]
-		[CommandMeta("65ec403c-7287-4689-a2f0-c73cf5407540", IsEnabled = true)]
+		[Meta("65ec403c-7287-4689-a2f0-c73cf5407540", IsEnabled = true)]
 		[RequireBotIsOwner]
 		[RequireBotOwner]
 		public sealed class DeleteGuild : AdvobotModuleBase

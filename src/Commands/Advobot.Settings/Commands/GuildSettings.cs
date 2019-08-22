@@ -12,11 +12,12 @@ using Discord.Commands;
 
 namespace Advobot.Settings.Commands
 {
+	[Category(nameof(GuildSettings))]
 	public sealed class GuildSettings : ModuleBase
 	{
 		[Group(nameof(ShowGuildSettings)), ModuleInitialismAlias(typeof(ShowGuildSettings))]
 		[LocalizedSummary(nameof(Summaries.ShowGuildSettings))]
-		[CommandMeta("b6ee91c4-05dc-4017-a08f-0c1478435179", IsEnabled = true)]
+		[Meta("b6ee91c4-05dc-4017-a08f-0c1478435179", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
 		public sealed class ShowGuildSettings : ReadOnlySettingsModule<IGuildSettings>
 		{
@@ -38,7 +39,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ResetGuildSettings)), ModuleInitialismAlias(typeof(ResetGuildSettings))]
 		[LocalizedSummary(nameof(Summaries.ResetGuildSettings))]
-		[CommandMeta("316df0fc-1c5e-40fe-8580-7b8ca5f63b43", IsEnabled = true)]
+		[Meta("316df0fc-1c5e-40fe-8580-7b8ca5f63b43", IsEnabled = true)]
 		[RequireGuildPermissions]
 		public sealed class ResetGuildSettings : SettingsModule<IGuildSettings>
 		{
@@ -155,7 +156,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ModifyCommands)), ModuleInitialismAlias(typeof(ModifyCommands))]
 		[LocalizedSummary(nameof(Summaries.ModifyCommands))]
-		[CommandMeta("6fb02198-9eab-4e44-a59a-7ba7f7317c10", IsEnabled = true, CanToggle = false)]
+		[Meta("6fb02198-9eab-4e44-a59a-7ba7f7317c10", IsEnabled = true, CanToggle = false)]
 		[RequireGuildPermissions]
 		public sealed class ModifyCommands : SettingsModule<IGuildSettings>
 		{
@@ -171,14 +172,18 @@ namespace Advobot.Settings.Commands
 				return Responses.ModifyCommands.ModifiedMultiple(commands, enable);
 			}
 			[Command]
-			public Task<RuntimeResult> Command([CommandCategory] string category, bool enable)
+			public Task<RuntimeResult> Command(
+				[CommandCategory] string category,
+				bool enable)
 			{
 				var entries = HelpEntries.GetHelpEntries(category);
 				var commands = Settings.CommandSettings.ModifyCommandValues(entries, enable);
 				return Responses.ModifyCommands.ModifiedMultiple(commands, enable);
 			}
 			[Command]
-			public Task<RuntimeResult> Command([CanToggle] IHelpEntry command, bool enable)
+			public Task<RuntimeResult> Command(
+				[CanToggle] IModuleHelpEntry command,
+				bool enable)
 			{
 				if (Settings.CommandSettings.ModifyCommandValue(command, enable))
 				{
@@ -190,7 +195,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ModifyIgnoredCommandChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredCommandChannels))]
 		[LocalizedSummary(nameof(Summaries.ModifyIgnoredCommandChannels))]
-		[CommandMeta("e485777b-1b3f-411a-afd7-59f24858cd24", IsEnabled = true, CanToggle = false)]
+		[Meta("e485777b-1b3f-411a-afd7-59f24858cd24", IsEnabled = true, CanToggle = false)]
 		[RequireGuildPermissions]
 		public sealed class ModifyIgnoredCommandChannels : SettingsModule<IGuildSettings>
 		{
@@ -383,7 +388,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(TestGuildNotifs)), ModuleInitialismAlias(typeof(TestGuildNotifs))]
 		[LocalizedSummary(nameof(Summaries.TestGuildNotifs))]
-		[CommandMeta("f5d09649-ac5c-4281-86d9-01a3f7fd43fa")]
+		[Meta("f5d09649-ac5c-4281-86d9-01a3f7fd43fa")]
 		[RequireGuildPermissions]
 		public sealed class TestGuildNotifs : AdvobotModuleBase
 		{

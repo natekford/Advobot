@@ -1,6 +1,5 @@
 ﻿using System;
 using Advobot.Localization;
-using Advobot.Standard.Resources;
 
 namespace Advobot.Standard.Localization
 {
@@ -8,6 +7,6 @@ namespace Advobot.Standard.Localization
 	public sealed class LocalizedSummaryAttribute : LocalizedSummaryBaseAttribute
 	{
 		public LocalizedSummaryAttribute(string name)
-			: base(name, Summaries.ResourceManager) { }
+			: base(name, Resources.Summaries.ResourceManager) { }
 	}
 }

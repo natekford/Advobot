@@ -17,11 +17,12 @@ using Discord.Commands;
 
 namespace Advobot.Settings.Commands
 {
+	[Category(nameof(SelfRoles))]
 	public sealed class SelfRoles : ModuleBase
 	{
 		[Group(nameof(ModifySelfRoles)), ModuleInitialismAlias(typeof(ModifySelfRoles))]
 		[LocalizedSummary(nameof(Summaries.ModifySelfRoles))]
-		[CommandMeta("2cb8f177-dc52-404c-a7f4-a63c84d976ba")]
+		[Meta("2cb8f177-dc52-404c-a7f4-a63c84d976ba")]
 		[RequireGuildPermissions]
 		public sealed class ModifySelfRoles : SettingsModule<IGuildSettings>
 		{
@@ -62,7 +63,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(AssignSelfRole)), ModuleInitialismAlias(typeof(AssignSelfRole))]
 		[LocalizedSummary(nameof(Summaries.AssignSelfRole))]
-		[CommandMeta("6c574af7-31a7-4733-9f10-badfe1e72f4c")]
+		[Meta("6c574af7-31a7-4733-9f10-badfe1e72f4c")]
 		public sealed class AssignSelfRole : AdvobotModuleBase
 		{
 			[Command]
@@ -90,7 +91,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(DisplaySelfRoles)), ModuleInitialismAlias(typeof(DisplaySelfRoles))]
 		[LocalizedSummary(nameof(Summaries.DisplaySelfRoles))]
-		[CommandMeta("3e3487e0-691a-45fa-9974-9d345b5337b7")]
+		[Meta("3e3487e0-691a-45fa-9974-9d345b5337b7")]
 		public sealed class DisplaySelfRoles : AdvobotModuleBase
 		{
 			[Command]

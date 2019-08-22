@@ -22,18 +22,5 @@ namespace Advobot.Standard.Responses
 				name.WithBlock()
 			));
 		}
-		public static AdvobotResult MultiUserActionProgress(int amountLeft)
-		{
-			return Success(NicknamesMultiUserActionProgress.Format(
-				amountLeft.ToString().WithBlock(),
-				((int)(amountLeft * 1.2)).ToString().WithBlock()
-			));
-		}
-		public static AdvobotResult MultiUserActionSuccess(int modified)
-		{
-			return Success(NicknamesMultiUserActionSuccess.Format(
-				modified.ToString().WithBlock()
-			));
-		}
 	}
 }

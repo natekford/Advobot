@@ -16,11 +16,12 @@ using Discord.Commands;
 
 namespace Advobot.Standard.Commands
 {
+	[Category(nameof(Nicknames))]
 	public sealed class Nicknames : ModuleBase
 	{
 		[Group(nameof(ModifyNickName)), ModuleInitialismAlias(typeof(ModifyNickName))]
 		[LocalizedSummary(nameof(Summaries.ModifyNickName))]
-		[CommandMeta("3e6e2221-3929-4bc3-a019-cfa5b04b5621", IsEnabled = true)]
+		[Meta("3e6e2221-3929-4bc3-a019-cfa5b04b5621", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageNicknames)]
 		public sealed class ModifyNickName : AdvobotModuleBase
 		{
@@ -43,7 +44,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ReplaceWordsInNames)), ModuleInitialismAlias(typeof(ReplaceWordsInNames))]
 		[LocalizedSummary(nameof(Summaries.ReplaceWordsInNames))]
-		[CommandMeta("f637abf3-f944-413a-95d3-d06aa07921fd", IsEnabled = true)]
+		[Meta("f637abf3-f944-413a-95d3-d06aa07921fd", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageNicknames)]
 		public sealed class ReplaceWordsInNames : MultiUserActionModule
 		{
@@ -53,17 +54,17 @@ namespace Advobot.Standard.Commands
 				[Nickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
 				var amountChanged = await ProcessAsync(bypass,
 					u => (u.Nickname != null && u.Nickname.CaseInsContains(search)) || (u.Nickname == null && u.Username.CaseInsContains(search)),
 					u => u.ModifyAsync(x => x.Nickname = replace, GenerateRequestOptions())).CAF();
-				return Responses.Nicknames.MultiUserActionSuccess(amountChanged);
+				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
 		}
 
 		[Group(nameof(ReplaceByUtf16)), ModuleInitialismAlias(typeof(ReplaceByUtf16))]
 		[LocalizedSummary(nameof(Summaries.ReplaceByUtf16))]
-		[CommandMeta("8d4e53fd-c728-4e55-9262-3078468738e5", IsEnabled = true)]
+		[Meta("8d4e53fd-c728-4e55-9262-3078468738e5", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageNicknames)]
 		public sealed class ReplaceByUtf16 : MultiUserActionModule
 		{
@@ -73,17 +74,17 @@ namespace Advobot.Standard.Commands
 				[Nickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
 				var amountChanged = await ProcessAsync(bypass,
 					u => (u.Nickname != null && !u.Nickname.AllCharsWithinLimit(upperLimit)) || (u.Nickname == null && !u.Username.AllCharsWithinLimit(upperLimit)),
 					u => u.ModifyAsync(x => x.Nickname = replace, GenerateRequestOptions())).CAF();
-				return Responses.Nicknames.MultiUserActionSuccess(amountChanged);
+				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
 		}
 
 		[Group(nameof(RemoveAllNickNames)), ModuleInitialismAlias(typeof(RemoveAllNickNames))]
 		[LocalizedSummary(nameof(Summaries.RemoveAllNickNames))]
-		[CommandMeta("d31a48de-ad5d-4f15-b216-299b8b8c66dd", IsEnabled = true)]
+		[Meta("d31a48de-ad5d-4f15-b216-299b8b8c66dd", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageNicknames)]
 		public sealed class RemoveAllNickNames : MultiUserActionModule
 		{
@@ -91,11 +92,11 @@ namespace Advobot.Standard.Commands
 			public async Task<RuntimeResult> Command(
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Nicknames.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
 				var amountChanged = await ProcessAsync(bypass,
 					u => u.Nickname != null,
 					u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions())).CAF();
-				return Responses.Nicknames.MultiUserActionSuccess(amountChanged);
+				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
 		}
 	}

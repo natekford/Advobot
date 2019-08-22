@@ -13,6 +13,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using static Advobot.Standard.Resources.Responses;
+using static Advobot.Utilities.FormattingUtils;
 
 namespace Advobot.Standard.Responses
 {
@@ -22,6 +23,8 @@ namespace Advobot.Standard.Responses
 			= Enum.GetValues(typeof(UserStatus)).Cast<UserStatus>().ToArray();
 		private static readonly IReadOnlyList<ActivityType> _Activities
 			= Enum.GetValues(typeof(ActivityType)).Cast<ActivityType>().ToArray();
+		private static readonly IReadOnlyList<GuildPermission> _Permissions
+			= Enum.GetValues(typeof(GuildPermission)).Cast<GuildPermission>().ToArray();
 
 		private Gets() { }
 
@@ -85,190 +88,283 @@ namespace Advobot.Standard.Responses
 		}
 		public static AdvobotResult Shards(DiscordShardedClient client)
 		{
-			var description = client.Shards.Join("\n", shard =>
+			var description = client.Shards.ToDelimitedString(shard =>
 			{
 				var statusEmoji = shard.ConnectionState switch
 				{
-					ConnectionState.Disconnected => '\u274C', //❌
-					ConnectionState.Disconnecting => '\u274C', //❌
-					ConnectionState.Connected => '\u2705', //❌
-					ConnectionState.Connecting => '\u2705', //❌
+					ConnectionState.Disconnected => Constants.DENIED,
+					ConnectionState.Disconnecting => Constants.DENIED,
+					ConnectionState.Connected => Constants.ALLOWED,
+					ConnectionState.Connecting => Constants.ALLOWED,
 					_ => throw new ArgumentOutOfRangeException(nameof(shard.ConnectionState)),
 				};
 				return $"Shard `{shard.ShardId}`: `{statusEmoji} ({shard.Latency}ms)`";
-			});
+			}, "\n");
 			return Success(new EmbedWrapper
 			{
 				Description = description,
 				Author = client.CurrentUser.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = GetsFooterShards, },
+				Footer = new EmbedFooterBuilder
+				{
+					Text = GetsFooterShards,
+					IconUrl = client.CurrentUser.GetAvatarUrl(),
+				},
 			});
 		}
 		public static async Task<RuntimeResult> Guild(IGuild guild)
 		{
-			int local = 0, animated = 0, managed = 0;
+			var userCount = (await guild.GetUsersAsync().CAF()).Count;
+			var owner = await guild.GetOwnerAsync().CAF();
+
+			int channels = 0, categories = 0, voice = 0, text = 0;
+			foreach (var channel in await guild.GetChannelsAsync().CAF())
+			{
+				++channels;
+				if (channel is ICategoryChannel) { ++categories; }
+				if (channel is IVoiceChannel) { ++voice; }
+				if (channel is ITextChannel) { ++text; }
+			}
+			int emotes = 0, local = 0, animated = 0, managed = 0;
 			foreach (var emote in guild.Emotes)
 			{
+				++emotes;
 				if (emote.IsManaged) { ++managed; }
 				if (emote.Animated) { ++animated; }
 				else { ++local; }
 			}
 
-			var owner = await guild.GetOwnerAsync().CAF();
-			var memberCount = (await guild.GetUsersAsync().CAF()).Count;
-			var channelCount = (await guild.GetChannelsAsync().CAF()).Count;
-			var textChannelCount = (await guild.GetTextChannelsAsync().CAF()).Count;
-			var voiceChannelCount = (await guild.GetVoiceChannelsAsync().CAF()).Count;
-			var categoryChannelCount = (await guild.GetCategoriesAsync().CAF()).Count;
-			var defaultChannel = await guild.GetDefaultChannelAsync().CAF();
-			var afkChannel = await guild.GetAFKChannelAsync().CAF();
-			var systemChannel = await guild.GetSystemChannelAsync().CAF();
-			var embedChannel = await guild.GetEmbedChannelAsync().CAF();
+			var info = new InformationMatrix();
+			info.AddTimeCreatedCollection(guild);
+			var meta = info.CreateCollection();
+			meta.Add(GetsTitleOwner, owner.Format());
+			meta.Add(GetsTitleUserCount, userCount);
+			meta.Add(GetsTitleRoleCount, guild.Roles.Count);
+			meta.Add(GetsTitleNotifications, guild.DefaultMessageNotifications.ToString());
+			meta.Add(GetsTitleVerification, guild.VerificationLevel.ToString());
+			meta.Add(GetsTitleVoiceRegion, guild.VoiceRegionId);
 
-			return Success(new EmbedWrapper
+			var embed = new EmbedWrapper
 			{
-				Description = FormatIdAndCreatedAt(guild) +
-					$"**Owner:** `{owner.Format()}`\n" +
-					$"**Default Message Notifs:** `{guild.DefaultMessageNotifications}`\n" +
-					$"**Verification Level:** `{guild.VerificationLevel}`\n" +
-					$"**Region:** `{guild.VoiceRegionId}`\n\n" +
-					$"**Emotes:** `{guild.Emotes.Count}` (`{local}` local, `{animated}` animated, `{managed}` managed)\n" +
-					$"**User Count:** `{memberCount}`\n" +
-					$"**Role Count:** `{guild.Roles.Count}`\n" +
-					$"**Channel Count:** `{channelCount}` " +
-						$"(`{textChannelCount}` text, " +
-						$"`{voiceChannelCount}` voice, " +
-						$"`{categoryChannelCount}` categories)\n\n" +
-					$"**Default Channel:** `{defaultChannel?.Format() ?? "None"}`\n" +
-					$"**AFK Channel:** `{afkChannel?.Format() ?? "None"}` (Time: `{guild.AFKTimeout / 60}`)\n" +
-					$"**System Channel:** `{systemChannel?.Format() ?? "None"}`\n" +
-					$"**Embed Channel:** `{embedChannel?.Format() ?? "None"}`\n" +
-					(guild.Features.Any() ? $"**Features:** `{string.Join("`, `", guild.Features)}`" : ""),
+				Description = info.ToString(),
 				Color = owner.GetRoles().LastOrDefault(x => x.Color.RawValue != 0)?.Color,
 				ThumbnailUrl = guild.IconUrl,
-				Author = new EmbedAuthorBuilder { Name = guild.Format(), },
-				Footer = new EmbedFooterBuilder { Text = GetsFooterGuild, },
-			});
+				Author = new EmbedAuthorBuilder
+				{
+					Name = guild.Format(),
+					IconUrl = guild.IconUrl,
+				},
+				Footer = new EmbedFooterBuilder
+				{
+					Text = GetsFooterGuild,
+					IconUrl = guild.IconUrl,
+				},
+			};
+			{
+				var channelInfo = new InformationMatrix();
+				var counts = channelInfo.CreateCollection();
+				counts.Add(GetsTitleChannelCount, channels);
+				counts.Add(GetsTitleTextChannelCount, text);
+				counts.Add(GetsTitleVoiceChannelCount, voice);
+				counts.Add(GetsTitleCategoryChannelCount, categories);
+				var special = channelInfo.CreateCollection();
+				special.Add(GetsTitleDefaultChannel, (await guild.GetDefaultChannelAsync().CAF()).Format());
+				special.Add(GetsTitleAfkChannel, (await guild.GetAFKChannelAsync().CAF()).Format());
+				special.Add(GetsTitleSystemChannel, (await guild.GetSystemChannelAsync().CAF()).Format());
+				special.Add(GetsTitleEmbedChannel, (await guild.GetEmbedChannelAsync().CAF()).Format());
+				embed.TryAddField(GetsTitleChannelInfo, channelInfo.ToString(), false, out _);
+			}
+			{
+				var emoteInfo = new InformationCollection();
+				emoteInfo.Add(GetsTitleEmoteCount, emotes);
+				emoteInfo.Add(GetsTitleAnimatedEmoteCount, animated);
+				emoteInfo.Add(GetsTitleLocalEmoteCount, local);
+				emoteInfo.Add(GetsTitleManagedEmoteCount, managed);
+				embed.TryAddField(GetsTitleEmoteInfo, emoteInfo.ToString(), false, out _);
+			}
+			if (guild.Features.Any())
+			{
+				var fieldValue = guild.Features.ToDelimitedString().WithBlock().Value;
+				embed.TryAddField(GetsTitleFeatures, fieldValue, false, out _);
+			}
+			return Success(embed);
 		}
 		public static async Task<RuntimeResult> User(IUser user)
 		{
+			var info = new InformationMatrix();
+			info.AddTimeCreatedCollection(user);
+			var status = info.CreateCollection();
+			status.Add(GetsTitleActivity, user.Activity.Format());
+			status.Add(GetsTitleStatus, user.Status.ToString());
+
 			var embed = new EmbedWrapper
 			{
-				Description = FormatIdAndCreatedAt(user) +
-					$"**Activity:** `{user.Activity.Format()}`\n" +
-					$"**Online status:** `{user.Status}`",
+				Description = info.ToString(),
 				ThumbnailUrl = user.GetAvatarUrl(),
 				Author = user.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = GetsFooterUser, },
+				Footer = new EmbedFooterBuilder
+				{
+					Text = GetsFooterUser,
+					IconUrl = user.GetAvatarUrl(),
+				},
 			};
 
+			//User is not from a guild so we can't get any more information about them
 			if (!(user is IGuildUser guildUser))
 			{
 				return Success(embed);
 			}
 
-			var channels = new List<string>();
-			foreach (var t in (await guildUser.Guild.GetTextChannelsAsync().CAF()).OrderBy(x => x.Position))
+			var guildInfo = info.CreateCollection();
+			if (guildUser.Nickname is string nickname)
 			{
-				var perms = guildUser.GetPermissions(t);
-				if (perms.ViewChannel)
-				{
-					channels.Add(t.Name);
-				}
+				guildInfo.Add(GetsTitleNickname, nickname.EscapeBackTicks());
 			}
-			foreach (var v in (await guildUser.Guild.GetVoiceChannelsAsync().CAF()).OrderBy(x => x.Position))
+			if (guildUser.JoinedAt is DateTimeOffset dto)
 			{
-				var perms = guildUser.GetPermissions(v);
-				if (perms.ViewChannel && perms.Connect)
-				{
-					channels.Add($"{v.Name} (Voice)");
-				}
+				var join = (await guildUser.Guild.GetUsersAsync().CAF())
+					.Count(x => x.JoinedAt < guildUser.JoinedAt);
+				guildInfo.Add(GetsTitleJoined, GetsJoinedAt.Format(
+					dto.UtcDateTime.ToReadable().WithNoMarkdown(),
+					join.ToString().WithNoMarkdown()
+				));
 			}
+			embed.Description = info.ToString(); //Reupdate the description in case any changes
 
-			var join = 1;
-			foreach (var u in (await guildUser.Guild.GetUsersAsync().CAF()).OrderByJoinDate())
+			async Task<IReadOnlyCollection<T>> GetChannelsAsync<T>(
+				Func<IGuild, Task<IReadOnlyCollection<T>>> getter,
+				Func<ChannelPermissions, bool> permCheck)
+				where T : IGuildChannel
 			{
-				if (u.Id == user.Id)
-				{
-					break;
-				}
-				++join;
+				var channels = await getter(guildUser.Guild).CAF();
+				var ordered = channels.OrderBy(x => x.Position);
+				var valid = ordered.Where(x => permCheck(guildUser.GetPermissions(x)));
+				return valid.ToArray();
 			}
 
 			var roles = guildUser.GetRoles();
+			var textChannels = await GetChannelsAsync(x => x.GetTextChannelsAsync(),
+				x => x.ViewChannel).CAF();
+			var voiceChannels = await GetChannelsAsync(x => x.GetVoiceChannelsAsync(),
+				x => x.ViewChannel && x.Connect).CAF();
 
-			embed.Description += "\n\n" +
-				$"**Nickname:** `{guildUser.Nickname?.EscapeBackTicks() ?? "No nickname"}`\n" +
-				$"**Joined:** `{guildUser.JoinedAt?.UtcDateTime.ToReadable()}` (`#{join}`)";
-			embed.Color = roles.LastOrDefault(x => x.Color.RawValue != 0)?.Color;
-
-			if (channels.Any())
-			{
-				embed.TryAddField("Channels", $"`{channels.Join("`, `")}`", false, out _);
-			}
 			if (roles.Any())
 			{
-				embed.TryAddField("Roles", $"`{roles.Join("`, `", x => x.Name)}`", false, out _);
+				var fieldValue = roles.ToDelimitedString(x => x.Name).WithBlock().Value;
+				embed.TryAddField(GetsTitleRoles, fieldValue, false, out _);
+				embed.Color = roles.LastOrDefault(x => x.Color.RawValue != 0)?.Color;
 			}
-			if (guildUser.VoiceChannel != null)
+			if (textChannels.Any())
 			{
-				var value = $"**Server Mute:** `{guildUser.IsMuted}`\n" +
-					$"**Server Deafen:** `{guildUser.IsDeafened}`\n" +
-					$"**Self Mute:** `{guildUser.IsSelfMuted}`\n" +
-					$"**Self Deafen:** `{guildUser.IsSelfDeafened}`";
-				embed.TryAddField($"Voice Channel: {guildUser.VoiceChannel.Name}", value, false, out _);
+				var fieldValue = textChannels.ToDelimitedString(x => x.Name).WithBlock().Value;
+				embed.TryAddField(GetsTitleTextChannels, fieldValue, false, out _);
+			}
+			if (voiceChannels.Any())
+			{
+				var fieldValue = voiceChannels.ToDelimitedString(x => x.Name).WithBlock().Value;
+				embed.TryAddField(GetsTitleVoiceChannels, fieldValue, false, out _);
+			}
+			if (guildUser.VoiceChannel is IVoiceChannel vc)
+			{
+				var voiceInfo = new InformationMatrix();
+				var voiceChannel = voiceInfo.CreateCollection();
+				voiceChannel.Add(GetsTitleVoiceChannel, vc.Format());
+				var voiceMeta = voiceInfo.CreateCollection();
+				voiceMeta.Add(GetsTitleServerMute, guildUser.IsMuted);
+				voiceMeta.Add(GetsTitleServerDeafen, guildUser.IsDeafened);
+				voiceMeta.Add(GetsTitleMute, guildUser.IsSelfMuted);
+				voiceMeta.Add(GetsTitleDeafen, guildUser.IsSelfDeafened);
+				embed.TryAddField(GetsTitleVoiceInfo, voiceInfo.ToString(), false, out _);
 			}
 			return Success(embed);
 		}
 		public static async Task<RuntimeResult> Role(IRole role)
 		{
-			var users = await role.Guild.GetUsersAsync().CAF();
-			return Success(new EmbedWrapper
+			var userCount = (await role.Guild.GetUsersAsync().CAF()).Count(x => x.RoleIds.Contains(role.Id));
+			var permissions = _Permissions.Where(x => role.Permissions.Has(x)).Select(x => x.ToString()).ToArray();
+
+			var info = new InformationMatrix();
+			info.AddTimeCreatedCollection(role);
+			var meta = info.CreateCollection();
+			meta.Add(GetsTitlePosition, role.Position);
+			meta.Add(GetsTitleUserCount, userCount);
+			meta.Add(GetsTitleColor, $"#{role.Color.RawValue.ToString("X6")}");
+			var other = info.CreateCollection();
+			other.Add(GetsTitleHoisted, role.IsHoisted);
+			other.Add(GetsTitleManaged, role.IsManaged);
+			other.Add(GetsTitleMentionable, role.IsMentionable);
+
+			var embed = new EmbedWrapper
 			{
-				Description = FormatIdAndCreatedAt(role) +
-					$"**Position:** `{role.Position}`\n" +
-					$"**Color:** `#{role.Color.RawValue.ToString("X6")}`\n\n" +
-					$"**Is Hoisted:** `{role.IsHoisted}`\n" +
-					$"**Is Managed:** `{role.IsManaged}`\n" +
-					$"**Is Mentionable:** `{role.IsMentionable}`\n\n" +
-					$"**User Count:** `{users.Count(u => u.RoleIds.Any(r => r == role.Id))}`\n" +
-					$"**Permissions:** `{string.Join("`, `", Enum.GetValues(typeof(GuildPermission)).Cast<GuildPermission>().Where(x => role.Permissions.Has(x)))}`",
+				Description = info.ToString(),
 				Color = role.Color,
 				Author = new EmbedAuthorBuilder { Name = role.Format(), },
 				Footer = new EmbedFooterBuilder { Text = GetsFooterRole, },
-			});
+			};
+			if (permissions.Any())
+			{
+				var fieldValue = permissions.ToDelimitedString().WithBlock().Value;
+				embed.TryAddField(GetsTitlePermissions, fieldValue, false, out _);
+			}
+			return Success(embed);
 		}
-		public static async Task<RuntimeResult> Channel(IGuildChannel channel, IGuildSettings guildSettings)
+		public static async Task<RuntimeResult> Channel(
+			IGuildChannel channel,
+			IGuildSettings settings)
 		{
-			var overwriteNames = new List<string>();
+			var userCount = (await channel.GetUsersAsync().FlattenAsync().CAF()).Count();
+			var roles = new List<string>();
+			var users = new List<string>();
 			foreach (var o in channel.PermissionOverwrites)
 			{
 				if (o.TargetType == PermissionTarget.Role)
 				{
-					overwriteNames.Add(channel.Guild.GetRole(o.TargetId).Name);
+					roles.Add(channel.Guild.GetRole(o.TargetId).Name);
 				}
 				else if (o.TargetType == PermissionTarget.User)
 				{
 					var user = await channel.Guild.GetUserAsync(o.TargetId).CAF();
-					overwriteNames.Add(user.Username);
+					users.Add(user.Username);
 				}
 			}
-			var userCount = (await channel.GetUsersAsync().FlattenAsync().CAF()).Count();
-			return Success(new EmbedWrapper
+
+			var info = new InformationMatrix();
+			info.AddTimeCreatedCollection(channel);
+			var meta = info.CreateCollection();
+			meta.Add(GetsTitlePosition, channel.Position);
+			meta.Add(GetsTitleUserCount, userCount);
+			var logs = info.CreateCollection();
+			logs.Add(GetsTitleIgnoredLog, settings.IgnoredLogChannels.Contains(channel.Id));
+			logs.Add(GetsTitleIgnoredCommands, settings.IgnoredCommandChannels.Contains(channel.Id));
+			logs.Add(GetsTitleImageOnly, settings.ImageOnlyChannels.Contains(channel.Id));
+			logs.Add(GetsTitleServerLog, settings.ServerLogId == channel.Id);
+			logs.Add(GetsTitleModLog, settings.ModLogId == channel.Id);
+			logs.Add(GetsTitleImageLog, settings.ImageLogId == channel.Id);
+
+			var embed = new EmbedWrapper
 			{
-				Description = FormatIdAndCreatedAt(channel) +
-					$"**Position:** `{channel.Position}`\n" +
-					$"**Is Ignored From Log:** `{guildSettings.IgnoredLogChannels.Contains(channel.Id)}`\n" +
-					$"**Is Ignored From Commands:** `{guildSettings.IgnoredCommandChannels.Contains(channel.Id)}`\n" +
-					$"**Is Image Only:** `{guildSettings.ImageOnlyChannels.Contains(channel.Id)}`\n" +
-					$"**Is Serverlog:** `{guildSettings.ServerLogId == channel.Id}`\n" +
-					$"**Is Modlog:** `{guildSettings.ModLogId == channel.Id}`\n" +
-					$"**Is Imagelog:** `{guildSettings.ImageLogId == channel.Id}`\n\n" +
-					$"**User Count:** `{userCount}`\n" +
-					$"**Overwrites:** `{overwriteNames.Join("`, `")}`",
-				Author = new EmbedAuthorBuilder { Name = channel.Format(), },
-				Footer = new EmbedFooterBuilder { Text = GetsFooterChannel, },
-			});
+				Description = info.ToString(),
+				Author = new EmbedAuthorBuilder
+				{
+					Name = channel.Format(),
+					IconUrl = channel.Guild.IconUrl,
+				},
+				Footer = new EmbedFooterBuilder
+				{
+					Text = GetsFooterChannel,
+					IconUrl = channel.Guild.IconUrl,
+				},
+			};
+			if (roles.Any())
+			{
+				var fieldValue = roles.ToDelimitedString().WithBlock().Value;
+				embed.TryAddField(GetsTitleRoles, fieldValue, false, out _);
+			}
+			if (users.Any())
+			{
+				var fieldValue = users.ToDelimitedString().WithBlock().Value;
+				embed.TryAddField(GetsTitleUsers, fieldValue, false, out _);
+			}
+			return Success(embed);
 		}
 		public static async Task<RuntimeResult> AllGuildUsers(IGuild guild)
 		{
@@ -286,66 +382,126 @@ namespace Advobot.Standard.Responses
 				if (user.VoiceChannel != null) { ++voice; }
 			}
 
+			var info = new InformationMatrix();
+			var meta = info.CreateCollection();
+			meta.Add(GetsTitleUserCount, users.Count);
+			meta.Add(GetsTitleBotCount, bots);
+			meta.Add(GetsTitleWebhookCount, webhooks);
+			meta.Add(GetsTitleInVoiceCount, voice);
+			meta.Add(GetsTitleNicknameCount, nickname);
+
 			var embed = new EmbedWrapper
 			{
-				Description = $"**Count:** `{users.Count}`\n" +
-					$"**Bots:** `{bots}`\n" +
-					$"**Webhooks:** `{webhooks}`\n" +
-					$"**In Voice:** `{voice}`\n" +
-					$"**Has Nickname:** `{nickname}`\n",
-				Footer = new EmbedFooterBuilder { Text = GetsFooterGuildUsers, },
+				Description = info.ToString(),
+				Author = new EmbedAuthorBuilder
+				{
+					Name = guild.Format(),
+					IconUrl = guild.IconUrl,
+				},
+				Footer = new EmbedFooterBuilder
+				{
+					Text = GetsFooterGuildUsers,
+					IconUrl = guild.IconUrl,
+				},
 			};
-			embed.TryAddField("Statuses", statuses.Join("\n", kvp => $"**{kvp.Key.ToString().FormatTitle()}:** `{kvp.Value}`"), false, out _);
-			embed.TryAddField("Activities", activities.Join("\n", kvp => $"**{kvp.Key.ToString().FormatTitle()}:** `{kvp.Value}`"), false, out _);
+			{
+				var statusInfo = new InformationCollection();
+				foreach (var kvp in statuses)
+				{
+					statusInfo.Add(kvp.Key.ToString(), kvp.Value);
+				}
+				embed.TryAddField(GetsTitleStatuses, statusInfo.ToString(), false, out _);
+			}
+			{
+				var activityInfo = new InformationCollection();
+				foreach (var kvp in activities)
+				{
+					activityInfo.Add(kvp.Key.ToString(), kvp.Value);
+				}
+				embed.TryAddField(GetsTitleActivities, activityInfo.ToString(), false, out _);
+			}
 			return Success(embed);
 		}
 		public static AdvobotResult Emote(Emote emote)
 		{
-			var embed = new EmbedWrapper
+			var info = new InformationMatrix();
+			info.AddTimeCreatedCollection(emote);
+			//Emote is GuildEmote meaning we can get extra informatino about it
+			if (emote is GuildEmote guildEmote)
 			{
-				Description = FormatIdAndCreatedAt(emote),
-				ThumbnailUrl = emote.Url,
-				Author = new EmbedAuthorBuilder { Name = FormatIdAndCreatedAt(emote), },
-				Footer = new EmbedFooterBuilder { Text = GetsFooterEmote, },
-			};
+				var meta = info.CreateCollection();
+				meta.Add(GetsTitleManaged, guildEmote.IsManaged);
+				meta.Add(GetsTitleColons, guildEmote.RequireColons);
 
-			if (!(emote is GuildEmote guildEmote))
-			{
-				return Success(embed);
+				var roles = info.CreateCollection();
+				roles.Add(GetsTitleRoles, guildEmote.RoleIds.ToDelimitedString(x => x.ToString()));
 			}
 
-			embed.Description += $"**Is Managed:** `{guildEmote.IsManaged}`\n" +
-				$"**Requires Colons:** `{guildEmote.RequireColons}`\n\n" +
-				$"**Roles:** `{guildEmote.RoleIds.Join("`, `", x => x.ToString())}`";
-			return Success(embed);
+			return Success(new EmbedWrapper
+			{
+				Description = info.ToString(),
+				ThumbnailUrl = emote.Url,
+				Author = new EmbedAuthorBuilder
+				{
+					Name = ((IEmote)emote).Format(),
+					IconUrl = emote.Url,
+					Url = emote.Url,
+				},
+				Footer = new EmbedFooterBuilder
+				{
+					Text = GetsFooterEmote,
+					IconUrl = emote.Url,
+				},
+			});
 		}
 		public static AdvobotResult Invite(IInviteMetadata invite)
 		{
+			var info = new InformationMatrix();
+			info.AddTimeCreatedCollection(invite.Id, invite.CreatedAt.GetValueOrDefault().UtcDateTime);
+			var meta = info.CreateCollection();
+			meta.Add(GetsTitleCreator, invite.Inviter.Format());
+			meta.Add(GetsTitleChannel, invite.Channel.Format());
+			meta.Add(GetsTitleUses, invite.Uses.Value);
+
 			return Success(new EmbedWrapper
 			{
-				Description = $"{invite.CreatedAt.GetValueOrDefault().UtcDateTime.ToCreatedAt()}\n" +
-					$"**Inviter:** `{invite.Inviter.Format()}`\n" +
-					$"**Channel:** `{invite.Channel.Format()}`\n" +
-					$"**Uses:** `{invite.Uses}`",
-				Author = new EmbedAuthorBuilder { Name = invite.Code, },
-				Footer = new EmbedFooterBuilder { Text = GetsFooterInvite, },
+				Description = info.ToString(),
+				Author = new EmbedAuthorBuilder
+				{
+					Name = invite.Format(),
+					IconUrl = invite.Guild.IconUrl,
+					Url = invite.Url,
+				},
+				Footer = new EmbedFooterBuilder
+				{
+					Text = GetsFooterInvite,
+					IconUrl = invite.Guild.IconUrl,
+				},
 			});
 		}
 		public static AdvobotResult Webhook(IWebhook webhook)
 		{
+			var info = new InformationMatrix();
+			info.AddTimeCreatedCollection(webhook);
+			var meta = info.CreateCollection();
+			meta.Add(GetsTitleCreator, webhook.Creator.Format());
+			meta.Add(GetsTitleChannel, webhook.Channel.Format());
+
 			return Success(new EmbedWrapper
 			{
-				Description = FormatIdAndCreatedAt(webhook) +
-					$"**Creator:** `{webhook.Creator.Format()}`\n" +
-					$"**Channel:** `{webhook.Channel.Format()}`\n",
+				Description = info.ToString(),
 				ThumbnailUrl = webhook.GetAvatarUrl(),
 				Author = new EmbedAuthorBuilder
 				{
-					Name = webhook.Name,
+					Name = webhook.Format(),
 					IconUrl = webhook.GetAvatarUrl(),
 					Url = webhook.GetAvatarUrl(),
 				},
-				Footer = new EmbedFooterBuilder { Text = GetsFooterWebhook, },
+				Footer = new EmbedFooterBuilder
+				{
+					Text = GetsFooterWebhook,
+					IconUrl = webhook.GetAvatarUrl(),
+				},
 			});
 		}
 		public static AdvobotResult UsersWithReason(
@@ -447,8 +603,70 @@ namespace Advobot.Standard.Responses
 				Description = description,
 			});
 		}
+	}
 
-		private static string FormatIdAndCreatedAt(ISnowflakeEntity obj)
-			=> $"**Id:** `{obj.Id}`\n{obj.CreatedAt.UtcDateTime.ToCreatedAt()}\n\n";
+	internal sealed class InformationMatrix
+	{
+		public IReadOnlyList<InformationCollection> Collections => _Collections.AsReadOnly();
+
+		private readonly List<InformationCollection> _Collections = new List<InformationCollection>();
+
+		public InformationCollection AddTimeCreatedCollection(ISnowflakeEntity e)
+			=> AddTimeCreatedCollection(e.Id.ToString(), e.CreatedAt.UtcDateTime);
+		public InformationCollection AddTimeCreatedCollection(string id, DateTime dt)
+		{
+			var diff = (DateTime.UtcNow - dt).TotalDays;
+			var collection = CreateCollection();
+			collection.Add("Id", id);
+			collection.Add("Created At", $"{dt.ToReadable()} ({diff:0.00} days ago)");
+			return collection;
+		}
+		public InformationCollection CreateCollection()
+		{
+			var collection = new InformationCollection();
+			_Collections.Add(collection);
+			return collection;
+		}
+
+		public override string ToString()
+		{
+			//Any collections with no information in them dont need to be added
+			var valid = Collections.Where(x => x.Information.Any());
+			return valid.ToDelimitedString(x => x.ToString(), "\n\n");
+		}
+	}
+
+	internal sealed class InformationCollection
+	{
+		public IReadOnlyList<Information> Information => _Information.AsReadOnly();
+
+		private readonly List<Information> _Information = new List<Information>();
+
+		public void Add(string title, string value, string joiner = " ")
+			=> _Information.Add(new Information(title, value, joiner));
+		public void Add(string title, int value)
+			=> Add(title, value.ToString());
+		public void Add(string title, bool value)
+			=> Add(title, value.ToString());
+
+		public override string ToString()
+			=> _Information.ToDelimitedString(x => x.ToString(), "\n");
+	}
+
+	internal sealed class Information
+	{
+		public string Title { get; }
+		public string Joiner { get; }
+		public string Value { get; }
+
+		public Information(string title, string value, string joiner)
+		{
+			Title = title;
+			Joiner = joiner;
+			Value = value;
+		}
+
+		public override string ToString()
+			=> $"{Title.AsTitleWithColon()}{Joiner}{Value}";
 	}
 }

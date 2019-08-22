@@ -6,7 +6,7 @@ namespace Advobot.Attributes
 	/// Specifies the default value for whether a command is enabled or not.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class CommandMetaAttribute : Attribute
+	public sealed class MetaAttribute : Attribute
 	{
 		/// <summary>
 		/// The id of the command.
@@ -22,10 +22,10 @@ namespace Advobot.Attributes
 		public bool CanToggle { get; set; } = true;
 
 		/// <summary>
-		/// Creates an instance of <see cref="CommandMetaAttribute"/>.
+		/// Creates an instance of <see cref="MetaAttribute"/>.
 		/// </summary>
 		/// <param name="guid"></param>
-		public CommandMetaAttribute(string guid)
+		public MetaAttribute(string guid)
 		{
 			Guid = Guid.Parse(guid);
 		}

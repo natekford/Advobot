@@ -13,7 +13,7 @@ namespace Advobot.TypeReaders
 	/// <summary>
 	/// Attempts to find a help entry with the supplied name.
 	/// </summary>
-	[TypeReaderTargetType(typeof(IHelpEntry))]
+	[TypeReaderTargetType(typeof(IModuleHelpEntry))]
 	public sealed class HelpEntryTypeReader : TypeReader
 	{
 		/// <summary>

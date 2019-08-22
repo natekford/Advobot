@@ -83,7 +83,7 @@ namespace Advobot.Services.Commands
 				{
 					CultureInfo.CurrentUICulture = culture;
 
-					var commands = _CommandService.Get();
+					var commandService = _CommandService.Get();
 					var typeReaders = new[] { Assembly.GetExecutingAssembly(), assembly.Assembly }
 						.SelectMany(x => x.GetTypes())
 						.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
@@ -93,22 +93,29 @@ namespace Advobot.Services.Commands
 						var instance = (TypeReader)Activator.CreateInstance(typeReader.Type);
 						foreach (var type in typeReader.Attribute.TargetTypes)
 						{
-							commands.AddTypeReader(type, instance, true);
+							commandService.AddTypeReader(type, instance, true);
 						}
 					}
 
-					var modules = await commands.AddModulesAsync(assembly.Assembly, _Provider).CAF();
-					var count = 0;
-					foreach (var category in modules)
+					var modules = await commandService.AddModulesAsync(assembly.Assembly, _Provider).CAF();
+					int moduleCount = 0, commandCount = 0, helpEntryCount = 0;
+					foreach (var module in modules)
 					{
-						++count;
-						foreach (var command in category.Submodules)
+						++moduleCount;
+						foreach (var command in module.Submodules)
 						{
-							_HelpEntries.Add(new HelpEntry(command));
+							++commandCount;
+							if (!command.Attributes.Any(a => a is DontAddHelpEntryAttribute))
+							{
+								++helpEntryCount;
+								_HelpEntries.Add(new ModuleHelpEntry(command));
+							}
 						}
 					}
 
-					ConsoleUtils.WriteLine($"Successfully loaded {count} command modules " +
+					ConsoleUtils.WriteLine($"Successfully loaded {moduleCount} modules " +
+						$"containing {commandCount} commands " +
+						$"({helpEntryCount} were given help entries) " +
 						$"from {assembly.Assembly.GetName().Name} in the {culture} culture.");
 				}
 			}

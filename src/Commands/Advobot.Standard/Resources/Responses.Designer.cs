@@ -394,11 +394,173 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} (#{1}).
+        /// </summary>
+        internal static string GetsJoinedAt {
+            get {
+                return ResourceManager.GetString("GetsJoinedAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} has the following permissions: {1}..
         /// </summary>
         internal static string GetsShowEnumNames {
             get {
                 return ResourceManager.GetString("GetsShowEnumNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activities.
+        /// </summary>
+        internal static string GetsTitleActivities {
+            get {
+                return ResourceManager.GetString("GetsTitleActivities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity.
+        /// </summary>
+        internal static string GetsTitleActivity {
+            get {
+                return ResourceManager.GetString("GetsTitleActivity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Afk Channel.
+        /// </summary>
+        internal static string GetsTitleAfkChannel {
+            get {
+                return ResourceManager.GetString("GetsTitleAfkChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Animated Emote Count.
+        /// </summary>
+        internal static string GetsTitleAnimatedEmoteCount {
+            get {
+                return ResourceManager.GetString("GetsTitleAnimatedEmoteCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bot Count.
+        /// </summary>
+        internal static string GetsTitleBotCount {
+            get {
+                return ResourceManager.GetString("GetsTitleBotCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Category Channel Count.
+        /// </summary>
+        internal static string GetsTitleCategoryChannelCount {
+            get {
+                return ResourceManager.GetString("GetsTitleCategoryChannelCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Channel.
+        /// </summary>
+        internal static string GetsTitleChannel {
+            get {
+                return ResourceManager.GetString("GetsTitleChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Channel Count.
+        /// </summary>
+        internal static string GetsTitleChannelCount {
+            get {
+                return ResourceManager.GetString("GetsTitleChannelCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Channel Info.
+        /// </summary>
+        internal static string GetsTitleChannelInfo {
+            get {
+                return ResourceManager.GetString("GetsTitleChannelInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Requires Colons.
+        /// </summary>
+        internal static string GetsTitleColons {
+            get {
+                return ResourceManager.GetString("GetsTitleColons", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color.
+        /// </summary>
+        internal static string GetsTitleColor {
+            get {
+                return ResourceManager.GetString("GetsTitleColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creator.
+        /// </summary>
+        internal static string GetsTitleCreator {
+            get {
+                return ResourceManager.GetString("GetsTitleCreator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Self Deafened.
+        /// </summary>
+        internal static string GetsTitleDeafen {
+            get {
+                return ResourceManager.GetString("GetsTitleDeafen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default Channel.
+        /// </summary>
+        internal static string GetsTitleDefaultChannel {
+            get {
+                return ResourceManager.GetString("GetsTitleDefaultChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Embed Channel.
+        /// </summary>
+        internal static string GetsTitleEmbedChannel {
+            get {
+                return ResourceManager.GetString("GetsTitleEmbedChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Emote Count.
+        /// </summary>
+        internal static string GetsTitleEmoteCount {
+            get {
+                return ResourceManager.GetString("GetsTitleEmoteCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Emote Info.
+        /// </summary>
+        internal static string GetsTitleEmoteInfo {
+            get {
+                return ResourceManager.GetString("GetsTitleEmoteInfo", resourceCulture);
             }
         }
         
@@ -412,11 +574,371 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Guild Features.
+        /// </summary>
+        internal static string GetsTitleFeatures {
+            get {
+                return ResourceManager.GetString("GetsTitleFeatures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Guilds.
         /// </summary>
         internal static string GetsTitleGuilds {
             get {
                 return ResourceManager.GetString("GetsTitleGuilds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Hoisted.
+        /// </summary>
+        internal static string GetsTitleHoisted {
+            get {
+                return ResourceManager.GetString("GetsTitleHoisted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Ignored From Commands.
+        /// </summary>
+        internal static string GetsTitleIgnoredCommands {
+            get {
+                return ResourceManager.GetString("GetsTitleIgnoredCommands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Ignored From Log.
+        /// </summary>
+        internal static string GetsTitleIgnoredLog {
+            get {
+                return ResourceManager.GetString("GetsTitleIgnoredLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Image Log.
+        /// </summary>
+        internal static string GetsTitleImageLog {
+            get {
+                return ResourceManager.GetString("GetsTitleImageLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Image Only.
+        /// </summary>
+        internal static string GetsTitleImageOnly {
+            get {
+                return ResourceManager.GetString("GetsTitleImageOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In Voice Count.
+        /// </summary>
+        internal static string GetsTitleInVoiceCount {
+            get {
+                return ResourceManager.GetString("GetsTitleInVoiceCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Joined At.
+        /// </summary>
+        internal static string GetsTitleJoined {
+            get {
+                return ResourceManager.GetString("GetsTitleJoined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local Emote Count.
+        /// </summary>
+        internal static string GetsTitleLocalEmoteCount {
+            get {
+                return ResourceManager.GetString("GetsTitleLocalEmoteCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Managed.
+        /// </summary>
+        internal static string GetsTitleManaged {
+            get {
+                return ResourceManager.GetString("GetsTitleManaged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Managed Emote Count.
+        /// </summary>
+        internal static string GetsTitleManagedEmoteCount {
+            get {
+                return ResourceManager.GetString("GetsTitleManagedEmoteCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Mentionable.
+        /// </summary>
+        internal static string GetsTitleMentionable {
+            get {
+                return ResourceManager.GetString("GetsTitleMentionable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Mod Log.
+        /// </summary>
+        internal static string GetsTitleModLog {
+            get {
+                return ResourceManager.GetString("GetsTitleModLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Self Muted.
+        /// </summary>
+        internal static string GetsTitleMute {
+            get {
+                return ResourceManager.GetString("GetsTitleMute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nickname.
+        /// </summary>
+        internal static string GetsTitleNickname {
+            get {
+                return ResourceManager.GetString("GetsTitleNickname", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to With Nickname Count.
+        /// </summary>
+        internal static string GetsTitleNicknameCount {
+            get {
+                return ResourceManager.GetString("GetsTitleNicknameCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Message Notification Level.
+        /// </summary>
+        internal static string GetsTitleNotifications {
+            get {
+                return ResourceManager.GetString("GetsTitleNotifications", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Owner.
+        /// </summary>
+        internal static string GetsTitleOwner {
+            get {
+                return ResourceManager.GetString("GetsTitleOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Permissions.
+        /// </summary>
+        internal static string GetsTitlePermissions {
+            get {
+                return ResourceManager.GetString("GetsTitlePermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Position.
+        /// </summary>
+        internal static string GetsTitlePosition {
+            get {
+                return ResourceManager.GetString("GetsTitlePosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role Count.
+        /// </summary>
+        internal static string GetsTitleRoleCount {
+            get {
+                return ResourceManager.GetString("GetsTitleRoleCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Roles.
+        /// </summary>
+        internal static string GetsTitleRoles {
+            get {
+                return ResourceManager.GetString("GetsTitleRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Server Deafened.
+        /// </summary>
+        internal static string GetsTitleServerDeafen {
+            get {
+                return ResourceManager.GetString("GetsTitleServerDeafen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Server Log.
+        /// </summary>
+        internal static string GetsTitleServerLog {
+            get {
+                return ResourceManager.GetString("GetsTitleServerLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is Server Muted.
+        /// </summary>
+        internal static string GetsTitleServerMute {
+            get {
+                return ResourceManager.GetString("GetsTitleServerMute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status.
+        /// </summary>
+        internal static string GetsTitleStatus {
+            get {
+                return ResourceManager.GetString("GetsTitleStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Statuses.
+        /// </summary>
+        internal static string GetsTitleStatuses {
+            get {
+                return ResourceManager.GetString("GetsTitleStatuses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to System Channel.
+        /// </summary>
+        internal static string GetsTitleSystemChannel {
+            get {
+                return ResourceManager.GetString("GetsTitleSystemChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Text Channel Count.
+        /// </summary>
+        internal static string GetsTitleTextChannelCount {
+            get {
+                return ResourceManager.GetString("GetsTitleTextChannelCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Text Channels.
+        /// </summary>
+        internal static string GetsTitleTextChannels {
+            get {
+                return ResourceManager.GetString("GetsTitleTextChannels", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Count.
+        /// </summary>
+        internal static string GetsTitleUserCount {
+            get {
+                return ResourceManager.GetString("GetsTitleUserCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Users.
+        /// </summary>
+        internal static string GetsTitleUsers {
+            get {
+                return ResourceManager.GetString("GetsTitleUsers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uses.
+        /// </summary>
+        internal static string GetsTitleUses {
+            get {
+                return ResourceManager.GetString("GetsTitleUses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verification Level.
+        /// </summary>
+        internal static string GetsTitleVerification {
+            get {
+                return ResourceManager.GetString("GetsTitleVerification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Voice Channel.
+        /// </summary>
+        internal static string GetsTitleVoiceChannel {
+            get {
+                return ResourceManager.GetString("GetsTitleVoiceChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Voice Channel Count.
+        /// </summary>
+        internal static string GetsTitleVoiceChannelCount {
+            get {
+                return ResourceManager.GetString("GetsTitleVoiceChannelCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Voice Channels.
+        /// </summary>
+        internal static string GetsTitleVoiceChannels {
+            get {
+                return ResourceManager.GetString("GetsTitleVoiceChannels", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Voice Info.
+        /// </summary>
+        internal static string GetsTitleVoiceInfo {
+            get {
+                return ResourceManager.GetString("GetsTitleVoiceInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Voice Region.
+        /// </summary>
+        internal static string GetsTitleVoiceRegion {
+            get {
+                return ResourceManager.GetString("GetsTitleVoiceRegion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Webhook Count.
+        /// </summary>
+        internal static string GetsTitleWebhookCount {
+            get {
+                return ResourceManager.GetString("GetsTitleWebhookCount", resourceCulture);
             }
         }
         
@@ -717,24 +1239,6 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Attempting to modify the nicknames of {0} users. ETA on completion: {1} seconds..
-        /// </summary>
-        internal static string NicknamesMultiUserActionProgress {
-            get {
-                return ResourceManager.GetString("NicknamesMultiUserActionProgress", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Successfully modified the nicknames of {0} users..
-        /// </summary>
-        internal static string NicknamesMultiUserActionSuccess {
-            get {
-                return ResourceManager.GetString("NicknamesMultiUserActionSuccess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Successfully removed the nickname for {0}..
         /// </summary>
         internal static string NicknamesRemovedNickname {
@@ -902,6 +1406,222 @@ namespace Advobot.Standard.Resources {
         internal static string SnowflakesSoftDeleted {
             get {
                 return ResourceManager.GetString("SnowflakesSoftDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully {0} {1}..
+        /// </summary>
+        internal static string UsersActionDone {
+            get {
+                return ResourceManager.GetString("UsersActionDone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} is already in {1}..
+        /// </summary>
+        internal static string UsersAlreadyInChannel {
+            get {
+                return ResourceManager.GetString("UsersAlreadyInChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot give the same role being gathered..
+        /// </summary>
+        internal static string UsersCannotGiveRoleBeingGathered {
+            get {
+                return ResourceManager.GetString("UsersCannotGiveRoleBeingGathered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully deleted {0} message(s) on {1} from {2}..
+        /// </summary>
+        internal static string UsersDeletedMessages {
+            get {
+                return ResourceManager.GetString("UsersDeletedMessages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully deleted {0} message(s) on {1}..
+        /// </summary>
+        internal static string UsersDeletedMessagesNoTarget {
+            get {
+                return ResourceManager.GetString("UsersDeletedMessagesNoTarget", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Would have pruned {0} guild members with a prune period of {1} days..
+        /// </summary>
+        internal static string UsersFakePrune {
+            get {
+                return ResourceManager.GetString("UsersFakePrune", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the voice channel for {0} to {1}..
+        /// </summary>
+        internal static string UsersMoved {
+            get {
+                return ResourceManager.GetString("UsersMoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attempting to bulk modify {0} users. ETA on completion: {1} seconds..
+        /// </summary>
+        internal static string UsersMultiUserActionProgress {
+            get {
+                return ResourceManager.GetString("UsersMultiUserActionProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully bulk modified {0} users..
+        /// </summary>
+        internal static string UsersMultiUserActionSuccess {
+            get {
+                return ResourceManager.GetString("UsersMultiUserActionSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully pruned {0} guild members with a prune period of {1} days..
+        /// </summary>
+        internal static string UsersRealPrune {
+            get {
+                return ResourceManager.GetString("UsersRealPrune", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ban Reason For {0}.
+        /// </summary>
+        internal static string UsersTitleBanReason {
+            get {
+                return ResourceManager.GetString("UsersTitleBanReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bans.
+        /// </summary>
+        internal static string UsersTitleBans {
+            get {
+                return ResourceManager.GetString("UsersTitleBans", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to They will be {0} in {1}..
+        /// </summary>
+        internal static string UsersUnpunishedTime {
+            get {
+                return ResourceManager.GetString("UsersUnpunishedTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to banned.
+        /// </summary>
+        internal static string UsersVariableBanned {
+            get {
+                return ResourceManager.GetString("UsersVariableBanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deafened.
+        /// </summary>
+        internal static string UsersVariableDeafened {
+            get {
+                return ResourceManager.GetString("UsersVariableDeafened", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to kicked.
+        /// </summary>
+        internal static string UsersVariableKicked {
+            get {
+                return ResourceManager.GetString("UsersVariableKicked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to muted.
+        /// </summary>
+        internal static string UsersVariableMuted {
+            get {
+                return ResourceManager.GetString("UsersVariableMuted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No ban reason listed..
+        /// </summary>
+        internal static string UsersVariableNoBanReason {
+            get {
+                return ResourceManager.GetString("UsersVariableNoBanReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to soft banned.
+        /// </summary>
+        internal static string UsersVariableSoftBanned {
+            get {
+                return ResourceManager.GetString("UsersVariableSoftBanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unbanned.
+        /// </summary>
+        internal static string UsersVariableUnbanned {
+            get {
+                return ResourceManager.GetString("UsersVariableUnbanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to undeafened.
+        /// </summary>
+        internal static string UsersVariableUndeafened {
+            get {
+                return ResourceManager.GetString("UsersVariableUndeafened", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unmuted.
+        /// </summary>
+        internal static string UsersVariableUnmuted {
+            get {
+                return ResourceManager.GetString("UsersVariableUnmuted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unvoice-muted.
+        /// </summary>
+        internal static string UsersVariableUnvoiceMuted {
+            get {
+                return ResourceManager.GetString("UsersVariableUnvoiceMuted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to voice-muted.
+        /// </summary>
+        internal static string UsersVariableVoiceMuted {
+            get {
+                return ResourceManager.GetString("UsersVariableVoiceMuted", resourceCulture);
             }
         }
         

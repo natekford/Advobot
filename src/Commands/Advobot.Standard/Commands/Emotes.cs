@@ -19,11 +19,12 @@ using Discord.Commands;
 
 namespace Advobot.Standard.Commands
 {
+	[Category(nameof(Emotes))]
 	public sealed class Emotes : ModuleBase
 	{
 		[Group(nameof(CreateEmote)), ModuleInitialismAlias(typeof(CreateEmote))]
 		[LocalizedSummary(nameof(Summaries.CreateEmote))]
-		[CommandMeta("e001108f-5bae-4589-865e-775a2d21e327", IsEnabled = true)]
+		[Meta("e001108f-5bae-4589-865e-775a2d21e327", IsEnabled = true)]
 		[RateLimit(RateLimitAttribute.TimeUnit.Minutes, 1)]
 		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
 		public sealed class CreateEmote : ImageResizerModule
@@ -44,7 +45,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DeleteEmote)), ModuleInitialismAlias(typeof(DeleteEmote))]
 		[LocalizedSummary(nameof(Summaries.DeleteEmote))]
-		[CommandMeta("104da53d-1cb6-4ee4-8260-ac7398512351", IsEnabled = true)]
+		[Meta("104da53d-1cb6-4ee4-8260-ac7398512351", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
 		public sealed class DeleteEmote : AdvobotModuleBase
 		{
@@ -58,7 +59,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyEmoteName)), ModuleInitialismAlias(typeof(ModifyEmoteName))]
 		[LocalizedSummary(nameof(Summaries.ModifyEmoteName))]
-		[CommandMeta("3fe7f72f-c10a-4cc8-b76f-376a1c1aced4", IsEnabled = true)]
+		[Meta("3fe7f72f-c10a-4cc8-b76f-376a1c1aced4", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
 		public sealed class ModifyEmoteName : AdvobotModuleBase
 		{
@@ -74,7 +75,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyEmoteRoles)), ModuleInitialismAlias(typeof(ModifyEmoteRoles))]
 		[LocalizedSummary(nameof(Summaries.ModifyEmoteRoles))]
-		[CommandMeta("103b0c35-0bd0-4f72-a010-8a4013601258", IsEnabled = true)]
+		[Meta("103b0c35-0bd0-4f72-a010-8a4013601258", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
 		public sealed class ModifyEmoteRoles : AdvobotModuleBase
 		{
@@ -111,7 +112,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DisplayEmotes)), ModuleInitialismAlias(typeof(DisplayEmotes))]
 		[LocalizedSummary(nameof(Summaries.DisplayEmotes))]
-		[CommandMeta("fd5ae4a2-52af-44eb-aef0-347a0df1437b", IsEnabled = true)]
+		[Meta("fd5ae4a2-52af-44eb-aef0-347a0df1437b", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
 		public sealed class DisplayEmotes : AdvobotModuleBase
 		{

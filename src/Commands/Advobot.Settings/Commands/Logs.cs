@@ -19,11 +19,12 @@ using static Discord.ChannelPermission;
 
 namespace Advobot.Settings.Commands
 {
+	[Category(nameof(Logs))]
 	public sealed class Logs : ModuleBase
 	{
 		[Group(nameof(ModifyServerLog)), ModuleInitialismAlias(typeof(ModifyServerLog))]
 		[LocalizedSummary(nameof(Summaries.ModifyServerLog))]
-		[CommandMeta("58abc6df-6814-4946-9f04-b99b024ec8ac")]
+		[Meta("58abc6df-6814-4946-9f04-b99b024ec8ac")]
 		[RequireGuildPermissions]
 		public sealed class ModifyServerLog : SettingsModule<IGuildSettings>
 		{
@@ -47,7 +48,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ModifyModLog)), ModuleInitialismAlias(typeof(ModifyModLog))]
 		[LocalizedSummary(nameof(Summaries.ModifyModLog))]
-		[CommandMeta("00199443-02f9-4873-ba21-d6d462a0052a")]
+		[Meta("00199443-02f9-4873-ba21-d6d462a0052a")]
 		[RequireGuildPermissions]
 		public sealed class ModifyModLog : SettingsModule<IGuildSettings>
 		{
@@ -71,7 +72,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ModifyImageLog)), ModuleInitialismAlias(typeof(ModifyImageLog))]
 		[LocalizedSummary(nameof(Summaries.ModifyImageLog))]
-		[CommandMeta("dd36f347-a33b-490a-a751-8d671e50abe1")]
+		[Meta("dd36f347-a33b-490a-a751-8d671e50abe1")]
 		[RequireGuildPermissions]
 		public sealed class ModifyImageLog : SettingsModule<IGuildSettings>
 		{
@@ -95,7 +96,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ModifyIgnoredLogChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredLogChannels))]
 		[LocalizedSummary(nameof(Summaries.ModifyIgnoredLogChannels))]
-		[CommandMeta("c348ba6c-7112-4a36-b0b9-3a546d8efd68")]
+		[Meta("c348ba6c-7112-4a36-b0b9-3a546d8efd68")]
 		[RequireGuildPermissions]
 		public sealed class ModifyIgnoredLogChannels : SettingsModule<IGuildSettings>
 		{
@@ -120,7 +121,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(ModifyLogActions)), ModuleInitialismAlias(typeof(ModifyLogActions))]
 		[LocalizedSummary(nameof(Summaries.ModifyLogActions))]
-		[CommandMeta("1457fb28-6510-47f1-998f-3bdca737f9b9")]
+		[Meta("1457fb28-6510-47f1-998f-3bdca737f9b9")]
 		[RequireGuildPermissions]
 		public sealed class ModifyLogActions : SettingsModule<IGuildSettings>
 		{

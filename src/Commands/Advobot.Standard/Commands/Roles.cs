@@ -17,11 +17,12 @@ using Discord.Commands;
 
 namespace Advobot.Standard.Commands
 {
+	[Category(nameof(Roles))]
 	public sealed class Roles : ModuleBase
 	{
 		[Group(nameof(GiveRole)), ModuleInitialismAlias(typeof(GiveRole))]
 		[LocalizedSummary(nameof(Summaries.GiveRole))]
-		[CommandMeta("3920cfd0-e4cd-474a-b2b6-aa65b1f52804", IsEnabled = true)]
+		[Meta("3920cfd0-e4cd-474a-b2b6-aa65b1f52804", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class GiveRole : AdvobotModuleBase
 		{
@@ -37,7 +38,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(TakeRole)), ModuleInitialismAlias(typeof(TakeRole))]
 		[LocalizedSummary(nameof(Summaries.TakeRole))]
-		[CommandMeta("ab678dd2-4108-49b2-8b6f-7e21c6cb8fda", IsEnabled = true)]
+		[Meta("ab678dd2-4108-49b2-8b6f-7e21c6cb8fda", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class TakeRole : AdvobotModuleBase
 		{
@@ -53,7 +54,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(CreateRole)), ModuleInitialismAlias(typeof(CreateRole))]
 		[LocalizedSummary(nameof(Summaries.CreateRole))]
-		[CommandMeta("15f6ac1f-8975-42c4-ba19-8fc8e6a5e4cb", IsEnabled = true)]
+		[Meta("15f6ac1f-8975-42c4-ba19-8fc8e6a5e4cb", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class CreateRole : AdvobotModuleBase
 		{
@@ -67,7 +68,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(SoftDeleteRole)), ModuleInitialismAlias(typeof(SoftDeleteRole))]
 		[LocalizedSummary(nameof(Summaries.SoftDeleteRole))]
-		[CommandMeta("4cecc4b9-9d25-44d2-9de3-3b5fe5bd33c5", IsEnabled = true)]
+		[Meta("4cecc4b9-9d25-44d2-9de3-3b5fe5bd33c5", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class SoftDeleteRole : AdvobotModuleBase
 		{
@@ -83,7 +84,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DeleteRole)), ModuleInitialismAlias(typeof(DeleteRole))]
 		[LocalizedSummary(nameof(Summaries.DeleteRole))]
-		[CommandMeta("280c2d19-d045-4b01-a1a1-2749e183b4b4", IsEnabled = true)]
+		[Meta("280c2d19-d045-4b01-a1a1-2749e183b4b4", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class DeleteRole : AdvobotModuleBase
 		{
@@ -97,7 +98,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DisplayRolePositions)), ModuleInitialismAlias(typeof(DisplayRolePositions))]
 		[LocalizedSummary(nameof(Summaries.DisplayRolePositions))]
-		[CommandMeta("f27c560c-6814-42a1-90aa-3dcdc1db0855", IsEnabled = true)]
+		[Meta("f27c560c-6814-42a1-90aa-3dcdc1db0855", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class DisplayRolePositions : AdvobotModuleBase
 		{
@@ -108,7 +109,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyRolePosition)), ModuleInitialismAlias(typeof(ModifyRolePosition))]
 		[LocalizedSummary(nameof(Summaries.ModifyRolePosition))]
-		[CommandMeta("efb2d8e5-b5d5-4c77-b0f6-66b9c378080d", IsEnabled = true)]
+		[Meta("efb2d8e5-b5d5-4c77-b0f6-66b9c378080d", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class ModifyRolePosition : AdvobotModuleBase
 		{
@@ -124,7 +125,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DisplayRolePerms)), ModuleInitialismAlias(typeof(DisplayRolePerms))]
 		[LocalizedSummary(nameof(Summaries.DisplayRolePerms))]
-		[CommandMeta("429c4817-9b92-4b6e-8525-f0b94690fb6f", IsEnabled = true)]
+		[Meta("429c4817-9b92-4b6e-8525-f0b94690fb6f", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class DisplayRolePerms : AdvobotModuleBase
 		{
@@ -138,7 +139,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyRolePerms)), ModuleInitialismAlias(typeof(ModifyRolePerms))]
 		[LocalizedSummary(nameof(Summaries.ModifyRolePerms))]
-		[CommandMeta("dcfbf444-9e48-4f72-b137-be1e5e25a934", IsEnabled = true)]
+		[Meta("dcfbf444-9e48-4f72-b137-be1e5e25a934", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class ModifyRolePerms : AdvobotModuleBase
 		{
@@ -159,7 +160,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(CopyRolePerms)), ModuleInitialismAlias(typeof(CopyRolePerms))]
 		[LocalizedSummary(nameof(Summaries.CopyRolePerms))]
-		[CommandMeta("bbf7898b-fcb6-4c04-a04a-f343fa129008", IsEnabled = true)]
+		[Meta("bbf7898b-fcb6-4c04-a04a-f343fa129008", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class CopyRolePerms : AdvobotModuleBase
 		{
@@ -181,7 +182,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ClearRolePerms)), ModuleInitialismAlias(typeof(ClearRolePerms))]
 		[LocalizedSummary(nameof(Summaries.ClearRolePerms))]
-		[CommandMeta("bb5e3639-7287-45d4-a3fe-22359dd25073", IsEnabled = true)]
+		[Meta("bb5e3639-7287-45d4-a3fe-22359dd25073", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class ClearRolePerms : AdvobotModuleBase
 		{
@@ -196,7 +197,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyRoleName)), ModuleInitialismAlias(typeof(ModifyRoleName))]
 		[LocalizedSummary(nameof(Summaries.ModifyRoleName))]
-		[CommandMeta("c1b6a365-c66c-4485-bbae-e9d75f507440", IsEnabled = true)]
+		[Meta("c1b6a365-c66c-4485-bbae-e9d75f507440", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class ModifyRoleName : AdvobotModuleBase
 		{
@@ -217,7 +218,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyRoleColor)), ModuleInitialismAlias(typeof(ModifyRoleColor))]
 		[LocalizedSummary(nameof(Summaries.ModifyRoleColor))]
-		[CommandMeta("41f8a8df-ac9f-48af-aec2-b82b242dcd9b", IsEnabled = true)]
+		[Meta("41f8a8df-ac9f-48af-aec2-b82b242dcd9b", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class ModifyRoleColor : AdvobotModuleBase
 		{
@@ -233,7 +234,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyRoleHoist)), ModuleInitialismAlias(typeof(ModifyRoleHoist))]
 		[LocalizedSummary(nameof(Summaries.ModifyRoleHoist))]
-		[CommandMeta("7bf99434-abb9-443b-a420-5b91bf73834e", IsEnabled = true)]
+		[Meta("7bf99434-abb9-443b-a420-5b91bf73834e", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class ModifyRoleHoist : AdvobotModuleBase
 		{
@@ -248,7 +249,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyRoleMentionability)), ModuleInitialismAlias(typeof(ModifyRoleMentionability))]
 		[LocalizedSummary(nameof(Summaries.ModifyRoleMentionability))]
-		[CommandMeta("847e8d15-df9c-41a7-87d0-4f5570044a3d", IsEnabled = true)]
+		[Meta("847e8d15-df9c-41a7-87d0-4f5570044a3d", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class ModifyRoleMentionability : AdvobotModuleBase
 		{

@@ -12,16 +12,17 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Advobot.Gacha.TypeReaders
 {
 	[TypeReaderTargetType(typeof(User))]
-	public sealed class UserTypeReader : TypeReader
+	public sealed class UserTypeReader : UserTypeReader<IUser>
 	{
-		private static readonly UserTypeReader<IUser> _UserTypeReader = new UserTypeReader<IUser>();
-
 		public bool CreateIfNotFound { get; set; }
 
 		//TODO: add in the ability to get users who have left the server
-		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+		public override async Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
 		{
-			var result = await _UserTypeReader.ReadAsync(context, input, services).CAF();
+			var result = await base.ReadAsync(context, input, services).CAF();
 			if (!result.IsSuccess) //Can't find a discord user with the supplied string
 			{
 				return result;

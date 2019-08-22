@@ -34,7 +34,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="values">The commands to change.</param>
 		/// <param name="enable"></param>
 		/// <returns>The names of the commands which were successfully changed.</returns>
-		public IReadOnlyList<string> ModifyCommandValues(IEnumerable<IHelpEntry> values, bool? enable)
+		public IReadOnlyList<string> ModifyCommandValues(IEnumerable<IModuleHelpEntry> values, bool? enable)
 		{
 			var changed = new List<string>();
 			foreach (var value in values)
@@ -52,7 +52,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="value">The command to change.</param>
 		/// <param name="enable"></param>
 		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
-		public bool ModifyCommandValue(IHelpEntry value, bool? enable)
+		public bool ModifyCommandValue(IModuleHelpEntry value, bool? enable)
 			=> ModifyOverride(CommandValues, value, enable);
 		/// <summary>
 		/// Enabled/disables/removes overrides on specified commands for a specified object. Object can be channel, role, or user.
@@ -61,7 +61,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="obj">The object to target.</param>
 		/// <param name="enable"></param>
 		/// <returns>The names of the commands which were successfully changed.</returns>
-		public IReadOnlyList<string> ModifyOverrides(IEnumerable<IHelpEntry> values, ISnowflakeEntity obj, bool? enable)
+		public IReadOnlyList<string> ModifyOverrides(IEnumerable<IModuleHelpEntry> values, ISnowflakeEntity obj, bool? enable)
 		{
 			var changed = new List<string>();
 			foreach (var value in values)
@@ -80,7 +80,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="obj">The object to target.</param>
 		/// <param name="enable"></param>
 		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
-		public bool ModifyOverride(IHelpEntry value, ISnowflakeEntity obj, bool? enable)
+		public bool ModifyOverride(IModuleHelpEntry value, ISnowflakeEntity obj, bool? enable)
 		{
 			var innerDict = Overrides.TryGetValue(obj.Id, out var inner) ? inner : Overrides[obj.Id] = new Dictionary<string, bool>();
 			return ModifyOverride(innerDict, value, enable);
@@ -106,7 +106,7 @@ namespace Advobot.Services.GuildSettings.Settings
 			{
 				module = module.Parent;
 			}
-			var meta = module.Attributes.GetAttribute<CommandMetaAttribute>();
+			var meta = module.Attributes.GetAttribute<MetaAttribute>();
 			var guid = meta.Guid.ToString();
 
 			if (Overrides.TryGetValue(user.Id, out var uD) && uD.TryGetValue(guid, out var u))
@@ -141,7 +141,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <returns></returns>
 		public bool? IsCommandEnabled(string id)
 			=> CommandValues.TryGetValue(id, out var val) ? val : (bool?)null;
-		private static bool ModifyOverride(IDictionary<string, bool> dict, IHelpEntry help, bool? enable)
+		private static bool ModifyOverride(IDictionary<string, bool> dict, IModuleHelpEntry help, bool? enable)
 		{
 			if (!help.AbleToBeToggled)
 			{

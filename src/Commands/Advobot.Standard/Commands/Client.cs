@@ -14,11 +14,12 @@ using Discord.Commands;
 
 namespace Advobot.Standard.Commands
 {
+	[Category(nameof(Client))]
 	public sealed class Client : ModuleBase
 	{
 		[Group(nameof(ModifyBotName)), ModuleInitialismAlias(typeof(ModifyBotName))]
 		[LocalizedSummary(nameof(Summaries.ModifyBotName))]
-		[CommandMeta("6882dc55-3557-4366-8c4c-2954b46cfb2b", IsEnabled = true)]
+		[Meta("6882dc55-3557-4366-8c4c-2954b46cfb2b", IsEnabled = true)]
 		[RequireBotOwner]
 		public sealed class ModifyBotName : AdvobotModuleBase
 		{
@@ -32,7 +33,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ModifyBotIcon)), ModuleInitialismAlias(typeof(ModifyBotIcon))]
 		[LocalizedSummary(nameof(Summaries.ModifyBotIcon))]
-		[CommandMeta("096006e2-da07-4935-ab35-4e5099663da9", IsEnabled = true)]
+		[Meta("096006e2-da07-4935-ab35-4e5099663da9", IsEnabled = true)]
 		[RequireBotOwner]
 		public sealed class ModifyBotIcon : ImageResizerModule
 		{
@@ -53,7 +54,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DisconnectBot)), ModuleInitialismAlias(new[] { "runescapeservers" }, typeof(DisconnectBot))]
 		[LocalizedSummary(nameof(Summaries.DisconnectBot))]
-		[CommandMeta("10f3bf15-0652-4bd7-a29f-630136d0164a", IsEnabled = true)]
+		[Meta("10f3bf15-0652-4bd7-a29f-630136d0164a", IsEnabled = true)]
 		[RequireBotOwner]
 		public sealed class DisconnectBot : AdvobotModuleBase
 		{
@@ -64,7 +65,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(RestartBot)), ModuleInitialismAlias(typeof(RestartBot))]
 		[LocalizedSummary(nameof(Summaries.RestartBot))]
-		[CommandMeta("ca7caf70-9f40-4931-a99a-96f667edda16", IsEnabled = true)]
+		[Meta("ca7caf70-9f40-4931-a99a-96f667edda16", IsEnabled = true)]
 		[RequireBotOwner]
 		public sealed class RestartBot : AdvobotModuleBase
 		{

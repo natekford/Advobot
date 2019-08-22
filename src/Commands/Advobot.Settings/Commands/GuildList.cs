@@ -15,11 +15,12 @@ using Discord.Commands;
 
 namespace Advobot.Settings.Commands
 {
+	[Category(nameof(GuildList))]
 	public sealed class GuildList : ModuleBase
 	{
 		[Group(nameof(ModifyGuildListing)), ModuleInitialismAlias(typeof(ModifyGuildListing))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildListing))]
-		[CommandMeta("ad81af3b-c2d7-4e49-9cef-2be7f0c6cf9e")]
+		[Meta("ad81af3b-c2d7-4e49-9cef-2be7f0c6cf9e")]
 		[RequireGuildPermissions]
 		public sealed class ModifyGuildListing : AdvobotModuleBase
 		{
@@ -45,7 +46,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(BumpGuildListing)), ModuleInitialismAlias(typeof(BumpGuildListing))]
 		[LocalizedSummary(nameof(Summaries.BumpGuildListing))]
-		[CommandMeta("7522e03e-a53a-4ac6-b522-54db5b7b0d05")]
+		[Meta("7522e03e-a53a-4ac6-b522-54db5b7b0d05")]
 		[RequireGenericGuildPermissions]
 		[RequireNotRecentlyBumped]
 		public sealed class BumpGuildListing : AdvobotModuleBase
@@ -65,7 +66,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(GetGuildListing)), ModuleInitialismAlias(typeof(GetGuildListing))]
 		[LocalizedSummary(nameof(Summaries.GetGuildListing))]
-		[CommandMeta("5b004c37-2629-4f8a-a10a-8397413e275e")]
+		[Meta("5b004c37-2629-4f8a-a10a-8397413e275e")]
 		public sealed class GetGuildListing : AdvobotModuleBase
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.

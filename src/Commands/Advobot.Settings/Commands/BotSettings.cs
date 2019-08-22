@@ -10,11 +10,12 @@ using Discord.Commands;
 
 namespace Advobot.Settings.Commands
 {
+	[Category(nameof(BotSettings))]
 	public sealed class BotSettings : ModuleBase
 	{
 		[Group(nameof(ShowBotSettings)), ModuleInitialismAlias(typeof(ShowBotSettings))]
 		[LocalizedSummary(nameof(Summaries.ShowBotSettings))]
-		[CommandMeta("3a3a0bad-2124-4a4f-bbc8-60b1f684c2f7", IsEnabled = true)]
+		[Meta("3a3a0bad-2124-4a4f-bbc8-60b1f684c2f7", IsEnabled = true)]
 		[RequireBotOwner]
 		public sealed class ShowBotSettings : ReadOnlySettingsModule<IBotSettings>
 		{

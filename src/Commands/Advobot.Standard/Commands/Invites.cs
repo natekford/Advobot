@@ -16,11 +16,12 @@ using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands
 {
+	[Category(nameof(Invites))]
 	public sealed class Invites : ModuleBase
 	{
 		[Group(nameof(DisplayInvites)), ModuleInitialismAlias(typeof(DisplayInvites))]
 		[LocalizedSummary(nameof(Summaries.DisplayInvites))]
-		[CommandMeta("958c8da4-352e-468e-8279-0fd80276cd24", IsEnabled = true)]
+		[Meta("958c8da4-352e-468e-8279-0fd80276cd24", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class DisplayInvites : AdvobotModuleBase
 		{
@@ -35,7 +36,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(CreateInvite)), ModuleInitialismAlias(typeof(CreateInvite))]
 		[LocalizedSummary(nameof(Summaries.CreateInvite))]
-		[CommandMeta("6e8233c0-c8f4-456a-85e4-6f5203add299", IsEnabled = true)]
+		[Meta("6e8233c0-c8f4-456a-85e4-6f5203add299", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.CreateInstantInvite)]
 		public sealed class CreateInvite : AdvobotModuleBase
 		{
@@ -62,7 +63,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DeleteInvite)), ModuleInitialismAlias(typeof(DeleteInvite))]
 		[LocalizedSummary(nameof(Summaries.DeleteInvite))]
-		[CommandMeta("993e5613-6cdb-4ff3-925d-98e3a534ddc8", IsEnabled = true)]
+		[Meta("993e5613-6cdb-4ff3-925d-98e3a534ddc8", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class DeleteInvite : AdvobotModuleBase
 		{
@@ -76,7 +77,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DeleteMultipleInvites)), ModuleInitialismAlias(typeof(DeleteMultipleInvites))]
 		[LocalizedSummary(nameof(Summaries.DeleteMultipleInvites))]
-		[CommandMeta("a53c0e51-d580-436e-869c-e566ff268c3e", IsEnabled = true)]
+		[Meta("a53c0e51-d580-436e-869c-e566ff268c3e", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageChannels)]
 		public sealed class DeleteMultipleInvites : AdvobotModuleBase
 		{

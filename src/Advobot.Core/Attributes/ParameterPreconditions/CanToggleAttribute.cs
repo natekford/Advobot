@@ -7,7 +7,7 @@ using Discord.Commands;
 namespace Advobot.Attributes.ParameterPreconditions
 {
 	/// <summary>
-	/// Makes sure that the passed in <see cref="IHelpEntry"/> can be toggled.
+	/// Makes sure that the passed in <see cref="IModuleHelpEntry"/> can be toggled.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class CanToggleAttribute
@@ -20,9 +20,9 @@ namespace Advobot.Attributes.ParameterPreconditions
 			object value,
 			IServiceProvider services)
 		{
-			if (!(value is IHelpEntry entry))
+			if (!(value is IModuleHelpEntry entry))
 			{
-				throw this.OnlySupports(typeof(IHelpEntry));
+				throw this.OnlySupports(typeof(IModuleHelpEntry));
 			}
 			else if (entry.AbleToBeToggled)
 			{

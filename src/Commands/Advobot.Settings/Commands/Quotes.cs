@@ -16,11 +16,12 @@ using Discord.Commands;
 
 namespace Advobot.Settings.Commands
 {
+	[Category(nameof(Quotes))]
 	public sealed class Quotes : ModuleBase
 	{
 		[Group(nameof(ModifyQuotes)), ModuleInitialismAlias(typeof(ModifyQuotes))]
 		[LocalizedSummary(nameof(Summaries.ModifyQuotes))]
-		[CommandMeta("6a6c952a-ea22-4478-9433-99304ae440b7")]
+		[Meta("6a6c952a-ea22-4478-9433-99304ae440b7")]
 		[RequireGuildPermissions]
 		public sealed class ModifyQuotes : SettingsModule<IGuildSettings>
 		{
@@ -45,7 +46,7 @@ namespace Advobot.Settings.Commands
 
 		[Group(nameof(SayQuote)), ModuleInitialismAlias(typeof(SayQuote))]
 		[LocalizedSummary(nameof(Summaries.SayQuote))]
-		[CommandMeta("70dd6bb8-789c-4d72-931d-c72cb58041f2")]
+		[Meta("70dd6bb8-789c-4d72-931d-c72cb58041f2")]
 		public sealed class SayQuote : AdvobotModuleBase
 		{
 			[Command]

@@ -23,11 +23,12 @@ using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands
 {
+	[Category(nameof(Users))]
 	public sealed class Users : ModuleBase
 	{
 		[Group(nameof(Mute)), ModuleInitialismAlias(typeof(Mute))]
 		[LocalizedSummary(nameof(Summaries.Mute))]
-		[CommandMeta("b9f305d4-d343-4350-a140-c54a42af8d8d", IsEnabled = true)]
+		[Meta("b9f305d4-d343-4350-a140-c54a42af8d8d", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
 		public sealed class Mute : AdvobotModuleBase
 		{
@@ -105,7 +106,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(VoiceMute)), ModuleInitialismAlias(typeof(VoiceMute))]
 		[LocalizedSummary(nameof(Summaries.VoiceMute))]
-		[CommandMeta("a51ea911-10be-4e40-8995-a507015a7e57", IsEnabled = true)]
+		[Meta("a51ea911-10be-4e40-8995-a507015a7e57", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.MuteMembers)]
 		public sealed class VoiceMute : AdvobotModuleBase
 		{
@@ -130,7 +131,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(Deafen)), ModuleInitialismAlias(typeof(Deafen))]
 		[LocalizedSummary(nameof(Summaries.Deafen))]
-		[CommandMeta("99aa7f17-5710-41ce-ba12-291c2971c0a4", IsEnabled = true)]
+		[Meta("99aa7f17-5710-41ce-ba12-291c2971c0a4", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.DeafenMembers)]
 		public sealed class Deafen : AdvobotModuleBase
 		{
@@ -155,7 +156,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(Kick)), ModuleInitialismAlias(typeof(Kick))]
 		[LocalizedSummary(nameof(Summaries.Kick))]
-		[CommandMeta("1d86aa7d-da06-478c-861b-a62ca279523b", IsEnabled = true)]
+		[Meta("1d86aa7d-da06-478c-861b-a62ca279523b", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.KickMembers)]
 		public sealed class Kick : AdvobotModuleBase
 		{
@@ -172,7 +173,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(SoftBan)), ModuleInitialismAlias(typeof(SoftBan))]
 		[LocalizedSummary(nameof(Summaries.SoftBan))]
-		[CommandMeta("a6084728-77bf-469c-af09-41e53ac021d9", IsEnabled = true)]
+		[Meta("a6084728-77bf-469c-af09-41e53ac021d9", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers, GuildPermission.KickMembers)]
 		public sealed class SoftBan : AdvobotModuleBase
 		{
@@ -194,7 +195,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(Ban)), ModuleInitialismAlias(typeof(Ban))]
 		[LocalizedSummary(nameof(Summaries.Ban))]
-		[CommandMeta("b798e679-3ca7-4af1-9544-585672ec9936", IsEnabled = true)]
+		[Meta("b798e679-3ca7-4af1-9544-585672ec9936", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers)]
 		public sealed class Ban : AdvobotModuleBase
 		{
@@ -210,13 +211,14 @@ namespace Advobot.Standard.Commands
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
 				await PunishmentUtils.BanAsync(Context.Guild, userId, options: punishmentArgs).CAF();
-				return Responses.Users.Banned(Context.Client.GetUser(userId));
+				var user = await Context.Client.Rest.GetUserAsync(userId).CAF();
+				return Responses.Users.Banned(true, user, punishmentArgs);
 			}
 		}
 
 		[Group(nameof(Unban)), ModuleInitialismAlias(typeof(Unban))]
 		[LocalizedSummary(nameof(Summaries.Unban))]
-		[CommandMeta("417e9dd0-306b-4d1f-8b62-0427f01f921a", IsEnabled = true)]
+		[Meta("417e9dd0-306b-4d1f-8b62-0427f01f921a", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers)]
 		public sealed class Unban : AdvobotModuleBase
 		{
@@ -227,13 +229,13 @@ namespace Advobot.Standard.Commands
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
 				await PunishmentUtils.UnbanAsync(Context.Guild, ban.User.Id, punishmentArgs).CAF();
-				return Responses.Users.Unbanned(ban);
+				return Responses.Users.Banned(false, ban.User, punishmentArgs);
 			}
 		}
 
 		[Group(nameof(MoveUser)), ModuleInitialismAlias(typeof(MoveUser))]
 		[LocalizedSummary(nameof(Summaries.MoveUser))]
-		[CommandMeta("158dca6d-fc89-43b3-a6b5-d055f6672547", IsEnabled = true)]
+		[Meta("158dca6d-fc89-43b3-a6b5-d055f6672547", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.MoveMembers)]
 		public sealed class MoveUser : AdvobotModuleBase
 		{
@@ -254,7 +256,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(MoveUsers)), ModuleInitialismAlias(typeof(MoveUsers))]
 		[LocalizedSummary(nameof(Summaries.MoveUsers))]
-		[CommandMeta("4e8439fa-cc29-4acb-9049-89865be825c8", IsEnabled = true)]
+		[Meta("4e8439fa-cc29-4acb-9049-89865be825c8", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.MoveMembers)]
 		public sealed class MoveUsers : MultiUserActionModule
 		{
@@ -264,7 +266,7 @@ namespace Advobot.Standard.Commands
 				[Channel(MoveMembers)] IVoiceChannel output,
 				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserAction(i.AmountLeft).Reason, GenerateRequestOptions());
+				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
 				var users = await input.GetUsersAsync().FlattenAsync().CAF();
 				var amountChanged = await ProcessAsync(users, bypass,
 					u => true,
@@ -275,11 +277,11 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(PruneUsers)), ModuleInitialismAlias(typeof(PruneUsers))]
 		[LocalizedSummary(nameof(Summaries.PruneUsers))]
-		[CommandMeta("89abd319-c597-4e1a-9397-4f7d079f4e0e", IsEnabled = true)]
+		[Meta("89abd319-c597-4e1a-9397-4f7d079f4e0e", IsEnabled = true)]
 		[RequireGuildPermissions]
 		public sealed class PruneUsers : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
+			[ImplicitCommand] //No alias on purpose
 			public async Task<RuntimeResult> RealPrune([PruneDays] int days)
 			{
 				var amt = await Context.Guild.PruneUsersAsync(days, simulate: false, GenerateRequestOptions()).CAF();
@@ -295,7 +297,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(GetBanReason)), ModuleInitialismAlias(typeof(GetBanReason))]
 		[LocalizedSummary(nameof(Summaries.GetBanReason))]
-		[CommandMeta("5ba658c2-c689-4b3a-b7f1-77329dd6e971", IsEnabled = true)]
+		[Meta("5ba658c2-c689-4b3a-b7f1-77329dd6e971", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers)]
 		public sealed class GetBanReason : AdvobotModuleBase
 		{
@@ -306,7 +308,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(DisplayCurrentBanList)), ModuleInitialismAlias(typeof(DisplayCurrentBanList))]
 		[LocalizedSummary(nameof(Summaries.DisplayCurrentBanList))]
-		[CommandMeta("419c1846-b232-475e-aa19-45cb282dc9e0", IsEnabled = true)]
+		[Meta("419c1846-b232-475e-aa19-45cb282dc9e0", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers)]
 		public sealed class DisplayCurrentBanList : AdvobotModuleBase
 		{
@@ -320,7 +322,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(RemoveMessages)), ModuleInitialismAlias(typeof(RemoveMessages))]
 		[LocalizedSummary(nameof(Summaries.RemoveMessages))]
-		[CommandMeta("a4f3959e-1f56-4bf0-b377-dc98ef017906", IsEnabled = true)]
+		[Meta("a4f3959e-1f56-4bf0-b377-dc98ef017906", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageMessages)]
 		public sealed class RemoveMessages : AdvobotModuleBase
 		{
@@ -389,7 +391,7 @@ namespace Advobot.Standard.Commands
 
 		[Group(nameof(ForAllWithRole)), ModuleInitialismAlias(typeof(ForAllWithRole))]
 		[LocalizedSummary(nameof(Summaries.ForAllWithRole))]
-		[CommandMeta("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c", IsEnabled = true)]
+		[Meta("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c", IsEnabled = true)]
 		[RequireGuildPermissions]
 		public sealed class ForAllWithRole : MultiUserActionModule
 		{
@@ -426,7 +428,7 @@ namespace Advobot.Standard.Commands
 			private async Task<RuntimeResult> CommandRunner(IRole role, bool bypass, Func<IGuildUser, Task> update)
 			{
 				static string CreateResult(MultiUserActionProgressArgs i)
-					=> Responses.Users.MultiUserAction(i.AmountLeft).Reason;
+					=> Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason;
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, CreateResult, GenerateRequestOptions());
 
 				var amountChanged = await ProcessAsync(bypass, u => u.RoleIds.Contains(role.Id), update).CAF();

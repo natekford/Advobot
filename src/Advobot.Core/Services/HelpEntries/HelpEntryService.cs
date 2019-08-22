@@ -10,22 +10,22 @@ namespace Advobot.Services.HelpEntries
 	/// </summary>
 	internal sealed class HelpEntryService : IHelpEntryService
 	{
-		private readonly Localized<List<IHelpEntry>> _HelpEntries = Localized.Create<List<IHelpEntry>>();
+		private readonly Localized<List<IModuleHelpEntry>> _HelpEntries = Localized.Create<List<IModuleHelpEntry>>();
 
 		/// <inheritdoc />
-		public void Add(IHelpEntry item)
+		public void Add(IModuleHelpEntry item)
 			=> _HelpEntries.Get().Add(item);
 		/// <inheritdoc />
 		public IReadOnlyList<string> GetCategories()
 			=> GetHelpEntries().Select(x => x.Category).Distinct().ToArray();
 		/// <inheritdoc />
-		public IReadOnlyList<IHelpEntry> FindCloseHelpEntries(string input)
+		public IReadOnlyList<IModuleHelpEntry> FindCloseHelpEntries(string input)
 		{
 			var matches = new CloseHelpEntries(GetHelpEntries()).FindMatches(input);
 			return matches.Select(x => x.Value).ToArray();
 		}
 		/// <inheritdoc />
-		public IReadOnlyList<IHelpEntry> GetHelpEntries(string? category = null)
+		public IReadOnlyList<IModuleHelpEntry> GetHelpEntries(string? category = null)
 		{
 			var helpEntries = _HelpEntries.Get();
 			if (category == null)

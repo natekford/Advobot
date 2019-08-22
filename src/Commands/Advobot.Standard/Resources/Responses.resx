@@ -277,11 +277,11 @@
   <data name="NicknamesModifiedNickname" xml:space="preserve">
     <value>Successfully modified the nickname for {0} to {1}.</value>
   </data>
-  <data name="NicknamesMultiUserActionProgress" xml:space="preserve">
-    <value>Attempting to modify the nicknames of {0} users. ETA on completion: {1} seconds.</value>
+  <data name="UsersMultiUserActionProgress" xml:space="preserve">
+    <value>Attempting to bulk modify {0} users. ETA on completion: {1} seconds.</value>
   </data>
-  <data name="NicknamesMultiUserActionSuccess" xml:space="preserve">
-    <value>Successfully modified the nicknames of {0} users.</value>
+  <data name="UsersMultiUserActionSuccess" xml:space="preserve">
+    <value>Successfully bulk modified {0} users.</value>
   </data>
   <data name="MiscRemind" xml:space="preserve">
     <value>Successfully added a reminder which will trigger in {0}.</value>
@@ -389,5 +389,245 @@ Type {1} for help with a command.</value>
   </data>
   <data name="GetsFooterShards" xml:space="preserve">
     <value>Shards Info</value>
+  </data>
+  <data name="GetsTitleOwner" xml:space="preserve">
+    <value>Owner</value>
+  </data>
+  <data name="GetsTitleUserCount" xml:space="preserve">
+    <value>User Count</value>
+  </data>
+  <data name="GetsTitleRoleCount" xml:space="preserve">
+    <value>Role Count</value>
+  </data>
+  <data name="GetsTitleNotifications" xml:space="preserve">
+    <value>Message Notification Level</value>
+  </data>
+  <data name="GetsTitleVerification" xml:space="preserve">
+    <value>Verification Level</value>
+  </data>
+  <data name="GetsTitleVoiceRegion" xml:space="preserve">
+    <value>Voice Region</value>
+  </data>
+  <data name="GetsTitleChannel" xml:space="preserve">
+    <value>Channel</value>
+  </data>
+  <data name="GetsTitleCreator" xml:space="preserve">
+    <value>Creator</value>
+  </data>
+  <data name="GetsTitleUses" xml:space="preserve">
+    <value>Uses</value>
+  </data>
+  <data name="GetsTitleRoles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="GetsTitleManaged" xml:space="preserve">
+    <value>Is Managed</value>
+  </data>
+  <data name="GetsTitleColons" xml:space="preserve">
+    <value>Requires Colons</value>
+  </data>
+  <data name="GetsTitleActivities" xml:space="preserve">
+    <value>Activities</value>
+  </data>
+  <data name="GetsTitleStatuses" xml:space="preserve">
+    <value>Statuses</value>
+  </data>
+  <data name="GetsTitleBotCount" xml:space="preserve">
+    <value>Bot Count</value>
+  </data>
+  <data name="GetsTitleWebhookCount" xml:space="preserve">
+    <value>Webhook Count</value>
+  </data>
+  <data name="GetsTitleInVoiceCount" xml:space="preserve">
+    <value>In Voice Count</value>
+  </data>
+  <data name="GetsTitleNicknameCount" xml:space="preserve">
+    <value>With Nickname Count</value>
+  </data>
+  <data name="GetsTitleUsers" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="GetsTitlePosition" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="GetsTitleHoisted" xml:space="preserve">
+    <value>Is Hoisted</value>
+  </data>
+  <data name="GetsTitleMentionable" xml:space="preserve">
+    <value>Is Mentionable</value>
+  </data>
+  <data name="GetsTitlePermissions" xml:space="preserve">
+    <value>Permissions</value>
+  </data>
+  <data name="GetsTitleIgnoredLog" xml:space="preserve">
+    <value>Is Ignored From Log</value>
+  </data>
+  <data name="GetsTitleIgnoredCommands" xml:space="preserve">
+    <value>Is Ignored From Commands</value>
+  </data>
+  <data name="GetsTitleImageOnly" xml:space="preserve">
+    <value>Is Image Only</value>
+  </data>
+  <data name="GetsTitleServerLog" xml:space="preserve">
+    <value>Is Server Log</value>
+  </data>
+  <data name="GetsTitleModLog" xml:space="preserve">
+    <value>Is Mod Log</value>
+  </data>
+  <data name="GetsTitleImageLog" xml:space="preserve">
+    <value>Is Image Log</value>
+  </data>
+  <data name="GetsTitleColor" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="GetsTitleTextChannels" xml:space="preserve">
+    <value>Text Channels</value>
+  </data>
+  <data name="GetsTitleVoiceChannels" xml:space="preserve">
+    <value>Voice Channels</value>
+  </data>
+  <data name="GetsTitleVoiceChannel" xml:space="preserve">
+    <value>Voice Channel</value>
+  </data>
+  <data name="GetsTitleServerMute" xml:space="preserve">
+    <value>Is Server Muted</value>
+  </data>
+  <data name="GetsTitleServerDeafen" xml:space="preserve">
+    <value>Is Server Deafened</value>
+  </data>
+  <data name="GetsTitleDeafen" xml:space="preserve">
+    <value>Is Self Deafened</value>
+  </data>
+  <data name="GetsTitleMute" xml:space="preserve">
+    <value>Is Self Muted</value>
+  </data>
+  <data name="GetsTitleVoiceInfo" xml:space="preserve">
+    <value>Voice Info</value>
+  </data>
+  <data name="GetsTitleNickname" xml:space="preserve">
+    <value>Nickname</value>
+  </data>
+  <data name="GetsTitleJoined" xml:space="preserve">
+    <value>Joined At</value>
+  </data>
+  <data name="GetsJoinedAt" xml:space="preserve">
+    <value>{0} (#{1})</value>
+  </data>
+  <data name="GetsTitleActivity" xml:space="preserve">
+    <value>Activity</value>
+  </data>
+  <data name="GetsTitleStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="GetsTitleFeatures" xml:space="preserve">
+    <value>Guild Features</value>
+  </data>
+  <data name="GetsTitleEmoteInfo" xml:space="preserve">
+    <value>Emote Info</value>
+  </data>
+  <data name="GetsTitleChannelInfo" xml:space="preserve">
+    <value>Channel Info</value>
+  </data>
+  <data name="GetsTitleManagedEmoteCount" xml:space="preserve">
+    <value>Managed Emote Count</value>
+  </data>
+  <data name="GetsTitleLocalEmoteCount" xml:space="preserve">
+    <value>Local Emote Count</value>
+  </data>
+  <data name="GetsTitleAnimatedEmoteCount" xml:space="preserve">
+    <value>Animated Emote Count</value>
+  </data>
+  <data name="GetsTitleEmoteCount" xml:space="preserve">
+    <value>Emote Count</value>
+  </data>
+  <data name="GetsTitleChannelCount" xml:space="preserve">
+    <value>Channel Count</value>
+  </data>
+  <data name="GetsTitleTextChannelCount" xml:space="preserve">
+    <value>Text Channel Count</value>
+  </data>
+  <data name="GetsTitleVoiceChannelCount" xml:space="preserve">
+    <value>Voice Channel Count</value>
+  </data>
+  <data name="GetsTitleCategoryChannelCount" xml:space="preserve">
+    <value>Category Channel Count</value>
+  </data>
+  <data name="GetsTitleDefaultChannel" xml:space="preserve">
+    <value>Default Channel</value>
+  </data>
+  <data name="GetsTitleAfkChannel" xml:space="preserve">
+    <value>Afk Channel</value>
+  </data>
+  <data name="GetsTitleSystemChannel" xml:space="preserve">
+    <value>System Channel</value>
+  </data>
+  <data name="GetsTitleEmbedChannel" xml:space="preserve">
+    <value>Embed Channel</value>
+  </data>
+  <data name="UsersTitleBanReason" xml:space="preserve">
+    <value>Ban Reason For {0}</value>
+  </data>
+  <data name="UsersVariableNoBanReason" xml:space="preserve">
+    <value>No ban reason listed.</value>
+  </data>
+  <data name="UsersTitleBans" xml:space="preserve">
+    <value>Bans</value>
+  </data>
+  <data name="UsersCannotGiveRoleBeingGathered" xml:space="preserve">
+    <value>Cannot give the same role being gathered.</value>
+  </data>
+  <data name="UsersFakePrune" xml:space="preserve">
+    <value>Would have pruned {0} guild members with a prune period of {1} days.</value>
+  </data>
+  <data name="UsersRealPrune" xml:space="preserve">
+    <value>Successfully pruned {0} guild members with a prune period of {1} days.</value>
+  </data>
+  <data name="UsersAlreadyInChannel" xml:space="preserve">
+    <value>{0} is already in {1}.</value>
+  </data>
+  <data name="UsersMoved" xml:space="preserve">
+    <value>Successfully modified the voice channel for {0} to {1}.</value>
+  </data>
+  <data name="UsersDeletedMessagesNoTarget" xml:space="preserve">
+    <value>Successfully deleted {0} message(s) on {1}.</value>
+  </data>
+  <data name="UsersDeletedMessages" xml:space="preserve">
+    <value>Successfully deleted {0} message(s) on {1} from {2}.</value>
+  </data>
+  <data name="UsersVariableMuted" xml:space="preserve">
+    <value>muted</value>
+  </data>
+  <data name="UsersVariableUnmuted" xml:space="preserve">
+    <value>unmuted</value>
+  </data>
+  <data name="UsersVariableVoiceMuted" xml:space="preserve">
+    <value>voice-muted</value>
+  </data>
+  <data name="UsersVariableUnvoiceMuted" xml:space="preserve">
+    <value>unvoice-muted</value>
+  </data>
+  <data name="UsersVariableDeafened" xml:space="preserve">
+    <value>deafened</value>
+  </data>
+  <data name="UsersVariableUndeafened" xml:space="preserve">
+    <value>undeafened</value>
+  </data>
+  <data name="UsersVariableBanned" xml:space="preserve">
+    <value>banned</value>
+  </data>
+  <data name="UsersVariableUnbanned" xml:space="preserve">
+    <value>unbanned</value>
+  </data>
+  <data name="UsersVariableKicked" xml:space="preserve">
+    <value>kicked</value>
+  </data>
+  <data name="UsersVariableSoftBanned" xml:space="preserve">
+    <value>soft banned</value>
+  </data>
+  <data name="UsersUnpunishedTime" xml:space="preserve">
+    <value>They will be {0} in {1}.</value>
+  </data>
+  <data name="UsersActionDone" xml:space="preserve">
+    <value>Successfully {0} {1}.</value>
   </data>
 </root>

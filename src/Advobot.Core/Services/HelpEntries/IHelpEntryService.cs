@@ -11,7 +11,7 @@ namespace Advobot.Services.HelpEntries
 		/// Adds a help entry to this service.
 		/// </summary>
 		/// <param name="helpEntry"></param>
-		void Add(IHelpEntry helpEntry);
+		void Add(IModuleHelpEntry helpEntry);
 		/// <summary>
 		/// Returns an array of every command category.
 		/// </summary>
@@ -22,12 +22,12 @@ namespace Advobot.Services.HelpEntries
 		/// </summary>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		IReadOnlyList<IHelpEntry> FindCloseHelpEntries(string input);
+		IReadOnlyList<IModuleHelpEntry> FindCloseHelpEntries(string input);
 		/// <summary>
-		/// Returns an array of every <see cref="IHelpEntry"/> unless a category is specified.
+		/// Returns an array of every <see cref="IModuleHelpEntry"/> unless a category is specified.
 		/// </summary>
 		/// <param name="category"></param>
 		/// <returns></returns>
-		IReadOnlyList<IHelpEntry> GetHelpEntries(string? category = null);
+		IReadOnlyList<IModuleHelpEntry> GetHelpEntries(string? category = null);
 	}
 }
