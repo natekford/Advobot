@@ -44,13 +44,11 @@ namespace Advobot.Services.Logging.Loggers
 				WhenCanLog = new Func<LoggingContext, Task>[]
 				{
 					x => HandleChannelSettingsAsync(x),
-				},
-				AnyTime = new Func<LoggingContext, Task>[]
-				{
 					x => HandleImageLoggingAsync(x),
 					x => HandleSpamPreventionAsync(x),
 					x => HandleBannedPhrasesAsync(x),
 				},
+				AnyTime = Array.Empty<Func<LoggingContext, Task>>(),
 			});
 		}
 		/// <inheritdoc />
@@ -163,10 +161,16 @@ namespace Advobot.Services.Logging.Loggers
 					NotifyLogCounterIncrement(nameof(ILogService.Animated), 1);
 					await SendImageLogMessage("Embedded Gif/Video", imageEmbed.Url, imageEmbed.Thumbnail?.Url).CAF();
 				}
-				else if (imageEmbed.Image is EmbedImage image)
+
+				var imageUrl = new[]
+				{
+					imageEmbed.Image?.Url,
+					imageEmbed.Thumbnail?.Url
+				}.NotNull();
+				foreach (var url in imageUrl)
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Images), 1);
-					await SendImageLogMessage("Embedded Image", imageEmbed.Url, image.Url).CAF();
+					await SendImageLogMessage("Embedded Image", url, url).CAF();
 				}
 			}
 		}
