@@ -95,7 +95,10 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="factory"></param>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public static Task<LoggingContext?> CreateAsync(IGuildUser user, IGuildSettingsFactory factory, LoggingContextArgs args)
+		public static Task<LoggingContext?> CreateAsync(
+			IGuildUser user,
+			IGuildSettingsFactory factory,
+			LoggingContextArgs args)
 			=> CreateAsync(null, user, null, user.Guild, factory, args);
 		/// <summary>
 		/// Creates an instance of <see cref="LoggingContext"/>.
@@ -104,23 +107,26 @@ namespace Advobot.Services.Logging.Loggers
 		/// <param name="factory"></param>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public static Task<LoggingContext?> CreateAsync(IMessage message, IGuildSettingsFactory factory, LoggingContextArgs args)
+		public static Task<LoggingContext?> CreateAsync(
+			IMessage message,
+			IGuildSettingsFactory factory,
+			LoggingContextArgs args)
 		{
-			var userMessage = (IUserMessage)message;
-			var user = (IGuildUser)userMessage.Author;
-			var channel = (ITextChannel)message.Channel;
-			var guild = channel.Guild;
+			var userMessage = message as IUserMessage;
+			var user = userMessage?.Author as IGuildUser;
+			var channel = message.Channel as ITextChannel;
+			var guild = channel?.Guild;
 			return CreateAsync(userMessage, user, channel, guild, factory, args);
 		}
 		private static async Task<LoggingContext?> CreateAsync(
 			IUserMessage? message,
-			IGuildUser user,
+			IGuildUser? user,
 			ITextChannel? channel,
-			IGuild guild,
+			IGuild? guild,
 			IGuildSettingsFactory factory,
 			LoggingContextArgs args)
 		{
-			if (guild == null)
+			if (user == null || guild == null)
 			{
 				return null;
 			}

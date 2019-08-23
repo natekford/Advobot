@@ -25,7 +25,7 @@ namespace Advobot.Services.Logging.Loggers
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 
-			var shardId = Client is DiscordShardedClient s ? s.GetShardIdFor(guild) : 1;
+			var shardId = Client is DiscordShardedClient s ? s.GetShardIdFor(guild) : 0;
 			var memory = ProcessInfoUtils.GetMemoryMB().ToString("0.00");
 			ConsoleUtils.WriteLine($"{guild.Format()} ({shardId}, {guild.MemberCount}, {memory}MB)");
 			return Task.CompletedTask;

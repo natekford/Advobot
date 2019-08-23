@@ -32,11 +32,6 @@ namespace Advobot.Services.Logging.Loggers
 		/// <inheritdoc />
 		public Task OnMessageReceived(SocketMessage message)
 		{
-			if (!(message.Author is IGuildUser user))
-			{
-				return Task.CompletedTask;
-			}
-
 			return HandleAsync(message, new LoggingContextArgs
 			{
 				Action = LogAction.MessageReceived,
@@ -57,11 +52,6 @@ namespace Advobot.Services.Logging.Loggers
 			SocketMessage message,
 			ISocketMessageChannel channel)
 		{
-			if (!(message.Author is IGuildUser user))
-			{
-				return Task.CompletedTask;
-			}
-
 			return HandleAsync(message, new LoggingContextArgs
 			{
 				Action = LogAction.MessageUpdated,
@@ -81,12 +71,7 @@ namespace Advobot.Services.Logging.Loggers
 			ISocketMessageChannel channel)
 		{
 			//Ignore uncached messages since not much can be done with them
-			if (!(cached.Value is IMessage message))
-			{
-				return Task.CompletedTask;
-			}
-
-			return HandleAsync(message, new LoggingContextArgs
+			return HandleAsync(cached.Value, new LoggingContextArgs
 			{
 				Action = LogAction.MessageDeleted,
 				LogCounterName = nameof(ILogService.MessageDeletes),
