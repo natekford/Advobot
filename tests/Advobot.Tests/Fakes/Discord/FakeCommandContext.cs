@@ -18,7 +18,7 @@ namespace Advobot.Tests.Fakes.Discord
 			Channel = message.Channel;
 			User = message.Author;
 			Message = message;
-			Guild = (message.Channel as FakeGuildChannel)?.Guild;
+			Guild = ((FakeGuildChannel)message.Channel).Guild;
 		}
 
 		IDiscordClient ICommandContext.Client => Client;

@@ -45,13 +45,13 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult ModifiedAfkChannel(IVoiceChannel? channel)
 		{
 			return Success(GuildsModifiedAfkChannel.Format(
-				channel.Format().WithBlock()
+				(channel?.Format() ?? GuildsVariableNothing).WithBlock()
 			));
 		}
 		public static AdvobotResult ModifiedSystemChannel(ITextChannel? channel)
 		{
 			return Success(GuildsModifiedSystemChannel.Format(
-				channel.Format().WithBlock()
+				(channel?.Format() ?? GuildsVariableNothing).WithBlock()
 			));
 		}
 		public static AdvobotResult ModifiedMsgNotif(DefaultMessageNotifications notifs)

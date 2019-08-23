@@ -31,14 +31,14 @@ namespace Advobot.TypeReaders
 			//Check numbers first
 			if (ulong.TryParse(input, out var rawValue))
 			{
-				return this.FromSuccessAsync(rawValue);
+				return TypeReaderUtils.FromSuccessAsync(rawValue);
 			}
 			//Then check permission names
 			if (EnumUtils.TryParseFlags(input.Split(_SplitChars).Select(x => x.Trim(_TrimChars)), out T value, out var invalidPerms))
 			{
-				return this.FromSuccessAsync(value);
+				return TypeReaderUtils.FromSuccessAsync(value);
 			}
-			return this.ParseFailedResultAsync<T>();
+			return TypeReaderUtils.ParseFailedResultAsync<T>();
 		}
 	}
 }

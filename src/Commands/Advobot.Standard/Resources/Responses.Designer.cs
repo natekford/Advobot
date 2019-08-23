@@ -1060,6 +1060,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to nothing.
+        /// </summary>
+        internal static string GuildsVariableNothing {
+            get {
+                return ResourceManager.GetString("GuildsVariableNothing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Successfully deleted {0} matching invites..
         /// </summary>
         internal static string InvitesDeletedMultipleInvites {
@@ -1087,9 +1096,9 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to `[]` means required.
-        ///`&lt;&gt;` means optional.
-        ///`|` means or..
+        ///   Looks up a localized string similar to {0} means required.
+        ///{1} means optional.
+        ///{2} means or..
         /// </summary>
         internal static string MiscBasicSyntax {
             get {
@@ -1128,6 +1137,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} is not a valid help entry command number for {1}..
+        /// </summary>
+        internal static string MiscInvalidHelpEntryNumber {
+            get {
+                return ResourceManager.GetString("MiscInvalidHelpEntryNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [GitHub Repository]({0})
         ///[Discord Server]({1}).
         /// </summary>
@@ -1158,11 +1176,38 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Able To Be Toggled.
+        /// </summary>
+        internal static string MiscTitleAbleToBeToggled {
+            get {
+                return ResourceManager.GetString("MiscTitleAbleToBeToggled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Aliases.
+        /// </summary>
+        internal static string MiscTitleAliases {
+            get {
+                return ResourceManager.GetString("MiscTitleAliases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to All Commands.
         /// </summary>
         internal static string MiscTitleAllCommands {
             get {
                 return ResourceManager.GetString("MiscTitleAllCommands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Required Permissions.
+        /// </summary>
+        internal static string MiscTitleBasePermissions {
+            get {
+                return ResourceManager.GetString("MiscTitleBasePermissions", resourceCulture);
             }
         }
         
@@ -1194,6 +1239,42 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Commands.
+        /// </summary>
+        internal static string MiscTitleCommands {
+            get {
+                return ResourceManager.GetString("MiscTitleCommands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Currently Enabled.
+        /// </summary>
+        internal static string MiscTitleCurrentlyEnabled {
+            get {
+                return ResourceManager.GetString("MiscTitleCurrentlyEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        internal static string MiscTitleDescription {
+            get {
+                return ResourceManager.GetString("MiscTitleDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enabled By Default.
+        /// </summary>
+        internal static string MiscTitleEnabledByDefault {
+            get {
+                return ResourceManager.GetString("MiscTitleEnabledByDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to General Help.
         /// </summary>
         internal static string MiscTitleGeneralHelp {
@@ -1221,11 +1302,74 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to  + .
+        /// </summary>
+        internal static string MiscVariableAnd {
+            get {
+                return ResourceManager.GetString("MiscVariableAnd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Category].
         /// </summary>
         internal static string MiscVariableCategoryParameter {
             get {
                 return ResourceManager.GetString("MiscVariableCategoryParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to N/A.
+        /// </summary>
+        internal static string MiscVariableNotApplicable {
+            get {
+                return ResourceManager.GetString("MiscVariableNotApplicable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;.
+        /// </summary>
+        internal static string MiscVariableOptionalLeft {
+            get {
+                return ResourceManager.GetString("MiscVariableOptionalLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &gt;.
+        /// </summary>
+        internal static string MiscVariableOptionalRight {
+            get {
+                return ResourceManager.GetString("MiscVariableOptionalRight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  | .
+        /// </summary>
+        internal static string MiscVariableOr {
+            get {
+                return ResourceManager.GetString("MiscVariableOr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [.
+        /// </summary>
+        internal static string MiscVariableRequiredLeft {
+            get {
+                return ResourceManager.GetString("MiscVariableRequiredLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ].
+        /// </summary>
+        internal static string MiscVariableRequiredRight {
+            get {
+                return ResourceManager.GetString("MiscVariableRequiredRight", resourceCulture);
             }
         }
         

@@ -10,18 +10,14 @@ namespace Advobot.Gacha.Interaction
 		public IGuild Guild => Channel.Guild;
 		public IInteraction Action { get; }
 
-		public InteractionContext(IMessage message, IInteraction action) : this(action)
+		public InteractionContext(IMessage message, IInteraction action)
+			: this((IGuildUser)message.Author, (ITextChannel)message.Channel, action) { }
+		public InteractionContext(SocketReaction reaction, IInteraction action)
+			: this((IGuildUser)reaction.User.Value, (ITextChannel)reaction.Channel, action) { }
+		private InteractionContext(IGuildUser user, ITextChannel channel, IInteraction action)
 		{
-			User = (IGuildUser)message.Author;
-			Channel = (ITextChannel)message.Channel;
-		}
-		public InteractionContext(SocketReaction reaction, IInteraction action) : this(action)
-		{
-			User = (IGuildUser)reaction.User.Value;
-			Channel = (ITextChannel)reaction.Channel;
-		}
-		private InteractionContext(IInteraction action)
-		{
+			User = user;
+			Channel = channel;
 			Action = action;
 		}
 	}

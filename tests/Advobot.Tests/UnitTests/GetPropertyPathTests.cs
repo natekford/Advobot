@@ -1,9 +1,9 @@
-﻿using Advobot.Classes;
-using Discord;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using Advobot.Classes;
+using Discord;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.UnitTests
 {
@@ -19,7 +19,7 @@ namespace Advobot.Tests.UnitTests
 		public void Captured_Test()
 		{
 			var captured = new EmbedWrapper();
-			var expr = (Expression<Func<string>>)(() => captured.Description);
+			var expr = (Expression<Func<string?>>)(() => captured.Description);
 			var path = expr.GetPropertyPath();
 			Assert.AreEqual("captured.Description", path);
 		}
@@ -136,7 +136,7 @@ namespace Advobot.Tests.UnitTests
 
 	public class Nested
 	{
-		public readonly Nested Nest;
+		public readonly Nested Nest = new Nested();
 		public readonly int Value;
 
 		public int GetNum()
@@ -154,14 +154,14 @@ namespace Advobot.Tests.UnitTests
 
 		public sealed class MegaNested : Nested
 		{
-			public new static MegaNested Create()
+			public static new MegaNested Create()
 				=> new MegaNested();
 		}
 	}
 
 	public sealed class ClassWithIndexerName
 	{
-		public readonly ClassWithIndexerName Nest;
+		public readonly ClassWithIndexerName Nest = new ClassWithIndexerName();
 
 		[IndexerName("Dog")]
 		public int this[int val]

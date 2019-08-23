@@ -29,19 +29,19 @@ namespace Advobot.TypeReaders
 		{
 			if (Emote.TryParse(input, out var tempEmote))
 			{
-				return this.FromSuccessAsync(tempEmote);
+				return TypeReaderUtils.FromSuccessAsync(tempEmote);
 			}
 			if (ulong.TryParse(input, out var id))
 			{
 				var emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == id);
 				if (emote != null)
 				{
-					return this.FromSuccessAsync(emote);
+					return TypeReaderUtils.FromSuccessAsync(emote);
 				}
 			}
 
 			var matches = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return this.SingleValidResultAsync(matches, "emotes", input);
+			return TypeReaderUtils.SingleValidResultAsync(matches, "emotes", input);
 		}
 	}
 }

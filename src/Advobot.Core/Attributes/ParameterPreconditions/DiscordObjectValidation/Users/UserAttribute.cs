@@ -24,11 +24,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 		{
 			if (!(context.User is IGuildUser invoker))
 			{
-				return this.FromErrorAsync("Invalid invoker.");
+				return PreconditionUtils.FromErrorAsync("Invalid invoker.");
 			}
 			if (!(value is IGuildUser user))
 			{
-				return this.FromErrorAsync("Invalid user.");
+				return PreconditionUtils.FromErrorAsync("Invalid user.");
 			}
 			return invoker.ValidateUser(user, GetPreconditions());
 		}

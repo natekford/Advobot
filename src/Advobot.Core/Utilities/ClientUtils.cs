@@ -63,7 +63,6 @@ namespace Advobot.Utilities
 				FileName = "dotnet",
 				Arguments = $@"""{Assembly.GetEntryAssembly().Location}"" {restartArgs.RestartArguments}"
 			});
-			ConsoleUtils.WriteLine($"Restarted the bot.{Environment.NewLine}");
 			Process.GetCurrentProcess().Kill();
 		}
 		/// <summary>

@@ -36,9 +36,9 @@ namespace Advobot.TypeReaders
 		{
 			if (TryParseColor(input, out var color))
 			{
-				return this.FromSuccessAsync(color);
+				return TypeReaderUtils.FromSuccessAsync(color);
 			}
-			return this.ParseFailedResultAsync<Color>();
+			return TypeReaderUtils.ParseFailedResultAsync<Color>();
 		}
 		/// <summary>
 		/// Attempts to parse a color from the input. If unable to parse, returns null.

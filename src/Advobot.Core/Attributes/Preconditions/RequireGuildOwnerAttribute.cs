@@ -19,9 +19,9 @@ namespace Advobot.Attributes.Preconditions
 		{
 			if (context.Guild.OwnerId == context.User.Id)
 			{
-				return this.FromSuccessAsync();
+				return PreconditionUtils.FromSuccessAsync();
 			}
-			return this.FromErrorAsync("You are not the guild owner.");
+			return PreconditionUtils.FromErrorAsync("You are not the guild owner.");
 		}
 		/// <inheritdoc />
 		public override string ToString()

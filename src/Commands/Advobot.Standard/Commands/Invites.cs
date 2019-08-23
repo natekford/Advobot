@@ -19,7 +19,8 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Invites))]
 	public sealed class Invites : ModuleBase
 	{
-		[Group(nameof(DisplayInvites)), ModuleInitialismAlias(typeof(DisplayInvites))]
+		[LocalizedGroup(nameof(Groups.DisplayInvites))]
+		[LocalizedAlias(nameof(Aliases.DisplayInvites))]
 		[LocalizedSummary(nameof(Summaries.DisplayInvites))]
 		[Meta("958c8da4-352e-468e-8279-0fd80276cd24", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
@@ -34,7 +35,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(CreateInvite)), ModuleInitialismAlias(typeof(CreateInvite))]
+		[LocalizedGroup(nameof(Groups.CreateInvite))]
+		[LocalizedAlias(nameof(Aliases.CreateInvite))]
 		[LocalizedSummary(nameof(Summaries.CreateInvite))]
 		[Meta("6e8233c0-c8f4-456a-85e4-6f5203add299", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.CreateInstantInvite)]
@@ -61,7 +63,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(DeleteInvite)), ModuleInitialismAlias(typeof(DeleteInvite))]
+		[LocalizedGroup(nameof(Groups.DeleteInvite))]
+		[LocalizedAlias(nameof(Aliases.DeleteInvite))]
 		[LocalizedSummary(nameof(Summaries.DeleteInvite))]
 		[Meta("993e5613-6cdb-4ff3-925d-98e3a534ddc8", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageChannels)]
@@ -75,7 +78,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(DeleteMultipleInvites)), ModuleInitialismAlias(typeof(DeleteMultipleInvites))]
+		[LocalizedGroup(nameof(Groups.DeleteMultipleInvites))]
+		[LocalizedAlias(nameof(Aliases.DeleteMultipleInvites))]
 		[LocalizedSummary(nameof(Summaries.DeleteMultipleInvites))]
 		[Meta("a53c0e51-d580-436e-869c-e566ff268c3e", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageChannels)]

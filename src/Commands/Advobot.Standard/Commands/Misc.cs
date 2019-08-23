@@ -24,36 +24,33 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Misc))]
 	public sealed class Misc : ModuleBase
 	{
-		[Group(nameof(Help)), ModuleInitialismAlias(typeof(Help))]
+		[LocalizedGroup(nameof(Groups.Help))]
+		[LocalizedAlias(nameof(Aliases.Help))]
 		[LocalizedSummary(nameof(Summaries.Help))]
 		[Meta("0e89a6fd-5c9c-4008-a912-7c719ea7827d", IsEnabled = true, CanToggle = false)]
 		public sealed class Help : AdvobotModuleBase
 		{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-			public IHelpEntryService HelpEntries { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
-
 			private const string TEMP_SUMMARY = "Input the name of the module you want to get information for";
 
 			[Command]
-			[Summary("Prints out general help information for the bot.")]
-			public Task<RuntimeResult> Command()
+			[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
+			public Task<RuntimeResult> CommandAsync()
 				=> Responses.Misc.GeneralHelp(Context.Settings.GetPrefix(BotSettings));
 			[Command, Priority(1)]
-			[Summary("Prints out help information for a specified module.")]
-			public Task<RuntimeResult> Command(
+			[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
+			public Task<RuntimeResult> CommandAsync(
 				[Summary(TEMP_SUMMARY)] IModuleHelpEntry command)
 				=> Responses.Misc.Help(command, Context.Settings);
 			[Command, Priority(2)]
-			[Summary("Prints out help information for a specific command in a specified module.")]
-			public Task<RuntimeResult> Command(
+			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
+			public Task<RuntimeResult> CommandAsync(
 				[Summary(TEMP_SUMMARY)] IModuleHelpEntry command,
 				[Positive] int position)
 				=> Responses.Misc.Help(command, position - 1);
 			[Command(RunMode = RunMode.Async), Priority(0)]
-			[Summary("Attempts to find a help entry with a name similar to the input. This command only gets used if an invalid name is provided.")]
-			public async Task<RuntimeResult> Command(
-				[Summary(TEMP_SUMMARY), OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IModuleHelpEntry> command)
+			[Hidden]
+			public async Task<RuntimeResult> CommandAsync(
+				[OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IModuleHelpEntry> command)
 			{
 				var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
 				if (entry != null)
@@ -64,7 +61,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(Commands)), ModuleInitialismAlias(typeof(Commands))]
+		[LocalizedGroup(nameof(Groups.Commands))]
+		[LocalizedAlias(nameof(Aliases.Commands))]
 		[LocalizedSummary(nameof(Summaries.Commands))]
 		[Meta("ec0f7aef-85d6-4251-9c8e-7c70890f455e", IsEnabled = true, CanToggle = false)]
 		public sealed class Commands : AdvobotModuleBase
@@ -74,43 +72,47 @@ namespace Advobot.Standard.Commands
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			[Command]
-			public Task<RuntimeResult> Command([CommandCategory] string category)
-				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);
-			[Command]
-			public Task<RuntimeResult> Command()
+			public Task<RuntimeResult> CommandAsync()
 				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Prefix);
+			[Command]
+			public Task<RuntimeResult> CommandAsync([CommandCategory] string category)
+				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);
 		}
 
-		[Group(nameof(MakeAnEmbed)), ModuleInitialismAlias(typeof(MakeAnEmbed))]
+		[LocalizedGroup(nameof(Groups.MakeAnEmbed))]
+		[LocalizedAlias(nameof(Aliases.MakeAnEmbed))]
 		[LocalizedSummary(nameof(Summaries.MakeAnEmbed))]
 		[Meta("6acf2d14-b251-46a6-a645-095cbc8300f9", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
 		public sealed class MakeAnEmbed : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command([Remainder] CustomEmbed args)
+			public Task<RuntimeResult> CommandAsync([Remainder] CustomEmbed args)
 				=> Responses.Misc.MakeAnEmbed(args);
 		}
 
-		[Group(nameof(MessageRole)), ModuleInitialismAlias(typeof(MessageRole))]
+		[LocalizedGroup(nameof(Groups.MessageRole))]
+		[LocalizedAlias(nameof(Aliases.MessageRole))]
 		[LocalizedSummary(nameof(Summaries.MessageRole))]
 		[Meta("db524980-4a8e-4933-aa9b-527094d60165", IsEnabled = false)]
 		[RequireGenericGuildPermissions]
 		public sealed class MessageRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command(
+			public async Task CommandAsync(
 				[NotEveryone, NotMentionable] IRole role,
 				[Remainder] string message)
 			{
-				var text = $"From `{Context.User.Format()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
+				var cut = message.Substring(0, Math.Min(message.Length, 250));
+				var text = $"From `{Context.User.Format()}`, {role.Mention}: {cut}";
 				await role.ModifyAsync(x => x.Mentionable = true, GenerateRequestOptions()).CAF();
 				await ReplyAsync(text).CAF();
 				await role.ModifyAsync(x => x.Mentionable = false, GenerateRequestOptions()).CAF();
 			}
 		}
 
-		[Group(nameof(MessageBotOwner)), ModuleInitialismAlias(typeof(MessageBotOwner))]
+		[LocalizedGroup(nameof(Groups.MessageBotOwner))]
+		[LocalizedAlias(nameof(Aliases.MessageBotOwner))]
 		[LocalizedSummary(nameof(Summaries.MessageBotOwner))]
 		[Meta("3562f937-4d3c-46aa-afda-70e04040be53", IsEnabled = false)]
 		[RequireGenericGuildPermissions]
@@ -118,21 +120,23 @@ namespace Advobot.Standard.Commands
 		public sealed class MessageBotOwner : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([Remainder] string message)
+			public async Task CommandAsync([Remainder] string message)
 			{
 				var owner = (await Context.Client.GetApplicationInfoAsync().CAF()).Owner;
-				var text = $"From `{Context.User.Format()}` in `{Context.Guild.Format()}`:\n```\n{message.Substring(0, Math.Min(message.Length, 250))}```";
+				var cut = message.Substring(0, Math.Min(message.Length, 250));
+				var text = $"`{Context.User.Format()}` - `{Context.Guild.Format()}`:\n```\n{cut}```";
 				await owner.SendMessageAsync(text).CAF();
 			}
 		}
 
-		[Group(nameof(Remind)), ModuleInitialismAlias(typeof(Remind))]
+		[LocalizedGroup(nameof(Groups.Remind))]
+		[LocalizedAlias(nameof(Aliases.Remind))]
 		[LocalizedSummary(nameof(Summaries.Remind))]
 		[Meta("3cedf19e-7a4d-47c0-ac2f-1c39a92026ec", IsEnabled = true)]
 		public sealed class Remind : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command(
+			public Task<RuntimeResult> CommandAsync(
 				[RemindTime] int minutes,
 				[Remainder] string message)
 			{
@@ -142,19 +146,30 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(Test)), ModuleInitialismAlias(typeof(Test))]
+		[LocalizedGroup(nameof(Groups.Test))]
+		[LocalizedAlias(nameof(Aliases.Test))]
 		[LocalizedSummary(nameof(Summaries.Test))]
 		[Meta("6c0b693e-e3ac-421e-910e-3178110d791d", IsEnabled = true)]
-		[DontAddHelpEntry]
 		[RequireBotOwner]
+		[Hidden]
 		public sealed class Test : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command([GuildSettingName] string name)
-			{
-				//var invite = await Context.Channel.CreateInviteAsync(123, 3, false, false).CAF();
-				return AdvobotResult.Success("test test " + name);
-			}
+			public Task<RuntimeResult> CommandAsync(string name)
+				=> AdvobotResult.Success("test1 " + name);
+		}
+
+		[LocalizedGroup(nameof(Groups.Test))]
+		[LocalizedAlias(nameof(Aliases.Test))]
+		[LocalizedSummary(nameof(Summaries.Test))]
+		[Meta("0c31f1c9-2d7f-4df5-84d7-721176bbdb2d", IsEnabled = true)]
+		[RequireBotOwner]
+		[Hidden]
+		public sealed class Test2 : AdvobotModuleBase
+		{
+			[Command]
+			public Task<RuntimeResult> CommandAsync(string name)
+				=> AdvobotResult.Success("test2 " + name);
 		}
 	}
 }

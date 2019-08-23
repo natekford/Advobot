@@ -5,15 +5,12 @@ namespace Advobot.Databases.Abstract
 	/// <summary>
 	/// Stores a value in a database for later usage.
 	/// </summary>
-	public abstract class TimedDatabaseEntry : IDatabaseEntry
+	public abstract class TimedDatabaseEntry<T> : IDatabaseEntry
 	{
-		private static readonly TimeSpan _Default = TimeSpan.FromSeconds(3);
-
 		/// <summary>
 		/// The id of the object.
-		/// This is not necessarily as unique as a regular <see cref="Guid"/> because sometimes it is created from a user's id.
 		/// </summary>
-		public Guid Id { get; set; }
+		public T Id { get; set; }
 		/// <summary>
 		/// The UTC time to do an action at.
 		/// </summary>
@@ -22,14 +19,18 @@ namespace Advobot.Databases.Abstract
 		/// <summary>
 		/// Creates a database entry with the specified timespan added to <see cref="DateTime.UtcNow"/>.
 		/// </summary>
+		/// <param name="id"></param>
 		/// <param name="time"></param>
-		public TimedDatabaseEntry(TimeSpan time = default)
+		public TimedDatabaseEntry(T id, TimeSpan time)
 		{
-			Id = Guid.NewGuid();
-			Time = DateTime.UtcNow.Add(time.Equals(default) ? _Default : time);
+			Id = id;
+			Time = DateTime.UtcNow.Add(time);
 		}
 
+
 		//IDatabaseEntry
-		object IDatabaseEntry.Id { get => Id; set => Id = (Guid)value; }
+#pragma warning disable CS8603 // Possible null reference return.
+		object IDatabaseEntry.Id { get => Id; set => Id = (T)value; }
+#pragma warning restore CS8603 // Possible null reference return.
 	}
 }

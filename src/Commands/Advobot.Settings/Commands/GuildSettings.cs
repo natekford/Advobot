@@ -160,7 +160,9 @@ namespace Advobot.Settings.Commands
 		[RequireGuildPermissions]
 		public sealed class ModifyCommands : SettingsModule<IGuildSettings>
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 			public IHelpEntryService HelpEntries { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			protected override IGuildSettings Settings => Context.Settings;
 

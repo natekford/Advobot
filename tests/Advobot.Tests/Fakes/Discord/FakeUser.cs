@@ -7,6 +7,9 @@ namespace Advobot.Tests.Fakes.Discord
 {
 	public class FakeUser : FakeSnowflake, IUser
 	{
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public string AvatarId => throw new NotImplementedException();
 		public string Discriminator => DiscriminatorValue.ToString();
 		public ushort DiscriminatorValue { get; } = (ushort)new Random().Next(1, 10000);
@@ -24,5 +27,8 @@ namespace Advobot.Tests.Fakes.Discord
 			=> CDN.GetDefaultUserAvatarUrl(DiscriminatorValue);
 		public Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions options = null)
 			=> throw new NotImplementedException();
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

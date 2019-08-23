@@ -41,17 +41,17 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 			{
 				if (current > 0)
 				{
-					return this.FromSuccess();
+					return PreconditionUtils.FromSuccess();
 				}
-				return this.FromError($"There are no {QuantityName}s to remove.");
+				return PreconditionUtils.FromError($"There are no {QuantityName}s to remove.");
 			}
 
 			var max = await GetMaximumAllowedAsync(context, services).CAF();
 			if (max > current)
 			{
-				return this.FromSuccess();
+				return PreconditionUtils.FromSuccess();
 			}
-			return this.FromError($"There are only `{max}` {QuantityName}s allowed.");
+			return PreconditionUtils.FromError($"There are only `{max}` {QuantityName}s allowed.");
 		}
 		/// <summary>
 		/// Gets the maximum amount of these items allowed.

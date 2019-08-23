@@ -172,7 +172,7 @@ namespace Advobot.Classes
 		private static string GetFromCall(this MethodCallExpression call)
 		{
 			var name = call.Method.Name;
-			var args = call.Arguments.Join(", ", x => x.GetFromAny());
+			var args = call.Arguments.Join(x => x.GetFromAny());
 
 			//Changing indexer from obj.get_Item to obj[]
 			if (call.Method.IsSpecialName)
@@ -210,7 +210,7 @@ namespace Advobot.Classes
 		private static string GetFromNew(this NewExpression @new)
 		{
 			var name = @new.Type.Name;
-			var args = @new.Arguments.Join(", ", x => x.GetFromAny());
+			var args = @new.Arguments.Join(x => x.GetFromAny());
 			return $"new {name}({args})";
 		}
 		private static string GetFromConstant(this ConstantExpression constant)

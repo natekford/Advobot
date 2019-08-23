@@ -12,7 +12,7 @@ namespace Advobot.Services.InviteList
 	/// <summary>
 	/// Lists an invite for use in <see cref="IInviteListService"/>.
 	/// </summary>
-	internal sealed class ListedInvite : TimedDatabaseEntry, IListedInvite
+	internal sealed class ListedInvite : TimedDatabaseEntry<string>, IListedInvite
 	{
 		/// <inheritdoc />
 		public string Code { get; private set; }
@@ -37,7 +37,11 @@ namespace Advobot.Services.InviteList
 		/// <param name="guild"></param>
 		/// <param name="invite"></param>
 		/// <param name="keywords"></param>
-		public ListedInvite(SocketGuild guild, IInviteMetadata invite, IEnumerable<string> keywords) : base(default)
+		public ListedInvite(
+			SocketGuild guild,
+			IInviteMetadata invite,
+			IEnumerable<string> keywords)
+			: base(invite.Code, TimeSpan.FromHours(1))
 		{
 			Code = invite.Code;
 			Keywords = (keywords ?? Enumerable.Empty<string>()).ToArray();

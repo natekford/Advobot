@@ -17,7 +17,7 @@ namespace Advobot.Gacha.TypeReaders
 		{
 			var db = services.GetRequiredService<GachaDatabase>();
 			var id = int.Parse(input);
-			return this.FromSuccess(await db.GetCharacterAsync(id).CAF());
+			return TypeReaderUtils.FromSuccess(await db.GetCharacterAsync(id).CAF());
 		}
 	}
 }

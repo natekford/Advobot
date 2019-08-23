@@ -46,7 +46,7 @@ namespace Advobot.Gacha.Interaction
 			action = null;
 			return Interactions != null
 				&& id == Display.Message?.Id
-				&& Interactions.TryGetFirst(x => x.Name == reaction.Emote.Name, out action);
+				&& Interactions.TryGetFirst(x => x?.Name == reaction.Emote.Name, out action);
 		}
 	}
 }

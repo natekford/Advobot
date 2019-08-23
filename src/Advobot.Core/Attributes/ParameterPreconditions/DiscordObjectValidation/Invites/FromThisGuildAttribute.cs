@@ -18,9 +18,9 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 			{
 				if (user.GuildId == target.GuildId)
 				{
-					return this.FromSuccessAsync();
+					return PreconditionUtils.FromSuccessAsync();
 				}
-				return this.FromErrorAsync("The passed in invite must belong to this guild.");
+				return PreconditionUtils.FromErrorAsync("The passed in invite must belong to this guild.");
 			};
 		}
 		/// <inheritdoc />

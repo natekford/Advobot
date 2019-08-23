@@ -108,6 +108,8 @@ namespace Advobot.Services.Logging.Loggers
 		private Task HandleChannelSettingsAsync(LoggingContext context)
 		{
 			if (!context.User.GuildPermissions.Administrator
+				&& context.Channel != null
+				&& context.Message != null
 				&& context.Settings.ImageOnlyChannels.Contains(context.Channel.Id)
 				&& !context.Message.Attachments.Any(x => x.Height != null || x.Width != null)
 				&& !context.Message.Embeds.Any(x => x.Image != null))
@@ -124,7 +126,7 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private async Task HandleImageLoggingAsync(LoggingContext context)
 		{
-			if (context.ImageLog == null)
+			if (context.ImageLog == null || context.Message == null)
 			{
 				return;
 			}
@@ -180,9 +182,12 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			foreach (var antiSpam in context.Settings.SpamPrevention)
+			if (context.Message != null)
 			{
-				await antiSpam.PunishAsync(context.Message).CAF();
+				foreach (var antiSpam in context.Settings.SpamPrevention)
+				{
+					await antiSpam.PunishAsync(context.Message).CAF();
+				}
 			}
 		}
 		/// <summary>
@@ -193,7 +198,9 @@ namespace Advobot.Services.Logging.Loggers
 		private async Task HandleBannedPhrasesAsync(LoggingContext context)
 		{
 			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
-			if (context.User.GuildPermissions.Administrator || (DateTime.UtcNow - context.Message.CreatedAt.UtcDateTime).Hours > 0)
+			if (context.User.GuildPermissions.Administrator
+				|| context.Message == null
+				|| (DateTime.UtcNow - context.Message.CreatedAt.UtcDateTime).Hours > 0)
 			{
 				return;
 			}
@@ -225,7 +232,7 @@ namespace Advobot.Services.Logging.Loggers
 		{
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
-			if (before?.Embeds.Count < context.Message.Embeds.Count)
+			if (context.Message != null && before?.Embeds.Count < context.Message.Embeds.Count)
 			{
 				return HandleImageLoggingAsync(context);
 			}
@@ -240,7 +247,7 @@ namespace Advobot.Services.Logging.Loggers
 		private Task HandleMessageEditedLoggingAsync(LoggingContext context, IMessage? before)
 		{
 			var uneditedBMsgContent = before?.Content;
-			var uneditedAMsgContent = context.Message.Content;
+			var uneditedAMsgContent = context.Message?.Content;
 			if (context.ServerLog == null || uneditedBMsgContent == uneditedAMsgContent)
 			{
 				return Task.CompletedTask;
@@ -278,6 +285,11 @@ namespace Advobot.Services.Logging.Loggers
 		/// <returns></returns>
 		private Task HandleMessageDeletedLogging(LoggingContext context)
 		{
+			if (context.Message == null)
+			{
+				return Task.CompletedTask;
+			}
+
 			var cache = context.Settings.GetDeletedMessageCache();
 			cache.Add(context.Message);
 			var cancelToken = cache.GetNewCancellationToken();

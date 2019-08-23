@@ -39,7 +39,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			}
 			catch (ArgumentException)
 			{
-				return this.FromError("Invalid regex provided.");
+				return PreconditionUtils.FromError("Invalid regex provided.");
 			}
 
 			var tests = new (string Name, Func<string, bool> Test)[]
@@ -73,10 +73,10 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			{
 				if (Test.Invoke(value))
 				{
-					return this.FromError($"Invalid regex; matched {Name} when it should not have.");
+					return PreconditionUtils.FromError($"Invalid regex; matched {Name} when it should not have.");
 				}
 			}
-			return this.FromSuccess();
+			return PreconditionUtils.FromSuccess();
 		}
 		/// <inheritdoc />
 		public override string ToString()

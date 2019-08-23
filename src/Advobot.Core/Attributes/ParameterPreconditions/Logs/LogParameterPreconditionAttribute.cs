@@ -37,9 +37,9 @@ namespace Advobot.Attributes.ParameterPreconditions.Logs
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			if (GetId(settings) != channel.Id)
 			{
-				return this.FromSuccess();
+				return PreconditionUtils.FromSuccess();
 			}
-			return this.FromError($"`{channel.Format()}` is already the current {LogName} log.");
+			return PreconditionUtils.FromError($"`{channel.Format()}` is already the current {LogName} log.");
 		}
 		/// <summary>
 		/// Gets the current id of this log.

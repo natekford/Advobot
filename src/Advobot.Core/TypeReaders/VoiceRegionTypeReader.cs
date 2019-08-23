@@ -23,7 +23,7 @@ namespace Advobot.TypeReaders
 		{
 			var regions = await context.Guild.GetVoiceRegionsAsync().CAF();
 			var matches = regions.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return this.SingleValidResult(matches, "voice regions", input);
+			return TypeReaderUtils.SingleValidResult(matches, "voice regions", input);
 		}
 	}
 }

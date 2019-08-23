@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Advobot.Attributes;
 using AdvorangesUtils;
@@ -30,12 +29,16 @@ namespace Advobot.Services.HelpEntries
 			Id = meta.Guid.ToString();
 
 			Category = category?.Category?.ToLower() ?? throw new ArgumentNullException(nameof(Category));
-			Name = module?.Name?.ToLower() ?? throw new ArgumentNullException(nameof(Name));
+			Name = module.Name?.ToLower() ?? throw new ArgumentNullException(nameof(Name));
 			Summary = module.Summary ?? throw new ArgumentNullException(nameof(Summary));
 
-			Aliases = module.Aliases.Any() ? module.Aliases : ImmutableArray.Create("N/A");
+			Aliases = module.Aliases;
 			Preconditions = module.Preconditions.OfType<IPrecondition>().ToArray();
-			Commands = module.Commands.Select(x => new CommandHelpEntry(x)).ToArray();
+			Commands = module.Commands
+				.Where(x => !x.Attributes.Any(a => a is HiddenAttribute))
+				.OrderBy(x => x.Parameters.Count)
+				.Select(x => new CommandHelpEntry(x))
+				.ToArray();
 		}
 	}
 }

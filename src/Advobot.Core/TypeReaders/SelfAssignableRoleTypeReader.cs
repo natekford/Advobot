@@ -38,7 +38,7 @@ namespace Advobot.TypeReaders
 			var matches = settings.SelfAssignableGroups.SelectWhere(
 				x => x.Roles.Contains(role.Id),
 				x => new SelfAssignableRole(x, role)).ToArray();
-			return this.SingleValidResult(matches, "self assignable roles", input);
+			return TypeReaderUtils.SingleValidResult(matches, "self assignable roles", input);
 		}
 	}
 }

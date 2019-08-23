@@ -59,12 +59,34 @@ namespace Advobot.Services.Logging.Loggers
 			//Only log if it wasn't any bot that was updated.
 			LogAction.UserUpdated => !(User.IsBot || User.IsWebhook),
 			//Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
-			LogAction.MessageReceived => !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel.Id),
-			LogAction.MessageUpdated => !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel.Id),
+			LogAction.MessageReceived => !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel?.Id ?? 0),
+			LogAction.MessageUpdated => !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel?.Id ?? 0),
 			//Log all deleted messages, no matter the source user, unless they're on an unlogged channel
-			LogAction.MessageDeleted => !Settings.IgnoredLogChannels.Contains(Channel.Id),
+			LogAction.MessageDeleted => !Settings.IgnoredLogChannels.Contains(Channel?.Id ?? 0),
 			_ => throw new ArgumentOutOfRangeException(nameof(Args)),
 		};
+
+		private LoggingContext(
+			IGuild guild,
+			IGuildUser user,
+			IUserMessage? message,
+			ITextChannel? channel,
+			IGuildSettings settings,
+			ITextChannel? serverLog,
+			ITextChannel? imageLog,
+			IGuildUser bot,
+			LoggingContextArgs args)
+		{
+			Guild = guild;
+			User = user;
+			Message = message;
+			Channel = channel;
+			Settings = settings;
+			ServerLog = serverLog;
+			ImageLog = imageLog;
+			Args = args;
+			Bot = bot;
+		}
 
 		/// <summary>
 		/// Creates an instance of <see cref="LoggingContext"/>.
@@ -107,18 +129,7 @@ namespace Advobot.Services.Logging.Loggers
 			var serverLog = await guild.GetTextChannelAsync(settings.ServerLogId).CAF();
 			var imageLog = await guild.GetTextChannelAsync(settings.ImageLogId).CAF();
 			var bot = await guild.GetCurrentUserAsync().CAF();
-			return new LoggingContext
-			{
-				Guild = guild,
-				User = user,
-				Message = message,
-				Channel = channel,
-				Settings = settings,
-				ServerLog = serverLog,
-				ImageLog = imageLog,
-				Args = args,
-				Bot = bot,
-			};
+			return new LoggingContext(guild, user, message, channel, settings, serverLog, imageLog, bot, args);
 		}
 	}
 }

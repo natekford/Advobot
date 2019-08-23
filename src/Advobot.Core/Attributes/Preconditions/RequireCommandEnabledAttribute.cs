@@ -25,9 +25,9 @@ namespace Advobot.Attributes.Preconditions
 			var guildUser = await context.Guild.GetUserAsync(context.User.Id).CAF();
 			if (settings.CommandSettings.IsCommandEnabled(guildUser, context.Channel, command))
 			{
-				return this.FromSuccess();
+				return PreconditionUtils.FromSuccess();
 			}
-			return this.FromError("This command is disabled.");
+			return PreconditionUtils.FromError("This command is disabled.");
 		}
 		/// <inheritdoc />
 		public override string ToString()

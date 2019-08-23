@@ -32,14 +32,14 @@ namespace Advobot.Settings.Responses
 			=> Failure("Failed to find an invite with the supplied options.").WithTime(DefaultTime);
 		public static AdvobotResult InviteMatches(IEnumerable<IListedInvite> invites)
 		{
-			var formatted = invites.Join("\n", x =>
+			var formatted = invites.Join(x =>
 			{
 				var n = x.GuildName.PadRight(_GLength).Substring(0, _GLength);
 				var u = x.Url.PadRight(_ULength);
 				var m = x.GuildMemberCount.ToString().PadRight(_MLength);
 				var e = x.HasGlobalEmotes ? "Yes" : "";
 				return $"{n}{u}{m}{e}";
-			});
+			}, "\n");
 			var str = $"{_Header}\n{formatted}";
 			return Success(BigBlock.FormatInterpolated($"{str}"));
 		}

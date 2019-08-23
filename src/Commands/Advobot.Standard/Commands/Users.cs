@@ -26,7 +26,8 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Users))]
 	public sealed class Users : ModuleBase
 	{
-		[Group(nameof(Mute)), ModuleInitialismAlias(typeof(Mute))]
+		[LocalizedGroup(nameof(Groups.Mute))]
+		[LocalizedAlias(nameof(Aliases.Mute))]
 		[LocalizedSummary(nameof(Summaries.Mute))]
 		[Meta("b9f305d4-d343-4350-a140-c54a42af8d8d", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
@@ -104,7 +105,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(VoiceMute)), ModuleInitialismAlias(typeof(VoiceMute))]
+		[LocalizedGroup(nameof(Groups.VoiceMute))]
+		[LocalizedAlias(nameof(Aliases.VoiceMute))]
 		[LocalizedSummary(nameof(Summaries.VoiceMute))]
 		[Meta("a51ea911-10be-4e40-8995-a507015a7e57", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.MuteMembers)]
@@ -129,7 +131,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(Deafen)), ModuleInitialismAlias(typeof(Deafen))]
+		[LocalizedGroup(nameof(Groups.Deafen))]
+		[LocalizedAlias(nameof(Aliases.Deafen))]
 		[LocalizedSummary(nameof(Summaries.Deafen))]
 		[Meta("99aa7f17-5710-41ce-ba12-291c2971c0a4", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.DeafenMembers)]
@@ -154,7 +157,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(Kick)), ModuleInitialismAlias(typeof(Kick))]
+		[LocalizedGroup(nameof(Groups.Kick))]
+		[LocalizedAlias(nameof(Aliases.Kick))]
 		[LocalizedSummary(nameof(Summaries.Kick))]
 		[Meta("1d86aa7d-da06-478c-861b-a62ca279523b", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.KickMembers)]
@@ -171,7 +175,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(SoftBan)), ModuleInitialismAlias(typeof(SoftBan))]
+		[LocalizedGroup(nameof(Groups.SoftBan))]
+		[LocalizedAlias(nameof(Aliases.SoftBan))]
 		[LocalizedSummary(nameof(Summaries.SoftBan))]
 		[Meta("a6084728-77bf-469c-af09-41e53ac021d9", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers, GuildPermission.KickMembers)]
@@ -193,7 +198,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(Ban)), ModuleInitialismAlias(typeof(Ban))]
+		[LocalizedGroup(nameof(Groups.Ban))]
+		[LocalizedAlias(nameof(Aliases.Ban))]
 		[LocalizedSummary(nameof(Summaries.Ban))]
 		[Meta("b798e679-3ca7-4af1-9544-585672ec9936", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers)]
@@ -216,7 +222,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(Unban)), ModuleInitialismAlias(typeof(Unban))]
+		[LocalizedGroup(nameof(Groups.Unban))]
+		[LocalizedAlias(nameof(Aliases.Unban))]
 		[LocalizedSummary(nameof(Summaries.Unban))]
 		[Meta("417e9dd0-306b-4d1f-8b62-0427f01f921a", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers)]
@@ -233,7 +240,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(MoveUser)), ModuleInitialismAlias(typeof(MoveUser))]
+		[LocalizedGroup(nameof(Groups.MoveUser))]
+		[LocalizedAlias(nameof(Aliases.MoveUser))]
 		[LocalizedSummary(nameof(Summaries.MoveUser))]
 		[Meta("158dca6d-fc89-43b3-a6b5-d055f6672547", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.MoveMembers)]
@@ -254,7 +262,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(MoveUsers)), ModuleInitialismAlias(typeof(MoveUsers))]
+		[LocalizedGroup(nameof(Groups.MoveUsers))]
+		[LocalizedAlias(nameof(Aliases.MoveUsers))]
 		[LocalizedSummary(nameof(Summaries.MoveUsers))]
 		[Meta("4e8439fa-cc29-4acb-9049-89865be825c8", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.MoveMembers)]
@@ -275,7 +284,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(PruneUsers)), ModuleInitialismAlias(typeof(PruneUsers))]
+		[LocalizedGroup(nameof(Groups.PruneUsers))]
+		[LocalizedAlias(nameof(Aliases.PruneUsers))]
 		[LocalizedSummary(nameof(Summaries.PruneUsers))]
 		[Meta("89abd319-c597-4e1a-9397-4f7d079f4e0e", IsEnabled = true)]
 		[RequireGuildPermissions]
@@ -295,7 +305,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(GetBanReason)), ModuleInitialismAlias(typeof(GetBanReason))]
+		[LocalizedGroup(nameof(Groups.GetBanReason))]
+		[LocalizedAlias(nameof(Aliases.GetBanReason))]
 		[LocalizedSummary(nameof(Summaries.GetBanReason))]
 		[Meta("5ba658c2-c689-4b3a-b7f1-77329dd6e971", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers)]
@@ -306,7 +317,8 @@ namespace Advobot.Standard.Commands
 				=> Responses.Users.DisplayBanReason(ban);
 		}
 
-		[Group(nameof(DisplayCurrentBanList)), ModuleInitialismAlias(typeof(DisplayCurrentBanList))]
+		[LocalizedGroup(nameof(Groups.DisplayCurrentBanList))]
+		[LocalizedAlias(nameof(Aliases.DisplayCurrentBanList))]
 		[LocalizedSummary(nameof(Summaries.DisplayCurrentBanList))]
 		[Meta("419c1846-b232-475e-aa19-45cb282dc9e0", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.BanMembers)]
@@ -320,7 +332,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(RemoveMessages)), ModuleInitialismAlias(typeof(RemoveMessages))]
+		[LocalizedGroup(nameof(Groups.RemoveMessages))]
+		[LocalizedAlias(nameof(Aliases.RemoveMessages))]
 		[LocalizedSummary(nameof(Summaries.RemoveMessages))]
 		[Meta("a4f3959e-1f56-4bf0-b377-dc98ef017906", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageMessages)]
@@ -370,7 +383,7 @@ namespace Advobot.Standard.Commands
 				}
 
 				//If there is a non null user then delete messages specifically from that user
-				Func<IMessage, bool> predicate = null;
+				Func<IMessage, bool>? predicate = null;
 				if (user != null)
 				{
 					predicate = x => x.Author.Id == user?.Id;
@@ -389,7 +402,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(ForAllWithRole)), ModuleInitialismAlias(typeof(ForAllWithRole))]
+		[LocalizedGroup(nameof(Groups.ForAllWithRole))]
+		[LocalizedAlias(nameof(Aliases.ForAllWithRole))]
 		[LocalizedSummary(nameof(Summaries.ForAllWithRole))]
 		[Meta("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c", IsEnabled = true)]
 		[RequireGuildPermissions]

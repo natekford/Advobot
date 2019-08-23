@@ -11,8 +11,8 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions
 		where T : ParameterPreconditionAttribute, new()
 	{
 		public FakeCommandContext Context { get; set; } = FakeUtils.CreateContext();
-		public ParameterInfo Parameter { get; set; }
-		public IServiceProvider Services { get; set; }
+		public ParameterInfo? Parameter { get; set; }
+		public IServiceProvider? Services { get; set; }
 
 		protected Task<PreconditionResult> CheckAsync(object value)
 			=> Instance.CheckPermissionsAsync(Context, Parameter, value, Services);

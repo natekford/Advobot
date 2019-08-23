@@ -439,6 +439,33 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prints out help information for a specific command in a specified module..
+        /// </summary>
+        internal static string HelpCommandHelp {
+            get {
+                return ResourceManager.GetString("HelpCommandHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prints out general help information for the bot..
+        /// </summary>
+        internal static string HelpGeneralHelp {
+            get {
+                return ResourceManager.GetString("HelpGeneralHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prints out help information for a module..
+        /// </summary>
+        internal static string HelpModuleHelp {
+            get {
+                return ResourceManager.GetString("HelpModuleHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removed a user from the guild..
         /// </summary>
         internal static string Kick {

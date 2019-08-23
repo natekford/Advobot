@@ -22,9 +22,9 @@ namespace Advobot.Attributes.Preconditions
 			var resizer = services.GetRequiredService<IImageResizer>();
 			if (!resizer.IsGuildAlreadyProcessing(context.Guild.Id))
 			{
-				return this.FromSuccessAsync();
+				return PreconditionUtils.FromSuccessAsync();
 			}
-			return this.FromErrorAsync("Guild already has an image processing.");
+			return PreconditionUtils.FromErrorAsync("Guild already has an image processing.");
 		}
 		/// <inheritdoc />
 		public override string ToString()

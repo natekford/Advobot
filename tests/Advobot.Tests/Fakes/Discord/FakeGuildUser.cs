@@ -8,6 +8,9 @@ namespace Advobot.Tests.Fakes.Discord
 {
 	public class FakeGuildUser : FakeUser, IGuildUser
 	{
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public DateTimeOffset? JoinedAt => throw new NotImplementedException();
 		public string Nickname { get; private set; }
 		public GuildPermissions GuildPermissions => throw new NotImplementedException();
@@ -62,5 +65,8 @@ namespace Advobot.Tests.Fakes.Discord
 			_RoleIds.RemoveWhere(r => roles.Select(x => x.Id).Contains(r));
 			return Task.CompletedTask;
 		}
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

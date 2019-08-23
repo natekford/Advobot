@@ -100,7 +100,7 @@ namespace Advobot.Utilities
 		{
 			if (target == null)
 			{
-				return FromError(null, $"Unable to find a matching `{typeof(T).Name}`.");
+				return FromError($"Unable to find a matching `{typeof(T).Name}`.");
 			}
 			if (rules == null)
 			{
@@ -126,7 +126,7 @@ namespace Advobot.Utilities
 					}
 				}
 			}
-			return FromSuccess(null);
+			return FromSuccess();
 		}
 
 		/// <summary>
@@ -140,7 +140,7 @@ namespace Advobot.Utilities
 		{
 			if (!(target?.VoiceChannel is IVoiceChannel voiceChannel))
 			{
-				return FromErrorAsync(null, "The user is not in a voice channel.");
+				return FromErrorAsync("The user is not in a voice channel.");
 			}
 			var permissions = new[] { ChannelPermission.MoveMembers };
 			var rules = Array.Empty<Precondition<IGuildChannel>>();
@@ -156,9 +156,9 @@ namespace Advobot.Utilities
 		{
 			if (user.Guild.EveryoneRole.Id == target.Id)
 			{
-				return FromErrorAsync(null, "The everyone role cannot be used in that way.");
+				return FromErrorAsync("The everyone role cannot be used in that way.");
 			}
-			return FromSuccessAsync(null);
+			return FromSuccessAsync();
 		}
 		/// <summary>
 		/// Validates if <paramref name="target"/> is not managed.
@@ -170,9 +170,9 @@ namespace Advobot.Utilities
 		{
 			if (target.IsManaged)
 			{
-				return FromErrorAsync(null, "Managed roles cannot be used in that way.");
+				return FromErrorAsync("Managed roles cannot be used in that way.");
 			}
-			return FromSuccessAsync(null);
+			return FromSuccessAsync();
 		}
 		/// <summary>
 		/// Validates if the target is not mentionable.
@@ -184,9 +184,9 @@ namespace Advobot.Utilities
 		{
 			if (target.IsMentionable)
 			{
-				return FromErrorAsync(null, "The role is already mentionable.");
+				return FromErrorAsync("The role is already mentionable.");
 			}
-			return FromSuccessAsync(null);
+			return FromSuccessAsync();
 		}
 
 		/// <summary>
@@ -237,40 +237,30 @@ namespace Advobot.Utilities
 		}
 
 		/// <summary>
-		/// Acts as <see cref="FromSuccess(Attribute)"/> but async.
+		/// Acts as <see cref="FromSuccess()"/> but async.
 		/// </summary>
-		/// <param name="_"></param>
 		/// <returns></returns>
-		public static Task<PreconditionResult> FromSuccessAsync(
-			this Attribute _)
-			=> Task.FromResult(FromSuccess(_));
+		public static Task<PreconditionResult> FromSuccessAsync()
+			=> Task.FromResult(FromSuccess());
 		/// <summary>
 		/// Creates <see cref="PreconditionResult.FromSuccess"/>.
 		/// </summary>
-		/// <param name="_"></param>
 		/// <returns></returns>
-		public static PreconditionResult FromSuccess(
-			this Attribute _)
+		public static PreconditionResult FromSuccess()
 			=> PreconditionResult.FromSuccess();
 		/// <summary>
-		/// Acts as <see cref="FromError(Attribute, string)"/> but async.
+		/// Acts as <see cref="FromError(string)"/> but async.
 		/// </summary>
-		/// <param name="_"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public static Task<PreconditionResult> FromErrorAsync(
-			this Attribute _,
-			string error)
-			=> Task.FromResult(FromError(_, error));
+		public static Task<PreconditionResult> FromErrorAsync(string error)
+			=> Task.FromResult(FromError(error));
 		/// <summary>
 		/// Creates <see cref="PreconditionResult.FromError(string)"/>.
 		/// </summary>
-		/// <param name="_"></param>
 		/// <param name="error"></param>
 		/// <returns></returns>
-		public static PreconditionResult FromError(
-			this Attribute _,
-			string error)
+		public static PreconditionResult FromError(string error)
 			=> PreconditionResult.FromError(error);
 		/// <summary>
 		/// Creates a <see cref="PreconditionResult"/> from the exist status of an object.

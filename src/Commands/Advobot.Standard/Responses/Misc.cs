@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Advobot.Classes;
+using Advobot.Formatting;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
@@ -28,6 +29,11 @@ namespace Advobot.Standard.Responses
 				GetPrefixedCommand(prefix, _Commands),
 				GetPrefixedCommand(prefix, _Help, MiscVariableCategoryParameter)
 			);
+			var syntaxFieldValue = MiscBasicSyntax.Format(
+				(MiscVariableRequiredLeft + MiscVariableRequiredRight).WithBlock(),
+				(MiscVariableOptionalLeft + MiscVariableOptionalRight).WithBlock(),
+				MiscVariableOr.WithBlock()
+			);
 			return Success(new EmbedWrapper
 			{
 				Title = MiscTitleGeneralHelp,
@@ -38,7 +44,7 @@ namespace Advobot.Standard.Responses
 					new EmbedFieldBuilder
 					{
 						Name = MiscTitleBasicSyntax,
-						Value = MiscBasicSyntax,
+						Value = syntaxFieldValue,
 						IsInline = true,
 					},
 					new EmbedFieldBuilder
@@ -64,15 +70,15 @@ namespace Advobot.Standard.Responses
 			IGuildSettings settings)
 		{
 			var info = new InformationMatrix();
-			var aliases = info.CreateCollection();
-			aliases.Add("Aliases", module.Aliases.ToDelimitedString());
-			aliases.Add("Base Permissions", FormatPreconditions(module.Preconditions));
+			var top = info.CreateCollection();
+			top.Add(MiscTitleAliases, module.Aliases.ToDelimitedString());
+			top.Add(MiscTitleBasePermissions, FormatPreconditions(module.Preconditions));
 			var description = info.CreateCollection();
-			description.Add("Description", module.Summary);
+			description.Add(MiscTitleDescription, module.Summary);
 			var meta = info.CreateCollection();
-			meta.Add("Currently Enabled", GetEnabledStatus(module, settings));
-			meta.Add("Enabled By Default", module.EnabledByDefault);
-			meta.Add("Able To Be Toggled", module.AbleToBeToggled);
+			meta.Add(MiscTitleCurrentlyEnabled, GetEnabledStatus(module, settings));
+			meta.Add(MiscTitleEnabledByDefault, module.EnabledByDefault);
+			meta.Add(MiscTitleAbleToBeToggled, module.AbleToBeToggled);
 
 			if (!module.Commands.Any())
 			{
@@ -86,7 +92,7 @@ namespace Advobot.Standard.Responses
 				var parameters = x.Parameters.ToDelimitedString(FormatParameter);
 				return $"\t{i + 1}.{name} ({parameters})";
 			}).ToDelimitedString("\n").WithBigBlock().Value;
-			info.CreateCollection().Add("Commands", commands);
+			info.CreateCollection().Add(MiscTitleCommands, commands);
 
 			return Success(CreateHelpEmbed(module.Name, info.ToString()));
 		}
@@ -94,27 +100,33 @@ namespace Advobot.Standard.Responses
 			IModuleHelpEntry module,
 			int index)
 		{
+			if (module.Commands.Count <= index)
+			{
+				return Failure(MiscInvalidHelpEntryNumber.Format(
+					index.ToString().WithBlock(),
+					module.Name.WithBlock()
+				));
+			}
 			var command = module.Commands[index];
 
 			var info = new InformationMatrix();
-			var aliases = info.CreateCollection();
-			aliases.Add("Aliases", command.Aliases.ToDelimitedString());
-			aliases.Add("Base Permissions", FormatPreconditions(command.Preconditions));
+			var top = info.CreateCollection();
+			top.Add(MiscTitleAliases, command.Aliases.ToDelimitedString());
+			top.Add(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions));
+			var description = info.CreateCollection();
+			description.Add(MiscTitleDescription, command.Summary);
 
-			if (!command.Parameters.Any())
+			var embed = CreateHelpEmbed(module.Name, info.ToString());
+			foreach (var parameter in command.Parameters)
 			{
-				return Success(CreateHelpEmbed(module.Name, info.ToString()));
+				var paramInfo = new InformationMatrix();
+				var paramTop = paramInfo.CreateCollection();
+				paramTop.Add(MiscTitleBasePermissions, FormatPreconditions(parameter.Preconditions));
+				paramTop.Add(MiscTitleDescription, parameter.Summary);
+
+				embed.TryAddField(FormatParameter(parameter), paramInfo.ToString(), true, out _);
 			}
-
-			var parameters = "\n" + command.Parameters.Select((x, i) =>
-			{
-				var name = FormatParameter(x);
-				var summary = x.Summary != null ? $"\n{x.Summary}" : "";
-				return $"\t{i + 1}. {name}{summary}";
-			}).ToDelimitedString("\n").WithBigBlock().Value;
-			info.CreateCollection().Add("Parameters", parameters);
-
-			return Success(CreateHelpEmbed(module.Name, info.ToString()));
+			return Success(embed);
 		}
 		public static AdvobotResult CategoryCommands(
 			IReadOnlyList<IModuleHelpEntry> entries,
@@ -173,26 +185,37 @@ namespace Advobot.Standard.Responses
 		{
 			if (!preconditions.Any())
 			{
-				return "N/A";
+				return MiscVariableNotApplicable;
 			}
 			if (preconditions.Any(x => x.Group == null))
 			{
-				return preconditions.ToDelimitedString(x => x.ToString(), " & ");
+				return preconditions.ToDelimitedString(x => x.ToString(), MiscVariableAnd);
 			}
 
 			var groups = preconditions
 				.GroupBy(x => x.Group)
-				.Select(g => g.ToDelimitedString(x => x.ToString(), " | "))
+				.Select(g => g.ToDelimitedString(x => x.ToString(), MiscVariableOr))
 				.ToArray();
 			if (groups.Length == 1)
 			{
 				return groups[0];
 			}
-
-			return groups.ToDelimitedString(g => $"({g})", " & ");
+			return groups.ToDelimitedString(g => $"({g})", MiscVariableAnd);
+		}
+		private static string FormatPreconditions(IEnumerable<IParameterPrecondition> preconditions)
+		{
+			if (!preconditions.Any())
+			{
+				return MiscVariableNotApplicable;
+			}
+			return preconditions.ToDelimitedString(x => x.ToString(), MiscVariableAnd);
 		}
 		private static string FormatParameter(IParameterHelpEntry p)
-			=> $"{p.TypeName}: {p.Name}";
+		{
+			var left = p.IsOptional ? MiscVariableOptionalLeft : MiscVariableRequiredLeft;
+			var right = p.IsOptional ? MiscVariableOptionalRight : MiscVariableRequiredRight;
+			return $"{left}{p.TypeName}: {p.Name}{right}";
+		}
 		private static bool GetEnabledStatus(IModuleHelpEntry entry, IGuildSettings settings)
 			=> settings?.CommandSettings?.IsCommandEnabled(entry.Id) ?? entry.EnabledByDefault;
 		private static EmbedWrapper CreateHelpEmbed(string name, string entry)

@@ -22,7 +22,8 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Emotes))]
 	public sealed class Emotes : ModuleBase
 	{
-		[Group(nameof(CreateEmote)), ModuleInitialismAlias(typeof(CreateEmote))]
+		[LocalizedGroup(nameof(Groups.CreateEmote))]
+		[LocalizedAlias(nameof(Aliases.CreateEmote))]
 		[LocalizedSummary(nameof(Summaries.CreateEmote))]
 		[Meta("e001108f-5bae-4589-865e-775a2d21e327", IsEnabled = true)]
 		[RateLimit(RateLimitAttribute.TimeUnit.Minutes, 1)]
@@ -36,14 +37,15 @@ namespace Advobot.Standard.Commands
 			public Task<RuntimeResult> Command(
 				[EmoteName] string name,
 				Uri url,
-				[Optional] UserProvidedImageArgs? args)
+				[Optional] UserProvidedImageArgs args)
 			{
 				var position = Enqueue(new EmoteCreationContext(Context, url, args, name));
 				return Responses.Emotes.EnqueuedCreation(name, position);
 			}
 		}
 
-		[Group(nameof(DeleteEmote)), ModuleInitialismAlias(typeof(DeleteEmote))]
+		[LocalizedGroup(nameof(Groups.DeleteEmote))]
+		[LocalizedAlias(nameof(Aliases.DeleteEmote))]
 		[LocalizedSummary(nameof(Summaries.DeleteEmote))]
 		[Meta("104da53d-1cb6-4ee4-8260-ac7398512351", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
@@ -57,7 +59,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(ModifyEmoteName)), ModuleInitialismAlias(typeof(ModifyEmoteName))]
+		[LocalizedGroup(nameof(Groups.ModifyEmoteName))]
+		[LocalizedAlias(nameof(Aliases.ModifyEmoteName))]
 		[LocalizedSummary(nameof(Summaries.ModifyEmoteName))]
 		[Meta("3fe7f72f-c10a-4cc8-b76f-376a1c1aced4", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
@@ -73,7 +76,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(ModifyEmoteRoles)), ModuleInitialismAlias(typeof(ModifyEmoteRoles))]
+		[LocalizedGroup(nameof(Groups.ModifyEmoteRoles))]
+		[LocalizedAlias(nameof(Aliases.ModifyEmoteRoles))]
 		[LocalizedSummary(nameof(Summaries.ModifyEmoteRoles))]
 		[Meta("103b0c35-0bd0-4f72-a010-8a4013601258", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
@@ -110,7 +114,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(DisplayEmotes)), ModuleInitialismAlias(typeof(DisplayEmotes))]
+		[LocalizedGroup(nameof(Groups.DisplayEmotes))]
+		[LocalizedAlias(nameof(Aliases.DisplayEmotes))]
 		[LocalizedSummary(nameof(Summaries.DisplayEmotes))]
 		[Meta("fd5ae4a2-52af-44eb-aef0-347a0df1437b", IsEnabled = true)]
 		[RequireGenericGuildPermissions]

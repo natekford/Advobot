@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using Advobot.Attributes;
 using Discord.Commands;
 
 namespace Advobot.Services.HelpEntries
@@ -17,9 +17,12 @@ namespace Advobot.Services.HelpEntries
 		{
 			Name = command.Name;
 			Summary = command.Summary;
-			Aliases = command.Aliases.Any() ? command.Aliases : ImmutableArray.Create("N/A");
+			Aliases = command.Aliases;
 			Preconditions = command.Preconditions.OfType<IPrecondition>().ToArray();
-			Parameters = command.Parameters.Select(x => new ParameterHelpEntry(x)).ToArray();
+			Parameters = command.Parameters
+				.Where(x => !x.Attributes.Any(a => a is HiddenAttribute))
+				.Select(x => new ParameterHelpEntry(x))
+				.ToArray();
 		}
 	}
 }

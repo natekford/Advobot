@@ -7,12 +7,8 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Sends a message to the author after the time has passed.
 	/// </summary>
-	public class TimedMessage : TimedDatabaseEntry
+	public class TimedMessage : TimedDatabaseEntry<ulong>
 	{
-		/// <summary>
-		/// The user to send the message to.
-		/// </summary>
-		public ulong UserId { get; set; }
 		/// <summary>
 		/// The text to send the user.
 		/// </summary>
@@ -21,16 +17,15 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Creates an instance of <see cref="TimedMessage"/>. Parameterless constructor is used for the database.
 		/// </summary>
-		public TimedMessage() : base(default) { }
+		public TimedMessage() : base(default, TimeSpan.Zero) { }
 		/// <summary>
 		/// Creates an instance of <see cref="TimedMessage"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="author"></param>
 		/// <param name="text"></param>
-		public TimedMessage(TimeSpan time, IUser author, string text) : base(time)
+		public TimedMessage(TimeSpan time, IUser author, string text) : base(author.Id, time)
 		{
-			UserId = author.Id;
 			Text = text;
 		}
 	}

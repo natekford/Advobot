@@ -38,7 +38,7 @@ namespace Advobot.Services.ImageResizing
 		/// <param name="context"></param>
 		/// <param name="url"></param>
 		/// <param name="userArgs"></param>
-		public ImageContextBase(ICommandContext context, Uri url, UserProvidedImageArgs? userArgs)
+		public ImageContextBase(ICommandContext context, Uri url, UserProvidedImageArgs userArgs)
 		{
 			Context = context ?? throw new ArgumentNullException(nameof(context));
 			Url = url ?? throw new ArgumentNullException(nameof(url));

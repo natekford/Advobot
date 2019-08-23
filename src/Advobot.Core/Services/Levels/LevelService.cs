@@ -9,6 +9,7 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
+using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.Levels
@@ -112,17 +113,21 @@ namespace Advobot.Services.Levels
 		}
 		/// <inheritdoc />
 		public int CalculateLevel(int experience)
-			=> Math.Min((int)Math.Pow(Math.Log(experience, Log), Pow), 0); //No negative levels
+		{
+			var logged = Math.Log(experience, Log);
+			var powed = (int)Math.Pow(logged, Pow);
+			return Math.Min(powed, 0); //No negative levels
+		}
 		/// <inheritdoc />
 		public (int Rank, int TotalUsers) GetGuildRank(IGuild guild, IUser user)
-			=> GetRank(guild.Id.ToString(), user.Id);
+			=> GetRank(GetCollectionName(guild), user.Id);
 		/// <inheritdoc />
 		public (int Rank, int TotalUsers) GetGlobalRank(IUser user)
 			=> GetRank("Global", user.Id);
 		/// <inheritdoc />
 		public IUserExperienceInformation GetUserXpInformation(IUser user)
 		{
-			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Get(x => x.UserId == user.Id, 1));
+			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Get(x => x.Id == user.Id, 1));
 			if (!values.Any())
 			{
 				var value = new UserExperienceInformation(user);
@@ -150,10 +155,41 @@ namespace Advobot.Services.Levels
 				Footer = new EmbedFooterBuilder { Text = "Xp Information", },
 			};
 		}
+		protected override void AfterStart(int schema)
+		{
+			if (schema < 3) //Relying on LiteDB
+			{
+				var db = (LiteDatabase)DatabaseWrapper.UnderlyingDatabase;
+				var notWanted = new[] { "UserExperienceInformation", "Meta" };
+				var colNames = db.GetCollectionNames().Where(x => !notWanted.Contains(x));
+				foreach (var colName in colNames)
+				{
+					var col = db.GetCollection(colName);
+					foreach (var doc in col.FindAll())
+					{
+						doc["_id"] = doc["UserId"];
+						doc.Remove("UserId");
+						col.Update(doc);
+					}
+				}
+			}
+		}
 		private void UpdateUserRank(IUserExperienceInformation info, IGuild guild)
 		{
-			UpsertRank(guild.Id.ToString(), info.UserId, info.GetExperience(guild));
-			UpsertRank("Global", info.UserId, info.GetExperience());
+			UpdateRank(GetCollectionName(guild), info.UserId, info.GetExperience(guild));
+			UpdateRank("Global", info.UserId, info.GetExperience());
+		}
+		private string GetCollectionName(IGuild guild)
+		{
+			//LiteDB doesn't support numbers anymore (since 5.0 preview)
+			var name = "";
+			var id = guild.Id;
+			while (--id >= 0)
+			{
+				name = (char)('A' + id % 26) + name;
+				id /= 26;
+			}
+			return name;
 		}
 		private (int Rank, int TotalUsers) GetRank(string collectionName, ulong userId)
 		{
@@ -165,16 +201,16 @@ namespace Advobot.Services.Levels
 			foreach (var entry in all)
 			{
 				++total;
-				if (rank == -1 && entry.UserId == userId)
+				if (rank == -1 && entry.Id == userId)
 				{
 					rank = total;
 				}
 			}
 			return (rank, total);
 		}
-		private void UpsertRank(string collectionName, ulong userId, int experience)
+		private void UpdateRank(string collectionName, ulong userId, int experience)
 		{
-			var insertQuery = DatabaseQuery<LeaderboardPosition>.Upsert(new[] { new LeaderboardPosition(userId, experience) });
+			var insertQuery = DatabaseQuery<LeaderboardPosition>.Update(new[] { new LeaderboardPosition(userId, experience) });
 			insertQuery.CollectionName = collectionName;
 			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}

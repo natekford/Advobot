@@ -125,7 +125,7 @@ namespace Advobot.Standard.Responses
 				user.Format().WithBlock()
 			);
 
-			if (punished && args.Timers != null && args?.Time is TimeSpan ts)
+			if (punished && args?.Timers != null && args?.Time is TimeSpan ts)
 			{
 				str += " " + UsersUnpunishedTime.Format(
 					unpunishment.WithNoMarkdown(),

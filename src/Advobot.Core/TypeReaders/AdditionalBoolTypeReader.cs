@@ -54,13 +54,13 @@ namespace Advobot.TypeReaders
 		{
 			if (TrueVals.Contains(input))
 			{
-				return this.FromSuccessAsync(true);
+				return TypeReaderUtils.FromSuccessAsync(true);
 			}
 			else if (FalseVals.Contains(input))
 			{
-				return this.FromSuccessAsync(false);
+				return TypeReaderUtils.FromSuccessAsync(false);
 			}
-			return this.ParseFailedResultAsync<bool>();
+			return TypeReaderUtils.ParseFailedResultAsync<bool>();
 		}
 	}
 }

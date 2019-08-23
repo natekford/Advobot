@@ -302,9 +302,9 @@
     <value>Links</value>
   </data>
   <data name="MiscBasicSyntax" xml:space="preserve">
-    <value>`[]` means required.
-`&lt;&gt;` means optional.
-`|` means or.</value>
+    <value>{0} means required.
+{1} means optional.
+{2} means or.</value>
   </data>
   <data name="MiscMentionSyntax" xml:space="preserve">
     <value>`User` means `@User|"Username#Discriminator"`
@@ -629,5 +629,53 @@ Type {1} for help with a command.</value>
   </data>
   <data name="UsersActionDone" xml:space="preserve">
     <value>Successfully {0} {1}.</value>
+  </data>
+  <data name="MiscVariableAnd" xml:space="preserve">
+    <value> + </value>
+  </data>
+  <data name="MiscVariableOr" xml:space="preserve">
+    <value> | </value>
+  </data>
+  <data name="MiscVariableNotApplicable" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="MiscVariableRequiredLeft" xml:space="preserve">
+    <value>[</value>
+  </data>
+  <data name="MiscVariableRequiredRight" xml:space="preserve">
+    <value>]</value>
+  </data>
+  <data name="MiscVariableOptionalLeft" xml:space="preserve">
+    <value>&lt;</value>
+  </data>
+  <data name="MiscVariableOptionalRight" xml:space="preserve">
+    <value>&gt;</value>
+  </data>
+  <data name="MiscTitleDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="MiscTitleBasePermissions" xml:space="preserve">
+    <value>Required Permissions</value>
+  </data>
+  <data name="MiscTitleAliases" xml:space="preserve">
+    <value>Aliases</value>
+  </data>
+  <data name="MiscTitleCurrentlyEnabled" xml:space="preserve">
+    <value>Currently Enabled</value>
+  </data>
+  <data name="MiscTitleEnabledByDefault" xml:space="preserve">
+    <value>Enabled By Default</value>
+  </data>
+  <data name="MiscTitleAbleToBeToggled" xml:space="preserve">
+    <value>Able To Be Toggled</value>
+  </data>
+  <data name="MiscTitleCommands" xml:space="preserve">
+    <value>Commands</value>
+  </data>
+  <data name="MiscInvalidHelpEntryNumber" xml:space="preserve">
+    <value>{0} is not a valid help entry command number for {1}.</value>
+  </data>
+  <data name="GuildsVariableNothing" xml:space="preserve">
+    <value>nothing</value>
   </data>
 </root>

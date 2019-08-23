@@ -52,9 +52,8 @@
 
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <NullableContextOptions>enable</NullableContextOptions>
+    <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
-    <NoWarn>CS8632</NoWarn>
   </PropertyGroup>
 
 </Project>

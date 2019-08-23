@@ -112,6 +112,6 @@ namespace Advobot.Services.GuildSettings.UserInformation
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> _Properties.Join("/", x => $"{x.Name[0]}{x.GetValue(this)}");
+			=> _Properties.Join(x => $"{x.Name[0]}{x.GetValue(this)}", "/");
 	}
 }

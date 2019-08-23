@@ -8,7 +8,6 @@ using Advobot.Settings;
 using Advobot.Utilities;
 using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
-using FileMode = LiteDB.FileMode;
 
 namespace Advobot.Databases.LiteDB
 {
@@ -39,12 +38,12 @@ namespace Advobot.Databases.LiteDB
 			//Make sure the file is not currently being used if it exists
 			if (file.Exists)
 			{
-				using var _ = file.Open(System.IO.FileMode.Open, FileAccess.Read, FileShare.None);
+				using var _ = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
 			}
 			return new LiteDatabase(new ConnectionString
 			{
 				Filename = file.FullName,
-				Mode = FileMode.Exclusive, //One of my computers will throw exceptions if this is shared
+				Upgrade = true,
 			}, new BsonMapper());
 		}
 
@@ -90,11 +89,11 @@ namespace Advobot.Databases.LiteDB
 						return collection.Find(Query.All());
 					case DatabaseQuery<T>.DBAction.DeleteFromExpression:
 						var values = new List<T>(collection.Find(options.Selector));
-						collection.Delete(options.Selector);
+						collection.DeleteMany(options.Selector);
 						return values;
 					case DatabaseQuery<T>.DBAction.DeleteFromValues:
 						var ids = options.Values.Select(x => x.Id);
-						collection.Delete(x => ids.Contains(x.Id));
+						collection.DeleteMany(x => ids.Contains(x.Id));
 						return options.Values;
 					default:
 						throw new ArgumentException(nameof(options.Action));

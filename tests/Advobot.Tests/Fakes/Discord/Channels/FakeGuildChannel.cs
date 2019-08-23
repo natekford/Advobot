@@ -10,6 +10,9 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 
 	public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
 	{
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public int Position => throw new NotImplementedException();
 		public FakeGuild Guild { get; }
 		public ulong GuildId => Guild.Id;
@@ -42,5 +45,8 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 			=> throw new NotImplementedException();
 		oldasyncenumerable::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
 			=> throw new NotImplementedException();
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

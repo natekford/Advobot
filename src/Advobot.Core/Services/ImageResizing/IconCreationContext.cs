@@ -26,7 +26,7 @@ namespace Advobot.Services.ImageResizing
 		/// <inheritdoc />
 		public override string Type { get; }
 
-        private readonly Func<ICommandContext, MemoryStream, Task> _Callback;
+		private readonly Func<ICommandContext, MemoryStream, Task> _Callback;
 
 		/// <summary>
 		/// Creates an instance of <see cref="IconCreationContext"/>.
@@ -42,7 +42,7 @@ namespace Advobot.Services.ImageResizing
 			UserProvidedImageArgs? args,
 			string type,
 			Func<ICommandContext, MemoryStream, Task> callback)
-			: base(context, url, args)
+			: base(context, url, args ?? new UserProvidedImageArgs())
 		{
 			Type = type;
 			_Callback = callback;

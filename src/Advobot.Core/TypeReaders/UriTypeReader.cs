@@ -26,9 +26,9 @@ namespace Advobot.TypeReaders
 		{
 			if (Uri.TryCreate(input, UriKind.Absolute, out var url))
 			{
-				return this.FromSuccessAsync(url);
+				return TypeReaderUtils.FromSuccessAsync(url);
 			}
-			return this.ParseFailedResultAsync<Uri>();
+			return TypeReaderUtils.ParseFailedResultAsync<Uri>();
 		}
 	}
 }

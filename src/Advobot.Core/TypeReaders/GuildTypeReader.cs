@@ -32,13 +32,13 @@ namespace Advobot.TypeReaders
 				var guild = await context.Client.GetGuildAsync(id).CAF();
 				if (guild != null)
 				{
-					return this.FromSuccess(guild);
+					return TypeReaderUtils.FromSuccess(guild);
 				}
 			}
 
 			var guilds = await context.Client.GetGuildsAsync().CAF();
 			var matches = guilds.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return this.SingleValidResult(matches, "guilds", input);
+			return TypeReaderUtils.SingleValidResult(matches, "guilds", input);
 		}
 	}
 }

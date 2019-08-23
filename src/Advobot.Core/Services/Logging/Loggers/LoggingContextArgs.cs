@@ -16,14 +16,14 @@ namespace Advobot.Services.Logging.Loggers
 		/// <summary>
 		/// The log counter to increment.
 		/// </summary>
-		public string LogCounterName { get; set; }
+		public string LogCounterName { get; set; } = "";
 		/// <summary>
 		/// Actions to do when the logging context is valid.
 		/// </summary>
-		public Func<LoggingContext, Task>[] WhenCanLog { get; set; }
+		public Func<LoggingContext, Task>[] WhenCanLog { get; set; } = Array.Empty<Func<LoggingContext, Task>>();
 		/// <summary>
 		/// Actions to do no matter the validity of the logging context.
 		/// </summary>
-		public Func<LoggingContext, Task>[] AnyTime { get; set; }
+		public Func<LoggingContext, Task>[] AnyTime { get; set; } = Array.Empty<Func<LoggingContext, Task>>();
 	}
 }

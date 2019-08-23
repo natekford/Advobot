@@ -268,7 +268,7 @@ namespace Advobot.Services.ImageResizing
 			//Look through every directory and any subfolders they have called bin
 			foreach (var dir in directories.SelectMany(x => new[] { x, new DirectoryInfo(Path.Combine(x?.FullName, "bin")) }))
 			{
-				if (!dir.Exists)
+				if (dir == null || !dir.Exists)
 				{
 					continue;
 				}

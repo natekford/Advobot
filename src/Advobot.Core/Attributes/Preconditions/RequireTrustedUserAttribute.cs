@@ -23,9 +23,9 @@ namespace Advobot.Attributes.Preconditions
 			var botSettings = services.GetRequiredService<IBotSettings>();
 			if (botSettings.TrustedUsers.Contains(context.User.Id))
 			{
-				return this.FromSuccessAsync();
+				return PreconditionUtils.FromSuccessAsync();
 			}
-			return this.FromErrorAsync("User is not a trusted user.");
+			return PreconditionUtils.FromErrorAsync("User is not a trusted user.");
 		}
 	}
 }

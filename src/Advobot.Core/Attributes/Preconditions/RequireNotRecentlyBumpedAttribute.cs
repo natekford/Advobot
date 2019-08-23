@@ -23,13 +23,13 @@ namespace Advobot.Attributes.Preconditions
 			var invite = inviteService.Get(context.Guild.Id);
 			if (invite == null)
 			{
-				return this.FromErrorAsync("There is no listed invite.");
+				return PreconditionUtils.FromErrorAsync("There is no listed invite.");
 			}
 			else if ((DateTime.UtcNow - invite.Time).TotalHours > 1)
 			{
-				return this.FromSuccessAsync();
+				return PreconditionUtils.FromSuccessAsync();
 			}
-			return this.FromErrorAsync("The last invite bump was too recent.");
+			return PreconditionUtils.FromErrorAsync("The last invite bump was too recent.");
 		}
 		/// <inheritdoc />
 		public override string ToString()

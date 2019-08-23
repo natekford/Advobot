@@ -16,7 +16,7 @@ namespace Advobot.Gacha.TypeReaders
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			var db = services.GetRequiredService<GachaDatabase>();
-			return this.FromSuccess(await db.GetSourceAsync(1).CAF());
+			return TypeReaderUtils.FromSuccess(await db.GetSourceAsync(1).CAF());
 		}
 	}
 }

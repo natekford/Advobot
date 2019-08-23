@@ -21,7 +21,8 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Webhooks))]
 	public sealed class Webhooks : ModuleBase
 	{
-		[Group(nameof(DisplayWebhooks)), ModuleInitialismAlias(typeof(DisplayWebhooks))]
+		[LocalizedGroup(nameof(Groups.DisplayWebhooks))]
+		[LocalizedAlias(nameof(Aliases.DisplayWebhooks))]
 		[LocalizedSummary(nameof(Summaries.DisplayWebhooks))]
 		[Meta("b8e90320-b827-4b61-81ea-92d43ea1ba6e", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
@@ -41,7 +42,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(CreateWebhook)), ModuleInitialismAlias(typeof(CreateWebhook))]
+		[LocalizedGroup(nameof(Groups.CreateWebhook))]
+		[LocalizedAlias(nameof(Aliases.CreateWebhook))]
 		[LocalizedSummary(nameof(Summaries.CreateWebhook))]
 		[Meta("a177bff8-5ade-4c21-8e6a-97a254c26331", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
@@ -57,7 +59,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(DeleteWebhook)), ModuleInitialismAlias(typeof(DeleteWebhook))]
+		[LocalizedGroup(nameof(Groups.DeleteWebhook))]
+		[LocalizedAlias(nameof(Aliases.DeleteWebhook))]
 		[LocalizedSummary(nameof(Summaries.DeleteWebhook))]
 		[Meta("8fb67520-b0b2-4d77-8588-0b9924b767c0", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
@@ -71,7 +74,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(ModifyWebhookName)), ModuleInitialismAlias(typeof(ModifyWebhookName))]
+		[LocalizedGroup(nameof(Groups.ModifyWebhookName))]
+		[LocalizedAlias(nameof(Aliases.ModifyWebhookName))]
 		[LocalizedSummary(nameof(Summaries.ModifyWebhookName))]
 		[Meta("953dd979-c51a-4a1b-b4ba-05576faf11c2", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
@@ -87,7 +91,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(ModifyWebhookChannel)), ModuleInitialismAlias(typeof(ModifyWebhookChannel))]
+		[LocalizedGroup(nameof(Groups.ModifyWebhookChannel))]
+		[LocalizedAlias(nameof(Aliases.ModifyWebhookChannel))]
 		[LocalizedSummary(nameof(Summaries.ModifyWebhookChannel))]
 		[Meta("082ca529-66b7-4c39-ade2-3f2501778070", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
@@ -103,7 +108,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(ModifyWebhookIcon)), ModuleInitialismAlias(typeof(ModifyWebhookIcon))]
+		[LocalizedGroup(nameof(Groups.ModifyWebhookIcon))]
+		[LocalizedAlias(nameof(Aliases.ModifyWebhookIcon))]
 		[LocalizedSummary(nameof(Summaries.ModifyWebhookIcon))]
 		[Meta("bcfae3ac-2e52-4151-b692-738ed7297bab", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
@@ -124,7 +130,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(SpeakThroughWebhook)), ModuleInitialismAlias(typeof(SpeakThroughWebhook))]
+		[LocalizedGroup(nameof(Groups.SpeakThroughWebhook))]
+		[LocalizedAlias(nameof(Aliases.SpeakThroughWebhook))]
 		[LocalizedSummary(nameof(Summaries.SpeakThroughWebhook))]
 		[Meta("d830df02-b33b-4e95-88d7-8acb029506f6")]
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]

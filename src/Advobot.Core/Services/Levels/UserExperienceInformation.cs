@@ -9,12 +9,10 @@ namespace Advobot.Services.Levels
 	/// <summary>
 	/// Holds the experience a user has.
 	/// </summary>
-	internal sealed class UserExperienceInformation : TimedDatabaseEntry, IUserExperienceInformation
+	internal sealed class UserExperienceInformation : TimedDatabaseEntry<ulong>, IUserExperienceInformation
 	{
 		private const int _MESSAGE_AMOUNT = 10;
 
-		/// <inheritdoc />
-		public ulong UserId { get; set; }
 		/// <inheritdoc />
 		public int MessageCount { get; set; }
 		/// <summary>
@@ -29,20 +27,17 @@ namespace Advobot.Services.Levels
 		/// <summary>
 		/// Creates an instance of <see cref="UserExperienceInformation"/>.
 		/// </summary>
-		public UserExperienceInformation() : base(TimeSpan.Zero) { }
+		public UserExperienceInformation() : base(0, TimeSpan.Zero) { }
 		/// <summary>
 		/// Creates an instance of <see cref="UserExperienceInformation"/> with the supplied user id.
 		/// </summary>
 		/// <param name="user"></param>
-		public UserExperienceInformation(IUser user) : this()
-		{
-			UserId = user.Id;
-		}
+		public UserExperienceInformation(IUser user) : base(user.Id, TimeSpan.Zero) { }
 
 		/// <inheritdoc />
 		public void AddExperience(IUserMessage message, int experience)
 		{
-			if (message.Author.Id != UserId)
+			if (message.Author.Id != Id)
 			{
 				return;
 			}
@@ -62,7 +57,7 @@ namespace Advobot.Services.Levels
 		/// <inheritdoc />
 		public void RemoveExperience(IUserMessage message, int xp)
 		{
-			if (message.Author.Id != UserId)
+			if (message.Author.Id != Id)
 			{
 				return;
 			}
@@ -70,12 +65,6 @@ namespace Advobot.Services.Levels
 			GetChannels((ITextChannel)message.Channel)[message.Channel.Id] -= xp;
 			--MessageCount;
 		}
-		/// <summary>
-		/// Calculates what xp to give from the passed in xp.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="experience"></param>
-		/// <returns></returns>
 		private int CalculateExperience(IUserMessage message, int experience)
 		{
 			var rng = new Random();
@@ -96,11 +85,6 @@ namespace Advobot.Services.Levels
 				: 1 - Math.Min((MessageHashes.Count(x => x.Hash == MessageHashes.Last().Hash) - 1) * .1, .6);
 			return (int)Math.Round(xp * msgLengthFactor * attachmentFactor * spamFactor);
 		}
-		/// <summary>
-		/// Gets the dictionary holding xp for the guild and makes sure the channel has a value in it.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <returns></returns>
 		private Dictionary<ulong, int> GetChannels(ITextChannel channel)
 		{
 			if (!Experience.TryGetValue(channel.Guild.Id, out var channels))
@@ -133,5 +117,8 @@ namespace Advobot.Services.Levels
 		/// <inheritdoc />
 		public int GetExperience(ITextChannel channel)
 			=> Experience.TryGetValue(channel.Guild.Id, out var channels) && channels.TryGetValue(channel.Id, out var xp) ? xp : 0;
+
+		//IUserExperienceInformation
+		ulong IUserExperienceInformation.UserId => Id;
 	}
 }

@@ -20,9 +20,9 @@ namespace Advobot.Attributes.Preconditions
 		{
 			if (await context.Client.GetOwnerIdAsync().CAF() == context.User.Id)
 			{
-				return this.FromSuccess();
+				return PreconditionUtils.FromSuccess();
 			}
-			return this.FromError("You are not the bot owner.");
+			return PreconditionUtils.FromError("You are not the bot owner.");
 		}
 		/// <inheritdoc />
 		public override string ToString()

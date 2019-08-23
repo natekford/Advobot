@@ -30,7 +30,7 @@ namespace Advobot.TypeReaders
 			IServiceProvider services)
 		{
 			var matches = Enums.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return this.SingleValidResultAsync(matches, "enums", input);
+			return TypeReaderUtils.SingleValidResultAsync(matches, "enums", input);
 		}
 	}
 }

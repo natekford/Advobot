@@ -1,13 +1,13 @@
-﻿using Advobot.Gacha.Database;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Trading;
 using Advobot.GachaTests.Utilities;
 using AdvorangesUtils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.GachaTests.UnitTests
 {
@@ -30,7 +30,7 @@ namespace Advobot.GachaTests.UnitTests
 			Assert.AreEqual(1, modifiedClaims);
 
 			var newClaim = await db.GetClaimAsync(users[0], givenCharacter).CAF();
-			Assert.AreNotEqual(null, newClaim);
+			Assert.IsNotNull(newClaim);
 			Assert.AreEqual(users[0].UserId, newClaim.UserId);
 		}
 		[TestMethod]
@@ -71,7 +71,7 @@ namespace Advobot.GachaTests.UnitTests
 			for (var i = 0; i < 2; ++i)
 			{
 				var newClaim = await db.GetClaimAsync(users[i], swappedCharacters[i]).CAF();
-				Assert.AreNotEqual(null, newClaim);
+				Assert.IsNotNull(newClaim);
 				Assert.AreEqual(users[i].UserId, newClaim.UserId);
 			}
 		}

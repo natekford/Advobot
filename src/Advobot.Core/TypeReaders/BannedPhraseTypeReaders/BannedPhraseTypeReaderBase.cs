@@ -30,7 +30,7 @@ namespace Advobot.TypeReaders.BannedPhraseTypeReaders
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var matches = GetBannedPhrases(settings).Where(x => x.Phrase.CaseInsEquals(input)).ToArray();
-			return this.SingleValidResult(matches, $"banned {BannedPhraseName}", input);
+			return TypeReaderUtils.SingleValidResult(matches, $"banned {BannedPhraseName}", input);
 		}
 		/// <summary>
 		/// Gets banned phrases from <paramref name="settings"/>.

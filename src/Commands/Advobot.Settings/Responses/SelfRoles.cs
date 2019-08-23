@@ -30,7 +30,7 @@ namespace Advobot.Settings.Responses
 			return Success(new EmbedWrapper
 			{
 				Title = "Self Assignable Role Groups",
-				Description = BigBlock.FormatInterpolated($"{groups.OrderBy(x => x.Group).Join("\n", x => x.Group.ToString())}"),
+				Description = BigBlock.FormatInterpolated($"{groups.OrderBy(x => x.Group).Join(x => x.Group.ToString(), "\n")}"),
 			});
 		}
 		public static AdvobotResult DisplayGroup(IGuild guild, SelfAssignableRoles group)
@@ -39,7 +39,7 @@ namespace Advobot.Settings.Responses
 			return Success(new EmbedWrapper
 			{
 				Title = Title.FormatInterpolated($"Self Assignable Roles Group {group.Group}"),
-				Description = BigBlock.FormatInterpolated($"{validRoles.Join("\n", x => x.Format())}"),
+				Description = BigBlock.FormatInterpolated($"{validRoles.Join(x => x.Format(), "\n")}"),
 			});
 		}
 	}

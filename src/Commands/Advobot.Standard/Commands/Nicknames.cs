@@ -19,7 +19,8 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Nicknames))]
 	public sealed class Nicknames : ModuleBase
 	{
-		[Group(nameof(ModifyNickName)), ModuleInitialismAlias(typeof(ModifyNickName))]
+		[LocalizedGroup(nameof(Groups.ModifyNickName))]
+		[LocalizedAlias(nameof(Aliases.ModifyNickName))]
 		[LocalizedSummary(nameof(Summaries.ModifyNickName))]
 		[Meta("3e6e2221-3929-4bc3-a019-cfa5b04b5621", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageNicknames)]
@@ -42,7 +43,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(ReplaceWordsInNames)), ModuleInitialismAlias(typeof(ReplaceWordsInNames))]
+		[LocalizedGroup(nameof(Groups.ReplaceWordsInNames))]
+		[LocalizedAlias(nameof(Aliases.ReplaceWordsInNames))]
 		[LocalizedSummary(nameof(Summaries.ReplaceWordsInNames))]
 		[Meta("f637abf3-f944-413a-95d3-d06aa07921fd", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageNicknames)]
@@ -62,7 +64,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(ReplaceByUtf16)), ModuleInitialismAlias(typeof(ReplaceByUtf16))]
+		[LocalizedGroup(nameof(Groups.ReplaceByUtf16))]
+		[LocalizedAlias(nameof(Aliases.ReplaceByUtf16))]
 		[LocalizedSummary(nameof(Summaries.ReplaceByUtf16))]
 		[Meta("8d4e53fd-c728-4e55-9262-3078468738e5", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageNicknames)]
@@ -82,7 +85,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(RemoveAllNickNames)), ModuleInitialismAlias(typeof(RemoveAllNickNames))]
+		[LocalizedGroup(nameof(Groups.RemoveAllNickNames))]
+		[LocalizedAlias(nameof(Aliases.RemoveAllNickNames))]
 		[LocalizedSummary(nameof(Summaries.RemoveAllNickNames))]
 		[Meta("d31a48de-ad5d-4f15-b216-299b8b8c66dd", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageNicknames)]

@@ -17,7 +17,7 @@ namespace Advobot.Attributes.Preconditions
 			ICommandContext context,
 			CommandInfo command,
 			IServiceProvider services)
-			=> this.FromErrorAsync("This command is disabled globally.");
+			=> PreconditionUtils.FromErrorAsync("This command is disabled globally.");
 		/// <inheritdoc />
 		public override string ToString()
 			=> "This command will never be invokable because it is disabled";

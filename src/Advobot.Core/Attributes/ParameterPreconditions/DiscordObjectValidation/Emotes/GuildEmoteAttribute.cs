@@ -25,11 +25,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 		{
 			if (!(context.User is IGuildUser user))
 			{
-				return this.FromError("Invalid user.");
+				return PreconditionUtils.FromError("Invalid user.");
 			}
 			if (!(value is GuildEmote invite))
 			{
-				return this.FromError("Invalid invite.");
+				return PreconditionUtils.FromError("Invalid invite.");
 			}
 
 			foreach (var rule in GetPreconditions())
@@ -40,7 +40,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 					return result;
 				}
 			}
-			return this.FromSuccess();
+			return PreconditionUtils.FromSuccess();
 		}
 		/// <summary>
 		/// Extra checks to use in validation.

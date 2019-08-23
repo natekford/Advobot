@@ -17,7 +17,8 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Client))]
 	public sealed class Client : ModuleBase
 	{
-		[Group(nameof(ModifyBotName)), ModuleInitialismAlias(typeof(ModifyBotName))]
+		[LocalizedGroup(nameof(Groups.ModifyBotName))]
+		[LocalizedAlias(nameof(Aliases.ModifyBotName))]
 		[LocalizedSummary(nameof(Summaries.ModifyBotName))]
 		[Meta("6882dc55-3557-4366-8c4c-2954b46cfb2b", IsEnabled = true)]
 		[RequireBotOwner]
@@ -31,7 +32,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(ModifyBotIcon)), ModuleInitialismAlias(typeof(ModifyBotIcon))]
+		[LocalizedGroup(nameof(Groups.ModifyBotIcon))]
+		[LocalizedAlias(nameof(Aliases.ModifyBotIcon))]
 		[LocalizedSummary(nameof(Summaries.ModifyBotIcon))]
 		[Meta("096006e2-da07-4935-ab35-4e5099663da9", IsEnabled = true)]
 		[RequireBotOwner]
@@ -52,7 +54,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(DisconnectBot)), ModuleInitialismAlias(new[] { "runescapeservers" }, typeof(DisconnectBot))]
+		[LocalizedGroup(nameof(Groups.DisconnectBot))]
+		[ModuleInitialismAlias(new[] { "runescapeservers" }, typeof(DisconnectBot))]
 		[LocalizedSummary(nameof(Summaries.DisconnectBot))]
 		[Meta("10f3bf15-0652-4bd7-a29f-630136d0164a", IsEnabled = true)]
 		[RequireBotOwner]
@@ -63,7 +66,8 @@ namespace Advobot.Standard.Commands
 				=> Context.Client.DisconnectBotAsync();
 		}
 
-		[Group(nameof(RestartBot)), ModuleInitialismAlias(typeof(RestartBot))]
+		[LocalizedGroup(nameof(Groups.RestartBot))]
+		[LocalizedAlias(nameof(Aliases.RestartBot))]
 		[LocalizedSummary(nameof(Summaries.RestartBot))]
 		[Meta("ca7caf70-9f40-4931-a99a-96f667edda16", IsEnabled = true)]
 		[RequireBotOwner]

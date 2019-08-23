@@ -25,13 +25,13 @@ namespace Advobot.TypeReaders
 		{
 			if (!int.TryParse(input, out var group))
 			{
-				return this.ParseFailedResult<int>();
+				return TypeReaderUtils.ParseFailedResult<int>();
 			}
 
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var matches = settings.SelfAssignableGroups.Where(x => x.Group == group).ToArray();
-			return this.SingleValidResult(matches, "self assignable role groups", input);
+			return TypeReaderUtils.SingleValidResult(matches, "self assignable role groups", input);
 		}
 	}
 }

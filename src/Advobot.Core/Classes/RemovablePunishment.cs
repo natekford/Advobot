@@ -8,7 +8,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Punishments that will be removed after the time has passed.
 	/// </summary>
-	public class RemovablePunishment : TimedDatabaseEntry
+	public class RemovablePunishment : TimedDatabaseEntry<Guid>
 	{
 		/// <summary>
 		/// The type of punishment that was given.
@@ -30,7 +30,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Creates an instance of <see cref="RemovablePunishment"/>. Parameterless constructor is used for the database.
 		/// </summary>
-		public RemovablePunishment() : base(default) { }
+		public RemovablePunishment() : base(Guid.NewGuid(), default) { }
 		/// <summary>
 		/// Creates an instance of <see cref="RemovablePunishment"/>.
 		/// </summary>
@@ -38,7 +38,12 @@ namespace Advobot.Classes
 		/// <param name="punishment"></param>
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
-		public RemovablePunishment(TimeSpan time, Punishment punishment, IGuild guild, IUser user) : base(time)
+		public RemovablePunishment(
+			TimeSpan time,
+			Punishment punishment,
+			IGuild guild,
+			IUser user)
+			: base(Guid.NewGuid(), time)
 		{
 			PunishmentType = punishment;
 			GuildId = guild.Id;
@@ -52,7 +57,12 @@ namespace Advobot.Classes
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <param name="role"></param>
-		public RemovablePunishment(TimeSpan time, IRole role, IGuild guild, IUser user) : this(time, Punishment.RoleMute, guild, user)
+		public RemovablePunishment(
+			TimeSpan time,
+			IRole role,
+			IGuild guild,
+			IUser user)
+			: this(time, Punishment.RoleMute, guild, user)
 		{
 			RoleId = role.Id;
 		}

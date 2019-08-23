@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Formatting;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging;
@@ -461,7 +462,7 @@ namespace Advobot.Standard.Responses
 			var meta = info.CreateCollection();
 			meta.Add(GetsTitleCreator, invite.Inviter.Format());
 			meta.Add(GetsTitleChannel, invite.Channel.Format());
-			meta.Add(GetsTitleUses, invite.Uses.Value);
+			meta.Add(GetsTitleUses, invite.Uses ?? 0);
 
 			return Success(new EmbedWrapper
 			{
@@ -517,10 +518,11 @@ namespace Advobot.Standard.Responses
 		}
 		public static AdvobotResult UserJoinPosition(IGuildUser user, int position)
 		{
+			var joined = user.JoinedAt ?? DateTimeOffset.UtcNow;
 			return Success(GetsUserJoinPosition.Format(
 				user.Format().WithBlock(),
 				position.ToString().WithBlock(),
-				user.JoinedAt.Value.UtcDateTime.ToReadable().WithBlock()
+				joined.UtcDateTime.ToReadable().WithBlock()
 			));
 		}
 		public static AdvobotResult Guilds(IReadOnlyCollection<IGuild> guilds)
@@ -537,10 +539,14 @@ namespace Advobot.Standard.Responses
 		}
 		public static AdvobotResult UserJoin(IReadOnlyCollection<IGuildUser> users)
 		{
-			var text = users.FormatNumberedList(x => GetsUserJoins.Format(
-				x.Format().WithNoMarkdown(),
-				x.JoinedAt.Value.UtcDateTime.ToReadable().WithNoMarkdown()
-			));
+			var text = users.OrderBy(x => x.JoinedAt).FormatNumberedList(x =>
+			{
+				var joined = x.JoinedAt ?? DateTimeOffset.UtcNow;
+				return GetsUserJoins.Format(
+					x.Format().WithNoMarkdown(),
+					joined.UtcDateTime.ToReadable().WithNoMarkdown()
+				);
+			});
 			return Success(new TextFileInfo
 			{
 				Name = GetsFileUserJoins,
@@ -603,70 +609,5 @@ namespace Advobot.Standard.Responses
 				Description = description,
 			});
 		}
-	}
-
-	internal sealed class InformationMatrix
-	{
-		public IReadOnlyList<InformationCollection> Collections => _Collections.AsReadOnly();
-
-		private readonly List<InformationCollection> _Collections = new List<InformationCollection>();
-
-		public InformationCollection AddTimeCreatedCollection(ISnowflakeEntity e)
-			=> AddTimeCreatedCollection(e.Id.ToString(), e.CreatedAt.UtcDateTime);
-		public InformationCollection AddTimeCreatedCollection(string id, DateTime dt)
-		{
-			var diff = (DateTime.UtcNow - dt).TotalDays;
-			var collection = CreateCollection();
-			collection.Add("Id", id);
-			collection.Add("Created At", $"{dt.ToReadable()} ({diff:0.00} days ago)");
-			return collection;
-		}
-		public InformationCollection CreateCollection()
-		{
-			var collection = new InformationCollection();
-			_Collections.Add(collection);
-			return collection;
-		}
-
-		public override string ToString()
-		{
-			//Any collections with no information in them dont need to be added
-			var valid = Collections.Where(x => x.Information.Any());
-			return valid.ToDelimitedString(x => x.ToString(), "\n\n");
-		}
-	}
-
-	internal sealed class InformationCollection
-	{
-		public IReadOnlyList<Information> Information => _Information.AsReadOnly();
-
-		private readonly List<Information> _Information = new List<Information>();
-
-		public void Add(string title, string value, string joiner = " ")
-			=> _Information.Add(new Information(title, value, joiner));
-		public void Add(string title, int value)
-			=> Add(title, value.ToString());
-		public void Add(string title, bool value)
-			=> Add(title, value.ToString());
-
-		public override string ToString()
-			=> _Information.ToDelimitedString(x => x.ToString(), "\n");
-	}
-
-	internal sealed class Information
-	{
-		public string Title { get; }
-		public string Joiner { get; }
-		public string Value { get; }
-
-		public Information(string title, string value, string joiner)
-		{
-			Title = title;
-			Joiner = joiner;
-			Value = value;
-		}
-
-		public override string ToString()
-			=> $"{Title.AsTitleWithColon()}{Joiner}{Value}";
 	}
 }

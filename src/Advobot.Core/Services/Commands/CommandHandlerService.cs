@@ -105,7 +105,7 @@ namespace Advobot.Services.Commands
 						foreach (var command in module.Submodules)
 						{
 							++commandCount;
-							if (!command.Attributes.Any(a => a is DontAddHelpEntryAttribute))
+							if (!command.Attributes.Any(a => a is HiddenAttribute))
 							{
 								++helpEntryCount;
 								_HelpEntries.Add(new ModuleHelpEntry(command));

@@ -54,10 +54,10 @@ namespace Advobot.Attributes.Preconditions
 			var dict = _Times.GetOrAdd(command.Name, new ConcurrentDictionary<ulong, DateTime>());
 			if (dict.TryGetValue(context.User.Id, out var time) && DateTime.UtcNow < time)
 			{
-				return this.FromErrorAsync($"Command can be next used at `{time.ToLongTimeString()}`.");
+				return PreconditionUtils.FromErrorAsync($"Command can be next used at `{time.ToLongTimeString()}`.");
 			}
 			dict[context.User.Id] = DateTime.UtcNow.Add(Time);
-			return this.FromSuccessAsync();
+			return PreconditionUtils.FromSuccessAsync();
 		}
 		/// <inheritdoc />
 		public override string ToString()

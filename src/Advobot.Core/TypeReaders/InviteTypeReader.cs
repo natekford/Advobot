@@ -32,7 +32,7 @@ namespace Advobot.TypeReaders
 				var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(input));
 				if (invite != null)
 				{
-					return this.FromSuccess(invite);
+					return TypeReaderUtils.FromSuccess(invite);
 				}
 			}
 
@@ -41,11 +41,11 @@ namespace Advobot.TypeReaders
 				//TODO: put the invite.GuildId == context.Guild.Id into parameter precon?
 				if (invite is IInviteMetadata meta && invite.GuildId == context.Guild.Id)
 				{
-					return this.FromSuccess(meta);
+					return TypeReaderUtils.FromSuccess(meta);
 				}
 			}
 
-			return this.SingleValidResult(Array.Empty<IInviteMetadata>(), "invites", input);
+			return TypeReaderUtils.SingleValidResult(Array.Empty<IInviteMetadata>(), "invites", input);
 		}
 	}
 }

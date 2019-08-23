@@ -17,13 +17,16 @@ namespace Advobot.Tests.Fakes.Services
 		public bool ValidatedPath => true;
 		public bool ValidatedKey => true;
 		public string RestartArguments => "";
-		public DirectoryInfo BaseBotDirectory => null;
+		public DirectoryInfo BaseBotDirectory => throw new NotImplementedException();
 
 		public Task StartAsync(BaseSocketClient client)
 			=> Task.CompletedTask;
-		public Task<bool> ValidateBotKey(string input, bool startup, Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
+		public Task<bool> ValidateBotKey(
+			string? input,
+			bool startup,
+			Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
 			=> Task.FromResult(true);
-		public bool ValidatePath(string input, bool startup)
+		public bool ValidatePath(string? input, bool startup)
 			=> true;
 	}
 }

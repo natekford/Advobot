@@ -33,12 +33,12 @@ namespace Advobot.TypeReaders
 				var webhook = webhooks.FirstOrDefault(x => x.Id == id);
 				if (webhook != null)
 				{
-					return this.FromSuccess(webhook);
+					return TypeReaderUtils.FromSuccess(webhook);
 				}
 			}
 
 			var matches = webhooks.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return this.SingleValidResult(matches, "webhooks", input);
+			return TypeReaderUtils.SingleValidResult(matches, "webhooks", input);
 		}
 	}
 }

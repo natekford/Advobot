@@ -29,9 +29,9 @@ namespace Advobot.Attributes.Preconditions.Logs
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			if (GetId(settings) != 0)
 			{
-				return this.FromSuccess();
+				return PreconditionUtils.FromSuccess();
 			}
-			return this.FromError($"There is no {LogName} log to remove.");
+			return PreconditionUtils.FromError($"There is no {LogName} log to remove.");
 		}
 		/// <summary>
 		/// Gets the current id of the log channel.

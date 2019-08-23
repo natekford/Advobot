@@ -11,12 +11,13 @@ namespace Advobot.Tests.Fakes.Discord
 
 	public class FakeUserMessage : FakeMessage, IUserMessage
 	{
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
 
 		public FakeUserMessage(FakeMessageChannel channel, FakeUser author, string content)
-			: base(channel, author, content)
-		{
-		}
+			: base(channel, author, content) { }
 
 		public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
 			=> throw new NotImplementedException();
@@ -38,5 +39,8 @@ namespace Advobot.Tests.Fakes.Discord
 			=> throw new NotImplementedException();
 		public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
 			=> throw new NotImplementedException();
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

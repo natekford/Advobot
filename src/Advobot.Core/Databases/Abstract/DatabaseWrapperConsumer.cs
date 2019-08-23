@@ -69,7 +69,7 @@ namespace Advobot.Databases.Abstract
 		public void Dispose()
 		{
 			BeforeDispose();
-			_DatabaseWrapper.Dispose();
+			_DatabaseWrapper?.Dispose();
 		}
 		/// <summary>
 		/// Actions to do before the database connection has been disposed.

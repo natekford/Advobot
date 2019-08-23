@@ -8,10 +8,10 @@
 		/// <summary>
 		/// Specifies to use a LiteDB database.
 		/// </summary>
-		LiteDB,
+		LiteDB = 0,
 		/// <summary>
 		/// Specifies to use a MongoDB database.
 		/// </summary>
-		MongoDB,
+		MongoDB = 1,
 	}
 }

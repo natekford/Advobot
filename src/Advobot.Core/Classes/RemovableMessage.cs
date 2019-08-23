@@ -10,7 +10,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Messages that will get deleted after the time has passed.
 	/// </summary>
-	public class RemovableMessage : TimedDatabaseEntry
+	public class RemovableMessage : TimedDatabaseEntry<Guid>
 	{
 		/// <summary>
 		/// The id of the guild from the passed in context.
@@ -32,14 +32,17 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Creates an instance of <see cref="RemovableMessage"/>. Parameterless constructor is used for the database.
 		/// </summary>
-		public RemovableMessage() : base() { }
+		public RemovableMessage() : base(Guid.NewGuid(), TimeSpan.Zero) { }
 		/// <summary>
 		/// Creates an instance of <see cref="RemovableMessage"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="context"></param>
 		/// <param name="messages"></param>
-		public RemovableMessage(ICommandContext context, IEnumerable<IMessage> messages, TimeSpan time = default)
+		public RemovableMessage(
+			ICommandContext context,
+			IEnumerable<IMessage> messages,
+			TimeSpan time = default)
 			: this(context.Guild, context.Channel, context.User, messages, time) { }
 		/// <summary>
 		/// Creates an instance of removable messages with the supplied messages on the guild/channel passed in.
@@ -49,8 +52,13 @@ namespace Advobot.Classes
 		/// <param name="channel"></param>
 		/// <param name="user"></param>
 		/// <param name="messages"></param>
-		public RemovableMessage(IGuild guild, IMessageChannel channel, IUser user, IEnumerable<IMessage> messages, TimeSpan time = default)
-			: base(time)
+		public RemovableMessage(
+			IGuild guild,
+			IMessageChannel channel,
+			IUser user,
+			IEnumerable<IMessage> messages,
+			TimeSpan time = default)
+			: base(Guid.NewGuid(), time)
 		{
 			GuildId = guild.Id;
 			ChannelId = channel.Id;

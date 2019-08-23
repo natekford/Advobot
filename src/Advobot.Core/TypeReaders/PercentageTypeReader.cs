@@ -27,9 +27,9 @@ namespace Advobot.TypeReaders
 		{
 			if (double.TryParse(input, out var val))
 			{
-				return this.FromSuccessAsync(new Percentage(val));
+				return TypeReaderUtils.FromSuccessAsync(new Percentage(val));
 			}
-			return this.ParseFailedResultAsync<Percentage>();
+			return TypeReaderUtils.ParseFailedResultAsync<Percentage>();
 		}
 	}
 }

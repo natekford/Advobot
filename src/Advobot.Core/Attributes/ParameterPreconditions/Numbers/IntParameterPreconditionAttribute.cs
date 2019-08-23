@@ -65,9 +65,9 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 			var numbers = GetNumbers(context, parameter, services);
 			if (numbers.Contains(value))
 			{
-				return this.FromSuccessAsync();
+				return PreconditionUtils.FromSuccessAsync();
 			}
-			return this.FromErrorAsync($"Invalid {parameter?.Name} supplied, must be in `{Numbers}`");
+			return PreconditionUtils.FromErrorAsync($"Invalid {parameter?.Name} supplied, must be in `{Numbers}`");
 		}
 		/// <summary>
 		/// Returns the number to use for the start.

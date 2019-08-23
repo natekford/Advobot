@@ -405,4 +405,13 @@
   <data name="ModifyGuildAfkChannel" xml:space="preserve">
     <value>Modifies which channel is the afk channel.</value>
   </data>
+  <data name="HelpGeneralHelp" xml:space="preserve">
+    <value>Prints out general help information for the bot.</value>
+  </data>
+  <data name="HelpModuleHelp" xml:space="preserve">
+    <value>Prints out help information for a module.</value>
+  </data>
+  <data name="HelpCommandHelp" xml:space="preserve">
+    <value>Prints out help information for a specific command in a specified module.</value>
+  </data>
 </root>

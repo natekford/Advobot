@@ -27,11 +27,11 @@ namespace Advobot.TypeReaders
 		{
 			if (!int.TryParse(input, out var position))
 			{
-				return this.ParseFailedResult<int>();
+				return TypeReaderUtils.ParseFailedResult<int>();
 			}
 
 			var matches = (await GetObjectsWithPositionAsync(context, position).CAF()).ToArray();
-			return this.SingleValidResult(matches, $"{ObjectTypeName} by position", input);
+			return TypeReaderUtils.SingleValidResult(matches, $"{ObjectTypeName} by position", input);
 		}
 		/// <summary>
 		/// Gets objects with the supplied position.

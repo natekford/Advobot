@@ -10,6 +10,9 @@ namespace Advobot.Tests.Fakes.Discord
 {
 	public class FakeMessage : FakeSnowflake, IMessage
 	{
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public MessageType Type => throw new NotImplementedException();
 		public MessageSource Source => throw new NotImplementedException();
 		public bool IsTTS => throw new NotImplementedException();
@@ -41,5 +44,8 @@ namespace Advobot.Tests.Fakes.Discord
 
 		IMessageChannel IMessage.Channel => Channel;
 		IUser IMessage.Author => Author;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

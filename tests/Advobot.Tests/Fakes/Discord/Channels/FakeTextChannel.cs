@@ -11,6 +11,9 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 
 	public class FakeTextChannel : FakeGuildChannel, ITextChannel
 	{
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public bool IsNsfw => throw new NotImplementedException();
 		public string Topic => throw new NotImplementedException();
 		public int SlowModeInterval => throw new NotImplementedException();
@@ -39,5 +42,8 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 			=> throw new NotImplementedException();
 		public Task SyncPermissionsAsync(RequestOptions options = null)
 			=> throw new NotImplementedException();
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

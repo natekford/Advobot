@@ -1,8 +1,8 @@
-﻿using Advobot.Classes;
+﻿using System;
+using System.Collections.Generic;
+using Advobot.Classes;
 using Discord;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 
 namespace Advobot.Tests.UnitTests
 {
@@ -119,8 +119,8 @@ namespace Advobot.Tests.UnitTests
 				Assert.AreEqual(false, success);
 				Assert.AreEqual(2, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Author.Name);
-				Assert.AreEqual(null, x.Author.IconUrl);
-				Assert.AreEqual(null, x.Author.Url);
+				Assert.IsNotNull(x.Author.IconUrl);
+				Assert.IsNotNull(x.Author.Url);
 			});
 			RunAuthorTest(x =>
 			{
@@ -128,8 +128,8 @@ namespace Advobot.Tests.UnitTests
 				Assert.AreEqual(false, success);
 				Assert.AreEqual(2, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Author.Name);
-				Assert.AreEqual(null, x.Author.IconUrl);
-				Assert.AreEqual(null, x.Author.Url);
+				Assert.IsNotNull(x.Author.IconUrl);
+				Assert.IsNotNull(x.Author.Url);
 			});
 			RunAuthorTest(x =>
 			{
@@ -137,8 +137,8 @@ namespace Advobot.Tests.UnitTests
 				Assert.AreEqual(false, success);
 				Assert.AreEqual(1, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Author.Name);
-				Assert.AreEqual(null, x.Author.IconUrl);
-				Assert.AreEqual(null, x.Author.Url);
+				Assert.IsNotNull(x.Author.IconUrl);
+				Assert.IsNotNull(x.Author.Url);
 			});
 			RunAuthorTest(x =>
 			{
@@ -147,13 +147,13 @@ namespace Advobot.Tests.UnitTests
 				Assert.AreEqual(0, errors.Count);
 				Assert.AreEqual(VALID_STRING_2, x.Author.Name);
 				Assert.AreEqual(VALID_URL, x.Author.Url);
-				Assert.AreEqual(null, x.Author.IconUrl);
+				Assert.IsNotNull(x.Author.IconUrl);
 			});
 		}
 
 		private void UrlTest(
 			Func<EmbedWrapper, string, (bool, IReadOnlyList<IEmbedError>)> tryAdd,
-			Func<EmbedWrapper, string> getter)
+			Func<EmbedWrapper, string?> getter)
 		{
 			static void RunUrlTest(Action<EmbedWrapper> action)
 				=> action(new EmbedWrapper());

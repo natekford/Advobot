@@ -23,7 +23,8 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Gets))]
 	public sealed class Gets : ModuleBase
 	{
-		[Group(nameof(GetInfo)), ModuleInitialismAlias(typeof(GetInfo))]
+		[LocalizedGroup(nameof(Groups.GetInfo))]
+		[LocalizedAlias(nameof(Aliases.GetInfo))]
 		[LocalizedSummary(nameof(Summaries.GetInfo))]
 		[Meta("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18", IsEnabled = true)]
 		public sealed class GetInfo : AdvobotModuleBase
@@ -64,7 +65,8 @@ namespace Advobot.Standard.Commands
 				=> Responses.Gets.Webhook(webhook);
 		}
 
-		[Group(nameof(GetUsersWithReason)), ModuleInitialismAlias(typeof(GetUsersWithReason))]
+		[LocalizedGroup(nameof(Groups.GetUsersWithReason))]
+		[LocalizedAlias(nameof(Aliases.GetUsersWithReason))]
 		[LocalizedSummary(nameof(Summaries.GetUsersWithReason))]
 		[Meta("2442d1e5-ac94-4524-a108-37e2f9c23a47", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
@@ -88,7 +90,8 @@ namespace Advobot.Standard.Commands
 					Context.Guild.Users.Where(x => x.Activity is StreamingGame));
 		}
 
-		[Group(nameof(GetUserAvatar)), ModuleInitialismAlias(typeof(GetUserAvatar))]
+		[LocalizedGroup(nameof(Groups.GetUserAvatar))]
+		[LocalizedAlias(nameof(Aliases.GetUserAvatar))]
 		[LocalizedSummary(nameof(Summaries.GetUserAvatar))]
 		[Meta("9978b327-b1bb-46af-9e9f-b43ff411902d", IsEnabled = true)]
 		public sealed class GetUserAvatar : AdvobotModuleBase
@@ -98,7 +101,8 @@ namespace Advobot.Standard.Commands
 				=> Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl());
 		}
 
-		[Group(nameof(GetUserJoinedAt)), ModuleInitialismAlias(typeof(GetUserJoinedAt))]
+		[LocalizedGroup(nameof(Groups.GetUserJoinedAt))]
+		[LocalizedAlias(nameof(Aliases.GetUserJoinedAt))]
 		[LocalizedSummary(nameof(Summaries.GetUserJoinedAt))]
 		[Meta("32c92c8f-537f-4551-96a6-709c89c5dfac", IsEnabled = true)]
 		public sealed class GetUserJoinedAt : AdvobotModuleBase
@@ -112,7 +116,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(GetGuilds)), ModuleInitialismAlias(typeof(GetGuilds))]
+		[LocalizedGroup(nameof(Groups.GetGuilds))]
+		[LocalizedAlias(nameof(Aliases.GetGuilds))]
 		[LocalizedSummary(nameof(Summaries.GetGuilds))]
 		[Meta("7ef0f627-453d-45c1-8bd3-ad5b623cb34f", IsEnabled = true)]
 		[RequireBotOwner]
@@ -123,7 +128,8 @@ namespace Advobot.Standard.Commands
 				=> Responses.Gets.Guilds(Context.Client.Guilds);
 		}
 
-		[Group(nameof(GetUserJoinList)), ModuleInitialismAlias(typeof(GetUserJoinList))]
+		[LocalizedGroup(nameof(Groups.GetUserJoinList))]
+		[LocalizedAlias(nameof(Aliases.GetUserJoinList))]
 		[LocalizedSummary(nameof(Summaries.GetUserJoinList))]
 		[Meta("7ceac749-15ea-4f7f-9c7a-f531b1288d98", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
@@ -134,7 +140,8 @@ namespace Advobot.Standard.Commands
 				=> Responses.Gets.UserJoin(Context.Guild.Users.OrderByJoinDate());
 		}
 
-		[Group(nameof(GetMessages)), ModuleInitialismAlias(typeof(GetMessages))]
+		[LocalizedGroup(nameof(Groups.GetMessages))]
+		[LocalizedAlias(nameof(Aliases.GetMessages))]
 		[LocalizedSummary(nameof(Summaries.GetMessages))]
 		[Meta("0004a4f6-23ab-4e5e-bb4a-0b16e5b403a3", IsEnabled = true)]
 		[RequireGuildPermissions]
@@ -150,7 +157,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[Group(nameof(GetPermNamesFromValue)), ModuleInitialismAlias(typeof(GetPermNamesFromValue))]
+		[LocalizedGroup(nameof(Groups.GetPermNamesFromValue))]
+		[LocalizedAlias(nameof(Aliases.GetPermNamesFromValue))]
 		[LocalizedSummary(nameof(Summaries.GetPermNamesFromValue))]
 		[Meta("85c6c3a8-f718-4cae-8331-531a149dee60", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
@@ -164,7 +172,8 @@ namespace Advobot.Standard.Commands
 				=> Responses.Gets.ShowEnumNames<ChannelPermission>(number);
 		}
 
-		[Group(nameof(GetEnumNames)), ModuleInitialismAlias(typeof(GetEnumNames))]
+		[LocalizedGroup(nameof(Groups.GetEnumNames))]
+		[LocalizedAlias(nameof(Aliases.GetEnumNames))]
 		[LocalizedSummary(nameof(Summaries.GetEnumNames))]
 		[Meta("ed4e05f9-d380-4708-95af-49f0232e15f7", IsEnabled = true)]
 		[RequireGenericGuildPermissions]

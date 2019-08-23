@@ -134,7 +134,7 @@ namespace Advobot.Services.Timers
 
 		private static async Task ProcessTimedMessages(BaseSocketClient client, IEnumerable<TimedMessage> timedMessages)
 		{
-			foreach (var userGroup in timedMessages.GroupBy(x => x.UserId))
+			foreach (var userGroup in timedMessages.GroupBy(x => x.Id))
 			{
 				if (!(client.GetUser(userGroup.Key) is SocketUser user))
 				{

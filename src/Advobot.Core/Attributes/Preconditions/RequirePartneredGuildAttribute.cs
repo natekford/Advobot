@@ -19,9 +19,9 @@ namespace Advobot.Attributes.Preconditions
 		{
 			if (context.Guild.Features.Count > 0)
 			{
-				return this.FromSuccessAsync();
+				return PreconditionUtils.FromSuccessAsync();
 			}
-			return this.FromErrorAsync("This guild is not partnered.");
+			return PreconditionUtils.FromErrorAsync("This guild is not partnered.");
 		}
 		/// <summary>
 		/// Returns a string describing what this attribute requires.

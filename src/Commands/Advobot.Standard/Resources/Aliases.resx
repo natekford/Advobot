@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-	<!-- 
+  <!-- 
 		Microsoft ResX Schema
 
 		Version 1.3
@@ -58,44 +58,331 @@
 			: using a System.ComponentModel.TypeConverter
 			: and then encoded with base64 encoding.
 	-->
-	
-	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-		<xsd:element name="root" msdata:IsDataSet="true">
-			<xsd:complexType>
-				<xsd:choice maxOccurs="unbounded">
-					<xsd:element name="data">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-								<xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
-							<xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-							<xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="resheader">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" use="required" />
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:choice>
-			</xsd:complexType>
-		</xsd:element>
-	</xsd:schema>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>1.3</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SoftDeleteChannel" xml:space="preserve">
+    <value>sdc</value>
+  </data>
+  <data name="CreateChannel" xml:space="preserve">
+    <value>cc</value>
+  </data>
+  <data name="DeleteChannel" xml:space="preserve">
+    <value>delc</value>
+  </data>
+  <data name="DisplayChannelPosition" xml:space="preserve">
+    <value>dispcpos</value>
+  </data>
+  <data name="ModifyChannelPosition" xml:space="preserve">
+    <value>mcpos</value>
+  </data>
+  <data name="DisplayChannelPerms" xml:space="preserve">
+    <value>dispcperms</value>
+  </data>
+  <data name="ModifyChannelPerms" xml:space="preserve">
+    <value>mcperms</value>
+  </data>
+  <data name="CopyChannelPerms" xml:space="preserve">
+    <value>ccp</value>
+  </data>
+  <data name="ClearChannelPerms" xml:space="preserve">
+    <value>clcp</value>
+  </data>
+  <data name="ModifyChannelNsfw" xml:space="preserve">
+    <value>mcnsfw</value>
+  </data>
+  <data name="ModifyChannelName" xml:space="preserve">
+    <value>mcn</value>
+  </data>
+  <data name="ModifyChannelTopic" xml:space="preserve">
+    <value>mct</value>
+  </data>
+  <data name="ModifyChannelLimit" xml:space="preserve">
+    <value>mcl</value>
+  </data>
+  <data name="ModifyChannelBitRate" xml:space="preserve">
+    <value>mcbr</value>
+  </data>
+  <data name="ModifyBotName" xml:space="preserve">
+    <value>mbn</value>
+  </data>
+  <data name="ModifyBotIcon" xml:space="preserve">
+    <value>mbi</value>
+  </data>
+  <data name="DisconnectBot" xml:space="preserve">
+    <value>disc</value>
+  </data>
+  <data name="RestartBot" xml:space="preserve">
+    <value>rest</value>
+  </data>
+  <data name="CreateEmote" xml:space="preserve">
+    <value>ce</value>
+  </data>
+  <data name="DeleteEmote" xml:space="preserve">
+    <value>dele</value>
+  </data>
+  <data name="ModifyEmoteName" xml:space="preserve">
+    <value>men</value>
+  </data>
+  <data name="ModifyEmoteRoles" xml:space="preserve">
+    <value>mer</value>
+  </data>
+  <data name="DisplayEmotes" xml:space="preserve">
+    <value>dispe</value>
+  </data>
+  <data name="GetInfo" xml:space="preserve">
+    <value>gi</value>
+  </data>
+  <data name="GetUsersWithReason" xml:space="preserve">
+    <value>guwr</value>
+  </data>
+  <data name="GetUserAvatar" xml:space="preserve">
+    <value>gua</value>
+  </data>
+  <data name="GetUserJoinedAt" xml:space="preserve">
+    <value>guja</value>
+  </data>
+  <data name="GetGuilds" xml:space="preserve">
+    <value>gg</value>
+  </data>
+  <data name="GetUserJoinList" xml:space="preserve">
+    <value>gujl</value>
+  </data>
+  <data name="GetMessages" xml:space="preserve">
+    <value>gm</value>
+  </data>
+  <data name="GetPermNamesFromValue" xml:space="preserve">
+    <value>gpnfv</value>
+  </data>
+  <data name="GetEnumNames" xml:space="preserve">
+    <value>gen</value>
+  </data>
+  <data name="LeaveGuild" xml:space="preserve">
+    <value>lg</value>
+  </data>
+  <data name="ModifyGuildName" xml:space="preserve">
+    <value>mgn</value>
+  </data>
+  <data name="ModifyGuildRegion" xml:space="preserve">
+    <value>mgr</value>
+  </data>
+  <data name="ModifyGuildAfkTimer" xml:space="preserve">
+    <value>mgafkt</value>
+  </data>
+  <data name="ModifyGuildAfkChannel" xml:space="preserve">
+    <value>mgafkc</value>
+  </data>
+  <data name="ModifyGuildSystemChannel" xml:space="preserve">
+    <value>mgsc</value>
+  </data>
+  <data name="ModifyGuildMsgNotif" xml:space="preserve">
+    <value>mgmn</value>
+  </data>
+  <data name="ModifyGuildVerif" xml:space="preserve">
+    <value>mgv</value>
+  </data>
+  <data name="ModifyGuildIcon" xml:space="preserve">
+    <value>mgi</value>
+  </data>
+  <data name="ModifyGuildSplash" xml:space="preserve">
+    <value>mgs</value>
+  </data>
+  <data name="CreateGuild" xml:space="preserve">
+    <value>cg</value>
+  </data>
+  <data name="SwapGuildOwner" xml:space="preserve">
+    <value>sgo</value>
+  </data>
+  <data name="DeleteGuild" xml:space="preserve">
+    <value>delg</value>
+  </data>
+  <data name="DisplayInvites" xml:space="preserve">
+    <value>dispi</value>
+  </data>
+  <data name="CreateInvite" xml:space="preserve">
+    <value>ci</value>
+  </data>
+  <data name="DeleteInvite" xml:space="preserve">
+    <value>deli</value>
+  </data>
+  <data name="DeleteMultipleInvites" xml:space="preserve">
+    <value>delis</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>h</value>
+  </data>
+  <data name="Commands" xml:space="preserve">
+    <value>c</value>
+  </data>
+  <data name="MakeAnEmbed" xml:space="preserve">
+    <value>mae</value>
+  </data>
+  <data name="MessageRole" xml:space="preserve">
+    <value>mr</value>
+  </data>
+  <data name="MessageBotOwner" xml:space="preserve">
+    <value>mbo</value>
+  </data>
+  <data name="Remind" xml:space="preserve">
+    <value>r</value>
+  </data>
+  <data name="Test" xml:space="preserve">
+    <value>t</value>
+  </data>
+  <data name="ModifyNickName" xml:space="preserve">
+    <value>mnn</value>
+  </data>
+  <data name="ReplaceWordsInNames" xml:space="preserve">
+    <value>rwin</value>
+  </data>
+  <data name="ReplaceByUtf16" xml:space="preserve">
+    <value>rbutf16</value>
+  </data>
+  <data name="RemoveAllNickNames" xml:space="preserve">
+    <value>rann</value>
+  </data>
+  <data name="GiveRole" xml:space="preserve">
+    <value>gr</value>
+  </data>
+  <data name="TakeRole" xml:space="preserve">
+    <value>tr</value>
+  </data>
+  <data name="CreateRole" xml:space="preserve">
+    <value>cr</value>
+  </data>
+  <data name="SoftDeleteRole" xml:space="preserve">
+    <value>sdr</value>
+  </data>
+  <data name="DeleteRole" xml:space="preserve">
+    <value>delr</value>
+  </data>
+  <data name="DisplayRolePositions" xml:space="preserve">
+    <value>disprpos</value>
+  </data>
+  <data name="ModifyRolePosition" xml:space="preserve">
+    <value>mrpos</value>
+  </data>
+  <data name="DisplayRolePerms" xml:space="preserve">
+    <value>disprperms</value>
+  </data>
+  <data name="ModifyRolePerms" xml:space="preserve">
+    <value>mrperms</value>
+  </data>
+  <data name="CopyRolePerms" xml:space="preserve">
+    <value>crp</value>
+  </data>
+  <data name="ClearRolePerms" xml:space="preserve">
+    <value>clrp</value>
+  </data>
+  <data name="ModifyRoleName" xml:space="preserve">
+    <value>mrn</value>
+  </data>
+  <data name="ModifyRoleColor" xml:space="preserve">
+    <value>mrc</value>
+  </data>
+  <data name="ModifyRoleHoist" xml:space="preserve">
+    <value>mrh</value>
+  </data>
+  <data name="ModifyRoleMentionability" xml:space="preserve">
+    <value>mrm</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>m</value>
+  </data>
+  <data name="VoiceMute" xml:space="preserve">
+    <value>vm</value>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>d</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>k</value>
+  </data>
+  <data name="SoftBan" xml:space="preserve">
+    <value>sb</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>b</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>ub</value>
+  </data>
+  <data name="MoveUser" xml:space="preserve">
+    <value>mu</value>
+  </data>
+  <data name="MoveUsers" xml:space="preserve">
+    <value>mus</value>
+  </data>
+  <data name="PruneUsers" xml:space="preserve">
+    <value>p</value>
+  </data>
+  <data name="GetBanReason" xml:space="preserve">
+    <value>gbr</value>
+  </data>
+  <data name="DisplayCurrentBanList" xml:space="preserve">
+    <value>dispcbl</value>
+  </data>
+  <data name="RemoveMessages" xml:space="preserve">
+    <value>rm</value>
+  </data>
+  <data name="ForAllWithRole" xml:space="preserve">
+    <value>fawr</value>
+  </data>
+  <data name="DisplayWebhooks" xml:space="preserve">
+    <value>dispw</value>
+  </data>
+  <data name="CreateWebhook" xml:space="preserve">
+    <value>cw</value>
+  </data>
+  <data name="DeleteWebhook" xml:space="preserve">
+    <value>delw</value>
+  </data>
+  <data name="ModifyWebhookName" xml:space="preserve">
+    <value>mwn</value>
+  </data>
+  <data name="ModifyWebhookChannel" xml:space="preserve">
+    <value>mwc</value>
+  </data>
+  <data name="ModifyWebhookIcon" xml:space="preserve">
+    <value>mwi</value>
+  </data>
+  <data name="SpeakThroughWebhook" xml:space="preserve">
+    <value>stw</value>
+  </data>
 </root>

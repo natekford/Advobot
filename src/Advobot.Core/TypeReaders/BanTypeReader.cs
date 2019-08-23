@@ -33,7 +33,7 @@ namespace Advobot.TypeReaders
 				var ban = bans.FirstOrDefault(x => x.User.Id == id);
 				if (ban != null)
 				{
-					return this.FromSuccess(ban);
+					return TypeReaderUtils.FromSuccess(ban);
 				}
 			}
 
@@ -43,12 +43,12 @@ namespace Advobot.TypeReaders
 				var ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == d && x.User.Username.CaseInsEquals(parts[0]));
 				if (ban != null)
 				{
-					return this.FromSuccess(ban);
+					return TypeReaderUtils.FromSuccess(ban);
 				}
 			}
 
 			var matches = bans.Where(x => x.User.Username.CaseInsEquals(input)).ToArray();
-			return this.SingleValidResult(matches, "bans", input);
+			return TypeReaderUtils.SingleValidResult(matches, "bans", input);
 		}
 	}
 }
