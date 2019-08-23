@@ -134,6 +134,7 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				return ReplyAsync(context.ImageLog, embedWrapper: new EmbedWrapper
 				{
+					Title = "Click Me For The Image",
 					Description = description,
 					Color = EmbedWrapper.Attachment,
 					Url = url,
@@ -143,34 +144,37 @@ namespace Advobot.Services.Logging.Loggers
 				});
 			}
 
-			foreach (var attachmentUrl in context.Message.Attachments.GroupBy(x => x.Url).Select(x => x.First().Url)) //Attachments
+			foreach (var attachment in context.Message.Attachments.GroupBy(x => x.Url).Select(x => x.First()))
 			{
-				var (logCounterName, footerText) = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(attachmentUrl)) switch
+				var url = attachment.Url;
+				var ext = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(url));
+				var (name, footer, imageUrl) = ext switch
 				{
-					string s when s.CaseInsContains("video/") || s.CaseInsContains("/gif") => (nameof(ILogService.Animated), "Animated Content"),
-					string s when s.CaseInsContains("image/") => (nameof(ILogService.Images), "Image"),
-					_ => (nameof(ILogService.Files), "File"),
+					string s when s.CaseInsContains("video/") || s.CaseInsContains("/gif")
+						=> (nameof(ILogService.Animated), "Animated Content", GetVideoThumbnail(url)),
+					string s when s.CaseInsContains("image/")
+						=> (nameof(ILogService.Images), "Image", url),
+					_ => (nameof(ILogService.Files), "File", null),
 				};
-				NotifyLogCounterIncrement(logCounterName, 1);
-				await SendImageLogMessage("Attached " + footerText, attachmentUrl, null).CAF();
+				NotifyLogCounterIncrement(name, 1);
+				await SendImageLogMessage($"Attached {footer}", url, imageUrl).CAF();
 			}
-			foreach (var imageEmbed in context.Message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
+			foreach (var embed in context.Message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
 			{
-				if (imageEmbed.Video is EmbedVideo video)
+				if (embed.Video is EmbedVideo video)
 				{
 					NotifyLogCounterIncrement(nameof(ILogService.Animated), 1);
-					await SendImageLogMessage("Embedded Gif/Video", imageEmbed.Url, imageEmbed.Thumbnail?.Url).CAF();
+					await SendImageLogMessage("Embedded Gif/Video", embed.Url, embed.Thumbnail?.Url).CAF();
 				}
 
-				var imageUrl = new[]
+				var urls = new[] { embed.Image?.Url, embed.Thumbnail?.Url };
+				foreach (var url in urls)
 				{
-					imageEmbed.Image?.Url,
-					imageEmbed.Thumbnail?.Url
-				}.NotNull();
-				foreach (var url in imageUrl)
-				{
-					NotifyLogCounterIncrement(nameof(ILogService.Images), 1);
-					await SendImageLogMessage("Embedded Image", url, url).CAF();
+					if (url != null)
+					{
+						NotifyLogCounterIncrement(nameof(ILogService.Images), 1);
+						await SendImageLogMessage("Embedded Image", url, url).CAF();
+					}
 				}
 			}
 		}
@@ -358,6 +362,12 @@ namespace Advobot.Services.Logging.Loggers
 				}
 			});
 			return Task.CompletedTask;
+		}
+
+		private static string GetVideoThumbnail(string url)
+		{
+			var replaced = url.Replace("//cdn.discordapp.com/", "//media.discordapp.net/");
+			return replaced + "?format=jpeg&width=241&height=241";
 		}
 	}
 }
