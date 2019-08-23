@@ -184,7 +184,7 @@ namespace Advobot.Services.Levels
 			//LiteDB doesn't support numbers anymore (since 5.0 preview)
 			var name = "";
 			var id = guild.Id;
-			while (--id >= 0)
+			while (--id != ulong.MaxValue)
 			{
 				name = (char)('A' + id % 26) + name;
 				id /= 26;

@@ -20,7 +20,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// The ids of the roles.
 		/// </summary>
 		[JsonProperty("Roles")]
-		public ISet<ulong> Roles { get; set; } = new HashSet<ulong>();
+		public ICollection<ulong> Roles { get; set; } = new HashSet<ulong>();
 
 		/// <summary>
 		/// Creates an instance of <see cref="SelfAssignableRoles"/>.

@@ -27,7 +27,6 @@ namespace Advobot.Databases.Abstract
 			Time = DateTime.UtcNow.Add(time);
 		}
 
-
 		//IDatabaseEntry
 #pragma warning disable CS8603 // Possible null reference return.
 		object IDatabaseEntry.Id { get => Id; set => Id = (T)value; }

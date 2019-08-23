@@ -11,6 +11,7 @@ using AdvorangesUtils;
 using Discord;
 using LiteDB;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings
 {
@@ -42,10 +43,14 @@ namespace Advobot.Services.GuildSettings
 			if (schema < 1) //Relying on LiteDB
 			{
 				var path = Path.Combine(_Accessor.BaseBotDirectory.FullName, "GuildSettings");
+				var settings = new JsonSerializerSettings
+				{
+					MissingMemberHandling = MissingMemberHandling.Error,
+				};
 				var files = Directory.GetFiles(path);
 				var instances = files.Select(x =>
 				{
-					var instance = IOUtils.DeserializeFromFile<GuildSettings>(new FileInfo(x));
+					var instance = IOUtils.DeserializeFromFile<GuildSettings>(new FileInfo(x), settings);
 					instance.GuildId = ulong.Parse(Path.GetFileNameWithoutExtension(x));
 					return instance;
 				});
