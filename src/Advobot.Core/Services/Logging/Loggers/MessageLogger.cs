@@ -114,53 +114,39 @@ namespace Advobot.Services.Logging.Loggers
 				return;
 			}
 
-			var description = $"**Channel:** `{context.Message.Channel.Format()}`\n**Message Id:** `{context.Message.Id}`";
-			Task SendImageLogMessage(string footer, string url, string? imageurl)
+			var loggables = new List<ImageToLog>();
+			var attachments = context.Message.Attachments
+				.GroupBy(x => x.Url)
+				.Select(x => ImageToLog.FromAttachment(x.First()));
+			loggables.AddRange(attachments);
+			var embeds = context.Message.Embeds
+				.GroupBy(x => x.Url)
+				.Select(x => ImageToLog.FromEmbed(x.First()))
+				.OfType<ImageToLog>();
+			loggables.AddRange(embeds);
+
+			foreach (var loggable in loggables)
 			{
-				return ReplyAsync(context.ImageLog, embedWrapper: new EmbedWrapper
+				var jump = context.Message.GetJumpUrl();
+				var description = $"[Message]({jump}), [Embed Source]({loggable.Url})";
+				if (loggable.ImageUrl != null)
 				{
-					Title = "Click Me For The Image",
+					description += $", [Image]({loggable.ImageUrl})";
+				}
+
+				NotifyLogCounterIncrement(loggable.Name, 1);
+				await ReplyAsync(context.ImageLog, embedWrapper: new EmbedWrapper
+				{
 					Description = description,
 					Color = EmbedWrapper.Attachment,
-					Url = url,
-					ImageUrl = imageurl,
+					ImageUrl = loggable.ImageUrl,
 					Author = context.User.CreateAuthor(),
-					Footer = new EmbedFooterBuilder { Text = footer, },
-				});
-			}
-
-			foreach (var attachment in context.Message.Attachments.GroupBy(x => x.Url).Select(x => x.First()))
-			{
-				var url = attachment.Url;
-				var ext = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(url));
-				var (name, footer, imageUrl) = ext switch
-				{
-					string s when s.CaseInsContains("video/") || s.CaseInsContains("/gif")
-						=> (nameof(ILogService.Animated), "Animated Content", GetVideoThumbnail(url)),
-					string s when s.CaseInsContains("image/")
-						=> (nameof(ILogService.Images), "Image", url),
-					_ => (nameof(ILogService.Files), "File", null),
-				};
-				NotifyLogCounterIncrement(name, 1);
-				await SendImageLogMessage($"Attached {footer}", url, imageUrl).CAF();
-			}
-			foreach (var embed in context.Message.Embeds.GroupBy(x => x.Url).Select(x => x.First()))
-			{
-				if (embed.Video is EmbedVideo video)
-				{
-					NotifyLogCounterIncrement(nameof(ILogService.Animated), 1);
-					await SendImageLogMessage("Embedded Gif/Video", embed.Url, embed.Thumbnail?.Url).CAF();
-				}
-
-				var urls = new[] { embed.Image?.Url, embed.Thumbnail?.Url };
-				foreach (var url in urls)
-				{
-					if (url != null)
+					Footer = new EmbedFooterBuilder
 					{
-						NotifyLogCounterIncrement(nameof(ILogService.Images), 1);
-						await SendImageLogMessage("Embedded Image", url, url).CAF();
-					}
-				}
+						Text = loggable.Footer,
+						IconUrl = context.User.GetAvatarUrl()
+					},
+				}).CAF();
 			}
 		}
 		/// <summary>
@@ -349,10 +335,58 @@ namespace Advobot.Services.Logging.Loggers
 			return Task.CompletedTask;
 		}
 
-		private static string GetVideoThumbnail(string url)
+		private readonly struct ImageToLog
 		{
-			var replaced = url.Replace("//cdn.discordapp.com/", "//media.discordapp.net/");
-			return replaced + "?format=jpeg&width=241&height=241";
+			private const string ANIMATED = nameof(ILogService.Animated);
+			private const string IMAGES = nameof(ILogService.Images);
+			private const string FILES = nameof(ILogService.Files);
+
+			public string Name { get; }
+			public string Footer { get; }
+			public string Url { get; }
+			public string? ImageUrl { get; }
+
+			private ImageToLog(string name, string footer, string url, string? imageUrl)
+			{
+				Name = name;
+				Footer = footer;
+				Url = url;
+				ImageUrl = imageUrl;
+			}
+
+			public static ImageToLog FromAttachment(IAttachment attachment)
+			{
+				var url = attachment.Url;
+				var ext = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(url));
+				var (name, footer, imageUrl) = ext switch
+				{
+					string s when s.CaseInsContains("/gif") => (ANIMATED, "Gif", GetVideoThumbnail(url)),
+					string s when s.CaseInsContains("video/") => (ANIMATED, "Video", GetVideoThumbnail(url)),
+					string s when s.CaseInsContains("image/") => (IMAGES, "Image", url),
+					_ => (FILES, "File", null),
+				};
+				return new ImageToLog(name, footer, url, imageUrl);
+			}
+			public static ImageToLog? FromEmbed(IEmbed embed)
+			{
+				if (embed.Video is EmbedVideo video)
+				{
+					var thumb = embed.Thumbnail?.Url ?? GetVideoThumbnail(video.Url);
+					return new ImageToLog(ANIMATED, "Video", embed.Url, thumb);
+				}
+
+				var img = embed.Image?.Url ?? embed.Thumbnail?.Url;
+				if (img == null)
+				{
+					return null;
+				}
+				return new ImageToLog(IMAGES, "Image", embed.Url, img);
+			}
+			private static string GetVideoThumbnail(string url)
+			{
+				var replaced = url.Replace("//cdn.discordapp.com/", "//media.discordapp.net/");
+				return replaced + "?format=jpeg&width=241&height=241";
+			}
 		}
 	}
 }
