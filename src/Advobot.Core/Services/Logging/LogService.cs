@@ -92,7 +92,7 @@ namespace Advobot.Services.Logging
 			client.LeftGuild += GuildLogger.OnLeftGuild;
 			client.UserJoined += UserLogger.OnUserJoined;
 			client.UserLeft += UserLogger.OnUserLeft;
-			client.GuildMemberUpdated += UserLogger.OnGuildMemberUpdated;
+			client.UserUpdated += UserLogger.OnUserUpdated;
 			client.MessageReceived += MessageLogger.OnMessageReceived;
 			client.MessageUpdated += MessageLogger.OnMessageUpdated;
 			client.MessageDeleted += MessageLogger.OnMessageDeleted;

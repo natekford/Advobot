@@ -7,124 +7,40 @@ using Discord;
 
 namespace Advobot.Services.Logging.Loggers
 {
-	/// <summary>
-	/// Helps with logging.
-	/// </summary>
-	public sealed class LoggingContext
+	internal static class LoggingContext
 	{
 		/// <summary>
-		/// The guild this context is on.
-		/// </summary>
-		public IGuild Guild { get; private set; }
-		/// <summary>
-		/// The user this context is on.
-		/// </summary>
-		public IGuildUser User { get; private set; }
-		/// <summary>
-		/// The message this context is on.
-		/// </summary>
-		public IUserMessage? Message { get; private set; }
-		/// <summary>
-		/// The channel this context is on.
-		/// </summary>
-		public ITextChannel? Channel { get; private set; }
-		/// <summary>
-		/// The settings this logger is targetting.
-		/// </summary>
-		public IGuildSettings Settings { get; private set; }
-		/// <summary>
-		/// Where message/user actions get logged.
-		/// </summary>
-		public ITextChannel? ServerLog { get; private set; }
-		/// <summary>
-		/// Where images get logged.
-		/// </summary>
-		public ITextChannel? ImageLog { get; private set; }
-		/// <summary>
-		/// The bot.
-		/// </summary>
-		public IGuildUser Bot { get; private set; }
-		/// <summary>
-		/// The arguments for this context.
-		/// </summary>
-		public LoggingContextArgs Args { get; private set; }
-		/// <summary>
-		/// Whether the current context can be logged.
-		/// </summary>
-		public bool CanLog => ServerLog != null && Settings.LogActions.Contains(Args.Action) && Args.Action switch
-		{
-			//Only log if it wasn't this bot that left
-			LogAction.UserJoined => User.Id != Bot.Id,
-			LogAction.UserLeft => User.Id != Bot.Id,
-			//Only log if it wasn't any bot that was updated.
-			LogAction.UserUpdated => !(User.IsBot || User.IsWebhook),
-			//Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
-			LogAction.MessageReceived => !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel?.Id ?? 0),
-			LogAction.MessageUpdated => !(User.IsBot || User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(Channel?.Id ?? 0),
-			//Log all deleted messages, no matter the source user, unless they're on an unlogged channel
-			LogAction.MessageDeleted => !Settings.IgnoredLogChannels.Contains(Channel?.Id ?? 0),
-			_ => throw new ArgumentOutOfRangeException(nameof(Args)),
-		};
-
-		private LoggingContext(
-			IGuild guild,
-			IGuildUser user,
-			IUserMessage? message,
-			ITextChannel? channel,
-			IGuildSettings settings,
-			ITextChannel? serverLog,
-			ITextChannel? imageLog,
-			IGuildUser bot,
-			LoggingContextArgs args)
-		{
-			Guild = guild;
-			User = user;
-			Message = message;
-			Channel = channel;
-			Settings = settings;
-			ServerLog = serverLog;
-			ImageLog = imageLog;
-			Args = args;
-			Bot = bot;
-		}
-
-		/// <summary>
-		/// Creates an instance of <see cref="LoggingContext"/>.
+		/// Creates an instance of <see cref="IUserLoggingContext"/>.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <param name="factory"></param>
-		/// <param name="args"></param>
 		/// <returns></returns>
-		public static Task<LoggingContext?> CreateAsync(
+		public static async Task<IUserLoggingContext?> CreateAsync(
 			IGuildUser user,
-			IGuildSettingsFactory factory,
-			LoggingContextArgs args)
-			=> CreateAsync(null, user, null, user.Guild, factory, args);
+			IGuildSettingsFactory factory)
+			=> await CreateAsync(null, user, null, user.Guild, factory).CAF();
 		/// <summary>
-		/// Creates an instance of <see cref="LoggingContext"/>.
+		/// Creates an instance of <see cref="IMessageLoggingContext"/>.
 		/// </summary>
 		/// <param name="message"></param>
 		/// <param name="factory"></param>
-		/// <param name="args"></param>
 		/// <returns></returns>
-		public static Task<LoggingContext?> CreateAsync(
+		public static async Task<IMessageLoggingContext?> CreateAsync(
 			IMessage message,
-			IGuildSettingsFactory factory,
-			LoggingContextArgs args)
+			IGuildSettingsFactory factory)
 		{
 			var userMessage = message as IUserMessage;
 			var user = userMessage?.Author as IGuildUser;
 			var channel = message.Channel as ITextChannel;
 			var guild = channel?.Guild;
-			return CreateAsync(userMessage, user, channel, guild, factory, args);
+			return await CreateAsync(userMessage, user, channel, guild, factory).CAF();
 		}
-		private static async Task<LoggingContext?> CreateAsync(
+		private static async Task<PrivateLoggingContext?> CreateAsync(
 			IUserMessage? message,
 			IGuildUser? user,
 			ITextChannel? channel,
 			IGuild? guild,
-			IGuildSettingsFactory factory,
-			LoggingContextArgs args)
+			IGuildSettingsFactory factory)
 		{
 			if (user == null || guild == null)
 			{
@@ -135,7 +51,70 @@ namespace Advobot.Services.Logging.Loggers
 			var serverLog = await guild.GetTextChannelAsync(settings.ServerLogId).CAF();
 			var imageLog = await guild.GetTextChannelAsync(settings.ImageLogId).CAF();
 			var bot = await guild.GetCurrentUserAsync().CAF();
-			return new LoggingContext(guild, user, message, channel, settings, serverLog, imageLog, bot, args);
+			return new PrivateLoggingContext(guild, user, message, channel, settings, serverLog, imageLog, bot);
+		}
+
+		private sealed class PrivateLoggingContext : IMessageLoggingContext, IUserLoggingContext
+		{
+			public IGuild Guild { get; }
+			public IGuildSettings Settings { get; }
+			public ITextChannel? ServerLog { get; }
+			public ITextChannel? ImageLog { get; }
+			public IGuildUser Bot { get; }
+
+			private readonly IGuildUser _User;
+			private readonly IUserMessage? _Message;
+			private readonly ITextChannel? _Channel;
+
+			public PrivateLoggingContext(
+				IGuild guild,
+				IGuildUser user,
+				IUserMessage? message,
+				ITextChannel? channel,
+				IGuildSettings settings,
+				ITextChannel? serverLog,
+				ITextChannel? imageLog,
+				IGuildUser bot)
+			{
+				Guild = guild;
+				_User = user;
+				_Message = message;
+				_Channel = channel;
+				Settings = settings;
+				ServerLog = serverLog;
+				ImageLog = imageLog;
+				Bot = bot;
+			}
+
+			/// <inheritdoc />
+			public bool CanLog(LogAction action) => ServerLog != null && Settings.LogActions.Contains(action) && action switch
+			{
+				//Only log if it wasn't this bot that left
+				LogAction.UserJoined => _User.Id != Bot.Id,
+				LogAction.UserLeft => _User.Id != Bot.Id,
+				//Only log if it wasn't any bot that was updated.
+				LogAction.UserUpdated => !(_User.IsBot || _User.IsWebhook),
+				//Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
+				LogAction.MessageReceived => !(_User.IsBot || _User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(_Channel?.Id ?? 0),
+				LogAction.MessageUpdated => !(_User.IsBot || _User.IsWebhook) && !Settings.IgnoredLogChannels.Contains(_Channel?.Id ?? 0),
+				//Log all deleted messages, no matter the source user, unless they're on an unlogged channel
+				LogAction.MessageDeleted => !Settings.IgnoredLogChannels.Contains(_Channel?.Id ?? 0),
+				_ => throw new ArgumentOutOfRangeException(nameof(action)),
+			};
+			private InvalidOperationException InvalidContext<T>()
+				=> new InvalidOperationException($"Invalid {typeof(T).Name}.");
+
+			//IMessageLoggingContext
+			IGuildUser IMessageLoggingContext.User
+				=> _User ?? throw InvalidContext<IMessageLoggingContext>();
+			IUserMessage IMessageLoggingContext.Message
+				=> _Message ?? throw InvalidContext<IMessageLoggingContext>();
+			ITextChannel IMessageLoggingContext.Channel
+				=> _Channel ?? throw InvalidContext<IMessageLoggingContext>();
+
+			//IUserLoggingContext
+			IGuildUser IUserLoggingContext.User
+				=> _User ?? throw InvalidContext<IUserLoggingContext>();
 		}
 	}
 }

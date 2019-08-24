@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,18 +31,18 @@ namespace Advobot.Services.Logging.Loggers
 		/// <inheritdoc />
 		public Task OnMessageReceived(SocketMessage message)
 		{
-			return HandleAsync(message, new LoggingContextArgs
+			return HandleAsync(message, new LoggingContextArgs<IMessageLoggingContext>
 			{
 				Action = LogAction.MessageReceived,
 				LogCounterName = nameof(ILogService.Messages),
-				WhenCanLog = new Func<LoggingContext, Task>[]
+				WhenCanLog = new Func<IMessageLoggingContext, Task>[]
 				{
 					x => HandleChannelSettingsAsync(x),
 					x => HandleImageLoggingAsync(x),
 					x => HandleSpamPreventionAsync(x),
 					x => HandleBannedPhrasesAsync(x),
 				},
-				AnyTime = Array.Empty<Func<LoggingContext, Task>>(),
+				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
 			});
 		}
 		/// <inheritdoc />
@@ -52,17 +51,17 @@ namespace Advobot.Services.Logging.Loggers
 			SocketMessage message,
 			ISocketMessageChannel channel)
 		{
-			return HandleAsync(message, new LoggingContextArgs
+			return HandleAsync(message, new LoggingContextArgs<IMessageLoggingContext>
 			{
 				Action = LogAction.MessageUpdated,
 				LogCounterName = nameof(ILogService.MessageEdits),
-				WhenCanLog = new Func<LoggingContext, Task>[]
+				WhenCanLog = new Func<IMessageLoggingContext, Task>[]
 				{
 					x => HandleBannedPhrasesAsync(x),
 					x => HandleMessageEditedLoggingAsync(x, cached.Value),
 					x => HandleMessageEditedImageLoggingAsync(x, cached.Value),
 				},
-				AnyTime = Array.Empty<Func<LoggingContext, Task>>(),
+				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
 			});
 		}
 		/// <inheritdoc />
@@ -71,114 +70,45 @@ namespace Advobot.Services.Logging.Loggers
 			ISocketMessageChannel channel)
 		{
 			//Ignore uncached messages since not much can be done with them
-			return HandleAsync(cached.Value, new LoggingContextArgs
+			return HandleAsync(cached.Value, new LoggingContextArgs<IMessageLoggingContext>
 			{
 				Action = LogAction.MessageDeleted,
 				LogCounterName = nameof(ILogService.MessageDeletes),
-				WhenCanLog = new Func<LoggingContext, Task>[]
+				WhenCanLog = new Func<IMessageLoggingContext, Task>[]
 				{
 					x => HandleMessageDeletedLogging(x),
 				},
-				AnyTime = Array.Empty<Func<LoggingContext, Task>>(),
+				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
 			});
 		}
 
-		/// <summary>
-		/// Handles settings on channels, such as: image only mode.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		private Task HandleChannelSettingsAsync(LoggingContext context)
+		private Task HandleChannelSettingsAsync(IMessageLoggingContext context)
 		{
 			if (!context.User.GuildPermissions.Administrator
-				&& context.Channel != null
-				&& context.Message != null
 				&& context.Settings.ImageOnlyChannels.Contains(context.Channel.Id)
 				&& !context.Message.Attachments.Any(x => x.Height != null || x.Width != null)
 				&& !context.Message.Embeds.Any(x => x.Image != null))
 			{
 				return context.Message.DeleteAsync(_ChannelSettingsOptions);
 			}
-
 			return Task.CompletedTask;
 		}
-		/// <summary>
-		/// Logs the image to the image log if set.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		private async Task HandleImageLoggingAsync(LoggingContext context)
-		{
-			if (context.ImageLog == null || context.Message == null)
-			{
-				return;
-			}
-
-			var loggables = new List<ImageToLog>();
-			var attachments = context.Message.Attachments
-				.GroupBy(x => x.Url)
-				.Select(x => ImageToLog.FromAttachment(x.First()));
-			loggables.AddRange(attachments);
-			var embeds = context.Message.Embeds
-				.GroupBy(x => x.Url)
-				.Select(x => ImageToLog.FromEmbed(x.First()))
-				.OfType<ImageToLog>();
-			loggables.AddRange(embeds);
-
-			foreach (var loggable in loggables)
-			{
-				var jump = context.Message.GetJumpUrl();
-				var description = $"[Message]({jump}), [Embed Source]({loggable.Url})";
-				if (loggable.ImageUrl != null)
-				{
-					description += $", [Image]({loggable.ImageUrl})";
-				}
-
-				NotifyLogCounterIncrement(loggable.Name, 1);
-				await ReplyAsync(context.ImageLog, embedWrapper: new EmbedWrapper
-				{
-					Description = description,
-					Color = EmbedWrapper.Attachment,
-					ImageUrl = loggable.ImageUrl,
-					Author = context.User.CreateAuthor(),
-					Footer = new EmbedFooterBuilder
-					{
-						Text = loggable.Footer,
-						IconUrl = context.User.GetAvatarUrl()
-					},
-				}).CAF();
-			}
-		}
-		/// <summary>
-		/// If the message author can be modified by the bot then their message is checked for any spam matches.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		private async Task HandleSpamPreventionAsync(LoggingContext context)
+		private async Task HandleSpamPreventionAsync(IMessageLoggingContext context)
 		{
 			if (!context.Bot.CanModify(context.Bot.Id, context.User))
 			{
 				return;
 			}
 
-			if (context.Message != null)
+			foreach (var antiSpam in context.Settings.SpamPrevention)
 			{
-				foreach (var antiSpam in context.Settings.SpamPrevention)
-				{
-					await antiSpam.PunishAsync(context.Message).CAF();
-				}
+				await antiSpam.PunishAsync(context.Message).CAF();
 			}
 		}
-		/// <summary>
-		/// Makes sure a message doesn't have any banned phrases.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		private async Task HandleBannedPhrasesAsync(LoggingContext context)
+		private async Task HandleBannedPhrasesAsync(IMessageLoggingContext context)
 		{
-			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
+			//Ignore admins and messages older than an hour.
 			if (context.User.GuildPermissions.Administrator
-				|| context.Message == null
 				|| (DateTime.UtcNow - context.Message.CreatedAt.UtcDateTime).Hours > 0)
 			{
 				return;
@@ -201,29 +131,62 @@ namespace Advobot.Services.Logging.Loggers
 				await context.Message.DeleteAsync(_BannedPhraseOptions).CAF();
 			}
 		}
-		/// <summary>
-		/// Logs images if the embed counts don't match.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="before"></param>
-		/// <returns></returns>
-		private Task HandleMessageEditedImageLoggingAsync(LoggingContext context, IMessage? before)
+
+		private async Task HandleImageLoggingAsync(IMessageLoggingContext context)
+		{
+			if (context.ImageLog == null || context.Message == null)
+			{
+				return;
+			}
+
+			async Task ProcessLoggablesAsync(IEnumerable<ImageToLog> loggables)
+			{
+				foreach (var loggable in loggables)
+				{
+					var jump = context.Message.GetJumpUrl();
+					var description = $"[Message]({jump}), [Embed Source]({loggable.Url})";
+					if (loggable.ImageUrl != null)
+					{
+						description += $", [Image]({loggable.ImageUrl})";
+					}
+
+					NotifyLogCounterIncrement(loggable.Name, 1);
+					await ReplyAsync(context.ImageLog, embedWrapper: new EmbedWrapper
+					{
+						Description = description,
+						Color = EmbedWrapper.Attachment,
+						ImageUrl = loggable.ImageUrl,
+						Author = context.User.CreateAuthor(),
+						Footer = new EmbedFooterBuilder
+						{
+							Text = loggable.Footer,
+							IconUrl = context.User.GetAvatarUrl()
+						},
+					}).CAF();
+				}
+			}
+
+			var attachments = context.Message.Attachments
+				.GroupBy(x => x.Url)
+				.Select(x => ImageToLog.FromAttachment(x.First()));
+			await ProcessLoggablesAsync(attachments).CAF();
+			var embeds = context.Message.Embeds
+				.GroupBy(x => x.Url)
+				.Select(x => ImageToLog.FromEmbed(x.First()))
+				.OfType<ImageToLog>();
+			await ProcessLoggablesAsync(embeds).CAF();
+		}
+		private Task HandleMessageEditedImageLoggingAsync(IMessageLoggingContext context, IMessage? before)
 		{
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
-			if (context.Message != null && before?.Embeds.Count < context.Message.Embeds.Count)
+			if (before?.Embeds.Count < context.Message.Embeds.Count)
 			{
 				return HandleImageLoggingAsync(context);
 			}
 			return Task.CompletedTask;
 		}
-		/// <summary>
-		/// Logs the text difference to the server log if set.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="before"></param>
-		/// <returns></returns>
-		private Task HandleMessageEditedLoggingAsync(LoggingContext context, IMessage? before)
+		private Task HandleMessageEditedLoggingAsync(IMessageLoggingContext context, IMessage? before)
 		{
 			var uneditedBMsgContent = before?.Content;
 			var uneditedAMsgContent = context.Message?.Content;
@@ -257,18 +220,8 @@ namespace Advobot.Services.Logging.Loggers
 				});
 			}
 		}
-		/// <summary>
-		/// Stores the supplied message until printing is optimal.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		private Task HandleMessageDeletedLogging(LoggingContext context)
+		private Task HandleMessageDeletedLogging(IMessageLoggingContext context)
 		{
-			if (context.Message == null)
-			{
-				return Task.CompletedTask;
-			}
-
 			var cache = context.Settings.GetDeletedMessageCache();
 			cache.Add(context.Message);
 			var cancelToken = cache.GetNewCancellationToken();
@@ -333,60 +286,6 @@ namespace Advobot.Services.Logging.Loggers
 				}
 			});
 			return Task.CompletedTask;
-		}
-
-		private readonly struct ImageToLog
-		{
-			private const string ANIMATED = nameof(ILogService.Animated);
-			private const string IMAGES = nameof(ILogService.Images);
-			private const string FILES = nameof(ILogService.Files);
-
-			public string Name { get; }
-			public string Footer { get; }
-			public string Url { get; }
-			public string? ImageUrl { get; }
-
-			private ImageToLog(string name, string footer, string url, string? imageUrl)
-			{
-				Name = name;
-				Footer = footer;
-				Url = url;
-				ImageUrl = imageUrl;
-			}
-
-			public static ImageToLog FromAttachment(IAttachment attachment)
-			{
-				var url = attachment.Url;
-				var ext = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(url));
-				var (name, footer, imageUrl) = ext switch
-				{
-					string s when s.CaseInsContains("/gif") => (ANIMATED, "Gif", GetVideoThumbnail(url)),
-					string s when s.CaseInsContains("video/") => (ANIMATED, "Video", GetVideoThumbnail(url)),
-					string s when s.CaseInsContains("image/") => (IMAGES, "Image", url),
-					_ => (FILES, "File", null),
-				};
-				return new ImageToLog(name, footer, url, imageUrl);
-			}
-			public static ImageToLog? FromEmbed(IEmbed embed)
-			{
-				if (embed.Video is EmbedVideo video)
-				{
-					var thumb = embed.Thumbnail?.Url ?? GetVideoThumbnail(video.Url);
-					return new ImageToLog(ANIMATED, "Video", embed.Url, thumb);
-				}
-
-				var img = embed.Image?.Url ?? embed.Thumbnail?.Url;
-				if (img == null)
-				{
-					return null;
-				}
-				return new ImageToLog(IMAGES, "Image", embed.Url, img);
-			}
-			private static string GetVideoThumbnail(string url)
-			{
-				var replaced = url.Replace("//cdn.discordapp.com/", "//media.discordapp.net/");
-				return replaced + "?format=jpeg&width=241&height=241";
-			}
 		}
 	}
 }

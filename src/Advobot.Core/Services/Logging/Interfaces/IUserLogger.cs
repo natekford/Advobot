@@ -26,6 +26,6 @@ namespace Advobot.Services.Logging.Interfaces
 		/// <param name="before"></param>
 		/// <param name="after"></param>
 		/// <returns></returns>
-		Task OnGuildMemberUpdated(SocketGuildUser before, SocketGuildUser after);
+		Task OnUserUpdated(SocketUser before, SocketUser after);
 	}
 }

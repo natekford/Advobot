@@ -65,31 +65,36 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			return MessageUtils.SendMessageAsync(channel, content, embedWrapper, textFile);
 		}
-		protected async Task HandleAsync(IGuildUser user, LoggingContextArgs args)
+		protected async Task HandleAsync(
+			IGuildUser user,
+			LoggingContextArgs<IUserLoggingContext> args)
 		{
-			var context = await LoggingContext.CreateAsync(user, GuildSettingsFactory, args).CAF();
-			await HandleAsync(context).CAF();
+			var context = await LoggingContext.CreateAsync(user, GuildSettingsFactory).CAF();
+			await HandleAsync(context, args).CAF();
 		}
-		protected async Task HandleAsync(IMessage message, LoggingContextArgs args)
+		protected async Task HandleAsync(
+			IMessage message,
+			LoggingContextArgs<IMessageLoggingContext> args)
 		{
-			var context = await LoggingContext.CreateAsync(message, GuildSettingsFactory, args).CAF();
-			await HandleAsync(context).CAF();
+			var context = await LoggingContext.CreateAsync(message, GuildSettingsFactory).CAF();
+			await HandleAsync(context, args).CAF();
 		}
-		private async Task HandleAsync(LoggingContext? context)
+		private async Task HandleAsync<T>(T? context, LoggingContextArgs<T> args)
+			where T : class, ILoggingContext
 		{
 			if (context == null || BotSettings.Pause)
 			{
 				return;
 			}
-			if (context.CanLog)
+			if (context.CanLog(args.Action))
 			{
-				NotifyLogCounterIncrement(context.Args.LogCounterName, 1);
-				foreach (var task in context.Args.WhenCanLog)
+				NotifyLogCounterIncrement(args.LogCounterName, 1);
+				foreach (var task in args.WhenCanLog)
 				{
 					await task.Invoke(context).CAF();
 				}
 			}
-			foreach (var task in context.Args.AnyTime)
+			foreach (var task in args.AnyTime)
 			{
 				await task.Invoke(context).CAF();
 			}
