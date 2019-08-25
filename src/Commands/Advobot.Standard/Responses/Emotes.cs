@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using static Advobot.Standard.Resources.Responses;
 
@@ -23,14 +24,14 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult AddedRequiredRoles(IEmote emote, IEnumerable<IRole> roles)
 		{
 			return Success(EmotesAddedRequiredRoles.Format(
-				roles.ToDelimitedString(x => x.Format()).WithBlock(),
+				roles.Join(x => x.Format()).WithBlock(),
 				emote.Format().WithBlock()
 			));
 		}
 		public static AdvobotResult RemoveRequiredRoles(IEmote emote, IEnumerable<IRole> roles)
 		{
 			return Success(EmotesRemovedRequiredRoles.Format(
-				roles.ToDelimitedString(x => x.Format()).WithBlock(),
+				roles.Join(x => x.Format()).WithBlock(),
 				emote.Format().WithBlock()
 			));
 		}
@@ -42,7 +43,7 @@ namespace Advobot.Standard.Responses
 				caller.WithTitleCase()
 			);
 			var description = emotes
-				.ToDelimitedString(x => x.Format(), Environment.NewLine)
+				.Join(x => x.Format(), Environment.NewLine)
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper

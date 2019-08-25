@@ -89,7 +89,7 @@ namespace Advobot.Standard.Responses
 		}
 		public static AdvobotResult Shards(DiscordShardedClient client)
 		{
-			var description = client.Shards.ToDelimitedString(shard =>
+			var description = client.Shards.Join(shard =>
 			{
 				var statusEmoji = shard.ConnectionState switch
 				{
@@ -184,7 +184,7 @@ namespace Advobot.Standard.Responses
 			}
 			if (guild.Features.Any())
 			{
-				var fieldValue = guild.Features.ToDelimitedString().WithBlock().Value;
+				var fieldValue = guild.Features.Join().WithBlock().Value;
 				embed.TryAddField(GetsTitleFeatures, fieldValue, false, out _);
 			}
 			return Success(embed);
@@ -250,18 +250,18 @@ namespace Advobot.Standard.Responses
 
 			if (roles.Any())
 			{
-				var fieldValue = roles.ToDelimitedString(x => x.Name).WithBlock().Value;
+				var fieldValue = roles.Join(x => x.Name).WithBlock().Value;
 				embed.TryAddField(GetsTitleRoles, fieldValue, false, out _);
 				embed.Color = roles.LastOrDefault(x => x.Color.RawValue != 0)?.Color;
 			}
 			if (textChannels.Any())
 			{
-				var fieldValue = textChannels.ToDelimitedString(x => x.Name).WithBlock().Value;
+				var fieldValue = textChannels.Join(x => x.Name).WithBlock().Value;
 				embed.TryAddField(GetsTitleTextChannels, fieldValue, false, out _);
 			}
 			if (voiceChannels.Any())
 			{
-				var fieldValue = voiceChannels.ToDelimitedString(x => x.Name).WithBlock().Value;
+				var fieldValue = voiceChannels.Join(x => x.Name).WithBlock().Value;
 				embed.TryAddField(GetsTitleVoiceChannels, fieldValue, false, out _);
 			}
 			if (guildUser.VoiceChannel is IVoiceChannel vc)
@@ -303,7 +303,7 @@ namespace Advobot.Standard.Responses
 			};
 			if (permissions.Any())
 			{
-				var fieldValue = permissions.ToDelimitedString().WithBlock().Value;
+				var fieldValue = permissions.Join().WithBlock().Value;
 				embed.TryAddField(GetsTitlePermissions, fieldValue, false, out _);
 			}
 			return Success(embed);
@@ -357,12 +357,12 @@ namespace Advobot.Standard.Responses
 			};
 			if (roles.Any())
 			{
-				var fieldValue = roles.ToDelimitedString().WithBlock().Value;
+				var fieldValue = roles.Join().WithBlock().Value;
 				embed.TryAddField(GetsTitleRoles, fieldValue, false, out _);
 			}
 			if (users.Any())
 			{
-				var fieldValue = users.ToDelimitedString().WithBlock().Value;
+				var fieldValue = users.Join().WithBlock().Value;
 				embed.TryAddField(GetsTitleUsers, fieldValue, false, out _);
 			}
 			return Success(embed);
@@ -435,7 +435,7 @@ namespace Advobot.Standard.Responses
 				meta.Add(GetsTitleColons, guildEmote.RequireColons);
 
 				var roles = info.CreateCollection();
-				roles.Add(GetsTitleRoles, guildEmote.RoleIds.ToDelimitedString(x => x.ToString()));
+				roles.Add(GetsTitleRoles, guildEmote.RoleIds.Join(x => x.ToString()));
 			}
 
 			return Success(new EmbedWrapper
@@ -582,13 +582,13 @@ namespace Advobot.Standard.Responses
 		{
 			return Success(GetsShowEnumNames.Format(
 				value.ToString().WithBlock(),
-				EnumUtils.GetFlagNames((T)(object)value).ToDelimitedString().WithBlock()
+				EnumUtils.GetFlagNames((T)(object)value).Join().WithBlock()
 			));
 		}
 		public static AdvobotResult ShowAllEnums(IEnumerable<Type> enums)
 		{
 			var description = enums
-				.ToDelimitedString(x => x.Name)
+				.Join(x => x.Name)
 				.WithBlock()
 				.Value;
 			return Success(new EmbedWrapper
@@ -600,7 +600,7 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult ShowEnumValues(Type enumType)
 		{
 			var description = Enum.GetNames(enumType)
-				.ToDelimitedString()
+				.Join()
 				.WithBlock()
 				.Value;
 			return Success(new EmbedWrapper

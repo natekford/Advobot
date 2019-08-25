@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using static Advobot.Standard.Resources.Responses;
 
@@ -20,7 +21,7 @@ namespace Advobot.Standard.Responses
 				source.Format().WithBlock()
 			);
 			var description = webhooks
-				.ToDelimitedString(x => x.Format(), Environment.NewLine)
+				.Join(x => x.Format(), Environment.NewLine)
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper

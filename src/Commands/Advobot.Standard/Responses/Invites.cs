@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using static Advobot.Standard.Resources.Responses;
 
@@ -26,7 +27,7 @@ namespace Advobot.Standard.Responses
 				=> $"{i.Code.PadRight(codeLen)} {i.Uses.ToString().PadRight(useLen)} {i.Inviter.Format()}";
 
 			var description = invites
-				.ToDelimitedString(FormatInvite, Environment.NewLine)
+				.Join(FormatInvite, Environment.NewLine)
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper

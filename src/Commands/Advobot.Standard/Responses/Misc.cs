@@ -71,7 +71,7 @@ namespace Advobot.Standard.Responses
 		{
 			var info = new InformationMatrix();
 			var top = info.CreateCollection();
-			top.Add(MiscTitleAliases, module.Aliases.ToDelimitedString());
+			top.Add(MiscTitleAliases, module.Aliases.Join());
 			top.Add(MiscTitleBasePermissions, FormatPreconditions(module.Preconditions));
 			var description = info.CreateCollection();
 			description.Add(MiscTitleDescription, module.Summary);
@@ -89,9 +89,9 @@ namespace Advobot.Standard.Responses
 			{
 				//If the name of the command is not in its alias, then the name isnt set
 				var name = x.Aliases.Any(a => a.CaseInsContains(x.Name)) ? $" {x.Name}" : "";
-				var parameters = x.Parameters.ToDelimitedString(FormatParameter);
+				var parameters = x.Parameters.Join(FormatParameter);
 				return $"\t{i + 1}.{name} ({parameters})";
-			}).ToDelimitedString("\n").WithBigBlock().Value;
+			}).Join("\n").WithBigBlock().Value;
 			info.CreateCollection().Add(MiscTitleCommands, commands);
 
 			return Success(CreateHelpEmbed(module.Name, info.ToString()));
@@ -111,7 +111,7 @@ namespace Advobot.Standard.Responses
 
 			var info = new InformationMatrix();
 			var top = info.CreateCollection();
-			top.Add(MiscTitleAliases, command.Aliases.ToDelimitedString());
+			top.Add(MiscTitleAliases, command.Aliases.Join());
 			top.Add(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions));
 			var description = info.CreateCollection();
 			description.Add(MiscTitleDescription, command.Summary);
@@ -136,7 +136,7 @@ namespace Advobot.Standard.Responses
 				category.WithTitleCase()
 			);
 			var description = entries
-				.ToDelimitedString(x => x.Name)
+				.Join(x => x.Name)
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper
@@ -151,7 +151,7 @@ namespace Advobot.Standard.Responses
 		{
 			var description = MiscGeneralCommandInfo.Format(
 				GetPrefixedCommand(prefix, _Commands, MiscVariableCategoryParameter),
-				categories.ToDelimitedString().WithBigBlock()
+				categories.Join().WithBigBlock()
 			);
 			return Success(new EmbedWrapper
 			{
@@ -189,18 +189,18 @@ namespace Advobot.Standard.Responses
 			}
 			if (preconditions.Any(x => x.Group == null))
 			{
-				return preconditions.ToDelimitedString(x => x.ToString(), MiscVariableAnd);
+				return preconditions.Join(x => x.ToString(), MiscVariableAnd);
 			}
 
 			var groups = preconditions
 				.GroupBy(x => x.Group)
-				.Select(g => g.ToDelimitedString(x => x.ToString(), MiscVariableOr))
+				.Select(g => g.Join(x => x.ToString(), MiscVariableOr))
 				.ToArray();
 			if (groups.Length == 1)
 			{
 				return groups[0];
 			}
-			return groups.ToDelimitedString(g => $"({g})", MiscVariableAnd);
+			return groups.Join(g => $"({g})", MiscVariableAnd);
 		}
 		private static string FormatPreconditions(IEnumerable<IParameterPrecondition> preconditions)
 		{
@@ -208,7 +208,7 @@ namespace Advobot.Standard.Responses
 			{
 				return MiscVariableNotApplicable;
 			}
-			return preconditions.ToDelimitedString(x => x.ToString(), MiscVariableAnd);
+			return preconditions.Join(x => x.ToString(), MiscVariableAnd);
 		}
 		private static string FormatParameter(IParameterHelpEntry p)
 		{

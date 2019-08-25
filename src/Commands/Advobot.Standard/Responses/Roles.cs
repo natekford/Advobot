@@ -19,14 +19,14 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult Gave(IReadOnlyCollection<IRole> roles, IUser user)
 		{
 			return Success(RolesGave.Format(
-				roles.ToDelimitedString(x => x.Format()).WithBlock(),
+				roles.Join(x => x.Format()).WithBlock(),
 				user.Format().WithBlock()
 			));
 		}
 		public static AdvobotResult Took(IReadOnlyCollection<IRole> roles, IUser user)
 		{
 			return Success(RolesTook.Format(
-				roles.ToDelimitedString(x => x.Format()).WithBlock(),
+				roles.Join(x => x.Format()).WithBlock(),
 				user.Format().WithBlock()
 			));
 		}
@@ -40,7 +40,7 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult Display(IEnumerable<IRole> roles)
 		{
 			var description = roles
-				.ToDelimitedString(x => $"{x.Position.ToString("00")}. {x.Name}", Environment.NewLine)
+				.Join(x => $"{x.Position.ToString("00")}. {x.Name}", Environment.NewLine)
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper
@@ -56,7 +56,7 @@ namespace Advobot.Standard.Responses
 		{
 			var format = allow ? RolesModifiedPermissionsAllow : RolesModifiedPermissionsDeny;
 			return Success(format.Format(
-				EnumUtils.GetFlagNames(permissions).ToDelimitedString().WithBlock(),
+				EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
 				role.Format().WithBlock()
 			));
 		}
@@ -68,7 +68,7 @@ namespace Advobot.Standard.Responses
 			var description = _AllPerms
 				.ToDictionary(x => x, x => role.Permissions.Has(x) ? PermValue.Allow : PermValue.Deny)
 				.FormatPermissionValues(x => x.ToString(), out var padLen)
-				.ToDelimitedString(x => $"{x.Key.PadRight(padLen)} {x.Value}", "\n")
+				.Join(x => $"{x.Key.PadRight(padLen)} {x.Value}", "\n")
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper
@@ -83,7 +83,7 @@ namespace Advobot.Standard.Responses
 			GuildPermission permissions)
 		{
 			return Success(RolesCopiedPermissions.Format(
-				EnumUtils.GetFlagNames(permissions).ToDelimitedString().WithBlock(),
+				EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
 				input.Format().WithBlock(),
 				output.Format().WithBlock()
 			));

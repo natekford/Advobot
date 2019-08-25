@@ -69,31 +69,28 @@ namespace Advobot.Services.Commands
 			_Client.MessageReceived += HandleCommand;
 		}
 
-		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> aseemblies)
+		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> assemblies)
 		{
 			var currentCulture = CultureInfo.CurrentUICulture;
-			foreach (var assembly in aseemblies)
+			var defaultTr = TypeReaderInfo.Create(Assembly.GetExecutingAssembly());
+			foreach (var assembly in assemblies)
 			{
 				if (assembly.Attribute.Instantiator != null)
 				{
 					await assembly.Attribute.Instantiator.ConfigureServicesAsync(_Provider).CAF();
 				}
 
+				var typeReaders = TypeReaderInfo.Create(assembly.Assembly).Concat(defaultTr);
 				foreach (var culture in assembly.Attribute.SupportedCultures)
 				{
 					CultureInfo.CurrentUICulture = culture;
 
 					var commandService = _CommandService.Get();
-					var typeReaders = new[] { Assembly.GetExecutingAssembly(), assembly.Assembly }
-						.SelectMany(x => x.GetTypes())
-						.Select(x => (Attribute: x.GetCustomAttribute<TypeReaderTargetTypeAttribute>(), Type: x))
-						.Where(x => x.Attribute != null);
-					foreach (var typeReader in typeReaders)
+					foreach (var tr in typeReaders)
 					{
-						var instance = (TypeReader)Activator.CreateInstance(typeReader.Type);
-						foreach (var type in typeReader.Attribute.TargetTypes)
+						foreach (var type in tr.Attribute.TargetTypes)
 						{
-							commandService.AddTypeReader(type, instance, true);
+							commandService.AddTypeReader(type, tr.Instance, true);
 						}
 					}
 

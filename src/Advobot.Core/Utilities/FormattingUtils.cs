@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using AdvorangesUtils;
@@ -37,28 +36,59 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <returns></returns>
 		public static string Format(this IUser user)
-			=> user != null ? $"'{user.Username.EscapeBackTicks()}#{user.Discriminator}' ({user.Id})" : "Irretrievable User";
+		{
+			if (user == null)
+			{
+				return "Irretrievable User";
+			}
+			return $"'{user.Username.EscapeBackTicks()}#{user.Discriminator}' ({user.Id})";
+		}
 		/// <summary>
 		/// Returns a string with the role's name and id.
 		/// </summary>
 		/// <param name="role"></param>
 		/// <returns></returns>
 		public static string Format(this IRole role)
-			=> role != null ? $"'{role.Name.EscapeBackTicks()}' ({role.Id})" : "Irretrievable Role";
+		{
+			if (role == null)
+			{
+				return "Irretrievable Role";
+			}
+			return $"'{role.Name.EscapeBackTicks()}' ({role.Id})";
+		}
 		/// <summary>
 		/// Returns a string with the channel's name and id.
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <returns></returns>
 		public static string Format(this IChannel channel)
-			=> channel != null ? $"'{channel.Name.EscapeBackTicks()}' ({channel.GetChannelType()}) ({channel.Id})" : "Irretrievable Channel";
+		{
+			if (channel == null)
+			{
+				return "Irretrievable Channel";
+			}
+			var channelType = channel switch
+			{
+				IMessageChannel _ => "text",
+				IVoiceChannel _ => "voice",
+				ICategoryChannel _ => "category",
+				_ => "unknown",
+			};
+			return $"'{channel.Name.EscapeBackTicks()}' ({channelType}) ({channel.Id})";
+		}
 		/// <summary>
 		/// Returns a string with the guild's name and id.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		public static string Format(this IGuild guild)
-			=> guild != null ? $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})" : "Irretrievable Guild";
+		{
+			if (guild == null)
+			{
+				return "Irretrievable Guild";
+			}
+			return $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})";
+		}
 		/// <summary>
 		/// Returns a string with the messages content, embeds, and attachments listed.
 		/// </summary>
@@ -152,69 +182,20 @@ namespace Advobot.Utilities
 			_ => "Irretrievable Emote",
 		};
 		/// <summary>
-		/// Invokes <see cref="string.Format(IFormatProvider, string, object)"/>
+		/// Returns a new <see cref="EmbedAuthorBuilder"/> containing the user's info.
 		/// </summary>
-		/// <param name="provider"></param>
-		/// <param name="format"></param>
-		/// <param name="arg0"></param>
+		/// <param name="author"></param>
 		/// <returns></returns>
-		public static string Format(
-			this IFormatProvider provider,
-			string format,
-			object arg0)
-			=> string.Format(provider, format, arg0);
-		/// <summary>
-		/// Invokes <see cref="string.Format(IFormatProvider, string, object, object)"/>.
-		/// </summary>
-		/// <param name="provider"></param>
-		/// <param name="format"></param>
-		/// <param name="arg0"></param>
-		/// <param name="arg1"></param>
-		/// <returns></returns>
-		public static string Format(
-			this IFormatProvider provider,
-			string format,
-			object arg0,
-			object arg1)
-			=> string.Format(provider, format, arg0, arg1);
-		/// <summary>
-		/// Invokes <see cref="string.Format(IFormatProvider, string, object, object, object)"/>.
-		/// </summary>
-		/// <param name="provider"></param>
-		/// <param name="format"></param>
-		/// <param name="arg0"></param>
-		/// <param name="arg1"></param>
-		/// <param name="arg2"></param>
-		/// <returns></returns>
-		public static string Format(
-			this IFormatProvider provider,
-			string format,
-			object arg0,
-			object arg1,
-			object arg2)
-			=> string.Format(provider, format, arg0, arg1, arg2);
-		/// <summary>
-		/// Invokes <see cref="string.Format(IFormatProvider, string, object[])"/>.
-		/// </summary>
-		/// <param name="provider"></param>
-		/// <param name="format"></param>
-		/// <param name="args"></param>
-		/// <returns></returns>
-		public static string Format(
-			this IFormatProvider provider,
-			string format,
-			object[] args)
-			=> string.Format(provider, format, args);
-		/// <summary>
-		/// Formats the interpolated string with the specified format provider.
-		/// </summary>
-		/// <param name="provider"></param>
-		/// <param name="formattable"></param>
-		/// <returns></returns>
-		public static string FormatInterpolated(
-			this IFormatProvider provider,
-			FormattableString formattable)
-			=> formattable.ToString(provider);
+		public static EmbedAuthorBuilder CreateAuthor(this IUser author)
+		{
+			return new EmbedAuthorBuilder
+			{
+				IconUrl = author?.GetAvatarUrl(),
+				Name = author?.Format(),
+				Url = author?.GetAvatarUrl(),
+			};
+		}
+
 		/// <summary>
 		/// Returns a dictionary of the names of each permission and its value.
 		/// </summary>
@@ -244,52 +225,17 @@ namespace Advobot.Utilities
 			}
 			return temp;
 		}
+
 		/// <summary>
-		/// Invokes <see cref="string.Join(string, string[])"/> with the current culture's list separator.
+		/// Formats the interpolated string with the specified format provider.
 		/// </summary>
-		/// <param name="source"></param>
+		/// <param name="provider"></param>
+		/// <param name="formattable"></param>
 		/// <returns></returns>
-		public static string ToDelimitedString(
-			this IEnumerable<string> source)
-		{
-			var separator = CultureInfo.CurrentCulture.TextInfo.ListSeparator + " ";
-			return source.ToDelimitedString(separator);
-		}
-		/// <summary>
-		/// Invokes <see cref="string.Join(string, string[])"/> with <paramref name="separator"/>.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="separator"></param>
-		/// <returns></returns>
-		public static string ToDelimitedString(
-			this IEnumerable<string> source,
-			string separator)
-			=> string.Join(separator, source);
-		/// <summary>
-		/// Invokes <see cref="string.Join(string, string[])"/> with the current culture's list separator.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="converter"></param>
-		/// <returns></returns>
-		public static string ToDelimitedString<T>(
-			this IEnumerable<T> source,
-			Func<T, string> converter)
-		{
-			var separator = CultureInfo.CurrentCulture.TextInfo.ListSeparator + " ";
-			return source.ToDelimitedString(converter, separator);
-		}
-		/// <summary>
-		/// Invokes <see cref="string.Join(string, string[])"/> with <paramref name="separator"/>.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="converter"></param>
-		/// <param name="separator"></param>
-		/// <returns></returns>
-		public static string ToDelimitedString<T>(
-			this IEnumerable<T> source,
-			Func<T, string> converter,
-			string separator)
-			=> string.Join(separator, source.Select(converter));
+		public static string FormatInterpolated(
+			this IFormatProvider provider,
+			FormattableString formattable)
+			=> formattable.ToString(provider);
 		/// <summary>
 		/// Invokes <see cref="string.Format(string, object[])"/>.
 		/// </summary>
@@ -340,23 +286,8 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static MarkdownFormattedArg WithBigBlock(this string value)
 			=> new MarkdownFormattedArg(value, value.AddMarkdown("```"));
-		/// <summary>
-		/// Returns a new <see cref="EmbedAuthorBuilder"/> containing the user's info.
-		/// </summary>
-		/// <param name="author"></param>
-		/// <returns></returns>
-		public static EmbedAuthorBuilder CreateAuthor(this IUser author)
-			=> new EmbedAuthorBuilder { IconUrl = author?.GetAvatarUrl(), Name = author?.Format(), Url = author?.GetAvatarUrl(), };
-
 		private static string AddMarkdown(this string value, string markdown)
 			=> $"{markdown}{value}{markdown}";
-		private static string GetChannelType(this IChannel channel) => channel switch
-		{
-			IMessageChannel _ => "text",
-			IVoiceChannel _ => "voice",
-			ICategoryChannel _ => "category",
-			_ => "unknown",
-		};
 
 		/// <summary>
 		/// Contains the original value and a newly formatted value.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using static Advobot.Standard.Resources.Responses;
 
@@ -21,7 +22,7 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult DisplayRegions(IReadOnlyCollection<IVoiceRegion> regions)
 		{
 			var description = regions
-				.ToDelimitedString(x => x.Id, Environment.NewLine)
+				.Join(x => x.Id, Environment.NewLine)
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 
@@ -56,7 +55,7 @@ namespace Advobot.Formatting
 		{
 			//Any collections with no information in them dont need to be added
 			var valid = Collections.Where(x => x.Information.Any());
-			return valid.ToDelimitedString(x => x.ToString(), "\n\n");
+			return valid.Join(x => x.ToString(), "\n\n");
 		}
 	}
 }

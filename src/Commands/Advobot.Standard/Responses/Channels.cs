@@ -24,7 +24,7 @@ namespace Advobot.Standard.Responses
 			);
 			var description = channels
 				.OrderBy(x => x.Position)
-				.ToDelimitedString(x => $"{x.Position.ToString("00")}. {x.Name}", "\n")
+				.Join(x => $"{x.Position.ToString("00")}. {x.Name}", "\n")
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper
@@ -53,9 +53,9 @@ namespace Advobot.Standard.Responses
 				Title = title,
 			};
 
-			var rolesValue = roleNames.ToDelimitedString().WithBigBlock().Value;
+			var rolesValue = roleNames.Join().WithBigBlock().Value;
 			embed.TryAddField(ChannelsTitleAllOverwritesRoles, rolesValue, false, out _);
-			var usersValue = userNames.ToDelimitedString().WithBigBlock().Value;
+			var usersValue = userNames.Join().WithBigBlock().Value;
 			embed.TryAddField(ChannelsTitleAllOverwritesUsers, usersValue, false, out _);
 
 			return Success(embed);
@@ -80,7 +80,7 @@ namespace Advobot.Standard.Responses
 			);
 			var description = values
 				.FormatPermissionValues(x => x.ToString(), out var padLen)
-				.ToDelimitedString(x => $"{x.Key.PadRight(padLen)} {x.Value}", Environment.NewLine)
+				.Join(x => $"{x.Key.PadRight(padLen)} {x.Value}", Environment.NewLine)
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper
@@ -104,7 +104,7 @@ namespace Advobot.Standard.Responses
 			};
 
 			return Success(format.Format(
-				EnumUtils.GetFlagNames(permissions).ToDelimitedString().WithBlock(),
+				EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
 				obj.Format().WithBlock(),
 				channel.Format().WithBlock()
 			));

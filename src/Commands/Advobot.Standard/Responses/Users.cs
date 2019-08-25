@@ -4,6 +4,7 @@ using System.Linq;
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
+using AdvorangesUtils;
 using Discord;
 using static Advobot.Standard.Resources.Responses;
 
@@ -69,7 +70,7 @@ namespace Advobot.Standard.Responses
 			var padLen = bans.Count.ToString().Length;
 			var description = bans
 				.Select((x, i) => (Position: i, Ban: x))
-				.ToDelimitedString(x => $"{x.Position.ToString().PadRight(padLen)} {x.Ban.User.Format()}", Environment.NewLine)
+				.Join(x => $"{x.Position.ToString().PadRight(padLen)} {x.Ban.User.Format()}", Environment.NewLine)
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper

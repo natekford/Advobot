@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Advobot.Utilities;
+using AdvorangesUtils;
 
 namespace Advobot.Formatting
 {
@@ -45,6 +45,6 @@ namespace Advobot.Formatting
 
 		/// <inheritdoc />
 		public override string ToString()
-			=> _Information.ToDelimitedString(x => x.ToString(), "\n");
+			=> _Information.Join(x => x.ToString(), "\n");
 	}
 }
