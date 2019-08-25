@@ -10,11 +10,9 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Modules;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
 using ImageMagick;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.ImageResizing
 {
@@ -37,16 +35,16 @@ namespace Advobot.Services.ImageResizing
 		/// <summary>
 		/// Creates an instance of <see cref="ImageResizer"/>.
 		/// </summary>
-		/// <param name="services"></param>
-		public ImageResizer(IServiceProvider services) : this(services, 10) { }
+		/// <param name="client"></param>
+		public ImageResizer(HttpClient client) : this(client, 10) { }
 		/// <summary>
 		/// Creates an instance of <see cref="ImageResizer"/>.
 		/// </summary>
-		/// <param name="services"></param>
+		/// <param name="client"></param>
 		/// <param name="threads"></param>
-		public ImageResizer(IServiceProvider services, int threads)
+		public ImageResizer(HttpClient client, int threads)
 		{
-			_Client = services.GetRequiredService<HttpClient>();
+			_Client = client;
 			_SemaphoreSlim = new SemaphoreSlim(threads);
 		}
 

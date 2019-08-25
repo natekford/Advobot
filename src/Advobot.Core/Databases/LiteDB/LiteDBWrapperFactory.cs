@@ -7,7 +7,6 @@ using Advobot.Services.GuildSettings;
 using Advobot.Settings;
 using Advobot.Utilities;
 using LiteDB;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Databases.LiteDB
 {
@@ -16,21 +15,21 @@ namespace Advobot.Databases.LiteDB
 	/// </summary>
 	internal sealed class LiteDBWrapperFactory : IDatabaseWrapperFactory
 	{
-		private readonly IBotDirectoryAccessor _DirectoryAccessor;
+		private readonly IBotDirectoryAccessor _Accessor;
 
 		/// <summary>
 		/// Creates an instance of <see cref="LiteDBWrapperFactory"/>.
 		/// </summary>
-		/// <param name="provider"></param>
-		public LiteDBWrapperFactory(IServiceProvider provider)
+		/// <param name="accessor"></param>
+		public LiteDBWrapperFactory(IBotDirectoryAccessor accessor)
 		{
-			_DirectoryAccessor = provider.GetRequiredService<IBotDirectoryAccessor>();
+			_Accessor = accessor;
 		}
 
 		/// <inheritdoc />
 		public IDatabaseWrapper CreateWrapper(string databaseName)
 		{
-			var file = AdvobotUtils.ValidateDbPath(_DirectoryAccessor, "LiteDB", databaseName);
+			var file = AdvobotUtils.ValidateDbPath(_Accessor, "LiteDB", databaseName);
 			return new LiteDBWrapper(GetDatabase(file));
 		}
 		private static LiteDatabase GetDatabase(FileInfo file)

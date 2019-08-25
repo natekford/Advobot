@@ -1,23 +1,17 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Advobot.Services.BotSettings;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging.Interfaces;
 using AdvorangesUtils;
 using Discord;
 
 namespace Advobot.Services.Logging.Loggers
 {
-	/// <summary>
-	/// Handles logging bot events.
-	/// </summary>
 	internal sealed class BotLogger : Logger, IBotLogger
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="BotLogger"/>.
-		/// </summary>
-		/// <param name="provider"></param>
-		public BotLogger(IServiceProvider provider) : base(provider) { }
+		public BotLogger(IBotSettings botSettings, IGuildSettingsFactory settingsFactory)
+			: base(botSettings, settingsFactory) { }
 
-		/// <inheritdoc />
 		public Task OnLogMessageSent(LogMessage message)
 		{
 			if (!string.IsNullOrWhiteSpace(message.Message))

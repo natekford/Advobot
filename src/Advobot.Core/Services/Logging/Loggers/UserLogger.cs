@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Services.BotSettings;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Utilities;
@@ -12,21 +14,22 @@ using Discord.WebSocket;
 
 namespace Advobot.Services.Logging.Loggers
 {
-	/// <summary>
-	/// Handles logging user events.
-	/// </summary>
 	internal sealed class UserLogger : Logger, IUserLogger
 	{
 		private static readonly RequestOptions _PersistentRolesOptions = DiscordUtils.GenerateRequestOptions("Persistent roles.");
 		private static readonly RequestOptions _BannedNameOptions = DiscordUtils.GenerateRequestOptions("Banned name.");
 
-		/// <summary>
-		/// Creates an instance of <see cref="UserLogger"/>.
-		/// </summary>
-		/// <param name="provider"></param>
-		public UserLogger(IServiceProvider provider) : base(provider) { }
+		private readonly BaseSocketClient _Client;
 
-		/// <inheritdoc />
+		public UserLogger(
+			IBotSettings botSettings,
+			IGuildSettingsFactory settingsFactory,
+			BaseSocketClient client)
+			: base(botSettings, settingsFactory)
+		{
+			_Client = client;
+		}
+
 		public Task OnUserJoined(SocketGuildUser user)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), 1);
@@ -44,7 +47,6 @@ namespace Advobot.Services.Logging.Loggers
 				},
 			});
 		}
-		/// <inheritdoc />
 		public Task OnUserLeft(SocketGuildUser user)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -1);
@@ -62,10 +64,9 @@ namespace Advobot.Services.Logging.Loggers
 				},
 			});
 		}
-		/// <inheritdoc />
 		public async Task OnUserUpdated(SocketUser before, SocketUser after)
 		{
-			foreach (var guild in Client.Guilds)
+			foreach (var guild in _Client.Guilds)
 			{
 				if (!(guild.GetUser(before.Id) is IGuildUser user))
 				{

@@ -18,7 +18,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.Commands
 {
@@ -45,18 +44,31 @@ namespace Advobot.Services.Commands
 		public event Action<IResult> CommandInvoked;
 
 		/// <summary>
-		/// Creates an instance of <see cref="CommandHandlerService"/> and gets the required services.
+		/// Creates an instance of <see cref="CommandHandlerService"/>.
 		/// </summary>
 		/// <param name="provider"></param>
-		public CommandHandlerService(IServiceProvider provider)
+		/// <param name="config"></param>
+		/// <param name="client"></param>
+		/// <param name="botSettings"></param>
+		/// <param name="guildSettings"></param>
+		/// <param name="helpentries"></param>
+		/// <param name="timers"></param>
+		public CommandHandlerService(
+			IServiceProvider provider,
+			CommandServiceConfig config,
+			DiscordShardedClient client,
+			IBotSettings botSettings,
+			IGuildSettingsFactory guildSettings,
+			IHelpEntryService helpentries,
+			ITimerService timers)
 		{
 			_Provider = provider;
-			_CommandConfig = _Provider.GetRequiredService<CommandServiceConfig>();
-			_Client = _Provider.GetRequiredService<DiscordShardedClient>();
-			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
-			_GuildSettings = _Provider.GetRequiredService<IGuildSettingsFactory>();
-			_HelpEntries = _Provider.GetRequiredService<IHelpEntryService>();
-			_Timers = _Provider.GetRequiredService<ITimerService>();
+			_CommandConfig = config;
+			_Client = client;
+			_BotSettings = botSettings;
+			_GuildSettings = guildSettings;
+			_HelpEntries = helpentries;
+			_Timers = timers;
 			_CommandService = new Localized<CommandService>(x =>
 			{
 				var commands = new CommandService(_CommandConfig);

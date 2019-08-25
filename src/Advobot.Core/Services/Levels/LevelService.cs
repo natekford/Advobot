@@ -10,7 +10,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 using LiteDB;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services.Levels
 {
@@ -24,7 +23,7 @@ namespace Advobot.Services.Levels
 		/// <summary>
 		/// The settings for each individual guild.
 		/// </summary>
-		private IGuildSettingsFactory GuildSettings { get; }
+		private IGuildSettingsFactory SettingsFactory { get; }
 		/// <summary>
 		/// The bot client.
 		/// </summary>
@@ -49,17 +48,30 @@ namespace Advobot.Services.Levels
 		/// <summary>
 		/// Creates an instance of <see cref="LevelService"/>.
 		/// </summary>
-		/// <param name="provider"></param>
-		public LevelService(IServiceProvider provider) : this(provider, new LevelServiceArguments()) { }
+		/// <param name="dbFactory"></param>
+		/// <param name="settingsFactory"></param>
+		/// <param name="client"></param>
+		public LevelService(
+			IDatabaseWrapperFactory dbFactory,
+			IGuildSettingsFactory settingsFactory,
+			BaseSocketClient client)
+			: this(dbFactory, settingsFactory, client, new LevelServiceArguments()) { }
 		/// <summary>
 		/// Creates an instance of <see cref="LevelService"/>.
 		/// </summary>
-		/// <param name="provider"></param>
+		/// <param name="dbFactory"></param>
+		/// <param name="settingsFactory"></param>
+		/// <param name="client"></param>
 		/// <param name="args"></param>
-		public LevelService(IServiceProvider provider, LevelServiceArguments args) : base(provider)
+		public LevelService(
+			IDatabaseWrapperFactory dbFactory,
+			IGuildSettingsFactory settingsFactory,
+			BaseSocketClient client,
+			LevelServiceArguments args)
+			: base(dbFactory)
 		{
-			Client = provider.GetRequiredService<BaseSocketClient>();
-			GuildSettings = provider.GetRequiredService<IGuildSettingsFactory>();
+			Client = client;
+			SettingsFactory = settingsFactory;
 			Log = args.Log;
 			Pow = args.Pow;
 			Time = args.Time;
@@ -77,7 +89,7 @@ namespace Advobot.Services.Levels
 				|| !(message is IUserMessage msg)
 				|| !(msg.Channel is ITextChannel channel)
 				|| !(channel.Guild is IGuild guild)
-				|| !(await GuildSettings.GetOrCreateAsync(guild).CAF() is IGuildSettings settings)
+				|| !(await SettingsFactory.GetOrCreateAsync(guild).CAF() is IGuildSettings settings)
 				|| settings.IgnoredXpChannels.Contains(msg.Channel.Id)
 				|| !(GetUserXpInformation(message.Author) is UserExperienceInformation info)
 				|| info.Time > (DateTime.UtcNow - Time))
@@ -98,7 +110,7 @@ namespace Advobot.Services.Levels
 				|| !(cached.Value is IUserMessage msg)
 				|| !(msg.Channel is ITextChannel channel)
 				|| !(channel.Guild is IGuild guild)
-				|| !(await GuildSettings.GetOrCreateAsync(guild).CAF() is IGuildSettings settings)
+				|| !(await SettingsFactory.GetOrCreateAsync(guild).CAF() is IGuildSettings settings)
 				|| settings.IgnoredXpChannels.Contains(msg.Channel.Id)
 				|| !(GetUserXpInformation(msg.Author) is UserExperienceInformation info)
 				|| !(info.RemoveMessageHash(cached.Id) is MessageHash hash)

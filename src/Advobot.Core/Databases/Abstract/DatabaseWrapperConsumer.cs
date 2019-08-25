@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using AdvorangesUtils;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Databases.Abstract
 {
@@ -22,23 +21,23 @@ namespace Advobot.Databases.Abstract
 		/// <summary>
 		/// The factory for creating <see cref="DatabaseWrapper"/>.
 		/// </summary>
-		protected IDatabaseWrapperFactory DatabaseFactory { get; }
+		protected IDatabaseWrapperFactory DbFactory { get; }
 
 		private IDatabaseWrapper? _DatabaseWrapper;
 
 		/// <summary>
 		/// Creates an instance of <see cref="DatabaseWrapperConsumer"/>.
 		/// </summary>
-		/// <param name="provider"></param>
-		public DatabaseWrapperConsumer(IServiceProvider provider)
+		/// <param name="dbFactory"></param>
+		public DatabaseWrapperConsumer(IDatabaseWrapperFactory dbFactory)
 		{
-			DatabaseFactory = provider.GetRequiredService<IDatabaseWrapperFactory>();
+			DbFactory = dbFactory;
 		}
 
 		/// <inheritdoc />
 		public void Start()
 		{
-			_DatabaseWrapper = DatabaseFactory.CreateWrapper(DatabaseName);
+			_DatabaseWrapper = DbFactory.CreateWrapper(DatabaseName);
 			ConsoleUtils.DebugWrite($"Started the database connection {DatabaseName}.");
 
 			const string META_COLLECTION_NAME = "Meta";

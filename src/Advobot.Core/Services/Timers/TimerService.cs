@@ -11,7 +11,6 @@ using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 using Timer = System.Timers.Timer;
 
 namespace Advobot.Services.Timers
@@ -39,10 +38,14 @@ namespace Advobot.Services.Timers
 		/// <summary>
 		/// Creates an instance of <see cref="TimerService"/>.
 		/// </summary>
-		/// <param name="provider"></param>
-		public TimerService(IServiceProvider provider) : base(provider)
+		/// <param name="dbFactory"></param>
+		/// <param name="client"></param>
+		public TimerService(
+			IDatabaseWrapperFactory dbFactory,
+			BaseSocketClient client)
+			: base(dbFactory)
 		{
-			_Client = provider.GetRequiredService<BaseSocketClient>();
+			_Client = client;
 			_PunishmentArgs = new PunishmentArgs
 			{
 				Options = DiscordUtils.GenerateRequestOptions("Automatically done from the timer service."),

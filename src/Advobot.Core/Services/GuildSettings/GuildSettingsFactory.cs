@@ -10,7 +10,6 @@ using Advobot.Settings;
 using AdvorangesUtils;
 using Discord;
 using LiteDB;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings
@@ -31,10 +30,14 @@ namespace Advobot.Services.GuildSettings
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettingsFactory"/>.
 		/// </summary>
-		/// <param name="provider"></param>
-		public GuildSettingsFactory(IServiceProvider provider) : base(provider)
+		/// <param name="dbFactory"></param>
+		/// <param name="accessor"></param>
+		public GuildSettingsFactory(
+			IDatabaseWrapperFactory dbFactory,
+			IBotDirectoryAccessor accessor)
+			: base(dbFactory)
 		{
-			_Accessor = provider.GetRequiredService<IBotDirectoryAccessor>();
+			_Accessor = accessor;
 		}
 
 		protected override void AfterStart(int schema)

@@ -21,11 +21,14 @@ namespace Advobot.Services.InviteList
 		/// <summary>
 		/// Creates an instance of <see cref="InviteListService"/>.
 		/// </summary>
-		/// <param name="provider"></param>
-		public InviteListService(IServiceProvider provider) : base(provider) { }
+		/// <param name="dbFactory"></param>
+		public InviteListService(IDatabaseWrapperFactory dbFactory) : base(dbFactory) { }
 
 		/// <inheritdoc />
-		public IListedInvite Add(SocketGuild guild, IInviteMetadata invite, IEnumerable<string> keywords)
+		public IListedInvite Add(
+			SocketGuild guild,
+			IInviteMetadata invite,
+			IEnumerable<string> keywords)
 		{
 			var listedInvite = new ListedInvite(guild, invite, keywords);
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Delete(x => x.GuildId == guild.Id));

@@ -9,45 +9,33 @@ namespace Advobot.Services.Logging.Loggers
 {
 	internal static class LoggingContext
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="IUserLoggingContext"/>.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="factory"></param>
-		/// <returns></returns>
 		public static async Task<IUserLoggingContext?> CreateAsync(
 			IGuildUser user,
-			IGuildSettingsFactory factory)
-			=> await CreateAsync(null, user, null, user.Guild, factory).CAF();
-		/// <summary>
-		/// Creates an instance of <see cref="IMessageLoggingContext"/>.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="factory"></param>
-		/// <returns></returns>
+			IGuildSettingsFactory settingsFactory)
+			=> await CreateAsync(null, user, null, user.Guild, settingsFactory).CAF();
 		public static async Task<IMessageLoggingContext?> CreateAsync(
 			IMessage message,
-			IGuildSettingsFactory factory)
+			IGuildSettingsFactory settingsFactory)
 		{
 			var userMessage = message as IUserMessage;
 			var user = userMessage?.Author as IGuildUser;
 			var channel = message.Channel as ITextChannel;
 			var guild = channel?.Guild;
-			return await CreateAsync(userMessage, user, channel, guild, factory).CAF();
+			return await CreateAsync(userMessage, user, channel, guild, settingsFactory).CAF();
 		}
 		private static async Task<PrivateLoggingContext?> CreateAsync(
 			IUserMessage? message,
 			IGuildUser? user,
 			ITextChannel? channel,
 			IGuild? guild,
-			IGuildSettingsFactory factory)
+			IGuildSettingsFactory settingsFactory)
 		{
 			if (user == null || guild == null)
 			{
 				return null;
 			}
 
-			var settings = await factory.GetOrCreateAsync(guild).CAF();
+			var settings = await settingsFactory.GetOrCreateAsync(guild).CAF();
 			var serverLog = await guild.GetTextChannelAsync(settings.ServerLogId).CAF();
 			var imageLog = await guild.GetTextChannelAsync(settings.ImageLogId).CAF();
 			var bot = await guild.GetCurrentUserAsync().CAF();
@@ -86,7 +74,6 @@ namespace Advobot.Services.Logging.Loggers
 				Bot = bot;
 			}
 
-			/// <inheritdoc />
 			public bool CanLog(LogAction action) => ServerLog != null && Settings.LogActions.Contains(action) && action switch
 			{
 				//Only log if it wasn't this bot that left

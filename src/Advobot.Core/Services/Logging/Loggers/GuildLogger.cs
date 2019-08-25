@@ -1,6 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Services.BotSettings;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Utilities;
 using AdvorangesUtils;
@@ -8,29 +9,29 @@ using Discord.WebSocket;
 
 namespace Advobot.Services.Logging.Loggers
 {
-	/// <summary>
-	/// Handles logging guild events.
-	/// </summary>
 	internal sealed class GuildLogger : Logger, IGuildLogger
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="GuildLogger"/>.
-		/// </summary>
-		/// <param name="provider"></param>
-		public GuildLogger(IServiceProvider provider) : base(provider) { }
+		private readonly BaseSocketClient _Client;
 
-		/// <inheritdoc />
+		public GuildLogger(
+			IBotSettings botSettings,
+			IGuildSettingsFactory guildSettings,
+			BaseSocketClient client)
+			: base(botSettings, guildSettings)
+		{
+			_Client = client;
+		}
+
 		public Task OnGuildAvailable(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
 			NotifyLogCounterIncrement(nameof(ILogService.TotalGuilds), 1);
 
-			var shardId = Client is DiscordShardedClient s ? s.GetShardIdFor(guild) : 0;
+			var shardId = _Client is DiscordShardedClient s ? s.GetShardIdFor(guild) : 0;
 			var memory = ProcessInfoUtils.GetMemoryMB().ToString("0.00");
 			ConsoleUtils.WriteLine($"{guild.Format()} ({shardId}, {guild.MemberCount}, {memory}MB)");
 			return Task.CompletedTask;
 		}
-		/// <inheritdoc />
 		public Task OnGuildUnavailable(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);
@@ -38,7 +39,6 @@ namespace Advobot.Services.Logging.Loggers
 			ConsoleUtils.WriteLine($"Guild is now offline {guild.Format()}.");
 			return Task.CompletedTask;
 		}
-		/// <inheritdoc />
 		public async Task OnJoinedGuild(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
@@ -60,7 +60,6 @@ namespace Advobot.Services.Logging.Loggers
 				await guild.LeaveAsync().CAF();
 			}
 		}
-		/// <inheritdoc />
 		public async Task OnLeftGuild(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);

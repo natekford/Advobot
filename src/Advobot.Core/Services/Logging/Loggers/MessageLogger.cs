@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using Advobot.Services.BotSettings;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Services.Logging.Interfaces;
+using Advobot.Services.Timers;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
@@ -14,21 +17,22 @@ using Discord.WebSocket;
 
 namespace Advobot.Services.Logging.Loggers
 {
-	/// <summary>
-	/// Handles logging message events.
-	/// </summary>
 	internal sealed class MessageLogger : Logger, IMessageLogger
 	{
 		private static readonly RequestOptions _ChannelSettingsOptions = DiscordUtils.GenerateRequestOptions("Due to channel settings.");
 		private static readonly RequestOptions _BannedPhraseOptions = DiscordUtils.GenerateRequestOptions("Banned phrase.");
 
-		/// <summary>
-		/// Creates an instance of <see cref="MessageLogger"/>.
-		/// </summary>
-		/// <param name="provider"></param>
-		public MessageLogger(IServiceProvider provider) : base(provider) { }
+		private readonly ITimerService _Timers;
 
-		/// <inheritdoc />
+		public MessageLogger(
+			IBotSettings botSettings,
+			IGuildSettingsFactory settingsFactory,
+			ITimerService timers)
+			: base(botSettings, settingsFactory)
+		{
+			_Timers = timers;
+		}
+
 		public Task OnMessageReceived(SocketMessage message)
 		{
 			return HandleAsync(message, new LoggingContextArgs<IMessageLoggingContext>
@@ -45,7 +49,6 @@ namespace Advobot.Services.Logging.Loggers
 				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
 			});
 		}
-		/// <inheritdoc />
 		public Task OnMessageUpdated(
 			Cacheable<IMessage, ulong> cached,
 			SocketMessage message,
@@ -64,7 +67,6 @@ namespace Advobot.Services.Logging.Loggers
 				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
 			});
 		}
-		/// <inheritdoc />
 		public Task OnMessageDeleted(
 			Cacheable<IMessage, ulong> cached,
 			ISocketMessageChannel channel)
@@ -120,11 +122,11 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			if (context.Settings.BannedPhraseStrings.TryGetFirst(x => context.Message.Content.CaseInsContains(x.Phrase), out var str))
 			{
-				await str.PunishAsync(context.Settings, context.Guild, info, Timers).CAF();
+				await str.PunishAsync(context.Settings, context.Guild, info, _Timers).CAF();
 			}
 			if (context.Settings.BannedPhraseRegex.TryGetFirst(x => RegexUtils.IsMatch(context.Message.Content, x.Phrase), out var regex))
 			{
-				await regex.PunishAsync(context.Settings, context.Guild, info, Timers).CAF();
+				await regex.PunishAsync(context.Settings, context.Guild, info, _Timers).CAF();
 			}
 			if (str != null || regex != null)
 			{

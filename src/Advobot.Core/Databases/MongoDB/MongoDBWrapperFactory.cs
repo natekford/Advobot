@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Advobot.Databases.Abstract;
-using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
@@ -27,10 +26,10 @@ namespace Advobot.Databases.MongoDB
 		/// <summary>
 		/// Creates an instance of <see cref="MongoDBWrapperFactory"/>.
 		/// </summary>
-		/// <param name="provider"></param>
-		public MongoDBWrapperFactory(IServiceProvider provider)
+		/// <param name="client"></param>
+		public MongoDBWrapperFactory(IMongoClient client)
 		{
-			_Client = provider.GetRequiredService<IMongoClient>();
+			_Client = client;
 		}
 
 		/// <inheritdoc />
