@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Advobot.Gacha.Displays;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.Interaction
 {
@@ -10,14 +8,12 @@ namespace Advobot.Gacha.Interaction
 	{
 		public IList<IInteraction> Interactions { get; } = new List<IInteraction>();
 
-		protected IInteractionProvider Provider { get; }
 		protected IInteractionManager Manager { get; }
 		protected Display Display { get; }
 
-		public InteractionHandlerBase(IServiceProvider services, Display display)
+		public InteractionHandlerBase(IInteractionManager manager, Display display)
 		{
-			Provider = services.GetRequiredService<IInteractionProvider>();
-			Manager = services.GetRequiredService<IInteractionManager>();
+			Manager = manager;
 			Display = display;
 		}
 

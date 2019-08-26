@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Advobot.Gacha.Displays;
 using AdvorangesUtils;
 using Discord;
@@ -10,17 +9,17 @@ namespace Advobot.Gacha.Interaction
 
 	public sealed class MessageHandler : InteractionHandlerBase
 	{
-		public MessageHandler(IServiceProvider services, Display display)
-			: base(services, display) { }
+		public MessageHandler(IInteractionManager manager, Display display)
+			: base(manager, display) { }
 
 		public override Task StartAsync()
 		{
-			Provider.MessageReceived += HandleAsync;
+			Manager.MessageReceived += HandleAsync;
 			return Task.CompletedTask;
 		}
 		public override Task StopAsync()
 		{
-			Provider.MessageReceived -= HandleAsync;
+			Manager.MessageReceived -= HandleAsync;
 			return Task.CompletedTask;
 		}
 		private Task HandleAsync(IMessage message)

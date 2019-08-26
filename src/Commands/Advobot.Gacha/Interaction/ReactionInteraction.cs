@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Gacha.Displays;
 using AdvorangesUtils;
@@ -10,13 +9,13 @@ namespace Advobot.Gacha.Interaction
 {
 	public sealed class ReactionHandler : InteractionHandlerBase
 	{
-		public ReactionHandler(IServiceProvider services, Display display)
-			: base(services, display) { }
+		public ReactionHandler(IInteractionManager manager, Display display)
+			: base(manager, display) { }
 
 		public override async Task StartAsync()
 		{
-			Provider.ReactionAdded += HandleAsync;
-			Provider.ReactionRemoved += HandleAsync;
+			Manager.ReactionAdded += HandleAsync;
+			Manager.ReactionRemoved += HandleAsync;
 
 			if (Interactions.Count > 0)
 			{
@@ -26,8 +25,8 @@ namespace Advobot.Gacha.Interaction
 		}
 		public override Task StopAsync()
 		{
-			Provider.ReactionAdded -= HandleAsync;
-			Provider.ReactionRemoved -= HandleAsync;
+			Manager.ReactionAdded -= HandleAsync;
+			Manager.ReactionRemoved -= HandleAsync;
 			return Task.CompletedTask;
 		}
 		private Task HandleAsync(

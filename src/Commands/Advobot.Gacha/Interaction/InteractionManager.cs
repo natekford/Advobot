@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Advobot.Gacha.Displays;
+using Discord;
+using Discord.WebSocket;
 using static Advobot.Gacha.Interaction.InteractionType;
 
 namespace Advobot.Gacha.Interaction
@@ -10,14 +13,30 @@ namespace Advobot.Gacha.Interaction
 	{
 		public IDictionary<InteractionType, IInteraction> Interactions { get; set; }
 
-		private readonly IServiceProvider _Services;
-		private readonly bool _UseReactions;
-
-		public InteractionManager(IServiceProvider services) : this(services, true) { }
-		public InteractionManager(IServiceProvider services, bool useReactions = true)
+		public event Func<IMessage, Task> MessageReceived
 		{
-			_Services = services;
+			add => _Client.MessageReceived += value;
+			remove => _Client.MessageReceived -= value;
+		}
+		public event Func<Cacheable<IUserMessage, ulong>, ISocketMessageChannel, SocketReaction, Task> ReactionAdded
+		{
+			add => _Client.ReactionAdded += value;
+			remove => _Client.ReactionAdded -= value;
+		}
+		public event Func<Cacheable<IUserMessage, ulong>, ISocketMessageChannel, SocketReaction, Task> ReactionRemoved
+		{
+			add => _Client.ReactionRemoved += value;
+			remove => _Client.ReactionRemoved -= value;
+		}
+
+		private readonly bool _UseReactions;
+		private readonly BaseSocketClient _Client;
+
+		public InteractionManager(BaseSocketClient client) : this(client, true) { }
+		public InteractionManager(BaseSocketClient client, bool useReactions = true)
+		{
 			_UseReactions = useReactions;
+			_Client = client;
 			Interactions = DefaultInteractions(useReactions);
 		}
 
@@ -36,9 +55,9 @@ namespace Advobot.Gacha.Interaction
 		{
 			if (_UseReactions)
 			{
-				return new ReactionHandler(_Services, display);
+				return new ReactionHandler(this, display);
 			}
-			return new MessageHandler(_Services, display);
+			return new MessageHandler(this, display);
 		}
 
 		//IInteractionManager
