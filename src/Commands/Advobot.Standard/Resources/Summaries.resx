@@ -414,4 +414,13 @@
   <data name="HelpCommandHelp" xml:space="preserve">
     <value>Prints out help information for a specific command in a specified module.</value>
   </data>
+  <data name="HelpVariableCommand" xml:space="preserve">
+    <value>The name of a command. This does not need to be exact; commands with similar names will be found.</value>
+  </data>
+  <data name="HelpVariableExactCommand" xml:space="preserve">
+    <value>The name of a command. This does need to be exact.</value>
+  </data>
+  <data name="HelpVariableCommandPosition" xml:space="preserve">
+    <value>The number of a command overload.</value>
+  </data>
 </root>

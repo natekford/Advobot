@@ -30,8 +30,6 @@ namespace Advobot.Standard.Commands
 		[Meta("0e89a6fd-5c9c-4008-a912-7c719ea7827d", IsEnabled = true, CanToggle = false)]
 		public sealed class Help : AdvobotModuleBase
 		{
-			private const string TEMP_SUMMARY = "Input the name of the module you want to get information for";
-
 			[Command]
 			[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
 			public Task<RuntimeResult> CommandAsync()
@@ -39,18 +37,26 @@ namespace Advobot.Standard.Commands
 			[Command, Priority(1)]
 			[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
 			public Task<RuntimeResult> CommandAsync(
-				[Summary(TEMP_SUMMARY)] IModuleHelpEntry command)
+				[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
+				IModuleHelpEntry command
+			)
 				=> Responses.Misc.Help(command, Context.Settings);
 			[Command, Priority(2)]
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
 			public Task<RuntimeResult> CommandAsync(
-				[Summary(TEMP_SUMMARY)] IModuleHelpEntry command,
-				[Positive] int position)
+				[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
+				IModuleHelpEntry command,
+				[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
+				[Positive]
+				int position
+			)
 				=> Responses.Misc.Help(command, position - 1);
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Hidden]
 			public async Task<RuntimeResult> CommandAsync(
-				[OverrideTypeReader(typeof(CloseHelpEntryTypeReader))] IEnumerable<IModuleHelpEntry> command)
+				[OverrideTypeReader(typeof(CloseHelpEntryTypeReader))]
+				IEnumerable<IModuleHelpEntry> command
+			)
 			{
 				var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
 				if (entry != null)

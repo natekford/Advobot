@@ -43,15 +43,15 @@ namespace Advobot.Gacha.Interaction
 			Interactions = DefaultInteractions(useReactions);
 		}
 
-		private static IDictionary<InteractionType, IInteraction> DefaultInteractions(bool reactions)
+		private static IDictionary<InteractionType, IInteraction> DefaultInteractions(bool useReactions)
 		{
 			return new Dictionary<InteractionType, IInteraction>
 			{
-				{ Claim, new Confirmation(Claim.GetRepresentation(reactions), true) },
-				{ Left, new Movement(Left.GetRepresentation(reactions), 1) },
-				{ Right, new Movement(Right.GetRepresentation(reactions), -1) },
-				{ Confirm, new Confirmation(Confirm.GetRepresentation(reactions), true) },
-				{ Deny, new Confirmation(Deny.GetRepresentation(reactions), false) },
+				{ Claim, new Confirmation(Claim.GetRepresentation(useReactions), true) },
+				{ Left, new Movement(Left.GetRepresentation(useReactions), 1) },
+				{ Right, new Movement(Right.GetRepresentation(useReactions), -1) },
+				{ Confirm, new Confirmation(Confirm.GetRepresentation(useReactions), true) },
+				{ Deny, new Confirmation(Deny.GetRepresentation(useReactions), false) },
 			};
 		}
 		public IInteractionHandler CreateInteractionHandler(Display display)
