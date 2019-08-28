@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Advobot.Enums;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Settings;
@@ -58,21 +55,5 @@ namespace Advobot.Utilities
 			Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
 			return new FileInfo(absolutePath);
 		}
-		/// <summary>
-		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="objects"></param>
-		/// <param name="method"></param>
-		/// <param name="number"></param>
-		/// <param name="f"></param>
-		/// <returns></returns>
-		public static IEnumerable<T> GetFromCount<T>(this IEnumerable<T> objects, CountTarget method, int? number, Func<T, int?> f) => method switch
-		{
-			CountTarget.Equal => objects.Where(x => f(x) == number),
-			CountTarget.Below => objects.Where(x => f(x) < number),
-			CountTarget.Above => objects.Where(x => f(x) > number),
-			_ => throw new ArgumentOutOfRangeException(nameof(method)),
-		};
 	}
 }

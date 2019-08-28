@@ -12,21 +12,20 @@ namespace Advobot.Gacha.Interaction
 		public ReactionHandler(IInteractionManager manager, Display display)
 			: base(manager, display) { }
 
-		public override async Task StartAsync()
+		public override Task StartAsync()
 		{
-			Manager.ReactionAdded += HandleAsync;
-			Manager.ReactionRemoved += HandleAsync;
+			Manager.ReactionReceived += HandleAsync;
 
 			if (Interactions.Count > 0)
 			{
 				var emotes = Interactions.Select(x => new Emoji(x.Name)).ToArray();
-				await Display.Message.AddReactionsAsync(emotes).CAF();
+				return Display.Message.AddReactionsAsync(emotes);
 			}
+			return Task.CompletedTask;
 		}
 		public override Task StopAsync()
 		{
-			Manager.ReactionAdded -= HandleAsync;
-			Manager.ReactionRemoved -= HandleAsync;
+			Manager.ReactionReceived -= HandleAsync;
 			return Task.CompletedTask;
 		}
 		private Task HandleAsync(

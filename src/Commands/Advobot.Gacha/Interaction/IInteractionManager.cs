@@ -12,8 +12,7 @@ namespace Advobot.Gacha.Interaction
 		IReadOnlyDictionary<InteractionType, IInteraction> Interactions { get; }
 
 		event Func<IMessage, Task> MessageReceived;
-		event Func<Cacheable<IUserMessage, ulong>, ISocketMessageChannel, SocketReaction, Task> ReactionAdded;
-		event Func<Cacheable<IUserMessage, ulong>, ISocketMessageChannel, SocketReaction, Task> ReactionRemoved;
+		event Func<Cacheable<IUserMessage, ulong>, ISocketMessageChannel, SocketReaction, Task> ReactionReceived;
 
 		IInteractionHandler CreateInteractionHandler(Display display);
 	}

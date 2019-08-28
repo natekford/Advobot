@@ -1,10 +1,13 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Services.InviteList;
 using Advobot.Settings.Localization;
@@ -74,18 +77,54 @@ namespace Advobot.Settings.Commands
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			[Command]
-			public Task<RuntimeResult> Command([Remainder] ListedInviteGatherer args)
+			public Task<RuntimeResult> Command([Remainder] ListedInviteFilterer filterer)
 			{
-				var invites = args.GatherInvites(Invites).ToArray();
-				if (!invites.Any())
+				var invites = (filterer.Keywords.Any()
+					? Invites.GetAll(int.MaxValue, filterer.Keywords)
+					: Invites.GetAll(int.MaxValue)).Where(x => !x.Expired);
+				var matches = filterer.Filter(invites);
+				if (!matches.Any())
 				{
 					return Responses.GuildList.NoInviteMatch();
 				}
-				if (invites.Length <= 50)
+				if (matches.Count <= 50)
 				{
-					return Responses.GuildList.InviteMatches(invites);
+					return Responses.GuildList.InviteMatches(matches);
 				}
 				return Responses.GuildList.TooManyMatches();
+			}
+
+			[NamedArgumentType]
+			public sealed class ListedInviteFilterer : Filterer<IListedInvite>
+			{
+				public string? Code { get; set; }
+				public string? Name { get; set; }
+				public bool? HasGlobalEmotes { get; set; }
+				public int? Users { get; set; }
+				public CountTarget UsersMethod { get; set; }
+				public IList<string> Keywords { get; set; } = new List<string>();
+
+				public override IReadOnlyList<IListedInvite> Filter(
+					IEnumerable<IListedInvite> source)
+				{
+					if (Code != null)
+					{
+						source = source.Where(x => x.Code == Code);
+					}
+					if (Name != null)
+					{
+						source = source.Where(x => x.GuildName.CaseInsEquals(Name));
+					}
+					if (HasGlobalEmotes != null)
+					{
+						source = source.Where(x => x.HasGlobalEmotes);
+					}
+					if (Users != null)
+					{
+						source = source.GetFromCount(UsersMethod, Users, x => x.GuildMemberCount);
+					}
+					return source?.ToArray() ?? Array.Empty<IListedInvite>();
+				}
 			}
 		}
 	}

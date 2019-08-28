@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -8,6 +9,7 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Services.Logging;
 using Advobot.Standard.Localization;
@@ -72,22 +74,43 @@ namespace Advobot.Standard.Commands
 		[RequireGenericGuildPermissions]
 		public sealed class GetUsersWithReason : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Role(IRole role)
-				=> Responses.Gets.UsersWithReason($"Users With The Role '{role.Name}'",
-					Context.Guild.Users.Where(x => x.Roles.Select(r => r.Id).Contains(role.Id)));
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Name(string name)
-				=> Responses.Gets.UsersWithReason($"Users With Names/Nicknames Containing '{name}'",
-					Context.Guild.Users.Where(x => x.Username.CaseInsContains(name) || x.Nickname.CaseInsContains(name)));
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Game(string game)
-				=> Responses.Gets.UsersWithReason($"Users With Games Containing '{game}'",
-					Context.Guild.Users.Where(x => x.Activity is Game g && g.Name.CaseInsContains(game)));
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Stream()
-				=> Responses.Gets.UsersWithReason("Users Who Are Streaming",
-					Context.Guild.Users.Where(x => x.Activity is StreamingGame));
+			[Command]
+			public Task<RuntimeResult> Command([Remainder] UserFilterer filterer)
+			{
+				var matches = filterer.Filter(Context.Guild.Users);
+				return Responses.Gets.UsersWithReason(matches);
+			}
+
+			[NamedArgumentType]
+			public sealed class UserFilterer : Filterer<IGuildUser>
+			{
+				public IRole? Role { get; set; }
+				public string? Name { get; set; }
+				public string? Game { get; set; }
+				public bool? IsStreaming { get; set; }
+
+				public override IReadOnlyList<IGuildUser> Filter(
+					IEnumerable<IGuildUser> source)
+				{
+					if (Role != null)
+					{
+						source = source.Where(x => x.RoleIds.Contains(Role.Id));
+					}
+					if (Name != null)
+					{
+						source = source.Where(x => x.Username.CaseInsContains(Name) || x.Nickname.CaseInsContains(Name));
+					}
+					if (Game != null)
+					{
+						source = source.Where(x => x.Activity is Game g && g.Name.CaseInsContains(Game));
+					}
+					if (IsStreaming != null)
+					{
+						source = source.Where(x => (x.Activity is StreamingGame) == IsStreaming);
+					}
+					return source?.ToArray() ?? Array.Empty<IGuildUser>();
+				}
+			}
 		}
 
 		[LocalizedGroup(nameof(Groups.GetUserAvatar))]

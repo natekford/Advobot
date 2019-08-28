@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Advobot.Attributes;
@@ -86,19 +88,68 @@ namespace Advobot.Standard.Commands
 		public sealed class DeleteMultipleInvites : AdvobotModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command([Remainder] LocalInviteGatherer gatherer)
+			public async Task<RuntimeResult> Command([Remainder] InviteFilterer filterer)
 			{
-				var invites = gatherer.GatherInvites(await Context.Guild.GetInvitesAsync().CAF()).ToArray();
-				if (!invites.Any())
+				var invites = await Context.Guild.GetInvitesAsync().CAF();
+				var filtered = filterer.Filter(invites);
+				if (!filtered.Any())
 				{
 					return Responses.Invites.NoInviteMatches();
 				}
 
-				foreach (var invite in invites)
+				foreach (var invite in filtered)
 				{
 					await invite.DeleteAsync(GenerateRequestOptions()).CAF();
 				}
-				return Responses.Invites.DeletedMultipleInvites(invites);
+				return Responses.Invites.DeletedMultipleInvites(filtered);
+			}
+
+			[NamedArgumentType]
+			public sealed class InviteFilterer : Filterer<IInviteMetadata>
+			{
+				public ulong? UserId { get; set; }
+				public ulong? ChannelId { get; set; }
+				public int? Uses { get; set; }
+				public CountTarget UsesMethod { get; set; }
+				public int? Age { get; set; }
+				public CountTarget AgeMethod { get; set; }
+				public bool? IsTemporary { get; set; }
+				public bool? NeverExpires { get; set; }
+				public bool? NoMaxUses { get; set; }
+
+				public override IReadOnlyList<IInviteMetadata> Filter(
+					IEnumerable<IInviteMetadata> source)
+				{
+					if (UserId != null)
+					{
+						source = source.Where(x => x.Inviter.Id == UserId);
+					}
+					if (ChannelId != null)
+					{
+						source = source.Where(x => x.ChannelId == ChannelId);
+					}
+					if (Uses != null)
+					{
+						source = source.GetFromCount(UsesMethod, Uses, x => x.Uses);
+					}
+					if (Age != null)
+					{
+						source = source.GetFromCount(AgeMethod, Age, x => x.MaxAge);
+					}
+					if (IsTemporary != null)
+					{
+						source = source.Where(x => x.IsTemporary == IsTemporary);
+					}
+					if (NeverExpires != null)
+					{
+						source = source.Where(x => x.MaxAge == null == NeverExpires);
+					}
+					if (NoMaxUses != null)
+					{
+						source = source.Where(x => x.MaxUses == null == NoMaxUses);
+					}
+					return source?.ToArray() ?? Array.Empty<IInviteMetadata>();
+				}
 			}
 		}
 	}

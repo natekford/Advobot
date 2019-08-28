@@ -505,9 +505,7 @@ namespace Advobot.Standard.Responses
 				},
 			});
 		}
-		public static AdvobotResult UsersWithReason(
-			string title,
-			IEnumerable<IGuildUser> users)
+		public static AdvobotResult UsersWithReason(IEnumerable<IGuildUser> users)
 		{
 			var text = users.FormatNumberedList(x => x.Format());
 			return Success(new TextFileInfo
