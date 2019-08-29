@@ -8,7 +8,6 @@ using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 
@@ -75,7 +74,7 @@ namespace Advobot.Gacha.Displays
 			{
 				Title = _Character.Name,
 				Description = _Source.Name,
-				ImageUrl = _Images.First().Url,
+				ImageUrl = _Images[0].Url,
 				Color = _Wishes.Count > 0 ? Constants.Wished : Constants.Unclaimed,
 			}.Build();
 		}

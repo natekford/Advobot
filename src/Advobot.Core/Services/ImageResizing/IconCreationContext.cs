@@ -31,10 +31,10 @@ namespace Advobot.Services.ImageResizing
 		/// <summary>
 		/// Creates an instance of <see cref="IconCreationContext"/>.
 		/// </summary>
-		/// <param name="type"></param>
 		/// <param name="context"></param>
 		/// <param name="url"></param>
 		/// <param name="args"></param>
+		/// <param name="type"></param>
 		/// <param name="callback"></param>
 		public IconCreationContext(
 			ICommandContext context,

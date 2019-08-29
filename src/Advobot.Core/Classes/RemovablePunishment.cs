@@ -55,8 +55,8 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="guild"></param>
-		/// <param name="user"></param>
 		/// <param name="role"></param>
+		/// <param name="user"></param>
 		public RemovablePunishment(
 			TimeSpan time,
 			IRole role,

@@ -116,11 +116,11 @@ namespace Advobot.Utilities
 				sb.Append($"Embed {currentEmbed}: {embed.Description ?? "No description"}".EscapeBackTicks());
 				if (embed.Url != null)
 				{
-					sb.Append($" URL: {embed.Url}");
+					sb.Append(" URL: ").Append(embed.Url);
 				}
 				if (embed.Image.HasValue)
 				{
-					sb.Append($" IURL: {embed.Image.Value.Url}");
+					sb.Append(" IURL: ").Append(embed.Image.Value.Url);
 				}
 				sb.AppendLineFeed();
 				++currentEmbed;

@@ -39,7 +39,7 @@ namespace Advobot.Classes
 			{
 				if (!part.CaseInsStartsWith("time:"))
 				{
-					sb.Append(part + " ");
+					sb.Append(part).Append(' ');
 				}
 				else if (uint.TryParse(part.Split(new[] { ':' }, 2).Last(), out var time))
 				{

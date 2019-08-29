@@ -455,7 +455,7 @@ namespace Advobot.Classes
 				nameof(Footer) => _Builder.Footer?.Text?.Length ?? 0,
 				nameof(Fields) => _Builder.Fields.Sum(f => f.Name.Length + f.Value.ToString().Length),
 				_ => 0,
-			}; ;
+			};
 		}
 		private bool SetIfSuccess(IReadOnlyCollection<IEmbedError> errors, Action setter)
 		{

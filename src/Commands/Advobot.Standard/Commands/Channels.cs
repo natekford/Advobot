@@ -57,7 +57,7 @@ namespace Advobot.Standard.Commands
 			public async Task<RuntimeResult> Command(
 				[CanModifyChannel(ManageChannels)] IGuildChannel channel)
 			{
-				var view = (ulong)ViewChannel;
+				const ulong view = (ulong)ViewChannel;
 				foreach (var overwrite in channel.PermissionOverwrites)
 				{
 					await channel.UpdateOverwriteAsync(overwrite, x =>

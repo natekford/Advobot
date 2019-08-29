@@ -6,7 +6,6 @@ using Discord.Commands;
 
 namespace Advobot.Gacha.Interaction
 {
-
 	public sealed class MessageHandler : InteractionHandlerBase
 	{
 		public MessageHandler(IInteractionManager manager, Display display)

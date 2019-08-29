@@ -6,7 +6,6 @@ using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
 {
-
 	/// <summary>
 	/// Validates the passed in <see cref="IGuildUser"/>.
 	/// </summary>

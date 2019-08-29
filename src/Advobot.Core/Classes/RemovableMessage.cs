@@ -36,9 +36,9 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Creates an instance of <see cref="RemovableMessage"/>.
 		/// </summary>
-		/// <param name="time"></param>
 		/// <param name="context"></param>
 		/// <param name="messages"></param>
+		/// <param name="time"></param>
 		public RemovableMessage(
 			ICommandContext context,
 			IEnumerable<IMessage> messages,
@@ -47,11 +47,11 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Creates an instance of removable messages with the supplied messages on the guild/channel passed in.
 		/// </summary>
-		/// <param name="time"></param>
 		/// <param name="guild"></param>
 		/// <param name="channel"></param>
 		/// <param name="user"></param>
 		/// <param name="messages"></param>
+		/// <param name="time"></param>
 		public RemovableMessage(
 			IGuild guild,
 			IMessageChannel channel,

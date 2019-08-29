@@ -42,5 +42,4 @@ namespace Advobot.Services.Timers
 			});
 		}
 	}
-
 }

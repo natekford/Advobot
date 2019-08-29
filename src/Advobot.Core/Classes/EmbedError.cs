@@ -30,8 +30,8 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="error"></param>
 		/// <param name="remainingLength"></param>
-		/// <param name="newLines"></param>
 		/// <param name="reason"></param>
+		/// <param name="newLines"></param>
 		public RemainingEmbedError(IEmbedError error, int remainingLength, string reason, bool newLines = false)
 		{
 			RemainingLength = remainingLength;

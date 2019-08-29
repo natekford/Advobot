@@ -9,6 +9,10 @@ namespace Advobot.Formatting.Rules
 	public enum MarkDownFormat : uint
 	{
 		/// <summary>
+		/// No markdown.
+		/// </summary>
+		Nothing = 0,
+		/// <summary>
 		/// Add bold in markdown.
 		/// </summary>
 		Bold = (1U << 0),

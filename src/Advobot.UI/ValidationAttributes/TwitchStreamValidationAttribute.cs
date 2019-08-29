@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using AdvorangesUtils;
 
 namespace Advobot.UI.ValidationAttributes
@@ -6,6 +7,7 @@ namespace Advobot.UI.ValidationAttributes
 	/// <summary>
 	/// Validation attribute for Twitch.tv streams.
 	/// </summary>
+	[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 	public sealed class TwitchStreamValidationAttribute : ValidationAttribute
 	{
 		/// <summary>

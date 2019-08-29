@@ -16,7 +16,7 @@ namespace Advobot.GachaTests
 
 		protected IServiceProvider Provider { get; }
 
-		public DatabaseTestsBase()
+		protected DatabaseTestsBase()
 		{
 			Provider = new ServiceCollection()
 				.AddSingleton<GachaDatabase>()

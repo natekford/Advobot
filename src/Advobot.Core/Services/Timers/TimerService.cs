@@ -110,7 +110,7 @@ namespace Advobot.Services.Timers
 			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}
 		/// <inheritdoc />
-		public bool RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment)
+		public bool RemovePunishment(ulong guildId, ulong userId, Punishment punishment)
 		{
 			var deleteQuery = DatabaseQuery<RemovablePunishment>.Delete(
 				x => x.UserId == userId && x.GuildId == guildId

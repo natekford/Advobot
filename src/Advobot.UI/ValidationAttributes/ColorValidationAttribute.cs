@@ -1,11 +1,13 @@
-﻿using Advobot.UI.Colors;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Advobot.UI.Colors;
 
 namespace Advobot.UI.ValidationAttributes
 {
 	/// <summary>
 	/// Validation attribute for colors.
 	/// </summary>
+	[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 	public sealed class ColorValidationAttribute : ValidationAttribute
 	{
 		private static readonly NetCoreBrushFactory _Factory = new NetCoreBrushFactory();

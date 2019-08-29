@@ -68,6 +68,7 @@ namespace Advobot.Standard.Commands
 				var regions = await Context.Guild.GetVoiceRegionsAsync().CAF();
 				return Responses.Guilds.DisplayRegions(regions);
 			}
+
 			[Command]
 			public async Task<RuntimeResult> Command(IVoiceRegion region)
 			{

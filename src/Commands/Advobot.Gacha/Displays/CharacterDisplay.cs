@@ -92,7 +92,7 @@ namespace Advobot.Gacha.Displays
 			}
 
 			var owner = await _Client.GetUserAsync(_Claim.GetUserId()).CAF();
-			var ownerStr = owner?.ToString() ?? _Claim.UserId.ToString();
+			var ownerStr = owner?.ToString() ?? _Claim.UserId;
 
 			embed.Color = Constants.Claimed;
 			embed.Footer.Text += $"| Belongs to {ownerStr}";

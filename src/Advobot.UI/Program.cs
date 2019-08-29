@@ -27,7 +27,7 @@ namespace Advobot.UI
 			{
 				DataContext = new AdvobotNetCoreWindowViewModel(services),
 			}.Show();
-			
+
 			app.Run(cts.Token);
 		}
 		public static AppBuilder BuildAvaloniaApp()

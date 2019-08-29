@@ -1,13 +1,13 @@
-﻿using Advobot.Gacha.Models;
+﻿using System;
+using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
-using System;
 
 namespace Advobot.GachaTests.Utilities
 {
 	public static class GachaTestUtils
 	{
-		public readonly static Random Rng = new Random();
+		public static readonly Random Rng = new Random();
 
 		public static ulong NextUlong(this Random rng)
 		{
@@ -53,12 +53,7 @@ namespace Advobot.GachaTests.Utilities
 			};
 		}
 		public static IReadOnlyWish GenerateFakeWish(IReadOnlyUser user, IReadOnlyCharacter character)
-		{
-			return new Wish(user, character)
-			{
-
-			};
-		}
+			=> new Wish(user, character);
 		public static IReadOnlyImage GenerateFakeImage(IReadOnlyCharacter character)
 		{
 			var width = Rng.Next(1, 500);

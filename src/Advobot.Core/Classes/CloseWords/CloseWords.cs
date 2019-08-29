@@ -116,7 +116,6 @@ namespace Advobot.Classes.CloseWords
 
 			for (var j = 1; j <= maxj; j++)
 			{
-
 				// Rotate
 				dSwap = dMinus2;
 				dMinus2 = dMinus1;
@@ -131,7 +130,6 @@ namespace Advobot.Classes.CloseWords
 
 				for (var i = 1; i <= maxi; i++)
 				{
-
 					var cost = source[im1] == target[jm1] ? 0 : 1;
 
 					var del = dCurrent[im1] + 1;

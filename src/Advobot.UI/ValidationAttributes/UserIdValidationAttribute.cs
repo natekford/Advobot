@@ -1,10 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Advobot.UI.ValidationAttributes
 {
 	/// <summary>
 	/// Validation attribute for user ids.
 	/// </summary>
+	[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 	public sealed class UserIdValidationAttribute : ValidationAttribute
 	{
 		/// <summary>

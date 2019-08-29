@@ -18,8 +18,8 @@ namespace Advobot.Attributes
 		/// <summary>
 		/// Creates an instance of <see cref="ModuleInitialismAliasAttribute"/>.
 		/// </summary>
-		/// <param name="type"></param>
 		/// <param name="aliases"></param>
+		/// <param name="type"></param>
 		public ModuleInitialismAliasAttribute(string[] aliases, Type type) : base(AliasUtils.ConcatModuleAliases(type, aliases)) { }
 	}
 }

@@ -84,7 +84,7 @@ namespace Advobot.Utilities
 				{
 					var part = initialism.Parts[j];
 					var length = j == offset ? i : 1;
-					newInitialism.Append(part.Substring(0, length));
+					newInitialism.Append(part, 0, length);
 				}
 
 				initialism.Edited = newInitialism.ToString().ToLower();
@@ -146,7 +146,7 @@ namespace Advobot.Utilities
 		{
 			public string Edited { get; set; }
 			public IReadOnlyList<string> Parts { get; }
-			
+
 			public Initialism(StringBuilder edited, IEnumerable<StringBuilder> parts)
 				: this(edited.ToString().ToLower(), parts.Select(x => x.ToString())) { }
 			public Initialism(string edited, IEnumerable<string> parts)

@@ -94,8 +94,8 @@ namespace Advobot.Utilities
 		/// <param name="channel"></param>
 		/// <param name="from"></param>
 		/// <param name="count"></param>
-		/// <param name="predicate"></param>
 		/// <param name="options"></param>
+		/// <param name="predicate"></param>
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(
 			ITextChannel channel,

@@ -17,7 +17,7 @@ namespace Advobot.UI.AbstractUI.Converters
 		/// Creates an instance of <see cref="FontResizeConverter"/>.
 		/// </summary>
 		/// <param name="convertFactor"></param>
-		public FontResizeConverter(double convertFactor)
+		protected FontResizeConverter(double convertFactor)
 		{
 			ConvertFactor = convertFactor;
 		}

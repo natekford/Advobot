@@ -33,6 +33,6 @@ namespace Advobot.Services.Timers
 		/// <param name="userId"></param>
 		/// <param name="punishment"></param>
 		/// <returns></returns>
-		bool RemovePunishmentAsync(ulong guildId, ulong userId, Punishment punishment);
+		bool RemovePunishment(ulong guildId, ulong userId, Punishment punishment);
 	}
 }

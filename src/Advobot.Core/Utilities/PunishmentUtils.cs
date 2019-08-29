@@ -18,8 +18,8 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <param name="userId"></param>
-		/// <param name="options"></param>
 		/// <param name="days"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
 		public static async Task BanAsync(IGuild guild, ulong userId, int days = 1, PunishmentArgs? options = null)
 		{
@@ -201,12 +201,9 @@ namespace Advobot.Utilities
 		};
 		private static Task AfterRemoveAsync(Punishment type, IGuild guild, IUser user, PunishmentArgs options)
 		{
-			if (options.Timers != null)
+			if (options.Timers?.RemovePunishment(guild.Id, user.Id, type) == true)
 			{
-				if (options.Timers.RemovePunishmentAsync(guild.Id, user.Id, type))
-				{
-					((PunishmentArgs.IPunishmentRemoved)options).SetPunishmentRemoved();
-				}
+				((PunishmentArgs.IPunishmentRemoved)options).SetPunishmentRemoved();
 			}
 			return Task.CompletedTask;
 		}
