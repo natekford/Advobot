@@ -56,14 +56,14 @@ namespace Advobot.Modules
 		/// <param name="source"></param>
 		/// <param name="format"></param>
 		/// <returns></returns>
-		public async Task<T> NextItemAtIndexAsync<T>(IList<T> source, Func<T, string> format)
+		public async Task<T> NextItemAtIndexAsync<T>(
+			IReadOnlyList<T> source,
+			Func<T, string> format)
 		{
 			var message = await ReplyAsync($"Did you mean any of the following:\n{source.FormatNumberedList(format)}").CAF();
 			var index = await NextIndexAsync(0, source.Count - 1).CAF();
 			await message.DeleteAsync(GenerateRequestOptions()).CAF();
-#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
 			return index != null ? source[index.Value] : default;
-#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
 		}
 		/// <summary>
 		/// Gets the next valid index supplied by the user. This is blocking.
@@ -116,9 +116,7 @@ namespace Advobot.Modules
 			var task = await Task.WhenAny(trigger, delay).CAF();
 			Context.Client.MessageReceived -= Handler;
 
-#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
 			return task == trigger ? await trigger.CAF() : default;
-#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
 		}
 		/// <summary>
 		/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.

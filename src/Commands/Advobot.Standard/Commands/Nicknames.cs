@@ -9,7 +9,6 @@ using Advobot.Modules;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
 using Advobot.TypeReaders;
-using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
@@ -28,14 +27,14 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[User] IGuildUser user)
+				[CanModifyUser] IGuildUser user)
 			{
 				await user.ModifyAsync(x => x.Nickname = user.Username, GenerateRequestOptions()).CAF();
 				return Responses.Nicknames.RemovedNickname(user);
 			}
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[User] IGuildUser user,
+				[CanModifyUser] IGuildUser user,
 				[Nickname] string nickname)
 			{
 				await user.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions()).CAF();

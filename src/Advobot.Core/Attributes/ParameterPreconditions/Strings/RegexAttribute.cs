@@ -14,6 +14,9 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class RegexAttribute : StringParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string StringType => "regex";
+
 		/// <summary>
 		/// Creates an instance of <see cref="RegexAttribute"/>.
 		/// </summary>
@@ -67,9 +70,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 				}),
 			};
 
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 			foreach (var (Name, Test) in tests)
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 			{
 				if (Test.Invoke(value))
 				{
@@ -78,8 +79,5 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			}
 			return PreconditionUtils.FromSuccess();
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid regex ({ValidLength} long)";
 	}
 }

@@ -46,7 +46,7 @@ namespace Advobot.Settings.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Add(
 				SelfAssignableRoles group,
-				[Role] params IRole[] roles)
+				[CanModifyRole, NotEveryone, NotManaged] params IRole[] roles)
 			{
 				group.AddRoles(roles);
 				return Responses.SelfRoles.ModifiedGroup(group, roles, true);
@@ -54,7 +54,7 @@ namespace Advobot.Settings.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Remove(
 				SelfAssignableRoles group,
-				[Role] params IRole[] roles)
+				[CanModifyRole, NotEveryone, NotManaged] params IRole[] roles)
 			{
 				group.RemoveRoles(roles);
 				return Responses.SelfRoles.ModifiedGroup(group, roles, false);

@@ -7,16 +7,14 @@ using Discord.Commands;
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
 {
 	/// <summary>
-	/// Checks if the user can be moved from their voice channel.
+	/// Validates the passed in <see cref="IGuildUser"/>.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public class CanBeMovedAttribute : UserParameterPreconditionAttribute
+	public sealed class CanModifyUserAttribute : UserParameterPreconditionAttribute
 	{
-		private static readonly ChannelPermission[] _MoveMembers = new[] { ChannelPermission.MoveMembers };
-
 		/// <inheritdoc />
 		public override string Summary
-			=> "Can be moved from their current channel";
+			=> "Can be modified by both the bot and the invoking user";
 
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckUserAsync(
@@ -25,12 +23,6 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 			IGuildUser invoker,
 			IGuildUser user,
 			IServiceProvider services)
-		{
-			if (!(user.VoiceChannel is IVoiceChannel voiceChannel))
-			{
-				return PreconditionUtils.FromErrorAsync("The user is not in a voice channel.");
-			}
-			return user.ValidateChannel(voiceChannel, _MoveMembers);
-		}
+			=> invoker.ValidateUser(user);
 	}
 }

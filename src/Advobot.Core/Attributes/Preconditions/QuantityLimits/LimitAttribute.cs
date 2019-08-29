@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -10,8 +11,21 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 	/// Requires specific amounts of items in commands adding or removing items.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public abstract class LimitAttribute : PreconditionAttribute
+	public abstract class LimitAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+		{
+			get
+			{
+				if (Action == QuantityLimitAction.Add)
+				{
+					return $"Less than the maximum amount allowed of {QuantityName}s";
+				}
+				return $"At least one {QuantityName}";
+			}
+		}
 		/// <summary>
 		/// The name of the items.
 		/// </summary>
@@ -59,22 +73,17 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 		/// <param name="context"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		protected abstract Task<int> GetMaximumAllowedAsync(ICommandContext context, IServiceProvider services);
+		protected abstract Task<int> GetMaximumAllowedAsync(
+			ICommandContext context,
+			IServiceProvider services);
 		/// <summary>
 		/// Gets the current amount of these items stored.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		protected abstract Task<int> GetCurrentAsync(ICommandContext context, IServiceProvider services);
-		/// <inheritdoc />
-		public override string ToString()
-		{
-			if (Action == QuantityLimitAction.Add)
-			{
-				return $"Less than the maximum amount allowed of {QuantityName}s";
-			}
-			return $"At least one {QuantityName}";
-		}
+		protected abstract Task<int> GetCurrentAsync(
+			ICommandContext context,
+			IServiceProvider services);
 	}
 }

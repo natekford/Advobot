@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using Discord.Commands;
 
@@ -10,16 +11,18 @@ namespace Advobot.Attributes.Preconditions
 	/// </summary>
 	[Obsolete("This command is disabled.")]
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class DisabledCommandAttribute : PreconditionAttribute
+	public sealed class DisabledCommandAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+			=> "This command will never be invokable because it is disabled";
+
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			CommandInfo command,
 			IServiceProvider services)
 			=> PreconditionUtils.FromErrorAsync("This command is disabled globally.");
-		/// <inheritdoc />
-		public override string ToString()
-			=> "This command will never be invokable because it is disabled";
 	}
 }

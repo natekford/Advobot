@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Services.GuildSettings;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -12,8 +13,13 @@ namespace Advobot.Attributes.Preconditions
 	/// Checks to make sure the bot is loaded, the guild is loaded, the channel isn't ignored from commands, and the command is enabled for the user.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireCommandEnabledAttribute : PreconditionAttribute
+	public sealed class RequireCommandEnabledAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+			=> "Command is turned on";
+
 		/// <inheritdoc />
 		public override async Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
@@ -29,8 +35,5 @@ namespace Advobot.Attributes.Preconditions
 			}
 			return PreconditionUtils.FromError("This command is disabled.");
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> "Command is turned on";
 	}
 }

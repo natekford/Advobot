@@ -8,13 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public class ChannelLimitAttribute : IntParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string NumberType => "channel limit";
+
 		/// <summary>
 		/// Creates an instance of <see cref="ChannelLimitAttribute"/>.
 		/// </summary>
 		public ChannelLimitAttribute() : base(0, 99) { }
-
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid channel limit ({Numbers})";
 	}
 }

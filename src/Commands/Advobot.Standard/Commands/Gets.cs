@@ -171,7 +171,7 @@ namespace Advobot.Standard.Commands
 		public sealed class GetMessages : AdvobotModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command([Channel] ITextChannel channel, int number)
+			public async Task<RuntimeResult> Command([CanModifyChannel] ITextChannel channel, int number)
 			{
 				var num = Math.Min(number, 1000);
 				var messages = await channel.GetMessagesAsync(num).FlattenAsync().CAF();

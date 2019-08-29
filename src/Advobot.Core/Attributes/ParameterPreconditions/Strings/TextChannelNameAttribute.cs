@@ -13,6 +13,9 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	public sealed class TextChannelNameAttribute : ChannelNameAttribute
 	{
 		/// <inheritdoc />
+		public override string StringType => "text channel name with no spaces";
+
+		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
@@ -31,8 +34,5 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			}
 			return PreconditionUtils.FromError("Spaces are not allowed in text channel names.");
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid text channel name ({ValidLength} long) with no spaces";
 	}
 }

@@ -16,6 +16,8 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
 		/// <inheritdoc />
+		public override string StringType => "rule category name";
+		/// <inheritdoc />
 		public ExistenceStatus Status { get; set; } = ExistenceStatus.MustExist;
 
 		/// <summary>
@@ -39,10 +41,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var exists = settings.Rules?.Categories?.Keys?.CaseInsContains(value) ?? false;
-			return this.FromExistence(exists, value, "rule category");
+			return this.FromExistence(exists, value, StringType);
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid rule category ({ValidLength} long)";
 	}
 }

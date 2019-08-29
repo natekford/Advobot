@@ -14,6 +14,9 @@ namespace Advobot.Attributes.ParameterPreconditions
 		: AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
+		public override string Summary => "Can be toggled";
+
+		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
@@ -22,7 +25,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 		{
 			if (!(value is IModuleHelpEntry entry))
 			{
-				throw this.OnlySupports(typeof(IModuleHelpEntry));
+				return this.FromOnlySupportsAsync(typeof(IModuleHelpEntry));
 			}
 			else if (entry.AbleToBeToggled)
 			{

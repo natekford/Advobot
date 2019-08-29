@@ -12,6 +12,13 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	public abstract class IntParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string Summary
+			=> $"Valid {NumberType} ({Numbers})";
+		/// <summary>
+		/// The type of number this is targetting.
+		/// </summary>
+		public abstract string NumberType { get; }
 		/// <summary>
 		/// Allowed numbers. If the range method is used this will be contain all of the values between the 2.
 		/// </summary>
@@ -44,7 +51,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		{
 			if (!(value is int num))
 			{
-				throw this.OnlySupports(typeof(int));
+				return this.FromOnlySupportsAsync(typeof(int));
 			}
 			return SingularCheckPermissionsAsync(context, parameter, num, services);
 		}

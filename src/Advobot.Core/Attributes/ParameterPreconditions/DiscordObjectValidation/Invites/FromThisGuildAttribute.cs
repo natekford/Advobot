@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Advobot.Utilities;
 using Discord;
+using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
@@ -9,22 +10,26 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 	/// Does not allow invites which are not from this guild.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class FromThisGuildAttribute : InviteAttribute
+	public sealed class FromThisGuildAttribute
+		: InviteParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<Precondition<IInviteMetadata>> GetPreconditions()
-		{
-			yield return (user, target) =>
-			{
-				if (user.GuildId == target.GuildId)
-				{
-					return PreconditionUtils.FromSuccessAsync();
-				}
-				return PreconditionUtils.FromErrorAsync("The passed in invite must belong to this guild.");
-			};
-		}
+		public override string Summary
+			=> "From this guild";
+
 		/// <inheritdoc />
-		public override string ToString()
-			=> "For this guild";
+		protected override Task<PreconditionResult> SingularCheckInviteAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			IInviteMetadata invite,
+			IServiceProvider services)
+		{
+			if (context.Guild.Id == invite.GuildId)
+			{
+				return PreconditionUtils.FromSuccessAsync();
+			}
+			return PreconditionUtils.FromErrorAsync("The invite must belong to this guild.");
+		}
 	}
 }

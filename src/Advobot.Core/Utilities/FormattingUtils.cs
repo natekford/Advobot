@@ -225,6 +225,32 @@ namespace Advobot.Utilities
 			}
 			return temp;
 		}
+		/// <summary>
+		/// Formats the permissions into a precondition string.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="permissions"></param>
+		/// <returns></returns>
+		public static string FormatPermissions<T>(this IEnumerable<T> permissions)
+			where T : Enum
+		{
+			return permissions.Select(x =>
+			{
+				var perms = new List<string>();
+				foreach (Enum e in Enum.GetValues(x.GetType()))
+				{
+					if (x.Equals(e))
+					{
+						return e.ToString();
+					}
+					else if (x.HasFlag(e))
+					{
+						perms.Add(e.ToString());
+					}
+				}
+				return perms.Join(" & ");
+			}).Join(" | ");
+		}
 
 		/// <summary>
 		/// Formats the interpolated string with the specified format provider.

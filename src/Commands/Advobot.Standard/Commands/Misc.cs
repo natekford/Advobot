@@ -37,16 +37,16 @@ namespace Advobot.Standard.Commands
 			[Command, Priority(1)]
 			[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
 			public Task<RuntimeResult> CommandAsync(
-				[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
+				[LocalizedSummary(nameof(Parameters.HelpVariableCommand))]
 				IModuleHelpEntry command
 			)
 				=> Responses.Misc.Help(command, Context.Settings);
 			[Command, Priority(2)]
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
 			public Task<RuntimeResult> CommandAsync(
-				[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
+				[LocalizedSummary(nameof(Parameters.HelpVariableExactCommand))]
 				IModuleHelpEntry command,
-				[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
+				[LocalizedSummary(nameof(Parameters.HelpVariableCommandPosition))]
 				[Positive]
 				int position
 			)
@@ -106,7 +106,7 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public async Task CommandAsync(
-				[NotEveryone, NotMentionable] IRole role,
+				[CanModifyRole, NotEveryone, NotMentionable] IRole role,
 				[Remainder] string message)
 			{
 				var cut = message.Substring(0, Math.Min(message.Length, 250));

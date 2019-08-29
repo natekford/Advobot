@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using Discord.Commands;
 
@@ -9,8 +10,13 @@ namespace Advobot.Attributes.Preconditions
 	/// Will return success if the bot is the owner of the guild in the context.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class RequireBotIsOwnerAttribute : PreconditionAttribute
+	public class RequireBotIsOwnerAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+			=> "Bot owns the current guild";
+
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
@@ -23,8 +29,5 @@ namespace Advobot.Attributes.Preconditions
 			}
 			return PreconditionUtils.FromErrorAsync("The bot is not the owner of the guild.");
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> "Bot is guild owner";
 	}
 }

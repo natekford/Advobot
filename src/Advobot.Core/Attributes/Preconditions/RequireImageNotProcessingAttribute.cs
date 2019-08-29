@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Services.HelpEntries;
 using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 using Discord.Commands;
@@ -11,8 +12,13 @@ namespace Advobot.Attributes.Preconditions
 	/// Disallows the command from running if an image is currently being resized.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireImageNotProcessingAttribute : PreconditionAttribute
+	public sealed class RequireImageNotProcessingAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+			=> "Not currently processing another image";
+
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
@@ -26,8 +32,5 @@ namespace Advobot.Attributes.Preconditions
 			}
 			return PreconditionUtils.FromErrorAsync("Guild already has an image processing.");
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> "Not currently processing another image";
 	}
 }

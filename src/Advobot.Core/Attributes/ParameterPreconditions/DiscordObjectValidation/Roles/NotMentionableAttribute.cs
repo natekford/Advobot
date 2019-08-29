@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Advobot.Utilities;
 using Discord;
+using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
@@ -9,15 +10,25 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 	/// Does not allow roles which are already mentionable to be used.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NotMentionableAttribute : RoleAttribute
+	public sealed class NotMentionableAttribute : RoleParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<Precondition<IRole>> GetPreconditions()
-		{
-			yield return PreconditionUtils.RoleIsNotMentionable;
-		}
+		public override string Summary
+			=> "Not mentionable";
+
 		/// <inheritdoc />
-		public override string ToString()
-			=> "Not already mentionable";
+		protected override Task<PreconditionResult> SingularCheckRoleAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			IRole role,
+			IServiceProvider services)
+		{
+			if (!role.IsMentionable)
+			{
+				return PreconditionUtils.FromSuccessAsync();
+			}
+			return PreconditionUtils.FromErrorAsync("The role cannot be mentionable.");
+		}
 	}
 }

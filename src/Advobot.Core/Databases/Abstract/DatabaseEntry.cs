@@ -28,8 +28,10 @@ namespace Advobot.Databases.Abstract
 		}
 
 		//IDatabaseEntry
-#pragma warning disable CS8603 // Possible null reference return.
-		object IDatabaseEntry.Id { get => Id; set => Id = (T)value; }
-#pragma warning restore CS8603 // Possible null reference return.
+		object IDatabaseEntry.Id
+		{
+			get => Id ?? throw new InvalidOperationException($"{nameof(Id)} is null.");
+			set => Id = (T)value;
+		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Services.HelpEntries;
 using Advobot.Services.InviteList;
 using Advobot.Utilities;
 using Discord.Commands;
@@ -11,8 +12,13 @@ namespace Advobot.Attributes.Preconditions
 	/// Makes sure the guild <see cref="IListedInvite"/> has not been bumped within the past hour.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireNotRecentlyBumpedAttribute : PreconditionAttribute
+	public sealed class RequireNotRecentlyBumpedAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+			=> "Listed invite has not been bumped within the past hour";
+
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
@@ -31,8 +37,5 @@ namespace Advobot.Attributes.Preconditions
 			}
 			return PreconditionUtils.FromErrorAsync("The last invite bump was too recent.");
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> "A listed invite exists and has not been bumped within the past hour";
 	}
 }

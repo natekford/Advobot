@@ -8,13 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class UsernameAttribute : StringParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string StringType => "username";
+
 		/// <summary>
 		/// Creates an instance of <see cref="UsernameAttribute"/>.
 		/// </summary>
 		public UsernameAttribute() : base(2, 32) { }
-
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid username ({ValidLength} long)";
 	}
 }

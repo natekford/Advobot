@@ -189,12 +189,12 @@ namespace Advobot.Standard.Responses
 			}
 			if (preconditions.Any(x => x.Group == null))
 			{
-				return preconditions.Join(x => x.ToString(), MiscVariableAnd);
+				return preconditions.Join(x => x.Summary, MiscVariableAnd);
 			}
 
 			var groups = preconditions
 				.GroupBy(x => x.Group)
-				.Select(g => g.Join(x => x.ToString(), MiscVariableOr))
+				.Select(g => g.Join(x => x.Summary, MiscVariableOr))
 				.ToArray();
 			if (groups.Length == 1)
 			{
@@ -208,7 +208,7 @@ namespace Advobot.Standard.Responses
 			{
 				return MiscVariableNotApplicable;
 			}
-			return preconditions.Join(x => x.ToString(), MiscVariableAnd);
+			return preconditions.Join(x => x.Summary, MiscVariableAnd);
 		}
 		private static string FormatParameter(IParameterHelpEntry p)
 		{

@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Advobot.Utilities;
 using Discord;
+using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
@@ -9,15 +10,25 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 	/// Does not allow managed roles but does allow the everyone role.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NotManagedAttribute : RoleAttribute
+	public sealed class NotManagedAttribute : RoleParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<Precondition<IRole>> GetPreconditions()
-		{
-			yield return PreconditionUtils.RoleIsNotManaged;
-		}
-		/// <inheritdoc />
-		public override string ToString()
+		public override string Summary
 			=> "Not managed";
+
+		/// <inheritdoc />
+		protected override Task<PreconditionResult> SingularCheckRoleAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			IRole role,
+			IServiceProvider services)
+		{
+			if (!role.IsManaged)
+			{
+				return PreconditionUtils.FromSuccessAsync();
+			}
+			return PreconditionUtils.FromErrorAsync("The role cannot be managed.");
+		}
 	}
 }

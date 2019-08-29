@@ -17,6 +17,8 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		: PositiveAttribute, IExistenceParameterPrecondition
 	{
 		/// <inheritdoc />
+		public override string NumberType => "self role group";
+		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustNotExist;
 
 		/// <inheritdoc />
@@ -35,11 +37,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var exists = settings.SelfAssignableGroups.Any(x => x.Group == value);
-			return this.FromExistence(exists, value, "self assignable role group");
+			return this.FromExistence(exists, value, NumberType);
 		}
-
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid group number ({Numbers}) which is not already used";
 	}
 }

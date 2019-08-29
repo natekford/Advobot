@@ -16,6 +16,8 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
 		/// <inheritdoc />
+		public override string StringType => "bot setting name";
+		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustExist;
 
 		/// <summary>
@@ -38,10 +40,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 
 			var settings = services.GetRequiredService<IBotSettings>();
 			var exists = settings.GetSettingNames().CaseInsContains(value);
-			return this.FromExistence(exists, value, "bot setting name");
+			return this.FromExistence(exists, value, StringType);
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid bot setting name";
 	}
 }

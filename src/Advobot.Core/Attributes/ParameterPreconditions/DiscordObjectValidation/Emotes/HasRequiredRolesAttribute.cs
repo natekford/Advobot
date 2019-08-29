@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Advobot.Utilities;
 using Discord;
+using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes
 {
@@ -10,22 +11,24 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 	/// Requires the guild emote have roles required to use it.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class HasRequiredRolesAttribute : GuildEmoteAttribute
+	public sealed class HasRequiredRolesAttribute : GuildEmoteParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<Precondition<GuildEmote>> GetPreconditions()
-		{
-			yield return (user, target) =>
-			{
-				if (target.RoleIds.Any())
-				{
-					return PreconditionUtils.FromSuccessAsync();
-				}
-				return PreconditionUtils.FromErrorAsync("The passed in emote must have required roles.");
-			};
-		}
+		public override string Summary => "Has required roles";
+
 		/// <inheritdoc />
-		public override string ToString()
-			=> "Has required roles";
+		protected override Task<PreconditionResult> SingularCheckGuildEmoteAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			GuildEmote emote,
+			IServiceProvider services)
+		{
+			if (emote.RoleIds.Any())
+			{
+				return PreconditionUtils.FromSuccessAsync();
+			}
+			return PreconditionUtils.FromErrorAsync("The emote must have required roles.");
+		}
 	}
 }

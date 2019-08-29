@@ -167,11 +167,9 @@ namespace Advobot.Services.GuildSettings.Settings
 			{
 				formattable.Add($"{kvp.Key}: {kvp.Value}");
 			}
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 			foreach (var (Id, Dict) in Overrides)
 			{
 				foreach (var (CommandName, Enabled) in Dict)
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 				{
 					formattable.Add($"{Id}: {CommandName} ({Enabled})");
 				}

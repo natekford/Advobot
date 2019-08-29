@@ -28,50 +28,41 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
-		/// <param name="rules"></param>
 		/// <returns></returns>
-		public static async Task<PreconditionResult> ValidateUser(
+		public static Task<PreconditionResult> ValidateUser(
 			this IGuildUser invoker,
-			IGuildUser target,
-			IEnumerable<Precondition<IGuildUser>> rules)
-		{
-			var bot = await invoker.Guild.GetCurrentUserAsync().CAF();
-			return await invoker.ValidateAsync(target, (u, t) => CanModify(u, bot.Id, t), rules).CAF();
-		}
+			IGuildUser target)
+			=> invoker.ValidateAsync(target, CanModify);
 		/// <summary>
 		/// Verifies that the role can be edited in specific ways.
 		/// </summary>
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
-		/// <param name="rules"></param>
 		/// <returns></returns>
 		public static Task<PreconditionResult> ValidateRole(
 			this IGuildUser invoker,
-			IRole target,
-			IEnumerable<Precondition<IRole>> rules)
-			=> invoker.ValidateAsync(target, (u, t) => CanModify(u, t), rules);
+			IRole target)
+			=> invoker.ValidateAsync(target, (i, b, t) => CanModify(i, t));
 		/// <summary>
 		/// Verifies that the channel can be edited in specific ways.
 		/// </summary>
 		/// <param name="invoker"></param>
 		/// <param name="target"></param>
 		/// <param name="permissions"></param>
-		/// <param name="rules"></param>
 		/// <returns></returns>
 		public static Task<PreconditionResult> ValidateChannel(
 			this IGuildUser invoker,
 			IGuildChannel target,
-			IEnumerable<ChannelPermission> permissions,
-			IEnumerable<Precondition<IGuildChannel>> rules)
+			IEnumerable<ChannelPermission> permissions)
 		{
-			return invoker.ValidateAsync(target, (x, y) =>
+			return invoker.ValidateAsync(target, (i, b, t) =>
 			{
-				if (x.GuildPermissions.Administrator)
+				if (i.GuildPermissions.Administrator)
 				{
 					return true;
 				}
 
-				var channelPerms = x.GetPermissions(y);
+				var channelPerms = i.GetPermissions(t);
 				foreach (var permission in permissions)
 				{
 					if (!channelPerms.Has(permission))
@@ -80,113 +71,33 @@ namespace Advobot.Utilities
 					}
 				}
 				return true;
-			}, rules);
+			});
 		}
-		/// <summary>
-		/// Validates a random Discord object.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="invoker"></param>
-		/// <param name="target"></param>
-		/// <param name="permissionsCallback"></param>
-		/// <param name="rules"></param>
-		/// <returns></returns>
 		private static async Task<PreconditionResult> ValidateAsync<T>(
 			this IGuildUser invoker,
 			T target,
-			Func<IGuildUser, T, bool> permissionsCallback,
-			IEnumerable<Precondition<T>> rules)
+			Func<IGuildUser, ulong, T, bool> permissionsCallback)
 			where T : ISnowflakeEntity
 		{
 			if (target == null)
 			{
 				return FromError($"Unable to find a matching `{typeof(T).Name}`.");
 			}
-			if (rules == null)
-			{
-				rules = Array.Empty<Precondition<T>>();
-			}
-			if (!(await invoker.Guild.GetCurrentUserAsync().CAF() is IGuildUser bot))
+
+			var bot = await invoker.Guild.GetCurrentUserAsync().CAF();
+			if (bot == null)
 			{
 				throw new InvalidOperationException($"Invalid bot during {typeof(T).Name} validation.");
 			}
 
 			foreach (var user in new[] { invoker, bot })
 			{
-				if (!permissionsCallback(user, target))
+				if (!permissionsCallback(user, bot.Id, target))
 				{
 					return FromUnableToModify(bot, user, target);
 				}
-				foreach (var rule in rules)
-				{
-					var validationResult = await rule.Invoke(user, target).CAF();
-					if (!validationResult.IsSuccess)
-					{
-						return validationResult;
-					}
-				}
 			}
 			return FromSuccess();
-		}
-
-		/// <summary>
-		/// Validates if <paramref name="user"/> can move <paramref name="target"/> from their current voice channel.
-		/// Returns an error if <paramref name="target"/> is not in a voice channel.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="target"></param>
-		/// <returns></returns>
-		public static Task<PreconditionResult> MovingUserFromVoiceChannel(IGuildUser user, IGuildUser target)
-		{
-			if (!(target?.VoiceChannel is IVoiceChannel voiceChannel))
-			{
-				return FromErrorAsync("The user is not in a voice channel.");
-			}
-			var permissions = new[] { ChannelPermission.MoveMembers };
-			var rules = Array.Empty<Precondition<IGuildChannel>>();
-			return user.ValidateChannel(voiceChannel, permissions, rules);
-		}
-		/// <summary>
-		/// Validates if <paramref name="target"/> is not the everyone role.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="target"></param>
-		/// <returns></returns>
-		public static Task<PreconditionResult> RoleIsNotEveryone(IGuildUser user, IRole target)
-		{
-			if (user.Guild.EveryoneRole.Id == target.Id)
-			{
-				return FromErrorAsync("The everyone role cannot be used in that way.");
-			}
-			return FromSuccessAsync();
-		}
-		/// <summary>
-		/// Validates if <paramref name="target"/> is not managed.
-		/// </summary>
-		/// <param name="_"></param>
-		/// <param name="target"></param>
-		/// <returns></returns>
-		public static Task<PreconditionResult> RoleIsNotManaged(IGuildUser _, IRole target)
-		{
-			if (target.IsManaged)
-			{
-				return FromErrorAsync("Managed roles cannot be used in that way.");
-			}
-			return FromSuccessAsync();
-		}
-		/// <summary>
-		/// Validates if the target is not mentionable.
-		/// </summary>
-		/// <param name="_"></param>
-		/// <param name="target"></param>
-		/// <returns></returns>
-		public static Task<PreconditionResult> RoleIsNotMentionable(IGuildUser _, IRole target)
-		{
-			if (target.IsMentionable)
-			{
-				return FromErrorAsync("The role is already mentionable.");
-			}
-			return FromSuccessAsync();
 		}
 
 		/// <summary>
@@ -208,33 +119,6 @@ namespace Advobot.Utilities
 			=> invoker.GetHierarchy() > t.Position;
 		private static int GetHierarchy(this IGuildUser u)
 			=> u.Guild.OwnerId == u.Id ? int.MaxValue : u.RoleIds.Max(x => u.Guild.GetRole(x).Position);
-
-		/// <summary>
-		/// Formats the permissions into a precondition string.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="permissions"></param>
-		/// <returns></returns>
-		public static string FormatPermissions<T>(this IEnumerable<T> permissions)
-			where T : Enum
-		{
-			return permissions.Select(x =>
-			{
-				var perms = new List<string>();
-				foreach (Enum e in Enum.GetValues(x.GetType()))
-				{
-					if (x.Equals(e))
-					{
-						return e.ToString();
-					}
-					else if (x.HasFlag(e))
-					{
-						perms.Add(e.ToString());
-					}
-				}
-				return perms.Join(" & ");
-			}).Join(" | ");
-		}
 
 		/// <summary>
 		/// Acts as <see cref="FromSuccess()"/> but async.
@@ -283,7 +167,7 @@ namespace Advobot.Utilities
 			}
 			else if (precondition.Status == ExistenceStatus.MustExist && !exists)
 			{
-				var error = $"`{value}` is not a {type}.";
+				var error = $"`{value}` does not exist as a {type}.";
 				return PreconditionResult.FromError(error);
 			}
 			return PreconditionResult.FromSuccess();
@@ -305,18 +189,40 @@ namespace Advobot.Utilities
 			return PreconditionResult.FromError(reason);
 		}
 		/// <summary>
-		/// Creates an <see cref="ArgumentException"/> saying <paramref name="attr"/> only supports specific types.
+		/// Acts as <see cref="FromInvalidInvoker"/> but async.
+		/// </summary>
+		/// <returns></returns>
+		public static Task<PreconditionResult> FromInvalidInvokerAsync()
+			=> Task.FromResult(FromInvalidInvoker());
+		/// <summary>
+		/// Creates <see cref="PreconditionResult.FromError(string)"/> but with a message saying the invoker was invalid.
+		/// </summary>
+		/// <returns></returns>
+		public static PreconditionResult FromInvalidInvoker()
+			=> FromError("Invalid invoker.");
+		/// <summary>
+		/// Acts as <see cref="FromOnlySupports(Attribute, Type[])"/> but async.
 		/// </summary>
 		/// <param name="attr"></param>
 		/// <param name="supported"></param>
 		/// <returns></returns>
-		public static ArgumentException OnlySupports(
+		public static Task<PreconditionResult> FromOnlySupportsAsync(
+			this Attribute attr,
+			params Type[] supported)
+			=> Task.FromResult(FromOnlySupports(attr, supported));
+		/// <summary>
+		/// Creates an <see cref="PreconditionResult.FromError(string)"/> saying <paramref name="attr"/> only supports specific types.
+		/// </summary>
+		/// <param name="attr"></param>
+		/// <param name="supported"></param>
+		/// <returns></returns>
+		public static PreconditionResult FromOnlySupports(
 			this Attribute attr,
 			params Type[] supported)
 		{
 			var t = attr.GetType().Name;
 			var s = supported.Select(x => x.Name).Join(", ");
-			return new ArgumentException($"{t} only supports {s}.");
+			return FromError($"{t} only supports {s}.");
 		}
 	}
 }

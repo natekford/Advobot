@@ -8,13 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class GameAttribute : StringParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string StringType => "game";
+
 		/// <summary>
 		/// Creates an instance of <see cref="GameAttribute"/>.
 		/// </summary>
 		public GameAttribute() : base(0, 128) { }
-
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid game ({ValidLength} long)";
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using Discord.Commands;
 
@@ -9,8 +10,13 @@ namespace Advobot.Attributes.Preconditions
 	/// Requires the guild in the command context to be partnered.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-	public sealed class RequirePartneredGuildAttribute : PreconditionAttribute
+	public sealed class RequirePartneredGuildAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+			=> "Guild is partnered";
+
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
@@ -23,11 +29,5 @@ namespace Advobot.Attributes.Preconditions
 			}
 			return PreconditionUtils.FromErrorAsync("This guild is not partnered.");
 		}
-		/// <summary>
-		/// Returns a string describing what this attribute requires.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-			=> "Partnered guild";
 	}
 }

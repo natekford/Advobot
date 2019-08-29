@@ -16,6 +16,8 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
 		/// <inheritdoc />
+		public override string StringType => "command category";
+		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustExist;
 
 		/// <summary>
@@ -38,10 +40,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 
 			var helpEntries = services.GetRequiredService<IHelpEntryService>();
 			var exists = helpEntries.GetCategories().CaseInsContains(value);
-			return this.FromExistence(exists, value, "command category");
+			return this.FromExistence(exists, value, StringType);
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid command category name ({ValidLength} long)";
 	}
 }

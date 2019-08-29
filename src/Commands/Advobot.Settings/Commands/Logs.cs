@@ -32,7 +32,7 @@ namespace Advobot.Settings.Commands
 
 			[Command]
 			public Task<RuntimeResult> Command(
-				[NotServerLog, Channel(ManageChannels, ManageRoles)] ITextChannel channel)
+				[NotServerLog, CanModifyChannel(ManageChannels, ManageRoles)] ITextChannel channel)
 			{
 				Settings.ServerLogId = channel.Id;
 				return Responses.Logs.SetLog("server", channel);
@@ -56,7 +56,7 @@ namespace Advobot.Settings.Commands
 
 			[Command]
 			public Task<RuntimeResult> Command(
-				[NotModLog, Channel(ManageChannels, ManageRoles)] ITextChannel channel)
+				[NotModLog, CanModifyChannel(ManageChannels, ManageRoles)] ITextChannel channel)
 			{
 				Settings.ModLogId = channel.Id;
 				return Responses.Logs.SetLog("mod", channel);
@@ -80,7 +80,7 @@ namespace Advobot.Settings.Commands
 
 			[Command]
 			public Task<RuntimeResult> Command(
-				[NotImageLog, Channel(ManageChannels, ManageRoles)] ITextChannel channel)
+				[NotImageLog, CanModifyChannel(ManageChannels, ManageRoles)] ITextChannel channel)
 			{
 				Settings.ImageLogId = channel.Id;
 				return Responses.Logs.SetLog("image", channel);
@@ -104,14 +104,14 @@ namespace Advobot.Settings.Commands
 
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Add(
-				[Channel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
+				[CanModifyChannel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
 			{
 				Settings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
 				return Responses.Logs.ModifiedIgnoredLogChannels(channels, true);
 			}
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Remove(
-				[Channel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
+				[CanModifyChannel(ManageChannels, ManageRoles)] params ITextChannel[] channels)
 			{
 				var ids = channels.Select(x => x.Id);
 				Settings.IgnoredLogChannels.RemoveAll(x => ids.Contains(x));

@@ -12,6 +12,9 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class TwitchStreamAttribute : StringParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string StringType => "Twitch stream name";
+
 		/// <summary>
 		/// Creates an instance of <see cref="TwitchStreamAttribute"/>.
 		/// </summary>
@@ -36,8 +39,5 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			}
 			return PreconditionUtils.FromError("Invalid Twitch username supplied.");
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid Twitch stream ({ValidLength} long)";
 	}
 }

@@ -86,9 +86,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		{
 			var sb = new StringBuilder();
 			var categoryIndex = 0;
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 			foreach (var (Category, Rules) in Categories)
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 			{
 				AppendCategory(formatter, sb, Rules, Category);
 				++categoryIndex;

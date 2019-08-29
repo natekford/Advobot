@@ -12,6 +12,13 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	public abstract class StringParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string Summary
+			=> $"Valid {StringType} ({ValidLength} long)";
+		/// <summary>
+		/// The type of string this is targetting.
+		/// </summary>
+		public abstract string StringType { get; }
 		/// <summary>
 		/// Allowed length for strings passed in.
 		/// </summary>
@@ -38,7 +45,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		{
 			if (!(value is string s))
 			{
-				throw this.OnlySupports(typeof(string));
+				return this.FromOnlySupportsAsync(typeof(string));
 			}
 			return SingularCheckPermissionsAsync(context, parameter, s, services);
 		}

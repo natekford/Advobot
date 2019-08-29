@@ -8,13 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public class RemindTimeAttribute : IntParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string NumberType => "remind time";
+
 		/// <summary>
 		/// Creates an instance of <see cref="RemindTimeAttribute"/>.
 		/// </summary>
 		public RemindTimeAttribute() : base(1, 525600) { }
-
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid remind time ({Numbers})";
 	}
 }

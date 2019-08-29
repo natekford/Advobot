@@ -103,7 +103,7 @@ namespace Advobot.Standard.Commands
 				=> Command(null);
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[Channel(ManageChannels)] IVoiceChannel? channel)
+				[CanModifyChannel(ManageChannels)] IVoiceChannel? channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel?>(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedAfkChannel(channel);
@@ -122,7 +122,7 @@ namespace Advobot.Standard.Commands
 				=> Command(null);
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[Channel(ManageChannels)] ITextChannel? channel)
+				[CanModifyChannel(ManageChannels)] ITextChannel? channel)
 			{
 				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedSystemChannel(channel);

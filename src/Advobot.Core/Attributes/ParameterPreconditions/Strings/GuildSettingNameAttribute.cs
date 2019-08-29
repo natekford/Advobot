@@ -16,6 +16,8 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
 		/// <inheritdoc />
+		public override string StringType => "guild setting name";
+		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustExist;
 
 		/// <summary>
@@ -39,10 +41,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var exists = settings.GetSettingNames().CaseInsContains(value);
-			return this.FromExistence(exists, value, "guild setting name");
+			return this.FromExistence(exists, value, StringType);
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid guild setting name";
 	}
 }

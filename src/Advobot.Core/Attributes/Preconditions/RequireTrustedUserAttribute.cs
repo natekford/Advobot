@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Services.BotSettings;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,8 +13,13 @@ namespace Advobot.Attributes.Preconditions
 	/// </summary>
 	[Obsolete("Remove this for safety reasons? Or let trusted users exist?")]
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireTrustedUserAttribute : PreconditionAttribute
+	public sealed class RequireTrustedUserAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+			=> "Invoker is a trusted user";
+
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,

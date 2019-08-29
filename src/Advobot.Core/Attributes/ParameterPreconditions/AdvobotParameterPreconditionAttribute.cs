@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Threading.Tasks;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -10,8 +11,11 @@ namespace Advobot.Attributes.ParameterPreconditions
 	/// <summary>
 	/// Requires the parameter meet a precondition unless it's optional.
 	/// </summary>
-	public abstract class AdvobotParameterPreconditionAttribute : ParameterPreconditionAttribute
+	public abstract class AdvobotParameterPreconditionAttribute
+		: ParameterPreconditionAttribute, IParameterPrecondition
 	{
+		/// <inheritdoc />
+		public abstract string Summary { get; }
 		/// <summary>
 		/// Whether or not default value passed in to this parameter precondition should be instant success.
 		/// </summary>

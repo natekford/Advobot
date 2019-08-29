@@ -16,6 +16,9 @@ namespace Advobot.Attributes.ParameterPreconditions.Logs
 	public abstract class LogParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string Summary
+			=> $"Not the current {LogName} log";
 		/// <summary>
 		/// Gets the name of the log.
 		/// </summary>
@@ -30,7 +33,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Logs
 		{
 			if (!(value is ITextChannel channel))
 			{
-				throw this.OnlySupports(typeof(ITextChannel));
+				return this.FromOnlySupports(typeof(ITextChannel));
 			}
 
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
@@ -47,8 +50,5 @@ namespace Advobot.Attributes.ParameterPreconditions.Logs
 		/// <param name="settings"></param>
 		/// <returns></returns>
 		protected abstract ulong GetId(IGuildSettings settings);
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Not the current {LogName} log";
 	}
 }

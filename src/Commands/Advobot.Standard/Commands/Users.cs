@@ -74,12 +74,7 @@ namespace Advobot.Standard.Commands
 			private async Task<IRole> GetOrCreateMuteRoleAsync()
 			{
 				IRole muteRole = Context.Guild.GetRole(Context.Settings.MuteRoleId);
-				var rules = new Precondition<IRole>[]
-				{
-					PreconditionUtils.RoleIsNotEveryone,
-					PreconditionUtils.RoleIsNotManaged
-				};
-				var result = await Context.User.ValidateRole(muteRole, rules).CAF();
+				var result = await Context.User.ValidateRole(muteRole).CAF();
 				if (!result.IsSuccess)
 				{
 					muteRole = await Context.Guild.CreateRoleAsync("Advobot Mute", new GuildPermissions(0)).CAF();
@@ -166,7 +161,7 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[User] IGuildUser user,
+				[CanModifyUser] IGuildUser user,
 				[Optional, Remainder] ModerationReason reason)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
@@ -184,7 +179,7 @@ namespace Advobot.Standard.Commands
 		{
 			[Command, Priority(1)]
 			public Task<RuntimeResult> Command(
-				[User] IGuildUser user,
+				[CanModifyUser] IGuildUser user,
 				[Optional, Remainder] ModerationReason reason)
 				=> Command(user.Id, reason);
 			[Command]
@@ -207,7 +202,7 @@ namespace Advobot.Standard.Commands
 		{
 			[Command, Priority(1)]
 			public Task Command(
-				[User] IGuildUser user,
+				[CanModifyUser] IGuildUser user,
 				[Optional, Remainder] ModerationReason reason)
 				=> Command(user.Id, reason);
 			[Command]
@@ -250,7 +245,7 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(
 				[CanBeMoved] IGuildUser user,
-				[Channel(MoveMembers)] IVoiceChannel channel)
+				[CanModifyChannel(MoveMembers)] IVoiceChannel channel)
 			{
 				if (user.VoiceChannel?.Id == channel.Id)
 				{
@@ -271,8 +266,8 @@ namespace Advobot.Standard.Commands
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(
-				[Channel(MoveMembers)] IVoiceChannel input,
-				[Channel(MoveMembers)] IVoiceChannel output,
+				[CanModifyChannel(MoveMembers)] IVoiceChannel input,
+				[CanModifyChannel(MoveMembers)] IVoiceChannel output,
 				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
@@ -353,18 +348,18 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public Task<RuntimeResult> Command(
 				[Positive] int requestCount,
-				[Channel(ManageMessages)] ITextChannel channel)
+				[CanModifyChannel(ManageMessages)] ITextChannel channel)
 				=> CommandRunner(requestCount, channel, null);
 			[Command]
 			public Task<RuntimeResult> Command(
 				[Positive] int requestCount,
 				IGuildUser user,
-				[Channel(ManageMessages)] ITextChannel channel)
+				[CanModifyChannel(ManageMessages)] ITextChannel channel)
 				=> CommandRunner(requestCount, channel, user);
 			[Command]
 			public Task<RuntimeResult> Command(
 				[Positive] int requestCount,
-				[Channel(ManageMessages)] ITextChannel channel,
+				[CanModifyChannel(ManageMessages)] ITextChannel channel,
 				IGuildUser user)
 				=> CommandRunner(requestCount, channel, user);
 
@@ -412,7 +407,7 @@ namespace Advobot.Standard.Commands
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
 			public Task<RuntimeResult> GiveRole(
 				IRole target,
-				[NotEveryoneOrManaged] IRole give,
+				[CanModifyRole, NotEveryone, NotManaged] IRole give,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				if (target.Id == give.Id)
@@ -424,18 +419,18 @@ namespace Advobot.Standard.Commands
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
 			public Task<RuntimeResult> TakeRole(
 				IRole target,
-				[NotEveryoneOrManaged] IRole take,
+				[CanModifyRole, NotEveryone, NotManaged] IRole take,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> CommandRunner(target, bypass, u => u.RemoveRoleAsync(take, GenerateRequestOptions()));
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
 			public Task<RuntimeResult> GiveNickname(
-				[Role] IRole target,
+				IRole target,
 				[Nickname] string nickname,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions())));
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
 			public Task<RuntimeResult> ClearNickname(
-				[Role] IRole target,
+				IRole target,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions())));
 

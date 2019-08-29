@@ -7,14 +7,15 @@ using Discord.Commands;
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
 	/// <summary>
-	/// Does not allow the everyone role but does allow managed roles.
+	/// Makes sure the passed in <see cref="IRole"/> can be modified.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NotEveryoneAttribute : RoleParameterPreconditionAttribute
+	public sealed class CanModifyRoleAttribute
+		: RoleParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string Summary
-			=> "Not everyone";
+			=> "Can be modified by both the bot and the invoking user";
 
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckRoleAsync(
@@ -23,12 +24,6 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 			IGuildUser invoker,
 			IRole role,
 			IServiceProvider services)
-		{
-			if (context.Guild.EveryoneRole.Id != role.Id)
-			{
-				return PreconditionUtils.FromSuccessAsync();
-			}
-			return PreconditionUtils.FromErrorAsync("The role cannot be the everyone role.");
-		}
+			=> invoker.ValidateRole(role);
 	}
 }

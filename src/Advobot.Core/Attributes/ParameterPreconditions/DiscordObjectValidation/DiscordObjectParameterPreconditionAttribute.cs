@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Utilities;
-using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
@@ -18,7 +17,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		protected override bool IsOptionalSuccess => false;
 
 		/// <inheritdoc />
-		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			object value,
@@ -26,13 +25,14 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		{
 			if (value is ISnowflakeEntity snowflake)
 			{
-				return await SingularCheckPermissionsAsync(context, parameter, snowflake, services).CAF();
+				return SingularCheckPermissionsAsync(context, parameter, snowflake, services);
 			}
 			else if (value is null)
 			{
-				return PreconditionUtils.FromError($"No value was passed in for {parameter.Name}.");
+				var error = $"No value was passed in for {parameter.Name}.";
+				return PreconditionUtils.FromErrorAsync(error);
 			}
-			throw this.OnlySupports(typeof(ISnowflakeEntity));
+			return this.FromOnlySupportsAsync(typeof(ISnowflakeEntity));
 		}
 		/// <summary>
 		/// Checks whether the condition for the <see cref="ISnowflakeEntity"/> is met before execution of the command.

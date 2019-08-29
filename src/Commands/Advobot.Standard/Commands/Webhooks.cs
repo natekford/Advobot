@@ -51,7 +51,7 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[Channel(ManageWebhooks)] ITextChannel channel,
+				[CanModifyChannel(ManageWebhooks)] ITextChannel channel,
 				[Remainder, Username] string name)
 			{
 				var webhook = await channel.CreateWebhookAsync(name, options: GenerateRequestOptions()).CAF();
@@ -101,7 +101,7 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IWebhook webhook,
-				[Channel(ManageWebhooks)] ITextChannel channel)
+				[CanModifyChannel(ManageWebhooks)] ITextChannel channel)
 			{
 				await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Webhooks.ModifiedChannel(webhook, channel);

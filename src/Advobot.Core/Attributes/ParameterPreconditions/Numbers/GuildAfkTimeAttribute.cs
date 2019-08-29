@@ -8,13 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public class GuildAfkTimeAttribute : IntParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string NumberType => "afk time";
+
 		/// <summary>
 		/// Creates an instance of <see cref="GuildAfkTimeAttribute"/>.
 		/// </summary>
 		public GuildAfkTimeAttribute() : base(new[] { 60, 300, 900, 1800, 3600 }) { }
-
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid afk time ({Numbers})";
 	}
 }

@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Advobot.Utilities;
 using Discord;
+using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
@@ -9,22 +10,26 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 	/// Does not allow invites which can expire.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NeverExpiresAttribute : InviteAttribute
+	public sealed class NeverExpiresAttribute
+		: InviteParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		protected override IEnumerable<Precondition<IInviteMetadata>> GetPreconditions()
-		{
-			yield return (user, target) =>
-			{
-				if (target.MaxAge == null)
-				{
-					return PreconditionUtils.FromSuccessAsync();
-				}
-				return PreconditionUtils.FromErrorAsync("The passed in invite must not expire.");
-			};
-		}
-		/// <inheritdoc />
-		public override string ToString()
+		public override string Summary
 			=> "Never expires";
+
+		/// <inheritdoc />
+		protected override Task<PreconditionResult> SingularCheckInviteAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			IInviteMetadata invite,
+			IServiceProvider services)
+		{
+			if (invite.MaxAge == null)
+			{
+				return PreconditionUtils.FromSuccessAsync();
+			}
+			return PreconditionUtils.FromErrorAsync("The invite cannot expire.");
+		}
 	}
 }

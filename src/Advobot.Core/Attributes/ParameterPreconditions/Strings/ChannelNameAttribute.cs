@@ -8,13 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public class ChannelNameAttribute : StringParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string StringType => "channel name";
+
 		/// <summary>
 		/// Creates an instance of <see cref="ChannelNameAttribute"/>.
 		/// </summary>
 		public ChannelNameAttribute() : base(2, 100) { }
-
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid channel name ({ValidLength} long)";
 	}
 }

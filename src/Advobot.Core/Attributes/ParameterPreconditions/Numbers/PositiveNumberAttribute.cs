@@ -8,13 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public class PositiveAttribute : IntParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string NumberType => "positive number";
+
 		/// <summary>
 		/// Creates an instance of <see cref="PositiveAttribute"/>.
 		/// </summary>
 		public PositiveAttribute() : base(1, int.MaxValue) { }
-
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid positive number ({Numbers})";
 	}
 }

@@ -1,18 +1,18 @@
-﻿using Advobot.Gacha.Database;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.GachaTests.Utilities;
 using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Advobot.GachaTests
 {
 	public abstract class DatabaseTestsBase
 	{
-		public readonly static Random Rng = new Random();
+		public static readonly Random Rng = new Random();
 
 		protected IServiceProvider Provider { get; }
 
@@ -27,9 +27,7 @@ namespace Advobot.GachaTests
 		protected async Task<GachaDatabase> GetDatabaseAsync()
 		{
 			var db = Provider.GetRequiredService<GachaDatabase>();
-#pragma warning disable IDE0059 // Value assigned to symbol is never used
-			var tables = await db.CreateDatabaseAsync().CAF();
-#pragma warning restore IDE0059 // Value assigned to symbol is never used
+			await db.CreateDatabaseAsync().CAF();
 			return db;
 		}
 		protected async Task<(List<IReadOnlySource>, List<IReadOnlyCharacter>)> AddSourcesAndCharacters(

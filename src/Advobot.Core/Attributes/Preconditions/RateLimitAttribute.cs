@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using Discord.Commands;
 
@@ -10,8 +11,13 @@ namespace Advobot.Attributes.Preconditions
 	/// Limits the rate a command can be used.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RateLimitAttribute : PreconditionAttribute
+	public sealed class RateLimitAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+			=> $"Rate limit of {Value} {Unit.ToString().ToLower()}";
+
 		/// <summary>
 		/// The actual timespan.
 		/// </summary>
@@ -25,6 +31,7 @@ namespace Advobot.Attributes.Preconditions
 		/// </summary>
 		public double Value { get; }
 
+		//TODO: put into service?
 		private static readonly ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>> _Times = new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>>();
 
 		/// <summary>
@@ -59,9 +66,6 @@ namespace Advobot.Attributes.Preconditions
 			dict[context.User.Id] = DateTime.UtcNow.Add(Time);
 			return PreconditionUtils.FromSuccessAsync();
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Rate limit of {Value} {Unit.ToString().ToLower()}";
 
 		/// <summary>
 		/// The unit of time to use.

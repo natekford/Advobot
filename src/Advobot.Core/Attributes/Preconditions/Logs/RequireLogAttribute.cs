@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Advobot.Services.GuildSettings;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -12,8 +13,12 @@ namespace Advobot.Attributes.Preconditions.Logs
 	/// Requires a log channel to be set.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public abstract class RequireLogAttribute : PreconditionAttribute
+	public abstract class RequireLogAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary
+			=> $"{LogName} log must exist";
 		/// <summary>
 		/// Gets the name of the log.
 		/// </summary>
@@ -39,8 +44,5 @@ namespace Advobot.Attributes.Preconditions.Logs
 		/// <param name="settings"></param>
 		/// <returns></returns>
 		protected abstract ulong GetId(IGuildSettings settings);
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"{LogName} log must exist";
 	}
 }

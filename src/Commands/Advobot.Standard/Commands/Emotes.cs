@@ -86,7 +86,7 @@ namespace Advobot.Standard.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Add(
 				GuildEmote emote,
-				[NotEveryoneOrManaged] params IRole[] roles)
+				[NotEveryone, NotManaged] params IRole[] roles)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x =>
 				{
@@ -99,7 +99,7 @@ namespace Advobot.Standard.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Remove(
 				[HasRequiredRoles] GuildEmote emote,
-				[NotEveryoneOrManaged] params IRole[] roles)
+				[NotEveryone, NotManaged] params IRole[] roles)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Contains(r))), GenerateRequestOptions()).CAF();
 				return Responses.Emotes.RemoveRequiredRoles(emote, roles);

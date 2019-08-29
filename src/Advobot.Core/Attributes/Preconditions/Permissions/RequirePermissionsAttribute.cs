@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 using AdvorangesUtils;
 using Discord.Commands;
@@ -12,14 +13,15 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	/// For verifying <see cref="SocketGuildUser"/> permissions.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public abstract class RequirePermissionsAttribute : PreconditionAttribute
+	public abstract class RequirePermissionsAttribute
+		: PreconditionAttribute, IPrecondition
 	{
+		/// <inheritdoc />
+		public string Summary { get; }
 		/// <summary>
 		/// The flags required (each is a separate valid combination of flags).
 		/// </summary>
 		public ImmutableHashSet<Enum> Permissions { get; }
-
-		private readonly string _PermissionsText;
 
 		/// <summary>
 		/// Creates an instance of <see cref="RequirePermissionsAttribute"/>.
@@ -28,8 +30,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		public RequirePermissionsAttribute(params Enum[] permissions)
 		{
 			Permissions = permissions.ToImmutableHashSet();
-
-			_PermissionsText = Permissions.FormatPermissions();
+			Summary = Permissions.FormatPermissions();
 		}
 
 		/// <inheritdoc />
@@ -63,8 +64,5 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		public abstract Task<Enum?> GetUserPermissionsAsync(
 			ICommandContext context,
 			IServiceProvider services);
-		/// <inheritdoc />
-		public override string ToString()
-			=> _PermissionsText;
 	}
 }

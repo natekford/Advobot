@@ -18,6 +18,8 @@ namespace Advobot.Attributes.ParameterPreconditions.BannedPhrases
 	public abstract class BannedPhraseParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string Summary => $"Not already a banned {BannedPhraseName}";
 		/// <summary>
 		/// Gets the name of the banned phrase type.
 		/// </summary>
@@ -32,7 +34,7 @@ namespace Advobot.Attributes.ParameterPreconditions.BannedPhrases
 		{
 			if (!(value is string regex))
 			{
-				throw this.OnlySupports(typeof(string));
+				return this.FromOnlySupports(typeof(string));
 			}
 
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
@@ -49,8 +51,5 @@ namespace Advobot.Attributes.ParameterPreconditions.BannedPhrases
 		/// <param name="settings"></param>
 		/// <returns></returns>
 		protected abstract IEnumerable<BannedPhrase> GetPhrases(IGuildSettings settings);
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Not already a banned {BannedPhraseName}";
 	}
 }

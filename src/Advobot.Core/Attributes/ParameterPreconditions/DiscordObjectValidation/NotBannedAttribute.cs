@@ -15,6 +15,8 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		: AdvobotParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
 		/// <inheritdoc />
+		public override string Summary => "not already banned";
+		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustNotExist;
 
 		/// <inheritdoc />
@@ -26,15 +28,12 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		{
 			if (!(value is ulong id))
 			{
-				throw this.OnlySupports(typeof(ulong));
+				return this.FromOnlySupports(typeof(ulong));
 			}
 
 			var bans = await context.Guild.GetBansAsync().CAF();
 			var exists = bans.Select(x => x.User.Id).Contains(id);
 			return this.FromExistence(exists, value, "ban");
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> "Not already banned";
 	}
 }

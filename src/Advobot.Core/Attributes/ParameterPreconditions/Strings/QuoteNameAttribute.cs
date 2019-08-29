@@ -17,6 +17,8 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
 		/// <inheritdoc />
+		public override string StringType => "quote name";
+		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustNotExist;
 
 		/// <summary>
@@ -40,10 +42,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			var exists = settings.Quotes.Any(x => x.Name.CaseInsEquals(value));
-			return this.FromExistence(exists, value, "quote name");
+			return this.FromExistence(exists, value, StringType);
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"Valid quote name ({ValidLength} long)";
 	}
 }
