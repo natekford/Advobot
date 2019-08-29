@@ -19,7 +19,9 @@ namespace Advobot.Utilities
 		/// <param name="context"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static RequestOptions GenerateRequestOptions(this ICommandContext context, string? reason = null)
+		public static RequestOptions GenerateRequestOptions(
+			this ICommandContext context,
+			string? reason = null)
 			=> context.User.GenerateRequestOptions(reason);
 		/// <summary>
 		/// Generates a default request options explaining who invoked the command for the audit log.
@@ -27,10 +29,16 @@ namespace Advobot.Utilities
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static RequestOptions GenerateRequestOptions(this IUser user, string? reason = null)
+		public static RequestOptions GenerateRequestOptions(
+			this IUser user,
+			string? reason = null)
 		{
-			var r = reason == null ? "" : $" Reason: {reason}.";
-			return GenerateRequestOptions($"Action by {user.Format()}.{r}");
+			var r = $"Action by {user.Format()}.";
+			if (reason != null)
+			{
+				r += $" Reason: {reason}.";
+			}
+			return GenerateRequestOptions(r);
 		}
 		/// <summary>
 		/// Returns request options, with <paramref name="reason"/> as the audit log reason.
@@ -47,7 +55,6 @@ namespace Advobot.Utilities
 		}
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.
-		/// Not sure why, but IRole.ModifyAsync cannot set the position of a role to 1.
 		/// </summary>
 		/// <param name="role"></param>
 		/// <param name="position"></param>
@@ -91,7 +98,12 @@ namespace Advobot.Utilities
 		/// <param name="users"></param>
 		/// <returns></returns>
 		public static IReadOnlyList<T> OrderByJoinDate<T>(this IEnumerable<T> users) where T : IGuildUser
-			=> users.Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks).ToArray();
+		{
+			return users
+				.Where(x => x.JoinedAt.HasValue)
+				.OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks)
+				.ToArray();
+		}
 		/// <summary>
 		/// Returns all the roles a user has.
 		/// </summary>
