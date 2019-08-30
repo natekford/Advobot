@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord;
 using Discord.Commands;
 
@@ -34,6 +36,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 			}
 			return this.FromOnlySupportsAsync(typeof(ISnowflakeEntity));
 		}
+
 		/// <summary>
 		/// Checks whether the condition for the <see cref="ISnowflakeEntity"/> is met before execution of the command.
 		/// </summary>

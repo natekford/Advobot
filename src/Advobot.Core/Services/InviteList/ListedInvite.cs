@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Databases.Abstract;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -14,23 +17,6 @@ namespace Advobot.Services.InviteList
 	/// </summary>
 	internal sealed class ListedInvite : TimedDatabaseEntry<string>, IListedInvite
 	{
-		/// <inheritdoc />
-		public string Code { get; private set; }
-		/// <inheritdoc />
-		public bool Expired { get; private set; }
-		/// <inheritdoc />
-		public ulong GuildId { get; private set; }
-		/// <inheritdoc />
-		public int GuildMemberCount { get; private set; }
-		/// <inheritdoc />
-		public string GuildName { get; private set; }
-		/// <inheritdoc />
-		public bool HasGlobalEmotes { get; private set; }
-		/// <inheritdoc />
-		public string[] Keywords { get; set; }
-		/// <inheritdoc />
-		public string Url => "https://www.discord.gg/" + Code;
-
 		/// <summary>
 		/// Creates an instance of listed invites.
 		/// </summary>
@@ -52,11 +38,40 @@ namespace Advobot.Services.InviteList
 		}
 
 		/// <inheritdoc />
+		public string Code { get; private set; }
+
+		/// <inheritdoc />
+		public bool Expired { get; private set; }
+
+		/// <inheritdoc />
+		public ulong GuildId { get; private set; }
+
+		/// <inheritdoc />
+		public int GuildMemberCount { get; private set; }
+
+		/// <inheritdoc />
+		public string GuildName { get; private set; }
+
+		/// <inheritdoc />
+		public bool HasGlobalEmotes { get; private set; }
+
+		/// <inheritdoc />
+		public string[] Keywords { get; set; }
+
+		/// <inheritdoc />
+		public string Url => "https://www.discord.gg/" + Code;
+
+		/// <inheritdoc />
 		public Task BumpAsync(SocketGuild guild)
 		{
 			Time = DateTime.UtcNow;
 			return UpdateAsync(guild);
 		}
+
+		/// <inheritdoc />
+		public override string ToString()
+			=> $"**Code:** `{Code}`{(Keywords.Length > 0 ? $"\n**Keywords:** `{string.Join("`, `", Keywords)}`" : "")}";
+
 		/// <inheritdoc />
 		public async Task UpdateAsync(SocketGuild guild)
 		{
@@ -66,8 +81,5 @@ namespace Advobot.Services.InviteList
 			GuildName = guild.Name;
 			HasGlobalEmotes = guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
 		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{string.Join("`, `", Keywords)}`" : "")}";
 	}
 }

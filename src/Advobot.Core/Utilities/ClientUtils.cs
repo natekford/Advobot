@@ -2,9 +2,12 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
+
 using Advobot.Services.BotSettings;
 using Advobot.Settings;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -18,18 +21,39 @@ namespace Advobot.Utilities
 		private static ulong? _BotOwnerId;
 
 		/// <summary>
+		/// Exits the current application.
+		/// </summary>
+		public static async Task DisconnectBotAsync(this IDiscordClient client)
+		{
+			await client.StopAsync().CAF();
+			Environment.Exit(0);
+		}
+
+		/// <summary>
 		/// Gets the id of the bot owner.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
 		public static async Task<ulong> GetOwnerIdAsync(this IDiscordClient client)
+			=> _BotOwnerId ?? (_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id).Value;
+
+		/// <summary>
+		/// Restarts the application correctly if it's a .Net Core application.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="restartArgs"></param>
+		public static async Task RestartBotAsync(this IDiscordClient client, IRestartArgumentProvider restartArgs)
 		{
-			if (!_BotOwnerId.HasValue)
+			await client.StopAsync().CAF();
+			//For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
+			Process.Start(new ProcessStartInfo
 			{
-				_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id;
-			}
-			return _BotOwnerId.Value;
+				FileName = "dotnet",
+				Arguments = $@"""{Assembly.GetEntryAssembly().Location}"" {restartArgs.RestartArguments}"
+			});
+			Process.GetCurrentProcess().Kill();
 		}
+
 		/// <summary>
 		/// Updates a given client's stream and game using settings from the <paramref name="settings"/> parameter.
 		/// </summary>
@@ -48,30 +72,6 @@ namespace Advobot.Utilities
 				activityType = ActivityType.Streaming;
 			}
 			return client.SetGameAsync(game, stream, activityType);
-		}
-		/// <summary>
-		/// Restarts the application correctly if it's a .Net Core application.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <param name="restartArgs"></param>
-		public static async Task RestartBotAsync(this IDiscordClient client, IRestartArgumentProvider restartArgs)
-		{
-			await client.StopAsync().CAF();
-			//For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
-			Process.Start(new ProcessStartInfo
-			{
-				FileName = "dotnet",
-				Arguments = $@"""{Assembly.GetEntryAssembly().Location}"" {restartArgs.RestartArguments}"
-			});
-			Process.GetCurrentProcess().Kill();
-		}
-		/// <summary>
-		/// Exits the current application.
-		/// </summary>
-		public static async Task DisconnectBotAsync(this IDiscordClient client)
-		{
-			await client.StopAsync().CAF();
-			Environment.Exit(0);
 		}
 	}
 }

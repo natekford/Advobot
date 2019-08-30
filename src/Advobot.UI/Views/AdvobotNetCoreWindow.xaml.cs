@@ -1,5 +1,7 @@
 ﻿using System;
+
 using Advobot.UI.ViewModels;
+
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -38,6 +40,7 @@ namespace Advobot.UI.Views
 
 		private void InitializeComponent()
 			=> AvaloniaXamlLoader.Load(this);
+
 		public void EnterKeyPressed(object sender, KeyEventArgs e)
 		{
 			if (e.Key == Key.Enter || e.Key == Key.Return)

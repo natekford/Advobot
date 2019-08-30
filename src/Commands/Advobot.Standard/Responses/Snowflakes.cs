@@ -1,23 +1,20 @@
 ﻿using System;
+
 using Advobot.Modules;
 using Advobot.Utilities;
+
 using Discord;
+
 using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
 	public sealed class Snowflakes : CommandResponses
 	{
-		private Snowflakes() { }
-
-		public static AdvobotResult ModifiedName<T>(IEntity<T> snowflake, string name)
-			where T : IEquatable<T>
+		private Snowflakes()
 		{
-			return Success(SnowflakesModifiedName.Format(
-				snowflake.Format().WithBlock(),
-				name.WithBlock()
-			));
 		}
+
 		public static AdvobotResult Created<T>(IEntity<T> snowflake)
 			where T : IEquatable<T>
 		{
@@ -25,6 +22,7 @@ namespace Advobot.Standard.Responses
 				snowflake.Format().WithBlock()
 			));
 		}
+
 		public static AdvobotResult Deleted<T>(IEntity<T> snowflake)
 			where T : IEquatable<T>
 		{
@@ -32,13 +30,7 @@ namespace Advobot.Standard.Responses
 				snowflake.Format().WithBlock()
 			));
 		}
-		public static AdvobotResult SoftDeleted<T>(IEntity<T> snowflake)
-			where T : IEquatable<T>
-		{
-			return Success(SnowflakesSoftDeleted.Format(
-				snowflake.Format().WithBlock()
-			));
-		}
+
 		public static AdvobotResult EnqueuedIcon<T>(IEntity<T> snowflake, int position)
 			where T : IEquatable<T>
 		{
@@ -47,10 +39,28 @@ namespace Advobot.Standard.Responses
 				position.ToString().WithBlock()
 			));
 		}
+
+		public static AdvobotResult ModifiedName<T>(IEntity<T> snowflake, string name)
+									where T : IEquatable<T>
+		{
+			return Success(SnowflakesModifiedName.Format(
+				snowflake.Format().WithBlock(),
+				name.WithBlock()
+			));
+		}
+
 		public static AdvobotResult RemovedIcon<T>(IEntity<T> snowflake)
 			where T : IEquatable<T>
 		{
 			return Success(SnowflakesRemovedIcon.Format(
+				snowflake.Format().WithBlock()
+			));
+		}
+
+		public static AdvobotResult SoftDeleted<T>(IEntity<T> snowflake)
+					where T : IEquatable<T>
+		{
+			return Success(SnowflakesSoftDeleted.Format(
 				snowflake.Format().WithBlock()
 			));
 		}

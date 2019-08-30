@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Attributes.Preconditions;
@@ -12,7 +13,9 @@ using Advobot.Modules;
 using Advobot.Services.InviteList;
 using Advobot.Settings.Localization;
 using Advobot.Settings.Resources;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -39,6 +42,7 @@ namespace Advobot.Settings.Commands
 				Invites.Add(Context.Guild, invite, keywords);
 				return Responses.GuildList.CreatedListing(invite, keywords);
 			}
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Remove()
 			{
@@ -79,11 +83,11 @@ namespace Advobot.Settings.Commands
 			[Command]
 			public Task<RuntimeResult> Command([Remainder] ListedInviteFilterer filterer)
 			{
-				var invites = (filterer.Keywords.Any()
+				var invites = (filterer.Keywords.Count > 0
 					? Invites.GetAll(int.MaxValue, filterer.Keywords)
 					: Invites.GetAll(int.MaxValue)).Where(x => !x.Expired);
 				var matches = filterer.Filter(invites);
-				if (!matches.Any())
+				if (matches.Count == 0)
 				{
 					return Responses.GuildList.NoInviteMatch();
 				}

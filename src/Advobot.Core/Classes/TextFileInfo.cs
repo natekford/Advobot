@@ -7,6 +7,10 @@ namespace Advobot.Classes
 	/// </summary>
 	public sealed class TextFileInfo
 	{
+		private string _Name = "Temp";
+
+		private string _Text = "";
+
 		/// <summary>
 		/// The name of the text file. This may have invalid characters for file names in it, but Discord will just remove those.
 		/// </summary>
@@ -15,7 +19,7 @@ namespace Advobot.Classes
 			get => $"{_Name}_{FormattingUtils.ToSaving()}.txt";
 			set => _Name = value.FormatTitle().Replace(' ', '_').TrimEnd('_');
 		}
-		private string _Name = "Temp";
+
 		/// <summary>
 		/// The text of the text file.
 		/// </summary>
@@ -24,6 +28,5 @@ namespace Advobot.Classes
 			get => _Text;
 			set => _Text = value.Trim();
 		}
-		private string _Text = "";
 	}
 }

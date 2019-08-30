@@ -1,12 +1,13 @@
-﻿using Discord;
-using System;
+﻿using System;
+
+using Discord;
 
 namespace Advobot.Tests.Utilities
 {
 	public sealed class SnowflakeGenerator
 	{
-		private DateTimeOffset _Now = DateTimeOffset.Now;
 		private readonly TimeSpan _IncrementationTime;
+		private DateTimeOffset _Now = DateTimeOffset.Now;
 
 		public SnowflakeGenerator(TimeSpan incrementationTime)
 		{

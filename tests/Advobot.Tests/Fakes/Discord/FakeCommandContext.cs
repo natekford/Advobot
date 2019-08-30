@@ -1,4 +1,5 @@
 ﻿using Advobot.Tests.Fakes.Discord.Channels;
+
 using Discord;
 using Discord.Commands;
 
@@ -6,12 +7,6 @@ namespace Advobot.Tests.Fakes.Discord
 {
 	public class FakeCommandContext : ICommandContext
 	{
-		public FakeClient Client { get; }
-		public FakeGuild Guild { get; }
-		public FakeMessageChannel Channel { get; }
-		public FakeUser User { get; }
-		public FakeUserMessage Message { get; }
-
 		public FakeCommandContext(FakeClient client, FakeUserMessage message)
 		{
 			Client = client;
@@ -21,10 +16,15 @@ namespace Advobot.Tests.Fakes.Discord
 			Guild = ((FakeGuildChannel)message.Channel).Guild;
 		}
 
+		public FakeMessageChannel Channel { get; }
+		public FakeClient Client { get; }
+		public FakeGuild Guild { get; }
+		public FakeUserMessage Message { get; }
+		public FakeUser User { get; }
+		IMessageChannel ICommandContext.Channel => Channel;
 		IDiscordClient ICommandContext.Client => Client;
 		IGuild ICommandContext.Guild => Guild;
-		IMessageChannel ICommandContext.Channel => Channel;
-		IUser ICommandContext.User => User;
 		IUserMessage ICommandContext.Message => Message;
+		IUser ICommandContext.User => User;
 	}
 }

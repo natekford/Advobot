@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
+
 using Discord;
 
 namespace Advobot.Services.Levels
@@ -11,30 +12,10 @@ namespace Advobot.Services.Levels
 	internal sealed class MessageHash
 	{
 		/// <summary>
-		/// The id of the guild the message was sent on.
-		/// </summary>
-		public ulong GuildId { get; set; }
-		/// <summary>
-		/// The id of the channel the message was sent on.
-		/// </summary>
-		public ulong ChannelId { get; set; }
-		/// <summary>
-		/// The id of the message.
-		/// </summary>
-		public ulong MessageId { get; set; }
-		/// <summary>
-		/// The message's content hashed to prevent any sensitive information being in the database.
-		/// </summary>
-		public string Hash { get; set; } = "";
-		/// <summary>
-		/// The amount of experience given for the message.
-		/// </summary>
-		public int ExperienceGiven { get; set; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="MessageHash"/>.
 		/// </summary>
 		public MessageHash() { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="MessageHash"/>.
 		/// </summary>
@@ -51,6 +32,31 @@ namespace Advobot.Services.Levels
 			}
 			ExperienceGiven = xp;
 		}
+
+		/// <summary>
+		/// The id of the channel the message was sent on.
+		/// </summary>
+		public ulong ChannelId { get; set; }
+
+		/// <summary>
+		/// The amount of experience given for the message.
+		/// </summary>
+		public int ExperienceGiven { get; set; }
+
+		/// <summary>
+		/// The id of the guild the message was sent on.
+		/// </summary>
+		public ulong GuildId { get; set; }
+
+		/// <summary>
+		/// The message's content hashed to prevent any sensitive information being in the database.
+		/// </summary>
+		public string Hash { get; set; } = "";
+
+		/// <summary>
+		/// The id of the message.
+		/// </summary>
+		public ulong MessageId { get; set; }
 
 		/// <summary>
 		/// Returns the hash and message id.

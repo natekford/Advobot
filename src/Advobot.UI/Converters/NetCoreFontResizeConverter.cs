@@ -1,4 +1,5 @@
 ﻿using Advobot.UI.AbstractUI.Converters;
+
 using Avalonia.Data.Converters;
 
 namespace Advobot.UI.Converters
@@ -12,6 +13,7 @@ namespace Advobot.UI.Converters
 		/// Creates an instance of <see cref="NetCoreFontResizeConverter"/>.
 		/// </summary>
 		public NetCoreFontResizeConverter() : base(.015) { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="NetCoreFontResizeConverter"/>.
 		/// </summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+
 using Avalonia.Markup.Xaml;
 
 namespace Advobot.UI.Extensions
@@ -10,21 +11,25 @@ namespace Advobot.UI.Extensions
 	/// </summary>
 	public sealed class NameOfExtension : MarkupExtension
 	{
-		/// <summary>
-		/// The type to check the name from.
-		/// </summary>
-		public Type? Type { get; set; }
+		public NameOfExtension()
+		{
+		}
+
+		public NameOfExtension(string member)
+		{
+			Member = member;
+		}
+
 		/// <summary>
 		/// The name to make sure exists.
 		/// </summary>
 		[ConstructorArgument("member")]
 		public string? Member { get; set; }
 
-		public NameOfExtension() { }
-		public NameOfExtension(string member)
-		{
-			Member = member;
-		}
+		/// <summary>
+		/// The type to check the name from.
+		/// </summary>
+		public Type? Type { get; set; }
 
 		/// <summary>
 		/// Checks if the name exists on the type.

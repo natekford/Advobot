@@ -4,8 +4,10 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Utilities;
+
 using Discord;
 using Discord.Commands;
 
@@ -22,24 +24,6 @@ namespace Advobot.TypeReaders
 			.ToDictionary(x => x.Name, x => (Color)x.GetValue(null), StringComparer.OrdinalIgnoreCase)
 			.ToImmutableDictionary();
 
-		/// <summary>
-		/// Input is tested as a color name, then hex, then RBG separated by back slashes.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="input"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		public override Task<TypeReaderResult> ReadAsync(
-			ICommandContext context,
-			string input,
-			IServiceProvider services)
-		{
-			if (TryParseColor(input, out var color))
-			{
-				return TypeReaderUtils.FromSuccessAsync(color);
-			}
-			return TypeReaderUtils.ParseFailedResultAsync<Color>();
-		}
 		/// <summary>
 		/// Attempts to parse a color from the input. If unable to parse, returns null.
 		/// </summary>
@@ -80,6 +64,25 @@ namespace Advobot.TypeReaders
 				}
 			}
 			return false;
+		}
+
+		/// <summary>
+		/// Input is tested as a color name, then hex, then RBG separated by back slashes.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		public override Task<TypeReaderResult> ReadAsync(
+			ICommandContext context,
+			string input,
+			IServiceProvider services)
+		{
+			if (TryParseColor(input, out var color))
+			{
+				return TypeReaderUtils.FromSuccessAsync(color);
+			}
+			return TypeReaderUtils.ParseFailedResultAsync<Color>();
 		}
 	}
 }

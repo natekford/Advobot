@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.Strings

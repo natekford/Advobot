@@ -5,11 +5,15 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+
 using Advobot.UI.Utils;
 using Advobot.UI.Views;
+
 using AdvorangesUtils;
+
 using Avalonia.Controls;
 using Avalonia.Media;
+
 using ReactiveUI;
 
 namespace Advobot.UI.ViewModels
@@ -18,56 +22,25 @@ namespace Advobot.UI.ViewModels
 	{
 		private static readonly string _Caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
 
-		public string WindowTitle
-		{
-			get => _WindowTitle;
-			set => this.RaiseAndSetIfChanged(ref _WindowTitle, value);
-		}
-		private string _WindowTitle = "";
+		private readonly FileInfo _File;
 
-		public string SavingText
-		{
-			get => _SavingText;
-			set => this.RaiseAndSetIfChanged(ref _SavingText, value);
-		}
-		private string _SavingText = "";
+		private readonly Type? _FileType;
 
-		public ISolidColorBrush SavingBackground
-		{
-			get => _SavingBackground;
-			set => this.RaiseAndSetIfChanged(ref _SavingBackground, value);
-		}
-		private ISolidColorBrush _SavingBackground = Brushes.Yellow;
-
-		public bool SavingOpen
-		{
-			get => _SavingOpen;
-			set => this.RaiseAndSetIfChanged(ref _SavingOpen, value);
-		}
-		private bool _SavingOpen;
-
-		public string Output
-		{
-			get => _Output;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _Output, value);
-				_IsDirty = value.GetHashCode() != _LastSaved;
-			}
-		}
-		private string _Output = "";
-
-		private int _LastSaved;
 		private bool _IsDirty;
 
-		public ICommand SaveCommand { get; }
-		public ICommand CopyCommand { get; }
-		public ICommand CloseCommand { get; }
-		public ICommand DeleteCommand { get; }
+		private int _LastSaved;
 
-		private readonly FileInfo _File;
-		private readonly Type? _FileType;
+		private string _Output = "";
+
+		private ISolidColorBrush _SavingBackground = Brushes.Yellow;
+
 		private CancellationTokenSource? _SavingNotificationCancelToken;
+
+		private bool _SavingOpen;
+
+		private string _SavingText = "";
+
+		private string _WindowTitle = "";
 
 		public FileViewingWindowViewModel(FileInfo file, Type? fileType = null)
 		{
@@ -85,19 +58,88 @@ namespace Advobot.UI.ViewModels
 			DeleteCommand = ReactiveCommand.CreateFromTask<Window>(Delete);
 		}
 
-		private void Save(FileInfo file, string value, [CallerMemberName] string caller = "")
-		{
-			var response = file.Save(value, _FileType);
-			//Only update the last saved info if it was actually saved
-			if (response == SaveStatus.Success)
-			{
-				_LastSaved = value.GetHashCode();
-				_IsDirty = false;
-			}
+		public ICommand CloseCommand { get; }
 
-			var (text, brush) = response.GetSaveResponse(_File);
-			HandleResponse(text, brush, caller);
+		public ICommand CopyCommand { get; }
+
+		public ICommand DeleteCommand { get; }
+
+		public string Output
+		{
+			get => _Output;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _Output, value);
+				_IsDirty = value.GetHashCode() != _LastSaved;
+			}
 		}
+
+		public ICommand SaveCommand { get; }
+
+		public ISolidColorBrush SavingBackground
+		{
+			get => _SavingBackground;
+			set => this.RaiseAndSetIfChanged(ref _SavingBackground, value);
+		}
+
+		public bool SavingOpen
+		{
+			get => _SavingOpen;
+			set => this.RaiseAndSetIfChanged(ref _SavingOpen, value);
+		}
+
+		public string SavingText
+		{
+			get => _SavingText;
+			set => this.RaiseAndSetIfChanged(ref _SavingText, value);
+		}
+
+		public string WindowTitle
+		{
+			get => _WindowTitle;
+			set => this.RaiseAndSetIfChanged(ref _WindowTitle, value);
+		}
+
+		private async Task Close(Window window)
+		{
+			var msg = $"There are unsaved changes. Are you sure you want to close the file {_File.Name}?";
+			if (!_IsDirty || await MessageBox.ShowAsync(window, msg, _Caption, new[] { "Yes", "No" }) == "Yes")
+			{
+				window?.Close();
+			}
+		}
+
+		private async Task Copy(Window window)
+		{
+			var newPath = await new SaveFileDialog
+			{
+				InitialDirectory = _File.Directory.FullName,
+				InitialFileName = _File.FullName,
+				Title = "Advobot - File Copying",
+			}.ShowAsync(window);
+			if (newPath != null)
+			{
+				Save(new FileInfo(newPath), Output);
+			}
+		}
+
+		private async Task Delete(Window window)
+		{
+			var msg = $"Are you sure you want to delete the file {_File.Name}?";
+			if (await MessageBox.ShowAsync(window, msg, _Caption, new[] { "Yes", "No" }) == "Yes")
+			{
+				try
+				{
+					_File.Delete();
+					HandleResponse($"Successfully deleted the file {_File}.", Brushes.Yellow);
+				}
+				catch (Exception e)
+				{
+					e.Write();
+				}
+			}
+		}
+
 		private void HandleResponse(string text, ISolidColorBrush brush, [CallerMemberName] string caller = "")
 		{
 			_SavingNotificationCancelToken?.Cancel();
@@ -117,44 +159,22 @@ namespace Advobot.UI.ViewModels
 
 			ConsoleUtils.WriteLine(text, name: caller);
 		}
+
+		private void Save(FileInfo file, string value, [CallerMemberName] string caller = "")
+		{
+			var response = file.Save(value, _FileType);
+			//Only update the last saved info if it was actually saved
+			if (response == SaveStatus.Success)
+			{
+				_LastSaved = value.GetHashCode();
+				_IsDirty = false;
+			}
+
+			var (text, brush) = response.GetSaveResponse(_File);
+			HandleResponse(text, brush, caller);
+		}
+
 		private void Save()
 			=> Save(_File, Output);
-		private async Task Copy(Window window)
-		{
-			var newPath = await new SaveFileDialog
-			{
-				InitialDirectory = _File.Directory.FullName,
-				InitialFileName = _File.FullName,
-				Title = "Advobot - File Copying",
-			}.ShowAsync(window);
-			if (newPath != null)
-			{
-				Save(new FileInfo(newPath), Output);
-			}
-		}
-		private async Task Close(Window window)
-		{
-			var msg = $"There are unsaved changes. Are you sure you want to close the file {_File.Name}?";
-			if (!_IsDirty || await MessageBox.ShowAsync(window, msg, _Caption, new[] { "Yes", "No" }) == "Yes")
-			{
-				window?.Close();
-			}
-		}
-		private async Task Delete(Window window)
-		{
-			var msg = $"Are you sure you want to delete the file {_File.Name}?";
-			if (await MessageBox.ShowAsync(window, msg, _Caption, new[] { "Yes", "No" }) == "Yes")
-			{
-				try
-				{
-					_File.Delete();
-					HandleResponse($"Successfully deleted the file {_File}.", Brushes.Yellow);
-				}
-				catch (Exception e)
-				{
-					e.Write();
-				}
-			}
-		}
 	}
 }

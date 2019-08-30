@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.ReadOnlyModels;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Gacha.Displays
@@ -52,6 +55,7 @@ namespace Advobot.Gacha.Displays
 				Footer = GeneratePaginationFooter(),
 			}.Build();
 		}
+
 		protected override Task<string> GenerateTextAsync()
 			=> Task.FromResult("");
 	}

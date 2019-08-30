@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Formatting
@@ -11,12 +13,12 @@ namespace Advobot.Formatting
 	/// </summary>
 	public sealed class InformationMatrix
 	{
+		private readonly List<InformationCollection> _Collections = new List<InformationCollection>();
+
 		/// <summary>
 		/// The rows of this matrix.
 		/// </summary>
 		public IReadOnlyList<InformationCollection> Collections => _Collections.AsReadOnly();
-
-		private readonly List<InformationCollection> _Collections = new List<InformationCollection>();
 
 		/// <summary>
 		/// Creates an <see cref="InformationCollection"/> for time created and adds it to this matrix.
@@ -25,6 +27,7 @@ namespace Advobot.Formatting
 		/// <returns></returns>
 		public InformationCollection AddTimeCreatedCollection(ISnowflakeEntity e)
 			=> AddTimeCreatedCollection(e.Id.ToString(), e.CreatedAt.UtcDateTime);
+
 		/// <summary>
 		/// Creates an <see cref="InformationCollection"/> for time created and adds it to this matrix.
 		/// </summary>
@@ -39,6 +42,7 @@ namespace Advobot.Formatting
 			collection.Add("Created At", $"{dt.ToReadable()} ({diff:0.00} days ago)");
 			return collection;
 		}
+
 		/// <summary>
 		/// Creates an <see cref="InformationCollection"/> and adds it to this matrix.
 		/// </summary>
@@ -54,7 +58,7 @@ namespace Advobot.Formatting
 		public override string ToString()
 		{
 			//Any collections with no information in them dont need to be added
-			var valid = Collections.Where(x => x.Information.Any());
+			var valid = Collections.Where(x => x.Information.Count > 0);
 			return valid.Join(x => x.ToString(), "\n\n");
 		}
 	}

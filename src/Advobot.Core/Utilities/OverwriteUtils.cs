@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Utilities
@@ -12,64 +14,15 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class OverwriteUtils
 	{
-		private static readonly IReadOnlyList<ChannelPermission> _Text
-			= ChannelPermissions.Text.ToList();
-		private static readonly IReadOnlyList<ChannelPermission> _Voice
-			= ChannelPermissions.Voice.ToList();
 		private static readonly IReadOnlyList<ChannelPermission> _Category
 			= ChannelPermissions.Category.ToList();
 
-		/// <summary>
-		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		/// <exception cref="ArgumentException"></exception>
-		public static OverwritePermissions? GetPermissionOverwrite(
-			this IGuildChannel channel,
-			ISnowflakeEntity obj) => obj switch
-			{
-				IRole role => channel.GetPermissionOverwrite(role),
-				IUser user => channel.GetPermissionOverwrite(user),
-				_ => throw new ArgumentException(nameof(obj)),
-			};
-		/// <summary>
-		/// Creates a new <see cref="OverwritePermissions"/> and modifies the specified values.
-		/// </summary>
-		/// <param name="current"></param>
-		/// <param name="value"></param>
-		/// <param name="invoker"></param>
-		/// <param name="permissions"></param>
-		/// <returns></returns>
-		public static OverwritePermissions ModifyPermissions(
-			this OverwritePermissions? current,
-			PermValue value,
-			IGuildUser invoker,
-			ulong permissions)
-		{
-			//Only allow the user to modify permissions they are allowed to
-			permissions &= invoker.GuildPermissions.RawValue;
+		private static readonly IReadOnlyList<ChannelPermission> _Text
+					= ChannelPermissions.Text.ToList();
 
-			var allow = current?.AllowValue ?? 0;
-			var deny = current?.DenyValue ?? 0;
-			switch (value)
-			{
-				case PermValue.Allow:
-					allow |= permissions;
-					deny &= ~permissions;
-					break;
-				case PermValue.Inherit:
-					allow &= ~permissions;
-					deny &= ~permissions;
-					break;
-				case PermValue.Deny:
-					allow &= ~permissions;
-					deny |= permissions;
-					break;
-			}
-			return new OverwritePermissions(allow, deny);
-		}
+		private static readonly IReadOnlyList<ChannelPermission> _Voice
+			= ChannelPermissions.Voice.ToList();
+
 		/// <summary>
 		/// Sets the overwrite on a channel for the given object.
 		/// </summary>
@@ -89,6 +42,33 @@ namespace Advobot.Utilities
 				IUser u => channel.AddPermissionOverwriteAsync(u, permissions, options),
 				_ => throw new ArgumentException(nameof(obj)),
 			};
+
+		/// <summary>
+		/// Removes every overwrite and returns the amount of removed overwrites.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="id"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		public static async Task<int> ClearOverwritesAsync(
+			this IGuildChannel channel,
+			ulong? id,
+			RequestOptions options)
+		{
+			var overwrites = channel.GetOverwrites(id);
+			foreach (var overwrite in overwrites)
+			{
+				var obj = await overwrite.GetEntityAsync(channel.Guild).CAF();
+				await (obj switch
+				{
+					IRole r => channel.RemovePermissionOverwriteAsync(r, options),
+					IUser u => channel.RemovePermissionOverwriteAsync(u, options),
+					_ => throw new ArgumentException(nameof(obj)),
+				}).CAF();
+			}
+			return overwrites.Count;
+		}
+
 		/// <summary>
 		/// If <paramref name="id"/> has a value will only copy overwrites targeting that id, otherwise copies every overwrite.
 		/// </summary>
@@ -116,49 +96,7 @@ namespace Advobot.Utilities
 			}
 			return overwrites;
 		}
-		/// <summary>
-		/// Updates the specified overwrite.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="overwrite"></param>
-		/// <param name="updatePerms"></param>
-		/// <param name="options"></param>
-		/// <returns></returns>
-		public static async Task UpdateOverwriteAsync(
-			this IGuildChannel channel,
-			Overwrite overwrite,
-			Func<OverwritePermissions, OverwritePermissions> updatePerms,
-			RequestOptions options)
-		{
-			var newPerms = updatePerms(overwrite.Permissions);
-			var entity = await overwrite.GetEntityAsync(channel.Guild).CAF();
-			await channel.AddPermissionOverwriteAsync(entity, newPerms, options).CAF();
-		}
-		/// <summary>
-		/// Removes every overwrite and returns the amount of removed overwrites.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="id"></param>
-		/// <param name="options"></param>
-		/// <returns></returns>
-		public static async Task<int> ClearOverwritesAsync(
-			this IGuildChannel channel,
-			ulong? id,
-			RequestOptions options)
-		{
-			var overwrites = channel.GetOverwrites(id);
-			foreach (var overwrite in overwrites)
-			{
-				var obj = await overwrite.GetEntityAsync(channel.Guild).CAF();
-				await (obj switch
-				{
-					IRole r => channel.RemovePermissionOverwriteAsync(r, options),
-					IUser u => channel.RemovePermissionOverwriteAsync(u, options),
-					_ => throw new ArgumentException(nameof(obj)),
-				}).CAF();
-			}
-			return overwrites.Count;
-		}
+
 		/// <summary>
 		/// Returns either all of the overwrites if the id is null, otherwise returns the overwrites where the ids match.
 		/// </summary>
@@ -175,6 +113,7 @@ namespace Advobot.Utilities
 			}
 			return channel.PermissionOverwrites;
 		}
+
 		/// <summary>
 		/// Returns a dictionary of permissions and their current values.
 		/// </summary>
@@ -207,6 +146,81 @@ namespace Advobot.Utilities
 				}
 			);
 		}
+
+		/// <summary>
+		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
+		public static OverwritePermissions? GetPermissionOverwrite(
+			this IGuildChannel channel,
+			ISnowflakeEntity obj) => obj switch
+			{
+				IRole role => channel.GetPermissionOverwrite(role),
+				IUser user => channel.GetPermissionOverwrite(user),
+				_ => throw new ArgumentException(nameof(obj)),
+			};
+
+		/// <summary>
+		/// Creates a new <see cref="OverwritePermissions"/> and modifies the specified values.
+		/// </summary>
+		/// <param name="current"></param>
+		/// <param name="value"></param>
+		/// <param name="invoker"></param>
+		/// <param name="permissions"></param>
+		/// <returns></returns>
+		public static OverwritePermissions ModifyPermissions(
+			this OverwritePermissions? current,
+			PermValue value,
+			IGuildUser invoker,
+			ulong permissions)
+		{
+			//Only allow the user to modify permissions they are allowed to
+			permissions &= invoker.GuildPermissions.RawValue;
+
+			var allow = current?.AllowValue ?? 0;
+			var deny = current?.DenyValue ?? 0;
+			switch (value)
+			{
+				case PermValue.Allow:
+					allow |= permissions;
+					deny &= ~permissions;
+					break;
+
+				case PermValue.Inherit:
+					allow &= ~permissions;
+					deny &= ~permissions;
+					break;
+
+				case PermValue.Deny:
+					allow &= ~permissions;
+					deny |= permissions;
+					break;
+			}
+			return new OverwritePermissions(allow, deny);
+		}
+
+		/// <summary>
+		/// Updates the specified overwrite.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="overwrite"></param>
+		/// <param name="updatePerms"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		public static async Task UpdateOverwriteAsync(
+			this IGuildChannel channel,
+			Overwrite overwrite,
+			Func<OverwritePermissions, OverwritePermissions> updatePerms,
+			RequestOptions options)
+		{
+			var newPerms = updatePerms(overwrite.Permissions);
+			var entity = await overwrite.GetEntityAsync(channel.Guild).CAF();
+			await channel.AddPermissionOverwriteAsync(entity, newPerms, options).CAF();
+		}
+
 		private static async Task<ISnowflakeEntity> GetEntityAsync(
 			this Overwrite overwrite,
 			IGuild guild) => overwrite.TargetType switch
@@ -215,6 +229,7 @@ namespace Advobot.Utilities
 				PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).CAF(),
 				_ => throw new ArgumentOutOfRangeException(nameof(overwrite.TargetType)),
 			};
+
 		private static IReadOnlyList<ChannelPermission> GetPermissions(IGuildChannel channel) => channel switch
 		{
 			ITextChannel _ => _Text,

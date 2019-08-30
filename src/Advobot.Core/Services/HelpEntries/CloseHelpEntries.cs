@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Advobot.Classes.CloseWords;
+
 using AdvorangesUtils;
 
 namespace Advobot.Services.HelpEntries

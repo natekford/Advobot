@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord;
 using Discord.Commands;
 
@@ -13,6 +15,22 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 	public abstract class GuildEmoteParameterPreconditionAttribute
 		: DiscordObjectParameterPreconditionAttribute
 	{
+		/// <summary>
+		/// Checks whether the condition for the <see cref="GuildEmote"/> is met before execution of the command.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="invoker"></param>
+		/// <param name="emote"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		protected abstract Task<PreconditionResult> SingularCheckGuildEmoteAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			GuildEmote emote,
+			IServiceProvider services);
+
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
@@ -30,20 +48,5 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 			}
 			return SingularCheckGuildEmoteAsync(context, parameter, user, invite, services);
 		}
-		/// <summary>
-		/// Checks whether the condition for the <see cref="GuildEmote"/> is met before execution of the command.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parameter"></param>
-		/// <param name="invoker"></param>
-		/// <param name="emote"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		protected abstract Task<PreconditionResult> SingularCheckGuildEmoteAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IGuildUser invoker,
-			GuildEmote emote,
-			IServiceProvider services);
 	}
 }

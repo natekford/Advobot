@@ -9,11 +9,6 @@ namespace Advobot.UI.AbstractUI.Converters
 	public abstract class FontResizeConverter
 	{
 		/// <summary>
-		/// What to shrink by.
-		/// </summary>
-		public double ConvertFactor { get; set; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="FontResizeConverter"/>.
 		/// </summary>
 		/// <param name="convertFactor"></param>
@@ -21,6 +16,11 @@ namespace Advobot.UI.AbstractUI.Converters
 		{
 			ConvertFactor = convertFactor;
 		}
+
+		/// <summary>
+		/// What to shrink by.
+		/// </summary>
+		public double ConvertFactor { get; set; }
 
 		/// <summary>
 		/// Converts the passed in value to a smaller number.
@@ -42,6 +42,7 @@ namespace Advobot.UI.AbstractUI.Converters
 			}
 			return Math.Max((int)(dVal * ConvertFactor), 1);
 		}
+
 		/// <summary>
 		/// Not implemented.
 		/// </summary>

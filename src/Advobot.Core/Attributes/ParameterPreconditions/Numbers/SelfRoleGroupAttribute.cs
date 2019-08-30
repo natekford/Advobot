@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.ParameterPreconditions.Numbers
@@ -18,6 +22,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	{
 		/// <inheritdoc />
 		public override string NumberType => "self role group";
+
 		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustNotExist;
 

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes.Preconditions.QuantityLimits
@@ -14,6 +17,25 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 	public abstract class LimitAttribute
 		: PreconditionAttribute, IPrecondition
 	{
+		/// <summary>
+		/// Creates an instance of <see cref="LimitAttribute"/>.
+		/// </summary>
+		/// <param name="action"></param>
+		protected LimitAttribute(QuantityLimitAction action)
+		{
+			Action = action;
+		}
+
+		/// <summary>
+		/// Whether this is on a command which adds or removes something.
+		/// </summary>
+		public QuantityLimitAction Action { get; }
+
+		/// <summary>
+		/// The name of the items.
+		/// </summary>
+		public abstract string QuantityName { get; }
+
 		/// <inheritdoc />
 		public string Summary
 		{
@@ -25,23 +47,6 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 				}
 				return $"At least one {QuantityName}";
 			}
-		}
-		/// <summary>
-		/// The name of the items.
-		/// </summary>
-		public abstract string QuantityName { get; }
-		/// <summary>
-		/// Whether this is on a command which adds or removes something.
-		/// </summary>
-		public QuantityLimitAction Action { get; }
-
-		/// <summary>
-		/// Creates an instance of <see cref="LimitAttribute"/>.
-		/// </summary>
-		/// <param name="action"></param>
-		public LimitAttribute(QuantityLimitAction action)
-		{
-			Action = action;
 		}
 
 		/// <inheritdoc />
@@ -67,15 +72,7 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 			}
 			return PreconditionUtils.FromError($"There are only `{max}` {QuantityName}s allowed.");
 		}
-		/// <summary>
-		/// Gets the maximum amount of these items allowed.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		protected abstract Task<int> GetMaximumAllowedAsync(
-			ICommandContext context,
-			IServiceProvider services);
+
 		/// <summary>
 		/// Gets the current amount of these items stored.
 		/// </summary>
@@ -83,6 +80,16 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 		/// <param name="services"></param>
 		/// <returns></returns>
 		protected abstract Task<int> GetCurrentAsync(
+			ICommandContext context,
+			IServiceProvider services);
+
+		/// <summary>
+		/// Gets the maximum amount of these items allowed.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		protected abstract Task<int> GetMaximumAllowedAsync(
 			ICommandContext context,
 			IServiceProvider services);
 	}

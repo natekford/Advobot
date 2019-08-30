@@ -1,10 +1,11 @@
-﻿using Advobot.CommandAssemblies;
-using Advobot.Gacha;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
 
-// General Information about an assembly is controlled through the following 
+using Advobot.CommandAssemblies;
+using Advobot.Gacha;
+
+// General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyCompany("Advorange")]
@@ -18,8 +19,8 @@ using System.Runtime.InteropServices;
 // Indicates the assembly has commands in it for the bot to use
 [assembly: CommandAssembly("en-US", InstantiatorType = typeof(GachaInstantiation))]
 
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
+// Setting ComVisible to false makes the types in this assembly not visible
+// to COM components.  If you need to access a type in this assembly from
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
@@ -29,7 +30,7 @@ using System.Runtime.InteropServices;
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version
-//      Minor Version 
+//      Minor Version
 //      Build Number
 //      Revision
 //

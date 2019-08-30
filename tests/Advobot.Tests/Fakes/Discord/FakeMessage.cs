@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Utilities;
+
 using Discord;
+
 using static Discord.MentionUtils;
 
 namespace Advobot.Tests.Fakes.Discord

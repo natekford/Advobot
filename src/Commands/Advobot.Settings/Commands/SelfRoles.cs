@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
@@ -11,7 +12,9 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Settings.Localization;
 using Advobot.Settings.Resources;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -20,47 +23,6 @@ namespace Advobot.Settings.Commands
 	[Category(nameof(SelfRoles))]
 	public sealed class SelfRoles : ModuleBase
 	{
-		[Group(nameof(ModifySelfRoles)), ModuleInitialismAlias(typeof(ModifySelfRoles))]
-		[LocalizedSummary(nameof(Summaries.ModifySelfRoles))]
-		[Meta("2cb8f177-dc52-404c-a7f4-a63c84d976ba")]
-		[RequireGuildPermissions]
-		public sealed class ModifySelfRoles : SettingsModule<IGuildSettings>
-		{
-			protected override IGuildSettings Settings => Context.Settings;
-
-			[SelfRoleGroupsLimit(QuantityLimitAction.Add)]
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Create(
-				[SelfRoleGroup] int group)
-			{
-				Settings.SelfAssignableGroups.Add(new SelfAssignableRoles(group));
-				return Responses.SelfRoles.CreatedGroup(group);
-			}
-			[SelfRoleGroupsLimit(QuantityLimitAction.Remove)]
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Delete(SelfAssignableRoles group)
-			{
-				Settings.SelfAssignableGroups.RemoveAll(x => x.Group == group.Group);
-				return Responses.SelfRoles.DeletedGroup(group);
-			}
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Add(
-				SelfAssignableRoles group,
-				[CanModifyRole, NotEveryone, NotManaged] params IRole[] roles)
-			{
-				group.AddRoles(roles);
-				return Responses.SelfRoles.ModifiedGroup(group, roles, true);
-			}
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Remove(
-				SelfAssignableRoles group,
-				[CanModifyRole, NotEveryone, NotManaged] params IRole[] roles)
-			{
-				group.RemoveRoles(roles);
-				return Responses.SelfRoles.ModifiedGroup(group, roles, false);
-			}
-		}
-
 		[Group(nameof(AssignSelfRole)), ModuleInitialismAlias(typeof(AssignSelfRole))]
 		[LocalizedSummary(nameof(Summaries.AssignSelfRole))]
 		[Meta("6c574af7-31a7-4733-9f10-badfe1e72f4c")]
@@ -97,9 +59,54 @@ namespace Advobot.Settings.Commands
 			[Command]
 			public Task<RuntimeResult> Command()
 				=> Responses.SelfRoles.DisplayGroups(Context.Settings.SelfAssignableGroups);
+
 			[Command]
 			public Task<RuntimeResult> Command(SelfAssignableRoles group)
 				=> Responses.SelfRoles.DisplayGroup(Context.Guild, group);
+		}
+
+		[Group(nameof(ModifySelfRoles)), ModuleInitialismAlias(typeof(ModifySelfRoles))]
+		[LocalizedSummary(nameof(Summaries.ModifySelfRoles))]
+		[Meta("2cb8f177-dc52-404c-a7f4-a63c84d976ba")]
+		[RequireGuildPermissions]
+		public sealed class ModifySelfRoles : SettingsModule<IGuildSettings>
+		{
+			protected override IGuildSettings Settings => Context.Settings;
+
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Add(
+				SelfAssignableRoles group,
+				[CanModifyRole, NotEveryone, NotManaged] params IRole[] roles)
+			{
+				group.AddRoles(roles);
+				return Responses.SelfRoles.ModifiedGroup(group, roles, true);
+			}
+
+			[SelfRoleGroupsLimit(QuantityLimitAction.Add)]
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Create(
+				[SelfRoleGroup] int group)
+			{
+				Settings.SelfAssignableGroups.Add(new SelfAssignableRoles(group));
+				return Responses.SelfRoles.CreatedGroup(group);
+			}
+
+			[SelfRoleGroupsLimit(QuantityLimitAction.Remove)]
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Delete(SelfAssignableRoles group)
+			{
+				Settings.SelfAssignableGroups.RemoveAll(x => x.Group == group.Group);
+				return Responses.SelfRoles.DeletedGroup(group);
+			}
+
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Remove(
+				SelfAssignableRoles group,
+				[CanModifyRole, NotEveryone, NotManaged] params IRole[] roles)
+			{
+				group.RemoveRoles(roles);
+				return Responses.SelfRoles.ModifiedGroup(group, roles, false);
+			}
 		}
 	}
 }

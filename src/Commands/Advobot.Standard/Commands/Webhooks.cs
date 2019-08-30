@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.ParameterPreconditions.Strings;
@@ -10,10 +11,13 @@ using Advobot.Services.ImageResizing;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 using Discord.Webhook;
+
 using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands
@@ -21,27 +25,6 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Webhooks))]
 	public sealed class Webhooks : ModuleBase
 	{
-		[LocalizedGroup(nameof(Groups.DisplayWebhooks))]
-		[LocalizedAlias(nameof(Aliases.DisplayWebhooks))]
-		[LocalizedSummary(nameof(Summaries.DisplayWebhooks))]
-		[Meta("b8e90320-b827-4b61-81ea-92d43ea1ba6e", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
-		public sealed class DisplayWebhooks : AdvobotModuleBase
-		{
-			[Command]
-			public async Task<RuntimeResult> Command()
-			{
-				var webhooks = await Context.Guild.GetWebhooksAsync().CAF();
-				return Responses.Webhooks.DisplayWebhooks(Context.Guild, webhooks);
-			}
-			[Command]
-			public async Task<RuntimeResult> Command(ITextChannel channel)
-			{
-				var webhooks = await channel.GetWebhooksAsync().CAF();
-				return Responses.Webhooks.DisplayWebhooks(channel, webhooks);
-			}
-		}
-
 		[LocalizedGroup(nameof(Groups.CreateWebhook))]
 		[LocalizedAlias(nameof(Aliases.CreateWebhook))]
 		[LocalizedSummary(nameof(Summaries.CreateWebhook))]
@@ -74,20 +57,25 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[LocalizedGroup(nameof(Groups.ModifyWebhookName))]
-		[LocalizedAlias(nameof(Aliases.ModifyWebhookName))]
-		[LocalizedSummary(nameof(Summaries.ModifyWebhookName))]
-		[Meta("953dd979-c51a-4a1b-b4ba-05576faf11c2", IsEnabled = true)]
+		[LocalizedGroup(nameof(Groups.DisplayWebhooks))]
+		[LocalizedAlias(nameof(Aliases.DisplayWebhooks))]
+		[LocalizedSummary(nameof(Summaries.DisplayWebhooks))]
+		[Meta("b8e90320-b827-4b61-81ea-92d43ea1ba6e", IsEnabled = true)]
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
-		public sealed class ModifyWebhookName : AdvobotModuleBase
+		public sealed class DisplayWebhooks : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(
-				IWebhook webhook,
-				[Remainder, Username] string name)
+			public async Task<RuntimeResult> Command()
 			{
-				await webhook.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
-				return Responses.Snowflakes.ModifiedName(webhook, name);
+				var webhooks = await Context.Guild.GetWebhooksAsync().CAF();
+				return Responses.Webhooks.DisplayWebhooks(Context.Guild, webhooks);
+			}
+
+			[Command]
+			public async Task<RuntimeResult> Command(ITextChannel channel)
+			{
+				var webhooks = await channel.GetWebhooksAsync().CAF();
+				return Responses.Webhooks.DisplayWebhooks(channel, webhooks);
 			}
 		}
 
@@ -122,11 +110,29 @@ namespace Advobot.Standard.Commands
 					(ctx, ms) => webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Snowflakes.EnqueuedIcon(webhook, position);
 			}
+
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Remove(IWebhook webhook)
 			{
 				await webhook.ModifyAsync(x => x.Image = new Image(), GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.RemovedIcon(webhook);
+			}
+		}
+
+		[LocalizedGroup(nameof(Groups.ModifyWebhookName))]
+		[LocalizedAlias(nameof(Aliases.ModifyWebhookName))]
+		[LocalizedSummary(nameof(Summaries.ModifyWebhookName))]
+		[Meta("953dd979-c51a-4a1b-b4ba-05576faf11c2", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
+		public sealed class ModifyWebhookName : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command(
+				IWebhook webhook,
+				[Remainder, Username] string name)
+			{
+				await webhook.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
+				return Responses.Snowflakes.ModifiedName(webhook, name);
 			}
 		}
 
@@ -137,10 +143,11 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 		public sealed class SpeakThroughWebhook : AdvobotModuleBase
 		{
-			private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks
-				= new ConcurrentDictionary<ulong, ulong>();
 			private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients
 				= new ConcurrentDictionary<ulong, DiscordWebhookClient>();
+
+			private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks
+							= new ConcurrentDictionary<ulong, ulong>();
 
 			[Command(RunMode = RunMode.Async)]
 			public Task Command(IWebhook webhook, [Remainder] string text)

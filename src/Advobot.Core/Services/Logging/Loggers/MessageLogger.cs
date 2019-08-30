@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Advobot.Classes;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
@@ -11,7 +12,9 @@ using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -19,9 +22,8 @@ namespace Advobot.Services.Logging.Loggers
 {
 	internal sealed class MessageLogger : Logger, IMessageLogger
 	{
-		private static readonly RequestOptions _ChannelSettingsOptions = DiscordUtils.GenerateRequestOptions("Due to channel settings.");
 		private static readonly RequestOptions _BannedPhraseOptions = DiscordUtils.GenerateRequestOptions("Banned phrase.");
-
+		private static readonly RequestOptions _ChannelSettingsOptions = DiscordUtils.GenerateRequestOptions("Due to channel settings.");
 		private readonly ITimerService _Timers;
 
 		public MessageLogger(
@@ -31,6 +33,23 @@ namespace Advobot.Services.Logging.Loggers
 			: base(botSettings, settingsFactory)
 		{
 			_Timers = timers;
+		}
+
+		public Task OnMessageDeleted(
+			Cacheable<IMessage, ulong> cached,
+			ISocketMessageChannel channel)
+		{
+			//Ignore uncached messages since not much can be done with them
+			return HandleAsync(cached.Value, new LoggingContextArgs<IMessageLoggingContext>
+			{
+				Action = LogAction.MessageDeleted,
+				LogCounterName = nameof(ILogService.MessageDeletes),
+				WhenCanLog = new Func<IMessageLoggingContext, Task>[]
+				{
+					x => HandleMessageDeletedLogging(x),
+				},
+				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
+			});
 		}
 
 		public Task OnMessageReceived(SocketMessage message)
@@ -49,6 +68,7 @@ namespace Advobot.Services.Logging.Loggers
 				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
 			});
 		}
+
 		public Task OnMessageUpdated(
 			Cacheable<IMessage, ulong> cached,
 			SocketMessage message,
@@ -67,46 +87,7 @@ namespace Advobot.Services.Logging.Loggers
 				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
 			});
 		}
-		public Task OnMessageDeleted(
-			Cacheable<IMessage, ulong> cached,
-			ISocketMessageChannel channel)
-		{
-			//Ignore uncached messages since not much can be done with them
-			return HandleAsync(cached.Value, new LoggingContextArgs<IMessageLoggingContext>
-			{
-				Action = LogAction.MessageDeleted,
-				LogCounterName = nameof(ILogService.MessageDeletes),
-				WhenCanLog = new Func<IMessageLoggingContext, Task>[]
-				{
-					x => HandleMessageDeletedLogging(x),
-				},
-				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
-			});
-		}
 
-		private Task HandleChannelSettingsAsync(IMessageLoggingContext context)
-		{
-			if (!context.User.GuildPermissions.Administrator
-				&& context.Settings.ImageOnlyChannels.Contains(context.Channel.Id)
-				&& !context.Message.Attachments.Any(x => x.Height != null || x.Width != null)
-				&& !context.Message.Embeds.Any(x => x.Image != null))
-			{
-				return context.Message.DeleteAsync(_ChannelSettingsOptions);
-			}
-			return Task.CompletedTask;
-		}
-		private async Task HandleSpamPreventionAsync(IMessageLoggingContext context)
-		{
-			if (!context.Bot.CanModify(context.Bot.Id, context.User))
-			{
-				return;
-			}
-
-			foreach (var antiSpam in context.Settings.SpamPrevention)
-			{
-				await antiSpam.PunishAsync(context.Message).CAF();
-			}
-		}
 		private async Task HandleBannedPhrasesAsync(IMessageLoggingContext context)
 		{
 			//Ignore admins and messages older than an hour.
@@ -132,6 +113,18 @@ namespace Advobot.Services.Logging.Loggers
 			{
 				await context.Message.DeleteAsync(_BannedPhraseOptions).CAF();
 			}
+		}
+
+		private Task HandleChannelSettingsAsync(IMessageLoggingContext context)
+		{
+			if (!context.User.GuildPermissions.Administrator
+				&& context.Settings.ImageOnlyChannels.Contains(context.Channel.Id)
+				&& !context.Message.Attachments.Any(x => x.Height != null || x.Width != null)
+				&& !context.Message.Embeds.Any(x => x.Image != null))
+			{
+				return context.Message.DeleteAsync(_ChannelSettingsOptions);
+			}
+			return Task.CompletedTask;
 		}
 
 		private async Task HandleImageLoggingAsync(IMessageLoggingContext context)
@@ -178,50 +171,7 @@ namespace Advobot.Services.Logging.Loggers
 				.OfType<ImageToLog>();
 			await ProcessLoggablesAsync(embeds).CAF();
 		}
-		private Task HandleMessageEditedImageLoggingAsync(IMessageLoggingContext context, IMessage? before)
-		{
-			//If the before message is not specified always take that as it should be logged.
-			//If the embed counts are greater take that as logging too.
-			if (before?.Embeds.Count < context.Message.Embeds.Count)
-			{
-				return HandleImageLoggingAsync(context);
-			}
-			return Task.CompletedTask;
-		}
-		private Task HandleMessageEditedLoggingAsync(IMessageLoggingContext context, IMessage? before)
-		{
-			var uneditedBMsgContent = before?.Content;
-			var uneditedAMsgContent = context.Message?.Content;
-			if (context.ServerLog == null || uneditedBMsgContent == uneditedAMsgContent)
-			{
-				return Task.CompletedTask;
-			}
 
-			var bMsgContent = (uneditedBMsgContent ?? "Unknown or empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-			var aMsgContent = (uneditedAMsgContent ?? "Empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-			if (bMsgContent.Length > 750 || aMsgContent.Length > 750) //Send file instead if long
-			{
-				return ReplyAsync(context.ServerLog, textFile: new TextFileInfo
-				{
-					Name = $"Message_Edit_{AdvorangesUtils.FormattingUtils.ToSaving()}",
-					Text = $"Before:\n{bMsgContent}\n\nAfter:\n{aMsgContent}",
-				});
-			}
-			else
-			{
-				return ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
-				{
-					Color = EmbedWrapper.MessageEdit,
-					Author = context.User.CreateAuthor(),
-					Footer = new EmbedFooterBuilder { Text = "Message Updated", },
-					Fields = new List<EmbedFieldBuilder>
-					{
-						new EmbedFieldBuilder { Name = "Before", Value = bMsgContent, },
-						new EmbedFieldBuilder { Name = "After", Value = aMsgContent, },
-					},
-				});
-			}
-		}
 		private Task HandleMessageDeletedLogging(IMessageLoggingContext context)
 		{
 			var cache = context.Settings.GetDeletedMessageCache();
@@ -288,6 +238,65 @@ namespace Advobot.Services.Logging.Loggers
 				}
 			});
 			return Task.CompletedTask;
+		}
+
+		private Task HandleMessageEditedImageLoggingAsync(IMessageLoggingContext context, IMessage? before)
+		{
+			//If the before message is not specified always take that as it should be logged.
+			//If the embed counts are greater take that as logging too.
+			if (before?.Embeds.Count < context.Message.Embeds.Count)
+			{
+				return HandleImageLoggingAsync(context);
+			}
+			return Task.CompletedTask;
+		}
+
+		private Task HandleMessageEditedLoggingAsync(IMessageLoggingContext context, IMessage? before)
+		{
+			var uneditedBMsgContent = before?.Content;
+			var uneditedAMsgContent = context.Message?.Content;
+			if (context.ServerLog == null || uneditedBMsgContent == uneditedAMsgContent)
+			{
+				return Task.CompletedTask;
+			}
+
+			var bMsgContent = (uneditedBMsgContent ?? "Unknown or empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
+			var aMsgContent = (uneditedAMsgContent ?? "Empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
+			if (bMsgContent.Length > 750 || aMsgContent.Length > 750) //Send file instead if long
+			{
+				return ReplyAsync(context.ServerLog, textFile: new TextFileInfo
+				{
+					Name = $"Message_Edit_{AdvorangesUtils.FormattingUtils.ToSaving()}",
+					Text = $"Before:\n{bMsgContent}\n\nAfter:\n{aMsgContent}",
+				});
+			}
+			else
+			{
+				return ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
+				{
+					Color = EmbedWrapper.MessageEdit,
+					Author = context.User.CreateAuthor(),
+					Footer = new EmbedFooterBuilder { Text = "Message Updated", },
+					Fields = new List<EmbedFieldBuilder>
+					{
+						new EmbedFieldBuilder { Name = "Before", Value = bMsgContent, },
+						new EmbedFieldBuilder { Name = "After", Value = aMsgContent, },
+					},
+				});
+			}
+		}
+
+		private async Task HandleSpamPreventionAsync(IMessageLoggingContext context)
+		{
+			if (!context.Bot.CanModify(context.Bot.Id, context.User))
+			{
+				return;
+			}
+
+			foreach (var antiSpam in context.Settings.SpamPrevention)
+			{
+				await antiSpam.PunishAsync(context.Message).CAF();
+			}
 		}
 	}
 }

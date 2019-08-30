@@ -9,19 +9,6 @@ namespace Advobot.Attributes
 	public sealed class MetaAttribute : Attribute
 	{
 		/// <summary>
-		/// The id of the command.
-		/// </summary>
-		public Guid Guid { get; }
-		/// <summary>
-		/// Whether or not the command is enabled by default.
-		/// </summary>
-		public bool IsEnabled { get; set; } = false;
-		/// <summary>
-		/// Whether or not the command can be toggled.
-		/// </summary>
-		public bool CanToggle { get; set; } = true;
-
-		/// <summary>
 		/// Creates an instance of <see cref="MetaAttribute"/>.
 		/// </summary>
 		/// <param name="guid"></param>
@@ -29,5 +16,20 @@ namespace Advobot.Attributes
 		{
 			Guid = Guid.Parse(guid);
 		}
+
+		/// <summary>
+		/// Whether or not the command can be toggled.
+		/// </summary>
+		public bool CanToggle { get; set; } = true;
+
+		/// <summary>
+		/// The id of the command.
+		/// </summary>
+		public Guid Guid { get; }
+
+		/// <summary>
+		/// Whether or not the command is enabled by default.
+		/// </summary>
+		public bool IsEnabled { get; set; } = false;
 	}
 }

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Utilities;
+
 using Discord.Commands;
+
 using ImageMagick;
 
 namespace Advobot.TypeReaders

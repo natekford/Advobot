@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord.Commands;
 
 namespace Advobot.TypeReaders

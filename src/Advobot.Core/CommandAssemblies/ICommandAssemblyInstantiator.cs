@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.CommandAssemblies
 {
@@ -15,6 +16,7 @@ namespace Advobot.CommandAssemblies
 		/// <param name="services"></param>
 		/// <returns></returns>
 		Task AddServicesAsync(IServiceCollection services);
+
 		/// <summary>
 		/// Configures the services and makes sure they are set up correctly.
 		/// </summary>

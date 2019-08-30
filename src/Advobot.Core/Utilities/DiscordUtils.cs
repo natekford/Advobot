@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -23,6 +25,7 @@ namespace Advobot.Utilities
 			this ICommandContext context,
 			string? reason = null)
 			=> context.User.GenerateRequestOptions(reason);
+
 		/// <summary>
 		/// Generates a default request options explaining who invoked the command for the audit log.
 		/// </summary>
@@ -40,6 +43,7 @@ namespace Advobot.Utilities
 			}
 			return GenerateRequestOptions(r);
 		}
+
 		/// <summary>
 		/// Returns request options, with <paramref name="reason"/> as the audit log reason.
 		/// </summary>
@@ -53,6 +57,21 @@ namespace Advobot.Utilities
 				RetryMode = RetryMode.RetryRatelimit,
 			};
 		}
+
+		/// <summary>
+		/// Returns all the roles a user has.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public static IReadOnlyList<IRole> GetRoles(this IGuildUser user)
+		{
+			return user.RoleIds
+				.Select(x => user.Guild.GetRole(x))
+				.OrderBy(x => x.Position)
+				.Where(x => x.Id != user.GuildId)
+				.ToArray();
+		}
+
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.
 		/// </summary>
@@ -92,6 +111,7 @@ namespace Advobot.Utilities
 			await role.Guild.ReorderRolesAsync(reorderProperties, options).CAF();
 			return newPosition;
 		}
+
 		/// <summary>
 		/// Returns every user that has a non null join time in order from least to greatest.
 		/// </summary>
@@ -102,19 +122,6 @@ namespace Advobot.Utilities
 			return users
 				.Where(x => x.JoinedAt.HasValue)
 				.OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks)
-				.ToArray();
-		}
-		/// <summary>
-		/// Returns all the roles a user has.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		public static IReadOnlyList<IRole> GetRoles(this IGuildUser user)
-		{
-			return user.RoleIds
-				.Select(x => user.Guild.GetRole(x))
-				.OrderBy(x => x.Position)
-				.Where(x => x.Id != user.GuildId)
 				.ToArray();
 		}
 	}

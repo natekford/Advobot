@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+
 using Discord;
 
 namespace Advobot.Tests.Fakes.Discord
@@ -23,10 +24,13 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 			=> CDN.GetUserAvatarUrl(Id, AvatarId, size, format);
+
 		public string GetDefaultAvatarUrl()
 			=> CDN.GetDefaultUserAvatarUrl(DiscriminatorValue);
+
 		public Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions options = null)
 			=> throw new NotImplementedException();
+
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.

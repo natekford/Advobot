@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Classes;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Utilities
@@ -14,6 +17,81 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class MessageUtils
 	{
+		/// <summary>
+		/// Removes the given count of messages from a channel.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="from"></param>
+		/// <param name="count"></param>
+		/// <param name="options"></param>
+		/// <param name="predicate"></param>
+		/// <returns></returns>
+		public static async Task<int> DeleteMessagesAsync(
+			ITextChannel channel,
+			IMessage from,
+			int count,
+			RequestOptions options,
+			Func<IMessage, bool>? predicate = null)
+		{
+			var deletedCount = 0;
+			while (count > 0)
+			{
+				var flattened = await channel.GetMessagesAsync(from, Direction.Before, 100).FlattenAsync().CAF();
+				var messages = flattened.ToArray();
+				if (messages.Length == 0)
+				{
+					break;
+				}
+				from = messages.Last();
+
+				var filteredMessages = predicate == null ? messages : messages.Where(predicate);
+				var cutMessages = filteredMessages.Take(count).ToArray();
+
+				//If less messages are deleted than gathered, that means there are some that are too old meaning we can stop
+				var deletedThisIteration = await DeleteMessagesAsync(channel, cutMessages, options).CAF();
+				deletedCount += deletedThisIteration;
+				count -= deletedThisIteration;
+				if (deletedThisIteration < cutMessages.Length)
+				{
+					break;
+				}
+			}
+			return deletedCount;
+		}
+
+		/// <summary>
+		/// Deletes the passed in messages directly. Will only delete messages under 14 days old.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="messages"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, RequestOptions? options)
+		{
+			var m = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14).ToArray();
+			if (m.Length == 0)
+			{
+				return 0;
+			}
+
+			try
+			{
+				if (m.Length == 1)
+				{
+					await m[0].DeleteAsync(options).CAF();
+				}
+				else
+				{
+					await channel.DeleteMessagesAsync(m, options).CAF();
+				}
+				return m.Length;
+			}
+			catch
+			{
+				return 0;
+			}
+		}
+
 		/// <summary>
 		/// Sends a message to the given channel with the given content.
 		/// </summary>
@@ -45,7 +123,7 @@ namespace Advobot.Utilities
 			textFile ??= new TextFileInfo();
 
 			//Make sure all the information from the embed that didn't fit goes in.
-			if (embedWrapper != null && embedWrapper.Errors.Any())
+			if (embedWrapper?.Errors.Count > 0)
 			{
 				textFile.Name ??= "Embed_Errors";
 				textFile.Text += $"Embed Errors:\n{embedWrapper}\n\n{textFile.Text}";
@@ -88,79 +166,7 @@ namespace Advobot.Utilities
 				return channel.SendMessageAsync(channel.SanitizeContent(e.Message));
 			}
 		}
-		/// <summary>
-		/// Removes the given count of messages from a channel.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="from"></param>
-		/// <param name="count"></param>
-		/// <param name="options"></param>
-		/// <param name="predicate"></param>
-		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(
-			ITextChannel channel,
-			IMessage from,
-			int count,
-			RequestOptions options,
-			Func<IMessage, bool>? predicate = null)
-		{
-			var deletedCount = 0;
-			while (count > 0)
-			{
-				var flattened = await channel.GetMessagesAsync(from, Direction.Before, 100).FlattenAsync().CAF();
-				var messages = flattened.ToArray();
-				if (messages.Length == 0)
-				{
-					break;
-				}
-				from = messages.Last();
 
-				var filteredMessages = predicate == null ? messages : messages.Where(predicate);
-				var cutMessages = filteredMessages.Take(count).ToArray();
-
-				//If less messages are deleted than gathered, that means there are some that are too old meaning we can stop
-				var deletedThisIteration = await DeleteMessagesAsync(channel, cutMessages, options).CAF();
-				deletedCount += deletedThisIteration;
-				count -= deletedThisIteration;
-				if (deletedThisIteration < cutMessages.Length)
-				{
-					break;
-				}
-			}
-			return deletedCount;
-		}
-		/// <summary>
-		/// Deletes the passed in messages directly. Will only delete messages under 14 days old.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="messages"></param>
-		/// <param name="options"></param>
-		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, RequestOptions? options)
-		{
-			var m = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14).ToArray();
-			if (m.Length == 0)
-			{
-				return 0;
-			}
-
-			try
-			{
-				if (m.Length == 1)
-				{
-					await m[0].DeleteAsync(options).CAF();
-				}
-				else
-				{
-					await channel.DeleteMessagesAsync(m, options).CAF();
-				}
-				return m.Length;
-			}
-			catch
-			{
-				return 0;
-			}
-		}
 		private static string SanitizeContent(this IMessageChannel channel, string? content)
 		{
 			if (content == null)

@@ -8,12 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class PrefixAttribute : StringParameterPreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override string StringType => "prefix";
-
 		/// <summary>
 		/// Creates an instance of <see cref="PrefixAttribute"/>.
 		/// </summary>
 		public PrefixAttribute() : base(1, 10) { }
+
+		/// <inheritdoc />
+		public override string StringType => "prefix";
 	}
 }

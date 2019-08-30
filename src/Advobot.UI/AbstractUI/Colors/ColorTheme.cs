@@ -9,10 +9,12 @@
 		/// Light theme.
 		/// </summary>
 		LightMode,
+
 		/// <summary>
 		/// Dark theme.
 		/// </summary>
 		DarkMode,
+
 		/// <summary>
 		/// Custom theme.
 		/// </summary>

@@ -9,19 +9,6 @@ namespace Advobot.Classes.CloseWords
 	public sealed class CloseWord<T>
 	{
 		/// <summary>
-		/// How close the name is to the search term.
-		/// </summary>
-		public int Closeness { get; set; }
-		/// <summary>
-		/// The name of the object.
-		/// </summary>
-		public string Name { get; set; }
-		/// <summary>
-		/// The object this is coming from.
-		/// </summary>
-		public T Value { get; set; }
-
-		/// <summary>
 		/// Initializes the object with the supplied values.
 		/// </summary>
 		/// <param name="closeness"></param>
@@ -33,6 +20,21 @@ namespace Advobot.Classes.CloseWords
 			Name = name;
 			Value = value;
 		}
+
+		/// <summary>
+		/// How close the name is to the search term.
+		/// </summary>
+		public int Closeness { get; set; }
+
+		/// <summary>
+		/// The name of the object.
+		/// </summary>
+		public string Name { get; set; }
+
+		/// <summary>
+		/// The object this is coming from.
+		/// </summary>
+		public T Value { get; set; }
 
 		private string DebuggerDisplay
 			=> $"Name = {Name}, Closeness = {Closeness}";

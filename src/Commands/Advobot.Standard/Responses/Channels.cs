@@ -2,21 +2,53 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
+
 using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
 	public sealed class Channels : CommandResponses
 	{
-		private Channels() { }
+		private Channels()
+		{
+		}
+
+		public static AdvobotResult ClearedOverwrites(IGuildChannel channel, int count)
+		{
+			return Success(ChannelsClearedOverwrites.Format(
+				count.ToString().WithBlock(),
+				channel.Format().WithBlock()
+			));
+		}
+
+		public static AdvobotResult CopiedOverwrites(
+			IGuildChannel input,
+			IGuildChannel output,
+			ISnowflakeEntity? obj,
+			IReadOnlyCollection<Overwrite> overwrites)
+		{
+			if (overwrites.Count == 0)
+			{
+				return Success(ChannelsNoCopyableOverwrite);
+			}
+
+			return Success(ChannelsCopiedOverwrite.Format(
+				(obj?.Format() ?? ChannelsVariableAllOverwrites).WithBlock(),
+				input.Format().WithBlock(),
+				output.Format().WithBlock()
+			));
+		}
 
 		public static AdvobotResult Display(
-			IEnumerable<IGuildChannel> channels,
+							IEnumerable<IGuildChannel> channels,
 			[CallerMemberName] string caller = "")
 		{
 			var title = ChannelsTitleChannelPositions.Format(
@@ -33,42 +65,7 @@ namespace Advobot.Standard.Responses
 				Description = description,
 			});
 		}
-		public static AdvobotResult Moved(IGuildChannel channel, int position)
-		{
-			return Success(ChannelsMoved.Format(
-				channel.Format().WithBlock(),
-				position.ToString().WithBlock()
-			));
-		}
-		public static AdvobotResult DisplayOverwrites(
-			IGuildChannel channel,
-			IEnumerable<string> roleNames,
-			IEnumerable<string> userNames)
-		{
-			var title = ChannelsTitleAllOverwrites.Format(
-				channel.Format().WithNoMarkdown()
-			);
-			var embed = new EmbedWrapper
-			{
-				Title = title,
-			};
 
-			var rolesValue = roleNames.Join().WithBigBlock().Value;
-			embed.TryAddField(ChannelsTitleAllOverwritesRoles, rolesValue, false, out _);
-			var usersValue = userNames.Join().WithBigBlock().Value;
-			embed.TryAddField(ChannelsTitleAllOverwritesUsers, usersValue, false, out _);
-
-			return Success(embed);
-		}
-		public static AdvobotResult NoOverwriteFound(
-			IGuildChannel channel,
-			ISnowflakeEntity obj)
-		{
-			return Success(ChannelsNoOverwrite.Format(
-				obj.Format().WithBlock(),
-				channel.Format().WithBlock()
-			));
-		}
 		public static AdvobotResult DisplayOverwrite(
 			IGuildChannel channel,
 			ISnowflakeEntity obj,
@@ -89,6 +86,62 @@ namespace Advobot.Standard.Responses
 				Description = description,
 			});
 		}
+
+		public static AdvobotResult DisplayOverwrites(
+			IGuildChannel channel,
+			IEnumerable<string> roleNames,
+			IEnumerable<string> userNames)
+		{
+			var title = ChannelsTitleAllOverwrites.Format(
+				channel.Format().WithNoMarkdown()
+			);
+			var embed = new EmbedWrapper
+			{
+				Title = title,
+			};
+
+			var rolesValue = roleNames.Join().WithBigBlock().Value;
+			embed.TryAddField(ChannelsTitleAllOverwritesRoles, rolesValue, false, out _);
+			var usersValue = userNames.Join().WithBigBlock().Value;
+			embed.TryAddField(ChannelsTitleAllOverwritesUsers, usersValue, false, out _);
+
+			return Success(embed);
+		}
+
+		public static AdvobotResult MismatchType(
+			IGuildChannel input,
+			IGuildChannel output)
+		{
+			return Failure(ChannelsFailedPermissionCopy.Format(
+				input.Format().WithBlock(),
+				output.Format().WithBlock()
+			));
+		}
+
+		public static AdvobotResult ModifiedBitrate(IVoiceChannel channel, int bitrate)
+		{
+			return Success(ChannelsModifiedBitrate.Format(
+				channel.Format().WithBlock(),
+				bitrate.ToString().WithBlock()
+			));
+		}
+
+		public static AdvobotResult ModifiedLimit(IVoiceChannel channel, int limit)
+		{
+			return Success(ChannelsModifiedLimit.Format(
+				channel.Format().WithBlock(),
+				limit.ToString().WithBlock()
+			));
+		}
+
+		public static AdvobotResult ModifiedNsfw(ITextChannel channel, bool nsfw)
+		{
+			return Success(ChannelsModifiedNsfw.Format(
+				channel.Format().WithBlock(),
+				nsfw.ToString().WithBlock()
+			));
+		}
+
 		public static AdvobotResult ModifiedOverwrite(
 			IGuildChannel channel,
 			ISnowflakeEntity obj,
@@ -109,52 +162,7 @@ namespace Advobot.Standard.Responses
 				channel.Format().WithBlock()
 			));
 		}
-		public static AdvobotResult MismatchType(
-			IGuildChannel input,
-			IGuildChannel output)
-		{
-			return Failure(ChannelsFailedPermissionCopy.Format(
-				input.Format().WithBlock(),
-				output.Format().WithBlock()
-			));
-		}
-		public static AdvobotResult CopiedOverwrites(
-			IGuildChannel input,
-			IGuildChannel output,
-			ISnowflakeEntity? obj,
-			IReadOnlyCollection<Overwrite> overwrites)
-		{
-			if (overwrites.Count == 0)
-			{
-				return Success(ChannelsNoCopyableOverwrite);
-			}
 
-			return Success(ChannelsCopiedOverwrite.Format(
-				(obj?.Format() ?? ChannelsVariableAllOverwrites).WithBlock(),
-				input.Format().WithBlock(),
-				output.Format().WithBlock()
-			));
-		}
-		public static AdvobotResult ClearedOverwrites(IGuildChannel channel, int count)
-		{
-			return Success(ChannelsClearedOverwrites.Format(
-				count.ToString().WithBlock(),
-				channel.Format().WithBlock()
-			));
-		}
-		public static AdvobotResult ModifiedNsfw(ITextChannel channel, bool nsfw)
-		{
-			return Success(ChannelsModifiedNsfw.Format(
-				channel.Format().WithBlock(),
-				nsfw.ToString().WithBlock()
-			));
-		}
-		public static AdvobotResult RemovedTopic(ITextChannel channel)
-		{
-			return Success(ChannelsRemovedTopic.Format(
-				channel.Format().WithBlock()
-			));
-		}
 		public static AdvobotResult ModifiedTopic(ITextChannel channel, string topic)
 		{
 			return Success(ChannelsModifiedTopic.Format(
@@ -162,18 +170,29 @@ namespace Advobot.Standard.Responses
 				topic.WithBlock()
 			));
 		}
-		public static AdvobotResult ModifiedLimit(IVoiceChannel channel, int limit)
+
+		public static AdvobotResult Moved(IGuildChannel channel, int position)
 		{
-			return Success(ChannelsModifiedLimit.Format(
+			return Success(ChannelsMoved.Format(
 				channel.Format().WithBlock(),
-				limit.ToString().WithBlock()
+				position.ToString().WithBlock()
 			));
 		}
-		public static AdvobotResult ModifiedBitrate(IVoiceChannel channel, int bitrate)
+
+		public static AdvobotResult NoOverwriteFound(
+			IGuildChannel channel,
+			ISnowflakeEntity obj)
 		{
-			return Success(ChannelsModifiedBitrate.Format(
-				channel.Format().WithBlock(),
-				bitrate.ToString().WithBlock()
+			return Success(ChannelsNoOverwrite.Format(
+				obj.Format().WithBlock(),
+				channel.Format().WithBlock()
+			));
+		}
+
+		public static AdvobotResult RemovedTopic(ITextChannel channel)
+		{
+			return Success(ChannelsRemovedTopic.Format(
+				channel.Format().WithBlock()
 			));
 		}
 	}

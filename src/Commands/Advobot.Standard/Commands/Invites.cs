@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
@@ -11,9 +12,12 @@ using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands
@@ -21,22 +25,6 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Invites))]
 	public sealed class Invites : ModuleBase
 	{
-		[LocalizedGroup(nameof(Groups.DisplayInvites))]
-		[LocalizedAlias(nameof(Aliases.DisplayInvites))]
-		[LocalizedSummary(nameof(Summaries.DisplayInvites))]
-		[Meta("958c8da4-352e-468e-8279-0fd80276cd24", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageGuild)]
-		public sealed class DisplayInvites : AdvobotModuleBase
-		{
-			[Command]
-			public async Task<RuntimeResult> Command()
-			{
-				var invites = await Context.Guild.GetInvitesAsync().CAF();
-				var ordered = invites.OrderByDescending(x => x.Uses).ToArray();
-				return Responses.Invites.DisplayInvites(ordered);
-			}
-		}
-
 		[LocalizedGroup(nameof(Groups.CreateInvite))]
 		[LocalizedAlias(nameof(Aliases.CreateInvite))]
 		[LocalizedSummary(nameof(Summaries.CreateInvite))]
@@ -49,6 +37,7 @@ namespace Advobot.Standard.Commands
 				[CanModifyChannel(CreateInstantInvite)] ITextChannel channel,
 				[Optional] CreateInviteArguments? arguments)
 				=> CommandRunner(channel, arguments);
+
 			[Command]
 			public Task<RuntimeResult> Command(
 				[CanModifyChannel(CreateInstantInvite)] IVoiceChannel channel,
@@ -92,7 +81,7 @@ namespace Advobot.Standard.Commands
 			{
 				var invites = await Context.Guild.GetInvitesAsync().CAF();
 				var filtered = filterer.Filter(invites);
-				if (!filtered.Any())
+				if (filtered.Count == 0)
 				{
 					return Responses.Invites.NoInviteMatches();
 				}
@@ -107,15 +96,15 @@ namespace Advobot.Standard.Commands
 			[NamedArgumentType]
 			public sealed class InviteFilterer : Filterer<IInviteMetadata>
 			{
-				public ulong? UserId { get; set; }
-				public ulong? ChannelId { get; set; }
-				public int? Uses { get; set; }
-				public CountTarget UsesMethod { get; set; }
 				public int? Age { get; set; }
 				public CountTarget AgeMethod { get; set; }
+				public ulong? ChannelId { get; set; }
 				public bool? IsTemporary { get; set; }
 				public bool? NeverExpires { get; set; }
 				public bool? NoMaxUses { get; set; }
+				public ulong? UserId { get; set; }
+				public int? Uses { get; set; }
+				public CountTarget UsesMethod { get; set; }
 
 				public override IReadOnlyList<IInviteMetadata> Filter(
 					IEnumerable<IInviteMetadata> source)
@@ -150,6 +139,22 @@ namespace Advobot.Standard.Commands
 					}
 					return source?.ToArray() ?? Array.Empty<IInviteMetadata>();
 				}
+			}
+		}
+
+		[LocalizedGroup(nameof(Groups.DisplayInvites))]
+		[LocalizedAlias(nameof(Aliases.DisplayInvites))]
+		[LocalizedSummary(nameof(Summaries.DisplayInvites))]
+		[Meta("958c8da4-352e-468e-8279-0fd80276cd24", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageGuild)]
+		public sealed class DisplayInvites : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command()
+			{
+				var invites = await Context.Guild.GetInvitesAsync().CAF();
+				var ordered = invites.OrderByDescending(x => x.Uses).ToArray();
+				return Responses.Invites.DisplayInvites(ordered);
 			}
 		}
 	}

@@ -1,6 +1,7 @@
-﻿using Advobot.Settings;
+﻿using System.ComponentModel;
+
+using Advobot.Settings;
 using Advobot.UI.AbstractUI.Colors;
-using System.ComponentModel;
 
 namespace Advobot.UI.Colors
 {
@@ -14,6 +15,7 @@ namespace Advobot.UI.Colors
 		/// The active theme in the bot UI.
 		/// </summary>
 		ColorTheme ActiveTheme { get; set; }
+
 		/// <summary>
 		/// The user defined colors for <see cref="ColorTheme"/>.
 		/// </summary>

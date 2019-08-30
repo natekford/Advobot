@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+
 using Discord;
 
 namespace Advobot.Services.Logging.Interfaces

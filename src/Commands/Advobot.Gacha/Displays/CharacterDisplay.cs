@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.Displays
@@ -16,10 +20,10 @@ namespace Advobot.Gacha.Displays
 	/// </summary>
 	public class CharacterDisplay : PaginatedDisplay
 	{
-		private readonly IDiscordClient _Client;
 		private readonly CharacterMetadata _Character;
-		private readonly IReadOnlyList<IReadOnlyImage> _Images;
 		private readonly IReadOnlyClaim? _Claim;
+		private readonly IDiscordClient _Client;
+		private readonly IReadOnlyList<IReadOnlyImage> _Images;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CharacterDisplay"/>.
@@ -58,17 +62,6 @@ namespace Advobot.Gacha.Displays
 		}
 
 		/// <inheritdoc />
-		protected override Task HandleInteractionAsync(IInteractionContext context)
-		{
-			if (context.Action is Confirmation c && c.Value && _Claim != null
-				&& context.User.Id == _Claim.GetUserId())
-			{
-				var url = _Images[PageIndex].Url;
-				return Database.UpdateClaimImageUrlAsync(_Claim, url);
-			}
-			return base.HandleInteractionAsync(context);
-		}
-		/// <inheritdoc />
 		protected override async Task<Embed> GenerateEmbedAsync()
 		{
 			var description = $"{_Character.Source.Name} {_Character.Data.GenderIcon}\n" +
@@ -99,8 +92,21 @@ namespace Advobot.Gacha.Displays
 			embed.Footer.IconUrl = owner?.GetAvatarUrl();
 			return embed.Build();
 		}
+
 		/// <inheritdoc />
 		protected override Task<string> GenerateTextAsync()
 			=> Task.FromResult("");
+
+		/// <inheritdoc />
+		protected override Task HandleInteractionAsync(IInteractionContext context)
+		{
+			if (context.Action is Confirmation c && c.Value && _Claim != null
+				&& context.User.Id == _Claim.GetUserId())
+			{
+				var url = _Images[PageIndex].Url;
+				return Database.UpdateClaimImageUrlAsync(_Claim, url);
+			}
+			return base.HandleInteractionAsync(context);
+		}
 	}
 }

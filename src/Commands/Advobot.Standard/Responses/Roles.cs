@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
+
 using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
@@ -14,29 +18,29 @@ namespace Advobot.Standard.Responses
 	{
 		private static readonly List<GuildPermission> _AllPerms = GuildPermissions.All.ToList();
 
-		private Roles() { }
+		private Roles()
+		{
+		}
 
-		public static AdvobotResult Gave(IReadOnlyCollection<IRole> roles, IUser user)
+		public static AdvobotResult ClearedPermissions(IRole role)
 		{
-			return Success(RolesGave.Format(
-				roles.Join(x => x.Format()).WithBlock(),
-				user.Format().WithBlock()
+			return Success(RolesClearedPermissions.Format(
+				role.Format().WithBlock()
 			));
 		}
-		public static AdvobotResult Took(IReadOnlyCollection<IRole> roles, IUser user)
+
+		public static AdvobotResult CopiedPermissions(
+			IRole input,
+			IRole output,
+			GuildPermission permissions)
 		{
-			return Success(RolesTook.Format(
-				roles.Join(x => x.Format()).WithBlock(),
-				user.Format().WithBlock()
+			return Success(RolesCopiedPermissions.Format(
+				EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
+				input.Format().WithBlock(),
+				output.Format().WithBlock()
 			));
 		}
-		public static AdvobotResult Moved(IRole role, int position)
-		{
-			return Success(RoleMoved.Format(
-				role.Format().WithBlock(),
-				position.ToString().WithBlock()
-			));
-		}
+
 		public static AdvobotResult Display(IEnumerable<IRole> roles)
 		{
 			var description = roles
@@ -49,17 +53,7 @@ namespace Advobot.Standard.Responses
 				Description = description,
 			});
 		}
-		public static AdvobotResult ModifiedPermissions(
-			IRole role,
-			GuildPermission permissions,
-			bool allow)
-		{
-			var format = allow ? RolesModifiedPermissionsAllow : RolesModifiedPermissionsDeny;
-			return Success(format.Format(
-				EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
-				role.Format().WithBlock()
-			));
-		}
+
 		public static AdvobotResult DisplayPermissions(IRole role)
 		{
 			var title = RolesTitleDisplayPermissions.Format(
@@ -77,23 +71,15 @@ namespace Advobot.Standard.Responses
 				Description = description,
 			});
 		}
-		public static AdvobotResult CopiedPermissions(
-			IRole input,
-			IRole output,
-			GuildPermission permissions)
+
+		public static AdvobotResult Gave(IReadOnlyCollection<IRole> roles, IUser user)
 		{
-			return Success(RolesCopiedPermissions.Format(
-				EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
-				input.Format().WithBlock(),
-				output.Format().WithBlock()
+			return Success(RolesGave.Format(
+				roles.Join(x => x.Format()).WithBlock(),
+				user.Format().WithBlock()
 			));
 		}
-		public static AdvobotResult ClearedPermissions(IRole role)
-		{
-			return Success(RolesClearedPermissions.Format(
-				role.Format().WithBlock()
-			));
-		}
+
 		public static AdvobotResult ModifiedColor(IRole role, Color color)
 		{
 			return Success(RolesModifiedColor.Format(
@@ -101,6 +87,7 @@ namespace Advobot.Standard.Responses
 				color.RawValue.ToString("X6").WithBlock() //X6 to get hex
 			));
 		}
+
 		public static AdvobotResult ModifiedHoistStatus(IRole role, bool hoisted)
 		{
 			return Success(RolesModifiedHoistedStatus.Format(
@@ -108,11 +95,40 @@ namespace Advobot.Standard.Responses
 				hoisted.ToString().WithBlock()
 			));
 		}
+
 		public static AdvobotResult ModifiedMentionability(IRole role, bool mentionability)
 		{
 			return Success(RolesModifiedMentionability.Format(
 				role.Format().WithBlock(),
 				mentionability.ToString().WithBlock()
+			));
+		}
+
+		public static AdvobotResult ModifiedPermissions(
+			IRole role,
+			GuildPermission permissions,
+			bool allow)
+		{
+			var format = allow ? RolesModifiedPermissionsAllow : RolesModifiedPermissionsDeny;
+			return Success(format.Format(
+				EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
+				role.Format().WithBlock()
+			));
+		}
+
+		public static AdvobotResult Moved(IRole role, int position)
+		{
+			return Success(RoleMoved.Format(
+				role.Format().WithBlock(),
+				position.ToString().WithBlock()
+			));
+		}
+
+		public static AdvobotResult Took(IReadOnlyCollection<IRole> roles, IUser user)
+		{
+			return Success(RolesTook.Format(
+				roles.Join(x => x.Format()).WithBlock(),
+				user.Format().WithBlock()
 			));
 		}
 	}

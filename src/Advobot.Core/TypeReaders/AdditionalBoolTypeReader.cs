@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Utilities;
+
 using Discord.Commands;
 
 namespace Advobot.TypeReaders
@@ -13,18 +15,6 @@ namespace Advobot.TypeReaders
 	[TypeReaderTargetType(typeof(bool))]
 	public sealed class AdditionalBoolTypeReader : TypeReader
 	{
-		/// <summary>
-		/// Values that will set the stored bool to true.
-		/// </summary>
-		public static readonly ImmutableHashSet<string> TrueVals = new[]
-		{
-			"true",
-			"yes",
-			"add",
-			"enable",
-			"set",
-			"positive"
-		}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 		/// <summary>
 		/// Values that will set the stored bool to false.
 		/// </summary>
@@ -39,8 +29,21 @@ namespace Advobot.TypeReaders
 		}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 
 		/// <summary>
-		/// Converts a string into a true bool if it has a match in <see cref="TrueVals"/>, 
-		/// false bool if it has a match in <see cref="FalseVals"/>, 
+		/// Values that will set the stored bool to true.
+		/// </summary>
+		public static readonly ImmutableHashSet<string> TrueVals = new[]
+		{
+			"true",
+			"yes",
+			"add",
+			"enable",
+			"set",
+			"positive"
+		}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
+
+		/// <summary>
+		/// Converts a string into a true bool if it has a match in <see cref="TrueVals"/>,
+		/// false bool if it has a match in <see cref="FalseVals"/>,
 		/// or returns an error.
 		/// </summary>
 		/// <param name="context"></param>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
@@ -8,7 +9,9 @@ using Advobot.Services.ImageResizing;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -17,19 +20,16 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Client))]
 	public sealed class Client : ModuleBase
 	{
-		[LocalizedGroup(nameof(Groups.ModifyBotName))]
-		[LocalizedAlias(nameof(Aliases.ModifyBotName))]
-		[LocalizedSummary(nameof(Summaries.ModifyBotName))]
-		[Meta("6882dc55-3557-4366-8c4c-2954b46cfb2b", IsEnabled = true)]
+		[LocalizedGroup(nameof(Groups.DisconnectBot))]
+		[ModuleInitialismAlias(new[] { "runescapeservers" }, typeof(DisconnectBot))]
+		[LocalizedSummary(nameof(Summaries.DisconnectBot))]
+		[Meta("10f3bf15-0652-4bd7-a29f-630136d0164a", IsEnabled = true)]
 		[RequireBotOwner]
-		public sealed class ModifyBotName : AdvobotModuleBase
+		public sealed class DisconnectBot : AdvobotModuleBase
 		{
-			[Command]
-			public async Task<RuntimeResult> Command([Remainder, Username] string name)
-			{
-				await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).CAF();
-				return Responses.Snowflakes.ModifiedName(Context.Client.CurrentUser, name);
-			}
+			[Command(RunMode = RunMode.Async)]
+			public Task Command()
+				=> Context.Client.DisconnectBotAsync();
 		}
 
 		[LocalizedGroup(nameof(Groups.ModifyBotIcon))]
@@ -46,6 +46,7 @@ namespace Advobot.Standard.Commands
 					(ctx, ms) => ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Snowflakes.EnqueuedIcon(Context.Client.CurrentUser, position);
 			}
+
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Remove()
 			{
@@ -54,16 +55,19 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[LocalizedGroup(nameof(Groups.DisconnectBot))]
-		[ModuleInitialismAlias(new[] { "runescapeservers" }, typeof(DisconnectBot))]
-		[LocalizedSummary(nameof(Summaries.DisconnectBot))]
-		[Meta("10f3bf15-0652-4bd7-a29f-630136d0164a", IsEnabled = true)]
+		[LocalizedGroup(nameof(Groups.ModifyBotName))]
+		[LocalizedAlias(nameof(Aliases.ModifyBotName))]
+		[LocalizedSummary(nameof(Summaries.ModifyBotName))]
+		[Meta("6882dc55-3557-4366-8c4c-2954b46cfb2b", IsEnabled = true)]
 		[RequireBotOwner]
-		public sealed class DisconnectBot : AdvobotModuleBase
+		public sealed class ModifyBotName : AdvobotModuleBase
 		{
-			[Command(RunMode = RunMode.Async)]
-			public Task Command()
-				=> Context.Client.DisconnectBotAsync();
+			[Command]
+			public async Task<RuntimeResult> Command([Remainder, Username] string name)
+			{
+				await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).CAF();
+				return Responses.Snowflakes.ModifiedName(Context.Client.CurrentUser, name);
+			}
 		}
 
 		[LocalizedGroup(nameof(Groups.RestartBot))]

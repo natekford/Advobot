@@ -9,11 +9,6 @@ namespace Advobot.Attributes
 	public class CategoryAttribute : Attribute
 	{
 		/// <summary>
-		/// The command category commands belong to.
-		/// </summary>
-		public string Category { get; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="CategoryAttribute"/>.
 		/// </summary>
 		/// <param name="category"></param>
@@ -21,5 +16,10 @@ namespace Advobot.Attributes
 		{
 			Category = category;
 		}
+
+		/// <summary>
+		/// The command category commands belong to.
+		/// </summary>
+		public string Category { get; }
 	}
 }

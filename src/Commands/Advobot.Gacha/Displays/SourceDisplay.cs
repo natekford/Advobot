@@ -2,16 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.ReadOnlyModels;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Gacha.Displays
 {
 	public class SourceDisplay : PaginatedDisplay
 	{
-		private readonly IReadOnlySource _Source;
 		private readonly IReadOnlyList<IReadOnlyCharacter> _Characters;
+		private readonly IReadOnlySource _Source;
 
 		public SourceDisplay(
 			IServiceProvider services,
@@ -26,8 +29,10 @@ namespace Advobot.Gacha.Displays
 
 		protected override Task<Embed> GenerateEmbedAsync()
 			=> Task.FromResult(GenerateEmbed());
+
 		protected override Task<string> GenerateTextAsync()
 			=> Task.FromResult("");
+
 		private Embed GenerateEmbed()
 		{
 			var values = GetPageValues(_Characters);

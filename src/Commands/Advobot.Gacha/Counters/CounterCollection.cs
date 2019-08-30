@@ -3,25 +3,26 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+
 using Discord;
 
 namespace Advobot.Gacha.Counters
 {
 	public sealed class CounterCollection
 	{
+		private static readonly DateTime _Epoch = new DateTime(2019, 1, 1);
 		private static readonly TimeSpan _Minute = TimeSpan.FromMinutes(1);
 		private static readonly TimeSpan _Period = Timeout.InfiniteTimeSpan;
 		private static readonly TimeSpan _StaggerInterval = TimeSpan.FromHours(1);
-		private static readonly DateTime _Epoch = new DateTime(2019, 1, 1);
 
 		private readonly ConcurrentDictionary<ulong, ICounter<ulong>> _Counters
 			= new ConcurrentDictionary<ulong, ICounter<ulong>>();
-		private readonly Timer _Timer;
 
 		private readonly int _DefaultAmount;
 		private readonly TimeSpan _Interval;
-		private readonly int _ResetMinute;
 		private readonly bool _IsStaggered;
+		private readonly int _ResetMinute;
+		private readonly Timer _Timer;
 
 		public CounterCollection(int defaultAmount, TimeSpan interval, int resetMinute = 0)
 		{
@@ -45,6 +46,9 @@ namespace Advobot.Gacha.Counters
 			_Timer = new Timer(Callback, new StrongBox<ulong>(0), firstInterval, _Period);
 		}
 
+		public ICounter<ulong> GetCounter(IGuild guild)
+			=> _Counters.GetOrAdd(guild.Id, key => new Counter(_DefaultAmount));
+
 		private TimeSpan CalculateFirstInterval()
 		{
 			var diff = DateTime.UtcNow.Ticks - _Epoch.Ticks;
@@ -52,6 +56,7 @@ namespace Advobot.Gacha.Counters
 			var ts = _Interval - new TimeSpan(mod);
 			return _IsStaggered ? ts : ts + TimeSpan.FromMinutes(_ResetMinute);
 		}
+
 		private void Callback(object state)
 		{
 			if (!_IsStaggered)
@@ -84,7 +89,5 @@ namespace Advobot.Gacha.Counters
 			i.Value = 0;
 			_Timer.Change(_Interval - _StaggerInterval, _Period);
 		}
-		public ICounter<ulong> GetCounter(IGuild guild)
-			=> _Counters.GetOrAdd(guild.Id, key => new Counter(_DefaultAmount));
 	}
 }

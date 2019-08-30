@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Advobot.Attributes.ParameterPreconditions.Numbers;
+
 using AdvorangesUtils;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Numbers
@@ -11,12 +14,6 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Numbers
 	public sealed class ChannelLimitAttribute_Tests
 		: ParameterPreconditionsTestsBase<ChannelLimitAttribute>
 	{
-		[TestMethod]
-		public async Task ThrowsOnNotInt_Test()
-		{
-			Task Task() => CheckAsync("not int");
-			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
-		}
 		[TestMethod]
 		public async Task Standard_Test()
 		{
@@ -32,6 +29,13 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Numbers
 				var result = await CheckAsync(kvp.Key).CAF();
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
+		}
+
+		[TestMethod]
+		public async Task ThrowsOnNotInt_Test()
+		{
+			Task Task() => CheckAsync("not int");
+			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
 		}
 	}
 }

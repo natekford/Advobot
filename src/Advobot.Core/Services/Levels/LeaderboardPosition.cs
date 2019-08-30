@@ -1,5 +1,7 @@
 ﻿using System;
+
 using Advobot.Databases.Abstract;
+
 using Discord;
 
 namespace Advobot.Services.Levels
@@ -10,20 +12,17 @@ namespace Advobot.Services.Levels
 	internal sealed class LeaderboardPosition : TimedDatabaseEntry<ulong>
 	{
 		/// <summary>
-		/// The total experience of the user.
-		/// </summary>
-		public int Experience { get; set; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="LeaderboardPosition"/>.
 		/// </summary>
 		public LeaderboardPosition() : this(0, 0) { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="LeaderboardPosition"/>.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <param name="experience"></param>
 		public LeaderboardPosition(IUser user, int experience) : this(user.Id, experience) { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="LeaderboardPosition"/>.
 		/// </summary>
@@ -34,5 +33,10 @@ namespace Advobot.Services.Levels
 		{
 			Experience = experience;
 		}
+
+		/// <summary>
+		/// The total experience of the user.
+		/// </summary>
+		public int Experience { get; set; }
 	}
 }

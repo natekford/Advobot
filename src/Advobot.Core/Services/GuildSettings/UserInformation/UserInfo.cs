@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Discord;
 
 namespace Advobot.Services.GuildSettings.UserInformation
@@ -9,32 +10,35 @@ namespace Advobot.Services.GuildSettings.UserInformation
 	public abstract class UserInfo
 	{
 		/// <summary>
-		/// The time to reset the user.
-		/// </summary>
-		public DateTime Time { get; protected set; }
-		/// <summary>
-		/// The id of the guild the user is on.
-		/// </summary>
-		public ulong GuildId { get; }
-		/// <inheritdoc />
-		public ulong UserId { get; }
-
-		/// <summary>
 		/// Creates an instance of userinfo with the supplied user and time as datetime.utcnow.
 		/// </summary>
 		/// <param name="user"></param>
-		public UserInfo(IGuildUser user) : this(TimeSpan.Zero, user) { }
+		protected UserInfo(IGuildUser user) : this(TimeSpan.Zero, user) { }
+
 		/// <summary>
 		/// Creates an instance of userinfo with the supplied user and time.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="user"></param>
-		public UserInfo(TimeSpan time, IGuildUser user)
+		protected UserInfo(TimeSpan time, IGuildUser user)
 		{
 			Time = DateTime.UtcNow.Add(time);
 			GuildId = user.Guild.Id;
 			UserId = user.Id;
 		}
+
+		/// <summary>
+		/// The id of the guild the user is on.
+		/// </summary>
+		public ulong GuildId { get; }
+
+		/// <summary>
+		/// The time to reset the user.
+		/// </summary>
+		public DateTime Time { get; protected set; }
+
+		/// <inheritdoc />
+		public ulong UserId { get; }
 
 		/// <summary>
 		/// Sets everything back to default values.

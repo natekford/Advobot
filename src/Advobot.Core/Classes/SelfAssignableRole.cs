@@ -1,4 +1,5 @@
 ﻿using Advobot.Services.GuildSettings.Settings;
+
 using Discord;
 
 namespace Advobot.Classes
@@ -9,15 +10,6 @@ namespace Advobot.Classes
 	public sealed class SelfAssignableRole
 	{
 		/// <summary>
-		/// The group which this role belongs to.
-		/// </summary>
-		public SelfAssignableRoles Group { get; }
-		/// <summary>
-		/// The role which can be assigned.
-		/// </summary>
-		public IRole Role { get; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="SelfAssignableRole"/>.
 		/// </summary>
 		/// <param name="group"></param>
@@ -27,5 +19,15 @@ namespace Advobot.Classes
 			Role = role;
 			Group = group;
 		}
+
+		/// <summary>
+		/// The group which this role belongs to.
+		/// </summary>
+		public SelfAssignableRoles Group { get; }
+
+		/// <summary>
+		/// The role which can be assigned.
+		/// </summary>
+		public IRole Role { get; }
 	}
 }

@@ -2,16 +2,21 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+
 using Advobot.Databases;
+
 using AdvorangesSettingParser.Implementation;
 using AdvorangesSettingParser.Implementation.Instance;
 using AdvorangesSettingParser.Implementation.Static;
 using AdvorangesSettingParser.Utils;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
+
 using Newtonsoft.Json;
 
 namespace Advobot.Settings
@@ -21,50 +26,14 @@ namespace Advobot.Settings
 	/// </summary>
 	public class LowLevelConfig : ILowLevelConfig
 	{
-		/// <summary>
-		/// The path leading to the bot's directory.
-		/// </summary>
-		[JsonProperty("SavePath")]
-		public string? SavePath { get; private set; } = null;
+		[JsonIgnore]
+		private readonly DiscordRestClient _TestClient = new DiscordRestClient();
+
 		/// <summary>
 		/// The API key for the bot.
 		/// </summary>
 		[JsonProperty("BotKey")]
 		private string? _BotKey = null;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public ulong BotId { get; private set; }
-		/// <inheritdoc />
-		[JsonIgnore]
-		public int PreviousProcessId { get; private set; } = -1;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public int CurrentInstance { get; private set; } = -1;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public DatabaseType DatabaseType { get; private set; } = DatabaseType.LiteDB;
-		/// <inheritdoc />
-		[JsonIgnore]
-		public string DatabaseConnectionString { get; private set; } = "";
-		/// <inheritdoc />
-		[JsonIgnore]
-		public bool ValidatedPath { get; private set; }
-		/// <inheritdoc />
-		[JsonIgnore]
-		public bool ValidatedKey { get; private set; }
-		/// <inheritdoc />
-		[JsonIgnore]
-		public DirectoryInfo BaseBotDirectory => Directory.CreateDirectory(Path.Combine(SavePath, $"Discord_Servers_{BotId}"));
-		/// <inheritdoc />
-		[JsonIgnore]
-		public string RestartArguments =>
-			$"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} " +
-			$"-{nameof(CurrentInstance)} {CurrentInstance} " +
-			$"-{nameof(DatabaseType)} {DatabaseType} " +
-			$"-{nameof(DatabaseConnectionString)} {DatabaseConnectionString} ";
-
-		[JsonIgnore]
-		private readonly DiscordRestClient _TestClient = new DiscordRestClient();
 
 		static LowLevelConfig()
 		{
@@ -78,39 +47,89 @@ namespace Advobot.Settings
 		}
 
 		/// <inheritdoc />
-		public bool ValidatePath(string? input, bool startup)
+		[JsonIgnore]
+		public DirectoryInfo BaseBotDirectory => Directory.CreateDirectory(Path.Combine(SavePath, $"Discord_Servers_{BotId}"));
+
+		/// <inheritdoc />
+		[JsonIgnore]
+		public ulong BotId { get; private set; }
+
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int CurrentInstance { get; private set; } = -1;
+
+		/// <inheritdoc />
+		[JsonIgnore]
+		public string DatabaseConnectionString { get; private set; } = "";
+
+		/// <inheritdoc />
+		[JsonIgnore]
+		public DatabaseType DatabaseType { get; private set; } = DatabaseType.LiteDB;
+
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int PreviousProcessId { get; private set; } = -1;
+
+		/// <inheritdoc />
+		[JsonIgnore]
+		public string RestartArguments =>
+			$"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} " +
+			$"-{nameof(CurrentInstance)} {CurrentInstance} " +
+			$"-{nameof(DatabaseType)} {DatabaseType} " +
+			$"-{nameof(DatabaseConnectionString)} {DatabaseConnectionString} ";
+
+		/// <summary>
+		/// The path leading to the bot's directory.
+		/// </summary>
+		[JsonProperty("SavePath")]
+		public string? SavePath { get; private set; } = null;
+
+		/// <inheritdoc />
+		[JsonIgnore]
+		public bool ValidatedKey { get; private set; }
+
+		/// <inheritdoc />
+		[JsonIgnore]
+		public bool ValidatedPath { get; private set; }
+
+		/// <summary>
+		/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
+		/// </summary>
+		/// <returns></returns>
+		public static LowLevelConfig Load(string[] args)
 		{
-			if (ValidatedPath)
-			{
-				return true;
-			}
+			var parseArgs = new ParseArgs(args, new[] { '"' }, new[] { '"' });
+			var instance = -1;
+			new SettingParser { new Setting<int>(() => instance), }.Parse(parseArgs);
 
-			var path = input ?? SavePath;
-
-			if (startup && !string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
-			{
-				return ValidatedPath = true;
-			}
-			if (startup)
-			{
-				ConsoleUtils.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
-				return false;
-			}
-			if ("appdata".CaseInsEquals(path))
-			{
-				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			}
-			if (Directory.Exists(path))
-			{
-				ConsoleUtils.WriteLine($"Successfully set the save path as {path}");
-				SavePath = path;
-				Save();
-				return ValidatedPath = true;
-			}
-
-			ConsoleUtils.WriteLine("Invalid directory. Please enter a valid directory:", ConsoleColor.Red);
-			return false;
+			//Instance is for the config so they can be named Advobot1, Advobot2, etc.
+			instance = instance < 1 ? 1 : instance;
+			var config = IOUtils.DeserializeFromFile<LowLevelConfig>(GetConfigPath(instance)) ?? new LowLevelConfig();
+			StaticSettingParserRegistry.Instance.Parse(config, parseArgs);
+			return config;
 		}
+
+		/// <inheritdoc />
+		public async Task StartAsync(BaseSocketClient client)
+		{
+			if (!(ValidatedPath && ValidatedKey))
+			{
+				throw new InvalidOperationException($"Either path or key has not been validated yet.");
+			}
+
+			//Remove the bot key from being easily accessible via reflection
+			client.LoggedIn += () =>
+			{
+				_BotKey = null;
+				return Task.CompletedTask;
+			};
+
+			await client.LoginAsync(TokenType.Bot, _BotKey).CAF();
+			ConsoleUtils.WriteLine("Connecting the client...");
+			await client.StartAsync().CAF();
+			ConsoleUtils.WriteLine("Successfully connected the client.");
+		}
+
 		/// <inheritdoc />
 		public async Task<bool> ValidateBotKey(
 			string? input,
@@ -159,45 +178,42 @@ namespace Advobot.Settings
 				return false;
 			}
 		}
+
 		/// <inheritdoc />
-		public async Task StartAsync(BaseSocketClient client)
+		public bool ValidatePath(string? input, bool startup)
 		{
-			if (!(ValidatedPath && ValidatedKey))
+			if (ValidatedPath)
 			{
-				throw new InvalidOperationException($"Either path or key has not been validated yet.");
+				return true;
 			}
 
-			//Remove the bot key from being easily accessible via reflection
-			client.LoggedIn += () =>
+			var path = input ?? SavePath;
+
+			if (startup && !string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 			{
-				_BotKey = null;
-				return Task.CompletedTask;
-			};
+				return ValidatedPath = true;
+			}
+			if (startup)
+			{
+				ConsoleUtils.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
+				return false;
+			}
+			if ("appdata".CaseInsEquals(path))
+			{
+				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+			}
+			if (Directory.Exists(path))
+			{
+				ConsoleUtils.WriteLine($"Successfully set the save path as {path}");
+				SavePath = path;
+				Save();
+				return ValidatedPath = true;
+			}
 
-			await client.LoginAsync(TokenType.Bot, _BotKey).CAF();
-			ConsoleUtils.WriteLine("Connecting the client...");
-			await client.StartAsync().CAF();
-			ConsoleUtils.WriteLine("Successfully connected the client.");
+			ConsoleUtils.WriteLine("Invalid directory. Please enter a valid directory:", ConsoleColor.Red);
+			return false;
 		}
-		/// <inheritdoc />
-		private void Save()
-			=> IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
-		/// <summary>
-		/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
-		/// </summary>
-		/// <returns></returns>
-		public static LowLevelConfig Load(string[] args)
-		{
-			var parseArgs = new ParseArgs(args, new[] { '"' }, new[] { '"' });
-			var instance = -1;
-			new SettingParser { new Setting<int>(() => instance), }.Parse(parseArgs);
 
-			//Instance is for the config so they can be named Advobot1, Advobot2, etc.
-			instance = instance < 1 ? 1 : instance;
-			var config = IOUtils.DeserializeFromFile<LowLevelConfig>(GetConfigPath(instance)) ?? new LowLevelConfig();
-			StaticSettingParserRegistry.Instance.Parse(config, parseArgs);
-			return config;
-		}
 		/// <summary>
 		/// Gets the path leading to the config to use for this bot.
 		/// </summary>
@@ -209,5 +225,9 @@ namespace Advobot.Settings
 			var appdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 			return new FileInfo(Path.Combine(appdata, "Advobot", "Advobot" + instance + ".config"));
 		}
+
+		/// <inheritdoc />
+		private void Save()
+			=> IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
 	}
 }

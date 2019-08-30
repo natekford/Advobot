@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Threading.Tasks;
+
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions
@@ -16,14 +19,16 @@ namespace Advobot.Attributes.ParameterPreconditions
 	{
 		/// <inheritdoc />
 		public abstract string Summary { get; }
-		/// <summary>
-		/// Whether or not default value passed in to this parameter precondition should be instant success.
-		/// </summary>
-		protected virtual bool IsOptionalSuccess { get; }
+
 		/// <summary>
 		/// Whether or not the passed in value can have all its inner values checked if it's an <see cref="IEnumerable"/>.
 		/// </summary>
 		protected virtual bool AllowEnumerating { get; }
+
+		/// <summary>
+		/// Whether or not default value passed in to this parameter precondition should be instant success.
+		/// </summary>
+		protected virtual bool IsOptionalSuccess { get; }
 
 		/// <inheritdoc />
 		public override async Task<PreconditionResult> CheckPermissionsAsync(
@@ -54,6 +59,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 			}
 			return await SingularCheckPermissionsAsync(context, parameter, value, services).CAF();
 		}
+
 		/// <summary>
 		/// Only checks one item at a time.
 		/// </summary>

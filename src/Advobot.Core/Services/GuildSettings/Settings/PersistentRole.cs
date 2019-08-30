@@ -1,8 +1,11 @@
-﻿using Advobot.Formatting;
+﻿using System.Collections.Generic;
+
+using Advobot.Formatting;
+
 using Discord;
 using Discord.Commands;
+
 using Newtonsoft.Json;
-using System.Collections.Generic;
 
 namespace Advobot.Services.GuildSettings.Settings
 {
@@ -12,19 +15,11 @@ namespace Advobot.Services.GuildSettings.Settings
 	[NamedArgumentType]
 	public sealed class PersistentRole : IGuildFormattable
 	{
-		/// <inheritdoc />
-		[JsonProperty]
-		public ulong UserId { get; set; }
-		/// <summary>
-		/// The role to give the user.
-		/// </summary>
-		[JsonProperty]
-		public ulong RoleId { get; set; }
-
 		/// <summary>
 		/// Creates an instance of <see cref="PersistentRole"/>.
 		/// </summary>
 		public PersistentRole() { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="PersistentRole"/>.
 		/// </summary>
@@ -35,6 +30,16 @@ namespace Advobot.Services.GuildSettings.Settings
 			UserId = userId;
 			RoleId = role.Id;
 		}
+
+		/// <summary>
+		/// The role to give the user.
+		/// </summary>
+		[JsonProperty]
+		public ulong RoleId { get; set; }
+
+		/// <inheritdoc />
+		[JsonProperty]
+		public ulong UserId { get; set; }
 
 		/// <inheritdoc />
 		public IDiscordFormattableString GetFormattableString()

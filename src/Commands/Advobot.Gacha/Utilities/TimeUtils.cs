@@ -21,6 +21,7 @@ namespace Advobot.Gacha.Utilities
 				return newValue;
 			}
 		}
+
 		public static DateTime ToTime(this long ticks)
 			=> new DateTime(ticks);
 	}

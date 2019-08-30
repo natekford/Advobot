@@ -26,6 +26,7 @@ namespace Advobot.Localization
 	{
 		private readonly ConcurrentDictionary<CultureInfo, T> _Source
 			= new ConcurrentDictionary<CultureInfo, T>();
+
 		private readonly Func<CultureInfo, T> _ValueFactory;
 
 		/// <summary>

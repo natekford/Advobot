@@ -1,4 +1,5 @@
 ﻿using System;
+
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
@@ -25,6 +26,7 @@ namespace Advobot.Databases.MongoDB
 		/// <inheritdoc />
 		public void Apply(BsonMemberMap memberMap)
 			=> memberMap.SetSerializer(ConfigureSerializer(memberMap.GetSerializer()));
+
 		private IBsonSerializer ConfigureSerializer(IBsonSerializer serializer)
 		{
 			if (serializer is IDictionaryRepresentationConfigurable dictionaryRepresentationConfigurable)

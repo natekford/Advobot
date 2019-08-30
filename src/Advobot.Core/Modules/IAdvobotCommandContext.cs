@@ -1,4 +1,5 @@
 ﻿using Advobot.Services.GuildSettings;
+
 using Discord;
 using Discord.Commands;
 
@@ -10,20 +11,23 @@ namespace Advobot.Modules
 	public interface IAdvobotCommandContext : ICommandContext
 	{
 		/// <summary>
-		/// The guild user.
-		/// </summary>
-		new IGuildUser User { get; }
-		/// <summary>
 		/// The guild text channel.
 		/// </summary>
 		new ITextChannel Channel { get; }
-		/// <summary>
-		/// The settings used by the guild.
-		/// </summary>
-		IGuildSettings Settings { get; }
+
 		/// <summary>
 		/// Time elapsed between receiving the message starting this command and ending it.
 		/// </summary>
 		long ElapsedMilliseconds { get; }
+
+		/// <summary>
+		/// The settings used by the guild.
+		/// </summary>
+		IGuildSettings Settings { get; }
+
+		/// <summary>
+		/// The guild user.
+		/// </summary>
+		new IGuildUser User { get; }
 	}
 }

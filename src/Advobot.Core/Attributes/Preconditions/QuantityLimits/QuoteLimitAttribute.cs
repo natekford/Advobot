@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 
@@ -10,9 +11,6 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public sealed class QuoteLimitAttribute : GuildSettingLimitAttribute
 	{
-		/// <inheritdoc />
-		public override string QuantityName => "quote";
-
 		/// <summary>
 		/// Creates an instance of <see cref="QuoteLimitAttribute"/>.
 		/// </summary>
@@ -20,8 +18,12 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 		public QuoteLimitAttribute(QuantityLimitAction action) : base(action) { }
 
 		/// <inheritdoc />
+		public override string QuantityName => "quote";
+
+		/// <inheritdoc />
 		protected override int GetCurrent(IGuildSettings settings)
 			=> settings.Quotes.Count;
+
 		/// <inheritdoc />
 		protected override int GetMaximumAllowed(IBotSettings settings)
 			=> settings.MaxQuotes;

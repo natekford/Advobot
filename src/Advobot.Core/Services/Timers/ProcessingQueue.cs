@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
 using AdvorangesUtils;
 
 namespace Advobot.Services.Timers
@@ -10,8 +11,8 @@ namespace Advobot.Services.Timers
 	/// </summary>
 	internal sealed class AsyncProcessingQueue
 	{
-		private readonly Func<Task> _T;
 		private readonly SemaphoreSlim _Semaphore;
+		private readonly Func<Task> _T;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AsyncProcessingQueue"/>.

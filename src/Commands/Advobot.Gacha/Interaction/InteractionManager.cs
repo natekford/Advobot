@@ -2,22 +2,38 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.Displays;
+
 using Discord;
 using Discord.WebSocket;
+
 using static Advobot.Gacha.Interaction.InteractionType;
 
 namespace Advobot.Gacha.Interaction
 {
 	public sealed class InteractionManager : IInteractionManager
 	{
-		public IDictionary<InteractionType, IInteraction> Interactions { get; set; }
+		private readonly BaseSocketClient _Client;
+		private readonly bool _UseReactions;
+
+		public InteractionManager(BaseSocketClient client) : this(client, true)
+		{
+		}
+
+		public InteractionManager(BaseSocketClient client, bool useReactions = true)
+		{
+			_UseReactions = useReactions;
+			_Client = client;
+			Interactions = DefaultInteractions(useReactions);
+		}
 
 		public event Func<IMessage, Task> MessageReceived
 		{
 			add => _Client.MessageReceived += value;
 			remove => _Client.MessageReceived -= value;
 		}
+
 		public event Func<Cacheable<IUserMessage, ulong>, ISocketMessageChannel, SocketReaction, Task> ReactionReceived
 		{
 			add
@@ -32,15 +48,19 @@ namespace Advobot.Gacha.Interaction
 			}
 		}
 
-		private readonly bool _UseReactions;
-		private readonly BaseSocketClient _Client;
+		public IDictionary<InteractionType, IInteraction> Interactions { get; set; }
 
-		public InteractionManager(BaseSocketClient client) : this(client, true) { }
-		public InteractionManager(BaseSocketClient client, bool useReactions = true)
+		//IInteractionManager
+		IReadOnlyDictionary<InteractionType, IInteraction> IInteractionManager.Interactions
+			=> Interactions.ToImmutableDictionary();
+
+		public IInteractionHandler CreateInteractionHandler(Display display)
 		{
-			_UseReactions = useReactions;
-			_Client = client;
-			Interactions = DefaultInteractions(useReactions);
+			if (_UseReactions)
+			{
+				return new ReactionHandler(this, display);
+			}
+			return new MessageHandler(this, display);
 		}
 
 		private static IDictionary<InteractionType, IInteraction> DefaultInteractions(bool useReactions)
@@ -54,17 +74,5 @@ namespace Advobot.Gacha.Interaction
 				{ Deny, new Confirmation(Deny.GetRepresentation(useReactions), false) },
 			};
 		}
-		public IInteractionHandler CreateInteractionHandler(Display display)
-		{
-			if (_UseReactions)
-			{
-				return new ReactionHandler(this, display);
-			}
-			return new MessageHandler(this, display);
-		}
-
-		//IInteractionManager
-		IReadOnlyDictionary<InteractionType, IInteraction> IInteractionManager.Interactions
-			=> Interactions.ToImmutableDictionary();
 	}
 }

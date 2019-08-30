@@ -12,6 +12,7 @@ namespace Advobot.Databases.Abstract
 		/// The underlying database.
 		/// </summary>
 		object UnderlyingDatabase { get; }
+
 		/// <summary>
 		/// Executes a query and returns some values.
 		/// </summary>

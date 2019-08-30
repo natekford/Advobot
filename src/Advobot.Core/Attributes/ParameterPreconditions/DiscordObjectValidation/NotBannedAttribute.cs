@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
@@ -15,9 +18,10 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		: AdvobotParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
 		/// <inheritdoc />
-		public override string Summary => "not already banned";
-		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustNotExist;
+
+		/// <inheritdoc />
+		public override string Summary => "not already banned";
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(

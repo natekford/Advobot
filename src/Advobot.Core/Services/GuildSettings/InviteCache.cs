@@ -1,11 +1,13 @@
-﻿using AdvorangesUtils;
-using Discord;
-using Discord.Net;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+
+using AdvorangesUtils;
+
+using Discord;
+using Discord.Net;
 
 namespace Advobot.Services.GuildSettings
 {
@@ -23,6 +25,7 @@ namespace Advobot.Services.GuildSettings
 		/// <returns></returns>
 		public async Task CacheInvitesAsync(IGuild guild)
 			=> CacheInvites(await SafeGetInvitesAsync(guild).CAF());
+
 		/// <summary>
 		/// Attempts to find the invite a user has joined on.
 		/// </summary>
@@ -43,7 +46,7 @@ namespace Advobot.Services.GuildSettings
 			{
 				return null;
 			}
-			if (!current.Any())
+			if (current.Count == 0)
 			{
 				return "Single use invite, vanity url, or linked Twitch account.";
 			}
@@ -61,7 +64,7 @@ namespace Advobot.Services.GuildSettings
 			//If one then assume it's the new one, if more than one, no way to tell
 			var uncached = current.Where(x => !_Cached.TryGetValue(x.Id, out _)).ToArray();
 			CacheInvites(uncached);
-			if ((!uncached.Any() || uncached.All(x => x.Uses == 0))
+			if ((uncached.Length == 0 || uncached.All(x => x.Uses == 0))
 				&& !string.IsNullOrWhiteSpace(user.Guild.VanityURLCode))
 			{
 				return "Single use invite, vanity url, or linked Twitch account.";
@@ -81,11 +84,7 @@ namespace Advobot.Services.GuildSettings
 				_Cached[invite.Id] = invite.Uses ?? 0;
 			}
 		}
-		private string UpdateCachedInvite(IInviteMetadata invite)
-		{
-			_Cached[invite.Id] = invite.Uses ?? 0;
-			return invite.Id;
-		}
+
 		private async Task<IReadOnlyCollection<IInviteMetadata>?> SafeGetInvitesAsync(IGuild guild)
 		{
 			var currentUser = await guild.GetCurrentUserAsync().CAF();
@@ -101,6 +100,12 @@ namespace Advobot.Services.GuildSettings
 				}
 			}
 			return Array.Empty<IInviteMetadata>();
+		}
+
+		private string UpdateCachedInvite(IInviteMetadata invite)
+		{
+			_Cached[invite.Id] = invite.Uses ?? 0;
+			return invite.Id;
 		}
 	}
 }

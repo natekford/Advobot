@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+
 using Advobot.Attributes;
 using Advobot.Formatting;
 using Advobot.Services.HelpEntries;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings.Settings
@@ -21,6 +25,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		[JsonProperty("CommandValues")]
 		public Dictionary<string, bool> CommandValues { get; set; }
 			= new Dictionary<string, bool>();
+
 		/// <summary>
 		/// Overrides for each command.
 		/// </summary>
@@ -28,63 +33,24 @@ namespace Advobot.Services.GuildSettings.Settings
 		public Dictionary<ulong, Dictionary<string, bool>> Overrides { get; set; }
 			= new Dictionary<ulong, Dictionary<string, bool>>();
 
-		/// <summary>
-		/// Changes the value for whether or not the commands are enabled on a guild.
-		/// </summary>
-		/// <param name="values">The commands to change.</param>
-		/// <param name="enable"></param>
-		/// <returns>The names of the commands which were successfully changed.</returns>
-		public IReadOnlyList<string> ModifyCommandValues(IEnumerable<IModuleHelpEntry> values, bool? enable)
+		/// <inheritdoc />
+		public IDiscordFormattableString GetFormattableString()
 		{
-			var changed = new List<string>();
-			foreach (var value in values)
+			var formattable = new DiscordFormattableStringCollection();
+			foreach (var kvp in CommandValues)
 			{
-				if (ModifyCommandValue(value, enable))
+				formattable.Add($"{kvp.Key}: {kvp.Value}");
+			}
+			foreach (var (Id, Dict) in Overrides)
+			{
+				foreach (var (CommandName, Enabled) in Dict)
 				{
-					changed.Add(value.Name);
+					formattable.Add($"{Id}: {CommandName} ({Enabled})");
 				}
 			}
-			return changed;
+			return formattable;
 		}
-		/// <summary>
-		/// Changes the values for whether or not a command is enabled on a guild.
-		/// </summary>
-		/// <param name="value">The command to change.</param>
-		/// <param name="enable"></param>
-		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
-		public bool ModifyCommandValue(IModuleHelpEntry value, bool? enable)
-			=> ModifyOverride(CommandValues, value, enable);
-		/// <summary>
-		/// Enabled/disables/removes overrides on specified commands for a specified object. Object can be channel, role, or user.
-		/// </summary>
-		/// <param name="values">The commands to override.</param>
-		/// <param name="obj">The object to target.</param>
-		/// <param name="enable"></param>
-		/// <returns>The names of the commands which were successfully changed.</returns>
-		public IReadOnlyList<string> ModifyOverrides(IEnumerable<IModuleHelpEntry> values, ISnowflakeEntity obj, bool? enable)
-		{
-			var changed = new List<string>();
-			foreach (var value in values)
-			{
-				if (ModifyOverride(value, obj, enable))
-				{
-					changed.Add(value.Name);
-				}
-			}
-			return changed;
-		}
-		/// <summary>
-		/// Enables/disables/removes an override on a specified command for a specified object.
-		/// </summary>
-		/// <param name="value">The command to override.</param>
-		/// <param name="obj">The object to target.</param>
-		/// <param name="enable"></param>
-		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
-		public bool ModifyOverride(IModuleHelpEntry value, ISnowflakeEntity obj, bool? enable)
-		{
-			var innerDict = Overrides.TryGetValue(obj.Id, out var inner) ? inner : Overrides[obj.Id] = new Dictionary<string, bool>();
-			return ModifyOverride(innerDict, value, enable);
-		}
+
 		/// <summary>
 		/// Returns a value indicating whether or not the command is enabled in the current context.
 		/// Checks user, then roles ordered by descending hierarchy, then channel, then finally the default guild setting.
@@ -102,7 +68,7 @@ namespace Advobot.Services.GuildSettings.Settings
 			//	Guild
 
 			var module = command.Module;
-			while (module.Parent != null && module.Parent.IsSubmodule)
+			while (module.Parent?.IsSubmodule == true)
 			{
 				module = module.Parent;
 			}
@@ -133,6 +99,7 @@ namespace Advobot.Services.GuildSettings.Settings
 			CommandValues.Add(guid, meta.IsEnabled);
 			return meta.IsEnabled;
 		}
+
 		/// <summary>
 		/// Checks whether the command is enabled on the guild.
 		/// Returns true if set to true, returns false it set to false, returns null if not set.
@@ -141,6 +108,68 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <returns></returns>
 		public bool? IsCommandEnabled(string id)
 			=> CommandValues.TryGetValue(id, out var val) ? val : (bool?)null;
+
+		/// <summary>
+		/// Changes the values for whether or not a command is enabled on a guild.
+		/// </summary>
+		/// <param name="value">The command to change.</param>
+		/// <param name="enable"></param>
+		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
+		public bool ModifyCommandValue(IModuleHelpEntry value, bool? enable)
+			=> ModifyOverride(CommandValues, value, enable);
+
+		/// <summary>
+		/// Changes the value for whether or not the commands are enabled on a guild.
+		/// </summary>
+		/// <param name="values">The commands to change.</param>
+		/// <param name="enable"></param>
+		/// <returns>The names of the commands which were successfully changed.</returns>
+		public IReadOnlyList<string> ModifyCommandValues(IEnumerable<IModuleHelpEntry> values, bool? enable)
+		{
+			var changed = new List<string>();
+			foreach (var value in values)
+			{
+				if (ModifyCommandValue(value, enable))
+				{
+					changed.Add(value.Name);
+				}
+			}
+			return changed;
+		}
+
+		/// <summary>
+		/// Enables/disables/removes an override on a specified command for a specified object.
+		/// </summary>
+		/// <param name="value">The command to override.</param>
+		/// <param name="obj">The object to target.</param>
+		/// <param name="enable"></param>
+		/// <returns>Whether or not the method was successful. Failure indicates an untoggleable command or the command was already set to the passed in value.</returns>
+		public bool ModifyOverride(IModuleHelpEntry value, ISnowflakeEntity obj, bool? enable)
+		{
+			var innerDict = Overrides.TryGetValue(obj.Id, out var inner) ? inner : Overrides[obj.Id] = new Dictionary<string, bool>();
+			return ModifyOverride(innerDict, value, enable);
+		}
+
+		/// <summary>
+		/// Enabled/disables/removes overrides on specified commands for a specified object. Object can be channel, role, or user.
+		/// </summary>
+		/// <param name="values">The commands to override.</param>
+		/// <param name="obj">The object to target.</param>
+		/// <param name="enable"></param>
+		/// <returns>The names of the commands which were successfully changed.</returns>
+		public IReadOnlyList<string> ModifyOverrides(IEnumerable<IModuleHelpEntry> values, ISnowflakeEntity obj, bool? enable)
+		{
+			var changed = new List<string>();
+			foreach (var value in values)
+			{
+				if (ModifyOverride(value, obj, enable))
+				{
+					changed.Add(value.Name);
+				}
+			}
+			return changed;
+		}
+
 		private static bool ModifyOverride(IDictionary<string, bool> dict, IModuleHelpEntry help, bool? enable)
 		{
 			if (!help.AbleToBeToggled)
@@ -157,24 +186,6 @@ namespace Advobot.Services.GuildSettings.Settings
 			}
 			dict[help.Id] = enable.Value;
 			return true;
-		}
-
-		/// <inheritdoc />
-		public IDiscordFormattableString GetFormattableString()
-		{
-			var formattable = new DiscordFormattableStringCollection();
-			foreach (var kvp in CommandValues)
-			{
-				formattable.Add($"{kvp.Key}: {kvp.Value}");
-			}
-			foreach (var (Id, Dict) in Overrides)
-			{
-				foreach (var (CommandName, Enabled) in Dict)
-				{
-					formattable.Add($"{Id}: {CommandName} ({Enabled})");
-				}
-			}
-			return formattable;
 		}
 	}
 }

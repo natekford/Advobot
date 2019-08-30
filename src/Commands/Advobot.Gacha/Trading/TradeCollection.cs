@@ -1,12 +1,25 @@
-﻿using Discord;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+
+using Discord;
 
 namespace Advobot.Gacha.Trading
 {
 	public sealed class TradeCollection : IReadOnlyList<ITrade>, IList<ITrade>
 	{
+		private readonly List<ITrade> _Gives = new List<ITrade>();
+		private readonly string _GuildId;
+
+		public TradeCollection(IGuild guild) : this(guild.Id)
+		{
+		}
+
+		public TradeCollection(ulong guildId)
+		{
+			_GuildId = guildId.ToString();
+		}
+
 		public int Count => _Gives.Count;
 		public bool IsReadOnly => ((IList<ITrade>)_Gives).IsReadOnly;
 
@@ -14,15 +27,6 @@ namespace Advobot.Gacha.Trading
 		{
 			get => _Gives[index];
 			set => _Gives[index] = value;
-		}
-
-		private readonly List<ITrade> _Gives = new List<ITrade>();
-		private readonly string _GuildId;
-
-		public TradeCollection(IGuild guild) : this(guild.Id) { }
-		public TradeCollection(ulong guildId)
-		{
-			_GuildId = guildId.ToString();
 		}
 
 		public void Add(ITrade item)
@@ -34,20 +38,28 @@ namespace Advobot.Gacha.Trading
 			}
 			_Gives.Add(item);
 		}
+
 		public void Clear()
 			=> _Gives.Clear();
+
 		public bool Contains(ITrade item)
 			=> _Gives.Contains(item);
+
 		public void CopyTo(ITrade[] array, int arrayIndex)
 			=> _Gives.CopyTo(array, arrayIndex);
+
 		public IEnumerator<ITrade> GetEnumerator()
 			=> ((IList<ITrade>)_Gives).GetEnumerator();
-		public bool Remove(ITrade item)
-			=> _Gives.Remove(item);
+
 		public int IndexOf(ITrade item)
 			=> _Gives.IndexOf(item);
+
 		public void Insert(int index, ITrade item)
 			=> _Gives.Insert(index, item);
+
+		public bool Remove(ITrade item)
+							=> _Gives.Remove(item);
+
 		public void RemoveAt(int index)
 			=> _Gives.RemoveAt(index);
 

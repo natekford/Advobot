@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Advobot.Interfaces;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Modules
@@ -35,6 +38,7 @@ namespace Advobot.Modules
 			var users = Context.Guild.Users.Where(x => Context.User.CanModify(Context.Guild.CurrentUser.Id, x)).ToArray();
 			return ProcessAsync(users, bypass, predicate, update);
 		}
+
 		/// <summary>
 		/// Does an action on many users at once.
 		/// </summary>
@@ -49,6 +53,7 @@ namespace Advobot.Modules
 			var array = users.Where(predicate).Take(amount).ToArray();
 			return ProcessAsync(array, update);
 		}
+
 		/// <summary>
 		/// Does an action on many users at once.
 		/// </summary>
@@ -88,27 +93,6 @@ namespace Advobot.Modules
 		public class MultiUserActionProgressArgs : EventArgs
 		{
 			/// <summary>
-			/// The total amount of users this is currently targetting.
-			/// </summary>
-			public int TotalUsers { get; }
-			/// <summary>
-			/// The amount of users this has already modified.
-			/// </summary>
-			public int CurrentProgress { get; }
-			/// <summary>
-			/// The amount of users left to modify.
-			/// </summary>
-			public int AmountLeft => TotalUsers - CurrentProgress;
-			/// <summary>
-			/// Whether this is the start of the multi user action.
-			/// </summary>
-			public bool IsStart => CurrentProgress == 0;
-			/// <summary>
-			/// Whether this is the end of the multi user action.
-			/// </summary>
-			public bool IsEnd => CurrentProgress == TotalUsers;
-
-			/// <summary>
 			/// Creates an instance of <see cref="MultiUserActionProgressArgs"/>.
 			/// </summary>
 			/// <param name="total"></param>
@@ -118,6 +102,31 @@ namespace Advobot.Modules
 				TotalUsers = total;
 				CurrentProgress = current;
 			}
+
+			/// <summary>
+			/// The amount of users left to modify.
+			/// </summary>
+			public int AmountLeft => TotalUsers - CurrentProgress;
+
+			/// <summary>
+			/// The amount of users this has already modified.
+			/// </summary>
+			public int CurrentProgress { get; }
+
+			/// <summary>
+			/// Whether this is the end of the multi user action.
+			/// </summary>
+			public bool IsEnd => CurrentProgress == TotalUsers;
+
+			/// <summary>
+			/// Whether this is the start of the multi user action.
+			/// </summary>
+			public bool IsStart => CurrentProgress == 0;
+
+			/// <summary>
+			/// The total amount of users this is currently targetting.
+			/// </summary>
+			public int TotalUsers { get; }
 		}
 
 		/// <summary>

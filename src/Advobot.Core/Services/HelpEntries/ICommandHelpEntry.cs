@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 using Advobot.Interfaces;
 
 namespace Advobot.Services.HelpEntries
@@ -12,13 +13,15 @@ namespace Advobot.Services.HelpEntries
 		/// Other names to invoke the command.
 		/// </summary>
 		IReadOnlyList<string> Aliases { get; }
-		/// <summary>
-		/// The base permissions to use the command.
-		/// </summary>
-		IReadOnlyList<IPrecondition> Preconditions { get; }
+
 		/// <summary>
 		/// The parameters to use this command.
 		/// </summary>
 		IReadOnlyList<IParameterHelpEntry> Parameters { get; }
+
+		/// <summary>
+		/// The base permissions to use the command.
+		/// </summary>
+		IReadOnlyList<IPrecondition> Preconditions { get; }
 	}
 }

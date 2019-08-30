@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.Formatting.Rules
@@ -13,15 +14,6 @@ namespace Advobot.Formatting.Rules
 	[NamedArgumentType]
 	public sealed class RuleFormatter
 	{
-		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultTitleFormats
-			= new Dictionary<RuleFormat, MarkDownFormat[]>
-			{
-				{ default, new[] { MarkDownFormat.Bold } },
-				{ RuleFormat.Numbers, new[] { MarkDownFormat.Bold } },
-				{ RuleFormat.Dashes, new[] { MarkDownFormat.Code } },
-				{ RuleFormat.Bullets, new[] { MarkDownFormat.Bold } },
-				{ RuleFormat.Bold, new[] { MarkDownFormat.Bold | MarkDownFormat.Italics } }
-			}.ToImmutableDictionary();
 		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultRuleFormats
 			= new Dictionary<RuleFormat, MarkDownFormat[]>
 			{
@@ -32,26 +24,40 @@ namespace Advobot.Formatting.Rules
 				{ RuleFormat.Bold, new[] { MarkDownFormat.Bold } }
 			}.ToImmutableDictionary();
 
+		private static readonly ImmutableDictionary<RuleFormat, MarkDownFormat[]> _DefaultTitleFormats
+					= new Dictionary<RuleFormat, MarkDownFormat[]>
+			{
+				{ default, new[] { MarkDownFormat.Bold } },
+				{ RuleFormat.Numbers, new[] { MarkDownFormat.Bold } },
+				{ RuleFormat.Dashes, new[] { MarkDownFormat.Code } },
+				{ RuleFormat.Bullets, new[] { MarkDownFormat.Bold } },
+				{ RuleFormat.Bold, new[] { MarkDownFormat.Bold | MarkDownFormat.Italics } }
+			}.ToImmutableDictionary();
+
 		/// <summary>
 		/// The character to put after numbers in the lists.
 		/// </summary>
 		public char CharAfterNumbers { get; set; } = '.';
-		/// <summary>
-		/// The main format to use for rules.
-		/// </summary>
-		public RuleFormat RuleFormat { get; set; } = RuleFormat.Numbers;
-		/// <summary>
-		/// Markdown supplied for titles.
-		/// </summary>
-		public IList<MarkDownFormat> TitleMarkDownFormat { get; set; } = new List<MarkDownFormat>();
-		/// <summary>
-		/// Markdown supplied for rules.
-		/// </summary>
-		public IList<MarkDownFormat> RuleMarkDownFormat { get; set; } = new List<MarkDownFormat>();
+
 		/// <summary>
 		/// Additional formatting options.
 		/// </summary>
 		public IList<RuleFormatOption> Options { get; set; } = new List<RuleFormatOption>();
+
+		/// <summary>
+		/// The main format to use for rules.
+		/// </summary>
+		public RuleFormat RuleFormat { get; set; } = RuleFormat.Numbers;
+
+		/// <summary>
+		/// Markdown supplied for rules.
+		/// </summary>
+		public IList<MarkDownFormat> RuleMarkDownFormat { get; set; } = new List<MarkDownFormat>();
+
+		/// <summary>
+		/// Markdown supplied for titles.
+		/// </summary>
+		public IList<MarkDownFormat> TitleMarkDownFormat { get; set; } = new List<MarkDownFormat>();
 
 		/// <summary>
 		/// Format the name of a rule category.
@@ -65,8 +71,9 @@ namespace Advobot.Formatting.Rules
 			{
 				n += "\n";
 			}
-			return AddMarkDown(TitleMarkDownFormat.Any() ? TitleMarkDownFormat : _DefaultTitleFormats[RuleFormat], n);
+			return AddMarkDown(TitleMarkDownFormat.Count > 0 ? TitleMarkDownFormat : _DefaultTitleFormats[RuleFormat], n);
 		}
+
 		/// <summary>
 		/// Format the rule itself.
 		/// </summary>
@@ -99,8 +106,9 @@ namespace Advobot.Formatting.Rules
 			{
 				r += "\n";
 			}
-			return AddMarkDown(RuleMarkDownFormat.Any() ? RuleMarkDownFormat : _DefaultRuleFormats[RuleFormat], r);
+			return AddMarkDown(RuleMarkDownFormat.Count > 0 ? RuleMarkDownFormat : _DefaultRuleFormats[RuleFormat], r);
 		}
+
 		private string AddCharAfterNumbers(string text, char charToAdd)
 		{
 			var sb = new StringBuilder();
@@ -118,6 +126,7 @@ namespace Advobot.Formatting.Rules
 			}
 			return sb.ToString();
 		}
+
 		private string AddMarkDown(IEnumerable<MarkDownFormat> markdown, string text)
 		{
 			foreach (var md in markdown)

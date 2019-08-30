@@ -1,5 +1,7 @@
 ﻿using System.IO;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Services.Logging.Loggers
@@ -7,13 +9,8 @@ namespace Advobot.Services.Logging.Loggers
 	internal readonly struct ImageToLog
 	{
 		private const string ANIMATED = nameof(ILogService.Animated);
-		private const string IMAGES = nameof(ILogService.Images);
 		private const string FILES = nameof(ILogService.Files);
-
-		public string Name { get; }
-		public string Footer { get; }
-		public string Url { get; }
-		public string? ImageUrl { get; }
+		private const string IMAGES = nameof(ILogService.Images);
 
 		private ImageToLog(string name, string footer, string url, string? imageUrl)
 		{
@@ -22,6 +19,11 @@ namespace Advobot.Services.Logging.Loggers
 			Url = url;
 			ImageUrl = imageUrl;
 		}
+
+		public string Footer { get; }
+		public string? ImageUrl { get; }
+		public string Name { get; }
+		public string Url { get; }
 
 		public static ImageToLog FromAttachment(IAttachment attachment)
 		{
@@ -36,6 +38,7 @@ namespace Advobot.Services.Logging.Loggers
 			};
 			return new ImageToLog(name, footer, url, imageUrl);
 		}
+
 		public static ImageToLog? FromEmbed(IEmbed embed)
 		{
 			if (embed.Video is EmbedVideo video)
@@ -51,6 +54,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			return new ImageToLog(IMAGES, "Image", embed.Url, img);
 		}
+
 		private static string GetVideoThumbnail(string url)
 		{
 			var replaced = url.Replace("//cdn.discordapp.com/", "//media.discordapp.net/");

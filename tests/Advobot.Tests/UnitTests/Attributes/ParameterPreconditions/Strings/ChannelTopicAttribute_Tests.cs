@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Advobot.Attributes.ParameterPreconditions.Strings;
+
 using AdvorangesUtils;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
@@ -11,12 +14,6 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 	public sealed class ChannelTopicAttribute_Tests
 		: ParameterPreconditionsTestsBase<ChannelTopicAttribute>
 	{
-		[TestMethod]
-		public async Task ThrowsOnNotString_Test()
-		{
-			Task Task() => CheckAsync(1);
-			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
-		}
 		[TestMethod]
 		public async Task Standard_Test()
 		{
@@ -32,6 +29,13 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 				var result = await CheckAsync(kvp.Key).CAF();
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
+		}
+
+		[TestMethod]
+		public async Task ThrowsOnNotString_Test()
+		{
+			Task Task() => CheckAsync(1);
+			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
 		}
 	}
 }

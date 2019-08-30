@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -16,22 +19,23 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	public abstract class RequirePermissionsAttribute
 		: PreconditionAttribute, IPrecondition
 	{
-		/// <inheritdoc />
-		public string Summary { get; }
+		/// <summary>
+		/// Creates an instance of <see cref="RequirePermissionsAttribute"/>.
+		/// </summary>
+		/// <param name="permissions"></param>
+		protected RequirePermissionsAttribute(params Enum[] permissions)
+		{
+			Permissions = permissions.ToImmutableHashSet();
+			Summary = Permissions.FormatPermissions();
+		}
+
 		/// <summary>
 		/// The flags required (each is a separate valid combination of flags).
 		/// </summary>
 		public ImmutableHashSet<Enum> Permissions { get; }
 
-		/// <summary>
-		/// Creates an instance of <see cref="RequirePermissionsAttribute"/>.
-		/// </summary>
-		/// <param name="permissions"></param>
-		public RequirePermissionsAttribute(params Enum[] permissions)
-		{
-			Permissions = permissions.ToImmutableHashSet();
-			Summary = Permissions.FormatPermissions();
-		}
+		/// <inheritdoc />
+		public string Summary { get; }
 
 		/// <inheritdoc />
 		public override async Task<PreconditionResult> CheckPermissionsAsync(
@@ -55,6 +59,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 			}
 			return PreconditionUtils.FromError("You are missing permissions.");
 		}
+
 		/// <summary>
 		/// Returns the invoking user's permissions.
 		/// </summary>

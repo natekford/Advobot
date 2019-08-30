@@ -1,6 +1,8 @@
 ﻿using System.Linq;
+
 using Advobot.Attributes;
 using Advobot.Settings;
+
 using Discord.Commands;
 
 namespace Advobot.Modules

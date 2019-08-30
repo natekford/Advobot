@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Discord;
 
 namespace Advobot.Tests.Fakes.Discord

@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -15,8 +16,8 @@ namespace Advobot.Formatting
 	/// </summary>
 	public class DiscordFormattableString : IDiscordFormattableString
 	{
-		private readonly string _Format;
 		private readonly object[] _Args;
+		private readonly string _Format;
 
 		/// <summary>
 		/// Creates an instance of <see cref="DiscordFormattableString"/> mimicking <paramref name="source"/>.
@@ -27,6 +28,7 @@ namespace Advobot.Formatting
 			_Format = source.Format;
 			_Args = source.GetArguments();
 		}
+
 		/// <summary>
 		/// Creates an instance of <see cref="DiscordFormattableString"/>.
 		/// </summary>
@@ -40,6 +42,7 @@ namespace Advobot.Formatting
 		/// <inheritdoc />
 		public override string ToString()
 			=> ToString(null);
+
 		/// <inheritdoc />
 		public string ToString(IFormatProvider? formatProvider)
 			=> string.Format(formatProvider, _Format, _Args);
@@ -49,29 +52,6 @@ namespace Advobot.Formatting
 		{
 			var converted = _Args.Select(x => ConvertArgument(client, guild, x));
 			return string.Format(formatProvider, _Format, converted);
-		}
-		private static object? ConvertArgument(BaseSocketClient c, SocketGuild g, object? value) => value switch
-		{
-			ulong id => GetSnowflakeEntity(c, g, id),
-			IEnumerable enumerable => ConvertEnumerable(c, g, enumerable),
-			_ => value,
-		};
-		private static ISnowflakeEntity? GetSnowflakeEntity(BaseSocketClient c, SocketGuild g, ulong id) => id switch
-		{
-			_ when g != null && g.Id == id => g,
-			_ when g != null && g.GetRole(id) is ISnowflakeEntity role => role,
-			_ when g != null && g.GetChannel(id) is ISnowflakeEntity channel => channel,
-			_ when g != null && g.GetUser(id) is ISnowflakeEntity user => user,
-			_ when c != null && c.GetUser(id) is ISnowflakeEntity user => user,
-			_ when c != null && c.GetGuild(id) is ISnowflakeEntity guild => guild,
-			_ => null,
-		};
-		private static IEnumerable ConvertEnumerable(BaseSocketClient c, SocketGuild g, IEnumerable source)
-		{
-			foreach (var obj in source)
-			{
-				yield return ConvertArgument(c, g, obj);
-			}
 		}
 
 		/// <inheritdoc />
@@ -89,22 +69,32 @@ namespace Advobot.Formatting
 			}
 			return string.Format(formatProvider, _Format, converted);
 		}
+
+		string IFormattable.ToString(string format, IFormatProvider formatProvider)
+			=> ToString(formatProvider);
+
+		private static object? ConvertArgument(BaseSocketClient c, SocketGuild g, object? value) => value switch
+		{
+			ulong id => GetSnowflakeEntity(c, g, id),
+			IEnumerable enumerable => ConvertEnumerable(c, g, enumerable),
+			_ => value,
+		};
+
 		private static async Task<object?> ConvertArgumentAsync(IDiscordClient c, IGuild g, object? value) => value switch
 		{
 			ulong id => await GetSnowflakeEntityAsync(c, g, id).CAF(),
 			IEnumerable enumerable => await ConvertEnumerableAsync(c, g, enumerable).CAF(),
 			_ => value,
 		};
-		private static async Task<ISnowflakeEntity?> GetSnowflakeEntityAsync(IDiscordClient c, IGuild g, ulong id) => id switch
+
+		private static IEnumerable ConvertEnumerable(BaseSocketClient c, SocketGuild g, IEnumerable source)
 		{
-			_ when g != null && g.Id == id => g,
-			_ when g != null && g.GetRole(id) is ISnowflakeEntity role => role,
-			_ when g != null && await g.GetChannelAsync(id).CAF() is ISnowflakeEntity channel => channel,
-			_ when g != null && await g.GetUserAsync(id).CAF() is ISnowflakeEntity user => user,
-			_ when c != null && await c.GetUserAsync(id).CAF() is ISnowflakeEntity user => user,
-			_ when c != null && await c.GetGuildAsync(id).CAF() is ISnowflakeEntity guild => guild,
-			_ => null,
-		};
+			foreach (var obj in source)
+			{
+				yield return ConvertArgument(c, g, obj);
+			}
+		}
+
 		private static async Task<IEnumerable> ConvertEnumerableAsync(IDiscordClient c, IGuild g, IEnumerable source)
 		{
 			var output = new List<object>();
@@ -115,7 +105,26 @@ namespace Advobot.Formatting
 			return output;
 		}
 
-		string IFormattable.ToString(string format, IFormatProvider formatProvider)
-			=> ToString(formatProvider);
+		private static ISnowflakeEntity? GetSnowflakeEntity(BaseSocketClient c, SocketGuild g, ulong id) => id switch
+		{
+			_ when g?.Id == id => g,
+			_ when g?.GetRole(id) is ISnowflakeEntity role => role,
+			_ when g?.GetChannel(id) is ISnowflakeEntity channel => channel,
+			_ when g?.GetUser(id) is ISnowflakeEntity user => user,
+			_ when c?.GetUser(id) is ISnowflakeEntity user => user,
+			_ when c?.GetGuild(id) is ISnowflakeEntity guild => guild,
+			_ => null,
+		};
+
+		private static async Task<ISnowflakeEntity?> GetSnowflakeEntityAsync(IDiscordClient c, IGuild g, ulong id) => id switch
+		{
+			_ when g != null && g.Id == id => g,
+			_ when g?.GetRole(id) is ISnowflakeEntity role => role,
+			_ when g != null && await g.GetChannelAsync(id).CAF() is ISnowflakeEntity channel => channel,
+			_ when g != null && await g.GetUserAsync(id).CAF() is ISnowflakeEntity user => user,
+			_ when c != null && await c.GetUserAsync(id).CAF() is ISnowflakeEntity user => user,
+			_ when c != null && await c.GetGuildAsync(id).CAF() is ISnowflakeEntity guild => guild,
+			_ => null,
+		};
 	}
 }

@@ -8,12 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class GuildNameAttribute : StringParameterPreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override string StringType => "guild name";
-
 		/// <summary>
 		/// Creates an instance of <see cref="GuildNameAttribute"/>.
 		/// </summary>
 		public GuildNameAttribute() : base(2, 100) { }
+
+		/// <inheritdoc />
+		public override string StringType => "guild name";
 	}
 }

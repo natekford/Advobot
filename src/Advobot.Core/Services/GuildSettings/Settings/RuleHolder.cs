@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using Advobot.Formatting.Rules;
+
 using AdvorangesUtils;
+
 using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings.Settings
@@ -42,6 +45,50 @@ namespace Advobot.Services.GuildSettings.Settings
 			//If not, go by category
 			return categories.SelectMany(x => SplitFormattedCategoryIntoValidParts(x)).ToArray();
 		}
+
+		/// <inheritdoc />
+		public override string ToString()
+			=> ToString(new RuleFormatter());
+
+		/// <summary>
+		/// Uses the specified rule formatter to format every rule category.
+		/// </summary>
+		/// <param name="formatter"></param>
+		/// <returns></returns>
+		public string ToString(RuleFormatter formatter)
+		{
+			var sb = new StringBuilder();
+			var categoryIndex = 0;
+			foreach (var (Category, Rules) in Categories)
+			{
+				AppendCategory(formatter, sb, Rules, Category);
+				++categoryIndex;
+			}
+			return sb.ToString();
+		}
+
+		/// <summary>
+		/// Uses the specified rule formatter to format the specified category.
+		/// </summary>
+		/// <param name="formatter"></param>
+		/// <param name="category"></param>
+		/// <returns></returns>
+		public string ToString(RuleFormatter formatter, string category)
+		{
+			var sb = new StringBuilder();
+			AppendCategory(formatter, sb, Categories[category], category);
+			return sb.ToString();
+		}
+
+		private void AppendCategory(RuleFormatter formatter, StringBuilder sb, IList<string> rules, string name)
+		{
+			sb.AppendLineFeed(formatter.FormatName(name));
+			for (var i = 0; i < rules.Count; ++i)
+			{
+				sb.AppendLineFeed(formatter.FormatRule(rules[i], i, rules.Count));
+			}
+		}
+
 		private IEnumerable<string> SplitFormattedCategoryIntoValidParts(string formattedCategory)
 		{
 			//Null category gets ignored
@@ -72,45 +119,6 @@ namespace Advobot.Services.GuildSettings.Settings
 			if (sb.Length > 0)
 			{
 				yield return sb.ToString();
-			}
-		}
-		/// <inheritdoc />
-		public override string ToString()
-			=> ToString(new RuleFormatter());
-		/// <summary>
-		/// Uses the specified rule formatter to format every rule category.
-		/// </summary>
-		/// <param name="formatter"></param>
-		/// <returns></returns>
-		public string ToString(RuleFormatter formatter)
-		{
-			var sb = new StringBuilder();
-			var categoryIndex = 0;
-			foreach (var (Category, Rules) in Categories)
-			{
-				AppendCategory(formatter, sb, Rules, Category);
-				++categoryIndex;
-			}
-			return sb.ToString();
-		}
-		/// <summary>
-		/// Uses the specified rule formatter to format the specified category.
-		/// </summary>
-		/// <param name="formatter"></param>
-		/// <param name="category"></param>
-		/// <returns></returns>
-		public string ToString(RuleFormatter formatter, string category)
-		{
-			var sb = new StringBuilder();
-			AppendCategory(formatter, sb, Categories[category], category);
-			return sb.ToString();
-		}
-		private void AppendCategory(RuleFormatter formatter, StringBuilder sb, IList<string> rules, string name)
-		{
-			sb.AppendLineFeed(formatter.FormatName(name));
-			for (var i = 0; i < rules.Count; ++i)
-			{
-				sb.AppendLineFeed(formatter.FormatRule(rules[i], i, rules.Count));
 			}
 		}
 	}

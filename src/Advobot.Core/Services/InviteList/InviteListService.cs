@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -15,14 +18,14 @@ namespace Advobot.Services.InviteList
 	/// </summary>
 	internal sealed class InviteListService : DatabaseWrapperConsumer, IInviteListService
 	{
-		/// <inheritdoc />
-		public override string DatabaseName => "InviteList";
-
 		/// <summary>
 		/// Creates an instance of <see cref="InviteListService"/>.
 		/// </summary>
 		/// <param name="dbFactory"></param>
 		public InviteListService(IDatabaseWrapperFactory dbFactory) : base(dbFactory) { }
+
+		/// <inheritdoc />
+		public override string DatabaseName => "InviteList";
 
 		/// <inheritdoc />
 		public IListedInvite Add(
@@ -35,16 +38,7 @@ namespace Advobot.Services.InviteList
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Insert(new[] { listedInvite }));
 			return listedInvite;
 		}
-		/// <inheritdoc />
-		public void Remove(ulong guildId)
-			=> DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Delete(x => x.GuildId == guildId));
-		/// <inheritdoc />
-		public async Task UpdateAsync(SocketGuild guild)
-		{
-			var invite = (ListedInvite)Get(guild.Id);
-			await invite.UpdateAsync(guild).CAF();
-			DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Update(new[] { invite }));
-		}
+
 		/// <inheritdoc />
 		public async Task BumpAsync(SocketGuild guild)
 		{
@@ -52,9 +46,15 @@ namespace Advobot.Services.InviteList
 			await invite.BumpAsync(guild).CAF();
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Update(new[] { invite }));
 		}
+
+		/// <inheritdoc />
+		public IListedInvite Get(ulong guildId)
+			=> DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Get(x => x.GuildId == guildId)).SingleOrDefault();
+
 		/// <inheritdoc />
 		public IEnumerable<IListedInvite> GetAll(int limit)
 			=> DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.GetAll()).OrderByDescending(x => x.Time);
+
 		/// <inheritdoc />
 		public IEnumerable<IListedInvite> GetAll(int limit, IEnumerable<string> keywords)
 		{
@@ -72,8 +72,17 @@ namespace Advobot.Services.InviteList
 				}
 			}
 		}
+
 		/// <inheritdoc />
-		public IListedInvite Get(ulong guildId)
-			=> DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Get(x => x.GuildId == guildId)).SingleOrDefault();
+		public void Remove(ulong guildId)
+			=> DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Delete(x => x.GuildId == guildId));
+
+		/// <inheritdoc />
+		public async Task UpdateAsync(SocketGuild guild)
+		{
+			var invite = (ListedInvite)Get(guild.Id);
+			await invite.UpdateAsync(guild).CAF();
+			DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Update(new[] { invite }));
+		}
 	}
 }

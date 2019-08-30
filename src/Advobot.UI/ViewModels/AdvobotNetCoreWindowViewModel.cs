@@ -8,19 +8,25 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Advobot.UI.Views;
-using Advobot.UI.Utils;
+
 using Advobot.Services.BotSettings;
 using Advobot.Services.Logging;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Avalonia.Controls;
-using Avalonia.Media;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using ReactiveUI;
 using Advobot.UI.Colors;
 using Advobot.UI.Controls;
+using Advobot.UI.Utils;
+using Advobot.UI.Views;
+using Advobot.Utilities;
+
+using AdvorangesUtils;
+
+using Avalonia.Controls;
+using Avalonia.Media;
+
+using Discord.WebSocket;
+
+using Microsoft.Extensions.DependencyInjection;
+
+using ReactiveUI;
 
 namespace Advobot.UI.ViewModels
 {
@@ -28,75 +34,23 @@ namespace Advobot.UI.ViewModels
 	{
 		private static readonly string _Caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
 
-		public string MainMenuText { get; } =
-			"Latency: Time it takes for a command to reach the bot.\n\n" +
-			"Memory: Amount of RAM the program is using.\n\n" +
-			"Threads: Where all the actions in the bot happen.\n\n" +
-			$"API wrapper version: {Constants.API_VERSION}\n" +
-			$"Bot version: {Constants.BOT_VERSION}\n\n" +
-			$"Github repository for Advobot: {Constants.REPO}\n" +
-			$"Join the Discord server for additional help: {Constants.DISCORD_INV}";
-
-		public string Output
-		{
-			get => _Output;
-			set => this.RaiseAndSetIfChanged(ref _Output, value);
-		}
-		private string _Output = "";
-
-		public string Input
-		{
-			get => _Input;
-			set => this.RaiseAndSetIfChanged(ref _Input, value);
-		}
-		private string _Input = "";
-
-		public string PauseButtonContent
-		{
-			get => _PauseButtonContent;
-			set => this.RaiseAndSetIfChanged(ref _PauseButtonContent, value);
-		}
-		private string _PauseButtonContent = "";
-
-		public int OutputColumnSpan
-		{
-			get => _OutputColumnSpan;
-			private set => this.RaiseAndSetIfChanged(ref _OutputColumnSpan, value);
-		}
-		private int _OutputColumnSpan = 2;
-
-		public LogServiceViewModel LogServiceViewModel { get; }
-		public BotSettingsViewModel BotSettingsViewModel { get; }
-		public ColorsViewModel ColorsViewModel { get; }
-
-		public bool OpenMainMenu => GetMenuStatus();
-		public bool OpenInfoMenu => GetMenuStatus();
-		public bool OpenColorsMenu => GetMenuStatus();
-		public bool OpenSettingsMenu => GetMenuStatus();
-		private readonly ConcurrentDictionary<string, bool> _MenuStatuses = new ConcurrentDictionary<string, bool>();
-
-		public IObservable<string> Uptime { get; }
-		public IObservable<string> Latency { get; }
-		public IObservable<string> Memory { get; }
-		public IObservable<string> ThreadCount { get; }
-
-		public ICommand PrintOutputCommand { get; }
-		public ICommand TakeInputCommand { get; }
-		public ICommand OpenMenuCommand { get; }
-		public ICommand DisconnectCommand { get; }
-		public ICommand RestartCommand { get; }
-		public ICommand PauseCommand { get; }
-		public ICommand OpenFileSearchWindowCommand { get; }
-		public ICommand SaveColorsCommand { get; }
-		public ICommand SaveBotSettingsCommand { get; }
-		public ICommand ClearOutputCommand { get; }
-		public ICommand SaveOutputCommand { get; }
-		public ICommand OpenOutputSearchWindowCommand { get; }
+		private readonly IBotSettings _BotSettings;
 
 		private readonly BaseSocketClient _Client;
-		private readonly ILogService _LogService;
-		private readonly IBotSettings _BotSettings;
+
 		private readonly IColorSettings<ISolidColorBrush> _Colors;
+
+		private readonly ILogService _LogService;
+
+		private readonly ConcurrentDictionary<string, bool> _MenuStatuses = new ConcurrentDictionary<string, bool>();
+
+		private string _Input = "";
+
+		private string _Output = "";
+
+		private int _OutputColumnSpan = 2;
+
+		private string _PauseButtonContent = "";
 
 		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
 		{
@@ -126,37 +80,91 @@ namespace Advobot.UI.ViewModels
 			OpenOutputSearchWindowCommand = ReactiveCommand.CreateFromTask<Window>(OpenOutputSearchWindowAsync);
 
 			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));
-			Uptime = timer.Select(x => $"Uptime: {ProcessInfoUtils.GetUptime():dd\\.hh\\:mm\\:ss}");
-			Latency = timer.Select(x => $"Latency: {(_Client?.CurrentUser == null ? -1 : _Client.Latency)}ms");
-			Memory = timer.Select(x => $"Memory: {ProcessInfoUtils.GetMemoryMB():0.00}MB");
-			ThreadCount = timer.Select(x => $"Threads: {ProcessInfoUtils.GetThreadCount()}");
+			Uptime = timer.Select(_ => $"Uptime: {ProcessInfoUtils.GetUptime():dd\\.hh\\:mm\\:ss}");
+			Latency = timer.Select(_ => $"Latency: {(_Client?.CurrentUser == null ? -1 : _Client.Latency)}ms");
+			Memory = timer.Select(_ => $"Memory: {ProcessInfoUtils.GetMemoryMB():0.00}MB");
+			ThreadCount = timer.Select(_ => $"Threads: {ProcessInfoUtils.GetThreadCount()}");
 		}
 
-		private bool GetMenuStatus([CallerMemberName] string caller = "")
-			=> _MenuStatuses.GetOrAdd(caller, false);
-		private void PrintOutput(string value)
-			=> Output += value;
-		private void TakeInput()
+		public BotSettingsViewModel BotSettingsViewModel { get; }
+
+		public ICommand ClearOutputCommand { get; }
+
+		public ColorsViewModel ColorsViewModel { get; }
+
+		public ICommand DisconnectCommand { get; }
+
+		public string Input
 		{
-			ConsoleUtils.WriteLine(Input, name: "UIInput");
-			Input = "";
+			get => _Input;
+			set => this.RaiseAndSetIfChanged(ref _Input, value);
 		}
-		private void OpenMenu(string name)
+
+		public IObservable<string> Latency { get; }
+
+		public LogServiceViewModel LogServiceViewModel { get; }
+
+		public string MainMenuText { get; } =
+																																					"Latency: Time it takes for a command to reach the bot.\n\n" +
+			"Memory: Amount of RAM the program is using.\n\n" +
+			"Threads: Where all the actions in the bot happen.\n\n" +
+			$"API wrapper version: {Constants.API_VERSION}\n" +
+			$"Bot version: {Constants.BOT_VERSION}\n\n" +
+			$"Github repository for Advobot: {Constants.REPO}\n" +
+			$"Join the Discord server for additional help: {Constants.DISCORD_INV}";
+
+		public IObservable<string> Memory { get; }
+
+		public bool OpenColorsMenu => GetMenuStatus();
+
+		public ICommand OpenFileSearchWindowCommand { get; }
+
+		public bool OpenInfoMenu => GetMenuStatus();
+
+		public bool OpenMainMenu => GetMenuStatus();
+
+		public ICommand OpenMenuCommand { get; }
+
+		public ICommand OpenOutputSearchWindowCommand { get; }
+
+		public bool OpenSettingsMenu => GetMenuStatus();
+
+		public string Output
 		{
-			foreach (var key in new List<string>(_MenuStatuses.Keys))
+			get => _Output;
+			set => this.RaiseAndSetIfChanged(ref _Output, value);
+		}
+
+		public int OutputColumnSpan
+		{
+			get => _OutputColumnSpan;
+			private set => this.RaiseAndSetIfChanged(ref _OutputColumnSpan, value);
+		}
+
+		public string PauseButtonContent
+		{
+			get => _PauseButtonContent;
+			set => this.RaiseAndSetIfChanged(ref _PauseButtonContent, value);
+		}
+
+		public ICommand PauseCommand { get; }
+		public ICommand PrintOutputCommand { get; }
+		public ICommand RestartCommand { get; }
+		public ICommand SaveBotSettingsCommand { get; }
+		public ICommand SaveColorsCommand { get; }
+		public ICommand SaveOutputCommand { get; }
+		public ICommand TakeInputCommand { get; }
+		public IObservable<string> ThreadCount { get; }
+		public IObservable<string> Uptime { get; }
+
+		private async Task ClearOutput(Window window)
+		{
+			if (await MessageBox.ShowAsync(window, "Are you sure you want to clear the output window?", _Caption, new[] { "Yes", "No" }) == "Yes")
 			{
-				//If not the targeted menu, set to false
-				//If the targeted menu, toggle the visibility
-				var currentValue = _MenuStatuses[key];
-				var newValue = key == name && !currentValue;
-				if (currentValue != newValue)
-				{
-					_MenuStatuses[key] = newValue;
-					this.RaisePropertyChanged(key);
-				}
+				Output = "";
 			}
-			OutputColumnSpan = _MenuStatuses.Any(kvp => kvp.Value) ? 1 : 2;
 		}
+
 		private async Task DisconnectAsync(Window window)
 		{
 			if (await MessageBox.ShowAsync(window, "Are you sure you want to disconnect the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
@@ -164,19 +172,10 @@ namespace Advobot.UI.ViewModels
 				await _Client.DisconnectBotAsync();
 			}
 		}
-		private async Task RestartAsync(Window window)
-		{
-			if (await MessageBox.ShowAsync(window, "Are you sure you want to restart the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
-			{
-				await _Client.RestartBotAsync(_BotSettings);
-			}
-		}
-		private void Pause()
-		{
-			PauseButtonContent = _BotSettings.Pause ? "Pause" : "Unpause";
-			ConsoleUtils.WriteLine($"The bot is now {(_BotSettings.Pause ? "unpaused" : "paused")}.", name: "Pause");
-			_BotSettings.Pause = !_BotSettings.Pause;
-		}
+
+		private bool GetMenuStatus([CallerMemberName] string caller = "")
+							=> _MenuStatuses.GetOrAdd(caller, false);
+
 		private async Task OpenFileSearchWindowAsync(Window window)
 		{
 			//Returns array of strings, but AllowMultiple is false so should only have 1 or 0
@@ -194,29 +193,67 @@ namespace Advobot.UI.ViewModels
 				}.ShowDialog(window);
 			}
 		}
-		private void SaveColorSettings()
+
+		private void OpenMenu(string name)
 		{
-			_Colors.Save();
-			ConsoleUtils.WriteLine("Successfully saved the color settings.", name: "Saving");
+			foreach (var key in new List<string>(_MenuStatuses.Keys))
+			{
+				//If not the targeted menu, set to false
+				//If the targeted menu, toggle the visibility
+				var currentValue = _MenuStatuses[key];
+				var newValue = key == name && !currentValue;
+				if (currentValue != newValue)
+				{
+					_MenuStatuses[key] = newValue;
+					this.RaisePropertyChanged(key);
+				}
+			}
+			OutputColumnSpan = _MenuStatuses.Any(kvp => kvp.Value) ? 1 : 2;
 		}
+
+		private Task OpenOutputSearchWindowAsync(Window window)
+			=> new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog(window);
+
+		private void Pause()
+		{
+			PauseButtonContent = _BotSettings.Pause ? "Pause" : "Unpause";
+			ConsoleUtils.WriteLine($"The bot is now {(_BotSettings.Pause ? "unpaused" : "paused")}.", name: "Pause");
+			_BotSettings.Pause = !_BotSettings.Pause;
+		}
+
+		private void PrintOutput(string value)
+											=> Output += value;
+
+		private async Task RestartAsync(Window window)
+		{
+			if (await MessageBox.ShowAsync(window, "Are you sure you want to restart the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
+			{
+				await _Client.RestartBotAsync(_BotSettings);
+			}
+		}
+
 		private void SaveBotSettings()
 		{
 			_BotSettings.Save();
 			ConsoleUtils.WriteLine("Successfully saved the bot settings.", name: "Saving");
 		}
-		private async Task ClearOutput(Window window)
+
+		private void SaveColorSettings()
 		{
-			if (await MessageBox.ShowAsync(window, "Are you sure you want to clear the output window?", _Caption, new[] { "Yes", "No" }) == "Yes")
-			{
-				Output = "";
-			}
+			_Colors.Save();
+			ConsoleUtils.WriteLine("Successfully saved the color settings.", name: "Saving");
 		}
+
 		private void SaveOutput()
 		{
 			var response = _BotSettings.GenerateFileName("Output").SaveAndGetResponse(Output).Text;
 			ConsoleUtils.WriteLine(response, name: "Saving Output");
 		}
-		private Task OpenOutputSearchWindowAsync(Window window)
-			=> new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog(window);
+
+		private void TakeInput()
+		{
+			ConsoleUtils.WriteLine(Input, name: "UIInput");
+			Input = "";
+		}
 	}
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+
 using Advobot.UI.Converters;
+
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -14,11 +16,15 @@ namespace Advobot.UI.Controls
 	/// </summary>
 	public class DynamicFontSizeGrid : Grid
 	{
-		private static readonly ConcurrentDictionary<TemplatedControl, IDisposable> _Bindings
-			= new ConcurrentDictionary<TemplatedControl, IDisposable>();
-
 		public static readonly StyledProperty<double> DynamicFontSizeProperty =
 			AvaloniaProperty.Register<DynamicFontSizeGrid, double>(nameof(DynamicFontSize));
+
+		public static readonly AttachedProperty<double> OverrideDynamicFontSizeProperty =
+			AvaloniaProperty.RegisterAttached<DynamicFontSizeGrid, Control, double>("OverrideDynamicFontSize");
+
+		private static readonly ConcurrentDictionary<TemplatedControl, IDisposable> _Bindings
+							= new ConcurrentDictionary<TemplatedControl, IDisposable>();
+
 		public double DynamicFontSize
 		{
 			get => GetValue(DynamicFontSizeProperty);
@@ -29,8 +35,9 @@ namespace Advobot.UI.Controls
 			}
 		}
 
-		public static readonly AttachedProperty<double> OverrideDynamicFontSizeProperty =
-			AvaloniaProperty.RegisterAttached<DynamicFontSizeGrid, Control, double>("OverrideDynamicFontSize");
+		public static double GetOverrideDynamicFontSize(Control obj)
+			=> obj.GetValue(OverrideDynamicFontSizeProperty);
+
 		public static void SetOverrideDynamicFontSize(Control obj, double value)
 		{
 			if (obj is Panel panel)
@@ -41,13 +48,8 @@ namespace Advobot.UI.Controls
 			{
 				SetChild(templatedControl, value);
 			}
-			if (obj != null)
-			{
-				obj.SetValue(OverrideDynamicFontSizeProperty, value);
-			}
+			obj?.SetValue(OverrideDynamicFontSizeProperty, value);
 		}
-		public static double GetOverrideDynamicFontSize(Control obj)
-			=> obj.GetValue(OverrideDynamicFontSizeProperty);
 
 		public override void EndInit()
 		{
@@ -57,6 +59,7 @@ namespace Advobot.UI.Controls
 			}
 			base.EndInit();
 		}
+
 		private static void SetAllChildren(Panel parent, double value)
 		{
 			foreach (var child in parent.Children.OfType<TemplatedControl>())
@@ -87,6 +90,7 @@ namespace Advobot.UI.Controls
 				}
 			}
 		}
+
 		private static void SetChild(TemplatedControl obj, double value)
 		{
 			if (value < 0)

@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.TypeReaders.BannedPhraseTypeReaders
@@ -32,6 +36,7 @@ namespace Advobot.TypeReaders.BannedPhraseTypeReaders
 			var matches = GetBannedPhrases(settings).Where(x => x.Phrase.CaseInsEquals(input)).ToArray();
 			return TypeReaderUtils.SingleValidResult(matches, $"banned {BannedPhraseName}", input);
 		}
+
 		/// <summary>
 		/// Gets banned phrases from <paramref name="settings"/>.
 		/// </summary>

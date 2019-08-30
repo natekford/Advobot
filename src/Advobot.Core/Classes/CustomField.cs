@@ -9,17 +9,19 @@ namespace Advobot.Classes
 	public sealed class CustomField
 	{
 		/// <summary>
+		/// Whether the field is inline.
+		/// </summary>
+		public bool Inline { get; set; }
+
+		/// <summary>
 		/// The name of the field.
 		/// </summary>
 		public string Name { get; set; } = Constants.ZERO_LENGTH_CHAR;
+
 		/// <summary>
 		/// The text of the field.
 		/// </summary>
 		public string Text { get; set; } = Constants.ZERO_LENGTH_CHAR;
-		/// <summary>
-		/// Whether the field is inline.
-		/// </summary>
-		public bool Inline { get; set; }
 
 		/// <summary>
 		/// Returns the name and text.

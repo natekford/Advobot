@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -14,6 +16,22 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 	public abstract class ChannelParameterPreconditionAttribute
 		: DiscordObjectParameterPreconditionAttribute
 	{
+		/// <summary>
+		/// Checks whether the condition for the <see cref="IGuildUser"/> is met before execution of the command.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="invoker"></param>
+		/// <param name="channel"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		protected abstract Task<PreconditionResult> SingularCheckChannelAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			IGuildChannel channel,
+			IServiceProvider services);
+
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
@@ -31,20 +49,5 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 			}
 			return SingularCheckChannelAsync(context, parameter, invoker, channel, services);
 		}
-		/// <summary>
-		/// Checks whether the condition for the <see cref="IGuildUser"/> is met before execution of the command.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parameter"></param>
-		/// <param name="invoker"></param>
-		/// <param name="channel"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		protected abstract Task<PreconditionResult> SingularCheckChannelAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IGuildUser invoker,
-			IGuildChannel channel,
-			IServiceProvider services);
 	}
 }

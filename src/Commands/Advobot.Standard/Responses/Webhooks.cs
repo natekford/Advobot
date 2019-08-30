@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
+
 using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
 	public sealed class Webhooks : CommandResponses
 	{
-		private Webhooks() { }
+		private Webhooks()
+		{
+		}
 
 		public static AdvobotResult DisplayWebhooks(
 			ISnowflakeEntity source,
@@ -30,6 +36,7 @@ namespace Advobot.Standard.Responses
 				Description = description,
 			});
 		}
+
 		public static AdvobotResult ModifiedChannel(IWebhook webhook, ITextChannel channel)
 		{
 			return Success(WebhooksModifiedChannel.Format(

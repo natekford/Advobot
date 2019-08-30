@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+
 using Discord;
 
 namespace Advobot.Services.GuildSettings
@@ -11,13 +12,31 @@ namespace Advobot.Services.GuildSettings
 	/// </summary>
 	public sealed class DeletedMessageCache : IDisposable
 	{
+		private CancellationTokenSource _CancelTokenSource = new CancellationTokenSource();
+
+		private ConcurrentBag<IMessage> _Messages = new ConcurrentBag<IMessage>();
+
 		/// <summary>
 		/// The amount of messages currently cached.
 		/// </summary>
 		public int Count => _Messages.Count;
 
-		private CancellationTokenSource _CancelTokenSource = new CancellationTokenSource();
-		private ConcurrentBag<IMessage> _Messages = new ConcurrentBag<IMessage>();
+		/// <summary>
+		/// Adds the message to the cache.
+		/// </summary>
+		/// <param name="message"></param>
+		public void Add(IMessage message)
+			=> _Messages.Add(message);
+
+		/// <inheritdoc />
+		public void Dispose()
+			=> _CancelTokenSource?.Dispose();
+
+		/// <summary>
+		/// Removes all of the cached messages from the cache and returns them.
+		/// </summary>
+		public IReadOnlyCollection<IMessage> Empty()
+			=> Interlocked.Exchange(ref _Messages, new ConcurrentBag<IMessage>()).ToArray();
 
 		/// <summary>
 		/// Cancels the previous cancellation token and generates a new one from a new source.
@@ -29,19 +48,5 @@ namespace Advobot.Services.GuildSettings
 			_CancelTokenSource?.Dispose();
 			return (_CancelTokenSource = new CancellationTokenSource()).Token;
 		}
-		/// <summary>
-		/// Removes all of the cached messages from the cache and returns them.
-		/// </summary>
-		public IReadOnlyCollection<IMessage> Empty()
-			=> Interlocked.Exchange(ref _Messages, new ConcurrentBag<IMessage>()).ToArray();
-		/// <summary>
-		/// Adds the message to the cache.
-		/// </summary>
-		/// <param name="message"></param>
-		public void Add(IMessage message)
-			=> _Messages.Add(message);
-		/// <inheritdoc />
-		public void Dispose()
-			=> _CancelTokenSource?.Dispose();
 	}
 }

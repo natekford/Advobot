@@ -1,10 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using ImageMagick;
 
 namespace Advobot.Services.ImageResizing
@@ -14,22 +18,6 @@ namespace Advobot.Services.ImageResizing
 	/// </summary>
 	public abstract class ImageContextBase : IImageContext
 	{
-		/// <inheritdoc />
-		public abstract long MaxAllowedLengthInBytes { get; }
-		/// <inheritdoc />
-		public abstract string Type { get; }
-		/// <inheritdoc />
-		public ulong GuildId => Context.Guild.Id;
-		/// <inheritdoc />
-		public Uri Url { get; }
-		/// <inheritdoc />
-		public UserProvidedImageArgs Args { get; }
-
-		/// <summary>
-		/// The command context for this image context.
-		/// </summary>
-		protected ICommandContext Context { get; }
-
 		private IUserMessage? _Message;
 
 		/// <summary>
@@ -38,7 +26,7 @@ namespace Advobot.Services.ImageResizing
 		/// <param name="context"></param>
 		/// <param name="url"></param>
 		/// <param name="userArgs"></param>
-		public ImageContextBase(ICommandContext context, Uri url, UserProvidedImageArgs userArgs)
+		protected ImageContextBase(ICommandContext context, Uri url, UserProvidedImageArgs userArgs)
 		{
 			Context = context ?? throw new ArgumentNullException(nameof(context));
 			Url = url ?? throw new ArgumentNullException(nameof(url));
@@ -46,9 +34,41 @@ namespace Advobot.Services.ImageResizing
 		}
 
 		/// <inheritdoc />
-		public abstract Task<IResult> UseStream(MemoryStream stream);
+		public UserProvidedImageArgs Args { get; }
+
+		/// <inheritdoc />
+		public ulong GuildId => Context.Guild.Id;
+
+		/// <inheritdoc />
+		public abstract long MaxAllowedLengthInBytes { get; }
+
+		/// <inheritdoc />
+		public abstract string Type { get; }
+
+		/// <inheritdoc />
+		public Uri Url { get; }
+
+		/// <summary>
+		/// The command context for this image context.
+		/// </summary>
+		protected ICommandContext Context { get; }
+
 		/// <inheritdoc />
 		public abstract IResult CanUseFormat(MagickFormat format);
+
+		/// <inheritdoc />
+		public async Task ReportAsync(string value)
+		{
+			if (_Message != null)
+			{
+				await _Message.ModifyAsync(x => x.Content = value).CAF();
+			}
+			else
+			{
+				_Message = await MessageUtils.SendMessageAsync(Context.Channel, value).CAF();
+			}
+		}
+
 		/// <inheritdoc />
 		public async Task SendFinalResponseAsync(IResult result)
 		{
@@ -63,17 +83,8 @@ namespace Advobot.Services.ImageResizing
 				: $"Failed to create the {t}. Reason: {result.ErrorReason}.";
 			await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
 		}
+
 		/// <inheritdoc />
-		public async Task ReportAsync(string value)
-		{
-			if (_Message != null)
-			{
-				await _Message.ModifyAsync(x => x.Content = value).CAF();
-			}
-			else
-			{
-				_Message = await MessageUtils.SendMessageAsync(Context.Channel, value).CAF();
-			}
-		}
+		public abstract Task<IResult> UseStream(MemoryStream stream);
 	}
 }

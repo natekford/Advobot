@@ -1,8 +1,11 @@
 ﻿using System.Linq;
 using System.Reflection;
 using System.Threading;
+
 using Advobot.Services.GuildSettings.Settings;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Services.GuildSettings.UserInformation
@@ -14,43 +17,53 @@ namespace Advobot.Services.GuildSettings.UserInformation
 	{
 		private static readonly PropertyInfo[] _Properties = typeof(BannedPhraseUserInfo).GetProperties();
 
-		/// <summary>
-		/// The amount of messages that gave them a kick punishment.
-		/// </summary>
-		public int Kick => _Kick;
-		/// <summary>
-		/// The amount of messages that gave them a ban punishment.
-		/// </summary>
-		public int Ban => _Ban;
-		/// <summary>
-		/// The amount of messages that gave them a deafen punishment.
-		/// </summary>
-		public int Deafen => _Deafen;
-		/// <summary>
-		/// The amount of messages that gave them a voice mute punishment.
-		/// </summary>
-		public int VoiceMute => _VoiceMute;
-		/// <summary>
-		/// The amount of messages that gave them a soft ban punishment.
-		/// </summary>
-		public int Softban => _Softban;
-		/// <summary>
-		/// The amount of messages that gave them a role mute punishment.
-		/// </summary>
-		public int RoleMute => _RoleMute;
+		private int _Ban;
+
+		private int _Deafen;
 
 		private int _Kick;
-		private int _Ban;
-		private int _Deafen;
-		private int _VoiceMute;
-		private int _Softban;
+
 		private int _RoleMute;
+
+		private int _Softban;
+
+		private int _VoiceMute;
 
 		/// <summary>
 		/// Creates an instance of bannedphraseuserinfo.
 		/// </summary>
 		/// <param name="user"></param>
 		public BannedPhraseUserInfo(IGuildUser user) : base(user) { }
+
+		/// <summary>
+		/// The amount of messages that gave them a ban punishment.
+		/// </summary>
+		public int Ban => _Ban;
+
+		/// <summary>
+		/// The amount of messages that gave them a deafen punishment.
+		/// </summary>
+		public int Deafen => _Deafen;
+
+		/// <summary>
+		/// The amount of messages that gave them a kick punishment.
+		/// </summary>
+		public int Kick => _Kick;
+
+		/// <summary>
+		/// The amount of messages that gave them a role mute punishment.
+		/// </summary>
+		public int RoleMute => _RoleMute;
+
+		/// <summary>
+		/// The amount of messages that gave them a soft ban punishment.
+		/// </summary>
+		public int Softban => _Softban;
+
+		/// <summary>
+		/// The amount of messages that gave them a voice mute punishment.
+		/// </summary>
+		public int VoiceMute => _VoiceMute;
 
 		/// <summary>
 		/// Returns the value of the specified punishment.
@@ -83,6 +96,7 @@ namespace Advobot.Services.GuildSettings.UserInformation
 			Punishment.RoleMute => Interlocked.Increment(ref _RoleMute),
 			_ => -1,
 		};
+
 		/// <summary>
 		/// Sets the banned phrase count for that punishment back to zero.
 		/// </summary>
@@ -97,6 +111,7 @@ namespace Advobot.Services.GuildSettings.UserInformation
 			Punishment.RoleMute => Interlocked.Exchange(ref _RoleMute, 0),
 			_ => -1,
 		};
+
 		/// <inheritdoc />
 		public override void Reset()
 		{
@@ -107,6 +122,7 @@ namespace Advobot.Services.GuildSettings.UserInformation
 			Interlocked.Exchange(ref _Softban, 0);
 			Interlocked.Exchange(ref _RoleMute, 0);
 		}
+
 		/// <summary>
 		/// Returns the count of each punishment type.
 		/// </summary>

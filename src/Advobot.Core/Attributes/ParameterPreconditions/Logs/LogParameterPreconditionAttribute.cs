@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.ParameterPreconditions.Logs
@@ -19,10 +23,18 @@ namespace Advobot.Attributes.ParameterPreconditions.Logs
 		/// <inheritdoc />
 		public override string Summary
 			=> $"Not the current {LogName} log";
+
 		/// <summary>
 		/// Gets the name of the log.
 		/// </summary>
 		protected abstract string LogName { get; }
+
+		/// <summary>
+		/// Gets the current id of this log.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <returns></returns>
+		protected abstract ulong GetId(IGuildSettings settings);
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
@@ -44,11 +56,5 @@ namespace Advobot.Attributes.ParameterPreconditions.Logs
 			}
 			return PreconditionUtils.FromError($"`{channel.Format()}` is already the current {LogName} log.");
 		}
-		/// <summary>
-		/// Gets the current id of this log.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <returns></returns>
-		protected abstract ulong GetId(IGuildSettings settings);
 	}
 }

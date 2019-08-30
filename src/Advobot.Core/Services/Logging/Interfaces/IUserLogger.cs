@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+
 using Discord.WebSocket;
 
 namespace Advobot.Services.Logging.Interfaces
@@ -14,12 +15,14 @@ namespace Advobot.Services.Logging.Interfaces
 		/// <param name="user"></param>
 		/// <returns></returns>
 		Task OnUserJoined(SocketGuildUser user);
+
 		/// <summary>
 		/// When a user leaves a guild.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <returns></returns>
 		Task OnUserLeft(SocketGuildUser user);
+
 		/// <summary>
 		/// When a user updates themself. (name, picture, etc)
 		/// </summary>

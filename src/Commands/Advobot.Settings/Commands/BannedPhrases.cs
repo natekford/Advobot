@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.BannedPhrases;
 using Advobot.Attributes.ParameterPreconditions.Strings;
@@ -11,6 +12,7 @@ using Advobot.Services.GuildSettings.Settings;
 using Advobot.Settings.Localization;
 using Advobot.Settings.Resources;
 using Advobot.TypeReaders.BannedPhraseTypeReaders;
+
 using Discord.Commands;
 
 namespace Advobot.Settings.Commands
@@ -18,11 +20,20 @@ namespace Advobot.Settings.Commands
 	[Category(nameof(BannedPhrases))]
 	public sealed class BannedPhrases : ModuleBase
 	{
-		[Group(nameof(ModifyBannedStrings)), ModuleInitialismAlias(typeof(ModifyBannedStrings))]
-		[LocalizedSummary(nameof(Summaries.ModifyBannedStrings))]
-		[Meta("6e494bca-519e-41ce-998a-f71f0677dfb0")]
+		[Group(nameof(ModifyBannedNames)), ModuleInitialismAlias(typeof(ModifyBannedNames))]
+		[LocalizedSummary(nameof(Summaries.ModifyBannedNames))]
+		[Meta("c19c7402-4206-48ce-b109-ab11da476ac2")]
 		[RequireGuildPermissions]
-		public sealed class ModifyBannedStrings : SettingsModule<IGuildSettings>
+		public sealed class ModifyBannedNames : SettingsModule<IGuildSettings>
+		{
+			protected override IGuildSettings Settings => Context.Settings;
+		}
+
+		[Group(nameof(ModifyBannedPhrasePunishments)), ModuleInitialismAlias(typeof(ModifyBannedPhrasePunishments))]
+		[LocalizedSummary(nameof(Summaries.ModifyBannedPhrasePunishments))]
+		[Meta("4b4584ae-2b60-4aff-92a1-fb2c929f3daf")]
+		[RequireGuildPermissions]
+		public sealed class ModifyBannedPhrasePunishments : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 		}
@@ -45,14 +56,7 @@ namespace Advobot.Settings.Commands
 				Settings.BannedPhraseRegex.Add(phrase);
 				return Responses.BannedPhrases.Modified("regex", true, phrase);
 			}
-			[ImplicitCommand, ImplicitAlias]
-			[BannedRegexLimit(QuantityLimitAction.Remove)]
-			public Task<RuntimeResult> Remove(
-				[OverrideTypeReader(typeof(BannedRegexTypeReader))] BannedPhrase regex)
-			{
-				Settings.BannedPhraseRegex.Remove(regex);
-				return Responses.BannedPhrases.Modified("regex", false, regex);
-			}
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> ChangePunishment(
 				[OverrideTypeReader(typeof(BannedRegexTypeReader))] BannedPhrase regex,
@@ -61,26 +65,27 @@ namespace Advobot.Settings.Commands
 				regex.Punishment = punishment;
 				return Responses.BannedPhrases.ChangePunishment("regex", regex, punishment);
 			}
+
+			[ImplicitCommand, ImplicitAlias]
+			[BannedRegexLimit(QuantityLimitAction.Remove)]
+			public Task<RuntimeResult> Remove(
+				[OverrideTypeReader(typeof(BannedRegexTypeReader))] BannedPhrase regex)
+			{
+				Settings.BannedPhraseRegex.Remove(regex);
+				return Responses.BannedPhrases.Modified("regex", false, regex);
+			}
 		}
 
-		[Group(nameof(ModifyBannedNames)), ModuleInitialismAlias(typeof(ModifyBannedNames))]
-		[LocalizedSummary(nameof(Summaries.ModifyBannedNames))]
-		[Meta("c19c7402-4206-48ce-b109-ab11da476ac2")]
+		[Group(nameof(ModifyBannedStrings)), ModuleInitialismAlias(typeof(ModifyBannedStrings))]
+		[LocalizedSummary(nameof(Summaries.ModifyBannedStrings))]
+		[Meta("6e494bca-519e-41ce-998a-f71f0677dfb0")]
 		[RequireGuildPermissions]
-		public sealed class ModifyBannedNames : SettingsModule<IGuildSettings>
-		{
-			protected override IGuildSettings Settings => Context.Settings;
-		}
-
-		[Group(nameof(ModifyBannedPhrasePunishments)), ModuleInitialismAlias(typeof(ModifyBannedPhrasePunishments))]
-		[LocalizedSummary(nameof(Summaries.ModifyBannedPhrasePunishments))]
-		[Meta("4b4584ae-2b60-4aff-92a1-fb2c929f3daf")]
-		[RequireGuildPermissions]
-		public sealed class ModifyBannedPhrasePunishments : SettingsModule<IGuildSettings>
+		public sealed class ModifyBannedStrings : SettingsModule<IGuildSettings>
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 		}
 	}
+
 	/*
 	[Category(typeof(ModifyBannedPhrasePunishments)), Group(nameof(ModifyBannedPhrasePunishments)), TopLevelShortAlias(typeof(ModifyBannedPhrasePunishments))]
 	[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. " +

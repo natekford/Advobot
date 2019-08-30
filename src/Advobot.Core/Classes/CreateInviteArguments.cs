@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord;
 using Discord.Commands;
 
@@ -13,23 +15,26 @@ namespace Advobot.Classes
 	public sealed class CreateInviteArguments
 	{
 		/// <summary>
+		/// Whether the user only receives temporary membership from the invite.
+		/// </summary>
+		public bool IsTemporary { get; set; }
+
+		/// <summary>
+		/// Whether the invite should be unique.
+		/// </summary>
+		public bool IsUnique { get; set; }
+
+		/// <summary>
 		/// How long to make the invite last for.
 		/// </summary>
 		[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
 		public int? Time { get; set; } = 86400;
+
 		/// <summary>
 		/// How many uses to let the invite last for.
 		/// </summary>
 		[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
 		public int? Uses { get; set; }
-		/// <summary>
-		/// Whether the user only receives temporary membership from the invite.
-		/// </summary>
-		public bool IsTemporary { get; set; }
-		/// <summary>
-		/// Whether the invite should be unique.
-		/// </summary>
-		public bool IsUnique { get; set; }
 
 		/// <summary>
 		/// Creates an invite with the supplied parameters.

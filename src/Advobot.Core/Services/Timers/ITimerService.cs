@@ -14,18 +14,21 @@ namespace Advobot.Services.Timers
 		/// <param name="value"></param>
 		/// <returns></returns>
 		void Add(RemovablePunishment value);
+
 		/// <summary>
 		/// Stores <paramref name="value"/>.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
 		void Add(RemovableMessage value);
+
 		/// <summary>
 		/// Stores <paramref name="value"/>.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
 		void Add(TimedMessage value);
+
 		/// <summary>
 		/// Removes the punishment from the database and returns it.
 		/// </summary>

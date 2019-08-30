@@ -3,8 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Formatting
@@ -14,15 +17,6 @@ namespace Advobot.Formatting
 	/// </summary>
 	public class ArgumentFormatter : IFormatProvider, ICustomFormatter
 	{
-		/// <summary>
-		/// What to join <see cref="IEnumerable{T}"/> with.
-		/// </summary>
-		public string Joiner { get; set; } = ", ";
-		/// <summary>
-		/// Specified formats.
-		/// </summary>
-		public IList<FormatApplier> Formats { get; set; } = new List<FormatApplier>();
-
 		private readonly ICollection<IObjectToStringConverter> _ObjectConverters;
 
 		/// <summary>
@@ -44,9 +38,25 @@ namespace Advobot.Formatting
 			};
 		}
 
-		/// <inheritdoc />
-		public object? GetFormat(Type formatType)
-			=> formatType == typeof(ICustomFormatter) ? this : null;
+		private interface IObjectToStringConverter
+		{
+			double Priority { get; }
+
+			bool CanFormat(object obj);
+
+			string Format(string format, object obj);
+		}
+
+		/// <summary>
+		/// Specified formats.
+		/// </summary>
+		public IList<FormatApplier> Formats { get; set; } = new List<FormatApplier>();
+
+		/// <summary>
+		/// What to join <see cref="IEnumerable{T}"/> with.
+		/// </summary>
+		public string Joiner { get; set; } = ", ";
+
 		/// <inheritdoc />
 		public string Format(string format, object arg, IFormatProvider formatProvider)
 		{
@@ -56,6 +66,11 @@ namespace Advobot.Formatting
 			}
 			return Format(format, arg);
 		}
+
+		/// <inheritdoc />
+		public object? GetFormat(Type formatType)
+			=> formatType == typeof(ICustomFormatter) ? this : null;
+
 		private string Format(string format, object arg)
 		{
 			var highestPriority = _ObjectConverters
@@ -70,6 +85,7 @@ namespace Advobot.Formatting
 			}
 			return highestPriority[0].Format(format, arg);
 		}
+
 		private string FormatEnumerable(string format, IEnumerable arg)
 		{
 			var sb = new StringBuilder();
@@ -83,6 +99,7 @@ namespace Advobot.Formatting
 			}
 			return sb.Length > 0 ? sb.ToString() : FormatString(format, "None");
 		}
+
 		private string FormatString(string format, string arg)
 		{
 			var validFormatOptions = Formats.Select(x => x.FormatName);
@@ -98,18 +115,8 @@ namespace Advobot.Formatting
 			return arg;
 		}
 
-		private interface IObjectToStringConverter
-		{
-			double Priority { get; }
-
-			bool CanFormat(object obj);
-			string Format(string format, object obj);
-		}
-
 		private readonly struct NullToStringConverter : IObjectToStringConverter
 		{
-			public double Priority { get; }
-
 			private readonly Func<string, string> _Func;
 
 			/// <summary>
@@ -123,8 +130,11 @@ namespace Advobot.Formatting
 				_Func = func;
 			}
 
+			public double Priority { get; }
+
 			public bool CanFormat(object obj)
 				=> obj is null;
+
 			public string Format(string format)
 				=> _Func(format);
 
@@ -134,8 +144,6 @@ namespace Advobot.Formatting
 
 		private readonly struct ObjectToStringConverter<T> : IObjectToStringConverter
 		{
-			public double Priority { get; }
-
 			private readonly Func<string, T, string> _Func;
 
 			/// <summary>
@@ -149,8 +157,11 @@ namespace Advobot.Formatting
 				_Func = func;
 			}
 
+			public double Priority { get; }
+
 			public bool CanFormat(object obj)
 				=> obj is T;
+
 			public string Format(string format, T obj)
 				=> _Func(format, obj);
 

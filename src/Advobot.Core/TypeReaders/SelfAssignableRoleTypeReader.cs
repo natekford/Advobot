@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.TypeReaders

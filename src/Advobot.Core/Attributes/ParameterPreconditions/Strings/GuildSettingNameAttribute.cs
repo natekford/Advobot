@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.ParameterPreconditions.Strings
@@ -15,15 +19,16 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	public sealed class GuildSettingNameAttribute
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
-		/// <inheritdoc />
-		public override string StringType => "guild setting name";
-		/// <inheritdoc />
-		public ExistenceStatus Status => ExistenceStatus.MustExist;
-
 		/// <summary>
 		/// Creates an instance of <see cref="BotSettingNameAttribute"/>.
 		/// </summary>
 		public GuildSettingNameAttribute() : base(1, int.MaxValue) { }
+
+		/// <inheritdoc />
+		public ExistenceStatus Status => ExistenceStatus.MustExist;
+
+		/// <inheritdoc />
+		public override string StringType => "guild setting name";
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(

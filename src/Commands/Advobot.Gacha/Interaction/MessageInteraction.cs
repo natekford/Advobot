@@ -1,6 +1,9 @@
 ﻿using System.Threading.Tasks;
+
 using Advobot.Gacha.Displays;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -16,11 +19,13 @@ namespace Advobot.Gacha.Interaction
 			Manager.MessageReceived += HandleAsync;
 			return Task.CompletedTask;
 		}
+
 		public override Task StopAsync()
 		{
 			Manager.MessageReceived -= HandleAsync;
 			return Task.CompletedTask;
 		}
+
 		private Task HandleAsync(IMessage message)
 		{
 			if (!(message is IUserMessage msg)
@@ -31,6 +36,7 @@ namespace Advobot.Gacha.Interaction
 			}
 			return Display.InteractAsync(new InteractionContext(msg, action));
 		}
+
 		private bool TryGetMenuAction(IUserMessage message, out IInteraction? action)
 		{
 			action = null;

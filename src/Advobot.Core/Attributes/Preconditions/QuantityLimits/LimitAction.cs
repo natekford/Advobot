@@ -9,6 +9,7 @@
 		/// Specifies this command is used to add something.
 		/// </summary>
 		Add,
+
 		/// <summary>
 		/// Specifies this command is used to remove something.
 		/// </summary>

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.CommandAssemblies;
@@ -14,7 +15,9 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -29,19 +32,16 @@ namespace Advobot.Services.Commands
 		private static readonly RequestOptions _Options = DiscordUtils.GenerateRequestOptions("Command successfully executed.");
 		private static readonly TimeSpan _RemovalTime = TimeSpan.FromSeconds(10);
 
-		private readonly IServiceProvider _Provider;
+		private readonly IBotSettings _BotSettings;
 		private readonly DiscordShardedClient _Client;
 		private readonly CommandServiceConfig _CommandConfig;
 		private readonly Localized<CommandService> _CommandService;
-		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IHelpEntryService _HelpEntries;
+		private readonly IServiceProvider _Provider;
 		private readonly ITimerService _Timers;
 		private bool _Loaded;
 		private ulong _OwnerId;
-
-		/// <inheritdoc />
-		public event Action<IResult> CommandInvoked;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CommandHandlerService"/>.
@@ -80,6 +80,9 @@ namespace Advobot.Services.Commands
 			_Client.ShardReady += OnReady;
 			_Client.MessageReceived += HandleCommand;
 		}
+
+		/// <inheritdoc />
+		public event Action<IResult> CommandInvoked;
 
 		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> assemblies)
 		{
@@ -130,20 +133,50 @@ namespace Advobot.Services.Commands
 			}
 			CultureInfo.CurrentUICulture = currentCulture;
 		}
-		private async Task OnReady(DiscordSocketClient _)
+
+		private static bool CanBeIgnored(IAdvobotCommandContext c, IResult r)
 		{
-			if (_Loaded)
+			return r == null
+				|| r.Error == CommandError.UnknownCommand
+				|| (!r.IsSuccess && (r.ErrorReason == null || c.Settings.NonVerboseErrors))
+				|| (r is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(c, r)));
+		}
+
+		private static string FormatResult(IAdvobotCommandContext context, IResult result)
+		{
+			var resp = $"\n\tGuild: {context.Guild.Format()}" +
+				$"\n\tChannel: {context.Channel.Format()}" +
+				$"\n\tUser: {context.User.Format()}" +
+				$"\n\tTime: {context.Message.CreatedAt.UtcDateTime.ToReadable()} ({context.ElapsedMilliseconds}ms)" +
+				$"\n\tText: {context.Message.Content}";
+			if (!result.IsSuccess && result.ErrorReason != null)
+			{
+				resp += $"\n\tError: {result.ErrorReason}";
+			}
+			return resp;
+		}
+
+		private static async Task LogAsync(IAdvobotCommandContext context)
+		{
+			if (context.Settings.IgnoredLogChannels.Contains(context.Channel.Id))
 			{
 				return;
 			}
-			_Loaded = true;
 
-			_OwnerId = await _Client.GetOwnerIdAsync().CAF();
-			await _Client.UpdateGameAsync(_BotSettings).CAF();
-			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
-				$"Prefix: {_BotSettings.Prefix}; " +
-				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
+			var modLog = await context.Guild.GetTextChannelAsync(context.Settings.ModLogId).CAF();
+			if (modLog == null)
+			{
+				return;
+			}
+
+			await MessageUtils.SendMessageAsync(modLog, embedWrapper: new EmbedWrapper
+			{
+				Description = context.Message.Content,
+				Author = context.User.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = "Mod Log", },
+			}).CAF();
 		}
+
 		private async Task HandleCommand(IMessage message)
 		{
 			var argPos = -1;
@@ -166,11 +199,6 @@ namespace Advobot.Services.Commands
 			await commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
 
-		private Task OnLog(LogMessage e)
-		{
-			ConsoleUtils.WriteLine(e.ToString());
-			return Task.CompletedTask;
-		}
 		private async Task OnCommandExecuted(
 			Optional<CommandInfo> command,
 			ICommandContext originalContext,
@@ -205,45 +233,26 @@ namespace Advobot.Services.Commands
 				_Timers.Add(removable);
 			}
 		}
-		private static async Task LogAsync(IAdvobotCommandContext context)
+
+		private Task OnLog(LogMessage e)
 		{
-			if (context.Settings.IgnoredLogChannels.Contains(context.Channel.Id))
+			ConsoleUtils.WriteLine(e.ToString());
+			return Task.CompletedTask;
+		}
+
+		private async Task OnReady(DiscordSocketClient _)
+		{
+			if (_Loaded)
 			{
 				return;
 			}
+			_Loaded = true;
 
-			var modLog = await context.Guild.GetTextChannelAsync(context.Settings.ModLogId).CAF();
-			if (modLog == null)
-			{
-				return;
-			}
-
-			await MessageUtils.SendMessageAsync(modLog, embedWrapper: new EmbedWrapper
-			{
-				Description = context.Message.Content,
-				Author = context.User.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = "Mod Log", },
-			}).CAF();
-		}
-		private static string FormatResult(IAdvobotCommandContext context, IResult result)
-		{
-			var resp = $"\n\tGuild: {context.Guild.Format()}" +
-				$"\n\tChannel: {context.Channel.Format()}" +
-				$"\n\tUser: {context.User.Format()}" +
-				$"\n\tTime: {context.Message.CreatedAt.UtcDateTime.ToReadable()} ({context.ElapsedMilliseconds}ms)" +
-				$"\n\tText: {context.Message.Content}";
-			if (!result.IsSuccess && result.ErrorReason != null)
-			{
-				resp += $"\n\tError: {result.ErrorReason}";
-			}
-			return resp;
-		}
-		private static bool CanBeIgnored(IAdvobotCommandContext c, IResult r)
-		{
-			return r == null
-				|| r.Error == CommandError.UnknownCommand
-				|| (!r.IsSuccess && (r.ErrorReason == null || c.Settings.NonVerboseErrors))
-				|| (r is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(c, r)));
+			_OwnerId = await _Client.GetOwnerIdAsync().CAF();
+			await _Client.UpdateGameAsync(_BotSettings).CAF();
+			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
+				$"Prefix: {_BotSettings.Prefix}; " +
+				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
 		}
 	}
 }

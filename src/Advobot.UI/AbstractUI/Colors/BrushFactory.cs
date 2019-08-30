@@ -15,47 +15,6 @@ namespace Advobot.UI.AbstractUI.Colors
 		public T Default => CreateBrush("#FF000000");
 
 		/// <summary>
-		/// Creates a brush from the input.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public T CreateBrush(string input)
-			=> CreateBrush(ParseColorBytes(input));
-		/// <summary>
-		/// Attempts to create a brush from the input.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <param name="brush"></param>
-		/// <returns></returns>
-		public bool TryCreateBrush(string input, out T brush)
-		{
-			var success = TryParseColorBytes(input, out var bytes);
-			brush = success ? CreateBrush(bytes) : Default;
-			return success;
-		}
-		/// <summary>
-		/// Creates a brush from ARGB.
-		/// </summary>
-		/// <param name="bytes"></param>
-		/// <returns></returns>
-		public abstract T CreateBrush(byte[] bytes);
-		/// <summary>
-		/// Gets the brush's ARGB bytes.
-		/// </summary>
-		/// <param name="brush"></param>
-		/// <returns></returns>
-		public abstract byte[] GetBrushBytes(T brush);
-		/// <summary>
-		/// Returns the hex string representation of the brush.
-		/// </summary>
-		/// <param name="brush"></param>
-		/// <returns></returns>
-		public string FormatBrush(T brush)
-		{
-			var bytes = GetBrushBytes(brush);
-			return $"#{bytes[0]:X2}{bytes[1]:X2}{bytes[2]:X2}{bytes[3]:X2}";
-		}
-		/// <summary>
 		/// Gets ARGB color bytes.
 		/// </summary>
 		/// <param name="input"></param>
@@ -72,6 +31,7 @@ namespace Advobot.UI.AbstractUI.Colors
 			}
 			throw new InvalidOperationException($"Unable to create a brush out of {input}.");
 		}
+
 		/// <summary>
 		/// Attempts to get ARGB color bytes.
 		/// </summary>
@@ -98,6 +58,53 @@ namespace Advobot.UI.AbstractUI.Colors
 			bytes = new byte[] { 0, 0, 0, 0 };
 			return false;
 		}
+
+		/// <summary>
+		/// Creates a brush from the input.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public T CreateBrush(string input)
+			=> CreateBrush(ParseColorBytes(input));
+
+		/// <summary>
+		/// Creates a brush from ARGB.
+		/// </summary>
+		/// <param name="bytes"></param>
+		/// <returns></returns>
+		public abstract T CreateBrush(byte[] bytes);
+
+		/// <summary>
+		/// Returns the hex string representation of the brush.
+		/// </summary>
+		/// <param name="brush"></param>
+		/// <returns></returns>
+		public string FormatBrush(T brush)
+		{
+			var bytes = GetBrushBytes(brush);
+			return $"#{bytes[0]:X2}{bytes[1]:X2}{bytes[2]:X2}{bytes[3]:X2}";
+		}
+
+		/// <summary>
+		/// Gets the brush's ARGB bytes.
+		/// </summary>
+		/// <param name="brush"></param>
+		/// <returns></returns>
+		public abstract byte[] GetBrushBytes(T brush);
+
+		/// <summary>
+		/// Attempts to create a brush from the input.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="brush"></param>
+		/// <returns></returns>
+		public bool TryCreateBrush(string input, out T brush)
+		{
+			var success = TryParseColorBytes(input, out var bytes);
+			brush = success ? CreateBrush(bytes) : Default;
+			return success;
+		}
+
 		private static bool TryGetColorBytesARGB(string input, out byte[] bytes)
 		{
 			var split = input.Split('/');
@@ -128,6 +135,7 @@ namespace Advobot.UI.AbstractUI.Colors
 
 			return true;
 		}
+
 		private static bool TryGetColorBytesHex(string hex, out byte[] bytes)
 		{
 			var trimmed = hex.Replace("0x", "").TrimStart('&', 'h', '#', 'x');

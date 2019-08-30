@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using Advobot.Databases.Abstract;
 using Advobot.Services.GuildSettings;
 using Advobot.Settings;
 using Advobot.Utilities;
+
 using LiteDB;
 
 namespace Advobot.Databases.LiteDB
@@ -32,6 +34,7 @@ namespace Advobot.Databases.LiteDB
 			var file = AdvobotUtils.ValidateDbPath(_Accessor, "LiteDB", databaseName);
 			return new LiteDBWrapper(GetDatabase(file));
 		}
+
 		private static LiteDatabase GetDatabase(FileInfo file)
 		{
 			//Make sure the file is not currently being used if it exists
@@ -67,6 +70,12 @@ namespace Advobot.Databases.LiteDB
 					.Id(x => x.ProgramVersion);
 			}
 
+			object IDatabaseWrapper.UnderlyingDatabase => _Database;
+
+			/// <inheritdoc />
+			public void Dispose()
+				=> _Database?.Dispose();
+
 			/// <inheritdoc />
 			public IEnumerable<T> ExecuteQuery<T>(DatabaseQuery<T> options) where T : class, IDatabaseEntry
 			{
@@ -76,33 +85,35 @@ namespace Advobot.Databases.LiteDB
 					case DatabaseQuery<T>.DBAction.Update:
 						collection.Update(options.Values);
 						return options.Values;
+
 					case DatabaseQuery<T>.DBAction.Upsert:
 						collection.Upsert(options.Values);
 						return options.Values;
+
 					case DatabaseQuery<T>.DBAction.Insert:
 						collection.Insert(options.Values);
 						return options.Values;
+
 					case DatabaseQuery<T>.DBAction.Get:
 						return collection.Find(options.Selector, limit: options.Limit);
+
 					case DatabaseQuery<T>.DBAction.GetAll:
 						return collection.Find(Query.All());
+
 					case DatabaseQuery<T>.DBAction.DeleteFromExpression:
 						var values = new List<T>(collection.Find(options.Selector));
 						collection.DeleteMany(options.Selector);
 						return values;
+
 					case DatabaseQuery<T>.DBAction.DeleteFromValues:
 						var ids = options.Values.Select(x => x.Id);
 						collection.DeleteMany(x => ids.Contains(x.Id));
 						return options.Values;
+
 					default:
 						throw new ArgumentException(nameof(options.Action));
 				}
 			}
-			/// <inheritdoc />
-			public void Dispose()
-				=> _Database?.Dispose();
-
-			object IDatabaseWrapper.UnderlyingDatabase => _Database;
 		}
 	}
 }

@@ -1,6 +1,7 @@
-﻿using Advobot.UI.AbstractUI.Colors;
-using System;
+﻿using System;
 using System.Globalization;
+
+using Advobot.UI.AbstractUI.Colors;
 
 namespace Advobot.UI.AbstractUI.Converters
 {
@@ -25,6 +26,7 @@ namespace Advobot.UI.AbstractUI.Converters
 		public object Convert(object value, Type _1, object _2, CultureInfo _3)
 			=> value is TBrush brush ? _Factory.FormatBrush(brush)
 				: throw new InvalidOperationException("Invalid brush supplied for converting.");
+
 		/// <summary>
 		/// Converts a string to a <typeparamref name="TBrush"/>.
 		/// </summary>

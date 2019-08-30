@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Advobot.Localization;
 using Advobot.Settings.Resources;
 

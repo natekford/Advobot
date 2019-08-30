@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+
 using Advobot.Localization;
+
 using AdvorangesUtils;
 
 namespace Advobot.Services.HelpEntries
@@ -15,15 +17,18 @@ namespace Advobot.Services.HelpEntries
 		/// <inheritdoc />
 		public void Add(IModuleHelpEntry item)
 			=> _HelpEntries.Get().Add(item);
-		/// <inheritdoc />
-		public IReadOnlyList<string> GetCategories()
-			=> GetHelpEntries().Select(x => x.Category).Distinct().ToArray();
+
 		/// <inheritdoc />
 		public IReadOnlyList<IModuleHelpEntry> FindCloseHelpEntries(string input)
 		{
 			var matches = new CloseHelpEntries(GetHelpEntries()).FindMatches(input);
 			return matches.Select(x => x.Value).ToArray();
 		}
+
+		/// <inheritdoc />
+		public IReadOnlyList<string> GetCategories()
+			=> GetHelpEntries().Select(x => x.Category).Distinct().ToArray();
+
 		/// <inheritdoc />
 		public IReadOnlyList<IModuleHelpEntry> GetHelpEntries(string? category = null)
 		{

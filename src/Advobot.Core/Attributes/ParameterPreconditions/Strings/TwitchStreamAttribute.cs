@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.Strings
@@ -12,13 +15,13 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class TwitchStreamAttribute : StringParameterPreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override string StringType => "Twitch stream name";
-
 		/// <summary>
 		/// Creates an instance of <see cref="TwitchStreamAttribute"/>.
 		/// </summary>
 		public TwitchStreamAttribute() : base(4, 25) { }
+
+		/// <inheritdoc />
+		public override string StringType => "Twitch stream name";
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(

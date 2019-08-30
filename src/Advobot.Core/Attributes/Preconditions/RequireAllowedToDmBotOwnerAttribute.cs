@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Services.BotSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
+
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.Preconditions

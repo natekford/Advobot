@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Classes;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
 using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
+
 using LiteDB;
 
 namespace Advobot.Services.Levels
@@ -18,33 +22,6 @@ namespace Advobot.Services.Levels
 	/// </summary>
 	internal sealed class LevelService : DatabaseWrapperConsumer, ILevelService
 	{
-		/// <inheritdoc />
-		public override string DatabaseName => "LevelDatabase";
-		/// <summary>
-		/// The settings for each individual guild.
-		/// </summary>
-		private IGuildSettingsFactory SettingsFactory { get; }
-		/// <summary>
-		/// The bot client.
-		/// </summary>
-		private BaseSocketClient Client { get; }
-		/// <summary>
-		/// Used in calculating XP.
-		/// </summary>
-		private double Log { get; }
-		/// <summary>
-		/// Used in calculating XP.
-		/// </summary>
-		private double Pow { get; }
-		/// <summary>
-		/// The time between when XP can be gained again.
-		/// </summary>
-		private TimeSpan Time { get; }
-		/// <summary>
-		/// Base XP per message.
-		/// </summary>
-		private int BaseExperience { get; }
-
 		/// <summary>
 		/// Creates an instance of <see cref="LevelService"/>.
 		/// </summary>
@@ -56,6 +33,7 @@ namespace Advobot.Services.Levels
 			IGuildSettingsFactory settingsFactory,
 			BaseSocketClient client)
 			: this(dbFactory, settingsFactory, client, new LevelServiceArguments()) { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="LevelService"/>.
 		/// </summary>
@@ -82,6 +60,39 @@ namespace Advobot.Services.Levels
 		}
 
 		/// <inheritdoc />
+		public override string DatabaseName => "LevelDatabase";
+
+		/// <summary>
+		/// Base XP per message.
+		/// </summary>
+		private int BaseExperience { get; }
+
+		/// <summary>
+		/// The bot client.
+		/// </summary>
+		private BaseSocketClient Client { get; }
+
+		/// <summary>
+		/// Used in calculating XP.
+		/// </summary>
+		private double Log { get; }
+
+		/// <summary>
+		/// Used in calculating XP.
+		/// </summary>
+		private double Pow { get; }
+
+		/// <summary>
+		/// The settings for each individual guild.
+		/// </summary>
+		private IGuildSettingsFactory SettingsFactory { get; }
+
+		/// <summary>
+		/// The time between when XP can be gained again.
+		/// </summary>
+		private TimeSpan Time { get; }
+
+		/// <inheritdoc />
 		public async Task AddExperienceAsync(IMessage message)
 		{
 			if (message.Author.IsBot
@@ -101,6 +112,56 @@ namespace Advobot.Services.Levels
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Update(new[] { info }));
 			UpdateUserRank(info, guild);
 		}
+
+		/// <inheritdoc />
+		public int CalculateLevel(int experience)
+		{
+			var logged = Math.Log(experience, Log);
+			var powed = (int)Math.Pow(logged, Pow);
+			return Math.Min(powed, 0); //No negative levels
+		}
+
+		/// <inheritdoc />
+		public (int Rank, int TotalUsers) GetGlobalRank(IUser user)
+			=> GetRank("Global", user.Id);
+
+		/// <inheritdoc />
+		public (int Rank, int TotalUsers) GetGuildRank(IGuild guild, IUser user)
+			=> GetRank(GetCollectionName(guild), user.Id);
+
+		/// <inheritdoc />
+		public IUserExperienceInformation GetUserXpInformation(IUser user)
+		{
+			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Get(x => x.Id == user.Id, 1));
+			if (!values.Any())
+			{
+				var value = new UserExperienceInformation(user);
+				DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Insert(new[] { value }));
+				return value;
+			}
+			return values.Single();
+		}
+
+		/// <inheritdoc />
+		public EmbedWrapper GetUserXpInformationEmbedWrapper(IGuild guild, IUser user, bool global)
+		{
+			var info = GetUserXpInformation(user);
+			var (rank, totalUsers) = global ? GetGlobalRank(user) : GetGuildRank(guild, user);
+			var experience = global ? info.GetExperience() : info.GetExperience(guild);
+			var level = CalculateLevel(experience);
+
+			var name = user.Format() ?? user.Id.ToString();
+			var description = $"Rank: {rank} out of {totalUsers}\nXP: {experience}\nLevel: {level}";
+			return new EmbedWrapper
+			{
+				Title = $"{(global ? "Global" : "Guild")} xp information for {name}",
+				Description = description,
+				ThumbnailUrl = user.GetAvatarUrl(),
+				Author = user.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = "Xp Information", },
+			};
+		}
+
 		/// <inheritdoc />
 		public async Task RemoveExperienceAsync(Cacheable<IMessage, ulong> cached)
 		{
@@ -123,50 +184,7 @@ namespace Advobot.Services.Levels
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Update(new[] { info }));
 			UpdateUserRank(info, guild);
 		}
-		/// <inheritdoc />
-		public int CalculateLevel(int experience)
-		{
-			var logged = Math.Log(experience, Log);
-			var powed = (int)Math.Pow(logged, Pow);
-			return Math.Min(powed, 0); //No negative levels
-		}
-		/// <inheritdoc />
-		public (int Rank, int TotalUsers) GetGuildRank(IGuild guild, IUser user)
-			=> GetRank(GetCollectionName(guild), user.Id);
-		/// <inheritdoc />
-		public (int Rank, int TotalUsers) GetGlobalRank(IUser user)
-			=> GetRank("Global", user.Id);
-		/// <inheritdoc />
-		public IUserExperienceInformation GetUserXpInformation(IUser user)
-		{
-			var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Get(x => x.Id == user.Id, 1));
-			if (!values.Any())
-			{
-				var value = new UserExperienceInformation(user);
-				DatabaseWrapper.ExecuteQuery(DatabaseQuery<UserExperienceInformation>.Insert(new[] { value }));
-				return value;
-			}
-			return values.Single();
-		}
-		/// <inheritdoc />
-		public EmbedWrapper GetUserXpInformationEmbedWrapper(IGuild guild, IUser user, bool global)
-		{
-			var info = GetUserXpInformation(user);
-			var (rank, totalUsers) = global ? GetGlobalRank(user) : GetGuildRank(guild, user);
-			var experience = global ? info.GetExperience() : info.GetExperience(guild);
-			var level = CalculateLevel(experience);
 
-			var name = user.Format() ?? user.Id.ToString();
-			var description = $"Rank: {rank} out of {totalUsers}\nXP: {experience}\nLevel: {level}";
-			return new EmbedWrapper
-			{
-				Title = $"{(global ? "Global" : "Guild")} xp information for {name}",
-				Description = description,
-				ThumbnailUrl = user.GetAvatarUrl(),
-				Author = user.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = "Xp Information", },
-			};
-		}
 		protected override void AfterStart(int schema)
 		{
 			if (schema < 3) //Relying on LiteDB
@@ -186,11 +204,7 @@ namespace Advobot.Services.Levels
 				}
 			}
 		}
-		private void UpdateUserRank(IUserExperienceInformation info, IGuild guild)
-		{
-			UpdateRank(GetCollectionName(guild), info.UserId, info.GetExperience(guild));
-			UpdateRank("Global", info.UserId, info.GetExperience());
-		}
+
 		private string GetCollectionName(IGuild guild)
 		{
 			//LiteDB doesn't support numbers anymore (since 5.0 preview)
@@ -198,11 +212,12 @@ namespace Advobot.Services.Levels
 			var id = guild.Id;
 			while (--id != ulong.MaxValue)
 			{
-				name = (char)('A' + id % 26) + name;
+				name = (char)('A' + (id % 26)) + name;
 				id /= 26;
 			}
 			return name;
 		}
+
 		private (int Rank, int TotalUsers) GetRank(string collectionName, ulong userId)
 		{
 			var options = DatabaseQuery<LeaderboardPosition>.GetAll();
@@ -220,11 +235,18 @@ namespace Advobot.Services.Levels
 			}
 			return (rank, total);
 		}
+
 		private void UpdateRank(string collectionName, ulong userId, int experience)
 		{
 			var insertQuery = DatabaseQuery<LeaderboardPosition>.Update(new[] { new LeaderboardPosition(userId, experience) });
 			insertQuery.CollectionName = collectionName;
 			DatabaseWrapper.ExecuteQuery(insertQuery);
+		}
+
+		private void UpdateUserRank(IUserExperienceInformation info, IGuild guild)
+		{
+			UpdateRank(GetCollectionName(guild), info.UserId, info.GetExperience(guild));
+			UpdateRank("Global", info.UserId, info.GetExperience());
 		}
 	}
 }

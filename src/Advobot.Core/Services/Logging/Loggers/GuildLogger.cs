@@ -1,10 +1,13 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.WebSocket;
 
 namespace Advobot.Services.Logging.Loggers
@@ -32,6 +35,7 @@ namespace Advobot.Services.Logging.Loggers
 			ConsoleUtils.WriteLine($"{guild.Format()} ({shardId}, {guild.MemberCount}, {memory}MB)");
 			return Task.CompletedTask;
 		}
+
 		public Task OnGuildUnavailable(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);
@@ -39,6 +43,7 @@ namespace Advobot.Services.Logging.Loggers
 			ConsoleUtils.WriteLine($"Guild is now offline {guild.Format()}.");
 			return Task.CompletedTask;
 		}
+
 		public async Task OnJoinedGuild(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), guild.MemberCount);
@@ -60,6 +65,7 @@ namespace Advobot.Services.Logging.Loggers
 				await guild.LeaveAsync().CAF();
 			}
 		}
+
 		public async Task OnLeftGuild(SocketGuild guild)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -guild.MemberCount);

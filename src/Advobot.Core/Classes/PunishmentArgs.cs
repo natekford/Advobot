@@ -1,5 +1,7 @@
 ﻿using System;
+
 using Advobot.Services.Timers;
+
 using Discord;
 
 namespace Advobot.Classes
@@ -15,26 +17,10 @@ namespace Advobot.Classes
 		public static readonly PunishmentArgs Default = new PunishmentArgs();
 
 		/// <summary>
-		/// The amount of time the punishment should last for.
-		/// </summary>
-		public TimeSpan? Time { get; }
-		/// <summary>
-		/// The timer service that timed objects should be added to.
-		/// </summary>
-		public ITimerService? Timers { get; }
-		/// <summary>
-		/// The Discord request options.
-		/// </summary>
-		public RequestOptions? Options { get; set; }
-		/// <summary>
-		/// Whether a punishment was removed from the timers.
-		/// </summary>
-		public bool PunishmentRemoved { get; private set; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="PunishmentArgs"/> with no time or timers.
 		/// </summary>
 		public PunishmentArgs() { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="PunishmentArgs"/> with timer and timers.
 		/// </summary>
@@ -46,12 +32,32 @@ namespace Advobot.Classes
 			Time = time;
 		}
 
-		void IPunishmentRemoved.SetPunishmentRemoved()
-			=> PunishmentRemoved = true;
-
 		internal interface IPunishmentRemoved
 		{
 			void SetPunishmentRemoved();
 		}
+
+		/// <summary>
+		/// The Discord request options.
+		/// </summary>
+		public RequestOptions? Options { get; set; }
+
+		/// <summary>
+		/// Whether a punishment was removed from the timers.
+		/// </summary>
+		public bool PunishmentRemoved { get; private set; }
+
+		/// <summary>
+		/// The amount of time the punishment should last for.
+		/// </summary>
+		public TimeSpan? Time { get; }
+
+		/// <summary>
+		/// The timer service that timed objects should be added to.
+		/// </summary>
+		public ITimerService? Timers { get; }
+
+		void IPunishmentRemoved.SetPunishmentRemoved()
+			=> PunishmentRemoved = true;
 	}
 }

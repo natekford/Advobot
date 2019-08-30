@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -16,11 +18,6 @@ namespace Advobot.Formatting
 	public class DiscordFormattableStringCollection
 		: ICollection<FormattableString>, IDiscordFormattableString
 	{
-		/// <inheritdoc />
-		public int Count => _Source.Count;
-		/// <inheritdoc />
-		public bool IsReadOnly => _Source.IsReadOnly;
-
 		private readonly ICollection<FormattableString> _Source;
 
 		/// <summary>
@@ -31,6 +28,7 @@ namespace Advobot.Formatting
 		{
 			_Source = source.ToList();
 		}
+
 		/// <summary>
 		/// Creates an instance of <see cref="FormattableString"/>.
 		/// </summary>
@@ -39,26 +37,39 @@ namespace Advobot.Formatting
 			: this((IEnumerable<FormattableString>)source) { }
 
 		/// <inheritdoc />
+		public int Count => _Source.Count;
+
+		/// <inheritdoc />
+		public bool IsReadOnly => _Source.IsReadOnly;
+
+		/// <inheritdoc />
 		public void Add(FormattableString item)
 			=> _Source.Add(item);
+
 		/// <inheritdoc />
 		public void Clear()
 			=> _Source.Clear();
+
 		/// <inheritdoc />
 		public bool Contains(FormattableString item)
 			=> _Source.Contains(item);
+
 		/// <inheritdoc />
 		public void CopyTo(FormattableString[] array, int arrayIndex)
 			=> _Source.CopyTo(array, arrayIndex);
+
 		/// <inheritdoc />
 		public IEnumerator<FormattableString> GetEnumerator()
 			=> _Source.GetEnumerator();
+
 		/// <inheritdoc />
 		public bool Remove(FormattableString item)
 			=> _Source.Remove(item);
+
 		/// <inheritdoc />
 		public override string ToString()
 			=> ToString(null);
+
 		/// <inheritdoc />
 		public string ToString(IFormatProvider? formatProvider)
 		{
@@ -69,6 +80,7 @@ namespace Advobot.Formatting
 			}
 			return sb.ToString();
 		}
+
 		/// <inheritdoc />
 		public string ToString(BaseSocketClient client, SocketGuild guild, IFormatProvider? formatProvider)
 		{
@@ -79,6 +91,7 @@ namespace Advobot.Formatting
 			}
 			return sb.ToString();
 		}
+
 		/// <inheritdoc />
 		public async Task<string> ToStringAsync(IDiscordClient client, IGuild guild, IFormatProvider? formatProvider)
 		{
@@ -97,6 +110,7 @@ namespace Advobot.Formatting
 
 		IEnumerator IEnumerable.GetEnumerator()
 			=> _Source.GetEnumerator();
+
 		string IFormattable.ToString(string format, IFormatProvider formatProvider)
 			=> ToString(formatProvider);
 	}

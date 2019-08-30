@@ -3,14 +3,18 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Classes;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
+
 using Timer = System.Timers.Timer;
 
 namespace Advobot.Services.Timers
@@ -23,17 +27,23 @@ namespace Advobot.Services.Timers
 	/// </remarks>
 	internal sealed class TimerService : DatabaseWrapperConsumer, ITimerService
 	{
-		/// <inheritdoc />
-		public override string DatabaseName => "TimedDatabase";
-		private readonly BaseSocketClient _Client;
-		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
-		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
-		private readonly Timer _SecondTimer = new Timer(1000);
-		private readonly PunishmentArgs _PunishmentArgs;
-		private readonly AsyncProcessingQueue _RemovablePunishments;
-		private readonly AsyncProcessingQueue _TimedMessages;
-		private readonly AsyncProcessingQueue _RemovableMessages;
 		private readonly ConcurrentDictionary<ulong, byte> _AlreadyDeletedMessages = new ConcurrentDictionary<ulong, byte>();
+
+		private readonly BaseSocketClient _Client;
+
+		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
+
+		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
+
+		private readonly PunishmentArgs _PunishmentArgs;
+
+		private readonly AsyncProcessingQueue _RemovableMessages;
+
+		private readonly AsyncProcessingQueue _RemovablePunishments;
+
+		private readonly Timer _SecondTimer = new Timer(1000);
+
+		private readonly AsyncProcessingQueue _TimedMessages;
 
 		/// <summary>
 		/// Creates an instance of <see cref="TimerService"/>.
@@ -88,6 +98,9 @@ namespace Advobot.Services.Timers
 		}
 
 		/// <inheritdoc />
+		public override string DatabaseName => "TimedDatabase";
+
+		/// <inheritdoc />
 		public void Add(RemovablePunishment value)
 		{
 			var deleteQuery = DatabaseQuery<RemovablePunishment>.Delete(
@@ -97,18 +110,21 @@ namespace Advobot.Services.Timers
 			var insertQuery = DatabaseQuery<RemovablePunishment>.Insert(new[] { value });
 			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}
+
 		/// <inheritdoc />
 		public void Add(RemovableMessage value)
 		{
 			var insertQuery = DatabaseQuery<RemovableMessage>.Insert(new[] { value });
 			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}
+
 		/// <inheritdoc />
 		public void Add(TimedMessage value)
 		{
 			var insertQuery = DatabaseQuery<TimedMessage>.Insert(new[] { value });
 			DatabaseWrapper.ExecuteQuery(insertQuery);
 		}
+
 		/// <inheritdoc />
 		public bool RemovePunishment(ulong guildId, ulong userId, Punishment punishment)
 		{
@@ -118,6 +134,7 @@ namespace Advobot.Services.Timers
 			var values = DatabaseWrapper.ExecuteQuery(deleteQuery);
 			return values.SingleOrDefault() != default;
 		}
+
 		/// <inheritdoc />
 		protected override void AfterStart(int schema)
 		{
@@ -126,6 +143,7 @@ namespace Advobot.Services.Timers
 			_SecondTimer.Start();
 			base.AfterStart(schema);
 		}
+
 		/// <inheritdoc />
 		protected override void BeforeDispose()
 		{
@@ -135,37 +153,6 @@ namespace Advobot.Services.Timers
 			base.BeforeDispose();
 		}
 
-		private static async Task ProcessTimedMessages(BaseSocketClient client, IEnumerable<TimedMessage> timedMessages)
-		{
-			foreach (var userGroup in timedMessages.GroupBy(x => x.Id))
-			{
-				if (!(client.GetUser(userGroup.Key) is SocketUser user))
-				{
-					continue;
-				}
-				foreach (var task in userGroup.Select(x => user.SendMessageAsync(x.Text)))
-				{
-					await task.CAF();
-				}
-			}
-		}
-		private static async Task ProcessRemovablePunishments(BaseSocketClient client, PunishmentArgs args, IEnumerable<RemovablePunishment> punishments)
-		{
-			foreach (var guildGroup in punishments.Where(x => x != null).GroupBy(x => x.GuildId))
-			{
-				if (!(client.GetGuild(guildGroup.Key) is SocketGuild guild))
-				{
-					continue;
-				}
-				foreach (var punishmentGroup in guildGroup.GroupBy(x => x.PunishmentType))
-				{
-					foreach (var task in punishmentGroup.Select(x => PunishmentUtils.RemoveAsync(x.PunishmentType, guild, x.UserId, x.RoleId, args)))
-					{
-						await task.CAF();
-					}
-				}
-			}
-		}
 		private static async Task ProcessRemovableMessagesAsync(BaseSocketClient client, PunishmentArgs args, ConcurrentDictionary<ulong, byte> alreadyDeleted, IEnumerable<RemovableMessage> removableMessages)
 		{
 			foreach (var guildGroup in removableMessages.Where(x => x != null).GroupBy(x => x.GuildId))
@@ -188,6 +175,39 @@ namespace Advobot.Services.Timers
 						messages.Add(await channel.GetMessageAsync(id).CAF());
 					}
 					await MessageUtils.DeleteMessagesAsync(channel, messages, args.Options).CAF();
+				}
+			}
+		}
+
+		private static async Task ProcessRemovablePunishments(BaseSocketClient client, PunishmentArgs args, IEnumerable<RemovablePunishment> punishments)
+		{
+			foreach (var guildGroup in punishments.Where(x => x != null).GroupBy(x => x.GuildId))
+			{
+				if (!(client.GetGuild(guildGroup.Key) is SocketGuild guild))
+				{
+					continue;
+				}
+				foreach (var punishmentGroup in guildGroup.GroupBy(x => x.PunishmentType))
+				{
+					foreach (var task in punishmentGroup.Select(x => PunishmentUtils.RemoveAsync(x.PunishmentType, guild, x.UserId, x.RoleId, args)))
+					{
+						await task.CAF();
+					}
+				}
+			}
+		}
+
+		private static async Task ProcessTimedMessages(BaseSocketClient client, IEnumerable<TimedMessage> timedMessages)
+		{
+			foreach (var userGroup in timedMessages.GroupBy(x => x.Id))
+			{
+				if (!(client.GetUser(userGroup.Key) is SocketUser user))
+				{
+					continue;
+				}
+				foreach (var task in userGroup.Select(x => user.SendMessageAsync(x.Text)))
+				{
+					await task.CAF();
 				}
 			}
 		}

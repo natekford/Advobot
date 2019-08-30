@@ -2,8 +2,11 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.Strings
@@ -14,13 +17,13 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class RegexAttribute : StringParameterPreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override string StringType => "regex";
-
 		/// <summary>
 		/// Creates an instance of <see cref="RegexAttribute"/>.
 		/// </summary>
 		public RegexAttribute() : base(1, 100) { }
+
+		/// <inheritdoc />
+		public override string StringType => "regex";
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(

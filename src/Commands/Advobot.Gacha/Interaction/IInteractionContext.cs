@@ -4,9 +4,9 @@ namespace Advobot.Gacha.Interaction
 {
 	public interface IInteractionContext
 	{
-		IGuildUser User { get; }
+		IInteraction Action { get; }
 		ITextChannel Channel { get; }
 		IGuild Guild { get; }
-		IInteraction Action { get; }
+		IGuildUser User { get; }
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
+
 using AdvorangesUtils;
 
 namespace Advobot.Services.Logging.LogCounters
@@ -10,19 +11,7 @@ namespace Advobot.Services.Logging.LogCounters
 	/// </summary>
 	internal sealed class LogCounter : ILogCounter, INotifyPropertyChanged
 	{
-		/// <summary>
-		/// The title of the log counter.
-		/// </summary>
-		public string Name { get; }
-		/// <summary>
-		/// How many instances have been logged.
-		/// </summary>
-		public int Count => _Count;
-
 		private int _Count;
-
-		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <summary>
 		/// Creates an instance of <see cref="LogCounter"/>.
@@ -33,6 +22,19 @@ namespace Advobot.Services.Logging.LogCounters
 			Name = caller.FormatTitle().Trim();
 		}
 
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		/// <summary>
+		/// How many instances have been logged.
+		/// </summary>
+		public int Count => _Count;
+
+		/// <summary>
+		/// The title of the log counter.
+		/// </summary>
+		public string Name { get; }
+
 		/// <summary>
 		/// Add a specified amount to the counter.
 		/// </summary>
@@ -42,6 +44,7 @@ namespace Advobot.Services.Logging.LogCounters
 			Interlocked.Add(ref _Count, count);
 			NotifyPropertyChanged(nameof(Count));
 		}
+
 		/// <summary>
 		/// Remove a specified amount from the counter.
 		/// </summary>
@@ -51,17 +54,19 @@ namespace Advobot.Services.Logging.LogCounters
 			Interlocked.Add(ref _Count, -count);
 			NotifyPropertyChanged(nameof(Count));
 		}
-		/// <summary>
-		/// Fires the property changed event.
-		/// </summary>
-		/// <param name="caller"></param>
-		private void NotifyPropertyChanged([CallerMemberName] string caller = "")
-			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
+
 		/// <summary>
 		/// Returns the title and count.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
 			=> $"**{Name}:** {Count}";
+
+		/// <summary>
+		/// Fires the property changed event.
+		/// </summary>
+		/// <param name="caller"></param>
+		private void NotifyPropertyChanged([CallerMemberName] string caller = "")
+			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
 	}
 }

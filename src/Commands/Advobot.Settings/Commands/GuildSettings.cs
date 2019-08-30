@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Attributes.ParameterPreconditions.Strings;
@@ -8,6 +9,7 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Settings.Localization;
 using Advobot.Settings.Resources;
+
 using Discord.Commands;
 
 namespace Advobot.Settings.Commands
@@ -26,12 +28,15 @@ namespace Advobot.Settings.Commands
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public Task<RuntimeResult> Json()
 				=> Responses.GuildSettings.DisplayJson(Settings);
+
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public Task<RuntimeResult> Names()
 				=> Responses.GuildSettings.DisplayNames(Settings);
+
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public Task<RuntimeResult> All()
 				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
+
 			[Command]
 			public Task<RuntimeResult> Command([Remainder, GuildSettingName] string name)
 				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
@@ -54,6 +59,7 @@ namespace Advobot.Settings.Commands
 				}
 				return Responses.GuildSettings.ResetAll();
 			}
+
 			[Command]
 			public Task<RuntimeResult> Command([Remainder, GuildSettingName] string name)
 			{
@@ -120,7 +126,6 @@ namespace Advobot.Settings.Commands
 			public Task Quotes(bool add, string name, [Optional, Remainder] string text)
 				=> ModifyCollectionAsync(x => x.Quotes, add, new[] { new Quote(name, text ?? "") });
 
-
 			[ImplicitCommand, ImplicitAlias]
 			public Task BotUsers(
 				bool add,
@@ -173,6 +178,7 @@ namespace Advobot.Settings.Commands
 				var commands = Settings.CommandSettings.ModifyCommandValues(entries, enable);
 				return Responses.ModifyCommands.ModifiedMultiple(commands, enable);
 			}
+
 			[Command]
 			public Task<RuntimeResult> Command(
 				[CommandCategory] string category,
@@ -182,6 +188,7 @@ namespace Advobot.Settings.Commands
 				var commands = Settings.CommandSettings.ModifyCommandValues(entries, enable);
 				return Responses.ModifyCommands.ModifiedMultiple(commands, enable);
 			}
+
 			[Command]
 			public Task<RuntimeResult> Command(
 				[CanToggle] IModuleHelpEntry command,
@@ -397,6 +404,7 @@ namespace Advobot.Settings.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Welcome()
 				=> Responses.GuildSettings.SendWelcomeNotification(Context.Settings.WelcomeMessage);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Goodbye()
 				=> Responses.GuildSettings.SendGoodbyeNotification(Context.Settings.GoodbyeMessage);

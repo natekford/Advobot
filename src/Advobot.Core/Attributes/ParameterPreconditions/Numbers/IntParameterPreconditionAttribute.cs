@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.Numbers
@@ -12,49 +14,39 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	public abstract class IntParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override string Summary
-			=> $"Valid {NumberType} ({Numbers})";
 		/// <summary>
-		/// The type of number this is targetting.
+		/// Valid numbers which are the randomly supplied values.
 		/// </summary>
-		public abstract string NumberType { get; }
+		/// <param name="numbers"></param>
+		protected IntParameterPreconditionAttribute(int[] numbers)
+		{
+			Numbers = new NumberCollection<int>(numbers);
+		}
+
+		/// <summary>
+		/// Valid numbers can start at <paramref name="start"/> inclusive or end at <paramref name="end"/> inclusive.
+		/// </summary>
+		/// <param name="start"></param>
+		/// <param name="end"></param>
+		protected IntParameterPreconditionAttribute(int start, int end)
+		{
+			Numbers = new NumberCollection<int>(start, end);
+		}
+
 		/// <summary>
 		/// Allowed numbers. If the range method is used this will be contain all of the values between the 2.
 		/// </summary>
 		public NumberCollection<int> Numbers { get; }
 
 		/// <summary>
-		/// Valid numbers which are the randomly supplied values.
+		/// The type of number this is targetting.
 		/// </summary>
-		/// <param name="numbers"></param>
-		public IntParameterPreconditionAttribute(int[] numbers)
-		{
-			Numbers = new NumberCollection<int>(numbers);
-		}
-		/// <summary>
-		/// Valid numbers can start at <paramref name="start"/> inclusive or end at <paramref name="end"/> inclusive.
-		/// </summary>
-		/// <param name="start"></param>
-		/// <param name="end"></param>
-		public IntParameterPreconditionAttribute(int start, int end)
-		{
-			Numbers = new NumberCollection<int>(start, end);
-		}
+		public abstract string NumberType { get; }
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			object value,
-			IServiceProvider services)
-		{
-			if (!(value is int num))
-			{
-				return this.FromOnlySupportsAsync(typeof(int));
-			}
-			return SingularCheckPermissionsAsync(context, parameter, num, services);
-		}
+		public override string Summary
+			=> $"Valid {NumberType} ({Numbers})";
+
 		/// <summary>
 		/// Checks whether the command can execute.
 		/// </summary>
@@ -76,6 +68,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 			}
 			return PreconditionUtils.FromErrorAsync($"Invalid {parameter?.Name} supplied, must be in `{Numbers}`");
 		}
+
 		/// <summary>
 		/// Returns the number to use for the start.
 		/// </summary>
@@ -88,5 +81,19 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 			ParameterInfo parameter,
 			IServiceProvider services)
 			=> Numbers;
+
+		/// <inheritdoc />
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			object value,
+			IServiceProvider services)
+		{
+			if (!(value is int num))
+			{
+				return this.FromOnlySupportsAsync(typeof(int));
+			}
+			return SingularCheckPermissionsAsync(context, parameter, num, services);
+		}
 	}
 }

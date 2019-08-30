@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
@@ -11,9 +12,12 @@ using Advobot.Services.ImageResizing;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands
@@ -21,6 +25,37 @@ namespace Advobot.Standard.Commands
 	[Category(nameof(Guilds))]
 	public sealed class Guilds : ModuleBase
 	{
+		[LocalizedGroup(nameof(Groups.CreateGuild))]
+		[LocalizedAlias(nameof(Aliases.CreateGuild))]
+		[LocalizedSummary(nameof(Summaries.CreateGuild))]
+		[Meta("f3e7e812-067a-4be3-9904-42eb9eac8791", IsEnabled = true)]
+		[RequireBotOwner]
+		public sealed class CreateGuild : AdvobotModuleBase
+		{
+			[Command]
+			public async Task Command([Remainder, GuildName] string name)
+			{
+				var optimalVoiceRegion = await Context.Client.GetOptimalVoiceRegionAsync().CAF();
+				var newGuild = await Context.Client.CreateGuildAsync(name, optimalVoiceRegion).CAF();
+				var defaultChannel = await newGuild.GetDefaultChannelAsync().CAF();
+				var invite = await defaultChannel.CreateInviteAsync().CAF();
+				await Context.User.SendMessageAsync(invite.Url).CAF();
+			}
+		}
+
+		[LocalizedGroup(nameof(Groups.DeleteGuild))]
+		[LocalizedAlias(nameof(Aliases.DeleteGuild))]
+		[LocalizedSummary(nameof(Summaries.DeleteGuild))]
+		[Meta("65ec403c-7287-4689-a2f0-c73cf5407540", IsEnabled = true)]
+		[RequireBotIsOwner]
+		[RequireBotOwner]
+		public sealed class DeleteGuild : AdvobotModuleBase
+		{
+			[Command]
+			public Task Command()
+				=> Context.Guild.DeleteAsync();
+		}
+
 		[LocalizedGroup(nameof(Groups.LeaveGuild))]
 		[LocalizedAlias(nameof(Aliases.LeaveGuild))]
 		[LocalizedSummary(nameof(Summaries.LeaveGuild))]
@@ -31,12 +66,86 @@ namespace Advobot.Standard.Commands
 			[RequireGuildOwner]
 			public Task Command()
 				=> Context.Guild.LeaveAsync();
+
 			[Command]
 			[RequireBotOwner]
 			public async Task<RuntimeResult> Command([Remainder] IGuild guild)
 			{
 				await guild.LeaveAsync().CAF();
 				return Responses.Guilds.LeftGuild(guild);
+			}
+		}
+
+		[LocalizedGroup(nameof(Groups.ModifyGuildAfkChannel))]
+		[LocalizedAlias(nameof(Aliases.ModifyGuildAfkChannel))]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkChannel))]
+		[Meta("ec19c9b8-cc0c-46d6-a207-9eb6abf69c9e", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageGuild)]
+		public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command(
+				[CanModifyChannel(ManageChannels)] IVoiceChannel? channel)
+			{
+				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel?>(channel), GenerateRequestOptions()).CAF();
+				return Responses.Guilds.ModifiedAfkChannel(channel);
+			}
+
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Remove()
+				=> Command(null);
+		}
+
+		[LocalizedGroup(nameof(Groups.ModifyGuildAfkTimer))]
+		[LocalizedAlias(nameof(Aliases.ModifyGuildAfkTimer))]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkTimer))]
+		[Meta("bb4ceabc-2660-431d-aa0c-d0f6176b88a1", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageGuild)]
+		public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command([GuildAfkTime] int time)
+			{
+				await Context.Guild.ModifyAsync(x => x.AfkTimeout = time, GenerateRequestOptions()).CAF();
+				return Responses.Guilds.ModifiedAfkTime(time);
+			}
+		}
+
+		[LocalizedGroup(nameof(Groups.ModifyGuildIcon))]
+		[LocalizedAlias(nameof(Aliases.ModifyGuildIcon))]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildIcon))]
+		[Meta("c6f5c58e-4784-4f30-91a9-3727e580ddf2", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageGuild)]
+		public sealed class ModifyGuildIcon : ImageResizerModule
+		{
+			[Command]
+			public Task<RuntimeResult> Command(Uri url)
+			{
+				var position = Enqueue(new IconCreationContext(Context, url, null, "Guild Icon",
+					(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions())));
+				return Responses.Snowflakes.EnqueuedIcon(Context.Guild, position);
+			}
+
+			[ImplicitCommand, ImplicitAlias]
+			public async Task<RuntimeResult> Remove()
+			{
+				await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GenerateRequestOptions()).CAF();
+				return Responses.Snowflakes.RemovedIcon(Context.Guild);
+			}
+		}
+
+		[LocalizedGroup(nameof(Groups.ModifyGuildMsgNotif))]
+		[LocalizedAlias(nameof(Aliases.ModifyGuildMsgNotif))]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildMsgNotif))]
+		[Meta("f32a347c-e2d8-4b64-9a3c-53cd46d0f3ed", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageGuild)]
+		public sealed class ModifyGuildMsgNotif : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command(DefaultMessageNotifications msgNotifs)
+			{
+				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, GenerateRequestOptions()).CAF();
+				return Responses.Guilds.ModifiedMsgNotif(msgNotifs);
 			}
 		}
 
@@ -62,123 +171,18 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.ManageGuild)]
 		public sealed class ModifyGuildRegion : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public async Task<RuntimeResult> Show()
-			{
-				var regions = await Context.Guild.GetVoiceRegionsAsync().CAF();
-				return Responses.Guilds.DisplayRegions(regions);
-			}
-
 			[Command]
 			public async Task<RuntimeResult> Command(IVoiceRegion region)
 			{
 				await Context.Guild.ModifyAsync(x => x.Region = Optional.Create(region), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedRegion(region);
 			}
-		}
 
-		[LocalizedGroup(nameof(Groups.ModifyGuildAfkTimer))]
-		[LocalizedAlias(nameof(Aliases.ModifyGuildAfkTimer))]
-		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkTimer))]
-		[Meta("bb4ceabc-2660-431d-aa0c-d0f6176b88a1", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageGuild)]
-		public sealed class ModifyGuildAfkTimer : AdvobotModuleBase
-		{
-			[Command]
-			public async Task<RuntimeResult> Command([GuildAfkTime] int time)
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			public async Task<RuntimeResult> Show()
 			{
-				await Context.Guild.ModifyAsync(x => x.AfkTimeout = time, GenerateRequestOptions()).CAF();
-				return Responses.Guilds.ModifiedAfkTime(time);
-			}
-		}
-
-		[LocalizedGroup(nameof(Groups.ModifyGuildAfkChannel))]
-		[LocalizedAlias(nameof(Aliases.ModifyGuildAfkChannel))]
-		[LocalizedSummary(nameof(Summaries.ModifyGuildAfkChannel))]
-		[Meta("ec19c9b8-cc0c-46d6-a207-9eb6abf69c9e", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageGuild)]
-		public sealed class ModifyGuildAfkChannel : AdvobotModuleBase
-		{
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Remove()
-				=> Command(null);
-			[Command]
-			public async Task<RuntimeResult> Command(
-				[CanModifyChannel(ManageChannels)] IVoiceChannel? channel)
-			{
-				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel?>(channel), GenerateRequestOptions()).CAF();
-				return Responses.Guilds.ModifiedAfkChannel(channel);
-			}
-		}
-
-		[LocalizedGroup(nameof(Groups.ModifyGuildSystemChannel))]
-		[LocalizedAlias(nameof(Aliases.ModifyGuildSystemChannel))]
-		[LocalizedSummary(nameof(Summaries.ModifyGuildSystemChannel))]
-		[Meta("f6cc90d9-ae1d-4eab-ae15-226d88e42092", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageGuild)]
-		public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
-		{
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Remove()
-				=> Command(null);
-			[Command]
-			public async Task<RuntimeResult> Command(
-				[CanModifyChannel(ManageChannels)] ITextChannel? channel)
-			{
-				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create(channel), GenerateRequestOptions()).CAF();
-				return Responses.Guilds.ModifiedSystemChannel(channel);
-			}
-		}
-
-		[LocalizedGroup(nameof(Groups.ModifyGuildMsgNotif))]
-		[LocalizedAlias(nameof(Aliases.ModifyGuildMsgNotif))]
-		[LocalizedSummary(nameof(Summaries.ModifyGuildMsgNotif))]
-		[Meta("f32a347c-e2d8-4b64-9a3c-53cd46d0f3ed", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageGuild)]
-		public sealed class ModifyGuildMsgNotif : AdvobotModuleBase
-		{
-			[Command]
-			public async Task<RuntimeResult> Command(DefaultMessageNotifications msgNotifs)
-			{
-				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, GenerateRequestOptions()).CAF();
-				return Responses.Guilds.ModifiedMsgNotif(msgNotifs);
-			}
-		}
-
-		[LocalizedGroup(nameof(Groups.ModifyGuildVerif))]
-		[LocalizedAlias(nameof(Aliases.ModifyGuildVerif))]
-		[LocalizedSummary(nameof(Summaries.ModifyGuildVerif))]
-		[Meta("5640e2e6-7ee8-416c-982c-9efb22634f54", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageGuild)]
-		public sealed class ModifyGuildVerif : AdvobotModuleBase
-		{
-			[Command]
-			public async Task<RuntimeResult> Command(VerificationLevel verif)
-			{
-				await Context.Guild.ModifyAsync(x => x.VerificationLevel = verif, GenerateRequestOptions()).CAF();
-				return Responses.Guilds.ModifiedVerif(verif);
-			}
-		}
-
-		[LocalizedGroup(nameof(Groups.ModifyGuildIcon))]
-		[LocalizedAlias(nameof(Aliases.ModifyGuildIcon))]
-		[LocalizedSummary(nameof(Summaries.ModifyGuildIcon))]
-		[Meta("c6f5c58e-4784-4f30-91a9-3727e580ddf2", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageGuild)]
-		public sealed class ModifyGuildIcon : ImageResizerModule
-		{
-			[Command]
-			public Task<RuntimeResult> Command(Uri url)
-			{
-				var position = Enqueue(new IconCreationContext(Context, url, null, "Guild Icon",
-					(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions())));
-				return Responses.Snowflakes.EnqueuedIcon(Context.Guild, position);
-			}
-			[ImplicitCommand, ImplicitAlias]
-			public async Task<RuntimeResult> Remove()
-			{
-				await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GenerateRequestOptions()).CAF();
-				return Responses.Snowflakes.RemovedIcon(Context.Guild);
+				var regions = await Context.Guild.GetVoiceRegionsAsync().CAF();
+				return Responses.Guilds.DisplayRegions(regions);
 			}
 		}
 
@@ -197,6 +201,7 @@ namespace Advobot.Standard.Commands
 					(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Splash = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Guilds.EnqueuedSplash(position);
 			}
+
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Remove()
 			{
@@ -205,21 +210,38 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
-		[LocalizedGroup(nameof(Groups.CreateGuild))]
-		[LocalizedAlias(nameof(Aliases.CreateGuild))]
-		[LocalizedSummary(nameof(Summaries.CreateGuild))]
-		[Meta("f3e7e812-067a-4be3-9904-42eb9eac8791", IsEnabled = true)]
-		[RequireBotOwner]
-		public sealed class CreateGuild : AdvobotModuleBase
+		[LocalizedGroup(nameof(Groups.ModifyGuildSystemChannel))]
+		[LocalizedAlias(nameof(Aliases.ModifyGuildSystemChannel))]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildSystemChannel))]
+		[Meta("f6cc90d9-ae1d-4eab-ae15-226d88e42092", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageGuild)]
+		public sealed class ModifyGuildSystemChannel : AdvobotModuleBase
 		{
 			[Command]
-			public async Task Command([Remainder, GuildName] string name)
+			public async Task<RuntimeResult> Command(
+				[CanModifyChannel(ManageChannels)] ITextChannel? channel)
 			{
-				var optimalVoiceRegion = await Context.Client.GetOptimalVoiceRegionAsync().CAF();
-				var newGuild = await Context.Client.CreateGuildAsync(name, optimalVoiceRegion).CAF();
-				var defaultChannel = await newGuild.GetDefaultChannelAsync().CAF();
-				var invite = await defaultChannel.CreateInviteAsync().CAF();
-				await Context.User.SendMessageAsync(invite.Url).CAF();
+				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create(channel), GenerateRequestOptions()).CAF();
+				return Responses.Guilds.ModifiedSystemChannel(channel);
+			}
+
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Remove()
+				=> Command(null);
+		}
+
+		[LocalizedGroup(nameof(Groups.ModifyGuildVerif))]
+		[LocalizedAlias(nameof(Aliases.ModifyGuildVerif))]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildVerif))]
+		[Meta("5640e2e6-7ee8-416c-982c-9efb22634f54", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageGuild)]
+		public sealed class ModifyGuildVerif : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command(VerificationLevel verif)
+			{
+				await Context.Guild.ModifyAsync(x => x.VerificationLevel = verif, GenerateRequestOptions()).CAF();
+				return Responses.Guilds.ModifiedVerif(verif);
 			}
 		}
 
@@ -237,19 +259,6 @@ namespace Advobot.Standard.Commands
 				await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User)).CAF();
 				return Responses.Guilds.ModifiedOwner(Context.User);
 			}
-		}
-
-		[LocalizedGroup(nameof(Groups.DeleteGuild))]
-		[LocalizedAlias(nameof(Aliases.DeleteGuild))]
-		[LocalizedSummary(nameof(Summaries.DeleteGuild))]
-		[Meta("65ec403c-7287-4689-a2f0-c73cf5407540", IsEnabled = true)]
-		[RequireBotIsOwner]
-		[RequireBotOwner]
-		public sealed class DeleteGuild : AdvobotModuleBase
-		{
-			[Command]
-			public Task Command()
-				=> Context.Guild.DeleteAsync();
 		}
 	}
 }

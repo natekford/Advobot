@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Classes;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -16,9 +19,8 @@ namespace Advobot.Services.Logging.Loggers
 {
 	internal sealed class UserLogger : Logger, IUserLogger
 	{
-		private static readonly RequestOptions _PersistentRolesOptions = DiscordUtils.GenerateRequestOptions("Persistent roles.");
 		private static readonly RequestOptions _BannedNameOptions = DiscordUtils.GenerateRequestOptions("Banned name.");
-
+		private static readonly RequestOptions _PersistentRolesOptions = DiscordUtils.GenerateRequestOptions("Persistent roles.");
 		private readonly BaseSocketClient _Client;
 
 		public UserLogger(
@@ -47,6 +49,7 @@ namespace Advobot.Services.Logging.Loggers
 				},
 			});
 		}
+
 		public Task OnUserLeft(SocketGuildUser user)
 		{
 			NotifyLogCounterIncrement(nameof(ILogService.TotalUsers), -1);
@@ -64,6 +67,7 @@ namespace Advobot.Services.Logging.Loggers
 				},
 			});
 		}
+
 		public async Task OnUserUpdated(SocketUser before, SocketUser after)
 		{
 			foreach (var guild in _Client.Guilds)
@@ -84,6 +88,44 @@ namespace Advobot.Services.Logging.Loggers
 					AnyTime = Array.Empty<Func<IUserLoggingContext, Task>>(),
 				}).CAF();
 			}
+		}
+
+		private async Task HandleJoinLogging(IUserLoggingContext context)
+		{
+			var inv = await context.Settings.GetInviteCache().GetInviteUserJoinedOnAsync(context.User).CAF();
+			var invite = inv != null
+				? $"**Invite:** {inv}"
+				: "";
+			var time = DateTime.UtcNow - context.User.CreatedAt.ToUniversalTime();
+			var age = time.TotalHours < 24
+				? $"**New Account:** {(int)time.TotalHours} hours, {time.Minutes} minutes old."
+				: "";
+
+			await ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
+			{
+				Description = $"**ID:** {context.User.Id}\n{invite}\n{age}",
+				Color = EmbedWrapper.Join,
+				Author = context.User.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = context.User.IsBot ? "Bot Joined" : "User Joined" },
+			}).CAF();
+		}
+
+		private Task HandleLeftLogging(IUserLoggingContext context)
+		{
+			var stay = "";
+			if (context.User.JoinedAt.HasValue)
+			{
+				var time = DateTime.UtcNow - context.User.JoinedAt.Value.ToUniversalTime();
+				stay = $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}";
+			}
+
+			return ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
+			{
+				Description = $"**ID:** {context.User.Id}\n{stay}",
+				Color = EmbedWrapper.Leave,
+				Author = context.User.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = context.User.IsBot ? "Bot Left" : "User Left", },
+			});
 		}
 
 		private async Task HandleOtherJoinActions(IUserLoggingContext context)
@@ -117,6 +159,7 @@ namespace Advobot.Services.Logging.Loggers
 				await context.Settings.WelcomeMessage.SendAsync(context.Guild, context.User).CAF();
 			}
 		}
+
 		private Task HandleOtherLeftActions(IUserLoggingContext context)
 		{
 			//Goodbye message
@@ -127,42 +170,6 @@ namespace Advobot.Services.Logging.Loggers
 			return Task.CompletedTask;
 		}
 
-		private async Task HandleJoinLogging(IUserLoggingContext context)
-		{
-			var inv = await context.Settings.GetInviteCache().GetInviteUserJoinedOnAsync(context.User).CAF();
-			var invite = inv != null
-				? $"**Invite:** {inv}"
-				: "";
-			var time = DateTime.UtcNow - context.User.CreatedAt.ToUniversalTime();
-			var age = time.TotalHours < 24
-				? $"**New Account:** {(int)time.TotalHours} hours, {time.Minutes} minutes old."
-				: "";
-
-			await ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
-			{
-				Description = $"**ID:** {context.User.Id}\n{invite}\n{age}",
-				Color = EmbedWrapper.Join,
-				Author = context.User.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = context.User.IsBot ? "Bot Joined" : "User Joined" },
-			}).CAF();
-		}
-		private Task HandleLeftLogging(IUserLoggingContext context)
-		{
-			var stay = "";
-			if (context.User.JoinedAt.HasValue)
-			{
-				var time = DateTime.UtcNow - context.User.JoinedAt.Value.ToUniversalTime();
-				stay = $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}";
-			}
-
-			return ReplyAsync(context.ServerLog, embedWrapper: new EmbedWrapper
-			{
-				Description = $"**ID:** {context.User.Id}\n{stay}",
-				Color = EmbedWrapper.Leave,
-				Author = context.User.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = context.User.IsBot ? "Bot Left" : "User Left", },
-			});
-		}
 		private Task HandleUsernameUpdated(IUserLoggingContext context, IUser before)
 		{
 			if (before.Username == context.User.Username)

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Advobot.Attributes.ParameterPreconditions.Strings;
+
 using AdvorangesUtils;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
@@ -12,11 +15,12 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 		: ParameterPreconditionsTestsBase<TextChannelNameAttribute>
 	{
 		[TestMethod]
-		public async Task ThrowsOnNotString_Test()
+		public async Task Space_Test()
 		{
-			Task Task() => CheckAsync(1);
-			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
+			var result = await CheckAsync("name with spaces").CAF();
+			Assert.AreEqual(false, result.IsSuccess);
 		}
+
 		[TestMethod]
 		public async Task Standard_Test()
 		{
@@ -33,11 +37,12 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}
+
 		[TestMethod]
-		public async Task Space_Test()
+		public async Task ThrowsOnNotString_Test()
 		{
-			var result = await CheckAsync("name with spaces").CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Task Task() => CheckAsync(1);
+			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
 		}
 	}
 }

@@ -3,11 +3,15 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Modules;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using ImageMagick;
 
 namespace Advobot.Services.ImageResizing
@@ -17,28 +21,21 @@ namespace Advobot.Services.ImageResizing
 	/// </summary>
 	public sealed class EmoteCreationContext : ImageContextBase
 	{
-		private static readonly ImmutableArray<MagickFormat> _ValidStaticFormats = new[]
-		{
-			MagickFormat.Png,
-			MagickFormat.Jpg,
-			MagickFormat.Jpeg,
-		}.ToImmutableArray();
+		private static readonly ImmutableArray<MagickFormat> _AllValidFormats
+			= _ValidStaticFormats.Concat(_ValidGifFormats).ToImmutableArray();
+
 		private static readonly ImmutableArray<MagickFormat> _ValidGifFormats = new[]
 		{
 			MagickFormat.Mp4,
 			MagickFormat.Gif,
 		}.ToImmutableArray();
-		private static readonly ImmutableArray<MagickFormat> _AllValidFormats
-			= _ValidStaticFormats.Concat(_ValidGifFormats).ToImmutableArray();
 
-		/// <inheritdoc />
-		public override long MaxAllowedLengthInBytes => 256000;
-		/// <inheritdoc />
-		public override string Type => "Emote";
-		/// <summary>
-		/// The name to give an emote.
-		/// </summary>
-		public string Name { get; }
+		private static readonly ImmutableArray<MagickFormat> _ValidStaticFormats = new[]
+						{
+			MagickFormat.Png,
+			MagickFormat.Jpg,
+			MagickFormat.Jpeg,
+		}.ToImmutableArray();
 
 		/// <summary>
 		/// Creates an instance of <see cref="EmoteCreationContext"/>.
@@ -58,18 +55,16 @@ namespace Advobot.Services.ImageResizing
 		}
 
 		/// <inheritdoc />
-		public override async Task<IResult> UseStream(MemoryStream stream)
-		{
-			try
-			{
-				await Context.Guild.CreateEmoteAsync(Name, new Image(stream), default, Context.GenerateRequestOptions()).CAF();
-				return AdvobotResult.IgnoreSuccess;
-			}
-			catch (Exception e)
-			{
-				return AdvobotResult.Exception(e);
-			}
-		}
+		public override long MaxAllowedLengthInBytes => 256000;
+
+		/// <summary>
+		/// The name to give an emote.
+		/// </summary>
+		public string Name { get; }
+
+		/// <inheritdoc />
+		public override string Type => "Emote";
+
 		/// <inheritdoc />
 		public override IResult CanUseFormat(MagickFormat format)
 		{
@@ -95,6 +90,20 @@ namespace Advobot.Services.ImageResizing
 				return AdvobotResult.Failure($"Cannot use an image with the format {format}.");
 			}
 			return AdvobotResult.IgnoreSuccess;
+		}
+
+		/// <inheritdoc />
+		public override async Task<IResult> UseStream(MemoryStream stream)
+		{
+			try
+			{
+				await Context.Guild.CreateEmoteAsync(Name, new Image(stream), default, Context.GenerateRequestOptions()).CAF();
+				return AdvobotResult.IgnoreSuccess;
+			}
+			catch (Exception e)
+			{
+				return AdvobotResult.Exception(e);
+			}
 		}
 	}
 }

@@ -2,28 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.Interaction;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Gacha.Displays
 {
 	public abstract class PaginatedDisplay : Display
 	{
-		public int ItemCount { get; }
-		public int ItemsPerPage { get; }
-		public int PageCount { get; }
-		public int PageIndex
-		{
-			get => _PageIndex;
-			protected set => _PageIndex = value;
-		}
-
-		protected virtual TimeSpan Timeout { get; } = TimeSpan.FromSeconds(30);
-
 		private int _PageIndex;
 
-		public PaginatedDisplay(
+		protected PaginatedDisplay(
 			IServiceProvider services,
 			int id,
 			int itemCount,
@@ -41,6 +33,28 @@ namespace Advobot.Gacha.Displays
 			}
 		}
 
+		public int ItemCount { get; }
+		public int ItemsPerPage { get; }
+		public int PageCount { get; }
+
+		public int PageIndex
+		{
+			get => _PageIndex;
+			protected set => _PageIndex = value;
+		}
+
+		protected virtual TimeSpan Timeout { get; } = TimeSpan.FromSeconds(30);
+
+		protected EmbedFooterBuilder GeneratePaginationFooter()
+		{
+			var footer = GenerateDefaultFooter();
+			footer.Text += $"| Page {PageIndex + 1} / {PageCount}";
+			return footer;
+		}
+
+		protected IEnumerable<T> GetPageValues<T>(IEnumerable<T> values)
+			=> values.Skip(PageIndex * ItemsPerPage).Take(ItemsPerPage);
+
 		protected override async Task HandleInteractionAsync(IInteractionContext context)
 		{
 			if (context.Action is Movement m && m.TryUpdatePage(ref _PageIndex, PageCount))
@@ -52,6 +66,7 @@ namespace Advobot.Gacha.Displays
 				}
 			}
 		}
+
 		protected override async Task KeepDisplayAliveAsync()
 		{
 			while (DateTime.UtcNow - LastInteractedWith > Timeout)
@@ -59,13 +74,5 @@ namespace Advobot.Gacha.Displays
 				await Task.Delay(Timeout).CAF();
 			}
 		}
-		protected EmbedFooterBuilder GeneratePaginationFooter()
-		{
-			var footer = GenerateDefaultFooter();
-			footer.Text += $"| Page {PageIndex + 1} / {PageCount}";
-			return footer;
-		}
-		protected IEnumerable<T> GetPageValues<T>(IEnumerable<T> values)
-			=> values.Skip(PageIndex * ItemsPerPage).Take(ItemsPerPage);
 	}
 }

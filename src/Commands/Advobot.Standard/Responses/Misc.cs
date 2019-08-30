@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using Advobot.Classes;
 using Advobot.Formatting;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using static Advobot.Standard.Resources.Responses;
 using static Advobot.Utilities.FormattingUtils;
 
@@ -21,7 +25,42 @@ namespace Advobot.Standard.Responses
 		private static readonly Type _Commands = typeof(Commands.Misc.Commands);
 		private static readonly Type _Help = typeof(Commands.Misc.Help);
 
-		private Misc() { }
+		private Misc()
+		{
+		}
+
+		public static AdvobotResult CategoryCommands(
+			IReadOnlyList<IModuleHelpEntry> entries,
+			string category)
+		{
+			var title = MiscTitleCategoryCommands.Format(
+				category.WithTitleCase()
+			);
+			var description = entries
+				.Join(x => x.Name)
+				.WithBigBlock()
+				.Value;
+			return Success(new EmbedWrapper
+			{
+				Title = title,
+				Description = description,
+			});
+		}
+
+		public static AdvobotResult GeneralCommandInfo(
+			IReadOnlyList<string> categories,
+			string prefix)
+		{
+			var description = MiscGeneralCommandInfo.Format(
+				GetPrefixedCommand(prefix, _Commands, MiscVariableCategoryParameter),
+				categories.Join().WithBigBlock()
+			);
+			return Success(new EmbedWrapper
+			{
+				Title = MiscTitleCategories,
+				Description = description,
+			});
+		}
 
 		public static AdvobotResult GeneralHelp(string prefix)
 		{
@@ -65,6 +104,7 @@ namespace Advobot.Standard.Responses
 				},
 			});
 		}
+
 		public static AdvobotResult Help(
 			IModuleHelpEntry module,
 			IGuildSettings settings)
@@ -80,7 +120,7 @@ namespace Advobot.Standard.Responses
 			meta.Add(MiscTitleEnabledByDefault, module.EnabledByDefault);
 			meta.Add(MiscTitleAbleToBeToggled, module.AbleToBeToggled);
 
-			if (!module.Commands.Any())
+			if (module.Commands.Count == 0)
 			{
 				return Success(CreateHelpEmbed(module.Name, info.ToString()));
 			}
@@ -96,6 +136,7 @@ namespace Advobot.Standard.Responses
 
 			return Success(CreateHelpEmbed(module.Name, info.ToString()));
 		}
+
 		public static AdvobotResult Help(
 			IModuleHelpEntry module,
 			int index)
@@ -128,39 +169,10 @@ namespace Advobot.Standard.Responses
 			}
 			return Success(embed);
 		}
-		public static AdvobotResult CategoryCommands(
-			IReadOnlyList<IModuleHelpEntry> entries,
-			string category)
-		{
-			var title = MiscTitleCategoryCommands.Format(
-				category.WithTitleCase()
-			);
-			var description = entries
-				.Join(x => x.Name)
-				.WithBigBlock()
-				.Value;
-			return Success(new EmbedWrapper
-			{
-				Title = title,
-				Description = description,
-			});
-		}
-		public static AdvobotResult GeneralCommandInfo(
-			IReadOnlyList<string> categories,
-			string prefix)
-		{
-			var description = MiscGeneralCommandInfo.Format(
-				GetPrefixedCommand(prefix, _Commands, MiscVariableCategoryParameter),
-				categories.Join().WithBigBlock()
-			);
-			return Success(new EmbedWrapper
-			{
-				Title = MiscTitleCategories,
-				Description = description,
-			});
-		}
+
 		public static AdvobotResult MakeAnEmbed(CustomEmbed embed)
 			=> Success(embed.BuildWrapper());
+
 		public static AdvobotResult Remind(TimeSpan time)
 		{
 			return Success(MiscRemind.Format(
@@ -168,19 +180,23 @@ namespace Advobot.Standard.Responses
 			));
 		}
 
-		private static MarkdownFormattedArg GetPrefixedCommand(
-			string prefix,
-			Type command,
-			string args = "")
+		private static EmbedWrapper CreateHelpEmbed(string name, string entry)
 		{
-			var attr = command.GetCustomAttribute<GroupAttribute>();
-			if (attr == null)
+			return new EmbedWrapper
 			{
-				throw new ArgumentException(nameof(command));
-			}
-
-			return $"{prefix}{attr.Prefix} {args}".WithBlock();
+				Title = name,
+				Description = entry,
+				Footer = new EmbedFooterBuilder { Text = MiscFooterHelp, },
+			};
 		}
+
+		private static string FormatParameter(IParameterHelpEntry p)
+		{
+			var left = p.IsOptional ? MiscVariableOptionalLeft : MiscVariableRequiredLeft;
+			var right = p.IsOptional ? MiscVariableOptionalRight : MiscVariableRequiredRight;
+			return $"{left}{p.TypeName}: {p.Name}{right}";
+		}
+
 		private static string FormatPreconditions(IEnumerable<IPrecondition> preconditions)
 		{
 			if (!preconditions.Any())
@@ -202,6 +218,7 @@ namespace Advobot.Standard.Responses
 			}
 			return groups.Join(g => $"({g})", MiscVariableAnd);
 		}
+
 		private static string FormatPreconditions(IEnumerable<IParameterPrecondition> preconditions)
 		{
 			if (!preconditions.Any())
@@ -210,22 +227,22 @@ namespace Advobot.Standard.Responses
 			}
 			return preconditions.Join(x => x.Summary, MiscVariableAnd);
 		}
-		private static string FormatParameter(IParameterHelpEntry p)
-		{
-			var left = p.IsOptional ? MiscVariableOptionalLeft : MiscVariableRequiredLeft;
-			var right = p.IsOptional ? MiscVariableOptionalRight : MiscVariableRequiredRight;
-			return $"{left}{p.TypeName}: {p.Name}{right}";
-		}
+
 		private static bool GetEnabledStatus(IModuleHelpEntry entry, IGuildSettings settings)
 			=> settings?.CommandSettings?.IsCommandEnabled(entry.Id) ?? entry.EnabledByDefault;
-		private static EmbedWrapper CreateHelpEmbed(string name, string entry)
+
+		private static MarkdownFormattedArg GetPrefixedCommand(
+													string prefix,
+			Type command,
+			string args = "")
 		{
-			return new EmbedWrapper
+			var attr = command.GetCustomAttribute<GroupAttribute>();
+			if (attr == null)
 			{
-				Title = name,
-				Description = entry,
-				Footer = new EmbedFooterBuilder { Text = MiscFooterHelp, },
-			};
+				throw new ArgumentException(nameof(command));
+			}
+
+			return $"{prefix}{attr.Prefix} {args}".WithBlock();
 		}
 	}
 }

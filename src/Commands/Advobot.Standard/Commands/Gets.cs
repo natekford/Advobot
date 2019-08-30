@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
@@ -16,7 +17,9 @@ using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -38,30 +41,39 @@ namespace Advobot.Standard.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Bot()
 				=> Responses.Gets.Bot(Context.Client, Logging);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Shards()
 				=> Responses.Gets.Shards(Context.Client);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Guild()
 				=> Responses.Gets.Guild(Context.Guild);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> GuildUsers()
 				=> Responses.Gets.AllGuildUsers(Context.Guild);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Channel(IGuildChannel channel)
 				=> Responses.Gets.Channel(channel, Context.Settings);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Role(IRole role)
 				=> Responses.Gets.Role(role);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> User(IUser user)
 				=> Responses.Gets.User(user);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Emote(Emote emote)
 				=> Responses.Gets.Emote(emote);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Invite(IInviteMetadata invite)
 				=> Responses.Gets.Invite(invite);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Webhook(IWebhook webhook)
 				=> Responses.Gets.Webhook(webhook);
@@ -190,6 +202,7 @@ namespace Advobot.Standard.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Guild(ulong number)
 				=> Responses.Gets.ShowEnumNames<GuildPermission>(number);
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Channel(ulong number)
 				=> Responses.Gets.ShowEnumNames<ChannelPermission>(number);
@@ -205,6 +218,7 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public Task<RuntimeResult> Command()
 				=> Responses.Gets.ShowAllEnums(EnumTypeTypeReader.Enums);
+
 			[Command]
 			public Task<RuntimeResult> Command(
 				[OverrideTypeReader(typeof(EnumTypeTypeReader))] Type enumType)

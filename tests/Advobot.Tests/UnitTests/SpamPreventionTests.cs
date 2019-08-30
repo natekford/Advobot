@@ -3,12 +3,16 @@
 
 using System;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Utilities;
+
 using AdvorangesUtils;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using static Discord.MentionUtils;
 
 namespace Advobot.Tests.UnitTests
@@ -20,6 +24,7 @@ namespace Advobot.Tests.UnitTests
 		private readonly FakeTextChannel _Channel;
 		private readonly FakeGuildUser _User;
 		private readonly SnowflakeGenerator _Snowflakes = new SnowflakeGenerator(TimeSpan.FromMilliseconds(200));
+
 		private readonly SpamPrev _SpamPrev1 = new SpamPrev
 		{
 			Type = SpamType.Mention,
@@ -58,6 +63,7 @@ namespace Advobot.Tests.UnitTests
 			}
 			Assert.Fail("This should have been caught as spam.");
 		}
+
 		[TestMethod]
 		public async Task DontPunishNotSpam_Test()
 		{
@@ -76,6 +82,7 @@ namespace Advobot.Tests.UnitTests
 				}
 			}
 		}
+
 		[TestMethod]
 		public async Task DontPunishSlowSpam_Test()
 		{
@@ -94,6 +101,7 @@ namespace Advobot.Tests.UnitTests
 				}
 			}
 		}
+
 		[TestMethod]
 		public async Task DontPunishSporadicSpam_Test()
 		{
@@ -128,6 +136,7 @@ namespace Advobot.Tests.UnitTests
 				}
 			}
 		}
+
 		[TestMethod]
 		public async Task StressSpam_Test()
 		{
@@ -165,6 +174,7 @@ namespace Advobot.Tests.UnitTests
 
 		private string GenerateMentionSpam()
 			=> $"{MentionUser(1)} {MentionUser(2)} {MentionUser(3)}";
+
 		private string GenerateNotSpam()
 			=> "Not spam.";
 	}

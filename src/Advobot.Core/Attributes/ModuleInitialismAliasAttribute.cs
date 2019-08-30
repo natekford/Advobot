@@ -1,5 +1,7 @@
 ﻿using System;
+
 using Advobot.Utilities;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes
@@ -15,6 +17,7 @@ namespace Advobot.Attributes
 		/// </summary>
 		/// <param name="type"></param>
 		public ModuleInitialismAliasAttribute(Type type) : this(new string[0], type) { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="ModuleInitialismAliasAttribute"/>.
 		/// </summary>

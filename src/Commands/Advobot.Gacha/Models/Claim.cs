@@ -1,6 +1,7 @@
-﻿using Advobot.Gacha.ReadOnlyModels;
+﻿using System;
+
+using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
-using System;
 
 namespace Advobot.Gacha.Models
 {
@@ -14,8 +15,13 @@ namespace Advobot.Gacha.Models
 		public bool IsPrimaryClaim { get; set; }
 
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public Claim() { }
+
+		public Claim()
+		{
+		}
+
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
+
 		public Claim(IReadOnlyUser user, IReadOnlyCharacter character)
 		{
 			GuildId = user.GuildId;

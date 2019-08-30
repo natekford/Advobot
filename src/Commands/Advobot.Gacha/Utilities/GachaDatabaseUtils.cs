@@ -1,18 +1,35 @@
-﻿using Advobot.Gacha.Metadata;
-using Advobot.Gacha.Relationships;
-using AdvorangesUtils;
-using Dapper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Threading.Tasks;
+
+using Advobot.Gacha.Metadata;
+using Advobot.Gacha.Relationships;
+
+using AdvorangesUtils;
+
+using Dapper;
 
 namespace Advobot.Gacha.Utilities
 {
 	public static class RankUtils
 	{
+		public static int GetRank<T>(IEnumerable<T> values, T amount) where T : IComparable<T>
+		{
+			//Find ones with a higher rank than the wanted one
+			var rank = 1;
+			foreach (var value in values)
+			{
+				if (value.CompareTo(amount) == 1)
+				{
+					++rank;
+				}
+			}
+			return rank;
+		}
+
 		public static async Task<AmountAndRank> GetRankAsync<T>(
-			this SQLiteConnection connection,
+					this SQLiteConnection connection,
 			string tableName,
 			long id)
 			where T : ICharacterChild
@@ -43,20 +60,8 @@ namespace Advobot.Gacha.Utilities
 			var normalizedRank = GetRank(normalizedDict.Values, normalizedAmount);
 			return new AmountAndRank(tableName, amount, rank, normalizedAmount, normalizedRank);
 		}
+
 		public static double Normalize(DateTime timeCreated, int amount)
 			=> amount / (DateTime.UtcNow - timeCreated).TotalDays;
-		public static int GetRank<T>(IEnumerable<T> values, T amount) where T : IComparable<T>
-		{
-			//Find ones with a higher rank than the wanted one
-			var rank = 1;
-			foreach (var value in values)
-			{
-				if (value.CompareTo(amount) == 1)
-				{
-					++rank;
-				}
-			}
-			return rank;
-		}
 	}
 }

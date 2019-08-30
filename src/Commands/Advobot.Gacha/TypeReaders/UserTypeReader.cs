@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.TypeReaders

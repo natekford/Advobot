@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
@@ -15,7 +16,9 @@ using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -34,6 +37,7 @@ namespace Advobot.Standard.Commands
 			[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
 			public Task<RuntimeResult> CommandAsync()
 				=> Responses.Misc.GeneralHelp(Context.Settings.GetPrefix(BotSettings));
+
 			[Command, Priority(1)]
 			[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
 			public Task<RuntimeResult> CommandAsync(
@@ -41,6 +45,7 @@ namespace Advobot.Standard.Commands
 				IModuleHelpEntry command
 			)
 				=> Responses.Misc.Help(command, Context.Settings);
+
 			[Command, Priority(2)]
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
 			public Task<RuntimeResult> CommandAsync(
@@ -51,6 +56,7 @@ namespace Advobot.Standard.Commands
 				int position
 			)
 				=> Responses.Misc.Help(command, position - 1);
+
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Hidden]
 			public async Task<RuntimeResult> CommandAsync(
@@ -80,6 +86,7 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public Task<RuntimeResult> CommandAsync()
 				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Prefix);
+
 			[Command]
 			public Task<RuntimeResult> CommandAsync([CommandCategory] string category)
 				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);

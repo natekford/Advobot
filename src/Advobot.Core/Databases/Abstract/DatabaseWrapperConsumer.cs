@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+
 using AdvorangesUtils;
 
 namespace Advobot.Databases.Abstract
@@ -9,29 +10,38 @@ namespace Advobot.Databases.Abstract
 	/// </summary>
 	internal abstract partial class DatabaseWrapperConsumer : IUsesDatabase, IDisposable
 	{
-		/// <summary>
-		/// The name of the database.
-		/// </summary>
-		public abstract string DatabaseName { get; }
-		/// <summary>
-		/// The database being used. This can be any database type, or even just a simple dictionary.
-		/// </summary>
-		protected IDatabaseWrapper DatabaseWrapper => _DatabaseWrapper
-			?? throw new InvalidOperationException("Database connection has not been started yet.");
-		/// <summary>
-		/// The factory for creating <see cref="DatabaseWrapper"/>.
-		/// </summary>
-		protected IDatabaseWrapperFactory DbFactory { get; }
-
 		private IDatabaseWrapper? _DatabaseWrapper;
 
 		/// <summary>
 		/// Creates an instance of <see cref="DatabaseWrapperConsumer"/>.
 		/// </summary>
 		/// <param name="dbFactory"></param>
-		public DatabaseWrapperConsumer(IDatabaseWrapperFactory dbFactory)
+		protected DatabaseWrapperConsumer(IDatabaseWrapperFactory dbFactory)
 		{
 			DbFactory = dbFactory;
+		}
+
+		/// <summary>
+		/// The name of the database.
+		/// </summary>
+		public abstract string DatabaseName { get; }
+
+		/// <summary>
+		/// The database being used. This can be any database type, or even just a simple dictionary.
+		/// </summary>
+		protected IDatabaseWrapper DatabaseWrapper => _DatabaseWrapper
+			?? throw new InvalidOperationException("Database connection has not been started yet.");
+
+		/// <summary>
+		/// The factory for creating <see cref="DatabaseWrapper"/>.
+		/// </summary>
+		protected IDatabaseWrapperFactory DbFactory { get; }
+
+		/// <inheritdoc />
+		public void Dispose()
+		{
+			BeforeDispose();
+			_DatabaseWrapper?.Dispose();
 		}
 
 		/// <inheritdoc />
@@ -56,6 +66,7 @@ namespace Advobot.Databases.Abstract
 				DatabaseWrapper.ExecuteQuery(insertQuery);
 			}
 		}
+
 		/// <summary>
 		/// Actions to do after the database connection has started.
 		/// </summary>
@@ -64,12 +75,7 @@ namespace Advobot.Databases.Abstract
 		{
 			return;
 		}
-		/// <inheritdoc />
-		public void Dispose()
-		{
-			BeforeDispose();
-			_DatabaseWrapper?.Dispose();
-		}
+
 		/// <summary>
 		/// Actions to do before the database connection has been disposed.
 		/// </summary>

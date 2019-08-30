@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Services.HelpEntries;
 using Advobot.Tests.Fakes.Services.HelpEntries;
+
 using AdvorangesUtils;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -25,12 +28,6 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 		}
 
 		[TestMethod]
-		public async Task ThrowsOnNotString_Test()
-		{
-			Task Task() => CheckAsync(1);
-			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
-		}
-		[TestMethod]
 		public async Task CategoryExisting_Test()
 		{
 			const string CATEGORY = "i exist";
@@ -40,11 +37,19 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 			var result = await CheckAsync(CATEGORY).CAF();
 			Assert.AreEqual(true, result.IsSuccess);
 		}
+
 		[TestMethod]
 		public async Task CategoryNotExisting_Test()
 		{
 			var result = await CheckAsync("i dont exist").CAF();
 			Assert.AreEqual(false, result.IsSuccess);
+		}
+
+		[TestMethod]
+		public async Task ThrowsOnNotString_Test()
+		{
+			Task Task() => CheckAsync(1);
+			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
 		}
 	}
 }

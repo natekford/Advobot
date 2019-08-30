@@ -51,28 +51,35 @@ namespace Advobot.Databases.EFCore
 						Update(set, options.Values, isUpsert: false);
 						SaveChanges();
 						return options.Values;
+
 					case DatabaseQuery<T>.DBAction.Upsert:
 						Update(set, options.Values, isUpsert: true);
 						SaveChanges();
 						return options.Values;
+
 					case DatabaseQuery<T>.DBAction.Insert:
 						set.AddRange(options.Values);
 						SaveChanges();
 						return options.Values;
+
 					case DatabaseQuery<T>.DBAction.Get:
 						return set.Where(options.Selector).Take(options.Limit);
+
 					case DatabaseQuery<T>.DBAction.GetAll:
 						return set.ToArray();
+
 					case DatabaseQuery<T>.DBAction.DeleteFromExpression:
 						var values = new List<T>(set.Where(options.Selector));
 						set.RemoveRange(values);
 						SaveChanges();
 						return values;
+
 					case DatabaseQuery<T>.DBAction.DeleteFromValues:
 						var ids = options.Values.Select(x => x.Id);
 						set.RemoveRange(set.Where(x => ids.Contains(x.Id)));
 						SaveChanges();
 						return options.Values;
+
 					default:
 						throw new ArgumentException(nameof(options.Action));
 				}

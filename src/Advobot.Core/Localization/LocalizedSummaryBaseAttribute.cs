@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Resources;
+
 using Discord.Commands;
 
 namespace Advobot.Localization
@@ -11,22 +12,23 @@ namespace Advobot.Localization
 	public abstract class LocalizedSummaryBaseAttribute : SummaryAttribute, ILocalized
 	{
 		/// <summary>
-		/// The name of the summary to use for localization.
-		/// </summary>
-		public string Name { get; }
-		/// <inheritdoc />
-		public ResourceManager ResourceManager { get; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="LocalizedSummaryBaseAttribute"/>.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="resources"></param>
-		public LocalizedSummaryBaseAttribute(string name, ResourceManager resources)
+		protected LocalizedSummaryBaseAttribute(string name, ResourceManager resources)
 			: base(resources.GetString(name))
 		{
 			Name = name;
 			ResourceManager = resources;
 		}
+
+		/// <summary>
+		/// The name of the summary to use for localization.
+		/// </summary>
+		public string Name { get; }
+
+		/// <inheritdoc />
+		public ResourceManager ResourceManager { get; }
 	}
 }

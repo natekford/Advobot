@@ -1,16 +1,18 @@
-﻿using Advobot.Settings;
-using Advobot.Utilities;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.IO;
+
+using Advobot.Settings;
+using Advobot.Utilities;
+
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.Database
 {
 	public sealed class SQLiteFileDatabaseFactory : IDatabaseStarter
 	{
+		private readonly string _ConnectionString;
 		private readonly IBotDirectoryAccessor _Directory;
 		private readonly FileInfo _File;
-		private readonly string _ConnectionString;
 
 		public SQLiteFileDatabaseFactory(IServiceProvider provider)
 		{
@@ -21,6 +23,7 @@ namespace Advobot.Gacha.Database
 
 		public string GetConnectionString()
 			=> _ConnectionString;
+
 		public bool IsDatabaseCreated()
 			=> File.Exists(_File.FullName);
 	}

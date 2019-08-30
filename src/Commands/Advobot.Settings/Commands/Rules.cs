@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
@@ -11,7 +12,9 @@ using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Settings.Localization;
 using Advobot.Settings.Resources;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -35,6 +38,14 @@ namespace Advobot.Settings.Commands
 				Settings.Rules.Categories.Add(name, new List<string>());
 				return Responses.Rules.CreatedCategory(name);
 			}
+
+			[ImplicitCommand, ImplicitAlias]
+			public Task<RuntimeResult> Delete([RuleCategory] string category)
+			{
+				Settings.Rules.Categories.Remove(category);
+				return Responses.Rules.DeletedCategory(category);
+			}
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> ModifyName(
 				[RuleCategory] string category,
@@ -44,12 +55,6 @@ namespace Advobot.Settings.Commands
 				Settings.Rules.Categories.Remove(category);
 				Settings.Rules.Categories.Add(newName, temp);
 				return Responses.Rules.ModifiedCategoryName(category, newName);
-			}
-			[ImplicitCommand, ImplicitAlias]
-			public Task<RuntimeResult> Delete([RuleCategory] string category)
-			{
-				Settings.Rules.Categories.Remove(category);
-				return Responses.Rules.DeletedCategory(category);
 			}
 		}
 
@@ -74,6 +79,7 @@ namespace Advobot.Settings.Commands
 				Settings.Rules.Categories[category].Add(rule);
 				return Responses.Rules.AddedRule(category);
 			}
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Insert(
 				[RuleCategory] string category,
@@ -89,6 +95,7 @@ namespace Advobot.Settings.Commands
 				Settings.Rules.Categories[category].Insert(index, rule);
 				return Responses.Rules.InsertedRule(category, position);
 			}
+
 			[ImplicitCommand, ImplicitAlias]
 			public Task<RuntimeResult> Remove(
 				[RuleCategory] string category,
@@ -114,6 +121,7 @@ namespace Advobot.Settings.Commands
 			[Command]
 			public Task<RuntimeResult> Command([Optional] RuleFormatter? args)
 				=> Command(null, args);
+
 			[Command]
 			public Task<RuntimeResult> Command(
 				[RuleCategory] string? category,

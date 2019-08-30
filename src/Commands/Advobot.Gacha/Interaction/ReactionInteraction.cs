@@ -1,7 +1,10 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.Displays;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -23,11 +26,13 @@ namespace Advobot.Gacha.Interaction
 			}
 			return Task.CompletedTask;
 		}
+
 		public override Task StopAsync()
 		{
 			Manager.ReactionReceived -= HandleAsync;
 			return Task.CompletedTask;
 		}
+
 		private Task HandleAsync(
 			Cacheable<IUserMessage, ulong> cached,
 			ISocketMessageChannel _,
@@ -39,6 +44,7 @@ namespace Advobot.Gacha.Interaction
 			}
 			return Display.InteractAsync(new InteractionContext(reaction, action));
 		}
+
 		private bool TryGetMenuAction(ulong id, IReaction reaction, out IInteraction? action)
 		{
 			action = null;

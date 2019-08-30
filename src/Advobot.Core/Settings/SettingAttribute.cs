@@ -1,6 +1,7 @@
-﻿using Advobot.Settings.GenerateResetValues;
-using System;
+﻿using System;
 using System.Linq;
+
+using Advobot.Settings.GenerateResetValues;
 
 namespace Advobot.Settings
 {
@@ -10,12 +11,24 @@ namespace Advobot.Settings
 	[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
 	internal sealed class SettingAttribute : Attribute
 	{
+		private Type? _ResetValueClass;
+
+		/// <summary>
+		/// Creates an instance of <see cref="SettingAttribute"/>.
+		/// </summary>
+		/// <param name="unlocalizedName"></param>
+		public SettingAttribute(string unlocalizedName)
+		{
+			UnlocalizedName = unlocalizedName;
+		}
+
 		/// <summary>
 		/// The default value to use for this setting.
 		/// If this is set, then this will be used over <see cref="ResetValueClass"/>.
 		/// Use <see cref="Null"/> over setting this as null in order to have a reset value of null.
 		/// </summary>
 		public object? DefaultValue { get; set; }
+
 		/// <summary>
 		/// A class specifying how to reset the value this is applied to.
 		/// The class must implement <see cref="IGenerateResetValue"/> and have a parameterless constructor.
@@ -39,19 +52,10 @@ namespace Advobot.Settings
 				_ResetValueClass = value;
 			}
 		}
-		private Type? _ResetValueClass;
+
 		/// <summary>
 		/// The unlocalized name for this setting.
 		/// </summary>
 		public string UnlocalizedName { get; }
-
-		/// <summary>
-		/// Creates an instance of <see cref="SettingAttribute"/>.
-		/// </summary>
-		/// <param name="unlocalizedName"></param>
-		public SettingAttribute(string unlocalizedName)
-		{
-			UnlocalizedName = unlocalizedName;
-		}
 	}
 }

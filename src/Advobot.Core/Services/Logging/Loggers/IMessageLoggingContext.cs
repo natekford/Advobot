@@ -8,16 +8,18 @@ namespace Advobot.Services.Logging.Loggers
 	public interface IMessageLoggingContext : ILoggingContext
 	{
 		/// <summary>
-		/// The user this context is on.
+		/// The channel this context is on.
 		/// </summary>
-		IGuildUser User { get; }
+		ITextChannel Channel { get; }
+
 		/// <summary>
 		/// The message this context is on.
 		/// </summary>
 		IUserMessage Message { get; }
+
 		/// <summary>
-		/// The channel this context is on.
+		/// The user this context is on.
 		/// </summary>
-		ITextChannel Channel { get; }
+		IGuildUser User { get; }
 	}
 }

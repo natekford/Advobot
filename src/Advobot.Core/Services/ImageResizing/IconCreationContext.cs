@@ -2,9 +2,13 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
+
 using Advobot.Modules;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
+
 using ImageMagick;
 
 namespace Advobot.Services.ImageResizing
@@ -20,11 +24,6 @@ namespace Advobot.Services.ImageResizing
 			MagickFormat.Jpg,
 			MagickFormat.Jpeg
 		});
-
-		/// <inheritdoc />
-		public override long MaxAllowedLengthInBytes => 10000000;
-		/// <inheritdoc />
-		public override string Type { get; }
 
 		private readonly Func<ICommandContext, MemoryStream, Task> _Callback;
 
@@ -49,6 +48,22 @@ namespace Advobot.Services.ImageResizing
 		}
 
 		/// <inheritdoc />
+		public override long MaxAllowedLengthInBytes => 10000000;
+
+		/// <inheritdoc />
+		public override string Type { get; }
+
+		/// <inheritdoc />
+		public override IResult CanUseFormat(MagickFormat format)
+		{
+			if (_ValidFormats.Contains(format))
+			{
+				return AdvobotResult.IgnoreSuccess;
+			}
+			return AdvobotResult.Failure($"Cannot use an image with the format {format}.");
+		}
+
+		/// <inheritdoc />
 		public override async Task<IResult> UseStream(MemoryStream stream)
 		{
 			try
@@ -60,15 +75,6 @@ namespace Advobot.Services.ImageResizing
 			{
 				return AdvobotResult.Exception(e);
 			}
-		}
-		/// <inheritdoc />
-		public override IResult CanUseFormat(MagickFormat format)
-		{
-			if (_ValidFormats.Contains(format))
-			{
-				return AdvobotResult.IgnoreSuccess;
-			}
-			return AdvobotResult.Failure($"Cannot use an image with the format {format}.");
 		}
 	}
 }

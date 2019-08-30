@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Advobot.Databases.Abstract;
+
 using Discord;
 
 namespace Advobot.Services.Levels
@@ -13,26 +15,32 @@ namespace Advobot.Services.Levels
 	{
 		private const int _MESSAGE_AMOUNT = 10;
 
-		/// <inheritdoc />
-		public int MessageCount { get; set; }
-		/// <summary>
-		/// The experience this user has in each guild, then each individual channel.
-		/// </summary>
-		public Dictionary<ulong, Dictionary<ulong, int>> Experience { get; set; } = new Dictionary<ulong, Dictionary<ulong, int>>();
-		/// <summary>
-		/// The past few messages a user has sent (hashes) so spam can be given less XP.
-		/// </summary>
-		public List<MessageHash> MessageHashes { get; set; } = new List<MessageHash>(_MESSAGE_AMOUNT);
-
 		/// <summary>
 		/// Creates an instance of <see cref="UserExperienceInformation"/>.
 		/// </summary>
 		public UserExperienceInformation() : base(0, TimeSpan.Zero) { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="UserExperienceInformation"/> with the supplied user id.
 		/// </summary>
 		/// <param name="user"></param>
 		public UserExperienceInformation(IUser user) : base(user.Id, TimeSpan.Zero) { }
+
+		/// <summary>
+		/// The experience this user has in each guild, then each individual channel.
+		/// </summary>
+		public Dictionary<ulong, Dictionary<ulong, int>> Experience { get; set; } = new Dictionary<ulong, Dictionary<ulong, int>>();
+
+		/// <inheritdoc />
+		public int MessageCount { get; set; }
+
+		/// <summary>
+		/// The past few messages a user has sent (hashes) so spam can be given less XP.
+		/// </summary>
+		public List<MessageHash> MessageHashes { get; set; } = new List<MessageHash>(_MESSAGE_AMOUNT);
+
+		//IUserExperienceInformation
+		ulong IUserExperienceInformation.UserId => Id;
 
 		/// <inheritdoc />
 		public void AddExperience(IUserMessage message, int experience)
@@ -54,6 +62,19 @@ namespace Advobot.Services.Levels
 				MessageHashes.RemoveAt(0);
 			}
 		}
+
+		/// <inheritdoc />
+		public int GetExperience()
+			=> Experience.Sum(g => g.Value.Sum(c => c.Value));
+
+		/// <inheritdoc />
+		public int GetExperience(IGuild guild)
+			=> Experience.TryGetValue(guild.Id, out var channels) ? channels.Values.Sum() : 0;
+
+		/// <inheritdoc />
+		public int GetExperience(ITextChannel channel)
+			=> Experience.TryGetValue(channel.Guild.Id, out var channels) && channels.TryGetValue(channel.Id, out var xp) ? xp : 0;
+
 		/// <inheritdoc />
 		public void RemoveExperience(IUserMessage message, int xp)
 		{
@@ -65,6 +86,19 @@ namespace Advobot.Services.Levels
 			GetChannels((ITextChannel)message.Channel)[message.Channel.Id] -= xp;
 			--MessageCount;
 		}
+
+		/// <summary>
+		/// Attempts to get the message info out of the 10 most recent message information stored.
+		/// </summary>
+		/// <param name="messageId"></param>
+		/// <returns></returns>
+		public MessageHash RemoveMessageHash(ulong messageId)
+		{
+			var hash = MessageHashes.SingleOrDefault(x => x.MessageId == messageId);
+			MessageHashes.Remove(hash);
+			return hash;
+		}
+
 		private int CalculateExperience(IUserMessage message, int experience)
 		{
 			var rng = new Random();
@@ -72,7 +106,7 @@ namespace Advobot.Services.Levels
 			var xp = (double)experience * rng.Next(80, 120) / 100.0;
 			//Message length adds up to 10% increase capping out at 50 characters (any higher = same)
 			//Reason: Some people just spam short messages for xp and this incentivizes longer messages which indicates better convos
-			var msgLengthFactor = 1 + Math.Min(message.Content.Length, 50) / 50.0 * .1;
+			var msgLengthFactor = 1 + (Math.Min(message.Content.Length, 50) / 50.0 * .1);
 			//Attachments/embeds remove up to 5% of the xp capping out at 5 attachments/embeds
 			//Reason: Marginally disincentivizes lots of images which discourage conversation
 			var attachmentFactor = 1 - Math.Min((message.Attachments.Count + message.Embeds.Count) * .01, .05);
@@ -85,6 +119,7 @@ namespace Advobot.Services.Levels
 				: 1 - Math.Min((MessageHashes.Count(x => x.Hash == MessageHashes.Last().Hash) - 1) * .1, .6);
 			return (int)Math.Round(xp * msgLengthFactor * attachmentFactor * spamFactor);
 		}
+
 		private Dictionary<ulong, int> GetChannels(ITextChannel channel)
 		{
 			if (!Experience.TryGetValue(channel.Guild.Id, out var channels))
@@ -97,28 +132,5 @@ namespace Advobot.Services.Levels
 			}
 			return channels;
 		}
-		/// <summary>
-		/// Attempts to get the message info out of the 10 most recent message information stored.
-		/// </summary>
-		/// <param name="messageId"></param>
-		/// <returns></returns>
-		public MessageHash RemoveMessageHash(ulong messageId)
-		{
-			var hash = MessageHashes.SingleOrDefault(x => x.MessageId == messageId);
-			MessageHashes.Remove(hash);
-			return hash;
-		}
-		/// <inheritdoc />
-		public int GetExperience()
-			=> Experience.Sum(g => g.Value.Sum(c => c.Value));
-		/// <inheritdoc />
-		public int GetExperience(IGuild guild)
-			=> Experience.TryGetValue(guild.Id, out var channels) ? channels.Values.Sum() : 0;
-		/// <inheritdoc />
-		public int GetExperience(ITextChannel channel)
-			=> Experience.TryGetValue(channel.Guild.Id, out var channels) && channels.TryGetValue(channel.Id, out var xp) ? xp : 0;
-
-		//IUserExperienceInformation
-		ulong IUserExperienceInformation.UserId => Id;
 	}
 }

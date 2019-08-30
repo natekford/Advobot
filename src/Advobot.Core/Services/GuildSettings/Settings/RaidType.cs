@@ -9,9 +9,15 @@ namespace Advobot.Services.GuildSettings.Settings
 	public enum RaidType : uint
 	{
 		/// <summary>
+		/// No raid type.
+		/// </summary>
+		Nothing = 0,
+
+		/// <summary>
 		/// ???
 		/// </summary>
 		Regular = (1U << 0),
+
 		/// <summary>
 		/// When users join too quickly, this can indicate a raid.
 		/// </summary>

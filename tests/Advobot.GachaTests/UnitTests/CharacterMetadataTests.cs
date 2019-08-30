@@ -1,20 +1,23 @@
-﻿using Advobot.Gacha.ReadOnlyModels;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+
+using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
 using Advobot.GachaTests.Utilities;
+
 using AdvorangesUtils;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Advobot.GachaTests.UnitTests
 {
 	[TestClass]
 	public sealed class CharacterMetadataTests : DatabaseTestsBase
 	{
-		public const int SOURCE_COUNT = 20;
 		public const int CHARACTERS_PER_SOURCE = 25;
-		public const int MIN_CLAIMS = 1;
 		public const int MAX_CLAIMS = 25;
+		public const int MIN_CLAIMS = 1;
+		public const int SOURCE_COUNT = 20;
 
 		[TestMethod]
 		public async Task GetCharacterMetadata_Test()

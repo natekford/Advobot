@@ -4,17 +4,14 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
+
 using ReactiveUI;
 
 namespace Advobot.UI.ViewModels
 {
 	public abstract class SettingsViewModel : ReactiveObject
 	{
-		public bool CanSave => Errors.AllValid();
-
-		public ValidationErrors Errors { get; } = new ValidationErrors();
-
-		public SettingsViewModel(INotifyPropertyChanged settings)
+		protected SettingsViewModel(INotifyPropertyChanged settings)
 		{
 			settings.PropertyChanged += (sender, e) =>
 			{
@@ -25,8 +22,13 @@ namespace Advobot.UI.ViewModels
 			Errors.PropertyChanged += (sender, e) => this.RaisePropertyChanged(nameof(CanSave));
 		}
 
+		public bool CanSave => Errors.AllValid();
+
+		public ValidationErrors Errors { get; } = new ValidationErrors();
+
 		protected bool IsValid([CallerMemberName] string caller = "")
 			=> !Errors[caller];
+
 		protected void RaiseAndSetIfChangedAndValid<T>(Action<T> setter, ref T backingField, T newValue, ValidationAttribute validation, [CallerMemberName] string caller = "")
 		{
 			var isValid = validation.IsValid(newValue);

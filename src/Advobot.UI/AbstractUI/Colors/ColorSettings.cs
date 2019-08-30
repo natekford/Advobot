@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+
 using Advobot.UI.Colors;
+
 using Newtonsoft.Json;
 
 namespace Advobot.UI.AbstractUI.Colors
@@ -13,25 +15,39 @@ namespace Advobot.UI.AbstractUI.Colors
 		: IColorSettings<TBrush>, INotifyPropertyChanged
 			where TBrushFactory : BrushFactory<TBrush>, new()
 	{
-		/// <summary>
-		/// A light color UI theme.
-		/// </summary>
-		public static ITheme<TBrush> LightMode { get; } = new Theme<TBrush, TBrushFactory>
+		[JsonIgnore]
+		private ColorTheme _ActiveTheme = ColorTheme.LightMode;
+
+		static ColorSettings()
 		{
-			{ ColorTargets.BaseBackground,            "#FFFFFF" },
-			{ ColorTargets.BaseForeground,            "#000000" },
-			{ ColorTargets.BaseBorder,                "#ABADB3" },
-			{ ColorTargets.ButtonBackground,          "#DDDDDD" },
-			{ ColorTargets.ButtonForeground,          "#0E0E0E" },
-			{ ColorTargets.ButtonBorder,              "#707070" },
-			{ ColorTargets.ButtonDisabledBackground,  "#F4F4F4" },
-			{ ColorTargets.ButtonDisabledForeground,  "#888888" },
-			{ ColorTargets.ButtonDisabledBorder,      "#ADB2B5" },
-			{ ColorTargets.ButtonMouseOverBackground, "#BEE6FD" },
-			{ ColorTargets.JsonDigits,                "#8700FF" },
-			{ ColorTargets.JsonValue,                 "#000CFF" },
-			{ ColorTargets.JsonParamName,             "#057500" },
-		};
+			LightMode.Freeze();
+			DarkMode.Freeze();
+		}
+
+		/// <summary>
+		/// Creates an instance of <see cref="ColorSettings{TBrush, TBrushFactory}"/> and sets the default theme and colors to light.
+		/// </summary>
+		protected ColorSettings()
+		{
+			foreach (var key in LightMode.Keys)
+			{
+				if (!UserDefinedColors.TryGetValue(key, out var val))
+				{
+					UserDefinedColors.Add(key, LightMode[key]);
+				}
+			}
+			UserDefinedColors.PropertyChanged += (sender, e) =>
+			{
+				if (ActiveTheme == ColorTheme.UserMade)
+				{
+					UpdateResource(e.PropertyName, ((ITheme<TBrush>)sender)[e.PropertyName]);
+				}
+			};
+		}
+
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		/// <summary>
 		/// A dark color UI theme.
 		/// </summary>
@@ -51,20 +67,32 @@ namespace Advobot.UI.AbstractUI.Colors
 			{ ColorTargets.JsonValue,                 "#0051FF" },
 			{ ColorTargets.JsonParamName,             "#057500" },
 		};
+
 		/// <summary>
 		/// Static instance of the brush factory.
 		/// </summary>
 		public static BrushFactory<TBrush> Factory { get; } = new TBrushFactory();
 
-		static ColorSettings()
+		/// <summary>
+		/// A light color UI theme.
+		/// </summary>
+		public static ITheme<TBrush> LightMode { get; } = new Theme<TBrush, TBrushFactory>
 		{
-			LightMode.Freeze();
-			DarkMode.Freeze();
-		}
+			{ ColorTargets.BaseBackground,            "#FFFFFF" },
+			{ ColorTargets.BaseForeground,            "#000000" },
+			{ ColorTargets.BaseBorder,                "#ABADB3" },
+			{ ColorTargets.ButtonBackground,          "#DDDDDD" },
+			{ ColorTargets.ButtonForeground,          "#0E0E0E" },
+			{ ColorTargets.ButtonBorder,              "#707070" },
+			{ ColorTargets.ButtonDisabledBackground,  "#F4F4F4" },
+			{ ColorTargets.ButtonDisabledForeground,  "#888888" },
+			{ ColorTargets.ButtonDisabledBorder,      "#ADB2B5" },
+			{ ColorTargets.ButtonMouseOverBackground, "#BEE6FD" },
+			{ ColorTargets.JsonDigits,                "#8700FF" },
+			{ ColorTargets.JsonValue,                 "#000CFF" },
+			{ ColorTargets.JsonParamName,             "#057500" },
+		};
 
-		/// <inheritdoc />
-		[JsonProperty("ColorTargets", Order = 1)] //Deserialize this first so when Theme gets set it will update the UI
-		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
 		/// <inheritdoc />
 		[JsonProperty("Theme", Order = 2)]
 		public ColorTheme ActiveTheme
@@ -92,46 +120,26 @@ namespace Advobot.UI.AbstractUI.Colors
 				RaisePropertyChanged();
 			}
 		}
-		[JsonIgnore]
-		private ColorTheme _ActiveTheme = ColorTheme.LightMode;
 
 		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		/// <summary>
-		/// Creates an instance of <see cref="ColorSettings{TBrush, TBrushFactory}"/> and sets the default theme and colors to light.
-		/// </summary>
-		public ColorSettings()
-		{
-			foreach (var key in LightMode.Keys)
-			{
-				if (!UserDefinedColors.TryGetValue(key, out var val))
-				{
-					UserDefinedColors.Add(key, LightMode[key]);
-				}
-			}
-			UserDefinedColors.PropertyChanged += (sender, e) =>
-			{
-				if (ActiveTheme == ColorTheme.UserMade)
-				{
-					UpdateResource(e.PropertyName, ((ITheme<TBrush>)sender)[e.PropertyName]);
-				}
-			};
-		}
+		[JsonProperty("ColorTargets", Order = 1)] //Deserialize this first so when Theme gets set it will update the UI
+		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
 
 		/// <inheritdoc />
 		public abstract void Save();
-		/// <summary>
-		/// Updates a resource dictionary with the specified value.
-		/// </summary>
-		/// <param name="target"></param>
-		/// <param name="value"></param>
-		protected abstract void UpdateResource(string target, TBrush value);
+
 		/// <summary>
 		/// Raises the property changed event.
 		/// </summary>
 		/// <param name="caller"></param>
 		protected void RaisePropertyChanged([CallerMemberName] string caller = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
+
+		/// <summary>
+		/// Updates a resource dictionary with the specified value.
+		/// </summary>
+		/// <param name="target"></param>
+		/// <param name="value"></param>
+		protected abstract void UpdateResource(string target, TBrush value);
 	}
 }

@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.Preconditions.Permissions
@@ -18,11 +22,6 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class RequireGuildPermissionsAttribute : RequirePermissionsAttribute
 	{
-		/// <summary>
-		/// Whether this precondition targets the bot rather than the user.
-		/// </summary>
-		public bool ForBot { get; set; }
-
 		private static readonly Enum _Admin = GuildPermission.Administrator;
 
 		/// <summary>
@@ -31,6 +30,11 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		/// <param name="permissions"></param>
 		public RequireGuildPermissionsAttribute(params GuildPermission[] permissions)
 			: base(permissions.Cast<Enum>().Append(_Admin).ToArray()) { }
+
+		/// <summary>
+		/// Whether this precondition targets the bot rather than the user.
+		/// </summary>
+		public bool ForBot { get; set; }
 
 		/// <inheritdoc />
 		public override async Task<Enum?> GetUserPermissionsAsync(

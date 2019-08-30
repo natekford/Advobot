@@ -6,11 +6,13 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Input;
+
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+
 using ReactiveUI;
 
 namespace Advobot.UI.Controls
@@ -22,7 +24,9 @@ namespace Advobot.UI.Controls
 				nameof(UserList),
 				o => o.UserList,
 				(o, v) => o.UserList = v);
+
 #if TWO_LISTS
+
 		public ObservableCollection<ulong> UserList
 		{
 			get => _DisplayList;
@@ -64,6 +68,7 @@ namespace Advobot.UI.Controls
 				SetAndRaise(UserListProperty, ref _DisplayList, displayList);
 			}
 		}
+
 		private ObservableCollection<ulong> _DisplayList = new ObservableCollection<ulong>();
 #else
 		public ObservableCollection<ulong> UserList
@@ -81,6 +86,7 @@ namespace Advobot.UI.Controls
 				(o, v) => o.Text = v,
 				defaultBindingMode: BindingMode.TwoWay,
 				enableDataValidation: true);
+
 		public string Text
 		{
 			get => _Text;
@@ -90,6 +96,7 @@ namespace Advobot.UI.Controls
 				CurrentId = ulong.Parse(value);
 			}
 		}
+
 		private string _Text;
 
 		public static readonly DirectProperty<UserListEditor, ulong> CurrentIdProperty =
@@ -99,6 +106,7 @@ namespace Advobot.UI.Controls
 				(o, v) => o.CurrentId = v,
 				defaultBindingMode: BindingMode.TwoWay,
 				enableDataValidation: true);
+
 		public ulong CurrentId
 		{
 			get => _CurrentId;
@@ -111,6 +119,7 @@ namespace Advobot.UI.Controls
 				SetAndRaise(CurrentIdProperty, ref _CurrentId, value);
 			}
 		}
+
 		private ulong _CurrentId;
 
 		public static readonly DirectProperty<UserListEditor, bool> HasErrorProperty =
@@ -119,11 +128,13 @@ namespace Advobot.UI.Controls
 				o => o.HasError,
 				(o, v) => o.HasError = v,
 				defaultBindingMode: BindingMode.OneWayToSource);
+
 		public bool HasError
 		{
 			get => _HasError;
 			private set => SetAndRaise(HasErrorProperty, ref _HasError, value);
 		}
+
 		private bool _HasError;
 
 		public ICommand ModifyListCommand { get; }

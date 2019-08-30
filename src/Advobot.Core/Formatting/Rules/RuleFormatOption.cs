@@ -9,9 +9,15 @@ namespace Advobot.Formatting.Rules
 	public enum RuleFormatOption : uint
 	{
 		/// <summary>
+		/// No formatting.
+		/// </summary>
+		Nothing = 0,
+
+		/// <summary>
 		/// Keep all the numbers the same length so everything looks uniform.
 		/// </summary>
 		NumbersSameLength = (1U << 0),
+
 		/// <summary>
 		/// Put in extra lines between categories.
 		/// </summary>

@@ -1,5 +1,7 @@
 ﻿using System;
+
 using Advobot.Services.GuildSettings;
+
 using Discord;
 
 namespace Advobot.Attributes.ParameterPreconditions.Logs

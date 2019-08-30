@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Avalonia;
 using Avalonia.Controls;
 
@@ -12,6 +13,9 @@ namespace Advobot.UI.Controls
 		public static readonly StyledProperty<Type> SourceEnumProperty =
 			AvaloniaProperty.Register<ComboBox, Type>("SourceEnum");
 
+		public static Type GetSourceEnum(ComboBox obj)
+			=> obj.GetValue(SourceEnumProperty);
+
 		public static void SetSourceEnum(ComboBox obj, Type value)
 		{
 			if (!value.IsEnum)
@@ -22,7 +26,5 @@ namespace Advobot.UI.Controls
 			obj.Items = value.GetEnumValues();
 			obj.SetValue(SourceEnumProperty, value);
 		}
-		public static Type GetSourceEnum(ComboBox obj)
-			=> obj.GetValue(SourceEnumProperty);
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
@@ -11,7 +12,9 @@ using Advobot.Services.GuildSettings.Settings;
 using Advobot.Settings.Localization;
 using Advobot.Settings.Resources;
 using Advobot.TypeReaders;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.Settings.Commands
@@ -35,6 +38,7 @@ namespace Advobot.Settings.Commands
 				Settings.Quotes.Add(quote);
 				return Responses.Quotes.ModifiedQuote(quote, true);
 			}
+
 			[ImplicitCommand, ImplicitAlias]
 			[QuoteLimit(QuantityLimitAction.Remove)]
 			public Task<RuntimeResult> Remove([Remainder] Quote quote)
@@ -52,9 +56,11 @@ namespace Advobot.Settings.Commands
 			[Command]
 			public Task<RuntimeResult> Command()
 				=> Responses.Quotes.ShowQuotes(Context.Settings.Quotes);
+
 			[Command, Priority(1)]
 			public Task<RuntimeResult> Command([Remainder] Quote quote)
 				=> Responses.Quotes.Quote(quote);
+
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			public async Task<RuntimeResult> Command([Remainder, OverrideTypeReader(typeof(CloseQuoteTypeReader))] IEnumerable<Quote> quote)
 			{

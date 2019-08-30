@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Advobot.Attributes.ParameterPreconditions.Numbers;
+
 using AdvorangesUtils;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Numbers
@@ -11,12 +14,6 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Numbers
 	public sealed class ChannelBitrateAttribute_Tests
 		: ParameterPreconditionsTestsBase<ChannelBitrateAttribute>
 	{
-		[TestMethod]
-		public async Task ThrowsOnNotInt_Test()
-		{
-			Task Task() => CheckAsync("not int");
-			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
-		}
 		[TestMethod]
 		public async Task Standard_Test()
 		{
@@ -35,6 +32,14 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Numbers
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}
+
+		[TestMethod]
+		public async Task ThrowsOnNotInt_Test()
+		{
+			Task Task() => CheckAsync("not int");
+			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
+		}
+
 		[TestMethod]
 		public async Task Tier1_Test()
 		{
@@ -53,6 +58,7 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Numbers
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}
+
 		[TestMethod]
 		public async Task Tier2_Test()
 		{
@@ -71,6 +77,7 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Numbers
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}
+
 		[TestMethod]
 		public async Task Tier3_Test()
 		{

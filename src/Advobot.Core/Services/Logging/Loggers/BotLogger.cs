@@ -1,8 +1,11 @@
 ﻿using System.Threading.Tasks;
+
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging.Interfaces;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Services.Logging.Loggers

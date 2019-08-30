@@ -9,15 +9,6 @@ namespace Advobot.Formatting
 	/// </summary>
 	public class FormatApplier
 	{
-		/// <summary>
-		/// Whether this is enabled.
-		/// </summary>
-		public bool Enabled { get; set; }
-		/// <summary>
-		/// The format this formatter applies to.
-		/// </summary>
-		public string FormatName { get; }
-
 		private readonly Func<string, string> _Modifier;
 
 		/// <summary>
@@ -37,6 +28,16 @@ namespace Advobot.Formatting
 			FormatName = name;
 			_Modifier = modifier ?? throw new ArgumentException(nameof(modifier));
 		}
+
+		/// <summary>
+		/// Whether this is enabled.
+		/// </summary>
+		public bool Enabled { get; set; }
+
+		/// <summary>
+		/// The format this formatter applies to.
+		/// </summary>
+		public string FormatName { get; }
 
 		/// <summary>
 		/// Returns a modified string if <paramref name="formats"/> contains the format this formatter is specified for or if this is enaabled and no formats are passed in.

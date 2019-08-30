@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+
 using Discord.WebSocket;
 
 namespace Advobot.Services.Logging.Interfaces
@@ -14,18 +15,21 @@ namespace Advobot.Services.Logging.Interfaces
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		Task OnGuildAvailable(SocketGuild guild);
+
 		/// <summary>
 		/// When a guild disappears for the bot.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		Task OnGuildUnavailable(SocketGuild guild);
+
 		/// <summary>
 		/// When the bot joins a guild.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		Task OnJoinedGuild(SocketGuild guild);
+
 		/// <summary>
 		/// When the bot leaves a guild.
 		/// </summary>

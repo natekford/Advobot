@@ -9,10 +9,12 @@
 		/// The value can either exist or not exist.
 		/// </summary>
 		None,
+
 		/// <summary>
 		/// The value can only exist.
 		/// </summary>
 		MustExist,
+
 		/// <summary>
 		/// The value can only not exist.
 		/// </summary>

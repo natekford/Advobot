@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
+
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.TypeReaders

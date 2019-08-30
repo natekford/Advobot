@@ -1,24 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Advobot.Attributes;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.Services.HelpEntries
 {
 	internal sealed class ModuleHelpEntry : IModuleHelpEntry
 	{
-		public string Name { get; }
-		public string Summary { get; }
-		public bool AbleToBeToggled { get; }
-		public bool EnabledByDefault { get; }
-		public string Id { get; }
-		public string Category { get; }
-		public IReadOnlyList<string> Aliases { get; }
-		public IReadOnlyList<IPrecondition> Preconditions { get; }
-		public IReadOnlyList<ICommandHelpEntry> Commands { get; }
-
 		public ModuleHelpEntry(ModuleInfo module)
 		{
 			var meta = module.Attributes.GetAttribute<MetaAttribute>();
@@ -40,5 +33,15 @@ namespace Advobot.Services.HelpEntries
 				.Select(x => new CommandHelpEntry(x))
 				.ToArray();
 		}
+
+		public bool AbleToBeToggled { get; }
+		public IReadOnlyList<string> Aliases { get; }
+		public string Category { get; }
+		public IReadOnlyList<ICommandHelpEntry> Commands { get; }
+		public bool EnabledByDefault { get; }
+		public string Id { get; }
+		public string Name { get; }
+		public IReadOnlyList<IPrecondition> Preconditions { get; }
+		public string Summary { get; }
 	}
 }

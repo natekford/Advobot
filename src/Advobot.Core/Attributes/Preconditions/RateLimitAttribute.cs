@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes.Preconditions
@@ -14,23 +16,6 @@ namespace Advobot.Attributes.Preconditions
 	public sealed class RateLimitAttribute
 		: PreconditionAttribute, IPrecondition
 	{
-		/// <inheritdoc />
-		public string Summary
-			=> $"Rate limit of {Value} {Unit.ToString().ToLower()}";
-
-		/// <summary>
-		/// The actual timespan.
-		/// </summary>
-		public TimeSpan Time { get; }
-		/// <summary>
-		/// The passed in units.
-		/// </summary>
-		public TimeUnit Unit { get; }
-		/// <summary>
-		/// The passed in value.
-		/// </summary>
-		public double Value { get; }
-
 		//TODO: put into service?
 		private static readonly ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>> _Times = new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>>();
 
@@ -52,6 +37,46 @@ namespace Advobot.Attributes.Preconditions
 			};
 		}
 
+		/// <summary>
+		/// The unit of time to use.
+		/// </summary>
+		public enum TimeUnit
+		{
+			/// <summary>
+			/// Definitely means hours.
+			/// </summary>
+			Seconds,
+
+			/// <summary>
+			/// Probably means years.
+			/// </summary>
+			Minutes,
+
+			/// <summary>
+			/// Centuries?
+			/// </summary>
+			Hours,
+		}
+
+		/// <inheritdoc />
+		public string Summary
+			=> $"Rate limit of {Value} {Unit.ToString().ToLower()}";
+
+		/// <summary>
+		/// The actual timespan.
+		/// </summary>
+		public TimeSpan Time { get; }
+
+		/// <summary>
+		/// The passed in units.
+		/// </summary>
+		public TimeUnit Unit { get; }
+
+		/// <summary>
+		/// The passed in value.
+		/// </summary>
+		public double Value { get; }
+
 		/// <inheritdoc />
 		public override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
@@ -65,25 +90,6 @@ namespace Advobot.Attributes.Preconditions
 			}
 			dict[context.User.Id] = DateTime.UtcNow.Add(Time);
 			return PreconditionUtils.FromSuccessAsync();
-		}
-
-		/// <summary>
-		/// The unit of time to use.
-		/// </summary>
-		public enum TimeUnit
-		{
-			/// <summary>
-			/// Definitely means hours.
-			/// </summary>
-			Seconds,
-			/// <summary>
-			/// Probably means years.
-			/// </summary>
-			Minutes,
-			/// <summary>
-			/// Centuries?
-			/// </summary>
-			Hours,
 		}
 	}
 }

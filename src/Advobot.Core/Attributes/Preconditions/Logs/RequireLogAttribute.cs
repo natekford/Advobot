@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.Preconditions.Logs
@@ -19,6 +23,7 @@ namespace Advobot.Attributes.Preconditions.Logs
 		/// <inheritdoc />
 		public string Summary
 			=> $"{LogName} log must exist";
+
 		/// <summary>
 		/// Gets the name of the log.
 		/// </summary>
@@ -38,6 +43,7 @@ namespace Advobot.Attributes.Preconditions.Logs
 			}
 			return PreconditionUtils.FromError($"There is no {LogName} log to remove.");
 		}
+
 		/// <summary>
 		/// Gets the current id of the log channel.
 		/// </summary>

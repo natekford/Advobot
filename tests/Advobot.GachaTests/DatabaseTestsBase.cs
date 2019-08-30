@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.GachaTests.Utilities;
+
 using AdvorangesUtils;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,8 +17,6 @@ namespace Advobot.GachaTests
 	{
 		public static readonly Random Rng = new Random();
 
-		protected IServiceProvider Provider { get; }
-
 		protected DatabaseTestsBase()
 		{
 			Provider = new ServiceCollection()
@@ -24,12 +25,8 @@ namespace Advobot.GachaTests
 				.BuildServiceProvider();
 		}
 
-		protected async Task<GachaDatabase> GetDatabaseAsync()
-		{
-			var db = Provider.GetRequiredService<GachaDatabase>();
-			await db.CreateDatabaseAsync().CAF();
-			return db;
-		}
+		protected IServiceProvider Provider { get; }
+
 		protected async Task<(List<IReadOnlySource>, List<IReadOnlyCharacter>)> AddSourcesAndCharacters(
 			GachaDatabase db,
 			int sourceCount,
@@ -52,6 +49,13 @@ namespace Advobot.GachaTests
 			var addedCharacters = await db.AddCharactersAsync(characters).CAF();
 			Assert.AreEqual(sourceCount * charactersPerSource, addedCharacters);
 			return (sources, characters);
+		}
+
+		protected async Task<GachaDatabase> GetDatabaseAsync()
+		{
+			var db = Provider.GetRequiredService<GachaDatabase>();
+			await db.CreateDatabaseAsync().CAF();
+			return db;
 		}
 	}
 }

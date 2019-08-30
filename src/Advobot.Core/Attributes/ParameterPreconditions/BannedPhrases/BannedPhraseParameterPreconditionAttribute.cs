@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.ParameterPreconditions.BannedPhrases
@@ -20,10 +24,18 @@ namespace Advobot.Attributes.ParameterPreconditions.BannedPhrases
 	{
 		/// <inheritdoc />
 		public override string Summary => $"Not already a banned {BannedPhraseName}";
+
 		/// <summary>
 		/// Gets the name of the banned phrase type.
 		/// </summary>
 		protected abstract string BannedPhraseName { get; }
+
+		/// <summary>
+		/// Gets the phrases this should look through.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <returns></returns>
+		protected abstract IEnumerable<BannedPhrase> GetPhrases(IGuildSettings settings);
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
@@ -45,11 +57,5 @@ namespace Advobot.Attributes.ParameterPreconditions.BannedPhrases
 			}
 			return PreconditionUtils.FromError($"`{regex}` is already a banned regex.");
 		}
-		/// <summary>
-		/// Gets the phrases this should look through.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <returns></returns>
-		protected abstract IEnumerable<BannedPhrase> GetPhrases(IGuildSettings settings);
 	}
 }

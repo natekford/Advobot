@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.Strings
@@ -12,29 +14,32 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	public abstract class StringParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override string Summary
-			=> $"Valid {StringType} ({ValidLength} long)";
-		/// <summary>
-		/// The type of string this is targetting.
-		/// </summary>
-		public abstract string StringType { get; }
-		/// <summary>
-		/// Allowed length for strings passed in.
-		/// </summary>
-		public NumberCollection<int> ValidLength { get; }
-		/// <inheritdoc />
-		protected override bool AllowEnumerating => false;
-
 		/// <summary>
 		/// Creates an instance of <see cref="StringParameterPreconditionAttribute"/>.
 		/// </summary>
 		/// <param name="min"></param>
 		/// <param name="max"></param>
-		public StringParameterPreconditionAttribute(int min, int max)
+		protected StringParameterPreconditionAttribute(int min, int max)
 		{
 			ValidLength = new NumberCollection<int>(min, max);
 		}
+
+		/// <summary>
+		/// The type of string this is targetting.
+		/// </summary>
+		public abstract string StringType { get; }
+
+		/// <inheritdoc />
+		public override string Summary
+			=> $"Valid {StringType} ({ValidLength} long)";
+
+		/// <summary>
+		/// Allowed length for strings passed in.
+		/// </summary>
+		public NumberCollection<int> ValidLength { get; }
+
+		/// <inheritdoc />
+		protected override bool AllowEnumerating => false;
 
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
@@ -49,6 +54,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			}
 			return SingularCheckPermissionsAsync(context, parameter, s, services);
 		}
+
 		/// <summary>
 		/// Checks whether the condition for the <see cref="string"/> is met before execution of the command.
 		/// </summary>

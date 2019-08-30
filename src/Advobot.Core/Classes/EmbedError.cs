@@ -2,118 +2,36 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using AdvorangesUtils;
 
 namespace Advobot.Classes
 {
-	internal interface IRemainingEmbedError : IEmbedError
-	{
-		int RemainingLength { get; }
-		bool IsNewLines { get; }
-	}
-
-	internal class RemainingEmbedError : IRemainingEmbedError
-	{
-		/// <inheritdoc />
-		public int RemainingLength { get; }
-		/// <inheritdoc />
-		public bool IsNewLines { get; }
-		/// <inheritdoc />
-		public string? Reason { get; }
-		/// <inheritdoc />
-		public string PropertyPath { get; }
-		/// <inheritdoc />
-		public object? Value { get; }
-
-		/// <summary>
-		/// Creates an instance of <see cref="RemainingEmbedError"/>.
-		/// </summary>
-		/// <param name="error"></param>
-		/// <param name="remainingLength"></param>
-		/// <param name="reason"></param>
-		/// <param name="newLines"></param>
-		public RemainingEmbedError(IEmbedError error, int remainingLength, string reason, bool newLines = false)
-		{
-			RemainingLength = remainingLength;
-			IsNewLines = newLines;
-			Reason = reason;
-			PropertyPath = error.PropertyPath;
-			Value = error.Value;
-		}
-	}
-
 	/// <summary>
 	/// An error which occurs when attempting to modify an <see cref="EmbedWrapper"/>.
 	/// </summary>
 	public interface IEmbedError
 	{
 		/// <summary>
-		/// The reason for this error.
-		/// </summary>
-		public string? Reason { get; }
-		/// <summary>
 		/// The property which had an error.
 		/// </summary>
 		public string PropertyPath { get; }
+
+		/// <summary>
+		/// The reason for this error.
+		/// </summary>
+		public string? Reason { get; }
+
 		/// <summary>
 		/// The value that gave an error.
 		/// </summary>
 		public object? Value { get; }
 	}
 
-	/// <summary>
-	/// Provides information about why something failed to add to an embed.
-	/// </summary>
-	internal class EmbedError<TEmbedBuilder, TProperty> : IEmbedError
+	internal interface IRemainingEmbedError : IEmbedError
 	{
-		/// <inheritdoc />
-		public string? Reason { get; private set; }
-		/// <inheritdoc />
-		public string PropertyPath { get; }
-		/// <inheritdoc />
-		public TProperty Value { get; }
-
-		/// <summary>
-		/// Creates an instance of <see cref="EmbedError{TEmbedBuilder, TProperty}"/>.
-		/// </summary>
-		/// <param name="property"></param>
-		/// <param name="value"></param>
-		public EmbedError(Expression<Func<TEmbedBuilder, TProperty>> property, TProperty value)
-		{
-			PropertyPath = property.GetPropertyPath();
-			Value = value;
-		}
-
-		public IRemainingEmbedError WithRemaining(int r)
-			=> new RemainingEmbedError(this, r, $"Remaining length is {r}.");
-		public IRemainingEmbedError WithRemainingNewLines(int r)
-			=> new RemainingEmbedError(this, r, $"Remaining new lines is {r}.", newLines: true);
-		public IRemainingEmbedError WithMax(int m)
-			=> new RemainingEmbedError(this, m, $"Max length is {m}.");
-		public IEmbedError WithInvalidUrl()
-			=> WithReason("Invalid url.");
-		public IEmbedError WithNone()
-			=> WithReason("None to remove.");
-		public IEmbedError WithOutOfBounds()
-			=> WithReason("Out of bounds.");
-		public IEmbedError WithMustBePositive()
-			=> WithReason("Cannot be less than zero.");
-		public IEmbedError WithNotEmpty()
-			=> WithReason("Cannot be null or empty.");
-		public IEmbedError WithReason(string reason)
-		{
-			Reason = reason;
-			return this;
-		}
-		/// <summary>
-		/// Returns the errors saying the property path, value, and reason.
-		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-			=> $"{PropertyPath}: '{Value?.ToString() ?? "null"}' is invalid. Reason: {Reason}";
-
-		//IEmbedError
-		object? IEmbedError.Value => Value;
+		bool IsNewLines { get; }
+		int RemainingLength { get; }
 	}
 
 	internal static class EmbedUtils
@@ -124,6 +42,7 @@ namespace Advobot.Classes
 
 		public static string GetPropertyPath(this LambdaExpression expr)
 			=> expr.Body.GetFromAny();
+
 		private static string GetFromAny(this Expression expr) => expr switch
 		{
 			LambdaExpression lambda => lambda.GetPropertyPath(),
@@ -136,39 +55,14 @@ namespace Advobot.Classes
 			ParameterExpression _ => "", //Change to 'param' and 'param.Name' to include them
 			_ => throw new ArgumentException("This expression has not been implemented yet."),
 		};
+
 		private static string GetFromBinary(this BinaryExpression binary)
 		{
 			var left = binary.Left.GetFromAny();
 			var right = binary.Right.GetFromAny();
 			return $"{left} + {right}";
 		}
-		private static string GetFromUnary(this UnaryExpression unary)
-			=> unary.Operand.GetFromAny();
-		private static string GetFromMember(this MemberExpression member)
-		{
-			var name = member.Member.Name;
-			if (member.Expression == null)
-			{
-				return name;
-			}
-			//Can potentially get the direct value and replace the name with it, 
-			//but if the class doesn't implement a good .ToString then that's
-			//worse than the var name
-			//It's also annoying when dealing with closure because anonymous classes
-			//have long annoying names
-			if (member.Expression.NodeType == ExpressionType.Constant)
-			{
-				return name;
-			}
 
-			var exprRep = member.Expression.GetFromAny();
-			if (string.IsNullOrWhiteSpace(exprRep))
-			{
-				return name;
-			}
-
-			return $"{exprRep}.{name}";
-		}
 		private static string GetFromCall(this MethodCallExpression call)
 		{
 			var name = call.Method.Name;
@@ -207,12 +101,7 @@ namespace Advobot.Classes
 			}
 			return nameAndArgs;
 		}
-		private static string GetFromNew(this NewExpression @new)
-		{
-			var name = @new.Type.Name;
-			var args = @new.Arguments.Join(x => x.GetFromAny());
-			return $"new {name}({args})";
-		}
+
 		private static string GetFromConstant(this ConstantExpression constant)
 		{
 			//Has to go first since strings are not value types
@@ -232,5 +121,141 @@ namespace Advobot.Classes
 			}
 			return constant.Value.ToString();
 		}
+
+		private static string GetFromMember(this MemberExpression member)
+		{
+			var name = member.Member.Name;
+			if (member.Expression == null)
+			{
+				return name;
+			}
+			//Can potentially get the direct value and replace the name with it,
+			//but if the class doesn't implement a good .ToString then that's
+			//worse than the var name
+			//It's also annoying when dealing with closure because anonymous classes
+			//have long annoying names
+			if (member.Expression.NodeType == ExpressionType.Constant)
+			{
+				return name;
+			}
+
+			var exprRep = member.Expression.GetFromAny();
+			if (string.IsNullOrWhiteSpace(exprRep))
+			{
+				return name;
+			}
+
+			return $"{exprRep}.{name}";
+		}
+
+		private static string GetFromNew(this NewExpression @new)
+		{
+			var name = @new.Type.Name;
+			var args = @new.Arguments.Join(x => x.GetFromAny());
+			return $"new {name}({args})";
+		}
+
+		private static string GetFromUnary(this UnaryExpression unary)
+											=> unary.Operand.GetFromAny();
+	}
+
+	/// <summary>
+	/// Provides information about why something failed to add to an embed.
+	/// </summary>
+	internal class EmbedError<TEmbedBuilder, TProperty> : IEmbedError
+	{
+		/// <summary>
+		/// Creates an instance of <see cref="EmbedError{TEmbedBuilder, TProperty}"/>.
+		/// </summary>
+		/// <param name="property"></param>
+		/// <param name="value"></param>
+		public EmbedError(Expression<Func<TEmbedBuilder, TProperty>> property, TProperty value)
+		{
+			PropertyPath = property.GetPropertyPath();
+			Value = value;
+		}
+
+		/// <inheritdoc />
+		public string PropertyPath { get; }
+
+		/// <inheritdoc />
+		public string? Reason { get; private set; }
+
+		/// <inheritdoc />
+		public TProperty Value { get; }
+
+		//IEmbedError
+		object? IEmbedError.Value => Value;
+
+		/// <summary>
+		/// Returns the errors saying the property path, value, and reason.
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+			=> $"{PropertyPath}: '{Value?.ToString() ?? "null"}' is invalid. Reason: {Reason}";
+
+		public IEmbedError WithInvalidUrl()
+			=> WithReason("Invalid url.");
+
+		public IRemainingEmbedError WithMax(int m)
+			=> new RemainingEmbedError(this, m, $"Max length is {m}.");
+
+		public IEmbedError WithMustBePositive()
+			=> WithReason("Cannot be less than zero.");
+
+		public IEmbedError WithNone()
+			=> WithReason("None to remove.");
+
+		public IEmbedError WithNotEmpty()
+			=> WithReason("Cannot be null or empty.");
+
+		public IEmbedError WithOutOfBounds()
+			=> WithReason("Out of bounds.");
+
+		public IEmbedError WithReason(string reason)
+		{
+			Reason = reason;
+			return this;
+		}
+
+		public IRemainingEmbedError WithRemaining(int r)
+																					=> new RemainingEmbedError(this, r, $"Remaining length is {r}.");
+
+		public IRemainingEmbedError WithRemainingNewLines(int r)
+			=> new RemainingEmbedError(this, r, $"Remaining new lines is {r}.", newLines: true);
+	}
+
+	internal class RemainingEmbedError : IRemainingEmbedError
+	{
+		/// <summary>
+		/// Creates an instance of <see cref="RemainingEmbedError"/>.
+		/// </summary>
+		/// <param name="error"></param>
+		/// <param name="remainingLength"></param>
+		/// <param name="reason"></param>
+		/// <param name="newLines"></param>
+		public RemainingEmbedError(IEmbedError error, int remainingLength, string reason, bool newLines = false)
+		{
+			RemainingLength = remainingLength;
+			IsNewLines = newLines;
+			Reason = reason;
+			PropertyPath = error.PropertyPath;
+			Value = error.Value;
+		}
+
+		/// <inheritdoc />
+		public bool IsNewLines { get; }
+
+		/// <inheritdoc />
+		public string PropertyPath { get; }
+
+		/// <inheritdoc />
+		public string? Reason { get; }
+
+		/// <inheritdoc />
+		public int RemainingLength { get; }
+
+		/// <inheritdoc />
+		public object? Value { get; }
 	}
 }

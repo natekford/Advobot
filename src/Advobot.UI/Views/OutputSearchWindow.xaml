@@ -12,12 +12,12 @@
 
     <controls:DynamicFontSizeGrid RowDefinitions="1*,20*,1*,1*,1*" ColumnDefinitions="7*,1*" DynamicFontSize=".02">
         <!-- TODO: Uncomment when this nuget package is updated past 0.7.0 and te work -->
-        <!-- <ae:TextEditor Grid.RowSpan="5" Document="{Binding Output}" VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True" IsReadOnly="True"/> -->
-        <TextBox Grid.RowSpan="5" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"/>
+        <!-- <ae:TextEditor Grid.RowSpan="5" Document="{Binding Output}" VerticalScrollBarVisibility="Visible" ShowLineNumbers="True" WordWrap="True" IsReadOnly="True" /> -->
+        <TextBox Grid.RowSpan="5" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" />
 
-        <ComboBox Name="Keys" Grid.Column="1" Items="{Binding Keys}" SelectedItem="{Binding SearchTerm}"/>
-        <Button Grid.Column="1" Grid.Row="2" Content="Search" Command="{Binding SearchCommand}"/>
-        <Button Grid.Column="1" Grid.Row="3" Content="Save" HotKey="Ctrl+s" Command="{Binding SaveCommand}"/>
-        <Button Grid.Column="1" Grid.Row="4" Content="Close" HotKey="Ctrl+w" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=OutputSearchWindow}"/>
+        <ComboBox Name="Keys" Grid.Column="1" Items="{Binding Keys}" SelectedItem="{Binding SearchTerm}" />
+        <Button Grid.Column="1" Grid.Row="2" Content="Search" Command="{Binding SearchCommand}" />
+        <Button Grid.Column="1" Grid.Row="3" Content="Save" HotKey="Ctrl+s" Command="{Binding SaveCommand}" />
+        <Button Grid.Column="1" Grid.Row="4" Content="Close" HotKey="Ctrl+w" Command="{Binding CloseCommand}" CommandParameter="{Binding ElementName=OutputSearchWindow}" />
     </controls:DynamicFontSizeGrid>
 </Window>

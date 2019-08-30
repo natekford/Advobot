@@ -3,12 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Classes;
 using Advobot.Formatting;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings.Settings
@@ -19,19 +23,47 @@ namespace Advobot.Services.GuildSettings.Settings
 	[NamedArgumentType]
 	public sealed class SpamPrev : TimedPrev<SpamType>
 	{
+		[JsonIgnore]
+		private readonly ConcurrentDictionary<ulong, SortedSet<ulong>> _Instances = new ConcurrentDictionary<ulong, SortedSet<ulong>>();
+
 		/// <summary>
 		/// The required amount of times a user must spam before they can be voted to be kicked.
 		/// </summary>
 		[JsonProperty]
 		public int SpamInstances { get; set; }
+
 		/// <summary>
 		/// The required amount of content before a message is considered spam.
 		/// </summary>
 		[JsonProperty]
 		public int SpamPerMessage { get; set; }
 
-		[JsonIgnore]
-		private readonly ConcurrentDictionary<ulong, SortedSet<ulong>> _Instances = new ConcurrentDictionary<ulong, SortedSet<ulong>>();
+		/// <inheritdoc />
+		public override Task DisableAsync(IGuild guild)
+		{
+			Enabled = false;
+			return Task.CompletedTask;
+		}
+
+		/// <inheritdoc />
+		public override Task EnableAsync(IGuild guild)
+		{
+			Enabled = true;
+			return Task.CompletedTask;
+		}
+
+		/// <inheritdoc />
+		public override IDiscordFormattableString GetFormattableString()
+		{
+			return new Dictionary<string, object>
+			{
+				{ "Enabled", Enabled },
+				{ "Interval", TimeInterval },
+				{ "Punishment", Punishment },
+				{ "Instances", SpamInstances },
+				{ "Amount", SpamPerMessage },
+			}.ToDiscordFormattableStringCollection();
+		}
 
 		/// <summary>
 		/// Punishes a user.
@@ -66,6 +98,7 @@ namespace Advobot.Services.GuildSettings.Settings
 			}
 			return false;
 		}
+
 		private int GetSpamCount(IUserMessage message) => Type switch
 		{
 			SpamType.Message => int.MaxValue,
@@ -75,30 +108,5 @@ namespace Advobot.Services.GuildSettings.Settings
 			SpamType.Mention => message.MentionedUserIds.Distinct().Count(),
 			_ => throw new ArgumentOutOfRangeException(nameof(Type)),
 		};
-		/// <inheritdoc />
-		public override Task EnableAsync(IGuild guild)
-		{
-			Enabled = true;
-			return Task.CompletedTask;
-		}
-		/// <inheritdoc />
-		public override Task DisableAsync(IGuild guild)
-		{
-			Enabled = false;
-			return Task.CompletedTask;
-		}
-
-		/// <inheritdoc />
-		public override IDiscordFormattableString GetFormattableString()
-		{
-			return new Dictionary<string, object>
-			{
-				{ "Enabled", Enabled },
-				{ "Interval", TimeInterval },
-				{ "Punishment", Punishment },
-				{ "Instances", SpamInstances },
-				{ "Amount", SpamPerMessage },
-			}.ToDiscordFormattableStringCollection();
-		}
 	}
 }

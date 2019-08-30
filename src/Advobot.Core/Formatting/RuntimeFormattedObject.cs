@@ -5,15 +5,6 @@
 	/// </summary>
 	public readonly struct RuntimeFormattedObject
 	{
-		/// <summary>
-		/// The value to format.
-		/// </summary>
-		public object Value { get; }
-		/// <summary>
-		/// The format to use for the value.
-		/// </summary>
-		public string Format { get; }
-
 		private RuntimeFormattedObject(object value, string? format)
 		{
 			Value = value;
@@ -21,19 +12,15 @@
 		}
 
 		/// <summary>
-		/// Returns <see cref="Value"/> as a string.
+		/// The format to use for the value.
 		/// </summary>
-		/// <returns></returns>
-		public override string ToString()
-			=> Value.ToString();
+		public string Format { get; }
 
 		/// <summary>
-		/// Creates an instance of <see cref="RuntimeFormattedObject"/> with no format.
+		/// The value to format.
 		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public static RuntimeFormattedObject None(object value)
-			=> new RuntimeFormattedObject(value, null);
+		public object Value { get; }
+
 		/// <summary>
 		/// Creates an instance of <see cref="RuntimeFormattedObject"/> with the specified format.
 		/// </summary>
@@ -42,5 +29,20 @@
 		/// <returns></returns>
 		public static RuntimeFormattedObject Create(object value, string format)
 			=> new RuntimeFormattedObject(value, format);
+
+		/// <summary>
+		/// Creates an instance of <see cref="RuntimeFormattedObject"/> with no format.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static RuntimeFormattedObject None(object value)
+			=> new RuntimeFormattedObject(value, null);
+
+		/// <summary>
+		/// Returns <see cref="Value"/> as a string.
+		/// </summary>
+		/// <returns></returns>
+		public override string ToString()
+			=> Value.ToString();
 	}
 }

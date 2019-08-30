@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+
 using Advobot.Formatting;
+
 using Discord;
+
 using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings.Settings
@@ -12,20 +15,10 @@ namespace Advobot.Services.GuildSettings.Settings
 	public sealed class SelfAssignableRoles : IGuildFormattable
 	{
 		/// <summary>
-		/// The group number all the roles belong to.
-		/// </summary>
-		[JsonProperty("Group")]
-		public int Group { get; set; }
-		/// <summary>
-		/// The ids of the roles.
-		/// </summary>
-		[JsonProperty("Roles")]
-		public ICollection<ulong> Roles { get; set; } = new HashSet<ulong>();
-
-		/// <summary>
 		/// Creates an instance of <see cref="SelfAssignableRoles"/>.
 		/// </summary>
 		public SelfAssignableRoles() { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="SelfAssignableRoles"/>.
 		/// </summary>
@@ -34,6 +27,18 @@ namespace Advobot.Services.GuildSettings.Settings
 		{
 			Group = group;
 		}
+
+		/// <summary>
+		/// The group number all the roles belong to.
+		/// </summary>
+		[JsonProperty("Group")]
+		public int Group { get; set; }
+
+		/// <summary>
+		/// The ids of the roles.
+		/// </summary>
+		[JsonProperty("Roles")]
+		public ICollection<ulong> Roles { get; set; } = new HashSet<ulong>();
 
 		/// <summary>
 		/// Adds the roles to the group.
@@ -46,28 +51,17 @@ namespace Advobot.Services.GuildSettings.Settings
 				Roles.Add(role.Id);
 			}
 		}
-		/// <summary>
-		/// Removes the roles from the group.
-		/// </summary>
-		/// <param name="roles"></param>
-		public void RemoveRoles(IEnumerable<ulong> roles)
+
+		/// <inheritdoc />
+		public IDiscordFormattableString GetFormattableString()
 		{
-			foreach (var role in roles)
+			return new Dictionary<string, object>
 			{
-				Roles.Remove(role);
-			}
+				{ "Group", Group },
+				{ "Roles", Roles },
+			}.ToDiscordFormattableStringCollection();
 		}
-		/// <summary>
-		/// Removes the roles from the group
-		/// </summary>
-		/// <param name="roles"></param>
-		public void RemoveRoles(IEnumerable<IRole> roles)
-		{
-			foreach (var role in roles)
-			{
-				Roles.Remove(role.Id);
-			}
-		}
+
 		/// <summary>
 		/// Gets roles which still exist. Also deletes roles which do not exist from this object.
 		/// </summary>
@@ -88,14 +82,28 @@ namespace Advobot.Services.GuildSettings.Settings
 			}
 		}
 
-		/// <inheritdoc />
-		public IDiscordFormattableString GetFormattableString()
+		/// <summary>
+		/// Removes the roles from the group.
+		/// </summary>
+		/// <param name="roles"></param>
+		public void RemoveRoles(IEnumerable<ulong> roles)
 		{
-			return new Dictionary<string, object>
+			foreach (var role in roles)
 			{
-				{ "Group", Group },
-				{ "Roles", Roles },
-			}.ToDiscordFormattableStringCollection();
+				Roles.Remove(role);
+			}
+		}
+
+		/// <summary>
+		/// Removes the roles from the group
+		/// </summary>
+		/// <param name="roles"></param>
+		public void RemoveRoles(IEnumerable<IRole> roles)
+		{
+			foreach (var role in roles)
+			{
+				Roles.Remove(role.Id);
+			}
 		}
 	}
 }

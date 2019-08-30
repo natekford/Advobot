@@ -18,6 +18,7 @@ namespace Advobot.UI.AbstractUI.Converters
 		/// <returns></returns>
 		public object Convert(object value, Type _1, object _2, CultureInfo _3)
 			=> value is string s ? !string.IsNullOrWhiteSpace(s) : value != null;
+
 		/// <summary>
 		/// Not implemented.
 		/// </summary>

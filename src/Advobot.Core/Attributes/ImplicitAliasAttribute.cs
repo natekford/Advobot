@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+
 using Advobot.Utilities;
+
 using Discord.Commands;
 
 namespace Advobot.Attributes
 {
 	/// <summary>
-	/// Shortens a name down to an initialism. 
+	/// Shortens a name down to an initialism.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public sealed class ImplicitAliasAttribute : AliasAttribute
@@ -17,6 +19,7 @@ namespace Advobot.Attributes
 		/// <param name="caller"></param>
 		public ImplicitAliasAttribute([CallerMemberName] string caller = "")
 			: this(new string[0], caller) { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="ImplicitAliasAttribute"/>.
 		/// </summary>

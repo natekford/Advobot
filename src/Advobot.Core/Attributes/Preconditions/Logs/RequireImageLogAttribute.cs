@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Advobot.Services.GuildSettings;
 
 namespace Advobot.Attributes.Preconditions.Logs

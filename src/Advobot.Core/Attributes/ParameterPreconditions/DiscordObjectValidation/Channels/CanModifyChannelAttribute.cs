@@ -2,7 +2,9 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord;
 using Discord.Commands;
 
@@ -14,13 +16,6 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class CanModifyChannelAttribute : ChannelParameterPreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override string Summary { get; }
-		/// <summary>
-		/// The permissions to make sure the invoking user has on the channel.
-		/// </summary>
-		public ImmutableHashSet<ChannelPermission> Permissions { get; }
-
 		/// <summary>
 		/// Creates an instance of <see cref="CanModifyChannelAttribute"/>.
 		/// </summary>
@@ -32,6 +27,14 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 				.ToImmutableHashSet();
 			Summary = Permissions.FormatPermissions();
 		}
+
+		/// <summary>
+		/// The permissions to make sure the invoking user has on the channel.
+		/// </summary>
+		public ImmutableHashSet<ChannelPermission> Permissions { get; }
+
+		/// <inheritdoc />
+		public override string Summary { get; }
 
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckChannelAsync(

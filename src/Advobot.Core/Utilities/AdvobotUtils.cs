@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Settings;
@@ -12,14 +13,6 @@ namespace Advobot.Utilities
 	public static class AdvobotUtils
 	{
 		/// <summary>
-		/// Gets the prefix to use for this guild. Prioritizes the guild prefix over the global prefix.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="botSettings"></param>
-		/// <returns></returns>
-		public static string GetPrefix(this IGuildSettings settings, IBotSettings botSettings)
-			=> settings.Prefix ?? botSettings.Prefix ?? throw new InvalidOperationException("Invalid prefix.");
-		/// <summary>
 		/// Gets the file inside the bot directory.
 		/// </summary>
 		/// <param name="accessor"></param>
@@ -27,6 +20,16 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static FileInfo GetBaseBotDirectoryFile(this IBotDirectoryAccessor accessor, string fileName)
 			=> new FileInfo(Path.Combine(accessor.BaseBotDirectory.FullName, fileName));
+
+		/// <summary>
+		/// Gets the prefix to use for this guild. Prioritizes the guild prefix over the global prefix.
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name="botSettings"></param>
+		/// <returns></returns>
+		public static string GetPrefix(this IGuildSettings settings, IBotSettings botSettings)
+			=> settings.Prefix ?? botSettings.Prefix ?? throw new InvalidOperationException("Invalid prefix.");
+
 		/// <summary>
 		/// Ensures the extension of the file is '.db' and that the directory exists.
 		/// </summary>

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Resources;
 using Advobot.Services.BotSettings;
+
 using AdvorangesUtils;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -20,12 +23,6 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 				.BuildServiceProvider();
 		}
 
-		[TestMethod]
-		public async Task ThrowsOnNotString_Test()
-		{
-			Task Task() => CheckAsync(1);
-			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
-		}
 		[TestMethod]
 		public async Task AllSettingNames_Test()
 		{
@@ -56,11 +53,19 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 				Assert.AreEqual(true, result.IsSuccess);
 			}
 		}
+
 		[TestMethod]
 		public async Task InvalidSetting_Test()
 		{
 			var result = await CheckAsync("not a setting").CAF();
 			Assert.AreEqual(false, result.IsSuccess);
+		}
+
+		[TestMethod]
+		public async Task ThrowsOnNotString_Test()
+		{
+			Task Task() => CheckAsync(1);
+			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
 		}
 	}
 }

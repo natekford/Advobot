@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+
 using Advobot.Formatting;
 using Advobot.Localization;
 using Advobot.Settings.GenerateResetValues;
@@ -17,16 +18,13 @@ namespace Advobot.Settings
 	/// </summary>
 	internal abstract class SettingsBase : ISettingsBase
 	{
-		private readonly IReadOnlyList<Setting> _Settings;
 		private readonly Localized<IReadOnlyDictionary<string, Setting>> _Localized;
-
-		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
+		private readonly IReadOnlyList<Setting> _Settings;
 
 		/// <summary>
 		/// Creates an instance of <see cref="SettingsBase"/>.
 		/// </summary>
-		public SettingsBase()
+		protected SettingsBase()
 		{
 			IEnumerable<Setting> GetSettings()
 			{
@@ -59,11 +57,8 @@ namespace Advobot.Settings
 		}
 
 		/// <inheritdoc />
-		public IReadOnlyCollection<string> GetSettingNames()
-			=> _Localized.Get().Keys.ToArray();
-		/// <inheritdoc />
-		public void ResetSetting(string name)
-			=> _Localized.Get()[name].Reset(this);
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		/// <inheritdoc />
 		public IDiscordFormattableString Format()
 		{
@@ -79,23 +74,37 @@ namespace Advobot.Settings
 			}
 			return formattable;
 		}
+
 		/// <inheritdoc />
 		public IDiscordFormattableString FormatSetting(string name)
 			=> FormatValue(_Localized.Get()[name].GetCurrentValue(this));
+
 		/// <inheritdoc />
 		public IDiscordFormattableString FormatValue(object? value)
 			=> new DiscordFormattableString(value);
+
+		/// <inheritdoc />
+		public IReadOnlyCollection<string> GetSettingNames()
+			=> _Localized.Get().Keys.ToArray();
+
+		/// <inheritdoc />
+		public void ResetSetting(string name)
+			=> _Localized.Get()[name].Reset(this);
+
 		/// <inheritdoc />
 		public abstract void Save();
+
 		/// <summary>
 		/// Gets the localized setting name.
 		/// </summary>
 		/// <param name="attr"></param>
 		/// <returns></returns>
 		protected abstract string GetLocalizedName(SettingAttribute attr);
+
 		/// <inheritdoc />
 		protected void RaisePropertyChanged([CallerMemberName] string caller = "")
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
+
 		/// <summary>
 		/// Sets the field and raises property changed.
 		/// </summary>
@@ -108,6 +117,7 @@ namespace Advobot.Settings
 			field = value;
 			RaisePropertyChanged(caller);
 		}
+
 		/// <summary>
 		/// Throws an argument exception if the condition is true.
 		/// </summary>
@@ -135,14 +145,9 @@ namespace Advobot.Settings
 
 		private sealed class Setting
 		{
-			public bool CanReset => SettingAttribute.ResetValueClass != null || SettingAttribute.DefaultValue != null;
-
-			public SettingAttribute SettingAttribute { get; }
-
 			private readonly Func<SettingsBase, object?> _Getter;
-			private readonly Action<SettingsBase, object?> _Setter;
 			private readonly bool _IsValueType;
-
+			private readonly Action<SettingsBase, object?> _Setter;
 			private IGenerateResetValue? _GenerateResetValue;
 			private Type? _GenerateResetValueType;
 
@@ -155,8 +160,13 @@ namespace Advobot.Settings
 				_IsValueType = property.PropertyType.IsValueType;
 			}
 
+			public bool CanReset => SettingAttribute.ResetValueClass != null || SettingAttribute.DefaultValue != null;
+
+			public SettingAttribute SettingAttribute { get; }
+
 			public object? GetCurrentValue(SettingsBase parent)
 				=> _Getter(parent);
+
 			public void Reset(SettingsBase parent)
 			{
 				if (SettingAttribute.DefaultValue != null)
@@ -186,27 +196,7 @@ namespace Advobot.Settings
 					_Setter(parent, resetValue);
 				}
 			}
-			private Func<SettingsBase, object?> BuildUntypedGetter(PropertyInfo propertyInfo)
-			{
-				var settings = Expression.Parameter(typeof(SettingsBase), "t");
-				var castSettings = Expression.Convert(settings, propertyInfo.DeclaringType);
 
-				var getter = Expression.Call(castSettings, propertyInfo.GetGetMethod());
-				var convertedValue = Expression.Convert(getter, typeof(object));
-				var lambda = Expression.Lambda<Func<SettingsBase, object?>>(convertedValue, settings);
-				return lambda.Compile();
-			}
-			private Action<SettingsBase, object?> BuildUntypedSetter(PropertyInfo propertyInfo)
-			{
-				var settings = Expression.Parameter(typeof(SettingsBase), "t");
-				var castSettings = Expression.Convert(settings, propertyInfo.DeclaringType);
-
-				var value = Expression.Parameter(typeof(object), "p");
-				var convertedValue = Expression.Convert(value, propertyInfo.PropertyType);
-				var setter = Expression.Call(castSettings, propertyInfo.GetSetMethod(), convertedValue);
-				var lambda = Expression.Lambda<Action<SettingsBase, object?>>(setter, settings, value);
-				return lambda.Compile();
-			}
 			private bool AreEqual(object? a, object? b)
 			{
 				//This is needed because everything will be boxed as object
@@ -220,6 +210,29 @@ namespace Advobot.Settings
 					return false;
 				}
 				return _IsValueType ? a.Equals(b) : ReferenceEquals(a, b);
+			}
+
+			private Func<SettingsBase, object?> BuildUntypedGetter(PropertyInfo propertyInfo)
+			{
+				var settings = Expression.Parameter(typeof(SettingsBase), "t");
+				var castSettings = Expression.Convert(settings, propertyInfo.DeclaringType);
+
+				var getter = Expression.Call(castSettings, propertyInfo.GetGetMethod());
+				var convertedValue = Expression.Convert(getter, typeof(object));
+				var lambda = Expression.Lambda<Func<SettingsBase, object?>>(convertedValue, settings);
+				return lambda.Compile();
+			}
+
+			private Action<SettingsBase, object?> BuildUntypedSetter(PropertyInfo propertyInfo)
+			{
+				var settings = Expression.Parameter(typeof(SettingsBase), "t");
+				var castSettings = Expression.Convert(settings, propertyInfo.DeclaringType);
+
+				var value = Expression.Parameter(typeof(object), "p");
+				var convertedValue = Expression.Convert(value, propertyInfo.PropertyType);
+				var setter = Expression.Call(castSettings, propertyInfo.GetSetMethod(), convertedValue);
+				var lambda = Expression.Lambda<Action<SettingsBase, object?>>(setter, settings, value);
+				return lambda.Compile();
 			}
 		}
 	}

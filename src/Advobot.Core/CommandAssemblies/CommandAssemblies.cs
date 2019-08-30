@@ -10,28 +10,16 @@ namespace Advobot.CommandAssemblies
 	/// </summary>
 	public sealed class CommandAssemblyCollection
 	{
+		private readonly Dictionary<string, CommandAssembly> _Assemblies = new Dictionary<string, CommandAssembly>();
+
+		private CommandAssemblyCollection()
+		{
+		}
+
 		/// <summary>
 		/// The assemblies to be used as command assemblies.
 		/// </summary>
 		public IReadOnlyCollection<CommandAssembly> Assemblies => _Assemblies.Values;
-
-		private readonly Dictionary<string, CommandAssembly> _Assemblies = new Dictionary<string, CommandAssembly>();
-
-		private CommandAssemblyCollection() { }
-
-		private void Add(Assembly assembly)
-		{
-			var attr = assembly.GetCustomAttribute<CommandAssemblyAttribute>();
-			if (attr != null)
-			{
-				var name = assembly.FullName;
-				if (_Assemblies.TryGetValue(name, out _))
-				{
-					throw new InvalidOperationException($"Duplicate assembly name: {name}");
-				}
-				_Assemblies[name] = new CommandAssembly(assembly, attr);
-			}
-		}
 
 		/// <summary>
 		/// Returns all the assemblies in the base directory which have the <see cref="CommandAssemblyAttribute"/>.
@@ -56,6 +44,20 @@ namespace Advobot.CommandAssemblies
 				return assemblies;
 			}
 			throw new DllNotFoundException("Unable to find any command assemblies.");
+		}
+
+		private void Add(Assembly assembly)
+		{
+			var attr = assembly.GetCustomAttribute<CommandAssemblyAttribute>();
+			if (attr != null)
+			{
+				var name = assembly.FullName;
+				if (_Assemblies.TryGetValue(name, out _))
+				{
+					throw new InvalidOperationException($"Duplicate assembly name: {name}");
+				}
+				_Assemblies[name] = new CommandAssembly(assembly, attr);
+			}
 		}
 	}
 }

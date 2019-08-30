@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Services.GuildSettings;
 using Advobot.Tests.Fakes.Services.GuildSettings;
+
 using AdvorangesUtils;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -30,11 +33,39 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 		}
 
 		[TestMethod]
-		public async Task ThrowsOnNotString_Test()
+		public async Task ErrorOnCategoryExistingFalse_Tests()
 		{
-			Task Task() => CheckAsync(1);
-			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
+			Instance.Status = ExistenceStatus.MustExist;
+			_Settings.Rules.Categories.Add(_ExistingCategory, new List<string>());
+
+			{
+				var result = await CheckAsync(_ExistingCategory).CAF();
+				Assert.AreEqual(true, result.IsSuccess);
+			}
+
+			{
+				var result = await CheckAsync(_NonExistentCategory).CAF();
+				Assert.AreEqual(false, result.IsSuccess);
+			}
 		}
+
+		[TestMethod]
+		public async Task ErrorOnCategoryExistingTrue_Tests()
+		{
+			Instance.Status = ExistenceStatus.MustNotExist;
+			_Settings.Rules.Categories.Add(_ExistingCategory, new List<string>());
+
+			{
+				var result = await CheckAsync(_ExistingCategory).CAF();
+				Assert.AreEqual(false, result.IsSuccess);
+			}
+
+			{
+				var result = await CheckAsync(_NonExistentCategory).CAF();
+				Assert.AreEqual(true, result.IsSuccess);
+			}
+		}
+
 		[TestMethod]
 		public async Task Standard_Test()
 		{
@@ -53,37 +84,12 @@ namespace Advobot.Tests.UnitTests.Attributes.ParameterPreconditions.Strings
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}
+
 		[TestMethod]
-		public async Task ErrorOnCategoryExistingTrue_Tests()
+		public async Task ThrowsOnNotString_Test()
 		{
-			Instance.Status = ExistenceStatus.MustNotExist;
-			_Settings.Rules.Categories.Add(_ExistingCategory, new List<string>());
-
-			{
-				var result = await CheckAsync(_ExistingCategory).CAF();
-				Assert.AreEqual(false, result.IsSuccess);
-			}
-
-			{
-				var result = await CheckAsync(_NonExistentCategory).CAF();
-				Assert.AreEqual(true, result.IsSuccess);
-			}
-		}
-		[TestMethod]
-		public async Task ErrorOnCategoryExistingFalse_Tests()
-		{
-			Instance.Status = ExistenceStatus.MustExist;
-			_Settings.Rules.Categories.Add(_ExistingCategory, new List<string>());
-
-			{
-				var result = await CheckAsync(_ExistingCategory).CAF();
-				Assert.AreEqual(true, result.IsSuccess);
-			}
-
-			{
-				var result = await CheckAsync(_NonExistentCategory).CAF();
-				Assert.AreEqual(false, result.IsSuccess);
-			}
+			Task Task() => CheckAsync(1);
+			await Assert.ThrowsExceptionAsync<ArgumentException>(Task).CAF();
 		}
 	}
 }

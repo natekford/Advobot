@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+
 using Advobot.Attributes;
+
 using Discord.Commands;
 
 namespace Advobot.Services.Commands
 {
 	internal sealed class TypeReaderInfo
 	{
-		public TypeReader Instance { get; }
-		public TypeReaderTargetTypeAttribute Attribute { get; }
-
 		public TypeReaderInfo(TypeReader instance, TypeReaderTargetTypeAttribute attribute)
 		{
 			Instance = instance;
 			Attribute = attribute;
 		}
+
+		public TypeReaderTargetTypeAttribute Attribute { get; }
+		public TypeReader Instance { get; }
 
 		public static IReadOnlyList<TypeReaderInfo> Create(Assembly assembly)
 		{

@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.ParameterPreconditions.Strings
@@ -15,15 +19,16 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	public sealed class RuleCategoryAttribute
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
-		/// <inheritdoc />
-		public override string StringType => "rule category name";
-		/// <inheritdoc />
-		public ExistenceStatus Status { get; set; } = ExistenceStatus.MustExist;
-
 		/// <summary>
 		/// Creates an instance of <see cref="RuleCategoryAttribute"/>.
 		/// </summary>
 		public RuleCategoryAttribute() : base(1, 250) { }
+
+		/// <inheritdoc />
+		public ExistenceStatus Status { get; set; } = ExistenceStatus.MustExist;
+
+		/// <inheritdoc />
+		public override string StringType => "rule category name";
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(

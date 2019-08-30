@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
@@ -6,6 +7,7 @@ using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Advobot.Settings.Localization;
 using Advobot.Settings.Resources;
+
 using Discord.Commands;
 
 namespace Advobot.Settings.Commands
@@ -22,17 +24,20 @@ namespace Advobot.Settings.Commands
 			protected override IBotSettings Settings => BotSettings;
 
 			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task<RuntimeResult> Json()
-				=> Responses.GuildSettings.DisplayJson(Settings);
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
-			public Task<RuntimeResult> Names()
-				=> Responses.GuildSettings.DisplayNames(Settings);
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
 			public Task<RuntimeResult> All()
 				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
+
 			[Command]
 			public Task<RuntimeResult> Command([BotSettingName] string name)
 				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
+
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			public Task<RuntimeResult> Json()
+				=> Responses.GuildSettings.DisplayJson(Settings);
+
+			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			public Task<RuntimeResult> Names()
+				=> Responses.GuildSettings.DisplayNames(Settings);
 		}
 
 #warning reenable
@@ -55,7 +60,6 @@ namespace Advobot.Settings.Commands
 			[ImplicitCommand, ImplicitAlias]
 			public Task Modify(string value)
 			{
-
 			}
 		}*/
 

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Services.Logging.Loggers
@@ -13,6 +16,7 @@ namespace Advobot.Services.Logging.Loggers
 			IGuildUser user,
 			IGuildSettingsFactory settingsFactory)
 			=> await CreateAsync(null, user, null, user.Guild, settingsFactory).CAF();
+
 		public static async Task<IMessageLoggingContext?> CreateAsync(
 			IMessage message,
 			IGuildSettingsFactory settingsFactory)
@@ -23,6 +27,7 @@ namespace Advobot.Services.Logging.Loggers
 			var guild = channel?.Guild;
 			return await CreateAsync(userMessage, user, channel, guild, settingsFactory).CAF();
 		}
+
 		private static async Task<PrivateLoggingContext?> CreateAsync(
 			IUserMessage? message,
 			IGuildUser? user,
@@ -44,15 +49,9 @@ namespace Advobot.Services.Logging.Loggers
 
 		private sealed class PrivateLoggingContext : IMessageLoggingContext, IUserLoggingContext
 		{
-			public IGuild Guild { get; }
-			public IGuildSettings Settings { get; }
-			public ITextChannel? ServerLog { get; }
-			public ITextChannel? ImageLog { get; }
-			public IGuildUser Bot { get; }
-
-			private readonly IGuildUser _User;
-			private readonly IUserMessage? _Message;
 			private readonly ITextChannel? _Channel;
+			private readonly IUserMessage? _Message;
+			private readonly IGuildUser _User;
 
 			public PrivateLoggingContext(
 				IGuild guild,
@@ -74,6 +73,26 @@ namespace Advobot.Services.Logging.Loggers
 				Bot = bot;
 			}
 
+			public IGuildUser Bot { get; }
+			public IGuild Guild { get; }
+			public ITextChannel? ImageLog { get; }
+			public ITextChannel? ServerLog { get; }
+			public IGuildSettings Settings { get; }
+
+			ITextChannel IMessageLoggingContext.Channel
+				=> _Channel ?? throw InvalidContext<IMessageLoggingContext>();
+
+			IUserMessage IMessageLoggingContext.Message
+				=> _Message ?? throw InvalidContext<IMessageLoggingContext>();
+
+			//IMessageLoggingContext
+			IGuildUser IMessageLoggingContext.User
+				=> _User ?? throw InvalidContext<IMessageLoggingContext>();
+
+			//IUserLoggingContext
+			IGuildUser IUserLoggingContext.User
+				=> _User ?? throw InvalidContext<IUserLoggingContext>();
+
 			public bool CanLog(LogAction action) => ServerLog != null && Settings.LogActions.Contains(action) && action switch
 			{
 				//Only log if it wasn't this bot that left
@@ -88,20 +107,9 @@ namespace Advobot.Services.Logging.Loggers
 				LogAction.MessageDeleted => !Settings.IgnoredLogChannels.Contains(_Channel?.Id ?? 0),
 				_ => throw new ArgumentOutOfRangeException(nameof(action)),
 			};
+
 			private InvalidOperationException InvalidContext<T>()
 				=> new InvalidOperationException($"Invalid {typeof(T).Name}.");
-
-			//IMessageLoggingContext
-			IGuildUser IMessageLoggingContext.User
-				=> _User ?? throw InvalidContext<IMessageLoggingContext>();
-			IUserMessage IMessageLoggingContext.Message
-				=> _Message ?? throw InvalidContext<IMessageLoggingContext>();
-			ITextChannel IMessageLoggingContext.Channel
-				=> _Channel ?? throw InvalidContext<IMessageLoggingContext>();
-
-			//IUserLoggingContext
-			IGuildUser IUserLoggingContext.User
-				=> _User ?? throw InvalidContext<IUserLoggingContext>();
 		}
 	}
 }

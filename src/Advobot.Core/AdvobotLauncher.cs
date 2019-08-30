@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Advobot.CommandAssemblies;
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
@@ -21,11 +22,15 @@ using Advobot.Services.Logging;
 using Advobot.Services.Timers;
 using Advobot.Settings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using MongoDB.Driver;
 
 namespace Advobot
@@ -56,23 +61,23 @@ namespace Advobot
 		}
 
 		/// <summary>
-		/// Waits until the old process is killed. This is blocking.
+		/// Starts an instance of Advobot with one method call.
 		/// </summary>
-		public void WaitUntilOldProcessKilled()
+		/// <param name="args"></param>
+		/// <returns></returns>
+		public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
 		{
-			//Wait until the old process is killed
-			if (_Config.PreviousProcessId != -1)
-			{
-				try
-				{
-					while (Process.GetProcessById(_Config.PreviousProcessId) != null)
-					{
-						Thread.Sleep(25);
-					}
-				}
-				catch (ArgumentException) { }
-			}
+			var launcher = new AdvobotLauncher(LowLevelConfig.Load(args));
+			await launcher.GetPathAndKeyAsync().CAF();
+			var commands = CommandAssemblyCollection.Find();
+			var defaultServices = await launcher.GetDefaultServices(commands).CAF();
+			var provider = launcher.CreateProvider(defaultServices);
+			var commandHandler = provider.GetRequiredService<ICommandHandlerService>();
+			await commandHandler.AddCommandsAsync(commands.Assemblies).CAF();
+			await launcher.StartAsync(provider).CAF();
+			return provider;
 		}
+
 		/// <summary>
 		/// Gets the path and bot key from user input if they're not already stored in file.
 		/// </summary>
@@ -93,31 +98,39 @@ namespace Advobot
 				startup = await _Config.ValidateBotKey(startup ? null : Console.ReadLine(), startup, ClientUtils.RestartBotAsync).CAF();
 			}
 		}
+
 		/// <summary>
-		/// Returns the default services for the bot if both the path and key have been set.
+		/// Creates the service provider and starts the Discord bot.
 		/// </summary>
-		/// <param name="assemblies"></param>
 		/// <returns></returns>
-		private async Task<IServiceCollection> GetDefaultServices(CommandAssemblyCollection assemblies)
-			=> _Services ?? (_Services = await CreateDefaultServices(assemblies, _Config).CAF());
-		/// <summary>
-		/// Creates a provider and initializes all of its singletons.
-		/// </summary>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		private IServiceProvider CreateProvider(IServiceCollection services)
+		public Task StartAsync(IServiceProvider provider)
 		{
-			var provider = services.BuildServiceProvider();
-			foreach (var service in services.Where(x => x.Lifetime == ServiceLifetime.Singleton))
+			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
 			{
-				var instance = provider.GetRequiredService(service.ServiceType);
-				if (instance is IUsesDatabase usesDb)
-				{
-					usesDb.Start();
-				}
+				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
 			}
-			return provider;
+			return _Config.StartAsync(provider.GetRequiredService<BaseSocketClient>());
 		}
+
+		/// <summary>
+		/// Waits until the old process is killed. This is blocking.
+		/// </summary>
+		public void WaitUntilOldProcessKilled()
+		{
+			//Wait until the old process is killed
+			if (_Config.PreviousProcessId != -1)
+			{
+				try
+				{
+					while (Process.GetProcessById(_Config.PreviousProcessId) != null)
+					{
+						Thread.Sleep(25);
+					}
+				}
+				catch (ArgumentException) { }
+			}
+		}
+
 		private static async Task<IServiceCollection> CreateDefaultServices(CommandAssemblyCollection assemblies, ILowLevelConfig config)
 		{
 			var botSettings = BotSettings.CreateOrLoad(config);
@@ -182,34 +195,32 @@ namespace Advobot
 
 			return s;
 		}
+
 		/// <summary>
-		/// Creates the service provider and starts the Discord bot.
+		/// Creates a provider and initializes all of its singletons.
 		/// </summary>
+		/// <param name="services"></param>
 		/// <returns></returns>
-		public Task StartAsync(IServiceProvider provider)
+		private IServiceProvider CreateProvider(IServiceCollection services)
 		{
-			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
+			var provider = services.BuildServiceProvider();
+			foreach (var service in services.Where(x => x.Lifetime == ServiceLifetime.Singleton))
 			{
-				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
+				var instance = provider.GetRequiredService(service.ServiceType);
+				if (instance is IUsesDatabase usesDb)
+				{
+					usesDb.Start();
+				}
 			}
-			return _Config.StartAsync(provider.GetRequiredService<BaseSocketClient>());
-		}
-		/// <summary>
-		/// Starts an instance of Advobot with one method call.
-		/// </summary>
-		/// <param name="args"></param>
-		/// <returns></returns>
-		public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
-		{
-			var launcher = new AdvobotLauncher(LowLevelConfig.Load(args));
-			await launcher.GetPathAndKeyAsync().CAF();
-			var commands = CommandAssemblyCollection.Find();
-			var defaultServices = await launcher.GetDefaultServices(commands).CAF();
-			var provider = launcher.CreateProvider(defaultServices);
-			var commandHandler = provider.GetRequiredService<ICommandHandlerService>();
-			await commandHandler.AddCommandsAsync(commands.Assemblies).CAF();
-			await launcher.StartAsync(provider).CAF();
 			return provider;
 		}
+
+		/// <summary>
+		/// Returns the default services for the bot if both the path and key have been set.
+		/// </summary>
+		/// <param name="assemblies"></param>
+		/// <returns></returns>
+		private async Task<IServiceCollection> GetDefaultServices(CommandAssemblyCollection assemblies)
+			=> _Services ?? (_Services = await CreateDefaultServices(assemblies, _Config).CAF());
 	}
 }

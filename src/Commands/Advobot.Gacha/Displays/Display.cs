@@ -1,33 +1,41 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Modules;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.Displays
 {
 	public abstract class Display
 	{
-		public IUserMessage? Message { get; protected set; }
-		public DateTime LastInteractedWith { get; protected set; }
-		public bool HasBeenSent { get; protected set; }
-
-		public GachaDatabase Database { get; }
-		public int Id { get; }
-
-		protected IInteractionHandler InteractionHandler { get; }
-
-		public Display(IServiceProvider services, int id)
+		protected Display(IServiceProvider services, int id)
 		{
 			Database = services.GetRequiredService<GachaDatabase>();
 
 			var interactionFactory = services.GetRequiredService<IInteractionManager>();
 			InteractionHandler = interactionFactory.CreateInteractionHandler(this);
 			Id = id;
+		}
+
+		public GachaDatabase Database { get; }
+		public bool HasBeenSent { get; protected set; }
+		public int Id { get; }
+		public DateTime LastInteractedWith { get; protected set; }
+		public IUserMessage? Message { get; protected set; }
+		protected IInteractionHandler InteractionHandler { get; }
+
+		public virtual Task InteractAsync(IInteractionContext context)
+		{
+			LastInteractedWith = DateTime.UtcNow;
+			return HandleInteractionAsync(context);
 		}
 
 		public virtual async Task<RuntimeResult> SendAsync(IMessageChannel channel)
@@ -41,7 +49,7 @@ namespace Advobot.Gacha.Displays
 			{
 				var text = await GenerateTextAsync().CAF();
 				var embed = await GenerateEmbedAsync().CAF();
-				Message = await channel.SendMessageAsync(text, embed: embed);
+				Message = await channel.SendMessageAsync(text, embed: embed).CAF();
 
 				await InteractionHandler.StartAsync().CAF();
 				await KeepDisplayAliveAsync().CAF();
@@ -53,15 +61,7 @@ namespace Advobot.Gacha.Displays
 				return AdvobotResult.Exception(e);
 			}
 		}
-		public virtual Task InteractAsync(IInteractionContext context)
-		{
-			LastInteractedWith = DateTime.UtcNow;
-			return HandleInteractionAsync(context);
-		}
-		protected abstract Task HandleInteractionAsync(IInteractionContext context);
-		protected abstract Task KeepDisplayAliveAsync();
-		protected abstract Task<Embed> GenerateEmbedAsync();
-		protected abstract Task<string> GenerateTextAsync();
+
 		protected EmbedFooterBuilder GenerateDefaultFooter()
 		{
 			return new EmbedFooterBuilder
@@ -69,5 +69,13 @@ namespace Advobot.Gacha.Displays
 				Text = $"Id: {Id}",
 			};
 		}
+
+		protected abstract Task<Embed> GenerateEmbedAsync();
+
+		protected abstract Task<string> GenerateTextAsync();
+
+		protected abstract Task HandleInteractionAsync(IInteractionContext context);
+
+		protected abstract Task KeepDisplayAliveAsync();
 	}
 }

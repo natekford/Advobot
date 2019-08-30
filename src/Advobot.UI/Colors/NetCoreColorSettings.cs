@@ -1,20 +1,24 @@
-﻿using Advobot.Settings;
-using Advobot.UI.AbstractUI.Colors;
-using Advobot.Utilities;
-using AdvorangesUtils;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml.Styling;
-using Avalonia.Media;
-using Avalonia.Styling;
-using AvaloniaEdit.Highlighting;
-using AvaloniaEdit.Highlighting.Xshd;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
+
+using Advobot.Settings;
+using Advobot.UI.AbstractUI.Colors;
+using Advobot.Utilities;
+
+using AdvorangesUtils;
+
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Media;
+using Avalonia.Styling;
+
+using AvaloniaEdit.Highlighting;
+using AvaloniaEdit.Highlighting.Xshd;
 
 namespace Advobot.UI.Colors
 {
@@ -24,6 +28,7 @@ namespace Advobot.UI.Colors
 	public sealed class NetCoreColorSettings : ColorSettings<ISolidColorBrush, NetCoreBrushFactory>
 	{
 		private static readonly string _AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+
 		private static readonly Dictionary<string, string[]> _ColorNameMappings = new Dictionary<string, string[]>
 		{
 			{ ColorTargets.BaseBackground, new[] { "ThemeBackgroundBrush" } },
@@ -34,6 +39,7 @@ namespace Advobot.UI.Colors
 			{ ColorTargets.ButtonBorder, new[] { "ThemeBorderLightBrush" } },
 			{ ColorTargets.ButtonMouseOverBackground, new[] { "ThemeBorderMidBrush" } },
 		};
+
 		private static readonly Lazy<IResourceDictionary> _Resources = new Lazy<IResourceDictionary>(() =>
 		{
 			var styles = Application.Current.Styles.OfType<StyleInclude>();
@@ -41,12 +47,12 @@ namespace Advobot.UI.Colors
 			return ((Style)colors.Loaded).Resources;
 		});
 
+		private IBotDirectoryAccessor? _DirectoryAccessor;
+
 		static NetCoreColorSettings()
 		{
 			LoadSyntaxHighlighting($"{_AssemblyName}.Resources.JsonSyntaxHighlighting.xshd", "Json", new[] { ".json" });
 		}
-
-		private IBotDirectoryAccessor? _DirectoryAccessor;
 
 		/// <summary>
 		/// Creates an instance of <see cref="NetCoreColorSettings"/>.
@@ -62,33 +68,6 @@ namespace Advobot.UI.Colors
 			};
 		}
 
-		/// <inheritdoc />
-		protected override void UpdateResource(string target, ISolidColorBrush value)
-		{
-			//If this is remapped to take advantage of how it's easy to recolor already defined background, etc then do that
-			if (_ColorNameMappings.TryGetValue(target, out var names))
-			{
-				foreach (var name in names)
-				{
-					_Resources.Value[name] = value;
-				}
-			}
-
-			//Still set it in the global resource dictionary if we want to access it easily with our names
-			Application.Current.Resources[target] = value;
-			UpdateSyntaxHighlightingColor(target, value);
-		}
-		/// <inheritdoc />
-		public override void Save()
-		{
-			if (_DirectoryAccessor == null)
-			{
-				throw new InvalidOperationException("Unable to save.");
-			}
-
-			var path = StaticGetFile(_DirectoryAccessor);
-			IOUtils.SafeWriteAllText(path, IOUtils.Serialize(this));
-		}
 		/// <summary>
 		/// Loads the UI settings from file.
 		/// </summary>
@@ -107,8 +86,48 @@ namespace Advobot.UI.Colors
 			instance._DirectoryAccessor = accessor;
 			return instance;
 		}
+
+		/// <inheritdoc />
+		public override void Save()
+		{
+			if (_DirectoryAccessor == null)
+			{
+				throw new InvalidOperationException("Unable to save.");
+			}
+
+			var path = StaticGetFile(_DirectoryAccessor);
+			IOUtils.SafeWriteAllText(path, IOUtils.Serialize(this));
+		}
+
+		/// <inheritdoc />
+		protected override void UpdateResource(string target, ISolidColorBrush value)
+		{
+			//If this is remapped to take advantage of how it's easy to recolor already defined background, etc then do that
+			if (_ColorNameMappings.TryGetValue(target, out var names))
+			{
+				foreach (var name in names)
+				{
+					_Resources.Value[name] = value;
+				}
+			}
+
+			//Still set it in the global resource dictionary if we want to access it easily with our names
+			Application.Current.Resources[target] = value;
+			UpdateSyntaxHighlightingColor(target, value);
+		}
+
+		private static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
+		{
+			using var s = Assembly.GetExecutingAssembly().GetManifestResourceStream(loc);
+			using var r = new XmlTextReader(s) ?? throw new InvalidOperationException($"{loc} is missing.");
+
+			var highlighting = HighlightingLoader.Load(r, HighlightingManager.Instance);
+			HighlightingManager.Inst‌​ance.RegisterHighlighting(name, extensions, highlighting);
+		}
+
 		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor)
-			=> accessor.GetBaseBotDirectoryFile("UISettings.json");
+					=> accessor.GetBaseBotDirectoryFile("UISettings.json");
+
 		private void SetSyntaxHighlightingColors(params string[] names)
 		{
 			foreach (var name in names)
@@ -131,6 +150,7 @@ namespace Advobot.UI.Colors
 				}
 			}
 		}
+
 		private void UpdateSyntaxHighlightingColor(string target, ISolidColorBrush value)
 		{
 			foreach (var highlighting in HighlightingManager.Instance.HighlightingDefinitions)
@@ -148,14 +168,6 @@ namespace Advobot.UI.Colors
 					color.Foreground = new SimpleHighlightingBrush(value.Color);
 				}
 			}
-		}
-		private static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
-		{
-			using var s = Assembly.GetExecutingAssembly().GetManifestResourceStream(loc);
-			using var r = new XmlTextReader(s) ?? throw new InvalidOperationException($"{loc} is missing.");
-
-			var highlighting = HighlightingLoader.Load(r, HighlightingManager.Instance);
-			HighlightingManager.Inst‌​ance.RegisterHighlighting(name, extensions, highlighting);
 		}
 	}
 }

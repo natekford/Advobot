@@ -5,20 +5,6 @@ using System.Linq;
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// Finds matching items.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public abstract class Filterer<T>
-	{
-		/// <summary>
-		/// Finds matching items from <paramref name="source"/>.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <returns></returns>
-		public abstract IReadOnlyList<T> Filter(IEnumerable<T> source);
-	}
-
-	/// <summary>
 	/// Indicates whether when searching for a number to look at numbers exactly equal, below, or above.
 	/// </summary>
 	public enum CountTarget
@@ -27,10 +13,12 @@ namespace Advobot.Classes
 		/// Valid results are results that are the same.
 		/// </summary>
 		Equal,
+
 		/// <summary>
 		/// Valid results are results that are below.
 		/// </summary>
 		Below,
+
 		/// <summary>
 		/// Valid results are results that are above.
 		/// </summary>
@@ -61,5 +49,19 @@ namespace Advobot.Classes
 				CountTarget.Above => objects.Where(x => f(x) > number),
 				_ => throw new ArgumentOutOfRangeException(nameof(method)),
 			};
+	}
+
+	/// <summary>
+	/// Finds matching items.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public abstract class Filterer<T>
+	{
+		/// <summary>
+		/// Finds matching items from <paramref name="source"/>.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <returns></returns>
+		public abstract IReadOnlyList<T> Filter(IEnumerable<T> source);
 	}
 }

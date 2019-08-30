@@ -1,30 +1,50 @@
 ﻿using System.Threading.Tasks;
+
 using Advobot.Classes;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Services.Logging.LogCounters;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Services.Logging.Loggers
 {
 	internal abstract class Logger : ILogger
 	{
-		protected IBotSettings BotSettings { get; }
-		protected IGuildSettingsFactory GuildSettingsFactory { get; }
-
-		public event LogCounterIncrementEventHandler LogCounterIncrement;
-
 		protected Logger(IBotSettings botSettings, IGuildSettingsFactory settingsFactory)
 		{
 			BotSettings = botSettings;
 			GuildSettingsFactory = settingsFactory;
 		}
 
+		public event LogCounterIncrementEventHandler LogCounterIncrement;
+
+		protected IBotSettings BotSettings { get; }
+		protected IGuildSettingsFactory GuildSettingsFactory { get; }
+
+		protected async Task HandleAsync(
+			IGuildUser user,
+			LoggingContextArgs<IUserLoggingContext> args)
+		{
+			var context = await LoggingContext.CreateAsync(user, GuildSettingsFactory).CAF();
+			await HandleAsync(context, args).CAF();
+		}
+
+		protected async Task HandleAsync(
+			IMessage message,
+			LoggingContextArgs<IMessageLoggingContext> args)
+		{
+			var context = await LoggingContext.CreateAsync(message, GuildSettingsFactory).CAF();
+			await HandleAsync(context, args).CAF();
+		}
+
 		protected void NotifyLogCounterIncrement(string name, int count)
-			=> LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
+							=> LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
+
 		protected Task ReplyAsync(
 			ITextChannel? channel,
 			string content = "",
@@ -37,20 +57,7 @@ namespace Advobot.Services.Logging.Loggers
 			}
 			return MessageUtils.SendMessageAsync(channel, content, embedWrapper, textFile);
 		}
-		protected async Task HandleAsync(
-			IGuildUser user,
-			LoggingContextArgs<IUserLoggingContext> args)
-		{
-			var context = await LoggingContext.CreateAsync(user, GuildSettingsFactory).CAF();
-			await HandleAsync(context, args).CAF();
-		}
-		protected async Task HandleAsync(
-			IMessage message,
-			LoggingContextArgs<IMessageLoggingContext> args)
-		{
-			var context = await LoggingContext.CreateAsync(message, GuildSettingsFactory).CAF();
-			await HandleAsync(context, args).CAF();
-		}
+
 		private async Task HandleAsync<T>(T? context, LoggingContextArgs<T> args)
 			where T : class, ILoggingContext
 		{

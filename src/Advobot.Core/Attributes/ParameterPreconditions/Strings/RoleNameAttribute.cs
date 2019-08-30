@@ -8,12 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class RoleNameAttribute : StringParameterPreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override string StringType => "role name";
-
 		/// <summary>
 		/// Creates an instance of <see cref="RoleNameAttribute"/>.
 		/// </summary>
 		public RoleNameAttribute() : base(1, 100) { }
+
+		/// <inheritdoc />
+		public override string StringType => "role name";
 	}
 }

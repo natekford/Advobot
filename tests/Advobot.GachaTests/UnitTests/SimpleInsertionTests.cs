@@ -1,8 +1,11 @@
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.Utilities;
 using Advobot.GachaTests.Utilities;
+
 using AdvorangesUtils;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.GachaTests.UnitTests
@@ -10,33 +13,6 @@ namespace Advobot.GachaTests.UnitTests
 	[TestClass]
 	public class SimpleInsertionTests : DatabaseTestsBase
 	{
-		[TestMethod]
-		public async Task UserInsertionAndRetrieval_Test()
-		{
-			var db = await GetDatabaseAsync().CAF();
-
-			var user = GachaTestUtils.GenerateFakeUser();
-			await db.AddUserAsync(user).CAF();
-
-			var retrieved = await db.GetUserAsync(user.GetGuildId(), user.GetUserId()).CAF();
-			Assert.IsNotNull(retrieved);
-			Assert.AreEqual(user.UserId, retrieved.UserId);
-			Assert.AreEqual(user.GuildId, retrieved.GuildId);
-		}
-		[TestMethod]
-		public async Task SourceInsertionAndRetrieval_Test()
-		{
-			var db = await GetDatabaseAsync().CAF();
-
-			var source = GachaTestUtils.GenerateFakeSource();
-			await db.AddSourceAsync(source).CAF();
-
-			var retrieved = await db.GetSourceAsync(source.SourceId).CAF();
-			Assert.IsNotNull(retrieved);
-			Assert.AreEqual(source.SourceId, retrieved.SourceId);
-			Assert.AreEqual(source.Name, retrieved.Name);
-			Assert.AreEqual(source.ThumbnailUrl, retrieved.ThumbnailUrl);
-		}
 		[TestMethod]
 		public async Task CharacterInsertionAndRetrieval_Test()
 		{
@@ -57,6 +33,7 @@ namespace Advobot.GachaTests.UnitTests
 			Assert.AreEqual(character.FlavorText, retrieved.FlavorText);
 			Assert.AreEqual(character.IsFakeCharacter, retrieved.IsFakeCharacter);
 		}
+
 		[TestMethod]
 		public async Task ClaimInsertionAndRetrieval_Test()
 		{
@@ -77,6 +54,53 @@ namespace Advobot.GachaTests.UnitTests
 			Assert.AreEqual(claim.ImageUrl, retrieved.ImageUrl);
 			Assert.AreEqual(claim.IsPrimaryClaim, retrieved.IsPrimaryClaim);
 		}
+
+		[TestMethod]
+		public async Task ImageInsertionAndRetrieval_Test()
+		{
+			var db = await GetDatabaseAsync().CAF();
+
+			var source = GachaTestUtils.GenerateFakeSource();
+			var character = GachaTestUtils.GenerateFakeCharacter(source);
+			var image = GachaTestUtils.GenerateFakeImage(character);
+			await db.AddImageAsync(image).CAF();
+
+			var retrievedList = await db.GetImagesAsync(character).CAF();
+			var retrieved = retrievedList.Single();
+			Assert.IsNotNull(retrieved);
+			Assert.AreEqual(image.CharacterId, retrieved.CharacterId);
+			Assert.AreEqual(image.Url, retrieved.Url);
+		}
+
+		[TestMethod]
+		public async Task SourceInsertionAndRetrieval_Test()
+		{
+			var db = await GetDatabaseAsync().CAF();
+
+			var source = GachaTestUtils.GenerateFakeSource();
+			await db.AddSourceAsync(source).CAF();
+
+			var retrieved = await db.GetSourceAsync(source.SourceId).CAF();
+			Assert.IsNotNull(retrieved);
+			Assert.AreEqual(source.SourceId, retrieved.SourceId);
+			Assert.AreEqual(source.Name, retrieved.Name);
+			Assert.AreEqual(source.ThumbnailUrl, retrieved.ThumbnailUrl);
+		}
+
+		[TestMethod]
+		public async Task UserInsertionAndRetrieval_Test()
+		{
+			var db = await GetDatabaseAsync().CAF();
+
+			var user = GachaTestUtils.GenerateFakeUser();
+			await db.AddUserAsync(user).CAF();
+
+			var retrieved = await db.GetUserAsync(user.GetGuildId(), user.GetUserId()).CAF();
+			Assert.IsNotNull(retrieved);
+			Assert.AreEqual(user.UserId, retrieved.UserId);
+			Assert.AreEqual(user.GuildId, retrieved.GuildId);
+		}
+
 		[TestMethod]
 		public async Task WishInsertionAndRetrieval_Test()
 		{
@@ -95,22 +119,6 @@ namespace Advobot.GachaTests.UnitTests
 			Assert.AreEqual(wish.GuildId, retrieved.GuildId);
 			Assert.AreEqual(wish.UserId, retrieved.UserId);
 			Assert.AreEqual(wish.CharacterId, retrieved.CharacterId);
-		}
-		[TestMethod]
-		public async Task ImageInsertionAndRetrieval_Test()
-		{
-			var db = await GetDatabaseAsync().CAF();
-
-			var source = GachaTestUtils.GenerateFakeSource();
-			var character = GachaTestUtils.GenerateFakeCharacter(source);
-			var image = GachaTestUtils.GenerateFakeImage(character);
-			await db.AddImageAsync(image).CAF();
-
-			var retrievedList = await db.GetImagesAsync(character).CAF();
-			var retrieved = retrievedList.Single();
-			Assert.IsNotNull(retrieved);
-			Assert.AreEqual(image.CharacterId, retrieved.CharacterId);
-			Assert.AreEqual(image.Url, retrieved.Url);
 		}
 	}
 }

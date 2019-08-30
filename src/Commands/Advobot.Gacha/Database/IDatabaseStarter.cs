@@ -3,6 +3,7 @@
 	public interface IDatabaseStarter
 	{
 		string GetConnectionString();
+
 		bool IsDatabaseCreated();
 	}
 }

@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord;
 using Discord.Commands;
 
@@ -24,7 +25,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 			GuildEmote emote,
 			IServiceProvider services)
 		{
-			if (emote.RoleIds.Any())
+			if (emote.RoleIds.Count > 0)
 			{
 				return PreconditionUtils.FromSuccessAsync();
 			}

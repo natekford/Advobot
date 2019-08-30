@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Discord;
 
 namespace Advobot.Services.GuildSettings
@@ -21,12 +22,14 @@ namespace Advobot.Services.GuildSettings
 		/// <param name="guild"></param>
 		/// <returns></returns>
 		Task<IGuildSettings> GetOrCreateAsync(IGuild guild);
+
 		/// <summary>
 		/// Removes the given guild's settings from the module.
 		/// </summary>
 		/// <param name="guildId"></param>
 		/// <returns></returns>
 		Task RemoveAsync(ulong guildId);
+
 		/// <summary>
 		/// Attempts to get the guild settings with the passed in id.
 		/// </summary>

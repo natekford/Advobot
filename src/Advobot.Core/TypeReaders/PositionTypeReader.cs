@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
 
 namespace Advobot.TypeReaders
@@ -33,6 +36,7 @@ namespace Advobot.TypeReaders
 			var matches = (await GetObjectsWithPositionAsync(context, position).CAF()).ToArray();
 			return TypeReaderUtils.SingleValidResult(matches, $"{ObjectTypeName} by position", input);
 		}
+
 		/// <summary>
 		/// Gets objects with the supplied position.
 		/// </summary>

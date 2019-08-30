@@ -1,17 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
+
 using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
 	public sealed class Invites : CommandResponses
 	{
-		private Invites() { }
+		private Invites()
+		{
+		}
+
+		public static AdvobotResult DeletedMultipleInvites(IReadOnlyCollection<IInviteMetadata> invites)
+		{
+			return Success(InvitesDeletedMultipleInvites.Format(
+				invites.Count.ToString().WithBlock()
+			));
+		}
 
 		public static AdvobotResult DisplayInvites(IReadOnlyList<IInviteMetadata> invites)
 		{
@@ -36,13 +49,8 @@ namespace Advobot.Standard.Responses
 				Description = description,
 			});
 		}
+
 		public static AdvobotResult NoInviteMatches()
 			=> Failure(InvitesNoInviteMatches);
-		public static AdvobotResult DeletedMultipleInvites(IReadOnlyCollection<IInviteMetadata> invites)
-		{
-			return Success(InvitesDeletedMultipleInvites.Format(
-				invites.Count.ToString().WithBlock()
-			));
-		}
 	}
 }

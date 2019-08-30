@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord;
 using Discord.Commands;
 
@@ -30,6 +32,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 			}
 			return SingularCheckRoleAsync(context, parameter, invoker, role, services);
 		}
+
 		/// <summary>
 		/// Checks whether the condition for the <see cref="IRole"/> is met before execution of the command.
 		/// </summary>

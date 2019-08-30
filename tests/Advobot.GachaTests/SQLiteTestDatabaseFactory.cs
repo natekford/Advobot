@@ -1,6 +1,7 @@
-﻿using Advobot.Gacha.Database;
-using System;
+﻿using System;
 using System.IO;
+
+using Advobot.Gacha.Database;
 
 namespace Advobot.GachaTests
 {
@@ -22,6 +23,7 @@ namespace Advobot.GachaTests
 
 		public string GetConnectionString()
 			=> _ConnectionString;
+
 		public bool IsDatabaseCreated()
 			=> false;
 	}

@@ -1,7 +1,8 @@
-﻿using Discord;
-using Discord.WebSocket;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Formatting
 {
@@ -18,6 +19,7 @@ namespace Advobot.Formatting
 		/// <param name="formatProvider"></param>
 		/// <returns></returns>
 		string ToString(BaseSocketClient client, SocketGuild guild, IFormatProvider? formatProvider);
+
 		/// <summary>
 		/// Returns the formatted string after converting some types into discord specific types asynchronously.
 		/// </summary>

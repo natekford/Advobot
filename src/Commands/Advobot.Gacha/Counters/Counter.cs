@@ -6,6 +6,7 @@ namespace Advobot.Gacha.Counters
 	{
 		private readonly ConcurrentDictionary<ulong, int> _AmountLeft
 			= new ConcurrentDictionary<ulong, int>();
+
 		private readonly int _DefaultAmount;
 
 		public Counter(int defaultAmount)
@@ -15,6 +16,7 @@ namespace Advobot.Gacha.Counters
 
 		public bool CanDo(ulong id)
 			=> _AmountLeft.GetOrAdd(id, _DefaultAmount) > 0;
+
 		public void HasBeenDone(ulong id)
 			=> _AmountLeft.AddOrUpdate(id, _DefaultAmount, (key, value) => --value);
 	}

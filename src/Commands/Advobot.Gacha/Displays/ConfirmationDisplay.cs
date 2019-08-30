@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Trading;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Gacha.Displays
 {
-	internal class ConfirmationDisplay
-	{
-	}
-
 	public class GiveDisplay : PaginatedDisplay
 	{
 		private readonly IGuildUser _Giver;
@@ -37,8 +36,10 @@ namespace Advobot.Gacha.Displays
 
 		protected override Task<Embed> GenerateEmbedAsync()
 			=> Task.FromResult(GenerateEmbed());
+
 		protected override Task<string> GenerateTextAsync()
 			=> Task.FromResult(GenerateText());
+
 		private Embed GenerateEmbed()
 		{
 			var values = GetPageValues(_Trades);
@@ -55,7 +56,12 @@ namespace Advobot.Gacha.Displays
 				Footer = GeneratePaginationFooter(),
 			}.Build();
 		}
+
 		private string GenerateText()
 			=> $"{_Giver.Mention} giving {_Trades.Count} characters to {_Receiver.Mention}";
+	}
+
+	internal class ConfirmationDisplay
+	{
 	}
 }

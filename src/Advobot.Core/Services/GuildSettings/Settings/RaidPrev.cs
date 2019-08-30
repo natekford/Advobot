@@ -3,12 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Classes;
 using Advobot.Formatting;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
+
 using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings.Settings
@@ -19,13 +23,47 @@ namespace Advobot.Services.GuildSettings.Settings
 	[NamedArgumentType]
 	public sealed class RaidPrev : TimedPrev<RaidType>
 	{
+		private readonly ConcurrentDictionary<ulong, byte> _Instances = new ConcurrentDictionary<ulong, byte>();
+
 		/// <summary>
 		/// The amount of users to count for a raid.
 		/// </summary>
 		[JsonProperty("RaidCount")]
 		public int RaidCount { get; set; }
 
-		private readonly ConcurrentDictionary<ulong, byte> _Instances = new ConcurrentDictionary<ulong, byte>();
+		/// <inheritdoc />
+		public override Task DisableAsync(IGuild guild)
+		{
+			Enabled = false;
+			return Task.CompletedTask;
+		}
+
+		/// <inheritdoc />
+		public override async Task EnableAsync(IGuild guild)
+		{
+			Enabled = true;
+			if (Type == RaidType.Regular)
+			{
+				//Mute the newest joining users
+				var users = (await guild.GetUsersAsync().CAF()).OrderByJoinDate().Reverse().ToArray();
+				for (var i = 0; i < new[] { RaidCount, users.Length, 25 }.Min(); ++i)
+				{
+					await PunishAsync(users[i]).CAF();
+				}
+			}
+		}
+
+		/// <inheritdoc />
+		public override IDiscordFormattableString GetFormattableString()
+		{
+			return new Dictionary<string, object>
+			{
+				{ "Enabled", Enabled },
+				{ "Interval", TimeInterval },
+				{ "Punishment", Punishment },
+				{ "Users", RaidCount },
+			}.ToDiscordFormattableStringCollection();
+		}
 
 		/// <summary>
 		/// Punishes a user.
@@ -50,43 +88,12 @@ namespace Advobot.Services.GuildSettings.Settings
 			}
 			return Task.CompletedTask;
 		}
+
 		private int GetInstanceCount() => Type switch
 		{
 			RaidType.Regular => int.MaxValue,
 			RaidType.RapidJoins => CountItemsInTimeFrame(_Instances.Keys, TimeInterval),
 			_ => throw new ArgumentOutOfRangeException(nameof(Type)),
 		};
-		/// <inheritdoc />
-		public override async Task EnableAsync(IGuild guild)
-		{
-			Enabled = true;
-			if (Type == RaidType.Regular)
-			{
-				//Mute the newest joining users
-				var users = (await guild.GetUsersAsync().CAF()).OrderByJoinDate().Reverse().ToArray();
-				for (var i = 0; i < new[] { RaidCount, users.Length, 25 }.Min(); ++i)
-				{
-					await PunishAsync(users[i]).CAF();
-				}
-			}
-		}
-		/// <inheritdoc />
-		public override Task DisableAsync(IGuild guild)
-		{
-			Enabled = false;
-			return Task.CompletedTask;
-		}
-
-		/// <inheritdoc />
-		public override IDiscordFormattableString GetFormattableString()
-		{
-			return new Dictionary<string, object>
-			{
-				{ "Enabled", Enabled },
-				{ "Interval", TimeInterval },
-				{ "Punishment", Punishment },
-				{ "Users", RaidCount },
-			}.ToDiscordFormattableStringCollection();
-		}
 	}
 }

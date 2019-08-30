@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Utilities;
+
 using Discord;
 using Discord.Commands;
 
@@ -13,6 +15,22 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 	public abstract class InviteParameterPreconditionAttribute
 		: DiscordObjectParameterPreconditionAttribute
 	{
+		/// <summary>
+		/// Checks whether the condition for the <see cref="IInviteMetadata"/> is met before execution of the command.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="invoker"></param>
+		/// <param name="invite"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		protected abstract Task<PreconditionResult> SingularCheckInviteAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			IInviteMetadata invite,
+			IServiceProvider services);
+
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
@@ -30,20 +48,5 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 			}
 			return SingularCheckInviteAsync(context, parameter, user, invite, services);
 		}
-		/// <summary>
-		/// Checks whether the condition for the <see cref="IInviteMetadata"/> is met before execution of the command.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parameter"></param>
-		/// <param name="invoker"></param>
-		/// <param name="invite"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		protected abstract Task<PreconditionResult> SingularCheckInviteAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IGuildUser invoker,
-			IInviteMetadata invite,
-			IServiceProvider services);
 	}
 }

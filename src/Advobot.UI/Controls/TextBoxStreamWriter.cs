@@ -10,12 +10,12 @@ namespace Advobot.UI.Controls
 		private readonly ICommand _Command;
 		private readonly StringBuilder _CurrentLineText = new StringBuilder();
 
-		public override Encoding Encoding => Encoding.UTF32;
-
 		public TextBoxStreamWriter(ICommand command)
 		{
 			_Command = command;
 		}
+
+		public override Encoding Encoding => Encoding.UTF32;
 
 		public override void Write(char value)
 		{
@@ -26,6 +26,7 @@ namespace Advobot.UI.Controls
 			}
 			_CurrentLineText.Append(value);
 		}
+
 		public override void Write(string value)
 		{
 			if (string.IsNullOrWhiteSpace(value))

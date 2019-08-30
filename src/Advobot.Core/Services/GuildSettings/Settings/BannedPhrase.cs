@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.Classes;
 using Advobot.Formatting;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
+
 using Newtonsoft.Json;
 
 namespace Advobot.Services.GuildSettings.Settings
@@ -17,20 +21,10 @@ namespace Advobot.Services.GuildSettings.Settings
 	public sealed class BannedPhrase : IGuildFormattable
 	{
 		/// <summary>
-		/// The phrase which is banned. Can be string or regex pattern.
-		/// </summary>
-		[JsonProperty("Phrase")]
-		public string? Phrase { get; set; }
-		/// <summary>
-		/// The type of punishment associated with this phrase.
-		/// </summary>
-		[JsonProperty("Punishment")]
-		public Punishment Punishment { get; set; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="BannedPhrase"/>.
 		/// </summary>
 		public BannedPhrase() { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="BannedPhrase"/>.
 		/// </summary>
@@ -41,6 +35,22 @@ namespace Advobot.Services.GuildSettings.Settings
 			Phrase = phrase;
 			Punishment = punishment;
 		}
+
+		/// <summary>
+		/// The phrase which is banned. Can be string or regex pattern.
+		/// </summary>
+		[JsonProperty("Phrase")]
+		public string? Phrase { get; set; }
+
+		/// <summary>
+		/// The type of punishment associated with this phrase.
+		/// </summary>
+		[JsonProperty("Punishment")]
+		public Punishment Punishment { get; set; }
+
+		/// <inheritdoc />
+		public IDiscordFormattableString GetFormattableString()
+			=> new DiscordFormattableString($"{Punishment.ToString()[0]} {Phrase}");
 
 		/// <summary>
 		/// Deletes the message then checks if the user should be punished.
@@ -65,9 +75,5 @@ namespace Advobot.Services.GuildSettings.Settings
 			};
 			return PunishmentUtils.GiveAsync(Punishment, guild, info.UserId, punishment.RoleId, punishmentArgs);
 		}
-
-		/// <inheritdoc />
-		public IDiscordFormattableString GetFormattableString()
-			=> new DiscordFormattableString($"{Punishment.ToString()[0]} {Phrase}");
 	}
 }

@@ -1,7 +1,8 @@
-﻿using Avalonia.Data.Converters;
-using Avalonia.Media;
-using Advobot.UI.AbstractUI.Converters;
+﻿using Advobot.UI.AbstractUI.Converters;
 using Advobot.UI.Colors;
+
+using Avalonia.Data.Converters;
+using Avalonia.Media;
 
 namespace Advobot.UI.Converters
 {

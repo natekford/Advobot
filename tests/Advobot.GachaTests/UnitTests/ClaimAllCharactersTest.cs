@@ -1,23 +1,26 @@
-﻿using Advobot.Gacha.Models;
-using Advobot.Gacha.ReadOnlyModels;
-using Advobot.GachaTests.Utilities;
-using AdvorangesUtils;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Advobot.Gacha.Models;
+using Advobot.Gacha.ReadOnlyModels;
+using Advobot.GachaTests.Utilities;
+
+using AdvorangesUtils;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.GachaTests.UnitTests
 {
 	[TestClass]
 	public sealed class ClaimAllCharactersTest : DatabaseTestsBase
 	{
-		public const int SOURCE_COUNT = 20;
-		public const int CHARACTERS_PER_SOURCE = 25;
 		public const int CHARACTER_COUNT = SOURCE_COUNT * CHARACTERS_PER_SOURCE;
+		public const int CHARACTERS_PER_SOURCE = 25;
 		public const int CLAIM_COUNT = (int)(CHARACTER_COUNT * CLAIM_PERCENTAGE);
 		public const double CLAIM_PERCENTAGE = .9;
 		public const ulong GUILD_ID = 73;
+		public const int SOURCE_COUNT = 20;
 
 		[TestMethod]
 		public async Task ClaimAllCharacters_Test()

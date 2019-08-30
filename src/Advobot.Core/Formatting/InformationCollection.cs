@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 using AdvorangesUtils;
 
 namespace Advobot.Formatting
@@ -8,12 +9,12 @@ namespace Advobot.Formatting
 	/// </summary>
 	public sealed class InformationCollection
 	{
+		private readonly List<Information> _Information = new List<Information>();
+
 		/// <summary>
 		/// A row of an <see cref="InformationMatrix"/>.
 		/// </summary>
 		public IReadOnlyList<Information> Information => _Information.AsReadOnly();
-
-		private readonly List<Information> _Information = new List<Information>();
 
 		/// <summary>
 		/// Adds a new <see cref="Formatting.Information"/>.
@@ -28,6 +29,7 @@ namespace Advobot.Formatting
 				_Information.Add(new Information(title, value, joiner));
 			}
 		}
+
 		/// <summary>
 		/// Adds a new <see cref="Formatting.Information"/> with the number's string value.
 		/// </summary>
@@ -35,6 +37,7 @@ namespace Advobot.Formatting
 		/// <param name="value"></param>
 		public void Add(string title, int value)
 			=> Add(title, value.ToString());
+
 		/// <summary>
 		/// Adds a new <see cref="Formatting.Information"/> with the bool's string value.
 		/// </summary>

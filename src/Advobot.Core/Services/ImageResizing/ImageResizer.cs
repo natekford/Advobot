@@ -9,9 +9,13 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Advobot.Modules;
+
 using AdvorangesUtils;
+
 using Discord.Commands;
+
 using ImageMagick;
 
 namespace Advobot.Services.ImageResizing
@@ -37,6 +41,7 @@ namespace Advobot.Services.ImageResizing
 		/// </summary>
 		/// <param name="client"></param>
 		public ImageResizer(HttpClient client) : this(client, 10) { }
+
 		/// <summary>
 		/// Creates an instance of <see cref="ImageResizer"/>.
 		/// </summary>
@@ -51,9 +56,11 @@ namespace Advobot.Services.ImageResizing
 		/// <inheritdoc />
 		public IEnumerable<IImageContext> GetQueuedArguments()
 			=> _Args.ToArray();
+
 		/// <inheritdoc />
 		public bool IsGuildAlreadyProcessing(ulong guildId)
 			=> _CurrentlyProcessing.ContainsKey(guildId);
+
 		/// <inheritdoc />
 		public void Enqueue(IImageContext context)
 		{
@@ -156,6 +163,7 @@ namespace Advobot.Services.ImageResizing
 			}
 			return AdvobotResult.IgnoreSuccess;
 		}
+
 		private static bool ResizeFile(MemoryStream ms, IImageContext context, MagickFormat format)
 		{
 			var shrinkFactor = Math.Sqrt((double)ms.Length / context.MaxAllowedLengthInBytes) * 1.1;
@@ -190,6 +198,7 @@ namespace Advobot.Services.ImageResizing
 						Overwrite(x => gif.Write(x));
 					}
 					return ms.Length < context.MaxAllowedLengthInBytes;
+
 				case MagickFormat.Jpg:
 				case MagickFormat.Jpeg:
 				case MagickFormat.Png:
@@ -199,10 +208,12 @@ namespace Advobot.Services.ImageResizing
 						Overwrite(x => image.Write(x));
 					}
 					return ms.Length < context.MaxAllowedLengthInBytes;
+
 				default:
 					throw new InvalidOperationException("Invalid image format supplied.");
 			}
 		}
+
 		private static async Task ConvertMp4ToGifAsync(MemoryStream ms, IImageContext context)
 		{
 			const string Name = "in";
@@ -239,6 +250,7 @@ namespace Advobot.Services.ImageResizing
 			ms.SetLength(0);
 			await process.StandardOutput.BaseStream.CopyToAsync(ms).CAF();
 		}
+
 		private static string? FindFfmpeg()
 		{
 			var windows = Environment.OSVersion.Platform.ToString().CaseInsContains("win");
@@ -266,13 +278,13 @@ namespace Advobot.Services.ImageResizing
 			//Look through every directory and any subfolders they have called bin
 			foreach (var dir in directories.SelectMany(x => new[] { x, new DirectoryInfo(Path.Combine(x?.FullName, "bin")) }))
 			{
-				if (dir == null || !dir.Exists)
+				if (dir?.Exists != true)
 				{
 					continue;
 				}
 
 				var files = dir.GetFiles(ffmpeg, SearchOption.TopDirectoryOnly);
-				if (files.Any())
+				if (files.Length > 0)
 				{
 					return files[0].FullName;
 				}

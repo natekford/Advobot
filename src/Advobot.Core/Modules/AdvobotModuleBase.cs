@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Advobot.Attributes.Preconditions;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -31,11 +34,13 @@ namespace Advobot.Modules
 		/// The prefix for this context.
 		/// </summary>
 		public string Prefix => Context.Settings.GetPrefix(BotSettings);
+
 		/// <summary>
 		/// How long timed messages should stay for.
 		/// </summary>
 		[DontInject]
 		public TimeSpan MessageTime { get; set; } = TimeSpan.FromSeconds(5);
+
 		/// <summary>
 		/// The timers to use for deleting messages and other things.
 		/// </summary>
@@ -65,6 +70,7 @@ namespace Advobot.Modules
 			await message.DeleteAsync(GenerateRequestOptions()).CAF();
 			return index != null ? source[index.Value] : default;
 		}
+
 		/// <summary>
 		/// Gets the next valid index supplied by the user. This is blocking.
 		/// </summary>
@@ -91,6 +97,7 @@ namespace Advobot.Modules
 				return false;
 			}).CAF();
 		}
+
 		/// <summary>
 		/// Gets the next message which makes <paramref name="tryParser"/> return true. This is blocking.
 		/// </summary>
@@ -118,6 +125,7 @@ namespace Advobot.Modules
 
 			return task == trigger ? await trigger.CAF() : default;
 		}
+
 		/// <summary>
 		/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.
 		/// </summary>

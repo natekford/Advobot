@@ -19,6 +19,7 @@
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>TRACE</DefineConstants>
+    <NoWarn>1701;1702;RCS1047;RCS1079;</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

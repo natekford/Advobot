@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
+
 using Advobot.Services.GuildSettings;
+
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -11,23 +13,6 @@ namespace Advobot.Modules
 	/// </summary>
 	public class AdvobotCommandContext : ShardedCommandContext, IAdvobotCommandContext
 	{
-		/// <summary>
-		/// The user this command is executing from.
-		/// </summary>
-		public new SocketGuildUser User { get; }
-		/// <summary>
-		/// The channel this command is executing from.
-		/// </summary>
-		public new SocketTextChannel Channel { get; }
-		/// <summary>
-		/// The settings for the guild.
-		/// </summary>
-		public IGuildSettings Settings { get; }
-		/// <summary>
-		/// The time since starting the command.
-		/// </summary>
-		public long ElapsedMilliseconds => _Stopwatch.ElapsedMilliseconds;
-
 		private readonly Stopwatch _Stopwatch = new Stopwatch();
 
 		/// <summary>
@@ -48,7 +33,27 @@ namespace Advobot.Modules
 			Settings = settings;
 		}
 
-		IGuildUser IAdvobotCommandContext.User => User;
+		/// <summary>
+		/// The channel this command is executing from.
+		/// </summary>
+		public new SocketTextChannel Channel { get; }
+
+		/// <summary>
+		/// The time since starting the command.
+		/// </summary>
+		public long ElapsedMilliseconds => _Stopwatch.ElapsedMilliseconds;
+
+		/// <summary>
+		/// The settings for the guild.
+		/// </summary>
+		public IGuildSettings Settings { get; }
+
+		/// <summary>
+		/// The user this command is executing from.
+		/// </summary>
+		public new SocketGuildUser User { get; }
+
 		ITextChannel IAdvobotCommandContext.Channel => Channel;
+		IGuildUser IAdvobotCommandContext.User => User;
 	}
 }

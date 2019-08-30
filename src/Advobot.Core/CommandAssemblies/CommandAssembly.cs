@@ -11,6 +11,7 @@ namespace Advobot.CommandAssemblies
 		/// The assembly marked as a command assembly.
 		/// </summary>
 		public readonly Assembly Assembly;
+
 		/// <summary>
 		/// The attribute marking it as a command assembly.
 		/// </summary>
