@@ -11,15 +11,6 @@ namespace Advobot.UI.Extensions
 	/// </summary>
 	public sealed class NameOfExtension : MarkupExtension
 	{
-		public NameOfExtension()
-		{
-		}
-
-		public NameOfExtension(string member)
-		{
-			Member = member;
-		}
-
 		/// <summary>
 		/// The name to make sure exists.
 		/// </summary>
@@ -30,6 +21,15 @@ namespace Advobot.UI.Extensions
 		/// The type to check the name from.
 		/// </summary>
 		public Type? Type { get; set; }
+
+		public NameOfExtension()
+		{
+		}
+
+		public NameOfExtension(string member)
+		{
+			Member = member;
+		}
 
 		/// <summary>
 		/// Checks if the name exists on the type.

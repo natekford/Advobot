@@ -15,8 +15,22 @@ namespace Advobot.Gacha.Displays
 	{
 		private int _PageIndex;
 
+		public int ItemCount { get; }
+
+		public int ItemsPerPage { get; }
+
+		public int PageCount { get; }
+
+		public int PageIndex
+		{
+			get => _PageIndex;
+			protected set => _PageIndex = value;
+		}
+
+		protected virtual TimeSpan Timeout { get; } = TimeSpan.FromSeconds(30);
+
 		protected PaginatedDisplay(
-			IServiceProvider services,
+													IServiceProvider services,
 			int id,
 			int itemCount,
 			int itemsPerPage) : base(services, id)
@@ -32,18 +46,6 @@ namespace Advobot.Gacha.Displays
 				InteractionHandler.AddInteraction(InteractionType.Right);
 			}
 		}
-
-		public int ItemCount { get; }
-		public int ItemsPerPage { get; }
-		public int PageCount { get; }
-
-		public int PageIndex
-		{
-			get => _PageIndex;
-			protected set => _PageIndex = value;
-		}
-
-		protected virtual TimeSpan Timeout { get; } = TimeSpan.FromSeconds(30);
 
 		protected EmbedFooterBuilder GeneratePaginationFooter()
 		{

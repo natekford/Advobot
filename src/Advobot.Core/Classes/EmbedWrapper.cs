@@ -291,7 +291,7 @@ namespace Advobot.Classes
 
 			var remaining = GetRemainingLength(null);
 			errors = new RuleHandler(_Errors)
-				.Property<EmbedBuilder, int>(x => _Builder.Fields.Count, _Builder.Fields.Count + 1)
+				.Property<EmbedBuilder, int>(_ => _Builder.Fields.Count, _Builder.Fields.Count + 1)
 					.Rule(v => v > MAX_FIELDS, e => e.WithMax(MAX_FIELDS))
 				.Property<EmbedFieldBuilder, string?>(x => x.Name, name)
 					.Rule(v => string.IsNullOrWhiteSpace(v), e => e.WithNotEmpty())
@@ -470,7 +470,7 @@ namespace Advobot.Classes
 			errors = new RuleHandler(_Errors)
 				.Property<EmbedBuilder, int>(x => x.Fields.Count, index)
 					.Rule(v => v < 0, e => e.WithMustBePositive())
-					.Rule(v => _Builder.Fields.Count == 0, e => e.WithNone())
+					.Rule(_ => _Builder.Fields.Count == 0, e => e.WithNone())
 					.Rule(v => _Builder.Fields.Count - 1 < v, e => e.WithOutOfBounds())
 				.End();
 			if (errors.Count > 0)

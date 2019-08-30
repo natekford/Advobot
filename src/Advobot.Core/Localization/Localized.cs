@@ -15,7 +15,7 @@ namespace Advobot.Localization
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
 		public static Localized<T> Create<T>() where T : new()
-			=> new Localized<T>(key => new T());
+			=> new Localized<T>(_ => new T());
 	}
 
 	/// <summary>

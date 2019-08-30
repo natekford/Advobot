@@ -53,8 +53,32 @@ namespace Advobot.Services.Logging.Loggers
 			private readonly IUserMessage? _Message;
 			private readonly IGuildUser _User;
 
+			public IGuildUser Bot { get; }
+
+			public IGuild Guild { get; }
+
+			public ITextChannel? ImageLog { get; }
+
+			public ITextChannel? ServerLog { get; }
+
+			public IGuildSettings Settings { get; }
+
+			ITextChannel IMessageLoggingContext.Channel
+				=> _Channel ?? throw InvalidContext<IMessageLoggingContext>();
+
+			IUserMessage IMessageLoggingContext.Message
+				=> _Message ?? throw InvalidContext<IMessageLoggingContext>();
+
+			//IMessageLoggingContext
+			IGuildUser IMessageLoggingContext.User
+				=> _User ?? throw InvalidContext<IMessageLoggingContext>();
+
+			//IUserLoggingContext
+			IGuildUser IUserLoggingContext.User
+				=> _User ?? throw InvalidContext<IUserLoggingContext>();
+
 			public PrivateLoggingContext(
-				IGuild guild,
+																															IGuild guild,
 				IGuildUser user,
 				IUserMessage? message,
 				ITextChannel? channel,
@@ -72,26 +96,6 @@ namespace Advobot.Services.Logging.Loggers
 				ImageLog = imageLog;
 				Bot = bot;
 			}
-
-			public IGuildUser Bot { get; }
-			public IGuild Guild { get; }
-			public ITextChannel? ImageLog { get; }
-			public ITextChannel? ServerLog { get; }
-			public IGuildSettings Settings { get; }
-
-			ITextChannel IMessageLoggingContext.Channel
-				=> _Channel ?? throw InvalidContext<IMessageLoggingContext>();
-
-			IUserMessage IMessageLoggingContext.Message
-				=> _Message ?? throw InvalidContext<IMessageLoggingContext>();
-
-			//IMessageLoggingContext
-			IGuildUser IMessageLoggingContext.User
-				=> _User ?? throw InvalidContext<IMessageLoggingContext>();
-
-			//IUserLoggingContext
-			IGuildUser IUserLoggingContext.User
-				=> _User ?? throw InvalidContext<IUserLoggingContext>();
 
 			public bool CanLog(LogAction action) => ServerLog != null && Settings.LogActions.Contains(action) && action switch
 			{

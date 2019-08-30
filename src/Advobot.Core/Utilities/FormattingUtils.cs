@@ -341,6 +341,16 @@ namespace Advobot.Utilities
 		public sealed class MarkdownFormattedArg
 		{
 			/// <summary>
+			/// The original value.
+			/// </summary>
+			public string Original { get; }
+
+			/// <summary>
+			/// The newly created value.
+			/// </summary>
+			public string Value { get; }
+
+			/// <summary>
 			/// Creates an instance of <see cref="MarkdownFormattedArg"/>.
 			/// </summary>
 			/// <param name="original"></param>
@@ -350,16 +360,6 @@ namespace Advobot.Utilities
 				Original = original;
 				Value = current;
 			}
-
-			/// <summary>
-			/// The original value.
-			/// </summary>
-			public string Original { get; }
-
-			/// <summary>
-			/// The newly created value.
-			/// </summary>
-			public string Value { get; }
 
 			/// <inheritdoc />
 			public override string ToString()

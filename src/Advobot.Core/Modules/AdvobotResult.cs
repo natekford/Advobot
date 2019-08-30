@@ -17,13 +17,6 @@ namespace Advobot.Modules
 	public class AdvobotResult : RuntimeResult
 	{
 		/// <summary>
-		/// Creates an instance of <see cref="AdvobotResult"/>.
-		/// </summary>
-		/// <param name="error"></param>
-		/// <param name="reason"></param>
-		protected AdvobotResult(CommandError? error, string? reason) : base(error, reason) { }
-
-		/// <summary>
 		/// The result to use when this should be fully ignored.
 		/// </summary>
 		public static AdvobotResult IgnoreFailure { get; } = Failure(null, CommandError.Unsuccessful);
@@ -57,6 +50,13 @@ namespace Advobot.Modules
 		/// How long to let this message stay up for.
 		/// </summary>
 		public TimeSpan? Time { get; private set; }
+
+		/// <summary>
+		/// Creates an instance of <see cref="AdvobotResult"/>.
+		/// </summary>
+		/// <param name="error"></param>
+		/// <param name="reason"></param>
+		protected AdvobotResult(CommandError? error, string? reason) : base(error, reason) { }
 
 		/// <summary>
 		/// Creates an error result from an exception.

@@ -164,17 +164,6 @@ namespace Advobot.Classes
 	/// </summary>
 	internal class EmbedError<TEmbedBuilder, TProperty> : IEmbedError
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="EmbedError{TEmbedBuilder, TProperty}"/>.
-		/// </summary>
-		/// <param name="property"></param>
-		/// <param name="value"></param>
-		public EmbedError(Expression<Func<TEmbedBuilder, TProperty>> property, TProperty value)
-		{
-			PropertyPath = property.GetPropertyPath();
-			Value = value;
-		}
-
 		/// <inheritdoc />
 		public string PropertyPath { get; }
 
@@ -186,6 +175,17 @@ namespace Advobot.Classes
 
 		//IEmbedError
 		object? IEmbedError.Value => Value;
+
+		/// <summary>
+		/// Creates an instance of <see cref="EmbedError{TEmbedBuilder, TProperty}"/>.
+		/// </summary>
+		/// <param name="property"></param>
+		/// <param name="value"></param>
+		public EmbedError(Expression<Func<TEmbedBuilder, TProperty>> property, TProperty value)
+		{
+			PropertyPath = property.GetPropertyPath();
+			Value = value;
+		}
 
 		/// <summary>
 		/// Returns the errors saying the property path, value, and reason.
@@ -227,6 +227,21 @@ namespace Advobot.Classes
 
 	internal class RemainingEmbedError : IRemainingEmbedError
 	{
+		/// <inheritdoc />
+		public bool IsNewLines { get; }
+
+		/// <inheritdoc />
+		public string PropertyPath { get; }
+
+		/// <inheritdoc />
+		public string? Reason { get; }
+
+		/// <inheritdoc />
+		public int RemainingLength { get; }
+
+		/// <inheritdoc />
+		public object? Value { get; }
+
 		/// <summary>
 		/// Creates an instance of <see cref="RemainingEmbedError"/>.
 		/// </summary>
@@ -242,20 +257,5 @@ namespace Advobot.Classes
 			PropertyPath = error.PropertyPath;
 			Value = error.Value;
 		}
-
-		/// <inheritdoc />
-		public bool IsNewLines { get; }
-
-		/// <inheritdoc />
-		public string PropertyPath { get; }
-
-		/// <inheritdoc />
-		public string? Reason { get; }
-
-		/// <inheritdoc />
-		public int RemainingLength { get; }
-
-		/// <inheritdoc />
-		public object? Value { get; }
 	}
 }

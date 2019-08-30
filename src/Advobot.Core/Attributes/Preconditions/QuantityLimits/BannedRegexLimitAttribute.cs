@@ -11,14 +11,14 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public sealed class BannedRegexLimitAttribute : GuildSettingLimitAttribute
 	{
+		/// <inheritdoc />
+		public override string QuantityName => "banned regex";
+
 		/// <summary>
 		/// Creates an instance of <see cref="QuoteLimitAttribute"/>.
 		/// </summary>
 		/// <param name="action"></param>
 		public BannedRegexLimitAttribute(QuantityLimitAction action) : base(action) { }
-
-		/// <inheritdoc />
-		public override string QuantityName => "banned regex";
 
 		/// <inheritdoc />
 		protected override int GetCurrent(IGuildSettings settings)

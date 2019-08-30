@@ -9,6 +9,16 @@ namespace Advobot.Services.HelpEntries
 {
 	internal sealed class CommandHelpEntry : ICommandHelpEntry
 	{
+		public IReadOnlyList<string> Aliases { get; }
+
+		public string Name { get; }
+
+		public IReadOnlyList<IParameterHelpEntry> Parameters { get; }
+
+		public IReadOnlyList<IPrecondition> Preconditions { get; }
+
+		public string Summary { get; }
+
 		public CommandHelpEntry(CommandInfo command)
 		{
 			Name = command.Name;
@@ -20,11 +30,5 @@ namespace Advobot.Services.HelpEntries
 				.Select(x => new ParameterHelpEntry(x))
 				.ToArray();
 		}
-
-		public IReadOnlyList<string> Aliases { get; }
-		public string Name { get; }
-		public IReadOnlyList<IParameterHelpEntry> Parameters { get; }
-		public IReadOnlyList<IPrecondition> Preconditions { get; }
-		public string Summary { get; }
 	}
 }

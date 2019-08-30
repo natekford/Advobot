@@ -18,36 +18,6 @@ namespace Advobot.UI.AbstractUI.Colors
 		[JsonIgnore]
 		private ColorTheme _ActiveTheme = ColorTheme.LightMode;
 
-		static ColorSettings()
-		{
-			LightMode.Freeze();
-			DarkMode.Freeze();
-		}
-
-		/// <summary>
-		/// Creates an instance of <see cref="ColorSettings{TBrush, TBrushFactory}"/> and sets the default theme and colors to light.
-		/// </summary>
-		protected ColorSettings()
-		{
-			foreach (var key in LightMode.Keys)
-			{
-				if (!UserDefinedColors.TryGetValue(key, out var val))
-				{
-					UserDefinedColors.Add(key, LightMode[key]);
-				}
-			}
-			UserDefinedColors.PropertyChanged += (sender, e) =>
-			{
-				if (ActiveTheme == ColorTheme.UserMade)
-				{
-					UpdateResource(e.PropertyName, ((ITheme<TBrush>)sender)[e.PropertyName]);
-				}
-			};
-		}
-
-		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
-
 		/// <summary>
 		/// A dark color UI theme.
 		/// </summary>
@@ -124,6 +94,36 @@ namespace Advobot.UI.AbstractUI.Colors
 		/// <inheritdoc />
 		[JsonProperty("ColorTargets", Order = 1)] //Deserialize this first so when Theme gets set it will update the UI
 		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
+
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		static ColorSettings()
+		{
+			LightMode.Freeze();
+			DarkMode.Freeze();
+		}
+
+		/// <summary>
+		/// Creates an instance of <see cref="ColorSettings{TBrush, TBrushFactory}"/> and sets the default theme and colors to light.
+		/// </summary>
+		protected ColorSettings()
+		{
+			foreach (var key in LightMode.Keys)
+			{
+				if (!UserDefinedColors.TryGetValue(key, out var val))
+				{
+					UserDefinedColors.Add(key, LightMode[key]);
+				}
+			}
+			UserDefinedColors.PropertyChanged += (sender, e) =>
+			{
+				if (ActiveTheme == ColorTheme.UserMade)
+				{
+					UpdateResource(e.PropertyName, ((ITheme<TBrush>)sender)[e.PropertyName]);
+				}
+			};
+		}
 
 		/// <inheritdoc />
 		public abstract void Save();

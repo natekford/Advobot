@@ -14,15 +14,6 @@ namespace Advobot.CommandAssemblies
 		private Type? _InstatiatorType;
 
 		/// <summary>
-		/// Creates an instance of <see cref="CommandAssemblyAttribute"/>.
-		/// </summary>
-		/// <param name="supportedCultures"></param>
-		public CommandAssemblyAttribute(params string[] supportedCultures)
-		{
-			SupportedCultures = supportedCultures.Select(x => CultureInfo.GetCultureInfo(x)).ToArray();
-		}
-
-		/// <summary>
 		/// An instance of <see cref="InstantiatorType"/>.
 		/// </summary>
 		public ICommandAssemblyInstantiator? Instantiator { get; private set; }
@@ -50,5 +41,14 @@ namespace Advobot.CommandAssemblies
 		/// The cultures this command assembly can support.
 		/// </summary>
 		public IReadOnlyList<CultureInfo> SupportedCultures { get; }
+
+		/// <summary>
+		/// Creates an instance of <see cref="CommandAssemblyAttribute"/>.
+		/// </summary>
+		/// <param name="supportedCultures"></param>
+		public CommandAssemblyAttribute(params string[] supportedCultures)
+		{
+			SupportedCultures = supportedCultures.Select(x => CultureInfo.GetCultureInfo(x)).ToArray();
+		}
 	}
 }

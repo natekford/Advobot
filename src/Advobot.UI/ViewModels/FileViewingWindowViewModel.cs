@@ -42,22 +42,6 @@ namespace Advobot.UI.ViewModels
 
 		private string _WindowTitle = "";
 
-		public FileViewingWindowViewModel(FileInfo file, Type? fileType = null)
-		{
-			_File = file;
-			_FileType = fileType;
-
-			WindowTitle = $"Advobot - Currently viewing {_File}";
-			Output = File.ReadAllText(file.FullName);
-			_LastSaved = Output.GetHashCode();
-			_IsDirty = false;
-
-			SaveCommand = ReactiveCommand.Create(Save);
-			CopyCommand = ReactiveCommand.CreateFromTask<Window>(Copy);
-			CloseCommand = ReactiveCommand.CreateFromTask<Window>(Close);
-			DeleteCommand = ReactiveCommand.CreateFromTask<Window>(Delete);
-		}
-
 		public ICommand CloseCommand { get; }
 
 		public ICommand CopyCommand { get; }
@@ -100,10 +84,30 @@ namespace Advobot.UI.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _WindowTitle, value);
 		}
 
+		public FileViewingWindowViewModel(FileInfo file, Type? fileType = null)
+		{
+			_File = file;
+			_FileType = fileType;
+
+			WindowTitle = $"Advobot - Currently viewing {_File}";
+			Output = File.ReadAllText(file.FullName);
+			_LastSaved = Output.GetHashCode();
+			_IsDirty = false;
+
+			SaveCommand = ReactiveCommand.Create(Save);
+			CopyCommand = ReactiveCommand.CreateFromTask<Window>(Copy);
+			CloseCommand = ReactiveCommand.CreateFromTask<Window>(Close);
+			DeleteCommand = ReactiveCommand.CreateFromTask<Window>(Delete);
+		}
+
 		private async Task Close(Window window)
 		{
+			const string YES = "Yes";
+			const string NO = "No";
 			var msg = $"There are unsaved changes. Are you sure you want to close the file {_File.Name}?";
-			if (!_IsDirty || await MessageBox.ShowAsync(window, msg, _Caption, new[] { "Yes", "No" }) == "Yes")
+
+			var option = await MessageBox.ShowAsync(window, msg, _Caption, new[] { YES, NO }).CAF();
+			if (!_IsDirty || option == YES)
 			{
 				window?.Close();
 			}
@@ -116,7 +120,7 @@ namespace Advobot.UI.ViewModels
 				InitialDirectory = _File.Directory.FullName,
 				InitialFileName = _File.FullName,
 				Title = "Advobot - File Copying",
-			}.ShowAsync(window);
+			}.ShowAsync(window).ConfigureAwait(true);
 			if (newPath != null)
 			{
 				Save(new FileInfo(newPath), Output);
@@ -125,8 +129,12 @@ namespace Advobot.UI.ViewModels
 
 		private async Task Delete(Window window)
 		{
+			const string YES = "Yes";
+			const string NO = "No";
+
 			var msg = $"Are you sure you want to delete the file {_File.Name}?";
-			if (await MessageBox.ShowAsync(window, msg, _Caption, new[] { "Yes", "No" }) == "Yes")
+			var option = await MessageBox.ShowAsync(window, msg, _Caption, new[] { YES, NO }).CAF();
+			if (option == YES)
 			{
 				try
 				{
@@ -153,7 +161,7 @@ namespace Advobot.UI.ViewModels
 			//Run this on a background thread since it isn't intended to block
 			Task.Run(async () =>
 			{
-				await Task.Delay(5000, token);
+				await Task.Delay(5000, token).CAF();
 				SavingOpen = false;
 			});
 

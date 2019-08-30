@@ -13,13 +13,13 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public class ChannelBitrateAttribute : IntParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string NumberType => "channel bitrate";
+
 		/// <summary>
 		/// Creates an instance of <see cref="ChannelBitrateAttribute"/>.
 		/// </summary>
 		public ChannelBitrateAttribute() : base(8, 96) { }
-
-		/// <inheritdoc />
-		public override string NumberType => "channel bitrate";
 
 		/// <inheritdoc />
 		protected override NumberCollection<int> GetNumbers(

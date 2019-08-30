@@ -12,6 +12,30 @@ namespace Advobot.Services.GuildSettings.Settings
 	public sealed class BannedPhrasePunishment : IGuildFormattable
 	{
 		/// <summary>
+		/// How many removes before this is used on the user.
+		/// </summary>
+		[JsonProperty("NumberOfRemoves")]
+		public int NumberOfRemoves { get; set; }
+
+		/// <summary>
+		/// The punishment to use on a user.
+		/// </summary>
+		[JsonProperty("Punishment")]
+		public Punishment Punishment { get; set; }
+
+		/// <summary>
+		/// The role to give a user if the punishment is role.
+		/// </summary>
+		[JsonProperty("Role")]
+		public ulong RoleId { get; set; }
+
+		/// <summary>
+		/// How long the punishment should last in minutes.
+		/// </summary>
+		[JsonProperty("Time")]
+		public int Time { get; set; }
+
+		/// <summary>
 		/// Creates an empty instance of <see cref="BannedPhrasePunishment"/>.
 		/// </summary>
 		public BannedPhrasePunishment() { }
@@ -40,30 +64,6 @@ namespace Advobot.Services.GuildSettings.Settings
 		{
 			RoleId = role.Id;
 		}
-
-		/// <summary>
-		/// How many removes before this is used on the user.
-		/// </summary>
-		[JsonProperty("NumberOfRemoves")]
-		public int NumberOfRemoves { get; private set; }
-
-		/// <summary>
-		/// The punishment to use on a user.
-		/// </summary>
-		[JsonProperty("Punishment")]
-		public Punishment Punishment { get; private set; }
-
-		/// <summary>
-		/// The role to give a user if the punishment is role.
-		/// </summary>
-		[JsonProperty("Role")]
-		public ulong RoleId { get; private set; }
-
-		/// <summary>
-		/// How long the punishment should last in minutes.
-		/// </summary>
-		[JsonProperty("Time")]
-		public int Time { get; private set; }
 
 		/// <inheritdoc />
 		public IDiscordFormattableString GetFormattableString()

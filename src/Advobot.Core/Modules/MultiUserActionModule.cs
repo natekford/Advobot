@@ -63,9 +63,9 @@ namespace Advobot.Modules
 		protected async Task<int> ProcessAsync(IReadOnlyCollection<IGuildUser> users, Func<IGuildUser, Task> update)
 		{
 			var cancelToken = new CancellationTokenSource();
-			_CancelTokens.AddOrUpdate(Context.Guild.Id, cancelToken, (oldKey, oldValue) =>
+			_CancelTokens.AddOrUpdate(Context.Guild.Id, cancelToken, (_, v) =>
 			{
-				oldValue?.Cancel();
+				v?.Cancel();
 				return cancelToken;
 			});
 
@@ -93,17 +93,6 @@ namespace Advobot.Modules
 		public class MultiUserActionProgressArgs : EventArgs
 		{
 			/// <summary>
-			/// Creates an instance of <see cref="MultiUserActionProgressArgs"/>.
-			/// </summary>
-			/// <param name="total"></param>
-			/// <param name="current"></param>
-			public MultiUserActionProgressArgs(int total, int current)
-			{
-				TotalUsers = total;
-				CurrentProgress = current;
-			}
-
-			/// <summary>
 			/// The amount of users left to modify.
 			/// </summary>
 			public int AmountLeft => TotalUsers - CurrentProgress;
@@ -127,6 +116,17 @@ namespace Advobot.Modules
 			/// The total amount of users this is currently targetting.
 			/// </summary>
 			public int TotalUsers { get; }
+
+			/// <summary>
+			/// Creates an instance of <see cref="MultiUserActionProgressArgs"/>.
+			/// </summary>
+			/// <param name="total"></param>
+			/// <param name="current"></param>
+			public MultiUserActionProgressArgs(int total, int current)
+			{
+				TotalUsers = total;
+				CurrentProgress = current;
+			}
 		}
 
 		/// <summary>

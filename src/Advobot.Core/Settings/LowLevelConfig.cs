@@ -35,17 +35,6 @@ namespace Advobot.Settings
 		[JsonProperty("BotKey")]
 		private string? _BotKey = null;
 
-		static LowLevelConfig()
-		{
-			StaticSettingParserRegistry.Instance.Register(new StaticSettingParser<LowLevelConfig>
-			{
-				new StaticSetting<LowLevelConfig, int>(x => x.PreviousProcessId),
-				new StaticSetting<LowLevelConfig, int>(x => x.CurrentInstance),
-				new StaticSetting<LowLevelConfig, DatabaseType>(x => x.DatabaseType),
-				new StaticSetting<LowLevelConfig, string>(x => x.DatabaseConnectionString),
-			});
-		}
-
 		/// <inheritdoc />
 		[JsonIgnore]
 		public DirectoryInfo BaseBotDirectory => Directory.CreateDirectory(Path.Combine(SavePath, $"Discord_Servers_{BotId}"));
@@ -56,19 +45,19 @@ namespace Advobot.Settings
 
 		/// <inheritdoc />
 		[JsonIgnore]
-		public int CurrentInstance { get; private set; } = -1;
+		public int CurrentInstance { get; set; } = -1;
 
 		/// <inheritdoc />
 		[JsonIgnore]
-		public string DatabaseConnectionString { get; private set; } = "";
+		public string DatabaseConnectionString { get; set; } = "";
 
 		/// <inheritdoc />
 		[JsonIgnore]
-		public DatabaseType DatabaseType { get; private set; } = DatabaseType.LiteDB;
+		public DatabaseType DatabaseType { get; set; } = DatabaseType.LiteDB;
 
 		/// <inheritdoc />
 		[JsonIgnore]
-		public int PreviousProcessId { get; private set; } = -1;
+		public int PreviousProcessId { get; set; } = -1;
 
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -82,7 +71,7 @@ namespace Advobot.Settings
 		/// The path leading to the bot's directory.
 		/// </summary>
 		[JsonProperty("SavePath")]
-		public string? SavePath { get; private set; } = null;
+		public string? SavePath { get; private set; }
 
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -91,6 +80,17 @@ namespace Advobot.Settings
 		/// <inheritdoc />
 		[JsonIgnore]
 		public bool ValidatedPath { get; private set; }
+
+		static LowLevelConfig()
+		{
+			StaticSettingParserRegistry.Instance.Register(new StaticSettingParser<LowLevelConfig>
+			{
+				new StaticSetting<LowLevelConfig, int>(x => x.PreviousProcessId),
+				new StaticSetting<LowLevelConfig, int>(x => x.CurrentInstance),
+				new StaticSetting<LowLevelConfig, DatabaseType>(x => x.DatabaseType),
+				new StaticSetting<LowLevelConfig, string>(x => x.DatabaseConnectionString),
+			});
+		}
 
 		/// <summary>
 		/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.

@@ -16,17 +16,6 @@ namespace Advobot.Services.Levels
 		private const int _MESSAGE_AMOUNT = 10;
 
 		/// <summary>
-		/// Creates an instance of <see cref="UserExperienceInformation"/>.
-		/// </summary>
-		public UserExperienceInformation() : base(0, TimeSpan.Zero) { }
-
-		/// <summary>
-		/// Creates an instance of <see cref="UserExperienceInformation"/> with the supplied user id.
-		/// </summary>
-		/// <param name="user"></param>
-		public UserExperienceInformation(IUser user) : base(user.Id, TimeSpan.Zero) { }
-
-		/// <summary>
 		/// The experience this user has in each guild, then each individual channel.
 		/// </summary>
 		public Dictionary<ulong, Dictionary<ulong, int>> Experience { get; set; } = new Dictionary<ulong, Dictionary<ulong, int>>();
@@ -41,6 +30,17 @@ namespace Advobot.Services.Levels
 
 		//IUserExperienceInformation
 		ulong IUserExperienceInformation.UserId => Id;
+
+		/// <summary>
+		/// Creates an instance of <see cref="UserExperienceInformation"/>.
+		/// </summary>
+		public UserExperienceInformation() : base(0, TimeSpan.Zero) { }
+
+		/// <summary>
+		/// Creates an instance of <see cref="UserExperienceInformation"/> with the supplied user id.
+		/// </summary>
+		/// <param name="user"></param>
+		public UserExperienceInformation(IUser user) : base(user.Id, TimeSpan.Zero) { }
 
 		/// <inheritdoc />
 		public void AddExperience(IUserMessage message, int experience)

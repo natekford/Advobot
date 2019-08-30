@@ -20,6 +20,12 @@ namespace Advobot.Formatting
 	{
 		private readonly ICollection<FormattableString> _Source;
 
+		/// <inheritdoc />
+		public int Count => _Source.Count;
+
+		/// <inheritdoc />
+		public bool IsReadOnly => _Source.IsReadOnly;
+
 		/// <summary>
 		/// Creates an instance of <see cref="FormattableString"/>.
 		/// </summary>
@@ -35,12 +41,6 @@ namespace Advobot.Formatting
 		/// <param name="source"></param>
 		public DiscordFormattableStringCollection(params FormattableString[] source)
 			: this((IEnumerable<FormattableString>)source) { }
-
-		/// <inheritdoc />
-		public int Count => _Source.Count;
-
-		/// <inheritdoc />
-		public bool IsReadOnly => _Source.IsReadOnly;
 
 		/// <inheritdoc />
 		public void Add(FormattableString item)

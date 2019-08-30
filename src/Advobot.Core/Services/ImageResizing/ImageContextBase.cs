@@ -20,19 +20,6 @@ namespace Advobot.Services.ImageResizing
 	{
 		private IUserMessage? _Message;
 
-		/// <summary>
-		/// Creates an instance of <see cref="ImageContextBase"/>.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="url"></param>
-		/// <param name="userArgs"></param>
-		protected ImageContextBase(ICommandContext context, Uri url, UserProvidedImageArgs userArgs)
-		{
-			Context = context ?? throw new ArgumentNullException(nameof(context));
-			Url = url ?? throw new ArgumentNullException(nameof(url));
-			Args = userArgs ?? new UserProvidedImageArgs();
-		}
-
 		/// <inheritdoc />
 		public UserProvidedImageArgs Args { get; }
 
@@ -52,6 +39,19 @@ namespace Advobot.Services.ImageResizing
 		/// The command context for this image context.
 		/// </summary>
 		protected ICommandContext Context { get; }
+
+		/// <summary>
+		/// Creates an instance of <see cref="ImageContextBase"/>.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="url"></param>
+		/// <param name="userArgs"></param>
+		protected ImageContextBase(ICommandContext context, Uri url, UserProvidedImageArgs userArgs)
+		{
+			Context = context ?? throw new ArgumentNullException(nameof(context));
+			Url = url ?? throw new ArgumentNullException(nameof(url));
+			Args = userArgs ?? new UserProvidedImageArgs();
+		}
 
 		/// <inheritdoc />
 		public abstract IResult CanUseFormat(MagickFormat format);

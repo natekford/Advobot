@@ -14,6 +14,14 @@ namespace Advobot.Localization
 	public abstract class LocalizedAliasBaseAttribute : AliasAttribute, ILocalized
 	{
 		/// <summary>
+		/// The names of the aliases to use for localization.
+		/// </summary>
+		public IReadOnlyList<string> Names { get; }
+
+		/// <inheritdoc />
+		public ResourceManager ResourceManager { get; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="LocalizedAliasBaseAttribute"/>.
 		/// </summary>
 		/// <param name="names"></param>
@@ -24,13 +32,5 @@ namespace Advobot.Localization
 			Names = names;
 			ResourceManager = resources;
 		}
-
-		/// <summary>
-		/// The names of the aliases to use for localization.
-		/// </summary>
-		public IReadOnlyList<string> Names { get; }
-
-		/// <inheritdoc />
-		public ResourceManager ResourceManager { get; }
 	}
 }

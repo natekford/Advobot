@@ -20,6 +20,16 @@ namespace Advobot.Formatting
 		private readonly ICollection<IObjectToStringConverter> _ObjectConverters;
 
 		/// <summary>
+		/// Specified formats.
+		/// </summary>
+		public IList<FormatApplier> Formats { get; set; } = new List<FormatApplier>();
+
+		/// <summary>
+		/// What to join <see cref="IEnumerable{T}"/> with.
+		/// </summary>
+		public string Joiner { get; set; } = ", ";
+
+		/// <summary>
 		/// Creates an instance of <see cref="ArgumentFormatter"/>.
 		/// </summary>
 		public ArgumentFormatter()
@@ -32,30 +42,11 @@ namespace Advobot.Formatting
 				new ObjectToStringConverter<Enum>(1, (f, v) => FormatEnumerable(f, EnumUtils.GetFlagNames(v))),
 				new ObjectToStringConverter<RuntimeFormattedObject>(1, (f, v) => Format(v.Format ?? f, v.Value)),
 				new ObjectToStringConverter<IGuildFormattable>(1, (f, v) => Format(f, v.GetFormattableString())),
-				new ObjectToStringConverter<IDiscordFormattableString>(1, (f, v) => v.ToString("", this)),
+				new ObjectToStringConverter<IDiscordFormattableString>(1, (_, v) => v.ToString("", this)),
 				new ObjectToStringConverter<ISnowflakeEntity>(1, (f, v) => FormatString(f, v.Format())),
 				new ObjectToStringConverter<IEnumerable>(.5, (f, v) => FormatEnumerable(f, v)),
 			};
 		}
-
-		private interface IObjectToStringConverter
-		{
-			double Priority { get; }
-
-			bool CanFormat(object obj);
-
-			string Format(string format, object obj);
-		}
-
-		/// <summary>
-		/// Specified formats.
-		/// </summary>
-		public IList<FormatApplier> Formats { get; set; } = new List<FormatApplier>();
-
-		/// <summary>
-		/// What to join <see cref="IEnumerable{T}"/> with.
-		/// </summary>
-		public string Joiner { get; set; } = ", ";
 
 		/// <inheritdoc />
 		public string Format(string format, object arg, IFormatProvider formatProvider)
@@ -115,9 +106,20 @@ namespace Advobot.Formatting
 			return arg;
 		}
 
+		private interface IObjectToStringConverter
+		{
+			double Priority { get; }
+
+			bool CanFormat(object obj);
+
+			string Format(string format, object obj);
+		}
+
 		private readonly struct NullToStringConverter : IObjectToStringConverter
 		{
 			private readonly Func<string, string> _Func;
+
+			public double Priority { get; }
 
 			/// <summary>
 			/// Creates an instance of <see cref="ObjectToStringConverter{T}"/>.
@@ -129,8 +131,6 @@ namespace Advobot.Formatting
 				Priority = priority;
 				_Func = func;
 			}
-
-			public double Priority { get; }
 
 			public bool CanFormat(object obj)
 				=> obj is null;
@@ -146,6 +146,8 @@ namespace Advobot.Formatting
 		{
 			private readonly Func<string, T, string> _Func;
 
+			public double Priority { get; }
+
 			/// <summary>
 			/// Creates an instance of <see cref="ObjectToStringConverter{T}"/>.
 			/// </summary>
@@ -156,8 +158,6 @@ namespace Advobot.Formatting
 				Priority = priority;
 				_Func = func;
 			}
-
-			public double Priority { get; }
 
 			public bool CanFormat(object obj)
 				=> obj is T;

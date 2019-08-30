@@ -40,8 +40,8 @@ namespace Advobot.Standard.Responses
 		public static async Task<RuntimeResult> AllGuildUsers(IGuild guild)
 		{
 			var users = await guild.GetUsersAsync().CAF();
-			var statuses = _Statuses.ToDictionary(x => x, x => 0);
-			var activities = _Activities.ToDictionary(x => x, x => 0);
+			var statuses = _Statuses.ToDictionary(x => x, _ => 0);
+			var activities = _Activities.ToDictionary(x => x, _ => 0);
 			int webhooks = 0, bots = 0, nickname = 0, voice = 0;
 			foreach (var user in users)
 			{

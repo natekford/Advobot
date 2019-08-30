@@ -22,6 +22,39 @@ namespace Advobot.Services.Levels
 	/// </summary>
 	internal sealed class LevelService : DatabaseWrapperConsumer, ILevelService
 	{
+		/// <inheritdoc />
+		public override string DatabaseName => "LevelDatabase";
+
+		/// <summary>
+		/// Base XP per message.
+		/// </summary>
+		private int BaseExperience { get; }
+
+		/// <summary>
+		/// The bot client.
+		/// </summary>
+		private BaseSocketClient Client { get; }
+
+		/// <summary>
+		/// Used in calculating XP.
+		/// </summary>
+		private double Log { get; }
+
+		/// <summary>
+		/// Used in calculating XP.
+		/// </summary>
+		private double Pow { get; }
+
+		/// <summary>
+		/// The settings for each individual guild.
+		/// </summary>
+		private IGuildSettingsFactory SettingsFactory { get; }
+
+		/// <summary>
+		/// The time between when XP can be gained again.
+		/// </summary>
+		private TimeSpan Time { get; }
+
 		/// <summary>
 		/// Creates an instance of <see cref="LevelService"/>.
 		/// </summary>
@@ -58,39 +91,6 @@ namespace Advobot.Services.Levels
 			Client.MessageReceived += AddExperienceAsync;
 			Client.MessageDeleted += (cached, _) => RemoveExperienceAsync(cached);
 		}
-
-		/// <inheritdoc />
-		public override string DatabaseName => "LevelDatabase";
-
-		/// <summary>
-		/// Base XP per message.
-		/// </summary>
-		private int BaseExperience { get; }
-
-		/// <summary>
-		/// The bot client.
-		/// </summary>
-		private BaseSocketClient Client { get; }
-
-		/// <summary>
-		/// Used in calculating XP.
-		/// </summary>
-		private double Log { get; }
-
-		/// <summary>
-		/// Used in calculating XP.
-		/// </summary>
-		private double Pow { get; }
-
-		/// <summary>
-		/// The settings for each individual guild.
-		/// </summary>
-		private IGuildSettingsFactory SettingsFactory { get; }
-
-		/// <summary>
-		/// The time between when XP can be gained again.
-		/// </summary>
-		private TimeSpan Time { get; }
 
 		/// <inheritdoc />
 		public async Task AddExperienceAsync(IMessage message)

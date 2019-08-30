@@ -13,6 +13,26 @@ namespace Advobot.Classes
 	public class RemovablePunishment : TimedDatabaseEntry<Guid>
 	{
 		/// <summary>
+		/// The id of the guild the punishment was given on.
+		/// </summary>
+		public ulong GuildId { get; set; }
+
+		/// <summary>
+		/// The type of punishment that was given.
+		/// </summary>
+		public Punishment PunishmentType { get; set; }
+
+		/// <summary>
+		/// The id of the role given (only applicable if <see cref="PunishmentType"/> is <see cref="Punishment.RoleMute"/>).
+		/// </summary>
+		public ulong RoleId { get; set; }
+
+		/// <summary>
+		/// The id of the user the punishment was given to.
+		/// </summary>
+		public ulong UserId { get; set; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="RemovablePunishment"/>. Parameterless constructor is used for the database.
 		/// </summary>
 		public RemovablePunishment() : base(Guid.NewGuid(), default) { }
@@ -53,25 +73,5 @@ namespace Advobot.Classes
 		{
 			RoleId = role.Id;
 		}
-
-		/// <summary>
-		/// The id of the guild the punishment was given on.
-		/// </summary>
-		public ulong GuildId { get; set; }
-
-		/// <summary>
-		/// The type of punishment that was given.
-		/// </summary>
-		public Punishment PunishmentType { get; set; }
-
-		/// <summary>
-		/// The id of the role given (only applicable if <see cref="PunishmentType"/> is <see cref="Punishment.RoleMute"/>).
-		/// </summary>
-		public ulong RoleId { get; set; }
-
-		/// <summary>
-		/// The id of the user the punishment was given to.
-		/// </summary>
-		public ulong UserId { get; set; }
 	}
 }

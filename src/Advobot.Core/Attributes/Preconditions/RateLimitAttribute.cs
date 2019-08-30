@@ -19,6 +19,25 @@ namespace Advobot.Attributes.Preconditions
 		//TODO: put into service?
 		private static readonly ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>> _Times = new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>>();
 
+		/// <inheritdoc />
+		public string Summary
+			=> $"Rate limit of {Value} {Unit.ToString().ToLower()}";
+
+		/// <summary>
+		/// The actual timespan.
+		/// </summary>
+		public TimeSpan Time { get; }
+
+		/// <summary>
+		/// The passed in units.
+		/// </summary>
+		public TimeUnit Unit { get; }
+
+		/// <summary>
+		/// The passed in value.
+		/// </summary>
+		public double Value { get; }
+
 		/// <summary>
 		/// Creates an instance of <see cref="RateLimitAttribute"/>.
 		/// </summary>
@@ -35,6 +54,21 @@ namespace Advobot.Attributes.Preconditions
 				TimeUnit.Hours => TimeSpan.FromHours(value),
 				_ => throw new ArgumentOutOfRangeException(nameof(unit)),
 			};
+		}
+
+		/// <inheritdoc />
+		public override Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			CommandInfo command,
+			IServiceProvider services)
+		{
+			var dict = _Times.GetOrAdd(command.Name, new ConcurrentDictionary<ulong, DateTime>());
+			if (dict.TryGetValue(context.User.Id, out var time) && DateTime.UtcNow < time)
+			{
+				return PreconditionUtils.FromErrorAsync($"Command can be next used at `{time.ToLongTimeString()}`.");
+			}
+			dict[context.User.Id] = DateTime.UtcNow.Add(Time);
+			return PreconditionUtils.FromSuccessAsync();
 		}
 
 		/// <summary>
@@ -56,40 +90,6 @@ namespace Advobot.Attributes.Preconditions
 			/// Centuries?
 			/// </summary>
 			Hours,
-		}
-
-		/// <inheritdoc />
-		public string Summary
-			=> $"Rate limit of {Value} {Unit.ToString().ToLower()}";
-
-		/// <summary>
-		/// The actual timespan.
-		/// </summary>
-		public TimeSpan Time { get; }
-
-		/// <summary>
-		/// The passed in units.
-		/// </summary>
-		public TimeUnit Unit { get; }
-
-		/// <summary>
-		/// The passed in value.
-		/// </summary>
-		public double Value { get; }
-
-		/// <inheritdoc />
-		public override Task<PreconditionResult> CheckPermissionsAsync(
-			ICommandContext context,
-			CommandInfo command,
-			IServiceProvider services)
-		{
-			var dict = _Times.GetOrAdd(command.Name, new ConcurrentDictionary<ulong, DateTime>());
-			if (dict.TryGetValue(context.User.Id, out var time) && DateTime.UtcNow < time)
-			{
-				return PreconditionUtils.FromErrorAsync($"Command can be next used at `{time.ToLongTimeString()}`.");
-			}
-			dict[context.User.Id] = DateTime.UtcNow.Add(Time);
-			return PreconditionUtils.FromSuccessAsync();
 		}
 	}
 }

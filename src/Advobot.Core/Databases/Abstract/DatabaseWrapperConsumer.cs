@@ -13,15 +13,6 @@ namespace Advobot.Databases.Abstract
 		private IDatabaseWrapper? _DatabaseWrapper;
 
 		/// <summary>
-		/// Creates an instance of <see cref="DatabaseWrapperConsumer"/>.
-		/// </summary>
-		/// <param name="dbFactory"></param>
-		protected DatabaseWrapperConsumer(IDatabaseWrapperFactory dbFactory)
-		{
-			DbFactory = dbFactory;
-		}
-
-		/// <summary>
 		/// The name of the database.
 		/// </summary>
 		public abstract string DatabaseName { get; }
@@ -36,6 +27,15 @@ namespace Advobot.Databases.Abstract
 		/// The factory for creating <see cref="DatabaseWrapper"/>.
 		/// </summary>
 		protected IDatabaseWrapperFactory DbFactory { get; }
+
+		/// <summary>
+		/// Creates an instance of <see cref="DatabaseWrapperConsumer"/>.
+		/// </summary>
+		/// <param name="dbFactory"></param>
+		protected DatabaseWrapperConsumer(IDatabaseWrapperFactory dbFactory)
+		{
+			DbFactory = dbFactory;
+		}
 
 		/// <inheritdoc />
 		public void Dispose()

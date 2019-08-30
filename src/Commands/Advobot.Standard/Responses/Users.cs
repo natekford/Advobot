@@ -99,7 +99,7 @@ namespace Advobot.Standard.Responses
 		}
 
 		public static AdvobotResult Muted(bool punished, IUser user, PunishmentArgs args)
-																									=> Punished(punished, UsersVariableMuted, UsersVariableUnmuted, user, args);
+			=> Punished(punished, UsersVariableMuted, UsersVariableUnmuted, user, args);
 
 		public static AdvobotResult Pruned(int days, int amount)
 		{
@@ -132,7 +132,7 @@ namespace Advobot.Standard.Responses
 			=> Punished(true, UsersVariableSoftBanned, string.Empty, user, null);
 
 		public static AdvobotResult VoiceMuted(bool punished, IUser user, PunishmentArgs args)
-									=> Punished(punished, UsersVariableVoiceMuted, UsersVariableUnvoiceMuted, user, args);
+			=> Punished(punished, UsersVariableVoiceMuted, UsersVariableUnvoiceMuted, user, args);
 
 		private static AdvobotResult Punished(
 			bool punished,

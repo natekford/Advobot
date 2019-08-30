@@ -8,6 +8,9 @@ namespace Advobot.UI.AbstractUI.Converters
 	/// </summary>
 	public abstract class FontResizeConverter
 	{
+#pragma warning disable RCS1079 // Throwing of new NotImplementedException.
+#pragma warning disable RCS1163 // Unused parameter.
+
 		/// <summary>
 		/// Creates an instance of <see cref="FontResizeConverter"/>.
 		/// </summary>
@@ -30,7 +33,7 @@ namespace Advobot.UI.AbstractUI.Converters
 		/// <param name="parameter"></param>
 		/// <param name="culture"></param>
 		/// <returns></returns>
-		public object Convert(object value, Type _1, object _2, CultureInfo _3)
+		public object Convert(object value, Type _, object _2, CultureInfo _3)
 		{
 			if (!(value is double dVal))
 			{
@@ -51,7 +54,10 @@ namespace Advobot.UI.AbstractUI.Converters
 		/// <param name="parameter"></param>
 		/// <param name="culture"></param>
 		/// <returns></returns>
-		public object ConvertBack(object _1, Type _2, object _3, CultureInfo _4)
+		public object ConvertBack(object _, Type _2, object _3, CultureInfo _4)
 			=> throw new NotImplementedException();
+
+#pragma warning restore RCS1079 // Throwing of new NotImplementedException.
+#pragma warning restore RCS1163 // Unused parameter.
 	}
 }

@@ -77,7 +77,7 @@ namespace Advobot.Services.GuildSettings.Settings
 				return false;
 			}
 
-			var instances = _Instances.GetOrAdd(message.Author.Id, id => new SortedSet<ulong>());
+			var instances = _Instances.GetOrAdd(message.Author.Id, _ => new SortedSet<ulong>());
 			if (GetSpamCount(message) >= SpamPerMessage)
 			{
 				lock (instances)

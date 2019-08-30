@@ -12,14 +12,14 @@ namespace Advobot.CommandAssemblies
 	{
 		private readonly Dictionary<string, CommandAssembly> _Assemblies = new Dictionary<string, CommandAssembly>();
 
-		private CommandAssemblyCollection()
-		{
-		}
-
 		/// <summary>
 		/// The assemblies to be used as command assemblies.
 		/// </summary>
 		public IReadOnlyCollection<CommandAssembly> Assemblies => _Assemblies.Values;
+
+		private CommandAssemblyCollection()
+		{
+		}
 
 		/// <summary>
 		/// Returns all the assemblies in the base directory which have the <see cref="CommandAssemblyAttribute"/>.

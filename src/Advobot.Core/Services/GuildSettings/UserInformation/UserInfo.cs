@@ -10,6 +10,19 @@ namespace Advobot.Services.GuildSettings.UserInformation
 	public abstract class UserInfo
 	{
 		/// <summary>
+		/// The id of the guild the user is on.
+		/// </summary>
+		public ulong GuildId { get; }
+
+		/// <summary>
+		/// The time to reset the user.
+		/// </summary>
+		public DateTime Time { get; protected set; }
+
+		/// <inheritdoc />
+		public ulong UserId { get; }
+
+		/// <summary>
 		/// Creates an instance of userinfo with the supplied user and time as datetime.utcnow.
 		/// </summary>
 		/// <param name="user"></param>
@@ -26,19 +39,6 @@ namespace Advobot.Services.GuildSettings.UserInformation
 			GuildId = user.Guild.Id;
 			UserId = user.Id;
 		}
-
-		/// <summary>
-		/// The id of the guild the user is on.
-		/// </summary>
-		public ulong GuildId { get; }
-
-		/// <summary>
-		/// The time to reset the user.
-		/// </summary>
-		public DateTime Time { get; protected set; }
-
-		/// <inheritdoc />
-		public ulong UserId { get; }
 
 		/// <summary>
 		/// Sets everything back to default values.

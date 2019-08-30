@@ -12,6 +12,24 @@ namespace Advobot.Services.HelpEntries
 {
 	internal sealed class ModuleHelpEntry : IModuleHelpEntry
 	{
+		public bool AbleToBeToggled { get; }
+
+		public IReadOnlyList<string> Aliases { get; }
+
+		public string Category { get; }
+
+		public IReadOnlyList<ICommandHelpEntry> Commands { get; }
+
+		public bool EnabledByDefault { get; }
+
+		public string Id { get; }
+
+		public string Name { get; }
+
+		public IReadOnlyList<IPrecondition> Preconditions { get; }
+
+		public string Summary { get; }
+
 		public ModuleHelpEntry(ModuleInfo module)
 		{
 			var meta = module.Attributes.GetAttribute<MetaAttribute>();
@@ -33,15 +51,5 @@ namespace Advobot.Services.HelpEntries
 				.Select(x => new CommandHelpEntry(x))
 				.ToArray();
 		}
-
-		public bool AbleToBeToggled { get; }
-		public IReadOnlyList<string> Aliases { get; }
-		public string Category { get; }
-		public IReadOnlyList<ICommandHelpEntry> Commands { get; }
-		public bool EnabledByDefault { get; }
-		public string Id { get; }
-		public string Name { get; }
-		public IReadOnlyList<IPrecondition> Preconditions { get; }
-		public string Summary { get; }
 	}
 }

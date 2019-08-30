@@ -15,6 +15,18 @@ namespace Advobot.Services.GuildSettings.Settings
 	public sealed class SelfAssignableRoles : IGuildFormattable
 	{
 		/// <summary>
+		/// The group number all the roles belong to.
+		/// </summary>
+		[JsonProperty("Group")]
+		public int Group { get; set; }
+
+		/// <summary>
+		/// The ids of the roles.
+		/// </summary>
+		[JsonProperty("Roles")]
+		public ICollection<ulong> Roles { get; set; } = new HashSet<ulong>();
+
+		/// <summary>
 		/// Creates an instance of <see cref="SelfAssignableRoles"/>.
 		/// </summary>
 		public SelfAssignableRoles() { }
@@ -27,18 +39,6 @@ namespace Advobot.Services.GuildSettings.Settings
 		{
 			Group = group;
 		}
-
-		/// <summary>
-		/// The group number all the roles belong to.
-		/// </summary>
-		[JsonProperty("Group")]
-		public int Group { get; set; }
-
-		/// <summary>
-		/// The ids of the roles.
-		/// </summary>
-		[JsonProperty("Roles")]
-		public ICollection<ulong> Roles { get; set; } = new HashSet<ulong>();
 
 		/// <summary>
 		/// Adds the roles to the group.

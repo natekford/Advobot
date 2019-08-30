@@ -15,16 +15,6 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		: AdvobotParameterPreconditionAttribute
 	{
 		/// <summary>
-		/// Creates an instance of <see cref="StringParameterPreconditionAttribute"/>.
-		/// </summary>
-		/// <param name="min"></param>
-		/// <param name="max"></param>
-		protected StringParameterPreconditionAttribute(int min, int max)
-		{
-			ValidLength = new NumberCollection<int>(min, max);
-		}
-
-		/// <summary>
 		/// The type of string this is targetting.
 		/// </summary>
 		public abstract string StringType { get; }
@@ -40,6 +30,16 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 
 		/// <inheritdoc />
 		protected override bool AllowEnumerating => false;
+
+		/// <summary>
+		/// Creates an instance of <see cref="StringParameterPreconditionAttribute"/>.
+		/// </summary>
+		/// <param name="min"></param>
+		/// <param name="max"></param>
+		protected StringParameterPreconditionAttribute(int min, int max)
+		{
+			ValidLength = new NumberCollection<int>(min, max);
+		}
 
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(

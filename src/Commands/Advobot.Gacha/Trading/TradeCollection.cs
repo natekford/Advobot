@@ -11,6 +11,16 @@ namespace Advobot.Gacha.Trading
 		private readonly List<ITrade> _Gives = new List<ITrade>();
 		private readonly string _GuildId;
 
+		public int Count => _Gives.Count;
+
+		public bool IsReadOnly => ((IList<ITrade>)_Gives).IsReadOnly;
+
+		public ITrade this[int index]
+		{
+			get => _Gives[index];
+			set => _Gives[index] = value;
+		}
+
 		public TradeCollection(IGuild guild) : this(guild.Id)
 		{
 		}
@@ -18,15 +28,6 @@ namespace Advobot.Gacha.Trading
 		public TradeCollection(ulong guildId)
 		{
 			_GuildId = guildId.ToString();
-		}
-
-		public int Count => _Gives.Count;
-		public bool IsReadOnly => ((IList<ITrade>)_Gives).IsReadOnly;
-
-		public ITrade this[int index]
-		{
-			get => _Gives[index];
-			set => _Gives[index] = value;
 		}
 
 		public void Add(ITrade item)

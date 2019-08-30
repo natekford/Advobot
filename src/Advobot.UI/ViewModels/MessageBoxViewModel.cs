@@ -24,11 +24,6 @@ namespace Advobot.UI.ViewModels
 
 		private string? _WindowTitle;
 
-		public MessageBoxViewModel()
-		{
-			CloseCommand = ReactiveCommand.Create<Window>(window => window.Close(CurrentOption), this.WhenAnyValue(x => x.CanClose));
-		}
-
 		public string? ButtonText
 		{
 			get => _ButtonText;
@@ -82,6 +77,11 @@ namespace Advobot.UI.ViewModels
 		{
 			get => _CanClose;
 			set => this.RaiseAndSetIfChanged(ref _CanClose, value);
+		}
+
+		public MessageBoxViewModel()
+		{
+			CloseCommand = ReactiveCommand.Create<Window>(window => window.Close(CurrentOption), this.WhenAnyValue(x => x.CanClose));
 		}
 	}
 }

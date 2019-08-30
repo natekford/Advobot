@@ -27,6 +27,12 @@ namespace Advobot.Services.ImageResizing
 
 		private readonly Func<ICommandContext, MemoryStream, Task> _Callback;
 
+		/// <inheritdoc />
+		public override long MaxAllowedLengthInBytes => 10000000;
+
+		/// <inheritdoc />
+		public override string Type { get; }
+
 		/// <summary>
 		/// Creates an instance of <see cref="IconCreationContext"/>.
 		/// </summary>
@@ -46,12 +52,6 @@ namespace Advobot.Services.ImageResizing
 			Type = type;
 			_Callback = callback;
 		}
-
-		/// <inheritdoc />
-		public override long MaxAllowedLengthInBytes => 10000000;
-
-		/// <inheritdoc />
-		public override string Type { get; }
 
 		/// <inheritdoc />
 		public override IResult CanUseFormat(MagickFormat format)

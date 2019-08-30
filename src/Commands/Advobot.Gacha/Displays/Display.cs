@@ -16,6 +16,18 @@ namespace Advobot.Gacha.Displays
 {
 	public abstract class Display
 	{
+		public GachaDatabase Database { get; }
+
+		public bool HasBeenSent { get; protected set; }
+
+		public int Id { get; }
+
+		public DateTime LastInteractedWith { get; protected set; }
+
+		public IUserMessage? Message { get; protected set; }
+
+		protected IInteractionHandler InteractionHandler { get; }
+
 		protected Display(IServiceProvider services, int id)
 		{
 			Database = services.GetRequiredService<GachaDatabase>();
@@ -24,13 +36,6 @@ namespace Advobot.Gacha.Displays
 			InteractionHandler = interactionFactory.CreateInteractionHandler(this);
 			Id = id;
 		}
-
-		public GachaDatabase Database { get; }
-		public bool HasBeenSent { get; protected set; }
-		public int Id { get; }
-		public DateTime LastInteractedWith { get; protected set; }
-		public IUserMessage? Message { get; protected set; }
-		protected IInteractionHandler InteractionHandler { get; }
 
 		public virtual Task InteractAsync(IInteractionContext context)
 		{

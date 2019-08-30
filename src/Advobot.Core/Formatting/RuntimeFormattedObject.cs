@@ -5,12 +5,6 @@
 	/// </summary>
 	public readonly struct RuntimeFormattedObject
 	{
-		private RuntimeFormattedObject(object value, string? format)
-		{
-			Value = value;
-			Format = format ?? "G";
-		}
-
 		/// <summary>
 		/// The format to use for the value.
 		/// </summary>
@@ -20,6 +14,12 @@
 		/// The value to format.
 		/// </summary>
 		public object Value { get; }
+
+		private RuntimeFormattedObject(object value, string? format)
+		{
+			Value = value;
+			Format = format ?? "G";
+		}
 
 		/// <summary>
 		/// Creates an instance of <see cref="RuntimeFormattedObject"/> with the specified format.

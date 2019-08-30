@@ -17,6 +17,14 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 	public sealed class CanModifyChannelAttribute : ChannelParameterPreconditionAttribute
 	{
 		/// <summary>
+		/// The permissions to make sure the invoking user has on the channel.
+		/// </summary>
+		public ImmutableHashSet<ChannelPermission> Permissions { get; }
+
+		/// <inheritdoc />
+		public override string Summary { get; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="CanModifyChannelAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
@@ -27,14 +35,6 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 				.ToImmutableHashSet();
 			Summary = Permissions.FormatPermissions();
 		}
-
-		/// <summary>
-		/// The permissions to make sure the invoking user has on the channel.
-		/// </summary>
-		public ImmutableHashSet<ChannelPermission> Permissions { get; }
-
-		/// <inheritdoc />
-		public override string Summary { get; }
 
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckChannelAsync(

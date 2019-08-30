@@ -45,6 +45,8 @@ namespace Advobot.Databases.MongoDB
 		{
 			private readonly IMongoDatabase _Database;
 
+			object IDatabaseWrapper.UnderlyingDatabase => _Database;
+
 			/// <summary>
 			/// Creates an instance of <see cref="MongoDBWrapper"/>.
 			/// </summary>
@@ -53,8 +55,6 @@ namespace Advobot.Databases.MongoDB
 			{
 				_Database = db;
 			}
-
-			object IDatabaseWrapper.UnderlyingDatabase => _Database;
 
 			/// <inheritdoc />
 			public void Dispose() { }

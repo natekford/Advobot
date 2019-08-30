@@ -10,6 +10,11 @@ namespace Advobot.Attributes
 	public sealed class TypeReaderTargetTypeAttribute : Attribute
 	{
 		/// <summary>
+		/// The type this type reader targets.
+		/// </summary>
+		public IReadOnlyList<Type> TargetTypes { get; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="TypeReaderTargetTypeAttribute"/>.
 		/// </summary>
 		/// <param name="types"></param>
@@ -17,10 +22,5 @@ namespace Advobot.Attributes
 		{
 			TargetTypes = types;
 		}
-
-		/// <summary>
-		/// The type this type reader targets.
-		/// </summary>
-		public IReadOnlyList<Type> TargetTypes { get; }
 	}
 }

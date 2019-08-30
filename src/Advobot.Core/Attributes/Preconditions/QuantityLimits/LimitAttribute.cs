@@ -18,15 +18,6 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 		: PreconditionAttribute, IPrecondition
 	{
 		/// <summary>
-		/// Creates an instance of <see cref="LimitAttribute"/>.
-		/// </summary>
-		/// <param name="action"></param>
-		protected LimitAttribute(QuantityLimitAction action)
-		{
-			Action = action;
-		}
-
-		/// <summary>
 		/// Whether this is on a command which adds or removes something.
 		/// </summary>
 		public QuantityLimitAction Action { get; }
@@ -47,6 +38,15 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 				}
 				return $"At least one {QuantityName}";
 			}
+		}
+
+		/// <summary>
+		/// Creates an instance of <see cref="LimitAttribute"/>.
+		/// </summary>
+		/// <param name="action"></param>
+		protected LimitAttribute(QuantityLimitAction action)
+		{
+			Action = action;
 		}
 
 		/// <inheritdoc />

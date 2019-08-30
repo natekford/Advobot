@@ -66,6 +66,6 @@ namespace Advobot.Gacha.Displays
 		}
 
 		private int GetDisplayId(IGuild guild)
-			=> _Ids.AddOrUpdate(guild.Id, 1, (key, value) => value + 1);
+			=> _Ids.AddOrUpdate(guild.Id, 1, (_, value) => value + 1);
 	}
 }

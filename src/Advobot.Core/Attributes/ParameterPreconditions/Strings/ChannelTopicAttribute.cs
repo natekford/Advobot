@@ -8,12 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class ChannelTopicAttribute : StringParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string StringType => "channel topic";
+
 		/// <summary>
 		/// Creates an instance of <see cref="ChannelTopicAttribute"/>.
 		/// </summary>
 		public ChannelTopicAttribute() : base(0, 1024) { }
-
-		/// <inheritdoc />
-		public override string StringType => "channel topic";
 	}
 }

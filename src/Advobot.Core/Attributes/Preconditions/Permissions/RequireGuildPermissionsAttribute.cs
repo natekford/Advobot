@@ -25,16 +25,16 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		private static readonly Enum _Admin = GuildPermission.Administrator;
 
 		/// <summary>
+		/// Whether this precondition targets the bot rather than the user.
+		/// </summary>
+		public bool ForBot { get; set; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="RequireGuildPermissionsAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
 		public RequireGuildPermissionsAttribute(params GuildPermission[] permissions)
 			: base(permissions.Cast<Enum>().Append(_Admin).ToArray()) { }
-
-		/// <summary>
-		/// Whether this precondition targets the bot rather than the user.
-		/// </summary>
-		public bool ForBot { get; set; }
 
 		/// <inheritdoc />
 		public override async Task<Enum?> GetUserPermissionsAsync(

@@ -15,51 +15,6 @@ namespace Advobot.UI.AbstractUI.Colors
 		public T Default => CreateBrush("#FF000000");
 
 		/// <summary>
-		/// Gets ARGB color bytes.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static byte[] ParseColorBytes(string input)
-		{
-			if (TryGetColorBytesARGB(input, out var rgb))
-			{
-				return rgb;
-			}
-			if (TryGetColorBytesHex(input, out var hex))
-			{
-				return hex;
-			}
-			throw new InvalidOperationException($"Unable to create a brush out of {input}.");
-		}
-
-		/// <summary>
-		/// Attempts to get ARGB color bytes.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <param name="bytes"></param>
-		/// <returns></returns>
-		public static bool TryParseColorBytes(string input, out byte[] bytes)
-		{
-			if (input == null)
-			{
-				bytes = new byte[] { 0, 0, 0, 0 };
-				return false;
-			}
-			if (TryGetColorBytesARGB(input, out var rgb))
-			{
-				bytes = rgb;
-				return true;
-			}
-			if (TryGetColorBytesHex(input, out var hex))
-			{
-				bytes = hex;
-				return true;
-			}
-			bytes = new byte[] { 0, 0, 0, 0 };
-			return false;
-		}
-
-		/// <summary>
 		/// Creates a brush from the input.
 		/// </summary>
 		/// <param name="input"></param>
@@ -103,6 +58,24 @@ namespace Advobot.UI.AbstractUI.Colors
 			var success = TryParseColorBytes(input, out var bytes);
 			brush = success ? CreateBrush(bytes) : Default;
 			return success;
+		}
+
+		/// <summary>
+		/// Gets ARGB color bytes.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		private static byte[] ParseColorBytes(string input)
+		{
+			if (TryGetColorBytesARGB(input, out var rgb))
+			{
+				return rgb;
+			}
+			if (TryGetColorBytesHex(input, out var hex))
+			{
+				return hex;
+			}
+			throw new InvalidOperationException($"Unable to create a brush out of {input}.");
 		}
 
 		private static bool TryGetColorBytesARGB(string input, out byte[] bytes)
@@ -158,6 +131,33 @@ namespace Advobot.UI.AbstractUI.Colors
 				{
 					Array.Reverse(bytes);
 				}
+				return true;
+			}
+			bytes = new byte[] { 0, 0, 0, 0 };
+			return false;
+		}
+
+		/// <summary>
+		/// Attempts to get ARGB color bytes.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="bytes"></param>
+		/// <returns></returns>
+		private static bool TryParseColorBytes(string input, out byte[] bytes)
+		{
+			if (input == null)
+			{
+				bytes = new byte[] { 0, 0, 0, 0 };
+				return false;
+			}
+			if (TryGetColorBytesARGB(input, out var rgb))
+			{
+				bytes = rgb;
+				return true;
+			}
+			if (TryGetColorBytesHex(input, out var hex))
+			{
+				bytes = hex;
 				return true;
 			}
 			bytes = new byte[] { 0, 0, 0, 0 };

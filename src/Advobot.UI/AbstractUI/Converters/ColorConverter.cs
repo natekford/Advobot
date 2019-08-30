@@ -13,30 +13,44 @@ namespace Advobot.UI.AbstractUI.Converters
 	public abstract class ColorConverter<TBrush, TBrushFactory>
 		where TBrushFactory : BrushFactory<TBrush>, new()
 	{
+#pragma warning disable RCS1163 // Unused parameter.
+
 		private static readonly TBrushFactory _Factory = new TBrushFactory();
 
 		/// <summary>
 		/// Converts a <typeparamref name="TBrush"/> to a string.
 		/// </summary>
 		/// <param name="value"></param>
-		/// <param name="targetType"></param>
-		/// <param name="parameter"></param>
-		/// <param name="culture"></param>
+		/// <param name="_"></param>
+		/// <param name="_2"></param>
+		/// <param name="_3"></param>
 		/// <returns></returns>
-		public object Convert(object value, Type _1, object _2, CultureInfo _3)
-			=> value is TBrush brush ? _Factory.FormatBrush(brush)
-				: throw new InvalidOperationException("Invalid brush supplied for converting.");
+		public object Convert(object value, Type _, object _2, CultureInfo _3)
+		{
+			if (value is TBrush brush)
+			{
+				return _Factory.FormatBrush(brush);
+			}
+			throw new InvalidOperationException("Invalid brush supplied for converting.");
+		}
 
 		/// <summary>
 		/// Converts a string to a <typeparamref name="TBrush"/>.
 		/// </summary>
 		/// <param name="value"></param>
-		/// <param name="targetType"></param>
-		/// <param name="parameter"></param>
-		/// <param name="culture"></param>
+		/// <param name="_"></param>
+		/// <param name="_2"></param>
+		/// <param name="_3"></param>
 		/// <returns></returns>
-		public object ConvertBack(object value, Type _1, object _2, CultureInfo _3)
-			=> value is string str && _Factory.CreateBrush(str) is TBrush brush ? brush
-				: throw new InvalidOperationException("Brush cannot be null when converting back.");
+		public object ConvertBack(object value, Type _, object _2, CultureInfo _3)
+		{
+			if (value is string str && _Factory.CreateBrush(str) is TBrush brush)
+			{
+				return brush;
+			}
+			throw new InvalidOperationException("Brush cannot be null when converting back.");
+		}
+
+#pragma warning enable RCS1163 // Unused parameter.
 	}
 }

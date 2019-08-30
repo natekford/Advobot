@@ -16,19 +16,6 @@ namespace Advobot.Classes.CloseWords
 	public class CloseWords<T> where T : INameable
 	{
 		/// <summary>
-		/// Creates an instance of <see cref="CloseWords{T}"/>.
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="maxAllowedCloseness"></param>
-		/// <param name="maxOutput"></param>
-		public CloseWords(IEnumerable<T> source, int maxAllowedCloseness = 4, int maxOutput = 5)
-		{
-			Source = source.ToImmutableArray();
-			MaxAllowedCloseness = maxAllowedCloseness;
-			MaxOutput = maxOutput;
-		}
-
-		/// <summary>
 		/// How similar a string has to be to match.
 		/// </summary>
 		public int MaxAllowedCloseness { get; set; }
@@ -44,13 +31,44 @@ namespace Advobot.Classes.CloseWords
 		protected IReadOnlyList<T> Source { get; }
 
 		/// <summary>
+		/// Creates an instance of <see cref="CloseWords{T}"/>.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="maxAllowedCloseness"></param>
+		/// <param name="maxOutput"></param>
+		public CloseWords(IEnumerable<T> source, int maxAllowedCloseness = 4, int maxOutput = 5)
+		{
+			Source = source.ToImmutableArray();
+			MaxAllowedCloseness = maxAllowedCloseness;
+			MaxOutput = maxOutput;
+		}
+
+		/// <summary>
+		/// Returns matches.
+		/// </summary>
+		/// <param name="search"></param>
+		/// <returns></returns>
+		public IReadOnlyList<CloseWord<T>> FindMatches(string search)
+		{
+			var list = new List<CloseWord<T>>();
+			foreach (var item in Source)
+			{
+				if (IsCloseWord(search, item, out var closeWord) && closeWord != null)
+				{
+					list.Add(closeWord);
+				}
+			}
+			return list.OrderBy(x => x.Closeness).ThenBy(x => x.Name.Length).Take(MaxOutput).ToArray();
+		}
+
+		/// <summary>
 		/// Returns a value gotten from using Damerau Levenshtein distance to compare the source and target.
 		/// </summary>
 		/// <param name="source"></param>
 		/// <param name="target"></param>
 		/// <param name="threshold"></param>
 		/// <returns></returns>
-		public static int FindCloseness(string source, string target, int threshold = 10)
+		protected static int FindCloseness(string source, string target, int threshold = 10)
 		{
 			static void Swap<T2>(ref T2 arg1, ref T2 arg2)
 			{
@@ -128,24 +146,6 @@ namespace Advobot.Classes.CloseWords
 
 			var result = dCurrent[maxi];
 			return (result > threshold) ? int.MaxValue : result;
-		}
-
-		/// <summary>
-		/// Returns matches.
-		/// </summary>
-		/// <param name="search"></param>
-		/// <returns></returns>
-		public IReadOnlyList<CloseWord<T>> FindMatches(string search)
-		{
-			var list = new List<CloseWord<T>>();
-			foreach (var item in Source)
-			{
-				if (IsCloseWord(search, item, out var closeWord) && closeWord != null)
-				{
-					list.Add(closeWord);
-				}
-			}
-			return list.OrderBy(x => x.Closeness).ThenBy(x => x.Name.Length).Take(MaxOutput).ToArray();
 		}
 
 		/// <summary>

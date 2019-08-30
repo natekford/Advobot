@@ -12,6 +12,14 @@ namespace Advobot.Localization
 	public abstract class LocalizedSummaryBaseAttribute : SummaryAttribute, ILocalized
 	{
 		/// <summary>
+		/// The name of the summary to use for localization.
+		/// </summary>
+		public string Name { get; }
+
+		/// <inheritdoc />
+		public ResourceManager ResourceManager { get; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="LocalizedSummaryBaseAttribute"/>.
 		/// </summary>
 		/// <param name="name"></param>
@@ -22,13 +30,5 @@ namespace Advobot.Localization
 			Name = name;
 			ResourceManager = resources;
 		}
-
-		/// <summary>
-		/// The name of the summary to use for localization.
-		/// </summary>
-		public string Name { get; }
-
-		/// <inheritdoc />
-		public ResourceManager ResourceManager { get; }
 	}
 }

@@ -2,14 +2,15 @@
 {
 	public sealed class Movement : IInteraction
 	{
+		public string Name { get; }
+
+		public int Value { get; }
+
 		public Movement(string name, int value)
 		{
 			Name = name;
 			Value = value;
 		}
-
-		public string Name { get; }
-		public int Value { get; }
 
 		public bool TryUpdatePage(ref int currentPage, int pageCount)
 		{

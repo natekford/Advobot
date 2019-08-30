@@ -37,6 +37,17 @@ namespace Advobot.Services.ImageResizing
 			MagickFormat.Jpeg,
 		}.ToImmutableArray();
 
+		/// <inheritdoc />
+		public override long MaxAllowedLengthInBytes => 256000;
+
+		/// <summary>
+		/// The name to give an emote.
+		/// </summary>
+		public string Name { get; }
+
+		/// <inheritdoc />
+		public override string Type => "Emote";
+
 		/// <summary>
 		/// Creates an instance of <see cref="EmoteCreationContext"/>.
 		/// </summary>
@@ -53,17 +64,6 @@ namespace Advobot.Services.ImageResizing
 		{
 			Name = name;
 		}
-
-		/// <inheritdoc />
-		public override long MaxAllowedLengthInBytes => 256000;
-
-		/// <summary>
-		/// The name to give an emote.
-		/// </summary>
-		public string Name { get; }
-
-		/// <inheritdoc />
-		public override string Type => "Emote";
 
 		/// <inheritdoc />
 		public override IResult CanUseFormat(MagickFormat format)

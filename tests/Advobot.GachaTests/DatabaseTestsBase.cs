@@ -17,6 +17,8 @@ namespace Advobot.GachaTests
 	{
 		public static readonly Random Rng = new Random();
 
+		protected IServiceProvider Provider { get; }
+
 		protected DatabaseTestsBase()
 		{
 			Provider = new ServiceCollection()
@@ -24,8 +26,6 @@ namespace Advobot.GachaTests
 				.AddSingleton<IDatabaseStarter, SQLiteTestDatabaseFactory>()
 				.BuildServiceProvider();
 		}
-
-		protected IServiceProvider Provider { get; }
 
 		protected async Task<(List<IReadOnlySource>, List<IReadOnlyCharacter>)> AddSourcesAndCharacters(
 			GachaDatabase db,

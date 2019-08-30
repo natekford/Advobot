@@ -11,6 +11,10 @@ namespace Advobot.UI.ViewModels
 {
 	public abstract class SettingsViewModel : ReactiveObject
 	{
+		public bool CanSave => Errors.AllValid();
+
+		public ValidationErrors Errors { get; } = new ValidationErrors();
+
 		protected SettingsViewModel(INotifyPropertyChanged settings)
 		{
 			settings.PropertyChanged += (sender, e) =>
@@ -21,10 +25,6 @@ namespace Advobot.UI.ViewModels
 			};
 			Errors.PropertyChanged += (sender, e) => this.RaisePropertyChanged(nameof(CanSave));
 		}
-
-		public bool CanSave => Errors.AllValid();
-
-		public ValidationErrors Errors { get; } = new ValidationErrors();
 
 		protected bool IsValid([CallerMemberName] string caller = "")
 			=> !Errors[caller];
@@ -54,7 +54,7 @@ namespace Advobot.UI.ViewModels
 				get => _ValidationErrors.GetOrAdd(target, false);
 				set
 				{
-					_ValidationErrors.AddOrUpdate(target, value, (k, v) => value);
+					_ValidationErrors.AddOrUpdate(target, value, (_, __) => value);
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(target));
 				}
 			}

@@ -18,6 +18,6 @@ namespace Advobot.Gacha.Counters
 			=> _AmountLeft.GetOrAdd(id, _DefaultAmount) > 0;
 
 		public void HasBeenDone(ulong id)
-			=> _AmountLeft.AddOrUpdate(id, _DefaultAmount, (key, value) => --value);
+			=> _AmountLeft.AddOrUpdate(id, _DefaultAmount, (_, value) => --value);
 	}
 }

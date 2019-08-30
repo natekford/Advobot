@@ -30,12 +30,6 @@ namespace Advobot.Services.GuildSettings.UserInformation
 		private int _VoiceMute;
 
 		/// <summary>
-		/// Creates an instance of bannedphraseuserinfo.
-		/// </summary>
-		/// <param name="user"></param>
-		public BannedPhraseUserInfo(IGuildUser user) : base(user) { }
-
-		/// <summary>
 		/// The amount of messages that gave them a ban punishment.
 		/// </summary>
 		public int Ban => _Ban;
@@ -80,6 +74,12 @@ namespace Advobot.Services.GuildSettings.UserInformation
 			Punishment.RoleMute => _RoleMute,
 			_ => -1,
 		};
+
+		/// <summary>
+		/// Creates an instance of bannedphraseuserinfo.
+		/// </summary>
+		/// <param name="user"></param>
+		public BannedPhraseUserInfo(IGuildUser user) : base(user) { }
 
 		/// <summary>
 		/// Increases the banned phrase count for that punishment by one.

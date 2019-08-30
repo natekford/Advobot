@@ -4,8 +4,18 @@ namespace Advobot.Gacha.Metadata
 {
 	public readonly struct CharacterMetadata : IMetadata<IReadOnlyCharacter>
 	{
+		public AmountAndRank Claims { get; }
+
+		public IReadOnlyCharacter Data { get; }
+
+		public AmountAndRank Likes { get; }
+
+		public IReadOnlySource Source { get; }
+
+		public AmountAndRank Wishes { get; }
+
 		public CharacterMetadata(
-			IReadOnlySource source,
+													IReadOnlySource source,
 			IReadOnlyCharacter character,
 			AmountAndRank claims,
 			AmountAndRank likes,
@@ -17,11 +27,5 @@ namespace Advobot.Gacha.Metadata
 			Likes = likes;
 			Wishes = wishes;
 		}
-
-		public AmountAndRank Claims { get; }
-		public IReadOnlyCharacter Data { get; }
-		public AmountAndRank Likes { get; }
-		public IReadOnlySource Source { get; }
-		public AmountAndRank Wishes { get; }
 	}
 }

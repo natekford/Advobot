@@ -14,18 +14,6 @@ namespace Advobot.Services.Logging.LogCounters
 		private int _Count;
 
 		/// <summary>
-		/// Creates an instance of <see cref="LogCounter"/>.
-		/// </summary>
-		/// <param name="caller"></param>
-		public LogCounter([CallerMemberName] string caller = "")
-		{
-			Name = caller.FormatTitle().Trim();
-		}
-
-		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		/// <summary>
 		/// How many instances have been logged.
 		/// </summary>
 		public int Count => _Count;
@@ -34,6 +22,18 @@ namespace Advobot.Services.Logging.LogCounters
 		/// The title of the log counter.
 		/// </summary>
 		public string Name { get; }
+
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		/// <summary>
+		/// Creates an instance of <see cref="LogCounter"/>.
+		/// </summary>
+		/// <param name="caller"></param>
+		public LogCounter([CallerMemberName] string caller = "")
+		{
+			Name = caller.FormatTitle().Trim();
+		}
 
 		/// <summary>
 		/// Add a specified amount to the counter.

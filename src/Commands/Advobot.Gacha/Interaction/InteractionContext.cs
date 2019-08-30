@@ -5,8 +5,16 @@ namespace Advobot.Gacha.Interaction
 {
 	public sealed class InteractionContext : IInteractionContext
 	{
+		public IInteraction Action { get; }
+
+		public ITextChannel Channel { get; }
+
+		public IGuildUser User { get; }
+
+		public IGuild Guild => Channel.Guild;
+
 		public InteractionContext(IMessage message, IInteraction action)
-			: this((IGuildUser)message.Author, (ITextChannel)message.Channel, action) { }
+											: this((IGuildUser)message.Author, (ITextChannel)message.Channel, action) { }
 
 		public InteractionContext(SocketReaction reaction, IInteraction action)
 			: this((IGuildUser)reaction.User.Value, (ITextChannel)reaction.Channel, action) { }
@@ -17,10 +25,5 @@ namespace Advobot.Gacha.Interaction
 			Channel = channel;
 			Action = action;
 		}
-
-		public IInteraction Action { get; }
-		public ITextChannel Channel { get; }
-		public IGuild Guild => Channel.Guild;
-		public IGuildUser User { get; }
 	}
 }

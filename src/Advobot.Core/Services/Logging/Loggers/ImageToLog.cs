@@ -12,6 +12,14 @@ namespace Advobot.Services.Logging.Loggers
 		private const string FILES = nameof(ILogService.Files);
 		private const string IMAGES = nameof(ILogService.Images);
 
+		public string Footer { get; }
+
+		public string? ImageUrl { get; }
+
+		public string Name { get; }
+
+		public string Url { get; }
+
 		private ImageToLog(string name, string footer, string url, string? imageUrl)
 		{
 			Name = name;
@@ -19,11 +27,6 @@ namespace Advobot.Services.Logging.Loggers
 			Url = url;
 			ImageUrl = imageUrl;
 		}
-
-		public string Footer { get; }
-		public string? ImageUrl { get; }
-		public string Name { get; }
-		public string Url { get; }
 
 		public static ImageToLog FromAttachment(IAttachment attachment)
 		{

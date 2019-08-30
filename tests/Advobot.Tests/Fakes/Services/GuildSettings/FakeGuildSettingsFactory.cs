@@ -11,12 +11,12 @@ namespace Advobot.Tests.Fakes.Services.GuildSettings
 	{
 		private readonly IGuildSettings _Settings;
 
+		public Type GuildSettingsType => _Settings.GetType();
+
 		public FakeGuildSettingsFactory(IGuildSettings settings)
 		{
 			_Settings = settings;
 		}
-
-		public Type GuildSettingsType => _Settings.GetType();
 
 		public Task<IGuildSettings> GetOrCreateAsync(IGuild guild)
 			=> Task.FromResult(_Settings);

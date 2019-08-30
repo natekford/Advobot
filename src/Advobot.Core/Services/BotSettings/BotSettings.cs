@@ -48,10 +48,6 @@ namespace Advobot.Services.BotSettings
 
 		private string? _Stream;
 
-		public BotSettings()
-		{
-		}
-
 		/// <inheritdoc />
 		[Setting(nameof(BotSettingNames.AlwaysDownloadUsers), DefaultValue = true)]
 		[JsonProperty("AlwaysDownloadUsers")]
@@ -214,6 +210,10 @@ namespace Advobot.Services.BotSettings
 		[Setting(nameof(BotSettingNames.UsersUnableToDmOwner), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("UsersUnableToDmOwner")]
 		public IList<ulong> UsersUnableToDmOwner { get; set; } = new ObservableCollection<ulong>();
+
+		public BotSettings()
+		{
+		}
 
 		/// <inheritdoc />
 		protected override string GetLocalizedName(SettingAttribute attr)

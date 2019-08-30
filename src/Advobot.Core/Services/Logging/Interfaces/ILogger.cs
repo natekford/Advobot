@@ -1,4 +1,6 @@
-﻿using Advobot.Services.Logging.LogCounters;
+﻿using System;
+
+using Advobot.Services.Logging.LogCounters;
 
 namespace Advobot.Services.Logging.Interfaces
 {
@@ -10,6 +12,6 @@ namespace Advobot.Services.Logging.Interfaces
 		/// <summary>
 		/// Notifies what log count to increment.
 		/// </summary>
-		event LogCounterIncrementEventHandler LogCounterIncrement;
+		event EventHandler<LogCounterIncrementEventArgs> LogCounterIncrement;
 	}
 }

@@ -19,8 +19,46 @@ namespace Advobot.Services.Logging
 	{
 		private readonly Dictionary<string, LogCounter> _Counters = new Dictionary<string, LogCounter>(StringComparer.OrdinalIgnoreCase);
 
+		public ILogCounter Animated { get; } = new LogCounter();
+
+		public ILogCounter AttemptedCommands { get; } = new LogCounter();
+
+		public IBotLogger BotLogger { get; }
+
+		public ILogCounter FailedCommands { get; } = new LogCounter();
+
+		public ILogCounter Files { get; } = new LogCounter();
+
+		public IGuildLogger GuildLogger { get; }
+
+		public ILogCounter Images { get; } = new LogCounter();
+
+		public ILogCounter MessageDeletes { get; } = new LogCounter();
+
+		public ILogCounter MessageEdits { get; } = new LogCounter();
+
+		public IMessageLogger MessageLogger { get; }
+
+		public ILogCounter Messages { get; } = new LogCounter();
+
+		public ILogCounter SuccessfulCommands { get; } = new LogCounter();
+
+		public ILogCounter TotalGuilds { get; } = new LogCounter();
+
+		public ILogCounter TotalUsers { get; } = new LogCounter();
+
+		public ILogCounter UserChanges { get; } = new LogCounter();
+
+		public ILogCounter UserJoins { get; } = new LogCounter();
+
+		public ILogCounter UserLeaves { get; } = new LogCounter();
+
+		public IUserLogger UserLogger { get; }
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		public LogService(
-			BaseSocketClient client,
+																																									BaseSocketClient client,
 			IBotSettings botSettings,
 			IGuildSettingsFactory settingsFactory,
 			ITimerService timers,
@@ -64,27 +102,6 @@ namespace Advobot.Services.Logging
 				_Counters[nameof(AttemptedCommands)].Add(1);
 			};
 		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		public ILogCounter Animated { get; } = new LogCounter();
-		public ILogCounter AttemptedCommands { get; } = new LogCounter();
-		public IBotLogger BotLogger { get; }
-		public ILogCounter FailedCommands { get; } = new LogCounter();
-		public ILogCounter Files { get; } = new LogCounter();
-		public IGuildLogger GuildLogger { get; }
-		public ILogCounter Images { get; } = new LogCounter();
-		public ILogCounter MessageDeletes { get; } = new LogCounter();
-		public ILogCounter MessageEdits { get; } = new LogCounter();
-		public IMessageLogger MessageLogger { get; }
-		public ILogCounter Messages { get; } = new LogCounter();
-		public ILogCounter SuccessfulCommands { get; } = new LogCounter();
-		public ILogCounter TotalGuilds { get; } = new LogCounter();
-		public ILogCounter TotalUsers { get; } = new LogCounter();
-		public ILogCounter UserChanges { get; } = new LogCounter();
-		public ILogCounter UserJoins { get; } = new LogCounter();
-		public ILogCounter UserLeaves { get; } = new LogCounter();
-		public IUserLogger UserLogger { get; }
 
 		private void OnLogCounterIncrement(object sender, LogCounterIncrementEventArgs e)
 			=> _Counters[e.Name].Add(e.Count);

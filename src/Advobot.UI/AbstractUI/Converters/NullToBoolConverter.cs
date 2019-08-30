@@ -8,27 +8,33 @@ namespace Advobot.UI.AbstractUI.Converters
 	/// </summary>
 	public abstract class NullToBoolConverter
 	{
+#pragma warning disable RCS1163 // Unused parameter.
+#pragma warning disable RCS1079 // Throwing of new NotImplementedException.
+
 		/// <summary>
 		/// Checks if the value is null or whitespace.
 		/// </summary>
 		/// <param name="value"></param>
-		/// <param name="targetType"></param>
-		/// <param name="parameter"></param>
-		/// <param name="culture"></param>
+		/// <param name="_"></param>
+		/// <param name="_2"></param>
+		/// <param name="_3"></param>
 		/// <returns></returns>
-		public object Convert(object value, Type _1, object _2, CultureInfo _3)
+		public object Convert(object value, Type _, object _2, CultureInfo _3)
 			=> value is string s ? !string.IsNullOrWhiteSpace(s) : value != null;
 
 		/// <summary>
 		/// Not implemented.
 		/// </summary>
-		/// <param name="value"></param>
-		/// <param name="targetType"></param>
-		/// <param name="parameter"></param>
-		/// <param name="culture"></param>
+		/// <param name="_"></param>
+		/// <param name="_2"></param>
+		/// <param name="_3"></param>
+		/// <param name="_4"></param>
 		/// <returns></returns>
 		/// <exception cref="NotImplementedException"></exception>
-		public object ConvertBack(object _1, Type _2, object _3, CultureInfo _4)
+		public object ConvertBack(object _, Type _2, object _3, CultureInfo _4)
 			=> throw new NotImplementedException();
+
+#pragma warning restore RCS1163 // Unused parameter.
+#pragma warning restore RCS1079 // Throwing of new NotImplementedException.
 	}
 }

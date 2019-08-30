@@ -17,16 +17,11 @@ namespace Advobot.Gacha.Interaction
 		private readonly BaseSocketClient _Client;
 		private readonly bool _UseReactions;
 
-		public InteractionManager(BaseSocketClient client) : this(client, true)
-		{
-		}
+		public IDictionary<InteractionType, IInteraction> Interactions { get; set; }
 
-		public InteractionManager(BaseSocketClient client, bool useReactions = true)
-		{
-			_UseReactions = useReactions;
-			_Client = client;
-			Interactions = DefaultInteractions(useReactions);
-		}
+		//IInteractionManager
+		IReadOnlyDictionary<InteractionType, IInteraction> IInteractionManager.Interactions
+			=> Interactions.ToImmutableDictionary();
 
 		public event Func<IMessage, Task> MessageReceived
 		{
@@ -48,11 +43,16 @@ namespace Advobot.Gacha.Interaction
 			}
 		}
 
-		public IDictionary<InteractionType, IInteraction> Interactions { get; set; }
+		public InteractionManager(BaseSocketClient client) : this(client, true)
+		{
+		}
 
-		//IInteractionManager
-		IReadOnlyDictionary<InteractionType, IInteraction> IInteractionManager.Interactions
-			=> Interactions.ToImmutableDictionary();
+		public InteractionManager(BaseSocketClient client, bool useReactions = true)
+		{
+			_UseReactions = useReactions;
+			_Client = client;
+			Interactions = DefaultInteractions(useReactions);
+		}
 
 		public IInteractionHandler CreateInteractionHandler(Display display)
 		{

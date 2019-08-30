@@ -56,6 +56,8 @@ namespace Advobot.Databases.LiteDB
 		{
 			private readonly LiteDatabase _Database;
 
+			object IDatabaseWrapper.UnderlyingDatabase => _Database;
+
 			/// <summary>
 			/// Creates an instance of <see cref="LiteDBWrapper"/>.
 			/// </summary>
@@ -69,8 +71,6 @@ namespace Advobot.Databases.LiteDB
 				db.Mapper.Entity<DatabaseMetadata>()
 					.Id(x => x.ProgramVersion);
 			}
-
-			object IDatabaseWrapper.UnderlyingDatabase => _Database;
 
 			/// <inheritdoc />
 			public void Dispose()

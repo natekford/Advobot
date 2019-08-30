@@ -20,16 +20,16 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	public sealed class QuoteNameAttribute
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="QuoteNameAttribute"/>.
-		/// </summary>
-		public QuoteNameAttribute() : base(1, 100) { }
-
 		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustNotExist;
 
 		/// <inheritdoc />
 		public override string StringType => "quote name";
+
+		/// <summary>
+		/// Creates an instance of <see cref="QuoteNameAttribute"/>.
+		/// </summary>
+		public QuoteNameAttribute() : base(1, 100) { }
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(

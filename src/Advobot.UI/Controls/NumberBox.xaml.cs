@@ -47,18 +47,6 @@ namespace Advobot.UI.Controls
 
 		private string _Text;
 
-		public NumberBox()
-		{
-			_Text = StoredValue.ToString();
-
-			ModifyValueCommand = ReactiveCommand.Create<string>(x => StoredValue += int.Parse(x));
-			InitializeComponent();
-
-			var input = this.FindControl<TextBox>("Input");
-			var errorBinding = DataValidationErrors.HasErrorsProperty.Bind().WithMode(BindingMode.OneWay);
-			this[HasErrorProperty.Bind()] = input[errorBinding];
-		}
-
 		public bool HasError
 		{
 			get => _HasError;
@@ -108,6 +96,18 @@ namespace Advobot.UI.Controls
 				SetAndRaise(TextProperty, ref _Text, value);
 				StoredValue = int.Parse(value);
 			}
+		}
+
+		public NumberBox()
+		{
+			_Text = StoredValue.ToString();
+
+			ModifyValueCommand = ReactiveCommand.Create<string>(x => StoredValue += int.Parse(x));
+			InitializeComponent();
+
+			var input = this.FindControl<TextBox>("Input");
+			var errorBinding = DataValidationErrors.HasErrorsProperty.Bind().WithMode(BindingMode.OneWay);
+			this[HasErrorProperty.Bind()] = input[errorBinding];
 		}
 
 		private void InitializeComponent()

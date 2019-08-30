@@ -16,6 +16,16 @@ namespace Advobot.Services.GuildSettings.Settings
 	public sealed class PersistentRole : IGuildFormattable
 	{
 		/// <summary>
+		/// The role to give the user.
+		/// </summary>
+		[JsonProperty]
+		public ulong RoleId { get; set; }
+
+		/// <inheritdoc />
+		[JsonProperty]
+		public ulong UserId { get; set; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="PersistentRole"/>.
 		/// </summary>
 		public PersistentRole() { }
@@ -30,16 +40,6 @@ namespace Advobot.Services.GuildSettings.Settings
 			UserId = userId;
 			RoleId = role.Id;
 		}
-
-		/// <summary>
-		/// The role to give the user.
-		/// </summary>
-		[JsonProperty]
-		public ulong RoleId { get; set; }
-
-		/// <inheritdoc />
-		[JsonProperty]
-		public ulong UserId { get; set; }
 
 		/// <inheritdoc />
 		public IDiscordFormattableString GetFormattableString()

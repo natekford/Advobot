@@ -13,15 +13,6 @@ using Discord.Commands;
 namespace Advobot.Utilities
 {
 	/// <summary>
-	/// Validates something specified on an object.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="user">The user or bot which is currently being checked if they can do this action.</param>
-	/// <param name="target">The object to verify this action can be done on.</param>
-	/// <returns></returns>
-	public delegate Task<PreconditionResult> Precondition<T>(IGuildUser user, T target);
-
-	/// <summary>
 	/// Utilities for validating Discord objects (users, roles, channels).
 	/// </summary>
 	public static class PreconditionUtils
@@ -171,7 +162,7 @@ namespace Advobot.Utilities
 			IGuildChannel target,
 			IEnumerable<ChannelPermission> permissions)
 		{
-			return invoker.ValidateAsync(target, (i, b, t) =>
+			return invoker.ValidateAsync(target, (i, _, t) =>
 			{
 				if (i.GuildPermissions.Administrator)
 				{
@@ -199,7 +190,7 @@ namespace Advobot.Utilities
 		public static Task<PreconditionResult> ValidateRole(
 			this IGuildUser invoker,
 			IRole target)
-			=> invoker.ValidateAsync(target, (i, b, t) => CanModify(i, t));
+			=> invoker.ValidateAsync(target, (i, _, t) => CanModify(i, t));
 
 		/// <summary>
 		/// Verifies that the user can be edited in specific ways.
@@ -213,10 +204,16 @@ namespace Advobot.Utilities
 			=> invoker.ValidateAsync(target, CanModify);
 
 		private static int GetHierarchy(this IGuildUser u)
-			=> u.Guild.OwnerId == u.Id ? int.MaxValue : u.RoleIds.Max(x => u.Guild.GetRole(x).Position);
+		{
+			if (u.Guild.OwnerId == u.Id)
+			{
+				return int.MaxValue;
+			}
+			return u.RoleIds.Max(x => u.Guild.GetRole(x).Position);
+		}
 
 		private static async Task<PreconditionResult> ValidateAsync<T>(
-					this IGuildUser invoker,
+			this IGuildUser invoker,
 			T target,
 			Func<IGuildUser, ulong, T, bool> permissionsCallback)
 			where T : ISnowflakeEntity

@@ -45,6 +45,9 @@ namespace Advobot.Services.Timers
 
 		private readonly AsyncProcessingQueue _TimedMessages;
 
+		/// <inheritdoc />
+		public override string DatabaseName => "TimedDatabase";
+
 		/// <summary>
 		/// Creates an instance of <see cref="TimerService"/>.
 		/// </summary>
@@ -90,15 +93,12 @@ namespace Advobot.Services.Timers
 			};
 			_SecondTimer.Elapsed += (sender, e) => _RemovableMessages.Process();
 
-			_Client.MessageDeleted += (cached, channel) =>
+			_Client.MessageDeleted += (cached, _) =>
 			{
 				_AlreadyDeletedMessages.TryAdd(cached.Id, 0);
 				return Task.CompletedTask;
 			};
 		}
-
-		/// <inheritdoc />
-		public override string DatabaseName => "TimedDatabase";
 
 		/// <inheritdoc />
 		public void Add(RemovablePunishment value)

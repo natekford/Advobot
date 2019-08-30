@@ -147,12 +147,12 @@ namespace Advobot.Standard.Commands
 				= new ConcurrentDictionary<ulong, DiscordWebhookClient>();
 
 			private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks
-							= new ConcurrentDictionary<ulong, ulong>();
+				= new ConcurrentDictionary<ulong, ulong>();
 
 			[Command(RunMode = RunMode.Async)]
 			public Task Command(IWebhook webhook, [Remainder] string text)
 			{
-				var webhookId = _GuildsToWebhooks.AddOrUpdate(Context.Guild.Id, webhook.Id, (k, v) =>
+				var webhookId = _GuildsToWebhooks.AddOrUpdate(Context.Guild.Id, webhook.Id, (_, v) =>
 				{
 					//If the most recently used webhook does not match the id of the supplied one, remove that client
 					if (v != webhook.Id)

@@ -13,59 +13,9 @@ namespace Advobot.Databases
 	internal sealed class DatabaseQuery<T> where T : IDatabaseEntry
 	{
 		/// <summary>
-		/// Creates an instance of <see cref="DatabaseQuery{T}"/>.
-		/// </summary>
-		/// <param name="action"></param>
-		private DatabaseQuery(DBAction action)
-		{
-			Action = action;
-		}
-
-		/// <summary>
-		/// Actions to do with a database.
-		/// </summary>
-		public enum DBAction
-		{
-			/// <summary>
-			/// Update the specified values.
-			/// </summary>
-			Update,
-
-			/// <summary>
-			/// Updates or inserts the specified values.
-			/// </summary>
-			Upsert,
-
-			/// <summary>
-			/// Insert the specified values.
-			/// </summary>
-			Insert,
-
-			/// <summary>
-			/// Get the specified values.
-			/// </summary>
-			Get,
-
-			/// <summary>
-			/// Gets every value.
-			/// </summary>
-			GetAll,
-
-			/// <summary>
-			/// Delete the values which match the passed in predicate.
-			/// </summary>
-			DeleteFromExpression,
-
-			/// <summary>
-			/// Deletes the specified values from the supplied list.
-			/// </summary>
-			DeleteFromValues,
-		}
-
-		/// <summary>
 		/// The action to do.
 		/// </summary>
-		public DBAction Action { get; private set; }
+		public DBAction Action { get; set; }
 
 		/// <summary>
 		/// The name of the collection to search.
@@ -75,17 +25,26 @@ namespace Advobot.Databases
 		/// <summary>
 		/// How many values to search.
 		/// </summary>
-		public int Limit { get; private set; }
+		public int Limit { get; set; }
 
 		/// <summary>
 		/// How to select values.
 		/// </summary>
-		public Expression<Func<T, bool>>? Selector { get; private set; }
+		public Expression<Func<T, bool>>? Selector { get; set; }
 
 		/// <summary>
 		/// The new value to either insert or update.
 		/// </summary>
-		public IEnumerable<T> Values { get; private set; } = Array.Empty<T>();
+		public IEnumerable<T> Values { get; set; } = Array.Empty<T>();
+
+		/// <summary>
+		/// Creates an instance of <see cref="DatabaseQuery{T}"/>.
+		/// </summary>
+		/// <param name="action"></param>
+		private DatabaseQuery(DBAction action)
+		{
+			Action = action;
+		}
 
 		/// <summary>
 		/// Delete the values which match the passed in predicate.
@@ -128,5 +87,46 @@ namespace Advobot.Databases
 		/// </summary>
 		public static DatabaseQuery<T> Upsert(IEnumerable<T> values)
 			=> new DatabaseQuery<T>(DBAction.Upsert) { Values = values, };
+
+		/// <summary>
+		/// Actions to do with a database.
+		/// </summary>
+		public enum DBAction
+		{
+			/// <summary>
+			/// Update the specified values.
+			/// </summary>
+			Update,
+
+			/// <summary>
+			/// Updates or inserts the specified values.
+			/// </summary>
+			Upsert,
+
+			/// <summary>
+			/// Insert the specified values.
+			/// </summary>
+			Insert,
+
+			/// <summary>
+			/// Get the specified values.
+			/// </summary>
+			Get,
+
+			/// <summary>
+			/// Gets every value.
+			/// </summary>
+			GetAll,
+
+			/// <summary>
+			/// Delete the values which match the passed in predicate.
+			/// </summary>
+			DeleteFromExpression,
+
+			/// <summary>
+			/// Deletes the specified values from the supplied list.
+			/// </summary>
+			DeleteFromValues,
+		}
 	}
 }

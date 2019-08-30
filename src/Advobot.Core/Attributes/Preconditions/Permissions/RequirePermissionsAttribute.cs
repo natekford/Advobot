@@ -20,6 +20,14 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		: PreconditionAttribute, IPrecondition
 	{
 		/// <summary>
+		/// The flags required (each is a separate valid combination of flags).
+		/// </summary>
+		public ImmutableHashSet<Enum> Permissions { get; }
+
+		/// <inheritdoc />
+		public string Summary { get; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="RequirePermissionsAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
@@ -28,14 +36,6 @@ namespace Advobot.Attributes.Preconditions.Permissions
 			Permissions = permissions.ToImmutableHashSet();
 			Summary = Permissions.FormatPermissions();
 		}
-
-		/// <summary>
-		/// The flags required (each is a separate valid combination of flags).
-		/// </summary>
-		public ImmutableHashSet<Enum> Permissions { get; }
-
-		/// <inheritdoc />
-		public string Summary { get; }
 
 		/// <inheritdoc />
 		public override async Task<PreconditionResult> CheckPermissionsAsync(

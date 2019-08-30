@@ -13,14 +13,16 @@ namespace Advobot.Tests
 		public int Times = 100000;
 		private readonly List<Stopwatch> _Watches = new List<Stopwatch>();
 
+		public double Average => _Watches.Average(s => s.ElapsedMilliseconds);
+
+		public long Max => _Watches.Max(s => s.ElapsedMilliseconds);
+
+		public long Min => _Watches.Min(s => s.ElapsedMilliseconds);
+
 		public SpeedTest(Action func)
 		{
 			Function = func;
 		}
-
-		public double Average => _Watches.Average(s => s.ElapsedMilliseconds);
-		public long Max => _Watches.Max(s => s.ElapsedMilliseconds);
-		public long Min => _Watches.Min(s => s.ElapsedMilliseconds);
 
 		public void Test()
 		{

@@ -11,11 +11,11 @@ namespace Advobot.Gacha.Interaction
 {
 	public interface IInteractionManager
 	{
+		IReadOnlyDictionary<InteractionType, IInteraction> Interactions { get; }
+
 		event Func<IMessage, Task> MessageReceived;
 
 		event Func<Cacheable<IUserMessage, ulong>, ISocketMessageChannel, SocketReaction, Task> ReactionReceived;
-
-		IReadOnlyDictionary<InteractionType, IInteraction> Interactions { get; }
 
 		IInteractionHandler CreateInteractionHandler(Display display);
 	}

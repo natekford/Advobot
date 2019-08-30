@@ -172,20 +172,20 @@ namespace Advobot.Tests.UnitTests
 		public readonly Nested Nest = new Nested();
 		public readonly int Value;
 
-		public Nested this[Nested nest]
+		public Nested this[Nested _]
 			=> new Nested();
 
-		public Nested this[TestEnum e]
+		public Nested this[TestEnum _]
 			=> new Nested();
 
-		public Nested this[string val]
+		public Nested this[string _]
 			=> new Nested();
 
 		public static Nested Create()
 			=> new Nested();
 
 		public int GetNum()
-											=> 1;
+			=> 1;
 
 		public sealed class MegaNested : Nested
 		{

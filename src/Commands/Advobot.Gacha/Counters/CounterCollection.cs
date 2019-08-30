@@ -47,7 +47,7 @@ namespace Advobot.Gacha.Counters
 		}
 
 		public ICounter<ulong> GetCounter(IGuild guild)
-			=> _Counters.GetOrAdd(guild.Id, key => new Counter(_DefaultAmount));
+			=> _Counters.GetOrAdd(guild.Id, _ => new Counter(_DefaultAmount));
 
 		private TimeSpan CalculateFirstInterval()
 		{

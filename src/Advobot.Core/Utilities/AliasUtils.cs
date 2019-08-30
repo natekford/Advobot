@@ -153,17 +153,18 @@ namespace Advobot.Utilities
 
 		private sealed class Initialism
 		{
+			public string Edited { get; set; }
+
+			public IReadOnlyList<string> Parts { get; }
+
 			public Initialism(StringBuilder edited, IEnumerable<StringBuilder> parts)
-				: this(edited.ToString().ToLower(), parts.Select(x => x.ToString())) { }
+										: this(edited.ToString().ToLower(), parts.Select(x => x.ToString())) { }
 
 			public Initialism(string edited, IEnumerable<string> parts)
 			{
 				Edited = edited;
 				Parts = parts.ToArray();
 			}
-
-			public string Edited { get; set; }
-			public IReadOnlyList<string> Parts { get; }
 		}
 	}
 }

@@ -43,6 +43,9 @@ namespace Advobot.Services.Commands
 		private bool _Loaded;
 		private ulong _OwnerId;
 
+		/// <inheritdoc />
+		public event Action<IResult> CommandInvoked;
+
 		/// <summary>
 		/// Creates an instance of <see cref="CommandHandlerService"/>.
 		/// </summary>
@@ -69,7 +72,7 @@ namespace Advobot.Services.Commands
 			_GuildSettings = guildSettings;
 			_HelpEntries = helpentries;
 			_Timers = timers;
-			_CommandService = new Localized<CommandService>(x =>
+			_CommandService = new Localized<CommandService>(_ =>
 			{
 				var commands = new CommandService(_CommandConfig);
 				commands.Log += OnLog;
@@ -80,9 +83,6 @@ namespace Advobot.Services.Commands
 			_Client.ShardReady += OnReady;
 			_Client.MessageReceived += HandleCommand;
 		}
-
-		/// <inheritdoc />
-		public event Action<IResult> CommandInvoked;
 
 		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> assemblies)
 		{
@@ -139,7 +139,7 @@ namespace Advobot.Services.Commands
 			return r == null
 				|| r.Error == CommandError.UnknownCommand
 				|| (!r.IsSuccess && (r.ErrorReason == null || c.Settings.NonVerboseErrors))
-				|| (r is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(c, r)));
+				|| (r is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(c, x)));
 		}
 
 		private static string FormatResult(IAdvobotCommandContext context, IResult result)

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 using Advobot.Classes;
 using Advobot.Services.BotSettings;
@@ -15,16 +16,17 @@ namespace Advobot.Services.Logging.Loggers
 {
 	internal abstract class Logger : ILogger
 	{
+		protected IBotSettings BotSettings { get; }
+
+		protected IGuildSettingsFactory GuildSettingsFactory { get; }
+
+		public event EventHandler<LogCounterIncrementEventArgs> LogCounterIncrement;
+
 		protected Logger(IBotSettings botSettings, IGuildSettingsFactory settingsFactory)
 		{
 			BotSettings = botSettings;
 			GuildSettingsFactory = settingsFactory;
 		}
-
-		public event LogCounterIncrementEventHandler LogCounterIncrement;
-
-		protected IBotSettings BotSettings { get; }
-		protected IGuildSettingsFactory GuildSettingsFactory { get; }
 
 		protected async Task HandleAsync(
 			IGuildUser user,

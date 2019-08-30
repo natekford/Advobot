@@ -15,6 +15,20 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		: AdvobotParameterPreconditionAttribute
 	{
 		/// <summary>
+		/// Allowed numbers. If the range method is used this will be contain all of the values between the 2.
+		/// </summary>
+		public NumberCollection<int> Numbers { get; }
+
+		/// <summary>
+		/// The type of number this is targetting.
+		/// </summary>
+		public abstract string NumberType { get; }
+
+		/// <inheritdoc />
+		public override string Summary
+			=> $"Valid {NumberType} ({Numbers})";
+
+		/// <summary>
 		/// Valid numbers which are the randomly supplied values.
 		/// </summary>
 		/// <param name="numbers"></param>
@@ -32,20 +46,6 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		{
 			Numbers = new NumberCollection<int>(start, end);
 		}
-
-		/// <summary>
-		/// Allowed numbers. If the range method is used this will be contain all of the values between the 2.
-		/// </summary>
-		public NumberCollection<int> Numbers { get; }
-
-		/// <summary>
-		/// The type of number this is targetting.
-		/// </summary>
-		public abstract string NumberType { get; }
-
-		/// <inheritdoc />
-		public override string Summary
-			=> $"Valid {NumberType} ({Numbers})";
 
 		/// <summary>
 		/// Checks whether the command can execute.

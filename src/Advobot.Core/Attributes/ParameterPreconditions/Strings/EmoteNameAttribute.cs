@@ -8,12 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class EmoteNameAttribute : StringParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string StringType => "emote name";
+
 		/// <summary>
 		/// Creates an instance of <see cref="EmoteNameAttribute"/>.
 		/// </summary>
 		public EmoteNameAttribute() : base(2, 32) { }
-
-		/// <inheritdoc />
-		public override string StringType => "emote name";
 	}
 }

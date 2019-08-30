@@ -18,14 +18,14 @@ namespace Advobot.Services.InviteList
 	/// </summary>
 	internal sealed class InviteListService : DatabaseWrapperConsumer, IInviteListService
 	{
+		/// <inheritdoc />
+		public override string DatabaseName => "InviteList";
+
 		/// <summary>
 		/// Creates an instance of <see cref="InviteListService"/>.
 		/// </summary>
 		/// <param name="dbFactory"></param>
 		public InviteListService(IDatabaseWrapperFactory dbFactory) : base(dbFactory) { }
-
-		/// <inheritdoc />
-		public override string DatabaseName => "InviteList";
 
 		/// <inheritdoc />
 		public IListedInvite Add(

@@ -21,15 +21,6 @@ namespace Advobot.UI.ViewModels
 
 		private string? _SearchTerm;
 
-		public OutputSearchWindowViewModel(IBotDirectoryAccessor accessor)
-		{
-			_Accessor = accessor;
-
-			SearchCommand = ReactiveCommand.Create(Search, this.WhenAnyValue(x => x.SearchTerm, x => !string.IsNullOrWhiteSpace(x)));
-			SaveCommand = ReactiveCommand.Create(Save, this.WhenAnyValue(x => x.Output, x => x?.Length > 0));
-			CloseCommand = ReactiveCommand.Create<Window>(window => window?.Close());
-		}
-
 		public ICommand CloseCommand { get; }
 
 		public string? Output
@@ -49,6 +40,15 @@ namespace Advobot.UI.ViewModels
 		}
 
 		public IEnumerable<string> Keys => ConsoleUtils.WrittenLines.Keys;
+
+		public OutputSearchWindowViewModel(IBotDirectoryAccessor accessor)
+		{
+			_Accessor = accessor;
+
+			SearchCommand = ReactiveCommand.Create(Search, this.WhenAnyValue(x => x.SearchTerm, x => !string.IsNullOrWhiteSpace(x)));
+			SaveCommand = ReactiveCommand.Create(Save, this.WhenAnyValue(x => x.Output, x => x?.Length > 0));
+			CloseCommand = ReactiveCommand.Create<Window>(window => window?.Close());
+		}
 
 		private void Save()
 		{

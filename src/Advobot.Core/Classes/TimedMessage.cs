@@ -12,6 +12,11 @@ namespace Advobot.Classes
 	public class TimedMessage : TimedDatabaseEntry<ulong>
 	{
 		/// <summary>
+		/// The text to send the user.
+		/// </summary>
+		public string Text { get; set; } = "";
+
+		/// <summary>
 		/// Creates an instance of <see cref="TimedMessage"/>. Parameterless constructor is used for the database.
 		/// </summary>
 		public TimedMessage() : base(default, TimeSpan.Zero) { }
@@ -26,10 +31,5 @@ namespace Advobot.Classes
 		{
 			Text = text;
 		}
-
-		/// <summary>
-		/// The text to send the user.
-		/// </summary>
-		public string Text { get; set; } = "";
 	}
 }

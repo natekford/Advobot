@@ -10,14 +10,15 @@ namespace Advobot.Services.Commands
 {
 	internal sealed class TypeReaderInfo
 	{
+		public TypeReaderTargetTypeAttribute Attribute { get; }
+
+		public TypeReader Instance { get; }
+
 		public TypeReaderInfo(TypeReader instance, TypeReaderTargetTypeAttribute attribute)
 		{
 			Instance = instance;
 			Attribute = attribute;
 		}
-
-		public TypeReaderTargetTypeAttribute Attribute { get; }
-		public TypeReader Instance { get; }
 
 		public static IReadOnlyList<TypeReaderInfo> Create(Assembly assembly)
 		{

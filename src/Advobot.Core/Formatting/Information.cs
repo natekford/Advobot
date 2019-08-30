@@ -8,19 +8,6 @@ namespace Advobot.Formatting
 	public sealed class Information
 	{
 		/// <summary>
-		/// Creates an instance of <see cref="Information"/>.
-		/// </summary>
-		/// <param name="title"></param>
-		/// <param name="value"></param>
-		/// <param name="joiner"></param>
-		public Information(string title, string value, string joiner)
-		{
-			Title = title;
-			Joiner = joiner;
-			Value = value;
-		}
-
-		/// <summary>
 		/// What to put in between <see cref="Title"/> and <see cref="Value"/>
 		/// </summary>
 		public string Joiner { get; }
@@ -34,6 +21,19 @@ namespace Advobot.Formatting
 		/// The value of this information.
 		/// </summary>
 		public string Value { get; }
+
+		/// <summary>
+		/// Creates an instance of <see cref="Information"/>.
+		/// </summary>
+		/// <param name="title"></param>
+		/// <param name="value"></param>
+		/// <param name="joiner"></param>
+		public Information(string title, string value, string joiner)
+		{
+			Title = title;
+			Joiner = joiner;
+			Value = value;
+		}
 
 		/// <inheritdoc />
 		public override string ToString()

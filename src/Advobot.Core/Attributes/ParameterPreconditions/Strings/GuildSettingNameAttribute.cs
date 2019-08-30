@@ -19,16 +19,16 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	public sealed class GuildSettingNameAttribute
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="BotSettingNameAttribute"/>.
-		/// </summary>
-		public GuildSettingNameAttribute() : base(1, int.MaxValue) { }
-
 		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustExist;
 
 		/// <inheritdoc />
 		public override string StringType => "guild setting name";
+
+		/// <summary>
+		/// Creates an instance of <see cref="BotSettingNameAttribute"/>.
+		/// </summary>
+		public GuildSettingNameAttribute() : base(1, int.MaxValue) { }
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(

@@ -19,11 +19,6 @@ namespace Advobot.UI.ViewModels
 
 		private string _Throwaway = "";
 
-		public ColorsViewModel(IColorSettings<ISolidColorBrush> colors) : base(colors)
-		{
-			_Colors = colors;
-		}
-
 		[ColorValidation]
 		public string BaseBackground
 		{
@@ -119,6 +114,11 @@ namespace Advobot.UI.ViewModels
 		{
 			get => _Colors.ActiveTheme;
 			set => _Colors.ActiveTheme = value;
+		}
+
+		public ColorsViewModel(IColorSettings<ISolidColorBrush> colors) : base(colors)
+		{
+			_Colors = colors;
 		}
 
 		private string Get([CallerMemberName] string caller = "")

@@ -17,6 +17,30 @@ namespace Advobot.Services.InviteList
 	/// </summary>
 	internal sealed class ListedInvite : TimedDatabaseEntry<string>, IListedInvite
 	{
+		/// <inheritdoc />
+		public string Code { get; set; }
+
+		/// <inheritdoc />
+		public bool Expired { get; set; }
+
+		/// <inheritdoc />
+		public ulong GuildId { get; set; }
+
+		/// <inheritdoc />
+		public int GuildMemberCount { get; set; }
+
+		/// <inheritdoc />
+		public string GuildName { get; set; }
+
+		/// <inheritdoc />
+		public bool HasGlobalEmotes { get; set; }
+
+		/// <inheritdoc />
+		public string[] Keywords { get; set; }
+
+		/// <inheritdoc />
+		public string Url => "https://www.discord.gg/" + Code;
+
 		/// <summary>
 		/// Creates an instance of listed invites.
 		/// </summary>
@@ -36,30 +60,6 @@ namespace Advobot.Services.InviteList
 			GuildName = guild.Name;
 			HasGlobalEmotes = guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
 		}
-
-		/// <inheritdoc />
-		public string Code { get; private set; }
-
-		/// <inheritdoc />
-		public bool Expired { get; private set; }
-
-		/// <inheritdoc />
-		public ulong GuildId { get; private set; }
-
-		/// <inheritdoc />
-		public int GuildMemberCount { get; private set; }
-
-		/// <inheritdoc />
-		public string GuildName { get; private set; }
-
-		/// <inheritdoc />
-		public bool HasGlobalEmotes { get; private set; }
-
-		/// <inheritdoc />
-		public string[] Keywords { get; set; }
-
-		/// <inheritdoc />
-		public string Url => "https://www.discord.gg/" + Code;
 
 		/// <inheritdoc />
 		public Task BumpAsync(SocketGuild guild)

@@ -17,27 +17,6 @@ namespace Advobot.Classes
 		public static readonly PunishmentArgs Default = new PunishmentArgs();
 
 		/// <summary>
-		/// Creates an instance of <see cref="PunishmentArgs"/> with no time or timers.
-		/// </summary>
-		public PunishmentArgs() { }
-
-		/// <summary>
-		/// Creates an instance of <see cref="PunishmentArgs"/> with timer and timers.
-		/// </summary>
-		/// <param name="timers"></param>
-		/// <param name="time"></param>
-		public PunishmentArgs(ITimerService timers, TimeSpan time)
-		{
-			Timers = timers;
-			Time = time;
-		}
-
-		internal interface IPunishmentRemoved
-		{
-			void SetPunishmentRemoved();
-		}
-
-		/// <summary>
 		/// The Discord request options.
 		/// </summary>
 		public RequestOptions? Options { get; set; }
@@ -57,7 +36,28 @@ namespace Advobot.Classes
 		/// </summary>
 		public ITimerService? Timers { get; }
 
+		/// <summary>
+		/// Creates an instance of <see cref="PunishmentArgs"/> with no time or timers.
+		/// </summary>
+		public PunishmentArgs() { }
+
+		/// <summary>
+		/// Creates an instance of <see cref="PunishmentArgs"/> with timer and timers.
+		/// </summary>
+		/// <param name="timers"></param>
+		/// <param name="time"></param>
+		public PunishmentArgs(ITimerService timers, TimeSpan time)
+		{
+			Timers = timers;
+			Time = time;
+		}
+
 		void IPunishmentRemoved.SetPunishmentRemoved()
 			=> PunishmentRemoved = true;
+
+		internal interface IPunishmentRemoved
+		{
+			void SetPunishmentRemoved();
+		}
 	}
 }

@@ -15,11 +15,6 @@ namespace Advobot.UI.ViewModels
 
 		private string? _Stream;
 
-		public BotSettingsViewModel(IBotSettings botSettings) : base(botSettings)
-		{
-			_BotSettings = botSettings;
-		}
-
 		public bool AlwaysDownloadUsers
 		{
 			get => _BotSettings.AlwaysDownloadUsers;
@@ -127,5 +122,10 @@ namespace Advobot.UI.ViewModels
 
 		public ObservableCollection<ulong> UsersUnableToDmOwner
 					=> (ObservableCollection<ulong>)_BotSettings.UsersUnableToDmOwner;
+
+		public BotSettingsViewModel(IBotSettings botSettings) : base(botSettings)
+		{
+			_BotSettings = botSettings;
+		}
 	}
 }

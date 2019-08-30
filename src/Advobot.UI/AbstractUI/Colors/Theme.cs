@@ -28,9 +28,6 @@ namespace Advobot.UI.AbstractUI.Colors
 		private bool _Frozen;
 
 		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		/// <inheritdoc />
 		[JsonIgnore]
 		public bool IsReadOnly => _Frozen;
 
@@ -45,6 +42,9 @@ namespace Advobot.UI.AbstractUI.Colors
 		/// <inheritdoc />
 		[JsonIgnore]
 		public ICollection<TBrush> Values => _RuntimeBrushes.Values;
+
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <summary>
 		/// Gets or sets the color for the specified color target which can be used when the custom theme is enabled.

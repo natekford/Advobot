@@ -19,16 +19,16 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	public sealed class RuleCategoryAttribute
 		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="RuleCategoryAttribute"/>.
-		/// </summary>
-		public RuleCategoryAttribute() : base(1, 250) { }
-
 		/// <inheritdoc />
 		public ExistenceStatus Status { get; set; } = ExistenceStatus.MustExist;
 
 		/// <inheritdoc />
 		public override string StringType => "rule category name";
+
+		/// <summary>
+		/// Creates an instance of <see cref="RuleCategoryAttribute"/>.
+		/// </summary>
+		public RuleCategoryAttribute() : base(1, 250) { }
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(

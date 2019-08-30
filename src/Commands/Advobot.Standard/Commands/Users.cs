@@ -227,7 +227,7 @@ namespace Advobot.Standard.Commands
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
 				var users = await input.GetUsersAsync().FlattenAsync().CAF();
 				var amountChanged = await ProcessAsync(users, bypass,
-					u => true,
+					_ => true,
 					u => u.ModifyAsync(x => x.Channel = Optional.Create(output), GenerateRequestOptions())).CAF();
 				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}

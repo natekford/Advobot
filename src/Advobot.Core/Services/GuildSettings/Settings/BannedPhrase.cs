@@ -21,6 +21,18 @@ namespace Advobot.Services.GuildSettings.Settings
 	public sealed class BannedPhrase : IGuildFormattable
 	{
 		/// <summary>
+		/// The phrase which is banned. Can be string or regex pattern.
+		/// </summary>
+		[JsonProperty("Phrase")]
+		public string? Phrase { get; set; }
+
+		/// <summary>
+		/// The type of punishment associated with this phrase.
+		/// </summary>
+		[JsonProperty("Punishment")]
+		public Punishment Punishment { get; set; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="BannedPhrase"/>.
 		/// </summary>
 		public BannedPhrase() { }
@@ -35,18 +47,6 @@ namespace Advobot.Services.GuildSettings.Settings
 			Phrase = phrase;
 			Punishment = punishment;
 		}
-
-		/// <summary>
-		/// The phrase which is banned. Can be string or regex pattern.
-		/// </summary>
-		[JsonProperty("Phrase")]
-		public string? Phrase { get; set; }
-
-		/// <summary>
-		/// The type of punishment associated with this phrase.
-		/// </summary>
-		[JsonProperty("Punishment")]
-		public Punishment Punishment { get; set; }
 
 		/// <inheritdoc />
 		public IDiscordFormattableString GetFormattableString()

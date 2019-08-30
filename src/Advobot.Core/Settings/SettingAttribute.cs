@@ -14,15 +14,6 @@ namespace Advobot.Settings
 		private Type? _ResetValueClass;
 
 		/// <summary>
-		/// Creates an instance of <see cref="SettingAttribute"/>.
-		/// </summary>
-		/// <param name="unlocalizedName"></param>
-		public SettingAttribute(string unlocalizedName)
-		{
-			UnlocalizedName = unlocalizedName;
-		}
-
-		/// <summary>
 		/// The default value to use for this setting.
 		/// If this is set, then this will be used over <see cref="ResetValueClass"/>.
 		/// Use <see cref="Null"/> over setting this as null in order to have a reset value of null.
@@ -57,5 +48,14 @@ namespace Advobot.Settings
 		/// The unlocalized name for this setting.
 		/// </summary>
 		public string UnlocalizedName { get; }
+
+		/// <summary>
+		/// Creates an instance of <see cref="SettingAttribute"/>.
+		/// </summary>
+		/// <param name="unlocalizedName"></param>
+		public SettingAttribute(string unlocalizedName)
+		{
+			UnlocalizedName = unlocalizedName;
+		}
 	}
 }

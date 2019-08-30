@@ -14,6 +14,16 @@ namespace Advobot.Classes
 	public readonly struct ModerationReason
 	{
 		/// <summary>
+		/// The reason for a punishment.
+		/// </summary>
+		public string? Reason { get; }
+
+		/// <summary>
+		/// The time in minutes to give for a punishment.
+		/// </summary>
+		public TimeSpan? Time { get; }
+
+		/// <summary>
 		/// Parses the time and reason for the punishment.
 		/// </summary>
 		/// <param name="input"></param>
@@ -41,16 +51,6 @@ namespace Advobot.Classes
 			}
 			Reason = sb.ToString();
 		}
-
-		/// <summary>
-		/// The reason for a punishment.
-		/// </summary>
-		public string? Reason { get; }
-
-		/// <summary>
-		/// The time in minutes to give for a punishment.
-		/// </summary>
-		public TimeSpan? Time { get; }
 
 		/// <summary>
 		/// Converts this to a <see cref="PunishmentArgs"/>.

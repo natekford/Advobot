@@ -12,6 +12,11 @@ namespace Advobot.Services.Levels
 	internal sealed class LeaderboardPosition : TimedDatabaseEntry<ulong>
 	{
 		/// <summary>
+		/// The total experience of the user.
+		/// </summary>
+		public int Experience { get; set; }
+
+		/// <summary>
 		/// Creates an instance of <see cref="LeaderboardPosition"/>.
 		/// </summary>
 		public LeaderboardPosition() : this(0, 0) { }
@@ -33,10 +38,5 @@ namespace Advobot.Services.Levels
 		{
 			Experience = experience;
 		}
-
-		/// <summary>
-		/// The total experience of the user.
-		/// </summary>
-		public int Experience { get; set; }
 	}
 }

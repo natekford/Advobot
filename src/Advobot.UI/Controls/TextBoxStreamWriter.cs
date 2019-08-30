@@ -10,12 +10,12 @@ namespace Advobot.UI.Controls
 		private readonly ICommand _Command;
 		private readonly StringBuilder _CurrentLineText = new StringBuilder();
 
+		public override Encoding Encoding => Encoding.UTF32;
+
 		public TextBoxStreamWriter(ICommand command)
 		{
 			_Command = command;
 		}
-
-		public override Encoding Encoding => Encoding.UTF32;
 
 		public override void Write(char value)
 		{

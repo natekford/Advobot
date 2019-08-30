@@ -28,6 +28,12 @@ namespace Advobot.Services.GuildSettings
 
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _Cache = new ConcurrentDictionary<ulong, IGuildSettings>();
 
+		/// <inheritdoc />
+		public override string DatabaseName => "GuildSettings";
+
+		/// <inheritdoc />
+		public Type GuildSettingsType => typeof(GuildSettings);
+
 		/// <summary>
 		/// Creates an instance of <see cref="GuildSettingsFactory"/>.
 		/// </summary>
@@ -40,12 +46,6 @@ namespace Advobot.Services.GuildSettings
 		{
 			_Accessor = accessor;
 		}
-
-		/// <inheritdoc />
-		public override string DatabaseName => "GuildSettings";
-
-		/// <inheritdoc />
-		public Type GuildSettingsType => typeof(GuildSettings);
 
 		/// <inheritdoc />
 		public async Task<IGuildSettings> GetOrCreateAsync(IGuild guild)

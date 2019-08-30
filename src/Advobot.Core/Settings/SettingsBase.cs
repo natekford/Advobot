@@ -21,6 +21,9 @@ namespace Advobot.Settings
 		private readonly Localized<IReadOnlyDictionary<string, Setting>> _Localized;
 		private readonly IReadOnlyList<Setting> _Settings;
 
+		/// <inheritdoc />
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		/// <summary>
 		/// Creates an instance of <see cref="SettingsBase"/>.
 		/// </summary>
@@ -39,7 +42,7 @@ namespace Advobot.Settings
 			}
 
 			_Settings = GetSettings().ToArray();
-			_Localized = new Localized<IReadOnlyDictionary<string, Setting>>(x =>
+			_Localized = new Localized<IReadOnlyDictionary<string, Setting>>(_ =>
 			{
 				var dict = new Dictionary<string, Setting>();
 				foreach (var setting in _Settings)
@@ -55,9 +58,6 @@ namespace Advobot.Settings
 				return dict.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 			});
 		}
-
-		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
 
 		/// <inheritdoc />
 		public IDiscordFormattableString Format()
@@ -151,6 +151,10 @@ namespace Advobot.Settings
 			private IGenerateResetValue? _GenerateResetValue;
 			private Type? _GenerateResetValueType;
 
+			public bool CanReset => SettingAttribute.ResetValueClass != null || SettingAttribute.DefaultValue != null;
+
+			public SettingAttribute SettingAttribute { get; }
+
 			public Setting(SettingAttribute settingAttribute, PropertyInfo property)
 			{
 				SettingAttribute = settingAttribute;
@@ -159,10 +163,6 @@ namespace Advobot.Settings
 				_Setter = BuildUntypedSetter(property);
 				_IsValueType = property.PropertyType.IsValueType;
 			}
-
-			public bool CanReset => SettingAttribute.ResetValueClass != null || SettingAttribute.DefaultValue != null;
-
-			public SettingAttribute SettingAttribute { get; }
 
 			public object? GetCurrentValue(SettingsBase parent)
 				=> _Getter(parent);

@@ -45,10 +45,6 @@ namespace Advobot.Services.GuildSettings
 
 		private GuildNotification? _WelcomeMessage;
 
-		public GuildSettings()
-		{
-		}
-
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.BannedPhraseNames), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("BannedPhraseNames")]
@@ -221,6 +217,10 @@ namespace Advobot.Services.GuildSettings
 
 		//IDatabaseEntry
 		object IDatabaseEntry.Id { get => GuildId; set => GuildId = (ulong)value; }
+
+		public GuildSettings()
+		{
+		}
 
 		/// <inheritdoc />
 		public IList<BannedPhraseUserInfo> GetBannedPhraseUsers()

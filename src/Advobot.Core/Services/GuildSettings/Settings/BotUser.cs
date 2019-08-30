@@ -18,6 +18,16 @@ namespace Advobot.Services.GuildSettings.Settings
 	public sealed class BotUser : IGuildFormattable
 	{
 		/// <summary>
+		/// The given permissions.
+		/// </summary>
+		[JsonProperty("Permissions")]
+		public ulong Permissions { get; set; }
+
+		/// <inheritdoc />
+		[JsonProperty("UserId")]
+		public ulong UserId { get; set; }
+
+		/// <summary>
 		/// Creates an empty instance of <see cref="BotUser"/>.
 		/// </summary>
 		public BotUser() { }
@@ -32,16 +42,6 @@ namespace Advobot.Services.GuildSettings.Settings
 			UserId = userId;
 			Permissions = permissions;
 		}
-
-		/// <summary>
-		/// The given permissions.
-		/// </summary>
-		[JsonProperty("Permissions")]
-		public ulong Permissions { get; set; }
-
-		/// <inheritdoc />
-		[JsonProperty("UserId")]
-		public ulong UserId { get; set; }
 
 		/// <summary>
 		/// Adds permissions to the user.

@@ -8,12 +8,12 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class RuleAttribute : StringParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override string StringType => "rule";
+
 		/// <summary>
 		/// Creates an instance of <see cref="RuleAttribute"/>.
 		/// </summary>
 		public RuleAttribute() : base(1, 150) { }
-
-		/// <inheritdoc />
-		public override string StringType => "rule";
 	}
 }

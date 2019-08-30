@@ -8,8 +8,6 @@ namespace Advobot.Tests.Utilities
 {
 	public static class FakeUtils
 	{
-		public delegate bool TryGetMentionDelegate(string input, out ulong id);
-
 		public static FakeCommandContext CreateContext()
 		{
 			var client = new FakeClient();
@@ -34,5 +32,7 @@ namespace Advobot.Tests.Utilities
 			}
 			return ids;
 		}
+
+		public delegate bool TryGetMentionDelegate(string input, out ulong id);
 	}
 }

@@ -52,40 +52,6 @@ namespace Advobot.UI.ViewModels
 
 		private string _PauseButtonContent = "";
 
-		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
-		{
-			_Client = provider.GetRequiredService<BaseSocketClient>();
-			_LogService = provider.GetRequiredService<ILogService>();
-			_BotSettings = provider.GetRequiredService<IBotSettings>();
-			_Colors = NetCoreColorSettings.CreateOrLoad(_BotSettings);
-
-			LogServiceViewModel = new LogServiceViewModel(_LogService);
-			BotSettingsViewModel = new BotSettingsViewModel(_BotSettings);
-			ColorsViewModel = new ColorsViewModel(_Colors);
-
-			PrintOutputCommand = ReactiveCommand.Create<string>(PrintOutput);
-			Console.SetOut(new TextBoxStreamWriter(PrintOutputCommand));
-			TakeInputCommand = ReactiveCommand.Create(TakeInput, this.WhenAnyValue(x => x.Input, x => x.Length > 0));
-			OpenMenuCommand = ReactiveCommand.Create<string>(OpenMenu);
-			DisconnectCommand = ReactiveCommand.CreateFromTask<Window>(DisconnectAsync);
-			RestartCommand = ReactiveCommand.CreateFromTask<Window>(RestartAsync);
-			PauseCommand = ReactiveCommand.Create(Pause);
-			OpenFileSearchWindowCommand = ReactiveCommand.CreateFromTask<Window>(OpenFileSearchWindowAsync);
-			SaveColorsCommand = ReactiveCommand.Create(SaveColorSettings,
-				this.WhenAnyValue(x => x.OpenColorsMenu, x => x.ColorsViewModel.CanSave, (o, c) => o && c));
-			SaveBotSettingsCommand = ReactiveCommand.Create(SaveBotSettings,
-				this.WhenAnyValue(x => x.OpenSettingsMenu, x => x.BotSettingsViewModel.CanSave, (o, c) => o && c));
-			ClearOutputCommand = ReactiveCommand.CreateFromTask<Window>(ClearOutput);
-			SaveOutputCommand = ReactiveCommand.Create(SaveOutput);
-			OpenOutputSearchWindowCommand = ReactiveCommand.CreateFromTask<Window>(OpenOutputSearchWindowAsync);
-
-			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));
-			Uptime = timer.Select(_ => $"Uptime: {ProcessInfoUtils.GetUptime():dd\\.hh\\:mm\\:ss}");
-			Latency = timer.Select(_ => $"Latency: {(_Client?.CurrentUser == null ? -1 : _Client.Latency)}ms");
-			Memory = timer.Select(_ => $"Memory: {ProcessInfoUtils.GetMemoryMB():0.00}MB");
-			ThreadCount = timer.Select(_ => $"Threads: {ProcessInfoUtils.GetThreadCount()}");
-		}
-
 		public BotSettingsViewModel BotSettingsViewModel { get; }
 
 		public ICommand ClearOutputCommand { get; }
@@ -148,18 +114,65 @@ namespace Advobot.UI.ViewModels
 		}
 
 		public ICommand PauseCommand { get; }
+
 		public ICommand PrintOutputCommand { get; }
+
 		public ICommand RestartCommand { get; }
+
 		public ICommand SaveBotSettingsCommand { get; }
+
 		public ICommand SaveColorsCommand { get; }
+
 		public ICommand SaveOutputCommand { get; }
+
 		public ICommand TakeInputCommand { get; }
+
 		public IObservable<string> ThreadCount { get; }
+
 		public IObservable<string> Uptime { get; }
+
+		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
+		{
+			_Client = provider.GetRequiredService<BaseSocketClient>();
+			_LogService = provider.GetRequiredService<ILogService>();
+			_BotSettings = provider.GetRequiredService<IBotSettings>();
+			_Colors = NetCoreColorSettings.CreateOrLoad(_BotSettings);
+
+			LogServiceViewModel = new LogServiceViewModel(_LogService);
+			BotSettingsViewModel = new BotSettingsViewModel(_BotSettings);
+			ColorsViewModel = new ColorsViewModel(_Colors);
+
+			PrintOutputCommand = ReactiveCommand.Create<string>(PrintOutput);
+			Console.SetOut(new TextBoxStreamWriter(PrintOutputCommand));
+			TakeInputCommand = ReactiveCommand.Create(TakeInput, this.WhenAnyValue(x => x.Input, x => x.Length > 0));
+			OpenMenuCommand = ReactiveCommand.Create<string>(OpenMenu);
+			DisconnectCommand = ReactiveCommand.CreateFromTask<Window>(DisconnectAsync);
+			RestartCommand = ReactiveCommand.CreateFromTask<Window>(RestartAsync);
+			PauseCommand = ReactiveCommand.Create(Pause);
+			OpenFileSearchWindowCommand = ReactiveCommand.CreateFromTask<Window>(OpenFileSearchWindowAsync);
+			SaveColorsCommand = ReactiveCommand.Create(SaveColorSettings,
+				this.WhenAnyValue(x => x.OpenColorsMenu, x => x.ColorsViewModel.CanSave, (o, c) => o && c));
+			SaveBotSettingsCommand = ReactiveCommand.Create(SaveBotSettings,
+				this.WhenAnyValue(x => x.OpenSettingsMenu, x => x.BotSettingsViewModel.CanSave, (o, c) => o && c));
+			ClearOutputCommand = ReactiveCommand.CreateFromTask<Window>(ClearOutput);
+			SaveOutputCommand = ReactiveCommand.Create(SaveOutput);
+			OpenOutputSearchWindowCommand = ReactiveCommand.CreateFromTask<Window>(OpenOutputSearchWindowAsync);
+
+			var timer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1));
+			Uptime = timer.Select(_ => $"Uptime: {ProcessInfoUtils.GetUptime():dd\\.hh\\:mm\\:ss}");
+			Latency = timer.Select(_ => $"Latency: {(_Client?.CurrentUser == null ? -1 : _Client.Latency)}ms");
+			Memory = timer.Select(_ => $"Memory: {ProcessInfoUtils.GetMemoryMB():0.00}MB");
+			ThreadCount = timer.Select(_ => $"Threads: {ProcessInfoUtils.GetThreadCount()}");
+		}
 
 		private async Task ClearOutput(Window window)
 		{
-			if (await MessageBox.ShowAsync(window, "Are you sure you want to clear the output window?", _Caption, new[] { "Yes", "No" }) == "Yes")
+			const string YES = "Yes";
+			const string NO = "No";
+			const string MSG = "Are you sure you want to clear the output window?";
+
+			var option = await MessageBox.ShowAsync(window, MSG, _Caption, new[] { YES, NO }).CAF();
+			if (option == YES)
 			{
 				Output = "";
 			}
@@ -167,14 +180,19 @@ namespace Advobot.UI.ViewModels
 
 		private async Task DisconnectAsync(Window window)
 		{
-			if (await MessageBox.ShowAsync(window, "Are you sure you want to disconnect the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
+			const string YES = "Yes";
+			const string NO = "No";
+			const string MSG = "Are you sure you want to disconnect the bot?";
+
+			var option = await MessageBox.ShowAsync(window, MSG, _Caption, new[] { YES, NO }).CAF();
+			if (option == YES)
 			{
-				await _Client.DisconnectBotAsync();
+				await _Client.DisconnectBotAsync().CAF();
 			}
 		}
 
 		private bool GetMenuStatus([CallerMemberName] string caller = "")
-							=> _MenuStatuses.GetOrAdd(caller, false);
+			=> _MenuStatuses.GetOrAdd(caller, false);
 
 		private async Task OpenFileSearchWindowAsync(Window window)
 		{
@@ -184,13 +202,13 @@ namespace Advobot.UI.ViewModels
 				InitialDirectory = _BotSettings.BaseBotDirectory.FullName,
 				Title = "Advobot - File Search",
 				AllowMultiple = false,
-			}.ShowAsync(window)).SingleOrDefault();
+			}.ShowAsync(window).ConfigureAwait(true)).SingleOrDefault();
 			if (file != null)
 			{
 				await new FileViewingWindow
 				{
 					DataContext = new FileViewingWindowViewModel(new FileInfo(file), null),
-				}.ShowDialog(window);
+				}.ShowDialog(window).ConfigureAwait(true);
 			}
 		}
 
@@ -212,7 +230,12 @@ namespace Advobot.UI.ViewModels
 		}
 
 		private Task OpenOutputSearchWindowAsync(Window window)
-			=> new OutputSearchWindow { DataContext = new OutputSearchWindowViewModel(_BotSettings), }.ShowDialog(window);
+		{
+			return new OutputSearchWindow
+			{
+				DataContext = new OutputSearchWindowViewModel(_BotSettings),
+			}.ShowDialog(window);
+		}
 
 		private void Pause()
 		{
@@ -222,13 +245,18 @@ namespace Advobot.UI.ViewModels
 		}
 
 		private void PrintOutput(string value)
-											=> Output += value;
+			=> Output += value;
 
 		private async Task RestartAsync(Window window)
 		{
-			if (await MessageBox.ShowAsync(window, "Are you sure you want to restart the bot?", _Caption, new[] { "Yes", "No" }) == "Yes")
+			const string YES = "Yes";
+			const string NO = "No";
+			const string MSG = "Are you sure you want to restart the bot?";
+
+			var option = await MessageBox.ShowAsync(window, MSG, _Caption, new[] { YES, NO }).CAF();
+			if (option == YES)
 			{
-				await _Client.RestartBotAsync(_BotSettings);
+				await _Client.RestartBotAsync(_BotSettings).CAF();
 			}
 		}
 
