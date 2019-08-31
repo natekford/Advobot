@@ -15,21 +15,6 @@ namespace Advobot.Utilities
 	public static class FormattingUtils
 	{
 		/// <summary>
-		/// Formats the string as a title (in title case, with a colon at the end, and in bold).
-		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public static MarkdownFormattedArg AsTitleWithColon(this string value)
-		{
-			var title = value.FormatTitle();
-			if (!title.EndsWith(':'))
-			{
-				title += ":";
-			}
-			return new MarkdownFormattedArg(value, title.AddMarkdown("**"));
-		}
-
-		/// <summary>
 		/// Returns a new <see cref="EmbedAuthorBuilder"/> containing the user's info.
 		/// </summary>
 		/// <param name="author"></param>
@@ -331,6 +316,21 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static MarkdownFormattedArg WithTitleCase(this string value)
 			=> new MarkdownFormattedArg(value, value.FormatTitle());
+
+		/// <summary>
+		/// Formats the string as a title (in title case, with a colon at the end, and in bold).
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static MarkdownFormattedArg WithTitleCaseAndColon(this string value)
+		{
+			var title = value.FormatTitle();
+			if (!title.EndsWith(':'))
+			{
+				title += ":";
+			}
+			return new MarkdownFormattedArg(value, title.AddMarkdown("**"));
+		}
 
 		private static string AddMarkdown(this string value, string markdown)
 			=> $"{markdown}{value}{markdown}";

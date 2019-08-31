@@ -19,10 +19,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Groups.resx</DependentUpon>
     </Compile>
-    <Compile Update="Resources\Parameters.Designer.cs">
+    <Compile Update="Resources\Names.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Parameters.resx</DependentUpon>
+      <DependentUpon>Names.resx</DependentUpon>
     </Compile>
     <Compile Update="Resources\Responses.Designer.cs">
       <DependentUpon>Responses.resx</DependentUpon>
@@ -45,9 +45,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Groups.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Parameters.resx">
+    <EmbeddedResource Update="Resources\Names.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Parameters.Designer.cs</LastGenOutput>
+      <LastGenOutput>Names.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Resources\Responses.resx">
       <LastGenOutput>Responses.Designer.cs</LastGenOutput>

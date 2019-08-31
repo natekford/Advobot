@@ -41,30 +41,33 @@ namespace Advobot.Standard.Commands
 			[Command, Priority(1)]
 			[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
 			public Task<RuntimeResult> CommandAsync(
-				[LocalizedSummary(nameof(Parameters.HelpVariableCommand))]
-				IModuleHelpEntry command
+				[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
+				[LocalizedName(nameof(Names.Command))]
+				IModuleHelpEntry helpEntry
 			)
-				=> Responses.Misc.Help(command, Context.Settings);
+				=> Responses.Misc.Help(helpEntry, Context.Settings);
 
 			[Command, Priority(2)]
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
 			public Task<RuntimeResult> CommandAsync(
-				[LocalizedSummary(nameof(Parameters.HelpVariableExactCommand))]
-				IModuleHelpEntry command,
-				[LocalizedSummary(nameof(Parameters.HelpVariableCommandPosition))]
+				[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
+				[LocalizedName(nameof(Names.Command))]
+				IModuleHelpEntry helpEntry,
+				[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
+				[LocalizedName(nameof(Names.Position))]
 				[Positive]
 				int position
 			)
-				=> Responses.Misc.Help(command, position - 1);
+				=> Responses.Misc.Help(helpEntry, position - 1);
 
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Hidden]
 			public async Task<RuntimeResult> CommandAsync(
 				[OverrideTypeReader(typeof(CloseHelpEntryTypeReader))]
-				IEnumerable<IModuleHelpEntry> command
+				IEnumerable<IModuleHelpEntry> helpEntries
 			)
 			{
-				var entry = await NextItemAtIndexAsync(command.ToArray(), x => x.Name).CAF();
+				var entry = await NextItemAtIndexAsync(helpEntries.ToArray(), x => x.Name).CAF();
 				if (entry != null)
 				{
 					return Responses.Misc.Help(entry, Context.Settings);

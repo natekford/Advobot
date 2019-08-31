@@ -22,14 +22,14 @@ namespace Advobot.Standard.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Parameters {
+    internal class Names {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Parameters() {
+        internal Names() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Advobot.Standard.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Advobot.Standard.Resources.Parameters", typeof(Parameters).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Advobot.Standard.Resources.Names", typeof(Names).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,29 +61,20 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The name of a command. This does not need to be exact; commands with similar names will be found..
+        ///   Looks up a localized string similar to Command.
         /// </summary>
-        internal static string HelpVariableCommand {
+        internal static string Command {
             get {
-                return ResourceManager.GetString("HelpVariableCommand", resourceCulture);
+                return ResourceManager.GetString("Command", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The number of a command overload..
+        ///   Looks up a localized string similar to Position.
         /// </summary>
-        internal static string HelpVariableCommandPosition {
+        internal static string Position {
             get {
-                return ResourceManager.GetString("HelpVariableCommandPosition", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The name of a command. This does need to be exact..
-        /// </summary>
-        internal static string HelpVariableExactCommand {
-            get {
-                return ResourceManager.GetString("HelpVariableExactCommand", resourceCulture);
+                return ResourceManager.GetString("Position", resourceCulture);
             }
         }
     }

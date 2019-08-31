@@ -466,6 +466,33 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The name of a command. This does not need to be exact; commands with similar names will be found..
+        /// </summary>
+        internal static string HelpVariableCommand {
+            get {
+                return ResourceManager.GetString("HelpVariableCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The number of a command overload..
+        /// </summary>
+        internal static string HelpVariableCommandPosition {
+            get {
+                return ResourceManager.GetString("HelpVariableCommandPosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of a command. This does need to be exact..
+        /// </summary>
+        internal static string HelpVariableExactCommand {
+            get {
+                return ResourceManager.GetString("HelpVariableExactCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Removed a user from the guild..
         /// </summary>
         internal static string Kick {

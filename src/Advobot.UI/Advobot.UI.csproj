@@ -29,14 +29,13 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.8.999-cibuild0003269-beta" />
+    <PackageReference Include="Avalonia" Version="0.8.999-cibuild0003713-beta" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.8.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.8.999-cibuild0003269-beta" />
-    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20190730.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.8.999-cibuild0003713-beta" />
     <PackageReference Include="ReactiveUI" Version="10.0.1-preview.6" />
-    <PackageReference Include="System.Reactive.Core" Version="4.2.0-preview.566" />
-    <PackageReference Include="System.Reactive.Interfaces" Version="4.2.0-preview.566" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.2.0-preview.566" />
+    <PackageReference Include="System.Reactive.Core" Version="4.2.0-preview.625" />
+    <PackageReference Include="System.Reactive.Interfaces" Version="4.2.0-preview.625" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.2.0-preview.625" />
   </ItemGroup>
   
   <ItemGroup>
