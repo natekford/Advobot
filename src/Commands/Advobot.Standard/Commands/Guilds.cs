@@ -111,6 +111,21 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
+		[LocalizedGroup(nameof(Groups.ModifyGuildExplicitContentFilter))]
+		[LocalizedAlias(nameof(Aliases.ModifyGuildExplicitContentFilter))]
+		[LocalizedSummary(nameof(Summaries.ModifyGuildExplicitContentFilter))]
+		[Meta("a60b0a3c-a890-40c7-83f7-9856da3808fe", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageGuild)]
+		public sealed class ModifyGuildExplicitContentFilter : AdvobotModuleBase
+		{
+			[Command]
+			public async Task<RuntimeResult> Command(ExplicitContentFilterLevel filter)
+			{
+				await Context.Guild.ModifyAsync(x => x.ExplicitContentFilter = filter, GenerateRequestOptions()).CAF();
+				return Responses.Guilds.ModifiedGuildContentFilter(filter);
+			}
+		}
+
 		[LocalizedGroup(nameof(Groups.ModifyGuildIcon))]
 		[LocalizedAlias(nameof(Aliases.ModifyGuildIcon))]
 		[LocalizedSummary(nameof(Summaries.ModifyGuildIcon))]
@@ -223,6 +238,22 @@ namespace Advobot.Standard.Commands
 			{
 				await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedSystemChannel(channel);
+			}
+
+			[ImplicitCommand, ImplicitAlias]
+			public async Task<RuntimeResult> MessageBoost(bool enable)
+			{
+				const SystemChannelMessageDeny FLAG = SystemChannelMessageDeny.GuildBoost;
+				await Context.Guild.ModifySystemChannelFlags(FLAG, enable, GenerateRequestOptions()).CAF();
+				return Responses.Guilds.ModifySystemMessageBoost(enable);
+			}
+
+			[ImplicitCommand, ImplicitAlias]
+			public async Task<RuntimeResult> MessageWelcome(bool enable)
+			{
+				const SystemChannelMessageDeny FLAG = SystemChannelMessageDeny.WelcomeMessage;
+				await Context.Guild.ModifySystemChannelFlags(FLAG, enable, GenerateRequestOptions()).CAF();
+				return Responses.Guilds.ModifySystemMessageWelcome(enable);
 			}
 
 			[ImplicitCommand, ImplicitAlias]

@@ -117,7 +117,7 @@ namespace Advobot.UI.ViewModels
 		{
 			var newPath = await new SaveFileDialog
 			{
-				InitialDirectory = _File.Directory.FullName,
+				Directory = _File.Directory.FullName,
 				InitialFileName = _File.FullName,
 				Title = "Advobot - File Copying",
 			}.ShowAsync(window).ConfigureAwait(true);

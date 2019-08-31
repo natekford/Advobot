@@ -199,7 +199,7 @@ namespace Advobot.UI.ViewModels
 			//Returns array of strings, but AllowMultiple is false so should only have 1 or 0
 			var file = (await new OpenFileDialog
 			{
-				InitialDirectory = _BotSettings.BaseBotDirectory.FullName,
+				Directory = _BotSettings.BaseBotDirectory.FullName,
 				Title = "Advobot - File Search",
 				AllowMultiple = false,
 			}.ShowAsync(window).ConfigureAwait(true)).SingleOrDefault();

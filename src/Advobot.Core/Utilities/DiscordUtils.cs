@@ -113,6 +113,35 @@ namespace Advobot.Utilities
 		}
 
 		/// <summary>
+		/// Changes the guild's system channel flags.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="flags"></param>
+		/// <param name="enable"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		public static Task ModifySystemChannelFlags(this IGuild guild, SystemChannelMessageDeny flags, bool enable, RequestOptions options)
+		{
+			var current = guild.SystemChannelFlags;
+
+			//None are disabled and we're trying to enable, so we don't have to do anything.
+			if (current == SystemChannelMessageDeny.None && enable)
+			{
+				return Task.CompletedTask;
+			}
+
+			var toggle = enable ? ~flags : flags;
+			var newValue = current & toggle;
+			//No change so no need to modify
+			if (current == newValue)
+			{
+				return Task.CompletedTask;
+			}
+
+			return guild.ModifyAsync(x => x.SystemChannelFlags = newValue, options);
+		}
+
+		/// <summary>
 		/// Returns every user that has a non null join time in order from least to greatest.
 		/// </summary>
 		/// <param name="users"></param>

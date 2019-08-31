@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Settings.Localization;
 using Advobot.Settings.Resources;
-
+using Advobot.Utilities;
 using AdvorangesUtils;
 
 using Discord;
@@ -83,8 +84,8 @@ namespace Advobot.Settings.Commands
 		[RequireGuildPermissions]
 		public sealed class ModifyLogActions : SettingsModule<IGuildSettings>
 		{
-			private static readonly LogAction[] _All
-				= Enum.GetValues(typeof(LogAction)).Cast<LogAction>().ToArray();
+			private static readonly IReadOnlyList<LogAction> _All
+				= AdvobotUtils.GetValues<LogAction>();
 
 			protected override IGuildSettings Settings => Context.Settings;
 

@@ -202,7 +202,7 @@
     <value>Modifies a role color.</value>
   </data>
   <data name="ModifyGuildVerif" xml:space="preserve">
-    <value>Modifies the verification level.</value>
+    <value>Modifies the guild's verification level.</value>
   </data>
   <data name="ModifyGuildSystemChannel" xml:space="preserve">
     <value>Modifies which channel is the system channel.</value>
@@ -217,7 +217,7 @@
     <value>Modifies the guild's name.</value>
   </data>
   <data name="ModifyGuildMsgNotif" xml:space="preserve">
-    <value>Modifies the default message notification setting.</value>
+    <value>Modifies the guild's default message notification setting.</value>
   </data>
   <data name="ModifyGuildIcon" xml:space="preserve">
     <value>Modifies the guild's icon.</value>
@@ -422,5 +422,8 @@
   </data>
   <data name="HelpVariableCommandPosition" xml:space="preserve">
     <value>The number of a command overload.</value>
+  </data>
+  <data name="ModifyGuildExplicitContentFilter" xml:space="preserve">
+    <value>Modified the guild's explicit content filter level.</value>
   </data>
 </root>

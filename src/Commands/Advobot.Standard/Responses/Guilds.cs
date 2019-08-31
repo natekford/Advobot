@@ -60,6 +60,13 @@ namespace Advobot.Standard.Responses
 			));
 		}
 
+		public static AdvobotResult ModifiedGuildContentFilter(ExplicitContentFilterLevel filter)
+		{
+			return Success(GuildsModifiedContentFilter.Format(
+				filter.ToString().WithBlock()
+			));
+		}
+
 		public static AdvobotResult ModifiedMsgNotif(DefaultMessageNotifications notifs)
 		{
 			return Success(GuildsModifiedMsgNotif.Format(
@@ -92,6 +99,20 @@ namespace Advobot.Standard.Responses
 		{
 			return Success(GuildsModifiedVerif.Format(
 				verif.ToString().WithBlock()
+			));
+		}
+
+		public static AdvobotResult ModifySystemMessageBoost(bool enable)
+		{
+			return Success(GuildsModifiedSystemMessageBoost.Format(
+				enable.ToString().WithBlock()
+			));
+		}
+
+		public static AdvobotResult ModifySystemMessageWelcome(bool enable)
+		{
+			return Success(GuildsModifiedSystemMessageWelcome.Format(
+				enable.ToString().WithBlock()
 			));
 		}
 

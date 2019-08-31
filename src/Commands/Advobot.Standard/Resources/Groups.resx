@@ -385,4 +385,7 @@
   <data name="SpeakThroughWebhook" xml:space="preserve">
     <value>SpeakThroughWebhook</value>
   </data>
+  <data name="ModifyGuildExplicitContentFilter" xml:space="preserve">
+    <value>ModifyGuildExplicitContentFilter</value>
+  </data>
 </root>

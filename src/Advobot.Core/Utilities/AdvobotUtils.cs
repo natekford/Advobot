@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Advobot.Services.BotSettings;
@@ -29,6 +30,22 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static string GetPrefix(this IGuildSettings settings, IBotSettings botSettings)
 			=> settings.Prefix ?? botSettings.Prefix ?? throw new InvalidOperationException("Invalid prefix.");
+
+		/// <summary>
+		/// Gets the values of an enum.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public static IReadOnlyList<T> GetValues<T>() where T : Enum
+		{
+			var uncast = Enum.GetValues(typeof(T));
+			var cast = new T[uncast.Length];
+			for (var i = 0; i < uncast.Length; ++i)
+			{
+				cast[i] = (T)uncast.GetValue(i);
+			}
+			return cast;
+		}
 
 		/// <summary>
 		/// Ensures the extension of the file is '.db' and that the directory exists.

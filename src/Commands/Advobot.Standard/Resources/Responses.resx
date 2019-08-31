@@ -248,7 +248,7 @@
     <value>Successfully modified the system channel for this guild to {0}.</value>
   </data>
   <data name="GuildsModifiedMsgNotif" xml:space="preserve">
-    <value>Successfully modified the default message notification option for this guild to {0}.</value>
+    <value>Successfully modified the default message notification level for this guild to {0}.</value>
   </data>
   <data name="GuildsModifiedVerif" xml:space="preserve">
     <value>Successfully modified the verification level for this guild to {0}.</value>
@@ -677,5 +677,14 @@ Type {1} for help with a command.</value>
   </data>
   <data name="GuildsVariableNothing" xml:space="preserve">
     <value>nothing</value>
+  </data>
+  <data name="GuildsModifiedSystemMessageBoost" xml:space="preserve">
+    <value>Successfully modified the system channel boost messages to {0}.</value>
+  </data>
+  <data name="GuildsModifiedSystemMessageWelcome" xml:space="preserve">
+    <value>Successfully modified the system channel welcome messages to {0}.</value>
+  </data>
+  <data name="GuildsModifiedContentFilter" xml:space="preserve">
+    <value>Successfully modified the explicit content filter level for this guild to {0}.</value>
   </data>
 </root>

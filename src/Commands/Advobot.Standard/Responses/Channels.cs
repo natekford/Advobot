@@ -48,7 +48,7 @@ namespace Advobot.Standard.Responses
 		}
 
 		public static AdvobotResult Display(
-							IEnumerable<IGuildChannel> channels,
+			IEnumerable<IGuildChannel> channels,
 			[CallerMemberName] string caller = "")
 		{
 			var title = ChannelsTitleChannelPositions.Format(

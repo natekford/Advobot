@@ -655,6 +655,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modified the guild&apos;s explicit content filter level..
+        /// </summary>
+        internal static string ModifyGuildExplicitContentFilter {
+            get {
+                return ResourceManager.GetString("ModifyGuildExplicitContentFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifies the guild&apos;s icon..
         /// </summary>
         internal static string ModifyGuildIcon {
@@ -664,7 +673,7 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifies the default message notification setting..
+        ///   Looks up a localized string similar to Modifies the guild&apos;s default message notification setting..
         /// </summary>
         internal static string ModifyGuildMsgNotif {
             get {
@@ -709,7 +718,7 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Modifies the verification level..
+        ///   Looks up a localized string similar to Modifies the guild&apos;s verification level..
         /// </summary>
         internal static string ModifyGuildVerif {
             get {

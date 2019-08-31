@@ -237,10 +237,11 @@ namespace Advobot.Utilities
 		public static string FormatPermissions<T>(this IEnumerable<T> permissions)
 			where T : Enum
 		{
+			var values = AdvobotUtils.GetValues<T>();
 			return permissions.Select(x =>
 			{
 				var perms = new List<string>();
-				foreach (Enum e in Enum.GetValues(x.GetType()))
+				foreach (Enum e in values)
 				{
 					if (x.Equals(e))
 					{

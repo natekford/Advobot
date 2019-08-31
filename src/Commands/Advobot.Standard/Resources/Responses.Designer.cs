@@ -997,7 +997,16 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully modified the default message notification option for this guild to {0}..
+        ///   Looks up a localized string similar to Successfully modified the explicit content filter level for this guild to {0}..
+        /// </summary>
+        internal static string GuildsModifiedContentFilter {
+            get {
+                return ResourceManager.GetString("GuildsModifiedContentFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the default message notification level for this guild to {0}..
         /// </summary>
         internal static string GuildsModifiedMsgNotif {
             get {
@@ -1029,6 +1038,24 @@ namespace Advobot.Standard.Resources {
         internal static string GuildsModifiedSystemChannel {
             get {
                 return ResourceManager.GetString("GuildsModifiedSystemChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the system channel boost messages to {0}..
+        /// </summary>
+        internal static string GuildsModifiedSystemMessageBoost {
+            get {
+                return ResourceManager.GetString("GuildsModifiedSystemMessageBoost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the system channel welcome messages to {0}..
+        /// </summary>
+        internal static string GuildsModifiedSystemMessageWelcome {
+            get {
+                return ResourceManager.GetString("GuildsModifiedSystemMessageWelcome", resourceCulture);
             }
         }
         

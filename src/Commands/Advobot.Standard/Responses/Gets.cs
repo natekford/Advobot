@@ -25,13 +25,13 @@ namespace Advobot.Standard.Responses
 	public sealed class Gets : CommandResponses
 	{
 		private static readonly IReadOnlyList<ActivityType> _Activities
-			= Enum.GetValues(typeof(ActivityType)).Cast<ActivityType>().ToArray();
+			= AdvobotUtils.GetValues<ActivityType>();
 
 		private static readonly IReadOnlyList<GuildPermission> _Permissions
-			= Enum.GetValues(typeof(GuildPermission)).Cast<GuildPermission>().ToArray();
+			= AdvobotUtils.GetValues<GuildPermission>();
 
 		private static readonly IReadOnlyList<UserStatus> _Statuses
-							= Enum.GetValues(typeof(UserStatus)).Cast<UserStatus>().ToArray();
+			= AdvobotUtils.GetValues<UserStatus>();
 
 		private Gets()
 		{

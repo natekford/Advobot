@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Advobot.Modules;
-
+using Advobot.Utilities;
 using AdvorangesUtils;
 
 using Discord.Commands;
@@ -257,11 +257,11 @@ namespace Advobot.Services.ImageResizing
 			var ffmpeg = windows ? "ffmpeg.exe" : "ffmpeg";
 
 			//Start with every special folder
-			var directories = Enum.GetValues(typeof(Environment.SpecialFolder)).Cast<Environment.SpecialFolder>().Select(e =>
-			{
-				var p = Path.Combine(Environment.GetFolderPath(e), "ffmpeg");
-				return Directory.Exists(p) ? new DirectoryInfo(p) : null;
-			}).Where(x => x != null).ToList();
+			var directories = AdvobotUtils.GetValues<Environment.SpecialFolder>().Select(e =>
+		   {
+			   var p = Path.Combine(Environment.GetFolderPath(e), "ffmpeg");
+			   return Directory.Exists(p) ? new DirectoryInfo(p) : null;
+		   }).Where(x => x != null).ToList();
 			//Look through where the program is stored
 			if (Assembly.GetExecutingAssembly().Location is string assembly)
 			{

@@ -601,6 +601,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to mgecf.
+        /// </summary>
+        internal static string ModifyGuildExplicitContentFilter {
+            get {
+                return ResourceManager.GetString("ModifyGuildExplicitContentFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to mgi.
         /// </summary>
         internal static string ModifyGuildIcon {
