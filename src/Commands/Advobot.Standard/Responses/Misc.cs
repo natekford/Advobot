@@ -131,7 +131,7 @@ namespace Advobot.Standard.Responses
 				var name = x.Aliases.Any(a => a.CaseInsContains(x.Name)) ? $" {x.Name}" : "";
 				var parameters = x.Parameters.Join(FormatParameter);
 				return $"\t{i + 1}.{name} ({parameters})";
-			}).Join("\n").WithBigBlock().Value;
+			}).Join("\n").WithBlock().Value;
 			info.CreateCollection().Add(MiscTitleCommands, commands);
 
 			return Success(CreateHelpEmbed(module.Name, info.ToString()));
@@ -194,7 +194,7 @@ namespace Advobot.Standard.Responses
 		{
 			var left = p.IsOptional ? MiscVariableOptionalLeft : MiscVariableRequiredLeft;
 			var right = p.IsOptional ? MiscVariableOptionalRight : MiscVariableRequiredRight;
-			return $"{left}{p.TypeName}: {p.Name}{right}";
+			return left + p.Name + right;
 		}
 
 		private static string FormatPreconditions(IEnumerable<IPrecondition> preconditions)
@@ -232,7 +232,7 @@ namespace Advobot.Standard.Responses
 			=> settings?.CommandSettings?.IsCommandEnabled(entry.Id) ?? entry.EnabledByDefault;
 
 		private static MarkdownFormattedArg GetPrefixedCommand(
-													string prefix,
+			string prefix,
 			Type command,
 			string args = "")
 		{

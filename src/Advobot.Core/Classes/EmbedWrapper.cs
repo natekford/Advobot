@@ -199,6 +199,10 @@ namespace Advobot.Classes
 		public Embed Build()
 			=> _Builder.Build();
 
+		/// <inheritdoc />
+		public override string ToString()
+			=> _Errors.Join(x => $"{x.PropertyPath}:\n{x.Value}", "\n\n");
+
 		/// <summary>
 		/// Attempts to modify the author. Does nothing if fails.
 		/// </summary>
@@ -533,7 +537,7 @@ namespace Advobot.Classes
 				=> _PropertyErrors;
 
 			public PropertyHandler<TEmbed2, T2> Property<TEmbed2, T2>(
-							Expression<Func<TEmbed2, T2>> p,
+				Expression<Func<TEmbed2, T2>> p,
 				T2 v)
 				=> _Parent.Property(p, v);
 

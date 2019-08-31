@@ -426,4 +426,7 @@
   <data name="ModifyGuildExplicitContentFilter" xml:space="preserve">
     <value>Modified the guild's explicit content filter level.</value>
   </data>
+  <data name="GenericChannelArgument" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

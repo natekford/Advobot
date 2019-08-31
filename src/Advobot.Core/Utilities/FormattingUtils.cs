@@ -237,11 +237,10 @@ namespace Advobot.Utilities
 		public static string FormatPermissions<T>(this IEnumerable<T> permissions)
 			where T : Enum
 		{
-			var values = AdvobotUtils.GetValues<T>();
 			return permissions.Select(x =>
 			{
 				var perms = new List<string>();
-				foreach (Enum e in values)
+				foreach (Enum e in Enum.GetValues(x.GetType()))
 				{
 					if (x.Equals(e))
 					{
@@ -334,7 +333,7 @@ namespace Advobot.Utilities
 		}
 
 		private static string AddMarkdown(this string value, string markdown)
-			=> $"{markdown}{value}{markdown}";
+			=> markdown + value + markdown;
 
 		/// <summary>
 		/// Contains the original value and a newly formatted value.

@@ -147,6 +147,7 @@ namespace Advobot.Utilities
 
 			try
 			{
+				var embed = embedWrapper?.Build();
 				//If the file name and text exists, then attempt to send as a file instead of message
 				if (!string.IsNullOrWhiteSpace(textFile.Name) && !string.IsNullOrWhiteSpace(textFile.Text))
 				{
@@ -156,9 +157,9 @@ namespace Advobot.Utilities
 					writer.Write(textFile.Text.Trim());
 					writer.Flush();
 					stream.Seek(0, SeekOrigin.Begin);
-					return channel.SendFileAsync(stream, textFile.Name, content, embed: embedWrapper?.Build());
+					return channel.SendFileAsync(stream, textFile.Name, content, embed: embed);
 				}
-				return channel.SendMessageAsync(content, embed: embedWrapper?.Build());
+				return channel.SendMessageAsync(content, embed: embed);
 			}
 			//If the message fails to send, then return the error
 			catch (Exception e)

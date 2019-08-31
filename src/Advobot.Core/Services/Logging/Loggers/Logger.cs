@@ -45,7 +45,7 @@ namespace Advobot.Services.Logging.Loggers
 		}
 
 		protected void NotifyLogCounterIncrement(string name, int count)
-							=> LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
+			=> LogCounterIncrement?.Invoke(this, new LogCounterIncrementEventArgs(name, count));
 
 		protected Task ReplyAsync(
 			ITextChannel? channel,
@@ -70,14 +70,24 @@ namespace Advobot.Services.Logging.Loggers
 			if (context.CanLog(args.Action))
 			{
 				NotifyLogCounterIncrement(args.LogCounterName, 1);
-				foreach (var task in args.WhenCanLog)
+				await SafeHandleAsync(context, args.WhenCanLog).CAF();
+			}
+			await SafeHandleAsync(context, args.AnyTime).CAF();
+		}
+
+		private async Task SafeHandleAsync<T>(T context, Func<T, Task>[] tasks)
+			where T : class, ILoggingContext
+		{
+			foreach (var task in tasks)
+			{
+				try
 				{
 					await task.Invoke(context).CAF();
 				}
-			}
-			foreach (var task in args.AnyTime)
-			{
-				await task.Invoke(context).CAF();
+				catch (Exception e)
+				{
+					e.Write();
+				}
 			}
 		}
 	}

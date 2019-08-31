@@ -388,4 +388,13 @@
   <data name="ModifyGuildExplicitContentFilter" xml:space="preserve">
     <value>ModifyGuildExplicitContentFilter</value>
   </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Text" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="Voice" xml:space="preserve">
+    <value>Voice</value>
+  </data>
 </root>

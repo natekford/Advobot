@@ -37,6 +37,6 @@ namespace Advobot.Formatting
 
 		/// <inheritdoc />
 		public override string ToString()
-			=> $"{Title.WithTitleCaseAndColon()}{Joiner}{Value}";
+			=> Title.WithTitleCaseAndColon() + Joiner + Value;
 	}
 }

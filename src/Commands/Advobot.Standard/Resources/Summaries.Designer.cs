@@ -331,6 +331,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string GenericChannelArgument {
+            get {
+                return ResourceManager.GetString("GenericChannelArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Lists the given reason for a user being banned..
         /// </summary>
         internal static string GetBanReason {

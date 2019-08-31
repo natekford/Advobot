@@ -31,7 +31,8 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 		public CanModifyChannelAttribute(params ChannelPermission[] permissions)
 		{
 			Permissions = permissions
-				.Append(ChannelPermission.ViewChannel)
+				.Select(x => x | ChannelPermission.ViewChannel)
+				.DefaultIfEmpty(ChannelPermission.ViewChannel)
 				.ToImmutableHashSet();
 			Summary = Permissions.FormatPermissions();
 		}
