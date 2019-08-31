@@ -30,7 +30,7 @@ namespace Advobot.Tests
 			for (var i = 0; i < Times; i++)
 			{
 				var sw = Stopwatch.StartNew();
-				for (int o = 0; o < Iterations; o++)
+				for (var o = 0; o < Iterations; o++)
 				{
 					Function();
 				}

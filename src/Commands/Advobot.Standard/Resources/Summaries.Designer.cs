@@ -331,7 +331,7 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to A channel on the guild which you can see..
         /// </summary>
         internal static string GenericChannelArgument {
             get {

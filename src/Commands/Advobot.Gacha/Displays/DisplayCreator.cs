@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Advobot.Gacha.Counters;
 using Advobot.Gacha.Database;
-using Advobot.Gacha.Models;
+using Advobot.Gacha.ReadOnlyModels;
 
 using AdvorangesUtils;
 
@@ -31,7 +31,7 @@ namespace Advobot.Gacha.Displays
 			_Checkers = services.GetRequiredService<ICounterService>();
 		}
 
-		public async Task<Display> CreateCharacterDisplayAsync(IGuild guild, Character character)
+		public async Task<Display> CreateCharacterDisplayAsync(IGuild guild, IReadOnlyCharacter character)
 		{
 			var id = GetDisplayId(guild);
 			var metadata = await _Db.GetCharacterMetadataAsync(character).CAF();
@@ -40,7 +40,7 @@ namespace Advobot.Gacha.Displays
 			return new CharacterDisplay(_Services, id, metadata, images, claim);
 		}
 
-		public async Task<Display> CreateHaremDisplayAsync(IGuild guild, User user)
+		public async Task<Display> CreateHaremDisplayAsync(IGuild guild, IReadOnlyUser user)
 		{
 			var id = GetDisplayId(guild);
 			var marriages = await _Db.GetClaimsAsync(user).CAF();
@@ -58,7 +58,7 @@ namespace Advobot.Gacha.Displays
 			return new RollDisplay(_Services, id, checker, character, source, wishes, images);
 		}
 
-		public async Task<Display> CreateSourceDisplayAsync(IGuild guild, Source source)
+		public async Task<Display> CreateSourceDisplayAsync(IGuild guild, IReadOnlySource source)
 		{
 			var id = GetDisplayId(guild);
 			var characters = await _Db.GetCharactersAsync(source).CAF();

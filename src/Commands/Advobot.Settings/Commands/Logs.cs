@@ -15,6 +15,7 @@ using Advobot.Services.GuildSettings.Settings;
 using Advobot.Settings.Localization;
 using Advobot.Settings.Resources;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
 
 using Discord;

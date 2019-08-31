@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Resources;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Advobot.CommandAssemblies;
@@ -37,3 +38,4 @@ using Advobot.Gacha;
 [assembly: AssemblyVersion(Advobot.Constants.BOT_VERSION)]
 [assembly: AssemblyFileVersion(Advobot.Constants.BOT_VERSION)]
 [assembly: AssemblyInformationalVersion(Advobot.Constants.BOT_VERSION)]
+[assembly: InternalsVisibleTo("Advobot.Tests")]

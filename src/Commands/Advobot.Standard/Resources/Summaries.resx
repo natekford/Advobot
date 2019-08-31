@@ -427,6 +427,6 @@
     <value>Modified the guild's explicit content filter level.</value>
   </data>
   <data name="GenericChannelArgument" xml:space="preserve">
-    <value></value>
+    <value>A channel on the guild which you can see.</value>
   </data>
 </root>

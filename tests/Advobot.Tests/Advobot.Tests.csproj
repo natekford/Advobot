@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="UnitTests\Attributes\ParameterPreconditions\DiscordObjectValidation\" />
+    <Folder Include="Core\Attributes\ParameterPreconditions\DiscordObjectValidation\" />
   </ItemGroup>
 
   <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
@@ -47,6 +47,10 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;RCS1047;RCS1079</NoWarn>
   </PropertyGroup>
 
 </Project>

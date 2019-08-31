@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
-using Advobot.Gacha.Models;
 using Advobot.Gacha.ParameterPreconditions;
+using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Trading;
 
 using AdvorangesUtils;
@@ -22,7 +22,7 @@ namespace Advobot.Gacha.Commands
 		public sealed class DisplayCharacter : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command(Character character)
+			public async Task<RuntimeResult> Command(IReadOnlyCharacter character)
 			{
 				var display = await Displays.CreateCharacterDisplayAsync(Context.Guild, character).CAF();
 				return await display.SendAsync(Context.Channel).CAF();
@@ -35,7 +35,7 @@ namespace Advobot.Gacha.Commands
 		public sealed class DisplayHarem : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command(User user)
+			public async Task<RuntimeResult> Command(IReadOnlyUser user)
 			{
 				var display = await Displays.CreateHaremDisplayAsync(Context.Guild, user).CAF();
 				return await display.SendAsync(Context.Channel).CAF();
@@ -48,7 +48,7 @@ namespace Advobot.Gacha.Commands
 		public sealed class DisplaySource : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command(Source source)
+			public async Task<RuntimeResult> Command(IReadOnlySource source)
 			{
 				var display = await Displays.CreateSourceDisplayAsync(Context.Guild, source).CAF();
 				return await display.SendAsync(Context.Channel).CAF();
@@ -61,7 +61,9 @@ namespace Advobot.Gacha.Commands
 		public sealed class GachaGive : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public Task Command([NotSelf] User user, [OwnsCharacters] params Character[] characters)
+			public Task Command(
+				[NotSelf] IReadOnlyUser user,
+				[OwnsCharacters] params IReadOnlyCharacter[] characters)
 			{
 				var trades = new TradeCollection(Context.Guild);
 				trades.AddRange(characters.Select(x => new Trade(user, x)));
@@ -89,7 +91,9 @@ namespace Advobot.Gacha.Commands
 		public sealed class GachaTrade : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public Task Command([NotSelf] User user, [OwnsCharacters] params Character[] characters)
+			public Task Command(
+				[NotSelf] IReadOnlyUser user,
+				[OwnsCharacters] params IReadOnlyCharacter[] characters)
 			{
 				throw new NotImplementedException();
 			}

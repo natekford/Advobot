@@ -1,16 +1,43 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.Attributes.ParameterPreconditions;
+using Advobot.Gacha.Database;
+using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Utilities;
+using Advobot.Utilities;
+
+using AdvorangesUtils;
+
 using Discord.Commands;
+
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.ParameterPreconditions
 {
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class OwnsCharacters : ParameterPreconditionAttribute
+	public sealed class OwnsCharacters : AdvobotParameterPreconditionAttribute
 	{
-		public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
+		public override string Summary => "Character is owned by the invoker";
+
+		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			object value,
+			IServiceProvider services)
 		{
-			throw new NotImplementedException();
+			if (!(value is IReadOnlyCharacter character))
+			{
+				return this.FromOnlySupports(typeof(IReadOnlyCharacter));
+			}
+
+			var db = services.GetRequiredService<GachaDatabase>();
+			var claim = await db.GetClaimAsync(context.Guild.Id, character).CAF();
+			if (claim?.GetUserId() == context.User.Id)
+			{
+				return PreconditionUtils.FromSuccess();
+			}
+			return PreconditionUtils.FromError("You do not currently own this character.");
 		}
 	}
 }
