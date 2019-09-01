@@ -3,6 +3,7 @@
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging.Interfaces;
+using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -17,10 +18,7 @@ namespace Advobot.Services.Logging.Loggers
 
 		public Task OnLogMessageSent(LogMessage message)
 		{
-			if (!string.IsNullOrWhiteSpace(message.Message))
-			{
-				ConsoleUtils.WriteLine(message.Message, name: message.Source);
-			}
+			message.Write();
 			return Task.CompletedTask;
 		}
 	}

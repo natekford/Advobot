@@ -234,9 +234,9 @@ namespace Advobot.Services.Commands
 			}
 		}
 
-		private Task OnLog(LogMessage e)
+		private Task OnLog(LogMessage message)
 		{
-			ConsoleUtils.WriteLine(e.ToString());
+			message.Write();
 			return Task.CompletedTask;
 		}
 

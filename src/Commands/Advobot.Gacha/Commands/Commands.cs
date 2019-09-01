@@ -95,6 +95,9 @@ namespace Advobot.Gacha.Commands
 				[NotSelf] IReadOnlyUser user,
 				[OwnsCharacters] params IReadOnlyCharacter[] characters)
 			{
+				var trades = new TradeCollection(Context.Guild);
+				trades.AddRange(characters.Select(x => new Trade(user, x)));
+
 				throw new NotImplementedException();
 			}
 		}
