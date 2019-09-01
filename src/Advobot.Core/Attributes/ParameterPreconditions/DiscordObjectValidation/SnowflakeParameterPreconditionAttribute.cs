@@ -12,7 +12,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 	/// Abstract class for validating an object from Discord.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public abstract class DiscordObjectParameterPreconditionAttribute
+	public abstract class SnowflakeParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />

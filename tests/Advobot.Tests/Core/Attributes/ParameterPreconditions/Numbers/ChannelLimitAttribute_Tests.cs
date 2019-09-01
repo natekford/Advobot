@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
 	public sealed class ChannelLimitAttribute_Tests
-		: ParameterPreconditionsTestsBase<ChannelLimitAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<ChannelLimitAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotInt_Test()

@@ -11,44 +11,63 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 
 	public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
 	{
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public int Position => throw new NotImplementedException();
-		public FakeGuild Guild { get; }
-		public ulong GuildId => Guild.Id;
-		public IReadOnlyCollection<Overwrite> PermissionOverwrites => throw new NotImplementedException();
+		protected readonly Dictionary<ulong, Overwrite> _Permissions = new Dictionary<ulong, Overwrite>();
+		public FakeGuild FakeGuild { get; }
+		public ulong GuildId => FakeGuild.Id;
+		public IReadOnlyCollection<Overwrite> PermissionOverwrites => _Permissions.Values;
+		public int Position { get; set; }
+		IGuild IGuildChannel.Guild => FakeGuild;
+		protected ulong? ProtectedCategoryId { get; set; }
 
 		public FakeGuildChannel(FakeGuild guild)
 		{
-			Guild = guild;
+			FakeGuild = guild;
 		}
 
 		public Task AddPermissionOverwriteAsync(IRole role, OverwritePermissions permissions, RequestOptions options = null)
-			=> throw new NotImplementedException();
+		{
+			_Permissions[role.Id] = new Overwrite(role.Id, PermissionTarget.Role, permissions);
+			return Task.CompletedTask;
+		}
 
 		public Task AddPermissionOverwriteAsync(IUser user, OverwritePermissions permissions, RequestOptions options = null)
-			=> throw new NotImplementedException();
+		{
+			_Permissions[user.Id] = new Overwrite(user.Id, PermissionTarget.User, permissions);
+			return Task.CompletedTask;
+		}
 
 		public Task DeleteAsync(RequestOptions options = null)
 			=> throw new NotImplementedException();
 
 		public OverwritePermissions? GetPermissionOverwrite(IRole role)
-			=> throw new NotImplementedException();
+			=> GetPermissionOverwrite(role.Id);
 
 		public OverwritePermissions? GetPermissionOverwrite(IUser user)
-			=> throw new NotImplementedException();
+			=> GetPermissionOverwrite(user.Id);
 
-		public Task ModifyAsync(Action<GuildChannelProperties> func, RequestOptions options = null)
-			=> throw new NotImplementedException();
+		public Task ModifyAsync(Action<GuildChannelProperties> func, RequestOptions options)
+		{
+			var args = new GuildChannelProperties();
+			func(args);
+
+			ProtectedCategoryId = args.CategoryId.GetValueOrDefault();
+			Name = args.Name.GetValueOrDefault();
+			Position = args.Position.GetValueOrDefault();
+
+			return Task.CompletedTask;
+		}
 
 		public Task RemovePermissionOverwriteAsync(IRole role, RequestOptions options = null)
-			=> throw new NotImplementedException();
+		{
+			_Permissions.Remove(role.Id);
+			return Task.CompletedTask;
+		}
 
 		public Task RemovePermissionOverwriteAsync(IUser user, RequestOptions options = null)
-			=> throw new NotImplementedException();
-
-		IGuild IGuildChannel.Guild => Guild;
+		{
+			_Permissions.Remove(user.Id);
+			return Task.CompletedTask;
+		}
 
 		Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
 			=> throw new NotImplementedException();
@@ -56,8 +75,7 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		oldasyncenumerable::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
 			=> throw new NotImplementedException();
 
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+		private OverwritePermissions? GetPermissionOverwrite(ulong id)
+			=> _Permissions.TryGetValue(id, out var value) ? value.Permissions : default(OverwritePermissions?);
 	}
 }

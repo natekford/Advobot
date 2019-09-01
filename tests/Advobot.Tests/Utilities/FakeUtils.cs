@@ -13,13 +13,13 @@ namespace Advobot.Tests.Utilities
 			var client = new FakeClient();
 			var guild = new FakeGuild();
 			var channel = new FakeTextChannel(guild);
-			var user = new FakeUser();
+			var user = new FakeGuildUser(guild);
 			var message = new FakeUserMessage(channel, user, "nothing");
 			return new FakeCommandContext(client, message);
 		}
 
 		public static IReadOnlyCollection<ulong> GetMentions(
-					this string content,
+			this string content,
 			TryGetMentionDelegate mentionDelegate)
 		{
 			var ids = new List<ulong>();

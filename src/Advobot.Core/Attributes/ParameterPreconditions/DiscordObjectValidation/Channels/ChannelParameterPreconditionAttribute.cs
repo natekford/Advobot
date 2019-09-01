@@ -14,7 +14,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public abstract class ChannelParameterPreconditionAttribute
-		: DiscordObjectParameterPreconditionAttribute
+		: SnowflakeParameterPreconditionAttribute
 	{
 		/// <summary>
 		/// Checks whether the condition for the <see cref="IGuildUser"/> is met before execution of the command.

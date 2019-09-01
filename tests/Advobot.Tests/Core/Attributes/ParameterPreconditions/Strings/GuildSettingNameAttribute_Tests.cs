@@ -14,7 +14,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class GuildSettingNameAttribute_Tests
-		: ParameterPreconditionsTestsBase<GuildSettingNameAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<GuildSettingNameAttribute>
 	{
 		public GuildSettingNameAttribute_Tests()
 		{

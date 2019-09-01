@@ -13,7 +13,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public abstract class RoleParameterPreconditionAttribute
-		: DiscordObjectParameterPreconditionAttribute
+		: SnowflakeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(

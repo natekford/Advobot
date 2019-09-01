@@ -14,7 +14,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
 	public sealed class SelfRoleGroupAttribute_Tests
-		: ParameterPreconditionsTestsBase<SelfRoleGroupAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<SelfRoleGroupAttribute>
 	{
 		private readonly IGuildSettings _Settings;
 

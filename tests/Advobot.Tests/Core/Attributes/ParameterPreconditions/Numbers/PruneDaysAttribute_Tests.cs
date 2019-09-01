@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
 	public sealed class PruneDaysAttribute_Tests
-		: ParameterPreconditionsTestsBase<PruneDaysAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<PruneDaysAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotInt_Test()

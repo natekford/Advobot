@@ -15,7 +15,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class RuleCategoryAttribute_Tests
-		: ParameterPreconditionsTestsBase<RuleCategoryAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<RuleCategoryAttribute>
 	{
 		private const string _ExistingCategory = "i exist";
 		private const string _NonExistentCategory = "i dont exist";

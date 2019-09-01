@@ -13,7 +13,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class QuoteNameAttribute_Tests
-		: ParameterPreconditionsTestsBase<QuoteNameAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<QuoteNameAttribute>
 	{
 		private readonly IGuildSettings _Settings;
 

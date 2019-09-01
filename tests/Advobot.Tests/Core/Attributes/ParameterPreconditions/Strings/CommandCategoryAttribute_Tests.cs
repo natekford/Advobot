@@ -13,7 +13,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class CommandCategoryAttribute_Tests
-		: ParameterPreconditionsTestsBase<CommandCategoryAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<CommandCategoryAttribute>
 	{
 		private readonly HelpEntryService _Service;
 

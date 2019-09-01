@@ -20,12 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Advobot.Console\Advobot.Console.csproj" />
     <ProjectReference Include="..\..\src\Advobot.Core\Advobot.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Core\Attributes\ParameterPreconditions\DiscordObjectValidation\" />
+    <ProjectReference Include="..\..\src\Commands\Advobot.Gacha\Advobot.Gacha.csproj" />
+    <ProjectReference Include="..\..\src\Commands\Advobot.Settings\Advobot.Settings.csproj" />
+    <ProjectReference Include="..\..\src\Commands\Advobot.Standard\Advobot.Standard.csproj" />
   </ItemGroup>
 
   <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
@@ -40,7 +38,7 @@
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>TRACE</DefineConstants>
-    <NoWarn>1701;1702;RCS1047;RCS1079;</NoWarn>
+    <NoWarn>1701;1702;RCS1047;RCS1079;CS8618;CS8619;CS8625;</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

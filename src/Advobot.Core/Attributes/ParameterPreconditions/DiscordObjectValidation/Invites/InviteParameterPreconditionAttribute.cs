@@ -13,7 +13,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public abstract class InviteParameterPreconditionAttribute
-		: DiscordObjectParameterPreconditionAttribute
+		: AdvobotParameterPreconditionAttribute
 	{
 		/// <summary>
 		/// Checks whether the condition for the <see cref="IInviteMetadata"/> is met before execution of the command.
@@ -35,18 +35,23 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
-			ISnowflakeEntity value,
+			object value,
 			IServiceProvider services)
 		{
 			if (!(context.User is IGuildUser user))
 			{
 				return PreconditionUtils.FromInvalidInvokerAsync();
 			}
-			if (!(value is IInviteMetadata invite))
+			if (value is IInviteMetadata invite)
 			{
-				return this.FromOnlySupportsAsync(typeof(IInviteMetadata));
+				return SingularCheckInviteAsync(context, parameter, user, invite, services);
 			}
-			return SingularCheckInviteAsync(context, parameter, user, invite, services);
+			else if (value is null)
+			{
+				var error = $"No value was passed in for {parameter.Name}.";
+				return PreconditionUtils.FromErrorAsync(error);
+			}
+			return this.FromOnlySupportsAsync(typeof(IInviteMetadata));
 		}
 	}
 }

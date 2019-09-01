@@ -2,8 +2,8 @@
 
 namespace Advobot.Tests.Core.Attributes
 {
-	public abstract class AttributeTestsBase<T> where T : Attribute, new()
+	public abstract class AttributeTestsBase<T> where T : Attribute
 	{
-		public T Instance { get; } = new T();
+		public abstract T Instance { get; }
 	}
 }

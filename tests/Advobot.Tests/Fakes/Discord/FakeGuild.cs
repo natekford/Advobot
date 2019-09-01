@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Advobot.Tests.Fakes.Discord.Channels;
 using AdvorangesUtils;
 
 using Discord;
@@ -10,39 +10,49 @@ using Discord.Audio;
 
 namespace Advobot.Tests.Fakes.Discord
 {
-	public class FakeGuild : FakeSnowflake, IGuild
+	public sealed class FakeGuild : FakeSnowflake, IGuild
 	{
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public string Name => "Fake Guild";
+		public ulong? AFKChannelId => throw new NotImplementedException();
 		public int AFKTimeout => throw new NotImplementedException();
-		public bool IsEmbeddable => throw new NotImplementedException();
+		public ulong? ApplicationId => throw new NotImplementedException();
+		public IAudioClient AudioClient => throw new NotImplementedException();
+		public bool Available => throw new NotImplementedException();
+		public string BannerId => throw new NotImplementedException();
+		public string BannerUrl => throw new NotImplementedException();
+		public ulong DefaultChannelId => throw new NotImplementedException();
 		public DefaultMessageNotifications DefaultMessageNotifications => throw new NotImplementedException();
-		public MfaLevel MfaLevel => throw new NotImplementedException();
-		public VerificationLevel VerificationLevel => throw new NotImplementedException();
+		public string Description => throw new NotImplementedException();
+		public ulong? EmbedChannelId => throw new NotImplementedException();
+		public IReadOnlyCollection<GuildEmote> Emotes => throw new NotImplementedException();
 		public ExplicitContentFilterLevel ExplicitContentFilter => throw new NotImplementedException();
+		public List<FakeBan> FakeBans { get; } = new List<FakeBan>();
+		public List<FakeGuildChannel> FakeChannels { get; } = new List<FakeGuildChannel>();
+		public FakeGuildUser FakeCurrentUser { get; }
+		public FakeRole FakeEveryoneRole { get; }
+		public List<FakeInviteMetadata> FakeInvites { get; } = new List<FakeInviteMetadata>();
+		public FakeGuildUser FakeOwner { get; }
+		public List<FakeRole> FakeRoles { get; } = new List<FakeRole>();
+		public List<FakeGuildUser> FakeUsers { get; } = new List<FakeGuildUser>();
+		public List<IWebhook> FakeWebhooks { get; } = new List<IWebhook>();
+		public IReadOnlyCollection<string> Features { get; } = Array.Empty<string>();
 		public string IconId => throw new NotImplementedException();
 		public string IconUrl => throw new NotImplementedException();
-		public string SplashId => throw new NotImplementedException();
-		public string SplashUrl => throw new NotImplementedException();
-		public bool Available => throw new NotImplementedException();
-		public ulong? AFKChannelId => throw new NotImplementedException();
-		public ulong DefaultChannelId => throw new NotImplementedException();
-		public ulong? EmbedChannelId => throw new NotImplementedException();
-		public ulong? SystemChannelId => throw new NotImplementedException();
-		public ulong OwnerId => throw new NotImplementedException();
-		public ulong? ApplicationId => throw new NotImplementedException();
-		public string VoiceRegionId => throw new NotImplementedException();
-		public IAudioClient AudioClient => throw new NotImplementedException();
-		public IRole EveryoneRole => throw new NotImplementedException();
-		public IReadOnlyCollection<GuildEmote> Emotes => throw new NotImplementedException();
-		public IReadOnlyCollection<string> Features { get; } = Array.Empty<string>();
-		public IReadOnlyCollection<IRole> Roles => throw new NotImplementedException();
 
-		public Dictionary<ulong, IGuildUser> Users { get; } = new Dictionary<ulong, IGuildUser>();
-		public Dictionary<ulong, IWebhook> Webhooks { get; } = new Dictionary<ulong, IWebhook>();
-		public Dictionary<ulong, IBan> Bans { get; } = new Dictionary<ulong, IBan>();
+		public override ulong Id
+		{
+			get => base.Id;
+			set
+			{
+				FakeEveryoneRole.Id = value;
+				base.Id = value;
+			}
+		}
+
+		public bool IsEmbeddable => throw new NotImplementedException();
+		public MfaLevel MfaLevel => throw new NotImplementedException();
+		public string Name => "Fake Guild";
+		public ulong OwnerId => FakeOwner.Id;
+		public int PremiumSubscriptionCount { get; set; }
 
 		public PremiumTier PremiumTier => PremiumSubscriptionCount switch
 		{
@@ -52,23 +62,42 @@ namespace Advobot.Tests.Fakes.Discord
 			_ => PremiumTier.None,
 		};
 
-		public string BannerId => throw new NotImplementedException();
-		public string BannerUrl => throw new NotImplementedException();
-		public string VanityURLCode => throw new NotImplementedException();
+		public IReadOnlyCollection<IRole> Roles => throw new NotImplementedException();
+		public string SplashId => throw new NotImplementedException();
+		public string SplashUrl => throw new NotImplementedException();
 		public SystemChannelMessageDeny SystemChannelFlags => throw new NotImplementedException();
-		public string Description => throw new NotImplementedException();
-		public int PremiumSubscriptionCount { get; set; }
+		public ulong? SystemChannelId => throw new NotImplementedException();
+		public string VanityURLCode => throw new NotImplementedException();
+		public VerificationLevel VerificationLevel => throw new NotImplementedException();
+		public string VoiceRegionId => throw new NotImplementedException();
+		IRole IGuild.EveryoneRole => FakeEveryoneRole;
 
-		public void AddFakeUser(FakeGuildUser user)
-			=> Users[user.Id] = user;
+		public FakeGuild()
+		{
+			//This has to go before the two created users so they can get it.
+			FakeEveryoneRole = new FakeRole(this)
+			{
+				Id = Id,
+			};
+
+			FakeCurrentUser = new FakeGuildUser(this);
+			FakeOwner = new FakeGuildUser(this)
+			{
+				Id = Id,
+			};
+		}
 
 		public Task AddBanAsync(IUser user, int pruneDays = 0, string reason = null, RequestOptions options = null)
-			=> AddBanAsync(user.Id, pruneDays, reason, options);
+		{
+			FakeBans.Add(new FakeBan(user));
+			FakeUsers.RemoveAll(x => x.Id == user.Id);
+			return Task.CompletedTask;
+		}
 
 		public Task AddBanAsync(ulong userId, int pruneDays = 0, string reason = null, RequestOptions options = null)
 		{
-			Bans[userId] = default;
-			Users.Remove(userId);
+			FakeBans.Add(new FakeBan(userId));
+			FakeUsers.RemoveAll(x => x.Id == userId);
 			return Task.CompletedTask;
 		}
 
@@ -102,9 +131,10 @@ namespace Advobot.Tests.Fakes.Discord
 			=> GetBanAsync(user.Id, options);
 
 		public Task<IBan> GetBanAsync(ulong userId, RequestOptions options = null)
-			=> Task.FromResult(Bans.TryGetValue(userId, out var ban) ? ban : null);
+			=> Task.FromResult<IBan>(FakeBans.SingleOrDefault(x => x.User.Id == userId));
 
-		public Task<IReadOnlyCollection<IBan>> GetBansAsync(RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IBan>> GetBansAsync(RequestOptions options = null)
+			=> Task.FromResult<IReadOnlyCollection<IBan>>(FakeBans);
 
 		public Task<IReadOnlyCollection<ICategoryChannel>> GetCategoriesAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
@@ -112,7 +142,8 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IReadOnlyCollection<IGuildChannel>> GetChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IGuildUser> GetCurrentUserAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IGuildUser> GetCurrentUserAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> Task.FromResult<IGuildUser>(FakeCurrentUser);
 
 		public Task<ITextChannel> GetDefaultChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
@@ -124,9 +155,11 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> Task.FromResult<IGuildUser>(FakeOwner);
 
-		public IRole GetRole(ulong id) => throw new NotImplementedException();
+		public IRole GetRole(ulong id)
+			=> FakeRoles.SingleOrDefault(x => x.Id == id);
 
 		public Task<ITextChannel> GetSystemChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
@@ -135,10 +168,10 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IReadOnlyCollection<ITextChannel>> GetTextChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
 		public Task<IGuildUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-			=> Task.FromResult(Users.TryGetValue(id, out var value) ? value : null);
+			=> Task.FromResult<IGuildUser>(FakeUsers.SingleOrDefault(x => x.Id == id));
 
 		public Task<IReadOnlyCollection<IGuildUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-			=> Task.FromResult<IReadOnlyCollection<IGuildUser>>(Users.Values.ToArray());
+			=> Task.FromResult<IReadOnlyCollection<IGuildUser>>(FakeUsers);
 
 		public Task<IInviteMetadata> GetVanityInviteAsync(RequestOptions options = null) => throw new NotImplementedException();
 
@@ -149,10 +182,10 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null) => throw new NotImplementedException();
 
 		public Task<IWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
-			=> Task.FromResult(Webhooks.TryGetValue(id, out var value) ? value : null);
+			=> Task.FromResult(FakeWebhooks.SingleOrDefault(x => x.Id == id));
 
 		public Task<IReadOnlyCollection<IWebhook>> GetWebhooksAsync(RequestOptions options = null)
-			=> Task.FromResult<IReadOnlyCollection<IWebhook>>(Webhooks.Values.ToArray());
+			=> Task.FromResult<IReadOnlyCollection<IWebhook>>(FakeWebhooks);
 
 		public Task LeaveAsync(RequestOptions options = null) => throw new NotImplementedException();
 
@@ -171,9 +204,5 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task ReorderChannelsAsync(IEnumerable<ReorderChannelProperties> args, RequestOptions options = null) => throw new NotImplementedException();
 
 		public Task ReorderRolesAsync(IEnumerable<ReorderRoleProperties> args, RequestOptions options = null) => throw new NotImplementedException();
-
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

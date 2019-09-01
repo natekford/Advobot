@@ -172,7 +172,9 @@ namespace Advobot.Utilities
 				var channelPerms = i.GetPermissions(t);
 				foreach (var permission in permissions)
 				{
-					if (!channelPerms.Has(permission))
+					//Can't do anything if the channel can't be seen
+					var temp = permission | ChannelPermission.ViewChannel;
+					if (!channelPerms.Has(temp))
 					{
 						return false;
 					}

@@ -13,9 +13,6 @@ namespace Advobot.Tests.Fakes.Discord
 
 	public class FakeUserMessage : FakeMessage, IUserMessage
 	{
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
 
 		public FakeUserMessage(FakeMessageChannel channel, FakeUser author, string content)
@@ -30,8 +27,11 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)
 			=> throw new NotImplementedException();
 
-		public Task PinAsync(RequestOptions options = null)
+		public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
 			=> throw new NotImplementedException();
+
+		public Task PinAsync(RequestOptions options = null)
+					=> throw new NotImplementedException();
 
 		public Task RemoveAllReactionsAsync(RequestOptions options = null)
 			=> throw new NotImplementedException();
@@ -39,20 +39,13 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
 			=> throw new NotImplementedException();
 
-		public string Resolve(TagHandling userHandling = TagHandling.Name, TagHandling channelHandling = TagHandling.Name, TagHandling roleHandling = TagHandling.Name, TagHandling everyoneHandling = TagHandling.Ignore, TagHandling emojiHandling = TagHandling.Name)
-			=> throw new NotImplementedException();
-
-		public Task UnpinAsync(RequestOptions options = null)
-			=> throw new NotImplementedException();
-
-		public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
-			=> throw new NotImplementedException();
-
 		public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
 			=> throw new NotImplementedException();
 
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+		public string Resolve(TagHandling userHandling = TagHandling.Name, TagHandling channelHandling = TagHandling.Name, TagHandling roleHandling = TagHandling.Name, TagHandling everyoneHandling = TagHandling.Ignore, TagHandling emojiHandling = TagHandling.Name)
+					=> throw new NotImplementedException();
+
+		public Task UnpinAsync(RequestOptions options = null)
+			=> throw new NotImplementedException();
 	}
 }

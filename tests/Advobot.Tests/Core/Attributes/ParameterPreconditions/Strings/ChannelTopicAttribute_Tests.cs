@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class ChannelTopicAttribute_Tests
-		: ParameterPreconditionsTestsBase<ChannelTopicAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<ChannelTopicAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotString_Test()

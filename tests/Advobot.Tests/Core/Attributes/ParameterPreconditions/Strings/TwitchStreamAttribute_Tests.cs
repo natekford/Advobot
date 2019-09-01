@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class TwitchStreamAttribute_Tests
-		: ParameterPreconditionsTestsBase<TwitchStreamAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<TwitchStreamAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotString_Test()

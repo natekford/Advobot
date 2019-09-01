@@ -14,7 +14,10 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public class CanBeMovedAttribute : UserParameterPreconditionAttribute
 	{
-		private static readonly ChannelPermission[] _MoveMembers = new[] { ChannelPermission.MoveMembers };
+		private static readonly ChannelPermission[] _MoveMembers = new[]
+		{
+			ChannelPermission.MoveMembers
+		};
 
 		/// <inheritdoc />
 		public override string Summary
@@ -32,7 +35,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 			{
 				return PreconditionUtils.FromErrorAsync("The user is not in a voice channel.");
 			}
-			return user.ValidateChannel(voiceChannel, _MoveMembers);
+			return invoker.ValidateChannel(voiceChannel, _MoveMembers);
 		}
 	}
 }

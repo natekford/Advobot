@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class GameAttribute_Tests
-		: ParameterPreconditionsTestsBase<GameAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<GameAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotString_Test()

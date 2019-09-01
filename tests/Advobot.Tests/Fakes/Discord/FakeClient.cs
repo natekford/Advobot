@@ -9,9 +9,6 @@ namespace Advobot.Tests.Fakes.Discord
 {
 	public class FakeClient : IDiscordClient
 	{
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
 		public ConnectionState ConnectionState => throw new NotImplementedException();
 		public ISelfUser CurrentUser => throw new NotImplementedException();
 		public TokenType TokenType => throw new NotImplementedException();
@@ -53,9 +50,5 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task StartAsync() => throw new NotImplementedException();
 
 		public Task StopAsync() => throw new NotImplementedException();
-
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

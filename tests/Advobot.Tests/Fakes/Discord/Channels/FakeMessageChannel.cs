@@ -12,10 +12,6 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 
 	public class FakeMessageChannel : FakeChannel, IMessageChannel
 	{
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-
 		public Task DeleteMessageAsync(ulong messageId, RequestOptions options = null)
 			=> throw new NotImplementedException();
 
@@ -51,9 +47,5 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 
 		public Task TriggerTypingAsync(RequestOptions options = null)
 			=> throw new NotImplementedException();
-
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class EmoteNameAttribute_Tests
-		: ParameterPreconditionsTestsBase<EmoteNameAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<EmoteNameAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotString_Test()

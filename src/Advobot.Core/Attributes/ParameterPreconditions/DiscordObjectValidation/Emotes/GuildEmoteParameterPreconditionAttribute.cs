@@ -13,7 +13,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public abstract class GuildEmoteParameterPreconditionAttribute
-		: DiscordObjectParameterPreconditionAttribute
+		: SnowflakeParameterPreconditionAttribute
 	{
 		/// <summary>
 		/// Checks whether the condition for the <see cref="GuildEmote"/> is met before execution of the command.

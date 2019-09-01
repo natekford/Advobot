@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
 	public sealed class GuildAfkTimeAttribute_Tests
-		: ParameterPreconditionsTestsBase<GuildAfkTimeAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<GuildAfkTimeAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotInt_Test()

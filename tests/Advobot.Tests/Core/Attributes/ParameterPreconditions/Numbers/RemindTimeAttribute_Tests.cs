@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
 	public sealed class RemindTimeAttribute_Tests
-		: ParameterPreconditionsTestsBase<RemindTimeAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<RemindTimeAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotInt_Test()

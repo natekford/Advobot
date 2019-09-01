@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class RegexAttribute_Tests
-		: ParameterPreconditionsTestsBase<RegexAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<RegexAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotString_Test()

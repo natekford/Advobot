@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
 	public sealed class Positive_Tests
-		: ParameterPreconditionsTestsBase<PositiveAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<PositiveAttribute>
 	{
 		[TestMethod]
 		public async Task FailsOnNotInt_Test()

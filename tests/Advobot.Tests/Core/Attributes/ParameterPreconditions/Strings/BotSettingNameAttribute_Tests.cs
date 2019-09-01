@@ -13,7 +13,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
 	public sealed class BotSettingNameAttribute_Tests
-		: ParameterPreconditionsTestsBase<BotSettingNameAttribute>
+		: ParameterlessParameterPreconditions_TestsBase<BotSettingNameAttribute>
 	{
 		public BotSettingNameAttribute_Tests()
 		{

@@ -12,9 +12,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions
 {
-	public abstract class ParameterPreconditionsTestsBase<T>
+	public abstract class ParameterPreconditions_TestsBase<T>
 		: AttributeTestsBase<T>
-		where T : ParameterPreconditionAttribute, new()
+		where T : ParameterPreconditionAttribute
 	{
 		public FakeCommandContext Context { get; set; } = FakeUtils.CreateContext();
 		public ParameterInfo? Parameter { get; set; }
