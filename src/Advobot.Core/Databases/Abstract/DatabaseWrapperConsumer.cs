@@ -8,7 +8,7 @@ namespace Advobot.Databases.Abstract
 	/// <summary>
 	/// This class is the base of a service which uses a database.
 	/// </summary>
-	internal abstract partial class DatabaseWrapperConsumer : IUsesDatabase, IDisposable
+	internal abstract class DatabaseWrapperConsumer : IUsesDatabase
 	{
 		private IDatabaseWrapper? _DatabaseWrapper;
 

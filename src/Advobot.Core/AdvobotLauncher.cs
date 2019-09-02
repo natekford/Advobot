@@ -17,7 +17,6 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.ImageResizing;
 using Advobot.Services.InviteList;
-using Advobot.Services.Levels;
 using Advobot.Services.Logging;
 using Advobot.Services.Timers;
 using Advobot.Settings;
@@ -167,7 +166,6 @@ namespace Advobot
 				.AddSingleton<ICommandHandlerService, CommandHandlerService>()
 				.AddSingleton<IGuildSettingsFactory, GuildSettingsFactory>()
 				.AddSingleton<ILogService, LogService>()
-				.AddSingleton<ILevelService, LevelService>()
 				.AddSingleton<ITimerService, TimerService>()
 				.AddSingleton<IInviteListService, InviteListService>()
 				.AddSingleton<IImageResizer, ImageResizer>();

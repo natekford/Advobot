@@ -76,7 +76,7 @@ namespace Advobot.Gacha.Displays
 				Title = _Character.Data.Name,
 				Description = description,
 				ImageUrl = _Images[PageIndex].Url,
-				Color = Constants.Unclaimed,
+				Color = GachaConstants.Unclaimed,
 				Footer = GeneratePaginationFooter(),
 			};
 			if (_Claim == null)
@@ -87,7 +87,7 @@ namespace Advobot.Gacha.Displays
 			var owner = await _Client.GetUserAsync(_Claim.GetUserId()).CAF();
 			var ownerStr = owner?.ToString() ?? _Claim.UserId;
 
-			embed.Color = Constants.Claimed;
+			embed.Color = GachaConstants.Claimed;
 			embed.Footer.Text += $"| Belongs to {ownerStr}";
 			embed.Footer.IconUrl = owner?.GetAvatarUrl();
 			return embed.Build();

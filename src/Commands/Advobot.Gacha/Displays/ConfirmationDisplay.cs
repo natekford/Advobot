@@ -24,7 +24,7 @@ namespace Advobot.Gacha.Displays
 			IGuildUser giver,
 			IGuildUser receiver,
 			IReadOnlyList<ITrade> trades)
-			: base(services, id, trades.Count, Constants.CharactersPerPage)
+			: base(services, id, trades.Count, GachaConstants.CharactersPerPage)
 		{
 			_Giver = giver;
 			_Receiver = receiver;

@@ -9,7 +9,7 @@ using Advobot;
 // associated with an assembly.
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCopyright("Copyright © 2018")]
+[assembly: AssemblyCopyright("Copyright © 2019")]
 [assembly: AssemblyDescription("Launches a console instance of Advobot.")]
 [assembly: AssemblyProduct("Advobot")]
 [assembly: AssemblyTitle("Advobot.ConsoleLauncher")]

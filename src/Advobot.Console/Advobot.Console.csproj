@@ -7,7 +7,7 @@
     <PackageId>Advobot.Console</PackageId>
     <Authors>Advorange</Authors>
     <Company>Advorange</Company>
-    <Copyright>Copyright © 2018</Copyright>
+    <Copyright>Copyright © 2019</Copyright>
     <Product>Advobot</Product>
     <NeutralLanguage>en</NeutralLanguage>
     <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
     <ProjectReference Include="..\Commands\Advobot.Gacha\Advobot.Gacha.csproj" />
+    <ProjectReference Include="..\Commands\Advobot.Levels\Advobot.Levels.csproj" />
     <ProjectReference Include="..\Commands\Advobot.Settings\Advobot.Settings.csproj" />
     <ProjectReference Include="..\Commands\Advobot.Standard\Advobot.Standard.csproj" />
   </ItemGroup>

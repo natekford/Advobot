@@ -5,7 +5,7 @@ using Discord;
 namespace Advobot.Gacha
 {
 	//TODO: put into settings class
-	public static class Constants
+	public static class GachaConstants
 	{
 		public static readonly int CharactersPerPage = 15;
 		public static readonly Color Claimed = new Color(128, 0, 32);

@@ -23,7 +23,7 @@ namespace Advobot.Gacha.Displays
 			IServiceProvider services,
 			int id,
 			IReadOnlyCollection<IReadOnlyClaim> claims)
-			: base(services, id, claims.Count, Constants.CharactersPerPage)
+			: base(services, id, claims.Count, GachaConstants.CharactersPerPage)
 		{
 			_Claims = claims.Select(x => x.CharacterId).ToArray();
 			_Primary = claims.FirstOrDefault();

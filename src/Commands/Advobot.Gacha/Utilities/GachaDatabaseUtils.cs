@@ -29,7 +29,7 @@ namespace Advobot.Gacha.Utilities
 		}
 
 		public static async Task<AmountAndRank> GetRankAsync<T>(
-					this SQLiteConnection connection,
+			this SQLiteConnection connection,
 			string tableName,
 			long id)
 			where T : ICharacterChild

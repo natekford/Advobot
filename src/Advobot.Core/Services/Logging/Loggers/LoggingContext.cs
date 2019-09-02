@@ -23,7 +23,7 @@ namespace Advobot.Services.Logging.Loggers
 		{
 			var userMessage = message as IUserMessage;
 			var user = userMessage?.Author as IGuildUser;
-			var channel = message.Channel as ITextChannel;
+			var channel = message?.Channel as ITextChannel;
 			var guild = channel?.Guild;
 			return await CreateAsync(userMessage, user, channel, guild, settingsFactory).CAF();
 		}
@@ -54,13 +54,9 @@ namespace Advobot.Services.Logging.Loggers
 			private readonly IGuildUser _User;
 
 			public IGuildUser Bot { get; }
-
 			public IGuild Guild { get; }
-
 			public ITextChannel? ImageLog { get; }
-
 			public ITextChannel? ServerLog { get; }
-
 			public IGuildSettings Settings { get; }
 
 			ITextChannel IMessageLoggingContext.Channel
@@ -69,16 +65,14 @@ namespace Advobot.Services.Logging.Loggers
 			IUserMessage IMessageLoggingContext.Message
 				=> _Message ?? throw InvalidContext<IMessageLoggingContext>();
 
-			//IMessageLoggingContext
 			IGuildUser IMessageLoggingContext.User
 				=> _User ?? throw InvalidContext<IMessageLoggingContext>();
 
-			//IUserLoggingContext
 			IGuildUser IUserLoggingContext.User
 				=> _User ?? throw InvalidContext<IUserLoggingContext>();
 
 			public PrivateLoggingContext(
-																															IGuild guild,
+				IGuild guild,
 				IGuildUser user,
 				IUserMessage? message,
 				ITextChannel? channel,

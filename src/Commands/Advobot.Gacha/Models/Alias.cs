@@ -5,9 +5,7 @@ namespace Advobot.Gacha.Models
 	public class Alias : IReadOnlyAlias
 	{
 		public long CharacterId { get; set; }
-
 		public bool IsSpoiler { get; set; }
-
 		public string? Name { get; set; }
 
 		public Alias()

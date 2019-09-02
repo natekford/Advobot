@@ -7,18 +7,16 @@ namespace Advobot.Gacha.Models
 {
 	public class Wish : IReadOnlyWish
 	{
-		public long WishId { get; set; } = TimeUtils.UtcNowTicks;
+		public long CharacterId { get; set; }
 		public string GuildId { get; set; }
 		public string UserId { get; set; }
-		public long CharacterId { get; set; }
-
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
+		public long WishId { get; set; } = TimeUtils.UtcNowTicks;
 
 		public Wish()
 		{
+			GuildId = "";
+			UserId = "";
 		}
-
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 		public Wish(IReadOnlyUser user, IReadOnlyCharacter character)
 		{

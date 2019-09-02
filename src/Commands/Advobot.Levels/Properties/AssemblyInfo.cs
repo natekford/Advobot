@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Advobot;
+using Advobot.CommandAssemblies;
+using Advobot.Levels;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -11,10 +13,13 @@ using Advobot;
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCopyright("Copyright © 2019")]
-[assembly: AssemblyDescription("Core parts for Advobot.")]
+[assembly: AssemblyDescription("A Discord XP system.")]
 [assembly: AssemblyProduct("Advobot")]
-[assembly: AssemblyTitle("Advobot.Core")]
+[assembly: AssemblyTitle("Advobot.Levels")]
 [assembly: NeutralResourcesLanguage("en")]
+
+// Indicates the assembly has commands in it for the bot to use
+[assembly: CommandAssembly("en-US", InstantiatorType = typeof(LevelInstantiator))]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
@@ -22,7 +27,7 @@ using Advobot;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("0e09576a-5cce-41c1-8ab1-82fe12955037")]
+[assembly: Guid("b90908a6-da2d-42d5-9557-9e5003ee0017")]
 
 // Version information for an assembly consists of the following four values:
 //

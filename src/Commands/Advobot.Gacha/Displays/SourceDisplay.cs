@@ -21,7 +21,7 @@ namespace Advobot.Gacha.Displays
 			int id,
 			IReadOnlySource source,
 			IReadOnlyList<IReadOnlyCharacter> characters)
-			: base(services, id, characters.Count, Constants.CharactersPerPage)
+			: base(services, id, characters.Count, GachaConstants.CharactersPerPage)
 		{
 			_Source = source;
 			_Characters = characters;

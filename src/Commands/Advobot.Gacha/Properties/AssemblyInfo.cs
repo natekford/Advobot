@@ -2,7 +2,7 @@
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
+using Advobot;
 using Advobot.CommandAssemblies;
 using Advobot.Gacha;
 
@@ -11,7 +11,7 @@ using Advobot.Gacha;
 // associated with an assembly.
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCopyright("Copyright © 2018")]
+[assembly: AssemblyCopyright("Copyright © 2019")]
 [assembly: AssemblyDescription("Some shitty attempt at a gacha game in Discord.")]
 [assembly: AssemblyProduct("Advobot")]
 [assembly: AssemblyTitle("Advobot.Gacha")]
@@ -35,7 +35,7 @@ using Advobot.Gacha;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion(Advobot.Constants.BOT_VERSION)]
-[assembly: AssemblyFileVersion(Advobot.Constants.BOT_VERSION)]
-[assembly: AssemblyInformationalVersion(Advobot.Constants.BOT_VERSION)]
+[assembly: AssemblyVersion(Constants.BOT_VERSION)]
+[assembly: AssemblyFileVersion(Constants.BOT_VERSION)]
+[assembly: AssemblyInformationalVersion(Constants.BOT_VERSION)]
 [assembly: InternalsVisibleTo("Advobot.Tests")]

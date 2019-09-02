@@ -71,7 +71,7 @@ namespace Advobot.Gacha.Displays
 		protected override Task KeepDisplayAliveAsync()
 		{
 			var trigger = _Claimed.Task;
-			var delay = Task.Delay(Constants.ClaimLength);
+			var delay = Task.Delay(GachaConstants.ClaimLength);
 			return Task.WhenAny(trigger, delay);
 		}
 
@@ -82,7 +82,7 @@ namespace Advobot.Gacha.Displays
 				Title = _Character.Name,
 				Description = _Source.Name,
 				ImageUrl = _Images[0].Url,
-				Color = _Wishes.Count > 0 ? Constants.Wished : Constants.Unclaimed,
+				Color = _Wishes.Count > 0 ? GachaConstants.Wished : GachaConstants.Unclaimed,
 			}.Build();
 		}
 
