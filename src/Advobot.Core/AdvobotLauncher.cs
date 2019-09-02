@@ -41,7 +41,7 @@ namespace Advobot
 	public sealed class AdvobotLauncher
 	{
 		private readonly ILowLevelConfig _Config;
-		private IServiceCollection? _Services;
+		private IServiceProvider? _Services;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotLauncher"/>.
@@ -67,16 +67,19 @@ namespace Advobot
 		/// <returns></returns>
 		public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
 		{
-			var config = LowLevelConfig.Load(args);
-			var launcher = new AdvobotLauncher(config);
+			var launcher = new AdvobotLauncher(LowLevelConfig.Load(args));
 			await launcher.GetPathAndKeyAsync().CAF();
+
 			var commands = CommandAssemblyCollection.Find();
-			var defaultServices = await launcher.GetDefaultServices(commands).CAF();
-			var provider = launcher.CreateProvider(defaultServices);
-			var commandHandler = provider.GetRequiredService<ICommandHandlerService>();
+			var services = await launcher.GetServicesAsync(commands).CAF();
+
+			var commandHandler = services.GetRequiredService<ICommandHandlerService>();
 			await commandHandler.AddCommandsAsync(commands.Assemblies).CAF();
-			await launcher.StartAsync(provider).CAF();
-			return provider;
+
+			var client = services.GetRequiredService<BaseSocketClient>();
+			await launcher.StartAsync(client).CAF();
+
+			return services;
 		}
 
 		/// <summary>
@@ -103,14 +106,15 @@ namespace Advobot
 		/// <summary>
 		/// Creates the service provider and starts the Discord bot.
 		/// </summary>
+		/// <param name="client"></param>
 		/// <returns></returns>
-		public Task StartAsync(IServiceProvider provider)
+		public Task StartAsync(BaseSocketClient client)
 		{
 			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
 			{
 				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
 			}
-			return _Config.StartAsync(provider.GetRequiredService<BaseSocketClient>());
+			return _Config.StartAsync(client);
 		}
 
 		/// <summary>
@@ -132,7 +136,9 @@ namespace Advobot
 			}
 		}
 
-		private static async Task<IServiceCollection> CreateDefaultServices(CommandAssemblyCollection assemblies, ILowLevelConfig config)
+		private static async Task<IServiceProvider> CreateServicesAsync(
+			CommandAssemblyCollection assemblies,
+			ILowLevelConfig config)
 		{
 			var botSettings = BotSettings.CreateOrLoad(config);
 			var commandConfig = new CommandServiceConfig
@@ -194,34 +200,24 @@ namespace Advobot
 				}
 			}
 
-			return s;
-		}
-
-		/// <summary>
-		/// Creates a provider and initializes all of its singletons.
-		/// </summary>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		private IServiceProvider CreateProvider(IServiceCollection services)
-		{
-			var provider = services.BuildServiceProvider();
-			foreach (var service in services.Where(x => x.Lifetime == ServiceLifetime.Singleton))
+			var services = s.BuildServiceProvider();
+			foreach (var service in s)
 			{
-				var instance = provider.GetRequiredService(service.ServiceType);
+				if (service.Lifetime != ServiceLifetime.Singleton)
+				{
+					continue;
+				}
+
+				var instance = services.GetRequiredService(service.ServiceType);
 				if (instance is IUsesDatabase usesDb)
 				{
 					usesDb.Start();
 				}
 			}
-			return provider;
+			return services;
 		}
 
-		/// <summary>
-		/// Returns the default services for the bot if both the path and key have been set.
-		/// </summary>
-		/// <param name="assemblies"></param>
-		/// <returns></returns>
-		private async Task<IServiceCollection> GetDefaultServices(CommandAssemblyCollection assemblies)
-			=> _Services ?? (_Services = await CreateDefaultServices(assemblies, _Config).CAF());
+		private async Task<IServiceProvider> GetServicesAsync(CommandAssemblyCollection assemblies)
+			=> _Services ?? (_Services = await CreateServicesAsync(assemblies, _Config).CAF());
 	}
 }
