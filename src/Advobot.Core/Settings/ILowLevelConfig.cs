@@ -20,7 +20,7 @@ namespace Advobot.Settings
 		/// <summary>
 		/// The instance number of the bot at launch. This is used to find the correct config.
 		/// </summary>
-		int CurrentInstance { get; }
+		int Instance { get; }
 
 		/// <summary>
 		/// The string to connect to the database with.

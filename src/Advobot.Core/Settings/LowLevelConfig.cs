@@ -45,15 +45,15 @@ namespace Advobot.Settings
 
 		/// <inheritdoc />
 		[JsonIgnore]
-		public int CurrentInstance { get; set; } = -1;
-
-		/// <inheritdoc />
-		[JsonIgnore]
 		public string DatabaseConnectionString { get; set; } = "";
 
 		/// <inheritdoc />
 		[JsonIgnore]
 		public DatabaseType DatabaseType { get; set; } = DatabaseType.LiteDB;
+
+		/// <inheritdoc />
+		[JsonIgnore]
+		public int Instance { get; set; } = -1;
 
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -63,7 +63,7 @@ namespace Advobot.Settings
 		[JsonIgnore]
 		public string RestartArguments =>
 			$"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} " +
-			$"-{nameof(CurrentInstance)} {CurrentInstance} " +
+			$"-{nameof(Instance)} {Instance} " +
 			$"-{nameof(DatabaseType)} {DatabaseType} " +
 			$"-{nameof(DatabaseConnectionString)} {DatabaseConnectionString} ";
 
@@ -86,7 +86,7 @@ namespace Advobot.Settings
 			StaticSettingParserRegistry.Instance.Register(new StaticSettingParser<LowLevelConfig>
 			{
 				new StaticSetting<LowLevelConfig, int>(x => x.PreviousProcessId),
-				new StaticSetting<LowLevelConfig, int>(x => x.CurrentInstance),
+				new StaticSetting<LowLevelConfig, int>(x => x.Instance),
 				new StaticSetting<LowLevelConfig, DatabaseType>(x => x.DatabaseType),
 				new StaticSetting<LowLevelConfig, string>(x => x.DatabaseConnectionString),
 			});
@@ -228,6 +228,6 @@ namespace Advobot.Settings
 
 		/// <inheritdoc />
 		private void Save()
-			=> IOUtils.SafeWriteAllText(GetConfigPath(CurrentInstance), IOUtils.Serialize(this));
+			=> IOUtils.SafeWriteAllText(GetConfigPath(Instance), IOUtils.Serialize(this));
 	}
 }

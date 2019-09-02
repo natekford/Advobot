@@ -13,7 +13,7 @@ namespace Advobot.Tests.Fakes.Services
 	{
 		public DirectoryInfo BaseBotDirectory => throw new NotImplementedException();
 		public ulong BotId => ulong.MinValue;
-		public int CurrentInstance => int.MaxValue;
+		public int Instance => int.MaxValue;
 		public string DatabaseConnectionString => "";
 		public DatabaseType DatabaseType => DatabaseType.LiteDB;
 		public int PreviousProcessId => -1;

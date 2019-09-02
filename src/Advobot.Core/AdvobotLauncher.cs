@@ -57,7 +57,7 @@ namespace Advobot
 				| ConsolePrintingFlags.RemoveDuplicateNewLines;
 
 			_Config = config;
-			ConsoleUtils.DebugWrite($"Args: {_Config.CurrentInstance}|{_Config.PreviousProcessId}", "Launcher Arguments");
+			ConsoleUtils.DebugWrite($"Args: {_Config.Instance}|{_Config.PreviousProcessId}", "Launcher Arguments");
 		}
 
 		/// <summary>
@@ -67,7 +67,8 @@ namespace Advobot
 		/// <returns></returns>
 		public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
 		{
-			var launcher = new AdvobotLauncher(LowLevelConfig.Load(args));
+			var config = LowLevelConfig.Load(args);
+			var launcher = new AdvobotLauncher(config);
 			await launcher.GetPathAndKeyAsync().CAF();
 			var commands = CommandAssemblyCollection.Find();
 			var defaultServices = await launcher.GetDefaultServices(commands).CAF();
