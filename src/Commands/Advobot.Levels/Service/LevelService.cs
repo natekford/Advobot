@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,7 +9,9 @@ using System.Threading.Tasks;
 using Advobot.Levels.Database;
 using Advobot.Levels.Metadata;
 using Advobot.Services.GuildSettings;
+using Advobot.Services.Time;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
 
 using Discord;
@@ -28,16 +29,19 @@ namespace Advobot.Levels.Service
 			= new ConcurrentDictionary<Key, RuntimeInfo>();
 
 		private readonly IGuildSettingsFactory _SettingsFactory;
+		private readonly ITime _Time;
 
 		public LevelService(
 			LevelServiceConfig config,
 			LevelDatabase db,
 			BaseSocketClient client,
+			ITime time,
 			IGuildSettingsFactory settingsFactory)
 		{
 			_Config = config;
 			_Client = client;
 			_Db = db;
+			_Time = time;
 			_SettingsFactory = settingsFactory;
 
 			_Client.MessageReceived += AddExperienceAsync;
@@ -65,7 +69,7 @@ namespace Advobot.Levels.Service
 				return;
 			}
 
-			var runtimeInfo = _RuntimeInfo.GetOrAdd(context.Key, _ => new RuntimeInfo(_Config));
+			var runtimeInfo = _RuntimeInfo.GetOrAdd(context.Key, _ => new RuntimeInfo(_Time, _Config));
 			var xp = CalculateExperience(context, runtimeInfo, _Config.BaseXp);
 			if (!runtimeInfo.TryAdd(context.Message, context.Channel, xp))
 			{
@@ -166,18 +170,20 @@ namespace Advobot.Levels.Service
 			private readonly ConcurrentQueue<MessageHash> _Messages
 				= new ConcurrentQueue<MessageHash>();
 
-			public IReadOnlyList<MessageHash> Messages => _Messages.ToArray();
+			private readonly ITime _Time;
 
+			public IReadOnlyList<MessageHash> Messages => _Messages.ToArray();
 			public DateTime Time { get; private set; } = DateTime.MinValue;
 
-			public RuntimeInfo(LevelServiceConfig config)
+			public RuntimeInfo(ITime time, LevelServiceConfig config)
 			{
+				_Time = time;
 				_Config = config;
 			}
 
 			public bool TryAdd(IUserMessage message, ITextChannel channel, int xp)
 			{
-				if (Time + _Config.WaitTime > DateTime.UtcNow)
+				if (Time + _Config.WaitTime > _Time.UtcNow)
 				{
 					return false;
 				}
@@ -187,7 +193,7 @@ namespace Advobot.Levels.Service
 				{
 					_Messages.TryDequeue(out _);
 				}
-				Time = DateTime.UtcNow;
+				Time = _Time.UtcNow;
 				return true;
 			}
 
@@ -206,7 +212,7 @@ namespace Advobot.Levels.Service
 						//If the most recent message is deleted, then reset the next time
 						//they can get xp in addition to resetting the xp from that message
 						//(Makes up for bots deleting commands automatically, etc)
-						Time = DateTime.UtcNow - _Config.WaitTime;
+						Time = _Time.UtcNow - _Config.WaitTime;
 					}
 
 					hash = message;

@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Advobot.Gacha.Database;
+using Advobot.Gacha.Interaction;
 using Advobot.Gacha.ReadOnlyModels;
-
+using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Discord;
@@ -17,11 +18,13 @@ namespace Advobot.Gacha.Displays
 		private readonly IReadOnlySource _Source;
 
 		public SourceDisplay(
-			IServiceProvider services,
+			GachaDatabase db,
+			ITime time,
+			IInteractionManager interaction,
 			int id,
 			IReadOnlySource source,
 			IReadOnlyList<IReadOnlyCharacter> characters)
-			: base(services, id, characters.Count, GachaConstants.CharactersPerPage)
+			: base(db, time, interaction, id, characters.Count, GachaConstants.CharactersPerPage)
 		{
 			_Source = source;
 			_Characters = characters;

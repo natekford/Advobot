@@ -8,6 +8,7 @@ using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.Logging.Interfaces;
+using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -24,10 +25,11 @@ namespace Advobot.Services.Logging.Loggers
 		private readonly BaseSocketClient _Client;
 
 		public UserLogger(
+			ITime time,
 			IBotSettings botSettings,
 			IGuildSettingsFactory settingsFactory,
 			BaseSocketClient client)
-			: base(botSettings, settingsFactory)
+			: base(time, botSettings, settingsFactory)
 		{
 			_Client = client;
 		}
@@ -41,11 +43,11 @@ namespace Advobot.Services.Logging.Loggers
 				LogCounterName = nameof(ILogService.UserJoins),
 				WhenCanLog = new Func<IUserLoggingContext, Task>[]
 				{
-					x => HandleJoinLogging(x),
+					HandleJoinLogging,
 				},
 				AnyTime = new Func<IUserLoggingContext, Task>[]
 				{
-					x => HandleOtherJoinActions(x),
+					HandleOtherJoinActions,
 				},
 			});
 		}
@@ -59,11 +61,11 @@ namespace Advobot.Services.Logging.Loggers
 				LogCounterName = nameof(ILogService.UserLeaves),
 				WhenCanLog = new Func<IUserLoggingContext, Task>[]
 				{
-					x => HandleLeftLogging(x),
+					HandleLeftLogging,
 				},
 				AnyTime = new Func<IUserLoggingContext, Task>[]
 				{
-					x => HandleOtherLeftActions(x),
+					HandleOtherLeftActions,
 				},
 			});
 		}
@@ -96,7 +98,7 @@ namespace Advobot.Services.Logging.Loggers
 			var invite = inv != null
 				? $"**Invite:** {inv}"
 				: "";
-			var time = DateTime.UtcNow - context.User.CreatedAt.ToUniversalTime();
+			var time = Time.UtcNow - context.User.CreatedAt.ToUniversalTime();
 			var age = time.TotalHours < 24
 				? $"**New Account:** {(int)time.TotalHours} hours, {time.Minutes} minutes old."
 				: "";
@@ -115,7 +117,7 @@ namespace Advobot.Services.Logging.Loggers
 			var stay = "";
 			if (context.User.JoinedAt.HasValue)
 			{
-				var time = DateTime.UtcNow - context.User.JoinedAt.Value.ToUniversalTime();
+				var time = Time.UtcNow - context.User.JoinedAt.Value.ToUniversalTime();
 				stay = $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}";
 			}
 

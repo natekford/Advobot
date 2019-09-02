@@ -62,9 +62,9 @@ namespace Advobot.Services.InviteList
 		}
 
 		/// <inheritdoc />
-		public Task BumpAsync(SocketGuild guild)
+		public Task BumpAsync(DateTime now, SocketGuild guild)
 		{
-			Time = DateTime.UtcNow;
+			Time = now;
 			return UpdateAsync(guild);
 		}
 

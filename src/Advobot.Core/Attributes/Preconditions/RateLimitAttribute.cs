@@ -3,9 +3,11 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
+using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.Preconditions
 {
@@ -63,11 +65,13 @@ namespace Advobot.Attributes.Preconditions
 			IServiceProvider services)
 		{
 			var dict = _Times.GetOrAdd(command.Name, new ConcurrentDictionary<ulong, DateTime>());
-			if (dict.TryGetValue(context.User.Id, out var time) && DateTime.UtcNow < time)
+			var time = services.GetRequiredService<ITime>();
+			if (dict.TryGetValue(context.User.Id, out var t) && time.UtcNow < t)
 			{
-				return PreconditionUtils.FromErrorAsync($"Command can be next used at `{time.ToLongTimeString()}`.");
+				return PreconditionUtils.FromErrorAsync($"Command can be next used at `{t.ToLongTimeString()}`.");
 			}
-			dict[context.User.Id] = DateTime.UtcNow.Add(Time);
+
+			dict[context.User.Id] = time.UtcNow.Add(Time);
 			return PreconditionUtils.FromSuccessAsync();
 		}
 

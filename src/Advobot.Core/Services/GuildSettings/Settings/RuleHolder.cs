@@ -43,7 +43,7 @@ namespace Advobot.Services.GuildSettings.Settings
 			}
 
 			//If not, go by category
-			return categories.SelectMany(x => SplitFormattedCategoryIntoValidParts(x)).ToArray();
+			return categories.SelectMany(SplitFormattedCategoryIntoValidParts).ToArray();
 		}
 
 		/// <inheritdoc />

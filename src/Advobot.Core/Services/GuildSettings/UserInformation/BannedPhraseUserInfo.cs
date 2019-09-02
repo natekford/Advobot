@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Threading;
 
 using Advobot.Services.GuildSettings.Settings;
-
+using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Discord;
@@ -18,15 +18,10 @@ namespace Advobot.Services.GuildSettings.UserInformation
 		private static readonly PropertyInfo[] _Properties = typeof(BannedPhraseUserInfo).GetProperties();
 
 		private int _Ban;
-
 		private int _Deafen;
-
 		private int _Kick;
-
 		private int _RoleMute;
-
 		private int _Softban;
-
 		private int _VoiceMute;
 
 		/// <summary>
@@ -78,8 +73,9 @@ namespace Advobot.Services.GuildSettings.UserInformation
 		/// <summary>
 		/// Creates an instance of bannedphraseuserinfo.
 		/// </summary>
+		/// <param name="time"></param>
 		/// <param name="user"></param>
-		public BannedPhraseUserInfo(IGuildUser user) : base(user) { }
+		public BannedPhraseUserInfo(ITime time, IGuildUser user) : base(time, user) { }
 
 		/// <summary>
 		/// Increases the banned phrase count for that punishment by one.

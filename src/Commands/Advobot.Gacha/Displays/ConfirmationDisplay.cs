@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Trading;
-
+using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Discord;
@@ -19,12 +19,14 @@ namespace Advobot.Gacha.Displays
 		private readonly IReadOnlyList<ITrade> _Trades;
 
 		public GiveDisplay(
-			IServiceProvider services,
+			GachaDatabase db,
+			ITime time,
+			IInteractionManager interaction,
 			int id,
 			IGuildUser giver,
 			IGuildUser receiver,
 			IReadOnlyList<ITrade> trades)
-			: base(services, id, trades.Count, GachaConstants.CharactersPerPage)
+			: base(db, time, interaction, id, trades.Count, GachaConstants.CharactersPerPage)
 		{
 			_Giver = giver;
 			_Receiver = receiver;

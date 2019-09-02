@@ -38,13 +38,13 @@ namespace Advobot.Formatting
 			{
 				new NullToStringConverter(.1, f => FormatString(f, "Nothing")),
 				new ObjectToStringConverter<object>(.1, (f, v) => FormatString(f, v.ToString())),
-				new ObjectToStringConverter<string>(1, (f, v) => FormatString(f, v)),
+				new ObjectToStringConverter<string>(1, FormatString),
 				new ObjectToStringConverter<Enum>(1, (f, v) => FormatEnumerable(f, EnumUtils.GetFlagNames(v))),
 				new ObjectToStringConverter<RuntimeFormattedObject>(1, (f, v) => Format(v.Format ?? f, v.Value)),
 				new ObjectToStringConverter<IGuildFormattable>(1, (f, v) => Format(f, v.GetFormattableString())),
 				new ObjectToStringConverter<IDiscordFormattableString>(1, (_, v) => v.ToString("", this)),
 				new ObjectToStringConverter<ISnowflakeEntity>(1, (f, v) => FormatString(f, v.Format())),
-				new ObjectToStringConverter<IEnumerable>(.5, (f, v) => FormatEnumerable(f, v)),
+				new ObjectToStringConverter<IEnumerable>(.5, FormatEnumerable),
 			};
 		}
 

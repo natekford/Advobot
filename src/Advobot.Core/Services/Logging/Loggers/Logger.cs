@@ -6,6 +6,7 @@ using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging.Interfaces;
 using Advobot.Services.Logging.LogCounters;
+using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -17,13 +18,14 @@ namespace Advobot.Services.Logging.Loggers
 	internal abstract class Logger : ILogger
 	{
 		protected IBotSettings BotSettings { get; }
-
 		protected IGuildSettingsFactory GuildSettingsFactory { get; }
+		protected ITime Time { get; }
 
 		public event EventHandler<LogCounterIncrementEventArgs> LogCounterIncrement;
 
-		protected Logger(IBotSettings botSettings, IGuildSettingsFactory settingsFactory)
+		protected Logger(ITime time, IBotSettings botSettings, IGuildSettingsFactory settingsFactory)
 		{
+			Time = time;
 			BotSettings = botSettings;
 			GuildSettingsFactory = settingsFactory;
 		}

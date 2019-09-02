@@ -65,8 +65,7 @@ namespace Advobot.Settings.Commands
 			[Command]
 			public async Task<RuntimeResult> Command()
 			{
-				var invite = Invites.Get(Context.Guild.Id);
-				await invite.BumpAsync(Context.Guild).CAF();
+				await Invites.BumpAsync(Context.Guild).CAF();
 				return Responses.GuildList.Bumped();
 			}
 		}

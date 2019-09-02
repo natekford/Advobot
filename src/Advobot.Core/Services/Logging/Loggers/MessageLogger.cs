@@ -10,6 +10,7 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Services.Logging.Interfaces;
+using Advobot.Services.Time;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
 
@@ -27,10 +28,11 @@ namespace Advobot.Services.Logging.Loggers
 		private readonly ITimerService _Timers;
 
 		public MessageLogger(
+			ITime time,
 			IBotSettings botSettings,
 			IGuildSettingsFactory settingsFactory,
 			ITimerService timers)
-			: base(botSettings, settingsFactory)
+			: base(time, botSettings, settingsFactory)
 		{
 			_Timers = timers;
 		}
@@ -46,7 +48,7 @@ namespace Advobot.Services.Logging.Loggers
 				LogCounterName = nameof(ILogService.MessageDeletes),
 				WhenCanLog = new Func<IMessageLoggingContext, Task>[]
 				{
-					x => HandleMessageDeletedLogging(x),
+					HandleMessageDeletedLogging,
 				},
 				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
 			});
@@ -60,10 +62,10 @@ namespace Advobot.Services.Logging.Loggers
 				LogCounterName = nameof(ILogService.Messages),
 				WhenCanLog = new Func<IMessageLoggingContext, Task>[]
 				{
-					x => HandleChannelSettingsAsync(x),
-					x => HandleImageLoggingAsync(x),
-					x => HandleSpamPreventionAsync(x),
-					x => HandleBannedPhrasesAsync(x),
+					HandleChannelSettingsAsync,
+					HandleImageLoggingAsync,
+					HandleSpamPreventionAsync,
+					HandleBannedPhrasesAsync,
 				},
 				AnyTime = Array.Empty<Func<IMessageLoggingContext, Task>>(),
 			});
@@ -80,7 +82,7 @@ namespace Advobot.Services.Logging.Loggers
 				LogCounterName = nameof(ILogService.MessageEdits),
 				WhenCanLog = new Func<IMessageLoggingContext, Task>[]
 				{
-					x => HandleBannedPhrasesAsync(x),
+					HandleBannedPhrasesAsync,
 					x => HandleMessageEditedLoggingAsync(x, cached.Value),
 					x => HandleMessageEditedImageLoggingAsync(x, cached.Value),
 				},
@@ -92,14 +94,14 @@ namespace Advobot.Services.Logging.Loggers
 		{
 			//Ignore admins and messages older than an hour.
 			if (context.User.GuildPermissions.Administrator
-				|| (DateTime.UtcNow - context.Message.CreatedAt.UtcDateTime).Hours > 0)
+				|| (Time.UtcNow - context.Message.CreatedAt.UtcDateTime).Hours > 0)
 			{
 				return;
 			}
 
 			if (!context.Settings.GetBannedPhraseUsers().TryGetSingle(x => x.UserId == context.User.Id, out var info))
 			{
-				context.Settings.GetBannedPhraseUsers().Add(info = new BannedPhraseUserInfo(context.User));
+				context.Settings.GetBannedPhraseUsers().Add(info = new BannedPhraseUserInfo(Time, context.User));
 			}
 			if (context.Settings.BannedPhraseStrings.TryGetFirst(x => context.Message.Content.CaseInsContains(x.Phrase), out var str))
 			{

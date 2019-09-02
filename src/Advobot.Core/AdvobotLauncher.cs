@@ -18,6 +18,7 @@ using Advobot.Services.HelpEntries;
 using Advobot.Services.ImageResizing;
 using Advobot.Services.InviteList;
 using Advobot.Services.Logging;
+using Advobot.Services.Time;
 using Advobot.Services.Timers;
 using Advobot.Settings;
 using Advobot.Utilities;
@@ -162,6 +163,7 @@ namespace Advobot
 				.AddSingleton<IDiscordClient>(discordClient)
 				.AddSingleton<IBotSettings>(botSettings)
 				.AddSingleton<IBotDirectoryAccessor>(botSettings)
+				.AddSingleton<ITime, DefaultTime>()
 				.AddSingleton<IHelpEntryService, HelpEntryService>()
 				.AddSingleton<ICommandHandlerService, CommandHandlerService>()
 				.AddSingleton<IGuildSettingsFactory, GuildSettingsFactory>()

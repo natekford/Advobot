@@ -54,17 +54,5 @@ namespace Advobot.Services.InviteList
 		/// The url leading to the invite.
 		/// </summary>
 		string Url { get; }
-
-		/// <summary>
-		/// Sets <see cref="Time"/> to <see cref="DateTime.UtcNow"/>.
-		/// </summary>
-		/// <param name="guild"></param>
-		Task BumpAsync(SocketGuild guild);
-
-		/// <summary>
-		/// Updates the guild information if changed.
-		/// </summary>
-		/// <param name="guild"></param>
-		Task UpdateAsync(SocketGuild guild);
 	}
 }

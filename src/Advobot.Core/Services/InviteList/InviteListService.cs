@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using Advobot.Databases;
 using Advobot.Databases.Abstract;
-
+using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Discord;
@@ -18,14 +18,21 @@ namespace Advobot.Services.InviteList
 	/// </summary>
 	internal sealed class InviteListService : DatabaseWrapperConsumer, IInviteListService
 	{
+		private readonly ITime _Time;
+
 		/// <inheritdoc />
 		public override string DatabaseName => "InviteList";
 
 		/// <summary>
 		/// Creates an instance of <see cref="InviteListService"/>.
 		/// </summary>
+		/// <param name="time"></param>
 		/// <param name="dbFactory"></param>
-		public InviteListService(IDatabaseWrapperFactory dbFactory) : base(dbFactory) { }
+		public InviteListService(ITime time, IDatabaseWrapperFactory dbFactory)
+			: base(dbFactory)
+		{
+			_Time = time;
+		}
 
 		/// <inheritdoc />
 		public IListedInvite Add(
@@ -43,7 +50,7 @@ namespace Advobot.Services.InviteList
 		public async Task BumpAsync(SocketGuild guild)
 		{
 			var invite = (ListedInvite)Get(guild.Id);
-			await invite.BumpAsync(guild).CAF();
+			await invite.BumpAsync(_Time.UtcNow, guild).CAF();
 			DatabaseWrapper.ExecuteQuery(DatabaseQuery<ListedInvite>.Update(new[] { invite }));
 		}
 

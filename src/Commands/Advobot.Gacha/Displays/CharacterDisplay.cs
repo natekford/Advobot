@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
-
+using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Discord;
@@ -28,20 +28,26 @@ namespace Advobot.Gacha.Displays
 		/// <summary>
 		/// Creates an instance of <see cref="CharacterDisplay"/>.
 		/// </summary>
-		/// <param name="client"></param>
 		/// <param name="db"></param>
+		/// <param name="time"></param>
+		/// <param name="interaction"></param>
+		/// <param name="client"></param>
+		/// <param name="id"></param>
 		/// <param name="character"></param>
 		/// <param name="images"></param>
 		/// <param name="claim"></param>
 		public CharacterDisplay(
-			IServiceProvider services,
+			GachaDatabase db,
+			ITime time,
+			IInteractionManager interaction,
+			IDiscordClient client,
 			int id,
 			CharacterMetadata character,
 			IReadOnlyList<IReadOnlyImage> images,
 			IReadOnlyClaim? claim)
-			: base(services, id, images.Count, 1)
+			: base(db, time, interaction, id, images.Count, 1)
 		{
-			_Client = services.GetRequiredService<IDiscordClient>();
+			_Client = client;
 			_Character = character;
 			_Images = images;
 			_Claim = claim;

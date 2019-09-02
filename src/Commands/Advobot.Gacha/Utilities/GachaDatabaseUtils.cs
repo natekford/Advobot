@@ -31,7 +31,8 @@ namespace Advobot.Gacha.Utilities
 		public static async Task<AmountAndRank> GetRankAsync<T>(
 			this SQLiteConnection connection,
 			string tableName,
-			long id)
+			long id,
+			DateTime now)
 			where T : ICharacterChild
 		{
 			var query = await connection.QueryAsync<long>($@"
@@ -51,7 +52,7 @@ namespace Advobot.Gacha.Utilities
 			var normalizedDict = new Dictionary<long, double>();
 			foreach (var cId in dict.Keys)
 			{
-				normalizedDict[cId] = Normalize(cId.ToTime(), dict[cId]);
+				normalizedDict[cId] = Normalize(now, cId.ToTime(), dict[cId]);
 			}
 
 			var amount = dict.TryGetValue(id, out var v) ? v : 0;
@@ -61,7 +62,7 @@ namespace Advobot.Gacha.Utilities
 			return new AmountAndRank(tableName, amount, rank, normalizedAmount, normalizedRank);
 		}
 
-		public static double Normalize(DateTime timeCreated, int amount)
-			=> amount / (DateTime.UtcNow - timeCreated).TotalDays;
+		public static double Normalize(DateTime now, DateTime timeCreated, int amount)
+			=> amount / (now - timeCreated).TotalDays;
 	}
 }

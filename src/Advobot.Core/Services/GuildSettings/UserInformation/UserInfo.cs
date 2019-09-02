@@ -1,5 +1,5 @@
 ﻿using System;
-
+using Advobot.Services.Time;
 using Discord;
 
 namespace Advobot.Services.GuildSettings.UserInformation
@@ -25,17 +25,19 @@ namespace Advobot.Services.GuildSettings.UserInformation
 		/// <summary>
 		/// Creates an instance of userinfo with the supplied user and time as datetime.utcnow.
 		/// </summary>
+		/// <param name="time"></param>
 		/// <param name="user"></param>
-		protected UserInfo(IGuildUser user) : this(TimeSpan.Zero, user) { }
+		protected UserInfo(ITime time, IGuildUser user) : this(time, user, TimeSpan.Zero) { }
 
 		/// <summary>
 		/// Creates an instance of userinfo with the supplied user and time.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="user"></param>
-		protected UserInfo(TimeSpan time, IGuildUser user)
+		/// <param name="span"></param>
+		protected UserInfo(ITime time, IGuildUser user, TimeSpan span)
 		{
-			Time = DateTime.UtcNow.Add(time);
+			Time = time.UtcNow.Add(span);
 			GuildId = user.Guild.Id;
 			UserId = user.Id;
 		}

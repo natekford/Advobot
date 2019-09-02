@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
 using Advobot.Services.InviteList;
+using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord.Commands;
@@ -29,12 +30,13 @@ namespace Advobot.Attributes.Preconditions
 			IServiceProvider services)
 		{
 			var inviteService = services.GetRequiredService<IInviteListService>();
+			var time = services.GetRequiredService<ITime>();
 			var invite = inviteService.Get(context.Guild.Id);
 			if (invite == null)
 			{
 				return PreconditionUtils.FromErrorAsync("There is no listed invite.");
 			}
-			else if ((DateTime.UtcNow - invite.Time).TotalHours > 1)
+			else if ((time.UtcNow - invite.Time).TotalHours > 1)
 			{
 				return PreconditionUtils.FromSuccessAsync();
 			}

@@ -48,7 +48,7 @@ namespace Advobot.CommandAssemblies
 		/// <param name="supportedCultures"></param>
 		public CommandAssemblyAttribute(params string[] supportedCultures)
 		{
-			SupportedCultures = supportedCultures.Select(x => CultureInfo.GetCultureInfo(x)).ToArray();
+			SupportedCultures = supportedCultures.Select(CultureInfo.GetCultureInfo).ToArray();
 		}
 	}
 }

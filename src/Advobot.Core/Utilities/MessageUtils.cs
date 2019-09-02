@@ -23,6 +23,7 @@ namespace Advobot.Utilities
 		/// <param name="channel"></param>
 		/// <param name="from"></param>
 		/// <param name="count"></param>
+		/// <param name="now"></param>
 		/// <param name="options"></param>
 		/// <param name="predicate"></param>
 		/// <returns></returns>
@@ -30,6 +31,7 @@ namespace Advobot.Utilities
 			ITextChannel channel,
 			IMessage from,
 			int count,
+			DateTime now,
 			RequestOptions options,
 			Func<IMessage, bool>? predicate = null)
 		{
@@ -48,7 +50,7 @@ namespace Advobot.Utilities
 				var cutMessages = filteredMessages.Take(count).ToArray();
 
 				//If less messages are deleted than gathered, that means there are some that are too old meaning we can stop
-				var deletedThisIteration = await DeleteMessagesAsync(channel, cutMessages, options).CAF();
+				var deletedThisIteration = await DeleteMessagesAsync(channel, cutMessages, now, options).CAF();
 				deletedCount += deletedThisIteration;
 				count -= deletedThisIteration;
 				if (deletedThisIteration < cutMessages.Length)
@@ -64,11 +66,16 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="messages"></param>
+		/// <param name="now"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, RequestOptions? options)
+		public static async Task<int> DeleteMessagesAsync(
+			ITextChannel channel,
+			IEnumerable<IMessage> messages,
+			DateTime now,
+			RequestOptions? options)
 		{
-			var m = messages.Where(x => x != null && (DateTime.UtcNow - x.CreatedAt.UtcDateTime).TotalDays < 14).ToArray();
+			var m = messages.Where(x => x != null && (now - x.CreatedAt.UtcDateTime).TotalDays < 14).ToArray();
 			if (m.Length == 0)
 			{
 				return 0;

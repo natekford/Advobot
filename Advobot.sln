@@ -12,6 +12,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Console", "src\Advobot.Console\Advobot.Console.csproj", "{8C84976D-92F8-43D8-BB29-B97ECAF5DB41}"
 	ProjectSection(ProjectDependencies) = postProject
 		{51D74221-B5CA-47FD-BE5A-856187354300} = {51D74221-B5CA-47FD-BE5A-856187354300}
+		{E762CE2D-7EB9-47ED-99DA-B4BE4761AE45} = {E762CE2D-7EB9-47ED-99DA-B4BE4761AE45}
+		{ECFBA359-5A3D-44DF-BD66-0AD0B111CDA1} = {ECFBA359-5A3D-44DF-BD66-0AD0B111CDA1}
 		{688AFCD8-0339-42BC-A607-2231C4806EDE} = {688AFCD8-0339-42BC-A607-2231C4806EDE}
 	EndProjectSection
 EndProject
@@ -36,7 +38,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{291D61D3
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Standard", "src\Commands\Advobot.Standard\Advobot.Standard.csproj", "{688AFCD8-0339-42BC-A607-2231C4806EDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot.Levels", "src\Commands\Advobot.Levels\Advobot.Levels.csproj", "{51D74221-B5CA-47FD-BE5A-856187354300}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Levels", "src\Commands\Advobot.Levels\Advobot.Levels.csproj", "{51D74221-B5CA-47FD-BE5A-856187354300}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -88,13 +90,13 @@ Global
 		{51D74221-B5CA-47FD-BE5A-856187354300} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {4DFA053C-9378-4F41-B1C1-6DE68D9CF75D}
-		BuildVersion_UpdateAssemblyVersion = True
-		BuildVersion_UpdateFileVersion = True
-		BuildVersion_StartDate = 2000/1/1
-		BuildVersion_AssemblyInfoFilename = src\Advobot.Core\obj\Debug\netstandard2.0\Advobot.Core.AssemblyInfo.cs
-		BuildVersion_UseGlobalSettings = False
-		BuildVersion_UseUniversalClock = True
 		BuildVersion_BuildVersioningStyle = None.None.Increment.None
+		BuildVersion_UseUniversalClock = True
+		BuildVersion_UseGlobalSettings = False
+		BuildVersion_AssemblyInfoFilename = src\Advobot.Core\obj\Debug\netstandard2.0\Advobot.Core.AssemblyInfo.cs
+		BuildVersion_StartDate = 2000/1/1
+		BuildVersion_UpdateFileVersion = True
+		BuildVersion_UpdateAssemblyVersion = True
+		SolutionGuid = {4DFA053C-9378-4F41-B1C1-6DE68D9CF75D}
 	EndGlobalSection
 EndGlobal

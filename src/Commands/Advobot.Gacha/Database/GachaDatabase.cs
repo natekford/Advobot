@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,12 +8,11 @@ using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Trading;
 using Advobot.Gacha.Utilities;
+using Advobot.Services.Time;
 
 using AdvorangesUtils;
 
 using Dapper;
-
-using Microsoft.Extensions.DependencyInjection;
 
 using Image = Advobot.Gacha.Models.Image;
 
@@ -23,10 +21,12 @@ namespace Advobot.Gacha.Database
 	public sealed class GachaDatabase
 	{
 		private readonly IDatabaseStarter _Starter;
+		private readonly ITime _Time;
 
-		public GachaDatabase(IServiceProvider provider)
+		public GachaDatabase(ITime time, IDatabaseStarter starter)
 		{
-			_Starter = provider.GetRequiredService<IDatabaseStarter>();
+			_Time = time;
+			_Starter = starter;
 		}
 
 		public async Task AddCharacterAsync(IReadOnlyCharacter character)
@@ -327,9 +327,9 @@ namespace Advobot.Gacha.Database
 
 			var id = character.CharacterId;
 			var source = await GetSourceAsync(character.SourceId).CAF();
-			var claims = await connection.GetRankAsync<Claim>("Claim", id).CAF();
+			var claims = await connection.GetRankAsync<Claim>("Claim", id, _Time.UtcNow).CAF();
 			var likes = new AmountAndRank("Likes", -1, -1, -1, -1);
-			var wishes = await connection.GetRankAsync<Wish>("Wish", id).CAF();
+			var wishes = await connection.GetRankAsync<Wish>("Wish", id, _Time.UtcNow).CAF();
 			return new CharacterMetadata(source, character, claims, likes, wishes);
 		}
 

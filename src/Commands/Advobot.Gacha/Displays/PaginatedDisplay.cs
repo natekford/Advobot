@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
+using Advobot.Services.Time;
 
 using AdvorangesUtils;
 
@@ -14,11 +16,8 @@ namespace Advobot.Gacha.Displays
 	public abstract class PaginatedDisplay : Display
 	{
 		private int _PageIndex;
-
 		public int ItemCount { get; }
-
 		public int ItemsPerPage { get; }
-
 		public int PageCount { get; }
 
 		public int PageIndex
@@ -30,10 +29,13 @@ namespace Advobot.Gacha.Displays
 		protected virtual TimeSpan Timeout { get; } = TimeSpan.FromSeconds(30);
 
 		protected PaginatedDisplay(
-													IServiceProvider services,
+			GachaDatabase db,
+			ITime time,
+			IInteractionManager interaction,
 			int id,
 			int itemCount,
-			int itemsPerPage) : base(services, id)
+			int itemsPerPage)
+			: base(db, time, interaction, id)
 		{
 			ItemCount = itemCount;
 			ItemsPerPage = itemsPerPage;
@@ -71,7 +73,7 @@ namespace Advobot.Gacha.Displays
 
 		protected override async Task KeepDisplayAliveAsync()
 		{
-			while (DateTime.UtcNow - LastInteractedWith > Timeout)
+			while (Time.UtcNow - LastInteractedWith > Timeout)
 			{
 				await Task.Delay(Timeout).CAF();
 			}

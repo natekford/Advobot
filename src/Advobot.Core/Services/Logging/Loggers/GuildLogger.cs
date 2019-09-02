@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Logging.Interfaces;
+using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -17,10 +18,11 @@ namespace Advobot.Services.Logging.Loggers
 		private readonly BaseSocketClient _Client;
 
 		public GuildLogger(
+			ITime time,
 			IBotSettings botSettings,
 			IGuildSettingsFactory guildSettings,
 			BaseSocketClient client)
-			: base(botSettings, guildSettings)
+			: base(time, botSettings, guildSettings)
 		{
 			_Client = client;
 		}

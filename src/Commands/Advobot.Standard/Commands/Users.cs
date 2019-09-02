@@ -13,6 +13,7 @@ using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
 using Advobot.Modules;
+using Advobot.Services.Time;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
 using Advobot.TypeReaders;
@@ -337,6 +338,10 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.ManageMessages)]
 		public sealed class RemoveMessages : AdvobotModuleBase
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
+			public ITime Time { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+
 			[Command]
 			[RequireChannelPermissions(ManageMessages)]
 			public Task<RuntimeResult> Command(
@@ -390,7 +395,8 @@ namespace Advobot.Standard.Commands
 				{
 					predicate = x => x.Author.Id == user?.Id;
 				}
-				var deleted = await MessageUtils.DeleteMessagesAsync(channel, start, req, GenerateRequestOptions(), predicate).CAF();
+				var now = Time.UtcNow;
+				var deleted = await MessageUtils.DeleteMessagesAsync(channel, start, req, now, GenerateRequestOptions(), predicate).CAF();
 
 				//If the context channel isn't the targetted channel then delete the start message
 				//Increase by one to account for it not being targetted.

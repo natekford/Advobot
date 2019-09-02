@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.GachaTests.Utilities;
-
+using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +23,7 @@ namespace Advobot.Tests
 		{
 			Provider = new ServiceCollection()
 				.AddSingleton<GachaDatabase>()
+				.AddSingleton<ITime, DefaultTime>()
 				.AddSingleton<IDatabaseStarter, SQLiteTestDatabaseFactory>()
 				.BuildServiceProvider();
 		}

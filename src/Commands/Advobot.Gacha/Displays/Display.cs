@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Modules;
-
+using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Discord;
@@ -16,30 +16,29 @@ namespace Advobot.Gacha.Displays
 {
 	public abstract class Display
 	{
-		public GachaDatabase Database { get; }
-
 		public bool HasBeenSent { get; protected set; }
-
 		public int Id { get; }
-
 		public DateTime LastInteractedWith { get; protected set; }
-
 		public IUserMessage? Message { get; protected set; }
-
+		protected GachaDatabase Database { get; }
 		protected IInteractionHandler InteractionHandler { get; }
+		protected ITime Time { get; }
 
-		protected Display(IServiceProvider services, int id)
+		protected Display(
+			GachaDatabase db,
+			ITime time,
+			IInteractionManager interaction,
+			int id)
 		{
-			Database = services.GetRequiredService<GachaDatabase>();
-
-			var interactionFactory = services.GetRequiredService<IInteractionManager>();
-			InteractionHandler = interactionFactory.CreateInteractionHandler(this);
+			Database = db;
+			Time = time;
+			InteractionHandler = interaction.CreateInteractionHandler(this);
 			Id = id;
 		}
 
 		public virtual Task InteractAsync(IInteractionContext context)
 		{
-			LastInteractedWith = DateTime.UtcNow;
+			LastInteractedWith = Time.UtcNow;
 			return HandleInteractionAsync(context);
 		}
 
