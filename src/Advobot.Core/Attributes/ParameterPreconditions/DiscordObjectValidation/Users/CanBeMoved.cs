@@ -33,7 +33,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 		{
 			if (!(user.VoiceChannel is IVoiceChannel voiceChannel))
 			{
-				return PreconditionUtils.FromError("The user is not in a voice channel.").Async();
+				return PreconditionUtils.FromError("The user is not in a voice channel.").AsTask();
 			}
 			return invoker.ValidateChannel(voiceChannel, _MoveMembers);
 		}

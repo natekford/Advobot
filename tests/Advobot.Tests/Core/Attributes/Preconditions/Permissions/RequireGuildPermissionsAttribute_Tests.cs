@@ -16,12 +16,19 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 {
 	[TestClass]
-	public sealed class RequireGenericGuildPermissionsAttribute_Tests
-		: ParameterlessPreconditions_TestBase<RequireGenericGuildPermissionsAttribute>
+	public sealed class RequireGuildPermissionsAttribute_Tests
+		: Preconditions_TestBase<RequireGuildPermissionsAttribute>
 	{
+		private const GuildPermission FLAGS1 = GuildPermission.KickMembers | GuildPermission.BanMembers;
+		private const GuildPermission FLAGS2 = GuildPermission.ManageMessages | GuildPermission.ManageRoles;
+		private const GuildPermission FLAGS3 = GuildPermission.ManageGuild;
+
 		private readonly IGuildSettings _Settings;
 
-		public RequireGenericGuildPermissionsAttribute_Tests()
+		public override RequireGuildPermissionsAttribute Instance
+			=> new RequireGuildPermissionsAttribute(FLAGS1, FLAGS2, FLAGS3);
+
+		public RequireGuildPermissionsAttribute_Tests()
 		{
 			_Settings = new GuildSettings();
 
@@ -46,6 +53,11 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(GuildPermission.Speak)]
 		[DataRow(GuildPermission.UseVAD)]
 		[DataRow(GuildPermission.ChangeNickname)]
+		[DataRow(GuildPermission.KickMembers)]
+		[DataRow(GuildPermission.BanMembers)]
+		[DataRow(GuildPermission.ManageMessages)]
+		[DataRow(GuildPermission.ManageRoles)]
+		[DataRow(GuildPermission.KickMembers | GuildPermission.ManageMessages)]
 		[DataTestMethod]
 		public async Task InvalidPermissions_Test(GuildPermission permission)
 		{
@@ -67,19 +79,12 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 			Assert.IsFalse(result2.IsSuccess);
 		}
 
-		[DataRow(GuildPermission.KickMembers)]
-		[DataRow(GuildPermission.BanMembers)]
 		[DataRow(GuildPermission.Administrator)]
-		[DataRow(GuildPermission.ManageChannels)]
-		[DataRow(GuildPermission.ManageGuild)]
-		[DataRow(GuildPermission.ManageMessages)]
-		[DataRow(GuildPermission.MuteMembers)]
-		[DataRow(GuildPermission.DeafenMembers)]
-		[DataRow(GuildPermission.MoveMembers)]
-		[DataRow(GuildPermission.ManageNicknames)]
-		[DataRow(GuildPermission.ManageRoles)]
-		[DataRow(GuildPermission.ManageWebhooks)]
-		[DataRow(GuildPermission.ManageEmojis)]
+		[DataRow(FLAGS1)]
+		[DataRow(FLAGS2)]
+		[DataRow(FLAGS3)]
+		[DataRow(FLAGS1 | GuildPermission.ManageEmojis)]
+		[DataRow(FLAGS1 | FLAGS2 | FLAGS3)]
 		[DataTestMethod]
 		public async Task ValidPermissions_Test(GuildPermission permission)
 		{

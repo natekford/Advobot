@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Tests.Utilities;
+
 using Discord;
 
 namespace Advobot.Tests.Fakes.Discord

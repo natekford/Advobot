@@ -50,7 +50,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		{
 			if (!(value is string s))
 			{
-				return this.FromOnlySupports(typeof(string)).Async();
+				return this.FromOnlySupports(typeof(string)).AsTask();
 			}
 			return SingularCheckPermissionsAsync(context, parameter, s, services);
 		}
@@ -71,10 +71,10 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		{
 			if (ValidLength.Contains(value.Length))
 			{
-				return PreconditionUtils.FromSuccess().Async();
+				return PreconditionUtils.FromSuccess().AsTask();
 			}
 			//TODO: handle localizaion for parameter info
-			return PreconditionUtils.FromError($"Invalid {parameter?.Name} supplied, must have a length in `{ValidLength}`").Async();
+			return PreconditionUtils.FromError($"Invalid {parameter?.Name} supplied, must have a length in `{ValidLength}`").AsTask();
 		}
 	}
 }

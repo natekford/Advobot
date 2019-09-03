@@ -28,9 +28,9 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 		{
 			if (!role.IsMentionable)
 			{
-				return PreconditionUtils.FromSuccess().Async();
+				return PreconditionUtils.FromSuccess().AsTask();
 			}
-			return PreconditionUtils.FromError("The role cannot be mentionable.").Async();
+			return PreconditionUtils.FromError("The role cannot be mentionable.").AsTask();
 		}
 	}
 }

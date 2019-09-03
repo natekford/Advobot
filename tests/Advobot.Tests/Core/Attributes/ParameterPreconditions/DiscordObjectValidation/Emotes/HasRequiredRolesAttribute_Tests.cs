@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes;
 
 using AdvorangesUtils;
+
 using Discord;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes

@@ -24,7 +24,6 @@ namespace Advobot.Tests.Fakes.Discord
 		public string Code { get; set; }
 		public DateTimeOffset? CreatedAt { get; } = DateTimeOffset.UtcNow;
 		public FakeGuildChannel FakeChannel { get; }
-		public FakeGuild FakeGuild => FakeChannel.FakeGuild;
 		public FakeGuildUser FakeInviter { get; }
 		public ulong? GuildId => FakeGuild.Id;
 		public string GuildName => FakeGuild.Name;
@@ -38,6 +37,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public string Url => $"https://discord.gg/{Id}";
 		public int? Uses { get; set; }
 		IChannel IInvite.Channel => FakeChannel;
+		public FakeGuild FakeGuild => FakeChannel.FakeGuild;
 		IGuild IInvite.Guild => FakeGuild;
 		IUser IInviteMetadata.Inviter => FakeInviter;
 

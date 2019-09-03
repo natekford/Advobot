@@ -27,13 +27,13 @@ namespace Advobot.Attributes.ParameterPreconditions
 		{
 			if (!(value is IModuleHelpEntry entry))
 			{
-				return this.FromOnlySupports(typeof(IModuleHelpEntry)).Async();
+				return this.FromOnlySupports(typeof(IModuleHelpEntry)).AsTask();
 			}
 			else if (entry.AbleToBeToggled)
 			{
-				return PreconditionUtils.FromSuccess().Async();
+				return PreconditionUtils.FromSuccess().AsTask();
 			}
-			return PreconditionUtils.FromError($"`{entry.Name}` cannot be toggled.").Async();
+			return PreconditionUtils.FromError($"`{entry.Name}` cannot be toggled.").AsTask();
 		}
 	}
 }

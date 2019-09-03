@@ -22,7 +22,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="result"></param>
 		/// <returns></returns>
-		public static Task<PreconditionResult> Async(this PreconditionResult result)
+		public static Task<PreconditionResult> AsTask(this PreconditionResult result)
 			=> Task.FromResult(result);
 
 		/// <summary>

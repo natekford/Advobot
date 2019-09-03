@@ -3,8 +3,11 @@
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
+
 using AdvorangesUtils;
+
 using Discord;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Users

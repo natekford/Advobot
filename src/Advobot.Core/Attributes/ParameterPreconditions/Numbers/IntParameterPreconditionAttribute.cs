@@ -64,9 +64,9 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 			var numbers = GetNumbers(context, parameter, services);
 			if (numbers.Contains(value))
 			{
-				return PreconditionUtils.FromSuccess().Async();
+				return PreconditionUtils.FromSuccess().AsTask();
 			}
-			return PreconditionUtils.FromError($"Invalid {parameter?.Name} supplied, must be in `{Numbers}`").Async();
+			return PreconditionUtils.FromError($"Invalid {parameter?.Name} supplied, must be in `{Numbers}`").AsTask();
 		}
 
 		/// <summary>
@@ -91,7 +91,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		{
 			if (!(value is int num))
 			{
-				return this.FromOnlySupports(typeof(int)).Async();
+				return this.FromOnlySupports(typeof(int)).AsTask();
 			}
 			return SingularCheckPermissionsAsync(context, parameter, num, services);
 		}

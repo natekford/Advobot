@@ -2,8 +2,11 @@
 
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Tests.Fakes.Discord;
+
 using AdvorangesUtils;
+
 using Discord;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
