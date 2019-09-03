@@ -40,7 +40,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 		{
 			if (!(context.User is IGuildUser user))
 			{
-				return PreconditionUtils.FromInvalidInvokerAsync();
+				return PreconditionUtils.FromInvalidInvoker().Async();
 			}
 			if (value is IInviteMetadata invite)
 			{
@@ -49,9 +49,9 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 			else if (value is null)
 			{
 				var error = $"No value was passed in for {parameter.Name}.";
-				return PreconditionUtils.FromErrorAsync(error);
+				return PreconditionUtils.FromError(error).Async();
 			}
-			return this.FromOnlySupportsAsync(typeof(IInviteMetadata));
+			return this.FromOnlySupports(typeof(IInviteMetadata)).Async();
 		}
 	}
 }

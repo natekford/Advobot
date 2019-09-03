@@ -24,11 +24,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 		{
 			if (!(context.User is IGuildUser invoker))
 			{
-				return PreconditionUtils.FromInvalidInvokerAsync();
+				return PreconditionUtils.FromInvalidInvoker().Async();
 			}
 			if (!(value is IRole role))
 			{
-				return this.FromOnlySupportsAsync(typeof(IRole));
+				return this.FromOnlySupports(typeof(IRole)).Async();
 			}
 			return SingularCheckRoleAsync(context, parameter, invoker, role, services);
 		}

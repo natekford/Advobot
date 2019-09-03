@@ -25,38 +25,27 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		private static readonly Enum _Admin = GuildPermission.Administrator;
 
 		/// <summary>
-		/// Whether this precondition targets the bot rather than the user.
-		/// </summary>
-		public bool ForBot { get; set; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="RequireGuildPermissionsAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
 		public RequireGuildPermissionsAttribute(params GuildPermission[] permissions)
-			: base(permissions.Cast<Enum>().Append(_Admin).ToArray()) { }
+			: base(permissions.Cast<Enum>().Append(_Admin)) { }
 
 		/// <inheritdoc />
 		public override async Task<Enum?> GetUserPermissionsAsync(
 			ICommandContext context,
+			IGuildUser user,
 			IServiceProvider services)
 		{
-			if (ForBot)
+			var bits = user.GuildPermissions.RawValue;
+			if (!user.IsBot)
 			{
-				var bot = await context.Guild.GetCurrentUserAsync().CAF();
-				var bits = bot.GuildPermissions.RawValue;
-				return bits == 0 ? null : (Enum)(GuildPermission)bits;
+				var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
+				var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+				var match = settings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id);
+				bits |= match?.Permissions ?? 0;
 			}
-
-			var guildUser = await context.Guild.GetUserAsync(context.User.Id).CAF();
-			var guildBits = guildUser.GuildPermissions.RawValue;
-
-			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
-			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
-			var match = settings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id);
-			var botBits = match?.Permissions ?? 0;
-			var allBits = guildBits | botBits;
-			return allBits == 0 ? null : (Enum)(GuildPermission)allBits;
+			return bits == 0 ? null : (Enum)(GuildPermission)bits;
 		}
 	}
 }

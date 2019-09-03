@@ -40,11 +40,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 		{
 			if (!(context.User is IGuildUser user))
 			{
-				return PreconditionUtils.FromInvalidInvokerAsync();
+				return PreconditionUtils.FromInvalidInvoker().Async();
 			}
 			if (!(value is GuildEmote invite))
 			{
-				return this.FromOnlySupportsAsync(typeof(GuildEmote));
+				return this.FromOnlySupports(typeof(GuildEmote)).Async();
 			}
 			return SingularCheckGuildEmoteAsync(context, parameter, user, invite, services);
 		}

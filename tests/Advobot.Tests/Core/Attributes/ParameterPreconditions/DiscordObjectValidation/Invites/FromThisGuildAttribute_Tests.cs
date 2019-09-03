@@ -23,7 +23,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			var invite = new FakeInviteMetadata(Context.Channel, Context.User);
 
 			var result = await CheckAsync(invite).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -35,7 +35,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			var invite = new FakeInviteMetadata(channel, user);
 
 			var result = await CheckAsync(invite).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 	}
 }

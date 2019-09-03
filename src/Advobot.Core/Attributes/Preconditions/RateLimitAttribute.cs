@@ -68,11 +68,11 @@ namespace Advobot.Attributes.Preconditions
 			var time = services.GetRequiredService<ITime>();
 			if (dict.TryGetValue(context.User.Id, out var t) && time.UtcNow < t)
 			{
-				return PreconditionUtils.FromErrorAsync($"Command can be next used at `{t.ToLongTimeString()}`.");
+				return PreconditionUtils.FromError($"Command can be next used at `{t.ToLongTimeString()}`.").Async();
 			}
 
 			dict[context.User.Id] = time.UtcNow.Add(Time);
-			return PreconditionUtils.FromSuccessAsync();
+			return PreconditionUtils.FromSuccess().Async();
 		}
 
 		/// <summary>

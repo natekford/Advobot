@@ -290,7 +290,7 @@ namespace Advobot.Services.Logging.Loggers
 
 		private async Task HandleSpamPreventionAsync(IMessageLoggingContext context)
 		{
-			if (!context.Bot.CanModify(context.Bot.Id, context.User))
+			if (!context.Bot.CanModify(context.User))
 			{
 				return;
 			}

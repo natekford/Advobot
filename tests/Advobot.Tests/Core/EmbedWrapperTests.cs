@@ -36,7 +36,7 @@ namespace Advobot.Tests.Core
 			RunAuthorTest(x =>
 			{
 				var success = x.TryAddAuthor(LONG_ASS_STRING, null, null, out var errors);
-				Assert.AreEqual(false, success);
+				Assert.IsFalse(success);
 				Assert.AreEqual(2, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Author.Name);
 				Assert.IsNull(x.Author.IconUrl);
@@ -45,7 +45,7 @@ namespace Advobot.Tests.Core
 			RunAuthorTest(x =>
 			{
 				var success = x.TryAddAuthor(LONG_ASS_STRING, VALID_URL, VALID_URL, out var errors);
-				Assert.AreEqual(false, success);
+				Assert.IsFalse(success);
 				Assert.AreEqual(2, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Author.Name);
 				Assert.IsNull(x.Author.IconUrl);
@@ -54,7 +54,7 @@ namespace Advobot.Tests.Core
 			RunAuthorTest(x =>
 			{
 				var success = x.TryAddAuthor(VALID_STRING_2, INVALID_URL, null, out var errors);
-				Assert.AreEqual(false, success);
+				Assert.IsFalse(success);
 				Assert.AreEqual(1, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Author.Name);
 				Assert.IsNull(x.Author.IconUrl);
@@ -63,7 +63,7 @@ namespace Advobot.Tests.Core
 			RunAuthorTest(x =>
 			{
 				var success = x.TryAddAuthor(VALID_STRING_2, VALID_URL, null, out var errors);
-				Assert.AreEqual(true, success);
+				Assert.IsTrue(success);
 				Assert.AreEqual(0, errors.Count);
 				Assert.AreEqual(VALID_STRING_2, x.Author.Name);
 				Assert.AreEqual(VALID_URL, x.Author.Url);
@@ -85,28 +85,28 @@ namespace Advobot.Tests.Core
 			RunDescriptionTest(x =>
 			{
 				var success = x.TryAddDescription(LONG_ASS_STRING, out var errors);
-				Assert.AreEqual(false, success);
+				Assert.IsFalse(success);
 				Assert.AreEqual(2, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Description);
 			});
 			RunDescriptionTest(x =>
 			{
 				var success = x.TryAddDescription(STRING_WITH_MANY_LINES, out var errors);
-				Assert.AreEqual(false, success);
+				Assert.IsFalse(success);
 				Assert.AreEqual(1, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Description);
 			});
 			RunDescriptionTest(x =>
 			{
 				var success = x.TryAddDescription(LONG_ASS_STRING + STRING_WITH_MANY_LINES, out var errors);
-				Assert.AreEqual(false, success);
+				Assert.IsFalse(success);
 				Assert.AreEqual(3, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Description);
 			});
 			RunDescriptionTest(x =>
 			{
 				var success = x.TryAddDescription(VALID_STRING_2, out var errors);
-				Assert.AreEqual(true, success);
+				Assert.IsTrue(success);
 				Assert.AreEqual(0, errors.Count);
 				Assert.AreEqual(VALID_STRING_2, x.Description);
 			});
@@ -114,7 +114,7 @@ namespace Advobot.Tests.Core
 			{
 				FillWithRandomCrap(x);
 				var success = x.TryAddDescription(VALID_STRING, out var errors);
-				Assert.AreEqual(false, success);
+				Assert.IsFalse(success);
 				Assert.AreEqual(1, errors.Count);
 			});
 		}
@@ -141,7 +141,7 @@ namespace Advobot.Tests.Core
 			RunTitleTest(x =>
 			{
 				var success = x.TryAddTitle(LONG_ASS_STRING, out var errors);
-				Assert.AreEqual(false, success);
+				Assert.IsFalse(success);
 				Assert.AreEqual(2, errors.Count);
 				Assert.AreEqual(VALID_STRING, x.Title);
 			});
@@ -149,7 +149,7 @@ namespace Advobot.Tests.Core
 			RunTitleTest(x =>
 			{
 				var success = x.TryAddTitle(VALID_STRING_2, out var errors);
-				Assert.AreEqual(true, success);
+				Assert.IsTrue(success);
 				Assert.AreEqual(0, errors.Count);
 				Assert.AreEqual(VALID_STRING_2, x.Title);
 			});
@@ -192,14 +192,14 @@ namespace Advobot.Tests.Core
 			RunUrlTest(x =>
 			{
 				var (success, errors) = tryAdd(x, VALID_URL);
-				Assert.AreEqual(true, success);
+				Assert.IsTrue(success);
 				Assert.AreEqual(0, errors.Count);
 				Assert.AreEqual(VALID_URL, getter(x));
 			});
 			RunUrlTest(x =>
 			{
 				var (success, errors) = tryAdd(x, INVALID_URL);
-				Assert.AreEqual(false, success);
+				Assert.IsFalse(success);
 				Assert.AreEqual(1, errors.Count);
 				Assert.AreEqual(null, getter(x));
 			});

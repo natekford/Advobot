@@ -34,14 +34,14 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 			_Service.Add(new FakeHelpEntry { Category = CATEGORY });
 
 			var result = await CheckAsync(CATEGORY).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task CategoryNotExisting_Test()
 		{
 			var result = await CheckAsync("i dont exist").CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]

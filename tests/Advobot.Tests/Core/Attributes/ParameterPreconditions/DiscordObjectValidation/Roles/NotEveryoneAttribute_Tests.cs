@@ -23,7 +23,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			var role = Context.Guild.FakeEveryoneRole;
 
 			var result = await CheckAsync(role).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -35,7 +35,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			};
 
 			var result = await CheckAsync(role).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 	}
 }

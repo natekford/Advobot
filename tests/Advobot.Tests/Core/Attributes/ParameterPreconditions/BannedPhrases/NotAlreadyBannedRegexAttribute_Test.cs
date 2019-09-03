@@ -39,14 +39,14 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.BannedPhrases
 			_Settings.BannedPhraseRegex.Add(new BannedPhrase(PHRASE, Punishment.Nothing));
 
 			var result = await CheckAsync(PHRASE).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task RegexNotExisting_Test()
 		{
 			var result = await CheckAsync("not existing").CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 	}
 }

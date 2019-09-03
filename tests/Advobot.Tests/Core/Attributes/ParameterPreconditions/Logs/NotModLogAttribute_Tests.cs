@@ -46,14 +46,14 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Logs
 			_Settings.ModLogId = CHANNEL_ID;
 
 			var result = await CheckAsync(_FakeChannel).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task LogNotExisting_Test()
 		{
 			var result = await CheckAsync(_FakeChannel).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 	}
 }

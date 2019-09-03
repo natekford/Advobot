@@ -39,12 +39,12 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 
 			{
 				var result = await CheckAsync(_ExistingCategory).CAF();
-				Assert.AreEqual(true, result.IsSuccess);
+				Assert.IsTrue(result.IsSuccess);
 			}
 
 			{
 				var result = await CheckAsync(_NonExistentCategory).CAF();
-				Assert.AreEqual(false, result.IsSuccess);
+				Assert.IsFalse(result.IsSuccess);
 			}
 		}
 
@@ -56,12 +56,12 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 
 			{
 				var result = await CheckAsync(_ExistingCategory).CAF();
-				Assert.AreEqual(false, result.IsSuccess);
+				Assert.IsFalse(result.IsSuccess);
 			}
 
 			{
 				var result = await CheckAsync(_NonExistentCategory).CAF();
-				Assert.AreEqual(true, result.IsSuccess);
+				Assert.IsTrue(result.IsSuccess);
 			}
 		}
 

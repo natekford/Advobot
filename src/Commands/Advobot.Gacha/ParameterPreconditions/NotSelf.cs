@@ -23,13 +23,13 @@ namespace Advobot.Gacha.ParameterPreconditions
 		{
 			if (!(value is IReadOnlyUser user))
 			{
-				return this.FromOnlySupportsAsync(typeof(IReadOnlyUser));
+				return this.FromOnlySupports(typeof(IReadOnlyUser)).Async();
 			}
 			else if (user.GetUserId() == context.User.Id)
 			{
-				return PreconditionUtils.FromSuccessAsync();
+				return PreconditionUtils.FromSuccess().Async();
 			}
-			return PreconditionUtils.FromErrorAsync("You cannot use yourself as an argument.");
+			return PreconditionUtils.FromError("You cannot use yourself as an argument.").Async();
 		}
 	}
 }

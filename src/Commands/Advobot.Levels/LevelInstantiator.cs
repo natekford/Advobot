@@ -28,6 +28,7 @@ namespace Advobot.Levels
 			var db = services.GetRequiredService<LevelDatabase>();
 			await db.CreateDatabaseAsync().CAF();
 
+			//Needed to instantiate the level service
 			services.GetRequiredService<ILevelService>();
 		}
 	}

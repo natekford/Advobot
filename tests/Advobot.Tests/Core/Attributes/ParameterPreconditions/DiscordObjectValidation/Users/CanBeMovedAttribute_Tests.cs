@@ -55,7 +55,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).CAF();
 
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -65,7 +65,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Allowed).CAF();
 
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -77,7 +77,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
 
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -92,14 +92,14 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).CAF();
 
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task UserCannotBeMovedBecausePermissions_Test()
 		{
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -108,7 +108,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			_User.VoiceChannel = null;
 
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 	}
 }

@@ -42,7 +42,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _User.AddRoleAsync(_Role).CAF();
 
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -56,7 +56,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
 
 			var result = await CheckAsync(Context.Guild.FakeOwner).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -67,7 +67,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _User.AddRoleAsync(_Role).CAF();
 
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -78,7 +78,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _User.AddRoleAsync(_Role).CAF();
 
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
@@ -89,7 +89,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _User.AddRoleAsync(_Role).CAF();
 
 			var result = await CheckAsync(_User).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 	}
 }

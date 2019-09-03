@@ -12,28 +12,28 @@ namespace Advobot.Attributes.Preconditions.Permissions
 	{
 		private static readonly GuildPermission[] _GenericPerms = new[]
 		{
-			GuildPermission.Administrator,
-			GuildPermission.BanMembers,
-			GuildPermission.DeafenMembers,
 			GuildPermission.KickMembers,
+			GuildPermission.BanMembers,
+			GuildPermission.Administrator,
 			GuildPermission.ManageChannels,
-			GuildPermission.ManageEmojis,
 			GuildPermission.ManageGuild,
 			GuildPermission.ManageMessages,
+			GuildPermission.MuteMembers,
+			GuildPermission.DeafenMembers,
+			GuildPermission.MoveMembers,
 			GuildPermission.ManageNicknames,
 			GuildPermission.ManageRoles,
 			GuildPermission.ManageWebhooks,
-			GuildPermission.MoveMembers,
-			GuildPermission.MuteMembers,
+			GuildPermission.ManageEmojis,
 		};
+
+		/// <inheritdoc />
+		public override string Summary
+			=> "Administrator | Any ending with 'Members' | Any starting with 'Manage'";
 
 		/// <summary>
 		/// Creates an instance of <see cref="RequireGenericGuildPermissionsAttribute"/>.
 		/// </summary>
 		public RequireGenericGuildPermissionsAttribute() : base(_GenericPerms) { }
-
-		/// <inheritdoc />
-		public override string ToString()
-			=> "Administrator | Any ending with 'Members' | Any starting with 'Manage'";
 	}
 }

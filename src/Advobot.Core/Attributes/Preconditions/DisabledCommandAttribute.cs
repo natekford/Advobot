@@ -25,6 +25,6 @@ namespace Advobot.Attributes.Preconditions
 			ICommandContext context,
 			CommandInfo command,
 			IServiceProvider services)
-			=> PreconditionUtils.FromErrorAsync("This command is disabled globally.");
+			=> PreconditionUtils.FromError("This command is disabled globally.").Async();
 	}
 }

@@ -19,7 +19,8 @@ namespace Advobot.Modules
 	/// </summary>
 	public abstract class MultiUserActionModule : AdvobotModuleBase
 	{
-		private static readonly ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new ConcurrentDictionary<ulong, CancellationTokenSource>();
+		private static readonly ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens
+			= new ConcurrentDictionary<ulong, CancellationTokenSource>();
 
 		/// <summary>
 		/// Logs progress when a user is modified.
@@ -33,9 +34,12 @@ namespace Advobot.Modules
 		/// <param name="predicate"></param>
 		/// <param name="update"></param>
 		/// <returns></returns>
-		protected Task<int> ProcessAsync(bool bypass, Func<IGuildUser, bool> predicate, Func<IGuildUser, Task> update)
+		protected Task<int> ProcessAsync(
+			bool bypass,
+			Func<IGuildUser, bool> predicate,
+			Func<IGuildUser, Task> update)
 		{
-			var users = Context.Guild.Users.Where(x => Context.User.CanModify(Context.Guild.CurrentUser.Id, x)).ToArray();
+			var users = Context.Guild.Users.Where(Validate);
 			return ProcessAsync(users, bypass, predicate, update);
 		}
 
@@ -47,45 +51,48 @@ namespace Advobot.Modules
 		/// <param name="predicate"></param>
 		/// <param name="update"></param>
 		/// <returns></returns>
-		protected Task<int> ProcessAsync(IEnumerable<IGuildUser> users, bool bypass, Func<IGuildUser, bool> predicate, Func<IGuildUser, Task> update)
+		protected Task<int> ProcessAsync(
+			IEnumerable<IGuildUser> users,
+			bool bypass,
+			Func<IGuildUser, bool> predicate,
+			Func<IGuildUser, Task> update)
 		{
 			var amount = bypass ? int.MaxValue : BotSettings.MaxUserGatherCount;
 			var array = users.Where(predicate).Take(amount).ToArray();
 			return ProcessAsync(array, update);
 		}
 
-		/// <summary>
-		/// Does an action on many users at once.
-		/// </summary>
-		/// <param name="users"></param>
-		/// <param name="update"></param>
-		/// <returns></returns>
-		protected async Task<int> ProcessAsync(IReadOnlyCollection<IGuildUser> users, Func<IGuildUser, Task> update)
+		private async Task<int> ProcessAsync(
+			IReadOnlyList<IGuildUser> users,
+			Func<IGuildUser, Task> update)
 		{
-			var cancelToken = new CancellationTokenSource();
-			_CancelTokens.AddOrUpdate(Context.Guild.Id, cancelToken, (_, v) =>
+			var token = new CancellationTokenSource();
+			_CancelTokens.AddOrUpdate(Context.Guild.Id, token, (_, v) =>
 			{
 				v?.Cancel();
-				return cancelToken;
+				return token;
 			});
 
-			var successCount = 0;
-			for (var i = 0; i < users.Count; ++i)
+			var i = 0;
+			for (; i < users.Count; ++i)
 			{
-				if (cancelToken.IsCancellationRequested)
+				if (token.IsCancellationRequested)
 				{
 					break;
 				}
-				if (ProgressLogger != null)
+				else if (ProgressLogger != null)
 				{
-					await ProgressLogger.ReportAsync(new MultiUserActionProgressArgs(users.Count, i + 1)).CAF();
+					var args = new MultiUserActionProgressArgs(users.Count, i + 1);
+					await ProgressLogger.ReportAsync(args).CAF();
 				}
 
-				await update(users.ElementAt(i)).CAF();
-				++successCount;
+				await update(users[i]).CAF();
 			}
-			return successCount;
+			return i;
 		}
+
+		private bool Validate(IGuildUser user)
+			=> Context.User.CanModify(user) && Context.Guild.CurrentUser.CanModify(user);
 
 		/// <summary>
 		/// Event arguments for the status of the multi user action.
@@ -138,7 +145,7 @@ namespace Advobot.Modules
 			private readonly Func<MultiUserActionProgressArgs, string> _CreateResult;
 			private readonly RequestOptions? _Options;
 			private bool HasException;
-			private IUserMessage? message = null;
+			private IUserMessage? message;
 
 			/// <summary>
 			/// Creates an instance of <see cref="MultiUserActionProgressLogger"/>.
@@ -146,7 +153,10 @@ namespace Advobot.Modules
 			/// <param name="channel"></param>
 			/// <param name="createResult"></param>
 			/// <param name="options"></param>
-			public MultiUserActionProgressLogger(IMessageChannel channel, Func<MultiUserActionProgressArgs, string> createResult, RequestOptions? options = null)
+			public MultiUserActionProgressLogger(
+				IMessageChannel channel,
+				Func<MultiUserActionProgressArgs, string> createResult,
+				RequestOptions? options = null)
 			{
 				_Channel = channel ?? throw new ArgumentNullException(nameof(channel));
 				_CreateResult = createResult ?? throw new ArgumentNullException(nameof(createResult));
@@ -170,11 +180,15 @@ namespace Advobot.Modules
 					{
 						message = await _Channel.SendMessageAsync(_CreateResult(value), options: _Options).CAF();
 					}
-					else if (value.IsEnd && message != null)
+					else if (message == null)
+					{
+						return;
+					}
+					else if (value.IsEnd)
 					{
 						await message.DeleteAsync(_Options).CAF();
 					}
-					else if (value.CurrentProgress % 10 == 0 && message != null)
+					else if (value.CurrentProgress % 10 == 0)
 					{
 						await message.ModifyAsync(x => x.Content = _CreateResult(value), _Options).CAF();
 					}

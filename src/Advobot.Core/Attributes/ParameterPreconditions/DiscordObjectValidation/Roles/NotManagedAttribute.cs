@@ -28,9 +28,9 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 		{
 			if (!role.IsManaged)
 			{
-				return PreconditionUtils.FromSuccessAsync();
+				return PreconditionUtils.FromSuccess().Async();
 			}
-			return PreconditionUtils.FromErrorAsync("The role cannot be managed.");
+			return PreconditionUtils.FromError("The role cannot be managed.").Async();
 		}
 	}
 }

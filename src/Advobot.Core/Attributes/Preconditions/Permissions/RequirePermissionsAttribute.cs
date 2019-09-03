@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
-
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -20,18 +22,28 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		: PreconditionAttribute, IPrecondition
 	{
 		/// <summary>
+		/// Whether this precondition has to validate the bot's permissions.
+		/// </summary>
+		public bool AppliesToBot { get; set; }
+
+		/// <summary>
+		/// Whether this precondition has to validate the invoker's permissions.
+		/// </summary>
+		public bool AppliesToInvoker { get; set; } = true;
+
+		/// <summary>
 		/// The flags required (each is a separate valid combination of flags).
 		/// </summary>
 		public ImmutableHashSet<Enum> Permissions { get; }
 
 		/// <inheritdoc />
-		public string Summary { get; }
+		public virtual string Summary { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="RequirePermissionsAttribute"/>.
 		/// </summary>
 		/// <param name="permissions"></param>
-		protected RequirePermissionsAttribute(params Enum[] permissions)
+		protected RequirePermissionsAttribute(IEnumerable<Enum> permissions)
 		{
 			Permissions = permissions.ToImmutableHashSet();
 			Summary = Permissions.FormatPermissions();
@@ -43,31 +55,47 @@ namespace Advobot.Attributes.Preconditions.Permissions
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			var userPerms = await GetUserPermissionsAsync(context, services).CAF();
-			//If the user has no permissions this should just return an error
-			if (userPerms == null)
+			var users = new List<IGuildUser>();
+			var bot = await context.Guild.GetCurrentUserAsync().CAF();
+			if (AppliesToInvoker)
 			{
-				return PreconditionUtils.FromError("You have no permissions.");
+				if (!(context.User is IGuildUser temp))
+				{
+					return PreconditionUtils.FromInvalidInvoker();
+				}
+				users.Add(temp);
+			}
+			if (AppliesToBot)
+			{
+				users.Add(bot);
 			}
 
-			foreach (var flag in Permissions)
+			foreach (var user in users)
 			{
-				if (userPerms.HasFlag(flag))
+				var perms = await GetUserPermissionsAsync(context, user, services).CAF();
+				var subject = user.GetSubject(bot.Id);
+				if (perms == null)
 				{
-					return PreconditionUtils.FromSuccess();
+					return PreconditionUtils.FromError($"{subject} have no permissions.");
+				}
+				else if (!Permissions.Any(x => perms.HasFlag(x)))
+				{
+					return PreconditionUtils.FromError($"{subject} do not have any suitable permissions.");
 				}
 			}
-			return PreconditionUtils.FromError("You are missing permissions.");
+			return PreconditionUtils.FromSuccess();
 		}
 
 		/// <summary>
 		/// Returns the invoking user's permissions.
 		/// </summary>
 		/// <param name="context"></param>
+		/// <param name="user"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
 		public abstract Task<Enum?> GetUserPermissionsAsync(
 			ICommandContext context,
+			IGuildUser user,
 			IServiceProvider services);
 	}
 }

@@ -31,9 +31,9 @@ namespace Advobot.Attributes.Preconditions
 			var botSettings = services.GetRequiredService<IBotSettings>();
 			if (!botSettings.UsersUnableToDmOwner.Contains(context.User.Id))
 			{
-				return PreconditionUtils.FromSuccessAsync();
+				return PreconditionUtils.FromSuccess().Async();
 			}
-			return PreconditionUtils.FromErrorAsync("You are unable to dm the bot owner.");
+			return PreconditionUtils.FromError("You are unable to dm the bot owner.").Async();
 		}
 	}
 }

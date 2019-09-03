@@ -21,21 +21,21 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 		public async Task InvalidRegex_Test()
 		{
 			var result = await CheckAsync(".{10,}*").CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task MatchesEverything_Test()
 		{
 			var result = await CheckAsync(".*").CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task MatchesNewLine_Test()
 		{
 			var result = await CheckAsync("\n").CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]

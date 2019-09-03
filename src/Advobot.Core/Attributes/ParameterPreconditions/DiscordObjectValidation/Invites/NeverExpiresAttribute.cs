@@ -29,9 +29,9 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 		{
 			if (invite.MaxAge == null)
 			{
-				return PreconditionUtils.FromSuccessAsync();
+				return PreconditionUtils.FromSuccess().Async();
 			}
-			return PreconditionUtils.FromErrorAsync("The invite cannot expire.");
+			return PreconditionUtils.FromError("The invite cannot expire.").Async();
 		}
 	}
 }

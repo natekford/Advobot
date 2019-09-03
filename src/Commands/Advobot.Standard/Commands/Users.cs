@@ -108,14 +108,36 @@ namespace Advobot.Standard.Commands
 			public Task<RuntimeResult> ClearNickname(
 				IRole target,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions())));
+			{
+				var options = GenerateRequestOptions();
+				Task UpdateAsync(IGuildUser user)
+				{
+					if (user.Nickname != null)
+					{
+						return user.ModifyAsync(x => x.Nickname = user.Username, options);
+					}
+					return Task.CompletedTask;
+				}
+				return CommandRunner(target, bypass, UpdateAsync);
+			}
 
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
 			public Task<RuntimeResult> GiveNickname(
 				IRole target,
 				[Nickname] string nickname,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> CommandRunner(target, bypass, CanModify(u => u.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions())));
+			{
+				var options = GenerateRequestOptions();
+				Task UpdateAsync(IGuildUser user)
+				{
+					if (user.Nickname != nickname)
+					{
+						return user.ModifyAsync(x => x.Nickname = nickname, options);
+					}
+					return Task.CompletedTask;
+				}
+				return CommandRunner(target, bypass, UpdateAsync);
+			}
 
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
 			public Task<RuntimeResult> GiveRole(
@@ -127,7 +149,17 @@ namespace Advobot.Standard.Commands
 				{
 					return Responses.Users.CannotGiveGatheredRole();
 				}
-				return CommandRunner(target, bypass, u => u.AddRoleAsync(give, GenerateRequestOptions()));
+
+				var options = GenerateRequestOptions();
+				Task UpdateAsync(IGuildUser user)
+				{
+					if (!user.RoleIds.Contains(give.Id))
+					{
+						return user.AddRoleAsync(give, options);
+					}
+					return Task.CompletedTask;
+				}
+				return CommandRunner(target, bypass, UpdateAsync);
 			}
 
 			[ImplicitCommand(RunMode = RunMode.Async), ImplicitAlias]
@@ -135,18 +167,17 @@ namespace Advobot.Standard.Commands
 				IRole target,
 				[CanModifyRole, NotEveryone, NotManaged] IRole take,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-				=> CommandRunner(target, bypass, u => u.RemoveRoleAsync(take, GenerateRequestOptions()));
-
-			private Func<IGuildUser, Task> CanModify(Func<IGuildUser, Task> func)
 			{
-				return async u =>
+				var options = GenerateRequestOptions();
+				Task UpdateAsync(IGuildUser user)
 				{
-					var bot = await u.Guild.GetCurrentUserAsync().CAF();
-					if (bot.CanModify(bot.Id, u))
+					if (user.RoleIds.Contains(take.Id))
 					{
-						await func(u).CAF();
+						return user.RemoveRoleAsync(take, options);
 					}
-				};
+					return Task.CompletedTask;
+				}
+				return CommandRunner(target, bypass, UpdateAsync);
 			}
 
 			private async Task<RuntimeResult> CommandRunner(IRole role, bool bypass, Func<IGuildUser, Task> update)
@@ -155,7 +186,10 @@ namespace Advobot.Standard.Commands
 					=> Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason;
 				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, CreateResult, GenerateRequestOptions());
 
-				var amountChanged = await ProcessAsync(bypass, u => u.RoleIds.Contains(role.Id), update).CAF();
+				var amountChanged = await ProcessAsync(
+					bypass,
+					u => u.RoleIds.Contains(role.Id),
+					update).CAF();
 				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
 		}
@@ -225,11 +259,19 @@ namespace Advobot.Standard.Commands
 				[CanModifyChannel(MoveMembers)] IVoiceChannel output,
 				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
+				var options = GenerateRequestOptions();
+				ProgressLogger = new MultiUserActionProgressLogger(
+					Context.Channel,
+					i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+					options
+				);
 				var users = await input.GetUsersAsync().FlattenAsync().CAF();
-				var amountChanged = await ProcessAsync(users, bypass,
+				var amountChanged = await ProcessAsync(
+					users,
+					bypass,
 					_ => true,
-					u => u.ModifyAsync(x => x.Channel = Optional.Create(output), GenerateRequestOptions())).CAF();
+					u => u.ModifyAsync(x => x.Channel = Optional.Create(output), options)
+				).CAF();
 				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
 		}
@@ -267,17 +309,17 @@ namespace Advobot.Standard.Commands
 			{
 				var muteRole = await GetOrCreateMuteRoleAsync().CAF();
 
-				var punishmentArgs = reason.ToPunishmentArgs(this);
+				var args = reason.ToPunishmentArgs(this);
 				var shouldPunish = !user.RoleIds.Contains(muteRole.Id);
 				if (shouldPunish)
 				{
-					await PunishmentUtils.RoleMuteAsync(user, muteRole, punishmentArgs).CAF();
+					await PunishmentUtils.RoleMuteAsync(user, muteRole, args).CAF();
 				}
 				else
 				{
-					await PunishmentUtils.RemoveRoleMuteAsync(user, muteRole, punishmentArgs).CAF();
+					await PunishmentUtils.RemoveRoleMuteAsync(user, muteRole, args).CAF();
 				}
-				return Responses.Users.Muted(shouldPunish, user, punishmentArgs);
+				return Responses.Users.Muted(shouldPunish, user, args);
 			}
 
 			private async Task<IRole> GetOrCreateMuteRoleAsync()

@@ -20,17 +20,22 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		/// </summary>
 		/// <param name="permissions"></param>
 		public RequireChannelPermissionsAttribute(params ChannelPermission[] permissions)
-			: base(permissions.Cast<Enum>().ToArray()) { }
+			: base(permissions.Cast<Enum>()) { }
 
 		/// <inheritdoc />
-		public override async Task<Enum?> GetUserPermissionsAsync(
+		public override Task<Enum?> GetUserPermissionsAsync(
 			ICommandContext context,
+			IGuildUser user,
 			IServiceProvider services)
 		{
-			var guildChannel = await context.Guild.GetTextChannelAsync(context.Channel.Id).CAF();
-			var guildUser = await context.Guild.GetUserAsync(context.User.Id).CAF();
-			var channelBits = guildUser.GetPermissions(guildChannel).RawValue;
-			return channelBits == 0 ? null : (Enum)(ChannelPermission)channelBits;
+			if (!(context.Channel is ITextChannel channel))
+			{
+				return Task.FromResult<Enum?>(null);
+			}
+
+			var bits = user.GetPermissions(channel).RawValue;
+			var e = bits == 0 ? null : (Enum)(ChannelPermission)bits;
+			return Task.FromResult(e);
 		}
 	}
 }

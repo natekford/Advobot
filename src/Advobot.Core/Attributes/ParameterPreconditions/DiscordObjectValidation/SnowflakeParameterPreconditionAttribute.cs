@@ -32,9 +32,9 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 			else if (value is null)
 			{
 				var error = $"No value was passed in for {parameter.Name}.";
-				return PreconditionUtils.FromErrorAsync(error);
+				return PreconditionUtils.FromError(error).Async();
 			}
-			return this.FromOnlySupportsAsync(typeof(ISnowflakeEntity));
+			return this.FromOnlySupports(typeof(ISnowflakeEntity)).Async();
 		}
 
 		/// <summary>

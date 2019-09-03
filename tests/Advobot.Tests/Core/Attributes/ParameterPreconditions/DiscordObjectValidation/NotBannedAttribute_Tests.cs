@@ -20,14 +20,14 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.Guild.AddBanAsync(BAN_ID).CAF();
 
 			var result = await CheckAsync(BAN_ID).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task BanNotExisting_Test()
 		{
 			var result = await CheckAsync(BAN_ID).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 
 		[TestMethod]

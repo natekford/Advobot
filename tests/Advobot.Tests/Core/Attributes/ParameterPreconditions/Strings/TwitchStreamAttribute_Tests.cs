@@ -21,7 +21,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 		public async Task InvalidName_Test()
 		{
 			var result = await CheckAsync("*****").CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]

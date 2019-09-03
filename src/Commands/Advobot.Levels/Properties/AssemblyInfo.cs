@@ -18,9 +18,6 @@ using Advobot.Levels;
 [assembly: AssemblyTitle("Advobot.Levels")]
 [assembly: NeutralResourcesLanguage("en")]
 
-// Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly("en-US", InstantiatorType = typeof(LevelInstantiator))]
-
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
 // COM, set the ComVisible attribute to true on that type.
@@ -39,4 +36,7 @@ using Advobot.Levels;
 [assembly: AssemblyVersion(Constants.BOT_VERSION)]
 [assembly: AssemblyFileVersion(Constants.BOT_VERSION)]
 [assembly: AssemblyInformationalVersion(Constants.BOT_VERSION)]
+
+// Indicates the assembly has commands in it for the bot to use
+[assembly: CommandAssembly("en-US", InstantiatorType = typeof(LevelInstantiator))]
 [assembly: InternalsVisibleTo("Advobot.Tests")]

@@ -37,14 +37,14 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 			_Settings.SelfAssignableGroups.Add(new SelfAssignableRoles(1));
 
 			var result = await CheckAsync(1).CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task GroupNotExisting_Test()
 		{
 			var result = await CheckAsync(1).CAF();
-			Assert.AreEqual(true, result.IsSuccess);
+			Assert.IsTrue(result.IsSuccess);
 		}
 	}
 }

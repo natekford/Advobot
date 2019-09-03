@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-using Advobot.Attributes.ParameterPreconditions.Strings;
+using Advobot.Attributes.Preconditions.Logs;
 using Advobot.Services.GuildSettings;
 using Advobot.Tests.Fakes.Services.GuildSettings;
 
@@ -9,15 +9,15 @@ using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
+namespace Advobot.Tests.Core.Attributes.Preconditions.Logs
 {
 	[TestClass]
-	public sealed class QuoteNameAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<QuoteNameAttribute>
+	public sealed class RequireModLogAttribute_Tests
+		: ParameterlessPreconditions_TestBase<RequireModLogAttribute>
 	{
 		private readonly IGuildSettings _Settings;
 
-		public QuoteNameAttribute_Tests()
+		public RequireModLogAttribute_Tests()
 		{
 			_Settings = new GuildSettings();
 
@@ -27,13 +27,20 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 		}
 
 		[TestMethod]
-		public async Task FailsOnNotString_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
+		public async Task DoesNotHaveLog_Test()
+		{
+			_Settings.ModLogId = 0;
+
+			var result = await CheckAsync().CAF();
+			Assert.IsFalse(result.IsSuccess);
+		}
 
 		[TestMethod]
-		public async Task QuoteNotExisting_Test()
+		public async Task HasLog_Test()
 		{
-			var result = await CheckAsync("i dont exist").CAF();
+			_Settings.ModLogId = 73;
+
+			var result = await CheckAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 	}

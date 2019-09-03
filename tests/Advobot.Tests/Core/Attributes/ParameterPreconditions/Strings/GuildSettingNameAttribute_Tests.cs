@@ -58,7 +58,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 			foreach (var setting in settings)
 			{
 				var result = await CheckAsync(setting.ToLower()).CAF();
-				Assert.AreEqual(true, result.IsSuccess);
+				Assert.IsTrue(result.IsSuccess);
 			}
 		}
 
@@ -70,7 +70,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 		public async Task InvalidSetting_Test()
 		{
 			var result = await CheckAsync("not a setting").CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 	}
 }

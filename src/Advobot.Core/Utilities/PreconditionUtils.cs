@@ -18,14 +18,21 @@ namespace Advobot.Utilities
 	public static class PreconditionUtils
 	{
 		/// <summary>
+		/// Creates a <see cref="Task{T}"/> returning <paramref name="result"/>.
+		/// </summary>
+		/// <param name="result"></param>
+		/// <returns></returns>
+		public static Task<PreconditionResult> Async(this PreconditionResult result)
+			=> Task.FromResult(result);
+
+		/// <summary>
 		/// Returns true if the invoking user's position is greater than the target user's position or if both users are the bot.
 		/// </summary>
 		/// <param name="invoker"></param>
-		/// <param name="bot"></param>
 		/// <param name="t"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invoker, ulong bot, IGuildUser t)
-			=> (invoker.Id == t.Id && t.Id == bot) || invoker.GetHierarchy() > t.GetHierarchy();
+		public static bool CanModify(this IGuildUser invoker, IGuildUser t)
+			=> invoker.GetHierarchy() > t.GetHierarchy();
 
 		/// <summary>
 		/// Returns true if the invoking user's position is greater than the target user's position.
@@ -43,14 +50,6 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static PreconditionResult FromError(string error)
 			=> PreconditionResult.FromError(error);
-
-		/// <summary>
-		/// Acts as <see cref="FromError(string)"/> but async.
-		/// </summary>
-		/// <param name="error"></param>
-		/// <returns></returns>
-		public static Task<PreconditionResult> FromErrorAsync(string error)
-			=> Task.FromResult(FromError(error));
 
 		/// <summary>
 		/// Creates a <see cref="PreconditionResult"/> from the exist status of an object.
@@ -84,14 +83,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <returns></returns>
 		public static PreconditionResult FromInvalidInvoker()
-			=> FromError("Invalid invoker.");
-
-		/// <summary>
-		/// Acts as <see cref="FromInvalidInvoker"/> but async.
-		/// </summary>
-		/// <returns></returns>
-		public static Task<PreconditionResult> FromInvalidInvokerAsync()
-			=> Task.FromResult(FromInvalidInvoker());
+			=> FromError("Invalid invoking user.");
 
 		/// <summary>
 		/// Creates an <see cref="PreconditionResult.FromError(string)"/> saying <paramref name="attr"/> only supports specific types.
@@ -109,17 +101,6 @@ namespace Advobot.Utilities
 		}
 
 		/// <summary>
-		/// Acts as <see cref="FromOnlySupports(Attribute, Type[])"/> but async.
-		/// </summary>
-		/// <param name="attr"></param>
-		/// <param name="supported"></param>
-		/// <returns></returns>
-		public static Task<PreconditionResult> FromOnlySupportsAsync(
-			this Attribute attr,
-			params Type[] supported)
-			=> Task.FromResult(FromOnlySupports(attr, supported));
-
-		/// <summary>
 		/// Creates <see cref="PreconditionResult.FromSuccess"/>.
 		/// </summary>
 		/// <returns></returns>
@@ -127,28 +108,13 @@ namespace Advobot.Utilities
 			=> PreconditionResult.FromSuccess();
 
 		/// <summary>
-		/// Acts as <see cref="FromSuccess()"/> but async.
+		/// Gets the subject of a sentence
 		/// </summary>
-		/// <returns></returns>
-		public static Task<PreconditionResult> FromSuccessAsync()
-			=> Task.FromResult(FromSuccess());
-
-		/// <summary>
-		/// Creates a <see cref="PreconditionResult"/> for someone being unable to modify something.
-		/// </summary>
-		/// <param name="bot"></param>
 		/// <param name="invoker"></param>
-		/// <param name="target"></param>
+		/// <param name="botId"></param>
 		/// <returns></returns>
-		public static PreconditionResult FromUnableToModify(
-			IGuildUser bot,
-			IGuildUser invoker,
-			ISnowflakeEntity target)
-		{
-			var start = invoker.Id == bot.Id ? "I am" : "You are";
-			var reason = $"{start} unable to make the given changes to `{target.Format()}`.";
-			return PreconditionResult.FromError(reason);
-		}
+		public static string GetSubject(this IGuildUser invoker, ulong botId)
+			=> invoker.Id == botId ? "I" : "You";
 
 		/// <summary>
 		/// Verifies that the channel can be edited in specific ways.
@@ -162,7 +128,7 @@ namespace Advobot.Utilities
 			IGuildChannel target,
 			IEnumerable<ChannelPermission> permissions)
 		{
-			return invoker.ValidateAsync(target, (i, _, t) =>
+			return invoker.ValidateAsync(target, (i, t) =>
 			{
 				if (i.GuildPermissions.Administrator)
 				{
@@ -192,7 +158,7 @@ namespace Advobot.Utilities
 		public static Task<PreconditionResult> ValidateRole(
 			this IGuildUser invoker,
 			IRole target)
-			=> invoker.ValidateAsync(target, (i, _, t) => CanModify(i, t));
+			=> invoker.ValidateAsync(target, CanModify);
 
 		/// <summary>
 		/// Verifies that the user can be edited in specific ways.
@@ -217,7 +183,7 @@ namespace Advobot.Utilities
 		private static async Task<PreconditionResult> ValidateAsync<T>(
 			this IGuildUser invoker,
 			T target,
-			Func<IGuildUser, ulong, T, bool> permissionsCallback)
+			Func<IGuildUser, T, bool> permissionsCallback)
 			where T : ISnowflakeEntity
 		{
 			if (target == null)
@@ -233,9 +199,11 @@ namespace Advobot.Utilities
 
 			foreach (var user in new[] { invoker, bot })
 			{
-				if (!permissionsCallback(user, bot.Id, target))
+				if (!permissionsCallback(user, target))
 				{
-					return FromUnableToModify(bot, user, target);
+					var subject = user.GetSubject(bot.Id);
+					var error = $"{subject} do not have the ability to modify `{target.Format()}`.";
+					return FromError(error);
 				}
 			}
 			return FromSuccess();

@@ -21,7 +21,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 		public async Task Space_Test()
 		{
 			var result = await CheckAsync("name with spaces").CAF();
-			Assert.AreEqual(false, result.IsSuccess);
+			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
