@@ -25,7 +25,7 @@ namespace Advobot.Gacha.Models
 			SourceId = source.SourceId;
 		}
 
-		public DateTime GetTimeCreated()
+		public DateTimeOffset GetTimeCreated()
 			=> CharacterId.ToTime();
 	}
 }

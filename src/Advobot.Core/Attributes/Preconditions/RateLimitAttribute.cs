@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.Time;
 using Advobot.Utilities;
-
+using AdvorangesUtils;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +19,8 @@ namespace Advobot.Attributes.Preconditions
 		: PreconditionAttribute, IPrecondition
 	{
 		//TODO: put into service?
-		private static readonly ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>> _Times = new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTime>>();
+		private static readonly ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTimeOffset>> _Times
+			= new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTimeOffset>>();
 
 		/// <inheritdoc />
 		public string Summary
@@ -64,11 +65,13 @@ namespace Advobot.Attributes.Preconditions
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			var dict = _Times.GetOrAdd(command.Name, new ConcurrentDictionary<ulong, DateTime>());
+			var id = command.Attributes.GetAttribute<MetaAttribute>().Guid.ToString();
+			var dict = _Times.GetOrAdd(id, new ConcurrentDictionary<ulong, DateTimeOffset>());
 			var time = services.GetRequiredService<ITime>();
 			if (dict.TryGetValue(context.User.Id, out var t) && time.UtcNow < t)
 			{
-				return PreconditionUtils.FromError($"Command can be next used at `{t.ToLongTimeString()}`.").AsTask();
+				var str = t.DateTime.ToLongTimeString();
+				return PreconditionUtils.FromError($"Command can be next used at `{str}`.").AsTask();
 			}
 
 			dict[context.User.Id] = time.UtcNow.Add(Time);

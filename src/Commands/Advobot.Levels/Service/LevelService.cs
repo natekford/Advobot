@@ -173,7 +173,7 @@ namespace Advobot.Levels.Service
 			private readonly ITime _Time;
 
 			public IReadOnlyList<MessageHash> Messages => _Messages.ToArray();
-			public DateTime Time { get; private set; } = DateTime.MinValue;
+			public DateTimeOffset Time { get; private set; } = DateTimeOffset.MinValue;
 
 			public RuntimeInfo(ITime time, LevelServiceConfig config)
 			{

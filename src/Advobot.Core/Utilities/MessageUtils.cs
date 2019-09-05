@@ -31,7 +31,7 @@ namespace Advobot.Utilities
 			ITextChannel channel,
 			IMessage from,
 			int count,
-			DateTime now,
+			DateTimeOffset now,
 			RequestOptions options,
 			Func<IMessage, bool>? predicate = null)
 		{
@@ -72,7 +72,7 @@ namespace Advobot.Utilities
 		public static async Task<int> DeleteMessagesAsync(
 			ITextChannel channel,
 			IEnumerable<IMessage> messages,
-			DateTime now,
+			DateTimeOffset now,
 			RequestOptions? options)
 		{
 			var m = messages.Where(x => x != null && (now - x.CreatedAt.UtcDateTime).TotalDays < 14).ToArray();

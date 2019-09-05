@@ -18,7 +18,7 @@ namespace Advobot.Gacha.Displays
 	{
 		public bool HasBeenSent { get; protected set; }
 		public int Id { get; }
-		public DateTime LastInteractedWith { get; protected set; }
+		public DateTimeOffset LastInteractedWith { get; protected set; }
 		public IUserMessage? Message { get; protected set; }
 		protected GachaDatabase Database { get; }
 		protected IInteractionHandler InteractionHandler { get; }

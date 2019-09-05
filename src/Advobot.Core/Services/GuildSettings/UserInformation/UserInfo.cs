@@ -17,13 +17,13 @@ namespace Advobot.Services.GuildSettings.UserInformation
 		/// <summary>
 		/// The time to reset the user.
 		/// </summary>
-		public DateTime Time { get; protected set; }
+		public DateTimeOffset Time { get; protected set; }
 
 		/// <inheritdoc />
 		public ulong UserId { get; }
 
 		/// <summary>
-		/// Creates an instance of userinfo with the supplied user and time as datetime.utcnow.
+		/// Creates an instance of userinfo with the supplied user and time as <see cref="DateTimeOffset.UtcNow"/>.
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="user"></param>

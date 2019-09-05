@@ -15,7 +15,7 @@ namespace Advobot.Databases.Abstract
 		/// <summary>
 		/// The UTC time to do an action at.
 		/// </summary>
-		public DateTime Time { get; set; }
+		public DateTimeOffset Time { get; set; }
 
 		//IDatabaseEntry
 		object IDatabaseEntry.Id
@@ -25,14 +25,14 @@ namespace Advobot.Databases.Abstract
 		}
 
 		/// <summary>
-		/// Creates a database entry with the specified timespan added to <see cref="DateTime.UtcNow"/>.
+		/// Creates a database entry with the specified timespan added to <see cref="DateTimeOffset.UtcNow"/>.
 		/// </summary>
 		/// <param name="id"></param>
 		/// <param name="time"></param>
 		protected TimedDatabaseEntry(T id, TimeSpan time)
 		{
 			Id = id;
-			Time = DateTime.UtcNow.Add(time);
+			Time = DateTimeOffset.UtcNow.Add(time);
 		}
 	}
 }

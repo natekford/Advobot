@@ -12,6 +12,6 @@ namespace Advobot.Services.Time
 		/// <summary>
 		/// The current time.
 		/// </summary>
-		DateTime UtcNow { get; }
+		DateTimeOffset UtcNow { get; }
 	}
 }

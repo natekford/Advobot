@@ -32,7 +32,7 @@ namespace Advobot.Gacha.Utilities
 			this SQLiteConnection connection,
 			string tableName,
 			long id,
-			DateTime now)
+			DateTimeOffset now)
 			where T : ICharacterChild
 		{
 			var query = await connection.QueryAsync<long>($@"
@@ -62,7 +62,7 @@ namespace Advobot.Gacha.Utilities
 			return new AmountAndRank(tableName, amount, rank, normalizedAmount, normalizedRank);
 		}
 
-		public static double Normalize(DateTime now, DateTime timeCreated, int amount)
+		public static double Normalize(DateTimeOffset now, DateTimeOffset timeCreated, int amount)
 			=> amount / (now - timeCreated).TotalDays;
 	}
 }

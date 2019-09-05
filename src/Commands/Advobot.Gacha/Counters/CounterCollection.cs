@@ -10,7 +10,7 @@ namespace Advobot.Gacha.Counters
 {
 	public sealed class CounterCollection
 	{
-		private static readonly DateTime _Epoch = new DateTime(2019, 1, 1);
+		private static readonly DateTimeOffset _Epoch = new DateTime(2019, 1, 1);
 		private static readonly TimeSpan _Minute = TimeSpan.FromMinutes(1);
 		private static readonly TimeSpan _Period = Timeout.InfiniteTimeSpan;
 		private static readonly TimeSpan _StaggerInterval = TimeSpan.FromHours(1);
@@ -51,7 +51,7 @@ namespace Advobot.Gacha.Counters
 
 		private TimeSpan CalculateFirstInterval()
 		{
-			var diff = DateTime.UtcNow.Ticks - _Epoch.Ticks;
+			var diff = DateTimeOffset.UtcNow.Ticks - _Epoch.Ticks;
 			var mod = diff % _Interval.Ticks;
 			var ts = _Interval - new TimeSpan(mod);
 			return _IsStaggered ? ts : ts + TimeSpan.FromMinutes(_ResetMinute);

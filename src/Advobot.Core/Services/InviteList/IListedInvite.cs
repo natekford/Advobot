@@ -48,7 +48,7 @@ namespace Advobot.Services.InviteList
 		/// <summary>
 		/// The time the invite was last updated at.
 		/// </summary>
-		DateTime Time { get; }
+		DateTimeOffset Time { get; }
 
 		/// <summary>
 		/// The url leading to the invite.

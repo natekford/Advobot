@@ -5,7 +5,7 @@ namespace Advobot.Gacha.Utilities
 {
 	public static class TimeUtils
 	{
-		private static long _LastTimeStamp = DateTime.UtcNow.Ticks;
+		private static long _LastTimeStamp = DateTimeOffset.UtcNow.Ticks;
 
 		public static long UtcNowTicks
 		{
@@ -15,14 +15,14 @@ namespace Advobot.Gacha.Utilities
 				do
 				{
 					original = _LastTimeStamp;
-					var now = DateTime.UtcNow.Ticks;
+					var now = DateTimeOffset.UtcNow.Ticks;
 					newValue = Math.Max(now, original + 1);
 				} while (Interlocked.CompareExchange(ref _LastTimeStamp, newValue, original) != original);
 				return newValue;
 			}
 		}
 
-		public static DateTime ToTime(this long ticks)
+		public static DateTimeOffset ToTime(this long ticks)
 			=> new DateTime(ticks);
 	}
 }

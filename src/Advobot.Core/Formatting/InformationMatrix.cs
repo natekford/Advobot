@@ -34,12 +34,12 @@ namespace Advobot.Formatting
 		/// <param name="id"></param>
 		/// <param name="dt"></param>
 		/// <returns></returns>
-		public InformationCollection AddTimeCreatedCollection(string id, DateTime dt)
+		public InformationCollection AddTimeCreatedCollection(string id, DateTimeOffset dt)
 		{
-			var diff = (DateTime.UtcNow - dt).TotalDays;
+			var diff = (DateTimeOffset.UtcNow - dt).TotalDays;
 			var collection = CreateCollection();
 			collection.Add("Id", id);
-			collection.Add("Created At", $"{dt.ToReadable()} ({diff:0.00} days ago)");
+			collection.Add("Created At", $"{dt.DateTime.ToReadable()} ({diff:0.00} days ago)");
 			return collection;
 		}
 

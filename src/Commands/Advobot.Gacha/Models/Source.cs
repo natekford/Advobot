@@ -11,7 +11,7 @@ namespace Advobot.Gacha.Models
 		public long SourceId { get; set; } = TimeUtils.UtcNowTicks;
 		public string? ThumbnailUrl { get; set; }
 
-		public DateTime GetTimeCreated()
+		public DateTimeOffset GetTimeCreated()
 			=> SourceId.ToTime();
 	}
 }
