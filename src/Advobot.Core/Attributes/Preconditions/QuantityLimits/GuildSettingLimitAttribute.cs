@@ -54,7 +54,7 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 			IServiceProvider services)
 		{
 			var botSettings = services.GetRequiredService<IBotSettings>();
-			return Task.FromResult(botSettings.MaxQuotes);
+			return Task.FromResult(GetMaximumAllowed(botSettings));
 		}
 	}
 }

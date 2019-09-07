@@ -5,12 +5,11 @@ using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Modules;
 using Advobot.Services.Time;
+
 using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
-
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.Displays
 {

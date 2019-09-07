@@ -14,18 +14,19 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.Preconditions.QuantityLimits
 {
+
 	[TestClass]
-	public sealed class BannedNamesLimitAttribute_Tests
-		: Preconditions_TestBase<BannedNamesLimitAttribute>
+	public sealed class BannedStringsLimitAttribute_Tests
+		: Preconditions_TestBase<BannedStringsLimitAttribute>
 	{
 		private readonly IBotSettings _BotSettings;
 		private readonly IGuildSettings _Settings;
 		private QuantityLimitAction _Action;
 
-		public override BannedNamesLimitAttribute Instance
-			=> new BannedNamesLimitAttribute(_Action);
+		public override BannedStringsLimitAttribute Instance
+			=> new BannedStringsLimitAttribute(_Action);
 
-		public BannedNamesLimitAttribute_Tests()
+		public BannedStringsLimitAttribute_Tests()
 		{
 			_Settings = new GuildSettings();
 			_BotSettings = new FakeBotSettings();
@@ -40,7 +41,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.QuantityLimits
 		public async Task InvalidAdd_Test()
 		{
 			_Action = QuantityLimitAction.Add;
-			_BotSettings.MaxBannedNames = 0;
+			_BotSettings.MaxBannedStrings = 0;
 
 			var result = await CheckAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
@@ -50,7 +51,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.QuantityLimits
 		public async Task InvalidRemove_Test()
 		{
 			_Action = QuantityLimitAction.Remove;
-			_BotSettings.MaxBannedNames = 1;
+			_BotSettings.MaxBannedStrings = 1;
 
 			var result = await CheckAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
@@ -60,7 +61,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.QuantityLimits
 		public async Task ValidAdd_Test()
 		{
 			_Action = QuantityLimitAction.Add;
-			_BotSettings.MaxBannedNames = 1;
+			_BotSettings.MaxBannedStrings = 1;
 
 			var result = await CheckAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
@@ -70,8 +71,8 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.QuantityLimits
 		public async Task ValidRemove_Test()
 		{
 			_Action = QuantityLimitAction.Remove;
-			_BotSettings.MaxBannedNames = 1;
-			_Settings.BannedPhraseNames.Add(new BannedPhrase("test", Punishment.Nothing));
+			_BotSettings.MaxBannedStrings = 1;
+			_Settings.BannedPhraseStrings.Add(new BannedPhrase("test", Punishment.Nothing));
 
 			var result = await CheckAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);

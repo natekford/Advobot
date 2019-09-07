@@ -15,8 +15,12 @@ namespace Advobot.UI.ViewModels
 
 		public ValidationErrors Errors { get; } = new ValidationErrors();
 
-		protected SettingsViewModel(INotifyPropertyChanged settings)
+		protected SettingsViewModel(INotifyPropertyChanged? settings)
 		{
+			if (settings == null)
+			{
+				throw new ArgumentException($"Must implement {nameof(INotifyPropertyChanged)}", nameof(settings));
+			}
 			settings.PropertyChanged += (sender, e) =>
 			{
 				Errors[e.PropertyName] = false;

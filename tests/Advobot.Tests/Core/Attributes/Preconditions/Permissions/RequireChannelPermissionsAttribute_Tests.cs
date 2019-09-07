@@ -2,6 +2,7 @@
 
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Tests.Fakes.Discord;
+
 using AdvorangesUtils;
 
 using Discord;

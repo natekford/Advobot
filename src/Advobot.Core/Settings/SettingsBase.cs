@@ -16,7 +16,7 @@ namespace Advobot.Settings
 	/// <summary>
 	/// Abstract class for settings.
 	/// </summary>
-	internal abstract class SettingsBase : ISettingsBase
+	internal abstract class SettingsBase : ISettingsBase, INotifyPropertyChanged
 	{
 		private readonly Localized<IReadOnlyDictionary<string, Setting>> _Localized;
 		private readonly IReadOnlyList<Setting> _Settings;

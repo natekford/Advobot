@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-
-using Discord.WebSocket;
 
 namespace Advobot.Services.InviteList
 {

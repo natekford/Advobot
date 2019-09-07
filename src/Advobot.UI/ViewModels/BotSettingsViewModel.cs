@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 
 using Advobot.Services.BotSettings;
 using Advobot.UI.ValidationAttributes;
@@ -114,16 +115,17 @@ namespace Advobot.UI.ViewModels
 			set => RaiseAndSetIfChangedAndValid(v => _BotSettings.Stream = v, ref _Stream, value, new TwitchStreamValidationAttribute());
 		}
 
-		public ObservableCollection<ulong> TrustedUsers
-			=> (ObservableCollection<ulong>)_BotSettings.TrustedUsers;
+		public IList<ulong> TrustedUsers
+			=> _BotSettings.TrustedUsers;
 
-		public ObservableCollection<ulong> UsersIgnoredFromCommands
-			=> (ObservableCollection<ulong>)_BotSettings.UsersIgnoredFromCommands;
+		public IList<ulong> UsersIgnoredFromCommands
+			=> _BotSettings.UsersIgnoredFromCommands;
 
-		public ObservableCollection<ulong> UsersUnableToDmOwner
-					=> (ObservableCollection<ulong>)_BotSettings.UsersUnableToDmOwner;
+		public IList<ulong> UsersUnableToDmOwner
+			=> _BotSettings.UsersUnableToDmOwner;
 
-		public BotSettingsViewModel(IBotSettings botSettings) : base(botSettings)
+		public BotSettingsViewModel(IBotSettings botSettings)
+			: base(botSettings as INotifyPropertyChanged)
 		{
 			_BotSettings = botSettings;
 		}

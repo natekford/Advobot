@@ -8,7 +8,7 @@ namespace Advobot.Settings
 	/// <summary>
 	/// Abstraction for something which has settings.
 	/// </summary>
-	public interface ISettingsBase : INotifyPropertyChanged, ISavable
+	public interface ISettingsBase : ISavable
 	{
 		/// <summary>
 		/// Formats the settings so they are readable by a human.
