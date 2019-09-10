@@ -7,6 +7,7 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
+using Discord;
 using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -30,10 +31,15 @@ namespace Advobot.Attributes.Preconditions
 			CommandInfo command,
 			IServiceProvider services)
 		{
+			if (!(context.User is IGuildUser user))
+			{
+				return PreconditionUtils.FromInvalidInvoker();
+			}
+
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
-			var guildUser = await context.Guild.GetUserAsync(context.User.Id).CAF();
-			if (settings.CommandSettings.IsCommandEnabled(guildUser, context.Channel, command))
+			var meta = command.Module.Attributes.GetAttribute<MetaAttribute>();
+			if (settings.CommandSettings.CanUserInvokeCommand(user, context.Channel, meta))
 			{
 				return PreconditionUtils.FromSuccess();
 			}

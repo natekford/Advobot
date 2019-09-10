@@ -1,23 +1,18 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 using Advobot.Settings;
 using Advobot.Utilities;
-
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.Database
 {
 	public sealed class SQLiteFileDatabaseFactory : IDatabaseStarter
 	{
 		private readonly string _ConnectionString;
-		private readonly IBotDirectoryAccessor _Directory;
 		private readonly FileInfo _File;
 
-		public SQLiteFileDatabaseFactory(IServiceProvider provider)
+		public SQLiteFileDatabaseFactory(IBotDirectoryAccessor accessor)
 		{
-			_Directory = provider.GetRequiredService<IBotDirectoryAccessor>();
-			_File = AdvobotUtils.ValidateDbPath(_Directory, "SQLite", "Gacha.db");
+			_File = AdvobotUtils.ValidateDbPath(accessor, "SQLite", "Gacha.db");
 			_ConnectionString = $"Data Source={_File}";
 		}
 

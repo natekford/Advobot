@@ -120,9 +120,6 @@
   <data name="DisplaySelfRoles" xml:space="preserve">
     <value>Displays the groups and roles which can be self assigned.</value>
   </data>
-  <data name="GetGuildListing" xml:space="preserve">
-    <value>Gets an invite meeting the given criteria.</value>
-  </data>
   <data name="ModifyBannedNames" xml:space="preserve">
     <value>Adds or removes banned names.</value>
   </data>
@@ -137,9 +134,6 @@
   </data>
   <data name="ModifyCommands" xml:space="preserve">
     <value>Turns commands on and off.</value>
-  </data>
-  <data name="ModifyGuildListing" xml:space="preserve">
-    <value>Adds or removes a guild from the public guild list.</value>
   </data>
   <data name="ModifyIgnoredCommandChannels" xml:space="preserve">
     <value>The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.</value>
@@ -194,9 +188,6 @@
   </data>
   <data name="AssignSelfRole" xml:space="preserve">
     <value>Gives or takes a role depending on if the user already has it. Removes all other roles in the same group unless the group is 0.</value>
-  </data>
-  <data name="BumpGuildListing" xml:space="preserve">
-    <value>Bumps the invite on the guild.</value>
   </data>
   <data name="TestGuildNotifs" xml:space="preserve">
     <value>Sends the given guild notification in order to test it.</value>

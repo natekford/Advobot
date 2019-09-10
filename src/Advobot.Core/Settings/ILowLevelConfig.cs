@@ -18,11 +18,6 @@ namespace Advobot.Settings
 		ulong BotId { get; }
 
 		/// <summary>
-		/// The instance number of the bot at launch. This is used to find the correct config.
-		/// </summary>
-		int Instance { get; }
-
-		/// <summary>
 		/// The string to connect to the database with.
 		/// </summary>
 		string DatabaseConnectionString { get; }
@@ -31,6 +26,11 @@ namespace Advobot.Settings
 		/// The type of database to use for services which require a database.
 		/// </summary>
 		DatabaseType DatabaseType { get; }
+
+		/// <summary>
+		/// The instance number of the bot at launch. This is used to find the correct config.
+		/// </summary>
+		int Instance { get; }
 
 		/// <summary>
 		/// The previous process id of the application.

@@ -3,21 +3,25 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
+using Advobot.Tests.Fakes.Discord.Users;
+
 using Discord;
 
 namespace Advobot.Tests.Fakes.Discord
 {
-	public class FakeClient : IDiscordClient
+	public sealed class FakeClient : IDiscordClient
 	{
 		public ConnectionState ConnectionState => throw new NotImplementedException();
-		public ISelfUser CurrentUser => throw new NotImplementedException();
+		public ISelfUser CurrentUser { get; set; } = new FakeSelfUser();
+		public FakeApplication FakeApplication { get; set; } = new FakeApplication();
 		public TokenType TokenType => throw new NotImplementedException();
 
 		public Task<IGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream jpegIcon = null, RequestOptions options = null) => throw new NotImplementedException();
 
 		public void Dispose() => throw new NotImplementedException();
 
-		public Task<IApplication> GetApplicationInfoAsync(RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IApplication> GetApplicationInfoAsync(RequestOptions options = null)
+			=> Task.FromResult<IApplication>(FakeApplication);
 
 		public Task<IChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 

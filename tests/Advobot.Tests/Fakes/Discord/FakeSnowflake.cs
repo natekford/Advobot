@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
 
+using Advobot.Utilities;
+
 using Discord;
 
 namespace Advobot.Tests.Fakes.Discord
@@ -23,7 +25,7 @@ namespace Advobot.Tests.Fakes.Discord
 					var now = DateTimeOffset.UtcNow.Ticks;
 					newValue = Math.Max(now, original + 10000);
 				} while (Interlocked.CompareExchange(ref _LastTimeStamp, newValue, original) != original);
-				return new DateTimeOffset(new DateTime(newValue));
+				return newValue.CreateUtcDTOFromTicks();
 			}
 		}
 	}

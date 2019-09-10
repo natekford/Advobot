@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Tests.Fakes.Discord.Channels;
+using Advobot.Tests.Fakes.Discord.Users;
 
 using AdvorangesUtils;
 
@@ -25,18 +26,19 @@ namespace Advobot.Tests.Fakes.Discord
 		public DefaultMessageNotifications DefaultMessageNotifications => throw new NotImplementedException();
 		public string Description => throw new NotImplementedException();
 		public ulong? EmbedChannelId => throw new NotImplementedException();
-		public IReadOnlyCollection<GuildEmote> Emotes => throw new NotImplementedException();
+		public IReadOnlyCollection<GuildEmote> Emotes { get; set; } = new List<GuildEmote>();
 		public ExplicitContentFilterLevel ExplicitContentFilter => throw new NotImplementedException();
 		public List<FakeBan> FakeBans { get; } = new List<FakeBan>();
 		public List<FakeGuildChannel> FakeChannels { get; } = new List<FakeGuildChannel>();
+		public FakeClient FakeClient { get; }
 		public FakeGuildUser FakeCurrentUser { get; }
 		public FakeRole FakeEveryoneRole { get; }
 		public List<FakeInviteMetadata> FakeInvites { get; } = new List<FakeInviteMetadata>();
-		public FakeGuildUser FakeOwner { get; }
+		public FakeGuildUser FakeOwner { get; set; }
 		public List<FakeRole> FakeRoles { get; } = new List<FakeRole>();
 		public List<FakeGuildUser> FakeUsers { get; } = new List<FakeGuildUser>();
 		public List<IWebhook> FakeWebhooks { get; } = new List<IWebhook>();
-		public IReadOnlyCollection<string> Features { get; } = Array.Empty<string>();
+		public List<string> Features { get; } = new List<string>();
 		public string IconId => throw new NotImplementedException();
 		public string IconUrl => throw new NotImplementedException();
 
@@ -73,16 +75,20 @@ namespace Advobot.Tests.Fakes.Discord
 		public VerificationLevel VerificationLevel => throw new NotImplementedException();
 		public string VoiceRegionId => throw new NotImplementedException();
 		IRole IGuild.EveryoneRole => FakeEveryoneRole;
+		IReadOnlyCollection<string> IGuild.Features => Features;
 
-		public FakeGuild()
+		public FakeGuild(FakeClient client)
 		{
+			FakeClient = client;
 			//This has to go before the two created users so they can get it.
 			FakeEveryoneRole = new FakeRole(this)
 			{
 				Id = Id,
 			};
-
-			FakeCurrentUser = new FakeGuildUser(this);
+			FakeCurrentUser = new FakeGuildUser(this)
+			{
+				Id = client.CurrentUser.Id,
+			};
 			FakeOwner = new FakeGuildUser(this)
 			{
 				Id = Id,

@@ -3,6 +3,8 @@
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
+using Advobot.Tests.Fakes.Discord.Users;
+using Advobot.Tests.PreconditionTestsBases;
 
 using AdvorangesUtils;
 
@@ -30,7 +32,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 		[TestMethod]
 		public async Task NotFromThisGuild_Test()
 		{
-			var guild = new FakeGuild();
+			var guild = new FakeGuild(Context.Client);
 			var channel = new FakeTextChannel(guild);
 			var user = new FakeGuildUser(guild);
 			var invite = new FakeInviteMetadata(channel, user);

@@ -328,6 +328,7 @@ namespace Advobot.Gacha.Database
 			var id = character.CharacterId;
 			var source = await GetSourceAsync(character.SourceId).CAF();
 			var claims = await connection.GetRankAsync<Claim>("Claim", id, _Time.UtcNow).CAF();
+			//TODO: implement likes
 			var likes = new AmountAndRank("Likes", -1, -1, -1, -1);
 			var wishes = await connection.GetRankAsync<Wish>("Wish", id, _Time.UtcNow).CAF();
 			return new CharacterMetadata(source, character, claims, likes, wishes);

@@ -27,7 +27,8 @@ namespace Advobot.Attributes.Preconditions
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			if (await context.Client.GetOwnerIdAsync().CAF() == context.User.Id)
+			var application = await context.Client.GetApplicationInfoAsync().CAF();
+			if (application.Owner.Id == context.User.Id)
 			{
 				return PreconditionUtils.FromSuccess();
 			}

@@ -9,6 +9,7 @@ using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Settings;
 using Advobot.Settings.GenerateResetValues;
+using Advobot.Utilities;
 
 using Newtonsoft.Json;
 
@@ -253,7 +254,7 @@ namespace Advobot.Services.GuildSettings
 
 		/// <inheritdoc />
 		protected override string GetLocalizedName(SettingAttribute attr)
-			=> GuildSettingNames.ResourceManager.GetString(attr.UnlocalizedName);
+			=> GuildSettingNames.ResourceManager.GetStringEnsured(attr.UnlocalizedName);
 
 		/// <summary>
 		/// Observable collection but only allows one of each matching item in.

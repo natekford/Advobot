@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -16,7 +15,6 @@ using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.ImageResizing;
-using Advobot.Services.InviteList;
 using Advobot.Services.Logging;
 using Advobot.Services.Time;
 using Advobot.Services.Timers;
@@ -176,7 +174,6 @@ namespace Advobot
 				.AddSingleton<IGuildSettingsFactory, GuildSettingsFactory>()
 				.AddSingleton<ILogService, LogService>()
 				.AddSingleton<ITimerService, TimerService>()
-				.AddSingleton<IInviteListService, InviteListService>()
 				.AddSingleton<IImageResizer, ImageResizer>();
 
 			switch (config.DatabaseType)

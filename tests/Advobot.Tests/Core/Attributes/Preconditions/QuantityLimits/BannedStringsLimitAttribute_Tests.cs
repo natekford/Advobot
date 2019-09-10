@@ -6,6 +6,7 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Tests.Fakes.Services.BotSettings;
 using Advobot.Tests.Fakes.Services.GuildSettings;
+using Advobot.Tests.PreconditionTestsBases;
 
 using AdvorangesUtils;
 
@@ -14,7 +15,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.Preconditions.QuantityLimits
 {
-
 	[TestClass]
 	public sealed class BannedStringsLimitAttribute_Tests
 		: Preconditions_TestBase<BannedStringsLimitAttribute>

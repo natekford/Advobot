@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Resources;
 
+using Advobot.Utilities;
+
 using Discord.Commands;
 
 namespace Advobot.Localization
@@ -27,7 +29,7 @@ namespace Advobot.Localization
 		/// <param name="names"></param>
 		/// <param name="resources"></param>
 		protected LocalizedAliasBaseAttribute(string[] names, ResourceManager resources)
-			: base(names.Select(x => resources.GetString(x)).ToArray())
+			: base(names.Select(x => resources.GetStringEnsured(x)).ToArray())
 		{
 			Names = names;
 			ResourceManager = resources;

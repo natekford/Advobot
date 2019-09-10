@@ -70,29 +70,11 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Bumps the invite on the guild..
-        /// </summary>
-        internal static string BumpGuildListing {
-            get {
-                return ResourceManager.GetString("BumpGuildListing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Displays the groups and roles which can be self assigned..
         /// </summary>
         internal static string DisplaySelfRoles {
             get {
                 return ResourceManager.GetString("DisplaySelfRoles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Gets an invite meeting the given criteria..
-        /// </summary>
-        internal static string GetGuildListing {
-            get {
-                return ResourceManager.GetString("GetGuildListing", resourceCulture);
             }
         }
         
@@ -138,15 +120,6 @@ namespace Advobot.Settings.Resources {
         internal static string ModifyCommands {
             get {
                 return ResourceManager.GetString("ModifyCommands", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adds or removes a guild from the public guild list..
-        /// </summary>
-        internal static string ModifyGuildListing {
-            get {
-                return ResourceManager.GetString("ModifyGuildListing", resourceCulture);
             }
         }
         

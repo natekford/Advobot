@@ -211,13 +211,9 @@ namespace Advobot.Services.BotSettings
 		[JsonProperty("UsersUnableToDmOwner")]
 		public IList<ulong> UsersUnableToDmOwner { get; set; } = new ObservableCollection<ulong>();
 
-		public BotSettings()
-		{
-		}
-
 		/// <inheritdoc />
 		protected override string GetLocalizedName(SettingAttribute attr)
-			=> BotSettingNames.ResourceManager.GetString(attr.UnlocalizedName);
+			=> BotSettingNames.ResourceManager.GetStringEnsured(attr.UnlocalizedName);
 
 		#region Saving and Loading
 

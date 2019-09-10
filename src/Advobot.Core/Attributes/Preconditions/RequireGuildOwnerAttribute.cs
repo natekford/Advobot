@@ -12,7 +12,7 @@ namespace Advobot.Attributes.Preconditions
 	/// Requires guild owner before this command will execute.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireGuildOwner
+	public sealed class RequireGuildOwnerAttribute
 		: PreconditionAttribute, IPrecondition
 	{
 		/// <inheritdoc />

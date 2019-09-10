@@ -135,6 +135,10 @@ namespace Advobot.Settings
 					throw new ArgumentException(msg, caller);
 				}
 			}
+			catch (ArgumentException)
+			{
+				throw;
+			}
 			catch (Exception e)
 			{
 				throw new ArgumentException(msg, caller, e);

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Tests.Fakes.Discord.Channels;
+using Advobot.Tests.Fakes.Discord.Users;
 
 using Discord;
 
@@ -46,7 +47,7 @@ namespace Advobot.Tests.Fakes.Discord
 			FakeChannel = channel;
 			FakeInviter = inviter;
 			FakeGuild.FakeInvites.Add(this);
-			Id = GenerateRandomInviteLink();
+			Code = Id = GenerateRandomInviteLink();
 		}
 
 		public Task DeleteAsync(RequestOptions options = null)

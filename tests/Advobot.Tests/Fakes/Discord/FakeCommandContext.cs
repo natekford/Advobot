@@ -1,4 +1,5 @@
 ﻿using Advobot.Tests.Fakes.Discord.Channels;
+using Advobot.Tests.Fakes.Discord.Users;
 
 using Discord;
 using Discord.Commands;
@@ -21,8 +22,8 @@ namespace Advobot.Tests.Fakes.Discord
 		public FakeCommandContext(FakeClient client, FakeUserMessage message)
 		{
 			Client = client;
-			Channel = (FakeTextChannel)message.Channel;
-			User = (FakeGuildUser)message.Author;
+			Channel = (FakeTextChannel)message.FakeChannel;
+			User = (FakeGuildUser)message.FakeAuthor;
 			Message = message;
 			Guild = User.Guild;
 		}

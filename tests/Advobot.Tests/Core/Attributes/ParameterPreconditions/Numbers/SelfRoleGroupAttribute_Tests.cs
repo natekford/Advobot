@@ -4,6 +4,7 @@ using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Tests.Fakes.Services.GuildSettings;
+using Advobot.Tests.PreconditionTestsBases;
 
 using AdvorangesUtils;
 

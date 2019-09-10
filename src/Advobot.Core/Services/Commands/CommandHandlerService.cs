@@ -248,7 +248,8 @@ namespace Advobot.Services.Commands
 			}
 			_Loaded = true;
 
-			_OwnerId = await _Client.GetOwnerIdAsync().CAF();
+			var application = await _Client.GetApplicationInfoAsync().CAF();
+			_OwnerId = application.Owner.Id;
 			await _Client.UpdateGameAsync(_BotSettings).CAF();
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
 				$"Prefix: {_BotSettings.Prefix}; " +

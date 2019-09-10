@@ -2,6 +2,7 @@
 
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Tests.Fakes.Discord;
+using Advobot.Tests.PreconditionTestsBases;
 
 using AdvorangesUtils;
 

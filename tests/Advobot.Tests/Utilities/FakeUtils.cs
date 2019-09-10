@@ -3,6 +3,7 @@ using System.Linq;
 
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
+using Advobot.Tests.Fakes.Discord.Users;
 
 namespace Advobot.Tests.Utilities
 {
@@ -11,7 +12,7 @@ namespace Advobot.Tests.Utilities
 		public static FakeCommandContext CreateContext()
 		{
 			var client = new FakeClient();
-			var guild = new FakeGuild();
+			var guild = new FakeGuild(client);
 			var channel = new FakeTextChannel(guild);
 			var user = new FakeGuildUser(guild);
 			var message = new FakeUserMessage(channel, user, "nothing");

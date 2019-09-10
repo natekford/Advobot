@@ -2,9 +2,9 @@
 
 using Advobot.Attributes.ParameterPreconditions.Logs;
 using Advobot.Services.GuildSettings;
-using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Services.GuildSettings;
+using Advobot.Tests.PreconditionTestsBases;
 
 using AdvorangesUtils;
 
@@ -26,7 +26,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Logs
 		public NotServerLogAttribute_Tests()
 		{
 			_Settings = new GuildSettings();
-			_FakeChannel = new FakeTextChannel(new FakeGuild())
+			_FakeChannel = new FakeTextChannel(Context.Guild)
 			{
 				Id = CHANNEL_ID
 			};

@@ -3,6 +3,7 @@
 using Advobot.Attributes.Preconditions.Logs;
 using Advobot.Services.GuildSettings;
 using Advobot.Tests.Fakes.Services.GuildSettings;
+using Advobot.Tests.PreconditionTestsBases;
 
 using AdvorangesUtils;
 

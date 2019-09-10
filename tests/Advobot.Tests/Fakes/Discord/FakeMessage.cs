@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Advobot.Tests.Fakes.Discord.Channels;
+using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.Utilities;
 
 using Discord;
@@ -16,11 +17,11 @@ namespace Advobot.Tests.Fakes.Discord
 		public MessageActivity Activity => throw new NotImplementedException();
 		public MessageApplication Application => throw new NotImplementedException();
 		public IReadOnlyCollection<IAttachment> Attachments => throw new NotImplementedException();
-		public FakeUser Author { get; }
-		public FakeMessageChannel Channel { get; }
 		public string Content { get; set; }
 		public DateTimeOffset? EditedTimestamp => throw new NotImplementedException();
 		public IReadOnlyCollection<IEmbed> Embeds => throw new NotImplementedException();
+		public FakeUser FakeAuthor { get; }
+		public FakeMessageChannel FakeChannel { get; }
 		public bool IsPinned => throw new NotImplementedException();
 		public bool IsSuppressed => throw new NotImplementedException();
 		public bool IsTTS => throw new NotImplementedException();
@@ -31,14 +32,14 @@ namespace Advobot.Tests.Fakes.Discord
 		public IReadOnlyCollection<ITag> Tags => throw new NotImplementedException();
 		public DateTimeOffset Timestamp => CreatedAt;
 		public MessageType Type => throw new NotImplementedException();
-		IUser IMessage.Author => Author;
+		IUser IMessage.Author => FakeAuthor;
 
-		IMessageChannel IMessage.Channel => Channel;
+		IMessageChannel IMessage.Channel => FakeChannel;
 
 		public FakeMessage(FakeMessageChannel channel, FakeUser author, string content)
 		{
-			Channel = channel;
-			Author = author;
+			FakeChannel = channel;
+			FakeAuthor = author;
 			Content = content;
 		}
 

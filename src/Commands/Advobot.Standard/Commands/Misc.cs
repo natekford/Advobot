@@ -171,21 +171,8 @@ namespace Advobot.Standard.Commands
 		public sealed class Test : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> CommandAsync(string name)
-				=> AdvobotResult.Success("test1 " + name);
-		}
-
-		[LocalizedGroup(nameof(Groups.Test))]
-		[LocalizedAlias(nameof(Aliases.Test))]
-		[LocalizedSummary(nameof(Summaries.Test))]
-		[Meta("0c31f1c9-2d7f-4df5-84d7-721176bbdb2d", IsEnabled = true)]
-		[RequireBotOwner]
-		[Hidden]
-		public sealed class Test2 : AdvobotModuleBase
-		{
-			[Command]
-			public Task<RuntimeResult> CommandAsync(string name)
-				=> AdvobotResult.Success("test2 " + name);
+			public Task<RuntimeResult> CommandAsync(int bar)
+				=> AdvobotResult.Success("test1 " + bar.ToString());
 		}
 	}
 }

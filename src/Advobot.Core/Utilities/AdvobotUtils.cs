@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Resources;
 
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
@@ -13,6 +15,14 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class AdvobotUtils
 	{
+		/// <summary>
+		/// Returns a UTC <see cref="DateTimeOffset"/>.
+		/// </summary>
+		/// <param name="ticks"></param>
+		/// <returns></returns>
+		public static DateTimeOffset CreateUtcDTOFromTicks(this long ticks)
+			=> DateTime.SpecifyKind(new DateTime(ticks), DateTimeKind.Utc);
+
 		/// <summary>
 		/// Gets the file inside the bot directory.
 		/// </summary>
@@ -30,6 +40,24 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static string GetPrefix(this IGuildSettings settings, IBotSettings botSettings)
 			=> settings.Prefix ?? botSettings.Prefix ?? throw new InvalidOperationException("Invalid prefix.");
+
+		/// <summary>
+		/// Calls <see cref="ResourceManager.GetString(string)"/> and throws an exception if it does not exist.
+		/// </summary>
+		/// <param name="resources"></param>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public static string GetStringEnsured(this ResourceManager resources, string name)
+		{
+			var r = resources.GetString(name);
+			if (r != null)
+			{
+				return r;
+			}
+			var culture = CultureInfo.CurrentUICulture;
+			var message = $"{name} does not have an associated string in the {culture} culture.";
+			throw new ArgumentException(message, name);
+		}
 
 		/// <summary>
 		/// Gets the values of an enum.

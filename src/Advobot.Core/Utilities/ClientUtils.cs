@@ -18,8 +18,6 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class ClientUtils
 	{
-		private static ulong? _BotOwnerId;
-
 		/// <summary>
 		/// Exits the current application.
 		/// </summary>
@@ -28,14 +26,6 @@ namespace Advobot.Utilities
 			await client.StopAsync().CAF();
 			Environment.Exit(0);
 		}
-
-		/// <summary>
-		/// Gets the id of the bot owner.
-		/// </summary>
-		/// <param name="client"></param>
-		/// <returns></returns>
-		public static async Task<ulong> GetOwnerIdAsync(this IDiscordClient client)
-			=> _BotOwnerId ?? (_BotOwnerId = (await client.GetApplicationInfoAsync().CAF()).Owner.Id).Value;
 
 		/// <summary>
 		/// Restarts the application correctly if it's a .Net Core application.

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
+using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.Utilities;
 
 using AdvorangesUtils;
@@ -36,7 +37,7 @@ namespace Advobot.Tests.Core
 
 		public SpamPreventionTests()
 		{
-			_Guild = new FakeGuild();
+			_Guild = new FakeGuild(new FakeClient());
 			_Channel = new FakeTextChannel(_Guild);
 			_User = new FakeGuildUser(_Guild)
 			{

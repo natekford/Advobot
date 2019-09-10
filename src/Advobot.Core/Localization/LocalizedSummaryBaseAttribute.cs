@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Resources;
 
+using Advobot.Utilities;
+
 using Discord.Commands;
 
 namespace Advobot.Localization
@@ -25,7 +27,7 @@ namespace Advobot.Localization
 		/// <param name="name"></param>
 		/// <param name="resources"></param>
 		protected LocalizedSummaryBaseAttribute(string name, ResourceManager resources)
-			: base(resources.GetString(name))
+			: base(resources.GetStringEnsured(name))
 		{
 			Name = name;
 			ResourceManager = resources;

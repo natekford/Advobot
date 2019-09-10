@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 using Advobot.Gacha.Counters;
@@ -7,11 +6,11 @@ using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Services.Time;
+
 using AdvorangesUtils;
 
 using Discord;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.Displays
 {

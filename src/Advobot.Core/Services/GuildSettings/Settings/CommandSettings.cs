@@ -5,10 +5,7 @@ using Advobot.Attributes;
 using Advobot.Formatting;
 using Advobot.Services.HelpEntries;
 
-using AdvorangesUtils;
-
 using Discord;
-using Discord.Commands;
 
 using Newtonsoft.Json;
 
@@ -33,6 +30,51 @@ namespace Advobot.Services.GuildSettings.Settings
 		public Dictionary<ulong, Dictionary<string, bool>> Overrides { get; set; }
 			= new Dictionary<ulong, Dictionary<string, bool>>();
 
+		/// <summary>
+		/// Returns a value indicating whether or not the command is enabled in the current context.
+		/// Checks user, then roles ordered by descending hierarchy, then channel, then finally the default guild setting.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="channel"></param>
+		/// <param name="meta"></param>
+		/// <returns></returns>
+		public bool CanUserInvokeCommand(
+			IGuildUser user,
+			IMessageChannel channel,
+			MetaAttribute meta)
+		{
+			//Hierarchy:
+			//	User
+			//	Role -> Ordered by position
+			//	Channel
+			//	Guild
+			var guid = meta.Guid.ToString();
+
+			if (TryGetValue(user.Id, guid, out var u))
+			{
+				return u;
+			}
+			foreach (var role in user.RoleIds.OrderByDescending(x => user.Guild.GetRole(x).Position))
+			{
+				if (TryGetValue(role, guid, out var r))
+				{
+					return r;
+				}
+			}
+			if (TryGetValue(channel.Id, guid, out var c))
+			{
+				return c;
+			}
+			if (CommandValues.TryGetValue(guid, out var value))
+			{
+				return value;
+			}
+
+			//If they get here it means they're not in the command values currently so they should just use the default value.
+			CommandValues.Add(guid, meta.IsEnabled);
+			return meta.IsEnabled;
+		}
+
 		/// <inheritdoc />
 		public IDiscordFormattableString GetFormattableString()
 		{
@@ -49,55 +91,6 @@ namespace Advobot.Services.GuildSettings.Settings
 				}
 			}
 			return formattable;
-		}
-
-		/// <summary>
-		/// Returns a value indicating whether or not the command is enabled in the current context.
-		/// Checks user, then roles ordered by descending hierarchy, then channel, then finally the default guild setting.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="channel"></param>
-		/// <param name="command"></param>
-		/// <returns></returns>
-		public bool IsCommandEnabled(IGuildUser user, IMessageChannel channel, CommandInfo command)
-		{
-			//Hierarchy:
-			//	User
-			//	Role -> Ordered by position
-			//	Channel
-			//	Guild
-
-			var module = command.Module;
-			while (module.Parent?.IsSubmodule == true)
-			{
-				module = module.Parent;
-			}
-			var meta = module.Attributes.GetAttribute<MetaAttribute>();
-			var guid = meta.Guid.ToString();
-
-			if (Overrides.TryGetValue(user.Id, out var uD) && uD.TryGetValue(guid, out var u))
-			{
-				return u;
-			}
-			foreach (var role in user.RoleIds.OrderByDescending(x => user.Guild.GetRole(x).Position))
-			{
-				if (Overrides.TryGetValue(role, out var rD) && rD.TryGetValue(guid, out var r))
-				{
-					return r;
-				}
-			}
-			if (Overrides.TryGetValue(channel.Id, out var cD) && cD.TryGetValue(guid, out var c))
-			{
-				return c;
-			}
-			if (CommandValues.TryGetValue(guid, out var value))
-			{
-				return value;
-			}
-
-			//If they get here it means they're not in the command values currently so they should just use the default value.
-			CommandValues.Add(guid, meta.IsEnabled);
-			return meta.IsEnabled;
 		}
 
 		/// <summary>
@@ -186,6 +179,12 @@ namespace Advobot.Services.GuildSettings.Settings
 			}
 			dict[help.Id] = enable.Value;
 			return true;
+		}
+
+		private bool TryGetValue(ulong id, string cmd, out bool value)
+		{
+			value = false;
+			return Overrides.TryGetValue(id, out var dict) && dict.TryGetValue(cmd, out value);
 		}
 	}
 }

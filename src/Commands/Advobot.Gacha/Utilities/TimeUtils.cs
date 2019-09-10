@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
 
+using Advobot.Utilities;
+
 namespace Advobot.Gacha.Utilities
 {
 	public static class TimeUtils
@@ -23,6 +25,6 @@ namespace Advobot.Gacha.Utilities
 		}
 
 		public static DateTimeOffset ToTime(this long ticks)
-			=> new DateTime(ticks);
+			=> ticks.CreateUtcDTOFromTicks();
 	}
 }

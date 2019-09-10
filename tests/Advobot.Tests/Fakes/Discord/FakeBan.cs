@@ -1,4 +1,6 @@
-﻿using Discord;
+﻿using Advobot.Tests.Fakes.Discord.Users;
+
+using Discord;
 
 namespace Advobot.Tests.Fakes.Discord
 {
