@@ -19,6 +19,7 @@ namespace Advobot.Tests.Fakes.Discord.Users
 		public bool IsMuted { get; set; }
 		public bool IsSelfDeafened => false;
 		public bool IsSelfMuted => false;
+		public bool IsStreaming { get; set; }
 		public bool IsSuppressed => false;
 		public DateTimeOffset? JoinedAt => throw new NotImplementedException();
 		public string Nickname { get; set; }

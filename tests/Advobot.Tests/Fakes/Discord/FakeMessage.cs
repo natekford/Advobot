@@ -12,6 +12,9 @@ using static Discord.MentionUtils;
 
 namespace Advobot.Tests.Fakes.Discord
 {
+	//Because Discord.Net uses a Nuget package for IAsyncEnumerable from pre .Net Core 3.0/Standard 2.0
+	extern alias oldasyncenumerable;
+
 	public class FakeMessage : FakeSnowflake, IMessage
 	{
 		public MessageActivity Activity => throw new NotImplementedException();
@@ -28,6 +31,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public IReadOnlyCollection<ulong> MentionedChannelIds => Content.GetMentions(TryParseChannel);
 		public IReadOnlyCollection<ulong> MentionedRoleIds => Content.GetMentions(TryParseRole);
 		public IReadOnlyCollection<ulong> MentionedUserIds => Content.GetMentions(TryParseUser);
+		public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
 		public MessageSource Source => throw new NotImplementedException();
 		public IReadOnlyCollection<ITag> Tags => throw new NotImplementedException();
 		public DateTimeOffset Timestamp => CreatedAt;
@@ -43,7 +47,22 @@ namespace Advobot.Tests.Fakes.Discord
 			Content = content;
 		}
 
+		public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
 		public Task DeleteAsync(RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public oldasyncenumerable::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task RemoveAllReactionsAsync(RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
+				=> throw new NotImplementedException();
+
+		public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
 			=> throw new NotImplementedException();
 	}
 }
