@@ -44,7 +44,7 @@ namespace Advobot.Tests.Invites.Preconditions
 		public async Task NotRecentlyBumped_Test()
 		{
 			var invite = await Context.Channel.CreateInviteAsync().CAF();
-			await _Invites.AddAsync(invite).CAF();
+			await _Invites.AddInviteAsync(invite).CAF();
 
 			_Time.UtcNow += TimeSpan.FromHours(3);
 
@@ -56,7 +56,7 @@ namespace Advobot.Tests.Invites.Preconditions
 		public async Task RecentlyBumped_Test()
 		{
 			var invite = await Context.Channel.CreateInviteAsync().CAF();
-			await _Invites.AddAsync(invite).CAF();
+			await _Invites.AddInviteAsync(invite).CAF();
 
 			var result = await CheckAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);

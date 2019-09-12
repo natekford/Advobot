@@ -2,7 +2,11 @@
 using System.Threading.Tasks;
 
 using Advobot.Invites.Database;
+using Advobot.Invites.Models;
 using Advobot.Services.Time;
+using Advobot.Tests.Fakes.Discord;
+using Advobot.Tests.Fakes.Discord.Channels;
+using Advobot.Tests.Fakes.Discord.Users;
 
 using AdvorangesUtils;
 
@@ -24,6 +28,16 @@ namespace Advobot.Tests.Invites
 				.AddSingleton<ITime, DefaultTime>()
 				.AddSingleton<IDatabaseStarter, SQLiteTestDatabaseFactory>()
 				.BuildServiceProvider();
+		}
+
+		protected static (FakeGuild Guild, ListedInvite Invite) CreateFakeInvite(FakeClient client, ITime time)
+		{
+			var guild = new FakeGuild(client);
+			var channel = new FakeTextChannel(guild);
+			var user = new FakeGuildUser(guild);
+			var invite = new FakeInviteMetadata(channel, user);
+			var listedInvite = new ListedInvite(invite, time.UtcNow);
+			return (guild, listedInvite);
 		}
 
 		protected async Task<InviteDatabase> GetDatabaseAsync()

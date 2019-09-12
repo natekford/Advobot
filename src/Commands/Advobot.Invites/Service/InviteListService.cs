@@ -25,10 +25,16 @@ namespace Advobot.Invites.Service
 			_Time = time;
 		}
 
-		public Task AddAsync(IInviteMetadata invite)
+		public Task AddInviteAsync(IInviteMetadata invite)
 		{
 			var listedInvite = new ListedInvite(invite, _Time.UtcNow);
 			return _Db.AddInviteAsync(listedInvite);
+		}
+
+		public Task AddKeywordAsync(IGuild guild, string word)
+		{
+			var keyword = new Keyword(guild, word);
+			return _Db.AddKeywordAsync(keyword);
 		}
 
 		public async Task<bool> BumpAsync(IGuild guild)
@@ -42,21 +48,24 @@ namespace Advobot.Invites.Service
 				return true;
 			}
 
-			await RemoveAsync(guild.Id).CAF();
+			await RemoveInviteAsync(guild.Id).CAF();
 			return false;
 		}
 
-		public Task<IEnumerable<IReadOnlyListedInvite>> GetAllAsync()
+		public Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync()
 			=> _Db.GetInvitesAsync();
 
-		public Task<IEnumerable<IReadOnlyListedInvite>> GetAllAsync(
+		public Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync(
 			IEnumerable<string> keywords)
 			=> _Db.GetInvitesAsync(keywords);
 
 		public Task<IReadOnlyListedInvite?> GetAsync(ulong guildId)
 			=> _Db.GetInviteAsync(guildId);
 
-		public Task RemoveAsync(ulong guildId)
+		public Task RemoveInviteAsync(ulong guildId)
 			=> _Db.DeleteInviteAsync(guildId);
+
+		public Task RemoveKeywordAsync(ulong guildId, string word)
+			=> _Db.DeleteKeywordAsync(guildId, word);
 	}
 }

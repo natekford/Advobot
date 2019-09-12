@@ -139,7 +139,7 @@ namespace Advobot.Invites.Database
 			", param).CAF();
 		}
 
-		public async Task<IEnumerable<IReadOnlyListedInvite>> GetInvitesAsync()
+		public async Task<IReadOnlyList<IReadOnlyListedInvite>> GetInvitesAsync()
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -150,7 +150,7 @@ namespace Advobot.Invites.Database
 			return query.ToArray();
 		}
 
-		public async Task<IEnumerable<IReadOnlyListedInvite>> GetInvitesAsync(
+		public async Task<IReadOnlyList<IReadOnlyListedInvite>> GetInvitesAsync(
 			IEnumerable<string> keywords)
 		{
 			using var connection = await GetConnectionAsync().CAF();
@@ -166,7 +166,7 @@ namespace Advobot.Invites.Database
 			return query.ToArray();
 		}
 
-		public async Task<IEnumerable<IReadOnlyKeyword>> GetKeywords(ulong guildId)
+		public async Task<IReadOnlyList<IReadOnlyKeyword>> GetKeywords(ulong guildId)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 

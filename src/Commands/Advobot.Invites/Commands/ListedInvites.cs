@@ -104,14 +104,14 @@ namespace Advobot.Invites.Commands
 			public async Task<RuntimeResult> Add(
 				[NeverExpires, FromThisGuild] IInviteMetadata invite)
 			{
-				await Invites.AddAsync(invite).CAF();
+				await Invites.AddInviteAsync(invite).CAF();
 				return Responses.ListedInvites.CreatedListing(invite);
 			}
 
 			[ImplicitCommand, ImplicitAlias]
 			public async Task<RuntimeResult> Remove()
 			{
-				await Invites.RemoveAsync(Context.Guild.Id).CAF();
+				await Invites.RemoveInviteAsync(Context.Guild.Id).CAF();
 				return Responses.ListedInvites.DeletedListing();
 			}
 		}

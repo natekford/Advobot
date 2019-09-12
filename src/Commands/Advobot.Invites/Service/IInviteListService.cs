@@ -17,7 +17,15 @@ namespace Advobot.Invites.Service
 		/// </summary>
 		/// <param name="invite"></param>
 		/// <returns></returns>
-		Task AddAsync(IInviteMetadata invite);
+		Task AddInviteAsync(IInviteMetadata invite);
+
+		/// <summary>
+		/// Adds a keyword associated to the guild.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="word"></param>
+		/// <returns></returns>
+		Task AddKeywordAsync(IGuild guild, string word);
 
 		/// <summary>
 		/// Updates the guild's stats, makes sure the invite is not expired, and bumps the time.
@@ -30,14 +38,14 @@ namespace Advobot.Invites.Service
 		/// Get every invite from the list.
 		/// </summary>
 		/// <returns></returns>
-		Task<IEnumerable<IReadOnlyListedInvite>> GetAllAsync();
+		Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync();
 
 		/// <summary>
 		/// Get every invite from the list with specific keywords.
 		/// </summary>
 		/// <param name="keywords"></param>
 		/// <returns></returns>
-		Task<IEnumerable<IReadOnlyListedInvite>> GetAllAsync(IEnumerable<string> keywords);
+		Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync(IEnumerable<string> keywords);
 
 		/// <summary>
 		/// Gets the invite listed for this guild.
@@ -51,6 +59,14 @@ namespace Advobot.Invites.Service
 		/// </summary>
 		/// <param name="guildId"></param>
 		/// <returns></returns>
-		Task RemoveAsync(ulong guildId);
+		Task RemoveInviteAsync(ulong guildId);
+
+		/// <summary>
+		/// Removes a keyword from being associated with a guild.
+		/// </summary>
+		/// <param name="guildId"></param>
+		/// <param name="word"></param>
+		/// <returns></returns>
+		Task RemoveKeywordAsync(ulong guildId, string word);
 	}
 }

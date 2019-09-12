@@ -113,7 +113,7 @@ namespace Advobot.Tests.Gacha.Database
 			await db.AddWishAsync(wish).CAF();
 
 			var retrievedList = await db.GetWishesAsync(user).CAF();
-			var retrieved = retrievedList.SingleOrDefault(x => x.CharacterId == character.CharacterId);
+			var retrieved = retrievedList.Single(x => x.CharacterId == character.CharacterId);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(wish.WishId, retrieved.WishId);
 			Assert.AreEqual(wish.GuildId, retrieved.GuildId);

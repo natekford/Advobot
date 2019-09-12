@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Invites.Models;
 using Advobot.Invites.ReadOnlyModels;
@@ -15,6 +16,9 @@ namespace Advobot.Tests.Fakes.Services.InviteList
 		private readonly Dictionary<ulong, IReadOnlyListedInvite> _Invites
 			= new Dictionary<ulong, IReadOnlyListedInvite>();
 
+		private readonly Dictionary<string, List<ulong>> _Keywords
+			= new Dictionary<string, List<ulong>>(StringComparer.OrdinalIgnoreCase);
+
 		private readonly ITime _Time;
 
 		public FakeInviteListService(ITime time)
@@ -22,11 +26,21 @@ namespace Advobot.Tests.Fakes.Services.InviteList
 			_Time = time;
 		}
 
-		public Task AddAsync(IInviteMetadata invite)
+		public Task AddInviteAsync(IInviteMetadata invite)
 		{
 			var listedInvite = new ListedInvite(invite, _Time.UtcNow);
 			var id = invite.GuildId ?? throw new InvalidOperationException();
 			_Invites.Add(id, listedInvite);
+			return Task.CompletedTask;
+		}
+
+		public Task AddKeywordAsync(IGuild guild, string word)
+		{
+			if (!_Keywords.TryGetValue(word, out var list))
+			{
+				_Keywords[word] = list = new List<ulong>();
+			}
+			list.Add(guild.Id);
 			return Task.CompletedTask;
 		}
 
@@ -40,14 +54,14 @@ namespace Advobot.Tests.Fakes.Services.InviteList
 				return true;
 			}
 
-			await RemoveAsync(guild.Id).CAF();
+			await RemoveInviteAsync(guild.Id).CAF();
 			return false;
 		}
 
-		public Task<IEnumerable<IReadOnlyListedInvite>> GetAllAsync()
-			=> Task.FromResult<IEnumerable<IReadOnlyListedInvite>>(_Invites.Values);
+		public Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync()
+			=> Task.FromResult<IReadOnlyList<IReadOnlyListedInvite>>(_Invites.Values.ToArray());
 
-		public Task<IEnumerable<IReadOnlyListedInvite>> GetAllAsync(IEnumerable<string> keywords)
+		public Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync(IEnumerable<string> keywords)
 			=> throw new NotImplementedException();
 
 		public Task<IReadOnlyListedInvite?> GetAsync(ulong guildId)
@@ -56,9 +70,18 @@ namespace Advobot.Tests.Fakes.Services.InviteList
 			return Task.FromResult<IReadOnlyListedInvite>(invite);
 		}
 
-		public Task RemoveAsync(ulong guildId)
+		public Task RemoveInviteAsync(ulong guildId)
 		{
 			_Invites.Remove(guildId);
+			return Task.CompletedTask;
+		}
+
+		public Task RemoveKeywordAsync(ulong guildId, string word)
+		{
+			if (_Keywords.TryGetValue(word, out var list))
+			{
+				list.Remove(guildId);
+			}
 			return Task.CompletedTask;
 		}
 	}

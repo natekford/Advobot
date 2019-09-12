@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 
 using Advobot.Invites.Models;
 using Advobot.Tests.Fakes.Discord;
-using Advobot.Tests.Fakes.Discord.Channels;
-using Advobot.Tests.Fakes.Discord.Users;
 
 using AdvorangesUtils;
 
@@ -21,42 +19,32 @@ namespace Advobot.Tests.Invites.Database
 			var db = await GetDatabaseAsync().CAF();
 
 			var client = new FakeClient();
-			var guild = new FakeGuild(client);
-			var channel = new FakeTextChannel(guild);
-			var user = new FakeGuildUser(guild);
-			var invite = new FakeInviteMetadata(channel, user);
+			var (Guild, Invite) = CreateFakeInvite(client, Time);
+			await db.AddInviteAsync(Invite).CAF();
 
-			var listedInvite = new ListedInvite(invite, Time.UtcNow);
-			await db.AddInviteAsync(listedInvite).CAF();
-
-			var retrieved = await db.GetInviteAsync(guild.Id).CAF();
+			var retrieved = await db.GetInviteAsync(Guild.Id).CAF();
 			Assert.IsNotNull(retrieved);
-			Assert.AreEqual(listedInvite.GuildId, retrieved.GuildId);
-			Assert.AreEqual(listedInvite.Code, retrieved.Code);
-			Assert.AreEqual(listedInvite.HasGlobalEmotes, retrieved.HasGlobalEmotes);
-			Assert.AreEqual(listedInvite.LastBumped, retrieved.LastBumped);
-			Assert.AreEqual(listedInvite.MemberCount, retrieved.MemberCount);
-			Assert.AreEqual(listedInvite.Name, retrieved.Name);
+			Assert.AreEqual(Invite.GuildId, retrieved.GuildId);
+			Assert.AreEqual(Invite.Code, retrieved.Code);
+			Assert.AreEqual(Invite.HasGlobalEmotes, retrieved.HasGlobalEmotes);
+			Assert.AreEqual(Invite.LastBumped, retrieved.LastBumped);
+			Assert.AreEqual(Invite.MemberCount, retrieved.MemberCount);
+			Assert.AreEqual(Invite.Name, retrieved.Name);
 		}
 
 		[TestMethod]
 		public async Task KeywordInsertionAndRetrieval_Test()
 		{
-			const string WORD = "bird";
-
 			var db = await GetDatabaseAsync().CAF();
 
 			var client = new FakeClient();
 			var guild = new FakeGuild(client);
 
-			var keyword = new Keyword(guild, WORD);
+			var keyword = new Keyword(guild, "bird");
 			await db.AddKeywordAsync(keyword).CAF();
 
-			var retrievedEnumerable = await db.GetKeywords(guild.Id).CAF();
-			Assert.IsNotNull(retrievedEnumerable);
-			var retrievedArray = retrievedEnumerable.ToArray();
-			Assert.AreEqual(1, retrievedArray.Length);
-			var retrieved = retrievedArray[0];
+			var retrievedList = await db.GetKeywords(guild.Id).CAF();
+			var retrieved = retrievedList.Single();
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(keyword.GuildId, retrieved.GuildId);
 			Assert.AreEqual(keyword.Word, retrieved.Word);
