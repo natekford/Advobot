@@ -11,11 +11,11 @@ using Discord.Commands;
 namespace Advobot.Tests.PreconditionTestsBases
 {
 	public abstract class Preconditions_TestBase<T>
-		: AttributeTestsBase<T>
+		: Attribute_TestsBase<T>
 		where T : PreconditionAttribute
 	{
-		public FakeCommandContext Context { get; set; } = FakeUtils.CreateContext();
-		public IServiceProvider? Services { get; set; }
+		protected FakeCommandContext Context { get; set; } = FakeUtils.CreateContext();
+		protected IServiceProvider? Services { get; set; }
 
 		protected async Task<PreconditionResult> CheckAsync()
 		{

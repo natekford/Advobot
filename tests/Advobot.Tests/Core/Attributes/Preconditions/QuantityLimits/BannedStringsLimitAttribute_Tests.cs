@@ -23,7 +23,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.QuantityLimits
 		private readonly IGuildSettings _Settings;
 		private QuantityLimitAction _Action;
 
-		public override BannedStringsLimitAttribute Instance
+		protected override BannedStringsLimitAttribute Instance
 			=> new BannedStringsLimitAttribute(_Action);
 
 		public BannedStringsLimitAttribute_Tests()

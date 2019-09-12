@@ -26,7 +26,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 
 		private readonly IGuildSettings _Settings;
 
-		public override RequireGuildPermissionsAttribute Instance
+		protected override RequireGuildPermissionsAttribute Instance
 			=> new RequireGuildPermissionsAttribute(FLAGS1, FLAGS2, FLAGS3);
 
 		public RequireGuildPermissionsAttribute_Tests()

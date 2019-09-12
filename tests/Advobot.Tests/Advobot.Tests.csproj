@@ -28,6 +28,10 @@
     <ProjectReference Include="..\..\src\Commands\Advobot.Standard\Advobot.Standard.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Core\TypeReaders\BannedPhraseTypeReaders\" />
+  </ItemGroup>
+
   <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
     <ItemGroup>
       <ReferencePath Condition="'%(FileName)' == 'System.Interactive.Async'">

@@ -23,7 +23,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.QuantityLimits
 		private readonly IGuildSettings _Settings;
 		private QuantityLimitAction _Action;
 
-		public override QuoteLimitAttribute Instance
+		protected override QuoteLimitAttribute Instance
 			=> new QuoteLimitAttribute(_Action);
 
 		public QuoteLimitAttribute_Tests()

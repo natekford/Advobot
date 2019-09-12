@@ -12,12 +12,12 @@ namespace Advobot.Tests.Fakes.Discord.Users
 		public IActivity Activity => throw new NotImplementedException();
 		public string AvatarId => throw new NotImplementedException();
 		public string Discriminator => DiscriminatorValue.ToString();
-		public ushort DiscriminatorValue { get; } = (ushort)new Random().Next(1, 10000);
+		public ushort DiscriminatorValue { get; set; } = (ushort)new Random().Next(1, 10000);
 		public bool IsBot { get; set; }
 		public bool IsWebhook { get; set; }
 		public string Mention => MentionUtils.MentionUser(Id);
 		public UserStatus Status => throw new NotImplementedException();
-		public string Username => "Mock User";
+		public string Username { get; set; } = "Fake User";
 
 		public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 			=> CDN.GetUserAvatarUrl(Id, AvatarId, size, format);

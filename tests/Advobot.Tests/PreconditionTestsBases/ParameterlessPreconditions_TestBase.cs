@@ -6,6 +6,6 @@ namespace Advobot.Tests.PreconditionTestsBases
 		: Preconditions_TestBase<T>
 		where T : PreconditionAttribute, new()
 	{
-		public override T Instance { get; } = new T();
+		protected override T Instance { get; } = new T();
 	}
 }

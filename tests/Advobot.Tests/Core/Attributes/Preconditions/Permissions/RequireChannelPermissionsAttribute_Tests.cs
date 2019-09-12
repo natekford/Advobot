@@ -21,7 +21,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		private const ChannelPermission FLAGS2 = ChannelPermission.ManageChannels | ChannelPermission.ManageRoles;
 		private const ChannelPermission FLAGS3 = ChannelPermission.ManageMessages;
 
-		public override RequireChannelPermissionsAttribute Instance
+		protected override RequireChannelPermissionsAttribute Instance
 			=> new RequireChannelPermissionsAttribute(FLAGS1, FLAGS2, FLAGS3);
 
 		[DataRow(ChannelPermission.CreateInstantInvite)]

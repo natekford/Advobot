@@ -30,7 +30,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 		private static readonly GuildPermissions _ManageMessages = new GuildPermissions(manageMessages: true);
 		private readonly FakeTextChannel _Channel;
 
-		public override CanModifyChannelAttribute Instance { get; }
+		protected override CanModifyChannelAttribute Instance { get; }
 			= new CanModifyChannelAttribute(ChannelPermission.ManageMessages);
 
 		public CanModifyChannelAttribute_Tests()

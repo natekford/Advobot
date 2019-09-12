@@ -13,12 +13,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.PreconditionTestsBases
 {
 	public abstract class ParameterPreconditions_TestsBase<T>
-		: AttributeTestsBase<T>
+		: Attribute_TestsBase<T>
 		where T : ParameterPreconditionAttribute
 	{
-		public FakeCommandContext Context { get; set; } = FakeUtils.CreateContext();
-		public ParameterInfo? Parameter { get; set; }
-		public IServiceProvider? Services { get; set; }
+		protected FakeCommandContext Context { get; set; } = FakeUtils.CreateContext();
+		protected ParameterInfo? Parameter { get; set; }
+		protected IServiceProvider? Services { get; set; }
 
 		protected async Task AssertPreconditionFailsOnInvalidType(Task<PreconditionResult> task)
 		{
