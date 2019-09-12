@@ -72,11 +72,12 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 
 		public Task ModifyAsync(Action<TextChannelProperties> func, RequestOptions options = null)
 		{
-			ModifyAsync((Action<GuildChannelProperties>)func);
-
 			var args = new TextChannelProperties();
 			func(args);
 
+			ProtectedCategoryId = args.CategoryId.GetValueOrDefault();
+			Name = args.Name.GetValueOrDefault();
+			Position = args.Position.GetValueOrDefault();
 			IsNsfw = args.IsNsfw.GetValueOrDefault();
 			SlowModeInterval = args.SlowModeInterval.GetValueOrDefault();
 			Topic = args.Topic.GetValueOrDefault();

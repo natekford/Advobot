@@ -119,7 +119,16 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<ITextChannel> CreateTextChannelAsync(string name, Action<TextChannelProperties> func = null, RequestOptions options = null) => throw new NotImplementedException();
+		public async Task<ITextChannel> CreateTextChannelAsync(string name, Action<TextChannelProperties> func = null, RequestOptions options = null)
+		{
+			var channel = new FakeTextChannel(this)
+			{
+				Name = name,
+			};
+			await channel.ModifyAsync(func, options).CAF();
+			FakeChannels.Add(channel);
+			return channel;
+		}
 
 		public Task<IVoiceChannel> CreateVoiceChannelAsync(string name, Action<VoiceChannelProperties> func = null, RequestOptions options = null) => throw new NotImplementedException();
 
@@ -148,7 +157,8 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IReadOnlyCollection<IGuildChannel>> GetChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IGuildChannel>> GetChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> Task.FromResult<IReadOnlyCollection<IGuildChannel>>(FakeChannels);
 
 		public Task<IGuildUser> GetCurrentUserAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 			=> Task.FromResult<IGuildUser>(FakeCurrentUser);

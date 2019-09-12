@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.TypeReaders;
+
 using AdvorangesUtils;
+
 using Discord;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders
@@ -85,8 +86,8 @@ namespace Advobot.Tests.Core.TypeReaders
 			var result = await ReadAsync(NAME).CAF();
 			Assert.IsTrue(result.IsSuccess);
 			Assert.IsInstanceOfType(result.BestMatch, typeof(IBan));
-			var ban = (IBan)result.BestMatch;
-			Assert.AreEqual(user.Id, ban.User.Id);
+			var parsed = (IBan)result.BestMatch;
+			Assert.AreEqual(user.Id, parsed.User.Id);
 		}
 
 		[TestMethod]

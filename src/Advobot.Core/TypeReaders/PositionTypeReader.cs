@@ -33,7 +33,7 @@ namespace Advobot.TypeReaders
 				return TypeReaderUtils.ParseFailedResult<int>();
 			}
 
-			var matches = (await GetObjectsWithPositionAsync(context, position).CAF()).ToArray();
+			var matches = await GetObjectsWithPositionAsync(context, position).CAF();
 			return TypeReaderUtils.SingleValidResult(matches, $"{ObjectTypeName} by position", input);
 		}
 
@@ -43,7 +43,7 @@ namespace Advobot.TypeReaders
 		/// <param name="context"></param>
 		/// <param name="position"></param>
 		/// <returns></returns>
-		protected abstract Task<IEnumerable<T>> GetObjectsWithPositionAsync(
+		protected abstract Task<IReadOnlyList<T>> GetObjectsWithPositionAsync(
 			ICommandContext context,
 			int position);
 	}
