@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Tests.Fakes.Discord.Users;
@@ -14,6 +15,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public ConnectionState ConnectionState => throw new NotImplementedException();
 		public ISelfUser CurrentUser { get; set; } = new FakeSelfUser();
 		public FakeApplication FakeApplication { get; set; } = new FakeApplication();
+		public List<FakeGuild> FakeGuilds { get; set; } = new List<FakeGuild>();
 		public TokenType TokenType => throw new NotImplementedException();
 
 		public Task<IGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream jpegIcon = null, RequestOptions options = null) => throw new NotImplementedException();
@@ -31,9 +33,11 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IReadOnlyCollection<IGroupChannel>> GetGroupChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IGuild> GetGuildAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IGuild> GetGuildAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> Task.FromResult<IGuild>(FakeGuilds.SingleOrDefault(x => x.Id == id));
 
-		public Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> Task.FromResult<IReadOnlyCollection<IGuild>>(FakeGuilds);
 
 		public Task<IInvite> GetInviteAsync(string inviteId, RequestOptions options = null) => throw new NotImplementedException();
 

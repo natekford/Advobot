@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
-
+using Advobot.Tests.Utilities;
 using AdvorangesUtils;
 
 using Discord;
@@ -26,7 +26,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public DefaultMessageNotifications DefaultMessageNotifications => throw new NotImplementedException();
 		public string Description => throw new NotImplementedException();
 		public ulong? EmbedChannelId => throw new NotImplementedException();
-		public IReadOnlyCollection<GuildEmote> Emotes { get; set; } = new List<GuildEmote>();
+		public List<GuildEmote> Emotes { get; } = new List<GuildEmote>();
 		public ExplicitContentFilterLevel ExplicitContentFilter => throw new NotImplementedException();
 		public List<FakeBan> FakeBans { get; } = new List<FakeBan>();
 		public List<FakeGuildChannel> FakeChannels { get; } = new List<FakeGuildChannel>();
@@ -74,12 +74,14 @@ namespace Advobot.Tests.Fakes.Discord
 		public string VanityURLCode => throw new NotImplementedException();
 		public VerificationLevel VerificationLevel => throw new NotImplementedException();
 		public string VoiceRegionId => throw new NotImplementedException();
+		IReadOnlyCollection<GuildEmote> IGuild.Emotes => Emotes;
 		IRole IGuild.EveryoneRole => FakeEveryoneRole;
 		IReadOnlyCollection<string> IGuild.Features => Features;
 
 		public FakeGuild(FakeClient client)
 		{
 			FakeClient = client;
+			FakeClient.FakeGuilds.Add(this);
 			//This has to go before the two created users so they can get it.
 			FakeEveryoneRole = new FakeRole(this)
 			{
@@ -113,7 +115,18 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<ICategoryChannel> CreateCategoryAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<GuildEmote> CreateEmoteAsync(string name, Image image, Optional<IEnumerable<IRole>> roles = default, RequestOptions options = null) => throw new NotImplementedException();
+		public Task<GuildEmote> CreateEmoteAsync(string name, Image image, Optional<IEnumerable<IRole>> roles = default, RequestOptions options = null)
+		{
+			var args = new EmoteCreationArgs
+			{
+				Name = name,
+				RoleIds = roles.GetValueOrDefault(Array.Empty<IRole>()).Select(x => x.Id).ToArray(),
+				UserId = FakeCurrentUser.Id,
+			};
+			var emote = args.Build();
+			Emotes.Add(emote);
+			return Task.FromResult(emote);
+		}
 
 		public Task<IGuildIntegration> CreateIntegrationAsync(ulong id, string type, RequestOptions options = null) => throw new NotImplementedException();
 
@@ -134,7 +147,11 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task DeleteAsync(RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task DeleteEmoteAsync(GuildEmote emote, RequestOptions options = null) => throw new NotImplementedException();
+		public Task DeleteEmoteAsync(GuildEmote emote, RequestOptions options = null)
+		{
+			Emotes.Remove(emote);
+			return Task.CompletedTask;
+		}
 
 		public Task DownloadUsersAsync()
 			=> Task.CompletedTask;

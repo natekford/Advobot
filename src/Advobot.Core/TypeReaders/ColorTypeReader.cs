@@ -35,7 +35,7 @@ namespace Advobot.TypeReaders
 			if (input == null)
 			{
 				result = default;
-				return false;
+				return true;
 			}
 			//By name
 			if (_Colors.TryGetValue(input, out result))
@@ -43,7 +43,8 @@ namespace Advobot.TypeReaders
 				return true;
 			}
 			//By hex (trimming characters that are sometimes at the beginning of hex numbers)
-			if (uint.TryParse(input.Replace("0x", "").TrimStart('&', 'h', '#', 'x'), NumberStyles.HexNumber, null, out var hex))
+			var trimmed = input.Replace("0x", "").TrimStart('&', 'h', '#', 'x');
+			if (uint.TryParse(trimmed, NumberStyles.HexNumber, null, out var hex))
 			{
 				result = new Color(hex);
 				return true;
@@ -56,10 +57,13 @@ namespace Advobot.TypeReaders
 				{
 					continue;
 				}
-				var colorRgb = split.Select(x => (Valid: byte.TryParse(x, out var val), Value: val)).Where(x => x.Valid).ToArray();
-				if (colorRgb.Length == 3)
+				var rgb = split
+					.Select(x => (Valid: byte.TryParse(x, out var val), Value: val))
+					.Where(x => x.Valid)
+					.ToArray();
+				if (rgb.Length == 3)
 				{
-					result = new Color(colorRgb[0].Value, colorRgb[1].Value, colorRgb[2].Value);
+					result = new Color(rgb[0].Value, rgb[1].Value, rgb[2].Value);
 					return true;
 				}
 			}

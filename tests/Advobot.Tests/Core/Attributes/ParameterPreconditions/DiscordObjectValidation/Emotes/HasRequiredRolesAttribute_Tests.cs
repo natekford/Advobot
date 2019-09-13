@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes;
 using Advobot.Tests.PreconditionTestsBases;
-
+using Advobot.Tests.Utilities;
 using AdvorangesUtils;
 
 using Discord;
@@ -24,21 +24,12 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 		public HasRequiredRolesAttribute_Tests()
 		{
 			_Roles = new List<ulong>();
-
-			var constructor = typeof(GuildEmote)
-				.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
-				.Single();
-			var args = new object[]
+			_Emote = new EmoteCreationArgs
 			{
-				73UL,
-				"emote name",
-				false,
-				false,
-				false,
-				_Roles,
-				null,
-			};
-			_Emote = (GuildEmote)constructor.Invoke(args);
+				Id = 73UL,
+				Name = "emote name",
+				RoleIds = _Roles,
+			}.Build();
 		}
 
 		[TestMethod]

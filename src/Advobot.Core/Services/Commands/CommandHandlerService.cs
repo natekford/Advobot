@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
@@ -40,8 +41,9 @@ namespace Advobot.Services.Commands
 		private readonly IHelpEntryService _HelpEntries;
 		private readonly IServiceProvider _Provider;
 		private readonly ITimerService _Timers;
-		private bool _Loaded;
+		private int _LoadedState;
 		private ulong _OwnerId;
+		private bool IsLoaded => _LoadedState != default;
 
 		/// <inheritdoc />
 		public event Action<IResult> CommandInvoked;
@@ -54,7 +56,7 @@ namespace Advobot.Services.Commands
 		/// <param name="client"></param>
 		/// <param name="botSettings"></param>
 		/// <param name="guildSettings"></param>
-		/// <param name="helpentries"></param>
+		/// <param name="help"></param>
 		/// <param name="timers"></param>
 		public CommandHandlerService(
 			IServiceProvider provider,
@@ -62,7 +64,7 @@ namespace Advobot.Services.Commands
 			DiscordShardedClient client,
 			IBotSettings botSettings,
 			IGuildSettingsFactory guildSettings,
-			IHelpEntryService helpentries,
+			IHelpEntryService help,
 			ITimerService timers)
 		{
 			_Provider = provider;
@@ -70,7 +72,7 @@ namespace Advobot.Services.Commands
 			_Client = client;
 			_BotSettings = botSettings;
 			_GuildSettings = guildSettings;
-			_HelpEntries = helpentries;
+			_HelpEntries = help;
 			_Timers = timers;
 			_CommandService = new Localized<CommandService>(_ =>
 			{
@@ -180,7 +182,7 @@ namespace Advobot.Services.Commands
 		private async Task HandleCommand(IMessage message)
 		{
 			var argPos = -1;
-			if (!_Loaded || _BotSettings.Pause || message.Author.IsBot || string.IsNullOrWhiteSpace(message.Content)
+			if (!IsLoaded || _BotSettings.Pause || message.Author.IsBot || string.IsNullOrWhiteSpace(message.Content)
 				//Disallow running commands if the user is blocked, unless the owner of the bot blocks themselves either accidentally or idiotically
 				|| (_BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id) && message.Author.Id != _OwnerId)
 				|| !(message is IUserMessage msg)
@@ -220,7 +222,8 @@ namespace Advobot.Services.Commands
 			}
 
 			CommandInvoked?.Invoke(result);
-			ConsoleUtils.WriteLine(FormatResult(context, result), result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red);
+			var color = result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red;
+			ConsoleUtils.WriteLine(FormatResult(context, result), color);
 
 			if (result is AdvobotResult a)
 			{
@@ -242,11 +245,10 @@ namespace Advobot.Services.Commands
 
 		private async Task OnReady(DiscordSocketClient _)
 		{
-			if (_Loaded)
+			if (Interlocked.Exchange(ref _LoadedState, 1) != default)
 			{
 				return;
 			}
-			_Loaded = true;
 
 			var application = await _Client.GetApplicationInfoAsync().CAF();
 			_OwnerId = application.Owner.Id;

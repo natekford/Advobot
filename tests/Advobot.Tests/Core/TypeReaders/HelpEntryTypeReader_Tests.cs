@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
 using Advobot.Tests.Fakes.Services.HelpEntries;
@@ -13,8 +12,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core.TypeReaders
 {
 	[TestClass]
-	public sealed class CloseHelpEntryTypeReader_Tests
-		: TypeReader_TestsBase<CloseHelpEntryTypeReader>
+	public sealed class HelpEntryTypeReader_Tests
+		: TypeReader_TestsBase<HelpEntryTypeReader>
 	{
 		private static readonly string[] NAMES = new[]
 		{
@@ -23,7 +22,7 @@ namespace Advobot.Tests.Core.TypeReaders
 			"pneumonoultramicroscopicsilicovolcanoconiosis"
 		};
 
-		public CloseHelpEntryTypeReader_Tests()
+		public HelpEntryTypeReader_Tests()
 		{
 			var helpEntries = new HelpEntryService();
 			foreach (var name in NAMES)
@@ -51,7 +50,7 @@ namespace Advobot.Tests.Core.TypeReaders
 		{
 			var result = await ReadAsync(NAMES[0]).CAF();
 			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType(result.BestMatch, typeof(IEnumerable<IModuleHelpEntry>));
+			Assert.IsInstanceOfType(result.BestMatch, typeof(IModuleHelpEntry));
 		}
 	}
 }
