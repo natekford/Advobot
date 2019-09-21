@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Advobot.Tests.Fakes.Discord.Users;
 using AdvorangesUtils;
 
 using Discord;
@@ -37,7 +37,11 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		}
 
 		public Task<IWebhook> CreateWebhookAsync(string name, Stream avatar = null, RequestOptions options = null)
-			=> throw new NotImplementedException();
+		{
+			var wh = new FakeWebhook(this, FakeGuild.FakeCurrentUser);
+			FakeGuild.FakeWebhooks.Add(wh);
+			return Task.FromResult<IWebhook>(wh);
+		}
 
 		public Task DeleteMessagesAsync(IEnumerable<IMessage> messages, RequestOptions options = null)
 			=> throw new NotImplementedException();

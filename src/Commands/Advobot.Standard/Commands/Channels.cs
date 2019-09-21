@@ -139,9 +139,10 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 		public sealed class DisplayChannelPerms : AdvobotModuleBase
 		{
+			/* TODO: reimplement localized
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.Gets.ShowEnumValues(typeof(ChannelPermission));
+				=> Responses.Gets.ShowEnumValues(typeof(ChannelPermission));*/
 
 			[Command]
 			public Task<RuntimeResult> Command(
@@ -340,19 +341,25 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public Task<RuntimeResult> Command(
-				[CanModifyChannel(ManageChannels | ManageRoles)] IGuildChannel channel,
+				[CanModifyChannel(ManageChannels | ManageRoles)]
+				IGuildChannel channel,
 				IRole role,
 				PermValue action,
-				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<ChannelPermission>))] ulong permissions)
-				=> CommandRunner(action, channel, role, permissions);
+				[Remainder]
+				[OverrideTypeReader(typeof(PermissionsTypeReader<ChannelPermission>))]
+				ulong permissions
+			) => CommandRunner(action, channel, role, permissions);
 
 			[Command]
 			public Task<RuntimeResult> Command(
-				[CanModifyChannel(ManageChannels | ManageRoles)] IGuildChannel channel,
+				[CanModifyChannel(ManageChannels | ManageRoles)]
+				IGuildChannel channel,
 				IGuildUser user,
 				PermValue action,
-				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<ChannelPermission>))] ulong permissions)
-				=> CommandRunner(action, channel, user, permissions);
+				[Remainder]
+				[OverrideTypeReader(typeof(PermissionsTypeReader<ChannelPermission>))]
+				ulong permissions
+			) => CommandRunner(action, channel, user, permissions);
 
 			private async Task<RuntimeResult> CommandRunner(
 				PermValue action,

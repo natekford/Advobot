@@ -57,13 +57,13 @@ namespace Advobot.TypeReaders
 		{
 			if (TrueVals.Contains(input))
 			{
-				return TypeReaderUtils.FromSuccessAsync(true);
+				return TypeReaderUtils.FromSuccess(true).AsTask();
 			}
 			else if (FalseVals.Contains(input))
 			{
-				return TypeReaderUtils.FromSuccessAsync(false);
+				return TypeReaderUtils.FromSuccess(false).AsTask();
 			}
-			return TypeReaderUtils.ParseFailedResultAsync<bool>();
+			return TypeReaderUtils.ParseFailedResult<bool>().AsTask();
 		}
 	}
 }

@@ -28,11 +28,11 @@ namespace Advobot.TypeReaders
 			string input,
 			IServiceProvider services)
 		{
-			if (double.TryParse(input, out var val))
+			if (double.TryParse(input, out var value))
 			{
-				return TypeReaderUtils.FromSuccessAsync(new Percentage(val));
+				return TypeReaderUtils.FromSuccess(new Percentage(value)).AsTask();
 			}
-			return TypeReaderUtils.ParseFailedResultAsync<Percentage>();
+			return TypeReaderUtils.ParseFailedResult<Percentage>().AsTask();
 		}
 	}
 }

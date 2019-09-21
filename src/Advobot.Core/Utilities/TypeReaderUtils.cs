@@ -11,20 +11,20 @@ namespace Advobot.Utilities
 	public static class TypeReaderUtils
 	{
 		/// <summary>
+		/// Creates a <see cref="Task{T}"/> returning <paramref name="result"/>.
+		/// </summary>
+		/// <param name="result"></param>
+		/// <returns></returns>
+		public static Task<TypeReaderResult> AsTask(this TypeReaderResult result)
+			=> Task.FromResult(result);
+
+		/// <summary>
 		/// Returns success with the given object.
 		/// </summary>
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static TypeReaderResult FromSuccess(object? value)
 			=> TypeReaderResult.FromSuccess(value);
-
-		/// <summary>
-		/// Acts as <see cref="FromSuccess(object)"/> but async.
-		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public static Task<TypeReaderResult> FromSuccessAsync(object? value)
-			=> Task.FromResult(FromSuccess(value));
 
 		/// <summary>
 		/// Returns success if at least one object, returns error if multiple.
@@ -48,34 +48,12 @@ namespace Advobot.Utilities
 		}
 
 		/// <summary>
-		/// Acts as <see cref="MultipleValidResults{T}(IReadOnlyList{T}, string, string)"/> but async.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="matches"></param>
-		/// <param name="type"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public static Task<TypeReaderResult> MultipleValidResultsAsync<T>(
-			IReadOnlyList<T> matches,
-			string type,
-			string value)
-			=> Task.FromResult(MultipleValidResults(matches, type, value));
-
-		/// <summary>
 		/// Returns a string saying 'Failed to parse <typeparamref name="T"/>'.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
 		public static TypeReaderResult ParseFailedResult<T>()
 			=> TypeReaderResult.FromError(CommandError.ParseFailed, $"Failed to parse {typeof(T).Name}.");
-
-		/// <summary>
-		/// Acts as <see cref="ParseFailedResult{T}"/> but async.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
-		public static Task<TypeReaderResult> ParseFailedResultAsync<T>()
-			=> Task.FromResult(ParseFailedResult<T>());
 
 		/// <summary>
 		/// Returns success if only one object, returns errors if zero or multiple.
@@ -102,19 +80,5 @@ namespace Advobot.Utilities
 			var noneError = $"Unable to find any {type} matching `{value}`.";
 			return TypeReaderResult.FromError(CommandError.ObjectNotFound, noneError);
 		}
-
-		/// <summary>
-		/// Acts as <see cref="SingleValidResult{T}(IReadOnlyList{T}, string, string)"/> but async.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="matches"></param>
-		/// <param name="type"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public static Task<TypeReaderResult> SingleValidResultAsync<T>(
-			IReadOnlyList<T> matches,
-			string type,
-			string value)
-			=> Task.FromResult(SingleValidResult(matches, type, value));
 	}
 }

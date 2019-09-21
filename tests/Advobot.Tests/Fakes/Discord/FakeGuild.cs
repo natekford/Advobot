@@ -37,7 +37,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public FakeGuildUser FakeOwner { get; set; }
 		public List<FakeRole> FakeRoles { get; } = new List<FakeRole>();
 		public List<FakeGuildUser> FakeUsers { get; } = new List<FakeGuildUser>();
-		public List<IWebhook> FakeWebhooks { get; } = new List<IWebhook>();
+		public List<FakeWebhook> FakeWebhooks { get; } = new List<FakeWebhook>();
 		public List<string> Features { get; } = new List<string>();
 		public string IconId => throw new NotImplementedException();
 		public string IconUrl => throw new NotImplementedException();
@@ -66,7 +66,6 @@ namespace Advobot.Tests.Fakes.Discord
 			_ => PremiumTier.None,
 		};
 
-		public IReadOnlyCollection<IRole> Roles => throw new NotImplementedException();
 		public string SplashId => throw new NotImplementedException();
 		public string SplashUrl => throw new NotImplementedException();
 		public SystemChannelMessageDeny SystemChannelFlags => throw new NotImplementedException();
@@ -77,6 +76,7 @@ namespace Advobot.Tests.Fakes.Discord
 		IReadOnlyCollection<GuildEmote> IGuild.Emotes => Emotes;
 		IRole IGuild.EveryoneRole => FakeEveryoneRole;
 		IReadOnlyCollection<string> IGuild.Features => Features;
+		IReadOnlyCollection<IRole> IGuild.Roles => FakeRoles;
 
 		public FakeGuild(FakeClient client)
 		{
@@ -130,7 +130,17 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IGuildIntegration> CreateIntegrationAsync(ulong id, string type, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions options = null)
+		{
+			var role = new FakeRole(this)
+			{
+				Name = name,
+				Permissions = permissions.GetValueOrDefault(),
+				Color = color.GetValueOrDefault(),
+				IsHoisted = isHoisted
+			};
+			return Task.FromResult<IRole>(role);
+		}
 
 		public async Task<ITextChannel> CreateTextChannelAsync(string name, Action<TextChannelProperties> func = null, RequestOptions options = null)
 		{
@@ -188,7 +198,8 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IReadOnlyCollection<IGuildIntegration>> GetIntegrationsAsync(RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
+			=> Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(FakeInvites);
 
 		public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 			=> Task.FromResult<IGuildUser>(FakeOwner);
@@ -214,10 +225,11 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IReadOnlyCollection<IVoiceChannel>> GetVoiceChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null)
+			=> FakeClient.GetVoiceRegionsAsync(options);
 
 		public Task<IWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
-			=> Task.FromResult(FakeWebhooks.SingleOrDefault(x => x.Id == id));
+			=> Task.FromResult<IWebhook>(FakeWebhooks.SingleOrDefault(x => x.Id == id));
 
 		public Task<IReadOnlyCollection<IWebhook>> GetWebhooksAsync(RequestOptions options = null)
 			=> Task.FromResult<IReadOnlyCollection<IWebhook>>(FakeWebhooks);

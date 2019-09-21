@@ -100,9 +100,10 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.ManageRoles)]
 		public sealed class DisplayRolePerms : AdvobotModuleBase
 		{
+			/* TODO: reimplement localized
 			[Command]
 			public Task<RuntimeResult> Command()
-				=> Responses.Gets.ShowEnumValues(typeof(GuildPermission));
+				=> Responses.Gets.ShowEnumValues(typeof(GuildPermission));*/
 
 			[Command]
 			public Task<RuntimeResult> Command(IRole role)
@@ -219,14 +220,20 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[CanModifyRole] IRole role,
+				[CanModifyRole]
+				IRole role,
 				bool allow,
-				[Remainder, OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))] ulong permissions)
+				[Remainder]
+				[OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))]
+				ulong permissions
+			)
 			{
 				//Only modify permissions the user has the ability to
 				permissions &= Context.User.GuildPermissions.RawValue;
 
-				var rolePermissions = allow ? role.Permissions.RawValue | permissions : role.Permissions.RawValue & ~permissions;
+				var rolePermissions = allow
+					? role.Permissions.RawValue | permissions
+					: role.Permissions.RawValue & ~permissions;
 				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(rolePermissions), GenerateRequestOptions()).CAF();
 				return Responses.Roles.ModifiedPermissions(role, (GuildPermission)permissions, allow);
 			}

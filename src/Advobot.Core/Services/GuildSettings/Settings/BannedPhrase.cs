@@ -24,7 +24,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// The phrase which is banned. Can be string or regex pattern.
 		/// </summary>
 		[JsonProperty("Phrase")]
-		public string? Phrase { get; set; }
+		public string Phrase { get; set; }
 
 		/// <summary>
 		/// The type of punishment associated with this phrase.
@@ -35,7 +35,10 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <summary>
 		/// Creates an instance of <see cref="BannedPhrase"/>.
 		/// </summary>
-		public BannedPhrase() { }
+		public BannedPhrase()
+		{
+			Phrase = "";
+		}
 
 		/// <summary>
 		/// Creates an instance of <see cref="BannedPhrase"/>.

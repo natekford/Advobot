@@ -30,17 +30,13 @@ namespace Advobot.TypeReaders
 			string input,
 			IServiceProvider services)
 		{
-			var webhooks = await context.Guild.GetWebhooksAsync().CAF();
-			if (ulong.TryParse(input, out var id))
+			var whs = await context.Guild.GetWebhooksAsync().CAF();
+			if (ulong.TryParse(input, out var id) && whs.TryGetFirst(x => x.Id == id, out var wh))
 			{
-				var webhook = webhooks.FirstOrDefault(x => x.Id == id);
-				if (webhook != null)
-				{
-					return TypeReaderUtils.FromSuccess(webhook);
-				}
+				return TypeReaderUtils.FromSuccess(wh);
 			}
 
-			var matches = webhooks.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+			var matches = whs.Where(x => x.Name.CaseInsEquals(input)).ToArray();
 			return TypeReaderUtils.SingleValidResult(matches, "webhooks", input);
 		}
 	}

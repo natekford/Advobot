@@ -20,17 +20,15 @@ namespace Advobot.TypeReaders
 	/// A type reader for self assignable roles.
 	/// </summary>
 	[TypeReaderTargetType(typeof(SelfAssignableRole))]
-	public sealed class SelfAssignableRoleTypeReader : TypeReader
+	public sealed class SelfAssignableRoleTypeReader : RoleTypeReader<IRole>
 	{
-		private static readonly TypeReader _RoleTypeReader = new RoleTypeReader<IRole>();
-
 		/// <inheritdoc />
 		public override async Task<TypeReaderResult> ReadAsync(
 			ICommandContext context,
 			string input,
 			IServiceProvider services)
 		{
-			var result = await _RoleTypeReader.ReadAsync(context, input, services).CAF();
+			var result = await base.ReadAsync(context, input, services).CAF();
 			if (!result.IsSuccess)
 			{
 				return result;

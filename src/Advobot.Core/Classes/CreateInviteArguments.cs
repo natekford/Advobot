@@ -57,11 +57,11 @@ namespace Advobot.Classes
 			{
 				if (input == null)
 				{
-					return TypeReaderUtils.FromSuccessAsync(null);
+					return TypeReaderUtils.FromSuccess(null).AsTask();
 				}
 				else if (!int.TryParse(input, out var value))
 				{
-					return TypeReaderUtils.ParseFailedResultAsync<int?>();
+					return TypeReaderUtils.ParseFailedResult<int?>().AsTask();
 				}
 				else if (value < 1)
 				{
@@ -69,7 +69,7 @@ namespace Advobot.Classes
 				}
 				else
 				{
-					return TypeReaderUtils.FromSuccessAsync(value);
+					return TypeReaderUtils.FromSuccess(value).AsTask();
 				}
 			}
 		}

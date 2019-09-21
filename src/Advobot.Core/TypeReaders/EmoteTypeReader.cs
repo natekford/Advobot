@@ -32,19 +32,19 @@ namespace Advobot.TypeReaders
 		{
 			if (Emote.TryParse(input, out var tempEmote))
 			{
-				return TypeReaderUtils.FromSuccessAsync(tempEmote);
+				return TypeReaderUtils.FromSuccess(tempEmote).AsTask();
 			}
 			if (ulong.TryParse(input, out var id))
 			{
 				var emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == id);
 				if (emote != null)
 				{
-					return TypeReaderUtils.FromSuccessAsync(emote);
+					return TypeReaderUtils.FromSuccess(emote).AsTask();
 				}
 			}
 
 			var matches = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.SingleValidResultAsync(matches, "emotes", input);
+			return TypeReaderUtils.SingleValidResult(matches, "emotes", input).AsTask();
 		}
 	}
 }

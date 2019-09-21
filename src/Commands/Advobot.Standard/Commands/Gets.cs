@@ -207,22 +207,5 @@ namespace Advobot.Standard.Commands
 			public Task<RuntimeResult> Channel(ulong number)
 				=> Responses.Gets.ShowEnumNames<ChannelPermission>(number);
 		}
-
-		[LocalizedGroup(nameof(Groups.GetEnumNames))]
-		[LocalizedAlias(nameof(Aliases.GetEnumNames))]
-		[LocalizedSummary(nameof(Summaries.GetEnumNames))]
-		[Meta("ed4e05f9-d380-4708-95af-49f0232e15f7", IsEnabled = true)]
-		[RequireGenericGuildPermissions]
-		public sealed class GetEnumNames : AdvobotModuleBase
-		{
-			[Command]
-			public Task<RuntimeResult> Command()
-				=> Responses.Gets.ShowAllEnums(EnumTypeTypeReader.Enums);
-
-			[Command]
-			public Task<RuntimeResult> Command(
-				[OverrideTypeReader(typeof(EnumTypeTypeReader))] Type enumType)
-				=> Responses.Gets.ShowEnumValues(enumType);
-		}
 	}
 }

@@ -31,17 +31,20 @@ namespace Advobot.TypeReaders
 			string input,
 			IServiceProvider services)
 		{
-			//Check numbers first
-			if (ulong.TryParse(input, out var rawValue))
+			//Check with standard TryParse
+			if (Enum.TryParse<T>(input, out var result))
 			{
-				return TypeReaderUtils.FromSuccessAsync(rawValue);
+				return TypeReaderUtils.FromSuccess(result).AsTask();
 			}
 			//Then check permission names
-			if (EnumUtils.TryParseFlags(input.Split(_SplitChars).Select(x => x.Trim(_TrimChars)), out T value, out var invalidPerms))
+			var split = input
+				.Split(_SplitChars, StringSplitOptions.RemoveEmptyEntries)
+				.Select(x => x.Trim(_TrimChars));
+			if (EnumUtils.TryParseFlags(split, out T value, out var invalidPerms))
 			{
-				return TypeReaderUtils.FromSuccessAsync(value);
+				return TypeReaderUtils.FromSuccess(value).AsTask();
 			}
-			return TypeReaderUtils.ParseFailedResultAsync<T>();
+			return TypeReaderUtils.ParseFailedResult<T>().AsTask();
 		}
 	}
 }

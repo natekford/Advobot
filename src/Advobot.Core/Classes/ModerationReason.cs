@@ -44,7 +44,7 @@ namespace Advobot.Classes
 				{
 					sb.Append(part).Append(' ');
 				}
-				else if (uint.TryParse(part.Split(new[] { ':' }, 2).Last(), out var time))
+				else if (uint.TryParse(part.Split(new[] { ':' }, 2)[^1], out var time))
 				{
 					Time = TimeSpan.FromMinutes((int)Math.Min(time, 60 * 24 * 7));
 				}

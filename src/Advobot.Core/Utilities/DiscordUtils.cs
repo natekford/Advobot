@@ -36,10 +36,10 @@ namespace Advobot.Utilities
 			this IUser user,
 			string? reason = null)
 		{
-			var r = $"Action by {user.Format()}.";
+			var r = user.Format();
 			if (reason != null)
 			{
-				r += $" Reason: {reason}.";
+				r += $": {reason}.";
 			}
 			return GenerateRequestOptions(r);
 		}

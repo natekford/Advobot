@@ -1,7 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-using Advobot.Tests.Fakes.Discord;
-using Advobot.Tests.Utilities;
+﻿using System.Threading.Tasks;
+
 using Advobot.TypeReaders;
 
 using AdvorangesUtils;
@@ -54,53 +52,5 @@ namespace Advobot.Tests.Core.TypeReaders
 			Assert.IsTrue(result.IsSuccess);
 			Assert.IsInstanceOfType(result.BestMatch, typeof(Color));
 		}
-	}
-
-	[TestClass]
-	public sealed class EnumTypeTypeReader_Tests
-		: TypeReader_TestsBase<EnumTypeTypeReader>
-	{
-	}
-
-	[TestClass]
-	public sealed class InviteTypeReader_Tests
-		: TypeReader_TestsBase<InviteTypeReader>
-	{
-	}
-
-	[TestClass]
-	public sealed class ModerationReasonTypeReader_Tests
-		: TypeReader_TestsBase<ModerationReasonTypeReader>
-	{
-	}
-
-	[TestClass]
-	public sealed class PermissionsTypeReader_Tests
-		: TypeReader_TestsBase<PermissionsTypeReader<ChannelPermission>>
-	{
-	}
-
-	[TestClass]
-	public sealed class SelfAssignableRolesTypeReader_Tests
-		: TypeReader_TestsBase<SelfAssignableRolesTypeReader>
-	{
-	}
-
-	[TestClass]
-	public sealed class SelfAssignableRoleTypeReader_Tests
-		: TypeReader_TestsBase<SelfAssignableRoleTypeReader>
-	{
-	}
-
-	[TestClass]
-	public sealed class VoiceRegionTypeReader_Tests
-		: TypeReader_TestsBase<VoiceRegionTypeReader>
-	{
-	}
-
-	[TestClass]
-	public sealed class WebhookTypeReader_Tests
-		: TypeReader_TestsBase<WebhookTypeReader>
-	{
 	}
 }

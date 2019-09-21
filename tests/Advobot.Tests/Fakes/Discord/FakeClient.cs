@@ -16,6 +16,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public ISelfUser CurrentUser { get; set; } = new FakeSelfUser();
 		public FakeApplication FakeApplication { get; set; } = new FakeApplication();
 		public List<FakeGuild> FakeGuilds { get; set; } = new List<FakeGuild>();
+		public List<FakeVoiceRegion> FakeVoiceRegions { get; set; } = new List<FakeVoiceRegion>();
 		public TokenType TokenType => throw new NotImplementedException();
 
 		public Task<IGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream jpegIcon = null, RequestOptions options = null) => throw new NotImplementedException();
@@ -39,7 +40,20 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 			=> Task.FromResult<IReadOnlyCollection<IGuild>>(FakeGuilds);
 
-		public Task<IInvite> GetInviteAsync(string inviteId, RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IInvite> GetInviteAsync(string inviteId, RequestOptions options = null)
+		{
+			foreach (var guild in FakeGuilds)
+			{
+				foreach (var invite in guild.FakeInvites)
+				{
+					if (invite.Id == inviteId)
+					{
+						return Task.FromResult<IInvite>(invite);
+					}
+				}
+			}
+			return Task.FromResult<IInvite>(null);
+		}
 
 		public Task<IReadOnlyCollection<IPrivateChannel>> GetPrivateChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
@@ -51,7 +65,8 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IVoiceRegion> GetVoiceRegionAsync(string id, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null)
+			=> Task.FromResult<IReadOnlyCollection<IVoiceRegion>>(FakeVoiceRegions);
 
 		public Task<IWebhook> GetWebhookAsync(ulong id, RequestOptions options = null) => throw new NotImplementedException();
 

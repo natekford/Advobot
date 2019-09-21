@@ -446,38 +446,12 @@ namespace Advobot.Standard.Responses
 			});
 		}
 
-		public static AdvobotResult ShowAllEnums(IEnumerable<Type> enums)
-		{
-			var description = enums
-				.Join(x => x.Name)
-				.WithBlock()
-				.Value;
-			return Success(new EmbedWrapper
-			{
-				Title = GetsTitleEnumNames,
-				Description = description,
-			});
-		}
-
 		public static AdvobotResult ShowEnumNames<T>(ulong value) where T : struct, Enum
 		{
 			return Success(GetsShowEnumNames.Format(
 				value.ToString().WithBlock(),
 				EnumUtils.GetFlagNames((T)(object)value).Join().WithBlock()
 			));
-		}
-
-		public static AdvobotResult ShowEnumValues(Type enumType)
-		{
-			var description = Enum.GetNames(enumType)
-				.Join()
-				.WithBlock()
-				.Value;
-			return Success(new EmbedWrapper
-			{
-				Title = enumType.Name, //TODO: Localize enum name
-				Description = description,
-			});
 		}
 
 		public static async Task<RuntimeResult> User(IUser user)
