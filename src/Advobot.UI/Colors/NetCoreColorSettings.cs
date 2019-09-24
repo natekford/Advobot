@@ -27,7 +27,8 @@ namespace Advobot.UI.Colors
 	/// </summary>
 	public sealed class NetCoreColorSettings : ColorSettings<ISolidColorBrush, NetCoreBrushFactory>
 	{
-		private static readonly string _AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+		private static readonly string _AssemblyName = Assembly.GetExecutingAssembly()
+			.GetName().Name ?? "";
 
 		private static readonly Dictionary<string, string[]> _ColorNameMappings = new Dictionary<string, string[]>
 		{

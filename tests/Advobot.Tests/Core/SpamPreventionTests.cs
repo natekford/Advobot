@@ -150,7 +150,7 @@ namespace Advobot.Tests.Core
 				{
 					var threadUser = new FakeGuildUser(_Guild)
 					{
-						Id = (ulong)(int)userId,
+						Id = userId is ulong id ? id : 1,
 					};
 #if DEBUG_MESSAGES
 					Debug.Print($"Created user {userId}.\n");

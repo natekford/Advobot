@@ -48,16 +48,22 @@ namespace Advobot.UI.Controls
 					{
 						NotifyCollectionChangedAction.Add => (Action)(() =>
 						{
-							foreach (ulong item in e.NewItems)
+							foreach (var item in e.NewItems)
 							{
-								displayList.Add(item);
+								if (item is ulong id)
+								{
+									displayList.Add(id);
+								}
 							}
 						}),
 						NotifyCollectionChangedAction.Remove => (() =>
 						{
-							foreach (ulong item in e.OldItems)
+							foreach (var item in e.OldItems)
 							{
-								displayList.Remove(item);
+								if (item is ulong id)
+								{
+									displayList.Remove(id);
+								}
 							}
 						}),
 						NotifyCollectionChangedAction.Reset => displayList.Clear,

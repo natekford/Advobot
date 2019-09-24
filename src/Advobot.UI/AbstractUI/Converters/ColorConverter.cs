@@ -51,6 +51,6 @@ namespace Advobot.UI.AbstractUI.Converters
 			throw new InvalidOperationException("Brush cannot be null when converting back.");
 		}
 
-#pragma warning enable RCS1163 // Unused parameter.
+#pragma warning restore RCS1163 // Unused parameter.
 	}
 }

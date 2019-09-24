@@ -32,7 +32,8 @@ namespace Advobot.UI.ViewModels
 {
 	public sealed class AdvobotNetCoreWindowViewModel : ReactiveObject
 	{
-		private static readonly string _Caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+		private static readonly string _Caption = Assembly.GetExecutingAssembly()
+			.GetCustomAttribute<AssemblyProductAttribute>()?.Product ?? "";
 
 		private readonly IBotSettings _BotSettings;
 

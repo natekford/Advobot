@@ -21,7 +21,7 @@ namespace Advobot.Services.Logging.Loggers
 		protected IGuildSettingsFactory GuildSettingsFactory { get; }
 		protected ITime Time { get; }
 
-		public event EventHandler<LogCounterIncrementEventArgs> LogCounterIncrement;
+		public event EventHandler<LogCounterIncrementEventArgs>? LogCounterIncrement;
 
 		protected Logger(ITime time, IBotSettings botSettings, IGuildSettingsFactory settingsFactory)
 		{

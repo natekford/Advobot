@@ -44,7 +44,7 @@ namespace Advobot.UI.AbstractUI.Colors
 		public ICollection<TBrush> Values => _RuntimeBrushes.Values;
 
 		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		/// <summary>
 		/// Gets or sets the color for the specified color target which can be used when the custom theme is enabled.

@@ -39,7 +39,7 @@ namespace Advobot.Services.Logging
 		public ILogCounter UserLeaves { get; } = new LogCounter();
 		public IUserLogger UserLogger { get; }
 
-		public event PropertyChangedEventHandler PropertyChanged;
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public LogService(
 			BaseSocketClient client,

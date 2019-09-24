@@ -20,7 +20,8 @@ namespace Advobot.UI.ViewModels
 {
 	public sealed class FileViewingWindowViewModel : ReactiveObject
 	{
-		private static readonly string _Caption = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyProductAttribute>().Product;
+		private static readonly string _Caption = Assembly.GetExecutingAssembly()
+			.GetCustomAttribute<AssemblyProductAttribute>()?.Product ?? "";
 
 		private readonly FileInfo _File;
 

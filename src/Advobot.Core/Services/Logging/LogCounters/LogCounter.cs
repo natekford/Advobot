@@ -24,7 +24,7 @@ namespace Advobot.Services.Logging.LogCounters
 		public string Name { get; }
 
 		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		/// <summary>
 		/// Creates an instance of <see cref="LogCounter"/>.

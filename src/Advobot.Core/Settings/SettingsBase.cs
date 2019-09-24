@@ -22,7 +22,7 @@ namespace Advobot.Settings
 		private readonly IReadOnlyList<Setting> _Settings;
 
 		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		/// <summary>
 		/// Creates an instance of <see cref="SettingsBase"/>.

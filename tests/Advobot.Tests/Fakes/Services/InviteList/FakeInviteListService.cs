@@ -67,7 +67,7 @@ namespace Advobot.Tests.Fakes.Services.InviteList
 		public Task<IReadOnlyListedInvite?> GetAsync(ulong guildId)
 		{
 			_Invites.TryGetValue(guildId, out var invite);
-			return Task.FromResult<IReadOnlyListedInvite>(invite);
+			return Task.FromResult(invite);
 		}
 
 		public Task RemoveInviteAsync(ulong guildId)

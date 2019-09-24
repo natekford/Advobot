@@ -46,7 +46,7 @@ namespace Advobot.Services.Commands
 		private bool IsLoaded => _LoadedState != default;
 
 		/// <inheritdoc />
-		public event Action<IResult> CommandInvoked;
+		public event Action<IResult>? CommandInvoked;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CommandHandlerService"/>.

@@ -50,7 +50,7 @@ namespace Advobot.UI.ViewModels
 		{
 			private readonly ConcurrentDictionary<string, bool> _ValidationErrors = new ConcurrentDictionary<string, bool>();
 
-			public event PropertyChangedEventHandler PropertyChanged;
+			public event PropertyChangedEventHandler? PropertyChanged;
 
 			public bool this[string target]
 			{

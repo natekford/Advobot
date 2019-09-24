@@ -96,7 +96,7 @@ namespace Advobot.UI.AbstractUI.Colors
 		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
 
 		/// <inheritdoc />
-		public event PropertyChangedEventHandler PropertyChanged;
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		static ColorSettings()
 		{

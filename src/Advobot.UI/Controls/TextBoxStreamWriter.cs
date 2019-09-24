@@ -27,7 +27,7 @@ namespace Advobot.UI.Controls
 			_CurrentLineText.Append(value);
 		}
 
-		public override void Write(string value)
+		public override void Write(string? value)
 		{
 			if (string.IsNullOrWhiteSpace(value))
 			{
