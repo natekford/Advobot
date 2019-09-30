@@ -169,7 +169,8 @@ namespace Advobot.Tests.Fakes.Discord
 		public async Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 			=> (IVoiceChannel)await GetChannelAsync(AFKChannelId ?? 0).CAF();
 
-		public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null, ulong? beforeId = null, ulong? userId = null, ActionType? actionType = null)
+			=> throw new NotImplementedException();
 
 		public Task<IBan> GetBanAsync(IUser user, RequestOptions options = null)
 			=> GetBanAsync(user.Id, options);
