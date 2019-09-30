@@ -28,8 +28,15 @@ namespace Advobot.Tests.Levels.Database
 			const int START = 1;
 			const int LENGTH = 3;
 
-			var expected = data
-				.OrderByDescending(x => x.Experience)
+			var ordered = data.OrderByDescending(x => x.Experience).ToArray();
+
+			//Add a user to a different 'server' to allow checking if the total count stays
+			//the same later on
+			var last = ordered.Last();
+			var otherServer = new User(new SearchArgs(last.GetUserId(), CHANNEL_ID + 1, GUILD_ID + 1)).AddXp(3);
+			await db.UpsertUser(otherServer).CAF();
+
+			var expected = ordered
 				.Skip(START - 1)
 				.Take(LENGTH)
 				.Select((x, i) => new Rank(x.UserId, x.Experience, START + i, data.Count))

@@ -104,29 +104,23 @@ namespace Advobot.Levels.Database
 				args.ChannelId,
 				args.GuildId,
 				args.UserId,
-				Start = start - 1,
-				Length = length,
+				Offset = start - 1,
+				Limit = length,
 			};
-			/* Ignoring the total count:
+			var count = await connection.QuerySingleAsync<int>($@"
+				SELECT COUNT(DISTINCT UserId)
+				FROM User
+				{where}
+			", param).CAF();
+			var results = await connection.QueryAsync<TempRankInfo>($@"
 			    SELECT SUM (Experience) as Xp, UserId
 				FROM User
 				{where}
 				GROUP BY UserId
 				ORDER BY Xp
 				Limit @Length OFFSET @Start
-			*/
-			var results = await connection.QueryAsync<TempRankInfo>($@"
-				SELECT
-					SUM (Experience) as Xp,
-					UserId,
-					(SELECT COUNT(DISTINCT UserId) FROM User {where}) as Count
-				FROM User
-				{where}
-				GROUP BY UserId
-				ORDER BY Xp DESC
-				Limit @Length OFFSET @Start
 			", param).CAF();
-			return results.Select((x, i) => new Rank(x.UserId, x.Xp, start + i, x.Count)).ToArray();
+			return results.Select((x, i) => new Rank(x.UserId, x.Xp, start + i, count)).ToArray();
 		}
 
 		public async Task<IReadOnlyUser> GetUserAsync(ISearchArgs args)
@@ -207,7 +201,6 @@ namespace Advobot.Levels.Database
 
 		private sealed class TempRankInfo
 		{
-			public int Count { get; set; }
 			public string UserId { get; set; } = null!;
 			public int Xp { get; set; }
 		}
