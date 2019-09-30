@@ -58,6 +58,9 @@ namespace Advobot.Levels.Service
 		public Task<Rank> GetRankAsync(ISearchArgs args)
 			=> _Db.GetRankAsync(args);
 
+		public Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int start, int length)
+			=> _Db.GetRanksAsync(args, start, length);
+
 		public Task<int> GetXpAsync(ISearchArgs args)
 			=> _Db.GetXpAsync(args);
 

@@ -88,7 +88,45 @@ namespace Advobot.Levels.Database
 					++rank;
 				}
 			}
-			return new Rank(xp, rank, total);
+			return new Rank(args.UserId, xp, rank, total);
+		}
+
+		public async Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int start, int length)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+
+			var where = new StringBuilder();
+			AppendWhereStatement(where, args.GuildId, "GuildId = @GuildId");
+			AppendWhereStatement(where, args.ChannelId, "ChannelId = @ChannelId");
+
+			var param = new
+			{
+				args.ChannelId,
+				args.GuildId,
+				args.UserId,
+				Start = start - 1,
+				Length = length,
+			};
+			/* Ignoring the total count:
+			    SELECT SUM (Experience) as Xp, UserId
+				FROM User
+				{where}
+				GROUP BY UserId
+				ORDER BY Xp
+				Limit @Length OFFSET @Start
+			*/
+			var results = await connection.QueryAsync<TempRankInfo>($@"
+				SELECT
+					SUM (Experience) as Xp,
+					UserId,
+					(SELECT COUNT(DISTINCT UserId) FROM User {where}) as Count
+				FROM User
+				{where}
+				GROUP BY UserId
+				ORDER BY Xp DESC
+				Limit @Length OFFSET @Start
+			", param).CAF();
+			return results.Select((x, i) => new Rank(x.UserId, x.Xp, start + i, x.Count)).ToArray();
 		}
 
 		public async Task<IReadOnlyUser> GetUserAsync(ISearchArgs args)
@@ -165,6 +203,13 @@ namespace Advobot.Levels.Database
 				ORDER BY name;
 			").CAF();
 			return result.ToArray();
+		}
+
+		private sealed class TempRankInfo
+		{
+			public int Count { get; set; }
+			public string UserId { get; set; } = null!;
+			public int Xp { get; set; }
 		}
 	}
 }

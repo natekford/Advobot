@@ -21,7 +21,7 @@ namespace Advobot.Tests.Invites.Database
 			var db = await GetDatabaseAsync().CAF();
 
 			var client = new FakeClient();
-			var counts = new Dictionary<string, int>();
+			var counts = new Dictionary<string, HashSet<ulong>>();
 			var keywords = new List<Keyword>();
 
 			const string DOG = "dog";
@@ -51,14 +51,17 @@ namespace Advobot.Tests.Invites.Database
 			foreach (var kvp in counts)
 			{
 				var invites = await db.GetInvitesAsync(new[] { kvp.Key }).CAF();
-				Assert.AreEqual(kvp.Value, invites.Count);
+				Assert.AreEqual(kvp.Value.Count, invites.Count);
 			}
 		}
 
-		private void AddKeyword(Dictionary<string, int> counts, List<Keyword> keywords, IGuild guild, string word)
+		private void AddKeyword(Dictionary<string, HashSet<ulong>> counts, List<Keyword> keywords, IGuild guild, string word)
 		{
-			counts.TryGetValue(word, out var current);
-			counts[word] = current + 1;
+			if (!counts.TryGetValue(word, out var current))
+			{
+				counts.Add(word, current = new HashSet<ulong>());
+			}
+			current.Add(guild.Id);
 			keywords.Add(new Keyword(guild, word));
 		}
 	}

@@ -7,7 +7,7 @@ namespace Advobot.Levels.Database
 	{
 		public ulong? ChannelId { get; set; }
 		public ulong? GuildId { get; set; }
-		public ulong UserId { get; set; }
+		public ulong? UserId { get; set; }
 
 		string? ISearchArgs.ChannelId => ChannelId?.ToString();
 		string? ISearchArgs.GuildId => GuildId?.ToString();
@@ -17,7 +17,7 @@ namespace Advobot.Levels.Database
 		{
 		}
 
-		public SearchArgs(ulong userId, ulong? guildId = null, ulong? channelId = null)
+		public SearchArgs(ulong? userId = null, ulong? guildId = null, ulong? channelId = null)
 		{
 			UserId = userId;
 			GuildId = guildId;

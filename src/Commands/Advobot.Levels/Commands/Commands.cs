@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 using Advobot.Attributes;
 using Advobot.Classes;
@@ -36,7 +37,7 @@ namespace Advobot.Levels.Commands
 				var experience = await Service.GetXpAsync(args).CAF();
 				var level = Service.CalculateLevel(experience);
 
-				var user = Context.Client.GetUser(args.UserId);
+				var user = Context.Client.GetUser(args.UserId.GetValueOrDefault());
 				var name = user.Format() ?? args.UserId.ToString();
 				var description =
 					$"Rank: {rank.Position} out of {rank.Total}\n" +
@@ -51,6 +52,22 @@ namespace Advobot.Levels.Commands
 					Author = user?.CreateAuthor() ?? new EmbedAuthorBuilder(),
 					Footer = new EmbedFooterBuilder { Text = "Xp Information", },
 				});
+			}
+		}
+
+		[Group(nameof(Top)), ModuleInitialismAlias(typeof(Top))]
+		[Summary("temp")]
+		[Meta("649ec476-4043-48b0-9802-62a9288d007b", IsEnabled = true)]
+		public sealed class Top : LevelModuleBase
+		{
+			public const int PAGE_LENGTH = 15;
+
+			public Task<RuntimeResult> Command()
+				=> Command(0);
+
+			public async Task<RuntimeResult> Command(int page)
+			{
+				throw new NotImplementedException();
 			}
 		}
 	}

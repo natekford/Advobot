@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using Advobot.Levels.Database;
 using Advobot.Levels.Metadata;
@@ -13,6 +14,8 @@ namespace Advobot.Levels.Service
 		int CalculateLevel(int experience);
 
 		Task<Rank> GetRankAsync(ISearchArgs args);
+
+		Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int start, int length);
 
 		Task<int> GetXpAsync(ISearchArgs args);
 	}
