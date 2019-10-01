@@ -15,9 +15,9 @@ using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Channels : CommandResponses
+	public sealed class Channels : AdvobotResult
 	{
-		private Channels()
+		private Channels() : base(null, "")
 		{
 		}
 

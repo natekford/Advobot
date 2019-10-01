@@ -7,9 +7,9 @@ using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Nicknames : CommandResponses
+	public sealed class Nicknames : AdvobotResult
 	{
-		private Nicknames()
+		private Nicknames() : base(null, "")
 		{
 		}
 

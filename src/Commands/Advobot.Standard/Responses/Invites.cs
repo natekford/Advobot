@@ -13,9 +13,9 @@ using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Invites : CommandResponses
+	public sealed class Invites : AdvobotResult
 	{
-		private Invites()
+		private Invites() : base(null, "")
 		{
 		}
 

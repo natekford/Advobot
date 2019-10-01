@@ -4,17 +4,17 @@ namespace Advobot.Levels.Metadata
 {
 	public readonly struct Rank : IUserChild
 	{
-		public int Amount { get; }
+		public int Experience { get; }
 		public int Position { get; }
-		public int Total { get; }
+		public int TotalRankCount { get; }
 		public string UserId { get; }
 
-		public Rank(string userId, int amount, int position, int total)
+		public Rank(string userId, int xp, int position, int total)
 		{
 			UserId = userId;
-			Amount = amount;
+			Experience = xp;
 			Position = position;
-			Total = total;
+			TotalRankCount = total;
 		}
 	}
 }

@@ -34,7 +34,7 @@ namespace Advobot.Levels.Models
 		{
 			GuildId = args.GuildId ?? throw new ArgumentNullException(nameof(args.GuildId));
 			ChannelId = args.ChannelId ?? throw new ArgumentNullException(nameof(args.ChannelId));
-			UserId = args.UserId;
+			UserId = args.UserId ?? throw new ArgumentNullException(nameof(args.UserId));
 		}
 
 		private User(IReadOnlyUser user)

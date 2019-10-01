@@ -14,11 +14,11 @@ using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Roles : CommandResponses
+	public sealed class Roles : AdvobotResult
 	{
 		private static readonly List<GuildPermission> _AllPerms = GuildPermissions.All.ToList();
 
-		private Roles()
+		private Roles() : base(null, "")
 		{
 		}
 

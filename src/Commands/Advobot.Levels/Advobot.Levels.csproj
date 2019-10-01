@@ -14,8 +14,6 @@
 
   <ItemGroup>
     <Folder Include="Localization\" />
-    <Folder Include="Responses\" />
-    <Folder Include="Resources\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +23,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources\Responses.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Responses.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Responses.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Responses.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <PropertyGroup>

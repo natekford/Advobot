@@ -14,9 +14,9 @@ using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Emotes : CommandResponses
+	public sealed class Emotes : AdvobotResult
 	{
-		private Emotes()
+		private Emotes() : base(null, "")
 		{
 		}
 

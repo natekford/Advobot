@@ -13,9 +13,9 @@ using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Webhooks : CommandResponses
+	public sealed class Webhooks : AdvobotResult
 	{
-		private Webhooks()
+		private Webhooks() : base(null, "")
 		{
 		}
 

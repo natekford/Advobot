@@ -20,12 +20,12 @@ using static Advobot.Utilities.FormattingUtils;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Misc : CommandResponses
+	public sealed class Misc : AdvobotResult
 	{
 		private static readonly Type _Commands = typeof(Commands.Misc.Commands);
 		private static readonly Type _Help = typeof(Commands.Misc.Help);
 
-		private Misc()
+		private Misc() : base(null, "")
 		{
 		}
 

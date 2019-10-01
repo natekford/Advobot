@@ -15,7 +15,7 @@ namespace Advobot.Levels.Service
 
 		Task<Rank> GetRankAsync(ISearchArgs args);
 
-		Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int start, int length);
+		Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int offset, int limit);
 
 		Task<int> GetXpAsync(ISearchArgs args);
 	}

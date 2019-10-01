@@ -4,6 +4,6 @@
 	{
 		string? ChannelId { get; }
 		string? GuildId { get; }
-		string UserId { get; }
+		string? UserId { get; }
 	}
 }

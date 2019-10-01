@@ -37,7 +37,7 @@ namespace Advobot.Tests.Levels.Database
 			await db.UpsertUser(otherServer).CAF();
 
 			var expected = ordered
-				.Skip(START - 1)
+				.Skip(START)
 				.Take(LENGTH)
 				.Select((x, i) => new Rank(x.UserId, x.Experience, START + i, data.Count))
 				.ToArray();
@@ -51,9 +51,9 @@ namespace Advobot.Tests.Levels.Database
 				var expectedItem = expected[i];
 				var retrievedItem = retrieved[i];
 				Assert.IsNotNull(retrievedItem);
-				Assert.AreEqual(expectedItem.Amount, retrievedItem.Amount);
+				Assert.AreEqual(expectedItem.Experience, retrievedItem.Experience);
 				Assert.AreEqual(expectedItem.Position, retrievedItem.Position);
-				Assert.AreEqual(expectedItem.Total, retrievedItem.Total);
+				Assert.AreEqual(expectedItem.TotalRankCount, retrievedItem.TotalRankCount);
 				Assert.AreEqual(expectedItem.UserId, retrievedItem.UserId);
 			}
 		}
@@ -71,9 +71,9 @@ namespace Advobot.Tests.Levels.Database
 			var args = new SearchArgs(picked.GetUserId(), picked.GetGuildId(), picked.GetChannelId());
 			var retrieved = await db.GetRankAsync(args).CAF();
 			Assert.IsNotNull(retrieved);
-			Assert.AreEqual(expected.Amount, retrieved.Amount);
+			Assert.AreEqual(expected.Experience, retrieved.Experience);
 			Assert.AreEqual(expected.Position, retrieved.Position);
-			Assert.AreEqual(expected.Total, retrieved.Total);
+			Assert.AreEqual(expected.TotalRankCount, retrieved.TotalRankCount);
 			Assert.AreEqual(expected.UserId, retrieved.UserId);
 		}
 

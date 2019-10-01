@@ -61,18 +61,27 @@ namespace Advobot.Levels.Database
 			return await GetTablesAsync().CAF();
 		}
 
+		public async Task<int> GetDistinctUserCountAsync(ISearchArgs args)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+
+			var where = GenerateWhereStatement(args);
+			return await connection.QuerySingleAsync<int>($@"
+				SELECT COUNT(DISTINCT UserId)
+				FROM User
+				{where}
+			", args).CAF();
+		}
+
 		public async Task<Rank> GetRankAsync(ISearchArgs args)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
 			var xp = await GetXpAsync(args).CAF();
 
-			var where = new StringBuilder();
-			AppendWhereStatement(where, args.GuildId, "GuildId = @GuildId");
-			AppendWhereStatement(where, args.ChannelId, "ChannelId = @ChannelId");
-
+			var where = GenerateWhereStatement(args);
 			var results = await connection.QueryAsync<int>($@"
-				SELECT SUM (Experience)
+				SELECT SUM(Experience)
 				FROM User
 				{where}
 				GROUP BY UserId
@@ -88,49 +97,43 @@ namespace Advobot.Levels.Database
 					++rank;
 				}
 			}
-			return new Rank(args.UserId, xp, rank, total);
+			return new Rank(args.UserId!, xp, rank, total);
 		}
 
-		public async Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int start, int length)
+		public async Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
 		{
 			using var connection = await GetConnectionAsync().CAF();
-
-			var where = new StringBuilder();
-			AppendWhereStatement(where, args.GuildId, "GuildId = @GuildId");
-			AppendWhereStatement(where, args.ChannelId, "ChannelId = @ChannelId");
 
 			var param = new
 			{
 				args.ChannelId,
 				args.GuildId,
 				args.UserId,
-				Offset = start - 1,
-				Limit = length,
+				Offset = offset,
+				Limit = limit,
 			};
-			var count = await connection.QuerySingleAsync<int>($@"
-				SELECT COUNT(DISTINCT UserId)
-				FROM User
-				{where}
-			", param).CAF();
+			var where = GenerateWhereStatement(args);
 			var results = await connection.QueryAsync<TempRankInfo>($@"
-			    SELECT SUM (Experience) as Xp, UserId
+			    SELECT SUM(Experience) as Xp, UserId
 				FROM User
 				{where}
 				GROUP BY UserId
-				ORDER BY Xp
-				Limit @Length OFFSET @Start
+				ORDER BY Xp DESC
+				Limit @Limit OFFSET @Offset
 			", param).CAF();
-			return results.Select((x, i) => new Rank(x.UserId, x.Xp, start + i, count)).ToArray();
+			var count = await GetDistinctUserCountAsync(args).CAF();
+			return results.Select((x, i) => new Rank(x.UserId, x.Xp, offset + i, count)).ToArray();
 		}
 
 		public async Task<IReadOnlyUser> GetUserAsync(ISearchArgs args)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
+			var where = GenerateSingleUserWhereStatement(args);
 			var result = await connection.QuerySingleOrDefaultAsync<User>($@"
 				SELECT *
 				FROM User
-				WHERE UserId = @UserId AND GuildId = @GuildId AND ChannelId = @ChannelId
+				{where}
 			", args).CAF();
 			return result ?? new User(args);
 		}
@@ -139,17 +142,12 @@ namespace Advobot.Levels.Database
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
-			var where = new StringBuilder();
-			AppendWhereStatement(where, args.UserId, "UserId = @UserId");
-			AppendWhereStatement(where, args.GuildId, "GuildId = @GuildId");
-			AppendWhereStatement(where, args.ChannelId, "ChannelId = @ChannelId");
-
-			var result = await connection.QueryAsync<int>($@"
-				SELECT Experience
+			var where = GenerateSingleUserWhereStatement(args);
+			return await connection.QuerySingleAsync<int>($@"
+				SELECT SUM(Experience)
 				FROM User
 				{where}
 			", args).CAF();
-			return result.Sum();
 		}
 
 		public async Task UpsertUser(IReadOnlyUser user)
@@ -178,6 +176,23 @@ namespace Advobot.Levels.Database
 
 			var statement = sb.Length > 0 ? " AND " : "WHERE ";
 			sb.Append(statement).Append(where);
+		}
+
+		private string GenerateSingleUserWhereStatement(ISearchArgs args)
+		{
+			var where = new StringBuilder();
+			AppendWhereStatement(where, args.UserId, "UserId = @UserId");
+			AppendWhereStatement(where, args.GuildId, "GuildId = @GuildId");
+			AppendWhereStatement(where, args.ChannelId, "ChannelId = @ChannelId");
+			return where.ToString();
+		}
+
+		private string GenerateWhereStatement(ISearchArgs args)
+		{
+			var where = new StringBuilder();
+			AppendWhereStatement(where, args.GuildId, "GuildId = @GuildId");
+			AppendWhereStatement(where, args.ChannelId, "ChannelId = @ChannelId");
+			return where.ToString();
 		}
 
 		private async Task<SQLiteConnection> GetConnectionAsync()

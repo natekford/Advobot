@@ -22,7 +22,7 @@ using static Advobot.Utilities.FormattingUtils;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Gets : CommandResponses
+	public sealed class Gets : AdvobotResult
 	{
 		private static readonly IReadOnlyList<ActivityType> _Activities
 			= AdvobotUtils.GetValues<ActivityType>();
@@ -33,7 +33,7 @@ namespace Advobot.Standard.Responses
 		private static readonly IReadOnlyList<UserStatus> _Statuses
 			= AdvobotUtils.GetValues<UserStatus>();
 
-		private Gets()
+		private Gets() : base(null, "")
 		{
 		}
 

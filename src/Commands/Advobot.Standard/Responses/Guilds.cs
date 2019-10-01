@@ -13,9 +13,9 @@ using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Guilds : CommandResponses
+	public sealed class Guilds : AdvobotResult
 	{
-		private Guilds()
+		private Guilds() : base(null, "")
 		{
 		}
 

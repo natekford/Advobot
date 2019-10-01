@@ -9,9 +9,9 @@ using static Advobot.Standard.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {
-	public sealed class Snowflakes : CommandResponses
+	public sealed class Snowflakes : AdvobotResult
 	{
-		private Snowflakes()
+		private Snowflakes() : base(null, "")
 		{
 		}
 

@@ -11,7 +11,7 @@ namespace Advobot.Levels.Database
 
 		string? ISearchArgs.ChannelId => ChannelId?.ToString();
 		string? ISearchArgs.GuildId => GuildId?.ToString();
-		string ISearchArgs.UserId => UserId.ToString();
+		string? ISearchArgs.UserId => UserId?.ToString();
 
 		public SearchArgs()
 		{
