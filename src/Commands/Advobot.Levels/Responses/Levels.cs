@@ -62,7 +62,7 @@ namespace Advobot.Levels.Responses
 					x.Experience.ToString().WithBlock(),
 					level.ToString().WithBlock()
 				);
-			}, "\n");
+			}, Environment.NewLine);
 			return Success(new EmbedWrapper
 			{
 				Title = title,
