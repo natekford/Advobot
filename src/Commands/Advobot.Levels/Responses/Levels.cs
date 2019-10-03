@@ -5,7 +5,6 @@ using System.Linq;
 using Advobot.Classes;
 using Advobot.Levels.Database;
 using Advobot.Levels.Metadata;
-using Advobot.Levels.Utilities;
 using Advobot.Modules;
 using Advobot.Utilities;
 
@@ -26,7 +25,7 @@ namespace Advobot.Levels.Responses
 		public static AdvobotResult Level(ISearchArgs args, Rank rank, int level, IUser? user)
 		{
 			var title = LevelsLevelTitle.Format(
-				GetSearchType(args).WithNoMarkdown(),
+				GetSearchType(args).WithTitleCase(),
 				FormatUser(rank, user).WithNoMarkdown()
 			);
 			var description = LevelsLevelDescription.Format(
@@ -45,13 +44,21 @@ namespace Advobot.Levels.Responses
 			});
 		}
 
+		public static AdvobotResult NoXp(ISearchArgs args, Rank rank, IUser? user)
+		{
+			return Success(LevelsNoXp.Format(
+				FormatUser(rank, user).WithBlock(),
+				GetSearchType(args).WithNoMarkdown()
+			));
+		}
+
 		public static AdvobotResult Top(
 			ISearchArgs args,
 			IReadOnlyList<Rank> ranks,
 			Func<Rank, (int Level, IUser? User)> getInfo)
 		{
 			var title = LevelsTopTitle.Format(
-				GetSearchType(args).WithNoMarkdown()
+				GetSearchType(args).WithTitleCase()
 			);
 			var description = ranks.Join(x =>
 			{

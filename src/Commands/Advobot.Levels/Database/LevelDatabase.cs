@@ -130,7 +130,7 @@ namespace Advobot.Levels.Database
 			using var connection = await GetConnectionAsync().CAF();
 
 			var where = GenerateSingleUserWhereStatement(args);
-			var result = await connection.QuerySingleOrDefaultAsync<User>($@"
+			var result = await connection.QuerySingleOrDefaultAsync<User?>($@"
 				SELECT *
 				FROM User
 				{where}
@@ -143,11 +143,12 @@ namespace Advobot.Levels.Database
 			using var connection = await GetConnectionAsync().CAF();
 
 			var where = GenerateSingleUserWhereStatement(args);
-			return await connection.QuerySingleAsync<int>($@"
+			var result = await connection.QuerySingleOrDefaultAsync<int?>($@"
 				SELECT SUM(Experience)
 				FROM User
 				{where}
 			", args).CAF();
+			return result ?? 0;
 		}
 
 		public async Task UpsertUser(IReadOnlyUser user)
@@ -167,7 +168,7 @@ namespace Advobot.Levels.Database
 			", user).CAF();
 		}
 
-		private void AppendWhereStatement(StringBuilder sb, object? value, string where)
+		private void AppendWhereStatement(StringBuilder sb, object? value, string name)
 		{
 			if (value == null)
 			{
@@ -175,23 +176,23 @@ namespace Advobot.Levels.Database
 			}
 
 			var statement = sb.Length > 0 ? " AND " : "WHERE ";
-			sb.Append(statement).Append(where);
+			sb.Append(statement).Append(name).Append(" = @").Append(name);
 		}
 
 		private string GenerateSingleUserWhereStatement(ISearchArgs args)
 		{
 			var where = new StringBuilder();
-			AppendWhereStatement(where, args.UserId, "UserId = @UserId");
-			AppendWhereStatement(where, args.GuildId, "GuildId = @GuildId");
-			AppendWhereStatement(where, args.ChannelId, "ChannelId = @ChannelId");
+			AppendWhereStatement(where, args.UserId, nameof(args.UserId));
+			AppendWhereStatement(where, args.GuildId, nameof(args.GuildId));
+			AppendWhereStatement(where, args.ChannelId, nameof(args.ChannelId));
 			return where.ToString();
 		}
 
 		private string GenerateWhereStatement(ISearchArgs args)
 		{
 			var where = new StringBuilder();
-			AppendWhereStatement(where, args.GuildId, "GuildId = @GuildId");
-			AppendWhereStatement(where, args.ChannelId, "ChannelId = @ChannelId");
+			AppendWhereStatement(where, args.GuildId, nameof(args.GuildId));
+			AppendWhereStatement(where, args.ChannelId, nameof(args.ChannelId));
 			return where.ToString();
 		}
 

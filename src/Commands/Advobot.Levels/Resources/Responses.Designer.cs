@@ -62,7 +62,8 @@ namespace Advobot.Levels.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to Rank: {0} out of {1}
-        ///Xp: {2} ({3}).
+        ///Xp: {2}
+        ///Level: {3}.
         /// </summary>
         internal static string LevelsLevelDescription {
             get {
@@ -85,6 +86,15 @@ namespace Advobot.Levels.Resources {
         internal static string LevelsLevelTitle {
             get {
                 return ResourceManager.GetString("LevelsLevelTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} has no {1} xp..
+        /// </summary>
+        internal static string LevelsNoXp {
+            get {
+                return ResourceManager.GetString("LevelsNoXp", resourceCulture);
             }
         }
         
@@ -116,7 +126,7 @@ namespace Advobot.Levels.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Channel.
+        ///   Looks up a localized string similar to channel.
         /// </summary>
         internal static string LevelsVariableChannel {
             get {
@@ -125,7 +135,7 @@ namespace Advobot.Levels.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Global.
+        ///   Looks up a localized string similar to global.
         /// </summary>
         internal static string LevelsVariableGlobal {
             get {
@@ -134,7 +144,7 @@ namespace Advobot.Levels.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Guild.
+        ///   Looks up a localized string similar to guild.
         /// </summary>
         internal static string LevelsVariableGuild {
             get {

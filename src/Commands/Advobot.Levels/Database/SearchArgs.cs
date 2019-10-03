@@ -5,16 +5,12 @@ namespace Advobot.Levels.Database
 	[NamedArgumentType]
 	public sealed class SearchArgs : ISearchArgs
 	{
-		public ulong? Channel { get; set; }
-		public ulong? Guild { get; set; }
-		public ulong? User { get; set; }
-
-		string? ISearchArgs.ChannelId => Channel?.ToString();
-		ulong? ISearchArgs.ChannelIdValue => Channel;
-		string? ISearchArgs.GuildId => Guild?.ToString();
-		ulong? ISearchArgs.GuildIdValue => Guild;
-		string? ISearchArgs.UserId => User?.ToString();
-		ulong? ISearchArgs.UserIdValue => User;
+		public string? ChannelId => ChannelIdValue?.ToString();
+		public ulong? ChannelIdValue { get; set; }
+		public string? GuildId => GuildIdValue?.ToString();
+		public ulong? GuildIdValue { get; set; }
+		public string? UserId => UserIdValue?.ToString();
+		public ulong? UserIdValue { get; set; }
 
 		public SearchArgs()
 		{
@@ -22,9 +18,9 @@ namespace Advobot.Levels.Database
 
 		public SearchArgs(ulong? userId = null, ulong? guildId = null, ulong? channelId = null)
 		{
-			User = userId;
-			Guild = guildId;
-			Channel = channelId;
+			UserIdValue = userId;
+			GuildIdValue = guildId;
+			ChannelIdValue = channelId;
 		}
 	}
 }

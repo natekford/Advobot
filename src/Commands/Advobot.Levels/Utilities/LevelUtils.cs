@@ -5,6 +5,8 @@ using Advobot.Levels.Relationships;
 using Advobot.Levels.Service;
 
 using AdvorangesUtils;
+using Discord;
+using Discord.WebSocket;
 
 namespace Advobot.Levels.Utilities
 {
@@ -15,5 +17,8 @@ namespace Advobot.Levels.Utilities
 			var xp = await service.GetXpAsync(args).CAF();
 			return service.CalculateLevel(xp);
 		}
+
+		public static async Task<IUser?> GetUserAsync(this BaseSocketClient client, ulong id)
+			=> client.GetUser(id) ?? (IUser)await client.Rest.GetUserAsync(id).CAF();
 	}
 }

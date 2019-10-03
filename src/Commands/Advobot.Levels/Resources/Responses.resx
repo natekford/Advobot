@@ -99,19 +99,20 @@
   </resheader>
   <data name="LevelsLevelDescription" xml:space="preserve">
     <value>Rank: {0} out of {1}
-Xp: {2} ({3})</value>
+Xp: {2}
+Level: {3}</value>
   </data>
   <data name="LevelsLevelTitle" xml:space="preserve">
     <value>{0} Xp Information for {1}</value>
   </data>
   <data name="LevelsVariableChannel" xml:space="preserve">
-    <value>Channel</value>
+    <value>channel</value>
   </data>
   <data name="LevelsVariableGuild" xml:space="preserve">
-    <value>Guild</value>
+    <value>guild</value>
   </data>
   <data name="LevelsVariableGlobal" xml:space="preserve">
-    <value>Global</value>
+    <value>global</value>
   </data>
   <data name="LevelsLevelFooter" xml:space="preserve">
     <value>Xp Information</value>
@@ -124,5 +125,8 @@ Xp: {2} ({3})</value>
   </data>
   <data name="LevelsTopDescription" xml:space="preserve">
     <value>{0}. {1}: [Xp: {2}, Level: {3}]</value>
+  </data>
+  <data name="LevelsNoXp" xml:space="preserve">
+    <value>{0} has no {1} xp.</value>
   </data>
 </root>

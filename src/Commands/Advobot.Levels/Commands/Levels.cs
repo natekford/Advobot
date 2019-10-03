@@ -5,7 +5,6 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Levels.Database;
 using Advobot.Levels.Utilities;
-
 using AdvorangesUtils;
 
 using Discord;
@@ -26,15 +25,24 @@ namespace Advobot.Levels.Commands
 				=> Command(new SearchArgs(Context.User.Id, Context.Guild.Id));
 
 			[Command]
-			public Task<RuntimeResult> Command(IGuildUser user)
-				=> Command(new SearchArgs(user.Id, user.Guild.Id));
+			public Task<RuntimeResult> Command(IUser user)
+				=> Command(new SearchArgs(user.Id, Context.Guild.Id));
+
+			[Command]
+			public Task<RuntimeResult> Command(ulong userId)
+				=> Command(new SearchArgs(userId, Context.Guild.Id));
 
 			[Command]
 			public async Task<RuntimeResult> Command(SearchArgs args)
 			{
 				var rank = await Service.GetRankAsync(args).CAF();
+				var user = await Context.Client.GetUserAsync(rank.UserId).CAF();
+				if (rank.Experience == 0)
+				{
+					return Responses.Levels.NoXp(args, rank, user);
+				}
+
 				var level = Service.CalculateLevel(rank.Experience);
-				var user = Context.Client.GetUser(rank.UserId);
 				return Responses.Levels.Level(args, rank, level, user);
 			}
 		}
