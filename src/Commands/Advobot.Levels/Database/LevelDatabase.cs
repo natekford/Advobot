@@ -97,7 +97,7 @@ namespace Advobot.Levels.Database
 					++rank;
 				}
 			}
-			return new Rank(args.UserId!, xp, rank, total);
+			return new Rank(args.UserIdValue ?? 0, xp, rank, total);
 		}
 
 		public async Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
@@ -122,7 +122,7 @@ namespace Advobot.Levels.Database
 				Limit @Limit OFFSET @Offset
 			", param).CAF();
 			var count = await GetDistinctUserCountAsync(args).CAF();
-			return results.Select((x, i) => new Rank(x.UserId, x.Xp, offset + i, count)).ToArray();
+			return results.Select((x, i) => new Rank(x.UserIdValue, x.Xp, offset + i, count)).ToArray();
 		}
 
 		public async Task<IReadOnlyUser> GetUserAsync(ISearchArgs args)
@@ -217,6 +217,7 @@ namespace Advobot.Levels.Database
 		private sealed class TempRankInfo
 		{
 			public string UserId { get; set; } = null!;
+			public ulong UserIdValue => ulong.Parse(UserId);
 			public int Xp { get; set; }
 		}
 	}

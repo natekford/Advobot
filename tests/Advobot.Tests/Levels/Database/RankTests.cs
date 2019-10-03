@@ -33,7 +33,7 @@ namespace Advobot.Tests.Levels.Database
 			//Add a user to a different 'server' to allow checking if the total count stays
 			//the same later on
 			var last = ordered.Last();
-			var otherServer = new User(new SearchArgs(last.GetUserId(), CHANNEL_ID + 1, GUILD_ID + 1)).AddXp(3);
+			var otherServer = new User(new SearchArgs(last.UserId, CHANNEL_ID + 1, GUILD_ID + 1)).AddXp(3);
 			await db.UpsertUser(otherServer).CAF();
 
 			var expected = ordered
@@ -68,7 +68,7 @@ namespace Advobot.Tests.Levels.Database
 			var index = data.OrderByDescending(x => x.Experience).ToList().IndexOf(picked);
 			var expected = new Rank(picked.UserId, picked.Experience, index + 1, data.Count);
 
-			var args = new SearchArgs(picked.GetUserId(), picked.GetGuildId(), picked.GetChannelId());
+			var args = new SearchArgs(picked.UserId, picked.GuildId, picked.ChannelId);
 			var retrieved = await db.GetRankAsync(args).CAF();
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(expected.Experience, retrieved.Experience);

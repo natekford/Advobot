@@ -7,9 +7,9 @@ namespace Advobot.Levels.Metadata
 		public int Experience { get; }
 		public int Position { get; }
 		public int TotalRankCount { get; }
-		public string UserId { get; }
+		public ulong UserId { get; }
 
-		public Rank(string userId, int xp, int position, int total)
+		public Rank(ulong userId, int xp, int position, int total)
 		{
 			UserId = userId;
 			Experience = xp;

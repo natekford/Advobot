@@ -2,6 +2,6 @@
 {
 	public interface IUserChild
 	{
-		string UserId { get; }
+		ulong UserId { get; }
 	}
 }

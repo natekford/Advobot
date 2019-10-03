@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
+using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Levels.Database;
 using Advobot.Levels.Utilities;
 
@@ -33,7 +34,7 @@ namespace Advobot.Levels.Commands
 			{
 				var rank = await Service.GetRankAsync(args).CAF();
 				var level = Service.CalculateLevel(rank.Experience);
-				var user = Context.Client.GetUser(rank.GetUserId());
+				var user = Context.Client.GetUser(rank.UserId);
 				return Responses.Levels.Level(args, rank, level, user);
 			}
 		}
@@ -49,25 +50,25 @@ namespace Advobot.Levels.Commands
 			private ulong GuildId => Context.Guild.Id;
 
 			[Command(nameof(Channel))]
-			public Task<RuntimeResult> Channel([Optional] int page)
+			public Task<RuntimeResult> Channel([Positive, Optional] int page)
 				=> Command(new SearchArgs(guildId: GuildId, channelId: ChannelId), page);
 
 			[Command(nameof(Global))]
-			public Task<RuntimeResult> Global([Optional] int page)
+			public Task<RuntimeResult> Global([Positive, Optional] int page)
 				=> Command(new SearchArgs(), page);
 
 			[Command]
-			public Task<RuntimeResult> Guild([Optional] int page)
+			public Task<RuntimeResult> Guild([Positive, Optional] int page)
 				=> Command(new SearchArgs(guildId: GuildId), page);
 
 			private async Task<RuntimeResult> Command(ISearchArgs args, int page)
 			{
-				var offset = PAGE_LENGTH * page;
+				var offset = PAGE_LENGTH * (page - 1);
 				var ranks = await Service.GetRanksAsync(args, offset, PAGE_LENGTH).CAF();
 				return Responses.Levels.Top(args, ranks, x =>
 				{
 					var level = Service.CalculateLevel(x.Experience);
-					var user = Context.Client.GetUser(x.GetUserId());
+					var user = Context.Client.GetUser(x.UserId);
 					return (level, user);
 				});
 			}

@@ -2,6 +2,6 @@
 {
 	public interface IGuildChild
 	{
-		string GuildId { get; }
+		ulong GuildId { get; }
 	}
 }

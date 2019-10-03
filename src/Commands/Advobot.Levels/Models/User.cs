@@ -2,7 +2,7 @@
 
 using Advobot.Levels.Database;
 using Advobot.Levels.ReadOnlyModels;
-
+using Advobot.Levels.Relationships;
 using Discord;
 
 namespace Advobot.Levels.Models
@@ -14,6 +14,10 @@ namespace Advobot.Levels.Models
 		public string GuildId { get; set; }
 		public int MessageCount { get; set; }
 		public string UserId { get; set; }
+
+		ulong IChannelChild.ChannelId => ulong.Parse(ChannelId);
+		ulong IGuildChild.GuildId => ulong.Parse(GuildId);
+		ulong IUserChild.UserId => ulong.Parse(UserId);
 
 		public User()
 		{
@@ -39,11 +43,11 @@ namespace Advobot.Levels.Models
 
 		private User(IReadOnlyUser user)
 		{
-			ChannelId = user.ChannelId;
+			ChannelId = user.ChannelId.ToString();
 			Experience = user.Experience;
-			GuildId = user.GuildId;
+			GuildId = user.GuildId.ToString();
 			MessageCount = user.MessageCount;
-			UserId = user.UserId;
+			UserId = user.UserId.ToString();
 		}
 
 		public IReadOnlyUser AddXp(int xp)

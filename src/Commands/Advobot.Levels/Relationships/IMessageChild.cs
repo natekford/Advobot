@@ -2,6 +2,6 @@
 {
 	public interface IMessageChild : IChannelChild
 	{
-		string MessageId { get; }
+		ulong MessageId { get; }
 	}
 }

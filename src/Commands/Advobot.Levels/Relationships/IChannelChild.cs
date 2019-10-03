@@ -2,6 +2,6 @@
 {
 	public interface IChannelChild : IGuildChild
 	{
-		string ChannelId { get; }
+		ulong ChannelId { get; }
 	}
 }

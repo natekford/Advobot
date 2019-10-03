@@ -72,7 +72,7 @@ namespace Advobot.Levels.Responses
 		}
 
 		private static string FormatUser(Rank rank, IUser? user)
-			=> user?.Format() ?? rank.GetUserId().ToString();
+			=> user?.Format() ?? rank.UserId.ToString();
 
 		private static string GetSearchType(ISearchArgs args)
 		{
