@@ -1,8 +1,6 @@
-﻿using Advobot.Levels.Relationships;
-
-namespace Advobot.Levels.Metadata
+﻿namespace Advobot.Levels.Metadata
 {
-	public readonly struct Rank : IUserChild
+	public sealed class Rank : IRank
 	{
 		public int Experience { get; }
 		public int Position { get; }

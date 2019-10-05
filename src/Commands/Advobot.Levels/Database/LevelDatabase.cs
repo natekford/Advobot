@@ -73,7 +73,7 @@ namespace Advobot.Levels.Database
 			", args).CAF();
 		}
 
-		public async Task<Rank> GetRankAsync(ISearchArgs args)
+		public async Task<IRank> GetRankAsync(ISearchArgs args)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -100,7 +100,7 @@ namespace Advobot.Levels.Database
 			return new Rank(args.UserIdValue ?? 0, xp, rank, total);
 		}
 
-		public async Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
+		public async Task<IReadOnlyList<IRank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 

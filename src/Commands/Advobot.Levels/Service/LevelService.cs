@@ -55,10 +55,10 @@ namespace Advobot.Levels.Service
 			return Math.Max(powed, 0); //No negative levels
 		}
 
-		public Task<Rank> GetRankAsync(ISearchArgs args)
+		public Task<IRank> GetRankAsync(ISearchArgs args)
 			=> _Db.GetRankAsync(args);
 
-		public Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
+		public Task<IReadOnlyList<IRank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
 			=> _Db.GetRanksAsync(args, offset, limit);
 
 		public Task<int> GetXpAsync(ISearchArgs args)

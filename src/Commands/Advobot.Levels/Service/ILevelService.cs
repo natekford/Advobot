@@ -13,9 +13,9 @@ namespace Advobot.Levels.Service
 	{
 		int CalculateLevel(int experience);
 
-		Task<Rank> GetRankAsync(ISearchArgs args);
+		Task<IRank> GetRankAsync(ISearchArgs args);
 
-		Task<IReadOnlyList<Rank>> GetRanksAsync(ISearchArgs args, int offset, int limit);
+		Task<IReadOnlyList<IRank>> GetRanksAsync(ISearchArgs args, int offset, int limit);
 
 		Task<int> GetXpAsync(ISearchArgs args);
 	}
