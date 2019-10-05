@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Services.Logging.LogCounters
+namespace Advobot.Services.LogCounters
 {
 	/// <summary>
 	/// Provides information about what log counter to increment.

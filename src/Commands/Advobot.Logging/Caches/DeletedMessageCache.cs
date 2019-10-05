@@ -5,7 +5,7 @@ using System.Threading;
 
 using Discord;
 
-namespace Advobot.Services.GuildSettings
+namespace Advobot.Logging.Caches
 {
 	/// <summary>
 	/// Handles deleted message collection.

@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace Advobot.Services.Logging.Loggers
+namespace Advobot.Logging.Context
 {
 	/// <summary>
 	/// Helps with logging a message.

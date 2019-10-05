@@ -8,6 +8,11 @@
     <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Database\" />
+    <Folder Include="Utils\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>

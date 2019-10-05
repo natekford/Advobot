@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 
 using Advobot.Services.BotSettings;
-using Advobot.Services.Logging;
+using Advobot.Services.LogCounters;
 using Advobot.UI.Colors;
 using Advobot.UI.Controls;
 using Advobot.UI.Utils;
@@ -41,7 +41,7 @@ namespace Advobot.UI.ViewModels
 
 		private readonly IColorSettings<ISolidColorBrush> _Colors;
 
-		private readonly ILogService _LogService;
+		private readonly ILogCounterService _LogService;
 
 		private readonly ConcurrentDictionary<string, bool> _MenuStatuses = new ConcurrentDictionary<string, bool>();
 
@@ -135,7 +135,7 @@ namespace Advobot.UI.ViewModels
 		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)
 		{
 			_Client = provider.GetRequiredService<BaseSocketClient>();
-			_LogService = provider.GetRequiredService<ILogService>();
+			_LogService = provider.GetRequiredService<ILogCounterService>();
 			_BotSettings = provider.GetRequiredService<IBotSettings>();
 			_Colors = NetCoreColorSettings.CreateOrLoad(_BotSettings);
 

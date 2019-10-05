@@ -48,11 +48,11 @@ namespace Advobot.Services.GuildSettings
 		}
 
 		/// <inheritdoc />
-		public async Task<IGuildSettings> GetOrCreateAsync(IGuild guild)
+		public Task<IGuildSettings> GetOrCreateAsync(IGuild guild)
 		{
 			if (_Cache.TryGetValue(guild.Id, out var cached))
 			{
-				return cached;
+				return Task.FromResult(cached);
 			}
 
 			var query = DatabaseQuery<GuildSettings>.Get(x => x.GuildId == guild.Id);
@@ -66,10 +66,9 @@ namespace Advobot.Services.GuildSettings
 				DatabaseWrapper.ExecuteQuery(DatabaseQuery<GuildSettings>.Update(new[] { instance }));
 			}
 			instance.StoreGuildSettingsFactory(this);
-			await instance.GetInviteCache().CacheInvitesAsync(guild).CAF();
 
 			_Cache.TryAdd(guild.Id, instance);
-			return instance;
+			return Task.FromResult<IGuildSettings>(instance);
 		}
 
 		/// <inheritdoc />

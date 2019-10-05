@@ -8,7 +8,7 @@ using Advobot.Classes;
 using Advobot.Formatting;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
-using Advobot.Services.Logging;
+using Advobot.Services.LogCounters;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -94,7 +94,7 @@ namespace Advobot.Standard.Responses
 			return Success(embed);
 		}
 
-		public static AdvobotResult Bot(DiscordShardedClient client, ILogService logging)
+		public static AdvobotResult Bot(DiscordShardedClient client, ILogCounterService logging)
 		{
 			static string FormatLogCounters(ILogCounter[] counters)
 			{

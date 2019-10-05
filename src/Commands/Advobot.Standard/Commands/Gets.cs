@@ -12,7 +12,7 @@ using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
 using Advobot.Modules;
-using Advobot.Services.Logging;
+using Advobot.Services.LogCounters;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
 using Advobot.TypeReaders;
@@ -35,7 +35,7 @@ namespace Advobot.Standard.Commands
 		public sealed class GetInfo : AdvobotModuleBase
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
-			public ILogService Logging { get; set; }
+			public ILogCounterService Logging { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			[ImplicitCommand, ImplicitAlias]

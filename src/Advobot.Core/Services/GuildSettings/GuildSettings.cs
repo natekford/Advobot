@@ -22,10 +22,6 @@ namespace Advobot.Services.GuildSettings
 	{
 		private readonly List<BannedPhraseUserInfo> _BannedPhraseUsers = new List<BannedPhraseUserInfo>();
 
-		private readonly DeletedMessageCache _DeletedMessageCache = new DeletedMessageCache();
-
-		private readonly InviteCache _InviteCache = new InviteCache();
-
 		private string _Culture = "en-US";
 
 		private GuildNotification? _GoodbyeMessage;
@@ -226,14 +222,6 @@ namespace Advobot.Services.GuildSettings
 		/// <inheritdoc />
 		public IList<BannedPhraseUserInfo> GetBannedPhraseUsers()
 			=> _BannedPhraseUsers;
-
-		/// <inheritdoc />
-		public DeletedMessageCache GetDeletedMessageCache()
-			=> _DeletedMessageCache;
-
-		/// <inheritdoc />
-		public InviteCache GetInviteCache()
-			=> _InviteCache;
 
 		/// <inheritdoc />
 		public override void Save()

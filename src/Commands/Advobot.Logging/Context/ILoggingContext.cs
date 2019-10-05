@@ -1,9 +1,8 @@
-﻿using Advobot.Services.GuildSettings;
-using Advobot.Services.GuildSettings.Settings;
+﻿using Advobot.Services.GuildSettings.Settings;
 
 using Discord;
 
-namespace Advobot.Services.Logging.Loggers
+namespace Advobot.Logging.Context
 {
 	/// <summary>
 	/// Helps with logging.
@@ -29,11 +28,6 @@ namespace Advobot.Services.Logging.Loggers
 		/// Where message/user actions get logged.
 		/// </summary>
 		ITextChannel? ServerLog { get; }
-
-		/// <summary>
-		/// The settings this logger is targetting.
-		/// </summary>
-		IGuildSettings Settings { get; }
 
 		/// <summary>
 		/// Whether the current context can be logged.

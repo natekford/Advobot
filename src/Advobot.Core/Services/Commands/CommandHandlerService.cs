@@ -171,7 +171,7 @@ namespace Advobot.Services.Commands
 				return;
 			}
 
-			await MessageUtils.SendMessageAsync(modLog, embedWrapper: new EmbedWrapper
+			await MessageUtils.SendMessageAsync(modLog, embed: new EmbedWrapper
 			{
 				Description = context.Message.Content,
 				Author = context.User.CreateAuthor(),

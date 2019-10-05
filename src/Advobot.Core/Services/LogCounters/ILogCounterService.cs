@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel;
 
-namespace Advobot.Services.Logging
+namespace Advobot.Services.LogCounters
 {
 	/// <summary>
 	/// Abstraction for a log module. Handles counts of actions, and which commands have been ran.
 	/// </summary>
-	public interface ILogService : INotifyPropertyChanged
+	public interface ILogCounterService
 	{
 		/// <summary>
 		/// How many videos/gifs have been sent.

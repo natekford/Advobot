@@ -4,7 +4,7 @@ using System.Threading;
 
 using AdvorangesUtils;
 
-namespace Advobot.Services.Logging.LogCounters
+namespace Advobot.Services.LogCounters
 {
 	/// <summary>
 	/// Used in logging. Holds the name of what is being logged and the count.
@@ -32,7 +32,7 @@ namespace Advobot.Services.Logging.LogCounters
 		/// <param name="caller"></param>
 		public LogCounter([CallerMemberName] string caller = "")
 		{
-			Name = caller.FormatTitle().Trim();
+			Name = caller;
 		}
 
 		/// <summary>
@@ -41,6 +41,11 @@ namespace Advobot.Services.Logging.LogCounters
 		/// <param name="count"></param>
 		public void Add(int count)
 		{
+			if (count == 0)
+			{
+				return;
+			}
+
 			Interlocked.Add(ref _Count, count);
 			NotifyPropertyChanged(nameof(Count));
 		}
@@ -51,6 +56,11 @@ namespace Advobot.Services.Logging.LogCounters
 		/// <param name="count"></param>
 		public void Remove(int count)
 		{
+			if (count == 0)
+			{
+				return;
+			}
+
 			Interlocked.Add(ref _Count, -count);
 			NotifyPropertyChanged(nameof(Count));
 		}
@@ -60,7 +70,7 @@ namespace Advobot.Services.Logging.LogCounters
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
-			=> $"**{Name}:** {Count}";
+			=> $"**{Name.FormatTitle().Trim()}:** {Count}";
 
 		/// <summary>
 		/// Fires the property changed event.

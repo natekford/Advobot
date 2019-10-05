@@ -145,15 +145,5 @@ namespace Advobot.Services.GuildSettings
 		/// Users which have been affected by banned phrases.
 		/// </summary>
 		IList<BannedPhraseUserInfo> GetBannedPhraseUsers();
-
-		/// <summary>
-		/// Holds messages which have been deleted and waits to print them out.
-		/// </summary>
-		DeletedMessageCache GetDeletedMessageCache();
-
-		/// <summary>
-		/// Cached invites holding uses.
-		/// </summary>
-		InviteCache GetInviteCache();
 	}
 }

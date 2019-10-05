@@ -104,9 +104,10 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="content"></param>
-		/// <param name="embedWrapper"></param>
-		/// <param name="textFile"></param>
+		/// <param name="embed"></param>
+		/// <param name="file"></param>
 		/// <param name="allowZeroWidthLengthMessages">
+		/// <param name="nullChannelIsException"/>
 		/// If there is no content passed in the content will become only a single zero width space.
 		/// This ends up taking up extra space if used with embeds or files.
 		/// </param>
@@ -114,59 +115,64 @@ namespace Advobot.Utilities
 		public static Task<IUserMessage> SendMessageAsync(
 			IMessageChannel channel,
 			string? content = null,
-			EmbedWrapper? embedWrapper = null,
-			TextFileInfo? textFile = null,
-			bool allowZeroWidthLengthMessages = false)
+			EmbedWrapper? embed = null,
+			TextFileInfo? file = null,
+			bool allowZeroWidthLengthMessages = false,
+			bool nullChannelIsException = true)
 		{
 			if (channel == null)
 			{
-				throw new ArgumentNullException(nameof(channel));
+				if (nullChannelIsException)
+				{
+					throw new ArgumentNullException(nameof(channel));
+				}
+				return Task.FromResult<IUserMessage>(null!);
 			}
-			if (content == null && embedWrapper == null && textFile == null)
+			if (content == null && embed == null && file == null)
 			{
-				throw new ArgumentNullException($"{nameof(content)}, {nameof(embedWrapper)}, or {nameof(textFile)} must have a value.");
+				throw new ArgumentNullException($"{nameof(content)}, {nameof(embed)}, or {nameof(file)} must have a value.");
 			}
 
-			textFile ??= new TextFileInfo();
+			file ??= new TextFileInfo();
 
 			//Make sure all the information from the embed that didn't fit goes in.
-			if (embedWrapper?.Errors.Count > 0)
+			if (embed?.Errors.Count > 0)
 			{
-				textFile.Name ??= "Embed_Errors";
-				textFile.Text += $"Embed Errors:\n{embedWrapper}\n\n{textFile.Text}";
+				file.Name ??= "Embed_Errors";
+				file.Text += $"Embed Errors:\n{embed}\n\n{file.Text}";
 			}
 
 			//Make sure none of the content mentions everyone or doesn't have the zero width character
 			content = channel.SanitizeContent(content);
 			if (content.Length > 2000)
 			{
-				textFile.Name ??= "Long_Message";
-				textFile.Text += $"Message Content:\n{content}\n\n{textFile.Text}";
+				file.Name ??= "Long_Message";
+				file.Text += $"Message Content:\n{content}\n\n{file.Text}";
 				content = $"{Constants.ZERO_LENGTH_CHAR}Response is too long; sent as text file instead.";
 			}
 
 			//Can clear the content if it's going to only be a zero length space and there's an embed
 			//Otherwise there will be unecessary empty space
-			if (!allowZeroWidthLengthMessages && content == Constants.ZERO_LENGTH_CHAR && embedWrapper != null)
+			if (!allowZeroWidthLengthMessages && content == Constants.ZERO_LENGTH_CHAR && embed != null)
 			{
 				content = "";
 			}
 
 			try
 			{
-				var embed = embedWrapper?.Build();
+				var built = embed?.Build();
 				//If the file name and text exists, then attempt to send as a file instead of message
-				if (!string.IsNullOrWhiteSpace(textFile.Name) && !string.IsNullOrWhiteSpace(textFile.Text))
+				if (!string.IsNullOrWhiteSpace(file.Name) && !string.IsNullOrWhiteSpace(file.Text))
 				{
 					using var stream = new MemoryStream();
 					using var writer = new StreamWriter(stream);
 
-					writer.Write(textFile.Text.Trim());
+					writer.Write(file.Text.Trim());
 					writer.Flush();
 					stream.Seek(0, SeekOrigin.Begin);
-					return channel.SendFileAsync(stream, textFile.Name, content, embed: embed);
+					return channel.SendFileAsync(stream, file.Name, content, embed: built);
 				}
-				return channel.SendMessageAsync(content, embed: embed);
+				return channel.SendMessageAsync(content, embed: built);
 			}
 			//If the message fails to send, then return the error
 			catch (Exception e)
