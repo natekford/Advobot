@@ -21,11 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Advobot.Core\Advobot.Core.csproj" />
-    <ProjectReference Include="..\..\src\Commands\Advobot.Gacha\Advobot.Gacha.csproj" />
-    <ProjectReference Include="..\..\src\Commands\Advobot.Invites\Advobot.Invites.csproj" />
-    <ProjectReference Include="..\..\src\Commands\Advobot.Levels\Advobot.Levels.csproj" />
-    <ProjectReference Include="..\..\src\Commands\Advobot.Settings\Advobot.Settings.csproj" />
-    <ProjectReference Include="..\..\src\Commands\Advobot.Standard\Advobot.Standard.csproj" />
+    <ProjectReference Include="..\..\src\Commands\Advobot.Commands\Advobot.Commands.csproj" />
   </ItemGroup>
 
   <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">

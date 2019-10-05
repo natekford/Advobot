@@ -40,11 +40,7 @@
   
   <ItemGroup>
     <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
-    <ProjectReference Include="..\Commands\Advobot.Invites\Advobot.Invites.csproj" />
-    <ProjectReference Include="..\Commands\Advobot.Levels\Advobot.Levels.csproj" />
-    <ProjectReference Include="..\Commands\Advobot.Settings\Advobot.Settings.csproj" />
-    <ProjectReference Include="..\Commands\Advobot.Gacha\Advobot.Gacha.csproj" />
-    <ProjectReference Include="..\Commands\Advobot.Standard\Advobot.Standard.csproj" />
+    <ProjectReference Include="..\Commands\Advobot.Commands\Advobot.Commands.csproj" />
   </ItemGroup>
   
   <ItemGroup>
