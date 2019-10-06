@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 
-using Advobot.Formatting;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 
 using static Advobot.Logging.Resources.Responses;

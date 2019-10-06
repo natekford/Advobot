@@ -3,9 +3,8 @@ using System.Threading.Tasks;
 
 using Advobot.CommandAssemblies;
 using Advobot.Logging.Database;
-using Advobot.Logging.Models;
 using Advobot.Logging.Service;
-using Advobot.Services.GuildSettings;
+
 using AdvorangesUtils;
 
 using Microsoft.Extensions.DependencyInjection;

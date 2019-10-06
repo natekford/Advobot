@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
+
 using Advobot.Tests.Fakes.Discord.Channels;
+
 using Discord;
 
 namespace Advobot.Tests.Fakes.Discord.Users

@@ -15,7 +15,6 @@ using Advobot.Modules;
 using Advobot.Services.LogCounters;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
-using Advobot.TypeReaders;
 using Advobot.Utilities;
 
 using AdvorangesUtils;

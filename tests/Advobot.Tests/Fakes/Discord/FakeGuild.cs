@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.Utilities;
+
 using AdvorangesUtils;
 
 using Discord;

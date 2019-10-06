@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Tests.Fakes.Discord.Users;
+
 using AdvorangesUtils;
 
 using Discord;

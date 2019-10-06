@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
 using Advobot.Levels.Database;
 using Advobot.Levels.Metadata;
 using Advobot.Levels.Models;
 using Advobot.Levels.ReadOnlyModels;
-using Advobot.Levels.Utilities;
+
 using AdvorangesUtils;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Levels.Database

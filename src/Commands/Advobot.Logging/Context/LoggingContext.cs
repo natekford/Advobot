@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
 using Advobot.Logging.Service;
 using Advobot.Services.GuildSettings.Settings;
+
 using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.Logging.Context

@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
 
 using Advobot.Levels.Database;
-using Advobot.Levels.Relationships;
 using Advobot.Levels.Service;
 
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
