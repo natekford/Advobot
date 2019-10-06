@@ -133,42 +133,6 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ignores all logging info that would have been gotten from a channel..
-        /// </summary>
-        internal static string ModifyIgnoredLogChannels {
-            get {
-                return ResourceManager.GetString("ModifyIgnoredLogChannels", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifies which channel is designated as the image log..
-        /// </summary>
-        internal static string ModifyImageLog {
-            get {
-                return ResourceManager.GetString("ModifyImageLog", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The server log will send messages when these events happen..
-        /// </summary>
-        internal static string ModifyLogActions {
-            get {
-                return ResourceManager.GetString("ModifyLogActions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifies which channel is designated as the mod log..
-        /// </summary>
-        internal static string ModifyModLog {
-            get {
-                return ResourceManager.GetString("ModifyModLog", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Adds the given text to a list that can be called through the SayQuote command.
         /// </summary>
         internal static string ModifyQuotes {
@@ -201,15 +165,6 @@ namespace Advobot.Settings.Resources {
         internal static string ModifySelfRoles {
             get {
                 return ResourceManager.GetString("ModifySelfRoles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifies which channel is designated as the server log..
-        /// </summary>
-        internal static string ModifyServerLog {
-            get {
-                return ResourceManager.GetString("ModifyServerLog", resourceCulture);
             }
         }
         

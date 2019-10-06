@@ -52,6 +52,11 @@ namespace Advobot.Services.GuildSettings
 		GuildNotification? GoodbyeMessage { get; set; }
 
 		/// <summary>
+		/// The guild's id.
+		/// </summary>
+		ulong GuildId { get; }
+
+		/// <summary>
 		/// Channels ignored from commands.
 		/// </summary>
 		IList<ulong> IgnoredCommandChannels { get; }

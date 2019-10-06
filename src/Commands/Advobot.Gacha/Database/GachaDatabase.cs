@@ -3,6 +3,7 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Advobot.Databases.AbstractSQL;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
@@ -18,12 +19,12 @@ using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Database
 {
-	public sealed class GachaDatabase
+	public sealed class GachaDatabase : IDatabase
 	{
-		private readonly IDatabaseStarter _Starter;
+		private readonly IGachaDatabaseStarter _Starter;
 		private readonly ITime _Time;
 
-		public GachaDatabase(ITime time, IDatabaseStarter starter)
+		public GachaDatabase(ITime time, IGachaDatabaseStarter starter)
 		{
 			_Time = time;
 			_Starter = starter;
@@ -167,22 +168,19 @@ namespace Advobot.Gacha.Database
 
 		public async Task<IReadOnlyList<string>> CreateDatabaseAsync()
 		{
-			if (_Starter.IsDatabaseCreated())
-			{
-				return await GetTablesAsync().CAF();
-			}
+			await _Starter.EnsureCreatedAsync().CAF();
 
 			using var connection = await GetConnectionAsync().CAF();
 
 			//Source
 			await connection.ExecuteAsync(@"
-			CREATE TABLE Source
+			CREATE TABLE IF NOT EXISTS Source
 			(
 				SourceId					INTEGER NOT NULL PRIMARY KEY,
 				Name						TEXT NOT NULL,
 				ThumbnailUrl				TEXT
 			);
-			CREATE UNIQUE INDEX Source_Name_Index ON Source
+			CREATE UNIQUE INDEX IF NOT EXISTS Source_Name_Index ON Source
 			(
 				Name
 			);
@@ -190,7 +188,7 @@ namespace Advobot.Gacha.Database
 
 			//Character
 			await connection.ExecuteAsync(@"
-			CREATE TABLE Character
+			CREATE TABLE IF NOT EXISTS Character
 			(
 				CharacterId					INTEGER NOT NULL PRIMARY KEY,
 				SourceId					INTEGER NOT NULL,
@@ -202,15 +200,15 @@ namespace Advobot.Gacha.Database
 				IsFakeCharacter				INTEGER NOT NULL,
 				FOREIGN KEY(SourceId) REFERENCES Source(SourceId) ON DELETE CASCADE
 			);
-			CREATE INDEX Character_SourceId_Index ON Character
+			CREATE INDEX IF NOT EXISTS Character_SourceId_Index ON Character
 			(
 				SourceId
 			);
-			CREATE INDEX Character_Name_Index ON Character
+			CREATE INDEX IF NOT EXISTS Character_Name_Index ON Character
 			(
 				Name
 			);
-			CREATE INDEX Character_Gender_Index ON Character
+			CREATE INDEX IF NOT EXISTS Character_Gender_Index ON Character
 			(
 				Gender
 			);
@@ -218,7 +216,7 @@ namespace Advobot.Gacha.Database
 
 			//Alias
 			await connection.ExecuteAsync(@"
-			CREATE TABLE Alias
+			CREATE TABLE IF NOT EXISTS Alias
 			(
 				CharacterId					INTEGER NOT NULL,
 				Name						TEXT NOT NULL,
@@ -226,7 +224,7 @@ namespace Advobot.Gacha.Database
 				PRIMARY KEY(CharacterId, Name)
 				FOREIGN KEY(CharacterId) REFERENCES Character(CharacterId) ON DELETE CASCADE
 			);
-			CREATE INDEX Alias_CharacterId_Index ON Alias
+			CREATE INDEX IF NOT EXISTS Alias_CharacterId_Index ON Alias
 			(
 				CharacterId
 			);
@@ -234,14 +232,14 @@ namespace Advobot.Gacha.Database
 
 			//Image
 			await connection.ExecuteAsync(@"
-			CREATE TABLE Image
+			CREATE TABLE IF NOT EXISTS Image
 			(
 				CharacterId					INTEGER NOT NULL,
 				Url							TEXT NOT NULL,
 				PRIMARY KEY(CharacterId, Url),
 				FOREIGN KEY(CharacterId) REFERENCES Character(CharacterId) ON DELETE CASCADE
 			);
-			CREATE INDEX Image_CharacterId_Index ON Image
+			CREATE INDEX IF NOT EXISTS Image_CharacterId_Index ON Image
 			(
 				CharacterId
 			);
@@ -249,7 +247,7 @@ namespace Advobot.Gacha.Database
 
 			//User
 			await connection.ExecuteAsync(@"
-			CREATE TABLE User
+			CREATE TABLE IF NOT EXISTS User
 			(
 				GuildId						TEXT NOT NULL,
 				UserId						TEXT NOT NULL,
@@ -259,7 +257,7 @@ namespace Advobot.Gacha.Database
 
 			//Claim
 			await connection.ExecuteAsync(@"
-			CREATE TABLE Claim
+			CREATE TABLE IF NOT EXISTS Claim
 			(
 				ClaimId						INTEGER NOT NULL,
 				GuildId						TEXT NOT NULL,
@@ -269,11 +267,11 @@ namespace Advobot.Gacha.Database
 				IsPrimaryClaim				INTEGER NOT NULL,
 				PRIMARY KEY(GuildId, CharacterId)
 			);
-			CREATE INDEX Claim_GuildId_Index ON Claim
+			CREATE INDEX IF NOT EXISTS Claim_GuildId_Index ON Claim
 			(
 				GuildId
 			);
-			CREATE INDEX Claim_GuildId_UserId_Index ON Claim
+			CREATE INDEX IF NOT EXISTS Claim_GuildId_UserId_Index ON Claim
 			(
 				GuildId,
 				UserId
@@ -282,7 +280,7 @@ namespace Advobot.Gacha.Database
 
 			//Wish
 			await connection.ExecuteAsync(@"
-			CREATE TABLE Wish
+			CREATE TABLE IF NOT EXISTS Wish
 			(
 				WishId						INTEGER NOT NULL,
 				GuildId						TEXT NOT NULL,
@@ -290,23 +288,23 @@ namespace Advobot.Gacha.Database
 				CharacterId					INTEGER NOT NULL,
 				PRIMARY KEY(GuildId, UserId, CharacterId)
 			);
-			CREATE INDEX Wish_GuildId_Index ON Wish
+			CREATE INDEX IF NOT EXISTS Wish_GuildId_Index ON Wish
 			(
 				GuildId
 			);
-			CREATE INDEX Wish_GuildId_UserId_Index ON Wish
+			CREATE INDEX IF NOT EXISTS Wish_GuildId_UserId_Index ON Wish
 			(
 				GuildId,
 				UserId
 			);
-			CREATE INDEX Wish_GuildId_CharacterId_Index ON Wish
+			CREATE INDEX IF NOT EXISTS Wish_GuildId_CharacterId_Index ON Wish
 			(
 				GuildId,
 				CharacterId
 			);
 			").CAF();
 
-			return await GetTablesAsync().CAF();
+			return await connection.GetTableNames((c, sql) => c.QueryAsync<string>(sql)).CAF();
 		}
 
 		public async Task<IReadOnlyCharacter> GetCharacterAsync(long characterId)
@@ -544,23 +542,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		private async Task<SQLiteConnection> GetConnectionAsync()
-		{
-			var conn = new SQLiteConnection(_Starter.GetConnectionString());
-			await conn.OpenAsync().CAF();
-			return conn;
-		}
-
-		private async Task<IReadOnlyList<string>> GetTablesAsync()
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			var query = await connection.QueryAsync<string>(@"
-				SELECT name FROM sqlite_master
-				WHERE type='table'
-				ORDER BY name;
-			").CAF();
-			return query.ToArray();
-		}
+		private Task<SQLiteConnection> GetConnectionAsync()
+			=> _Starter.GetConnectionAsync<SQLiteConnection>();
 	}
 }

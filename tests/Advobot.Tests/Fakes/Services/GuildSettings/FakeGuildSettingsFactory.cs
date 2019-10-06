@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Advobot.Services.GuildSettings;
@@ -17,6 +18,8 @@ namespace Advobot.Tests.Fakes.Services.GuildSettings
 		{
 			_Settings = settings;
 		}
+
+		public Task<IReadOnlyList<IGuildSettings>> GetAllAsync() => throw new NotImplementedException();
 
 		public Task<IGuildSettings> GetOrCreateAsync(IGuild guild)
 			=> Task.FromResult(_Settings);

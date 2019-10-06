@@ -35,14 +35,14 @@ namespace Advobot.Levels.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(SearchArgs args)
 			{
-				var rank = await Service.GetRankAsync(args).CAF();
+				var rank = await Levels.GetRankAsync(args).CAF();
 				var user = await Context.Client.GetUserAsync(rank.UserId).CAF();
 				if (rank.Experience == 0)
 				{
 					return Responses.Levels.NoXp(args, rank, user);
 				}
 
-				var level = Service.CalculateLevel(rank.Experience);
+				var level = Levels.CalculateLevel(rank.Experience);
 				return Responses.Levels.Level(args, rank, level, user);
 			}
 		}
@@ -72,10 +72,10 @@ namespace Advobot.Levels.Commands
 			private async Task<RuntimeResult> Command(ISearchArgs args, int page)
 			{
 				var offset = PAGE_LENGTH * (page - 1);
-				var ranks = await Service.GetRanksAsync(args, offset, PAGE_LENGTH).CAF();
+				var ranks = await Levels.GetRanksAsync(args, offset, PAGE_LENGTH).CAF();
 				return Responses.Levels.Top(args, ranks, x =>
 				{
-					var level = Service.CalculateLevel(x.Experience);
+					var level = Levels.CalculateLevel(x.Experience);
 					var user = Context.Client.GetUser(x.UserId);
 					return (level, user);
 				});

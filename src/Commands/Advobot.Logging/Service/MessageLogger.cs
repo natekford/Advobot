@@ -23,9 +23,9 @@ namespace Advobot.Logging.Service
 		private readonly ConcurrentDictionary<ulong, DeletedMessageCache> _DeletedMessages
 			= new ConcurrentDictionary<ulong, DeletedMessageCache>();
 
-		private readonly ILogService _Service;
+		private readonly ILoggingService _Service;
 
-		public MessageLogger(ILogService service)
+		public MessageLogger(ILoggingService service)
 		{
 			_Service = service;
 		}
@@ -75,7 +75,7 @@ namespace Advobot.Logging.Service
 
 		private async Task HandleImageLoggingAsync(IMessageLoggingContext context)
 		{
-			if (context.ImageLog == null || context.Message == null)
+			if (context.ImageLog == null)
 			{
 				return;
 			}
@@ -114,6 +114,11 @@ namespace Advobot.Logging.Service
 
 		private Task HandleMessageDeletedLogging(IMessageLoggingContext context)
 		{
+			if (context.ServerLog == null)
+			{
+				return Task.CompletedTask;
+			}
+
 			var cache = _DeletedMessages.GetOrAdd(context.Guild.Id, _ => new DeletedMessageCache());
 			cache.Add(context.Message);
 			var cancelToken = cache.GetNewCancellationToken();
@@ -154,7 +159,7 @@ namespace Advobot.Logging.Service
 
 				if (inEmbed)
 				{
-					await MessageUtils.SendMessageAsync(context.ServerLog!, embed: new EmbedWrapper
+					await MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
 					{
 						Title = "Deleted Messages",
 						Description = sb.ToString().RemoveDuplicateNewLines(),
@@ -170,7 +175,7 @@ namespace Advobot.Logging.Service
 						sb.AppendLineFeed(m.Format(withMentions: false));
 					}
 
-					await MessageUtils.SendMessageAsync(context.ServerLog!, $"**{messages.Count} Deleted Messages:**", file: new TextFileInfo
+					await MessageUtils.SendMessageAsync(context.ServerLog, $"**{messages.Count} Deleted Messages:**", file: new TextFileInfo
 					{
 						Name = "Deleted_Messages",
 						Text = sb.ToString().RemoveDuplicateNewLines().RemoveAllMarkdown(),

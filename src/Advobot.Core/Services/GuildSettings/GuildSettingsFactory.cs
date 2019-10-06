@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,6 +46,14 @@ namespace Advobot.Services.GuildSettings
 			: base(dbFactory)
 		{
 			_Accessor = accessor;
+		}
+
+		/// <inheritdoc />
+		public Task<IReadOnlyList<IGuildSettings>> GetAllAsync()
+		{
+			var query = DatabaseQuery<GuildSettings>.GetAll();
+			var result = DatabaseWrapper.ExecuteQuery(query);
+			return Task.FromResult<IReadOnlyList<IGuildSettings>>(result.ToArray());
 		}
 
 		/// <inheritdoc />

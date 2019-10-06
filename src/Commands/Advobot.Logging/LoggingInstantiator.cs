@@ -1,7 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Advobot.CommandAssemblies;
+using Advobot.Logging.Database;
+using Advobot.Logging.Models;
 using Advobot.Logging.Service;
+using Advobot.Services.GuildSettings;
+using AdvorangesUtils;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Logging
@@ -10,14 +16,33 @@ namespace Advobot.Logging
 	{
 		public Task AddServicesAsync(IServiceCollection services)
 		{
-			services.AddSingleton<ILogService, LogService>();
+			services
+				.AddSingleton<LoggingDatabase>()
+				.AddSingleton<ILoggingService, LoggingService>()
+				.AddSingleton<ILoggingDatabaseStarter, LoggingDatabaseStarter>();
 			return Task.CompletedTask;
 		}
 
-		public Task ConfigureServicesAsync(IServiceProvider services)
+		public async Task ConfigureServicesAsync(IServiceProvider services)
 		{
-			services.GetRequiredService<ILogService>();
-			return Task.CompletedTask;
+			var db = services.GetRequiredService<LoggingDatabase>();
+			await db.CreateDatabaseAsync().CAF();
+
+			/*
+			var settings = services.GetRequiredService<IGuildSettingsFactory>();
+			var allSettings = await settings.GetAllAsync().CAF();
+			foreach (var s in allSettings)
+			{
+				await db.AddIgnoredChannelsAsync(s.GuildId, s.IgnoredLogChannels).CAF();
+				await db.AddLogActionsAsync(s.GuildId, s.LogActions).CAF();
+				await db.AddLogChannelsAsync(s.GuildId, new LogChannels
+				{
+					ImageLogId = s.ImageLogId.ToString()
+				}).CAF();
+			}*/
+
+			//Needed to instasntiate the log service
+			services.GetRequiredService<ILoggingService>();
 		}
 	}
 }

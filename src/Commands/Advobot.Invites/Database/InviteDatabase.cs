@@ -3,6 +3,7 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Advobot.Databases.AbstractSQL;
 using Advobot.Invites.Models;
 using Advobot.Invites.ReadOnlyModels;
 
@@ -12,11 +13,11 @@ using Dapper;
 
 namespace Advobot.Invites.Database
 {
-	public sealed class InviteDatabase
+	public sealed class InviteDatabase : IDatabase
 	{
-		private readonly IDatabaseStarter _Starter;
+		private readonly IInviteDatabaseStarter _Starter;
 
-		public InviteDatabase(IDatabaseStarter starter)
+		public InviteDatabase(IInviteDatabaseStarter starter)
 		{
 			_Starter = starter;
 		}
@@ -63,16 +64,13 @@ namespace Advobot.Invites.Database
 
 		public async Task<IReadOnlyList<string>> CreateDatabaseAsync()
 		{
-			if (_Starter.IsDatabaseCreated())
-			{
-				return await GetTablesAsync().CAF();
-			}
+			await _Starter.EnsureCreatedAsync().CAF();
 
 			using var connection = await GetConnectionAsync().CAF();
 
 			//Invite
 			await connection.ExecuteAsync(@"
-			CREATE TABLE Invite
+			CREATE TABLE IF NOT EXISTS Invite
 			(
 				GuildId						TEXT NOT NULL,
 				Code						TEXT NOT NULL,
@@ -86,23 +84,23 @@ namespace Advobot.Invites.Database
 
 			//Keyword
 			await connection.ExecuteAsync(@"
-			CREATE TABLE Keyword
+			CREATE TABLE IF NOT EXISTS Keyword
 			(
 				GuildId						TEXT NOT NULL,
 				Word						TEXT NOT NULL COLLATE NOCASE,
 				PRIMARY KEY(GuildId, Word)
 			);
-			CREATE INDEX Keyword_GuildId ON Keyword
+			CREATE INDEX IF NOT EXISTS Keyword_GuildId ON Keyword
 			(
 				GuildId
 			);
-			CREATE INDEX Keyword_Word ON Keyword
+			CREATE INDEX IF NOT EXISTS Keyword_Word ON Keyword
 			(
 				Word
 			);
 			").CAF();
 
-			return await GetTablesAsync().CAF();
+			return await connection.GetTableNames((c, sql) => c.QueryAsync<string>(sql)).CAF();
 		}
 
 		public async Task DeleteInviteAsync(ulong guildId)
@@ -194,23 +192,7 @@ namespace Advobot.Invites.Database
 			", invite).CAF();
 		}
 
-		private async Task<SQLiteConnection> GetConnectionAsync()
-		{
-			var conn = new SQLiteConnection(_Starter.GetConnectionString());
-			await conn.OpenAsync().CAF();
-			return conn;
-		}
-
-		private async Task<IReadOnlyList<string>> GetTablesAsync()
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			var result = await connection.QueryAsync<string>(@"
-				SELECT name FROM sqlite_master
-				WHERE type='table'
-				ORDER BY name;
-			").CAF();
-			return result.ToArray();
-		}
+		private Task<SQLiteConnection> GetConnectionAsync()
+			=> _Starter.GetConnectionAsync<SQLiteConnection>();
 	}
 }

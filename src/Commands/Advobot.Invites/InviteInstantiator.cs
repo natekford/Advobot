@@ -18,7 +18,7 @@ namespace Advobot.Invites
 			services
 				.AddSingleton<InviteDatabase>()
 				.AddSingleton<IInviteListService, InviteListService>()
-				.AddSingleton<IDatabaseStarter, SQLiteFileDatabaseFactory>();
+				.AddSingleton<IInviteDatabaseStarter, InviteDatabaseStarter>();
 			return Task.CompletedTask;
 		}
 

@@ -13,12 +13,12 @@ namespace Advobot.Logging.Context
 	public static class LoggingContext
 	{
 		public static async Task<IUserLoggingContext?> CreateAsync(
-			this ILogService service,
+			this ILoggingService service,
 			IGuildUser user)
 			=> await service.CreateAsync(null, user, null, user.Guild).CAF();
 
 		public static async Task<IMessageLoggingContext?> CreateAsync(
-			this ILogService service,
+			this ILoggingService service,
 			IMessage message)
 		{
 			var userMessage = message as IUserMessage;
@@ -29,7 +29,7 @@ namespace Advobot.Logging.Context
 		}
 
 		public static async Task HandleAsync(
-			this ILogService service,
+			this ILoggingService service,
 			IGuildUser user,
 			LoggingArgs<IUserLoggingContext> args)
 		{
@@ -38,7 +38,7 @@ namespace Advobot.Logging.Context
 		}
 
 		public static async Task HandleAsync(
-			this ILogService service,
+			this ILoggingService service,
 			IMessage message,
 			LoggingArgs<IMessageLoggingContext> args)
 		{
@@ -47,7 +47,7 @@ namespace Advobot.Logging.Context
 		}
 
 		private static async Task<PrivateLoggingContext?> CreateAsync(
-			this ILogService service,
+			this ILoggingService service,
 			IUserMessage? message,
 			IGuildUser? user,
 			ITextChannel? channel,
@@ -138,23 +138,29 @@ namespace Advobot.Logging.Context
 				_IgnoredChannels = ignoredChannels;
 			}
 
-			public bool CanLog(LogAction action) => ServerLog != null && _Actions.Contains(action) && action switch
+			public bool CanLog(LogAction action) => _Actions.Contains(action) && action switch
 			{
 				//Only log if it wasn't this bot that left
 				LogAction.UserJoined => _User.Id != Bot.Id,
 				LogAction.UserLeft => _User.Id != Bot.Id,
 				//Only log if it wasn't any bot that was updated.
-				LogAction.UserUpdated => !(_User.IsBot || _User.IsWebhook),
+				LogAction.UserUpdated => IsNotABot(),
 				//Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
-				LogAction.MessageReceived => !(_User.IsBot || _User.IsWebhook) && !_IgnoredChannels.Contains(_Channel?.Id ?? 0),
-				LogAction.MessageUpdated => !(_User.IsBot || _User.IsWebhook) && !_IgnoredChannels.Contains(_Channel?.Id ?? 0),
+				LogAction.MessageReceived => IsNotABot() && ChannelCanBeLogged(),
+				LogAction.MessageUpdated => IsNotABot() && ChannelCanBeLogged(),
 				//Log all deleted messages, no matter the source user, unless they're on an unlogged channel
-				LogAction.MessageDeleted => !_IgnoredChannels.Contains(_Channel?.Id ?? 0),
+				LogAction.MessageDeleted => ChannelCanBeLogged(),
 				_ => throw new ArgumentOutOfRangeException(nameof(action)),
 			};
 
+			private bool ChannelCanBeLogged()
+				=> !_IgnoredChannels.Contains(_Channel?.Id ?? 0);
+
 			private InvalidOperationException InvalidContext<T>()
 				=> new InvalidOperationException($"Invalid {typeof(T).Name}.");
+
+			private bool IsNotABot()
+				=> !(_User.IsBot || _User.IsWebhook);
 		}
 	}
 }

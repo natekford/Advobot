@@ -21,7 +21,7 @@ namespace Advobot.Gacha
 				.AddSingleton<GachaDatabase>()
 				.AddSingleton<DisplayManager>()
 				.AddSingleton<IInteractionManager, InteractionManager>()
-				.AddSingleton<IDatabaseStarter, SQLiteFileDatabaseFactory>()
+				.AddSingleton<IGachaDatabaseStarter, GachaDatabaseStarter>()
 				.AddSingleton<ICounterService, CounterService>();
 			return Task.CompletedTask;
 		}

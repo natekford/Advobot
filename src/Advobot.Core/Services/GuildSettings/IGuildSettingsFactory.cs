@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Discord;
@@ -14,6 +15,12 @@ namespace Advobot.Services.GuildSettings
 		/// The type of settings this factory is making.
 		/// </summary>
 		Type GuildSettingsType { get; }
+
+		/// <summary>
+		/// Gets all the guild settings that are stored.
+		/// </summary>
+		/// <returns></returns>
+		Task<IReadOnlyList<IGuildSettings>> GetAllAsync();
 
 		/// <summary>
 		/// If the given guild is already in the module this will return its settings.

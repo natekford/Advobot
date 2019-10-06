@@ -70,7 +70,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public async Task<bool> PunishAsync(IUserMessage message)
+		public async Task<bool> PunishAsync(IMessage message)
 		{
 			if (!Enabled)
 			{
@@ -99,7 +99,7 @@ namespace Advobot.Services.GuildSettings.Settings
 			return false;
 		}
 
-		private int GetSpamCount(IUserMessage message) => Type switch
+		private int GetSpamCount(IMessage message) => Type switch
 		{
 			SpamType.Message => int.MaxValue,
 			SpamType.LongMessage => message.Content?.Length ?? 0,

@@ -24,10 +24,10 @@ namespace Advobot.Logging.Service
 		private readonly ConcurrentDictionary<ulong, InviteCache> _Invites
 			= new ConcurrentDictionary<ulong, InviteCache>();
 
-		private readonly ILogService _Service;
+		private readonly ILoggingService _Service;
 		private readonly ITime _Time;
 
-		public UserLogger(BaseSocketClient client, ILogService service, ITime time)
+		public UserLogger(BaseSocketClient client, ILoggingService service, ITime time)
 		{
 			_Client = client;
 			_Service = service;
@@ -80,17 +80,20 @@ namespace Advobot.Logging.Service
 
 		private async Task HandleJoinLogging(IUserLoggingContext context)
 		{
+			if (context.ServerLog == null)
+			{
+				return;
+			}
+
 			var cache = _Invites.GetOrAdd(context.Guild.Id, _ => new InviteCache());
 			var inv = await cache.GetInviteUserJoinedOnAsync(context.User).CAF();
-			var invite = inv != null
-				? $"**Invite:** {inv}"
-				: "";
+			var invite = inv != null ? $"**Invite:** {inv}" : "";
 			var time = _Time.UtcNow - context.User.CreatedAt.ToUniversalTime();
 			var age = time.TotalHours < 24
 				? $"**New Account:** {(int)time.TotalHours} hours, {time.Minutes} minutes old."
 				: "";
 
-			await MessageUtils.SendMessageAsync(context.ServerLog!, embed: new EmbedWrapper
+			await MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
 			{
 				Description = $"**ID:** {context.User.Id}\n{invite}\n{age}",
 				Color = EmbedWrapper.Join,
@@ -101,6 +104,11 @@ namespace Advobot.Logging.Service
 
 		private Task HandleLeftLogging(IUserLoggingContext context)
 		{
+			if (context.ServerLog == null)
+			{
+				return Task.CompletedTask;
+			}
+
 			var stay = "";
 			if (context.User.JoinedAt.HasValue)
 			{
@@ -108,7 +116,7 @@ namespace Advobot.Logging.Service
 				stay = $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}";
 			}
 
-			return MessageUtils.SendMessageAsync(context.ServerLog!, embed: new EmbedWrapper
+			return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
 			{
 				Description = $"**ID:** {context.User.Id}\n{stay}",
 				Color = EmbedWrapper.Leave,
@@ -119,12 +127,12 @@ namespace Advobot.Logging.Service
 
 		private Task HandleUsernameUpdated(IUserLoggingContext context, IUser before)
 		{
-			if (before.Username == context.User.Username)
+			if (context.ServerLog == null || before.Username == context.User.Username)
 			{
 				return Task.CompletedTask;
 			}
 
-			return MessageUtils.SendMessageAsync(context.ServerLog!, embed: new EmbedWrapper
+			return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
 			{
 				Color = EmbedWrapper.UserEdit,
 				Author = before.CreateAuthor(),

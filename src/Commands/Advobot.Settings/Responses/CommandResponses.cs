@@ -96,13 +96,13 @@ namespace Advobot.Settings.Responses
 			=> (created ? "created" : "deleted").NoFormatting();
 
 		protected static RuntimeFormattedObject GetEnabled(bool enabled)
-									=> (enabled ? "enabled" : "disabled").NoFormatting();
+			=> (enabled ? "enabled" : "disabled").NoFormatting();
 
 		protected static RuntimeFormattedObject GetHoisted(bool hoisted)
 			=> (hoisted ? "hoisted" : "unhoisted").NoFormatting();
 
 		protected static RuntimeFormattedObject GetIgnored(bool ignored)
-					=> (ignored ? "ignored" : "unignored").NoFormatting();
+			=> (ignored ? "ignored" : "unignored").NoFormatting();
 
 		protected static RuntimeFormattedObject GetMentionability(bool mentionability)
 			=> (mentionability ? "mentionable" : "unmentionable").NoFormatting();

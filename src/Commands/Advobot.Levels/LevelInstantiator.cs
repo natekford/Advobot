@@ -19,7 +19,7 @@ namespace Advobot.Levels
 				.AddSingleton<LevelServiceConfig>()
 				.AddSingleton<LevelDatabase>()
 				.AddSingleton<ILevelService, LevelService>()
-				.AddSingleton<IDatabaseStarter, SQLiteFileDatabaseFactory>();
+				.AddSingleton<ILevelDatabaseStarter, LevelDatabaseStarter>();
 			return Task.CompletedTask;
 		}
 
