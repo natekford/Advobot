@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,13 +14,10 @@ using Dapper;
 
 namespace Advobot.Invites.Database
 {
-	public sealed class InviteDatabase : IDatabase
+	public sealed class InviteDatabase : DatabaseBase<SQLiteConnection>
 	{
-		private readonly IInviteDatabaseStarter _Starter;
-
-		public InviteDatabase(IInviteDatabaseStarter starter)
+		public InviteDatabase(IInviteDatabaseStarter starter) : base(starter)
 		{
-			_Starter = starter;
 		}
 
 		public async Task AddInviteAsync(IReadOnlyListedInvite invite)
@@ -48,23 +46,18 @@ namespace Advobot.Invites.Database
 
 		public async Task<int> AddKeywordsAsync(IEnumerable<IReadOnlyKeyword> keywords)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
-			var affectedRowCount = await connection.ExecuteAsync(@"
+			const string SQL = @"
 				INSERT INTO Keyword
 				( GuildId, Word )
 				VALUES
 				( @GuildId, @Word )
-			", keywords).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			";
+			return await BulkModify(SQL, keywords).CAF();
 		}
 
-		public async Task<IReadOnlyList<string>> CreateDatabaseAsync()
+		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
 		{
-			await _Starter.EnsureCreatedAsync().CAF();
+			await Starter.EnsureCreatedAsync().CAF();
 
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -192,7 +185,11 @@ namespace Advobot.Invites.Database
 			", invite).CAF();
 		}
 
-		private Task<SQLiteConnection> GetConnectionAsync()
-			=> _Starter.GetConnectionAsync<SQLiteConnection>();
+		protected override Task<int> ExecuteAsync(
+			IDbConnection connection,
+			string sql,
+			object @params,
+			IDbTransaction transaction)
+			=> connection.ExecuteAsync(sql, @params, transaction);
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,60 +16,47 @@ using Dapper;
 
 namespace Advobot.Logging.Database
 {
-	public sealed class LoggingDatabase : IDatabase
+	public sealed class LoggingDatabase : DatabaseBase<SQLiteConnection>
 	{
-		private readonly ILoggingDatabaseStarter _Starter;
-
-		public LoggingDatabase(ILoggingDatabaseStarter starter)
+		public LoggingDatabase(ILoggingDatabaseStarter starter) : base(starter)
 		{
-			_Starter = starter;
 		}
 
 		public async Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
+			const string SQL = @"
+				INSERT OR REPLACE INTO IgnoredChannel
+				( GuildId, ChannelId )
+				VALUES
+				( @GuildId, @ChannelId )
+			";
 			var @params = channels.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			var affectedRowCount = await connection.ExecuteAsync(@"
-				INSERT OR REPLACE INTO IgnoredChannel
-				( GuildId, ChannelId )
-				VALUES
-				( @GuildId, @ChannelId )
-			", @params).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			return await BulkModify(SQL, @params).CAF();
 		}
 
 		public async Task<int> AddLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
+			const string SQL = @"
+				INSERT OR REPLACE INTO LogAction
+				( GuildId, Action )
+				VALUES
+				( @GuildId, @Action )
+			";
 			var @params = actions.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				Action = x.ToString()
 			});
-			var affectedRowCount = await connection.ExecuteAsync(@"
-				INSERT OR REPLACE INTO LogAction
-				( GuildId, Action )
-				VALUES
-				( @GuildId, @Action )
-			", @params).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			return await BulkModify(SQL, @params).CAF();
 		}
 
-		public async Task<IReadOnlyList<string>> CreateDatabaseAsync()
+		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
 		{
-			await _Starter.EnsureCreatedAsync().CAF();
+			await Starter.EnsureCreatedAsync().CAF();
 
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -117,21 +105,16 @@ namespace Advobot.Logging.Database
 
 		public async Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
+			const string SQL = @"
+				DELETE FROM IgnoredChannel
+				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
+			";
 			var @params = channels.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			var affectedRowCount = await connection.ExecuteAsync(@"
-				DELETE FROM IgnoredChannel
-				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
-			", @params).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			return await BulkModify(SQL, @params).CAF();
 		}
 
 		public Task DeleteImageLogChannelAsync(ulong guildId)
@@ -139,21 +122,16 @@ namespace Advobot.Logging.Database
 
 		public async Task<int> DeleteLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
+			const string SQL = @"
+				DELETE FROM LogAction
+				WHERE GuildId = @GuildId AND Action = @Action
+			";
 			var @params = actions.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				Action = x.ToString()
 			});
-			var affectedRowCount = await connection.ExecuteAsync(@"
-				DELETE FROM LogAction
-				WHERE GuildId = @GuildId AND Action = @Action
-			", @params).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			return await BulkModify(SQL, @params).CAF();
 		}
 
 		public Task DeleteModLogChannelAsync(ulong guildId)
@@ -209,6 +187,13 @@ namespace Advobot.Logging.Database
 		public Task UpdateServerLogChannelAsync(ulong guildId, ulong channelId)
 			=> UpdateLogChannelAsync(guildId, channelId, "ServerLogId");
 
+		protected override Task<int> ExecuteAsync(
+			IDbConnection connection,
+			string sql,
+			object @params,
+			IDbTransaction transaction)
+			=> connection.ExecuteAsync(sql, @params, transaction);
+
 		private async Task DeleteLogChannelAsync(ulong guildId, string name)
 		{
 			using var connection = await GetConnectionAsync().CAF();
@@ -220,9 +205,6 @@ namespace Advobot.Logging.Database
 				WHERE GuildId = @GuildId
 			", param).CAF();
 		}
-
-		private Task<SQLiteConnection> GetConnectionAsync()
-			=> _Starter.GetConnectionAsync<SQLiteConnection>();
 
 		private async Task UpdateLogChannelAsync(ulong guildId, ulong channelId, string name)
 		{

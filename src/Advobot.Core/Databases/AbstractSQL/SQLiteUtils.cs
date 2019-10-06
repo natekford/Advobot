@@ -14,8 +14,22 @@ namespace Advobot.Databases.AbstractSQL
 	/// </summary>
 	public static class SQLiteUtils
 	{
+		public static async Task<int> BulkModify<T>(
+			this IDatabaseStarter starter,
+			Func<IDbConnection, IDbTransaction, Task<int>> query)
+			where T : DbConnection, new()
+		{
+			//Use a transaction to make bulk modifying way faster in SQLite
+			using var connection = await starter.GetConnectionAsync<T>().CAF();
+			using var transaction = await connection.BeginTransactionAsync().CAF();
+
+			var affectedRowCount = await query.Invoke(connection, transaction).CAF();
+			transaction.Commit();
+			return affectedRowCount;
+		}
+
 		/// <summary>
-		/// Creates a new SQLite connection.
+		/// Creates a new <see cref="DbConnection"/>.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="starter"></param>

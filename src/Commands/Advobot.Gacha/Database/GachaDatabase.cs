@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,15 +20,13 @@ using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Database
 {
-	public sealed class GachaDatabase : IDatabase
+	public sealed class GachaDatabase : DatabaseBase<SQLiteConnection>
 	{
-		private readonly IGachaDatabaseStarter _Starter;
 		private readonly ITime _Time;
 
-		public GachaDatabase(ITime time, IGachaDatabaseStarter starter)
+		public GachaDatabase(ITime time, IGachaDatabaseStarter starter) : base(starter)
 		{
 			_Time = time;
-			_Starter = starter;
 		}
 
 		public async Task AddCharacterAsync(IReadOnlyCharacter character)
@@ -44,18 +43,13 @@ namespace Advobot.Gacha.Database
 
 		public async Task<int> AddCharactersAsync(IEnumerable<IReadOnlyCharacter> characters)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
-			var affectedRowCount = await connection.ExecuteAsync(@"
+			const string SQL = @"
 				INSERT INTO Character
 				( CharacterId, SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter )
 				VALUES
 				( @CharacterId, @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter )
-			", characters).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			";
+			return await BulkModify(SQL, characters).CAF();
 		}
 
 		public async Task AddClaimAsync(IReadOnlyClaim claim)
@@ -72,18 +66,13 @@ namespace Advobot.Gacha.Database
 
 		public async Task<int> AddClaimsAsync(IEnumerable<IReadOnlyClaim> claims)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
-			var affectedRowCount = await connection.ExecuteAsync(@"
+			const string SQL = @"
 				INSERT INTO Claim
 				( ClaimId, GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim )
 				VALUES
 				( @ClaimId, @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim )
-			", claims).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			";
+			return await BulkModify(SQL, claims).CAF();
 		}
 
 		public async Task AddImageAsync(IReadOnlyImage image)
@@ -112,18 +101,13 @@ namespace Advobot.Gacha.Database
 
 		public async Task<int> AddSourcesAsync(IEnumerable<IReadOnlySource> sources)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
-			var affectedRowCount = await connection.ExecuteAsync(@"
+			const string SQL = @"
 				INSERT INTO Source
 				( SourceId, Name, ThumbnailUrl )
 				VALUES
 				( @SourceId, @Name, @ThumbnailUrl )
-			", sources).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			";
+			return await BulkModify(SQL, sources).CAF();
 		}
 
 		public async Task AddUserAsync(IReadOnlyUser user)
@@ -140,18 +124,13 @@ namespace Advobot.Gacha.Database
 
 		public async Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
-			var affectedRowCount = await connection.ExecuteAsync(@"
+			const string SQL = @"
 				INSERT INTO User
 				( GuildId, UserId )
 				VALUES
 				( @GuildId, @UserId )
-			", users).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			";
+			return await BulkModify(SQL, users).CAF();
 		}
 
 		public async Task AddWishAsync(IReadOnlyWish wish)
@@ -166,9 +145,9 @@ namespace Advobot.Gacha.Database
 			", wish).CAF();
 		}
 
-		public async Task<IReadOnlyList<string>> CreateDatabaseAsync()
+		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
 		{
-			await _Starter.EnsureCreatedAsync().CAF();
+			await Starter.EnsureCreatedAsync().CAF();
 
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -518,16 +497,12 @@ namespace Advobot.Gacha.Database
 
 		public async Task<int> TradeAsync(IEnumerable<ITrade> trades)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
-			var affectedRowCount = await connection.ExecuteAsync(@"
+			const string SQL = @"
 				UPDATE Claim
 				SET UserId = @ReceiverId
 				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
-			", trades).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			";
+			return await BulkModify(SQL, trades).CAF();
 		}
 
 		public async Task UpdateClaimImageUrlAsync(IReadOnlyClaim claim, string? url)
@@ -542,7 +517,11 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		private Task<SQLiteConnection> GetConnectionAsync()
-			=> _Starter.GetConnectionAsync<SQLiteConnection>();
+		protected override Task<int> ExecuteAsync(
+			IDbConnection connection,
+			string sql,
+			object @params,
+			IDbTransaction transaction)
+			=> connection.ExecuteAsync(sql, @params, transaction);
 	}
 }

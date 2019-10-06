@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Text;
@@ -15,39 +16,31 @@ using Dapper;
 
 namespace Advobot.Levels.Database
 {
-	public sealed class LevelDatabase : IDatabase
+	public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>
 	{
-		private readonly ILevelDatabaseStarter _Starter;
-
-		public LevelDatabase(ILevelDatabaseStarter starter)
+		public LevelDatabase(ILevelDatabaseStarter starter) : base(starter)
 		{
-			_Starter = starter;
 		}
 
 		public async Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
+			const string SQL = @"
+				INSERT OR REPLACE INTO IgnoredChannel
+				( GuildId, ChannelId )
+				VALUES
+				( @GuildId, @ChannelId )
+			";
 			var @params = channels.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			var affectedRowCount = await connection.ExecuteAsync(@"
-				INSERT OR REPLACE INTO IgnoredChannel
-				( GuildId, ChannelId )
-				VALUES
-				( @GuildId, @ChannelId )
-			", @params).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			return await BulkModify(SQL, @params).CAF();
 		}
 
-		public async Task<IReadOnlyList<string>> CreateDatabaseAsync()
+		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
 		{
-			await _Starter.EnsureCreatedAsync().CAF();
+			await Starter.EnsureCreatedAsync().CAF();
 
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -96,21 +89,16 @@ namespace Advobot.Levels.Database
 
 		public async Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 		{
-			//Scope is needed to make the bulk adding not take ages
-			using var connection = await GetConnectionAsync().CAF();
-			using var transaction = connection.BeginTransaction();
-
+			const string SQL = @"
+				DELETE FROM IgnoredChannel
+				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
+			";
 			var @params = channels.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			var affectedRowCount = await connection.ExecuteAsync(@"
-				DELETE FROM IgnoredChannel
-				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
-			", @params).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			return await BulkModify(SQL, @params).CAF();
 		}
 
 		public async Task<int> GetDistinctUserCountAsync(ISearchArgs args)
@@ -233,6 +221,13 @@ namespace Advobot.Levels.Database
 			", user).CAF();
 		}
 
+		protected override Task<int> ExecuteAsync(
+			IDbConnection connection,
+			string sql,
+			object @params,
+			IDbTransaction transaction)
+			=> connection.ExecuteAsync(sql, @params, transaction);
+
 		private void AppendWhereStatement(StringBuilder sb, object? value, string name)
 		{
 			if (value == null)
@@ -260,9 +255,6 @@ namespace Advobot.Levels.Database
 			AppendWhereStatement(where, args.ChannelId, nameof(args.ChannelId));
 			return where.ToString();
 		}
-
-		private Task<SQLiteConnection> GetConnectionAsync()
-			=> _Starter.GetConnectionAsync<SQLiteConnection>();
 
 		private sealed class TempRankInfo
 		{
