@@ -16,21 +16,21 @@ namespace Advobot.Formatting.Rules
 		/// <summary>
 		/// Keep the categories formatted like a numbered list.
 		/// </summary>
-		Numbers = (1U << 0),
+		Numbers = 1U << 0,
 
 		/// <summary>
 		/// Use dashes to list out each category.
 		/// </summary>
-		Dashes = (1U << 1),
+		Dashes = 1U << 1,
 
 		/// <summary>
 		/// Use bullets to list out each category.
 		/// </summary>
-		Bullets = (1U << 2),
+		Bullets = 1U << 2,
 
 		/// <summary>
 		/// Bold each category's name.
 		/// </summary>
-		Bold = (1U << 3),
+		Bold = 1U << 3,
 	}
 }

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using Advobot.Logging;
 using Advobot.Logging.Models;
 using Advobot.Logging.ReadOnlyModels;
 using Advobot.Logging.Service;
-using Advobot.Services.GuildSettings.Settings;
 
 namespace Advobot.Tests.Fakes.Services.Logging
 {

@@ -62,34 +62,14 @@ namespace Advobot.Services.GuildSettings
 		IList<ulong> IgnoredCommandChannels { get; }
 
 		/// <summary>
-		/// Channels ignored from the log.
-		/// </summary>
-		IList<ulong> IgnoredLogChannels { get; }
-
-		/// <summary>
 		/// Channels ignored from gaining xp in.
 		/// </summary>
 		IList<ulong> IgnoredXpChannels { get; }
 
 		/// <summary>
-		/// The id for the image log.
-		/// </summary>
-		ulong ImageLogId { get; set; }
-
-		/// <summary>
 		/// Channels which have messages deleted in them unless they have an image attached.
 		/// </summary>
 		IList<ulong> ImageOnlyChannels { get; }
-
-		/// <summary>
-		/// Actions which get logged. Users joining, leaving, deleting messages, etc.
-		/// </summary>
-		IList<LogAction> LogActions { get; }
-
-		/// <summary>
-		/// The id for the mod log.
-		/// </summary>
-		ulong ModLogId { get; set; }
 
 		/// <summary>
 		/// The id for the mute role.
@@ -130,11 +110,6 @@ namespace Advobot.Services.GuildSettings
 		/// Roles users can assign themselves.
 		/// </summary>
 		IList<SelfAssignableRoles> SelfAssignableGroups { get; }
-
-		/// <summary>
-		/// The id for the server log.
-		/// </summary>
-		ulong ServerLogId { get; set; }
 
 		/// <summary>
 		/// To limit spam.

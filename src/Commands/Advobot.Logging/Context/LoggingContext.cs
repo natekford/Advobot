@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Logging.Service;
-using Advobot.Services.GuildSettings.Settings;
 
 using AdvorangesUtils;
 
@@ -61,14 +60,15 @@ namespace Advobot.Logging.Context
 			}
 
 			var channels = await service.GetLogChannelsAsync(guild.Id).CAF();
-			var serverLog = await guild.GetTextChannelAsync(channels.ServerLogId).CAF();
 			var imageLog = await guild.GetTextChannelAsync(channels.ImageLogId).CAF();
+			var modLog = await guild.GetTextChannelAsync(channels.ModLogId).CAF();
+			var serverLog = await guild.GetTextChannelAsync(channels.ServerLogId).CAF();
 			var actions = await service.GetLogActionsAsync(guild.Id).CAF();
 			var ignoredChannels = await service.GetIgnoredChannelsAsync(guild.Id).CAF();
 			var bot = await guild.GetCurrentUserAsync().CAF();
 			return new PrivateLoggingContext(
 				guild, user, bot, message, channel,
-				serverLog, imageLog, actions, ignoredChannels);
+				imageLog, modLog, serverLog, actions, ignoredChannels);
 		}
 
 		private static async Task HandleAsync<T>(T? context, LoggingArgs<T> args)
@@ -104,6 +104,7 @@ namespace Advobot.Logging.Context
 			public IGuildUser Bot { get; }
 			public IGuild Guild { get; }
 			public ITextChannel? ImageLog { get; }
+			public ITextChannel? ModLog { get; }
 			public ITextChannel? ServerLog { get; }
 
 			ITextChannel IMessageLoggingContext.Channel
@@ -124,8 +125,9 @@ namespace Advobot.Logging.Context
 				IGuildUser bot,
 				IUserMessage? message,
 				ITextChannel? channel,
-				ITextChannel? serverLog,
 				ITextChannel? imageLog,
+				ITextChannel? modLog,
+				ITextChannel? serverLog,
 				IReadOnlyList<LogAction> actions,
 				IReadOnlyList<ulong> ignoredChannels)
 			{
@@ -134,8 +136,9 @@ namespace Advobot.Logging.Context
 				Bot = bot;
 				_Message = message;
 				_Channel = channel;
-				ServerLog = serverLog;
 				ImageLog = imageLog;
+				ModLog = modLog;
+				ServerLog = serverLog;
 				_Actions = actions;
 				_IgnoredChannels = ignoredChannels;
 			}
@@ -155,14 +158,14 @@ namespace Advobot.Logging.Context
 				_ => throw new ArgumentOutOfRangeException(nameof(action)),
 			};
 
-			private bool ChannelCanBeLogged()
+			public bool ChannelCanBeLogged()
 				=> !_IgnoredChannels.Contains(_Channel?.Id ?? 0);
+
+			public bool IsNotABot()
+				=> !(_User.IsBot || _User.IsWebhook);
 
 			private InvalidOperationException InvalidContext<T>()
 				=> new InvalidOperationException($"Invalid {typeof(T).Name}.");
-
-			private bool IsNotABot()
-				=> !(_User.IsBot || _User.IsWebhook);
 		}
 	}
 }

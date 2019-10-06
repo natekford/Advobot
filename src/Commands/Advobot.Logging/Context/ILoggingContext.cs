@@ -1,6 +1,4 @@
-﻿using Advobot.Services.GuildSettings.Settings;
-
-using Discord;
+﻿using Discord;
 
 namespace Advobot.Logging.Context
 {
@@ -25,6 +23,11 @@ namespace Advobot.Logging.Context
 		ITextChannel? ImageLog { get; }
 
 		/// <summary>
+		/// Where successful commands get logged.
+		/// </summary>
+		ITextChannel? ModLog { get; }
+
+		/// <summary>
 		/// Where message/user actions get logged.
 		/// </summary>
 		ITextChannel? ServerLog { get; }
@@ -33,5 +36,11 @@ namespace Advobot.Logging.Context
 		/// Whether the current context can be logged.
 		/// </summary>
 		bool CanLog(LogAction action);
+
+		/// <summary>
+		/// Whether the current channel can be logged.
+		/// </summary>
+		/// <returns></returns>
+		bool ChannelCanBeLogged();
 	}
 }

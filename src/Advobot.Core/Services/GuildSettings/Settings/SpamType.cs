@@ -16,26 +16,26 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <summary>
 		/// A user has sent too many messages.
 		/// </summary>
-		Message = (1U << 0),
+		Message = 1U << 0,
 
 		/// <summary>
 		/// A user has sent too many long messages.
 		/// </summary>
-		LongMessage = (1U << 1),
+		LongMessage = 1U << 1,
 
 		/// <summary>
 		/// A user has sent too many links.
 		/// </summary>
-		Link = (1U << 2),
+		Link = 1U << 2,
 
 		/// <summary>
 		/// A user has sent too many images.
 		/// </summary>
-		Image = (1U << 3),
+		Image = 1U << 3,
 
 		/// <summary>
 		/// A user has mentioned too many people.
 		/// </summary>
-		Mention = (1U << 4),
+		Mention = 1U << 4,
 	}
 }

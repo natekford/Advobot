@@ -1,38 +1,35 @@
-﻿namespace Advobot.Services.GuildSettings.Settings
+﻿namespace Advobot.Logging
 {
-	/// <summary>
-	/// Allows certain guild events to be logged when these are in <see cref="IGuildSettings.LogActions"/>.
-	/// </summary>
-	public enum LogAction
+	public enum LogAction : ulong
 	{
 		/// <summary>
 		/// Log users joining the guild.
 		/// </summary>
-		UserJoined,
+		UserJoined = 1U << 0,
 
 		/// <summary>
 		/// Log users leaving the guild.
 		/// </summary>
-		UserLeft,
+		UserLeft = 1U << 1,
 
 		/// <summary>
 		/// Log users changing their name.
 		/// </summary>
-		UserUpdated,
+		UserUpdated = 1U << 2,
 
 		/// <summary>
 		/// Log messages being received.
 		/// </summary>
-		MessageReceived,
+		MessageReceived = 1U << 3,
 
 		/// <summary>
 		/// Log messages being edited.
 		/// </summary>
-		MessageUpdated,
+		MessageUpdated = 1U << 4,
 
 		/// <summary>
 		/// Log messages being deleted.
 		/// </summary>
-		MessageDeleted,
+		MessageDeleted = 1U << 5,
 	}
 }

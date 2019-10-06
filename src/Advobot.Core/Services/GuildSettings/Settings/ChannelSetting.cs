@@ -16,6 +16,6 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <summary>
 		/// Indicates that the channel only accepts messages with images in them
 		/// </summary>
-		ImageOnly = (1U << 0),
+		ImageOnly = 1U << 0,
 	}
 }

@@ -1,11 +1,15 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
+using Advobot.Classes;
+using Advobot.Logging.Context;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
 
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 
 namespace Advobot.Logging.Service
@@ -13,10 +17,28 @@ namespace Advobot.Logging.Service
 	public sealed class ClientLogger
 	{
 		private readonly BaseSocketClient _Client;
+		private readonly ILoggingService _Logging;
 
-		public ClientLogger(BaseSocketClient client)
+		public ClientLogger(ILoggingService logging, BaseSocketClient client)
 		{
+			_Logging = logging;
 			_Client = client;
+		}
+
+		public async Task OnCommandInvoked(ICommandContext context, IResult _)
+		{
+			var loggingContext = await _Logging.CreateAsync(context.Message).CAF();
+			if (loggingContext.ModLog == null || !loggingContext.ChannelCanBeLogged())
+			{
+				return;
+			}
+
+			await MessageUtils.SendMessageAsync(loggingContext.ModLog, embed: new EmbedWrapper
+			{
+				Description = context.Message.Content,
+				Author = context.User.CreateAuthor(),
+				Footer = new EmbedFooterBuilder { Text = "Mod Log", },
+			}).CAF();
 		}
 
 		public Task OnGuildAvailable(SocketGuild guild)

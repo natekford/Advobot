@@ -16,11 +16,11 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <summary>
 		/// ???
 		/// </summary>
-		Regular = (1U << 0),
+		Regular = 1U << 0,
 
 		/// <summary>
 		/// When users join too quickly, this can indicate a raid.
 		/// </summary>
-		RapidJoins = (1U << 1),
+		RapidJoins = 1U << 1,
 	}
 }

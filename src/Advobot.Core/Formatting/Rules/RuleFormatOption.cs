@@ -16,11 +16,11 @@ namespace Advobot.Formatting.Rules
 		/// <summary>
 		/// Keep all the numbers the same length so everything looks uniform.
 		/// </summary>
-		NumbersSameLength = (1U << 0),
+		NumbersSameLength = 1U << 0,
 
 		/// <summary>
 		/// Put in extra lines between categories.
 		/// </summary>
-		ExtraLines = (1U << 1),
+		ExtraLines = 1U << 1,
 	}
 }

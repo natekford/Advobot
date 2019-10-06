@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Logging.Caches;
 using Advobot.Logging.Context;
-using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
@@ -27,7 +26,7 @@ namespace Advobot.Logging.Service
 		private readonly ILoggingService _Service;
 		private readonly ITime _Time;
 
-		public UserLogger(BaseSocketClient client, ILoggingService service, ITime time)
+		public UserLogger(ILoggingService service, BaseSocketClient client, ITime time)
 		{
 			_Client = client;
 			_Service = service;

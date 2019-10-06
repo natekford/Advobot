@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Logging.Caches;
 using Advobot.Logging.Context;
-using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -23,11 +22,11 @@ namespace Advobot.Logging.Service
 		private readonly ConcurrentDictionary<ulong, DeletedMessageCache> _DeletedMessages
 			= new ConcurrentDictionary<ulong, DeletedMessageCache>();
 
-		private readonly ILoggingService _Service;
+		private readonly ILoggingService _Logging;
 
-		public MessageLogger(ILoggingService service)
+		public MessageLogger(ILoggingService logging)
 		{
-			_Service = service;
+			_Logging = logging;
 		}
 
 		public Task OnMessageDeleted(
@@ -35,7 +34,7 @@ namespace Advobot.Logging.Service
 			ISocketMessageChannel _)
 		{
 			//Ignore uncached messages since not much can be done with them
-			return _Service.HandleAsync(cached.Value, new LoggingArgs<IMessageLoggingContext>
+			return _Logging.HandleAsync(cached.Value, new LoggingArgs<IMessageLoggingContext>
 			{
 				Action = LogAction.MessageDeleted,
 				Actions = new Func<IMessageLoggingContext, Task>[]
@@ -47,7 +46,7 @@ namespace Advobot.Logging.Service
 
 		public Task OnMessageReceived(SocketMessage message)
 		{
-			return _Service.HandleAsync(message, new LoggingArgs<IMessageLoggingContext>
+			return _Logging.HandleAsync(message, new LoggingArgs<IMessageLoggingContext>
 			{
 				Action = LogAction.MessageReceived,
 				Actions = new Func<IMessageLoggingContext, Task>[]
@@ -62,7 +61,7 @@ namespace Advobot.Logging.Service
 			SocketMessage message,
 			ISocketMessageChannel _)
 		{
-			return _Service.HandleAsync(message, new LoggingArgs<IMessageLoggingContext>
+			return _Logging.HandleAsync(message, new LoggingArgs<IMessageLoggingContext>
 			{
 				Action = LogAction.MessageUpdated,
 				Actions = new Func<IMessageLoggingContext, Task>[]

@@ -30,12 +30,15 @@ namespace Advobot.Services.Commands
 	/// </summary>
 	internal sealed class CommandHandlerService : ICommandHandlerService
 	{
-		private static readonly RequestOptions _Options = DiscordUtils.GenerateRequestOptions("Command successfully executed.");
 		private static readonly TimeSpan _RemovalTime = TimeSpan.FromSeconds(10);
 
 		private readonly IBotSettings _BotSettings;
 		private readonly DiscordShardedClient _Client;
 		private readonly CommandServiceConfig _CommandConfig;
+
+		private readonly AsyncEvent<Func<ICommandContext, IResult, Task>> _CommandInvoked
+			= new AsyncEvent<Func<ICommandContext, IResult, Task>>();
+
 		private readonly Localized<CommandService> _CommandService;
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IHelpEntryService _HelpEntries;
@@ -46,7 +49,11 @@ namespace Advobot.Services.Commands
 		private bool IsLoaded => _LoadedState != default;
 
 		/// <inheritdoc />
-		public event Action<IResult>? CommandInvoked;
+		public event Func<ICommandContext, IResult, Task> CommandInvoked
+		{
+			add => _CommandInvoked.Add(value);
+			remove => _CommandInvoked.Remove(value);
+		}
 
 		/// <summary>
 		/// Creates an instance of <see cref="CommandHandlerService"/>.
@@ -158,27 +165,6 @@ namespace Advobot.Services.Commands
 			return resp;
 		}
 
-		private static async Task LogAsync(IAdvobotCommandContext context)
-		{
-			if (context.Settings.IgnoredLogChannels.Contains(context.Channel.Id))
-			{
-				return;
-			}
-
-			var modLog = await context.Guild.GetTextChannelAsync(context.Settings.ModLogId).CAF();
-			if (modLog == null)
-			{
-				return;
-			}
-
-			await MessageUtils.SendMessageAsync(modLog, embed: new EmbedWrapper
-			{
-				Description = context.Message.Content,
-				Author = context.User.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = "Mod Log", },
-			}).CAF();
-		}
-
 		private async Task HandleCommand(IMessage message)
 		{
 			var argPos = -1;
@@ -215,13 +201,13 @@ namespace Advobot.Services.Commands
 				return;
 			}
 
+			/* TODO: make this a toggle
 			if (result.IsSuccess)
 			{
 				await context.Message.DeleteAsync(_Options).CAF();
-				await LogAsync(context).CAF();
-			}
+			}*/
 
-			CommandInvoked?.Invoke(result);
+			await _CommandInvoked.InvokeAsync(context, result).CAF();
 			var color = result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red;
 			ConsoleUtils.WriteLine(FormatResult(context, result), color);
 

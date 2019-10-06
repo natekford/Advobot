@@ -26,10 +26,6 @@ namespace Advobot.Services.GuildSettings
 
 		private GuildNotification? _GoodbyeMessage;
 
-		private ulong _ImageLogId;
-
-		private ulong _ModLogId;
-
 		private ulong _MuteRoleId;
 
 		private bool _NonVerboseErrors;
@@ -37,8 +33,6 @@ namespace Advobot.Services.GuildSettings
 		private GuildSettingsFactory? _Parent;
 
 		private string? _Prefix;
-
-		private ulong _ServerLogId;
 
 		private GuildNotification? _WelcomeMessage;
 
@@ -100,42 +94,14 @@ namespace Advobot.Services.GuildSettings
 		public IList<ulong> IgnoredCommandChannels { get; set; } = new ObservableSet<ulong>();
 
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.IgnoredLogChannels), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("IgnoredLogChannels")]
-		public IList<ulong> IgnoredLogChannels { get; set; } = new ObservableSet<ulong>();
-
-		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.IgnoredXpChannels), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("IgnoredXpChannels")]
 		public IList<ulong> IgnoredXpChannels { get; set; } = new ObservableSet<ulong>();
 
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.ImageLog), DefaultValue = 0)]
-		[JsonProperty("ImageLog")]
-		public ulong ImageLogId
-		{
-			get => _ImageLogId;
-			set => SetValue(ref _ImageLogId, value);
-		}
-
-		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.ImageOnlyChannels), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("ImageOnlyChannels")]
 		public IList<ulong> ImageOnlyChannels { get; set; } = new ObservableSet<ulong>();
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.LogActions), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("LogActions")]
-		public IList<LogAction> LogActions { get; set; } = new ObservableSet<LogAction>();
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.ModLog), DefaultValue = 0)]
-		[JsonProperty("ModLog")]
-		public ulong ModLogId
-		{
-			get => _ModLogId;
-			set => SetValue(ref _ModLogId, value);
-		}
 
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.MuteRole), DefaultValue = 0)]
@@ -190,15 +156,6 @@ namespace Advobot.Services.GuildSettings
 		public IList<SelfAssignableRoles> SelfAssignableGroups { get; set; } = new ObservableCollection<SelfAssignableRoles>();
 
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.ServerLog), DefaultValue = 0)]
-		[JsonProperty("ServerLog")]
-		public ulong ServerLogId
-		{
-			get => _ServerLogId;
-			set => SetValue(ref _ServerLogId, value);
-		}
-
-		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.SpamPrevention), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("SpamPrevention")]
 		public IList<SpamPrev> SpamPrevention { get; set; } = new ObservableCollection<SpamPrev>();
@@ -214,10 +171,6 @@ namespace Advobot.Services.GuildSettings
 
 		//IDatabaseEntry
 		object IDatabaseEntry.Id { get => GuildId; set => GuildId = (ulong)value; }
-
-		public GuildSettings()
-		{
-		}
 
 		/// <inheritdoc />
 		public IList<BannedPhraseUserInfo> GetBannedPhraseUsers()

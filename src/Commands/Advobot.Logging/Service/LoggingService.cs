@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Logging.Database;
 using Advobot.Logging.ReadOnlyModels;
-using Advobot.Services.GuildSettings.Settings;
+using Advobot.Services.Commands;
 using Advobot.Services.Time;
 
 using Discord.WebSocket;
@@ -17,23 +17,28 @@ namespace Advobot.Logging.Service
 		private readonly MessageLogger _MessageLogger;
 		private readonly UserLogger _UserLogger;
 
-		public LoggingService(LoggingDatabase db, BaseSocketClient client, ITime time)
+		public LoggingService(
+			LoggingDatabase db,
+			BaseSocketClient client,
+			ICommandHandlerService commandHandler,
+			ITime time)
 		{
 			_Db = db;
 
-			_ClientLogger = new ClientLogger(client);
+			_ClientLogger = new ClientLogger(this, client);
 			client.GuildAvailable += _ClientLogger.OnGuildAvailable;
 			client.GuildUnavailable += _ClientLogger.OnGuildUnavailable;
 			client.JoinedGuild += _ClientLogger.OnJoinedGuild;
 			client.LeftGuild += _ClientLogger.OnLeftGuild;
 			client.Log += _ClientLogger.OnLogMessageSent;
+			commandHandler.CommandInvoked += _ClientLogger.OnCommandInvoked;
 
 			_MessageLogger = new MessageLogger(this);
 			client.MessageDeleted += _MessageLogger.OnMessageDeleted;
 			client.MessageReceived += _MessageLogger.OnMessageReceived;
 			client.MessageUpdated += _MessageLogger.OnMessageUpdated;
 
-			_UserLogger = new UserLogger(client, this, time);
+			_UserLogger = new UserLogger(this, client, time);
 			client.UserJoined += _UserLogger.OnUserJoined;
 			client.UserLeft += _UserLogger.OnUserLeft;
 			client.UserUpdated += _UserLogger.OnUserUpdated;

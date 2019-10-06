@@ -16,7 +16,7 @@ namespace Advobot.Services.Commands
 		/// <summary>
 		/// Tells whether a command was executed correctly, failed, or ignored.
 		/// </summary>
-		event Action<IResult> CommandInvoked;
+		event Func<ICommandContext, IResult, Task> CommandInvoked;
 
 		/// <summary>
 		/// Adds the commands contained within each assembly.
