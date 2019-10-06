@@ -28,21 +28,18 @@ namespace Advobot.Levels.Service
 		private readonly ConcurrentDictionary<Key, RuntimeInfo> _RuntimeInfo
 			= new ConcurrentDictionary<Key, RuntimeInfo>();
 
-		private readonly IGuildSettingsFactory _SettingsFactory;
 		private readonly ITime _Time;
 
 		public LevelService(
 			LevelServiceConfig config,
 			LevelDatabase db,
 			BaseSocketClient client,
-			ITime time,
-			IGuildSettingsFactory settingsFactory)
+			ITime time)
 		{
 			_Config = config;
 			_Client = client;
 			_Db = db;
 			_Time = time;
-			_SettingsFactory = settingsFactory;
 
 			_Client.MessageReceived += AddExperienceAsync;
 			_Client.MessageDeleted += RemoveExperienceAsync;
@@ -66,7 +63,7 @@ namespace Advobot.Levels.Service
 
 		private async Task AddExperienceAsync(IMessage message)
 		{
-			var context = await XpContext.CreateAsync(_SettingsFactory, message).CAF();
+			var context = await XpContext.CreateAsync(_Db, message).CAF();
 			if (context == null)
 			{
 				return;
@@ -115,7 +112,7 @@ namespace Advobot.Levels.Service
 			Cacheable<IMessage, ulong> cached,
 			ISocketMessageChannel channel)
 		{
-			var context = await XpContext.CreateAsync(_SettingsFactory, cached.Value).CAF();
+			var context = await XpContext.CreateAsync(_Db, cached.Value).CAF();
 			if (context == null
 				|| !_RuntimeInfo.TryGetValue(context.Key, out var info)
 				|| !info.TryGet(cached.Id, out var hash))
@@ -232,25 +229,22 @@ namespace Advobot.Levels.Service
 			public IGuild Guild { get; }
 			public Key Key => new Key(User);
 			public IUserMessage Message { get; }
-			public IGuildSettings Settings { get; }
 			public IGuildUser User { get; }
 
 			private XpContext(
 				IGuild guild,
 				ITextChannel channel,
 				IGuildUser user,
-				IUserMessage message,
-				IGuildSettings settings)
+				IUserMessage message)
 			{
 				Guild = guild;
 				Channel = channel;
 				User = user;
 				Message = message;
-				Settings = settings;
 			}
 
 			public static async Task<XpContext?> CreateAsync(
-				IGuildSettingsFactory factory,
+				LevelDatabase db,
 				IMessage message)
 			{
 				if (!(message is IUserMessage msg)
@@ -262,13 +256,13 @@ namespace Advobot.Levels.Service
 					return null;
 				}
 
-				var settings = await factory.GetOrCreateAsync(guild).CAF();
-				if (settings.IgnoredXpChannels.Contains(channel.Id))
+				var ignored = await db.GetIgnoredChannelsAsync(guild.Id).CAF();
+				if (ignored.Contains(channel.Id))
 				{
 					return null;
 				}
 
-				return new XpContext(guild, channel, user, msg, settings);
+				return new XpContext(guild, channel, user, msg);
 			}
 
 			public ISearchArgs CreateArgs()

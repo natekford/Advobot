@@ -62,11 +62,6 @@ namespace Advobot.Services.GuildSettings
 		IList<ulong> IgnoredCommandChannels { get; }
 
 		/// <summary>
-		/// Channels ignored from gaining xp in.
-		/// </summary>
-		IList<ulong> IgnoredXpChannels { get; }
-
-		/// <summary>
 		/// Channels which have messages deleted in them unless they have an image attached.
 		/// </summary>
 		IList<ulong> ImageOnlyChannels { get; }

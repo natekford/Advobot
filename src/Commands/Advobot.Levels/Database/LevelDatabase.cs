@@ -24,6 +24,27 @@ namespace Advobot.Levels.Database
 			_Starter = starter;
 		}
 
+		public async Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
+		{
+			//Scope is needed to make the bulk adding not take ages
+			using var connection = await GetConnectionAsync().CAF();
+			using var transaction = connection.BeginTransaction();
+
+			var @params = channels.Select(x => new
+			{
+				GuildId = guildId.ToString(),
+				ChannelId = x.ToString()
+			});
+			var affectedRowCount = await connection.ExecuteAsync(@"
+				INSERT OR REPLACE INTO IgnoredChannel
+				( GuildId, ChannelId )
+				VALUES
+				( @GuildId, @ChannelId )
+			", @params).CAF();
+			transaction.Commit();
+			return affectedRowCount;
+		}
+
 		public async Task<IReadOnlyList<string>> CreateDatabaseAsync()
 		{
 			await _Starter.EnsureCreatedAsync().CAF();
@@ -56,7 +77,40 @@ namespace Advobot.Levels.Database
 			);
 			").CAF();
 
+			//Ignored channel
+			await connection.ExecuteAsync(@"
+			CREATE TABLE IF NOT EXISTS IgnoredChannel
+			(
+				GuildId						TEXT NOT NULL,
+				ChannelId					TEXT NOT NULL,
+				PRIMARY KEY(GuildId, ChannelId)
+			);
+			CREATE INDEX IF NOT EXISTS IgnoredChannel_GuildId_Index ON IgnoredChannel
+			(
+				GuildId
+			);
+			").CAF();
+
 			return await connection.GetTableNames((c, sql) => c.QueryAsync<string>(sql)).CAF();
+		}
+
+		public async Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
+		{
+			//Scope is needed to make the bulk adding not take ages
+			using var connection = await GetConnectionAsync().CAF();
+			using var transaction = connection.BeginTransaction();
+
+			var @params = channels.Select(x => new
+			{
+				GuildId = guildId.ToString(),
+				ChannelId = x.ToString()
+			});
+			var affectedRowCount = await connection.ExecuteAsync(@"
+				DELETE FROM IgnoredChannel
+				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
+			", @params).CAF();
+			transaction.Commit();
+			return affectedRowCount;
 		}
 
 		public async Task<int> GetDistinctUserCountAsync(ISearchArgs args)
@@ -69,6 +123,19 @@ namespace Advobot.Levels.Database
 				FROM User
 				{where}
 			", args).CAF();
+		}
+
+		public async Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+
+			var param = new { GuildId = guildId.ToString() };
+			var result = await connection.QueryAsync<string>(@"
+				SELECT ChannelId
+				FROM IgnoredChannel
+				WHERE GuildId = @GuildId
+			", param).CAF();
+			return result.Select(ulong.Parse).ToArray();
 		}
 
 		public async Task<IRank> GetRankAsync(ISearchArgs args)

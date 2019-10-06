@@ -94,11 +94,6 @@ namespace Advobot.Services.GuildSettings
 		public IList<ulong> IgnoredCommandChannels { get; set; } = new ObservableSet<ulong>();
 
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.IgnoredXpChannels), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("IgnoredXpChannels")]
-		public IList<ulong> IgnoredXpChannels { get; set; } = new ObservableSet<ulong>();
-
-		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.ImageOnlyChannels), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("ImageOnlyChannels")]
 		public IList<ulong> ImageOnlyChannels { get; set; } = new ObservableSet<ulong>();

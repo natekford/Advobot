@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 
+using AdvorangesUtils;
+
 namespace Advobot.Utilities
 {
 	//Taken from: https://github.com/discord-net/Discord.Net/blob/322d46e47b47e44f8b62b1ddcdcf39280cac6771/src/Discord.Net.Core/Utils/AsyncEvent.cs
@@ -31,7 +33,7 @@ namespace Advobot.Utilities
 			var subscribers = eventHandler.Subscriptions;
 			for (var i = 0; i < subscribers.Count; ++i)
 			{
-				await subscribers[i].Invoke(arg1, arg2).ConfigureAwait(false);
+				await subscribers[i].Invoke(arg1, arg2).CAF();
 			}
 		}
 
@@ -40,7 +42,7 @@ namespace Advobot.Utilities
 			var subscribers = eventHandler.Subscriptions;
 			for (var i = 0; i < subscribers.Count; ++i)
 			{
-				await subscribers[i].Invoke(arg1, arg2, arg3).ConfigureAwait(false);
+				await subscribers[i].Invoke(arg1, arg2, arg3).CAF();
 			}
 		}
 
@@ -49,7 +51,7 @@ namespace Advobot.Utilities
 			var subscribers = eventHandler.Subscriptions;
 			for (var i = 0; i < subscribers.Count; ++i)
 			{
-				await subscribers[i].Invoke(arg1, arg2, arg3, arg4).ConfigureAwait(false);
+				await subscribers[i].Invoke(arg1, arg2, arg3, arg4).CAF();
 			}
 		}
 
@@ -58,22 +60,21 @@ namespace Advobot.Utilities
 			var subscribers = eventHandler.Subscriptions;
 			for (var i = 0; i < subscribers.Count; ++i)
 			{
-				await subscribers[i].Invoke(arg1, arg2, arg3, arg4, arg5).ConfigureAwait(false);
+				await subscribers[i].Invoke(arg1, arg2, arg3, arg4, arg5).CAF();
 			}
 		}
 	}
 
-	internal class AsyncEvent<T>
-		where T : class
+	internal class AsyncEvent<T> where T : class
 	{
-		internal ImmutableArray<T> _subscriptions;
-		private readonly object _subLock = new object();
-		public bool HasSubscribers => _subscriptions.Length != 0;
-		public IReadOnlyList<T> Subscriptions => _subscriptions;
+		private readonly object _SubLock = new object();
+		private ImmutableArray<T> _Subscriptions;
+		public bool HasSubscribers => _Subscriptions.Length != 0;
+		public IReadOnlyList<T> Subscriptions => _Subscriptions;
 
 		public AsyncEvent()
 		{
-			_subscriptions = ImmutableArray.Create<T>();
+			_Subscriptions = ImmutableArray.Create<T>();
 		}
 
 		public void Add(T subscriber)
@@ -82,9 +83,9 @@ namespace Advobot.Utilities
 			{
 				throw new ArgumentNullException(nameof(subscriber));
 			}
-			lock (_subLock)
+			lock (_SubLock)
 			{
-				_subscriptions = _subscriptions.Add(subscriber);
+				_Subscriptions = _Subscriptions.Add(subscriber);
 			}
 		}
 
@@ -94,9 +95,9 @@ namespace Advobot.Utilities
 			{
 				throw new ArgumentNullException(nameof(subscriber));
 			}
-			lock (_subLock)
+			lock (_SubLock)
 			{
-				_subscriptions = _subscriptions.Remove(subscriber);
+				_Subscriptions = _Subscriptions.Remove(subscriber);
 			}
 		}
 	}

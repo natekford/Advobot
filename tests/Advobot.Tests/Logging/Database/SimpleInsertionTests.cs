@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+
 using Advobot.Logging;
-using Advobot.Services.GuildSettings.Settings;
 
 using AdvorangesUtils;
 
