@@ -65,15 +65,15 @@ namespace Advobot.Levels.Commands
 			private ulong GuildId => Context.Guild.Id;
 
 			[Command(nameof(Channel))]
-			public Task<RuntimeResult> Channel([Positive, Optional] int page)
+			public Task<RuntimeResult> Channel([Positive] int page = 1)
 				=> Command(new SearchArgs(guildId: GuildId, channelId: ChannelId), page);
 
 			[Command(nameof(Global))]
-			public Task<RuntimeResult> Global([Positive, Optional] int page)
+			public Task<RuntimeResult> Global([Positive] int page = 1)
 				=> Command(new SearchArgs(), page);
 
 			[Command]
-			public Task<RuntimeResult> Guild([Positive, Optional] int page)
+			public Task<RuntimeResult> Guild([Positive] int page = 1)
 				=> Command(new SearchArgs(guildId: GuildId), page);
 
 			private async Task<RuntimeResult> Command(ISearchArgs args, int page)

@@ -148,8 +148,9 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[CanModifyRole] IRole role,
-				[Optional] Color color)
+				[CanModifyRole]
+				IRole role,
+				Color color = default)
 			{
 				await role.ModifyAsync(x => x.Color = color, GenerateRequestOptions()).CAF();
 				return Responses.Roles.ModifiedColor(role, color);

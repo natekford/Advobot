@@ -141,7 +141,7 @@ namespace Advobot.Standard.Commands
 		public sealed class GetUserAvatar : AdvobotModuleBase
 		{
 			[Command]
-			public Task Command([Optional] IUser user)
+			public Task Command(IUser? user = null)
 				=> Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl());
 		}
 

@@ -42,16 +42,16 @@ namespace Advobot.Standard.Commands
 			public Task Command(
 				[CanModifyUser]
 				IGuildUser user,
-				[Optional, Remainder]
-				ModerationReason reason
+				[Remainder]
+				ModerationReason reason = default
 			) => Command(user.Id, reason);
 
 			[Command]
 			public async Task<RuntimeResult> Command(
 				[NotBanned]
 				ulong userId,
-				[Optional, Remainder]
-				ModerationReason reason
+				[Remainder]
+				ModerationReason reason = default
 			)
 			{
 				//TODO: move the static stuff used in here to its own type of module
@@ -72,8 +72,8 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IGuildUser user,
-				[Optional, Remainder]
-				ModerationReason reason
+				[Remainder]
+				ModerationReason reason = default
 			)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
@@ -116,8 +116,8 @@ namespace Advobot.Standard.Commands
 			[LocalizedAlias(nameof(Aliases.ClearNickname))]
 			public Task<RuntimeResult> ClearNickname(
 				IRole target,
-				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-				bool bypass
+				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
+				bool bypass = false
 			)
 			{
 				Task UpdateAsync(IGuildUser user, RequestOptions options)
@@ -137,8 +137,8 @@ namespace Advobot.Standard.Commands
 				IRole target,
 				[Nickname]
 				string nickname,
-				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-				bool bypass
+				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
+				bool bypass = false
 			)
 			{
 				Task UpdateAsync(IGuildUser user, RequestOptions options)
@@ -158,8 +158,8 @@ namespace Advobot.Standard.Commands
 				IRole target,
 				[CanModifyRole, NotEveryone, NotManaged]
 				IRole give,
-				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-				bool bypass
+				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
+				bool bypass = false
 			)
 			{
 				if (target.Id == give.Id)
@@ -184,8 +184,8 @@ namespace Advobot.Standard.Commands
 				IRole target,
 				[CanModifyRole, NotEveryone, NotManaged]
 				IRole take,
-				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-				bool bypass
+				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
+				bool bypass = false
 			)
 			{
 				Task UpdateAsync(IGuildUser user, RequestOptions options)
@@ -244,8 +244,8 @@ namespace Advobot.Standard.Commands
 			public async Task<RuntimeResult> Command(
 				[CanModifyUser]
 				IGuildUser user,
-				[Optional, Remainder]
-				ModerationReason reason
+				[Remainder]
+				ModerationReason reason = default
 			)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
@@ -344,8 +344,8 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IGuildUser user,
-				[Optional, Remainder]
-				ModerationReason reason
+				[Remainder]
+				ModerationReason reason = default
 			)
 			{
 				var muteRole = await GetOrCreateMuteRoleAsync().CAF();
@@ -519,16 +519,16 @@ namespace Advobot.Standard.Commands
 			public Task<RuntimeResult> Command(
 				[CanModifyUser]
 				IGuildUser user,
-				[Optional, Remainder]
-				ModerationReason reason
+				[Remainder]
+				ModerationReason reason = default
 			) => Command(user.Id, reason);
 
 			[Command]
 			public async Task<RuntimeResult> Command(
 				[NotBanned]
 				ulong userId,
-				[Optional, Remainder]
-				ModerationReason reason
+				[Remainder]
+				ModerationReason reason = default
 			)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
@@ -547,8 +547,8 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IBan ban,
-				[Optional, Remainder]
-				ModerationReason reason
+				[Remainder]
+				ModerationReason reason = default
 			)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);
@@ -567,8 +567,8 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IGuildUser user,
-				[Optional, Remainder]
-				ModerationReason reason
+				[Remainder]
+				ModerationReason reason = default
 			)
 			{
 				var punishmentArgs = reason.ToPunishmentArgs(this);

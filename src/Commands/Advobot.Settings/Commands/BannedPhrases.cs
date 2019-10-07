@@ -54,7 +54,7 @@ namespace Advobot.Settings.Commands
 			[BannedRegexLimit(QuantityLimitAction.Add)]
 			public Task<RuntimeResult> Add(
 				[Regex, NotAlreadyBannedRegex] string regex,
-				[Optional] Punishment punishment)
+				Punishment punishment = default)
 			{
 				var phrase = new BannedPhrase(regex, punishment);
 				Settings.BannedPhraseRegex.Add(phrase);

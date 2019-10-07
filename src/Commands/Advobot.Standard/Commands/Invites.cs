@@ -35,13 +35,13 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public Task<RuntimeResult> Command(
 				[CanModifyChannel(CreateInstantInvite)] ITextChannel channel,
-				[Optional] CreateInviteArguments? arguments)
+				CreateInviteArguments? arguments = null)
 				=> CommandRunner(channel, arguments);
 
 			[Command]
 			public Task<RuntimeResult> Command(
 				[CanModifyChannel(CreateInstantInvite)] IVoiceChannel channel,
-				[Optional] CreateInviteArguments? arguments)
+				CreateInviteArguments? arguments = null)
 				=> CommandRunner(channel, arguments);
 
 			private async Task<RuntimeResult> CommandRunner(

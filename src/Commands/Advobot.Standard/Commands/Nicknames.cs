@@ -55,7 +55,9 @@ namespace Advobot.Standard.Commands
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(
-				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
+				bool bypass = false
+			)
 			{
 				var options = GenerateRequestOptions();
 				ProgressLogger = new MultiUserActionProgressLogger(
@@ -82,9 +84,13 @@ namespace Advobot.Standard.Commands
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(
-				[Positive] int upperLimit,
-				[Nickname] string replace,
-				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+				[Positive]
+				int upperLimit,
+				[Nickname]
+				string replace,
+				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
+				bool bypass = false
+			)
 			{
 				var options = GenerateRequestOptions();
 				ProgressLogger = new MultiUserActionProgressLogger(
@@ -111,9 +117,13 @@ namespace Advobot.Standard.Commands
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(
-				[Nickname] string search,
-				[Nickname] string replace,
-				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+				[Nickname]
+				string search,
+				[Nickname]
+				string replace,
+				[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
+				bool bypass = false
+			)
 			{
 				var options = GenerateRequestOptions();
 				ProgressLogger = new MultiUserActionProgressLogger(

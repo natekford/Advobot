@@ -42,10 +42,10 @@ namespace Advobot.Standard.Commands
 				[EmoteName]
 				string name,
 				Uri url,
-				[Optional]
-				UserProvidedImageArgs args
+				UserProvidedImageArgs? args = null
 			)
 			{
+				args ??= new UserProvidedImageArgs();
 				var position = Enqueue(new EmoteCreationContext(Context, url, args, name));
 				return Responses.Emotes.EnqueuedCreation(name, position);
 			}

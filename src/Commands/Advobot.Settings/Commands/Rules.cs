@@ -128,13 +128,13 @@ namespace Advobot.Settings.Commands
 		public sealed class PrintOutRules : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command([Optional] RuleFormatter? args)
+			public Task<RuntimeResult> Command(RuleFormatter? args = null)
 				=> Command(null, args);
 
 			[Command]
 			public Task<RuntimeResult> Command(
 				[RuleCategory] string? category,
-				[Optional] RuleFormatter? args)
+				RuleFormatter? args = null)
 			{
 				args ??= new RuleFormatter();
 				var segments = Context.Settings.Rules.GetParts(args, category);
