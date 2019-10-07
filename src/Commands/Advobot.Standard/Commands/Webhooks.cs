@@ -34,8 +34,13 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
-				[CanModifyChannel(ManageWebhooks)] ITextChannel channel,
-				[Remainder, Username] string name)
+				[CanModifyChannel(ManageWebhooks)]
+				[LocalizedSummary(nameof(Summaries.CreateWebhookChannel))]
+				ITextChannel channel,
+				[Remainder, Username]
+				[LocalizedSummary(nameof(Summaries.CreateWebhookName))]
+				string name
+			)
 			{
 				var webhook = await channel.CreateWebhookAsync(name, options: GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.Created(webhook);
@@ -50,7 +55,10 @@ namespace Advobot.Standard.Commands
 		public sealed class DeleteWebhook : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> Command(IWebhook webhook)
+			public async Task<RuntimeResult> Command(
+				[LocalizedSummary(nameof(Summaries.DeleteWebhookWebhook))]
+				IWebhook webhook
+			)
 			{
 				await webhook.DeleteAsync(GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.Deleted(webhook);
@@ -72,7 +80,10 @@ namespace Advobot.Standard.Commands
 			}
 
 			[Command]
-			public async Task<RuntimeResult> Command(ITextChannel channel)
+			public async Task<RuntimeResult> Command(
+				[LocalizedSummary(nameof(Summaries.DisplayWebhooksChannel))]
+				ITextChannel channel
+			)
 			{
 				var webhooks = await channel.GetWebhooksAsync().CAF();
 				return Responses.Webhooks.DisplayWebhooks(channel, webhooks);
@@ -88,8 +99,12 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
+				[LocalizedSummary(nameof(Summaries.ModifyWebhookChannelWebhook))]
 				IWebhook webhook,
-				[CanModifyChannel(ManageWebhooks)] ITextChannel channel)
+				[CanModifyChannel(ManageWebhooks)]
+				[LocalizedSummary(nameof(Summaries.ModifyWebhookChannelChannel))]
+				ITextChannel channel
+			)
 			{
 				await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Webhooks.ModifiedChannel(webhook, channel);
@@ -104,15 +119,24 @@ namespace Advobot.Standard.Commands
 		public sealed class ModifyWebhookIcon : ImageResizerModule
 		{
 			[Command]
-			public Task<RuntimeResult> Command(IWebhook webhook, Uri url)
+			public Task<RuntimeResult> Command(
+				[LocalizedSummary(nameof(Summaries.ModifyWebhookIconWebhook))]
+				IWebhook webhook,
+				[LocalizedSummary(nameof(Summaries.ModifyWebhookIconUrl))]
+				Uri url
+			)
 			{
 				var position = Enqueue(new IconCreationContext(Context, url, default, "Webhook Icon",
 					(ctx, ms) => webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions())));
 				return Responses.Snowflakes.EnqueuedIcon(webhook, position);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
-			public async Task<RuntimeResult> Remove(IWebhook webhook)
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
+			public async Task<RuntimeResult> Remove(
+				[LocalizedSummary(nameof(Summaries.ModifyWebhookIconWebhook))]
+				IWebhook webhook
+			)
 			{
 				await webhook.ModifyAsync(x => x.Image = new Image(), GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.RemovedIcon(webhook);
@@ -128,8 +152,12 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(
+				[LocalizedSummary(nameof(Summaries.ModifyWebhookNameWebhook))]
 				IWebhook webhook,
-				[Remainder, Username] string name)
+				[Remainder, Username]
+				[LocalizedSummary(nameof(Summaries.ModifyWebhookNameName))]
+				string name
+			)
 			{
 				await webhook.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.ModifiedName(webhook, name);
@@ -150,7 +178,13 @@ namespace Advobot.Standard.Commands
 				= new ConcurrentDictionary<ulong, ulong>();
 
 			[Command(RunMode = RunMode.Async)]
-			public Task Command(IWebhook webhook, [Remainder] string text)
+			public Task Command(
+				[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookWebhook))]
+				IWebhook webhook,
+				[Remainder]
+				[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookText))]
+				string text
+			)
 			{
 				var webhookId = _GuildsToWebhooks.AddOrUpdate(Context.Guild.Id, webhook.Id, (_, v) =>
 				{

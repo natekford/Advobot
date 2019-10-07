@@ -221,10 +221,10 @@ namespace Advobot.Levels.Database
 			", user).CAF();
 		}
 
-		protected override Task<int> ExecuteAsync(
+		protected override Task<int> BulkModify<TParams>(
 			IDbConnection connection,
 			string sql,
-			object @params,
+			IEnumerable<TParams> @params,
 			IDbTransaction transaction)
 			=> connection.ExecuteAsync(sql, @params, transaction);
 

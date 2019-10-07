@@ -19,15 +19,18 @@ using Discord.Commands;
 
 namespace Advobot.Invites.Commands
 {
-	[Category(nameof(ListedInvites))]
-	public sealed class ListedInvites : ModuleBase
+	[Category(nameof(Invites))]
+	[LocalizedGroup(nameof(Groups.Invites))]
+	[LocalizedAlias(nameof(Aliases.Invites))]
+	public sealed class Invites : ModuleBase
 	{
-		[Group(nameof(BumpListedInvite)), ModuleInitialismAlias(typeof(BumpListedInvite))]
-		[LocalizedSummary(nameof(Summaries.BumpListedInvite))]
+		[LocalizedGroup(nameof(Groups.Bump))]
+		[LocalizedAlias(nameof(Aliases.Bump))]
+		[LocalizedSummary(nameof(Summaries.Bump))]
 		[Meta("7522e03e-a53a-4ac6-b522-54db5b7b0d05")]
 		[RequireGenericGuildPermissions]
 		[RequireNotRecentlyBumped]
-		public sealed class BumpListedInvite : InviteModuleBase
+		public sealed class InvitesBump : InviteModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command()
@@ -37,10 +40,11 @@ namespace Advobot.Invites.Commands
 			}
 		}
 
-		[Group(nameof(GetListedInvite)), ModuleInitialismAlias(typeof(GetListedInvite))]
-		[LocalizedSummary(nameof(Summaries.GetListedInvite))]
+		[LocalizedGroup(nameof(Groups.Get))]
+		[LocalizedAlias(nameof(Aliases.Get))]
+		[LocalizedSummary(nameof(Summaries.Get))]
 		[Meta("5b004c37-2629-4f8a-a10a-8397413e275e")]
-		public sealed class GetListedInvite : InviteModuleBase
+		public sealed class InvitesGet : InviteModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command([Remainder] ListedInviteFilterer filterer)
@@ -94,13 +98,15 @@ namespace Advobot.Invites.Commands
 			}
 		}
 
-		[Group(nameof(ModifyListedInvite)), ModuleInitialismAlias(typeof(ModifyListedInvite))]
-		[LocalizedSummary(nameof(Summaries.ModifyListedInvite))]
+		[LocalizedGroup(nameof(Groups.Modify))]
+		[LocalizedAlias(nameof(Aliases.Modify))]
+		[LocalizedSummary(nameof(Summaries.Modify))]
 		[Meta("ad81af3b-c2d7-4e49-9cef-2be7f0c6cf9e")]
 		[RequireGuildPermissions]
-		public sealed class ModifyListedInvite : InviteModuleBase
+		public sealed class InvitesModify : InviteModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Add))]
+			[LocalizedAlias(nameof(Aliases.Add))]
 			public async Task<RuntimeResult> Add(
 				[NeverExpires, FromThisGuild] IInviteMetadata invite)
 			{
@@ -108,7 +114,8 @@ namespace Advobot.Invites.Commands
 				return Responses.ListedInvites.CreatedListing(invite);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			public async Task<RuntimeResult> Remove()
 			{
 				await Invites.RemoveInviteAsync(Context.Guild.Id).CAF();

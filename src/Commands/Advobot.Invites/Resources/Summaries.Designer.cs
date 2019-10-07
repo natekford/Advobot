@@ -63,27 +63,27 @@ namespace Advobot.Invites.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Bumps the invite on the guild..
         /// </summary>
-        internal static string BumpListedInvite {
+        internal static string Bump {
             get {
-                return ResourceManager.GetString("BumpListedInvite", resourceCulture);
+                return ResourceManager.GetString("Bump", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Gets an invite meeting the given criteria..
         /// </summary>
-        internal static string GetListedInvite {
+        internal static string Get {
             get {
-                return ResourceManager.GetString("GetListedInvite", resourceCulture);
+                return ResourceManager.GetString("Get", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Adds or removes a guild from the public guild list..
         /// </summary>
-        internal static string ModifyListedInvite {
+        internal static string Modify {
             get {
-                return ResourceManager.GetString("ModifyListedInvite", resourceCulture);
+                return ResourceManager.GetString("Modify", resourceCulture);
             }
         }
     }

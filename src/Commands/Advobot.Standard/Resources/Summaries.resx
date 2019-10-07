@@ -429,4 +429,40 @@
   <data name="GenericChannelArgument" xml:space="preserve">
     <value>A channel on the guild which you can see.</value>
   </data>
+  <data name="CreateWebhookChannel" xml:space="preserve">
+    <value>The text channel to create a webhook on.</value>
+  </data>
+  <data name="CreateWebhookName" xml:space="preserve">
+    <value>The name to give the webhook.</value>
+  </data>
+  <data name="DeleteWebhookWebhook" xml:space="preserve">
+    <value>The webhook to delete.</value>
+  </data>
+  <data name="DisplayWebhooksChannel" xml:space="preserve">
+    <value>The channel to get webhooks from.</value>
+  </data>
+  <data name="ModifyWebhookChannelWebhook" xml:space="preserve">
+    <value>The webhook to move.</value>
+  </data>
+  <data name="ModifyWebhookChannelChannel" xml:space="preserve">
+    <value>The channel to move the webhook to.</value>
+  </data>
+  <data name="ModifyWebhookIconWebhook" xml:space="preserve">
+    <value>The webhook to modify the icon of.</value>
+  </data>
+  <data name="ModifyWebhookIconUrl" xml:space="preserve">
+    <value>A link to an image.</value>
+  </data>
+  <data name="ModifyWebhookNameWebhook" xml:space="preserve">
+    <value>The webhook to modify the name of.</value>
+  </data>
+  <data name="ModifyWebhookNameName" xml:space="preserve">
+    <value>The name to give the webhook.</value>
+  </data>
+  <data name="SpeakThroughWebhookWebhook" xml:space="preserve">
+    <value>The webhook to speak with.</value>
+  </data>
+  <data name="SpeakThroughWebhookText" xml:space="preserve">
+    <value>The text to say through the webhook.</value>
+  </data>
 </root>

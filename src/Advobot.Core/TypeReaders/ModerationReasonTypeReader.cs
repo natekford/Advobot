@@ -26,6 +26,6 @@ namespace Advobot.TypeReaders
 			ICommandContext context,
 			string input,
 			IServiceProvider services)
-			=> TypeReaderUtils.FromSuccess(new ModerationReason(input)).AsTask();
+			=> TypeReaderResult.FromSuccess(new ModerationReason(input)).AsTask();
 	}
 }

@@ -204,7 +204,7 @@ namespace Advobot.Standard.Commands
 				return Responses.Snowflakes.ModifiedName(role, name);
 			}
 
-			[ImplicitCommand]
+			[LocalizedCommand(nameof(Groups.Position))]
 			public Task<RuntimeResult> Position(
 				[CanModifyRole, OverrideTypeReader(typeof(RolePositionTypeReader))] IRole role,
 				[Remainder, RoleName] string name)

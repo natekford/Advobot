@@ -12,7 +12,7 @@ using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
-
+using Advobot.Utilities;
 using AdvorangesUtils;
 
 using Discord;
@@ -46,11 +46,65 @@ namespace Advobot.Standard.Commands
 
 			private async Task<RuntimeResult> CommandRunner(
 				INestedChannel channel,
-				CreateInviteArguments? arguments)
+				CreateInviteArguments? args)
 			{
-				arguments ??= new CreateInviteArguments();
-				var invite = await arguments.CreateInviteAsync(channel, GenerateRequestOptions()).CAF();
+				args ??= new CreateInviteArguments();
+				var options = GenerateRequestOptions();
+				var invite = await channel.CreateInviteAsync(args.Time, args.Uses, args.IsTemporary, args.IsUnique, options).CAF();
 				return Responses.Snowflakes.Created(invite);
+			}
+
+			[NamedArgumentType]
+			public sealed class CreateInviteArguments
+			{
+				/// <summary>
+				/// Whether the user only receives temporary membership from the invite.
+				/// </summary>
+				public bool IsTemporary { get; set; }
+
+				/// <summary>
+				/// Whether the invite should be unique.
+				/// </summary>
+				public bool IsUnique { get; set; }
+
+				/// <summary>
+				/// How long to make the invite last for.
+				/// </summary>
+				[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
+				public int? Time { get; set; } = 86400;
+
+				/// <summary>
+				/// How many uses to let the invite last for.
+				/// </summary>
+				[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
+				public int? Uses { get; set; }
+
+				private sealed class PositiveNullableIntTypeReader : TypeReader
+				{
+					/// <inheritdoc />
+					public override Task<TypeReaderResult> ReadAsync(
+						ICommandContext context,
+						string input,
+						IServiceProvider services)
+					{
+						if (input == null)
+						{
+							return TypeReaderResult.FromSuccess(null).AsTask();
+						}
+						else if (!int.TryParse(input, out var value))
+						{
+							return TypeReaderUtils.ParseFailedResult<int?>().AsTask();
+						}
+						else if (value < 1)
+						{
+							return TypeReaderResult.FromError(CommandError.UnmetPrecondition, "Value must be positive.").AsTask();
+						}
+						else
+						{
+							return TypeReaderResult.FromSuccess(value).AsTask();
+						}
+					}
+				}
 			}
 		}
 

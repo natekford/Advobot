@@ -19,14 +19,6 @@ namespace Advobot.Utilities
 			=> Task.FromResult(result);
 
 		/// <summary>
-		/// Returns success with the given object.
-		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public static TypeReaderResult FromSuccess(object? value)
-			=> TypeReaderResult.FromSuccess(value);
-
-		/// <summary>
 		/// Returns success if at least one object, returns error if multiple.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>

@@ -30,7 +30,7 @@ namespace Advobot.TypeReaders
 		{
 			if (double.TryParse(input, out var value))
 			{
-				return TypeReaderUtils.FromSuccess(new Percentage(value)).AsTask();
+				return TypeReaderResult.FromSuccess(new Percentage(value)).AsTask();
 			}
 			return TypeReaderUtils.ParseFailedResult<Percentage>().AsTask();
 		}

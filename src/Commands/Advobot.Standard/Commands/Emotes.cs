@@ -39,9 +39,12 @@ namespace Advobot.Standard.Commands
 
 			[Command, Priority(1)]
 			public Task<RuntimeResult> Command(
-				[EmoteName] string name,
+				[EmoteName]
+				string name,
 				Uri url,
-				[Optional] UserProvidedImageArgs args)
+				[Optional]
+				UserProvidedImageArgs args
+			)
 			{
 				var position = Enqueue(new EmoteCreationContext(Context, url, args, name));
 				return Responses.Emotes.EnqueuedCreation(name, position);
@@ -70,15 +73,18 @@ namespace Advobot.Standard.Commands
 		[RequireGenericGuildPermissions]
 		public sealed class DisplayEmotes : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Animated))]
+			[LocalizedAlias(nameof(Aliases.Animated))]
 			public Task<RuntimeResult> Animated()
 				=> Responses.Emotes.DisplayMany(Context.Guild.Emotes.Where(x => x.Animated));
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Local))]
+			[LocalizedAlias(nameof(Aliases.Local))]
 			public Task<RuntimeResult> Local()
 				=> Responses.Emotes.DisplayMany(Context.Guild.Emotes.Where(x => !x.IsManaged && !x.Animated));
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Managed))]
+			[LocalizedAlias(nameof(Aliases.Managed))]
 			public Task<RuntimeResult> Managed()
 				=> Responses.Emotes.DisplayMany(Context.Guild.Emotes.Where(x => x.IsManaged));
 		}
@@ -93,7 +99,9 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(
 				GuildEmote emote,
-				[Remainder, EmoteName] string name)
+				[Remainder, EmoteName]
+				string name
+			)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = name, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.ModifiedName(emote, name);
@@ -107,10 +115,13 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
 		public sealed class ModifyEmoteRoles : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Add))]
+			[LocalizedAlias(nameof(Aliases.Add))]
 			public async Task<RuntimeResult> Add(
 				GuildEmote emote,
-				[NotEveryone, NotManaged] params IRole[] roles)
+				[NotEveryone, NotManaged]
+				params IRole[] roles
+			)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x =>
 				{
@@ -121,18 +132,25 @@ namespace Advobot.Standard.Commands
 				return Responses.Emotes.AddedRequiredRoles(emote, roles);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			public async Task<RuntimeResult> Remove(
-				[HasRequiredRoles] GuildEmote emote,
-				[NotEveryone, NotManaged] params IRole[] roles)
+				[HasRequiredRoles]
+				GuildEmote emote,
+				[NotEveryone, NotManaged]
+				params IRole[] roles
+			)
 			{
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Contains(r))), GenerateRequestOptions()).CAF();
 				return Responses.Emotes.RemoveRequiredRoles(emote, roles);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.RemoveAll))]
+			[LocalizedAlias(nameof(Aliases.RemoveAll))]
 			public async Task<RuntimeResult> RemoveAll(
-				[HasRequiredRoles] GuildEmote emote)
+				[HasRequiredRoles]
+				GuildEmote emote
+			)
 			{
 				var roles = emote.RoleIds.Select(x => Context.Guild.GetRole(x));
 				await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create<IEnumerable<IRole>?>(null), GenerateRequestOptions()).CAF();

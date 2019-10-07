@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 
 using Advobot.Modules;
-using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
 
 using AdvorangesUtils;

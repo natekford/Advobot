@@ -397,4 +397,73 @@
   <data name="Voice" xml:space="preserve">
     <value>v</value>
   </data>
+  <data name="Remove" xml:space="preserve">
+    <value>r</value>
+  </data>
+  <data name="Bot" xml:space="preserve">
+    <value>b</value>
+  </data>
+  <data name="Shards" xml:space="preserve">
+    <value>s</value>
+  </data>
+  <data name="Guild" xml:space="preserve">
+    <value>g</value>
+  </data>
+  <data name="GuildUsers" xml:space="preserve">
+    <value>gu</value>
+  </data>
+  <data name="Channel" xml:space="preserve">
+    <value>c</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>r</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>u</value>
+  </data>
+  <data name="Emote" xml:space="preserve">
+    <value>e</value>
+  </data>
+  <data name="Invite" xml:space="preserve">
+    <value>i</value>
+  </data>
+  <data name="Webhook" xml:space="preserve">
+    <value>wh</value>
+  </data>
+  <data name="RunescapeServers" xml:space="preserve">
+    <value>rs</value>
+  </data>
+  <data name="Fake" xml:space="preserve">
+    <value>f</value>
+  </data>
+  <data name="GiveNickname" xml:space="preserve">
+    <value>gnn</value>
+  </data>
+  <data name="ClearNickname" xml:space="preserve">
+    <value>cnn</value>
+  </data>
+  <data name="MessageBoost" xml:space="preserve">
+    <value>mb</value>
+  </data>
+  <data name="MessageWelcome" xml:space="preserve">
+    <value>mw</value>
+  </data>
+  <data name="Show" xml:space="preserve">
+    <value>s</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="RemoveAll" xml:space="preserve">
+    <value>ra</value>
+  </data>
+  <data name="Managed" xml:space="preserve">
+    <value>m</value>
+  </data>
+  <data name="Local" xml:space="preserve">
+    <value>l</value>
+  </data>
+  <data name="Animated" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>

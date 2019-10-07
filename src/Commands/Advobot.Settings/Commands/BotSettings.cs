@@ -15,7 +15,8 @@ namespace Advobot.Settings.Commands
 	[Category(nameof(BotSettings))]
 	public sealed class BotSettings : ModuleBase
 	{
-		[Group(nameof(ShowBotSettings)), ModuleInitialismAlias(typeof(ShowBotSettings))]
+		[LocalizedGroup(nameof(Groups.ShowBotSettings))]
+		[LocalizedAlias(nameof(Aliases.ShowBotSettings))]
 		[LocalizedSummary(nameof(Summaries.ShowBotSettings))]
 		[Meta("3a3a0bad-2124-4a4f-bbc8-60b1f684c2f7", IsEnabled = true)]
 		[RequireBotOwner]
@@ -23,26 +24,32 @@ namespace Advobot.Settings.Commands
 		{
 			protected override IBotSettings Settings => BotSettings;
 
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[LocalizedCommand(nameof(Groups.All))]
+			[LocalizedAlias(nameof(Aliases.All))]
+			[Priority(1)]
 			public Task<RuntimeResult> All()
 				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
 
 			[Command]
-			public Task<RuntimeResult> Command([BotSettingName] string name)
+			public Task<RuntimeResult> Command([Remainder, BotSettingName] string name)
 				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
 
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[LocalizedCommand(nameof(Groups.Json))]
+			[LocalizedAlias(nameof(Aliases.Json))]
+			[Priority(1)]
 			public Task<RuntimeResult> Json()
 				=> Responses.GuildSettings.DisplayJson(Settings);
 
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[LocalizedCommand(nameof(Groups.Names))]
+			[LocalizedAlias(nameof(Aliases.Names))]
+			[Priority(1)]
 			public Task<RuntimeResult> Names()
 				=> Responses.GuildSettings.DisplayNames(Settings);
 		}
 
 #warning reenable
 		/*
-		[Group(nameof(ModifyPrefix)), ModuleInitialismAlias(typeof(ModifyPrefix))]
+		[LocalizedGroup(nameof(Groups.ModifyPrefix))][LocalizedAlias(nameof(Aliases.ModifyPrefix))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -64,7 +71,7 @@ namespace Advobot.Settings.Commands
 		}*/
 
 		/*
-		[Group(nameof(ModifyGame)), ModuleInitialismAlias(typeof(ModifyGame))]
+		[LocalizedGroup(nameof(Groups.ModifyGame))][LocalizedAlias(nameof(Aliases.ModifyGame))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -78,7 +85,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyStream)), ModuleInitialismAlias(typeof(ModifyStream))]
+		[LocalizedGroup(nameof(Groups.ModifyStream))][LocalizedAlias(nameof(Aliases.ModifyStream))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -92,7 +99,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyLogLevel)), ModuleInitialismAlias(typeof(ModifyLogLevel))]
+		[LocalizedGroup(nameof(Groups.ModifyLogLevel))][LocalizedAlias(nameof(Aliases.ModifyLogLevel))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -106,7 +113,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyAlwaysDownloadUsers)), ModuleInitialismAlias(typeof(ModifyAlwaysDownloadUsers))]
+		[LocalizedGroup(nameof(Groups.ModifyAlwaysDownloadUsers))][LocalizedAlias(nameof(Aliases.ModifyAlwaysDownloadUsers))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -120,7 +127,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMessageCacheSize)), ModuleInitialismAlias(typeof(ModifyMessageCacheSize))]
+		[LocalizedGroup(nameof(Groups.ModifyMessageCacheSize))][LocalizedAlias(nameof(Aliases.ModifyMessageCacheSize))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -134,7 +141,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxUserGatherCount)), ModuleInitialismAlias(typeof(ModifyMaxUserGatherCount))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxUserGatherCount))][LocalizedAlias(nameof(Aliases.ModifyMaxUserGatherCount))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -148,7 +155,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxMessageGatherSize)), ModuleInitialismAlias(typeof(ModifyMaxMessageGatherSize))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxMessageGatherSize))][LocalizedAlias(nameof(Aliases.ModifyMaxMessageGatherSize))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -162,7 +169,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxRuleCategories)), ModuleInitialismAlias(typeof(ModifyMaxRuleCategories))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxRuleCategories))][LocalizedAlias(nameof(Aliases.ModifyMaxRuleCategories))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -176,7 +183,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxRulesPerCategory)), ModuleInitialismAlias(typeof(ModifyMaxRulesPerCategory))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxRulesPerCategory))][LocalizedAlias(nameof(Aliases.ModifyMaxRulesPerCategory))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -190,7 +197,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxSelfAssignableRoleGroups)), ModuleInitialismAlias(typeof(ModifyMaxSelfAssignableRoleGroups))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxSelfAssignableRoleGroups))][LocalizedAlias(nameof(Aliases.ModifyMaxSelfAssignableRoleGroups))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -204,7 +211,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxQuotes)), ModuleInitialismAlias(typeof(ModifyMaxQuotes))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxQuotes))][LocalizedAlias(nameof(Aliases.ModifyMaxQuotes))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -218,7 +225,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxBannedStrings)), ModuleInitialismAlias(typeof(ModifyMaxBannedStrings))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxBannedStrings))][LocalizedAlias(nameof(Aliases.ModifyMaxBannedStrings))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -232,7 +239,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxBannedRegex)), ModuleInitialismAlias(typeof(ModifyMaxBannedRegex))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxBannedRegex))][LocalizedAlias(nameof(Aliases.ModifyMaxBannedRegex))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -246,7 +253,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxBannedNames)), ModuleInitialismAlias(typeof(ModifyMaxBannedNames))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxBannedNames))][LocalizedAlias(nameof(Aliases.ModifyMaxBannedNames))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -260,7 +267,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyMaxBannedPunishments)), ModuleInitialismAlias(typeof(ModifyMaxBannedPunishments))]
+		[LocalizedGroup(nameof(Groups.ModifyMaxBannedPunishments))][LocalizedAlias(nameof(Aliases.ModifyMaxBannedPunishments))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -274,7 +281,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyTrustedUsers)), ModuleInitialismAlias(typeof(ModifyTrustedUsers))]
+		[LocalizedGroup(nameof(Groups.ModifyTrustedUsers))][LocalizedAlias(nameof(Aliases.ModifyTrustedUsers))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -288,7 +295,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyUsersUnableToDmOwner)), ModuleInitialismAlias(typeof(ModifyUsersUnableToDmOwner))]
+		[LocalizedGroup(nameof(Groups.ModifyUsersUnableToDmOwner))][LocalizedAlias(nameof(Aliases.ModifyUsersUnableToDmOwner))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]
@@ -302,7 +309,7 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[Group(nameof(ModifyUsersIgnoredFromCommands)), ModuleInitialismAlias(typeof(ModifyUsersIgnoredFromCommands))]
+		[LocalizedGroup(nameof(Groups.ModifyUsersIgnoredFromCommands))][LocalizedAlias(nameof(Aliases.ModifyUsersIgnoredFromCommands))]
 		[Summary("")]
 		[RequireBotOwner]
 		[EnabledByDefault(true)]

@@ -34,7 +34,7 @@ namespace Advobot.TypeReaders
 			//Check with standard TryParse
 			if (Enum.TryParse<T>(input, out var result))
 			{
-				return TypeReaderUtils.FromSuccess(result).AsTask();
+				return TypeReaderResult.FromSuccess(result).AsTask();
 			}
 			//Then check permission names
 			var split = input
@@ -42,7 +42,7 @@ namespace Advobot.TypeReaders
 				.Select(x => x.Trim(_TrimChars));
 			if (EnumUtils.TryParseFlags(split, out T value, out var invalidPerms))
 			{
-				return TypeReaderUtils.FromSuccess(value).AsTask();
+				return TypeReaderResult.FromSuccess(value).AsTask();
 			}
 			return TypeReaderUtils.ParseFailedResult<T>().AsTask();
 		}

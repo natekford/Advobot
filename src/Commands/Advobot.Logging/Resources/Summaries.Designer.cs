@@ -61,11 +61,20 @@ namespace Advobot.Logging.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The server log will send messages when these events happen..
+        /// </summary>
+        internal static string ModifyActions {
+            get {
+                return ResourceManager.GetString("ModifyActions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ignores all logging info that would have been gotten from a channel..
         /// </summary>
-        internal static string ModifyIgnoredLogChannels {
+        internal static string ModifyIgnoredChannels {
             get {
-                return ResourceManager.GetString("ModifyIgnoredLogChannels", resourceCulture);
+                return ResourceManager.GetString("ModifyIgnoredChannels", resourceCulture);
             }
         }
         
@@ -75,15 +84,6 @@ namespace Advobot.Logging.Resources {
         internal static string ModifyImageLog {
             get {
                 return ResourceManager.GetString("ModifyImageLog", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The server log will send messages when these events happen..
-        /// </summary>
-        internal static string ModifyLogActions {
-            get {
-                return ResourceManager.GetString("ModifyLogActions", resourceCulture);
             }
         }
         

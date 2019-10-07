@@ -97,13 +97,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="BumpListedInvite" xml:space="preserve">
+  <data name="Bump" xml:space="preserve">
     <value>Bumps the invite on the guild.</value>
   </data>
-  <data name="GetListedInvite" xml:space="preserve">
+  <data name="Get" xml:space="preserve">
     <value>Gets an invite meeting the given criteria.</value>
   </data>
-  <data name="ModifyListedInvite" xml:space="preserve">
+  <data name="Modify" xml:space="preserve">
     <value>Adds or removes a guild from the public guild list.</value>
   </data>
 </root>

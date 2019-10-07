@@ -397,4 +397,76 @@
   <data name="Voice" xml:space="preserve">
     <value>Voice</value>
   </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="ClearNickname" xml:space="preserve">
+    <value>ClearNickname</value>
+  </data>
+  <data name="GiveNickname" xml:space="preserve">
+    <value>GiveNickname</value>
+  </data>
+  <data name="Fake" xml:space="preserve">
+    <value>Fake</value>
+  </data>
+  <data name="Real" xml:space="preserve">
+    <value>Real</value>
+  </data>
+  <data name="Position" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="Bot" xml:space="preserve">
+    <value>Bot</value>
+  </data>
+  <data name="Shards" xml:space="preserve">
+    <value>Shards</value>
+  </data>
+  <data name="Guild" xml:space="preserve">
+    <value>Guild</value>
+  </data>
+  <data name="GuildUsers" xml:space="preserve">
+    <value>GuildUsers</value>
+  </data>
+  <data name="Channel" xml:space="preserve">
+    <value>Channel</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Emote" xml:space="preserve">
+    <value>Emote</value>
+  </data>
+  <data name="Invite" xml:space="preserve">
+    <value>Invite</value>
+  </data>
+  <data name="Webhook" xml:space="preserve">
+    <value>Webhook</value>
+  </data>
+  <data name="MessageWelcome" xml:space="preserve">
+    <value>MessageWelcome</value>
+  </data>
+  <data name="MessageBoost" xml:space="preserve">
+    <value>MessageBoost</value>
+  </data>
+  <data name="Show" xml:space="preserve">
+    <value>Show</value>
+  </data>
+  <data name="RemoveAll" xml:space="preserve">
+    <value>RemoveAll</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Managed" xml:space="preserve">
+    <value>Managed</value>
+  </data>
+  <data name="Local" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="Animated" xml:space="preserve">
+    <value>Animated</value>
+  </data>
 </root>

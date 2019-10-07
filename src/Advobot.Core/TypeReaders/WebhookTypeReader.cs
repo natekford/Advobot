@@ -33,7 +33,7 @@ namespace Advobot.TypeReaders
 			var whs = await context.Guild.GetWebhooksAsync().CAF();
 			if (ulong.TryParse(input, out var id) && whs.TryGetFirst(x => x.Id == id, out var wh))
 			{
-				return TypeReaderUtils.FromSuccess(wh);
+				return TypeReaderResult.FromSuccess(wh);
 			}
 
 			var matches = whs.Where(x => x.Name.CaseInsEquals(input)).ToArray();

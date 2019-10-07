@@ -17,7 +17,8 @@ namespace Advobot.Settings.Commands
 	[Category(nameof(SpamPrevention))]
 	public sealed class SpamPrevention : ModuleBase
 	{
-		[Group(nameof(PreventRaid)), ModuleInitialismAlias(typeof(PreventRaid))]
+		[LocalizedGroup(nameof(Groups.PreventRaid))]
+		[LocalizedAlias(nameof(Aliases.PreventRaid))]
 		[LocalizedSummary(nameof(Summaries.PreventRaid))]
 		[Meta("9e11556d-f61b-4921-936b-ecf1b6fa0582")]
 		[RequireGuildPermissions]
@@ -25,7 +26,8 @@ namespace Advobot.Settings.Commands
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Create))]
+			[LocalizedAlias(nameof(Aliases.Create))]
 			public Task<RuntimeResult> Create(RaidType raidType, [Remainder] RaidPrev args)
 			{
 				Settings.RaidPrevention.RemoveAll(x => x.Type == raidType);
@@ -34,12 +36,14 @@ namespace Advobot.Settings.Commands
 			}
 
 			[DontSaveAfterExecution]
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Disable))]
+			[LocalizedAlias(nameof(Aliases.Disable))]
 			public Task<RuntimeResult> Disable(RaidType raidType)
 				=> CommandRunner(raidType, false);
 
 			[DontSaveAfterExecution]
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Enable))]
+			[LocalizedAlias(nameof(Aliases.Enable))]
 			public Task<RuntimeResult> Enable(RaidType raidType)
 				=> CommandRunner(raidType, true);
 
@@ -55,7 +59,8 @@ namespace Advobot.Settings.Commands
 			}
 		}
 
-		[Group(nameof(PreventSpam)), ModuleInitialismAlias(typeof(PreventSpam))]
+		[LocalizedGroup(nameof(Groups.PreventSpam))]
+		[LocalizedAlias(nameof(Aliases.PreventSpam))]
 		[LocalizedSummary(nameof(Summaries.PreventSpam))]
 		[Meta("901e3443-0ed9-41cd-9d29-1dc890f3c329")]
 		[RequireGuildPermissions]
@@ -63,7 +68,8 @@ namespace Advobot.Settings.Commands
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Create))]
+			[LocalizedAlias(nameof(Aliases.Create))]
 			public Task<RuntimeResult> Create(SpamType spamType, [Remainder] SpamPrev args)
 			{
 				Settings.SpamPrevention.RemoveAll(x => x.Type == spamType);
@@ -72,12 +78,14 @@ namespace Advobot.Settings.Commands
 			}
 
 			[DontSaveAfterExecution]
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Disable))]
+			[LocalizedAlias(nameof(Aliases.Disable))]
 			public Task<RuntimeResult> Disable(SpamType spamType)
 				=> CommandRunner(spamType, false);
 
 			[DontSaveAfterExecution]
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Enable))]
+			[LocalizedAlias(nameof(Aliases.Enable))]
 			public Task<RuntimeResult> Enable(SpamType spamType)
 				=> CommandRunner(spamType, true);
 

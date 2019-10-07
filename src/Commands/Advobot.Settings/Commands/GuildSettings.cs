@@ -17,7 +17,8 @@ namespace Advobot.Settings.Commands
 	[Category(nameof(GuildSettings))]
 	public sealed class GuildSettings : ModuleBase
 	{
-		[Group(nameof(ShowGuildSettings)), ModuleInitialismAlias(typeof(ShowGuildSettings))]
+		[LocalizedGroup(nameof(Groups.ShowGuildSettings))]
+		[LocalizedAlias(nameof(Aliases.ShowGuildSettings))]
 		[LocalizedSummary(nameof(Summaries.ShowGuildSettings))]
 		[Meta("b6ee91c4-05dc-4017-a08f-0c1478435179", IsEnabled = true)]
 		[RequireGenericGuildPermissions]
@@ -25,15 +26,21 @@ namespace Advobot.Settings.Commands
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[LocalizedCommand(nameof(Groups.Json))]
+			[LocalizedAlias(nameof(Aliases.Json))]
+			[Priority(1)]
 			public Task<RuntimeResult> Json()
 				=> Responses.GuildSettings.DisplayJson(Settings);
 
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[LocalizedCommand(nameof(Groups.Names))]
+			[LocalizedAlias(nameof(Aliases.Names))]
+			[Priority(1)]
 			public Task<RuntimeResult> Names()
 				=> Responses.GuildSettings.DisplayNames(Settings);
 
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[LocalizedCommand(nameof(Groups.All))]
+			[LocalizedAlias(nameof(Aliases.All))]
+			[Priority(1)]
 			public Task<RuntimeResult> All()
 				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
 
@@ -42,7 +49,8 @@ namespace Advobot.Settings.Commands
 				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
 		}
 
-		[Group(nameof(ResetGuildSettings)), ModuleInitialismAlias(typeof(ResetGuildSettings))]
+		[LocalizedGroup(nameof(Groups.ResetGuildSettings))]
+		[LocalizedAlias(nameof(Aliases.ResetGuildSettings))]
 		[LocalizedSummary(nameof(Summaries.ResetGuildSettings))]
 		[Meta("316df0fc-1c5e-40fe-8580-7b8ca5f63b43", IsEnabled = true)]
 		[RequireGuildPermissions]
@@ -50,7 +58,9 @@ namespace Advobot.Settings.Commands
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[LocalizedCommand(nameof(Groups.All))]
+			[LocalizedAlias(nameof(Aliases.All))]
+			[Priority(1)]
 			public Task<RuntimeResult> All()
 			{
 				foreach (var setting in Settings.GetSettingNames())
@@ -69,7 +79,7 @@ namespace Advobot.Settings.Commands
 		}
 
 		/*
-		[Group(nameof(ModifyGuildSettings)), ModuleInitialismAlias(typeof(ModifyGuildSettings))]
+		[LocalizedGroup(nameof(Groups.ModifyGuildSettings))][LocalizedAlias(nameof(Aliases.ModifyGuildSettings))]
 		[Summary("Modify the given setting on the guild.")]
 		[UserPermissionRequirement(GuildPermission.Administrator)]
 		[EnabledByDefault(false)]
@@ -159,7 +169,8 @@ namespace Advobot.Settings.Commands
 			}
 		}*/
 
-		[Group(nameof(ModifyCommands)), ModuleInitialismAlias(typeof(ModifyCommands))]
+		[LocalizedGroup(nameof(Groups.ModifyCommands))]
+		[LocalizedAlias(nameof(Aliases.ModifyCommands))]
 		[LocalizedSummary(nameof(Summaries.ModifyCommands))]
 		[Meta("6fb02198-9eab-4e44-a59a-7ba7f7317c10", IsEnabled = true, CanToggle = false)]
 		[RequireGuildPermissions]
@@ -171,7 +182,8 @@ namespace Advobot.Settings.Commands
 
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.All))]
+			[LocalizedAlias(nameof(Aliases.All))]
 			public Task<RuntimeResult> All(bool enable)
 			{
 				var entries = HelpEntries.GetHelpEntries();
@@ -202,7 +214,8 @@ namespace Advobot.Settings.Commands
 			}
 		}
 
-		[Group(nameof(ModifyIgnoredCommandChannels)), ModuleInitialismAlias(typeof(ModifyIgnoredCommandChannels))]
+		[LocalizedGroup(nameof(Groups.ModifyIgnoredCommandChannels))]
+		[LocalizedAlias(nameof(Aliases.ModifyIgnoredCommandChannels))]
 		[LocalizedSummary(nameof(Summaries.ModifyIgnoredCommandChannels))]
 		[Meta("e485777b-1b3f-411a-afd7-59f24858cd24", IsEnabled = true, CanToggle = false)]
 		[RequireGuildPermissions]
@@ -298,7 +311,7 @@ namespace Advobot.Settings.Commands
 		}*/
 
 		/*
-		[Group(nameof(ModifyPersistentRoles)), ModuleInitialismAlias(typeof(ModifyPersistentRoles))]
+		[LocalizedGroup(nameof(Groups.ModifyPersistentRoles))][LocalizedAlias(nameof(Aliases.ModifyPersistentRoles))]
 		[Summary("Gives a user a role that stays even when they leave and rejoin the server.")]
 		[UserPermissionRequirement(GuildPermission.ManageRoles)]
 		[EnabledByDefault(true)]
@@ -395,17 +408,20 @@ namespace Advobot.Settings.Commands
 			}
 		}*/
 
-		[Group(nameof(TestGuildNotifs)), ModuleInitialismAlias(typeof(TestGuildNotifs))]
+		[LocalizedGroup(nameof(Groups.TestGuildNotifs))]
+		[LocalizedAlias(nameof(Aliases.TestGuildNotifs))]
 		[LocalizedSummary(nameof(Summaries.TestGuildNotifs))]
 		[Meta("f5d09649-ac5c-4281-86d9-01a3f7fd43fa")]
 		[RequireGuildPermissions]
 		public sealed class TestGuildNotifs : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Welcome))]
+			[LocalizedAlias(nameof(Aliases.Welcome))]
 			public Task<RuntimeResult> Welcome()
 				=> Responses.GuildSettings.SendWelcomeNotification(Context.Settings.WelcomeMessage);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Goodbye))]
+			[LocalizedAlias(nameof(Aliases.Goodbye))]
 			public Task<RuntimeResult> Goodbye()
 				=> Responses.GuildSettings.SendGoodbyeNotification(Context.Settings.GoodbyeMessage);
 		}

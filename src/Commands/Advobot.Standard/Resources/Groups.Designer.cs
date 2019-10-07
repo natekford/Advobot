@@ -61,11 +61,38 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add.
+        /// </summary>
+        internal static string Add {
+            get {
+                return ResourceManager.GetString("Add", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Animated.
+        /// </summary>
+        internal static string Animated {
+            get {
+                return ResourceManager.GetString("Animated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ban.
         /// </summary>
         internal static string Ban {
             get {
                 return ResourceManager.GetString("Ban", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bot.
+        /// </summary>
+        internal static string Bot {
+            get {
+                return ResourceManager.GetString("Bot", resourceCulture);
             }
         }
         
@@ -79,11 +106,29 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Channel.
+        /// </summary>
+        internal static string Channel {
+            get {
+                return ResourceManager.GetString("Channel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ClearChannelPerms.
         /// </summary>
         internal static string ClearChannelPerms {
             get {
                 return ResourceManager.GetString("ClearChannelPerms", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ClearNickname.
+        /// </summary>
+        internal static string ClearNickname {
+            get {
+                return ResourceManager.GetString("ClearNickname", resourceCulture);
             }
         }
         
@@ -331,6 +376,24 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Emote.
+        /// </summary>
+        internal static string Emote {
+            get {
+                return ResourceManager.GetString("Emote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fake.
+        /// </summary>
+        internal static string Fake {
+            get {
+                return ResourceManager.GetString("Fake", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ForAllWithRole.
         /// </summary>
         internal static string ForAllWithRole {
@@ -430,6 +493,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to GiveNickname.
+        /// </summary>
+        internal static string GiveNickname {
+            get {
+                return ResourceManager.GetString("GiveNickname", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to GiveRole.
         /// </summary>
         internal static string GiveRole {
@@ -439,11 +511,38 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Guild.
+        /// </summary>
+        internal static string Guild {
+            get {
+                return ResourceManager.GetString("Guild", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GuildUsers.
+        /// </summary>
+        internal static string GuildUsers {
+            get {
+                return ResourceManager.GetString("GuildUsers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Help.
         /// </summary>
         internal static string Help {
             get {
                 return ResourceManager.GetString("Help", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invite.
+        /// </summary>
+        internal static string Invite {
+            get {
+                return ResourceManager.GetString("Invite", resourceCulture);
             }
         }
         
@@ -466,11 +565,38 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Local.
+        /// </summary>
+        internal static string Local {
+            get {
+                return ResourceManager.GetString("Local", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MakeAnEmbed.
         /// </summary>
         internal static string MakeAnEmbed {
             get {
                 return ResourceManager.GetString("MakeAnEmbed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Managed.
+        /// </summary>
+        internal static string Managed {
+            get {
+                return ResourceManager.GetString("Managed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MessageBoost.
+        /// </summary>
+        internal static string MessageBoost {
+            get {
+                return ResourceManager.GetString("MessageBoost", resourceCulture);
             }
         }
         
@@ -489,6 +615,15 @@ namespace Advobot.Standard.Resources {
         internal static string MessageRole {
             get {
                 return ResourceManager.GetString("MessageRole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MessageWelcome.
+        /// </summary>
+        internal static string MessageWelcome {
+            get {
+                return ResourceManager.GetString("MessageWelcome", resourceCulture);
             }
         }
         
@@ -799,6 +934,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Position.
+        /// </summary>
+        internal static string Position {
+            get {
+                return ResourceManager.GetString("Position", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to PruneUsers.
         /// </summary>
         internal static string PruneUsers {
@@ -808,11 +952,38 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Real.
+        /// </summary>
+        internal static string Real {
+            get {
+                return ResourceManager.GetString("Real", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remind.
         /// </summary>
         internal static string Remind {
             get {
                 return ResourceManager.GetString("Remind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove.
+        /// </summary>
+        internal static string Remove {
+            get {
+                return ResourceManager.GetString("Remove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RemoveAll.
+        /// </summary>
+        internal static string RemoveAll {
+            get {
+                return ResourceManager.GetString("RemoveAll", resourceCulture);
             }
         }
         
@@ -858,6 +1029,33 @@ namespace Advobot.Standard.Resources {
         internal static string RestartBot {
             get {
                 return ResourceManager.GetString("RestartBot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role.
+        /// </summary>
+        internal static string Role {
+            get {
+                return ResourceManager.GetString("Role", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shards.
+        /// </summary>
+        internal static string Shards {
+            get {
+                return ResourceManager.GetString("Shards", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show.
+        /// </summary>
+        internal static string Show {
+            get {
+                return ResourceManager.GetString("Show", resourceCulture);
             }
         }
         
@@ -943,6 +1141,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User.
+        /// </summary>
+        internal static string User {
+            get {
+                return ResourceManager.GetString("User", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Voice.
         /// </summary>
         internal static string Voice {
@@ -957,6 +1164,15 @@ namespace Advobot.Standard.Resources {
         internal static string VoiceMute {
             get {
                 return ResourceManager.GetString("VoiceMute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Webhook.
+        /// </summary>
+        internal static string Webhook {
+            get {
+                return ResourceManager.GetString("Webhook", resourceCulture);
             }
         }
     }

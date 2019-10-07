@@ -148,7 +148,7 @@ namespace Advobot.Levels.Service
 			public string Hash { get; }
 			public ulong MessageId { get; }
 
-			public MessageHash(IUserMessage message, ITextChannel channel, int xp)
+			public MessageHash(IMessage message, ITextChannel channel, int xp)
 			{
 				GuildId = channel.Guild.Id;
 				ChannelId = channel.Id;

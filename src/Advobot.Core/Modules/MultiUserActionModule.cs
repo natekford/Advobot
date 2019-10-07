@@ -37,10 +37,11 @@ namespace Advobot.Modules
 		protected Task<int> ProcessAsync(
 			bool bypass,
 			Func<IGuildUser, bool> predicate,
-			Func<IGuildUser, Task> update)
+			Func<IGuildUser, RequestOptions, Task> update,
+			RequestOptions options)
 		{
-			var users = Context.Guild.Users.Where(Validate);
-			return ProcessAsync(users, bypass, predicate, update);
+			var users = Context.Guild.Users.Where(CanBeModified);
+			return ProcessAsync(users, bypass, predicate, update, options);
 		}
 
 		/// <summary>
@@ -55,16 +56,21 @@ namespace Advobot.Modules
 			IEnumerable<IGuildUser> users,
 			bool bypass,
 			Func<IGuildUser, bool> predicate,
-			Func<IGuildUser, Task> update)
+			Func<IGuildUser, RequestOptions, Task> update,
+			RequestOptions options)
 		{
 			var amount = bypass ? int.MaxValue : BotSettings.MaxUserGatherCount;
 			var array = users.Where(predicate).Take(amount).ToArray();
-			return ProcessAsync(array, update);
+			return ProcessAsync(array, update, options);
 		}
+
+		private bool CanBeModified(IGuildUser user)
+			=> Context.User.CanModify(user) && Context.Guild.CurrentUser.CanModify(user);
 
 		private async Task<int> ProcessAsync(
 			IReadOnlyList<IGuildUser> users,
-			Func<IGuildUser, Task> update)
+			Func<IGuildUser, RequestOptions, Task> update,
+			RequestOptions options)
 		{
 			var token = new CancellationTokenSource();
 			_CancelTokens.AddOrUpdate(Context.Guild.Id, token, (_, v) =>
@@ -86,13 +92,10 @@ namespace Advobot.Modules
 					await ProgressLogger.ReportAsync(args).CAF();
 				}
 
-				await update(users[i]).CAF();
+				await update(users[i], options).CAF();
 			}
 			return i;
 		}
-
-		private bool Validate(IGuildUser user)
-			=> Context.User.CanModify(user) && Context.Guild.CurrentUser.CanModify(user);
 
 		/// <summary>
 		/// Event arguments for the status of the multi user action.

@@ -28,6 +28,6 @@ namespace Advobot.TypeReaders
 			ICommandContext context,
 			string input,
 			IServiceProvider services)
-			=> TypeReaderUtils.FromSuccess(BYPASS_STRING == input).AsTask();
+			=> TypeReaderResult.FromSuccess(BYPASS_STRING == input).AsTask();
 	}
 }

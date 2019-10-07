@@ -169,6 +169,24 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The text channel to create a webhook on..
+        /// </summary>
+        internal static string CreateWebhookChannel {
+            get {
+                return ResourceManager.GetString("CreateWebhookChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name to give the webhook..
+        /// </summary>
+        internal static string CreateWebhookName {
+            get {
+                return ResourceManager.GetString("CreateWebhookName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prevents a user from hearing in voice chat..
         /// </summary>
         internal static string Deafen {
@@ -237,6 +255,15 @@ namespace Advobot.Standard.Resources {
         internal static string DeleteWebhook {
             get {
                 return ResourceManager.GetString("DeleteWebhook", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The webhook to delete..
+        /// </summary>
+        internal static string DeleteWebhookWebhook {
+            get {
+                return ResourceManager.GetString("DeleteWebhookWebhook", resourceCulture);
             }
         }
         
@@ -318,6 +345,15 @@ namespace Advobot.Standard.Resources {
         internal static string DisplayWebhooks {
             get {
                 return ResourceManager.GetString("DisplayWebhooks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The channel to get webhooks from..
+        /// </summary>
+        internal static string DisplayWebhooksChannel {
+            get {
+                return ResourceManager.GetString("DisplayWebhooksChannel", resourceCulture);
             }
         }
         
@@ -808,6 +844,24 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The channel to move the webhook to..
+        /// </summary>
+        internal static string ModifyWebhookChannelChannel {
+            get {
+                return ResourceManager.GetString("ModifyWebhookChannelChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The webhook to move..
+        /// </summary>
+        internal static string ModifyWebhookChannelWebhook {
+            get {
+                return ResourceManager.GetString("ModifyWebhookChannelWebhook", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changes the icon of a webhook..
         /// </summary>
         internal static string ModifyWebhookIcon {
@@ -817,11 +871,47 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A link to an image..
+        /// </summary>
+        internal static string ModifyWebhookIconUrl {
+            get {
+                return ResourceManager.GetString("ModifyWebhookIconUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The webhook to modify the icon of..
+        /// </summary>
+        internal static string ModifyWebhookIconWebhook {
+            get {
+                return ResourceManager.GetString("ModifyWebhookIconWebhook", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changes the name of a webhook..
         /// </summary>
         internal static string ModifyWebhookName {
             get {
                 return ResourceManager.GetString("ModifyWebhookName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name to give the webhook..
+        /// </summary>
+        internal static string ModifyWebhookNameName {
+            get {
+                return ResourceManager.GetString("ModifyWebhookNameName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The webhook to modify the name of..
+        /// </summary>
+        internal static string ModifyWebhookNameWebhook {
+            get {
+                return ResourceManager.GetString("ModifyWebhookNameWebhook", resourceCulture);
             }
         }
         
@@ -948,6 +1038,24 @@ namespace Advobot.Standard.Resources {
         internal static string SpeakThroughWebhook {
             get {
                 return ResourceManager.GetString("SpeakThroughWebhook", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The text to say through the webhook..
+        /// </summary>
+        internal static string SpeakThroughWebhookText {
+            get {
+                return ResourceManager.GetString("SpeakThroughWebhookText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The webhook to speak with..
+        /// </summary>
+        internal static string SpeakThroughWebhookWebhook {
+            get {
+                return ResourceManager.GetString("SpeakThroughWebhookWebhook", resourceCulture);
             }
         }
         

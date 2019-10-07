@@ -35,7 +35,7 @@ namespace Advobot.TypeReaders
 				var guild = await context.Client.GetGuildAsync(id).CAF();
 				if (guild != null)
 				{
-					return TypeReaderUtils.FromSuccess(guild);
+					return TypeReaderResult.FromSuccess(guild);
 				}
 			}
 

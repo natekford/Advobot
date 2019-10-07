@@ -22,7 +22,8 @@ namespace Advobot.Settings.Commands
 	[Category(nameof(Quotes))]
 	public sealed class Quotes : ModuleBase
 	{
-		[Group(nameof(ModifyQuotes)), ModuleInitialismAlias(typeof(ModifyQuotes))]
+		[LocalizedGroup(nameof(Groups.ModifyQuotes))]
+		[LocalizedAlias(nameof(Aliases.ModifyQuotes))]
 		[LocalizedSummary(nameof(Summaries.ModifyQuotes))]
 		[Meta("6a6c952a-ea22-4478-9433-99304ae440b7")]
 		[RequireGuildPermissions]
@@ -30,7 +31,8 @@ namespace Advobot.Settings.Commands
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Add))]
+			[LocalizedAlias(nameof(Aliases.Add))]
 			[QuoteLimit(QuantityLimitAction.Add)]
 			public Task<RuntimeResult> Add([QuoteName] string name, [Remainder] string text)
 			{
@@ -39,7 +41,8 @@ namespace Advobot.Settings.Commands
 				return Responses.Quotes.ModifiedQuote(quote, true);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			[QuoteLimit(QuantityLimitAction.Remove)]
 			public Task<RuntimeResult> Remove([Remainder] Quote quote)
 			{
@@ -48,7 +51,8 @@ namespace Advobot.Settings.Commands
 			}
 		}
 
-		[Group(nameof(SayQuote)), ModuleInitialismAlias(typeof(SayQuote))]
+		[LocalizedGroup(nameof(Groups.SayQuote))]
+		[LocalizedAlias(nameof(Aliases.SayQuote))]
 		[LocalizedSummary(nameof(Summaries.SayQuote))]
 		[Meta("70dd6bb8-789c-4d72-931d-c72cb58041f2")]
 		public sealed class SayQuote : AdvobotModuleBase

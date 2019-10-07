@@ -23,7 +23,8 @@ namespace Advobot.Settings.Commands
 	[Category(nameof(SelfRoles))]
 	public sealed class SelfRoles : ModuleBase
 	{
-		[Group(nameof(AssignSelfRole)), ModuleInitialismAlias(typeof(AssignSelfRole))]
+		[LocalizedGroup(nameof(Groups.AssignSelfRole))]
+		[LocalizedAlias(nameof(Aliases.AssignSelfRole))]
 		[LocalizedSummary(nameof(Summaries.AssignSelfRole))]
 		[Meta("6c574af7-31a7-4733-9f10-badfe1e72f4c")]
 		public sealed class AssignSelfRole : AdvobotModuleBase
@@ -51,7 +52,8 @@ namespace Advobot.Settings.Commands
 			}
 		}
 
-		[Group(nameof(DisplaySelfRoles)), ModuleInitialismAlias(typeof(DisplaySelfRoles))]
+		[LocalizedGroup(nameof(Groups.DisplaySelfRoles))]
+		[LocalizedAlias(nameof(Aliases.DisplaySelfRoles))]
 		[LocalizedSummary(nameof(Summaries.DisplaySelfRoles))]
 		[Meta("3e3487e0-691a-45fa-9974-9d345b5337b7")]
 		public sealed class DisplaySelfRoles : AdvobotModuleBase
@@ -65,7 +67,8 @@ namespace Advobot.Settings.Commands
 				=> Responses.SelfRoles.DisplayGroup(Context.Guild, group);
 		}
 
-		[Group(nameof(ModifySelfRoles)), ModuleInitialismAlias(typeof(ModifySelfRoles))]
+		[LocalizedGroup(nameof(Groups.ModifySelfRoles))]
+		[LocalizedAlias(nameof(Aliases.ModifySelfRoles))]
 		[LocalizedSummary(nameof(Summaries.ModifySelfRoles))]
 		[Meta("2cb8f177-dc52-404c-a7f4-a63c84d976ba")]
 		[RequireGuildPermissions]
@@ -73,7 +76,8 @@ namespace Advobot.Settings.Commands
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Add))]
+			[LocalizedAlias(nameof(Aliases.Add))]
 			public Task<RuntimeResult> Add(
 				SelfAssignableRoles group,
 				[CanModifyRole, NotEveryone, NotManaged] params IRole[] roles)
@@ -83,7 +87,8 @@ namespace Advobot.Settings.Commands
 			}
 
 			[SelfRoleGroupsLimit(QuantityLimitAction.Add)]
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Create))]
+			[LocalizedAlias(nameof(Aliases.Create))]
 			public Task<RuntimeResult> Create(
 				[SelfRoleGroup] int group)
 			{
@@ -92,14 +97,16 @@ namespace Advobot.Settings.Commands
 			}
 
 			[SelfRoleGroupsLimit(QuantityLimitAction.Remove)]
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Delete))]
+			[LocalizedAlias(nameof(Aliases.Delete))]
 			public Task<RuntimeResult> Delete(SelfAssignableRoles group)
 			{
 				Settings.SelfAssignableGroups.RemoveAll(x => x.Group == group.Group);
 				return Responses.SelfRoles.DeletedGroup(group);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			public Task<RuntimeResult> Remove(
 				SelfAssignableRoles group,
 				[CanModifyRole, NotEveryone, NotManaged] params IRole[] roles)

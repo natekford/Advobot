@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
@@ -187,10 +188,10 @@ namespace Advobot.Logging.Database
 		public Task UpdateServerLogChannelAsync(ulong guildId, ulong channelId)
 			=> UpdateLogChannelAsync(guildId, channelId, "ServerLogId");
 
-		protected override Task<int> ExecuteAsync(
+		protected override Task<int> BulkModify<TParams>(
 			IDbConnection connection,
 			string sql,
-			object @params,
+			IEnumerable<TParams> @params,
 			IDbTransaction transaction)
 			=> connection.ExecuteAsync(sql, @params, transaction);
 

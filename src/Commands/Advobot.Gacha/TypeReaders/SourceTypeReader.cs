@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -20,7 +19,7 @@ namespace Advobot.Gacha.TypeReaders
 		public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
 		{
 			var db = services.GetRequiredService<GachaDatabase>();
-			return TypeReaderUtils.FromSuccess(await db.GetSourceAsync(1).CAF());
+			return TypeReaderResult.FromSuccess(await db.GetSourceAsync(1).CAF());
 		}
 	}
 }

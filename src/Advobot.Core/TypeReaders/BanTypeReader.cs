@@ -36,7 +36,7 @@ namespace Advobot.TypeReaders
 				var ban = bans.FirstOrDefault(x => x.User.Id == id);
 				if (ban != null)
 				{
-					return TypeReaderUtils.FromSuccess(ban);
+					return TypeReaderResult.FromSuccess(ban);
 				}
 			}
 
@@ -46,7 +46,7 @@ namespace Advobot.TypeReaders
 				var ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == d && x.User.Username.CaseInsEquals(parts[0]));
 				if (ban != null)
 				{
-					return TypeReaderUtils.FromSuccess(ban);
+					return TypeReaderResult.FromSuccess(ban);
 				}
 			}
 

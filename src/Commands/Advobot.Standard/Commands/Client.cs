@@ -21,7 +21,7 @@ namespace Advobot.Standard.Commands
 	public sealed class Client : ModuleBase
 	{
 		[LocalizedGroup(nameof(Groups.DisconnectBot))]
-		[ModuleInitialismAlias(new[] { "runescapeservers" }, typeof(DisconnectBot))]
+		[LocalizedAlias(nameof(Aliases.DisconnectBot), nameof(Aliases.RunescapeServers))]
 		[LocalizedSummary(nameof(Summaries.DisconnectBot))]
 		[Meta("10f3bf15-0652-4bd7-a29f-630136d0164a", IsEnabled = true)]
 		[RequireBotOwner]
@@ -47,7 +47,8 @@ namespace Advobot.Standard.Commands
 				return Responses.Snowflakes.EnqueuedIcon(Context.Client.CurrentUser, position);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			public async Task<RuntimeResult> Remove()
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();

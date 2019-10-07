@@ -13,7 +13,7 @@ namespace Advobot.Settings.Responses
 			=> Success(Default.FormatInterpolated($"Successfully added a rule to the rule category {category}."));
 
 		public static AdvobotResult CreatedCategory(string category)
-					=> Success(Default.FormatInterpolated($"Successfully created the rule category {category}."));
+			=> Success(Default.FormatInterpolated($"Successfully created the rule category {category}."));
 
 		public static AdvobotResult DeletedCategory(string category)
 			=> Success(Default.FormatInterpolated($"Successfully deleted the rule category {category}."));
@@ -28,7 +28,7 @@ namespace Advobot.Settings.Responses
 			=> Failure(Default.FormatInterpolated($"{position} is an invalid position to remove at.")).WithTime(DefaultTime);
 
 		public static AdvobotResult ModifiedCategoryName(string category, string name)
-											=> Success(Default.FormatInterpolated($"Successfully changed the name of the rule category {category} to {name}."));
+			=> Success(Default.FormatInterpolated($"Successfully changed the name of the rule category {category} to {name}."));
 
 		public static AdvobotResult RemovedRule(string category, int position)
 			=> Success(Default.FormatInterpolated($"Successfully removed a rule at position #{position} in the rule category {category}."));

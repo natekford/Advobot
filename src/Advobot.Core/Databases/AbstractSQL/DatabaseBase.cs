@@ -18,12 +18,12 @@ namespace Advobot.Databases.AbstractSQL
 		public abstract Task<IReadOnlyList<string>> CreateDatabaseAsync();
 
 		protected Task<int> BulkModify<TParams>(string sql, IEnumerable<TParams> @params)
-			=> Starter.BulkModify<T>((cnn, tr) => ExecuteAsync(cnn, sql, @params, tr));
+			=> Starter.BulkModify<T>((cnn, tr) => BulkModify(cnn, sql, @params, tr));
 
-		protected abstract Task<int> ExecuteAsync(
+		protected abstract Task<int> BulkModify<TParams>(
 			IDbConnection connection,
 			string sql,
-			object @params,
+			IEnumerable<TParams> @params,
 			IDbTransaction transaction);
 
 		protected Task<T> GetConnectionAsync()

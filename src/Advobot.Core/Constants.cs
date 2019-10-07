@@ -45,7 +45,6 @@ namespace Advobot
 		/// </summary>
 		public const int SCHEMA_VERSION = 3;
 
-		//Regex for checking any awaits are non ConfigureAwait(false): ^(?!.*CAF\(\)).*await.*$
 		/// <summary>
 		/// The zero length character to put before every message.
 		/// </summary>

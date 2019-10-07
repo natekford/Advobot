@@ -34,46 +34,56 @@ namespace Advobot.Standard.Commands
 		public sealed class GetInfo : AdvobotModuleBase
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
-			public ILogCounterService Logging { get; set; }
+			public ILogCounterService Counters { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Bot))]
+			[LocalizedAlias(nameof(Aliases.Bot))]
 			public Task<RuntimeResult> Bot()
-				=> Responses.Gets.Bot(Context.Client, Logging);
+				=> Responses.Gets.Bot(Context.Client, Counters);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Shards))]
+			[LocalizedAlias(nameof(Aliases.Shards))]
 			public Task<RuntimeResult> Shards()
 				=> Responses.Gets.Shards(Context.Client);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Guild))]
+			[LocalizedAlias(nameof(Aliases.Guild))]
 			public Task<RuntimeResult> Guild()
 				=> Responses.Gets.Guild(Context.Guild);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.GuildUsers))]
+			[LocalizedAlias(nameof(Aliases.GuildUsers))]
 			public Task<RuntimeResult> GuildUsers()
 				=> Responses.Gets.AllGuildUsers(Context.Guild);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Channel))]
+			[LocalizedAlias(nameof(Aliases.Channel))]
 			public Task<RuntimeResult> Channel(IGuildChannel channel)
 				=> Responses.Gets.Channel(channel, Context.Settings);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Role))]
+			[LocalizedAlias(nameof(Aliases.Role))]
 			public Task<RuntimeResult> Role(IRole role)
 				=> Responses.Gets.Role(role);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.User))]
+			[LocalizedAlias(nameof(Aliases.User))]
 			public Task<RuntimeResult> User(IUser user)
 				=> Responses.Gets.User(user);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Emote))]
+			[LocalizedAlias(nameof(Aliases.Emote))]
 			public Task<RuntimeResult> Emote(Emote emote)
 				=> Responses.Gets.Emote(emote);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Invite))]
+			[LocalizedAlias(nameof(Aliases.Invite))]
 			public Task<RuntimeResult> Invite(IInviteMetadata invite)
 				=> Responses.Gets.Invite(invite);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Webhook))]
+			[LocalizedAlias(nameof(Aliases.Webhook))]
 			public Task<RuntimeResult> Webhook(IWebhook webhook)
 				=> Responses.Gets.Webhook(webhook);
 		}
@@ -198,11 +208,13 @@ namespace Advobot.Standard.Commands
 		[RequireGenericGuildPermissions]
 		public sealed class GetPermNamesFromValue : AdvobotModuleBase
 		{
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Guild))]
+			[LocalizedAlias(nameof(Aliases.Guild))]
 			public Task<RuntimeResult> Guild(ulong number)
 				=> Responses.Gets.ShowEnumNames<GuildPermission>(number);
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Channel))]
+			[LocalizedAlias(nameof(Aliases.Channel))]
 			public Task<RuntimeResult> Channel(ulong number)
 				=> Responses.Gets.ShowEnumNames<ChannelPermission>(number);
 		}

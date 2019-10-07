@@ -57,11 +57,11 @@ namespace Advobot.TypeReaders
 		{
 			if (TrueVals.Contains(input))
 			{
-				return TypeReaderUtils.FromSuccess(true).AsTask();
+				return TypeReaderResult.FromSuccess(true).AsTask();
 			}
 			else if (FalseVals.Contains(input))
 			{
-				return TypeReaderUtils.FromSuccess(false).AsTask();
+				return TypeReaderResult.FromSuccess(false).AsTask();
 			}
 			return TypeReaderUtils.ParseFailedResult<bool>().AsTask();
 		}

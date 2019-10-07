@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -21,7 +20,7 @@ namespace Advobot.Gacha.TypeReaders
 		{
 			var db = services.GetRequiredService<GachaDatabase>();
 			var id = int.Parse(input);
-			return TypeReaderUtils.FromSuccess(await db.GetCharacterAsync(id).CAF());
+			return TypeReaderResult.FromSuccess(await db.GetCharacterAsync(id).CAF());
 		}
 	}
 }

@@ -35,7 +35,7 @@ namespace Advobot.TypeReaders
 				var emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == temp.Id);
 				if (emote != null)
 				{
-					return TypeReaderUtils.FromSuccess(emote).AsTask();
+					return TypeReaderResult.FromSuccess(emote).AsTask();
 				}
 			}
 			if (ulong.TryParse(input, out var id))
@@ -43,7 +43,7 @@ namespace Advobot.TypeReaders
 				var emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == id);
 				if (emote != null)
 				{
-					return TypeReaderUtils.FromSuccess(emote).AsTask();
+					return TypeReaderResult.FromSuccess(emote).AsTask();
 				}
 			}
 

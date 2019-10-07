@@ -97,13 +97,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ModifyIgnoredLogChannels" xml:space="preserve">
+  <data name="ModifyIgnoredChannels" xml:space="preserve">
     <value>Ignores all logging info that would have been gotten from a channel.</value>
   </data>
   <data name="ModifyImageLog" xml:space="preserve">
     <value>Modifies which channel is designated as the image log.</value>
   </data>
-  <data name="ModifyLogActions" xml:space="preserve">
+  <data name="ModifyActions" xml:space="preserve">
     <value>The server log will send messages when these events happen.</value>
   </data>
   <data name="ModifyModLog" xml:space="preserve">

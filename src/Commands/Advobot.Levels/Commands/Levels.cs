@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Levels.Database;
+using Advobot.Levels.Localization;
+using Advobot.Levels.Resources;
 using Advobot.Levels.Utilities;
 
 using AdvorangesUtils;
@@ -14,12 +16,15 @@ using Discord.Commands;
 namespace Advobot.Levels.Commands
 {
 	[Category(nameof(Levels))]
+	[LocalizedGroup(nameof(Groups.Levels))]
+	[LocalizedAlias(nameof(Aliases.Levels))]
 	public sealed class Levels : ModuleBase
 	{
-		[Group(nameof(Level)), ModuleInitialismAlias(typeof(Level))]
+		[LocalizedGroup(nameof(Groups.Show))]
+		[LocalizedAlias(nameof(Aliases.Show))]
 		[Summary("temp")]
 		[Meta("bebda6ba-6fbf-4278-94e0-408dcdc77d3c", IsEnabled = true)]
-		public sealed class Level : LevelModuleBase
+		public sealed class Show : LevelModuleBase
 		{
 			[Command]
 			public Task<RuntimeResult> Command()
@@ -48,7 +53,8 @@ namespace Advobot.Levels.Commands
 			}
 		}
 
-		[Group(nameof(Top)), ModuleInitialismAlias(typeof(Top))]
+		[LocalizedGroup(nameof(Groups.Top))]
+		[LocalizedAlias(nameof(Aliases.Top))]
 		[Summary("temp")]
 		[Meta("649ec476-4043-48b0-9802-62a9288d007b", IsEnabled = true)]
 		public sealed class Top : LevelModuleBase

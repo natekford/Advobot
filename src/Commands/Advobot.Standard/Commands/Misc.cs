@@ -44,8 +44,7 @@ namespace Advobot.Standard.Commands
 				[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
 				[LocalizedName(nameof(Names.Command))]
 				IModuleHelpEntry helpEntry
-			)
-				=> Responses.Misc.Help(helpEntry, Context.Settings);
+			) => Responses.Misc.Help(helpEntry, Context.Settings);
 
 			[Command, Priority(2)]
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
@@ -57,8 +56,7 @@ namespace Advobot.Standard.Commands
 				[LocalizedName(nameof(Names.Position))]
 				[Positive]
 				int position
-			)
-				=> Responses.Misc.Help(helpEntry, position - 1);
+			) => Responses.Misc.Help(helpEntry, position - 1);
 
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Hidden]

@@ -87,11 +87,12 @@ namespace Advobot.Standard.Commands
 			public async Task<RuntimeResult> Command(
 				[CanModifyChannel(ManageChannels)] IVoiceChannel? channel)
 			{
-				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create<IVoiceChannel?>(channel), GenerateRequestOptions()).CAF();
+				await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), GenerateRequestOptions()).CAF();
 				return Responses.Guilds.ModifiedAfkChannel(channel);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			public Task<RuntimeResult> Remove()
 				=> Command(null);
 		}
@@ -141,7 +142,8 @@ namespace Advobot.Standard.Commands
 				return Responses.Snowflakes.EnqueuedIcon(Context.Guild, position);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			public async Task<RuntimeResult> Remove()
 			{
 				await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GenerateRequestOptions()).CAF();
@@ -193,7 +195,9 @@ namespace Advobot.Standard.Commands
 				return Responses.Guilds.ModifiedRegion(region);
 			}
 
-			[ImplicitCommand, ImplicitAlias, Priority(1)]
+			[LocalizedCommand(nameof(Groups.Show))]
+			[LocalizedAlias(nameof(Aliases.Show))]
+			[Priority(1)]
 			public async Task<RuntimeResult> Show()
 			{
 				var regions = await Context.Guild.GetVoiceRegionsAsync().CAF();
@@ -217,7 +221,8 @@ namespace Advobot.Standard.Commands
 				return Responses.Guilds.EnqueuedSplash(position);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			public async Task<RuntimeResult> Remove()
 			{
 				await Context.Guild.ModifyAsync(x => x.Splash = new Image(), GenerateRequestOptions()).CAF();
@@ -240,7 +245,8 @@ namespace Advobot.Standard.Commands
 				return Responses.Guilds.ModifiedSystemChannel(channel);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.MessageBoost))]
+			[LocalizedAlias(nameof(Aliases.MessageBoost))]
 			public async Task<RuntimeResult> MessageBoost(bool enable)
 			{
 				const SystemChannelMessageDeny FLAG = SystemChannelMessageDeny.GuildBoost;
@@ -248,7 +254,8 @@ namespace Advobot.Standard.Commands
 				return Responses.Guilds.ModifySystemMessageBoost(enable);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.MessageWelcome))]
+			[LocalizedAlias(nameof(Aliases.MessageWelcome))]
 			public async Task<RuntimeResult> MessageWelcome(bool enable)
 			{
 				const SystemChannelMessageDeny FLAG = SystemChannelMessageDeny.WelcomeMessage;
@@ -256,7 +263,8 @@ namespace Advobot.Standard.Commands
 				return Responses.Guilds.ModifySystemMessageWelcome(enable);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			public Task<RuntimeResult> Remove()
 				=> Command(null);
 		}

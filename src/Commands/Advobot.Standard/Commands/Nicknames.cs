@@ -57,10 +57,18 @@ namespace Advobot.Standard.Commands
 			public async Task<RuntimeResult> Command(
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
-				var amountChanged = await ProcessAsync(bypass,
+				var options = GenerateRequestOptions();
+				ProgressLogger = new MultiUserActionProgressLogger(
+					Context.Channel,
+					i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+					options
+				);
+				var amountChanged = await ProcessAsync(
+					bypass,
 					u => u.Nickname != null,
-					u => u.ModifyAsync(x => x.Nickname = u.Username, GenerateRequestOptions())).CAF();
+					(u, o) => u.ModifyAsync(x => x.Nickname = u.Username, o),
+					options
+				).CAF();
 				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
 		}
@@ -78,10 +86,18 @@ namespace Advobot.Standard.Commands
 				[Nickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
-				var amountChanged = await ProcessAsync(bypass,
+				var options = GenerateRequestOptions();
+				ProgressLogger = new MultiUserActionProgressLogger(
+					Context.Channel,
+					i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+					options
+				);
+				var amountChanged = await ProcessAsync(
+					bypass,
 					u => (u.Nickname?.AllCharsWithinLimit(upperLimit) == false) || (u.Nickname == null && !u.Username.AllCharsWithinLimit(upperLimit)),
-					u => u.ModifyAsync(x => x.Nickname = replace, GenerateRequestOptions())).CAF();
+					(u, o) => u.ModifyAsync(x => x.Nickname = replace, o),
+					options
+				).CAF();
 				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
 		}
@@ -99,10 +115,18 @@ namespace Advobot.Standard.Commands
 				[Nickname] string replace,
 				[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				ProgressLogger = new MultiUserActionProgressLogger(Context.Channel, i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason, GenerateRequestOptions());
-				var amountChanged = await ProcessAsync(bypass,
+				var options = GenerateRequestOptions();
+				ProgressLogger = new MultiUserActionProgressLogger(
+					Context.Channel,
+					i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+					options
+				);
+				var amountChanged = await ProcessAsync(
+					bypass,
 					u => (u.Nickname?.CaseInsContains(search) == true) || (u.Nickname == null && u.Username.CaseInsContains(search)),
-					u => u.ModifyAsync(x => x.Nickname = replace, GenerateRequestOptions())).CAF();
+					(u, o) => u.ModifyAsync(x => x.Nickname = replace, o),
+					options
+				).CAF();
 				return Responses.Users.MultiUserActionSuccess(amountChanged);
 			}
 		}

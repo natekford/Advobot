@@ -20,7 +20,8 @@ namespace Advobot.Settings.Commands
 	[Category(nameof(BannedPhrases))]
 	public sealed class BannedPhrases : ModuleBase
 	{
-		[Group(nameof(ModifyBannedNames)), ModuleInitialismAlias(typeof(ModifyBannedNames))]
+		[LocalizedGroup(nameof(Groups.ModifyBannedNames))]
+		[LocalizedAlias(nameof(Aliases.ModifyBannedNames))]
 		[LocalizedSummary(nameof(Summaries.ModifyBannedNames))]
 		[Meta("c19c7402-4206-48ce-b109-ab11da476ac2")]
 		[RequireGuildPermissions]
@@ -29,7 +30,8 @@ namespace Advobot.Settings.Commands
 			protected override IGuildSettings Settings => Context.Settings;
 		}
 
-		[Group(nameof(ModifyBannedPhrasePunishments)), ModuleInitialismAlias(typeof(ModifyBannedPhrasePunishments))]
+		[LocalizedGroup(nameof(Groups.ModifyBannedPhrasePunishments))]
+		[LocalizedAlias(nameof(Aliases.ModifyBannedPhrasePunishments))]
 		[LocalizedSummary(nameof(Summaries.ModifyBannedPhrasePunishments))]
 		[Meta("4b4584ae-2b60-4aff-92a1-fb2c929f3daf")]
 		[RequireGuildPermissions]
@@ -38,7 +40,8 @@ namespace Advobot.Settings.Commands
 			protected override IGuildSettings Settings => Context.Settings;
 		}
 
-		[Group(nameof(ModifyBannedRegex)), ModuleInitialismAlias(typeof(ModifyBannedRegex))]
+		[LocalizedGroup(nameof(Groups.ModifyBannedRegex))]
+		[LocalizedAlias(nameof(Aliases.ModifyBannedRegex))]
 		[LocalizedSummary(nameof(Summaries.ModifyBannedRegex))]
 		[Meta("3438fb1e-e78b-44d2-960f-f19c73113879")]
 		[RequireGuildPermissions]
@@ -46,7 +49,8 @@ namespace Advobot.Settings.Commands
 		{
 			protected override IGuildSettings Settings => Context.Settings;
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Add))]
+			[LocalizedAlias(nameof(Aliases.Add))]
 			[BannedRegexLimit(QuantityLimitAction.Add)]
 			public Task<RuntimeResult> Add(
 				[Regex, NotAlreadyBannedRegex] string regex,
@@ -57,7 +61,8 @@ namespace Advobot.Settings.Commands
 				return Responses.BannedPhrases.Modified("regex", true, phrase);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.ChangePunishment))]
+			[LocalizedAlias(nameof(Aliases.ChangePunishment))]
 			public Task<RuntimeResult> ChangePunishment(
 				[OverrideTypeReader(typeof(BannedRegexTypeReader))] BannedPhrase regex,
 				Punishment punishment)
@@ -66,7 +71,8 @@ namespace Advobot.Settings.Commands
 				return Responses.BannedPhrases.ChangePunishment("regex", regex, punishment);
 			}
 
-			[ImplicitCommand, ImplicitAlias]
+			[LocalizedCommand(nameof(Groups.Remove))]
+			[LocalizedAlias(nameof(Aliases.Remove))]
 			[BannedRegexLimit(QuantityLimitAction.Remove)]
 			public Task<RuntimeResult> Remove(
 				[OverrideTypeReader(typeof(BannedRegexTypeReader))] BannedPhrase regex)
@@ -76,7 +82,8 @@ namespace Advobot.Settings.Commands
 			}
 		}
 
-		[Group(nameof(ModifyBannedStrings)), ModuleInitialismAlias(typeof(ModifyBannedStrings))]
+		[LocalizedGroup(nameof(Groups.ModifyBannedStrings))]
+		[LocalizedAlias(nameof(Aliases.ModifyBannedStrings))]
 		[LocalizedSummary(nameof(Summaries.ModifyBannedStrings))]
 		[Meta("6e494bca-519e-41ce-998a-f71f0677dfb0")]
 		[RequireGuildPermissions]
@@ -106,7 +113,7 @@ namespace Advobot.Settings.Commands
 			};
 			await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
 		}
-		[Group(nameof(Add)), ShortAlias(nameof(Add))]
+		[LocalizedGroup(nameof(Groups.Add)), ShortAlias(nameof(Add))]
 		public sealed class Add : AdvobotModuleBase
 		{
 			[Command]
