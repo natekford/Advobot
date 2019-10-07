@@ -134,7 +134,7 @@ namespace Advobot.Standard.Responses
 			}).Join("\n").WithBlock().Value;
 			info.CreateCollection().Add(MiscTitleCommands, commands);
 
-			return Success(CreateHelpEmbed(module.Name, info.ToString()));
+			return Success(CreateHelpEmbed(module.Aliases[0], info.ToString()));
 		}
 
 		public static AdvobotResult Help(
@@ -157,7 +157,7 @@ namespace Advobot.Standard.Responses
 			var description = info.CreateCollection();
 			description.Add(MiscTitleDescription, command.Summary);
 
-			var embed = CreateHelpEmbed(module.Name, info.ToString());
+			var embed = CreateHelpEmbed(module.Aliases[0], info.ToString());
 			foreach (var parameter in command.Parameters)
 			{
 				var paramInfo = new InformationMatrix();

@@ -33,6 +33,7 @@ namespace Advobot.Modules
 		/// <param name="bypass"></param>
 		/// <param name="predicate"></param>
 		/// <param name="update"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
 		protected Task<int> ProcessAsync(
 			bool bypass,
@@ -51,6 +52,7 @@ namespace Advobot.Modules
 		/// <param name="bypass"></param>
 		/// <param name="predicate"></param>
 		/// <param name="update"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
 		protected Task<int> ProcessAsync(
 			IEnumerable<IGuildUser> users,

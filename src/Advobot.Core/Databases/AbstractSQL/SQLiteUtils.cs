@@ -14,6 +14,13 @@ namespace Advobot.Databases.AbstractSQL
 	/// </summary>
 	public static class SQLiteUtils
 	{
+		/// <summary>
+		/// Executes a SQL statement in bulk.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="starter"></param>
+		/// <param name="query"></param>
+		/// <returns></returns>
 		public static async Task<int> BulkModify<T>(
 			this IDatabaseStarter starter,
 			Func<IDbConnection, IDbTransaction, Task<int>> query)
