@@ -58,7 +58,7 @@ namespace Advobot.Utilities
 			var overwrites = channel.GetOverwrites(id);
 			foreach (var overwrite in overwrites)
 			{
-				var obj = await overwrite.GetEntityAsync(channel.Guild).CAF();
+				var obj = await channel.Guild.GetEntityAsync(overwrite).CAF();
 				await (obj switch
 				{
 					IRole r => channel.RemovePermissionOverwriteAsync(r, options),
@@ -91,11 +91,26 @@ namespace Advobot.Utilities
 			var overwrites = input.GetOverwrites(id);
 			foreach (var overwrite in overwrites)
 			{
-				var entity = await overwrite.GetEntityAsync(input.Guild).CAF();
+				var entity = await input.Guild.GetEntityAsync(overwrite).CAF();
 				await AddPermissionOverwriteAsync(output, entity, overwrite.Permissions, options).CAF();
 			}
 			return overwrites;
 		}
+
+		/// <summary>
+		/// Gets the item associated with <paramref name="overwrite"/>.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="overwrite"></param>
+		/// <returns></returns>
+		public static async Task<ISnowflakeEntity> GetEntityAsync(
+			this IGuild guild,
+			Overwrite overwrite) => overwrite.TargetType switch
+			{
+				PermissionTarget.Role => guild.GetRole(overwrite.TargetId),
+				PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).CAF(),
+				_ => throw new ArgumentOutOfRangeException(nameof(overwrite.TargetType)),
+			};
 
 		/// <summary>
 		/// Returns either all of the overwrites if the id is null, otherwise returns the overwrites where the ids match.
@@ -217,18 +232,9 @@ namespace Advobot.Utilities
 			RequestOptions options)
 		{
 			var newPerms = updatePerms(overwrite.Permissions);
-			var entity = await overwrite.GetEntityAsync(channel.Guild).CAF();
+			var entity = await channel.Guild.GetEntityAsync(overwrite).CAF();
 			await channel.AddPermissionOverwriteAsync(entity, newPerms, options).CAF();
 		}
-
-		private static async Task<ISnowflakeEntity> GetEntityAsync(
-			this Overwrite overwrite,
-			IGuild guild) => overwrite.TargetType switch
-			{
-				PermissionTarget.Role => (ISnowflakeEntity)guild.GetRole(overwrite.TargetId),
-				PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).CAF(),
-				_ => throw new ArgumentOutOfRangeException(nameof(overwrite.TargetType)),
-			};
 
 		private static IReadOnlyList<ChannelPermission> GetPermissions(IGuildChannel channel) => channel switch
 		{

@@ -146,7 +146,9 @@ namespace Advobot.Standard.Commands
 
 			[Command]
 			public Task<RuntimeResult> Command(
-				[CanModifyChannel(ManageChannels | ManageRoles)] IGuildChannel channel)
+				[CanModifyChannel(ManageChannels | ManageRoles)]
+				IGuildChannel channel
+			)
 			{
 				var roles = channel.PermissionOverwrites
 					.Where(x => x.TargetType == PermissionTarget.Role)
@@ -159,19 +161,19 @@ namespace Advobot.Standard.Commands
 
 			[Command]
 			public Task<RuntimeResult> Command(
-				[CanModifyChannel(ManageChannels | ManageRoles)] IGuildChannel channel,
-				IRole role)
-				=> FormatOverwrite(channel, role);
+				[CanModifyChannel(ManageChannels | ManageRoles)]
+				IGuildChannel channel,
+				IRole role
+			) => FormatOverwrite(channel, role);
 
 			[Command]
 			public Task<RuntimeResult> Command(
-				[CanModifyChannel(ManageChannels | ManageRoles)] IGuildChannel channel,
-				IGuildUser user)
-				=> FormatOverwrite(channel, user);
-
-			private Task<RuntimeResult> FormatOverwrite(
+				[CanModifyChannel(ManageChannels | ManageRoles)]
 				IGuildChannel channel,
-				ISnowflakeEntity obj)
+				IGuildUser user
+			) => FormatOverwrite(channel, user);
+
+			private Task<RuntimeResult> FormatOverwrite(IGuildChannel channel, ISnowflakeEntity obj)
 			{
 				if (!channel.PermissionOverwrites.TryGetSingle(x => x.TargetId == obj.Id, out var overwrite))
 				{

@@ -119,13 +119,14 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static string Format(this IMessage msg, bool withMentions)
 		{
-			var text = string.IsNullOrEmpty(msg.Content) ? "Empty message content" : msg.Content;
 			var time = msg.CreatedAt.ToString("HH:mm:ss");
-			var header = withMentions
-				? $"`[{time}]` {((ITextChannel)msg.Channel).Mention} {msg.Author.Mention} `{msg.Id}`"
-				: $"`[{time}]` `{msg.Channel.Format()}` `{msg.Author.Format()}` `{msg.Id}`";
+			var channel = withMentions ? ((IMentionable)msg.Channel).Mention : $"`{msg.Channel.Format()}`";
+			var author = withMentions ? msg.Author.Mention : $"`{msg.Author.Format()}`";
+			var text = string.IsNullOrWhiteSpace(msg.Content)
+				? "Empty message content"
+				: msg.Content.EscapeBackTicks();
 
-			var sb = new StringBuilder($"{header}\n```\n{text.EscapeBackTicks()}");
+			var sb = new StringBuilder($"`[{time}]` {channel} {author} `{msg.Id}`\n```\n{text}");
 
 			var currentEmbed = 1;
 			foreach (var embed in msg.Embeds)
@@ -135,7 +136,8 @@ namespace Advobot.Utilities
 					continue;
 				}
 
-				sb.Append($"Embed {currentEmbed}: {embed.Description ?? "No description"}".EscapeBackTicks());
+				var description = embed.Description?.EscapeBackTicks() ?? "No description";
+				sb.Append("Embed ").Append(currentEmbed).Append(": ").Append(description);
 				if (embed.Url != null)
 				{
 					sb.Append(" URL: ").Append(embed.Url);
@@ -147,10 +149,11 @@ namespace Advobot.Utilities
 				sb.AppendLineFeed();
 				++currentEmbed;
 			}
-			var attachments = msg.Attachments.Select(x => x.Filename).ToArray();
-			if (attachments.Length > 0)
+
+			var attachments = msg.Attachments.Join(x => x.Filename, " + ");
+			if (!string.IsNullOrWhiteSpace(attachments))
 			{
-				sb.AppendLineFeed($" + {string.Join(" + ", attachments).EscapeBackTicks()}");
+				sb.AppendLineFeed($" + {attachments.EscapeBackTicks()}");
 			}
 			return sb.Append("```").ToString();
 		}
@@ -277,6 +280,7 @@ namespace Advobot.Utilities
 				{
 					PermValue.Allow => Constants.ALLOWED,
 					PermValue.Deny => Constants.DENIED,
+					PermValue.Inherit => Constants.INHERITED,
 					_ => throw new ArgumentOutOfRangeException(nameof(kvp.Value)),
 				};
 				padLength = Math.Max(padLength, name.Length);

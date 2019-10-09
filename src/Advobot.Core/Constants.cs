@@ -31,6 +31,11 @@ namespace Advobot
 		public const string DISCORD_INV = "https://discord.gg/MBXypxb";
 
 		/// <summary>
+		/// The emoji to use for an inherited permission. ➖
+		/// </summary>
+		public const string INHERITED = "\u2796";
+
+		/// <summary>
 		/// Placeholder prefix for easy replacement.
 		/// </summary>
 		public const string PREFIX = "%PREFIX%";
